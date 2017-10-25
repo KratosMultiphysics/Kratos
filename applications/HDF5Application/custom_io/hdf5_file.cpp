@@ -318,34 +318,34 @@ hid_t HDF5File::GetFileId() const
     return m_file_id;
 }
 
-void SetFileDriver(const std::string& rDriver, hid_t FileAccessPropertyListId) const
+void HDF5File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
 {
     KRATOS_TRY;
 #if (defined(_WIN32) || defined(_WIN64))
     KRATOS_ERROR_IF(rDriver != "windows")
         << "Unsupported (Windows) \"file_driver\": " << rDriver << std::endl;
-    KRATOS_ERROR_IF(H5Pset_fapl_windows(fapl_id) < 0)
+    KRATOS_ERROR_IF(H5Pset_fapl_windows(FaplId) < 0)
         << "H5Pset_fapl_windows failed." << std::endl;
 #else
     if (rDriver == "sec2")
     {
-        KRATOS_ERROR_IF(H5Pset_fapl_sec2(fapl_id) < 0)
+        KRATOS_ERROR_IF(H5Pset_fapl_sec2(FaplId) < 0)
             << "H5Pset_fapl_sec2 failed." << std::endl;
     }
     else if (rDriver == "stdio")
     {
-        KRATOS_ERROR_IF(H5Pset_fapl_stdio(fapl_id) < 0)
+        KRATOS_ERROR_IF(H5Pset_fapl_stdio(FaplId) < 0)
             << "H5Pset_fapl_stdio failed." << std::endl;
     }
     else if (rDriver == "core")
     {
-        KRATOS_ERROR_IF(H5Pset_fapl_core(fapl_id, 1000000, 0) < 0)
+        KRATOS_ERROR_IF(H5Pset_fapl_core(FaplId, 1000000, 0) < 0)
             << "H5Pset_fapl_core failed." << std::endl;
     }
     else if (rDriver == "mpio")
     {
 #if defined(KRATOS_USING_MPI)
-        KRATOS_ERROR_IF(H5Pset_fapl_mpio(fapl_id, MPI_COMM_WORLD, MPI_INFO_NULL) < 0)
+        KRATOS_ERROR_IF(H5Pset_fapl_mpio(FaplId, MPI_COMM_WORLD, MPI_INFO_NULL) < 0)
             << "H5Pset_fapl_mpio failed." << std::endl;
 #else
         KRATOS_ERROR

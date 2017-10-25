@@ -160,7 +160,7 @@ private:
                           "Unsupported data type.");
 
         // Create and write the data set.
-        hit_t file_id = GetFileId();
+        hid_t file_id = GetFileId();
         hid_t fspace_id = H5Screate_simple(ndims, global_dims, nullptr);
         // H5Dcreate() must be called collectively for both collective and
         // independent write.
@@ -252,7 +252,7 @@ private:
             static_assert(is_int_type || is_double_type || is_array_1d_type,
                           "Unsupported data type.");
 
-        hit_t file_id = GetFileId();        
+        hid_t file_id = GetFileId();        
         hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
         if (Mode == DataTransferMode::collective)
             H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
