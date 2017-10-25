@@ -18,10 +18,10 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "utilities/qr_utility.h"
 #include "includes/ublas_interface.h"
 #include "convergence_accelerator.hpp"
 
-#include "../FSIapplication/custom_utilities/qr_utility.h"            //QR decomposition utility used in matrix inversion.
 
 namespace Kratos
 {
