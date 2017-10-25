@@ -159,7 +159,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         strategy.InitializeSolutionStep()
         strategy.Predict()
         strategy.SolveSolutionStep()
-        strategy.GetDirectSystemMatrix(lhs)
+        lhs = strategy.GetSystemMatrix()
         strategy.FinalizeSolutionStep()
     
     def _check_results(self,mp,A,b):
