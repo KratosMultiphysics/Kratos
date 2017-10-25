@@ -298,7 +298,7 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
-			const GeometryType & geom = GetGeometry();
+		const GeometryType & geom = GetGeometry();
 		const Matrix & shapeFunctionsValues =
 			geom.ShapeFunctionsValues(GetIntegrationMethod());
 
@@ -320,7 +320,7 @@ namespace Kratos
 
 		for (SizeType i = 0; i < geom.size(); i++)
 		{
-			int index = i * 6;
+			const int index = i * 6;
 			NodeType & iNode = geom[i];
 
 			rResult[index] = iNode.GetDof(DISPLACEMENT_X).EquationId();
@@ -359,7 +359,7 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
-			GeometryType& geom = GetGeometry();
+		GeometryType& geom = GetGeometry();
 
 		// verify that the variables are correctly initialized
 		if (DISPLACEMENT.Key() == 0)
@@ -616,7 +616,7 @@ namespace Kratos
 
 	void ShellThickElement3D3N::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 	{
-		PropertiesType& props = GetProperties();
+		const PropertiesType& props = GetProperties();
 		const GeometryType & geom = GetGeometry();
 		const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
@@ -872,7 +872,7 @@ namespace Kratos
 			noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
 
 			// Get all laminae strengths
-			PropertiesType & props = GetProperties();
+			const PropertiesType & props = GetProperties();
 			ShellCrossSection::Pointer & section = mSections[0];
 			std::vector<Matrix> Laminae_Strengths =
 				std::vector<Matrix>(section->NumberOfPlies());
@@ -2715,7 +2715,7 @@ namespace Kratos
 						Laminae_Strengths[ply].resize(3, 3, 0.0);
 						Laminae_Strengths[ply].clear();
 					}
-					PropertiesType & props = GetProperties();
+					const PropertiesType & props = GetProperties();
 					section->GetLaminaeStrengths(Laminae_Strengths, props);
 					Vector ply_orientation(section->NumberOfPlies());
 					section->GetLaminaeOrientation(ply_orientation);

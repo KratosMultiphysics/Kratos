@@ -900,8 +900,8 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 		// Von mises calcs
 
 		// Get some references.
-		PropertiesType & props = GetProperties();
-		GeometryType & geom = GetGeometry();
+		const PropertiesType & props = GetProperties();
+		const GeometryType & geom = GetGeometry();
 		const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
 		Vector iN(shapeFunctions.size2());
 
@@ -1011,8 +1011,8 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 			rValues.resize(size);
 
 		// Get some references.
-		PropertiesType & props = GetProperties();
-		GeometryType & geom = GetGeometry();
+		const PropertiesType & props = GetProperties();
+		const GeometryType & geom = GetGeometry();
 		const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
 		Vector iN(shapeFunctions.size2());
 
@@ -1867,8 +1867,8 @@ void ShellThickElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
 
     // Get some references.
 
-    PropertiesType & props = GetProperties();
-    GeometryType & geom = GetGeometry();
+    const PropertiesType & props = GetProperties();
+    const GeometryType & geom = GetGeometry();
     const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
     Vector iN(shapeFunctions.size2());
 
@@ -2157,8 +2157,8 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
 
     // Get some references.
 
-    PropertiesType & props = GetProperties();
-    GeometryType & geom = GetGeometry();
+    const PropertiesType & props = GetProperties();
+    const GeometryType & geom = GetGeometry();
     const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
     Vector iN(shapeFunctions.size2());
 

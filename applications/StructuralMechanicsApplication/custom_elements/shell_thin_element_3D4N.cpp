@@ -366,7 +366,7 @@ namespace Kratos
 
 		for (SizeType i = 0; i < geom.size(); i++)
 		{
-			int index = i * 6;
+			const int index = i * 6;
 			NodeType & iNode = geom[i];
 
 			rResult[index] = iNode.GetDof(DISPLACEMENT_X).EquationId();
@@ -405,7 +405,7 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
-			GeometryType& geom = GetGeometry();
+		GeometryType& geom = GetGeometry();
 
 		// verify that the variables are correctly initialized
 		if (DISPLACEMENT.Key() == 0)
@@ -641,7 +641,7 @@ namespace Kratos
 	void ShellThinElement3D4N::InitializeSolutionStep
 	(ProcessInfo& CurrentProcessInfo)
 	{
-		PropertiesType& props = GetProperties();
+		const PropertiesType& props = GetProperties();
 		const GeometryType & geom = GetGeometry();
 		const Matrix & shapeFunctionsValues =
 			geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -689,7 +689,7 @@ namespace Kratos
 		if (bconsistent_matrix)
 		{
 			// Get shape function values and setup jacobian
-			GeometryType & geom = GetGeometry();
+			const GeometryType & geom = GetGeometry();
 			const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
 			JacobianOperator jacOp;
 
@@ -1008,7 +1008,7 @@ namespace Kratos
 
 
 			// Get all laminae strengths
-			PropertiesType & props = GetProperties();
+			const PropertiesType & props = GetProperties();
 			ShellCrossSection::Pointer & section = mSections[0];
 			std::vector<Matrix> Laminae_Strengths = 
 								std::vector<Matrix>(section->NumberOfPlies());
@@ -1749,7 +1749,7 @@ namespace Kratos
 		data.r_cartesian[3] = data.LCS0.P4();
 
 		//Precalculate dA to be multiplied with material matrix
-		GeometryType & geom = GetGeometry();
+		const GeometryType & geom = GetGeometry();
 		const GeometryType::IntegrationPointsArrayType& integration_points =
 			geom.IntegrationPoints(mThisIntegrationMethod);
 		data.dA.clear();
@@ -2343,7 +2343,7 @@ namespace Kratos
 	{
 		//---------------------------------------------
 		// geom data
-		GeometryType & geom = GetGeometry();
+		const GeometryType & geom = GetGeometry();
 
 		//---------------------------------------------
 		// set to zero the total B matrix
@@ -2577,7 +2577,7 @@ namespace Kratos
 
 	void ShellThinElement3D4N::CalculateSectionResponse(CalculationData& data)
 	{
-		GeometryType & geom = GetGeometry();
+		const GeometryType & geom = GetGeometry();
 		const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
 		Vector iN(shapeFunctions.size2());
 		noalias(iN) = row(shapeFunctions, data.gpIndex);
@@ -3014,7 +3014,7 @@ namespace Kratos
 						Laminae_Strengths[ply].resize(3, 3, 0.0);
 						Laminae_Strengths[ply].clear();
 					}
-					PropertiesType & props = GetProperties();
+					const PropertiesType & props = GetProperties();
 					section->GetLaminaeStrengths(Laminae_Strengths, props);
 					Vector ply_orientation(section->NumberOfPlies());
 					section->GetLaminaeOrientation(ply_orientation);

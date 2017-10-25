@@ -278,7 +278,7 @@ void ShellThinElement3D3N::EquationIdVector(EquationIdVectorType& rResult, Proce
 
     for(SizeType i = 0; i < geom.size(); i++)
     {
-        int index = i * 6;
+        const int index = i * 6;
         NodeType & iNode = geom[i];
 
         rResult[index]     = iNode.GetDof(DISPLACEMENT_X).EquationId();
@@ -660,7 +660,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
 		InitializeCalculationData(data);
 
 		// Get all laminae strengths
-		PropertiesType & props = GetProperties();
+		const PropertiesType & props = GetProperties();
 		ShellCrossSection::Pointer & section = mSections[0];
 		std::vector<Matrix> Laminae_Strengths =
 			std::vector<Matrix>(section->NumberOfPlies());

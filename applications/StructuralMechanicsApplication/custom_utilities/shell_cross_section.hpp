@@ -1320,7 +1320,7 @@ public:
     /**
     * Get strengths of laminae
     */
-    void GetLaminaeStrengths(std::vector<Matrix>& rLamina_Strengths, Properties& rProps);
+    void GetLaminaeStrengths(std::vector<Matrix>& rLamina_Strengths, const Properties& rProps);
     ///@}
 
 private:
