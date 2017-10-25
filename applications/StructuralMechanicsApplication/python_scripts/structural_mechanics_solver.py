@@ -447,6 +447,7 @@ class MechanicalSolver(object):
             mechanical_solver = self._create_linear_strategy()
         elif analysis_type == "non_linear":
             mechanical_solver = self._create_newton_raphson_strategy()
+        elif 
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""

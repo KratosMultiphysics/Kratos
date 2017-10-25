@@ -77,5 +77,11 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             raise Exception(err_msg)
         return mechanical_scheme
 
+    def _create_mechanical_solver(self):
+
+    mechanical_solver = self._create_explicit_strategy()  
+    mechanical_solver.SetRebuildLevel(0) # 1 to recompute the mass matrix in each explicit step  
+    return mechanical_solver
+
 
    

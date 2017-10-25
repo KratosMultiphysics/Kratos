@@ -31,6 +31,7 @@
 #include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
+#include "custom_strategies/custom_strategies/explicit_strategy.hpp" 
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -80,6 +81,8 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
     typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
+    typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
+
 
     // Custom scheme types
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
@@ -122,6 +125,15 @@ void  AddCustomStrategiesToPython()
         .def("GetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::GetInitializePerformedFlag)
         ;
 
+    class_< ExplicitStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
+        (
+        "ExplicitStrategy",
+        init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool >())
+
+        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
+        .def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
+        .def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag)
+        ;
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
     //********************************************************************
