@@ -5,6 +5,7 @@ message("**** configuring KratosStructuralMechanicsApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/ShapeOptimizationApplication ) #added by MFusseder
 
 ## generate variables with the sources
 set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
@@ -31,16 +32,14 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_orthotropic_2D_law.cpp
 
-  
   ## ELEMENTS
   #Adding truss element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_3D2N.cpp
    
   # Adding the beam element
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_3D2N.cpp
-  #fusseder TODO: move this element to other application
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_3D2N_for_SA.cpp
+
+
 
   # Adding shells and membranes elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
@@ -50,6 +49,10 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D3N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/prestress_membrane_element.cpp
+
+  # Adding elements for adjoint sensitivity analysis
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/shell_thin_adjoint_element_3D3N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/cr_beam_adjoint_element_3D2N.cpp
 
   # Solid elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
@@ -75,11 +78,13 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/base_load_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_load_condition.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_condition_2d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_line_load_condition_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition_3d.cpp
-  #fusseder TODO: move this element to other application
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_condition_for_SA.cpp
+ 
+  # Adding conditions for adjoint sensitivity analysis
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_conditions/point_load_adjoint_condition.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_conditions/surface_load_adjoint_condition_3d.cpp
 )
 
 ###############################################################

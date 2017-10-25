@@ -38,6 +38,8 @@
 // Variables
 #include "includes/variables.h"
 
+#include "custom_utilities/finite_differences_utilities.h" //MFusseder
+
 // ==============================================================================
 
 namespace Kratos
@@ -78,15 +80,23 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(Vector,DKDXU_X);
     KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Y);
     KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Z);
-
-	KRATOS_DEFINE_VARIABLE(double, CROSS_AREA); //fusseder
-
-	KRATOS_DEFINE_VARIABLE(double, STRESS_VALUE); //fusseder
-	KRATOS_DEFINE_VARIABLE(int, LOCATION_OF_TRACED_STRESS); //fusseder
-	KRATOS_DEFINE_VARIABLE(std::string, TRACED_STRESS_TYPE); //fusseder
-	KRATOS_DEFINE_VARIABLE(Vector, ADJOINT_LOAD); //fusseder
-	KRATOS_DEFINE_VARIABLE(Vector, ZERO_ADJOINT_LOAD); //fusseder
-	KRATOS_DEFINE_VARIABLE(std::string, STRESS_TREATMENT); //fusseder
+	// Variables for output of sensitivities
+	KRATOS_DEFINE_VARIABLE(double, CROSS_AREA_SENSITIVITY );
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD_SENSITIVITY );
+    KRATOS_DEFINE_VARIABLE(double, IY_SENSITIVITY );
+    KRATOS_DEFINE_VARIABLE(double, IZ_SENSITIVITY );
+    KRATOS_DEFINE_VARIABLE(double, THICKNESS_SENSITIVITY );
+    KRATOS_DEFINE_VARIABLE(double, YOUNG_MODULUS_SENSITIVITY );
+	// Variables to for computing parts of sensitivity analysis
+	KRATOS_DEFINE_VARIABLE(std::string, TRACED_STRESS_TYPE); 
+	KRATOS_DEFINE_VARIABLE(Matrix, STRESS_DISP_DERIV_ON_NODE); 
+	KRATOS_DEFINE_VARIABLE(Matrix, STRESS_DISP_DERIV_ON_GP); 
+	KRATOS_DEFINE_VARIABLE(Matrix, STRESS_DV_DERIV_ON_NODE); 
+	KRATOS_DEFINE_VARIABLE(Matrix, STRESS_DV_DERIV_ON_GP); 
+	KRATOS_DEFINE_VARIABLE(Vector, STRESS_ON_GP ); 
+	KRATOS_DEFINE_VARIABLE(Vector, STRESS_ON_NODE ); 
+	KRATOS_DEFINE_VARIABLE(std::string, DESIGN_VARIABLE_NAME); 
+	KRATOS_DEFINE_VARIABLE( FiniteDifferencesUtilities::Pointer, FINITE_DIFFERENCE_INFORMATION );
 	
 
 

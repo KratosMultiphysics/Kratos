@@ -84,7 +84,11 @@ def Run():
                 if sys.version_info >= (3, 0):
                     path_py = os.getcwd()
                     path_py += '/../../python_scripts'       
+<<<<<<< HEAD
+                    subprocess.check_call(["python3", path_py + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+=======
                     subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+>>>>>>> master
                     
                 else:
                     path_py = os.getcwd()
@@ -113,7 +117,11 @@ def Run():
             
     print('\n')
     f.close()
+<<<<<<< HEAD
+    os.remove("BenchTemp.info")
+=======
     #os.remove("BenchTemp.info")
+>>>>>>> master
     
     g = open("errors.err", 'a')
     g.write("\n---------------------------------------------------------------------\n")

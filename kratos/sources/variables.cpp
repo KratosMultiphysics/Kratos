@@ -31,7 +31,6 @@
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
-#include "geometries/line_gl_3d_2.h"
 #include "geometries/line_3d_3.h"
 #include "geometries/point.h"
 #include "geometries/point_2d.h"
@@ -211,11 +210,9 @@ namespace Kratos
   //Adjoint Sensitivity Analysis for Structural Mechanics (fusseder)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_DISPLACEMENT )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_ROTATION )
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD_SENSITIVITY )
-  KRATOS_CREATE_VARIABLE(double, IY_SENSITIVITY )
-  KRATOS_CREATE_VARIABLE(double, IZ_SENSITIVITY )
-
-
+  KRATOS_CREATE_VARIABLE(double, DISTURBANCE_MEASURE )
+  
+  
   //for Electric application
     
   // For MeshingApplication
@@ -867,11 +864,9 @@ namespace Kratos
       //--------------- Adjoint Sensitivity Analysis for Structural Mechanics -------------------//
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_DISPLACEMENT )
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_ROTATION )
-      KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD_SENSITIVITY )
-      KRATOS_REGISTER_VARIABLE( IY_SENSITIVITY )
-      KRATOS_REGISTER_VARIABLE( IZ_SENSITIVITY )
-
-
+      KRATOS_REGISTER_VARIABLE( DISTURBANCE_MEASURE )
+       
+      
       //--------------- Meshing ApplicationApplication -------------------//
       
       KRATOS_REGISTER_VARIABLE( NODAL_ERROR )
@@ -1136,7 +1131,7 @@ namespace Kratos
       //Register general geometries:
 
       //Points:
-      Serializer::Register( "Point", Point<3>() );
+      Serializer::Register( "Point", Point() );
 
       Point2D<Node<3> > Point2DPrototype( Element::GeometryType::PointsArrayType( 1 ) );
       Serializer::Register( "Point2D", Point2DPrototype );

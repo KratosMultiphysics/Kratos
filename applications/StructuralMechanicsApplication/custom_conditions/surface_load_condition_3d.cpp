@@ -327,4 +327,27 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    //************************************************************************************
+    //************************************************************************************
+
+    std::string SurfaceLoadCondition3D::Info() const
+    {
+        std::string condition_name = "PointLoadCondition";
+        const unsigned int number_of_nodes = GetGeometry().size();
+        
+        if(number_of_nodes == 3)
+            condition_name = "SurfaceLoadCondition3D3N";
+        else if(number_of_nodes  == 4) 
+            condition_name = "SurfaceLoadCondition3D4N";
+        else if(number_of_nodes  == 6) 
+            condition_name = "SurfaceLoadCondition3D6N";
+        else if(number_of_nodes  == 8) 
+            condition_name = "SurfaceLoadCondition3D8N";
+        else if(number_of_nodes  == 9) 
+            condition_name = "SurfaceLoadCondition3D9N";
+
+		return condition_name;
+    }
+
+
 } // Namespace Kratos.

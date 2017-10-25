@@ -209,8 +209,8 @@ void ShellThinElement3D3N::Initialize()
     {
         const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
-        ShellCrossSection::Pointer theSection;
-        if(props.Has(SHELL_CROSS_SECTION))
+       ShellCrossSection::Pointer theSection;
+       if(props.Has(SHELL_CROSS_SECTION))   
         {
             theSection = props[SHELL_CROSS_SECTION];
         }
@@ -608,6 +608,17 @@ void ShellThinElement3D3N::SetCrossSectionsOnIntegrationPoints(std::vector< Shel
     KRATOS_CATCH("")
 }
 
+void ShellThinElement3D3N::ResetSections()
+{
+    mSections.clear();
+}
+
+std::string ShellThinElement3D3N::Info() const
+{
+	return "ShellThinElement3D3N";
+	//fusseder TODO: seperate between linear and nonliner case!!!!
+}
+
 // =====================================================================================
 //
 // Class ShellThinElement3D3N - Private methods
@@ -915,7 +926,9 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     // in global and local coordinate systems
 
     data.globalDisplacements.resize(OPT_NUM_DOFS, false);
-    GetValuesVector( data.globalDisplacements );
+    ShellThinElement3D3N::GetValuesVector( data.globalDisplacements ); //changed by MFusseder in order to ensure
+    // that dofs of primal solution are used during computing sensitivities. (The GetValuesVector function is overwritten
+    // by corresponding adjoint element. There adjoint dofs are used)
 
     data.localDisplacements =
         mpCoordinateTransformation->CalculateLocalDisplacements(
@@ -1136,7 +1149,7 @@ void ShellThinElement3D3N::CalculateGaussPointContribution(CalculationData& data
 {
     // calculate beta0
     CalculateBeta0( data );
-
+    
     // calculate the total strain displ. matrix
     CalculateBMatrix( data );
 
@@ -1284,7 +1297,7 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     noalias(rRightHandSideVector) = ZeroVector(OPT_NUM_DOFS);
 
     // Initialize common calculation variables
-
+    
     CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
     data.CalculateLHS = LHSrequired;
     data.CalculateRHS = RHSrequired;
@@ -1310,7 +1323,7 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
             rLeftHandSideMatrix,
             rRightHandSideVector,
             RHSrequired,
-            LHSrequired);
+            LHSrequired);       
 
     // Add body forces contributions. This doesn't depend on the coordinate system
 

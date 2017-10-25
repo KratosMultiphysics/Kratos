@@ -52,7 +52,11 @@ def run(benchmark):
     f = open('{0}.info'.format(benchmark), 'wb')
     path_py = os.getcwd()
     path_py += '/../../python_scripts'                   
+<<<<<<< HEAD
+    subprocess.check_call(["python3", path_py + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+=======
     subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+>>>>>>> master
     f.close()
 
 def worker(queue):

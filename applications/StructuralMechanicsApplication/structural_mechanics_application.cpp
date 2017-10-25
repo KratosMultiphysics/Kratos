@@ -57,14 +57,13 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     mTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), false),    
     mTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
     // Adding the beam element
-    mSmallDisplacementBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     mCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), false),
     mCrLinearBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
 
 
-    //fusseder move this element to shape optimization application
-    mCrBeamElement3D2NForSA( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ), true ),
-
+    // Addint the adjoint elements
+    mShellThinAdjointElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ), false ),
+    mCrLinearBeamAdjointElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ), true ),
 
     // Adding the shells elements
     mIsotropicShellElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -146,13 +145,14 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     // Adding point load conditions
     mPointLoadCondition2D1N(  0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     mPointLoadCondition3D1N(  0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
-     //fusseder TODO: move this to another application
-    mPointLoadCondition3D1NForSA(  0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+    
+    
     mAxisymPointLoadCondition2D1N(  0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
    
     // Adding line load conditions
     mLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mLineLoadCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mAxisymLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mAxisymLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     // Adding surface load conditions
@@ -164,8 +164,12 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     // Beam's point moment condition
     mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     // Torque's point condition
-    mPointTorqueCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) )
+    mPointTorqueCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
 
+    // Adding adjoint conditions
+    mPointLoadAdjointCondition2D1N(  0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+    mPointLoadAdjointCondition3D1N(  0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+    mSurfaceLoadAdjointCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
 
 {}
 
@@ -313,12 +317,12 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("TrussLinearElement3D2N", mTrussLinearElement3D2N)
 
     // Register the beam element
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBeamElement3D2N", mSmallDisplacementBeamElement3D2N )
     KRATOS_REGISTER_ELEMENT( "CrBeamElement3D2N", mCrBeamElement3D2N)
     KRATOS_REGISTER_ELEMENT( "CrLinearBeamElement3D2N", mCrLinearBeamElement3D2N)
 
-    //fusseder move this element to other application
-    KRATOS_REGISTER_ELEMENT( "CrBeamElement3D2NForSA", mCrBeamElement3D2NForSA )
+    //Register the adjoint elements
+    KRATOS_REGISTER_ELEMENT( "ShellThinAdjointElement3D3N", mShellThinAdjointElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "CrLinearBeamAdjointElement3D2N", mCrLinearBeamAdjointElement3D2N )
 
     //Register the shells elements
     KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N", mIsotropicShellElement3D3N )
@@ -412,15 +416,13 @@ void KratosStructuralMechanicsApplication::Register()
     // Point loads
     KRATOS_REGISTER_CONDITION( "PointLoadCondition2D1N", mPointLoadCondition2D1N )
     KRATOS_REGISTER_CONDITION( "PointLoadCondition3D1N", mPointLoadCondition3D1N )
-
-    //fusseder TODO: move this to another application
-    KRATOS_REGISTER_CONDITION( "PointLoadCondition3D1NForSA", mPointLoadCondition3D1NForSA )
     
     KRATOS_REGISTER_CONDITION( "AxisymPointLoadCondition2D1N", mAxisymPointLoadCondition2D1N )
     
     // Line loads
     KRATOS_REGISTER_CONDITION( "LineLoadCondition2D2N", mLineLoadCondition2D2N )
     KRATOS_REGISTER_CONDITION( "LineLoadCondition2D3N", mLineLoadCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "LineLoadCondition3D2N", mLineLoadCondition3D2N )
     
     KRATOS_REGISTER_CONDITION( "AxisymLineLoadCondition2D2N", mAxisymLineLoadCondition2D2N )
     KRATOS_REGISTER_CONDITION( "AxisymLineLoadCondition2D3N", mAxisymLineLoadCondition2D3N )
@@ -438,6 +440,11 @@ void KratosStructuralMechanicsApplication::Register()
 
     // For MPC implementations
     KRATOS_REGISTER_VARIABLE(MPC_DATA_CONTAINER)
+    // Adjoint conditions
+    KRATOS_REGISTER_CONDITION( "PointLoadAdjointCondition2D1N", mPointLoadAdjointCondition2D1N )
+    KRATOS_REGISTER_CONDITION( "PointLoadAdjointCondition3D1N", mPointLoadAdjointCondition3D1N )
+    KRATOS_REGISTER_CONDITION( "SurfaceLoadAdjointCondition3D3N", mSurfaceLoadAdjointCondition3D3N )
+
     // Register linear elastics laws
     Serializer::Register( "LinearElastic3DLaw", mElasticIsotropic3D );
     Serializer::Register( "LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain );

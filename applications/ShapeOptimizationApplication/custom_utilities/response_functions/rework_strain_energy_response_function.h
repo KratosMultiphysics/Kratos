@@ -6,7 +6,7 @@
 //
 //  Main authors:    Fusseder Martin   
 //                   martin.fusseder@tum.de
-//	TODO: include this response type into the adjoint workflow
+//	
 // ==============================================================================
 
 #ifndef REWORK_STRAIN_ENERGY_RESPONSE_FUNCTION_H
@@ -94,20 +94,7 @@ public:
 	ReworkStrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
 	: StructuralResponseFunction(model_part, responseSettings)
 	{
-		// Set gradient mode
-		std::string gradientMode = responseSettings["gradient_mode"].GetString();
-
-		// Mode 1: semi-analytic sensitivities
-		if (gradientMode.compare("semi_analytic") == 0)
-		{
-			mGradientMode = 1;
-			double delta = responseSettings["step_size"].GetDouble();
-			mDelta = delta;
-		}
-		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);
-
-
+	
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
 		m_initial_value_defined = false;
@@ -133,6 +120,19 @@ public:
 		KRATOS_TRY;
 
 		BaseType::Initialize();
+
+		// It is necessary to initialize the elements since no adjoint problem is solved for this response type.
+		// For this response type the elements are only created!
+		ModelPart& r_model_part = this->GetModelPart();
+	#pragma omp parallel
+        {
+            ModelPart::ElementIterator elements_begin;
+            ModelPart::ElementIterator elements_end;
+            OpenMPUtils::PartitionedIterators(r_model_part.Elements(), elements_begin, elements_end);
+            for (auto it = elements_begin; it != elements_end; ++it)
+                it->Initialize();
+        }
+		// TODO: Check if initialization is also necessary for conditions!
 
 		KRATOS_CATCH("");
 	}
@@ -285,12 +285,6 @@ protected:
 	///@{
 
 	// ==============================================================================
-	double GetDisturbanceMeasure() const override
-	{ 
-		return mDelta; 
-	}	
-
-	// ==============================================================================
 	void CalculateSensitivityGradient(Element& rAdjointElem,
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
@@ -393,9 +387,8 @@ private:
 	///@}
 	///@name Member Variables
 	///@{
-	unsigned int mGradientMode;
+
 	double m_current_response_value; 
-	double mDelta;
 	double m_initial_value;
 	bool m_initial_value_defined;
 

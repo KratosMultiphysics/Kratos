@@ -285,21 +285,21 @@ public:
         return typename BaseType::Pointer(new Tetrahedra3D4(ThisPoints));
     }
 
-    Geometry< Point<3> >::Pointer Clone() const override
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    // Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
-        }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //     }
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Tetrahedra3D4< Point<3> >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Tetrahedra3D4< Point<3> >( NewPoints ) );
 
-        return p_clone;
-    }
+    //     return p_clone;
+    // }
 
     //lumping factors for the calculation of the lumped mass matrix
     Vector& LumpingFactors(Vector& rResult) const override
@@ -1129,9 +1129,25 @@ public:
     }
 
 
-    bool HasIntersection(const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint) override
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
     {
-        return true;
+        using Triangle3D3Type = Triangle3D3<TPointType>;
+        // Check if faces have intersection
+        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(2), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(3), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Triangle3D3Type(this->pGetPoint(2),this->pGetPoint(3), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        
+        CoordinatesArrayType local_coordinates;
+        // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
+        if(IsInside(rLowPoint,local_coordinates))
+            return true;
+
+        return false;
     }
 
 
