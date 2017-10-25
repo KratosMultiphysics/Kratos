@@ -13,7 +13,7 @@
         "solver_type"                        : "Dynamic",
         "echo_level"                         : 0,
         "time_integration_method"            : "implicit",
-        "analysis_type"                      : "linear",
+        "analysis_type"                      : "non_linear",
         "scheme_type"                        : "bossak",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
@@ -24,7 +24,7 @@
             "materials_filename" : "pendulus_test/pendulus_material.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "Residual_criterion",
+        "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,

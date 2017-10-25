@@ -312,6 +312,8 @@ def AssambleTestSuites():
         T3D2NBeamCrTest,
         T3D2NBeamCrLinearTest,
         T3D2NBeamCrDynamicTest,
+        TPendulusTLTest,
+        TPendulusULTest,
         ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
         ####TSprismPanTests # FIXME: Needs get up to date
     ]))
