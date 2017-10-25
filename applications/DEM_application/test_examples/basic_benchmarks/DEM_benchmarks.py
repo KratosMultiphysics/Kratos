@@ -91,7 +91,6 @@ class Solution(main_script.Solution):
 
     def Setdt(self):       
         self.dt = dt
-        #return self.dt
 
     def Initialize(self):
         self.DEM_parameters["problem_name"].SetString('benchmark' + str(benchmark_number))
@@ -101,10 +100,10 @@ class Solution(main_script.Solution):
         super(Solution, self).Initialize()           
 
         print("Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
-        list_of_nodes_ids = [benchmark_number]
+        list_of_nodes_ids = [1]
         if self.nodeplotter:
             os.chdir(self.main_path)
-            self.plotter = plot_variables.variable_plotter(self.spheres_model_part, list_of_nodes_ids)
+            self.plotter = plot_variables.variable_plotter(self.spheres_model_part, list_of_nodes_ids, benchmark_number)
             self.tang_plotter = plot_variables.tangential_force_plotter(self.spheres_model_part, list_of_nodes_ids, self.iteration)
 
     def ReadModelParts(self):

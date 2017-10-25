@@ -39,6 +39,7 @@ class Solution(object):
         self.SetAnalyticParticleWatcher()
         self.PreUtilities = PreUtilities()
 
+
         # Creating necessary directories:
         self.main_path = os.getcwd()
         problem_name = self.GetProblemTypeFilename()
@@ -382,6 +383,7 @@ class Solution(object):
                     #time_to_print = self.time - self.time_old_print    # add new particles to analytic mp each time an output is generated
                     #if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
                         self.FillAnalyticSubModelPartsWithNewParticles()
+
     def BeforePrintingOperations(self, time):
         pass
 
