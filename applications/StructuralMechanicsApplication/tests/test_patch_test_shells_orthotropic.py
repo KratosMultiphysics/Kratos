@@ -120,20 +120,22 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
+        convergence_criterion.SetEchoLevel(0)
         
         max_iters = 20
         compute_reactions = True
         reform_step_dofs = True
         calculate_norm_dx = False
         move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp, 
-                                                                  scheme, 
-                                                                  linear_solver, 
-                                                                  builder_and_solver, 
-                                                                  compute_reactions, 
-                                                                  reform_step_dofs, 
-                                                                  calculate_norm_dx,
-                                                                  move_mesh_flag)
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
+                                                                        scheme, 
+                                                                        linear_solver, 
+                                                                        convergence_criterion, 
+                                                                        builder_and_solver, 
+                                                                        max_iters, 
+                                                                        compute_reactions, 
+                                                                        reform_step_dofs, 
+                                                                        move_mesh_flag)
         strategy.SetEchoLevel(0)
         
         strategy.Check()
@@ -208,11 +210,11 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
     def test_thin_shell_triangle(self):
         element_name = "ShellThinElementCorotational3D3N"
-        displacement_results = [0.0028440494151 , -0.0021757494565 , 0.0014819671815]
-        rotation_results     = [0.0028257800113 , -0.000451471302 , -0.0055666437941]
-        shell_stress_top_surface_results    = [0.5729963279934 , 0.8167710398913 , 0.0 , 0.4937127313279 , 0.0 , 0.0]
-        shell_stress_bottom_surface_results = [0.7595025949279 , -0.275207981503 , 0.0 , -1.1109592853413 , 0.0 , 0.0]
-        tsai_wu_result = 51.8101083799835
+        displacement_results = [0.0028456068244 , -0.0021804536526 , 0.0014855251225]
+        rotation_results     = [0.0028315743508 , -0.000450044246 , -0.0055701845132]
+        shell_stress_top_surface_results    = [0.9088110489672 , -0.0570461205561 , 0.0 , 1.7678124328652 , 0.0 , 0.0]
+        shell_stress_bottom_surface_results = [-0.4936295259123 , 0.2914348407351 , 0.0 , -0.5256560385672 , 0.0 , 0.0]
+        tsai_wu_result = 39.6023549141987
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
@@ -225,11 +227,11 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
     def test_thick_shell_triangle(self):
         element_name = "ShellThickElementCorotational3D3N"
-        displacement_results = [0.0004237725719 , -0.0015845519962 , 0.0092957832817]
-        rotation_results     = [0.002111554688 , -0.0006029110836 , -0.0015907707443]
-        shell_stress_top_surface_results    = [3.4638758362086 , 3.6381557216169 , 0.2343268485417 , 0.2153186597542 , -1.5006385695847 , 0.0]
-        shell_stress_bottom_surface_results = [ -0.5270044924515 , -0.0846381156119 , 0.2343268485417 , -2.8032674754703 , -1.5006385695847 , 0.0]
-        tsai_wu_result = 14.9421070273759
+        displacement_results = [0.0004043490308 , -0.0016074440019 , 0.0092911008314]
+        rotation_results     = [0.0021176894774 , -0.0005954288823 , -0.0015930914838]
+        shell_stress_top_surface_results    = [3.4555559859345 , 3.6328430864296 , 0.2347447591457 , 0.1945591765769 , -1.5033148859134 , 0.0]
+        shell_stress_bottom_surface_results = [-0.5442976284974 , -0.1011836349433 , 0.2347447591457 , -2.8139010064313 , -1.5033148859134 , 0.0]
+        tsai_wu_result = 15.0065495746848
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
@@ -242,11 +244,11 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
     def test_thin_shell_quadrilateral(self):
         element_name = "ShellThinElementCorotational3D4N"
-        displacement_results = [0.0231481002099 , -0.0233288279363 , 0.004958638143]
-        rotation_results     = [0.0251714709385 , 0.0107699948024 , -0.0701747513544]
-        shell_stress_top_surface_results    = [0.2493397251386 , -12.3531295480501 , 0.0 , 4.3612634009499 , 0.0 , 0.0]
-        shell_stress_bottom_surface_results = [10.6402655433899 , 5.6802649354028 , 0.0 , -2.9317771447267 , 0.0 , 0.0]
-        tsai_wu_result = 3.8160214766834
+        displacement_results = [0.0225804891311 , -0.0233155244988 , 0.0048050841112]
+        rotation_results     = [0.0248341724156 , 0.0105468617083 , -0.0691658930497]
+        shell_stress_top_surface_results    = [0.284184788186 , -12.2844786822622 , 0.0 , 4.3796427631839 , 0.0 , 0.0]
+        shell_stress_bottom_surface_results = [10.340621141106 , 5.6934270260323 , 0.0 , -2.973608875272 , 0.0 , 0.0]
+        tsai_wu_result = 3.828332205752
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
@@ -259,11 +261,11 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
     def test_thick_shell_quadrilateral(self):
         element_name = "ShellThickElementCorotational3D4N"
-        displacement_results = [0.0036734170288 , -0.0094029514468 , 0.0193194167441]
-        rotation_results     = [0.0098894726378 , 0.0004698623085 , -0.0175420668433]
-        shell_stress_top_surface_results    = [1.8689810247473 , -2.3471842607629 , -3.132277730523 , -1.2142745229763 , 1.8722166067019 , 0.0]
-        shell_stress_bottom_surface_results = [1.8689810247473 , -2.3471842607629 , -3.132277730523 , -1.2142745229763 , 1.8722166067019 , 0.0]
-        tsai_wu_result = 12.8878758554707
+        displacement_results = [0.0035689894826 , -0.0094851917758 , 0.0191734998621]
+        rotation_results     = [0.009933211939  , 0.0006068078079  , -0.0174332051568]
+        shell_stress_top_surface_results    = [-3.9178477532111 , -4.1074850572552 , -2.4426862077188 , 10.3723187292559 , 1.6354826554283 , 0.0]
+        shell_stress_bottom_surface_results = [5.2113212123242 , -0.2324161069908 , -2.4426862077188 , -11.6664322521041 , 1.6354826554283 , 0.0]
+        tsai_wu_result = 3.4966651118454
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
