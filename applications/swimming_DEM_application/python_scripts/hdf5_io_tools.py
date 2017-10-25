@@ -9,6 +9,18 @@ def DeleteDataSet(file_or_group, dset_name):
     if dset_name in file_or_group:
         file_or_group.__delitem__(dset_name)
 
+def CreateDataset(file_or_group, name, data):
+    if name in file_or_group:
+        file_or_group.__delitem__(name)
+
+    file_or_group.create_dataset(name = name, data = data)
+
+def CreateGroup(file_or_group, name):
+    if name in file_or_group:
+        file_or_group['/'].__delitem__(name)
+
+    return file_or_group.create_group(name)
+
 def WriteDataToFile(file_or_group, names, data):
     for name, datum in zip(names, data):
         DeleteDataSet(file_or_group, name)
@@ -20,17 +32,6 @@ def Index():
         yield index
         index += 1
 
-def CreateGroup(file_or_group, name):
-    if name in file_or_group:
-        file_or_group['/'].__delitem__(name)
-
-    return file_or_group.create_group(name)
-
-def CreateDataset(file_or_group, name, data):
-    if name in file_or_group:
-        file_or_group.__delitem__(name)
-
-    file_or_group.create_dataset(name = name, data = data)
 
 class FluidHDF5Loader:
 
@@ -267,6 +268,10 @@ class ParticleHistoryLoader:
         initial_y_inside = np.array([node.Y0 for node in nodes_inside])
         initial_z_inside = np.array([node.Z0 for node in nodes_inside])
         radii_inside = np.array([node.GetSolutionStepValue(RADIUS) for node in nodes_inside])
+        if len(radii_inside):
+            mean_radius = sum(radii_inside) / len(radii_inside)
+        else:
+            mean_radius = 1.0
 
         with h5py.File('particles_snapshot.hdf5') as f:
             prerun_fluid_file_name = self.prerun_fluid_file_name.split('/')[- 1]
@@ -276,7 +281,7 @@ class ParticleHistoryLoader:
             for k, v in ((k, v) for k, v in json.loads(self.pp.CFD_DEM.WriteJsonString()).items() if 'comment' not in k):
                 current_fluid.attrs[k] = v
 
-            snapshot_name = 't=' + str(time) + '_in_box'
+            snapshot_name = 't=' + str(round(time, 3)) + '_RADIUS=' + str(round(mean_radius, 4)) + '_in_box'
             snapshot = CreateGroup(current_fluid, snapshot_name)
             snapshot.attrs['time'] = time
 

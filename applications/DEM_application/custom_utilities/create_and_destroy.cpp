@@ -433,7 +433,9 @@ namespace Kratos {
         #pragma omp critical
         {
             r_modelpart.Elements().push_back(p_particle);
-            mpAnalyticWatcher->Record(spheric_p_particle, r_modelpart);
+            if (spheric_p_particle->IsNot(BLOCKED)){
+                mpAnalyticWatcher->Record(spheric_p_particle, r_modelpart);
+            }
         }
         
         return spheric_p_particle;
@@ -797,7 +799,10 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         {
             r_modelpart.Nodes().push_back(pnew_node);
             r_modelpart.Elements().push_back(p_particle);
-            mpAnalyticWatcher->Record(spheric_p_particle, r_modelpart);
+
+            if (spheric_p_particle->IsNot(BLOCKED)){
+                mpAnalyticWatcher->Record(spheric_p_particle, r_modelpart);
+            }
         }
         
         

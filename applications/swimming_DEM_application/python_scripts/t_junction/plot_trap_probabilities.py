@@ -5,9 +5,15 @@ import h5py
 import matplotlib.pyplot as plt
 
 z_plane_of_symmetry = -0.0024
-n_intervals = 10
+L = 0.0048
+n_intervals = 30
+max_creation_time = 1.5
 fluid_run_name = 'mesh_38288_nodes'
 snapshot_name = 't=0.2900000000000001_in_box'
+snapshot_name = 't=1.0000000000000007_in_box'
+snapshot_name = 't=2.0000000000000013_RADIUS=0.00024_in_box'
+a = 0.00024 / L
+# snapshot_name = 't=0.04_in_box'
 
 def IntervalIndex(x, bottom, top, number_of_intervals):
     if x < bottom:
@@ -17,33 +23,50 @@ def IntervalIndex(x, bottom, top, number_of_intervals):
         # raise ValueError('The coordinate z = ' + str(x) + ' is not within range!')
     return int(x / (top - bottom) * number_of_intervals)
 
+def RobustQuotient(a, b):
+    if a == b:
+        return 1
+    else:
+        return a / b
+
+def TooNew(creation_time):
+    return creation_time > max_creation_time
+
 def CalculateProbabilityOfGettingTrapped():
-    z_min = z_plane_of_symmetry
-    z_init_intervals = [[z_min + i       * abs(2 * z_min) / n_intervals,
-                         z_min + (i + 1) * abs(2 * z_min) / n_intervals] for i in range(n_intervals)]
-    z_midpoints = [0.5 * (i[1] + i[0]) for i in z_init_intervals]
+    half_width = abs(z_plane_of_symmetry)
+    z_init_intervals = [[0.5 * i / n_intervals, 0.5 * (i + 1) / n_intervals] for i in range(n_intervals)]
+    z_midpoints = [0.5 * (I[1] + I[0]) for I in z_init_intervals]
+    histogram = np.zeros(len(z_init_intervals))
+    trapped_hist = np.zeros(len(z_init_intervals))
 
     with h5py.File('all_particles.hdf5', 'r') as f:
+        Ids = f['/Id'][:]
         Z0s = f['/Z0'][:]
-        N = len(Z0s)
-        histogram = [0.0 for i in z_init_intervals]
+        creation_times = f['/TIME'][:]
+        too_new_to_include = [TooNew(time) for time in creation_times]
+        ids_too_new_to_include = dict(zip(Ids, too_new_to_include))
+
         for z in Z0s:
-            histogram[IntervalIndex(z, z_plane_of_symmetry, 0., n_intervals)] += 1
+            histogram[IntervalIndex(abs(z - z_plane_of_symmetry) / L, 0., 1.0, n_intervals)] += 1
 
     with h5py.File('particles_snapshot.hdf5', 'r') as f:
+        Ids_trapped = f['/' + fluid_run_name + '.hdf5/' + snapshot_name + '/Id'][:]
         Z0s_trapped = f['/' + fluid_run_name + '.hdf5/' + snapshot_name + '/Z0'][:]
-        trapped_hist = [0.0 for i in z_init_intervals]
-        for z in Z0s_trapped:
-            trapped_hist[IntervalIndex(z, z_plane_of_symmetry, 0., n_intervals)] += 1
-        N_trapped = len(Z0s_trapped)
 
-    def RobustQuotient(a, b):
-        if a == b:
-            return 1
-        else:
-            return a / b
+        min_d =   float('inf')
+        max_d = - float('inf')
+        for Id, z in zip(Ids_trapped, Z0s_trapped):
+            if not ids_too_new_to_include[Id]:
+                d = abs(z - z_plane_of_symmetry) / L
+                min_d = min(min_d, d)
+                max_d = max(max_d, d)
+                trapped_hist[IntervalIndex(abs(z - z_plane_of_symmetry) / L, 0., 1.0, n_intervals)] += 1
+
     histogram = [RobustQuotient(h, H) for h, H in zip(trapped_hist, histogram)]
-    plt.plot(z_midpoints, histogram, '.')
+    plt.plot(z_midpoints, histogram, '.-')
+    axes = plt.gca()
+    axes.set_xlim([min_d, max_d])
+    axes.set_ylim([0,1])
     plt.show()
 
 CalculateProbabilityOfGettingTrapped()
