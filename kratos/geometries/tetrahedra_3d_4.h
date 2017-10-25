@@ -1131,7 +1131,23 @@ public:
 
     bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
     {
-        return true;
+        using Triangle3D3Type = Triangle3D3<TPointType>;
+        // Check if faces have intersection
+        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(2), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(3), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Triangle3D3Type(this->pGetPoint(2),this->pGetPoint(3), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        
+        CoordinatesArrayType local_coordinates;
+        // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
+        if(IsInside(rLowPoint,local_coordinates))
+            return true;
+
+        return false;
     }
 
 
