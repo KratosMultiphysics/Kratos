@@ -19,7 +19,7 @@
 /* System includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 
 /* External includes */
@@ -100,13 +100,12 @@ public:
                       ModelPart::NodesContainerType& rNodes)
     {
         KRATOS_TRY
+        
+        Kratos::Parallel::parallel_for(rNodes, [&](ModelPart::NodesContainerType::iterator it){
+            noalias(it->FastGetSolutionStepValue(rVariable)) = value;
+            }
+        );
 
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
-        {
-            ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
-            noalias(i->FastGetSolutionStepValue(rVariable)) = value;
-        }
         KRATOS_CATCH("")
     }
 
@@ -123,12 +122,11 @@ public:
     {
         KRATOS_TRY
 
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
-        {
-            ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
-            i->FastGetSolutionStepValue(rVariable) = value;
-        }
+        Kratos::Parallel::parallel_for(rNodes, [&](ModelPart::NodesContainerType::iterator it){
+            it->FastGetSolutionStepValue(rVariable) = value;
+            }
+        );
+        
         KRATOS_CATCH("")
     }
 
@@ -144,15 +142,13 @@ public:
                  TContainerType& rContainer)
     {
         KRATOS_TRY
+        
+        Kratos::Parallel::parallel_for(rContainer, 
+                                       [&](typename TContainerType::iterator it){
+            it->Set(rFlag, rFlagValue);
+            }
+        );
 
-        typedef typename TContainerType::iterator TIteratorType;
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rContainer.size()); k++)
-        {
-            TIteratorType i = rContainer.begin() + k;
-            i->Set(rFlag, rFlagValue);
-        }
         KRATOS_CATCH("")
     }
 
@@ -168,12 +164,11 @@ public:
     {
         KRATOS_TRY
 
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
-        {
-            ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
-            i->SetValue(SavedVariable, i->FastGetSolutionStepValue(OriginVariable));
-        }
+        Kratos::Parallel::parallel_for(rNodes, [&](ModelPart::NodesContainerType::iterator it){
+            it->SetValue(SavedVariable, it->FastGetSolutionStepValue(OriginVariable));
+            }
+        );
+        
         KRATOS_CATCH("")
     }
 
@@ -188,12 +183,12 @@ public:
                        ModelPart::NodesContainerType& rNodes)
     {
         KRATOS_TRY
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
-        {
-            ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
-            i->SetValue(SavedVariable,i->FastGetSolutionStepValue(OriginVariable));
-        }
+
+        Kratos::Parallel::parallel_for(rNodes, [&](ModelPart::NodesContainerType::iterator it){
+            it->SetValue(SavedVariable, it->FastGetSolutionStepValue(OriginVariable));
+            }
+        );
+        
         KRATOS_CATCH("")
     }
 
@@ -513,13 +508,19 @@ public:
         KRATOS_TRY
 
         double sum_value = 0.0;
-
-        #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); k++)
-        {
-            ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin() + k;
-            sum_value += itNode->GetSolutionStepValue(rVar, rBuffStep);
-        }
+        
+        //here a reduction is to be made. This is achieved by using the block parallel for and defining the Loops
+        //note also that in order to be "didactic" all the values are being captured explicitly by reference, except for rBuffStep which is captured by value
+        Kratos::Parallel::block_parallel_for(rModelPart.NodesBegin(), rModelPart.Nodes().size(), 
+                                             [&sum_value, &rVar, &rModelPart, rBuffStep](ModelPart::NodesContainerType::iterator it_begin, ModelPart::NodesContainerType::iterator it_end){
+                double tmp = 0.0;
+                for(auto it = it_begin; it != it_end; ++it){
+                    tmp += it->FastGetSolutionStepValue(rVar, rBuffStep);
+                }
+                
+                Kratos::Parallel::AtomicAdd(tmp, sum_value); //here we do sum_value += tmp
+            }
+        );
 
         rModelPart.GetCommunicator().SumAll(sum_value);
 

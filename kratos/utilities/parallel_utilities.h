@@ -48,43 +48,25 @@ namespace Kratos
         //parallel for executed by chunks. Here the function is called on every "block of unknowns", so that the lambda captures are done just once
         //note that the function b must implement the loop from start to end
         //work allocation is static
-        template<class TContainterType, class BinaryFunction>
+        template<class TContainterType, class UnaryFunction>
         inline void parallel_for(TContainterType& data, UnaryFunction f)
         {
-            ::Parallel::parallel_for(data.begin(), data.size(), f)
+            parallel_for(data.begin(), data.size(), f);
         }
-        
-        
-        
-        
-        
-        
-        
-        
         
         //the function f is executed in parallel. The parameter passed to f is the number of the thread executing it. 
         //one lambda capture is passed per every thread
         template< class UnaryFunction>
-        inline execute(UnaryFunction f)
+        inline void execute(UnaryFunction f)
         {
             const int NumThreads = OpenMPUtils::GetNumThreads();
 
-            PartitionVector& Partitions;
-            #pragma omp parallel for firstprivate(first) static
+            #pragma omp parallel for firstprivate(NumThreads)
             for (int i = 0; i < NumThreads; ++i) 
             {
                 f(i);
             }
         }
-        
-
-        
-        
-        
-        
-        
-        
-        
         
         //parallel for executed by chunks. Here the function is called on every "block of unknowns", so that the lambda captures are done just once
         //note that the function b must implement the loop from start to end
@@ -92,12 +74,11 @@ namespace Kratos
         template<class InputIt, class BinaryFunction>
         inline void block_parallel_for(InputIt first, const int n, BinaryFunction b)
         {
-            int NumThreads = OpenMPUtils::GetNumThreads();
-            OpenMPUtils::PartitionVector Partitions();
+            const int NumThreads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::PartitionVector Partitions;
             OpenMPUtils::DivideInPartitions(n,NumThreads,Partitions);
 
-            PartitionVector& Partitions;
-            #pragma omp parallel for firstprivate(first) static
+            #pragma omp parallel for firstprivate(NumThreads)
             for (int i = 0; i < NumThreads; ++i) 
             {
                 b(first+Partitions[i], first+Partitions[i+1]);
@@ -108,13 +89,12 @@ namespace Kratos
         //note that the function b must implement the loop from start to end
         //work allocation is dynamic
         template<class InputIt, class BinaryFunction>
-        inline void block_parallel_for(InputIt first, const int n, cosnt int NChunks, BinaryFunction f)
+        inline void block_parallel_for(InputIt first, const int n, const int NChunks, BinaryFunction f)
         {
-            OpenMPUtils::PartitionVector Partitions();
+            OpenMPUtils::PartitionVector Partitions;
             OpenMPUtils::DivideInPartitions(n,NChunks,Partitions);
 
-            PartitionVector& Partitions;
-            #pragma omp parallel for firstprivate(first, NChunks) dynamic
+            #pragma omp parallel for firstprivate(first, NChunks) schedule(dynamic)
             for (int i = 0; i < NChunks; ++i) 
             {
                 f(first+Partitions[i], first+Partitions[i+1]);
@@ -124,24 +104,14 @@ namespace Kratos
         template<class TContainterType, class BinaryFunction>
         inline void block_parallel_for(TContainterType& data, BinaryFunction b)
         {
-            ::Parallel::block_parallel_for(data.begin(), data.size(), b);
+            Kratos::Parallel::block_parallel_for(data.begin(), data.size(), b);
         }
 
         template<class TContainterType, class BinaryFunction>
         inline void block_parallel_for(TContainterType& data, const int NChunks,  BinaryFunction b)
         {
-            ::Parallel::block_parallel_for(data.begin(), data.size(), NChunks, b);
+            Kratos::Parallel::block_parallel_for(data.begin(), data.size(), NChunks, b);
         }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         
         inline void AtomicAdd(const double& value, double& target)
         {
@@ -152,6 +122,13 @@ namespace Kratos
         {
             #pragma omp atomic
             target += value;
+        }
+
+        template< class TVectorType1, class TVectorType2 >
+        inline void AtomicAddVector(const TVectorType1& value, TVectorType2 target )
+        {
+            for(unsigned int i=0; i<target.size(); i++)
+                AtomicAdd(value[i],target[i]);
         }
         
         inline void AtomicSub(const double& value, double& target)
@@ -165,6 +142,13 @@ namespace Kratos
             target -= value;
         }
 
+        template< class TVectorType1, class TVectorType2 >
+        inline void AtomicSubVector(const TVectorType1& value, TVectorType2 target )
+        {
+            for(unsigned int i=0; i<target.size(); i++)
+                AtomicSub(value[i],target[i]);
+        }
+        
         inline void AtomicAssign(const double& value, double& target)
         {
             #pragma omp atomic write
@@ -174,6 +158,13 @@ namespace Kratos
         {
             #pragma omp atomic write
             target = value;
+        }
+        
+        template< class TVectorType1, class TVectorType2 >
+        inline void AtomicAssignVector(const TVectorType1& value, TVectorType2 target )
+        {
+            for(unsigned int i=0; i<target.size(); i++)
+                AtomicAssign(value[i],target[i]);
         }
     ///@} 
     ///@name Type Definitions
@@ -209,6 +200,5 @@ namespace Kratos
     
 }  // namespace Kratos.
 
-#endif // KRATOS_FILENAME_H_INCLUDED  defined 
 
 
