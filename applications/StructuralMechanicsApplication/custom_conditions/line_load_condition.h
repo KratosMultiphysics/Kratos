@@ -10,8 +10,8 @@
 //
 
 // System includes
-#if !defined(KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED )
-#define  KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED
+#if !defined(KRATOS_LINE_LOAD_CONDITION_H_INCLUDED )
+#define  KRATOS_LINE_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -51,26 +51,26 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  LineLoadCondition2D
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  LineLoadCondition
     : public BaseLoadCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of LineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION( LineLoadCondition2D );
+    /// Counted pointer of LineLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION( LineLoadCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry );
-    LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+    LineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    LineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
     /// Destructor.
-    ~LineLoadCondition2D() override;
+    ~LineLoadCondition() override;
 
     ///@}
     ///@name Operators
@@ -175,6 +175,8 @@ protected:
         const double IntegrationWeight 
         );
 
+    void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
+        const Vector ForceInput, VectorType& rRightHandSideVector);
     ///@}
     ///@name Protected  Access
     ///@{
@@ -190,7 +192,7 @@ protected:
     ///@{
 
     // A protected default constructor necessary for serialization
-    LineLoadCondition2D() {};
+    LineLoadCondition() {};
 
     ///@}
 
@@ -242,15 +244,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //LineLoadCondition2D& operator=(const LineLoadCondition2D& rOther);
+    //LineLoadCondition& operator=(const LineLoadCondition& rOther);
 
     /// Copy constructor.
-    //LineLoadCondition2D(const LineLoadCondition2D& rOther);
+    //LineLoadCondition(const LineLoadCondition& rOther);
 
 
     ///@}
 
-}; // Class LineLoadCondition2D
+}; // Class LineLoadCondition
 
 ///@}
 ///@name Type Definitions
@@ -264,11 +266,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-        LineLoadCondition2D& rThis);
+        LineLoadCondition& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-        const LineLoadCondition2D& rThis)
+        const LineLoadCondition& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;

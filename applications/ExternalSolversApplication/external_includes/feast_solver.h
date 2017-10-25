@@ -23,13 +23,6 @@
 
 // External includes
 #include <boost/smart_ptr.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/numeric/ublas/storage.hpp>
-#include <amgcl/backend/builtin.hpp>
-#include <amgcl/adapter/zero_copy.hpp>
-#include <amgcl/value_type/complex.hpp>
-#include <amgcl/solver/skyline_lu.hpp>
 extern "C" {
 #include "feast.h"
 }
@@ -38,8 +31,9 @@ extern "C" {
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
-#include "linear_solvers/direct_solver.h"
+#include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "includes/ublas_interface.h"
+#include "includes/ublas_complex_interface.h"
 #include "spaces/ublas_space.h"
 
 #if !defined(KRATOS_FEAST_SOLVER)
@@ -49,75 +43,6 @@ namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
-
-template <class TSparseSpaceType, class TDenseSpaceType, class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
-class SkylineLUSolver
-    : public DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
-{
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(SkylineLUSolver);
-
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
-
-    typedef typename TSparseSpaceType::VectorType VectorType;
-
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
-
-    typedef typename TSparseSpaceType::DataType DataType;
-    
-    typedef typename amgcl::backend::builtin<DataType>::matrix BuiltinMatrixType;
-    
-    typedef amgcl::solver::skyline_lu<DataType> SolverType;
-
-    ~SkylineLUSolver() override
-    {
-        Clear();
-    }
-
-    void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
-    {
-        Clear();
-
-        pBuiltinMatrix = amgcl::adapter::zero_copy(
-                rA.size1(),
-                rA.index1_data().begin(),
-                rA.index2_data().begin(),
-                rA.value_data().begin());
-
-        pSolver = boost::make_shared<SolverType>(*pBuiltinMatrix);
-    }
-
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
-    {
-        std::vector<DataType> x(rX.size());
-        std::vector<DataType> b(rB.size());
-
-        std::copy(std::begin(rB), std::end(rB), std::begin(b));
-
-        (*pSolver)(b, x);
-
-        std::copy(std::begin(x), std::end(x), std::begin(rX));
-
-        return true;
-    }
-
-    void FinalizeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
-    {
-        Clear();
-    }
-
-    void Clear() override
-    {
-        pSolver.reset();
-        pBuiltinMatrix.reset();
-    }
-
-private:
-
-    boost::shared_ptr<BuiltinMatrixType> pBuiltinMatrix;
-
-    boost::shared_ptr<SolverType> pSolver;
-};
 
 /// Adapter to FEAST eigenvalue problem solver.
 template<class TSparseSpaceType, class TDenseSpaceType,
@@ -141,21 +66,16 @@ public:
 
     typedef typename TDenseSpaceType::VectorType DenseVectorType;
 
-    typedef std::complex<double> ComplexType;
+    typedef UblasSpace<std::complex<double>, ComplexCompressedMatrix, ComplexVector> ComplexSparseSpaceType;
 
-    typedef boost::numeric::ublas::compressed_matrix<ComplexType> ComplexSparseMatrixType;
-
-    typedef boost::numeric::ublas::matrix<ComplexType> ComplexDenseMatrixType;
-
-    typedef boost::numeric::ublas::vector<ComplexType> ComplexVectorType;
-
-    typedef UblasSpace<ComplexType, ComplexSparseMatrixType, ComplexVectorType> ComplexSparseSpaceType;
-
-    typedef UblasSpace<ComplexType, ComplexDenseMatrixType, ComplexVectorType> ComplexDenseSpaceType;
+    typedef UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector> ComplexDenseSpaceType;
 
     typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
 
+    typedef ComplexLinearSolverType::SparseMatrixType ComplexSparseMatrixType;
 
+    typedef ComplexLinearSolverType::VectorType ComplexVectorType;
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -177,16 +97,16 @@ public:
             "number_of_eigenvalues": 0,
             "search_dimension": 10,
             "linear_solver_settings": {
-                "solver_type": "skyline_lu"
+                "solver_type": "complex_skyline_lu_solver"
             }
         })");
 
         mpParam->RecursivelyValidateAndAssignDefaults(default_params);
 
-        if (mpParam->GetValue("linear_solver_settings")["solver_type"].GetString() != "skyline_lu")
+        if (mpParam->GetValue("linear_solver_settings")["solver_type"].GetString() != "complex_skyline_lu_solver")
             KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
-
-        mpLinearSolver = boost::make_shared<SkylineLUSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
+            
+        mpLinearSolver = boost::make_shared<SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
     }
 
     /// Constructor for externally provided linear solver.

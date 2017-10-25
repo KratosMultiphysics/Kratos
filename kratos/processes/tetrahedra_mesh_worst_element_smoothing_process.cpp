@@ -64,18 +64,18 @@ namespace Kratos
 		rWeights[min_i] = 1.00;
 	}
 
-	void TetrahedraMeshWorstElementSmoothingProcess::CalculateElementOptimumPosition(NodeType& rNode, Geometry<Node<3> > const& rTetrahedra, Point<3>& rOptimumPoint) {
+	void TetrahedraMeshWorstElementSmoothingProcess::CalculateElementOptimumPosition(NodeType& rNode, Geometry<Node<3> > const& rTetrahedra, Point& rOptimumPoint) {
 		std::size_t i = 0;
 
 		for (; i < 4; i++)
 			if (rNode.Id() == rTetrahedra[i].Id())
 				break;
 		constexpr int tetrahedra_connectivity[4][3] = { {3,2,1},{2,3,0},{0,3,1},{0,1,2} };
-		Triangle3D3<Point<3> > face(rTetrahedra(tetrahedra_connectivity[i][0]), rTetrahedra(tetrahedra_connectivity[i][1]), rTetrahedra(tetrahedra_connectivity[i][2]));
-		Point<3> center = face.Center();
-		Point<3> v1 = face[0] - face[1];
-		Point<3> v2 = face[0] - face[2];
-		Point<3> normal;
+		Triangle3D3<Point > face(rTetrahedra(tetrahedra_connectivity[i][0]), rTetrahedra(tetrahedra_connectivity[i][1]), rTetrahedra(tetrahedra_connectivity[i][2]));
+		Point center = face.Center();
+		Point v1 = face[0] - face[1];
+		Point v2 = face[0] - face[2];
+		Point normal;
 		MathUtils<double>::CrossProduct(normal, v1, v2);
 		double norm = norm_2(normal);
 		if(norm > std::numeric_limits<double>::epsilon())

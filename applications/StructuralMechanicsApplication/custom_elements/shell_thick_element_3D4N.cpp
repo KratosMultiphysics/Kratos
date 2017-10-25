@@ -1141,7 +1141,7 @@ void ShellThickElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
 
     // Initialize parameters for the cross section calculation
 
-    ShellCrossSection::Parameters parameters(geom, props, rCurrentProcessInfo);
+    ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
     parameters.SetGeneralizedStrainVector( generalizedStrains );
     parameters.SetGeneralizedStressVector( generalizedStresses );
     parameters.SetConstitutiveMatrix( D );
@@ -1461,7 +1461,7 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
 
     // Initialize parameters for the cross section calculation
 
-    ShellCrossSection::Parameters parameters(geom, props, rCurrentProcessInfo);
+    ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
     parameters.SetGeneralizedStrainVector( generalizedStrains );
     parameters.SetGeneralizedStressVector( generalizedStresses );
     parameters.SetConstitutiveMatrix( D );

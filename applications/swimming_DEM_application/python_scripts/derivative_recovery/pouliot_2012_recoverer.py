@@ -26,7 +26,7 @@ class Pouliot2012MaterialAccelerationRecoverer(Pouliot2012GradientRecoverer, L2_
         amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK
         tolerance = 1e-12
         max_iterations = 200
-        verbosity = 2 #0->shows no information, 1->some information, 2->all the information
+        verbosity = 2 # 0->shows no information, 1->some information, 2->all the information
         gmres_size = 400
 
         if self.use_lumped_mass_matrix:

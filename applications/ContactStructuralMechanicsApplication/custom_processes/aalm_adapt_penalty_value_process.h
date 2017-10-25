@@ -123,7 +123,7 @@ public:
             
             // Weighted values
             const double& current_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-            const double& previous_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP,1);
+            const double& previous_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1);
             
             // Nodal H
             const double& nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);

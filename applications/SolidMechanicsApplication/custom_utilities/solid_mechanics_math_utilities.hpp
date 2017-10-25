@@ -1613,12 +1613,12 @@ public:
     * @param result_points vertices of overlapping polygon
     * @return false= no overlapping polygon, true= overlapping polygon found
     */
-    static bool Clipping(std::vector<Point<3>* >& clipping_points,std::vector<Point<3>* >& subjected_points, std::vector<Point<3>* >& result_points, double tolerance)
+    static bool Clipping(std::vector<Point* >& clipping_points,std::vector<Point* >& subjected_points, std::vector<Point* >& result_points, double tolerance)
     {
         result_points= subjected_points;
         Vector actual_edge(3);
         Vector actual_normal(3);
-        std::vector<Point<3>* > temp_results;
+        std::vector<Point* > temp_results;
         bool is_visible= false;
         for(unsigned int clipp_edge=0; clipp_edge<clipping_points.size(); clipp_edge++)
         {
@@ -1691,7 +1691,7 @@ public:
                     if(is_visible)
                         temp_results.push_back(result_points[subj_edge]);
 
-                    temp_results.push_back(new Point<3>((*(clipping_points[clipp_edge])+coeff(1)*(*(clipping_points[index_clipp_2])-*(clipping_points[clipp_edge])))));
+                    temp_results.push_back(new Point((*(clipping_points[clipp_edge])+coeff(1)*(*(clipping_points[index_clipp_2])-*(clipping_points[clipp_edge])))));
 
                     is_visible= !is_visible;
 

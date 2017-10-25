@@ -184,7 +184,7 @@ private:
 
 
 	std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-	Geometry< Point<3, double> >::Pointer  mpReferenceGeometry;
+	Geometry< Point >::Pointer  mpReferenceGeometry;
 
 	Vector mDetJ0;
 
