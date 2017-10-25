@@ -40,12 +40,12 @@ class MechanicalSolver(object):
     def __init__(self, main_model_part, custom_settings):
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "Static",
+            "solver_type": "static",
             "echo_level": 0,
             "buffer_size": 2,
-            "analysis_type": "Linear",
-            "time_integration_method": "Implicit",
-            "scheme_type": "Newmark",
+            "analysis_type": "non_linear",
+            "time_integration_method": "implicit",
+            "scheme_type": "newmark",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
@@ -65,7 +65,7 @@ class MechanicalSolver(object):
             "clear_storage": false,
             "move_mesh_flag": true,
             "multi_point_constraints_used": false,
-            "convergence_criterion": "Residual_criterion",
+            "convergence_criterion": "residual_criterion",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
             "residual_relative_tolerance": 1.0e-4,
