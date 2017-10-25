@@ -62,6 +62,9 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.assertTrue(model_part.Properties[2].GetValue(POISSON_RATIO) == 0.1)
         self.assertTrue(model_part.Properties[2].GetValue(YIELD_STRESS) == 800.0)
         self.assertTrue(model_part.Properties[2].GetValue(HTC) == 0.3)
+        self.assertTrue(model_part.Properties[2].GetValue(TIME_STEPS) == 159) # int
+        self.assertTrue(model_part.Properties[2].GetValue(UPDATE_SENSITIVITIES) == True) # bool
+        self.assertTrue(model_part.Properties[2].GetValue(IDENTIFIER) == "MyTestString") # std::string
 
         mat_vector = model_part.Properties[2].GetValue(CAUCHY_STRESS_VECTOR)
         self.assertAlmostEqual(mat_vector[0],1.5)

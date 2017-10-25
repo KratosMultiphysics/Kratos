@@ -51,7 +51,7 @@ public:
              MIN_LEVEL = 2
       };
       
-        typedef  Point<Dimension, double>                        PointType;
+        typedef  Point                        PointType;
         typedef  std::vector<double>::iterator                   DistanceIteratorType;
         typedef  std::vector<typename Element::Pointer>          ContainerType; // ModelPart::ElementsContainerType::ContainerType ContainerType;
         typedef  ContainerType::value_type                       PointerType;

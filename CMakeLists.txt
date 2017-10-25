@@ -12,17 +12,30 @@ set (KratosMultiphysics_MINOR_VERSION 1)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # Define custom compiler build types
-SET( CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo;Debug;FullDebug" )
+SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
 SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
 #SET( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" )
 #SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
 SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
 SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
+#SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
 
 # Define internal CMake flags needed
 SET( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
 SET( CMAKE_SHARED_LINKER_FLAGS_FULLDEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" )
 SET( CMAKE_EXE_LINKER_FLAGS_FULLDEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG}" )
+
+# If build mode is not defined, assume Release
+if(NOT CMAKE_BUILD_TYPE)
+  message("Undefined CMAKE_BUILD_TYPE, building in 'Release' mode.")
+  set(CMAKE_BUILD_TYPE Release)
+else(NOT CMAKE_BUILD_TYPE)
+  list(FIND CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} FOUND_MODE)
+  if(FOUND_MODE EQUAL -1)
+    message("Unknown CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}', using 'Release'.")
+    set(CMAKE_BUILD_TYPE Release)
+  endif(FOUND_MODE EQUAL -1)
+endif(NOT CMAKE_BUILD_TYPE)
 
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
@@ -54,8 +67,8 @@ configure_file(
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -ffast-math -Wall -std=c++11")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -ffast-math -Wall")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
   message("additional default options were set for gcc")
   message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")

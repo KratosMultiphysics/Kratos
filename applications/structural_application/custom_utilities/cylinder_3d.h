@@ -85,7 +85,7 @@ public:
        *@param e3 point on the dirction vector of the cylinder
        * e1, e2, e3 form a othogonal basis
      */
-    Cylinder3D( Point<3> M, Point<3> e1, Point<3> e2,  Point<3> e3)
+    Cylinder3D(Point M,Point e1,Point e2, Point e3)
         :mM(M),mE1(e1),mE2(e2),mE3(e3)
     {
         r1 = mE1-M;
@@ -107,7 +107,7 @@ public:
     /**
      *
      */
-    Point<3>& GetCenter()
+   Point& GetCenter()
     {
         return mM;
     }
@@ -119,7 +119,7 @@ public:
        *@param result a Point in 3D result(s,t) on the cylinder
        *@return result
      */
-    Point<3>& GetPoint( Point<3>& result, double s , double t)
+   Point& GetPoint(Point& result, double s , double t)
     {
         result = cos( s/radius )*r1 + sin( s/radius )*r2 + (mM+t*r3);
         return result;
@@ -219,10 +219,10 @@ public:
 
 private:
 
-    Point<3> mM;
-    Point<3> mE1;
-    Point<3> mE2;
-    Point<3> mE3;
+   Point mM;
+   Point mE1;
+   Point mE2;
+   Point mE3;
     array_1d<double, 3> r1;
     array_1d<double, 3> r2;
     array_1d<double, 3> r3;

@@ -115,7 +115,7 @@ namespace Kratos
 			PropertiesType::Pointer pProperties,
 			CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-		virtual ~ShellThickElement3D3N();
+		~ShellThickElement3D3N() override;
 
 		///@}
 
@@ -124,73 +124,73 @@ namespace Kratos
 
 		// Basic
 
-		Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+		Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-		IntegrationMethod GetIntegrationMethod() const;
+		IntegrationMethod GetIntegrationMethod() const override;
 
-		void Initialize();
+		void Initialize() override;
 
-		void ResetConstitutiveLaw();
+		void ResetConstitutiveLaw() override;
 
-		void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+		void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-		void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
+		void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 		
-		int Check(const ProcessInfo& rCurrentProcessInfo);
+		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-		void GetValuesVector(Vector& values, int Step = 0);
+		void GetValuesVector(Vector& values, int Step = 0) override;
 
-		void GetFirstDerivativesVector(Vector& values, int Step = 0);
+		void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
 
-		void GetSecondDerivativesVector(Vector& values, int Step = 0);
+		void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
 
-		void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);	//corotational formulation
+		void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;	//corotational formulation
 
-		void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo); //corotational formulation
+		void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
 
-		void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo); //corotational formulation
+		void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
 
-		void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo); //corotational formulation
+		void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
 
-		void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+		void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-		void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+		void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 		
 
 		void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo);
+			ProcessInfo& rCurrentProcessInfo) override;
 
 		
 		void CalculateRightHandSide(VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo);
+			ProcessInfo& rCurrentProcessInfo) override;
 
 		// Results calculation on integration points
 
 		
-		void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+		void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 		
-		void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+		void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-		void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+		void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-		void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6> >& rVariable, std::vector<array_1d<double, 6> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+		void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6> >& rVariable, std::vector<array_1d<double, 6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 		// More results calculation on integration points to interface with python
 		void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-			std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+			std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-			std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+			std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-			std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+			std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateOnIntegrationPoints(const Variable<array_1d<double,
 			3> >& rVariable, std::vector<array_1d<double, 3> >& rValues,
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateOnIntegrationPoints(const Variable<array_1d<double,
 			6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
@@ -199,11 +199,11 @@ namespace Kratos
 		// Calculate functions
 		void Calculate(const Variable<Matrix >& rVariable,
 			Matrix& Output,
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 		void Calculate(const Variable<double>& rVariable,
 			double& Output,
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 		///@}
 
@@ -408,9 +408,9 @@ namespace Kratos
 
 		friend class Serializer;
 
-		virtual void save(Serializer& rSerializer) const;
+		void save(Serializer& rSerializer) const override;
 
-		virtual void load(Serializer& rSerializer);
+		void load(Serializer& rSerializer) override;
 
 		///@}
 
