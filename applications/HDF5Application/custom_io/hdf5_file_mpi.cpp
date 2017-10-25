@@ -30,6 +30,27 @@ void HDF5FileMPI::WriteDataSet(std::string Path, const std::vector<array_1d<doub
     KRATOS_CATCH("");
 }
 
+void HDF5FileMPI::WriteDataPartition(std::string Path, const std::vector<int>& rData)
+{
+    KRATOS_TRY;
+    WriteDataPartitionImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileMPI::WriteDataPartition(std::string Path, const std::vector<double>& rData)
+{
+    KRATOS_TRY;
+    WriteDataPartitionImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileMPI::WriteDataPartition(std::string Path, const std::vector<array_1d<double,3>>& rData)
+{
+    KRATOS_TRY;
+    WriteDataPartitionImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
 void HDF5FileMPI::WriteDataSetIndependent(std::string Path, const std::vector<int>& rData)
 {
     KRATOS_TRY;

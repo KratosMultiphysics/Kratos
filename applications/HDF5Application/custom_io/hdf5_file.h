@@ -118,6 +118,12 @@ public:
     virtual void WriteDataSet(std::string Path,
                               const std::vector<array_1d<double, 3>>& rData);
 
+    virtual void WriteDataPartition(std::string Path, const std::vector<int>& rData);
+
+    virtual void WriteDataPartition(std::string Path, const std::vector<double>& rData);
+
+    virtual void WriteDataPartition(std::string Path, const std::vector<array_1d<double,3>>& rData);
+    
     /// Independently write data set to the HDF5 file.
     /**
      * Performs independent write in MPI. Must be called collectively with only
@@ -247,6 +253,13 @@ private:
             << "H5Dwrite failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
+    }
+
+    template <class T>
+    void WriteDataPartitionImpl(std::string Path, const std::vector<T>& rData)
+    {
+        std::vector<int> partition{0, rData.size()}; // Serial partition.
+        WriteDataSet(Path, partition);
     }
 
     template <class T>

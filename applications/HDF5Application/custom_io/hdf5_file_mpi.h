@@ -61,6 +61,12 @@ public:
 
     void WriteDataSet(std::string Path, const std::vector<array_1d<double, 3>>& rData) override;
 
+    void WriteDataPartition(std::string Path, const std::vector<int>& rData) override;
+    
+    void WriteDataPartition(std::string Path, const std::vector<double>& rData) override;
+    
+    void WriteDataPartition(std::string Path, const std::vector<array_1d<double,3>>& rData) override;
+
     void WriteDataSetIndependent(std::string Path, const std::vector<int>& rData) override;
 
     void WriteDataSetIndependent(std::string Path, const std::vector<double>& rData) override;
@@ -182,11 +188,41 @@ private:
             KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id,
                                      dxpl_id, rData.data()) < 0)
                 << "H5Dwrite failed." << std::endl;
-            KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
+                KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
             KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
         }
         KRATOS_ERROR_IF(H5Sclose(fspace_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
+    }
+
+    template <class T>
+    void WriteDataPartitionImpl(std::string Path, const std::vector<T>& rData)
+    {
+        int rank, end_pos, ierr;
+        int block_size = rData.size();
+        std::vector<int> partition;
+        ierr = MPI_Scan(&block_size, &end_pos, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Scan failed." << std::endl;
+        ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_rank failed." << std::endl;
+
+        if (rank == 0)
+        {
+            int num_proc;
+            ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
+            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_size failed." << std::endl;
+            partition.resize(num_proc + 1);
+            partition[0] = 0; // Partition always starts at 0.
+            ierr = MPI_Gather(&end_pos, 1, MPI_INT, &partition[1], 1, MPI_INT, 0, MPI_COMM_WORLD);
+            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Gather failed." << std::endl;
+        }
+        else
+        {
+            ierr = MPI_Gather(&end_pos, 1, MPI_INT, nullptr, 0, MPI_INT, 0, MPI_COMM_WORLD);
+            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Gather failed." << std::endl;
+        }
+
+        WriteDataSetIndependent(Path, partition);
     }
 
     template <class T>

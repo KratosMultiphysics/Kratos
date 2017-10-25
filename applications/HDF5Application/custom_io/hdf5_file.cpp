@@ -162,6 +162,27 @@ void HDF5File::WriteDataSet(std::string Path, const std::vector<array_1d<double,
     KRATOS_CATCH("");
 }
 
+void HDF5File::WriteDataPartition(std::string Path, const std::vector<int>& rData)
+{
+    KRATOS_TRY;
+    WriteDataPartitionImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
+void HDF5File::WriteDataPartition(std::string Path, const std::vector<double>& rData)
+{
+    KRATOS_TRY;
+    WriteDataPartitionImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
+void HDF5File::WriteDataPartition(std::string Path, const std::vector<array_1d<double,3>>& rData)
+{
+    KRATOS_TRY;
+    WriteDataPartitionImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
 void HDF5File::WriteDataSetIndependent(std::string Path, const std::vector<int>& rData)
 {
     KRATOS_TRY;
