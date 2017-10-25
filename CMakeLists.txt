@@ -12,11 +12,7 @@ set (KratosMultiphysics_MINOR_VERSION 1)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # Define custom compiler build types
-<<<<<<< HEAD
-SET( CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo;Debug;FullDebug" )
-=======
 SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
->>>>>>> ef6c07007... Added custom build mode
 SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
 #SET( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" )
 #SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
