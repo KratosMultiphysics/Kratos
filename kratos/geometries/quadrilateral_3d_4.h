@@ -706,7 +706,9 @@ public:
         ) const override
     {
         // Setting up size of jacobian matrix
-        rResult.resize( 3, 2, false );
+        if (rResult.size1() != 3 || rResult.size2() != 2 )
+            rResult.resize( 3, 2, false );
+        noalias(rResult) = ZeroMatrix(3, 2);
         // Derivatives of shape functions
         Matrix shape_functions_gradients = msGeometryData.ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod );
         
@@ -749,7 +751,8 @@ public:
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         // Setting up size of jacobian matrix
-        rResult.resize( 3, 2, false );
+        if (rResult.size1() != 3 || rResult.size2() != 2 )
+            rResult.resize( 3, 2, false );
         noalias(rResult) = ZeroMatrix(3, 2);
 
         // Derivatives of shape functions
@@ -846,9 +849,9 @@ public:
         IntegrationMethod ThisMethod 
         ) const override
     {
-        Matrix jacobian( 3, 2, 0.0 );
+        Matrix jacobian( 3, 2 );
          
-        this->Jacobian( jacobian, IntegrationPointIndex, ThisMethod);
+        Jacobian( jacobian, IntegrationPointIndex, ThisMethod);
             
         const double& j00 = jacobian(0,0);
         const double& j01 = jacobian(0,1);
@@ -891,7 +894,7 @@ public:
      */
     double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
-        Matrix jacobian( 3, 2, 0.0 );
+        Matrix jacobian( 3, 2 );
          
         this->Jacobian( jacobian, rPoint);
         
