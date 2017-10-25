@@ -217,7 +217,7 @@ namespace Kratos
                array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
                array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
                array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-               array_1d<double, 3 > & ImposedDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_DISPLACEMENT);
+               //array_1d<double, 3 > & ImposedDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_DISPLACEMENT);
 
 
                if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
@@ -300,7 +300,7 @@ namespace Kratos
                array_1d<double, 3 > & PreviousWaterVelocity     = (i)->FastGetSolutionStepValue(WATER_VELOCITY, 1);
                array_1d<double, 3 > & PreviousWaterDisplacement = (i)->FastGetSolutionStepValue(WATER_DISPLACEMENT, 1);
                array_1d<double, 3 > & CurrentWaterDisplacement  = (i)->FastGetSolutionStepValue(WATER_DISPLACEMENT);
-               array_1d<double, 3 > & ImposedWaterDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_WATER_DISPLACEMENT);
+               //array_1d<double, 3 > & ImposedWaterDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_WATER_DISPLACEMENT);
 
 
                if ((i->pGetDof(WATER_DISPLACEMENT_X))->IsFixed() == false)
