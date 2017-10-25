@@ -131,18 +131,16 @@ public:
     /// Default constructor.
     ShallowParticle(TDataType const& NewX, TDataType const& NewY, TDataType const& NewZ) : Point(NewX, NewY, NewZ)
     {
-        this->ERASE_FLAG=true; //initializing as useless particle
-        this->SCALAR1=0.0;
-        this->VECTOR1=ZeroVector(3);
-        this->VELOCITY=ZeroVector(3);
+        this->ERASE_FLAG = true; //initializing as useless particle
+        this->SCALAR1 = 0.0;
+        this->VECTOR1 = ZeroVector(3);
     }
 
     ShallowParticle() : Point(0.0, 0.0, 0.0)
     {
-        this->ERASE_FLAG=true;
-        this->SCALAR1=0.0;
-        this->VECTOR1=ZeroVector(3);
-        this->VELOCITY=ZeroVector(3);
+        this->ERASE_FLAG = true;
+        this->SCALAR1 = 0.0;
+        this->VECTOR1 = ZeroVector(3);
     }
 
     ~ShallowParticle()
@@ -165,16 +163,6 @@ public:
         return this->VECTOR1;
     }
 
-    float& GetVelocity(const unsigned int i)
-    {
-        return this->VELOCITY[i];
-    }
-
-    array_1d<float,3>& GetVelocity()
-    {
-        return this->VELOCITY;
-    }
-
     bool& GetEraseFlag()
     {
         return this->ERASE_FLAG;
@@ -183,7 +171,6 @@ public:
 private:
     float SCALAR1;
     array_1d<float,3> VECTOR1;
-    array_1d<float,3> VELOCITY;
     bool ERASE_FLAG;
 
 };
