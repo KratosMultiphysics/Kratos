@@ -51,35 +51,35 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    bool ReadNodes(NodesContainerType& rThisNodes) override;
+    bool ReadNodes(NodesContainerType& rNodes) override;
 
     std::size_t ReadNodesNumber() override;
 
-    void WriteNodes(NodesContainerType const& rThisNodes) override;
+    void WriteNodes(NodesContainerType const& rNodes) override;
 
-    void ReadElements(NodesContainerType& rThisNodes,
-                      PropertiesContainerType& rThisProperties,
-                      ElementsContainerType& rThisElements) override;
+    void ReadElements(NodesContainerType& rNodes,
+                      PropertiesContainerType& rProperties,
+                      ElementsContainerType& rElements) override;
 
     std::size_t ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities) override;
 
-    void WriteElements(ElementsContainerType const& rThisElements) override;
+    void WriteElements(ElementsContainerType const& rElements) override;
 
-    void ReadConditions(NodesContainerType& rThisNodes,
-                        PropertiesContainerType& rThisProperties,
-                        ConditionsContainerType& rThisConditions) override;
+    void ReadConditions(NodesContainerType& rNodes,
+                        PropertiesContainerType& rProperties,
+                        ConditionsContainerType& rConditions) override;
 
     std::size_t ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
-    void ReadInitialValues(ModelPart& rThisModelPart) override;
+    void ReadInitialValues(ModelPart& rModelPart) override;
 
-    void ReadInitialValues(NodesContainerType& rThisNodes,
-                           ElementsContainerType& rThisElements,
-                           ConditionsContainerType& rThisConditions) override;
+    void ReadInitialValues(NodesContainerType& rNodes,
+                           ElementsContainerType& rElements,
+                           ConditionsContainerType& rConditions) override;
 
-    void ReadModelPart(ModelPart& rThisModelPart) override;
+    void ReadModelPart(ModelPart& rModelPart) override;
 
-    void WriteModelPart(ModelPart& rThisModelPart) override;
+    void WriteModelPart(ModelPart& rModelPart) override;
 
     ///@}
 
@@ -87,6 +87,8 @@ protected:
     ///@name Protected Operations
     ///@{
     unsigned GetPID() const;
+
+    unsigned GetTotalProcesses() const;
     ///@}
 
 private:
@@ -94,11 +96,23 @@ private:
     ///@{
     HDF5File::Pointer mpFile;
     unsigned m_pid;
+    unsigned m_total_processes;
     ///@}
 
     ///@name Private Operations
     ///@{
+        /// Write all nodes into a single array.
+        void WriteNodesSerial(NodesContainerType const& rNodes) const;
 
+        /// Write nodes into local and ghost arrays.
+        void WriteNodesParallel(NodesContainerType const& rNodes) const;
+        
+        /// Read nodes from a single array.
+        void ReadNodesSerial(NodesContainerType const& rNodes) const;
+        
+        /// Read nodes from local and ghost arrays.
+        void ReadNodesParallel(NodesContainerType const& rNodes) const;
+                
     ///@}
 };
 
