@@ -121,6 +121,7 @@
             "model_part_name" : "SurfaceLoad3D_Surface",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 90,
+            "constrained"     : false,
             "direction"       : [0.0,0.0,-1],
             "interval"        : [0.0,"End"]
         }
