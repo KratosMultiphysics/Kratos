@@ -254,7 +254,7 @@ def AssambleTestSuites():
     allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         TTestConstitutiveLaw,
         TTestPatchTestSmallStrain,
-        TTestPatchTestLargeStrain,
+        #TTestPatchTestLargeStrain,
         TTestQuadraticElements,
         TTestPatchTestShells,
         TestLoadingConditions,
