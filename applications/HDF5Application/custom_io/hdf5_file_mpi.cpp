@@ -80,6 +80,14 @@ unsigned HDF5FileMPI::GetPID() const
     return static_cast<unsigned>(rank);
 }
 
+unsigned HDF5FileMPI::GetTotalProcesses() const
+{
+    int num_proc, ierr;
+    ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
+    KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_size failed." << std::endl;
+    return static_cast<unsigned>(num_proc);
+}
+
 void HDF5FileMPI::ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;

@@ -76,6 +76,8 @@ public:
 
     unsigned GetPID() const override;
 
+    unsigned GetTotalProcesses() const override;
+
     void ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize) override;
 
     void ReadDataSet(std::string Path,

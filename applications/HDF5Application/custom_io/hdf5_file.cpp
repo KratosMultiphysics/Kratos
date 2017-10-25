@@ -297,6 +297,11 @@ unsigned HDF5File::GetPID() const
     return 0;
 }
 
+unsigned HDF5File::GetTotalProcesses() const
+{
+    return 1;
+}
+
 void HDF5File::ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;

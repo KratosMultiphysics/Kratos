@@ -152,7 +152,11 @@ public:
 
     void SetEchoLevel(int Level);
 
+    // Return this process Id with file access.
     virtual unsigned GetPID() const;
+
+    // Return the total number of processes with file access.
+    virtual unsigned GetTotalProcesses() const;
 
     /// Read a data set from the HDF5 file.
     /**
