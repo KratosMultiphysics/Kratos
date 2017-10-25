@@ -39,7 +39,7 @@ class DamConstructionUtility:
                     self.table_ambient.AddRow(float(file_3[0]), float(file_3[1]))
 
         # Construct the utility
-        self.Construction = ConstructionUtility(self.mechanical_model_part,self.thermal_model_part, self.table_phase, self.table_times, self.table_ambient, parameters)
+        self.Construction = ConstructionUtility(self.mechanical_model_part,self.thermal_model_part, self.table_phase, self.table_ambient, parameters)
     
     def Initialize(self):
         self.Construction.Initialize()
@@ -70,6 +70,9 @@ class DamConstructionUtility:
                     for thermal_linea in it_t:
                         thermal_name = thermal_linea.rstrip('\n')
 
+                print(thermal_name)
+                print(self.table_phase.GetValue(i))
+                print(phase_time)
                 self.Construction.ActiveHeatFlux(thermal_name,int(self.table_phase.GetValue(i)),phase_time)
 
     def AfterOutputStep(self):

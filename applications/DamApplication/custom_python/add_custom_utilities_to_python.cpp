@@ -71,7 +71,7 @@ void  AddCustomUtilitiesToPython()
     .def("Transfer",&TransferSelfweightStressUtility::Transfer)
     ;
     
-    class_< ConstructionUtility > ("ConstructionUtility", init<ModelPart&, ModelPart&, TableType&, TableType&, TableType&, Parameters&>())
+    class_< ConstructionUtility > ("ConstructionUtility", init<ModelPart&, ModelPart&, TableType&, TableType&, Parameters&>())
     .def("Initialize",&ConstructionUtility::Initialize)
     .def("InitializeSolutionStep",InitializeSolutionStep)
     .def("ActiveHeatFlux",ActiveHeatFlux)    

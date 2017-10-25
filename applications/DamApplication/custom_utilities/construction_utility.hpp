@@ -42,8 +42,8 @@ public:
 
     /// Constructor
     ConstructionUtility(ModelPart& rMechanicalModelPart, ModelPart& rThermalModelPart,
-                        TableType& rTablePhases, TableType& rTableTimes, TableType& rTableAmbientTemp,  Parameters& rParameters
-                        ) : mrMechanicalModelPart(rMechanicalModelPart) , mrThermalModelPart(rThermalModelPart) , mrTablePhases(rTablePhases) , mrTableTimes(rTableTimes) , mrTableAmbientTemp(rTableAmbientTemp)
+                        TableType& rTablePhases, TableType& rTableAmbientTemp, Parameters& rParameters
+                        ) : mrMechanicalModelPart(rMechanicalModelPart) , mrThermalModelPart(rThermalModelPart) , mrTablePhases(rTablePhases) , mrTableAmbientTemp(rTableAmbientTemp)
         {
             KRATOS_TRY
     
@@ -103,6 +103,35 @@ void Initialize()
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
             it->Set(ACTIVE,false);
+        }
+
+    }
+
+    const unsigned int soil_nelements = mrMechanicalModelPart.GetSubModelPart("Parts_Parts_Auto9").Elements().size();   
+    const unsigned int soil_nnodes = mrMechanicalModelPart.GetSubModelPart("Parts_Parts_Auto9").Nodes().size();
+
+    if (soil_nelements != 0)
+    {
+        ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.GetSubModelPart("Parts_Parts_Auto9").ElementsBegin();
+        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart("Thermal_Part_Auto_9").ElementsBegin();
+        mNumNode = el_begin->GetGeometry().PointsNumber();
+
+        #pragma omp parallel for
+        for(unsigned int k = 0; k<soil_nelements; ++k)
+        {
+            ModelPart::ElementsContainerType::iterator it = el_begin + k;
+            ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
+            it->Set(ACTIVE,true);
+            it_thermal->Set(ACTIVE,true);
+        }
+
+        // Same nodes for both computing model part
+        ModelPart::NodesContainerType::iterator it_begin = mrMechanicalModelPart.GetSubModelPart("Parts_Parts_Auto9").NodesBegin();        
+        #pragma omp parallel for
+        for(unsigned int i = 0; i<soil_nnodes; ++i)
+        {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+            it->Set(ACTIVE,true);
         }
 
     }
@@ -381,6 +410,8 @@ void ActiveHeatFlux(std::string ThermalSubModelPartName, int phase, double phase
     
     const unsigned int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
 
+    KRATOS_WATCH(nelements)
+
     int direction;
     if( mGravityDirection == "X")
         direction = 0;
@@ -401,6 +432,8 @@ void ActiveHeatFlux(std::string ThermalSubModelPartName, int phase, double phase
         
         // Computing the value of heat flux according the time
         double value = mDensity*mSpecificHeat*mAlpha*mTMax*(exp(-mAlpha*real_time));
+
+        KRATOS_WATCH(value)
         
         #pragma omp parallel for
         for(unsigned int k = 0; k<nelements; ++k)
@@ -509,7 +542,6 @@ protected:
     unsigned int mMechanicalLastCondition;
     unsigned int mThermalLastCondition;
     TableType& mrTablePhases;
-    TableType& mrTableTimes;
     TableType& mrTableAmbientTemp;
     
 
