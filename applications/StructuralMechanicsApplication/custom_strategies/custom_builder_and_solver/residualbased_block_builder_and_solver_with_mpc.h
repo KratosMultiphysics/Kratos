@@ -116,7 +116,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;    
+    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
@@ -143,7 +143,8 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
     typedef Kratos::MpcData::MasterDofWeightMapType MasterDofWeightMapType;
     typedef Node<3> NodeType;
     typedef MpcData::Pointer MpcDataPointerType;
-    typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
+    //typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
+    typedef boost::shared_ptr<std::vector<MpcDataPointerType>> MpcDataPointerVectorType;
 
     typedef ProcessInfo ProcessInfoType;
 
@@ -480,9 +481,10 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                     { //temporary, will be checked once at the beginning only
                         // Necessary data for iterating and modifying the matrix
                         unsigned int slaveEquationId;
-                        int startPositionNodeDofs = numDofsPerNode*(j);  
-                        for (int i=0; i<numDofsPerNode; i++){
-                            slaveEquationId = elementDofs[startPositionNodeDofs + i] -> EquationId();
+                        int startPositionNodeDofs = numDofsPerNode * (j);
+                        for (int i = 0; i < numDofsPerNode; i++)
+                        {
+                            slaveEquationId = elementDofs[startPositionNodeDofs + i]->EquationId();
                             if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
                             {
                                 MasterIdWeightMapType masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationId];
@@ -517,14 +519,15 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                 {
                     DofsVectorType conditionDofs;
                     rCurrentCondition->GetDofList(conditionDofs, CurrentProcessInfo);
-                    int numDofsPerNode = conditionDofs.size() / number_of_nodes;                    
+                    int numDofsPerNode = conditionDofs.size() / number_of_nodes;
                     if (rCurrentCondition->GetGeometry()[j].Is(SLAVE))
                     { //temporary, will be checked once at the beginning only
                         // Necessary data for iterating and modifying the matrix
                         unsigned int slaveEquationId;
-                        int startPositionNodeDofs = numDofsPerNode*(j);  
-                        for (int i=0; i<numDofsPerNode; i++){
-                            slaveEquationId = conditionDofs[startPositionNodeDofs + i] -> EquationId();                        
+                        int startPositionNodeDofs = numDofsPerNode * (j);
+                        for (int i = 0; i < numDofsPerNode; i++)
+                        {
+                            slaveEquationId = conditionDofs[startPositionNodeDofs + i]->EquationId();
                             if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
                             {
                                 MasterIdWeightMapType masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationId];
@@ -602,10 +605,11 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
 
                     if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
                     { // If the node has a slave DOF
-                        int startPositionNodeDofs = numDofsPerNode*(j);  
+                        int startPositionNodeDofs = numDofsPerNode * (j);
                         unsigned int slaveEquationId;
-                        for (int i=0; i<numDofsPerNode; i++){
-                            slaveEquationId = elementDofs[startPositionNodeDofs + i] -> EquationId();
+                        for (int i = 0; i < numDofsPerNode; i++)
+                        {
+                            slaveEquationId = elementDofs[startPositionNodeDofs + i]->EquationId();
                             if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
                             {
                                 totalNumberOfSlaves++;
@@ -677,7 +681,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                 // For RHS(m) += A'*LHS(s,s)*B
                                 for (auto localSlaveEqIdOther : localNodalSlaveEquationIds)
                                 {
-                                    std::vector<std::size_t>::iterator itOther = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqIdOther);
+                                    //std::vector<std::size_t>::iterator itOther = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqIdOther);
                                     int slaveIndexOther = std::distance(localNodalSlaveEquationIds.begin(), it);
                                     double constantOther = mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndexOther]];
                                     RHS_Contribution(localMasterEqId) += LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) * weight * constantOther;
@@ -780,19 +784,20 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
 
                     if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
                     { // If the node has a slave DOF
-                        int startPositionNodeDofs = numDofsPerNode*(j);  
+                        int startPositionNodeDofs = numDofsPerNode * (j);
                         unsigned int slaveEquationId;
-                        for (int i=0; i<numDofsPerNode; i++){
-                            slaveEquationId = elementDofs[startPositionNodeDofs + i] -> EquationId();
+                        for (int i = 0; i < numDofsPerNode; i++)
+                        {
+                            slaveEquationId = elementDofs[startPositionNodeDofs + i]->EquationId();
                             if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
-                            if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
-                            {
-                                totalNumberOfSlaves++;
-                                slaveEquationIds.push_back(slaveEquationId);
-                                MasterIdWeightMapType &masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationId];
+                                if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
+                                {
+                                    totalNumberOfSlaves++;
+                                    slaveEquationIds.push_back(slaveEquationId);
+                                    MasterIdWeightMapType &masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationId];
 
-                                totalNumberOfMasters += masterWeightsMap.size();
-                            }
+                                    totalNumberOfMasters += masterWeightsMap.size();
+                                }
                         }
 
                         std::vector<std::size_t>::iterator it;
@@ -856,7 +861,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                 // For RHS(m) += A'*LHS(s,s)*B
                                 for (auto localSlaveEqIdOther : localNodalSlaveEquationIds)
                                 {
-                                    std::vector<std::size_t>::iterator itOther = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqIdOther);
+                                    //std::vector<std::size_t>::iterator itOther = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqIdOther);
                                     int slaveIndexOther = std::distance(localNodalSlaveEquationIds.begin(), it);
                                     double constantOther = mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndexOther]];
                                     RHS_Contribution(localMasterEqId) += LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) * weight * constantOther;

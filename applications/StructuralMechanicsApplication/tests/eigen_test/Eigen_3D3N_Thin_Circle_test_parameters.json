@@ -10,10 +10,9 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_eigensolver",
+        "solver_type"                        : "eigen_value",
+        "scheme_type"                        : "dynamic",
         "echo_level"                         : 0,
-        "solution_type"                      : "Dynamic",
-        "analysis_type"                      : "Linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "eigen_test/Eigen_3D3N_Thin_Circle_test",
@@ -39,8 +38,8 @@
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
@@ -53,8 +52,8 @@
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {

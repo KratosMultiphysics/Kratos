@@ -3,16 +3,17 @@
         "problem_name"    : "Shell_T3_Thick_linear_static_test",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
+    "INFO: Linear refers to the BCs, the element-formulation is Nonlinear, thats why a mon-lin anaylsis has to be used!": 1,
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
+        "solver_type"                        : "static",
         "echo_level"                         : 0,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Linear",
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "shell_test/Shell_T3_Thick_linear_static_test"
@@ -21,7 +22,7 @@
             "materials_filename": "shell_test/Shell_T3_Thick_linear_static_test_materials.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "Residual_criterion",
+        "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 1e-9,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 1e-9,

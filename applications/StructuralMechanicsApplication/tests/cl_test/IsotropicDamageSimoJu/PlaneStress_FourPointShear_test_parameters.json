@@ -3,23 +3,23 @@
         "problem_name"    : "PlaneStress_FourPointShear_test",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 2.0,
         "start_time"      : 0.0,
         "end_time"        : 200.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
+        "solver_type"                        : "static",
         "echo_level"                         : 0,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test",
             "input_file_label" : 0
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "And_criterion",
+        "convergence_criterion"              : "and_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,

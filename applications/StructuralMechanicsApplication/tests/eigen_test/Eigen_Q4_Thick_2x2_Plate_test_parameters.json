@@ -3,16 +3,16 @@
         "problem_name"    : "Eigen_Q4_Thick_2x2_Plate_test",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_eigensolver",
+        "solver_type"                        : "eigen_value",
+        "scheme_type"                        : "dynamic",
         "echo_level"                         : 0,
-        "solution_type"                      : "Dynamic",
-        "analysis_type"                      : "Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "eigen_test/Eigen_Q4_Thick_2x2_Plate"
