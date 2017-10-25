@@ -72,7 +72,7 @@ namespace Kratos
 			3> >& v)
 		{
 			if (v.size() != 3) return;
-			for (size_t i = 0; i < 3; i++)
+			for (std::size_t i = 0; i < 3; i++)
 				InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
 		}
 
@@ -80,31 +80,31 @@ namespace Kratos
 			6> >& v)
 		{
 			if (v.size() != 3) return;
-			for (size_t i = 0; i < 6; i++)
+			for (std::size_t i = 0; i < 6; i++)
 				InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
 		}
 
 		inline void InterpToStandardGaussPoints(std::vector< Vector >& v)
 		{
 			if (v.size() != 3) return;
-			size_t ncomp = v[0].size();
+			std::size_t ncomp = v[0].size();
 			for (int i = 1; i < 3; i++)
 				if (v[i].size() != ncomp)
 					return;
-			for (size_t i = 0; i < ncomp; i++)
+			for (std::size_t i = 0; i < ncomp; i++)
 				InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
 		}
 
 		inline void InterpToStandardGaussPoints(std::vector< Matrix >& v)
 		{
 			if (v.size() != 3) return;
-			size_t nrows = v[0].size1();
-			size_t ncols = v[0].size2();
+			std::size_t nrows = v[0].size1();
+			std::size_t ncols = v[0].size2();
 			for (int i = 1; i < 3; i++)
 				if (v[i].size1() != nrows || v[i].size2() != ncols)
 					return;
-			for (size_t i = 0; i < nrows; i++)
-				for (size_t j = 0; j < ncols; j++)
+			for (std::size_t i = 0; i < nrows; i++)
+				for (std::size_t j = 0; j < ncols; j++)
 					InterpToStandardGaussPoints
 					(v[0](i, j), v[1](i, j), v[2](i, j));
 		}
@@ -650,7 +650,7 @@ namespace Kratos
 
 		// Average mass per unit area over the whole element
 		double av_mass_per_unit_area = 0.0;
-		for (size_t i = 0; i < OPT_NUM_GP; i++)
+		for (std::size_t i = 0; i < OPT_NUM_GP; i++)
 			av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
 		av_mass_per_unit_area /= double(OPT_NUM_GP);
 
@@ -667,17 +667,17 @@ namespace Kratos
 
 			// Average thickness over the whole element
 			double thickness = 0.0;
-			for (size_t i = 0; i < OPT_NUM_GP; i++)
+			for (std::size_t i = 0; i < OPT_NUM_GP; i++)
 				thickness += mSections[i]->GetThickness();
 			thickness /= double(OPT_NUM_GP);
 
 			// Populate mass matrix with integation results
-			for (size_t row = 0; row < 18; row++)
+			for (std::size_t row = 0; row < 18; row++)
 			{
 				if (row % 6 < 3)
 				{
 					// translational entry
-					for (size_t col = 0; col < 3; col++)
+					for (std::size_t col = 0; col < 3; col++)
 					{
 						rMassMatrix(row, 6 * col + row % 6) = 1.0;
 					}
@@ -685,7 +685,7 @@ namespace Kratos
 				else
 				{
 					// rotational entry
-					for (size_t col = 0; col < 3; col++)
+					for (std::size_t col = 0; col < 3; col++)
 					{
 						rMassMatrix(row, 6 * col + row % 6) = 
 							thickness*thickness / 12.0;
@@ -707,9 +707,9 @@ namespace Kratos
 			double lump_area = referenceCoordinateSystem.Area() / 3.0;
 
 			// loop on nodes
-			for (size_t i = 0; i < 3; i++)
+			for (std::size_t i = 0; i < 3; i++)
 			{
-				size_t index = i * 6;
+				std::size_t index = i * 6;
 
 				double nodal_mass = av_mass_per_unit_area * lump_area;
 
@@ -958,7 +958,7 @@ namespace Kratos
 			// Initialize common calculation variables
 			ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
-			for (size_t GP = 0; GP < 1; GP++)
+			for (std::size_t GP = 0; GP < 1; GP++)
 			{
 				rValues[GP] = localCoordinateSystem.Vx();
 			}
@@ -1001,7 +1001,7 @@ namespace Kratos
 			fiberAxis1 /= std::sqrt(inner_prod(fiberAxis1, fiberAxis1));
 
 			//write results
-			for (size_t dir = 0; dir < 1; dir++)
+			for (std::size_t dir = 0; dir < 1; dir++)
 			{
 				rValues[dir] = fiberAxis1;
 			}
@@ -1290,10 +1290,10 @@ namespace Kratos
 		// Evaluate Tsai-Wu @ top surface of current layer
 		double var_a = 0.0;
 		double var_b = 0.0;
-		for (size_t i = 0; i < 3; i++)
+		for (std::size_t i = 0; i < 3; i++)
 		{
 			var_b += F_i[i] * data.rlaminateStresses[2 * rPly][i];
-			for (size_t j = 0; j < 3; j++)
+			for (std::size_t j = 0; j < 3; j++)
 			{
 				var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly][i] * data.rlaminateStresses[2 * rPly][j];
 			}
@@ -1306,10 +1306,10 @@ namespace Kratos
 		// Evaluate Tsai-Wu @ bottom surface of current layer
 		var_a = 0.0;
 		var_b = 0.0;
-		for (size_t i = 0; i < 3; i++)
+		for (std::size_t i = 0; i < 3; i++)
 		{
 			var_b += F_i[i] * data.rlaminateStresses[2 * rPly + 1][i];
-			for (size_t j = 0; j < 3; j++)
+			for (std::size_t j = 0; j < 3; j++)
 			{
 				var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly + 1][i] * data.rlaminateStresses[2 * rPly + 1][j];
 			}
@@ -1358,21 +1358,21 @@ namespace Kratos
 			// Output requested quantity
 			if (rVariable == VON_MISES_STRESS_TOP_SURFACE)
 			{
-				rVon_Mises_Result = sqrt(von_mises_top);
+				rVon_Mises_Result = std::sqrt(von_mises_top);
 			}
 			else if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE)
 			{
-				rVon_Mises_Result = sqrt(von_mises_mid);
+				rVon_Mises_Result = std::sqrt(von_mises_mid);
 			}
 			else if (rVariable == VON_MISES_STRESS_BOTTOM_SURFACE)
 			{
-				rVon_Mises_Result = sqrt(von_mises_bottom);
+				rVon_Mises_Result = std::sqrt(von_mises_bottom);
 			}
 			else if (rVariable == VON_MISES_STRESS)
 			{
 				// take the greatest value and output
 				rVon_Mises_Result =
-					sqrt(std::max(von_mises_top,
+                std::sqrt(std::max(von_mises_top,
 						std::max(von_mises_mid, von_mises_bottom)));
 			}
 		
@@ -1401,7 +1401,7 @@ namespace Kratos
 
 		if (rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY || rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY_FRACTION)
 		{
-			for (size_t i = 0; i < 3; i++)
+			for (std::size_t i = 0; i < 3; i++)
 			{
 				rEnergy_Result += data.generalizedStresses[i] * data.generalizedStrains[i] * data.TotalArea / 3.0;
 			}
@@ -1413,7 +1413,7 @@ namespace Kratos
 		}
 		else if (rVariable == SHELL_ELEMENT_BENDING_ENERGY || rVariable == SHELL_ELEMENT_BENDING_ENERGY_FRACTION)
 		{
-			for (size_t i = 3; i < 6; i++)
+			for (std::size_t i = 3; i < 6; i++)
 			{
 				rEnergy_Result += data.generalizedStresses[i] * data.generalizedStrains[i] * data.TotalArea / 3.0;
 			}
@@ -1425,7 +1425,7 @@ namespace Kratos
 		}
 		else if (rVariable == SHELL_ELEMENT_SHEAR_ENERGY || rVariable == SHELL_ELEMENT_SHEAR_ENERGY_FRACTION)
 		{
-			for (size_t i = 6; i < 8; i++)
+			for (std::size_t i = 6; i < 8; i++)
 			{
 				rEnergy_Result += data.generalizedStresses[i] * data.generalizedStrains[i] * data.TotalArea / 3.0;
 			}
@@ -1915,7 +1915,7 @@ namespace Kratos
 		std::vector< array_1d<double, 3> > quarticGPLocations;
 		quarticGPLocations.resize(7);
 		quarticGPLocations.clear();
-		for (size_t i = 0; i < 7; i++)
+		for (std::size_t i = 0; i < 7; i++)
 		{
 			quarticGPLocations[i].clear();
 			quarticGPLocations[i][0] = 0.0;
@@ -2103,7 +2103,7 @@ namespace Kratos
 
 			// Transfer from Bletzinger B matrix to Kratos B matrix
 			// Dofs from [w1, w2, w3, px1, ...] to [w1, px1, py1, w2, ...]
-			for (size_t node = 0; node < 3; node++)
+			for (std::size_t node = 0; node < 3; node++)
 			{
 				data.B(6, 2 + 6 * node) = BSuper(0, node);		// w
 				data.B(6, 3 + 6 * node) = BSuper(0, 3 + node);	// phix
@@ -2132,7 +2132,7 @@ namespace Kratos
 		// Assemble sub triangle coords
 		std::vector<Vector3> subTriangleXCoords = std::vector<Vector3>(3);
 		std::vector<Vector3> subTriangleYCoords = std::vector<Vector3>(3);
-		for (size_t i = 0; i < 3; i++)
+		for (std::size_t i = 0; i < 3; i++)
 		{
 			subTriangleXCoords[i].clear();
 			subTriangleYCoords[i].clear();
@@ -2179,7 +2179,7 @@ namespace Kratos
 
 
 		// Loop over all sub triangles
-		for (size_t subTriangle = 0; subTriangle < 3; subTriangle++)
+		for (std::size_t subTriangle = 0; subTriangle < 3; subTriangle++)
 		{
 			a = subTriangleXCoords[subTriangle][1] - subTriangleXCoords[subTriangle][0]; //x21
 			b = subTriangleYCoords[subTriangle][1] - subTriangleYCoords[subTriangle][0]; //y21
@@ -2200,11 +2200,11 @@ namespace Kratos
 
 			// Express the subtriangle B matrix in terms of the 3 meta-triangle
 			// nodes
-			for (size_t metaNode = 0; metaNode < 3; metaNode++)
+			for (std::size_t metaNode = 0; metaNode < 3; metaNode++)
 			{
-				for (size_t row = 0; row < 2; row++)
+				for (std::size_t row = 0; row < 2; row++)
 				{
-					for (size_t col = 0; col < 6; col++)
+					for (std::size_t col = 0; col < 6; col++)
 					{
 						// add in B_0 / 3.0 for all nodes in B matrix
 						convertedSubTriangleShearMatrix(row, metaNode * 6 + col) += virginSubTriangleShearMatrix(row, col) / 3.0;
@@ -2219,9 +2219,9 @@ namespace Kratos
 				else
 				{
 					// add in new entries
-					for (size_t row = 0; row < 2; row++)
+					for (std::size_t row = 0; row < 2; row++)
 					{
-						for (size_t col = 0; col < 6; col++)
+						for (std::size_t col = 0; col < 6; col++)
 						{
 							convertedSubTriangleShearMatrix(row, metaNode * 6 + col) += virginSubTriangleShearMatrix(row, 6*(matrixMapping[subTriangle][metaNode] - 1) + col);
 						}
@@ -2239,9 +2239,9 @@ namespace Kratos
 		smoothedShearMatrix *= (2.0*data.TotalArea); // to nullify data.B/=2A in main pipeline
 
 		// copy over entries to main B matrix
-		for (size_t row = 0; row < 2; row++)
+		for (std::size_t row = 0; row < 2; row++)
 		{
-			for (size_t col = 0; col < 18; col++)
+			for (std::size_t col = 0; col < 18; col++)
 			{
 				data.B(row + 6, col) = smoothedShearMatrix(row, col);
 			}
@@ -2582,7 +2582,7 @@ namespace Kratos
 
 		// Gauss Loop.
 
-		for (size_t i = 0; i < OPT_NUM_GP; i++)
+		for (std::size_t i = 0; i < OPT_NUM_GP; i++)
 		{
 			// save results
 			Matrix & iValue = rValues[i];
@@ -2688,9 +2688,9 @@ namespace Kratos
 
 				int surface = 0; // start from top ply top surface
 								 // Output global results sequentially
-				for (size_t row = 0; row < 3; row++)
+				for (std::size_t row = 0; row < 3; row++)
 				{
-					for (size_t col = 0; col < 3; col++)
+					for (std::size_t col = 0; col < 3; col++)
 					{
 						if (surface > 7)
 						{
@@ -2760,9 +2760,9 @@ namespace Kratos
 
 					int surface1 = 0; // start from top ply top surface
 									 // Output global results sequentially
-					for (size_t row = 0; row < 3; row++)
+					for (std::size_t row = 0; row < 3; row++)
 					{
-						for (size_t col = 0; col < 3; col++)
+						for (std::size_t col = 0; col < 3; col++)
 						{
 							if (surface1 > 7)
 							{
