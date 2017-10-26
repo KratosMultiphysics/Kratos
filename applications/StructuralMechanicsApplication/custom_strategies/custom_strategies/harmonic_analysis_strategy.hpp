@@ -125,6 +125,7 @@ public:
 
         mRayleighAlpha = 0.0;
         mRayleighBeta = 0.0;
+        mSystemDamping = 0.0;
         this->SetUseMaterialDampingFlag(UseMaterialDampingFlag);
         // KRATOS_WATCH(mMaterialDampingRatios.size())
         // mMaterialDampingRatios[0] = 0.01;
@@ -342,13 +343,23 @@ public:
             std::cout << "modal_matrix_build_time : " << modal_matrix_build_time.elapsed() << std::endl;
         }
 
-        // get the damping coefficients
-
-        if( rProcessInfo.Has(RAYLEIGH_ALPHA) )
-            mRayleighAlpha = rProcessInfo[RAYLEIGH_ALPHA];
-
-        if( rProcessInfo.Has(RAYLEIGH_BETA) )
-            mRayleighBeta = rProcessInfo[RAYLEIGH_BETA];
+        // get the damping coefficients if they exist
+        for( ModelPart::PropertiesIterator itProperty = rModelPart.PropertiesBegin(); itProperty != rModelPart.PropertiesEnd(); itProperty++ )
+        {
+            // std::cout << "hey" << std::endl;
+            // KRATOS_WATCH(*itProperty)
+            // KRATOS_WATCH(*itProperty.Has(SYSTEM_DAMPING_RATIO))
+            if( itProperty->Has(SYSTEM_DAMPING_RATIO) )
+            {
+                // std::cout << "haha" << std::endl;
+                mSystemDamping = itProperty->GetValue(SYSTEM_DAMPING_RATIO);
+            }
+            else if( itProperty->Has(RAYLEIGH_ALPHA) && itProperty->Has(RAYLEIGH_BETA) )
+            {
+                mRayleighAlpha = itProperty->GetValue(RAYLEIGH_ALPHA);
+                mRayleighBeta = itProperty->GetValue(RAYLEIGH_BETA);
+            }
+        }
 
         // this->SetUseMaterialDampingFlag(true);
         if( mUseMaterialDamping )
@@ -470,6 +481,8 @@ public:
         modal_displacement = ZeroVector( n_dofs );
 
         double modal_damping = 0.0;
+        // double rayleigh_alpha = 0.0;
+        // double rayleigh_beta = 0.0;
 
         for( std::size_t i = 0; i < n_modes; ++i )
         {
@@ -477,9 +490,9 @@ public:
             {
                 modal_damping = mMaterialDampingRatios[i];
             }
-            else if( rProcessInfo.Has(SYSTEM_DAMPING_RATIO) && rProcessInfo[SYSTEM_DAMPING_RATIO] != 0.0 )
+            else if( mSystemDamping != 0.0 )
             {
-                modal_damping = rProcessInfo[SYSTEM_DAMPING_RATIO];
+                modal_damping = mSystemDamping;
             }
             else
             {
@@ -565,8 +578,10 @@ public:
         this->pGetScheme()->Clear();
 
         mInitializeWasPerformed = false;
+        mUseMaterialDamping = false;
         mRayleighAlpha = 0.0;
         mRayleighBeta = 0.0;
+        mSystemDamping = 0.0;
 
         KRATOS_CATCH("")
     }
@@ -790,6 +805,8 @@ private:
     double mRayleighAlpha;
 
     double mRayleighBeta;
+
+    double mSystemDamping;
 
     bool mUseMaterialDamping;
 

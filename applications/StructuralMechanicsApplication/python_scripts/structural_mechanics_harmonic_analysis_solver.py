@@ -25,12 +25,19 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
     """
     def __init__(self, main_model_part, custom_settings):
         # Set defaults and validate custom settings.
+        # harmonic_analysis_settings = KratosMultiphysics.Parameters("""
+        # {
+        #     "harmonic_analysis_settings" : {
+        #         "system_damping" : 0.0,
+        #         "rayleigh_alpha" : 0.0,
+        #         "rayleigh_beta"  : 0.0,
+        #         "use_effective_material_damping" : false
+        #     }
+        # }
+        # """)
         harmonic_analysis_settings = KratosMultiphysics.Parameters("""
         {
             "harmonic_analysis_settings" : {
-                "system_damping" : 0.0,
-                "rayleigh_alpha" : 0.0,
-                "rayleigh_beta"  : 0.0,
                 "use_effective_material_damping" : false
             }
         }
@@ -53,9 +60,6 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
 
         The scheme determines the initial force vector on all system dofs. 
         """
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.SYSTEM_DAMPING_RATIO] = self.harmonic_analysis_settings["system_damping"].GetDouble()
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.harmonic_analysis_settings["rayleigh_alpha"].GetDouble()
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.harmonic_analysis_settings["rayleigh_beta"].GetDouble()
         if self.settings["scheme_type"].GetString() == "dynamic":
             solution_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         else:
