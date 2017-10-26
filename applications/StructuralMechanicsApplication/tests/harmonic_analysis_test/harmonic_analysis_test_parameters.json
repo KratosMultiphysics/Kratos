@@ -32,9 +32,6 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_support","PointLoad3D_load"],
         "rotation_dofs"                      : true,
         "harmonic_analysis_settings" : {
-            "system_damping" : 0.01,
-            "rayleigh_alpha" : 0.0,
-            "rayleigh_beta"  : 0.0,
             "use_effective_material_damping" : false
         }
     },

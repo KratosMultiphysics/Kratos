@@ -3,6 +3,7 @@ Begin ModelPartData
 End ModelPartData
 
 Begin Properties 0
+SYSTEM_DAMPING_RATIO 0.01
 End Properties
 Begin Nodes
     1   0.0000000000   0.0000000000   0.0000000000
