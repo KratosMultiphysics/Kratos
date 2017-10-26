@@ -50,7 +50,7 @@ void NodalDataHandler<double, 3, array_1d<double, 3>>::Initialize(const Element&
 }
 
 template<>
-double NodalDataHandler<double, 3, array_1d<double, 3>>::Interpolate(boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement)
+double NodalDataHandler<double, 3, array_1d<double, 3>>::Interpolate(const boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement)
 {
 	double result = 0.0;
 	for (unsigned int i = 0; i < 3; i++) // NOTE: The 3 is TNumNodes
@@ -86,7 +86,7 @@ void NodalDataHandler< array_1d<double, 3>, 3, boost::numeric::ublas::bounded_ma
 }
 
 template <>
-array_1d<double, 3> NodalDataHandler< array_1d<double, 3>, 3, boost::numeric::ublas::bounded_matrix<double, 3, 2>>::Interpolate(boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement)
+array_1d<double, 3> NodalDataHandler< array_1d<double, 3>, 3, boost::numeric::ublas::bounded_matrix<double, 3, 2>>::Interpolate(const boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement)
 {
 	array_1d<double, 3> result(3, 0.0);
 

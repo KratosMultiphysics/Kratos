@@ -20,7 +20,6 @@
 
 #include "includes/cfd_variables.h"
 #include "custom_elements/fluid_element.h"
-#include "custom_elements/integration_point_data.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -91,6 +90,11 @@ public:
 
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+
+    constexpr static unsigned int Dim = FluidElement<TElementData>::Dim;
+    constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
+    constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
+    constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
 
     ///@}
     ///@name Life Cycle
@@ -168,31 +172,25 @@ public:
     ///@name Access
     ///@{
 
+    void GetValueOnIntegrationPoints(Variable<array_1d<double, 3>> const& rVariable,
+                                     std::vector<array_1d<double, 3>>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
 
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                             std::vector<array_1d<double, 3 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(Variable<double> const& rVariable,
+                                     std::vector<double>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
 
+    void GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
+                                     std::vector<array_1d<double, 6>>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
 
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                             std::vector<double>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
+                                     std::vector<Vector>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
 
-
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                                             std::vector<array_1d<double, 6 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
-
-
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                             std::vector<Vector>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
-
-
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                             std::vector<Matrix>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
-
+    void GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
+                                     std::vector<Matrix>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -240,27 +238,27 @@ protected:
     ///@{
 
     void AddSystemTerms(
-        const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIP,
+        TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         MatrixType& rLHS,
         VectorType& rRHS) override;
 
 
     void AddMassTerms(
-        const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIP,
+        TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix) override;
 
 
     void AddMassStabilization(
-        const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIP,
+        TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix);
 
-    void CalculateProjections() override;
+    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
 
 
     void AddViscousTerm(double DynamicViscosity,
@@ -270,48 +268,48 @@ protected:
 
 
     virtual void MomentumProjTerm(
-        const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIP,
+        TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         array_1d<double,3>& rMomentumRHS);
 
 
     virtual void MassProjTerm(
-        const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIP,
+        TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         double& rMassRHS);
 
 
     virtual void SubscaleVelocity(
-        const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIP,
+        TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         array_1d<double,3>& rVelocitySubscale);
 
     virtual void SubscalePressure(
-        const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIP,
+        TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         double &rPressureSubscale);
 
         virtual void ASGSMomentumResidual(
-        const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIP,
+        TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         array_1d<double,3>& rMomentumRes);
 
 
     virtual void ASGSMassResidual(
-        const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIP,
+        TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         double& rMomentumRes);
 
     virtual void OSSMomentumResidual(
-        const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIP,
+        TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         array_1d<double,3>& rMomentumRes);
 
     virtual void OSSMassResidual(
-        const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIP,
+        TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         double& rMassRes);
 
     ///@}

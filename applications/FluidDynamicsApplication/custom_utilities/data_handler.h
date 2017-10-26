@@ -75,7 +75,7 @@ public:
         KRATOS_ERROR << "Accessing base class DataHandler::Initialize() method." << std::endl;
     }
 
-	virtual TDataType Interpolate(boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement)
+	virtual TDataType Interpolate(const boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement)
 	{
 		KRATOS_ERROR << "Accessing base class DataHandler::Interpolate() method." << std::endl;
 	}

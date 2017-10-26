@@ -39,7 +39,7 @@
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/fluid_element_data.h"
-//#include "custom_elements/dss.h"
+#include "custom_elements/dss.h"
 //#include "custom_elements/dynamic_vms.h"
 #include "custom_elements/two_fluid_vms.h"
 #include "custom_elements/stationary_stokes.h"
@@ -228,7 +228,7 @@ private:
     /// 3D instance of the VMS element
     const VMS<3> mVMS3D;
     /// Expermiental fluid element
-    //const DSS< DSSData2D > mDSS2D;
+    const DSS< DSSData2D > mDSS2D;
     //const DSS< FluidElementData<3,4> > mDSS3D;
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;

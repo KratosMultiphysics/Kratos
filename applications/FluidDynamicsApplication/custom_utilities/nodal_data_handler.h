@@ -62,7 +62,7 @@ public:
 
     void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override;
 
-	TDataType Interpolate(boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement) override;
+	TDataType Interpolate(const boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement) override;
 
     int Check(const Element& rElement) override;
 

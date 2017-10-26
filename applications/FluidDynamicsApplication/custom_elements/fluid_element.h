@@ -64,16 +64,16 @@ MAKE_FLUID_ELEMENT_DATA_CONTAINER(DSSData2D, ELEMENT_VARIABLES)
 struct IntegrationPointGeometryData
 {
     double Weight;
-    boost::numeric::ublas::matrix_row<Matrix>& N;
+    boost::numeric::ublas::matrix_row<Matrix> N;
     Kratos::Matrix& DN_DX;
 
     IntegrationPointGeometryData(double ThisWeight,
-                                 boost::numeric::ublas::matrix_row<Matrix>& ThisN;
-                                 Kratos::Matrix & ThisDN_DX;)
+                                 boost::numeric::ublas::matrix_row<Matrix> ThisN,
+                                 Kratos::Matrix & ThisDN_DX)
         : Weight(ThisWeight), N(ThisN), DN_DX(ThisDN_DX)
     {
     }
-}
+};
 
 template <class TElementData>
 class FluidElement : public Element
@@ -378,13 +378,14 @@ protected:
      * @return Kinematic viscosity at the integration point.
      */
     virtual double EffectiveViscosity(
-        const TElementData& rData,
+        TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         double ElemSize,
         const ProcessInfo &rCurrentProcessInfo);
 
 
     void ResolvedConvectiveVelocity(
-        const TElementData& rData,
+        TElementData& rData,
         const ShapeFunctionsType &rN,
         array_1d<double,3> &rConvVel);
 
@@ -407,7 +408,7 @@ protected:
 
 
     virtual void AddSystemTerms(
-        const TElementData& rData,
+        TElementData& rData,
         const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         MatrixType& rLHS,
@@ -415,12 +416,12 @@ protected:
 
 
     virtual void AddMassTerms(
-        const TElementData& rData,
+        TElementData& rData,
         const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix) = 0;
 
-    virtual void CalculateProjections() = 0;
+    virtual void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) = 0;
 
     void IntegrationPointVorticity(const ShapeFunctionDerivativesType& rDN_DX,
                                    array_1d<double,3> &rVorticity) const;
