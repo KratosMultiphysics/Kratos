@@ -24,7 +24,6 @@ namespace Kratos
 template< class TElementData >
 FluidElement<TElementData>::FluidElement(IndexType NewId):
     Element(NewId)
-
 {}
 
 template< class TElementData >
@@ -55,13 +54,13 @@ FluidElement<TElementData>::~FluidElement()
 template< class TElementData >
 Element::Pointer FluidElement<TElementData>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
 {
-    KRATOS_ERROR << "Attempting to Create base FluidElement<" << Dim << "> instances, but this is an abstract element." << std::endl;
+    KRATOS_ERROR << "Attempting to Create base FluidElement instances, but this is an abstract element." << std::endl;
 }
 
 template< class TElementData >
 Element::Pointer FluidElement<TElementData>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    KRATOS_ERROR << "Attempting to Create base FluidElement<" << Dim << "> instances, but this is an abstract element." << std::endl;
+    KRATOS_ERROR << "Attempting to Create base FluidElement instances, but this is an abstract element." << std::endl;
 }
 
 template <class TElementData>
