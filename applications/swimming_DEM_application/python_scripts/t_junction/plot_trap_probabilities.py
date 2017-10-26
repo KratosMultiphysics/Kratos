@@ -9,9 +9,12 @@ L = 0.0048
 n_intervals = 30
 max_creation_time = 1.5
 fluid_run_name = 'mesh_38288_nodes'
+fluid_run_name = 'mesh_66576_nodes'
 snapshot_name = 't=0.2900000000000001_in_box'
 snapshot_name = 't=1.0000000000000007_in_box'
 snapshot_name = 't=2.0000000000000013_RADIUS=0.00024_in_box'
+snapshot_name = 't=1.0_RADIUS=0.0002_in_box'
+snapshot_name = 't=0.11_RADIUS=0.0002_in_box'
 a = 0.00024 / L
 # snapshot_name = 't=0.04_in_box'
 

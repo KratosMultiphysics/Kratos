@@ -10,10 +10,10 @@ import json
 varying_parameters = dict()
 combinations_that_failed = []
 errors = []
-varying_parameters["fluid_already_calculated"] = True
+varying_parameters["fluid_already_calculated"] = False
 varying_parameters["do_search_neighbours"] = False
 varying_parameters["full_particle_history_watcher"] = 'ParticlesHistoryWatcher'
-
+varying_parameters["stationary_problem_option"] = True
 parameters = Parameters(json.dumps(varying_parameters))
 
 import t_junction_algorithm

@@ -2,7 +2,9 @@ import bisect as bi
 import numpy as np
 import h5py
 from KratosMultiphysics import *
+from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
+from DEM_procedures import KratosPrint as Say
 import json
 
 def DeleteDataSet(file_or_group, dset_name):
@@ -13,7 +15,12 @@ def CreateDataset(file_or_group, name, data):
     if name in file_or_group:
         file_or_group.__delitem__(name)
 
-    file_or_group.create_dataset(name = name, data = data)
+    dtype = float
+
+    if len(data):
+        dtype = type(data[0])
+
+    file_or_group.create_dataset(dtype = dtype, name = name, data = data)
 
 def CreateGroup(file_or_group, name):
     if name in file_or_group:
@@ -181,7 +188,7 @@ class FluidHDF5Loader:
             node.SetSolutionStepValue(variable, self.current_data_array[i_node, variable_index_in_temp_array])
 
     def LoadFluid(self, DEM_time):
-        print('\nLoading fluid from hdf5 file...')
+        Say('\nLoading fluid from hdf5 file...')
         # getting time indices and weights (identifyint the two fluid time steps surrounding the current DEM step and assigning correspnding weights)
         old_time_index, alpha_old, future_time_index, alpha_future = self.GetOldTimeIndicesAndWeights(DEM_time, self.times, self.dt)
         old_step_dataset_name    = self.times_str[old_time_index]
@@ -210,7 +217,7 @@ class FluidHDF5Loader:
             self.UpdateFluidVariable(future_step_dataset_name + '/dvzx', VELOCITY_Z_GRADIENT_X, next(indices), must_load_from_database, alpha_old, alpha_future)
             self.UpdateFluidVariable(future_step_dataset_name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(indices), must_load_from_database, alpha_old, alpha_future)
             self.UpdateFluidVariable(future_step_dataset_name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(indices), must_load_from_database, alpha_old, alpha_future)
-        print('Finished loading fluid from hdf5 file.\n')
+        Say('Finished loading fluid from hdf5 file.\n')
 
 class ParticleHistoryLoader:
     def __init__(self, particles_model_part, pp, main_path):
@@ -224,22 +231,22 @@ class ParticleHistoryLoader:
     def CreateAllParticlesFileIfNecessary(self):
         if not self.pp.CFD_DEM["full_particle_history_watcher"].GetString() == 'Empty':
             nodes = [node for node in self.model_part.Nodes if node.IsNot(BLOCKED)]
-            ids = np.array([node.Id for node in nodes])
-            initial_x = np.array([node.X0 for node in nodes])
-            initial_y = np.array([node.Y0 for node in nodes])
-            initial_z = np.array([node.Z0 for node in nodes])
+            Ids = np.array([node.Id for node in nodes], dtype = int)
+            X0s = np.array([node.X0 for node in nodes])
+            Y0s = np.array([node.Y0 for node in nodes])
+            Z0s = np.array([node.Z0 for node in nodes])
             radii = np.array([node.GetSolutionStepValue(RADIUS) for node in nodes])
             times = np.array([0.0 for node in nodes])
 
             with h5py.File(self.particles_list_file_name) as f:
                 WriteDataToFile(file_or_group = f,
                                 names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS', 'TIME'],
-                                data = [ids, initial_x, initial_y, initial_z, radii, times])
+                                data = [Ids, X0s, Y0s, Z0s, radii, times])
 
-    def UpdateListOfAllParticles(self, ids, X0s, Y0s, Z0s, radii, times):
+    def UpdateListOfAllParticles(self, Ids, X0s, Y0s, Z0s, radii, times):
 
         names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS', 'TIME']
-        data = [ids, X0s, Y0s, Z0s, radii, times]
+        data = [Ids, X0s, Y0s, Z0s, radii, times]
         new_data = []
 
         with h5py.File(self.particles_list_file_name) as f:
@@ -263,11 +270,12 @@ class ParticleHistoryLoader:
             return is_a_particle and is_inside
 
         nodes_inside = [node for node in self.model_part.Nodes if IsInside(node)]
-        ids_inside = np.array([node.Id for node in nodes_inside])
-        initial_x_inside = np.array([node.X0 for node in nodes_inside])
-        initial_y_inside = np.array([node.Y0 for node in nodes_inside])
-        initial_z_inside = np.array([node.Z0 for node in nodes_inside])
+        Ids_inside = np.array([node.Id for node in nodes_inside])
+        X0s_inside = np.array([node.X0 for node in nodes_inside])
+        Y0s_inside = np.array([node.Y0 for node in nodes_inside])
+        Z0s_inside = np.array([node.Z0 for node in nodes_inside])
         radii_inside = np.array([node.GetSolutionStepValue(RADIUS) for node in nodes_inside])
+
         if len(radii_inside):
             mean_radius = sum(radii_inside) / len(radii_inside)
         else:
@@ -286,7 +294,7 @@ class ParticleHistoryLoader:
             snapshot.attrs['time'] = time
 
             names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS']
-            data = [ids_inside, initial_x_inside, initial_y_inside, initial_z_inside, radii_inside]
+            data = [Ids_inside, X0s_inside, Y0s_inside, Z0s_inside, radii_inside]
 
             for dset_name, datum in zip(names, data):
                 CreateDataset(snapshot, dset_name, datum)
