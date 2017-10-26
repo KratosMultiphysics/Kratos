@@ -513,7 +513,7 @@ public:
      * @return point: The center in u_n+1/2 (Newmark)
      */
     
-    static inline PointType GetHalfJumpCenter(
+    static inline array_1d<double, 3> GetHalfJumpCenter(
         GeometryType& ThisGeometry,
         const double& DeltaTime
         )
@@ -532,9 +532,12 @@ public:
         
         const Vector new_delta_disp_center = prod(trans(new_delta_disp), N);
         
-        center.Coordinates() += new_delta_disp_center;
+        for (unsigned int i = 0; i < new_delta_disp_center.size(); ++i)
+        {
+            center.Coordinates()[i] += new_delta_disp_center[i];
+        }
         
-        return center;
+        return center.Coordinates();
     }
     
          
