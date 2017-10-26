@@ -20,6 +20,9 @@
 #include "includes/condition.h"
 #include "geometries/point.h"
 
+/* Custom utilities */
+#include "custom_utilities/contact_utilities.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
