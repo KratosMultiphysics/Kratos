@@ -1,0 +1,238 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Lorenzo Gracia
+//
+//
+
+#if !defined(KRATOS_DAM_AZENHA_HEAT_SOURCE_PROCESS )
+#define  KRATOS_DAM_AZENHA_HEAT_SOURCE_PROCESS
+
+#include <cmath>
+
+// Project includes
+#include "includes/kratos_flags.h"
+#include "includes/kratos_parameters.h"
+#include "processes/process.h"
+
+// Application include
+#include "dam_application_variables.h"
+
+namespace Kratos
+{
+
+class DamAzenhaHeatFluxProcess : public Process
+{
+    
+public:
+
+    KRATOS_CLASS_POINTER_DEFINITION(DamAzenhaHeatFluxProcess);
+    
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    /// Constructor
+    DamAzenhaHeatFluxProcess(ModelPart& rModelPart,
+                                Parameters& rParameters
+                                ) : Process(Flags()) , mrModelPart(rModelPart)
+    {
+        KRATOS_TRY
+			 
+        //only include validation with c++11 since raw_literals do not exist in c++03
+        Parameters default_parameters( R"(
+            {
+                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
+                "mesh_id": 0,
+                "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
+                "activation_energy"                   : 0.0,
+                "gas_constant"                        : 0.0,
+                "constant_rate"                       : 0.0,
+                "alpha_initial"                       : 0.0,
+                "q_total"                             : 0.0,
+                "A"                                   : 0.0,
+                "B"                                   : 0.0,
+                "C"                                   : 0.0,
+                "D"                                   : 0.0
+            }  )" );
+        
+        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
+        // So that an error is thrown if they don't exist
+        rParameters["activation_energy"];
+        rParameters["gas_constant"];
+
+        // Now validate agains defaults -- this also ensures no type mismatch
+        rParameters.ValidateAndAssignDefaults(default_parameters);
+
+        mMeshId = rParameters["mesh_id"].GetInt();
+        mVariableName = rParameters["variable_name"].GetString();
+        mActivationEnergy = rParameters["activation_energy"].GetDouble();
+        mGasConstant = rParameters["gas_constant"].GetDouble();
+        mConstantRate = rParameters["constant_rate"].GetDouble();
+        mAlphaInitial  = rParameters["alpha_initial"].GetDouble();
+        mQTotal = rParameters["q_total"].GetDouble();        
+        mA = rParameters["A"].GetDouble();
+        mB = rParameters["B"].GetDouble();
+        mC = rParameters["C"].GetDouble();
+        mD = rParameters["D"].GetDouble();
+
+        mQPrev = 0.0;
+        mPreviousAlpha = 0.0;
+
+        KRATOS_CATCH("");
+    }
+
+    ///------------------------------------------------------------------------------------
+    
+    /// Destructor
+    virtual ~DamAzenhaHeatFluxProcess() {}
+  
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void ExecuteInitialize()
+{ 
+    KRATOS_TRY;
+
+    const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+    Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+
+     // Computing initial function of alpha according las step.
+    double alpha_initial = 0.015;
+    double f_alpha = mA*(pow(alpha_initial,2))*exp(-mB*pow(alpha_initial,3)) + mC*alpha_initial*exp(-mD*alpha_initial); 
+    
+    if(nnodes != 0)
+    {
+        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+
+        #pragma omp parallel for
+        for(int i = 0; i<nnodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+            const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
+            const double heat_flux = mConstantRate*f_alpha*exp((-mActivationEnergy)/(mGasConstant*temp_current));              
+            it->FastGetSolutionStepValue(var) = heat_flux;
+        }            
+    }
+
+    mPreviousAlpha = alpha_initial;
+
+    KRATOS_CATCH("");
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void ExecuteInitializeSolutionStep()
+{
+    KRATOS_TRY;
+
+    const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+    Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+    double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
+    
+    // Computing the current alpha according las step.
+    double current_alpha = (mQPrev/mQTotal)*delta_time + mPreviousAlpha;
+    double f_alpha = mA*(pow(current_alpha,2))*exp(-mB*pow(current_alpha,3)) + mC*current_alpha*exp(-mD*current_alpha); 
+    
+    KRATOS_WATCH(current_alpha)
+    KRATOS_WATCH(f_alpha)
+    KRATOS_WATCH(mConstantRate)
+    KRATOS_WATCH(mActivationEnergy)
+    KRATOS_WATCH(mGasConstant)
+    
+    if(nnodes != 0)
+    {
+        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+
+        #pragma omp parallel for
+        for(int i = 0; i<nnodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+            const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
+            KRATOS_WATCH(temp_current)
+            const double heat_flux = mConstantRate*f_alpha*exp((-mActivationEnergy)/(mGasConstant*temp_current));              
+            KRATOS_WATCH(heat_flux)
+            it->FastGetSolutionStepValue(var) = heat_flux;
+            mQPrev = heat_flux;
+        }            
+    }
+
+    KRATOS_WATCH(mQPrev)
+    
+    mPreviousAlpha = current_alpha;
+
+    KRATOS_CATCH("");
+}
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    /// Turn back information as a string.
+    std::string Info() const
+    {
+        return "DamAzenhaHeatFluxProcess";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "DamAzenhaHeatFluxProcess";
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const
+    {
+    }
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+protected:
+
+    /// Member Variables
+    ModelPart& mrModelPart;
+    std::size_t mMeshId;
+    std::string mVariableName;
+    double mActivationEnergy;
+    double mGasConstant;
+    double mConstantRate;
+    double mAlphaInitial;
+    double mQTotal;
+    double mQPrev;
+    double mPreviousAlpha;
+    double mA;
+    double mB;
+    double mC;
+    double mD;
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+private:
+
+    /// Assignment operator.
+    DamAzenhaHeatFluxProcess& operator=(DamAzenhaHeatFluxProcess const& rOther);
+
+};//Class
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+    DamAzenhaHeatFluxProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const DamAzenhaHeatFluxProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+} /* namespace Kratos.*/
+
+#endif /* KRATOS_DAM_AZENHA_HEAT_SOURCE_PROCESS defined */
+

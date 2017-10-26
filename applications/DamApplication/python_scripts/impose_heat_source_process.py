@@ -19,11 +19,8 @@ class ImposeHeatSourceProcess(Process):
         
         if "Noorzai" in settings["model_part_name"].GetString():
             self.components_process_list.append(DamNoorzaiHeatFluxProcess(model_part, settings))
-            
-        if "Cervera" in settings["model_part_name"].GetString():        
-            self.components_process_list.append(DamCerveraHeatFluxProcess(model_part, settings))
-            
-        if "Azenha" in settings["model_part_name"].GetString():            
+                       
+        if "Azenha" in settings["model_part_name"].GetString(): 
             self.components_process_list.append(DamAzenhaHeatFluxProcess(model_part, settings))
           
     def ExecuteInitialize(self):
