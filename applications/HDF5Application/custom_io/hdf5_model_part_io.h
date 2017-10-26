@@ -15,7 +15,6 @@
 
 // System includes
 #include <iostream>
-#include <vector>
 
 // External includes
 
@@ -32,6 +31,7 @@ namespace Kratos
 ///@addtogroup HDF5Application
 ///@{
 
+/// A class for serial IO of a model part in HDF5.
 class HDF5ModelPartIO : public IO
 {
 public:
@@ -86,33 +86,21 @@ public:
 protected:
     ///@name Protected Operations
     ///@{
-    unsigned GetPID() const;
 
-    unsigned GetTotalProcesses() const;
+    HDF5File& GetFile() const;
+
+    virtual void Check();
+
     ///@}
 
 private:
     ///@name Member Variables
     ///@{
     HDF5File::Pointer mpFile;
-    unsigned m_pid;
-    unsigned m_total_processes;
     ///@}
 
     ///@name Private Operations
     ///@{
-        /// Write all nodes into a single array.
-        void WriteNodesSerial(NodesContainerType const& rNodes) const;
-
-        /// Write nodes into local and ghost arrays.
-        void WriteNodesParallel(NodesContainerType const& rNodes) const;
-        
-        /// Read nodes from a single array.
-        void ReadNodesSerial(NodesContainerType const& rNodes) const;
-        
-        /// Read nodes from local and ghost arrays.
-        void ReadNodesParallel(NodesContainerType const& rNodes) const;
-                
     ///@}
 };
 

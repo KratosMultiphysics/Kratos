@@ -1,4 +1,5 @@
 #include "hdf5_model_part_io.h"
+#include <vector>
 
 namespace Kratos
 {
@@ -6,37 +7,60 @@ namespace Kratos
 HDF5ModelPartIO::HDF5ModelPartIO(Parameters& rParams, HDF5File::Pointer pFile)
 : mpFile(pFile)
 {
-    m_pid = pFile->GetPID();
-    m_total_processes = pFile->GetTotalProcesses();
+    KRATOS_TRY;
+    Check();
+    KRATOS_CATCH("");
 }
 
 bool HDF5ModelPartIO::ReadNodes(NodesContainerType& rNodes)
 {
     KRATOS_TRY;
 
-    if (GetTotalProcesses() == 1)
-        ReadNodesSerial(rNodes);
-    else
-        ReadNodesParallel(rNodes);
-    
+    std::vector<int> node_ids;
+    std::vector<array_1d<double, 3>> node_coords;
+    rNodes.clear();
+
+    const std::size_t num_nodes = ReadNodesNumber();
+    GetFile().ReadDataSet("/Nodes/Local/Id", node_ids, 0, num_nodes);
+    GetFile().ReadDataSet("/Nodes/Local/Coordinate", node_coords, 0, num_nodes);
+
+    rNodes.reserve(num_nodes);
+    for (unsigned i = 0; i < num_nodes; ++i)
+    {
+        const array_1d<double, 3>& r_coord = node_coords[i];
+        NodeType::Pointer p_node = boost::make_shared<NodeType>(
+            node_ids[i], r_coord[0], r_coord[1], r_coord[2]);
+        rNodes.push_back(p_node);
+    }
+
     return true;
     KRATOS_CATCH("");
 }
 
 std::size_t HDF5ModelPartIO::ReadNodesNumber()
 {
-    return 0;
+    const std::vector<unsigned> dims = GetFile().GetDataDimensions("/Nodes/Local/Id");
+    return dims[0];
 }
 
 void HDF5ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 {
     KRATOS_TRY;
 
-    if (GetTotalProcesses() == 1)
-        WriteNodesSerial(rNodes);
-    else
-        WriteNodesParallel(rNodes);
+    std::vector<int> node_ids(rNodes.size());
+    std::vector<array_1d<double, 3>> node_coords(rNodes.size());
 
+    unsigned pos = 0;
+    for (const auto& r_node : rNodes)
+    {
+        node_ids[pos] = r_node.Id();
+        node_coords[pos] = r_node.Coordinates();
+        ++pos;
+    }
+
+    GetFile().WriteDataSet("/Nodes/Local/Id", node_ids);
+    GetFile().WriteDataSet("/Nodes/Local/Coordinate", node_coords);
+    
     KRATOS_CATCH("");
 }
 
@@ -84,33 +108,15 @@ void HDF5ModelPartIO::WriteModelPart(ModelPart& rModelPart)
 {
 }
 
-unsigned HDF5ModelPartIO::GetPID() const
+HDF5File& HDF5ModelPartIO::GetFile() const
 {
-    return m_pid;
+    return *mpFile;
 }
 
-unsigned HDF5ModelPartIO::GetTotalProcesses() const
+void HDF5ModelPartIO::Check()
 {
-    return m_total_processes;
+    KRATOS_ERROR_IF(mpFile->GetTotalProcesses() != 1)
+        << "Serial IO expects file access by a single process only." << std::endl;
 }
 
-void HDF5ModelPartIO::WriteNodesSerial(NodesContainerType const& rNodes) const
-{
-
-}
-
-void HDF5ModelPartIO::WriteNodesParallel(NodesContainerType const& rNodes) const
-{
-
-}
-
-void HDF5ModelPartIO::ReadNodesSerial(NodesContainerType const& rNodes) const
-{
-
-}
-
-void HDF5ModelPartIO::ReadNodesParallel(NodesContainerType const& rNodes) const
-{
-
-}
 } // namespace Kratos.
