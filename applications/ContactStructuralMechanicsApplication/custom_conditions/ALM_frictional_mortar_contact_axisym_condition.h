@@ -29,7 +29,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef Point<3>                                  PointType;
+    typedef Point                                  PointType;
     typedef Node<3>                                    NodeType;
     typedef Geometry<NodeType>                     GeometryType;
     typedef Geometry<PointType>               GeometryPointType;
@@ -91,7 +91,7 @@ public:
     
     typedef typename std::vector<array_1d<PointType,2>>                                   ConditionArrayListType;
     
-    typedef Line2D2<Point<3>>                                                                  DecompositionType;
+    typedef Line2D2<Point>                                                                  DecompositionType;
     
     typedef DerivativeDataFrictional<2, TNumNodes>                                            DerivativeDataType;
     

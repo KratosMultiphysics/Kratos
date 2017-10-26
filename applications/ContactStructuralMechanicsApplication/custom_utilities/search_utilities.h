@@ -52,7 +52,7 @@ public:
     ///@name Type Definitions
     ///@{
     
-    typedef Point<3>                                     PointType;
+    typedef Point                                     PointType;
     typedef Node<3>                                       NodeType;
     typedef Geometry<NodeType>                        GeometryType;
     typedef Geometry<PointType>                  GeometryPointType;
@@ -109,7 +109,7 @@ public:
     
     template< const bool TFill>
     static inline void ContactContainerFiller(
-        boost::shared_ptr<ConditionMap>& ConditionPointers,
+        ConditionMap::Pointer& ConditionPointers,
         Condition::Pointer & pCond1,       // SLAVE
         const Condition::Pointer & pCond2, // MASTER
         const array_1d<double, 3> & ContactNormal1, // SLAVE
@@ -199,7 +199,7 @@ public:
                 
                 typename std::conditional<TDim == 2, LineType, TriangleType >::type decomp_geom( points_array );
                 
-                const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, SlaveGeometry.Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
+                const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, SlaveGeometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
                 
                 if (bad_shape == false)
                 {
@@ -214,7 +214,7 @@ public:
                         decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
                         SlaveGeometry.PointLocalCoordinates(local_point_parent, gp_global);
                         
-                        // Calculate the kinematic variables
+                        // Calculate the kinematic variables // TODO: Check this
                         const PointType& local_point = integration_points_slave[point_number].Coordinates();
 
                         /// SLAVE CONDITION ///
@@ -224,11 +224,11 @@ public:
                         
                         /// MASTER CONDITION ///
                         PointType projected_gp_global;
-                        const array_1d<double,3> gp_normal = ContactUtilities::GaussPointNormal(rVariables.NSlave, SlaveGeometry);
+                        const array_1d<double,3> gp_normal = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, SlaveGeometry);
                         
                         GeometryType::CoordinatesArrayType slave_gp_global;
                         SlaveGeometry.GlobalCoordinates( slave_gp_global, local_point );
-                        ContactUtilities::FastProjectDirection( MasterGeometry, slave_gp_global, projected_gp_global, MasterNormal, -gp_normal ); // The opposite direction
+                        MortarUtilities::FastProjectDirection( MasterGeometry, slave_gp_global, projected_gp_global, MasterNormal, -gp_normal ); // The opposite direction
                         
                         GeometryType::CoordinatesArrayType projected_gp_local;
                         
@@ -245,8 +245,8 @@ public:
                     /* Setting the gap */
 
                     // Current coordinates 
-                    const bounded_matrix<double, TNumNodes, TDim> x1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry);
-                    const bounded_matrix<double, TNumNodes, TDim> x2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry);
+                    const bounded_matrix<double, TNumNodes, TDim> x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry);
+                    const bounded_matrix<double, TNumNodes, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry);
             
                     const bounded_matrix<double, TNumNodes, TDim> Dx1Mx2 = prod(rThisMortarConditionMatrices.DOperator, x1) - prod(rThisMortarConditionMatrices.MOperator, x2); 
                     
@@ -314,7 +314,7 @@ public:
     
     template< const unsigned int TDim, const unsigned int TNumNodes >
     static inline void ExactContactContainerChecker(
-        boost::shared_ptr<ConditionMap>& ConditionPointers,
+        ConditionMap::Pointer& ConditionPointers,
         GeometryType& SlaveGeometry,            // SLAVE
         const array_1d<double, 3>& SlaveNormal, // SLAVE
         const double ActiveCheckLength
@@ -424,16 +424,16 @@ private:
         {
             if (Geom1[i_node].Is(ACTIVE) == false)
             {
-                Point<3> projected_point;
+                Point projected_point;
                 double aux_distance = 0.0;
                 const array_1d<double, 3> normal = Geom1[i_node].GetValue(NORMAL);
                 if (norm_2(normal) < tolerance)
                 {
-                    aux_distance = ContactUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, ContactNormal1);
+                    aux_distance = MortarUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, ContactNormal1);
                 }
                 else
                 {
-                    aux_distance = ContactUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, normal);
+                    aux_distance = MortarUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, normal);
                 }  
                 
                 array_1d<double, 3> result;
@@ -446,7 +446,7 @@ private:
                 
                 if (DualCheck == true)
                 {
-                    aux_distance = ContactUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, -ContactNormal2);
+                    aux_distance = MortarUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, -ContactNormal2);
                     if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                     {
                         at_least_one_node_potential_contact = true;

@@ -433,9 +433,9 @@ public:
 
 
 
-    typename BaseType::Pointer Create( PointerVector< Point<3> > ,Vector const &weights, Vector const& KnotsXi, Vector const& KnotsEta ) const
+    typename BaseType::Pointer Create( PointerVector< Point > ,Vector const &weights, Vector const& KnotsXi, Vector const& KnotsEta ) const
     {
-        return typename BaseType::Pointer( new NurbsPatchGeometry3D(PointerVector< Point<3> >(),KnotsXi, KnotsEta) );
+        return typename BaseType::Pointer( new NurbsPatchGeometry3D(PointerVector< Point >(),KnotsXi, KnotsEta) );
     }
 
 

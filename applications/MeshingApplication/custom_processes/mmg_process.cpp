@@ -266,25 +266,51 @@ void MmgProcess<TDim>::InitializeMeshData()
         it_dof->FreeDof();
     }
     
-    #pragma omp parallel for firstprivate(nodes_colors)
-    for(SizeType i = 0; i < num_nodes; i++) 
+    if (mFramework == Lagrangian) // NOTE: The code is repeated due to performance reasons
     {
-        auto it_node = nodes_array.begin() + i;
-        
-        SetNodes(it_node->X(), it_node->Y(), it_node->Z(), nodes_colors[it_node->Id()], i + 1);
-        
-        bool blocked = false;
-        if (it_node->IsDefined(BLOCKED) == true)
+        #pragma omp parallel for firstprivate(nodes_colors)
+        for(SizeType i = 0; i < num_nodes; i++) 
         {
-            blocked = it_node->Is(BLOCKED);
+            auto it_node = nodes_array.begin() + i;
+            
+            SetNodes(it_node->X0(), it_node->Y0(), it_node->Z0(), nodes_colors[it_node->Id()], i + 1);
+            
+            bool blocked = false;
+            if (it_node->IsDefined(BLOCKED) == true)
+            {
+                blocked = it_node->Is(BLOCKED);
+            }
+            if (TDim == 3 && blocked == true)
+            {
+                BlockNode(i + 1);
+            }
+            
+            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
+            it_node->SetId(i + 1);
         }
-        if (TDim == 3 && blocked == true)
+    }
+    else
+    {
+        #pragma omp parallel for firstprivate(nodes_colors)
+        for(SizeType i = 0; i < num_nodes; i++) 
         {
-            BlockNode(i + 1);
+            auto it_node = nodes_array.begin() + i;
+            
+            SetNodes(it_node->X(), it_node->Y(), it_node->Z(), nodes_colors[it_node->Id()], i + 1);
+            
+            bool blocked = false;
+            if (it_node->IsDefined(BLOCKED) == true)
+            {
+                blocked = it_node->Is(BLOCKED);
+            }
+            if (TDim == 3 && blocked == true)
+            {
+                BlockNode(i + 1);
+            }
+            
+            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
+            it_node->SetId(i + 1);
         }
-        
-        // RESETING THE ID OF THE NODES (important for non consecutive meshes)
-        it_node->SetId(i + 1);
     }
     
     /* Conditions */
@@ -311,7 +337,10 @@ void MmgProcess<TDim>::InitializeMeshData()
     bool to_check_elem = false;
     if (num_conditions > 0)
     {
-        mpRefCondition[0] = conditions_array.begin()->Create(0, conditions_array.begin()->GetGeometry(), conditions_array.begin()->pGetProperties());
+        const std::string type_name = (TDim == 2) ? "Condition2D2N" : "Condition3D";
+        Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
+        mpRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), conditions_array.begin()->pGetProperties());
+//         mpRefCondition[0] = conditions_array.begin()->Create(0, conditions_array.begin()->GetGeometry(), conditions_array.begin()->pGetProperties());
         to_check_cond = true;
     }
     if (num_elements > 0)
@@ -729,6 +758,21 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     /* After that we reorder nodes, conditions and elements: */
     ReorderAllIds();
     
+    /* Unmoving the original mesh to be able to interpolate */
+    if (mFramework == Lagrangian) 
+    {
+        nodes_array = r_old_model_part.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
+        
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; i++)
+        {
+            auto it_node = nodes_array.begin() + i;
+
+            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
+        }
+    }
+
     /* We interpolate all the values */
     Parameters InterpolateParameters = Parameters(R"({"echo_level": 1, "framework": "Eulerian", "max_number_of_searchs": 1000, "step_data_size": 0, "buffer_size": 0})" );
     InterpolateParameters["echo_level"].SetInt(mThisParameters["echo_level"].GetInt());
@@ -742,9 +786,23 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     /* We initialize elements and conditions */
     InitializeElementsAndConditions();
     
-    /* We interpolate the internal variables */
+    /* We do some operations related with the Lagrangian framework */
     if (mFramework == Lagrangian) 
     {
+        /* We move the mesh */
+        nodes_array = mrThisModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
+
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; i++)
+        {
+            auto it_node = nodes_array.begin() + i;
+
+            noalias(it_node->Coordinates())  = it_node->GetInitialPosition().Coordinates();
+            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+        }
+        
+        /* We interpolate the internal variables */
         InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(r_old_model_part, mrThisModelPart, mThisParameters["internal_variables_parameters"]);
         InternalVariablesInterpolation.Execute();
     }

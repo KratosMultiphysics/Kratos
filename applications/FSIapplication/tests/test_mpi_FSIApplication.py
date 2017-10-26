@@ -32,6 +32,9 @@ def AssambleTestSuites():
     smallMPISuite.addTest(ConvergenceAcceleratorSpringMPITest('test_aitken_accelerator_constant_forces'))
     smallMPISuite.addTest(ConvergenceAcceleratorSpringMPITest('test_aitken_accelerator_variable_stiffness'))
     smallMPISuite.addTest(ConvergenceAcceleratorSpringMPITest('test_aitken_accelerator_ghost_nodes'))
+    smallMPISuite.addTest(ConvergenceAcceleratorSpringMPITest('test_mvqn_recursive_accelerator_constant_forces'))
+    smallMPISuite.addTest(ConvergenceAcceleratorSpringMPITest('test_mvqn_recursive_accelerator_variable_stiffness'))
+    smallMPISuite.addTest(ConvergenceAcceleratorSpringMPITest('test_mvqn_recursive_accelerator_ghost_nodes'))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']

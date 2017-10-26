@@ -600,19 +600,24 @@ public:
         
     static inline TDataType GeneralizedDet(const MatrixType& A)
     {
-        TDataType Determinant;
+        TDataType determinant;
         
         if (A.size1() == A.size2())
         {
-            Determinant = Det(A);
+            determinant = Det(A);
         }
-        else 
+        else if (A.size1() < A.size2()) // Right determinant
+        {
+            Matrix AAT = prod( A, trans(A) );
+            determinant = std::sqrt(Det(AAT));
+        }
+        else // Left determinant
         {
             Matrix ATA = prod( trans(A), A );
-            Determinant = std::sqrt(Det(ATA));
+            determinant = std::sqrt(Det(ATA));
         }
         
-        return Determinant;
+        return determinant;
     }
     
     /**

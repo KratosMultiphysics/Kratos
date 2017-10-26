@@ -31,7 +31,6 @@
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
-#include "geometries/line_gl_3d_2.h"
 #include "geometries/line_3d_3.h"
 #include "geometries/point.h"
 #include "geometries/point_2d.h"
@@ -255,6 +254,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, PRESSUREAUX )
   KRATOS_CREATE_VARIABLE( double, NODAL_MAUX )
   KRATOS_CREATE_VARIABLE( double, NODAL_PAUX )
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NODAL_VAUX )
   KRATOS_CREATE_VARIABLE( double, HEAT_FLUX )
   KRATOS_CREATE_VARIABLE( double, REACTION_FLUX )
   KRATOS_CREATE_VARIABLE( double, TC )
@@ -931,6 +931,7 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( PRESSUREAUX )
       KRATOS_REGISTER_VARIABLE( NODAL_MAUX )
       KRATOS_REGISTER_VARIABLE( NODAL_PAUX )
+      KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_VAUX )
       KRATOS_REGISTER_VARIABLE( HEAT_FLUX )
       KRATOS_REGISTER_VARIABLE( REACTION_FLUX )
       KRATOS_REGISTER_VARIABLE( TC )
@@ -1120,7 +1121,7 @@ namespace Kratos
       //Register general geometries:
 
       //Points:
-      Serializer::Register( "Point", Point<3>() );
+      Serializer::Register( "Point", Point() );
 
       Point2D<Node<3> > Point2DPrototype( Element::GeometryType::PointsArrayType( 1 ) );
       Serializer::Register( "Point2D", Point2DPrototype );

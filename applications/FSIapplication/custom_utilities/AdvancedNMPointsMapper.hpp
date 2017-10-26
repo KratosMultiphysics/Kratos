@@ -48,7 +48,7 @@ namespace Kratos
 
 /** @brief Custom Gauss Point container to be used by the mapper
  */
-class GaussPointItem: public Point<3>
+class GaussPointItem: public Point
 {
 public:
 
@@ -68,7 +68,7 @@ public:
 
     /// Default constructors
     GaussPointItem():
-        Point<3>(),
+        Point(),
         mArea(0),
         mProjStatus(0)
     {
@@ -78,7 +78,7 @@ public:
     GaussPointItem(array_1d<double, 3> Coords,
                    double Area,
                    array_1d<double, 3> Normal):
-        Point<3>(Coords),
+        Point(Coords),
         mArea(Area),
         mNormal(Normal),
         mProjStatus(0)
@@ -86,7 +86,7 @@ public:
 
     ///Copy constructor  (not really required)
     GaussPointItem(const GaussPointItem& rhs):
-        Point<3>(rhs),
+        Point(rhs),
         mArea(rhs.mArea),
         mNormal(rhs.mNormal),
         mProjStatus(rhs.mProjStatus),
@@ -192,9 +192,9 @@ public:
      * @return PointProjected: The point pojected over the plane
      * @return dist: The distance between the point and the plane
      */
-    void ProjectPointToLine(const Point<3> & PointInPlane,
-                            const Point<3> & PointToBeProjected,
-                            Point<3> & PointProjected,
+    void ProjectPointToLine(const Point & PointInPlane,
+                            const Point & PointToBeProjected,
+                            Point & PointProjected,
                             double & dist);
 
     /**
@@ -487,7 +487,7 @@ private:
      * @return Radius: Geometry radius
      */
     void ComputeGeometryCenterAndRadius(const Condition::Pointer pCond,
-                                        Point<3>& Center,
+                                        Point& Center,
                                         double& Radius);
 
     /**

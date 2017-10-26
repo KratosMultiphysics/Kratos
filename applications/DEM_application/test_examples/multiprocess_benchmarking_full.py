@@ -1,7 +1,10 @@
 from __future__ import print_function
 import os,subprocess,sys
 import multiprocessing as mp
-import queue
+if sys.version_info >= (3, 0):
+    import queue
+else:
+    import Queue as queue
 from threading import Thread
 import threading
 from glob import glob

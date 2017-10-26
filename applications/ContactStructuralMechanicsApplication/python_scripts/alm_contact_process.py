@@ -37,7 +37,7 @@ class ALMContactProcess(python_process.PythonProcess):
             "normal_variation"            : false,
             "pair_variation"              : true,
             "manual_ALM"                  : false,
-            "stiffness_factor"            : 10.0,
+            "stiffness_factor"            : 1.0,
             "penalty_scale_factor"        : 1.0,
             "use_scale_factor"            : true,
             "penalty"                     : 0.0,
@@ -47,7 +47,7 @@ class ALMContactProcess(python_process.PythonProcess):
             "use_exact_integration"       : true,
             "hard_clear_after_step"       : false,
             "database_step_update"        : 1,
-            "integration_order"           : 2,
+            "integration_order"           : 3,
             "predict_with_linear_solver"  : false,
             "max_gap_factor"              : 0.0,
             "linear_solver_settings"      : {
@@ -121,11 +121,9 @@ class ALMContactProcess(python_process.PythonProcess):
         self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_PAIR_VARIATION] = self.params["pair_variation"].GetBool()
         # We set the max gap factor for the gap adaptation
         max_gap_factor = self.params["max_gap_factor"].GetDouble()
-        if (max_gap_factor > 0.0):
-            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.ADAPT_PENALTY] = True
-        else:
-            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.ADAPT_PENALTY] = False
+        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.ADAPT_PENALTY] = (max_gap_factor > 0.0)
         self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.MAX_GAP_FACTOR] = max_gap_factor
+        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR] = self.params["active_check_factor"].GetDouble()
         
         # We set the value that scales in the tangent direction the penalty and scale parameter
         if self.params["contact_type"].GetString() == "Frictional":
@@ -136,8 +134,7 @@ class ALMContactProcess(python_process.PythonProcess):
         
         # Setting the integration order and active check factor
         for prop in computing_model_part.GetProperties():
-            prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = self.params["integration_order"].GetInt() 
-            prop[ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR] = self.params["active_check_factor"].GetDouble()
+            prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = self.params["integration_order"].GetInt()
             
         for node in self.contact_model_part.Nodes:
             node.Set(KratosMultiphysics.INTERFACE, True)
