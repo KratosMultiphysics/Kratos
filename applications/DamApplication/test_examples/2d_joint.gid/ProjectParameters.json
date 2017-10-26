@@ -76,7 +76,7 @@
         "python_module" : "apply_constraint_vector_dam_table_process",
         "kratos_module" : "KratosMultiphysics.DamApplication",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "process_name"  : "ApplyConstraintVectorDamTableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
