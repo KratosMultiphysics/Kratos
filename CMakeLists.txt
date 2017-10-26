@@ -322,6 +322,10 @@ add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 add_subdirectory(applications)
 
+#compiling the triangle library
+add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)
+
+
 # Embedded python - compiles "krun and packages the python lib needed"
 if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
   add_subdirectory(embedded_python)
@@ -341,8 +345,6 @@ else(DEFINED KRATOS_INSTALL_PREFIX)
   message("--------------------------------  standard install dir ${CMAKE_INSTALL_PREFIX}")
 endif(DEFINED KRATOS_INSTALL_PREFIX)
 
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("inc_dirs = ${inc_dirs}")
 
 ################################################################################
 # install core files for the KratosMultiphysics python module
