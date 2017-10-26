@@ -28,8 +28,7 @@ class Algorithm(BaseAlgorithm):
 
     def FluidSolve(self, time = 'None', solve_system = True):
         if not self.pp.CFD_DEM["fluid_already_calculated"].GetBool():
-            if solve_system:
-                BaseAlgorithm.FluidSolve(self, time, solve_system = solve_system)
+            BaseAlgorithm.FluidSolve(self, time, solve_system = solve_system)
             self.fluid_loader.FillFluidDataStep()
         else:
             BaseAlgorithm.FluidSolve(self, time, solve_system = False)

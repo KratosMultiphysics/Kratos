@@ -113,7 +113,7 @@ class Algorithm(object):
         self.fluid_model_part = self.fluid_algorithm.fluid_model_part
 
         # defining a model part for the mixed part
-        self.all_model_parts.Add(ModelPart('MixedPart'))
+        self.all_model_parts.Add(ModelPart("MixedPart"))
 
         self.mixed_model_part = self.all_model_parts.Get('MixedPart')
 
@@ -503,6 +503,7 @@ class Algorithm(object):
                 if self.stationarity_counter.Tick():
                     Say("Assessing Stationarity...\n")
                     self.stationarity = self.stationarity_tool.Assess(self.fluid_model_part)
+                    self.stationarity_counter.Deactivate(self.stationarity)
 
             # printing if required
 

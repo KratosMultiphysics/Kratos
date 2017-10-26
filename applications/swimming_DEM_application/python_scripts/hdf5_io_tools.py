@@ -220,9 +220,10 @@ class FluidHDF5Loader:
         Say('Finished loading fluid from hdf5 file.\n')
 
 class ParticleHistoryLoader:
-    def __init__(self, particles_model_part, pp, main_path):
+    def __init__(self, particles_model_part, particle_watcher, pp, main_path):
         self.pp = pp
         self.model_part = particles_model_part
+        self.particle_watcher = particle_watcher
         self.main_path = main_path
         self.particles_list_file_name = self.main_path + '/all_particles.hdf5'
         self.prerun_fluid_file_name = pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").GetString()
@@ -244,7 +245,8 @@ class ParticleHistoryLoader:
                                 data = [Ids, X0s, Y0s, Z0s, radii, times])
 
     def UpdateListOfAllParticles(self, Ids, X0s, Y0s, Z0s, radii, times):
-
+        Ids, X0s, Y0s, Z0s, radii, times = [], [], [], [], [], []
+        self.particle_watcher.GetNewParticlesData(Ids, X0s, Y0s, Z0s, radii, times)
         names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS', 'TIME']
         data = [Ids, X0s, Y0s, Z0s, radii, times]
         new_data = []
