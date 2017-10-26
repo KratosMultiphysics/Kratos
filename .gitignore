@@ -17,6 +17,7 @@ KratosMultiphysics/*
 libpython*
 libs/*
 runkratos
+runkratos.exe
 script.py
 
 # Version
