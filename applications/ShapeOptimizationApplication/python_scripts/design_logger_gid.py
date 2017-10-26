@@ -32,19 +32,19 @@ class DesignLoggerGID( DesignLogger ):
     def __init__( self, designSurface, optimizationSettings ):
         self.designSurface = designSurface
         self.optimizationSettings = optimizationSettings
-        self.nodalResults = self.__createListOfNodalResults( self.optimizationSettings["output"] )
+        self.nodalResults = self.__CreateListOfNodalResults( self.optimizationSettings["output"] )
         self.gaussPointResults = []
-        self.gidIO = self.__createGiDIO( optimizationSettings )
+        self.gidIO = self.__CreateGiDIO( optimizationSettings )
 
     # ---------------------------------------------------------------------------
-    def __createListOfNodalResults( self, outputSettings ):
+    def __CreateListOfNodalResults( self, outputSettings ):
         listOfNodalResults = []
         for nodalResultNumber in range(outputSettings["nodal_results"].size()):
             listOfNodalResults.append( outputSettings["nodal_results"][nodalResultNumber].GetString() )
         return listOfNodalResults          
 
     # --------------------------------------------------------------------------
-    def __createGiDIO( self, optimizationSettings ):
+    def __CreateGiDIO( self, optimizationSettings ):
         resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
         designHistoryFilename = optimizationSettings["output"]["design_history_filename"].GetString()
         designHistoryFilenameWithPath =  resultsDirectory+"/"+designHistoryFilename
@@ -57,17 +57,17 @@ class DesignLoggerGID( DesignLogger ):
         return gidIO            
 
     # --------------------------------------------------------------------------
-    def initializeLogging( self ):
+    def InitializeLogging( self ):
         iteratorForInitialDesign = 0
         self.gidIO.initialize_results( self.designSurface )
         self.gidIO.write_results( iteratorForInitialDesign, self.designSurface, self.nodalResults, self.gaussPointResults )           
 
     # --------------------------------------------------------------------------
-    def logCurrentDesign( self, optimizationIteration ):
+    def LogCurrentDesign( self, optimizationIteration ):
         self.gidIO.write_results( optimizationIteration, self.designSurface, self.nodalResults, self.gaussPointResults )         
 
     # --------------------------------------------------------------------------
-    def finalizeLogging( self ):      
+    def FinalizeLogging( self ):      
         self.gidIO.finalize_results()        
 
 # ==============================================================================

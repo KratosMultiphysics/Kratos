@@ -37,7 +37,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
 
         self.onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()   
 
-        self.completeResponseLogFileName = self.__createCompleteResponseLogFilename( optimizationSettings )
+        self.completeResponseLogFileName = self.__CreateCompleteResponseLogFilename( optimizationSettings )
 
         self.objectiveValueHistory = {}
         self.absoluteChangeOfObjectiveValueHistory = {}
@@ -48,14 +48,14 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
         self.initialOptimizationIteration = 0
 
     # --------------------------------------------------------------------------
-    def __createCompleteResponseLogFilename( self, optimizationSettings ):
+    def __CreateCompleteResponseLogFilename( self, optimizationSettings ):
         resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
         responseLogFilename = optimizationSettings["output"]["response_log_filename"].GetString()
         completeResponseLogFilename = resultsDirectory+"/"+responseLogFilename+".csv"
         return completeResponseLogFilename     
 
     # --------------------------------------------------------------------------
-    def initializeLogging( self ):
+    def InitializeLogging( self ):
         with open(self.completeResponseLogFileName, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
@@ -70,39 +70,39 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
             historyWriter.writerow(row)    
 
     # --------------------------------------------------------------------------
-    def logCurrentResponses( self, optimizationIteration ):
+    def LogCurrentResponses( self, optimizationIteration ):
         self.currentOptimizationIteration = optimizationIteration
 
-        self.__addCurrentObjectiveValueToHistory()
-        if self.__isFirstLog():
+        self.__AddCurrentObjectiveValueToHistory()
+        if self.__IsFirstLog():
             self.initialOptimizationIteration = optimizationIteration        
-            self.__initializeChangeOfObjectiveValueHistory()
+            self.__InitializeChangeOfObjectiveValueHistory()
         else:
-            self.__addChangeOfObjectiveValueToHistory()
-        self.__printInfoAboutResponseFunctionValues()
-        self.__writeDataToLogFile()
+            self.__AddChangeOfObjectiveValueToHistory()
+        self.__PrintInfoAboutResponseFunctionValues()
+        self.__WriteDataToLogFile()
         
         self.previousOptimizationIteration = optimizationIteration
 
     # --------------------------------------------------------------------------
-    def __addCurrentObjectiveValueToHistory( self ):
+    def __AddCurrentObjectiveValueToHistory( self ):
         objectiveValue = self.communicator.getReportedFunctionValueOf ( self.onlyObjective )
         self.objectiveValueHistory[self.currentOptimizationIteration] = objectiveValue
 
     # -------------------------------------------------------------------------
-    def __isFirstLog( self ):
+    def __IsFirstLog( self ):
         if len(self.objectiveValueHistory) < 2:
             return True
         else:
             return False
         
     # --------------------------------------------------------------------------
-    def __initializeChangeOfObjectiveValueHistory( self ):
+    def __InitializeChangeOfObjectiveValueHistory( self ):
         self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 0.0
         self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 0.0
 
     # --------------------------------------------------------------------------
-    def __addChangeOfObjectiveValueToHistory( self ):
+    def __AddChangeOfObjectiveValueToHistory( self ):
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
         previousObjectiveValue = self.objectiveValueHistory[self.previousOptimizationIteration]
         initialObjectiveValue = self.objectiveValueHistory[self.initialOptimizationIteration]
@@ -110,7 +110,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
         self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 100*(objectiveValue-previousObjectiveValue) / initialObjectiveValue
 
     # --------------------------------------------------------------------------
-    def __printInfoAboutResponseFunctionValues( self ):
+    def __PrintInfoAboutResponseFunctionValues( self ):
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
         absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration]
         relativeChangeOfObjectiveValue = self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration]        
@@ -119,7 +119,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
         print("> Relative change of objective function = ",round(relativeChangeOfObjectiveValue,4)," [%]")         
 
     # --------------------------------------------------------------------------
-    def __writeDataToLogFile( self ):
+    def __WriteDataToLogFile( self ):
 
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
         absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration]
@@ -133,20 +133,20 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
             row.append("\t"+str("%.2f"%(absoluteChangeOfObjectiveValue))+"\t")
             row.append("\t"+str("%.6f"%(relativeChangeOfObjectiveValue))+"\t")
             row.append("\t"+str(self.optimizationSettings["line_search"]["step_size"].GetDouble())+"\t")
-            row.append("\t"+str("%.1f"%(self.timer.getLapTime()))+"\t")
-            row.append("\t"+str("%.1f"%(self.timer.getTotalTime()))+"\t")
-            row.append("\t"+str(self.timer.getTimeStamp()))
+            row.append("\t"+str("%.1f"%(self.timer.GetLapTime()))+"\t")
+            row.append("\t"+str("%.1f"%(self.timer.GetTotalTime()))+"\t")
+            row.append("\t"+str(self.timer.GetTimeStamp()))
             historyWriter.writerow(row)       
 
     # --------------------------------------------------------------------------
-    def finalizeLogging( self ):      
+    def FinalizeLogging( self ):      
         pass # No finalization necessary here
 
     # --------------------------------------------------------------------------
-    def getValue( self, variableKey ):
+    def GetValue( self, variableKey ):
         
         if variableKey=="RELATIVE_CHANGE_OF_OBJECTIVE_VALUE":
-            if self.__isFirstLog():
+            if self.__IsFirstLog():
                 raise RuntimeError("Relative change of objective function can not be computed since only one logged value is existing!")
             else:
                 return self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration]

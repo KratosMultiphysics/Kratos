@@ -33,15 +33,15 @@ class DesignLoggerVTK( DesignLogger ):
         self.vtkIO = VTKFileIO( designSurface, optimizationSettings )                
 
     # --------------------------------------------------------------------------
-    def initializeLogging( self ):
+    def InitializeLogging( self ):
         self.vtkIO.initializeLogging()
 
     # --------------------------------------------------------------------------
-    def logCurrentDesign( self, optimizationIteration ):
+    def LogCurrentDesign( self, optimizationIteration ):
         self.vtkIO.logNodalResults( optimizationIteration )
 
     # --------------------------------------------------------------------------
-    def finalizeLogging( self ):      
+    def FinalizeLogging( self ):      
         pass       
 
 # ==============================================================================

@@ -32,15 +32,15 @@ class DesignLoggerUNV( DesignLogger ):
         self.unvIO = UniversalFileIO( designSurface, optimizationSettings )                
 
     # --------------------------------------------------------------------------
-    def initializeLogging( self ):
+    def InitializeLogging( self ):
         self.unvIO.initializeLogging()
 
     # --------------------------------------------------------------------------
-    def logCurrentDesign( self, optimizationIteration ):
+    def LogCurrentDesign( self, optimizationIteration ):
         self.unvIO.logNodalResults( optimizationIteration )
 
     # --------------------------------------------------------------------------
-    def finalizeLogging( self ):      
+    def FinalizeLogging( self ):      
         pass       
 
 # ==============================================================================

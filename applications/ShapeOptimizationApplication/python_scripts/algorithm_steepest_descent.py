@@ -22,35 +22,29 @@ CheckForPreviousImport()
 # Import algorithm base classes
 from algorithm_base import OptimizationAlgorithm
 
-# Additional imports
-import timer_factory as timer_factory
-import optimization_data_logger_factory as optimization_data_logger_factory
-
 # ==============================================================================
 class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
-    def __init__( self, designSurface, dampingRegions, analyzer, mapper, communicator, optimizationSettings ):
+    def __init__( self, DesignSurface, DampingRegions, Analyzer, Mapper, Communicator, DataLogger, OptimizationSettings ):
 
-        self.designSurface = designSurface
-        self.analyzer = analyzer
-        self.mapper = mapper
-        self.communicator = communicator
-        self.optimizationSettings = optimizationSettings
+        self.DesignSurface = DesignSurface
+        self.Analyzer = Analyzer
+        self.Mapper = Mapper
+        self.Communicator = Communicator
+        self.DataLogger = DataLogger
+        self.OptimizationSettings = OptimizationSettings
 
-        self.maxIterations = optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
-        self.onlyObjective = optimizationSettings["objectives"][0]["identifier"].GetString()
-        self.initialStepSize = optimizationSettings["line_search"]["step_size"].GetDouble()
-        self.performDamping = optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
+        self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
+        self.onlyObjective = OptimizationSettings["objectives"][0]["identifier"].GetString()
+        self.initialStepSize = OptimizationSettings["line_search"]["step_size"].GetDouble()
+        self.performDamping = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
 
-        self.geometryTools = GeometryUtilities( designSurface )
-        self.optimizationTools = OptimizationUtilities( designSurface, optimizationSettings )
+        self.geometryTools = GeometryUtilities( DesignSurface )
+        self.optimizationTools = OptimizationUtilities( DesignSurface, OptimizationSettings )
         if self.performDamping:
-            self.dampingUtilities = DampingUtilities( designSurface, dampingRegions, self.optimizationSettings )
-
-        self.timer = timer_factory.CreateTimer()
-        self.dataLogger = optimization_data_logger_factory.CreateDataLogger( designSurface, communicator, optimizationSettings, self.timer )
-
+            self.dampingUtilities = DampingUtilities( DesignSurface, DampingRegions, self.OptimizationSettings )
+            
     # --------------------------------------------------------------------------
     def execute( self ):
         self.__initializeOptimizationLoop()
@@ -59,15 +53,15 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __initializeOptimizationLoop( self ):
-        self.timer.startTimer()
-        self.dataLogger.initializeDataLogging()
+        self.DataLogger.StartTimer()
+        self.DataLogger.InitializeDataLogging()
 
     # --------------------------------------------------------------------------
     def __startOptimizationLoop( self ):
 
         for optimizationIteration in range(1,self.maxIterations):
             print("\n>===================================================================")
-            print("> ",self.timer.getTimeStamp(),": Starting optimization iteration ",optimizationIteration)
+            print("> ",self.DataLogger.GetTimeStamp(),": Starting optimization iteration ",optimizationIteration)
             print(">===================================================================\n")
 
             self.__callCommunicatorToRequestNewAnalyses()
@@ -97,21 +91,21 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
-        self.dataLogger.finalizeDataLogging()
+        self.DataLogger.FinalizeDataLogging()
 
     # --------------------------------------------------------------------------
     def __callCommunicatorToRequestNewAnalyses( self ):
-        self.communicator.initializeCommunication()
-        self.communicator.requestFunctionValueOf( self.onlyObjective )
-        self.communicator.requestGradientOf( self.onlyObjective )
+        self.Communicator.initializeCommunication()
+        self.Communicator.requestFunctionValueOf( self.onlyObjective )
+        self.Communicator.requestGradientOf( self.onlyObjective )
 
     # --------------------------------------------------------------------------
     def __callAnalyzerToPerformRequestedAnalyses( self, optimizationIteration ):
-        self.analyzer.analyzeDesignAndReportToCommunicator( self.designSurface, optimizationIteration, self.communicator )
+        self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, optimizationIteration, self.Communicator )
 
     # --------------------------------------------------------------------------
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
-        gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( self.onlyObjective )
+        gradientOfObjectiveFunction = self.Communicator.getReportedGradientOf ( self.onlyObjective )
         self.__storeGradientOnNodalVariable( gradientOfObjectiveFunction, OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
@@ -121,7 +115,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             gradient[0] = givenGradient[nodeId][0]
             gradient[1] = givenGradient[nodeId][1]
             gradient[2] = givenGradient[nodeId][2]
-            self.designSurface.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)
+            self.DesignSurface.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)
 
     # --------------------------------------------------------------------------
     def __alignSensitivitiesToLocalSurfaceNormal( self ):
@@ -141,11 +135,11 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace( self ):
-        self.mapper.MapToDesignSpace( OBJECTIVE_SENSITIVITY, MAPPED_OBJECTIVE_SENSITIVITY )
+        self.Mapper.MapToDesignSpace( OBJECTIVE_SENSITIVITY, MAPPED_OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __mapDesignUpdateToGeometrySpace( self ):
-        self.mapper.MapToGeometrySpace( DESIGN_UPDATE, SHAPE_UPDATE )
+        self.Mapper.MapToGeometrySpace( DESIGN_UPDATE, SHAPE_UPDATE )
 
     # --------------------------------------------------------------------------
     def __dampShapeUpdate( self ):
@@ -156,13 +150,12 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep( self, optimizationIteration ):
-        self.dataLogger.logCurrentData( optimizationIteration )
+        self.DataLogger.LogCurrentData( optimizationIteration )
 
     # --------------------------------------------------------------------------
     def __timeOptimizationStep( self ):
-        print("\n> Time needed for current optimization step = ", self.timer.getLapTime(), "s")
-        print("> Time needed for total optimization so far = ", self.timer.getTotalTime(), "s")
-        self.timer.resetLapTime()
+        print("\n> Time needed for current optimization step = ", self.DataLogger.GetLapTime(), "s")
+        print("> Time needed for total optimization so far = ", self.DataLogger.GetTotalTime(), "s")
 
     # --------------------------------------------------------------------------
     def __isAlgorithmConverged( self, optimizationIteration ):
@@ -174,10 +167,10 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
                 print("\n> Maximal iterations of optimization problem reached!")
                 return True
 
-            relativeChangeOfObjectiveValue = self.dataLogger.getValue( "RELATIVE_CHANGE_OF_OBJECTIVE_VALUE" )
+            relativeChangeOfObjectiveValue = self.DataLogger.GetValue( "RELATIVE_CHANGE_OF_OBJECTIVE_VALUE" )
 
             # Check for relative tolerance
-            relativeTolerance = self.optimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
+            relativeTolerance = self.OptimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
             if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
                 print("\n> Optimization problem converged within a relative objective tolerance of ",relativeTolerance,"%.")
                 return True

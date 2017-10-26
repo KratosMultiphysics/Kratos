@@ -20,8 +20,6 @@ CheckForPreviousImport()
 
 # Additional imports
 import timer_factory
-import mapper_factory
-import communicator_factory
 import algorithm_factory
 
 # ==============================================================================
@@ -78,45 +76,14 @@ class VertexMorphingMethod:
         algorithmName = self.optimizationSettings["optimization_algorithm"]["name"].GetString()
 
         print("\n> ==============================================================================================================")
-        print("> ",timer.getTimeStamp(),": Starting optimization using the following algorithm: ", algorithmName)
+        print("> ",timer.GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithmName)
         print("> ==============================================================================================================\n")
     
-        designSurface = self.__getDesignSurfaceFromInputModelPart()
-        dampingRegions = self.__getdampingRegionsFromInputModelPart()
-
-        mapper = mapper_factory.CreateMapper( designSurface, self.optimizationSettings ) 
-        communicator = communicator_factory.CreateCommunicator( self.optimizationSettings )
-
-        algorithm = algorithm_factory.CreateAlgorithm( designSurface, dampingRegions, self.analyzer, mapper, communicator, self.optimizationSettings )
+        algorithm = algorithm_factory.CreateAlgorithm( self.inputModelPart, self.analyzer, self.optimizationSettings )
         algorithm.execute()       
 
         print("\n> ==============================================================================================================")
         print("> Finished optimization                                                                                           ")
-        print("> ==============================================================================================================\n")
-    
-    # --------------------------------------------------------------------------
-    def __getDesignSurfaceFromInputModelPart( self ):
-        nameOfDesingSurface = self.optimizationSettings["design_variables"]["design_submodel_part_name"].GetString()
-        if self.inputModelPart.HasSubModelPart( nameOfDesingSurface ):
-            optimizationModel = self.inputModelPart.GetSubModelPart( nameOfDesingSurface )
-            print("> The following design surface was defined:\n\n",optimizationModel)
-            return optimizationModel
-        else:
-            raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)         
-
-    # --------------------------------------------------------------------------
-    def __getdampingRegionsFromInputModelPart( self ):
-        dampingRegions = {}
-        if(self.optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()):
-            print("> The following damping regions are defined: \n")
-            for regionNumber in range(self.optimizationSettings["design_variables"]["damping"]["damping_regions"].size()):
-                regionName = self.optimizationSettings["design_variables"]["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
-                if self.inputModelPart.HasSubModelPart(regionName):
-                    print(regionName)
-                    dampingRegions[regionName] = self.inputModelPart.GetSubModelPart(regionName)
-                else:
-                    raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)    
-            print("")    
-        return dampingRegions               
+        print("> ==============================================================================================================\n")            
 
 # ==============================================================================
