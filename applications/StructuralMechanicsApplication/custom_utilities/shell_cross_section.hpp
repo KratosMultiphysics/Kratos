@@ -1397,8 +1397,11 @@ private:
 
         rSerializer.save("init", mInitialized);
         rSerializer.save("hasOOP", mNeedsOOPCondensation);
-        rSerializer.save("OOP_eps", mOOP_CondensedStrains_converged);
-    } //TODo add the oter members!
+        rSerializer.save("OOP_eps", mOOP_CondensedStrains);
+        rSerializer.save("OOP_eps_conv", mOOP_CondensedStrains_converged);
+        rSerializer.save("store_ply_mat", mStorePlyConstitutiveMatrices);
+        rSerializer.save("ply_mat", mPlyConstitutiveMatrices);
+    }
 
     void load(Serializer& rSerializer) override
     {
@@ -1417,7 +1420,10 @@ private:
 
         rSerializer.load("init", mInitialized);
         rSerializer.load("hasOOP", mNeedsOOPCondensation);
-        rSerializer.load("OOP_eps", mOOP_CondensedStrains_converged);
+        rSerializer.load("OOP_eps", mOOP_CondensedStrains);
+        rSerializer.load("OOP_eps_conv", mOOP_CondensedStrains_converged);
+        rSerializer.load("store_ply_mat", mStorePlyConstitutiveMatrices);
+        rSerializer.load("ply_mat", mPlyConstitutiveMatrices);
     }
 
     ///@}

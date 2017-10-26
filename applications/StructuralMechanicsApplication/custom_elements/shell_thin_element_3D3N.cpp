@@ -2188,6 +2188,7 @@ void ShellThinElement3D3N::save(Serializer& rSerializer) const
     rSerializer.save("CTr", mpCoordinateTransformation);
     rSerializer.save("Sec", mSections);
     rSerializer.save("IntM", (int)mThisIntegrationMethod);
+    rSerializer.save("rot", mOrthotropicSectionRotation);
 }
 
 void ShellThinElement3D3N::load(Serializer& rSerializer)
@@ -2198,6 +2199,7 @@ void ShellThinElement3D3N::load(Serializer& rSerializer)
     int temp;
     rSerializer.load("IntM", temp);
     mThisIntegrationMethod = (IntegrationMethod)temp;
+    rSerializer.load("rot", mOrthotropicSectionRotation);
 }
 
 }

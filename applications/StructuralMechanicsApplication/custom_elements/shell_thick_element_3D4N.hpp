@@ -458,6 +458,8 @@ private:
 
     EASOperatorStorage mEASStorage; /*!< The storage instance for the EAS Operator */
 
+    double mOrthotropicSectionRotation = 0.0; /*!< In-plane rotation angle for orthotropic section */ 
+
     ///@}
 
     ///@name Serialization

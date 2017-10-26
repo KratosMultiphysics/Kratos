@@ -2443,6 +2443,7 @@ void ShellThickElement3D4N::save(Serializer& rSerializer) const
     rSerializer.save("CTr", mpCoordinateTransformation);
     rSerializer.save("Sec", mSections);
     rSerializer.save("EAS", mEASStorage);
+    rSerializer.save("rot", mOrthotropicSectionRotation);
 }
 
 void ShellThickElement3D4N::load(Serializer& rSerializer)
@@ -2451,6 +2452,7 @@ void ShellThickElement3D4N::load(Serializer& rSerializer)
     rSerializer.load("CTr", mpCoordinateTransformation);
     rSerializer.load("Sec", mSections);
     rSerializer.load("EAS", mEASStorage);
+    rSerializer.load("rot", mOrthotropicSectionRotation);
 }
 
 }

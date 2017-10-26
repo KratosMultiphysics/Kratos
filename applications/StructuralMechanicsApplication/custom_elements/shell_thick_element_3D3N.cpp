@@ -2817,7 +2817,8 @@ namespace Kratos
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 		rSerializer.save("CTr", mpCoordinateTransformation);
 		rSerializer.save("Sec", mSections);
-		rSerializer.save("IntM", (int)mThisIntegrationMethod);
+        rSerializer.save("IntM", (int)mThisIntegrationMethod);
+        rSerializer.save("rot", mOrthotropicSectionRotation);
 	}
 
 	void ShellThickElement3D3N::load(Serializer& rSerializer)
@@ -2827,6 +2828,7 @@ namespace Kratos
 		rSerializer.load("Sec", mSections);
 		int temp;
 		rSerializer.load("IntM", temp);
-		mThisIntegrationMethod = (IntegrationMethod)temp;
+        mThisIntegrationMethod = (IntegrationMethod)temp;
+        rSerializer.load("rot", mOrthotropicSectionRotation);
 	}
 }
