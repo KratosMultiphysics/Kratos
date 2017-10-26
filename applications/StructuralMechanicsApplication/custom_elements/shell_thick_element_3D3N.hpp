@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Peter Wilson
-//       contact:    A.Winterstein@tum.de
+//       contact:    A.Winterstein[at]tum.de
 //					 
 
 #if !defined(SHELL_THICK_ELEMENT_3D3N_H_INCLUDED )
@@ -23,6 +23,7 @@
 #include "custom_utilities/shell_cross_section.hpp"
 #include "custom_utilities/shellt3_local_coordinate_system.hpp"
 #include "utilities/quaternion.h"
+#include "custom_utilities/shell_utilities.hpp"
 
 namespace Kratos
 {
@@ -397,12 +398,12 @@ namespace Kratos
 
 		IntegrationMethod mThisIntegrationMethod; /*!< Currently selected integration method */
 
-		double mOrthotropicSectionRotation = 0.0; /*!< In-plane rotation angle for orthotropic section */
+		double mOrthotropicSectionRotation = 0.0; /*!< In-plane rotation angle for orthotropic section */ 
 
-												  ///@}
+        ///@}
 
-												  ///@name Serialization
-												  ///@{
+        ///@name Serialization
+        ///@{
 		void printMatrix(Matrix& matrixIn, std::string stringIn);
 
 

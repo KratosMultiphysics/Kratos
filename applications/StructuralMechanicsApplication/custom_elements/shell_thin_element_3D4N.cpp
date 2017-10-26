@@ -402,133 +402,17 @@ namespace Kratos
 
 	int ShellThinElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
 	{
-		KRATOS_TRY
-
-		GeometryType& geom = GetGeometry();
-
-		// verify that the variables are correctly initialized
-		if (DISPLACEMENT.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"DISPLACEMENT has Key zero! (check if the application is correctly registered", "");
-
-		if (ROTATION.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"ROTATION has Key zero! (check if the application is correctly registered", "");
-
-		if (VELOCITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"VELOCITY has Key zero! (check if the application is correctly registered", "");
-
-		if (ACCELERATION.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"ACCELERATION has Key zero! (check if the application is correctly registered", "");
-
-		if (DENSITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"DENSITY has Key zero! (check if the application is correctly registered", "");
-
-		if (SHELL_CROSS_SECTION.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"SHELL_CROSS_SECTION has Key zero! (check if the application is correctly registered", "");
-
-		if (THICKNESS.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"THICKNESS has Key zero! (check if the application is correctly registered", "");
-
-		if (CONSTITUTIVE_LAW.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"CONSTITUTIVE_LAW has Key zero! (check if the application is correctly registered", "");
-
-		// verify that the dofs exist
-		for (unsigned int i = 0; i < geom.size(); i++)
-		{
-			if (geom[i].SolutionStepsDataHas(DISPLACEMENT) == false)
-				KRATOS_THROW_ERROR(std::invalid_argument,
-					"missing variable DISPLACEMENT on node ", geom[i].Id());
-
-			if (geom[i].HasDofFor(DISPLACEMENT_X) == false ||
-				geom[i].HasDofFor(DISPLACEMENT_Y) == false ||
-				geom[i].HasDofFor(DISPLACEMENT_Z) == false)
-				KRATOS_THROW_ERROR(std::invalid_argument,
-					"missing one of the dofs for the variable DISPLACEMENT on node ",
-					GetGeometry()[i].Id());
-
-			if (geom[i].SolutionStepsDataHas(ROTATION) == false)
-				KRATOS_THROW_ERROR(std::invalid_argument,
-					"missing variable ROTATION on node ", geom[i].Id());
-
-			if (geom[i].HasDofFor(ROTATION_X) == false ||
-				geom[i].HasDofFor(ROTATION_Y) == false ||
-				geom[i].HasDofFor(ROTATION_Z) == false)
-				KRATOS_THROW_ERROR(std::invalid_argument,
-					"missing one of the dofs for the variable ROTATION on node ",
-					geom[i].Id());
-
-			if (geom[i].GetBufferSize() < 2)
-				KRATOS_THROW_ERROR(std::logic_error,
-					"This Element needs at least a buffer size = 2", "");
-		}
-
-		// check properties
-		if (this->pGetProperties() == NULL)
-			KRATOS_THROW_ERROR(std::logic_error,
-				"Properties not provided for element ", this->Id());
-
-		const PropertiesType & props = this->GetProperties();
-
-		if (props.Has(SHELL_CROSS_SECTION))
-		{
-			// if the user specified a cross section...
-
-			const ShellCrossSection::Pointer & section =
-				props[SHELL_CROSS_SECTION];
-			if (section == NULL)
-				KRATOS_THROW_ERROR(std::logic_error,
-					"SHELL_CROSS_SECTION not provided for element ",
-					this->Id());
-
-			section->Check(props, geom, rCurrentProcessInfo);
-		}
-		else if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
-		{
-			// perform orthotropic check later in shell_cross_section
-		}
-		else
-		{
-			// ... allow the automatic creation of a homogeneous section from a
-			// material and a thickness
-
-			if (!props.Has(CONSTITUTIVE_LAW))
-				KRATOS_THROW_ERROR(std::logic_error,
-					"CONSTITUTIVE_LAW not provided for element ", this->Id());
-
-			const ConstitutiveLaw::Pointer& claw = props[CONSTITUTIVE_LAW];
-
-			if (claw == NULL)
-				KRATOS_THROW_ERROR(std::logic_error,
-					"CONSTITUTIVE_LAW not provided for element ", this->Id());
-
-			if (!props.Has(THICKNESS))
-				KRATOS_THROW_ERROR(std::logic_error,
-					"THICKNESS not provided for element ", this->Id());
-
-			if (props[THICKNESS] <= 0.0)
-				KRATOS_THROW_ERROR(std::logic_error,
-					"wrong THICKNESS value provided for element ", this->Id());
-
-			ShellCrossSection::Pointer dummySection =
-				ShellCrossSection::Pointer(new ShellCrossSection());
-			dummySection->BeginStack();
-			dummySection->AddPly(props[THICKNESS], 0.0, 5,
-				this->pGetProperties());
-			dummySection->EndStack();
-			dummySection->SetSectionBehavior(ShellCrossSection::Thin);
-			dummySection->Check(props, geom, rCurrentProcessInfo);
-		}
-
-		return 0;
-
-		KRATOS_CATCH("")
+        KRATOS_TRY
+    
+        GeometryType& r_geom = GetGeometry();
+    
+        ShellUtilities::CheckVariables();
+        ShellUtilities::CheckDofs(r_geom);
+        ShellUtilities::CheckProperties(this, rCurrentProcessInfo);
+    
+        return 0;
+    
+        KRATOS_CATCH("")
 	}
 
 	void ShellThinElement3D4N::CleanMemory()

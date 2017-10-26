@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Peter Wilson
-//       Contact:    A.Winterstein@tum.de
+//       Contact:    A.Winterstein[at]tum.de
 //
 
 #if !defined(SHELL_THIN_ELEMENT_3D4N_H_INCLUDED )
@@ -22,6 +22,7 @@
 #include "custom_utilities/shell_cross_section.hpp"
 #include "utilities/quaternion.h"
 #include "custom_utilities/shellq4_local_coordinate_system.hpp"
+#include "custom_utilities/shell_utilities.hpp"
 
 namespace Kratos
 {
@@ -484,10 +485,10 @@ Southern California, 2012.
 
 		double mOrthotropicSectionRotation = 0.0; /*!< In-plane rotation angle for orthotropic section */
 
-												  ///@}
+        ///@}
 
-												  ///@name Serialization
-												  ///@{
+        ///@name Serialization
+        ///@{
 		friend class Serializer;
 
 		void save(Serializer& rSerializer) const override;

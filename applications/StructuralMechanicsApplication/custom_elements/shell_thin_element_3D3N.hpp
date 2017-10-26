@@ -22,6 +22,7 @@
 #include "custom_utilities/shell_cross_section.hpp"
 #include "custom_utilities/shellt3_local_coordinate_system.hpp"
 #include "utilities/quaternion.h"
+#include "custom_utilities/shell_utilities.hpp"
 
 namespace Kratos
 {
