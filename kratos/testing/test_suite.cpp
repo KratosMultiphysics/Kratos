@@ -63,8 +63,12 @@ namespace Kratos
 
 		void TestSuite::Select() {
 			for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
-				(*i_test)->Select();
-		}
+				if ((*i_test)->IsEnabled())
+					(*i_test)->Select();
+				else
+					(*i_test)->UnSelect();
+	}
+
 
 		void TestSuite::UnSelect() {
 			for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
