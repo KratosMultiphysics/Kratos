@@ -1310,7 +1310,7 @@ public:
     /**
     * Parses the shell orthotropic material data from properties
     */
-    void ParseOrthotropicPropertyMatrix(const Properties& rProps, Element* myElement);
+    void ParseOrthotropicPropertyMatrix(const Properties::Pointer & pProps);
     
     /**
     * Get orientation of laminae
@@ -1398,7 +1398,7 @@ private:
         rSerializer.save("init", mInitialized);
         rSerializer.save("hasOOP", mNeedsOOPCondensation);
         rSerializer.save("OOP_eps", mOOP_CondensedStrains_converged);
-    }
+    } //TODo add the oter members!
 
     void load(Serializer& rSerializer) override
     {

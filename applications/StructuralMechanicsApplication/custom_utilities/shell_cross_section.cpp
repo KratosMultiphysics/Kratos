@@ -841,26 +841,26 @@ bool ShellCrossSection::CheckIsOrthotropic(const Properties& rProps)
     }
 }
 
-void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties& props, Element* myElement)
+void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties::Pointer & pProps)
 {
     // ascertain how many plies there are and begin stacking them
-    unsigned int plies = (props)[SHELL_ORTHOTROPIC_LAYERS].size1();
+    const int num_plies = pProps->GetValue(SHELL_ORTHOTROPIC_LAYERS).size1();
     this->BeginStack();
 
     // figure out the format of material properties based on it's width
-    int myFormat = (props)[SHELL_ORTHOTROPIC_LAYERS].size2();
-    if(myFormat == 16)
+    int my_format = pProps->GetValue(SHELL_ORTHOTROPIC_LAYERS).size2();
+    if(my_format == 16)
     {
-        myFormat -= 7;
+        my_format -= 7;
     }
 
-    double plyThickness, angleRz, elementThickness;
-    elementThickness = 0.0;
+    double ply_thickness, angle_rz, accum_thickness;
+    accum_thickness = 0.0;
 
     // add ply for each orthotropic layer defined
-    for(unsigned int currentPly = 0; currentPly < plies; currentPly++)
+    for(int current_ply = 0; current_ply < num_plies; current_ply++)
     {
-        switch (myFormat)
+        switch (my_format)
         {
         case 9:
             // Composite mechanical properties material definition
@@ -868,8 +868,8 @@ void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties& props, 
             // Arranged as: thickness, RZangle, density, E1, E2, Poisson_12, G12, G13, G23
 
             // Assign the geometric properties of the current ply
-            plyThickness = (props)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 0);
-            angleRz = (props)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 1);
+            ply_thickness = pProps->GetValue(SHELL_ORTHOTROPIC_LAYERS)(current_ply, 0);
+            angle_rz = pProps->GetValue(SHELL_ORTHOTROPIC_LAYERS)(current_ply, 1);
 
             // Mechanical properties of the plies are updated during the
             // calculation in the following method:
@@ -878,15 +878,17 @@ void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties& props, 
             break;
 
         default:
-            KRATOS_THROW_ERROR(std::logic_error, "The Orthotropic Layer data has been defined incorrectly! It should be arranged as follows:\n\tthickness, RZangle, density, E1, E2, Poisson_12, G12, G13, G23", "")
+            KRATOS_ERROR << "The Orthotropic Layer data has been defined incorrectly! It should be arranged as follows:"
+                         << "\n\tthickness, RZangle, density, E1, E2, Poisson_12, G12, G13, G23" << std::endl;
         }
 
-        this->AddPly(plyThickness, angleRz, 5, myElement->pGetProperties());
-        elementThickness += plyThickness;
+        this->AddPly(ply_thickness, angle_rz, 5, pProps);
+        accum_thickness += ply_thickness;
     }
 
     this->EndStack();
-    // props.SetValue(THICKNESS, elementThickness);
+    KRATOS_ERROR_IF_NOT(pProps->GetValue(THICKNESS) == accum_thickness) << "The sum of ply thicknesses ( " << accum_thickness 
+                << " ) is different from the element property THICKNESS ( " << pProps->GetValue(THICKNESS) << std::endl;
 }
 
 void ShellCrossSection::GetLaminaeOrientation(Vector & rOrientation_Vector)
@@ -910,9 +912,9 @@ void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Stren
     unsigned int plies = (rProps)[SHELL_ORTHOTROPIC_LAYERS].size1();
 
     // figure out the format of material properties based on it's width
-    int myFormat = (rProps)[SHELL_ORTHOTROPIC_LAYERS].size2();
+    int my_format = (rProps)[SHELL_ORTHOTROPIC_LAYERS].size2();
     int offset = 0;
-    if(myFormat == 16)
+    if(my_format == 16)
     {
         offset = 9;
     }

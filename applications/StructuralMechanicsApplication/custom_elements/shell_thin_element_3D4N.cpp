@@ -325,8 +325,7 @@ namespace Kratos
 				// props.SetValue(CONSTITUTIVE_LAW, OrthoLaw.Clone());
 
 				// Parse material properties for each layer
-				Element* thisElement = this;
-				theSection->ParseOrthotropicPropertyMatrix(props, thisElement);
+				theSection->ParseOrthotropicPropertyMatrix(this->pGetProperties());
 			}
 			else
 			{

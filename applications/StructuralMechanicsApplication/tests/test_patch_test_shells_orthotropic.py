@@ -106,6 +106,9 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(
             KratosMultiphysics.StructuralMechanicsApplication.SHELL_ORTHOTROPIC_LAYERS,orthotropic_props)
 
+        mp.GetProperties()[1].SetValue(
+        KratosMultiphysics.THICKNESS,2)
+
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
         
