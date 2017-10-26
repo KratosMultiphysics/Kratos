@@ -824,6 +824,11 @@ class ResidualBasedNewtonRaphsonStrategy
         return mA;
     }
 
+    void GetDirectSystemMatrix(TSystemMatrixType& A)
+    {
+        A = *mpA;
+    }
+    
     void SetKeepSystemConstantDuringIterations(bool value)
     {
         mKeepSystemConstantDuringIterations = value;
