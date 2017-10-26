@@ -10,7 +10,7 @@
         "echo_level"      : 0
     },
         "solver_settings"          : {
-            "solver_type"                        : "static",
+            "solver_type"                        : "Static",
             "analysis_type"                      : "non_linear",
             "echo_level"                         : 0,
             "model_import_settings"              : {

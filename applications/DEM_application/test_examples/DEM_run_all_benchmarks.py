@@ -81,15 +81,11 @@ def Run():
                 
             else:
                 os.environ['OMP_NUM_THREADS']='1'
-                if sys.version_info >= (3, 0):
-                    path_py = os.getcwd()
-                    path_py += '/../../python_scripts'       
+                if sys.version_info >= (3, 0):       
                     subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
                     
-                else:
-                    path_py = os.getcwd()
-                    path_py += '/../../python_scripts'                                                                              
-                    subprocess.check_call(["python", "-3", path_py + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+                else:                                                                                                 
+                    subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
                 os.system("export OMP_NUM_THREADS=") # Trying to set a 'default' value
         except:
             #failure = True

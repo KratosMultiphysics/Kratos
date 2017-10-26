@@ -41,9 +41,9 @@ class TestEigenSolvers(KratosUnittest.TestCase):
         eigenvalue = eigen_solver.GetEigenValue(K, M)
 
         if (eigen_value_estimated == "lowest"):
-            self.assertAlmostEqual(eigenvalue, 0.061463, 3)
+            self.assertLessEqual(abs(eigenvalue - 0.061463)/0.061463, 5.0e-3)
         else:
-            self.assertAlmostEqual(eigenvalue, 11.959, 3)
+            self.assertLessEqual(abs(eigenvalue - 11.959)/11.959, 5.0e-3)
         
     def test_lowest_power_in_core(self):
         self._RunParametrized("""

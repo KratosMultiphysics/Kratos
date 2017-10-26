@@ -10,7 +10,7 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "dynamic",
+        "solver_type"                        : "Dynamic",
         "analysis_type"                      : "non_linear",
         "echo_level"                         : 0,
         "time_integration_method"            : "implicit",

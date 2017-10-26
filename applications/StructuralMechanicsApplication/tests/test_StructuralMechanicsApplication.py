@@ -123,6 +123,8 @@ from NightlyTests import ShellQ4ThinOrthotropicLaminateLinearStaticTests as TShe
 ## VALIDATION TESTS
 # SPRISM tests
 #from ValidationTests import SprismPanTests              as TSprismPanTests
+from ValidationTests import PendulusTLTest              as TPendulusTLTest
+from ValidationTests import PendulusULTest              as TPendulusULTest
 
 
 def AssambleTestSuites():
@@ -144,6 +146,8 @@ def AssambleTestSuites():
     # Simple patch tests
     ## Solids
     smallSuite.addTest(TTestConstitutiveLaw('test_Uniaxial_HyperElastic_3D'))
+    smallSuite.addTest(TTestConstitutiveLaw('test_Shear_HyperElastic_3D'))
+    smallSuite.addTest(TTestConstitutiveLaw('test_Shear_Plus_Strech_HyperElastic_3D'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_triangle'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_quadrilateral'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_3D_hexa'))
@@ -281,7 +285,9 @@ def AssambleTestSuites():
     validationSuite = suites['validation']
     # SPRISM tests
     ####validationSuite.addTest(TSprismPanTests('test_execution'))
-
+    validationSuite.addTest(TPendulusTLTest('test_execution'))
+    validationSuite.addTest(TPendulusULTest('test_execution'))
+    
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
