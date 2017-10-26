@@ -45,8 +45,8 @@ CMAKE_BIN=cmake
 #        C_COMPILER=gcc
 #        CXX_COMPILER=g++
 # --------------------------------------------------------------------------------------------------------------
-C_COMPILER=gcc-6
-CXX_COMPILER=g++-6
+C_COMPILER=clang
+CXX_COMPILER=clang++
 
 # Build type
 #    Indicate the build type. Possible values are "Release", "RelWithDebInfo" or "Debug"
@@ -62,8 +62,8 @@ BUILD_TYPE="Custom"
 #        C_PERF_FLAGS="-msse3 -fopenmp"
 #        CXX_PERF_FLAGS="-msse3 -fopenmp"
 # --------------------------------------------------------------------------------------------------------------
-C_PERF_FLAGS="-O0 -fopenmp"
-CXX_PERF_FLAGS="-O0 -fopenmp"
+C_PERF_FLAGS="-O0 -fopenmp=libomp"
+CXX_PERF_FLAGS="-O0 -fopenmp=libomp"
 
 # Flags for warnings control
 #    Indicate the warning related flags. Wall is enabled by default. This is the proper place to ignore
@@ -72,8 +72,8 @@ CXX_PERF_FLAGS="-O0 -fopenmp"
 #        C_WARN_FLAGS="-Wall"
 #        CXX_WARN_FLAGS="-Wall"
 # --------------------------------------------------------------------------------------------------------------
-C_WARN_FLAGS="-Wall"
-CXX_WARN_FLAGS="-Wall"
+C_WARN_FLAGS="-Wall -Wno-overloaded-virtual -Wno-undefined-var-template"
+CXX_WARN_FLAGS="-Wall -Wno-overloaded-virtual -Wno-undefined-var-template"
 
 # Other flags
 #    Indicate any other flag you want to add here
@@ -82,8 +82,8 @@ CXX_WARN_FLAGS="-Wall"
 #        C_CUSTOM_FLAGS="-fmessage-length=20"
 #        CXX_CUSTOM_FLAGS="-fmessage-length=20"
 # --------------------------------------------------------------------------------------------------------------
-C_CUSTOM_FLAGS=""
-CXX_CUSTOM_FLAGS=""
+C_CUSTOM_FLAGS="-fcolor-diagnostics"
+CXX_CUSTOM_FLAGS="-fcolor-diagnostics"
 
 CMAKE_LIBS=(
   # Boost
