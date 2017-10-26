@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import structural_mechanics_solver
@@ -48,6 +47,12 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
+        
+        if (self.settings["rotation_dofs"].GetBool()):
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_INERTIA)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
+
         print("::[ExplicitMechanicalSolver]:: Variables ADDED")
     
     def AddDofs(self):
@@ -56,6 +61,13 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_VELOCITY_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_VELOCITY_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_VELOCITY_Z,self.main_model_part)
+
+        if (self.settings["rotation_dofs"].GetBool()):
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY_X,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY_Y,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY_Z,self.main_model_part)
+
+
         print("::[ExplicitMechanicalSolver]:: DOF's ADDED")
 
 

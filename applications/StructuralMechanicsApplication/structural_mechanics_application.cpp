@@ -250,6 +250,7 @@ void KratosStructuralMechanicsApplication::Register()
 
     // For explicit central difference scheme
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MIDDLE_VELOCITY)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MIDDLE_ANGULAR_VELOCITY)
 
     // CONDITIONS
     /* Moment condition */
