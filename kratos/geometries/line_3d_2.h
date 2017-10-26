@@ -662,7 +662,28 @@ public:
         return( rResult );
     }
 
-
+    /**
+     * It computes the unit normal of the geometry, if possible
+     * TODO: DEFINE THE NORMAL
+     * @return The normal of the geometry
+     */
+    array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) override
+    {
+        // We define the normal
+        array_1d<double,3> normal = ZeroVector(3);
+        
+        // We get the local points
+        const TPointType& first_point  = BaseType::GetPoint(0);
+        const TPointType& second_point = BaseType::GetPoint(1);
+ 
+        // TODO: FINISH ME
+ 
+        // We normalize
+        const double norm_normal = norm_2(normal);
+        if (norm_normal > 0.0) normal /= norm_normal;
+        
+        return normal;
+    }
 
     ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
     {
