@@ -14,9 +14,8 @@
     "solver_settings"          : {
         "solver_type"                        : "structural_mechanics_implicit_dynamic_solver",
         "echo_level"                         : 0,
-        "solution_type"                      : "Dynamic",
-        "time_integration_method"            : "Implicit",
-        "scheme_type"                        : "Newmark",
+        "time_integration_method"            : "implicit",
+        "scheme_type"                        : "newmark",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "mmg_lagrangian_test/beam2D_line_load_test",
@@ -26,7 +25,7 @@
             "materials_filename": "mmg_lagrangian_test/materials_2D.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "Residual_criterion",
+        "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,

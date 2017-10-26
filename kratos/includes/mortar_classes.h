@@ -498,9 +498,9 @@ public:
     
     // Auxiliar types
     typedef array_1d<double, TNumNodes>                  type_1;
-    typedef bounded_matrix<double, TNumNodes, TDim>      type_2;
-    typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
-    typedef bounded_matrix<double, 3, 3>                 type_4;
+    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>      type_2;
+    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> type_3;
+    typedef boost::numeric::ublas::bounded_matrix<double, 3, 3>                 type_4;
     
     // Auxiliar sizes
     static const unsigned int size_1 =     (TNumNodes * TDim);
@@ -725,9 +725,9 @@ public:
     // Auxiliar types
     typedef DerivativeData<TDim, TNumNodes>       BaseClassType;
     typedef array_1d<double, TNumNodes>                  type_1;
-    typedef bounded_matrix<double, TNumNodes, TDim>      type_2;
-    typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
-    typedef bounded_matrix<double, 3, 3>                 type_4;
+    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>      type_2;
+    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> type_3;
+    typedef boost::numeric::ublas::bounded_matrix<double, 3, 3>                 type_4;
     
     // Auxiliar sizes
     static const unsigned int size_1 =     (TNumNodes * TDim);
@@ -953,10 +953,10 @@ public:
     {
         // We calculate the inverse of D operator
         double auxdet;
-        const bounded_matrix<double, TNumNodes, TNumNodes>& inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
+        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>& inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
         
         // We calculate the P operator
-        const bounded_matrix<double, TNumNodes, TNumNodes> POperator = prod(inv_D_operator, MOperator);
+        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> POperator = prod(inv_D_operator, MOperator);
         
         return POperator;
     }
@@ -1085,7 +1085,7 @@ public:
     static const unsigned int size_2 = 2 * (TNumNodes * TDim);
     
     // D and M directional derivatives
-    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_2> DeltaDOperator, DeltaMOperator;
+    array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>, size_2> DeltaDOperator, DeltaMOperator;
 
     ///@}
     ///@name Operators
@@ -1324,8 +1324,8 @@ public:
         )
     {
         /* DEFINITIONS */
-        const Vector n1 = rKinematicVariables.NSlave;
-        const double det_j = rKinematicVariables.DetjSlave; 
+        const Vector& n1 = rKinematicVariables.NSlave;
+        const double& det_j = rKinematicVariables.DetjSlave; 
         
         De += rIntegrationWeight * (ComputeDe(n1, det_j));
         Me += rIntegrationWeight * det_j * outer_prod(n1, n1);
@@ -1337,20 +1337,31 @@ public:
      */
     bounded_matrix<double, TNumNodes, TNumNodes> CalculateAe()
     {        
+        const double tolerance = std::numeric_limits<double>::epsilon(); 
+        
         // We compute the norm
         const double& norm_me = norm_frobenius(Me);
         
         // Now we normalize the matrix
-        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_me = Me/norm_me;
+        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = Me/norm_me;
         
-        // We compute the normalized inverse
-        double aux_det;
-        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_me, aux_det, std::numeric_limits<double>::epsilon()); 
+        // We compute the normalized inverse 
+        double aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_Me); 
+        if (std::abs(aux_det) >= tolerance) 
+        { 
+            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);  
+             
+            return (1.0/norm_me) * prod(De, normalized_inv_Me); 
+        } 
+    #ifdef KRATOS_DEBUG
+        else
+        {
+            std::cout << "WARNING:: Me matrix can not bee inverted. Determinant: " << aux_det << std::endl;
+            KRATOS_WATCH(normalized_Me);
+        }
+    #endif
         
-        // Now we compute the inverse
-        const bounded_matrix<double, TNumNodes, TNumNodes> inv_me = normalized_inv_me/norm_me;
-
-        return prod(De, inv_me);
+        return IdentityMatrix(TNumNodes);  
     }   
     
     /**
@@ -1358,9 +1369,9 @@ public:
      * @param N1: The shape function 
      * @param detJ: The jacobian of the geometry 
      */
-    bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
-        const Vector N1, 
-        const double detJ 
+    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
+        const Vector& N1, 
+        const double& detJ 
         )
     {
         bounded_matrix<double, TNumNodes, TNumNodes> De;
@@ -1572,7 +1583,7 @@ public:
         const double& norm_Me = norm_frobenius(BaseClassType::Me);
         
         // Now we normalize the matrix
-        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = BaseClassType::Me/norm_Me;
+        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = BaseClassType::Me/norm_Me;
         
         // We compute the normalized inverse
         aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_Me);
@@ -1581,19 +1592,19 @@ public:
             return false;
         }
         
-        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance); 
+        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance); 
         
         // Now we compute the inverse
-        const bounded_matrix<double, TNumNodes, TNumNodes> inv_Me = normalized_inv_Me/norm_Me;
+        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> inv_Me = normalized_inv_Me/norm_Me;
         
         noalias(rDerivativeData.Ae) = prod(BaseClassType::De, inv_Me);
         
         static const unsigned int size_1 = (TNumNodes * TDim);
-        array_1d<bounded_matrix<double, TNumNodes, TNumNodes> , size_1>& delta_Ae = rDerivativeData.DeltaAe;
+        array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> , size_1>& delta_Ae = rDerivativeData.DeltaAe;
         
         for (unsigned int i = 0; i < TDim * TNumNodes; ++i)
         {
-            const bounded_matrix<double, TNumNodes, TNumNodes> aux_matrix = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
+            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> aux_matrix = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
             noalias(delta_Ae[i]) = prod(aux_matrix, inv_Me);
         }
         
