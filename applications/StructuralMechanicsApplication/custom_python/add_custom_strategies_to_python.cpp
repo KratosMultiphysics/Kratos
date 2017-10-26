@@ -124,7 +124,10 @@ void  AddCustomStrategiesToPython()
     // harmonic Analysis Strategy
     class_< HarmonicAnalysisStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
             (
-                "HarmonicAnalysisStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
+                "HarmonicAnalysisStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
+            // .def(init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer >())
+            .def("SetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::SetUseMaterialDampingFlag)
+            .def("GetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::GetUseMaterialDampingFlag)
             ;
 
     //********************************************************************

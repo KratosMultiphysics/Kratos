@@ -101,7 +101,8 @@ public:
     HarmonicAnalysisStrategy(
         ModelPart& model_part,
         SchemePointerType pScheme,
-        BuilderAndSolverPointerType pBuilderAndSolver
+        BuilderAndSolverPointerType pBuilderAndSolver,
+        bool UseMaterialDampingFlag = false
         )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
     {
@@ -124,6 +125,7 @@ public:
 
         mRayleighAlpha = 0.0;
         mRayleighBeta = 0.0;
+        this->SetUseMaterialDampingFlag(UseMaterialDampingFlag);
         // KRATOS_WATCH(mMaterialDampingRatios.size())
         // mMaterialDampingRatios[0] = 0.01;
         // mMaterialDampingRatios[1] = 0.05;
@@ -348,7 +350,7 @@ public:
         if( rProcessInfo.Has(RAYLEIGH_BETA) )
             mRayleighBeta = rProcessInfo[RAYLEIGH_BETA];
 
-        this->SetUseMaterialDampingFlag(true);
+        // this->SetUseMaterialDampingFlag(true);
         if( mUseMaterialDamping )
         {
             //initialize all required variables
