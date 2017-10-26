@@ -234,6 +234,12 @@ namespace Kratos
             {
               array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(FORCE_RESIDUAL));  
               noalias(node_rhs)             = ZeroVector(3);
+
+              if (i->HasDofFor(ROTATION_X))
+              {
+                array_1d<double,3>& node_rhs_moment  = (i->FastGetSolutionStepValue(MOMENT_RESIDUAL));  
+                noalias(node_rhs_moment)             = ZeroVector(3);
+              }
             }
         }
         KRATOS_CATCH("")
@@ -358,6 +364,25 @@ namespace Kratos
             current_residual[j]     = 0.0;
             current_displacement[j] = 0.0;
           }
+
+          if (i->HasDofFor(ROTATION_X))
+          {
+            array_1d<double,3>& middle_angular_velocity       = i->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
+            array_1d<double,3>& current_angular_velocity      = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+            array_1d<double,3>& current_residual_moment       = i->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+            array_1d<double,3>& current_rotation              = i->FastGetSolutionStepValue(ROTATION);    
+            
+            for (unsigned int j =0; j<3; j++)
+            {
+              
+              middle_angular_velocity[j]      = current_angular_velocity[j] ;
+              current_residual_moment[j]     = 0.0;
+              current_rotation[j] = 0.0;
+            }
+          }
+
+
+
         }
       }
     KRATOS_CATCH("")
@@ -403,6 +428,7 @@ virtual void Update(ModelPart& r_model_part,
         for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
         {
 
+          if (i->HasDofFor(ROTATION_X)) std::cout << ">>>>>> ROTATION DOFS" << std::endl;
           //Current step information "N+1" (before step update).
 
           const double& nodal_mass                    = i->FastGetSolutionStepValue(NODAL_MASS);
@@ -446,9 +472,51 @@ virtual void Update(ModelPart& r_model_part,
               
               
           }//for DoF
-          
-        }//for Node 
 
+
+          ////// ROTATION DEGRESS OF FREEDOM
+          if (i->HasDofFor(ROTATION_X))
+          {
+            //const double& nodal_inertia     = i->FastGetSolutionStepValue(NODAL_INERTIA);
+            //for testing now ---> change this by rewriting beam mass matrix
+            const double nodal_inertia = 10.00;
+            array_1d<double,3>& current_residual_moment          = i->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+            array_1d<double,3>& current_angular_velocity         = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+            array_1d<double,3>& current_rotation                 = i->FastGetSolutionStepValue(ROTATION);
+            array_1d<double,3>& middle_angular_velocity          = i->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
+            array_1d<double,3>& current_angular_acceleration     = i->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+
+
+            current_angular_acceleration = current_residual_moment / nodal_inertia;
+
+            DoF = 2;
+            bool Fix_rot[3] = {false, false, false};
+            Fix_rot[0] = (i->pGetDof(ROTATION_X))->IsFixed();
+            Fix_rot[1] = (i->pGetDof(ROTATION_Y))->IsFixed();   
+            
+            
+            if (i->HasDofFor(ROTATION_Z))
+            {
+              DoF = 3;
+              Fix_rot[1] = (i->pGetDof(ROTATION_Z))->IsFixed();  
+            }
+
+            for (int j = 0; j < DoF; j++)
+            {
+              if (Fix_rot[j])
+              {
+                current_angular_acceleration[j] = 0.00;
+                middle_angular_velocity[j] = 0.00;
+              }
+              current_angular_velocity[j]  = middle_angular_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * current_angular_acceleration[j]; 
+              middle_angular_velocity[j]   = current_angular_velocity[j] + (mTime.Middle - mTime.Previous) * current_angular_acceleration[j] ; 
+              current_rotation[j]          = current_rotation[j] + mTime.Delta * middle_angular_velocity[j];
+            }//for DoF
+
+
+          }
+
+        }//for Node 
       }//parallel
 
       mTime.Previous = mTime.Current;
@@ -694,7 +762,6 @@ virtual void Update(ModelPart& r_model_part,
 
     KRATOS_CATCH( "" )
   }
-
 
     /*@} */
     /**@name Operations */
