@@ -931,17 +931,6 @@ namespace Kratos
 		}
 	}
 
-	void ShellThickElement3D3N::Calculate(const Variable<double>& rVariable, double & rotationAngle, const ProcessInfo & rCurrentProcessInfo)
-	{
-		if (rVariable == ORTHOTROPIC_ORIENTATION_ASSIGNMENT)
-		{
-			if (rotationAngle != 0.0)
-			{
-				mOrthotropicSectionRotation = rotationAngle;
-			}
-		}
-	}
-
 	void ShellThickElement3D3N::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections)
 	{
 		KRATOS_TRY
@@ -1392,64 +1381,62 @@ namespace Kratos
 
 	void ShellThickElement3D3N::SetupOrientationAngles()
 	{
-		ShellT3_LocalCoordinateSystem lcs(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+        if (this->Has(FIBER_ORIENTATION_ANGLE)) 
+        { 
+            for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) 
+            (*it)->SetOrientationAngle(this->GetValue(FIBER_ORIENTATION_ANGLE)); 
+        } 
+        else 
+        { 
+            ShellT3_LocalCoordinateSystem lcs(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
-		Vector3Type normal;
-		noalias(normal) = lcs.Vz();
+            Vector3Type normal;
+            noalias(normal) = lcs.Vz();
 
-		Vector3Type dZ;
-		dZ(0) = 0.0;
-		dZ(1) = 0.0;
-		dZ(2) = 1.0; // for the moment let's take this. But the user can specify its own triad! TODO
+            Vector3Type dZ;
+            dZ(0) = 0.0;
+            dZ(1) = 0.0;
+            dZ(2) = 1.0; // for the moment let's take this. But the user can specify its own triad! TODO
 
-		Vector3Type dirX;
-		MathUtils<double>::CrossProduct(dirX, dZ, normal);
+            Vector3Type dirX;
+            MathUtils<double>::CrossProduct(dirX, dZ, normal);
 
-		// try to normalize the x vector. if it is near zero it means that we need
-		// to choose a default one.
-		double dirX_norm = dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2);
-		if (dirX_norm < 1.0E-12)
-		{
-			dirX(0) = 1.0;
-			dirX(1) = 0.0;
-			dirX(2) = 0.0;
-		}
-		else if (dirX_norm != 1.0)
-		{
-			dirX_norm = std::sqrt(dirX_norm);
-			dirX /= dirX_norm;
-		}
+            // try to normalize the x vector. if it is near zero it means that we need
+            // to choose a default one.
+            double dirX_norm = dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2);
+            if (dirX_norm < 1.0E-12)
+            {
+                dirX(0) = 1.0;
+                dirX(1) = 0.0;
+                dirX(2) = 0.0;
+            }
+            else if (dirX_norm != 1.0)
+            {
+                dirX_norm = std::sqrt(dirX_norm);
+                dirX /= dirX_norm;
+            }
 
-		Vector3Type elem_dirX = lcs.Vx();
+            Vector3Type elem_dirX = lcs.Vx();
 
-		// now calculate the angle between the element x direction and the material x direction.
-		Vector3Type& a = elem_dirX;
-		Vector3Type& b = dirX;
-		double a_dot_b = a(0)*b(0) + a(1)*b(1) + a(2)*b(2);
-		if (a_dot_b < -1.0) a_dot_b = -1.0;
-		if (a_dot_b > 1.0) a_dot_b = 1.0;
-		double angle = std::acos(a_dot_b);
+            // now calculate the angle between the element x direction and the material x direction.
+            Vector3Type& a = elem_dirX;
+            Vector3Type& b = dirX;
+            double a_dot_b = a(0)*b(0) + a(1)*b(1) + a(2)*b(2);
+            if (a_dot_b < -1.0) a_dot_b = -1.0;
+            if (a_dot_b > 1.0) a_dot_b = 1.0;
+            double angle = std::acos(a_dot_b);
 
-		// if they are not counter-clock-wise, let's change the sign of the angle
-		if (angle != 0.0)
-		{
-			const MatrixType& R = lcs.Orientation();
-			if (dirX(0)*R(1, 0) + dirX(1)*R(1, 1) + dirX(2)*R(1, 2) < 0.0)
-				angle = -angle;
-		}
+            // if they are not counter-clock-wise, let's change the sign of the angle
+            if (angle != 0.0)
+            {
+                const MatrixType& R = lcs.Orientation();
+                if (dirX(0)*R(1, 0) + dirX(1)*R(1, 1) + dirX(2)*R(1, 2) < 0.0)
+                    angle = -angle;
+            }
 
-		Properties props = GetProperties();
-		if (props.Has(ORTHOTROPIC_ORIENTATION_ASSIGNMENT))
-		{
-			for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
-				(*it)->SetOrientationAngle(mOrthotropicSectionRotation);
-		}
-		else
-		{
-			for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
-				(*it)->SetOrientationAngle(angle);
-		}
-		
+            for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+                (*it)->SetOrientationAngle(angle);
+        }		
 	}
 
 	void ShellThickElement3D3N::CalculateSectionResponse(CalculationData& data)
@@ -2673,7 +2660,6 @@ namespace Kratos
 		rSerializer.save("CTr", mpCoordinateTransformation);
 		rSerializer.save("Sec", mSections);
         rSerializer.save("IntM", (int)mThisIntegrationMethod);
-        rSerializer.save("rot", mOrthotropicSectionRotation);
 	}
 
 	void ShellThickElement3D3N::load(Serializer& rSerializer)
@@ -2684,6 +2670,5 @@ namespace Kratos
 		int temp;
 		rSerializer.load("IntM", temp);
         mThisIntegrationMethod = (IntegrationMethod)temp;
-        rSerializer.load("rot", mOrthotropicSectionRotation);
 	}
 }

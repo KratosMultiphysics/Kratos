@@ -677,7 +677,8 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& r
 		// orientation, which rotates the entrire element section in-plane
 		// and is used in element stiffness calculation.
 
-		rValues.resize(OPT_NUM_GP);
+        if (rValues.size() != OPT_NUM_GP) rValues.resize(OPT_NUM_GP);
+
 		for (int i = 0; i < OPT_NUM_GP; ++i) rValues[i] = ZeroVector(3);
 		// Initialize common calculation variables
 		ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
@@ -694,7 +695,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& r
 		// in-plane and is used in the element stiffness calculation.
 
 		// Resize output
-		rValues.resize(OPT_NUM_GP);
+		if (rValues.size() != OPT_NUM_GP) rValues.resize(OPT_NUM_GP);
 		for (int i = 0; i < OPT_NUM_GP; ++i) rValues[i] = ZeroVector(3);
 
 		// Initialize common calculation variables
@@ -800,6 +801,18 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<array_1d<
 	const ProcessInfo& rCurrentProcessInfo)
 {
 	GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+}
+
+void ShellThinElement3D3N::Calculate(const Variable<Matrix>& rVariable, Matrix & Output, const ProcessInfo & rCurrentProcessInfo)
+{
+	if (rVariable == LOCAL_ELEMENT_ORIENTATION)
+	{
+		Output.resize(3, 3, false);
+
+		// Compute the local coordinate system.
+		ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+		Output = localCoordinateSystem.Orientation();
+	}
 }
 
 void ShellThinElement3D3N::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections)
@@ -1139,54 +1152,62 @@ void ShellThinElement3D3N::DecimalCorrection(Vector& a)
 
 void ShellThinElement3D3N::SetupOrientationAngles()
 {
-    ShellT3_LocalCoordinateSystem lcs( mpCoordinateTransformation->CreateReferenceCoordinateSystem() );
+    if (this->Has(FIBER_ORIENTATION_ANGLE)) 
+    { 
+        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) 
+        (*it)->SetOrientationAngle(this->GetValue(FIBER_ORIENTATION_ANGLE)); 
+    } 
+    else 
+    { 
+        ShellT3_LocalCoordinateSystem lcs( mpCoordinateTransformation->CreateReferenceCoordinateSystem() );
 
-    Vector3Type normal;
-    noalias( normal ) = lcs.Vz();
+        Vector3Type normal;
+        noalias( normal ) = lcs.Vz();
 
-    Vector3Type dZ;
-    dZ(0) = 0.0;
-    dZ(1) = 0.0;
-    dZ(2) = 1.0; // for the moment let's take this. But the user can specify its own triad! TODO
+        Vector3Type dZ;
+        dZ(0) = 0.0;
+        dZ(1) = 0.0;
+        dZ(2) = 1.0; // for the moment let's take this. But the user can specify its own triad! TODO
 
-    Vector3Type dirX;
-    MathUtils<double>::CrossProduct(dirX,   dZ, normal);
+        Vector3Type dirX;
+        MathUtils<double>::CrossProduct(dirX,   dZ, normal);
 
-    // try to normalize the x vector. if it is near zero it means that we need
-    // to choose a default one.
-    double dirX_norm = dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2);
-    if(dirX_norm < 1.0E-12)
-    {
-        dirX(0) = 1.0;
-        dirX(1) = 0.0;
-        dirX(2) = 0.0;
+        // try to normalize the x vector. if it is near zero it means that we need
+        // to choose a default one.
+        double dirX_norm = dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2);
+        if(dirX_norm < 1.0E-12)
+        {
+            dirX(0) = 1.0;
+            dirX(1) = 0.0;
+            dirX(2) = 0.0;
+        }
+        else if(dirX_norm != 1.0)
+        {
+            dirX_norm = std::sqrt(dirX_norm);
+            dirX /= dirX_norm;
+        }
+
+        Vector3Type elem_dirX = lcs.Vx();
+
+        // now calculate the angle between the element x direction and the material x direction.
+        Vector3Type& a = elem_dirX;
+        Vector3Type& b = dirX;
+        double a_dot_b = a(0)*b(0) + a(1)*b(1) + a(2)*b(2);
+        if(a_dot_b < -1.0) a_dot_b = -1.0;
+        if(a_dot_b >  1.0) a_dot_b =  1.0;
+        double angle = std::acos( a_dot_b );
+
+        // if they are not counter-clock-wise, let's change the sign of the angle
+        if(angle != 0.0)
+        {
+            const MatrixType& R = lcs.Orientation();
+            if( dirX(0)*R(1, 0) + dirX(1)*R(1, 1) + dirX(2)*R(1, 2) < 0.0 )
+                angle = -angle;
+        }
+
+        for(CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+            (*it)->SetOrientationAngle(angle);
     }
-    else if(dirX_norm != 1.0)
-    {
-        dirX_norm = std::sqrt(dirX_norm);
-        dirX /= dirX_norm;
-    }
-
-    Vector3Type elem_dirX = lcs.Vx();
-
-    // now calculate the angle between the element x direction and the material x direction.
-    Vector3Type& a = elem_dirX;
-    Vector3Type& b = dirX;
-    double a_dot_b = a(0)*b(0) + a(1)*b(1) + a(2)*b(2);
-    if(a_dot_b < -1.0) a_dot_b = -1.0;
-    if(a_dot_b >  1.0) a_dot_b =  1.0;
-    double angle = std::acos( a_dot_b );
-
-    // if they are not counter-clock-wise, let's change the sign of the angle
-    if(angle != 0.0)
-    {
-        const MatrixType& R = lcs.Orientation();
-        if( dirX(0)*R(1, 0) + dirX(1)*R(1, 1) + dirX(2)*R(1, 2) < 0.0 )
-            angle = -angle;
-    }
-
-    for(CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
-        (*it)->SetOrientationAngle(angle);
 }
 
 void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
@@ -2119,7 +2140,6 @@ void ShellThinElement3D3N::save(Serializer& rSerializer) const
     rSerializer.save("CTr", mpCoordinateTransformation);
     rSerializer.save("Sec", mSections);
     rSerializer.save("IntM", (int)mThisIntegrationMethod);
-    rSerializer.save("rot", mOrthotropicSectionRotation);
 }
 
 void ShellThinElement3D3N::load(Serializer& rSerializer)
@@ -2130,7 +2150,6 @@ void ShellThinElement3D3N::load(Serializer& rSerializer)
     int temp;
     rSerializer.load("IntM", temp);
     mThisIntegrationMethod = (IntegrationMethod)temp;
-    rSerializer.load("rot", mOrthotropicSectionRotation);
 }
 
 }
