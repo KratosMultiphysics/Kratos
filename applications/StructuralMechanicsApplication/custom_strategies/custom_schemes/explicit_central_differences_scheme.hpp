@@ -416,7 +416,6 @@ virtual void Update(ModelPart& r_model_part,
 
           //Solution of the explicit equation:
           current_acceleration = current_residual/nodal_mass;
-          KRATOS_WATCH(current_acceleration);
 
           int DoF = 2;
           bool Fix_displ[3] = {false, false, false};
@@ -551,9 +550,6 @@ virtual void Update(ModelPart& r_model_part,
 
     //basic operations for the element considered
     (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-
-    KRATOS_WATCH(RHS_Contribution);
-
 
     if(mRayleighDamping)
     {

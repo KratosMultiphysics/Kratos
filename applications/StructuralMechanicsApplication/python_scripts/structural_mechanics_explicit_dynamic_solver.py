@@ -28,10 +28,7 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             "time_step_prediction_level": 0, 
             "max_delta_time": 1.0e-5, 
             "fraction_delta_time": 0.9, 
-            "rayleigh_damping": false, 
-            "rayleigh_alpha": 0.0,
-            "rayleigh_beta" : 0.0
-
+            "rayleigh_damping": false
         }
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
@@ -65,9 +62,6 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     #### Specific internal functions ####
     def _create_solution_scheme(self):
         scheme_type = self.settings["scheme_type"].GetString()
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
-
 
         if(scheme_type == "centraldifferences"):
             mechanical_scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(self.dynamic_settings["max_delta_time"].GetDouble(), 
