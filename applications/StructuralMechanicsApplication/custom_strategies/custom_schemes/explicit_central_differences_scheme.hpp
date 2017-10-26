@@ -102,9 +102,6 @@ namespace Kratos
 				     )
       : Scheme<TSparseSpace,TDenseSpace>()
     {
-
-
-      std::cout << "------------> hi you created the ExplicitCentralDifferencesScheme <------------" << std::endl;
       mDeltaTime.PredictionLevel  = rDeltaTimePredictionLevel;
 
       mDeltaTime.Maximum          = rMaximumDeltaTime;
@@ -183,8 +180,6 @@ namespace Kratos
       }
 
       mSchemeIsInitialized = true;
-
-      std::cout << "Initialize" << std::endl;
       KRATOS_CATCH("")
     }
 
@@ -207,7 +202,6 @@ namespace Kratos
 
       InitializeResidual(r_model_part);       
 
-      std::cout << "InitializeSolutionStep" << std::endl;
 	
       KRATOS_CATCH("")
     }
@@ -218,7 +212,7 @@ namespace Kratos
 
     {
         KRATOS_TRY
-
+       
         NodesArrayType& pNodes   = r_model_part.Nodes();
 
 #ifdef _OPENMP
@@ -242,8 +236,6 @@ namespace Kratos
               noalias(node_rhs)             = ZeroVector(3);
             }
         }
-
-        std::cout << "InitializeResidual" << std::endl;
         KRATOS_CATCH("")
     }
 
@@ -332,7 +324,7 @@ namespace Kratos
     void InitializeExplicitScheme(ModelPart& r_model_part)
     {
       KRATOS_TRY
-
+      
       //Set velocity to zero...
 
       NodesArrayType& pNodes        = r_model_part.Nodes();
@@ -368,7 +360,6 @@ namespace Kratos
           }
         }
       }
-    std::cout << "InitializeExplicitScheme" << std::endl;
     KRATOS_CATCH("")
 	}
 
@@ -384,7 +375,6 @@ virtual void Update(ModelPart& r_model_part,
       )
     {
       KRATOS_TRY
-      std::cout << "Start Update" << std::endl;
       ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
       NodesArrayType& pNodes            = r_model_part.Nodes();
 
@@ -424,9 +414,9 @@ virtual void Update(ModelPart& r_model_part,
 
           array_1d<double,3>& current_acceleration    = i->FastGetSolutionStepValue(ACCELERATION);
 
-
           //Solution of the explicit equation:
           current_acceleration = current_residual/nodal_mass;
+          KRATOS_WATCH(current_acceleration);
 
           int DoF = 2;
           bool Fix_displ[3] = {false, false, false};
@@ -455,6 +445,7 @@ virtual void Update(ModelPart& r_model_part,
               middle_velocity[j]       = current_velocity[j] + (mTime.Middle - mTime.Previous) * current_acceleration[j] ; 
               current_displacement[j]  = current_displacement[j] + mTime.Delta * middle_velocity[j];      
               
+              
           }//for DoF
           
         }//for Node 
@@ -464,14 +455,13 @@ virtual void Update(ModelPart& r_model_part,
       mTime.Previous = mTime.Current;
       mTime.PreviousMiddle = mTime.Middle;
 
-      std::cout << "End Update" << std::endl;
       KRATOS_CATCH("")
     }
 
     virtual void SchemeCustomInitialization(ModelPart& r_model_part)
     {
       KRATOS_TRY
-
+      
       NodesArrayType& pNodes            = r_model_part.Nodes();
 
 
@@ -543,8 +533,6 @@ virtual void Update(ModelPart& r_model_part,
 
       mTime.Previous = mTime.Current;
       mTime.PreviousMiddle = mTime.Middle;
-
-      std::cout << "SchemeCustomInitialization" << std::endl;
       KRATOS_CATCH("")
     }
 
@@ -559,12 +547,12 @@ virtual void Update(ModelPart& r_model_part,
   {
 
     KRATOS_TRY
-    std::cout << "Start Calculate_RHS_Contribution" << std::endl;
-    
     int thread = OpenMPUtils::ThisThread();
 
     //basic operations for the element considered
     (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+
+    KRATOS_WATCH(RHS_Contribution);
 
 
     if(mRayleighDamping)
@@ -577,7 +565,6 @@ virtual void Update(ModelPart& r_model_part,
 
     //add explicit contribution of the Element Residual (RHS) to nodal Force Residual (nodal RHS)
     (rCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
-    std::cout << "End Calculate_RHS_Contribution" << std::endl;
     KRATOS_CATCH( "" )
   }
 
@@ -602,7 +589,6 @@ virtual void Update(ModelPart& r_model_part,
       noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
     }
 
-    std::cout << "AddDynamicsToRHS" << std::endl;
   }
 
   void GetFirstDerivativesVector(Element::Pointer rCurrentElement, Vector& rValues ) //V at time n-1/2 old
@@ -628,7 +614,6 @@ virtual void Update(ModelPart& r_model_part,
     rValues[index + 2] = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[2];
 
       }
-      std::cout << "GetFirstDerivativesVector" << std::endl;
   }
 
 
@@ -652,7 +637,6 @@ virtual void Update(ModelPart& r_model_part,
       noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
     }
 
-    std::cout << "AddDynamicsToRHS" << std::endl;
   }
 
 
@@ -677,7 +661,6 @@ virtual void Update(ModelPart& r_model_part,
       if ( dimension == 3 )
         rValues[index + 2] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[2];
     }
-    std::cout << "GetFirstDerivativesVector" << std::endl;
   }
 
 
@@ -695,10 +678,10 @@ virtual void Update(ModelPart& r_model_part,
                 ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
-
+   
     //int thread = OpenMPUtils::ThisThread();
 
-    //basic operations for the element considered
+    //basic operations for the element considered 
     (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
           
     //if(mRayleighDamping)
@@ -707,12 +690,12 @@ virtual void Update(ModelPart& r_model_part,
 
     //         AddDynamicsToRHS (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], rCurrentProcessInfo);
     //    }
-
+  
 
     //add explicit contribution of the Condition Residual (RHS) to nodal Force Residual (nodal RHS)
+
     (rCurrentCondition) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
 
-    std::cout << "Condition_Calculate_RHS_Contribution" << std::endl;
     KRATOS_CATCH( "" )
   }
 

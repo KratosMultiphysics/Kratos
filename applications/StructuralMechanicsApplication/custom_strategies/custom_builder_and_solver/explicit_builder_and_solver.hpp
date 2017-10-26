@@ -196,11 +196,11 @@ public:
 		     if(!CalculateLumpedMassMatrix){
 		       for (unsigned int j = 0; j <MassMatrix.size2(); j++)
 			 {
-			   mass += MassMatrix(index,j);
+               mass += MassMatrix(index,j);
 			 }
 		     }
 		     else{
-		       mass += MassMatrix(index,index);
+               mass += MassMatrix(index,index);
 		     }
 
                      geometry(i)->UnSetLock();
@@ -209,7 +209,7 @@ public:
          }
 
 	rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = CalculateLumpedMassMatrix;
-
+        
         KRATOS_CATCH( "" )
 
     }

@@ -211,6 +211,20 @@ public:
         ProcessInfo& rCurrentProcessInfo 
         ) override;
 
+     /**
+     * this function is designed to make the element to assemble an rRHS vector
+     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
+     * rDestinationVariable.
+     * @param rRHSVector: input variable containing the RHS vector to be assembled
+     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+      * @param rCurrentProcessInfo: the current process info instance
+     */      
+    virtual void AddExplicitContribution(const VectorType& rRHS, 
+        const Variable<VectorType>& rRHSVariable, 
+        Variable<array_1d<double,3> >& rDestinationVariable, 
+        const ProcessInfo& rCurrentProcessInfo);
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning

@@ -48,6 +48,9 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         super(ExplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
         print("::[ExplicitMechanicalSolver]:: Variables ADDED")
     
     def AddDofs(self):
@@ -78,10 +81,17 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         return mechanical_scheme
 
     def _create_mechanical_solver(self):
+        computing_model_part = self.GetComputingModelPart()
+        mechanical_scheme = self.get_solution_scheme()
+        linear_solver = self.get_linear_solver()
 
-    mechanical_solver = self._create_explicit_strategy()  
-    mechanical_solver.SetRebuildLevel(0) # 1 to recompute the mass matrix in each explicit step  
-    return mechanical_solver
+        mechanical_solver = StructuralMechanicsApplication.ExplicitStrategy(computing_model_part,
+                                            mechanical_scheme, 
+                                            linear_solver, 
+                                            self.settings["compute_reactions"].GetBool(), 
+                                            self.settings["reform_dofs_at_each_step"].GetBool(), 
+                                            self.settings["move_mesh_flag"].GetBool())
 
-
+        mechanical_solver.SetRebuildLevel(0) # 1 to recompute the mass matrix in each explicit step   
+        return mechanical_solver
    
