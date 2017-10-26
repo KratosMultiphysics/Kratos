@@ -118,6 +118,11 @@ public:
     virtual void WriteDataSet(std::string Path,
                               const std::vector<array_1d<double, 3>>& rData);
 
+    /// Write the start and end indices of data blocks (by process rank).
+    /**
+     * Writes the partition array required to reconstruct a partitioned data set
+     * from a file.
+     */
     virtual void WriteDataPartition(std::string Path, const std::vector<int>& rData);
 
     virtual void WriteDataPartition(std::string Path, const std::vector<double>& rData);
@@ -126,8 +131,8 @@ public:
     
     /// Independently write data set to the HDF5 file.
     /**
-     * Performs independent write in MPI. Must be called collectively with only
-     * one process having non-empty data.
+     * Performs independent write in MPI. Must be called collectively. Throws 
+     * if more than one process has non-empty data.
      */
     virtual void WriteDataSetIndependent(std::string Path, const std::vector<int>& rData);
 
@@ -160,7 +165,7 @@ public:
 
     /// Read a data set from the HDF5 file.
     /**
-     * Performs collective read in MPI.
+     * Performs collective read in MPI. Throws if out of range.
      */
     virtual void ReadDataSet(std::string Path,
                              std::vector<int>& rData,
@@ -179,7 +184,7 @@ public:
 
     // Independently read data set from the HDF5 file.
     /**
-     *  Performs independent read in MPI.
+     *  Performs independent read in MPI. Throws if out of range.
      */
     virtual void ReadDataSetIndependent(std::string Path,
                                        std::vector<int>& rData,
