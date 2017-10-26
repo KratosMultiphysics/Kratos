@@ -68,7 +68,7 @@ public:
     ///@name Public Operations
     ///@{
 
-    void Initialize(Element& rElement, const ProcessInfo& rProcessInfo) {
+    void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) {
     }
 
     ///@}
@@ -108,7 +108,7 @@ public:                                                             \
     }                                                               \
                                                                     \
     void Initialize(                                                \
-        Element& rElement,                                          \
+        const Element& rElement,                                    \
         const ProcessInfo& rProcessInfo) {                          \
         HANDLER_LIST(INITIALIZE_HANDLER)                            \
     }                                                               \
