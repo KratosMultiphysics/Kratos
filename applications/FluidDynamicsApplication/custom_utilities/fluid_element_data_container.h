@@ -71,6 +71,10 @@ public:
     void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) {
     }
 
+    int Check(const Element& rElement) {
+        return 0;
+    }
+
     ///@}
 };
 
@@ -95,6 +99,9 @@ public: HandlerType& Get##Variable() \
 #define INITIALIZE_HANDLER(Variable,HandlerType) \
 MEMBER_NAME(Variable).Initialize(rElement,rProcessInfo);
 
+#define CHECK_HANDLER(Variable,HandlerType) \
+out = MEMBER_NAME(Variable).Check(rElement);
+
 #define MAKE_FLUID_ELEMENT_DATA_CONTAINER(ClassName, HANDLER_LIST)  \
 class ClassName : public FluidElementDataContainer {                \
 public:                                                             \
@@ -111,6 +118,12 @@ public:                                                             \
         const Element& rElement,                                    \
         const ProcessInfo& rProcessInfo) {                          \
         HANDLER_LIST(INITIALIZE_HANDLER)                            \
+    }                                                               \
+                                                                    \
+    int Check(const Element& rElement) {                            \
+        int out = 0;                                                \
+        HANDLER_LIST(CHECK_HANDLER)                                 \
+        return out;                                                 \
     }                                                               \
                                                                     \
     HANDLER_LIST(DECLARE_CLASS_MEMBER_FOR_HANDLER)                  \
