@@ -810,8 +810,8 @@ public:
         normal[2] = 0.0;
         
         // We normalize
-        const double norm = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
-        normal /= norm;
+        const double norm_normal = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
+        if (norm_normal > 0.0) normal /= norm_normal;
         
         return normal;
     }
