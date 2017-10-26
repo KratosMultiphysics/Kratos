@@ -178,7 +178,7 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         
         # Check results of doubles on 2nd element @ Gauss Point [0] only
         self.assertAlmostEqual(mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.VON_MISES_STRESS, 
-                               mp.ProcessInfo)[0], shell_von_mises_result, 10)
+                               mp.ProcessInfo)[0], shell_von_mises_result, 9)
                     
         if do_post_processing:
             self.__post_process(mp)

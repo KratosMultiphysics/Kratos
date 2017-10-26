@@ -205,7 +205,7 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
         
         # Check results of doubles on 2nd element @ Gauss Point [0] only
         self.assertAlmostEqual(mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.TSAI_WU_RESERVE_FACTOR, 
-                               mp.ProcessInfo)[0], tsai_wu_result, 10)
+                               mp.ProcessInfo)[0], tsai_wu_result, 9)
                     
         if do_post_processing:
             self.__post_process(mp)
