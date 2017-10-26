@@ -805,15 +805,15 @@ public:
         
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            const double& j00 = jacobian[pnt](0,0);
-            const double& j01 = jacobian[pnt](0,1);
-            const double& j10 = jacobian[pnt](1,0);
-            const double& j11 = jacobian[pnt](1,1);
-            const double& j20 = jacobian[pnt](2,0);
-            const double& j21 = jacobian[pnt](2,1);
-        
-            const double det_j = (j01*j01)*((j10*j10) + (j20*j20)) + (j11*j20 - j10*j21)*(j11*j20 - j10*j21) - 2.0*j00*j01*(j10*j11 + j20*j21) + (j00*j00)*((j11*j11) + (j21*j21));
-            
+	    const double j00 = jacobian[pnt](0,0);
+	    const double j01 = jacobian[pnt](0,1);
+	    const double j10 = jacobian[pnt](1,0);
+	    const double j11 = jacobian[pnt](1,1);
+	    const double j20 = jacobian[pnt](2,0);
+            const double j21 = jacobian[pnt](2,1);
+
+	    const double det_j = std::pow(j01,2)*(std::pow(j10,2) + std::pow(j20,2)) + std::pow(j11*j20 - j10*j21,2) - 2.0*j00*j01*(j10*j11 + j20*j21) + std::pow(j00,2)*(std::pow(j11,2) + std::pow(j21,2));
+
             if (det_j < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
             
             rResult[pnt] = std::sqrt(det_j);
@@ -853,15 +853,15 @@ public:
          
         this->Jacobian( jacobian, IntegrationPointIndex, ThisMethod);
             
-        const double& j00 = jacobian(0,0);
-        const double& j01 = jacobian(0,1);
-        const double& j10 = jacobian(1,0);
-        const double& j11 = jacobian(1,1);
-        const double& j20 = jacobian(2,0);
-        const double& j21 = jacobian(2,1);
+        const double j00 = jacobian(0,0);
+        const double j01 = jacobian(0,1);
+        const double j10 = jacobian(1,0);
+        const double j11 = jacobian(1,1);
+        const double j20 = jacobian(2,0);
+        const double j21 = jacobian(2,1);
         
-        const double det_j = (j01*j01)*((j10*j10) + (j20*j20)) + (j11*j20 - j10*j21)*(j11*j20 - j10*j21) - 2.0*j00*j01*(j10*j11 + j20*j21) + (j00*j00)*((j11*j11) + (j21*j21));
-            
+        const double det_j = std::pow(j01,2)*(std::pow(j10,2) + std::pow(j20,2)) + std::pow(j11*j20 - j10*j21,2) - 2.0*j00*j01*(j10*j11 + j20*j21) + std::pow(j00,2)*(std::pow(j11,2) + std::pow(j21,2));
+	
         if (det_j < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
         
         return std::sqrt(det_j);
@@ -898,15 +898,15 @@ public:
          
         this->Jacobian( jacobian, rPoint);
         
-        const double& j00 = jacobian(0,0);
-        const double& j01 = jacobian(0,1);
-        const double& j10 = jacobian(1,0);
-        const double& j11 = jacobian(1,1);
-        const double& j20 = jacobian(2,0);
-        const double& j21 = jacobian(2,1);
+        const double j00 = jacobian(0,0);
+        const double j01 = jacobian(0,1);
+        const double j10 = jacobian(1,0);
+        const double j11 = jacobian(1,1);
+        const double j20 = jacobian(2,0);
+        const double j21 = jacobian(2,1);
         
-        const double det_j = (j01*j01)*((j10*j10) + (j20*j20)) + (j11*j20 - j10*j21)*(j11*j20 - j10*j21) - 2.0*j00*j01*(j10*j11 + j20*j21) + (j00*j00)*((j11*j11) + (j21*j21));
-        
+        const double det_j = std::pow(j01,2)*(std::pow(j10,2) + std::pow(j20,2)) + std::pow(j11*j20 - j10*j21,2) - 2.0*j00*j01*(j10*j11 + j20*j21) + std::pow(j00,2)*(std::pow(j11,2) + std::pow(j21,2));
+	
         if (det_j < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
         
         return std::sqrt(det_j);
