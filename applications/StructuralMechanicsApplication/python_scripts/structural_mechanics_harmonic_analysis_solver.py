@@ -25,16 +25,6 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
     """
     def __init__(self, main_model_part, custom_settings):
         # Set defaults and validate custom settings.
-        # harmonic_analysis_settings = KratosMultiphysics.Parameters("""
-        # {
-        #     "harmonic_analysis_settings" : {
-        #         "system_damping" : 0.0,
-        #         "rayleigh_alpha" : 0.0,
-        #         "rayleigh_beta"  : 0.0,
-        #         "use_effective_material_damping" : false
-        #     }
-        # }
-        # """)
         harmonic_analysis_settings = KratosMultiphysics.Parameters("""
         {
             "harmonic_analysis_settings" : {

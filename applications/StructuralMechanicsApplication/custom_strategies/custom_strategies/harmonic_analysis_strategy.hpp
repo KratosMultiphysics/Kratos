@@ -82,11 +82,12 @@ public:
 
     typedef TSparseSpace SparseSpaceType;
 
+    typedef typename TSparseSpace::VectorType SparseVectorType;
+    
     typedef typename TSparseSpace::VectorPointerType SparseVectorPointerType;
 
-    typedef typename TSparseSpace::VectorType SparseVectorType;
-
     typedef typename TSparseSpace::MatrixType SparseMatrixType;
+
     typedef typename TSparseSpace::MatrixPointerType SparseMatrixPointerType;
 
     typedef std::complex<double> ComplexType;
@@ -127,9 +128,6 @@ public:
         mRayleighBeta = 0.0;
         mSystemDamping = 0.0;
         this->SetUseMaterialDampingFlag(UseMaterialDampingFlag);
-        // KRATOS_WATCH(mMaterialDampingRatios.size())
-        // mMaterialDampingRatios[0] = 0.01;
-        // mMaterialDampingRatios[1] = 0.05;
 
         // default echo level (mute)
         this->SetEchoLevel(0);
@@ -346,24 +344,25 @@ public:
         // get the damping coefficients if they exist
         for( ModelPart::PropertiesIterator itProperty = rModelPart.PropertiesBegin(); itProperty != rModelPart.PropertiesEnd(); itProperty++ )
         {
-            // std::cout << "hey" << std::endl;
-            // KRATOS_WATCH(*itProperty)
-            // KRATOS_WATCH(*itProperty.Has(SYSTEM_DAMPING_RATIO))
             if( itProperty->Has(SYSTEM_DAMPING_RATIO) )
             {
-                // std::cout << "haha" << std::endl;
                 mSystemDamping = itProperty->GetValue(SYSTEM_DAMPING_RATIO);
             }
-            else if( itProperty->Has(RAYLEIGH_ALPHA) && itProperty->Has(RAYLEIGH_BETA) )
+            
+            if( itProperty->Has(RAYLEIGH_ALPHA) && itProperty->Has(RAYLEIGH_BETA) )
             {
                 mRayleighAlpha = itProperty->GetValue(RAYLEIGH_ALPHA);
                 mRayleighBeta = itProperty->GetValue(RAYLEIGH_BETA);
             }
         }
 
-        // this->SetUseMaterialDampingFlag(true);
+        // compute the effective material damping if required
         if( mUseMaterialDamping )
         {
+            // throw an error, if no submodelparts are present
+            if( rModelPart.NumberOfSubModelParts() < 1 )
+                KRATOS_ERROR << "No submodelparts detected!" << std::endl;
+            
             //initialize all required variables
             rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
             SparseMatrixType* AuxStiffnessMatrix;
@@ -385,24 +384,16 @@ public:
         
             for( std::size_t i = 0; i < n_modes; ++i )
             {
-                // double modal_material_damping = 0.0;
                 double up = 0.0;
                 double down = 0.0;
                 Vector modal_vector = column( rModalMatrix, i );
                 for( ModelPart::SubModelPartIterator itSubModelPart = rModelPart.SubModelPartsBegin(); itSubModelPart!= rModelPart.SubModelPartsEnd(); itSubModelPart++ )
                 {
-                    // KRATOS_WATCH(itSubModelPart->Name())
-                    auto current_properties = itSubModelPart->rProperties();
                     double damping_coefficient = 0.0;
-                    // KRATOS_WATCH(current_properties)
                     for( ModelPart::PropertiesIterator itProperty = itSubModelPart->PropertiesBegin(); itProperty != itSubModelPart->PropertiesEnd(); itProperty++ )
                     {
-                        // std::cout << "hey" << std::endl;
-                        // KRATOS_WATCH(*itProperty)
-                        // KRATOS_WATCH(*itProperty.Has(SYSTEM_DAMPING_RATIO))
                         if( itProperty->Has(SYSTEM_DAMPING_RATIO) )
                         {
-                            // std::cout << "haha" << std::endl;
                             damping_coefficient = itProperty->GetValue(SYSTEM_DAMPING_RATIO);
                         }
                     }
@@ -420,17 +411,15 @@ public:
 
                     //build stiffness matrix for submodelpart material
                     pBuilderAndSolver->BuildLHS(pScheme,*itSubModelPart,*temp_stiffness_matrix);
+
+                    //compute strain energy of the submodelpart and the effective damping ratio
                     double strain_energy = 0.5 * inner_prod( prod(modal_vector, *temp_stiffness_matrix), modal_vector );
                     down += strain_energy;
                     up += damping_coefficient * strain_energy;
-                    // auto test = prod(*temp_stiffness_matrix,modal_vector);
-                    // KRATOS_WATCH(damping_coefficient)
-                    // KRATOS_WATCH(modal_vector)
-                    // KRATOS_WATCH(*temp_stiffness_matrix)
-                    // KRATOS_WATCH(down)
-                    // KRATOS_WATCH(up)
                 }
-
+                if( down == 0 )
+                    KRATOS_ERROR << "No valid effective material damping ratio could be computed. Are all elements to be damped available in the submodelparts? Are the modal vectors available? " << std::endl;
+                
                 mMaterialDampingRatios(i) = up / down;
             }
 
@@ -468,10 +457,6 @@ public:
 
         // DenseMatrixType eigenvectors;
         const std::size_t n_dofs = this->pGetBuilderAndSolver()->GetEquationSystemSize();
-        // if( eigenvectors.size1() != n_modes || eigenvectors.size2() != n_dofs )
-        // {
-        //     eigenvectors.resize(n_modes, n_dofs, false);
-        // }
         
         auto f = this->GetForceVector();
 
@@ -481,8 +466,6 @@ public:
         modal_displacement = ZeroVector( n_dofs );
 
         double modal_damping = 0.0;
-        // double rayleigh_alpha = 0.0;
-        // double rayleigh_beta = 0.0;
 
         for( std::size_t i = 0; i < n_modes; ++i )
         {
@@ -499,26 +482,6 @@ public:
                 modal_damping = mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
             }
 
-            // compute the modal weight
-            // DenseVectorType modal_eigenvector = ZeroVector( n_dofs ); //eigenvector for mode i
-            // for( ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++ )
-            // {
-            //     ModelPart::NodeType::DofsContainerType& node_dofs = itNode->GetDofs();
-            //     const std::size_t n_node_dofs = node_dofs.size();
-            //     Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
-
-            //     if (node_dofs.IsSorted() == false)
-            //     {
-            //         node_dofs.Sort();
-            //     }
-
-            //     for (std::size_t j = 0; j < n_node_dofs; j++)
-            //     {
-            //         auto itDof = std::begin(node_dofs) + j;
-            //         modal_eigenvector[itDof->EquationId()] = rNodeEigenvectors(i,j);
-            //     }
-            // }
-
             auto& pModalMatrix = this->pGetModalMatrix();
             auto& rModalMatrix = *pModalMatrix;
 
@@ -527,7 +490,6 @@ public:
 
             ComplexType factor( eigenvalues[i] - pow( excitation_frequency, 2.0 ), 2 * modal_damping * std::sqrt(eigenvalues[i]) * excitation_frequency );
             mode_weight = inner_prod( modal_vector, f ) / factor;
-            // mode_weight = inner_prod( modal_eigenvector, f ) / factor;
 
             // compute the modal displacement as a superposition of modal_weight * eigenvector
             for( ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++ )
@@ -569,7 +531,6 @@ public:
         if (this->pGetForceVector() != nullptr)
             this->pGetForceVector() = nullptr;
 
-
         // re-setting internal flag to ensure that the dof sets are recalculated
         pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
 
@@ -605,106 +566,19 @@ public:
         // // initialize dummy vectors
         auto pA = SparseSpaceType::CreateEmptyMatrixPointer();
         auto pDx = SparseSpaceType::CreateEmptyVectorPointer();
-        // auto pb = SparseSpaceType::CreateEmptyVectorPointer();
         auto& rA = *pA;
         auto& rDx = *pDx;
-        // auto& rb = *pb;
 
         SparseSpaceType::Resize(rA,SparseSpaceType::Size(rForceVector),SparseSpaceType::Size(rForceVector));
         SparseSpaceType::SetToZero(rA);
         SparseSpaceType::Resize(rDx,SparseSpaceType::Size(rForceVector));
         SparseSpaceType::Set(rDx,0.0);
-        // // SparseSpaceType::Resize(rb,SparseSpaceType::Size(rForceVector));
-        // // SparseSpaceType::Set(rb,0.0);
-
-
-        // SparseMatrixType* AuxStiffnessMatrix = new SparseMatrixType;
-        // mpStiffnessMatrix = boost::shared_ptr<SparseMatrixType>(AuxStiffnessMatrix);
-
-        // boost::timer setup_dofs_time;
-        // pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
-        // if (BaseType::GetEchoLevel() > 0 && rank == 0)
-        // {
-        //     std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
-        // }
-
-        // // Set global equation ids
-        // boost::timer setup_system_time;
-        // pBuilderAndSolver->SetUpSystem(rModelPart);
-        // if (BaseType::GetEchoLevel() > 0 && rank == 0)
-        // {
-        //     std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
-        // }
-
-        // // pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, rA, rDx, rb, rModelPart.ElementsArray(), rModelPart.ConditionsArray(), rModelPart.GetProcessInfo());
-        // rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
-        // KRATOS_WATCH(rModelPart.GetProcessInfo())
-        // pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, 
-        //     mpStiffnessMatrix,
-        //     pDx,
-        //     pForceVector,
-        //     rModelPart.Elements(),
-        //     rModelPart.Conditions(),
-        //     rModelPart.GetProcessInfo());
-
-        // // void ResizeAndInitializeVectors(
-        // //     typename TSchemeType::Pointer pScheme,
-        // //     TSystemMatrixPointerType& pA,
-        // //     TSystemVectorPointerType& pDx,
-        // //     TSystemVectorPointerType& pb,
-        // //     ElementsArrayType& rElements,
-        // //     ConditionsArrayType& rConditions,
-        // //     ProcessInfo& CurrentProcessInfo
 
         // initial operations ... things that are constant over the solution step
         pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,rForceVector);
 
         // initial operations ... things that are constant over the solution step
         pScheme->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,rForceVector);
-
-        // auto test = rModelPart.GetSubModelPartNames();
-        // //!!!compute material damping ratio. we need different model parts for the different materials. 
-        // //modelparts to be defined in the project parameters
-        // //get stiffness matrix only from the model part -> is this then of full size??
-
-        // ///////////// das läuft!!
-        // pBuilderAndSolver->BuildLHS(pScheme,rModelPart,*mpStiffnessMatrix);
-        // // KRATOS_WATCH(*mpStiffnessMatrix)
-        // ////////////////
-        // AuxStiffnessMatrix = new SparseMatrixType;
-        // mpStiffnessMatrix = boost::shared_ptr<SparseMatrixType>(AuxStiffnessMatrix);
-        // pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, 
-        //     mpStiffnessMatrix,
-        //     pDx,
-        //     pForceVector,
-        //     rModelPart.Elements(),
-        //     rModelPart.Conditions(),
-        //     rModelPart.GetProcessInfo());
-
-        // for( ModelPart::SubModelPartIterator itSubModelPart = rModelPart.SubModelPartsBegin(); itSubModelPart!= rModelPart.SubModelPartsEnd(); itSubModelPart++ )
-        // {
-        //     AuxStiffnessMatrix = new SparseMatrixType;
-        //     mpStiffnessMatrix = boost::shared_ptr<SparseMatrixType>(AuxStiffnessMatrix);
-        //     pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, 
-        //         mpStiffnessMatrix,
-        //         pDx,
-        //         pForceVector,
-        //         rModelPart.Elements(),
-        //         rModelPart.Conditions(),
-        //         rModelPart.GetProcessInfo());
-        //     // KRATOS_WATCH(itSubModelPart->Name())
-        //     // KRATOS_WATCH(*itSubModelPart)
-        //     pBuilderAndSolver->BuildLHS(pScheme,*itSubModelPart,*mpStiffnessMatrix);
-        //     // auto index = itSubModelPart - rModelPart.SubModelPartsBegin();
-        //     auto index = std::distance(rModelPart.SubModelPartsBegin(), itSubModelPart);
-        //     auto damping_ratio = mMaterialDampingRatios[index];
-        //     // std::cout << "size=" << rA.size1() << "/" << rA.size2() << " damping=" << damping_ratio << " i=" << index << std::endl;
-        //     // KRATOS_WATCH(*mpStiffnessMatrix)
-        //     //jetzt die eigenvektoren und das ganze dann in einer neuen membervariable (material damping oder so)
-        //     //speichern. das kann dann oben wieder eingesetzt werden
-        // }
-        
-        //no need to set BUILD_LEVEL to sth fancy (check eigensolver_dynamic_scheme.hpp) ??!?!?!?!
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
             std::cout << "Exiting InitializeSolutionStep() of HarmonicAnalysisStrategy" << std::endl;
@@ -811,8 +685,6 @@ private:
     bool mUseMaterialDamping;
 
     vector< double > mMaterialDampingRatios;
-
-    // SparseMatrixPointerType mpStiffnessMatrix;
 
     ///@}
     ///@name Private Operators
