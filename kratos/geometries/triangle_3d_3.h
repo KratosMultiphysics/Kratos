@@ -818,7 +818,9 @@ public:
         
         array_1d<double, 3> normal;
         MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
-        return normal/norm_2(normal);
+	const double norm_normal = norm_2(normal);
+	if (norm_normal > 0.0) normal /= norm_normal;
+        return normal;
     }
 
     /**
