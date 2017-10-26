@@ -78,18 +78,51 @@ namespace Kratos
 
   protected:
 
+    struct ElementVariables
+    {
+        double dt_inv;
+        double lumping_factor;
+        double dyn_tau;
+        double gravity;
+        double manning2;
+        double height_units;
+
+        double height;
+        array_1d<double,2> velocity;
+        array_1d<double,2> height_grad;
+        
+        array_1d<double, TNumNodes*3> depth;
+        array_1d<double, TNumNodes*3> rain;
+        array_1d<double, TNumNodes*3> unknown;
+        array_1d<double, TNumNodes*3> proj_unk;
+    };
+
+    void InitializeElement(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+
     void CalculateGeometry(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea);
     
     double ComputeElemSize(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX);
     
-    void GetNodalValues(array_1d<double, TNumNodes*3>& rDepth, array_1d<double,TNumNodes*3>& rRain, array_1d<double,TNumNodes*3>& rUnkn, array_1d<double, TNumNodes*3>& rProj);
+    void GetNodalValues(ElementVariables& rVariables);
     
-    void GetElementValues(const boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX, const array_1d<double,TNumNodes*3>& rNodalVar, array_1d<double,2>& rVelocity, double& rHeight, array_1d<double,2>& rHeightGrad);
+    void GetElementValues(const boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
     
-    void ComputeStabilizationParameters(const double& rHeight, const array_1d<double,2>& rHeightGrad, const double& rElemSize, double& rTauU, double& rTauH, double& rKdc, const ProcessInfo& rCurrentProcessInfo);
+    void ComputeStabilizationParameters(const ElementVariables& rVariables,
+                                        const double& rElemSize,
+                                        double& rTauU,
+                                        double& rTauH,
+                                        double& rKdc);
     
-    double mGravity;
-    double mHeightUnitConvert;
+    void ComputeAuxMatrices(
+            const boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes>& rNcontainer,
+            const boost::numeric::ublas::bounded_matrix<double,TNumNodes,2>& rDN_DX,
+            const ElementVariables& rVariables,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixScalar,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixVector,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarGrad,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiv,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarDiff,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiff );
 
 //----------------------------------------------------------------------
 
