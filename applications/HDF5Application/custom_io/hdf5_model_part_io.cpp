@@ -77,6 +77,25 @@ std::size_t HDF5ModelPartIO::ReadElementsConnectivities(ConnectivitiesContainerT
 
 void HDF5ModelPartIO::WriteElements(ElementsContainerType const& rElements)
 {
+    KRATOS_TRY;
+
+    std::vector<int> elem_ids(rElements.size());
+    std::vector<int> elem_property_ids(rElements.size());
+    std::vector<int> elem_topology;
+    elem_topology.reserve(rElements.size() * (rElements.front().GetGeometry().size() + 2));
+
+    unsigned pos = 0;
+    for (const auto& r_elem : rElements)
+    {
+        elem_ids[pos] = r_elem.Id();
+        elem_property_ids[pos] = r_elem.GetProperties().Id();
+        ++pos;
+    }
+
+    GetFile().WriteDataSet("/Elements/Id", elem_ids);
+    GetFile().WriteDataSet("/Elements/PropertyId", elem_property_ids);
+
+    KRATOS_CATCH("");
 }
 
 void HDF5ModelPartIO::ReadConditions(NodesContainerType& rNodes,

@@ -137,6 +137,7 @@ std::size_t HDF5PartitionedModelPartIO::ReadElementsConnectivities(Connectivitie
 
 void HDF5PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElements)
 {
+    
 }
 
 void HDF5PartitionedModelPartIO::ReadConditions(NodesContainerType& rNodes,
