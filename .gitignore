@@ -17,6 +17,7 @@ KratosMultiphysics/*
 libpython*
 libs/*
 runkratos
+runkratos.exe
 script.py
 
 # Version
@@ -55,3 +56,6 @@ kratos/includes/kratos_version.h
 *.mesh
 *.o.sol
 *.o.mesh
+
+# VS Code
+/.vscode
