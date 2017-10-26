@@ -452,10 +452,6 @@ public:
         {
             if (rank == 0 && BaseType::GetEchoLevel() > 0) std::cout << "Clearing System" << std::endl;
             this->Clear();
-            //std::cout << "Clearing System" << std::endl;
-            //TSparseSpace::ClearData(mA);
-            //TSparseSpace::ClearData(mDx);
-            //TSparseSpace::ClearData(mb);
         }
 
         //Cleaning memory after the solution
