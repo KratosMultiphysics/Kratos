@@ -30,7 +30,8 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
             "harmonic_analysis_settings" : {
                 "system_damping" : 0.0,
                 "rayleigh_alpha" : 0.0,
-                "rayleigh_beta"  : 0.0
+                "rayleigh_beta"  : 0.0,
+                "use_effective_material_damping" : false
             }
         }
         """)
@@ -39,7 +40,7 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
         # Validate the remaining settings in the base class.
         if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
             custom_settings.AddEmptyValue("scheme_type")
-            custom_settings["scheme_type"].SetString("Dynamic")
+            custom_settings["scheme_type"].SetString("dynamic")
         
         # Construct the base solver.
         super(HarmonicAnalysisSolver, self).__init__(main_model_part, custom_settings)
@@ -55,10 +56,12 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
         self.main_model_part.ProcessInfo[StructuralMechanicsApplication.SYSTEM_DAMPING_RATIO] = self.harmonic_analysis_settings["system_damping"].GetDouble()
         self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.harmonic_analysis_settings["rayleigh_alpha"].GetDouble()
         self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.harmonic_analysis_settings["rayleigh_beta"].GetDouble()
-        if self.settings["solution_type"].GetString() == "Dynamic":
+        if self.settings["scheme_type"].GetString() == "dynamic":
             solution_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         else:
-            raise Exception("Unsupported solution_type: " + self.settings["solution_type"])
+            err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
+            err_msg += "Available options are: \"dynamic\""
+            raise Exception(err_msg)
 
         return solution_scheme
 
@@ -71,10 +74,11 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
         return KratosMultiphysics.LinearSolver()
 
     def _create_mechanical_solver(self):
-        eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices of the eigenvalue problem.
-        builder_and_solver = self.get_builder_and_solver() # The eigensolver is created here.
+        eigen_scheme = self.get_solution_scheme()
+        builder_and_solver = self.get_builder_and_solver()
         computing_model_part = self.GetComputingModelPart()
 
         return StructuralMechanicsApplication.HarmonicAnalysisStrategy(computing_model_part,
                                                                     eigen_scheme,
-                                                                    builder_and_solver)
+                                                                    builder_and_solver,
+                                                                    self.harmonic_analysis_settings["use_effective_material_damping"].GetBool())
