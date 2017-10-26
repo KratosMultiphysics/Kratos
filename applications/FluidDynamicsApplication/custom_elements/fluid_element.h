@@ -61,7 +61,21 @@ namespace Kratos
 MAKE_FLUID_ELEMENT_DATA_CONTAINER(DSSData2D, ELEMENT_VARIABLES)
 #undef FLUID_ELEMENT_VARIABLES
 
-template< class TElementData >
+struct IntegrationPointGeometryData
+{
+    double Weight;
+    boost::numeric::ublas::matrix_row<Matrix>& N;
+    Kratos::Matrix& DN_DX;
+
+    IntegrationPointGeometryData(double ThisWeight,
+                                 boost::numeric::ublas::matrix_row<Matrix>& ThisN;
+                                 Kratos::Matrix & ThisDN_DX;)
+        : Weight(ThisWeight), N(ThisN), DN_DX(ThisDN_DX)
+    {
+    }
+}
+
+template <class TElementData>
 class FluidElement : public Element
 {
 public:
@@ -97,7 +111,7 @@ public:
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     /// Type for shape function values container
-    typedef boost::numeric::ublas::row_proxy< Matrix > ShapeFunctionsType;
+    typedef boost::numeric::ublas::matrix_row< Matrix > ShapeFunctionsType;
 
     /// Type for a matrix containing the shape function gradients
     typedef Kratos::Matrix ShapeFunctionDerivativesType;
@@ -394,6 +408,7 @@ protected:
 
     virtual void AddSystemTerms(
         const TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         MatrixType& rLHS,
         VectorType& rRHS) = 0;
@@ -401,6 +416,7 @@ protected:
 
     virtual void AddMassTerms(
         const TElementData& rData,
+        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix) = 0;
 

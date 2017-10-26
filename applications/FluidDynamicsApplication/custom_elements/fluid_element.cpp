@@ -122,13 +122,16 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
     this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
     const unsigned int NumGauss = GaussWeights.size();
 
-    TElementData Data();
-    Data.Initialize(this,rCurrentProcessInfo);
+    TElementData data;
+    data.Initialize(*this,rCurrentProcessInfo);
 
     // Iterate over integration points to evaluate local contribution
     for (unsigned int g = 0; g < NumGauss; g++)
     {
-        this->AddSystemTerms(Data,rCurrentProcessInfo,rDampMatrix,rRightHandSideVector);
+        IntegrationPointGeometryData integration_point(
+            GaussWeights[g], row(ShapeFunctions, g), ShapeDerivative[g]);
+
+        this->AddSystemTerms(data,integration_point,rCurrentProcessInfo,rDampMatrix,rRightHandSideVector);
     }
 
     // Rewrite local contribution into residual form (A*dx = b - A*x)
@@ -139,7 +142,7 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
     {
         for (unsigned int d = 0; d < Dim; ++d) // Velocity Dofs
             U[LocalIndex++] = Data.GetVELOCITY().Get()(i,d);
-        U[LocalIndex++] = Data.GetPressure()[i]; // Pressure Dof
+        U[LocalIndex++] = Data.GetPRESSURE().Get()[i]; // Pressure Dof
     }
 
     noalias(rRightHandSideVector) -= prod(rDampMatrix, U);
@@ -162,13 +165,16 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
     this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
     const unsigned int NumGauss = GaussWeights.size();
 
-    TElementData Data();
-    Data.Initialize(this,rCurrentProcessInfo);
+    TElementData Data;
+    Data.Initialize(*this,rCurrentProcessInfo);
 
     // Iterate over integration points to evaluate local contribution
     for (unsigned int g = 0; g < NumGauss; g++)
     {
-        this->AddMassTerms(Data,rCurrentProcessInfo, rMassMatrix);
+        IntegrationPointGeometryData integration_point(
+            GaussWeights[g], row(ShapeFunctions, g), ShapeDerivative[g]);
+
+        this->AddMassTerms(Data,integration_point, rCurrentProcessInfo, rMassMatrix);
     }
 }
 
