@@ -87,6 +87,7 @@ namespace Kratos
     typedef ModelPart::NodesContainerType NodesArrayType;
 
 
+
     /*@} */
     /**@name Life Cycle
      */
@@ -330,7 +331,6 @@ namespace Kratos
     void InitializeExplicitScheme(ModelPart& r_model_part)
     {
       KRATOS_TRY
-      
       //Set velocity to zero...
 
       NodesArrayType& pNodes        = r_model_part.Nodes();
@@ -477,9 +477,8 @@ virtual void Update(ModelPart& r_model_part,
           ////// ROTATION DEGRESS OF FREEDOM
           if (i->HasDofFor(ROTATION_X))
           {
-            //const double& nodal_inertia     = i->FastGetSolutionStepValue(NODAL_INERTIA);
-            //for testing now ---> change this by rewriting beam mass matrix
-            const double nodal_inertia = 10.00;
+            //const double& nodal_inertia     = i->FastGetSolutionStepValue(NODAL_INERTIA);           
+            const double nodal_inertia = 9.8125; //for testing now ---> change this by rewriting beam mass matrix
             array_1d<double,3>& current_residual_moment          = i->FastGetSolutionStepValue(MOMENT_RESIDUAL);
             array_1d<double,3>& current_angular_velocity         = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
             array_1d<double,3>& current_rotation                 = i->FastGetSolutionStepValue(ROTATION);
@@ -512,9 +511,7 @@ virtual void Update(ModelPart& r_model_part,
               middle_angular_velocity[j]   = current_angular_velocity[j] + (mTime.Middle - mTime.Previous) * current_angular_acceleration[j] ; 
               current_rotation[j]          = current_rotation[j] + mTime.Delta * middle_angular_velocity[j];
             }//for DoF
-
-
-          }
+          }// Rot DoF
 
         }//for Node 
       }//parallel
@@ -528,9 +525,7 @@ virtual void Update(ModelPart& r_model_part,
     virtual void SchemeCustomInitialization(ModelPart& r_model_part)
     {
       KRATOS_TRY
-      
       NodesArrayType& pNodes            = r_model_part.Nodes();
-
 
   #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -591,8 +586,53 @@ virtual void Update(ModelPart& r_model_part,
             middle_velocity[j]       = 0.0 + (mTime.Middle - mTime.Previous) * current_acceleration[j] ;
             current_velocity[j]      = middle_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[j]; //+ actual_velocity;
             current_displacement[j]  = 0.0;
+
+            
               
           }//for DoF
+          ////// ROTATION DEGRESS OF FREEDOM
+          if (i->HasDofFor(ROTATION_X))
+          {
+            //const double& nodal_inertia     = i->FastGetSolutionStepValue(NODAL_INERTIA);
+            //for testing now ---> change this by rewriting beam mass matrix
+            const double nodal_inertia = 10.00;
+            array_1d<double,3>& current_residual_moment          = i->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+            array_1d<double,3>& current_angular_velocity         = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+            array_1d<double,3>& current_rotation                 = i->FastGetSolutionStepValue(ROTATION);
+            array_1d<double,3>& middle_angular_velocity          = i->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
+            array_1d<double,3>& current_angular_acceleration     = i->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+
+
+            current_angular_acceleration = current_residual_moment / nodal_inertia;
+
+            DoF = 2;
+            bool Fix_rot[3] = {false, false, false};
+            Fix_rot[0] = (i->pGetDof(ROTATION_X))->IsFixed();
+            Fix_rot[1] = (i->pGetDof(ROTATION_Y))->IsFixed();   
+            
+            
+            if (i->HasDofFor(ROTATION_Z))
+            {
+              DoF = 3;
+              Fix_rot[1] = (i->pGetDof(ROTATION_Z))->IsFixed();  
+            }
+
+            for (int j = 0; j < DoF; j++)
+            {
+              if (Fix_rot[j])
+              {
+                current_angular_acceleration[j] = 0.00;
+                middle_angular_velocity[j] = 0.00;
+              }
+               
+              middle_angular_velocity[j]   = 0.00 + (mTime.Middle - mTime.Previous) * current_angular_acceleration[j] ; 
+              current_angular_velocity[j]  = middle_angular_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * current_angular_acceleration[j];
+              current_rotation[j]          = 0.00;
+            }//for DoF
+          }// Rot DoF
+
+
+
 
         }//for node
 
@@ -644,13 +684,19 @@ virtual void Update(ModelPart& r_model_part,
       ProcessInfo& CurrentProcessInfo)
   {
     int thread = OpenMPUtils::ThisThread();
+    const unsigned int number_of_nodes = rCurrentElement->GetGeometry().size();
+    const unsigned int dimension       = rCurrentElement->GetGeometry().WorkingSpaceDimension();
 
     //adding damping contribution
     if (D.size1() != 0)
     {
       GetFirstDerivativesVector(rCurrentElement, mVector.v[thread]);
 
-      noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
+      if (mVector.v[thread].size() != D.size1())
+      { 
+        this->RHS_Contribution_NonRotationDampingMatrix(RHS_Contribution,D,dimension,number_of_nodes);
+      }
+      else noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
     }
 
   }
@@ -661,21 +707,37 @@ virtual void Update(ModelPart& r_model_part,
     const unsigned int number_of_nodes = rCurrentElement->GetGeometry().size();
     const unsigned int dimension       = rCurrentElement->GetGeometry().WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * dimension;
+    const bool check_has_rot_dof = rCurrentElement->GetGeometry()[0].HasDofFor(ROTATION_X);
+    
+    if (check_has_rot_dof) element_size *= 2;
 
     if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-  unsigned int index = i * dimension;
+        unsigned int index = i * dimension;
+        if (check_has_rot_dof) index *= 2;
 
 
-  rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue(MIDDLE_VELOCITY);
+        rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue(MIDDLE_VELOCITY);
 
-  rValues[index]     = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[0];
-  rValues[index + 1] = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[1];
+        rValues[index]     = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[0];
+        rValues[index + 1] = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[1];
 
-  if ( dimension == 3 )
-    rValues[index + 2] = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[2];
+        if ( dimension == 3 )
+          rValues[index + 2] = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[2];
+
+
+        if (check_has_rot_dof)
+        {
+          rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue(MIDDLE_VELOCITY);
+          
+          rValues[index+dimension]     = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[0];
+          rValues[index+dimension+1] = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[1];
+    
+          if ( dimension == 3 )
+            rValues[index+dimension+2] = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[2];          
+        }
 
       }
   }
@@ -692,15 +754,20 @@ virtual void Update(ModelPart& r_model_part,
       ProcessInfo& CurrentProcessInfo)
   {
     int thread = OpenMPUtils::ThisThread();
+    const unsigned int number_of_nodes = rCurrentCondition->GetGeometry().size();
+    const unsigned int dimension       = rCurrentCondition->GetGeometry().WorkingSpaceDimension();
 
     //adding damping contribution
     if (D.size1() != 0)
     {
       GetFirstDerivativesVector(rCurrentCondition, mVector.v[thread]);
 
-      noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
+      if (mVector.v[thread].size() != D.size1())
+      { 
+        this->RHS_Contribution_NonRotationDampingMatrix(RHS_Contribution,D,dimension,number_of_nodes);
+      }
+      else noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
     }
-
   }
 
 
@@ -710,12 +777,17 @@ virtual void Update(ModelPart& r_model_part,
     const unsigned int number_of_nodes = rCurrentCondition->GetGeometry().size();
     const unsigned int dimension       = rCurrentCondition->GetGeometry().WorkingSpaceDimension();
     unsigned int       condition_size    = number_of_nodes * dimension;
+    const bool check_has_rot_dof = rCurrentCondition->GetGeometry()[0].HasDofFor(ROTATION_X);
+
+    if (check_has_rot_dof) condition_size *= 2;
+    
 
     if ( rValues.size() != condition_size ) rValues.resize( condition_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
       unsigned int index = i * dimension;
+      if (check_has_rot_dof) index *= 2;
 
       rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue(MIDDLE_VELOCITY);
 
@@ -724,6 +796,17 @@ virtual void Update(ModelPart& r_model_part,
 
       if ( dimension == 3 )
         rValues[index + 2] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[2];
+
+        if (check_has_rot_dof)
+        {
+          rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue(MIDDLE_VELOCITY);
+          
+          rValues[index+dimension]     = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[0];
+          rValues[index+dimension+1] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[1];
+    
+          if ( dimension == 3 )
+            rValues[index+dimension+2] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[2];          
+        }
     }
   }
 
@@ -762,6 +845,44 @@ virtual void Update(ModelPart& r_model_part,
 
     KRATOS_CATCH( "" )
   }
+
+  //***************************************************************************
+  //***************************************************************************
+    /** custom function to enlarge damping matrix of non-rot elements to fit
+     * to rot systems
+    */
+    void RHS_Contribution_NonRotationDampingMatrix(LocalSystemVectorType& RHS,
+       LocalSystemMatrixType D, const int dimension, const int number_of_nodes)
+    {
+      //assume following dof id : Displ1,Rot1,Displ2,Rot2 (XYZ)
+      int thread = OpenMPUtils::ThisThread();
+      const int element_size = 2*dimension*number_of_nodes;
+      Matrix D_rot = ZeroMatrix(element_size,element_size);
+
+
+      for (int i=0;i<dimension;++i)
+      {
+        for (int j=0;j<dimension;++j)
+        {
+          D_rot(i,j) = D(i,j);
+          D_rot(i+dimension*2,j) = D(i+dimension,j);
+          D_rot(i,j+dimension*2) = D(i,j+dimension);
+          D_rot(i+dimension*2,j+dimension*2) = D(i+dimension,j+dimension);
+        }
+      }
+
+
+      Vector RHS_Rot = prod(D_rot, mVector.v[thread]);
+      
+      for (int i =0;i<number_of_nodes;++i)
+      {
+        int index = i*dimension;
+        for (int j=0;j<dimension;++j)
+        {
+          RHS[index+j] -= RHS_Rot[2*index+j];
+        }
+      }    
+    }
 
     /*@} */
     /**@name Operations */

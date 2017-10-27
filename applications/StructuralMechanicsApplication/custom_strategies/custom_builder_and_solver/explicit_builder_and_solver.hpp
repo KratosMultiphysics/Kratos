@@ -154,6 +154,13 @@ public:
                  {
                      double& nodal_mass    =  i->FastGetSolutionStepValue(NODAL_MASS);
                      nodal_mass = 0.0;
+
+                    if (i->HasDofFor(ROTATION_X))
+                    {
+                        double& nodal_inertia = i->FastGetSolutionStepValue(NODAL_INERTIA);
+                        nodal_inertia = 0.00;
+                    }
+
                  }
              }
 
@@ -182,27 +189,25 @@ public:
 		 
                  (itElem)->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo); 
 
+
                  const unsigned int dimension   = geometry.WorkingSpaceDimension();
+
+                 ////////////////////////////////////////////
+                 ////// TODO:: CALCULATE NODAL INERTIA //////
+                 ////////////////////////////////////////////
 
                  index = 0;
                  for (unsigned int i = 0; i <geometry.size(); i++)
                  {
                      index = i*dimension;
+                     if (MassMatrix.size1() == (dimension*geometry.size()*2)) index *= 2;
 
                      double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_MASS);
 
                      geometry(i)->SetLock();
 		     
-		     if(!CalculateLumpedMassMatrix){
-		       for (unsigned int j = 0; j <MassMatrix.size2(); j++)
-			 {
-               mass += MassMatrix(index,j);
-			 }
-		     }
-		     else{
-               mass += MassMatrix(index,index);
-		     }
-
+                     mass += MassMatrix(index,index);
+                     KRATOS_WATCH(mass);
                      geometry(i)->UnSetLock();
                  }
              }
