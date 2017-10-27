@@ -53,6 +53,10 @@ class MpcData
     typedef Kratos::Variable<double> VariableType;
     typedef Node<3> NodeType;
 
+    typedef std::pair<double, double> SlaveConstantConstantUpdatePairType;
+    typedef std::unordered_map<unsigned int, double> SlaveMasterWeightMapType;
+    typedef std::pair<SlaveConstantConstantUpdatePairType, SlaveMasterWeightMapType> SlaveConstantPairMasterMapPairType;
+
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
 
     struct key_hash_tuple : public std::unary_function<key_tupple, std::size_t>
@@ -227,7 +231,7 @@ class MpcData
     }
 
     virtual void UpdateConstraintEquationsAfterIteration(
-        NodesContainerType& Nodes)
+        NodesContainerType &Nodes)
     {
 
         for (auto slaveMasterDofMap : this->mDofConstraints)
@@ -344,6 +348,8 @@ class MpcData
 
     std::unordered_map<unsigned int, double> mSlaveEquationIdConstantsMap;
     std::unordered_map<unsigned int, double> mSlaveEquationIdConstantsUpdate;
+
+    std::unordered_map<unsigned int, SlaveConstantPairMasterMapPairType> mEquationIdToWeightsMapTwo;
 
     bool mActive;
     std::string mName;
