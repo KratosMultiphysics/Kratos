@@ -10,7 +10,7 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "dynamic",
+        "solver_type"                        : "Dynamic",
         "analysis_type"                      : "non_linear",
         "echo_level"                         : 0,
         "time_integration_method"            : "implicit",
@@ -39,59 +39,51 @@
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_edge",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_sample",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : false,
+            "constrained"     : [false,false,false],
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "ROTATION_edge",
             "variable_name"   : "ROTATION",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : true,
+            "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0]
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "process_factory",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "check"                 : "DirectorVectorNonZero direction",
-        "help"                  : "This process ",
-        "process_name"          : "ApplyConstantVectorValueProcess",
-        "Parameters"            : {
+        "process_name"  : "AssignVectorByDirectionProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "SelfWeight3D_surface",
             "variable_name"   : "VOLUME_ACCELERATION",
-            "modulus"          : 9.8,
+            "modulus"         : 9.8,
+            "constrained"     : false,
             "direction"       : [0.0,0.0,-1.0]
         }
     }],
@@ -107,11 +99,11 @@
     },
 	"list_other_processes": [
     {
-        "python_module"   : "from_json_check_result_process",
+        "python_module" : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
+        "help"          : "",
+        "process_name"  : "FromJsonCheckResultProcess",
+        "Parameters"    : {
             "check_variables"  : ["DISPLACEMENT_Z"],
             "input_file_name"  : "shell_test/Shell_T3_Thick_nonlinear_dynamic_test_results.json",
             "model_part_name"  : "DISPLACEMENT_sample",
@@ -121,11 +113,11 @@
     ],
     "print_output_process" : [
     {
-        "python_module"   : "json_output_process",
+        "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
+        "help"          : "",
+        "process_name"  : "JsonOutputProcess",
+        "Parameters"    : {
             "output_variables" : ["DISPLACEMENT_Z"],
             "output_file_name" : "shell_test/Shell_T3_Thick_nonlinear_dynamic_test_results.json",
             "model_part_name"  : "DISPLACEMENT_sample",

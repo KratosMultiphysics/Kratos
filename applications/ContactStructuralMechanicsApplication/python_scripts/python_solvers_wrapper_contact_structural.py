@@ -15,7 +15,7 @@ def CreateSolver(main_model_part, custom_settings):
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        if (solver_type == "Implicit"):
+        if (solver_type == "Dynamic"):
             solver_module_name = "contact_structural_mechanics_implicit_dynamic_solver"
 
         elif (solver_type == "Static"):
@@ -27,7 +27,7 @@ def CreateSolver(main_model_part, custom_settings):
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
         raise Exception("The requested solver type is not in the python solvers wrapper")
-        #if (solver_type == "Implicit"):
+        #if (solver_type == "Dynamic"):
             #solver_module_name = "trilinos_contact_structural_mechanics_implicit_dynamic_solver"
 
         #elif (solver_type == "Static"):

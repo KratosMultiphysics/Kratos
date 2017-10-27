@@ -10,7 +10,7 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "static",
+        "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
@@ -38,31 +38,27 @@
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_NavierSupport",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0]
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "process_factory",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "check"                 : "DirectorVectorNonZero direction",
-        "help"                  : "This process ",
-        "process_name"          : "ApplyConstantVectorValueProcess",
+        "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "PointLoad3D_Membrane",
             "variable_name"   : "POINT_LOAD",
-            "modulus"          : 80,
+            "modulus"         : 80.0,
             "direction"       : [0.0,0.0,-1.0]
         }
     }],
@@ -78,11 +74,11 @@
     },
     "list_other_processes": [
     {
-        "python_module"   : "from_json_check_result_process",
+        "python_module" : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
+        "help"          : "",
+        "process_name"  : "FromJsonCheckResultProcess",
+        "Parameters"    : {
             "check_variables"  : ["DISPLACEMENT_Z"],
             "input_file_name"  : "membrane_test/Membrane_Q4_PointLoad_test_results.json",
             "model_part_name"  : "Structure",
@@ -92,11 +88,11 @@
     ],
     "print_output_process" : [
     {
-        "python_module"   : "json_output_process",
+        "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
+        "help"          : "",
+        "process_name"  : "JsonOutputProcess",
+        "Parameters"    : {
             "output_variables" : ["DISPLACEMENT_Z"],
             "output_file_name" : "membrane_test/Membrane_Q4_PointLoad_test_results.json",
             "model_part_name"  : "Structure",

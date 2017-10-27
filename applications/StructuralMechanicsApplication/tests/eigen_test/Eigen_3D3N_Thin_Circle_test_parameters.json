@@ -38,44 +38,39 @@
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_support",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "ROTATION_support",
             "variable_name"   : "ROTATION",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : false,
+            "constrained"     : [false,false,false],
             "value"           : [0.0,0.0,0.0]
         }
     }],
     "loads_process_list"       : [],
     "list_other_processes" :[{
         "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
-        "python_module"   : "check_eigenvalues_process",
-        "help"                  : "First eigenfrequencies of a circular plate according to Leissa, A. (1993). Vibration of plates.",
-        "process_name"          : "CheckEigenvaluesProcess",
-        "Parameters"            : {
+        "python_module" : "check_eigenvalues_process",
+        "help"          : "First eigenfrequencies of a circular plate according to Leissa, A. (1993). Vibration of plates.",
+        "process_name"  : "CheckEigenvaluesProcess",
+        "Parameters"    : {
             "model_part_name"  : "Structure",
-	    "variable_name"   : "EIGENVALUE_VECTOR",                                              
-            "reference_values": "[5870.389149394735, 46368.8484822989, 46368.848484378315, 156722.65667084238, 156722.65668679585, 211940.23752820952, 379353.4270953061, 379353.42713109404]"
+	        "variable_name"    : "EIGENVALUE_VECTOR",                                              
+            "reference_values" : "[5870.389149394735, 46368.8484822989, 46368.848484378315, 156722.65667084238, 156722.65668679585, 211940.23752820952, 379353.4270953061, 379353.42713109404]"
         }
     }],
     "restart_options"          : {
