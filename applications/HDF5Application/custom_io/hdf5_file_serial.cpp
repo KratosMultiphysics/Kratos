@@ -27,6 +27,21 @@ void HDF5FileSerial::WriteDataSet(std::string Path, const Vector<array_1d<double
     KRATOS_CATCH("");
 }
 
+void HDF5FileSerial::WriteDataSet(std::string Path, const Matrix<int>& rData)
+{
+    KRATOS_TRY;
+    WriteDataSetMatrixImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileSerial::WriteDataSet(std::string Path, const Matrix<double>& rData)
+{
+    KRATOS_TRY;
+    WriteDataSetMatrixImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
+
 void HDF5FileSerial::WriteDataPartition(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
@@ -48,6 +63,20 @@ void HDF5FileSerial::WriteDataPartition(std::string Path, const Vector<array_1d<
     KRATOS_CATCH("");
 }
 
+void HDF5FileSerial::WriteDataPartition(std::string Path, const Matrix<int>& rData)
+{
+    KRATOS_TRY;
+    WriteDataPartitionMatrixImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileSerial::WriteDataPartition(std::string Path, const Matrix<double>& rData)
+{
+    KRATOS_TRY;
+    WriteDataPartitionMatrixImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
 void HDF5FileSerial::WriteDataSetIndependent(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
@@ -66,6 +95,20 @@ void HDF5FileSerial::WriteDataSetIndependent(std::string Path, const Vector<arra
 {
     KRATOS_TRY;
     WriteDataSetVectorImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileSerial::WriteDataSetIndependent(std::string Path, const Matrix<int>& rData)
+{
+    KRATOS_TRY;
+    WriteDataSetMatrixImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileSerial::WriteDataSetIndependent(std::string Path, const Matrix<double>& rData)
+{
+    KRATOS_TRY;
+    WriteDataSetMatrixImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
@@ -100,6 +143,20 @@ void HDF5FileSerial::ReadDataSet(std::string Path, Vector<array_1d<double, 3>>& 
     KRATOS_CATCH("");
 }
 
+void HDF5FileSerial::ReadDataSet(std::string Path, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
+{
+    KRATOS_TRY;
+    ReadDataSetMatrixImpl(Path, rData, StartIndex, BlockSize);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileSerial::ReadDataSet(std::string Path, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
+{
+    KRATOS_TRY;
+    ReadDataSetMatrixImpl(Path, rData, StartIndex, BlockSize);
+    KRATOS_CATCH("");
+}
+
 void HDF5FileSerial::ReadDataSetIndependent(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
@@ -118,6 +175,20 @@ void HDF5FileSerial::ReadDataSetIndependent(std::string Path, Vector<array_1d<do
 {
     KRATOS_TRY;
     ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileSerial::ReadDataSetIndependent(std::string Path, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
+{
+    KRATOS_TRY;
+    ReadDataSetMatrixImpl(Path, rData, StartIndex, BlockSize);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileSerial::ReadDataSetIndependent(std::string Path, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
+{
+    KRATOS_TRY;
+    ReadDataSetMatrixImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 

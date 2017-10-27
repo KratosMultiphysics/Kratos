@@ -27,6 +27,20 @@ void HDF5FileParallel::WriteDataSet(std::string Path, const Vector<array_1d<doub
     KRATOS_CATCH("");
 }
 
+void HDF5FileParallel::WriteDataSet(std::string Path, const Matrix<int>& rData)
+{
+    KRATOS_TRY;
+    WriteDataSetMatrixImpl(Path, rData, DataTransferMode::collective);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileParallel::WriteDataSet(std::string Path, const Matrix<double>& rData)
+{
+    KRATOS_TRY;
+    WriteDataSetMatrixImpl(Path, rData, DataTransferMode::collective);
+    KRATOS_CATCH("");
+}
+
 void HDF5FileParallel::WriteDataPartition(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
@@ -48,6 +62,20 @@ void HDF5FileParallel::WriteDataPartition(std::string Path, const Vector<array_1
     KRATOS_CATCH("");
 }
 
+void HDF5FileParallel::WriteDataPartition(std::string Path, const Matrix<int>& rData)
+{
+    KRATOS_TRY;
+    WriteDataPartitionMatrixImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileParallel::WriteDataPartition(std::string Path, const Matrix<double>& rData)
+{
+    KRATOS_TRY;
+    WriteDataPartitionMatrixImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
 void HDF5FileParallel::WriteDataSetIndependent(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
@@ -66,6 +94,20 @@ void HDF5FileParallel::WriteDataSetIndependent(std::string Path, const Vector<ar
 {
     KRATOS_TRY;
     WriteDataSetVectorImpl(Path, rData, DataTransferMode::independent);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileParallel::WriteDataSetIndependent(std::string Path, const Matrix<int>& rData)
+{
+    KRATOS_TRY;
+    WriteDataSetMatrixImpl(Path, rData, DataTransferMode::independent);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileParallel::WriteDataSetIndependent(std::string Path, const Matrix<double>& rData)
+{
+    KRATOS_TRY;
+    WriteDataSetMatrixImpl(Path, rData, DataTransferMode::independent);
     KRATOS_CATCH("");
 }
 
@@ -109,6 +151,20 @@ void HDF5FileParallel::ReadDataSet(std::string Path,
     KRATOS_CATCH("");
 }
 
+void HDF5FileParallel::ReadDataSet(std::string Path, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
+{
+    KRATOS_TRY;
+    ReadDataSetMatrixImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::collective);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileParallel::ReadDataSet(std::string Path, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
+{
+    KRATOS_TRY;
+    ReadDataSetMatrixImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::collective);
+    KRATOS_CATCH("");
+}
+
 void HDF5FileParallel::ReadDataSetIndependent(std::string Path,
                                         Vector<int>& rData,
                                         unsigned StartIndex,
@@ -136,6 +192,26 @@ void HDF5FileParallel::ReadDataSetIndependent(std::string Path,
 {
     KRATOS_TRY;
     ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::independent);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileParallel::ReadDataSetIndependent(std::string Path,
+                                              Matrix<int>& rData,
+                                              unsigned StartIndex,
+                                              unsigned BlockSize)
+{
+    KRATOS_TRY;
+    ReadDataSetMatrixImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::independent);
+    KRATOS_CATCH("");
+}
+
+void HDF5FileParallel::ReadDataSetIndependent(std::string Path,
+                                              Matrix<double>& rData,
+                                              unsigned StartIndex,
+                                              unsigned BlockSize)
+{
+    KRATOS_TRY;
+    ReadDataSetMatrixImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::independent);
     KRATOS_CATCH("");
 }
 
