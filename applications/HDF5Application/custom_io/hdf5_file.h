@@ -129,6 +129,10 @@ public:
 
     virtual void WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData);
 
+    virtual void WriteDataSet(std::string Path, const Matrix<int>& rData);
+    
+    virtual void WriteDataSet(std::string Path, const Matrix<double>& rData);
+
     /// Write the start and end indices of data blocks (by process rank).
     /**
      * Writes the partition array required to reconstruct a partitioned data set
@@ -140,6 +144,10 @@ public:
 
     virtual void WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData);
     
+    virtual void WriteDataPartition(std::string Path, const Matrix<int>& rData);
+    
+    virtual void WriteDataPartition(std::string Path, const Matrix<double>& rData);
+
     /// Independently write data set to the HDF5 file.
     /**
      * Performs independent write in MPI. Must be called collectively. Throws 
@@ -151,6 +159,10 @@ public:
 
     virtual void WriteDataSetIndependent(std::string Path,
                                          const Vector<array_1d<double, 3>>& rData);
+
+    virtual void WriteDataSetIndependent(std::string Path, const Matrix<int>& rData);
+
+    virtual void WriteDataSetIndependent(std::string Path, const Matrix<double>& rData);
 
     std::vector<unsigned> GetDataDimensions(std::string Path) const;
 
@@ -193,6 +205,16 @@ public:
                              unsigned StartIndex,
                              unsigned BlockSize);
 
+    virtual void ReadDataSet(std::string Path,
+                             Matrix<int>& rData,
+                             unsigned StartIndex,
+                             unsigned BlockSize);
+   
+    virtual void ReadDataSet(std::string Path,
+                             Matrix<double>& rData,
+                             unsigned StartIndex,
+                             unsigned BlockSize);
+
     // Independently read data set from the HDF5 file.
     /**
      *  Performs independent read in MPI. Throws if out of range.
@@ -212,6 +234,15 @@ public:
                                        unsigned StartIndex,
                                        unsigned BlockSize);
 
+    virtual void ReadDataSetIndependent(std::string Path,
+                                       Matrix<int>& rData,
+                                       unsigned StartIndex,
+                                       unsigned BlockSize);
+ 
+    virtual void ReadDataSetIndependent(std::string Path,
+                                       Matrix<double>& rData,
+                                       unsigned StartIndex,
+                                       unsigned BlockSize);
     ///@}
 
 protected:
