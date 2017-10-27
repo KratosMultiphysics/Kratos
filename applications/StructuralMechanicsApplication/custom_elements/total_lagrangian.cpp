@@ -62,9 +62,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+        const unsigned int number_of_nodes = this->GetGeometry().size();
+        const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+        const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -113,17 +113,17 @@ namespace Kratos
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
         {
             // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+            this->CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
             
             // Compute material reponse
-            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+            this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
 
             // Calculating weights for integration on the reference configuration
             double int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0); 
 
-            if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
+            if ( dimension == 2 && this->GetProperties().Has( THICKNESS )) 
             {
-                int_to_reference_weight *= GetProperties()[THICKNESS];
+                int_to_reference_weight *= this->GetProperties()[THICKNESS];
             }
 
             if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
@@ -154,16 +154,16 @@ namespace Kratos
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints
         )
     {
-        const IntegrationMethod this_integration_method = GetGeometry().GetDefaultIntegrationMethod();
+        const IntegrationMethod this_integration_method = this->GetGeometry().GetDefaultIntegrationMethod();
         
         // Shape functions
-        rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates());
+        rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);;
 
         // Calculating jacobian
         Matrix J;
-        J = GetGeometry().Jacobian( J, PointNumber, this_integration_method );
+        J = this->GetGeometry().Jacobian( J, PointNumber, this_integration_method );
         
-        rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
+        rThisKinematicVariables.detJ0 = this->CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
         
         if (rThisKinematicVariables.detJ0 < 0.0)
         {
@@ -184,16 +184,16 @@ namespace Kratos
                 rThisKinematicVariables.F(2, index) = 0.0;
             }
 
-            rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues( rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates() );
-            const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Current);
-            const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Initial);
+            rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);;
+            const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, this->GetGeometry(), Current);
+            const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, this->GetGeometry(), Initial);
             rThisKinematicVariables.F(2, 2) = current_radius/initial_radius;
         }
         
         rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
         
         // Calculating operator B
-        CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.F, rThisKinematicVariables.DN_DX, strain_size, IntegrationPoints, PointNumber );
+        this->CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.F, rThisKinematicVariables.DN_DX, strain_size, IntegrationPoints, PointNumber );
     }
 
     //************************************************************************************
@@ -235,8 +235,8 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
+        const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
         // For axisymmetric case
         Vector N;
@@ -244,8 +244,8 @@ namespace Kratos
         
         if ( StrainSize == 4 )
         {
-            N = GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
-            Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, GetGeometry());
+            N = row(GetGeometry().ShapeFunctionsValues(), PointNumber);;
+            Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, this->GetGeometry());
         }
         
         for ( unsigned int i = 0; i < number_of_nodes; i++ )

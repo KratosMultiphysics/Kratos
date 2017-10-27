@@ -706,7 +706,9 @@ public:
         ) const override
     {
         // Setting up size of jacobian matrix
-        rResult.resize( 3, 2, false );
+        if (rResult.size1() != 3 || rResult.size2() != 2 )
+            rResult.resize( 3, 2, false );
+        noalias(rResult) = ZeroMatrix(3, 2);
         // Derivatives of shape functions
         Matrix shape_functions_gradients = msGeometryData.ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod );
         
@@ -749,7 +751,8 @@ public:
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         // Setting up size of jacobian matrix
-        rResult.resize( 3, 2, false );
+        if (rResult.size1() != 3 || rResult.size2() != 2 )
+            rResult.resize( 3, 2, false );
         noalias(rResult) = ZeroMatrix(3, 2);
 
         // Derivatives of shape functions
@@ -802,11 +805,11 @@ public:
         
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            const double detJ = std::pow(jacobian[pnt](0,1),2.0)*(std::pow(jacobian[pnt](1,0),2.0) + std::pow(jacobian[pnt](2,0),2.0)) + std::pow(jacobian[pnt](1,1)*jacobian[pnt](2,0) - jacobian[pnt](1,0)*jacobian[pnt](2,1),2.0) - 2.0*jacobian[pnt](0,0)*jacobian[pnt](0,1)*(jacobian[pnt](1,0)*jacobian[pnt](1,1) + jacobian[pnt](2,0)*jacobian[pnt](2,1)) + std::pow(jacobian[pnt](0,0),2.0)*(std::pow(jacobian[pnt](1,1),2.0) + std::pow(jacobian[pnt](2,1),2.0));
+            const double det_j = std::pow(jacobian[pnt](0,1),2)*(std::pow(jacobian[pnt](1,0),2) + std::pow(jacobian[pnt](2,0),2)) + std::pow(jacobian[pnt](1,1)*jacobian[pnt](2,0) - jacobian[pnt](1,0)*jacobian[pnt](2,1),2) - 2.0*jacobian[pnt](0,0)*jacobian[pnt](0,1)*(jacobian[pnt](1,0)*jacobian[pnt](1,1) + jacobian[pnt](2,0)*jacobian[pnt](2,1)) + std::pow(jacobian[pnt](0,0),2)*(std::pow(jacobian[pnt](1,1),2) + std::pow(jacobian[pnt](2,1),2));
             
-            if (detJ < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
+            if (det_j < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
             
-            rResult[pnt] = std::sqrt(detJ);
+            rResult[pnt] = std::sqrt(det_j);
         }
         
         return rResult;
@@ -839,15 +842,15 @@ public:
         IntegrationMethod ThisMethod 
         ) const override
     {
-        Matrix jacobian ( 3, 2 );
+        Matrix jacobian( 3, 2 );
          
         this->Jacobian( jacobian, IntegrationPointIndex, ThisMethod);
             
-        const double detJ = std::pow(jacobian(0,1),2.0)*(std::pow(jacobian(1,0),2.0) + std::pow(jacobian(2,0),2.0)) + std::pow(jacobian(1,1)*jacobian(2,0) - jacobian(1,0)*jacobian(2,1),2.0) - 2.0*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1) + jacobian(2,0)*jacobian(2,1)) + std::pow(jacobian(0,0),2.0)*(std::pow(jacobian(1,1),2.0) + std::pow(jacobian(2,1),2.0));
+        const double det_j = std::pow(jacobian(0,1),2)*(std::pow(jacobian(1,0),2) + std::pow(jacobian(2,0),2)) + std::pow(jacobian(1,1)*jacobian(2,0) - jacobian(1,0)*jacobian(2,1),2) - 2.0*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1) + jacobian(2,0)*jacobian(2,1)) + std::pow(jacobian(0,0),2)*(std::pow(jacobian(1,1),2) + std::pow(jacobian(2,1),2));
             
-        if (detJ < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
+        if (det_j < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
         
-        return std::sqrt(detJ);
+        return std::sqrt(det_j);
     }
 
     /**
@@ -877,15 +880,15 @@ public:
      */
     double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
-        Matrix jacobian ( 3, 2 );
+        Matrix jacobian( 3, 2 );
          
         this->Jacobian( jacobian, rPoint);
         
-        const double detJ = std::pow(jacobian(0,1),2.0)*(std::pow(jacobian(1,0),2.0) + std::pow(jacobian(2,0),2.0)) + std::pow(jacobian(1,1)*jacobian(2,0) - jacobian(1,0)*jacobian(2,1),2.0) - 2.0*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1) + jacobian(2,0)*jacobian(2,1)) + std::pow(jacobian(0,0),2.0)*(std::pow(jacobian(1,1),2.0) + std::pow(jacobian(2,1),2.0));
-        
-        if (detJ < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
+        const double det_j = std::pow(jacobian(0,1),2)*(std::pow(jacobian(1,0),2) + std::pow(jacobian(2,0),2)) + std::pow(jacobian(1,1)*jacobian(2,0) - jacobian(1,0)*jacobian(2,1),2) - 2.0*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1) + jacobian(2,0)*jacobian(2,1)) + std::pow(jacobian(0,0),2)*(std::pow(jacobian(1,1),2) + std::pow(jacobian(2,1),2));
             
-        return std::sqrt(detJ);
+        if (det_j < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
+        
+        return std::sqrt(det_j);
     }
 
     /**

@@ -143,7 +143,6 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     // Adding line load conditions
     mLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mLineLoadCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mAxisymLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mAxisymLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     // Adding surface load conditions
@@ -197,9 +196,9 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(AREA_EFFECTIVE_Z)
     KRATOS_REGISTER_VARIABLE(INERTIA_ROT_Y)
     KRATOS_REGISTER_VARIABLE(INERTIA_ROT_Z)
-	KRATOS_REGISTER_VARIABLE(LUMPED_MASS_MATRIX)
+    KRATOS_REGISTER_VARIABLE(LUMPED_MASS_MATRIX)
     KRATOS_REGISTER_VARIABLE(LOCAL_AXES_VECTOR)
-	KRATOS_REGISTER_VARIABLE(LOCAL_INERTIA_VECTOR)
+    KRATOS_REGISTER_VARIABLE(LOCAL_INERTIA_VECTOR)
 
     //  Shell generalized variables
     KRATOS_REGISTER_VARIABLE( SHELL_STRAIN )
@@ -404,7 +403,6 @@ void KratosStructuralMechanicsApplication::Register()
     // Line loads
     KRATOS_REGISTER_CONDITION( "LineLoadCondition2D2N", mLineLoadCondition2D2N )
     KRATOS_REGISTER_CONDITION( "LineLoadCondition2D3N", mLineLoadCondition2D3N )
-    KRATOS_REGISTER_CONDITION( "LineLoadCondition3D2N", mLineLoadCondition3D2N )
     
     KRATOS_REGISTER_CONDITION( "AxisymLineLoadCondition2D2N", mAxisymLineLoadCondition2D2N )
     KRATOS_REGISTER_CONDITION( "AxisymLineLoadCondition2D3N", mAxisymLineLoadCondition2D3N )

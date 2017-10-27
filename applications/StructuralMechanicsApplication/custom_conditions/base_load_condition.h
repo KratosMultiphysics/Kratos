@@ -233,11 +233,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
-
-    /**
-     * Check if Rotational Dof existant
-     */
-    bool HasRotDof(){return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);};    
+    
     ///@}
     ///@name Access
     ///@{

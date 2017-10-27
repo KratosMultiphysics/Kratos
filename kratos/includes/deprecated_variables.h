@@ -147,9 +147,6 @@ namespace Kratos
 
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( xi_c )
 
-    KRATOS_DEFINE_VARIABLE( double, SOLID_FRACTION )
-    KRATOS_DEFINE_VARIABLE( double, SOLID_FRACTION_RATE )
-
 }  // namespace Kratos.
 
 #undef  KRATOS_EXPORT_MACRO

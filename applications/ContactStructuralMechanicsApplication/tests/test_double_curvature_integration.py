@@ -46,7 +46,8 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         
         for prop in self.main_model_part.GetProperties():
             prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = 3 
-            prop[ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR] = 3.0e-1
+            
+        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR] = 3.0e-1
         
         for node in self.contact_model_part.Nodes:
             node.Set(KratosMultiphysics.INTERFACE, True)
