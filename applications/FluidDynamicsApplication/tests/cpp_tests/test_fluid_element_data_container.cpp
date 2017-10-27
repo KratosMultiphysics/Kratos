@@ -34,7 +34,7 @@ namespace Kratos {
             rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
             std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
-            rModelPart.CreateNewElement("VMS2D", 1, element_nodes, p_properties);
+            rModelPart.CreateNewElement("DSS2D", 1, element_nodes, p_properties);
         }
 
         void InitializeCompleteElement(ModelPart& rModelPart)
@@ -57,7 +57,7 @@ namespace Kratos {
             rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
             std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
-            rModelPart.CreateNewElement("VMS2D", 1, element_nodes, p_properties);
+            rModelPart.CreateNewElement("DSS2D", 1, element_nodes, p_properties);
 
             rModelPart.CloneTimeStep(0.1);
 
@@ -151,11 +151,11 @@ namespace Kratos {
 
             Matrix LHS;
             Vector RHS;
-/*
+
             model_part.ElementsBegin()->CalculateLocalVelocityContribution(LHS,RHS,model_part.GetProcessInfo());
 
-            //KRATOS_WATCH(LHS);
-            //KRATOS_WATCH(RHS);
+            KRATOS_WATCH(LHS);
+            KRATOS_WATCH(RHS);
 
             KRATOS_CHECK_NEAR(LHS(0,0), 5.533840, 1e-5);
             KRATOS_CHECK_NEAR(LHS(3,5), -0.0243628, 1e-5);
@@ -163,7 +163,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(LHS(8,8), 0.00609399, 1e-5);
 
             KRATOS_CHECK_NEAR(RHS[0], 0.256372, 1e-5);
-            KRATOS_CHECK_NEAR(RHS[2], 0.0609399, 1e-5);*/
+            KRATOS_CHECK_NEAR(RHS[2], 0.0609399, 1e-5);
         }
     }
 }
