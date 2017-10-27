@@ -347,7 +347,7 @@ while(time < final_time):
         gid_io.WriteNodalResults(ENTHALPY,model_part.Nodes,time,0)
         gid_io.WriteNodalResults(HEAT_FLUX, model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(FACE_HEAT_FLUX, model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(SOLID_FRACTION, model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(SOLIDFRACTION, model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(DISTANCE, model_part.Nodes, time, 0)
         gid_io.Flush()
         out = 0
