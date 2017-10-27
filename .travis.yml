@@ -20,7 +20,7 @@ addons:
     sources:
       - sourceline: 'ppa:boost-latest/ppa'
     packages:
-      - libomp-dev
+      - libiomp-dev
       - gfortran
       - libboost1.55-dev
       - libboost-serialization1.55-dev
