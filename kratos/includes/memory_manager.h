@@ -20,12 +20,24 @@
 #include <iostream>
 
 
+
 // External includes
 
 
 // Project includes
 #include "includes/define.h"
 
+// to be included after define.h which defines the KRATOS_COMPILED_IN Macros
+#if defined(KRATOS_COMPILED_IN_LINUX)
+#include <unistd.h>
+#include <sys/resource.h>
+
+#elif defined(KRATOS_COMPILED_IN_APPLIE)
+#include <mach/mach.h>
+#endif
+
+#include <iostream>
+#include <fstream>
 
 namespace Kratos
 {
@@ -82,6 +94,69 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
+
+    
+    /**
+     * This function returns the peak memory used by this
+     * process in bytes. It returns zero for not supported 
+     * operating systems. The main idea is from:
+     * http://nadeausoftware.com/articles/2012/07/c_c_tip_how_get_process_resident_set_size_physical_memory_use
+     * rewritten for c++ and with style change 
+     **/ 
+    std::size_t GetPeakMemoryUsage()
+    {
+    
+    #if defined(KRATOS_COMPILED_IN_LINUX)
+         struct rusage resource_usage;
+        getrusage( RUSAGE_SELF, &resource_usage );
+    
+        return resource_usage.ru_maxrss * 1024;
+    #elif defined(KRATOS_COMPILED_IN_APPLIE)
+        struct rusage resource_usage;
+        getrusage( RUSAGE_SELF, &resource_usage );
+    
+        return resource_usage.ru_maxrss;
+    #else
+        return 0;
+    #endif
+    }
+    
+    
+    /**
+     * This function returns the physical memory used currently by this
+     * process in bytes. It returns zero for not supported operating
+     * systems. The main idea is from:
+     * http://nadeausoftware.com/articles/2012/07/c_c_tip_how_get_process_resident_set_size_physical_memory_use
+     * rewritten for c++ and with style change 
+     **/ 
+    std::size_t GetCurrentMemoryUsage()
+    {
+    #if defined(KRATOS_COMPILED_IN_LINUX)
+        std::size_t program_size = 0;
+        std::size_t resident_size = 0;
+     
+        std::ifstream process_file("/proc/self/statm");
+    
+        if(process_file.fail())
+            return 0;
+    
+        process_file >> program_size;
+        process_file >> resident_size;
+      
+        return resident_size * sysconf( _SC_PAGESIZE);
+    #elif defined(KRATOS_COMPILED_IN_APPLIE)
+        struct mach_task_basic_info info;
+        mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
+        
+        if ( task_info( mach_task_self( ), MACH_TASK_BASIC_INFO,
+            (task_info_t)&info, &infoCount ) != KERN_SUCCESS )
+            return 0;		
+        return info.resident_size;
+    #else
+        return 0;
+    #endif
+    }
+    
 
 
       ///@}
