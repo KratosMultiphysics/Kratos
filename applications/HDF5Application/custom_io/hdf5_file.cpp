@@ -141,66 +141,66 @@ void HDF5File::AddPath(std::string Path)
     }
 }
 
-void HDF5File::WriteDataSet(std::string Path, const std::vector<int>& rData)
+void HDF5File::WriteDataSet(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(Path, rData);
+    WriteDataSetVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSet(std::string Path, const std::vector<double>& rData)
+void HDF5File::WriteDataSet(std::string Path, const Vector<double>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(Path, rData);
+    WriteDataSetVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSet(std::string Path, const std::vector<array_1d<double, 3>>& rData)
+void HDF5File::WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(Path, rData);
+    WriteDataSetVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataPartition(std::string Path, const std::vector<int>& rData)
+void HDF5File::WriteDataPartition(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
-    WriteDataPartitionImpl(Path, rData);
+    WriteDataPartitionVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataPartition(std::string Path, const std::vector<double>& rData)
+void HDF5File::WriteDataPartition(std::string Path, const Vector<double>& rData)
 {
     KRATOS_TRY;
-    WriteDataPartitionImpl(Path, rData);
+    WriteDataPartitionVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataPartition(std::string Path, const std::vector<array_1d<double,3>>& rData)
+void HDF5File::WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData)
 {
     KRATOS_TRY;
-    WriteDataPartitionImpl(Path, rData);
+    WriteDataPartitionVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSetIndependent(std::string Path, const std::vector<int>& rData)
+void HDF5File::WriteDataSetIndependent(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(Path, rData);
+    WriteDataSetVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSetIndependent(std::string Path, const std::vector<double>& rData)
+void HDF5File::WriteDataSetIndependent(std::string Path, const Vector<double>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(Path, rData);
+    WriteDataSetVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSetIndependent(std::string Path, const std::vector<array_1d<double, 3>>& rData)
+void HDF5File::WriteDataSetIndependent(std::string Path, const Vector<array_1d<double, 3>>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(Path, rData);
+    WriteDataSetVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
@@ -302,45 +302,45 @@ unsigned HDF5File::GetTotalProcesses() const
     return 1;
 }
 
-void HDF5File::ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void HDF5File::ReadDataSet(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
+    ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSet(std::string Path, std::vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void HDF5File::ReadDataSet(std::string Path, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
+    ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSet(std::string Path, std::vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
+void HDF5File::ReadDataSet(std::string Path, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
+    ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSetIndependent(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void HDF5File::ReadDataSetIndependent(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
+    ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSetIndependent(std::string Path, std::vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void HDF5File::ReadDataSetIndependent(std::string Path, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
+    ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSetIndependent(std::string Path, std::vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
+void HDF5File::ReadDataSetIndependent(std::string Path, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
+    ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 

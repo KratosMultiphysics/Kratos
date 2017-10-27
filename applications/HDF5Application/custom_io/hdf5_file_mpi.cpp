@@ -9,66 +9,66 @@ HDF5FileMPI::HDF5FileMPI(Parameters& rParams) : HDF5File(rParams)
 {
 }
 
-void HDF5FileMPI::WriteDataSet(std::string Path, const std::vector<int>& rData)
+void HDF5FileMPI::WriteDataSet(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(Path, rData, DataTransferMode::collective);
+    WriteDataSetVectorImpl(Path, rData, DataTransferMode::collective);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::WriteDataSet(std::string Path, const std::vector<double>& rData)
+void HDF5FileMPI::WriteDataSet(std::string Path, const Vector<double>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(Path, rData, DataTransferMode::collective);
+    WriteDataSetVectorImpl(Path, rData, DataTransferMode::collective);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::WriteDataSet(std::string Path, const std::vector<array_1d<double, 3>>& rData)
+void HDF5FileMPI::WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(Path, rData, DataTransferMode::collective);
+    WriteDataSetVectorImpl(Path, rData, DataTransferMode::collective);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::WriteDataPartition(std::string Path, const std::vector<int>& rData)
+void HDF5FileMPI::WriteDataPartition(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
-    WriteDataPartitionImpl(Path, rData);
+    WriteDataPartitionVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::WriteDataPartition(std::string Path, const std::vector<double>& rData)
+void HDF5FileMPI::WriteDataPartition(std::string Path, const Vector<double>& rData)
 {
     KRATOS_TRY;
-    WriteDataPartitionImpl(Path, rData);
+    WriteDataPartitionVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::WriteDataPartition(std::string Path, const std::vector<array_1d<double,3>>& rData)
+void HDF5FileMPI::WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData)
 {
     KRATOS_TRY;
-    WriteDataPartitionImpl(Path, rData);
+    WriteDataPartitionVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::WriteDataSetIndependent(std::string Path, const std::vector<int>& rData)
+void HDF5FileMPI::WriteDataSetIndependent(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(Path, rData, DataTransferMode::independent);
+    WriteDataSetVectorImpl(Path, rData, DataTransferMode::independent);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::WriteDataSetIndependent(std::string Path, const std::vector<double>& rData)
+void HDF5FileMPI::WriteDataSetIndependent(std::string Path, const Vector<double>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(Path, rData, DataTransferMode::independent);
+    WriteDataSetVectorImpl(Path, rData, DataTransferMode::independent);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::WriteDataSetIndependent(std::string Path, const std::vector<array_1d<double, 3>>& rData)
+void HDF5FileMPI::WriteDataSetIndependent(std::string Path, const Vector<array_1d<double, 3>>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(Path, rData, DataTransferMode::independent);
+    WriteDataSetVectorImpl(Path, rData, DataTransferMode::independent);
     KRATOS_CATCH("");
 }
 
@@ -88,57 +88,57 @@ unsigned HDF5FileMPI::GetTotalProcesses() const
     return static_cast<unsigned>(num_proc);
 }
 
-void HDF5FileMPI::ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void HDF5FileMPI::ReadDataSet(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::collective);
+    ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::collective);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::ReadDataSet(std::string Path, std::vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void HDF5FileMPI::ReadDataSet(std::string Path, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::collective);
+    ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::collective);
     KRATOS_CATCH("");
 }
 
 void HDF5FileMPI::ReadDataSet(std::string Path,
-                              std::vector<array_1d<double, 3>>& rData,
+                              Vector<array_1d<double, 3>>& rData,
                               unsigned StartIndex,
                               unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::collective);
+    ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::collective);
     KRATOS_CATCH("");
 }
 
 void HDF5FileMPI::ReadDataSetIndependent(std::string Path,
-                                        std::vector<int>& rData,
+                                        Vector<int>& rData,
                                         unsigned StartIndex,
                                         unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::independent);
+    ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::independent);
     KRATOS_CATCH("");
 }
 
 void HDF5FileMPI::ReadDataSetIndependent(std::string Path,
-                                        std::vector<double>& rData,
+                                        Vector<double>& rData,
                                         unsigned StartIndex,
                                         unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::independent);
+    ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::independent);
     KRATOS_CATCH("");
 }
 
 void HDF5FileMPI::ReadDataSetIndependent(std::string Path,
-                                        std::vector<array_1d<double, 3>>& rData,
+                                        Vector<array_1d<double, 3>>& rData,
                                         unsigned StartIndex,
                                         unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::independent);
+    ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize, DataTransferMode::independent);
     KRATOS_CATCH("");
 }
 

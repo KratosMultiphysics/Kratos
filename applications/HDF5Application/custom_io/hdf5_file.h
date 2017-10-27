@@ -25,6 +25,8 @@
 extern "C" {
 #include "hdf5.h"
 }
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -75,6 +77,12 @@ public:
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(HDF5File);
 
+    template <class T>
+    using Vector = boost::numeric::ublas::vector<T>;
+
+    template <class T>
+    using Matrix = boost::numeric::ublas::matrix<T>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -96,62 +104,61 @@ public:
     ///@{
 
     /// Check if path exists in HDF5 file.
-    virtual bool HasPath(std::string Path) const;
+    bool HasPath(std::string Path) const;
 
-    virtual bool IsGroup(std::string Path) const;
+    bool IsGroup(std::string Path) const;
 
-    virtual bool IsDataSet(std::string Path) const;
+    bool IsDataSet(std::string Path) const;
 
-    virtual void CreateGroup(std::string Path);
+    void CreateGroup(std::string Path);
 
-    virtual void AddPath(std::string Path);
+    void AddPath(std::string Path);
 
     /// Write a data set to the HDF5 file.
     /**
      *  Performs collective write in MPI. The data is written blockwise according to
      *  processor rank.
      */
-    virtual void WriteDataSet(std::string Path, const std::vector<int>& rData);
+    virtual void WriteDataSet(std::string Path, const Vector<int>& rData);
 
-    virtual void WriteDataSet(std::string Path, const std::vector<double>& rData);
+    virtual void WriteDataSet(std::string Path, const Vector<double>& rData);
 
-    virtual void WriteDataSet(std::string Path,
-                              const std::vector<array_1d<double, 3>>& rData);
+    virtual void WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData);
 
     /// Write the start and end indices of data blocks (by process rank).
     /**
      * Writes the partition array required to reconstruct a partitioned data set
      * from a file.
      */
-    virtual void WriteDataPartition(std::string Path, const std::vector<int>& rData);
+    virtual void WriteDataPartition(std::string Path, const Vector<int>& rData);
 
-    virtual void WriteDataPartition(std::string Path, const std::vector<double>& rData);
+    virtual void WriteDataPartition(std::string Path, const Vector<double>& rData);
 
-    virtual void WriteDataPartition(std::string Path, const std::vector<array_1d<double,3>>& rData);
+    virtual void WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData);
     
     /// Independently write data set to the HDF5 file.
     /**
      * Performs independent write in MPI. Must be called collectively. Throws 
      * if more than one process has non-empty data.
      */
-    virtual void WriteDataSetIndependent(std::string Path, const std::vector<int>& rData);
+    virtual void WriteDataSetIndependent(std::string Path, const Vector<int>& rData);
 
-    virtual void WriteDataSetIndependent(std::string Path, const std::vector<double>& rData);
+    virtual void WriteDataSetIndependent(std::string Path, const Vector<double>& rData);
 
     virtual void WriteDataSetIndependent(std::string Path,
-                                         const std::vector<array_1d<double, 3>>& rData);
+                                         const Vector<array_1d<double, 3>>& rData);
 
-    virtual std::vector<unsigned> GetDataDimensions(std::string Path) const;
+    std::vector<unsigned> GetDataDimensions(std::string Path) const;
 
-    virtual bool HasIntDataType(std::string Path) const;
+    bool HasIntDataType(std::string Path) const;
 
-    virtual bool HasFloatDataType(std::string Path) const;
+    bool HasFloatDataType(std::string Path) const;
 
-    virtual void Flush();
+    void Flush();
 
-    virtual unsigned GetFileSize() const;
+    unsigned GetFileSize() const;
 
-    virtual std::string GetFileName() const;
+    std::string GetFileName() const;
 
     int GetEchoLevel() const;
 
@@ -168,17 +175,17 @@ public:
      * Performs collective read in MPI. Throws if out of range.
      */
     virtual void ReadDataSet(std::string Path,
-                             std::vector<int>& rData,
+                             Vector<int>& rData,
                              unsigned StartIndex,
                              unsigned BlockSize);
 
     virtual void ReadDataSet(std::string Path,
-                             std::vector<double>& rData,
+                             Vector<double>& rData,
                              unsigned StartIndex,
                              unsigned BlockSize);
 
     virtual void ReadDataSet(std::string Path,
-                             std::vector<array_1d<double, 3>>& rData,
+                             Vector<array_1d<double, 3>>& rData,
                              unsigned StartIndex,
                              unsigned BlockSize);
 
@@ -187,17 +194,17 @@ public:
      *  Performs independent read in MPI. Throws if out of range.
      */
     virtual void ReadDataSetIndependent(std::string Path,
-                                       std::vector<int>& rData,
+                                       Vector<int>& rData,
                                        unsigned StartIndex,
                                        unsigned BlockSize);
 
     virtual void ReadDataSetIndependent(std::string Path,
-                                       std::vector<double>& rData,
+                                       Vector<double>& rData,
                                        unsigned StartIndex,
                                        unsigned BlockSize);
 
     virtual void ReadDataSetIndependent(std::string Path,
-                                       std::vector<array_1d<double, 3>>& rData,
+                                       Vector<array_1d<double, 3>>& rData,
                                        unsigned StartIndex,
                                        unsigned BlockSize);
 
@@ -222,7 +229,7 @@ private:
     void SetFileDriver(const std::string& rDriver, hid_t FileAccessPropertyListId) const;
 
     template <class T>
-    void WriteDataSetImpl(std::string Path, const std::vector<T>& rData)
+    void WriteDataSetVectorImpl(std::string Path, const Vector<T>& rData)
     {
         // Check that full path does not exist before trying to write data.
         KRATOS_ERROR_IF(HasPath(Path)) << "Path already exists: " << Path << std::endl;
@@ -260,22 +267,24 @@ private:
                                   H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
         KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL,
-                                 H5P_DEFAULT, rData.data()) < 0)
+                                 H5P_DEFAULT, &rData[0]) < 0)
             << "H5Dwrite failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
     }
 
     template <class T>
-    void WriteDataPartitionImpl(std::string Path, const std::vector<T>& rData)
+    void WriteDataPartitionVectorImpl(std::string Path, const Vector<T>& rData)
     {
         int n = rData.size();
-        std::vector<int> partition{0, n}; // Serial partition.
-        WriteDataSet(Path, partition);
+        Vector<int> partition(2); // Serial partition.
+        partition[0] = 0;
+        partition[1] = n;
+       WriteDataSet(Path, partition);
     }
 
     template <class T>
-    void ReadDataSetImpl(std::string Path, std::vector<T>& rData, unsigned StartIndex, unsigned BlockSize)
+    void ReadDataSetVectorImpl(std::string Path, Vector<T>& rData, unsigned StartIndex, unsigned BlockSize)
     {
         // Check that full path exists.
         KRATOS_ERROR_IF_NOT(IsDataSet(Path))
@@ -298,7 +307,7 @@ private:
                 << "Invalid data set dimension." << std::endl;
 
         if (rData.size() != BlockSize)
-            rData.resize(BlockSize);
+            rData.resize(BlockSize, false);
 
         // Initialize memory space dimensions.
         hsize_t start[ndims] = {0}, mem_dims[ndims];
@@ -338,7 +347,7 @@ private:
             H5Screate_simple(ndims, mem_dims, nullptr);
         KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, start, nullptr, mem_dims, nullptr) < 0)
             << "H5Sselect_hyperslab failed." << std::endl;
-        KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, H5P_DEFAULT, rData.data()) < 0)
+        KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, H5P_DEFAULT, &rData[0]) < 0)
             << "H5Dread failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;

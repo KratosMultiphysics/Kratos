@@ -25,8 +25,8 @@ bool HDF5PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
     rNodes.reserve(local_block_size + ghost_block_size);
 
     // Read local nodes.
-    std::vector<int> local_node_ids;
-    std::vector<array_1d<double, 3>> local_node_coords;
+    HDF5File::Vector<int> local_node_ids;
+    HDF5File::Vector<array_1d<double, 3>> local_node_coords;
     GetFile().ReadDataSet("/Nodes/Local/Id", local_node_ids, local_start_index, local_block_size);
     GetFile().ReadDataSet("/Nodes/Local/Coordinate", local_node_coords, local_start_index, local_block_size);
     for (unsigned i = 0; i < local_block_size; ++i)
@@ -40,8 +40,8 @@ bool HDF5PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
     local_node_coords.clear();
 
     // Read ghost nodes.
-    std::vector<int> ghost_node_ids;
-    std::vector<array_1d<double, 3>> ghost_node_coords;
+    HDF5File::Vector<int> ghost_node_ids;
+    HDF5File::Vector<array_1d<double, 3>> ghost_node_coords;
     GetFile().ReadDataSet("/Nodes/Ghost/Id", ghost_node_ids, ghost_start_index, ghost_block_size);
     GetFile().ReadDataSet("/Nodes/Ghost/Coordinate", ghost_node_coords, ghost_start_index, ghost_block_size);
     for (unsigned i = 0; i < ghost_block_size; ++i)
@@ -86,8 +86,8 @@ void HDF5PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     }
 
     // Write local nodes.
-    std::vector<int> local_node_ids(local_nodes.size());
-    std::vector<array_1d<double, 3>> local_node_coords(local_nodes.size());
+    HDF5File::Vector<int> local_node_ids(local_nodes.size());
+    HDF5File::Vector<array_1d<double, 3>> local_node_coords(local_nodes.size());
     unsigned local_pos = 0;
     for (const auto& r_node : local_nodes)
     {
@@ -102,9 +102,9 @@ void HDF5PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     local_node_coords.clear();
 
     // Write ghost nodes.
-    std::vector<int> ghost_node_ids(ghost_nodes.size());
-    std::vector<int> ghost_node_pids(ghost_nodes.size());
-    std::vector<array_1d<double, 3>> ghost_node_coords(ghost_nodes.size());
+    HDF5File::Vector<int> ghost_node_ids(ghost_nodes.size());
+    HDF5File::Vector<int> ghost_node_pids(ghost_nodes.size());
+    HDF5File::Vector<array_1d<double, 3>> ghost_node_coords(ghost_nodes.size());
     unsigned ghost_pos = 0;
     for (const auto& r_node : ghost_nodes)
     {
@@ -183,7 +183,7 @@ void HDF5PartitionedModelPartIO::Check()
 std::tuple<unsigned, unsigned> HDF5PartitionedModelPartIO::GetPartitionStartIndexAndBlockSize(std::string Path) const
 {
     unsigned my_pid = GetFile().GetPID();
-    std::vector<int> my_partition;
+    HDF5File::Vector<int> my_partition;
     GetFile().ReadDataSet(Path, my_partition, my_pid, 2);
     unsigned start_index = my_partition[0];
     unsigned block_size = my_partition[1] - my_partition[0];

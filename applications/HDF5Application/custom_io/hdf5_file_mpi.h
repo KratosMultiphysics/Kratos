@@ -55,55 +55,58 @@ public:
     ///@name Operations
     ///@{
 
-    void WriteDataSet(std::string Path, const std::vector<int>& rData) override;
+    void WriteDataSet(std::string Path, const Vector<int>& rData) override;
 
-    void WriteDataSet(std::string Path, const std::vector<double>& rData) override;
+    void WriteDataSet(std::string Path, const Vector<double>& rData) override;
 
-    void WriteDataSet(std::string Path, const std::vector<array_1d<double, 3>>& rData) override;
+    void WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData) override;
 
-    void WriteDataPartition(std::string Path, const std::vector<int>& rData) override;
+    void WriteDataPartition(std::string Path, const Vector<int>& rData) override;
     
-    void WriteDataPartition(std::string Path, const std::vector<double>& rData) override;
+    void WriteDataPartition(std::string Path, const Vector<double>& rData) override;
     
-    void WriteDataPartition(std::string Path, const std::vector<array_1d<double,3>>& rData) override;
+    void WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData) override;
 
-    void WriteDataSetIndependent(std::string Path, const std::vector<int>& rData) override;
+    void WriteDataSetIndependent(std::string Path, const Vector<int>& rData) override;
 
-    void WriteDataSetIndependent(std::string Path, const std::vector<double>& rData) override;
+    void WriteDataSetIndependent(std::string Path, const Vector<double>& rData) override;
 
     void WriteDataSetIndependent(std::string Path,
-                                const std::vector<array_1d<double, 3>>& rData) override;
+                                const Vector<array_1d<double, 3>>& rData) override;
 
     unsigned GetPID() const override;
 
     unsigned GetTotalProcesses() const override;
 
-    void ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize) override;
+    void ReadDataSet(std::string Path,
+                     Vector<int>& rData,
+                     unsigned StartIndex, 
+                     unsigned BlockSize) override;
 
     void ReadDataSet(std::string Path,
-                     std::vector<double>& rData,
+                     Vector<double>& rData,
                      unsigned StartIndex,
                      unsigned BlockSize) override;
 
     void ReadDataSet(std::string Path,
-                     std::vector<array_1d<double, 3>>& rData,
+                     Vector<array_1d<double, 3>>& rData,
                      unsigned StartIndex,
                      unsigned BlockSize) override;
 
     void ReadDataSetIndependent(std::string Path,
-                               std::vector<int>& rData,
-                               unsigned StartIndex,
-                               unsigned BlockSize) override;
+                                Vector<int>& rData,
+                                unsigned StartIndex,
+                                unsigned BlockSize) override;
 
     void ReadDataSetIndependent(std::string Path,
-                               std::vector<double>& rData,
-                               unsigned StartIndex,
-                               unsigned BlockSize) override;
+                                Vector<double>& rData,
+                                unsigned StartIndex,
+                                unsigned BlockSize) override;
 
     void ReadDataSetIndependent(std::string Path,
-                               std::vector<array_1d<double, 3>>& rData,
-                               unsigned StartIndex,
-                               unsigned BlockSize) override;
+                                Vector<array_1d<double, 3>>& rData,
+                                unsigned StartIndex,
+                                unsigned BlockSize) override;
     ///@}
 
 protected:
@@ -115,7 +118,7 @@ private:
     ///@name Private Operations
     ///@{
     template <class T>
-    void WriteDataSetImpl(std::string Path, const std::vector<T>& rData, DataTransferMode Mode)
+    void WriteDataSetVectorImpl(std::string Path, const Vector<T>& rData, DataTransferMode Mode)
     {
         // Check that full path does not exist before trying to write data.
         KRATOS_ERROR_IF(HasPath(Path)) << "Path already exists: " << Path << std::endl;
@@ -190,7 +193,7 @@ private:
                                 local_dims, nullptr);
             hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
             KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id,
-                                     dxpl_id, rData.data()) < 0)
+                                     dxpl_id, &rData[0]) < 0)
                 << "H5Dwrite failed." << std::endl;
                 KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
             KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
@@ -200,11 +203,11 @@ private:
     }
 
     template <class T>
-    void WriteDataPartitionImpl(std::string Path, const std::vector<T>& rData)
+    void WriteDataPartitionVectorImpl(std::string Path, const Vector<T>& rData)
     {
         int rank, end_pos, ierr;
         int block_size = rData.size();
-        std::vector<int> partition;
+        Vector<int> partition;
         ierr = MPI_Scan(&block_size, &end_pos, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
         KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Scan failed." << std::endl;
         ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -215,7 +218,7 @@ private:
             int num_proc;
             ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
             KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_size failed." << std::endl;
-            partition.resize(num_proc + 1);
+            partition.resize(num_proc + 1, false);
             partition[0] = 0; // Partition always starts at 0.
             ierr = MPI_Gather(&end_pos, 1, MPI_INT, &partition[1], 1, MPI_INT, 0, MPI_COMM_WORLD);
             KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Gather failed." << std::endl;
@@ -230,8 +233,8 @@ private:
     }
 
     template <class T>
-    void ReadDataSetImpl(std::string Path,
-                         std::vector<T>& rData,
+    void ReadDataSetVectorImpl(std::string Path,
+                         Vector<T>& rData,
                          unsigned StartIndex,
                          unsigned BlockSize,
                          DataTransferMode Mode)
@@ -261,7 +264,7 @@ private:
                 << "Invalid data set dimension." << std::endl;
 
         if (rData.size() != BlockSize)
-            rData.resize(BlockSize);
+            rData.resize(BlockSize, false);
 
         // Set global position where local data set starts.
         hsize_t local_start[ndims];
@@ -307,7 +310,7 @@ private:
                                             nullptr, local_mem_dims, nullptr) < 0)
             << "H5Sselect_hyperslab failed." << std::endl;
         KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
-                                dxpl_id, rData.data()) < 0)
+                                dxpl_id, &rData[0]) < 0)
             << "H5Dread failed." << std::endl;
         KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;

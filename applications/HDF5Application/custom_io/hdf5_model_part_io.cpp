@@ -16,8 +16,8 @@ bool HDF5ModelPartIO::ReadNodes(NodesContainerType& rNodes)
 {
     KRATOS_TRY;
 
-    std::vector<int> node_ids;
-    std::vector<array_1d<double, 3>> node_coords;
+    HDF5File::Vector<int> node_ids;
+    HDF5File::Vector<array_1d<double, 3>> node_coords;
     rNodes.clear();
 
     const std::size_t num_nodes = ReadNodesNumber();
@@ -47,8 +47,8 @@ void HDF5ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 {
     KRATOS_TRY;
 
-    std::vector<int> node_ids(rNodes.size());
-    std::vector<array_1d<double, 3>> node_coords(rNodes.size());
+    HDF5File::Vector<int> node_ids(rNodes.size());
+    HDF5File::Vector<array_1d<double, 3>> node_coords(rNodes.size());
 
     unsigned pos = 0;
     for (const auto& r_node : rNodes)
@@ -79,10 +79,10 @@ void HDF5ModelPartIO::WriteElements(ElementsContainerType const& rElements)
 {
     KRATOS_TRY;
 
-    std::vector<int> elem_ids(rElements.size());
-    std::vector<int> elem_property_ids(rElements.size());
-    std::vector<int> elem_topology;
-    elem_topology.reserve(rElements.size() * (rElements.front().GetGeometry().size() + 2));
+    HDF5File::Vector<int> elem_ids(rElements.size());
+    HDF5File::Vector<int> elem_property_ids(rElements.size());
+    //HDF5File::Vector<int> elem_topology;
+    //elem_topology.reserve(rElements.size() * (rElements.front().GetGeometry().size() + 2));
 
     unsigned pos = 0;
     for (const auto& r_elem : rElements)
