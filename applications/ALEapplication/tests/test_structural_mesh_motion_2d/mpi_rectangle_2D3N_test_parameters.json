@@ -34,35 +34,32 @@
         "LoadRestart"      : "False",
         "Restart_Step"     : 0
     },
-    "solver_settings"                  : {
-        "solver_type"                  : "ale_trilinos_navier_stokes_solver_vmsmonolithic",
+    "solver_settings" : {
+        "solver_type"  : "ale_trilinos_navier_stokes_solver_vmsmonolithic",
         "ale_settings" : {
             "solver_type" : "trilinos_mesh_solver_structural_similarity"
         },
-        "model_import_settings"        : {
+        "model_import_settings" : {
             "input_type"     : "mdpa",
             "input_filename" : "test_structural_mesh_motion_2d/rectangle_2D3N_test"
         },
-        "volume_model_part_name"       : "Parts_Fluid",
-        "skin_parts"                   : ["NoSlip2D_FixedBoundary","NoSlip2D_MovingBoundary"],
-        "no_skin_parts"                : [],
-        "time_stepping"                : {
+        "volume_model_part_name" : "Parts_Fluid",
+        "skin_parts"             : ["NoSlip2D_FixedBoundary","NoSlip2D_MovingBoundary"],
+        "no_skin_parts"          : [],
+        "time_stepping"          : {
             "automatic_time_step" : false,
             "time_step"           : 0.01
         }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "NoSlip2D_FixedBoundary",
-	    "variable_name"   : "MESH_DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+	        "variable_name"   : "MESH_DISPLACEMENT",
             "value"           : [0.0, 0.0, 0.0]
         }
     },{
@@ -75,14 +72,15 @@
         }
     }],
     "gravity"                          : [{
-        "python_module" : "process_factory",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ApplyConstantVectorValueProcess",
+        "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Parts_Fluid",
             "variable_name"   : "BODY_FORCE",
             "modulus"         : 0.0,
+            "constrained"     : false,
             "direction"       : [0.0,-1.0,0.0]
         }
     }],

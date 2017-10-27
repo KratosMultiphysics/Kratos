@@ -1,0 +1,363 @@
+Begin ModelPartData
+
+End ModelPartData
+Begin Properties 0
+End Properties
+Begin Properties 1
+    DENSITY   7.85000E+03 
+    YOUNG_MODULUS   2.06900E+11 
+    POISSON_RATIO   2.90000E-01 
+End Properties
+Begin Nodes 
+121	0.50000	-0.50000	0.00000
+90	0.42857	-0.50000	0.00000
+118	0.50000	-0.42857	0.00000
+87	0.42875	-0.39836	0.00000
+115	0.35714	-0.50000	0.00000
+89	0.50000	-0.35714	0.00000
+86	0.36078	-0.42731	0.00000
+85	0.42233	-0.32085	0.00000
+83	0.36082	-0.35631	0.00000
+88	0.28571	-0.50000	0.00000
+110	0.50000	-0.28571	0.00000
+84	0.29705	-0.39798	0.00000
+81	0.36086	-0.28531	0.00000
+107	0.42237	-0.24985	0.00000
+75	0.29935	-0.32077	0.00000
+72	0.23780	-0.42724	0.00000
+74	0.21429	-0.50000	0.00000
+69	0.23784	-0.35624	0.00000
+78	0.29939	-0.24977	0.00000
+65	0.17698	-0.41250	0.00000
+70	0.23788	-0.28524	0.00000
+67	0.14286	-0.50000	0.00000
+66	0.17638	-0.32070	0.00000
+63	0.11250	-0.43330	0.00000
+68	0.17642	-0.24970	0.00000
+62	0.11487	-0.35617	0.00000
+61	0.07143	-0.50000	0.00000
+64	0.11491	-0.28517	0.00000
+59	0.05638	-0.39786	0.00000
+71	0.11495	-0.21417	0.00000
+60	0.05340	-0.32063	0.00000
+119	-0.00000	-0.50000	0.00000
+96	0.05344	-0.24963	0.00000
+56	-0.00815	-0.42709	0.00000
+55	-0.00811	-0.35609	0.00000
+95	0.05348	-0.17863	0.00000
+57	-0.00807	-0.28509	0.00000
+58	-0.07143	-0.50000	0.00000
+53	-0.06991	-0.39780	0.00000
+49	-0.00804	-0.21392	0.00000
+52	-0.06958	-0.32056	0.00000
+46	-0.06950	-0.24947	0.00000
+End Nodes
+Begin Elements Element2D3N
+72	1	55	53	56	
+73	1	52	55	57	
+75	1	55	56	59	
+76	1	57	55	60	
+77	1	59	56	61	
+78	1	55	59	60	
+79	1	60	59	62	
+80	1	62	59	63	
+81	1	60	62	64	
+82	1	63	59	61	
+83	1	62	63	65	
+84	1	64	62	66	
+85	1	65	63	67	
+86	1	62	65	66	
+87	1	64	66	68	
+88	1	66	65	69	
+89	1	68	66	70	
+91	1	69	65	72	
+92	1	66	69	70	
+94	1	72	65	74	
+95	1	70	69	75	
+98	1	70	75	78	
+104	1	81	75	83	
+106	1	83	75	84	
+107	1	81	83	85	
+109	1	84	75	69	
+110	1	83	84	86	
+111	1	85	83	87	
+113	1	86	84	88	
+114	1	87	83	86	
+115	1	85	87	89	
+116	1	87	86	90	
+125	1	96	95	49	
+127	1	71	96	64	
+128	1	64	96	60	
+129	1	60	96	57	
+130	1	57	96	49	
+131	1	84	69	72	
+132	1	84	72	88	
+152	1	107	85	110	
+157	1	57	46	52	
+169	1	88	115	86	
+176	1	118	89	87	
+178	1	119	61	56	
+180	1	90	121	118	
+187	1	67	74	65	
+189	1	115	90	86	
+193	1	89	110	85	
+194	1	61	67	63	
+197	1	58	119	56	
+201	1	74	88	72	
+204	1	118	87	90	
+End Elements
+Begin Conditions Condition2D2N
+End Conditions
+Begin SubModelPart Parts_solid
+Begin SubModelPartNodes 
+121
+90
+118
+87
+115
+89
+86
+85
+83
+88
+110
+84
+81
+107
+75
+72
+74
+69
+78
+65
+70
+67
+66
+63
+68
+62
+61
+64
+59
+71
+60
+119
+96
+56
+55
+95
+57
+58
+53
+49
+52
+46
+End SubModelPartNodes
+Begin SubModelPartElements 
+72
+73
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+91
+92
+94
+95
+98
+104
+106
+107
+109
+110
+111
+113
+114
+115
+116
+125
+127
+128
+129
+130
+131
+132
+152
+157
+169
+176
+178
+180
+187
+189
+193
+194
+197
+201
+204
+End SubModelPartElements
+Begin SubModelPartConditions 
+End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_dirichlet
+Begin SubModelPartNodes 
+121
+90
+115
+88
+74
+67
+61
+119
+58
+End SubModelPartNodes
+Begin SubModelPartElements 
+End SubModelPartElements
+Begin SubModelPartConditions 
+End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart interface_destination
+Begin SubModelPartNodes 
+End SubModelPartNodes
+Begin SubModelPartElements 
+End SubModelPartElements
+Begin SubModelPartConditions 
+End SubModelPartConditions
+End SubModelPart
+Begin NodalData PARTITION_INDEX
+46  0  0
+49  0  0
+52  0  1
+53  0  1
+55  0  3
+56  0  3
+57  0  3
+58  0  1
+59  0  3
+60  0  3
+61  0  3
+62  0  3
+63  0  3
+64  0  3
+65  0  3
+66  0  3
+67  0  3
+68  0  2
+69  0  3
+70  0  3
+71  0  2
+72  0  3
+74  0  3
+75  0  3
+78  0  2
+81  0  2
+83  0  3
+84  0  3
+85  0  3
+86  0  3
+87  0  3
+88  0  3
+89  0  3
+90  0  3
+95  0  2
+96  0  3
+107  0  2
+110  0  3
+115  0  3
+118  0  3
+119  0  3
+121  0  3
+End NodalData 
+Begin CommunicatorData 
+NEIGHBOURS_INDICES    [8](2,1,0,-1,-1,-1,-1,-1)
+NUMBER_OF_COLORS    3
+    Begin LocalNodes 0
+    55
+    56
+    57
+    59
+    60
+    61
+    62
+    63
+    64
+    65
+    66
+    67
+    69
+    70
+    72
+    74
+    75
+    83
+    84
+    85
+    86
+    87
+    88
+    89
+    90
+    96
+    110
+    115
+    118
+    119
+    121
+    End LocalNodes 
+    Begin LocalNodes 1
+    64
+    70
+    75
+    85
+    96
+    110
+    End LocalNodes 
+    Begin LocalNodes 2
+    55
+    56
+    End LocalNodes 
+    Begin LocalNodes 3
+    57
+    End LocalNodes 
+    Begin GhostNodes 1
+    68
+    71
+    78
+    81
+    95
+    107
+    End GhostNodes 
+    Begin GhostNodes 2
+    52
+    53
+    58
+    End GhostNodes 
+    Begin GhostNodes 3
+    46
+    49
+    End GhostNodes 
+    Begin GhostNodes 0
+    46
+    49
+    52
+    53
+    58
+    68
+    71
+    78
+    81
+    95
+    107
+    End GhostNodes 
+End CommunicatorData 
