@@ -62,8 +62,8 @@ BUILD_TYPE="Custom"
 #        C_PERF_FLAGS="-msse3 -fopenmp"
 #        CXX_PERF_FLAGS="-msse3 -fopenmp"
 # --------------------------------------------------------------------------------------------------------------
-C_PERF_FLAGS="-O0 -fopenmp"
-CXX_PERF_FLAGS="-O0 -fopenmp"
+C_PERF_FLAGS="-O0 -fopenmp=libiomp5"
+CXX_PERF_FLAGS="-O0 -fopenmp=libiomp5"
 
 # Flags for warnings control
 #    Indicate the warning related flags. Wall is enabled by default. This is the proper place to ignore
