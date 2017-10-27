@@ -88,19 +88,19 @@ class PreUtilities
 
     void FillAnalyticSubModelPartUtility(ModelPart& rSpheresModelPart, ModelPart& rAnalyticSpheresModelPart){
         ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
-        std::vector<std::vector<long unsigned int> > temporal_vector_of_ids;
+        std::vector<std::vector<std::size_t> > thread_vectors_of_ids;
         int mNumberOfThreads = OpenMPUtils::GetNumThreads();
-        temporal_vector_of_ids.resize(mNumberOfThreads);
+        thread_vectors_of_ids.resize(mNumberOfThreads);
 
         #pragma omp parallel for
         for (int k = 0; k < (int)pElements.size(); k++) {
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
             int analytic_particle_id = it->Id();
-            temporal_vector_of_ids[OpenMPUtils::ThisThread()].push_back(analytic_particle_id);
+            thread_vectors_of_ids[OpenMPUtils::ThisThread()].push_back(analytic_particle_id);
         }
-        std::vector<long unsigned int> vector_of_ids;
+        std::vector<std::size_t> vector_of_ids;
         for (int i = 0; i < mNumberOfThreads; i++) {
-            vector_of_ids.insert(vector_of_ids.end(), temporal_vector_of_ids[i].begin(), temporal_vector_of_ids[i].end());
+            vector_of_ids.insert(vector_of_ids.end(), thread_vectors_of_ids[i].begin(), thread_vectors_of_ids[i].end());
         }
         rAnalyticSpheresModelPart.AddElements(vector_of_ids);
     }

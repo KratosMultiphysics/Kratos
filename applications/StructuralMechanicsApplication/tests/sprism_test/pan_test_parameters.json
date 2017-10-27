@@ -3,17 +3,17 @@
         "problem_name"    : "pan_test",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 0.001,
         "start_time"      : 0.000,
         "end_time"        : 1.000,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
+        "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "buffer_size"                        : 3,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Arc-Length",
+        "analysis_type"                      : "arc_length",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "sprism_test/pan_test"
@@ -23,7 +23,7 @@
         "compute_reactions"                  : true,
         "block_builder"                      : false,
         "move_mesh_flag"                     : true,
-        "convergence_criterion"              : "And_criterion",
+        "convergence_criterion"              : "and_criterion",
         "displacement_relative_tolerance"    : 1e-4,
         "displacement_absolute_tolerance"    : 1e-4,
         "residual_relative_tolerance"        : 1e-4,
@@ -50,47 +50,41 @@
     },
     "constraints_process_list" : [
     {
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : false,
+            "constrained"     : [true,false,false],
             "value"           : [0.0,0.0,0.0]
         }
     },
     {
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : false,
+            "constrained"     : [false,true,false],
             "value"           : [0.0,0.0,0.0]
         }
     },
     {
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : true,
+            "constrained"     : [false,false,true],
             "value"           : [0.0,0.0,0.0]
         }
     }
@@ -98,8 +92,6 @@
     "loads_process_list"       : [{
         "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process sets a vector variable value over a condition",
-        "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,

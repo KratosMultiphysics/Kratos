@@ -32,7 +32,6 @@
 //#include "geometries/tetrahedra_3d_4.h"
 #include "geometries/point.h"
 #include "thermo_mechanical_application.h"
-#include "includes/deprecated_variables.h"
 #include "includes/c2c_variables.h"
 
 // #include "custom_conditions/environment_contact.h"
@@ -261,8 +260,8 @@ namespace Kratos
 					  double vol = it->GetValue(NODAL_VOLUME);
 					  double& md= mdelta[omp_get_thread_num()];
 					  if (vol > md) { md = vol; }
-					  double current_S = it->FastGetSolutionStepValue(SOLID_FRACTION);
-					  double old_S = it->FastGetSolutionStepValue(SOLID_FRACTION,1);
+					  double current_S = it->FastGetSolutionStepValue(SOLIDFRACTION);
+					  double old_S = it->FastGetSolutionStepValue(SOLIDFRACTION,1);
 					  if(current_S>=limit_of_mushy_zone) {	current_over_mushy_zone+= vol;  }
 					  if(old_S>=limit_of_mushy_zone) {	old_over_mushy_zone+= vol;  }
 					  current_solidified_volume += vol*current_S;

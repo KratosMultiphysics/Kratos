@@ -113,6 +113,8 @@ from NightlyTests import ShellQ4ThinNonLinearDynamicTests as TShellQ4ThinNonLine
 ## VALIDATION TESTS
 # SPRISM tests
 #from ValidationTests import SprismPanTests              as TSprismPanTests
+from ValidationTests import PendulusTLTest              as TPendulusTLTest
+from ValidationTests import PendulusULTest              as TPendulusULTest
 
 
 def AssambleTestSuites():
@@ -133,13 +135,11 @@ def AssambleTestSuites():
     smallSuite = suites['small']
     # Simple patch tests
     smallSuite.addTest(TTestConstitutiveLaw('test_Uniaxial_HyperElastic_3D'))
-    smallSuite.addTest(
-        TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_triangle'))
-    smallSuite.addTest(
-        TTestPatchTestSmallStrain(
-            'test_SmallDisplacementElement_2D_quadrilateral'))
-    smallSuite.addTest(
-        TTestPatchTestSmallStrain('test_SmallDisplacementElement_3D_hexa'))
+    smallSuite.addTest(TTestConstitutiveLaw('test_Shear_HyperElastic_3D'))
+    smallSuite.addTest(TTestConstitutiveLaw('test_Shear_Plus_Strech_HyperElastic_3D'))
+    smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_triangle'))
+    smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_quadrilateral'))
+    smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_3D_hexa'))
     smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_2D_triangle'))
     smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_2D_quadrilateral'))
     smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_3D_hexa'))
@@ -248,7 +248,9 @@ def AssambleTestSuites():
     validationSuite = suites['validation']
     # SPRISM tests
     ####validationSuite.addTest(TSprismPanTests('test_execution'))
-
+    validationSuite.addTest(TPendulusTLTest('test_execution'))
+    validationSuite.addTest(TPendulusULTest('test_execution'))
+    
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
@@ -310,6 +312,8 @@ def AssambleTestSuites():
         T3D2NBeamCrTest,
         T3D2NBeamCrLinearTest,
         T3D2NBeamCrDynamicTest,
+        TPendulusTLTest,
+        TPendulusULTest,
         ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
         ####TSprismPanTests # FIXME: Needs get up to date
     ]))

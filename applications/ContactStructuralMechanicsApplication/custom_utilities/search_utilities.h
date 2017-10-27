@@ -109,7 +109,7 @@ public:
     
     template< const bool TFill>
     static inline void ContactContainerFiller(
-        boost::shared_ptr<ConditionMap>& ConditionPointers,
+        ConditionMap::Pointer& ConditionPointers,
         Condition::Pointer & pCond1,       // SLAVE
         const Condition::Pointer & pCond2, // MASTER
         const array_1d<double, 3> & ContactNormal1, // SLAVE
@@ -214,7 +214,7 @@ public:
                         decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
                         SlaveGeometry.PointLocalCoordinates(local_point_parent, gp_global);
                         
-                        // Calculate the kinematic variables
+                        // Calculate the kinematic variables // TODO: Check this
                         const PointType& local_point = integration_points_slave[point_number].Coordinates();
 
                         /// SLAVE CONDITION ///
@@ -314,7 +314,7 @@ public:
     
     template< const unsigned int TDim, const unsigned int TNumNodes >
     static inline void ExactContactContainerChecker(
-        boost::shared_ptr<ConditionMap>& ConditionPointers,
+        ConditionMap::Pointer& ConditionPointers,
         GeometryType& SlaveGeometry,            // SLAVE
         const array_1d<double, 3>& SlaveNormal, // SLAVE
         const double ActiveCheckLength
