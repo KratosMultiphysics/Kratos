@@ -101,8 +101,7 @@ void ExecuteInitialize()
     Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
 
      // Computing initial function of alpha according las step.
-    double alpha_initial = 0.015;
-    double f_alpha = mA*(pow(alpha_initial,2))*exp(-mB*pow(alpha_initial,3)) + mC*alpha_initial*exp(-mD*alpha_initial); 
+    double f_alpha = mA*(pow(mAlphaInitial,2))*exp(-mB*pow(mAlphaInitial,3)) + mC*mAlphaInitial*exp(-mD*mAlphaInitial); 
     
     if(nnodes != 0)
     {
@@ -113,13 +112,14 @@ void ExecuteInitialize()
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-            const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
+            // Transformation degress to Kelvins, it is necessary since gas constant is in Kelvins.
+            const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE) + 273.0;
             const double heat_flux = mConstantRate*f_alpha*exp((-mActivationEnergy)/(mGasConstant*temp_current));              
             it->FastGetSolutionStepValue(var) = heat_flux;
         }            
     }
 
-    mPreviousAlpha = alpha_initial;
+    mPreviousAlpha = mAlphaInitial;
 
     KRATOS_CATCH("");
 }
@@ -138,12 +138,6 @@ void ExecuteInitializeSolutionStep()
     double current_alpha = (mQPrev/mQTotal)*delta_time + mPreviousAlpha;
     double f_alpha = mA*(pow(current_alpha,2))*exp(-mB*pow(current_alpha,3)) + mC*current_alpha*exp(-mD*current_alpha); 
     
-    KRATOS_WATCH(current_alpha)
-    KRATOS_WATCH(f_alpha)
-    KRATOS_WATCH(mConstantRate)
-    KRATOS_WATCH(mActivationEnergy)
-    KRATOS_WATCH(mGasConstant)
-    
     if(nnodes != 0)
     {
         ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
@@ -153,16 +147,13 @@ void ExecuteInitializeSolutionStep()
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-            const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
-            KRATOS_WATCH(temp_current)
+            // Transformation degress to Kelvins, it is necessary since gas constant is in Kelvins.
+            const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE) + 273.0;
             const double heat_flux = mConstantRate*f_alpha*exp((-mActivationEnergy)/(mGasConstant*temp_current));              
-            KRATOS_WATCH(heat_flux)
             it->FastGetSolutionStepValue(var) = heat_flux;
             mQPrev = heat_flux;
         }            
     }
-
-    KRATOS_WATCH(mQPrev)
     
     mPreviousAlpha = current_alpha;
 
