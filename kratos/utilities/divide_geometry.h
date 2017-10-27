@@ -42,7 +42,7 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-class KRATOS_API(KRATOS_CORE) IndexedPoint : public Point<3>, public IndexedObject
+class KRATOS_API(KRATOS_CORE) IndexedPoint : public Point, public IndexedObject
 {
 public:
 
@@ -118,12 +118,12 @@ private:
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point<3>);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point);
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject);
     };
 
     void load(Serializer& rSerializer) override {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point<3>);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point);
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject);
     };
 
@@ -144,6 +144,20 @@ private:
     ///@{
 
     ///@}
+};
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  IndexedPoint& rThis) {};
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const IndexedPoint& rThis) {
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
 };
 
 class KRATOS_API(KRATOS_CORE) DivideGeometry
@@ -311,5 +325,5 @@ private:
 
 };// class DivideGeometry
 
-}
+}//namespace Kratos
 #endif /* KRATOS_DIVIDE_GEOMETRY defined */

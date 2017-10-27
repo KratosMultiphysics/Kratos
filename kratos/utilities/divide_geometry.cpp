@@ -22,13 +22,13 @@ namespace Kratos
     /// IndexedPoint class implementation
     /// Constructors
     IndexedPoint::IndexedPoint()
-        : Point<3>() , IndexedObject(0) {};
+        : Point() , IndexedObject(0) {};
 
     IndexedPoint::IndexedPoint(const unsigned int Id)
-        : Point<3>() , IndexedObject(Id) {};
+        : Point() , IndexedObject(Id) {};
 
     IndexedPoint::IndexedPoint(const array_1d<double,3>& rCoords, const unsigned int Id)
-        : Point<3>(rCoords) , IndexedObject(Id) {};
+        : Point(rCoords) , IndexedObject(Id) {};
 
     /// Destructor
     IndexedPoint::~IndexedPoint() {};
@@ -36,14 +36,14 @@ namespace Kratos
     /// Turn back information as a string.
     std::string IndexedPoint::Info() const {
         std::stringstream info_string;
-        info_string << "Indexed point class created as a combination of the Point<3> and IndexedObject classes.\n";
+        info_string << "Indexed point class created as a combination of the Point and IndexedObject classes.\n";
         info_string << "This indexed point class is intended to be used to define both the real and auxiliar points of an intersected element.";
         return info_string.str();
     };
 
     /// Print information about this object.
     void IndexedPoint::PrintInfo(std::ostream& rOStream) const {
-        rOStream << "Indexed point class created as a combination of the Point<3> and IndexedObject classes.\n";
+        rOStream << "Indexed point class created as a combination of the Point and IndexedObject classes.\n";
         rOStream << "This indexed point class is intended to be used to define both the real and auxiliar points of an intersected element.";
     };
 
