@@ -51,26 +51,23 @@
             "compute_reactions"     : true
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "support",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "assign_scalar_variable_to_conditions_process",
+        "python_module" : "assign_scalar_variable_to_conditions_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process sets a scalar variable value over a condition",
-        "process_name"          : "ApplyScalarOnConditionsProcess",
-        "Parameters"            : {
+        "help"          : "This process sets a scalar variable value over a condition",
+        "process_name"  : "AssignScalarVariableToConditionsProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "SurfacePressure3D_load",
             "variable_name"   : "NEGATIVE_FACE_PRESSURE",

@@ -60,35 +60,33 @@
         "no_skin_parts"                : []
     },
     "initial_conditions_process_list"  : [{
-        "python_module" : "process_factory",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process ",
-        "process_name"  : "ApplyConstantVectorValueProcess",
+        "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "VELOCITY_Velocity_Auto1",
             "variable_name"   : "VELOCITY",
             "modulus"         : 0.0,
+            "constrained"     : false,
             "direction"       : [1.0,0.0,0.0]
         }
     },{
-        "python_module" : "process_factory",
+        "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process ",
-        "process_name"  : "ApplyConstantScalarValueProcess",
+        "process_name"  : "AssignScalarVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "PRESSURE_Pressure_Auto1",
             "variable_name"   : "PRESSURE",
+            "constrained"     : false,
             "value"           : 0.0
         }
     }],
     "boundary_conditions_process_list" : [{
-        "python_module" : "impose_vector_value_by_direction_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes all the components of a given vector variable",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "ImposeVectorValueByDirectionProcess",
+        "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Inlet2D_Inlet_velocity_Auto1",
@@ -106,49 +104,48 @@
         }
     }],
     "gravity"                          : [{
-        "python_module" : "process_factory",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ApplyConstantVectorValueProcess",
+        "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Parts_Parts_Auto1",
             "variable_name"   : "BODY_FORCE",
             "modulus"         : 0.0,
+            "constrained"     : false,
             "direction"       : [0.0,-1.0,0.0]
         }
     }],
     "initial_remeshing_process" :[
     {
-        "python_module"   : "mmg_process",
-        "kratos_module"   : "KratosMultiphysics",
-        "help"                  : "This process automatically remesh using MMG library",
-        "process_name"          : "MmgProcess",
-        "Parameters"            : {
-        "filename"                         : "mmg_eulerian_test/2D_cavity_test",
-        "step_frequency"                   : 0,
-        "automatic_remesh"                 : false,
-        "minimal_size"                     : 0.01,
-        "anisotropy_remeshing"             : true,
-        "anisotropy_parameters":{
-            "hmin_over_hmax_anisotropic_ratio" : 0.01,
-            "boundary_layer_max_distance"      : 0.1,
-            "interpolation"                    : "Linear"
-        },
-        "save_external_files"                : true,
-        "echo_level"                         : 0
+        "python_module" : "mmg_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process automatically remesh using MMG library",
+        "process_name"  : "MmgProcess",
+        "Parameters"    : {
+            "filename"              : "mmg_eulerian_test/2D_cavity_test",
+            "step_frequency"        : 0,
+            "automatic_remesh"      : false,
+            "minimal_size"          : 0.01,
+            "anisotropy_remeshing"  : true,
+            "anisotropy_parameters" :{
+                "hmin_over_hmax_anisotropic_ratio" : 0.01,
+                "boundary_layer_max_distance"      : 0.1,
+                "interpolation"                    : "Linear"
+            },
+            "save_external_files"   : true,
+            "echo_level"            : 0
         }
-    }
-    ],
+    }],
     "compare_two_files_check_process" :[
     {
-        "python_module"   : "compare_two_files_check_process",
-        "kratos_module"   : "KratosMultiphysics",
-        "help"                  : "This process compares two files and executes an Unittest Assert",
-        "process_name"          : "CompareTwoFilesCheckProcess",
-        "Parameters"            : {
+        "python_module" : "compare_two_files_check_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process compares two files and executes an Unittest Assert",
+        "process_name"  : "CompareTwoFilesCheckProcess",
+        "Parameters"    : {
             "file_name_1"       : "mmg_eulerian_test/2D_cavity_test.o.mesh",
             "file_name_2"       : "mmg_eulerian_test/2D_cavity_test_result.mesh"
         }
-    }
-    ]
+    }]
 }
