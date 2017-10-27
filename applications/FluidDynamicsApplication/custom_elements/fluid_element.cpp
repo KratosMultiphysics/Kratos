@@ -594,7 +594,7 @@ double FluidElement<TElementData>::EffectiveViscosity(
     const FluidElement* const_this = static_cast<const FluidElement*>(this);
     double Csmag = const_this->GetValue(C_SMAGORINSKY);
 
-    double KinViscosity = 0.0; //rIPData.Viscosity;
+    double KinViscosity = rData.GetVISCOSITY().Interpolate(rIntegrationPoint.N,this);
 
     if (Csmag != 0.0 )
     {
