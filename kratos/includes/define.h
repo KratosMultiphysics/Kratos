@@ -30,6 +30,13 @@
 #include "includes/exception.h"
 
 
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+    #define KRATOS_COMPILED_IN_LINUX
+
+#elif defined(__APPLE__) && defined(__MACH__)
+    #define KRATOS_COMPILED_IN_APPLIE
+#endif
+
 
 #define KRATOS_CLASS_POINTER_DEFINITION(a) typedef boost::shared_ptr<a > Pointer; \
 typedef boost::shared_ptr<a > SharedPointer; \
