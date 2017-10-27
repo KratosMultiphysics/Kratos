@@ -4,8 +4,8 @@ import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 
-z_plane_of_symmetry = -0.0024
 L = 0.0048
+z_plane_of_symmetry = -0.0024
 n_intervals = 30
 max_creation_time = 1.5
 fluid_run_name = 'mesh_38288_nodes'
@@ -15,6 +15,7 @@ snapshot_name = 't=1.0000000000000007_in_box'
 snapshot_name = 't=2.0000000000000013_RADIUS=0.00024_in_box'
 snapshot_name = 't=1.0_RADIUS=0.0002_in_box'
 snapshot_name = 't=0.11_RADIUS=0.0002_in_box'
+snapshot_name = 't=1.99_RADIUS=0.0002_in_box'
 a = 0.00024 / L
 # snapshot_name = 't=0.04_in_box'
 
@@ -48,9 +49,10 @@ def CalculateProbabilityOfGettingTrapped():
         creation_times = f['/TIME'][:]
         too_new_to_include = [TooNew(time) for time in creation_times]
         ids_too_new_to_include = dict(zip(Ids, too_new_to_include))
-
+        zs = [abs(z - z_plane_of_symmetry) / L for z in Z0s]
         for z in Z0s:
-            histogram[IntervalIndex(abs(z - z_plane_of_symmetry) / L, 0., 1.0, n_intervals)] += 1
+            d = abs(z - z_plane_of_symmetry) / L
+            histogram[IntervalIndex(d, 0., 0.5, n_intervals)] += 1
 
     with h5py.File('particles_snapshot.hdf5', 'r') as f:
         Ids_trapped = f['/' + fluid_run_name + '.hdf5/' + snapshot_name + '/Id'][:]
@@ -58,12 +60,13 @@ def CalculateProbabilityOfGettingTrapped():
 
         min_d =   float('inf')
         max_d = - float('inf')
+        zs_trapped = [abs(z - z_plane_of_symmetry) / L for Id, z in zip(Ids_trapped, Z0s_trapped) if not ids_too_new_to_include[Id]]
         for Id, z in zip(Ids_trapped, Z0s_trapped):
             if not ids_too_new_to_include[Id]:
                 d = abs(z - z_plane_of_symmetry) / L
                 min_d = min(min_d, d)
                 max_d = max(max_d, d)
-                trapped_hist[IntervalIndex(abs(z - z_plane_of_symmetry) / L, 0., 1.0, n_intervals)] += 1
+                trapped_hist[IntervalIndex(d , 0., 0.5, n_intervals)] += 1
 
     histogram = [RobustQuotient(h, H) for h, H in zip(trapped_hist, histogram)]
     plt.plot(z_midpoints, histogram, '.-')

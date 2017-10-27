@@ -244,7 +244,7 @@ class ParticleHistoryLoader:
                                 names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS', 'TIME'],
                                 data = [Ids, X0s, Y0s, Z0s, radii, times])
 
-    def UpdateListOfAllParticles(self, Ids, X0s, Y0s, Z0s, radii, times):
+    def UpdateListOfAllParticles(self):
         Ids, X0s, Y0s, Z0s, radii, times = [], [], [], [], [], []
         self.particle_watcher.GetNewParticlesData(Ids, X0s, Y0s, Z0s, radii, times)
         names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS', 'TIME']
