@@ -298,7 +298,7 @@ namespace Kratos {
 			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
-			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
+			Newtonian3DLaw::Pointer pConsLaw(new Newtonian3DLaw());
 			pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
 
 			// Geometry creation
@@ -429,7 +429,7 @@ namespace Kratos {
 			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
 			pElemProp->SetValue(DENSITY, 1.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0);
-			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
+			Newtonian3DLaw::Pointer pConsLaw(new Newtonian3DLaw());
 			pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
 
 			// Geometry creation
