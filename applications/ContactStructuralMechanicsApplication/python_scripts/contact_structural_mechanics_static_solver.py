@@ -139,11 +139,11 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         if(self.settings["line_search"].GetBool()):
             mechanical_solver = self._create_line_search_strategy()
         else:
-            if self.settings["analysis_type"].GetString() == "Linear":
+            if self.settings["analysis_type"].GetString() == "linear":
                 mechanical_solver = self._create_linear_strategy()
-            elif self.settings["analysis_type"].GetString() == "Arc-Length":
+            elif self.settings["analysis_type"].GetString() == "arc_length":
                 mechanical_solver = self._create_arc_length_strategy()
-            elif self.settings["analysis_type"].GetString() == "Formfinding":
+            elif self.settings["analysis_type"].GetString() == "formfinding":
                 mechanical_solver = self._create_formfinding_strategy()
             else:
                 if  self.contact_settings["mortar_type"].GetString() != "":

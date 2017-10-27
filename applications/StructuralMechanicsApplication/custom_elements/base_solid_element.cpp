@@ -390,8 +390,12 @@ namespace Kratos
         IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( integration_method );
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
-        
-        const double density = GetProperties()[DENSITY];
+
+        double density = 1.0;
+        if ( GetProperties().Has( DENSITY )) 
+        {
+            density = GetProperties()[DENSITY];
+        }
         double thickness = 1.0;
         if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
         {

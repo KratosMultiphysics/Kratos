@@ -7,18 +7,16 @@ CheckForPreviousImport()
 
 class variable_plotter:
     
-    def __init__(self, model_part, list_of_nodes_ids):
+    def __init__(self, model_part, list_of_nodes_ids, benchmark_number):
         
         self.list_of_nodes = []
         self.files = []
         self.model_part = model_part
-        
         for node in model_part.Nodes:
             for id in list_of_nodes_ids:
                 if node.Id == id:
-                    print(id)
                     self.list_of_nodes.append(node)
-                    file_writer = open("variables_for_node_" + str(id) + ".txt", 'w');
+                    file_writer = open("variables_for_node_" + str(benchmark_number) + ".txt", 'w');
                     file_writer.write("#Time  DISPLACEMENT_X  DISPLACEMENT_Y  DISPLACEMENT_Z  ")
                     file_writer.write("ELASTIC_FORCES_X  ELASTIC_FORCES_Y  ELASTIC_FORCES_Z  ")
                     file_writer.write("TOTAL_FORCES_X  TOTAL_FORCES_Y  TOTAL_FORCES_Z  ")
@@ -30,8 +28,7 @@ class variable_plotter:
                     break
                     
         if len(self.list_of_nodes) != len(list_of_nodes_ids):
-            print("Some nodal ids could not be found in the model part! Stopping")
-                                     
+            print("Some nodal ids could not be found in the model part! Stopping")                                  
                
         self.plot_variables(0.0)
          

@@ -407,6 +407,22 @@ namespace Kratos {
     }
 
 
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4BoxIntersection, KratosCoreGeometriesFastSuite) {
+      auto tetrahedron = GenerateTriRectangularTetrahedra3D4();
+
+      //tetrahedron inside the box
+      KRATOS_CHECK(tetrahedron->HasIntersection(Point(-.1,-.2,-.1), Point(1.1,1.1,1.2)));
+
+      //tetrahedron contains the box
+      KRATOS_CHECK(tetrahedron->HasIntersection(Point(.25,.25,.25), Point(.26,.26,.26)));
+
+      //tetrahedron intersects the box
+      KRATOS_CHECK(tetrahedron->HasIntersection(Point(.25,.25,.25), Point(1.1,1.1,1.2)));
+
+      //tetrahedron not intersects the box
+      KRATOS_CHECK_IS_FALSE(tetrahedron->HasIntersection(Point(.51,.51,.51), Point(1.1,1.1,1.2)));
+    }
+
 
 	}
 }  // namespace Kratos.

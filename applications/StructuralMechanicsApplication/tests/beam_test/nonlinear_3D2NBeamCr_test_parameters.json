@@ -3,23 +3,23 @@
         "problem_name"    : "testnew",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 10,
         "start_time"      : 0.0,
         "end_time"        : 2500,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
+        "solver_type"                        : "Static",
         "echo_level"                         : 0,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "beam_test/nonlinear_3D2NBeamCr_test"
         },
 		"line_search"                        : false,
         "compute_reactions"					 : true,
-        "convergence_criterion"              : "Residual_criterion",
+        "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 1e-12,
         "displacement_absolute_tolerance"    : 1e-12,
         "residual_relative_tolerance"        : 1e-12,
@@ -35,58 +35,52 @@
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_dirichletXYZ",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"	  : [true,true,true],
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_dirichletYZ",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : true,
+            "constrained"	  : [false,false,true],
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"         : "impose_vector_value_by_components_process",
-        "kratos_module"         : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "ROTATION_dirrot",
             "variable_name"   : "ROTATION",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"	  : [true,true,true],
             "value"           : [0.0,0.0,0.0]
         }
     }],
-    "loads_process_list"        : [{
-        "python_module"         : "assign_vector_variable_process",
-        "kratos_module"         : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
-                "mesh_id"              : 0,
-                "model_part_name"      : "PointLoad3D_neumann",
-                "variable_name"        : "POINT_MOMENT",
-                "value"            : [0.0,0.0,"10000*t"]
+    "loads_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "PointLoad3D_neumann",
+                "variable_name"   : "POINT_MOMENT",
+                "value"           : [0.0,0.0,"10000*t"]
         }
     }],
     "restart_options"          : {

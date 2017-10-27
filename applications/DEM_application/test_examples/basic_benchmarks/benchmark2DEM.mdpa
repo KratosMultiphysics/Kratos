@@ -16,26 +16,26 @@ DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
 End Properties
 
 Begin Nodes // GUI group identifier: ball celemid SphericPartDEMElement3D
-2 1.80000 2.12000 0.10100
+1 1.80000 2.12000 0.10100
 End Nodes
 
 Begin Elements SphericParticle3D   //  GUI group identifier: ball
-1 1 2
+1 1 1
 End Elements
 
 Begin NodalData RADIUS  // GUI group identifier: ball Elementid SphericPartDEMElement3D
-2 0 0.1
+1 0 0.1
 End NodalData
 
 Begin NodalData VELOCITY_Z  // GUI group identifier: ball Elementid SphericPartDEMElement3D
-2 0 0.0
+1 0 0.0
 End NodalData
 
 Begin Mesh 1 // GUI conditionid DEM-VelocityBC group identifier: ball
 Begin MeshData // GUI Groupid: ball
 End MeshData
 Begin MeshNodes
-2
+1
 End MeshNodes
 End Mesh
 
