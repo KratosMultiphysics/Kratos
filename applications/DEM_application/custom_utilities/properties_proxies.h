@@ -14,9 +14,9 @@
 // Project includes
 #include "includes/model_part.h"
 
-#include "../kratos/includes/define.h"
-#include "../custom_elements/discrete_element.h"
-#include "../DEM_application_variables.h"
+//#include "../kratos/includes/define.h"
+//#include "../custom_elements/discrete_element.h"
+//#include "../DEM_application_variables.h"
 
 namespace Kratos {
 
@@ -137,14 +137,23 @@ namespace Kratos {
     }; // class PropertiesProxy
 
     
-    inline std::ostream & operator<<( std::ostream& rOut, const std::vector<PropertiesProxy>& vector_of_proxies){
+    inline std::ostream & operator<<( std::ostream& rOut, const PropertiesProxy& rTheProxies){
             rOut << "";
             return rOut;
     }
     
-    
-    
-    
+
+
+	// Std::vecotr << operator VS2015 workaround
+	inline std::ostream& operator<<(std::ostream& os, const std::vector<PropertiesProxy> & data) {
+
+		std::cout << "[";
+		std::copy(data.begin(), data.end(), std::ostream_iterator<PropertiesProxy>(std::cout, ", "));
+		std::cout << "[";
+
+		return os;
+	}
+
     class KRATOS_API(DEM_APPLICATION) PropertiesProxiesManager {
         
     public:

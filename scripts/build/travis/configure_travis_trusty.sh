@@ -114,7 +114,7 @@ CMAKE_APPLICATION=(
   -DSOLID_MECHANICS_APPLICATION=ON
   -DFLUID_DYNAMICS_APPLICATION=ON
   -DDEM_APPLICATION=ON
-  -DSWIMMING_DEM_APPLICATION=ON
+  -DSWIMMING_DEM_APPLICATION=OFF
 )
 
 ########################################################################################################################
