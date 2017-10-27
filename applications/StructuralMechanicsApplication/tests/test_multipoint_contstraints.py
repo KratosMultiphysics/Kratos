@@ -40,13 +40,12 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(
             KratosMultiphysics.ACCELERATION_Z, mp)
 
-        return mp
-
     def _apply_material_properties(self, mp, dim):
         #define properties
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS, 210e9)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS, 1.0)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY, 1.0)
 
         g = [0, 0, 0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,
@@ -59,8 +58,6 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
             cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw(
             )
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, cl)
-
-        return mp
 
     def _apply_BCs(self, mp):
         bcs = mp.GetSubModelPart("FixedEdgeNodes")
@@ -83,8 +80,6 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
             KratosMultiphysics.DISPLACEMENT_X, True, bcmn.Nodes)
         KratosMultiphysics.VariableUtils().ApplyFixity(
             KratosMultiphysics.DISPLACEMENT_Y, True, bcmn.Nodes)
-
-        return mp
 
     def _setup_solver(self, mp):
 
@@ -202,8 +197,6 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         mp.CreateNewElement("SmallDisplacementElement2D4N", 8, [8, 9, 7, 4],
                             mp.GetProperties()[1])
 
-        return mp
-
     def _apply_mpc_constraints(self, mp, cm):
         cm.ExecuteAfterOutputStep()
         cm.AddMasterSlaveRelation(
@@ -233,8 +226,6 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
             mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[9],
             KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
 
-        return mp, cm
-
     def _set_and_fill_buffer(self, mp, buffer_size, delta_time):
         # Set buffer size
         mp.SetBufferSize(buffer_size)
@@ -251,14 +242,12 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
 
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-        return mp
-
     def test_MPC_Constraints(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
-        mp = self._apply_material_properties(mp, dim)
-        mp = self._setup_model_part(mp)
-        mp = self._add_variables(mp)
+        self._apply_material_properties(mp, dim)
+        self._setup_model_part(mp)
+        self._add_variables(mp)
 
         #time integration parameters
         dt = 0.005
@@ -266,13 +255,13 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         end_time = 0.025
         step = 0
 
-        mp = self._set_and_fill_buffer(mp, 2, dt)
+        self._set_and_fill_buffer(mp, 2, dt)
         # Applying boundary conditions
-        mp = self._apply_BCs(mp)
+        self._apply_BCs(mp)
         # Applying constraints
         cm = KratosMultiphysics.StructuralMechanicsApplication.ApplyMultipointConstraintsProcess(
             mp)
-        mp, cm = self._apply_mpc_constraints(mp, cm)
+        self._apply_mpc_constraints(mp, cm)
         # Solving the system of equations        
         self._setup_solver(mp)
 
