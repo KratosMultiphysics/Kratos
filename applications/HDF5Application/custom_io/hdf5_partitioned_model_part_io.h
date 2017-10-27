@@ -15,7 +15,6 @@
 
 // System includes
 #include <iostream>
-#include <string>
 #include <tuple>
 
 // External includes

@@ -18,7 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "custom_io/hdf5_file.h"
+#include "custom_io/hdf5_file_serial.h"
 
 namespace Kratos
 {
@@ -33,7 +33,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5Test1, KratosHDF5TestSuite)
                     "file_driver": "core"
                 })");
 
-    HDF5File test_file(test_params);
+    HDF5FileSerial test_file(test_params);
     // Check IsPath().
     KRATOS_CHECK(HDF5Utils::IsPath("") == false);
     KRATOS_CHECK(HDF5Utils::IsPath("/") == false);

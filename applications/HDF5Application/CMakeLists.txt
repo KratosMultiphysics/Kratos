@@ -10,6 +10,7 @@ set( KRATOS_HDF5_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/hdf5_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file_serial.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_model_part_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/hdf5_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
@@ -20,7 +21,7 @@ set(HDF5_USE_STATIC_LIBRARIES OFF)
 if(MPI_NEEDED)
   message(STATUS "Searching for parallel HDF5 libraries.")
   set(HDF5_PREFER_PARALLEL ON)
-  set(KRATOS_HDF5_APPLICATION_SOURCES ${KRATOS_HDF5_APPLICATION_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file_mpi.cpp)
+  set(KRATOS_HDF5_APPLICATION_SOURCES ${KRATOS_HDF5_APPLICATION_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file_parallel.cpp)
   set(KRATOS_HDF5_APPLICATION_SOURCES ${KRATOS_HDF5_APPLICATION_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_partitioned_model_part_io.cpp)
 else()
   message(STATUS "Searching for serial HDF5 libraries.")

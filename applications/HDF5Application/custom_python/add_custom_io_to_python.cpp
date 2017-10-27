@@ -26,9 +26,10 @@
 // Application includes
 #include "custom_io/hdf5_io.h"
 #include "custom_io/hdf5_file.h"
+#include "custom_io/hdf5_file_serial.h"
 #include "custom_io/hdf5_model_part_io.h"
 #ifdef KRATOS_USING_MPI
-#include "custom_io/hdf5_file_mpi.h"
+#include "custom_io/hdf5_file_parallel.h"
 #include "custom_io/hdf5_partitioned_model_part_io.h"
 #endif
 
@@ -59,16 +60,23 @@ void AddCustomIOToPython()
     .def("GetFileSize",&HDF5File::GetFileSize)
     .def("GetFileName",&HDF5File::GetFileName)
     ;
+
+    class_<HDF5FileSerial, HDF5FileSerial::Pointer, bases<HDF5File>, boost::noncopyable>(
+        "HDF5FileSerial", init<Parameters&>())
+    ;
     
     class_<HDF5ModelPartIO, HDF5ModelPartIO::Pointer, bases<IO>, boost::noncopyable>(
         "HDF5ModelPartIO", init<Parameters&, HDF5File::Pointer>())
     ;
 
 #ifdef KRATOS_USING_MPI
-    class_<HDF5FileMPI, HDF5FileMPI::Pointer, bases<HDF5File>, boost::noncopyable>(
-        "HDF5FileMPI", init<Parameters&>());
+    class_<HDF5FileParallel, HDF5FileParallel::Pointer, bases<HDF5File>, boost::noncopyable>(
+        "HDF5FileParallel", init<Parameters&>())
+    ;
+
     class_<HDF5PartitionedModelPartIO, HDF5PartitionedModelPartIO::Pointer, bases<IO>, boost::noncopyable>(
-        "HDF5PartitionedModelPartIO", init<Parameters&, HDF5File::Pointer>());
+        "HDF5PartitionedModelPartIO", init<Parameters&, HDF5File::Pointer>())
+    ;
 #endif
     
 }
