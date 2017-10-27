@@ -222,11 +222,12 @@ namespace Kratos
                                                                  const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
                                                                  const Matrix &rPmatrix,
                                                                  const IntegrationMethodType IntegrationMethod) {
-        // Set some auxiliar constants
+        // Set some auxiliar variables
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of positive or negative subdivisions
         const unsigned int n_dim = (*rInterfacesVector[0]).Dimension();                                      // Number of dimensions 
         const unsigned int n_nodes = (*rInterfacesVector[0]).PointsNumber();                                 // Number of nodes per subdivision
         const unsigned int n_int_pts = (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per subdivision
+        GeometryPointerType p_input_geometry = this->GetInputGeometry();                                     // Pointer to the input geometry
 
         // Resize the shape function values matrix
         const unsigned int n_total_int_pts = n_interfaces * n_int_pts;
@@ -246,18 +247,40 @@ namespace Kratos
         for (unsigned int i_interface = 0; i_interface < n_interfaces; ++i_interface) {
             
             const IndexedPointGeometryType& r_interface_geom = *rInterfacesVector[i_interface];
+
+            // Get the intersection Gauss points coordinates
+            IntegrationPointsArrayType r_interface_gauss_pts = r_interface_geom.IntegrationPoints(IntegrationMethod);
+
+            // Get the global coordinates of the intersection Gauss pts.
+            std::vector < CoordinatesArrayType > r_interface_gauss_pts_global_coords;
+            for (unsigned int i_gauss=0; i_gauss<n_int_pts; ++i_gauss) {
+                CoordinatesArrayType global_coordinates = ZeroVector(3);
+                r_interface_geom.GlobalCoordinates(global_coordinates, r_interface_gauss_pts[i_gauss].Coordinates());
+                r_interface_gauss_pts_global_coords.push_back(global_coordinates);
+            }
+
+            // Get the original local coordinates of the intersection Gauss pts.
+            std::vector < CoordinatesArrayType > r_interface_gauss_pts_local_coords_input_geom;
+            for (unsigned int i_gauss=0; i_gauss<n_int_pts; ++i_gauss) {
+                CoordinatesArrayType local_coordinates = ZeroVector(3);
+                local_coordinates = p_input_geometry->PointLocalCoordinates(local_coordinates, r_interface_gauss_pts_global_coords[i_gauss]);
+                KRATOS_WATCH("")
+                KRATOS_WATCH(r_interface_gauss_pts_global_coords[i_gauss])
+                KRATOS_WATCH(local_coordinates)
+                r_interface_gauss_pts_local_coords_input_geom.push_back(local_coordinates);
+            }
             
-            // Get the subdivision shape function values
-            const Matrix interface_sh_func_values = r_interface_geom.ShapeFunctionsValues(IntegrationMethod);
-            ShapeFunctionsGradientsType interface_sh_func_gradients_values;
-            r_interface_geom.ShapeFunctionsIntegrationPointsGradients(interface_sh_func_gradients_values, IntegrationMethod);
+            // // Get the subdivision shape function values
+            // const Matrix interface_sh_func_values = r_interface_geom.ShapeFunctionsValues(IntegrationMethod);
+            // ShapeFunctionsGradientsType interface_sh_func_gradients_values;
+            // r_interface_geom.ShapeFunctionsIntegrationPointsGradients(interface_sh_func_gradients_values, IntegrationMethod);
 
-            // Get the subdivision Jacobian values on all Gauss pts.
-            Vector interface_jacobians_values;
-            r_interface_geom.DeterminantOfJacobian(interface_jacobians_values, IntegrationMethod);
+            // // Get the subdivision Jacobian values on all Gauss pts.
+            // Vector interface_jacobians_values;
+            // r_interface_geom.DeterminantOfJacobian(interface_jacobians_values, IntegrationMethod);
 
-            // Get the subdivision Gauss pts. (x_coord, y_coord, z_coord, weight)
-            const IntegrationPointsArrayType interface_gauss_points = r_interface_geom.IntegrationPoints(IntegrationMethod);
+            // // Get the subdivision Gauss pts. (x_coord, y_coord, z_coord, weight)
+            // const IntegrationPointsArrayType interface_gauss_points = r_interface_geom.IntegrationPoints(IntegrationMethod);
 
             // // Apply the original nodes condensation
             // for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {

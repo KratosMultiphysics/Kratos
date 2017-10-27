@@ -54,6 +54,7 @@ public:
     // General type definitions
     typedef Geometry < Node<3> >                                                                                      GeometryType;
     typedef typename GeometryType::Pointer                                                                     GeometryPointerType;
+    typedef typename GeometryType::CoordinatesArrayType                                                       CoordinatesArrayType;
     typedef GeometryData::IntegrationMethod                                                                  IntegrationMethodType;
     typedef typename GeometryData::ShapeFunctionsGradientsType                                         ShapeFunctionsGradientsType;
     

@@ -68,6 +68,15 @@ namespace Kratos
 																					 negative_side_sh_func_gradients,
 																					 negative_side_weights,
 																					 GeometryData::GI_GAUSS_1);
+
+			// Call the interface modified shape functions calculator
+			Matrix positive_interface_side_sh_func, negative_interface_side_sh_func;
+			std::vector<Matrix> positive_interface_side_sh_func_gradients, negative_interface_side_sh_func_gradients;
+			Vector positive_interface_side_weights, negative_interface_side_weights; 
+			triangle_shape_functions.GetInterfacePositiveSideShapeFunctionsAndGradientsValues(positive_interface_side_sh_func,
+																					 		  positive_interface_side_sh_func_gradients,
+																					 		  positive_interface_side_weights,
+																					 		  GeometryData::GI_GAUSS_2);
 				
 			// Check shape functions values
 			KRATOS_CHECK_NEAR(positive_side_sh_func(0,0), 1.0/6.0, 1e-5);
@@ -152,6 +161,15 @@ namespace Kratos
 																				     negative_side_sh_func_gradients,
 																					 negative_side_weights,
 																					 GeometryData::GI_GAUSS_1);
+
+			// Call the interface modified shape functions calculator
+			Matrix positive_interface_side_sh_func, negative_interface_side_sh_func;
+			std::vector<Matrix> positive_interface_side_sh_func_gradients, negative_interface_side_sh_func_gradients;
+			Vector positive_interface_side_weights, negative_interface_side_weights; 
+			triangle_shape_functions.GetInterfacePositiveSideShapeFunctionsAndGradientsValues(positive_interface_side_sh_func,
+																					 		  positive_interface_side_sh_func_gradients,
+																					 		  positive_interface_side_weights,
+																					 		  GeometryData::GI_GAUSS_2);
 
 			// Check shape functions values
 			KRATOS_CHECK_NEAR(positive_side_sh_func(0,0), 1.0/6.0, 1e-5);
