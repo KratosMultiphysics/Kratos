@@ -83,7 +83,7 @@ CXX_WARN_FLAGS="-Wall -Wno-overloaded-virtual -Wno-undefined-var-template"
 #        CXX_CUSTOM_FLAGS="-fmessage-length=20"
 # --------------------------------------------------------------------------------------------------------------
 C_CUSTOM_FLAGS="-fcolor-diagnostics"
-CXX_CUSTOM_FLAGS="-fcolor-diagnostics"
+CXX_CUSTOM_FLAGS="-std=c++11 -fcolor-diagnostics"
 
 CMAKE_LIBS=(
   # Boost
