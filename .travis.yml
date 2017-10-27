@@ -1,10 +1,10 @@
 sudo: false
 dist: trusty
 language: cpp
-compiler: g++
+compiler: clang
 
 git:
-  depth: 3
+  depth: 2
 
 cache: ccache
 
@@ -13,16 +13,14 @@ env:
     - CCACHE_COMPILERCHECK=content
     - CCACHE_COMPRESS=true
     - CCACHE_NODISABLE=true
-    - CCACHE_MAXSIZE=50M
+    - CCACHE_MAXSIZE=500M
 
 addons:
   apt:
     sources:
-      - sourceline: 'ppa:ubuntu-toolchain-r/test'
       - sourceline: 'ppa:boost-latest/ppa'
     packages:
-      - gcc-6
-      - g++-6
+      - libiomp-dev
       - gfortran
       - libboost1.55-dev
       - libboost-serialization1.55-dev
