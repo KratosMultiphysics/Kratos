@@ -55,7 +55,7 @@ endif(${INCLUDE_MMG} MATCHES ON)
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES})
-target_link_libraries(KratosMeshingApplication KratosCore ${TRIANGLE_LIBRARIES} tetMeshOpt)
+target_link_libraries(KratosMeshingApplication KratosCore triangle tetMeshOpt)
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     target_link_libraries(KratosMeshingApplication ${TETGEN_LIBRARIES})
@@ -70,7 +70,7 @@ if(${INCLUDE_MMG} MATCHES ON)
     INCLUDE_DIRECTORIES(${MMG3D_INCLUDE_DIR})
     INCLUDE_DIRECTORIES(${MMGS_INCLUDE_DIR})
 
-    target_link_libraries(KratosMeshingApplication KratosCore ${TRIANGLE_LIBRARIES} ${MMG_LIBRARY} ${MMG2D_LIBRARY} ${MMG3D_LIBRARY} ${MMGS_LIBRARY})
+    target_link_libraries(KratosMeshingApplication KratosCore triangle ${MMG_LIBRARY} ${MMG2D_LIBRARY} ${MMG3D_LIBRARY} ${MMGS_LIBRARY})
 endif(${INCLUDE_MMG} MATCHES ON)
 
 set_target_properties(KratosMeshingApplication PROPERTIES PREFIX "")
