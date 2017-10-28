@@ -15,6 +15,7 @@
 
 // System includes
 #include <iostream>
+#include <unordered_map>
 
 // External includes
 
@@ -97,10 +98,19 @@ private:
     ///@name Member Variables
     ///@{
     HDF5File::Pointer mpFile;
+    std::vector<std::string> mElementNames;
+    std::unordered_map<std::string, std::string> mElementNamesToPrintInfos;
+    std::unordered_map<std::string, std::string> mElementPrintInfosToNames;
+    std::vector<std::string> mConditionNames;
     ///@}
 
     ///@name Private Operations
     ///@{
+
+    void WriteUniformElements(ElementsContainerType const& rElements);
+
+    void WriteMixedElements(ElementsContainerType const& rElements);
+
     ///@}
 };
 
