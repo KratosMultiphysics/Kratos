@@ -1,7 +1,4 @@
 #include "hdf5_model_part_io.h"
-#include <vector>
-#include <string>
-#include <sstream>
 
 namespace Kratos
 {
@@ -29,14 +26,15 @@ HDF5ModelPartIO::HDF5ModelPartIO(Parameters& rParams, HDF5File::Pointer pFile)
 
     Check();
 
-    for (const std::string& r_elem_name : mElementNames)
+    mElementPointers.resize(mElementNames.size());
+    for (unsigned i = 0; i < mElementNames.size(); ++i)
     {
-        const Element& r_elem = KratosComponents<Element>::Get(r_elem_name);
-        std::stringstream elem_info;
-        r_elem.PrintInfo(elem_info);
-        mElementNamesToPrintInfos[r_elem_name] = elem_info.str();
-        mElementPrintInfosToNames[elem_info.str()] = r_elem_name;
+        const Element& r_elem = KratosComponents<Element>::Get(mElementNames[i]);
+        mElementPointers[i] = &r_elem;
     }
+
+    int num_threads = OpenMPUtils::GetNumThreads();
+    mCurrentElement.resize(num_threads, 0);
 
     KRATOS_CATCH("");
 }
@@ -180,38 +178,41 @@ void HDF5ModelPartIO::WriteUniformElements(ElementsContainerType const& rElement
 {
     KRATOS_TRY;
 
+    const Element& r_expected_element = *mElementPointers[0];
     unsigned size1 = rElements.size();
-    unsigned size2 = rElements.front().GetGeometry().size();
+    unsigned size2 = r_expected_element.GetGeometry().size();
     HDF5File::Vector<int> elem_ids(size1);
     HDF5File::Vector<int> prop_ids(size1);
     HDF5File::Matrix<int> connectivities(size1, size2);
 
-    const std::string& r_expected_print_info =
-        mElementNamesToPrintInfos.at(mElementNames[0]);
-    unsigned pos = 0;
     // Fill arrays and perform checks.
-    for (const auto& r_elem : rElements)
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    OpenMPUtils::PartitionVector partition;
+    OpenMPUtils::DivideInPartitions(rElements.size(), num_threads, partition);
+#pragma omp parallel
     {
-        // Check for matching print info string.
-        std::stringstream elem_info;
-        r_elem.PrintInfo(elem_info);
-        const std::string& r_elem_info = elem_info.str();
-        KRATOS_ERROR_IF(r_elem_info != r_expected_print_info)
-            << "Element " << r_elem.Id() << " with print info string: \n"
-            << r_elem_info << "\n is not " << mElementNames[0]
-            << " with print info string: \n"
-            << r_expected_print_info << std::endl;
-        // Fill ids.
-        elem_ids[pos] = r_elem.Id();
-        prop_ids[pos] = r_elem.GetProperties().Id();
-        // Check for matching node count.
-        const Element::GeometryType& r_geom = r_elem.GetGeometry();
-        KRATOS_ERROR_IF(r_geom.size() != size2)
-            << "Geometry has non-uniform size." << std::endl;
-        // Fill connectivities.
-        for (unsigned i = 0; i < size2; ++i)
-            connectivities(pos, i) = r_geom[i].Id();
-        ++pos;
+        const int thread_id = OpenMPUtils::ThisThread();
+        ElementsContainerType::const_iterator it = rElements.begin() + partition[thread_id];
+        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
+        {
+            const Element& r_elem = *it;
+            // Check element type.
+            KRATOS_ERROR_IF(typeid(r_elem) != typeid(r_expected_element))
+                << "Element #" << r_elem.Id() << " is not "
+                << typeid(r_expected_element).name() << std::endl;
+            // Fill ids.
+            elem_ids[i] = r_elem.Id();
+            prop_ids[i] = r_elem.GetProperties().Id();
+            // Check for matching node count.
+            const Element::GeometryType& r_geom = r_elem.GetGeometry();
+            KRATOS_ERROR_IF(r_geom.size() != size2)
+                << "Geometry has non-standard size for element #" << r_elem.Id()
+                << std::endl;
+            // Fill connectivities.
+            for (unsigned k = 0; k < size2; ++k)
+                connectivities(i, k) = r_geom[k].Id();
+            ++it;
+        }
     }
 
     // Write to HDF5 file.
@@ -226,69 +227,77 @@ void HDF5ModelPartIO::WriteMixedElements(ElementsContainerType const& rElements)
 {
     KRATOS_TRY;
 
-    std::unordered_map<std::string, unsigned> num_elems;
-    std::unordered_map<std::string, unsigned> num_nodes;
-    for (const std::string& r_elem_name : mElementNames)
+    const unsigned num_elem_types = mElementNames.size();
+    std::vector<unsigned> num_elems(num_elem_types);
+    std::vector<unsigned> num_nodes(num_elem_types);
+    for (unsigned i_type = 0; i_type < num_elem_types; ++i_type)
     {
-        num_elems[r_elem_name] = 0; // Initialize count.
-        num_nodes[r_elem_name] = KratosComponents<Element>::Get(r_elem_name).GetGeometry().size();
+        num_elems[i_type] = 0; // Initialize count.
+        num_nodes[i_type] = mElementPointers[i_type]->GetGeometry().size();
     }
 
     // Count number of each element and perform checks.
-    for (const auto& r_elem : rElements)
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    OpenMPUtils::PartitionVector partition;
+    OpenMPUtils::DivideInPartitions(rElements.size(), num_threads, partition);
+#pragma omp parallel
     {
-        std::stringstream elem_info;
-        r_elem.PrintInfo(elem_info);
-        const std::string& r_elem_info = elem_info.str();
-        const std::string& r_elem_name = mElementPrintInfosToNames.at(r_elem_info); // Throw here if print info not found in registry.
-        // Check for matching node count.
-        KRATOS_ERROR_IF(r_elem.GetGeometry().size() != num_nodes.at(r_elem_name))
-            << "Non-uniform connectivity detected for element #"
-            << r_elem.Id() << std::endl;
-        // Increment element count.
-        num_elems.at(r_elem_name) += 1;
-    }
-    
-    // Initialized arrays.
-    std::unordered_map<std::string, unsigned> pos;
-    std::unordered_map<std::string, HDF5File::Vector<int>> elem_ids;
-    std::unordered_map<std::string, HDF5File::Vector<int>> prop_ids;
-    std::unordered_map<std::string, HDF5File::Matrix<int>> connectivities;
-    for (const std::string& r_elem_name : mElementNames)
-    {
-        pos[r_elem_name] = 0; // Initialize position indices.
-        elem_ids[r_elem_name].resize(num_elems[r_elem_name], false);
-        prop_ids[r_elem_name].resize(num_elems[r_elem_name], false);
-        connectivities[r_elem_name].resize(num_elems[r_elem_name], num_nodes[r_elem_name], false);
+        const int thread_id = OpenMPUtils::ThisThread();
+        ElementsContainerType::const_iterator it = rElements.begin() + partition[thread_id];
+        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
+        {
+            const Element& r_elem = *it;
+            unsigned i_type = FindIndexOfMatchingReferenceElement(r_elem);
+            // Check for matching node count.
+            KRATOS_ERROR_IF(r_elem.GetGeometry().size() != num_nodes[i_type])
+                << "Geometry has non-standard size for element #"
+                << r_elem.Id() << std::endl;
+            // Increment element count.
+            unsigned& r_count = num_elems[i_type];
+            #pragma omp atomic
+            r_count += 1;
+            ++it;
+        }
     }
 
-    // Fill arrays. By now all element checks have been performed so no exceptions should occur.
+    // Initialized arrays.
+    std::vector<unsigned> current_index(num_elem_types);
+    std::vector<HDF5File::Vector<int>> elem_ids(num_elem_types);
+    std::vector<HDF5File::Vector<int>> prop_ids(num_elem_types);
+    std::vector<HDF5File::Matrix<int>> connectivities(num_elem_types);
+    for (unsigned i_type = 0; i_type < num_elem_types; ++i_type)
+    {
+        current_index[i_type] = 0; // Initialize position indices.
+        elem_ids[i_type].resize(num_elems[i_type], false);
+        prop_ids[i_type].resize(num_elems[i_type], false);
+        connectivities[i_type].resize(num_elems[i_type], num_nodes[i_type], false);
+    }
+
+    // Fill arrays. By now all element checks have been performed so no
+    // exceptions should occur. Be careful with openmp here!!!
     for (const auto& r_elem : rElements)
     {
-        // Identity the element name from print info.
-        std::stringstream elem_info;
-        r_elem.PrintInfo(elem_info);
-        const std::string& r_elem_info = elem_info.str();
-        const std::string& r_elem_name = mElementPrintInfosToNames.at(r_elem_info);
+        unsigned i_type = FindIndexOfMatchingReferenceElement(r_elem);
         // Get the current position for this element.
-        unsigned& r_pos = pos[r_elem_name];
+        unsigned pos = current_index[i_type];
         // Fill the element and property ids.
-        elem_ids[r_elem_name][r_pos] = r_elem.Id();
-        prop_ids[r_elem_name][r_pos] = r_elem.GetProperties().Id();
+        elem_ids[i_type][pos] = r_elem.Id();
+        prop_ids[i_type][pos] = r_elem.GetProperties().Id();
         // Fill the connectivities.
-        HDF5File::Matrix<int>& r_connectivities = connectivities[r_elem_name];
+        HDF5File::Matrix<int>& r_connectivities = connectivities[i_type];
         const Element::GeometryType& r_geom = r_elem.GetGeometry();
-        for (unsigned i = 0; i < r_geom.size(); ++i)
-            r_connectivities(r_pos, i) = r_geom[i].Id();
-        ++r_pos;
+        for (unsigned k = 0; k < r_geom.size(); ++k)
+            r_connectivities(pos, k) = r_geom[k].Id();
+        current_index[i_type] += 1;
     }
 
     // Write to HDF5 file.
-    for (const std::string& r_elem_name : mElementNames)
+    for (unsigned i_type = 0; i_type < num_elem_types; ++i_type)
     {
-        GetFile().WriteDataSet("/Elements/" + r_elem_name + "/Id", elem_ids[r_elem_name]);
-        GetFile().WriteDataSet("/Elements/" + r_elem_name + "/PropertyId", prop_ids[r_elem_name]);
-        GetFile().WriteDataSet("/Elements/" + r_elem_name + "/Connectivity", connectivities[r_elem_name]);
+        const std::string& r_elem_name = mElementNames[i_type];
+        GetFile().WriteDataSet("/Elements/" + r_elem_name + "/Id", elem_ids[i_type]);
+        GetFile().WriteDataSet("/Elements/" + r_elem_name + "/PropertyId", prop_ids[i_type]);
+        GetFile().WriteDataSet("/Elements/" + r_elem_name + "/Connectivity", connectivities[i_type]);
     }
 
     KRATOS_CATCH("");

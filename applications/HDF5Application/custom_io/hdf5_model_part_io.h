@@ -15,13 +15,16 @@
 
 // System includes
 #include <iostream>
-#include <unordered_map>
+#include <vector>
+#include <string>
+#include <typeinfo>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/openmp_utils.h"
 #include "includes/io.h"
 
 // Application includes
@@ -97,15 +100,34 @@ protected:
 private:
     ///@name Member Variables
     ///@{
+
     HDF5File::Pointer mpFile;
     std::vector<std::string> mElementNames;
-    std::unordered_map<std::string, std::string> mElementNamesToPrintInfos;
-    std::unordered_map<std::string, std::string> mElementPrintInfosToNames;
+    std::vector<const Element*> mElementPointers;
+    std::vector<unsigned> mCurrentElement;
     std::vector<std::string> mConditionNames;
+
     ///@}
 
     ///@name Private Operations
     ///@{
+
+    inline unsigned FindIndexOfMatchingReferenceElement(Element const& rElement)
+    {
+        const int thread_id = OpenMPUtils::ThisThread();
+        unsigned& r_i = mCurrentElement[thread_id];
+        // Check the most recent element type.
+        if (typeid(rElement) == typeid(*mElementPointers[r_i]))
+            return r_i; // Element type didn't change.
+        
+        // Search for the new element type.
+        for (r_i = 0; r_i < mElementPointers.size(); ++r_i)
+            if (typeid(rElement) == typeid(*mElementPointers[r_i]))
+                return r_i;
+
+        KRATOS_ERROR << "The element's type (" << typeid(rElement).name()
+                     << ") was not found." << std::endl;
+    }
 
     void WriteUniformElements(ElementsContainerType const& rElements);
 
