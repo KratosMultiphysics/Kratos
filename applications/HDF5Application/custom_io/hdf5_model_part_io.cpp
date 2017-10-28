@@ -33,8 +33,15 @@ HDF5ModelPartIO::HDF5ModelPartIO(Parameters& rParams, HDF5File::Pointer pFile)
         mElementPointers[i] = &r_elem;
     }
 
+    mConditionPointers.resize(mConditionNames.size());
+    for (unsigned i = 0; i < mConditionNames.size(); ++i)
+    {
+        const Condition& r_cond = KratosComponents<Condition>::Get(mConditionNames[i]);
+        mConditionPointers[i] = &r_cond;
+    }
+
     int num_threads = OpenMPUtils::GetNumThreads();
-    mCurrentElement.resize(num_threads, 0);
+    mCurrentFillPosition.resize(num_threads, 0);
 
     KRATOS_CATCH("");
 }
@@ -122,6 +129,22 @@ void HDF5ModelPartIO::ReadConditions(NodesContainerType& rNodes,
                                      PropertiesContainerType& rProperties,
                                      ConditionsContainerType& rConditions)
 {
+}
+
+void HDF5ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
+{
+    KRATOS_TRY;
+
+    // Write the headers.
+    for (const std::string& r_cond_name : mConditionNames)
+        GetFile().AddPath("/Conditions/" + r_cond_name);
+
+    if (mConditionNames.size() == 1)
+        WriteUniformConditions(rConditions);
+    else
+        WriteMixedConditions(rConditions);
+
+    KRATOS_CATCH("");
 }
 
 std::size_t HDF5ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
@@ -298,6 +321,135 @@ void HDF5ModelPartIO::WriteMixedElements(ElementsContainerType const& rElements)
         GetFile().WriteDataSet("/Elements/" + r_elem_name + "/Id", elem_ids[i_type]);
         GetFile().WriteDataSet("/Elements/" + r_elem_name + "/PropertyId", prop_ids[i_type]);
         GetFile().WriteDataSet("/Elements/" + r_elem_name + "/Connectivity", connectivities[i_type]);
+    }
+
+    KRATOS_CATCH("");
+}
+
+void HDF5ModelPartIO::WriteUniformConditions(ConditionsContainerType const& rConditions)
+{
+    KRATOS_TRY;
+
+    const Condition& r_expected_condition = *mConditionPointers[0];
+    unsigned size1 = rConditions.size();
+    unsigned size2 = r_expected_condition.GetGeometry().size();
+    HDF5File::Vector<int> cond_ids(size1);
+    HDF5File::Vector<int> prop_ids(size1);
+    HDF5File::Matrix<int> connectivities(size1, size2);
+
+    // Fill arrays and perform checks.
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    OpenMPUtils::PartitionVector partition;
+    OpenMPUtils::DivideInPartitions(rConditions.size(), num_threads, partition);
+#pragma omp parallel
+    {
+        const int thread_id = OpenMPUtils::ThisThread();
+        ConditionsContainerType::const_iterator it = rConditions.begin() + partition[thread_id];
+        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
+        {
+            const Condition& r_cond = *it;
+            // Check condition type.
+            KRATOS_ERROR_IF(typeid(r_cond) != typeid(r_expected_condition))
+                << "Condition #" << r_cond.Id() << " is not "
+                << typeid(r_expected_condition).name() << std::endl;
+            // Fill ids.
+            cond_ids[i] = r_cond.Id();
+            prop_ids[i] = r_cond.GetProperties().Id();
+            // Check for matching node count.
+            const Condition::GeometryType& r_geom = r_cond.GetGeometry();
+            KRATOS_ERROR_IF(r_geom.size() != size2)
+                << "Geometry has non-standard size for condition #" << r_cond.Id()
+                << std::endl;
+            // Fill connectivities.
+            for (unsigned k = 0; k < size2; ++k)
+                connectivities(i, k) = r_geom[k].Id();
+            ++it;
+        }
+    }
+
+    // Write to HDF5 file.
+    GetFile().WriteDataSet("/Conditions/" + mConditionNames[0] + "/Id", cond_ids);
+    GetFile().WriteDataSet("/Conditions/" + mConditionNames[0] + "/PropertyId", prop_ids);
+    GetFile().WriteDataSet("/Conditions/" + mConditionNames[0] + "/Connectivity", connectivities);
+
+    KRATOS_CATCH("");
+}
+
+void HDF5ModelPartIO::WriteMixedConditions(ConditionsContainerType const& rConditions)
+{
+    KRATOS_TRY;
+
+    const unsigned num_cond_types = mConditionNames.size();
+    std::vector<unsigned> num_conds(num_cond_types);
+    std::vector<unsigned> num_nodes(num_cond_types);
+    for (unsigned i_type = 0; i_type < num_cond_types; ++i_type)
+    {
+        num_conds[i_type] = 0; // Initialize count.
+        num_nodes[i_type] = mConditionPointers[i_type]->GetGeometry().size();
+    }
+
+    // Count number of each condition and perform checks.
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    OpenMPUtils::PartitionVector partition;
+    OpenMPUtils::DivideInPartitions(rConditions.size(), num_threads, partition);
+#pragma omp parallel
+    {
+        const int thread_id = OpenMPUtils::ThisThread();
+        ConditionsContainerType::const_iterator it = rConditions.begin() + partition[thread_id];
+        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
+        {
+            const Condition& r_cond = *it;
+            unsigned i_type = FindIndexOfMatchingReferenceCondition(r_cond);
+            // Check for matching node count.
+            KRATOS_ERROR_IF(r_cond.GetGeometry().size() != num_nodes[i_type])
+                << "Geometry has non-standard size for condition #"
+                << r_cond.Id() << std::endl;
+            // Increment condition count.
+            unsigned& r_count = num_conds[i_type];
+            #pragma omp atomic
+            r_count += 1;
+            ++it;
+        }
+    }
+
+    // Initialized arrays.
+    std::vector<unsigned> current_index(num_cond_types);
+    std::vector<HDF5File::Vector<int>> cond_ids(num_cond_types);
+    std::vector<HDF5File::Vector<int>> prop_ids(num_cond_types);
+    std::vector<HDF5File::Matrix<int>> connectivities(num_cond_types);
+    for (unsigned i_type = 0; i_type < num_cond_types; ++i_type)
+    {
+        current_index[i_type] = 0; // Initialize position indices.
+        cond_ids[i_type].resize(num_conds[i_type], false);
+        prop_ids[i_type].resize(num_conds[i_type], false);
+        connectivities[i_type].resize(num_conds[i_type], num_nodes[i_type], false);
+    }
+
+    // Fill arrays. By now all condition checks have been performed so no
+    // exceptions should occur. Be careful with openmp here!!!
+    for (const auto& r_cond : rConditions)
+    {
+        unsigned i_type = FindIndexOfMatchingReferenceCondition(r_cond);
+        // Get the current position for this condition.
+        unsigned pos = current_index[i_type];
+        // Fill the condition and property ids.
+        cond_ids[i_type][pos] = r_cond.Id();
+        prop_ids[i_type][pos] = r_cond.GetProperties().Id();
+        // Fill the connectivities.
+        HDF5File::Matrix<int>& r_connectivities = connectivities[i_type];
+        const Condition::GeometryType& r_geom = r_cond.GetGeometry();
+        for (unsigned k = 0; k < r_geom.size(); ++k)
+            r_connectivities(pos, k) = r_geom[k].Id();
+        current_index[i_type] += 1;
+    }
+
+    // Write to HDF5 file.
+    for (unsigned i_type = 0; i_type < num_cond_types; ++i_type)
+    {
+        const std::string& r_cond_name = mConditionNames[i_type];
+        GetFile().WriteDataSet("/Conditions/" + r_cond_name + "/Id", cond_ids[i_type]);
+        GetFile().WriteDataSet("/Conditions/" + r_cond_name + "/PropertyId", prop_ids[i_type]);
+        GetFile().WriteDataSet("/Conditions/" + r_cond_name + "/Connectivity", connectivities[i_type]);
     }
 
     KRATOS_CATCH("");

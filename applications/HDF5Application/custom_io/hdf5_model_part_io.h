@@ -73,6 +73,8 @@ public:
                         PropertiesContainerType& rProperties,
                         ConditionsContainerType& rConditions) override;
 
+    void WriteConditions(ConditionsContainerType const& rConditions) override;
+
     std::size_t ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
     void ReadInitialValues(ModelPart& rModelPart) override;
@@ -102,10 +104,11 @@ private:
     ///@{
 
     HDF5File::Pointer mpFile;
+    std::vector<unsigned> mCurrentFillPosition;
     std::vector<std::string> mElementNames;
     std::vector<const Element*> mElementPointers;
-    std::vector<unsigned> mCurrentElement;
     std::vector<std::string> mConditionNames;
+    std::vector<const Condition*> mConditionPointers;
 
     ///@}
 
@@ -115,7 +118,7 @@ private:
     inline unsigned FindIndexOfMatchingReferenceElement(Element const& rElement)
     {
         const int thread_id = OpenMPUtils::ThisThread();
-        unsigned& r_i = mCurrentElement[thread_id];
+        unsigned& r_i = mCurrentFillPosition[thread_id];
         // Check the most recent element type.
         if (typeid(rElement) == typeid(*mElementPointers[r_i]))
             return r_i; // Element type didn't change.
@@ -129,9 +132,30 @@ private:
                      << ") was not found." << std::endl;
     }
 
+    inline unsigned FindIndexOfMatchingReferenceCondition(Condition const& rCondition)
+    {
+        const int thread_id = OpenMPUtils::ThisThread();
+        unsigned& r_i = mCurrentFillPosition[thread_id];
+        // Check the most recent condition type.
+        if (typeid(rCondition) == typeid(*mConditionPointers[r_i]))
+            return r_i; // condition type didn't change.
+        
+        // Search for the new condition type.
+        for (r_i = 0; r_i < mConditionPointers.size(); ++r_i)
+            if (typeid(rCondition) == typeid(*mConditionPointers[r_i]))
+                return r_i;
+
+        KRATOS_ERROR << "The condition's type (" << typeid(rCondition).name()
+                     << ") was not found." << std::endl;
+    }
+
     void WriteUniformElements(ElementsContainerType const& rElements);
 
     void WriteMixedElements(ElementsContainerType const& rElements);
+
+    void WriteUniformConditions(ConditionsContainerType const& rConditions);
+
+    void WriteMixedConditions(ConditionsContainerType const& rConditions);
 
     ///@}
 };

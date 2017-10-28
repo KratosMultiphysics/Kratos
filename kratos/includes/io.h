@@ -174,6 +174,11 @@ public:
         KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
+    virtual void WriteConditions(ConditionsContainerType const& rThisConditions)
+    {
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
+    }
+
     virtual void ReadInitialValues(ModelPart& rThisModelPart)
     {
         KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
