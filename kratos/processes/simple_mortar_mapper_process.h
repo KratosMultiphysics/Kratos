@@ -50,7 +50,7 @@ namespace Kratos
 ///@{
     
 template< int TDim, int TNumNodes, class TVarType, HistoricalValues THist> 
-class SimpleMortarMapperProcess
+class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess
         : public Process
 {
 public:
