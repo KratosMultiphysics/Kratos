@@ -9,7 +9,10 @@ import math
 class TestLoadingConditions(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    def _test_LineLoadCondition3D2NRotDof(self):
+    
+    #THIS IS marked as expected failure since the normal to the line in 3D is not well defined
+    #@KratosUnittest.expectedFailure
+    def test_LineLoadCondition3D2NRotDof(self):
         dim = 3
         mp = KratosMultiphysics.ModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -38,6 +41,8 @@ class TestLoadingConditions(KratosUnittest.TestCase):
 
         cond = mp.CreateNewCondition("LineLoadCondition3D2N", 1, [1,2], mp.GetProperties()[1])
         
+        cond.SetValue(KratosMultiphysics.LOCAL_AXIS_2, [-1.0, 1.0, 0.0])
+        
         lhs = KratosMultiphysics.Matrix(0,0)
         rhs = KratosMultiphysics.Vector(0)
         
@@ -53,7 +58,6 @@ class TestLoadingConditions(KratosUnittest.TestCase):
 
         Nodal_Transversal_Forces = Line_Load_i*length/2.00
         Nodal_Moments = Line_Load_i*length*length/12.00/math.sqrt(2)
-        print(rhs)
 
         self.assertEqual(rhs[0],0.00)
         self.assertEqual(rhs[1],-Nodal_Transversal_Forces)
@@ -69,7 +73,7 @@ class TestLoadingConditions(KratosUnittest.TestCase):
         self.assertAlmostEqual(rhs[11],Nodal_Moments)
 
 
-    def _test_LineLoadCondition2D2N(self):
+    def test_LineLoadCondition2D2N(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -138,7 +142,7 @@ class TestLoadingConditions(KratosUnittest.TestCase):
         self.assertAlmostEqual(rhs[2],reference_res[2])
         self.assertAlmostEqual(rhs[3],reference_res[3])
         
-    def _test_LineLoadCondition2D2NAngle(self):
+    def test_LineLoadCondition2D2NAngle(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -199,7 +203,7 @@ class TestLoadingConditions(KratosUnittest.TestCase):
         self.assertEqual(rhs[4], 0.0*lenght)
         self.assertEqual(rhs[5],-0.5*lenght)
 
-    def _test_SurfaceLoadCondition3D4N(self):
+    def test_SurfaceLoadCondition3D4N(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -277,10 +281,10 @@ class TestLoadingConditions(KratosUnittest.TestCase):
             self.assertAlmostEqual(rhs[i],reference_res[i])     
         
     def test_execution(self):
-        self._test_LineLoadCondition2D2N()
-        self._test_LineLoadCondition2D2NAngle()
-        self._test_SurfaceLoadCondition3D4N()
-        self._test_LineLoadCondition3D2NRotDof()
+        self.test_LineLoadCondition2D2N()
+        self.test_LineLoadCondition2D2NAngle()
+        self.test_SurfaceLoadCondition3D4N()
+        self.test_LineLoadCondition3D2NRotDof()
         
 if __name__ == '__main__':
     KratosUnittest.main()
