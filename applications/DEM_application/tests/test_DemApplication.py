@@ -3,6 +3,7 @@ import KratosMultiphysics.DEMApplication as DEMApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import test_particle_creator_destructor
+import test_wall_creator_destructor
 
 
 def AssembleTestSuites():
@@ -23,6 +24,8 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTest(test_particle_creator_destructor.TestParticleCreatorDestructor("test_CreateSphericParticle1"))
     smallSuite.addTest(test_particle_creator_destructor.TestParticleCreatorDestructor("test_CreateSphericParticle2"))
+    smallSuite.addTest(test_wall_creator_destructor.TestWallCreatorDestructor("test_CreateWallTriangle"))
+    smallSuite.addTest(test_wall_creator_destructor.TestWallCreatorDestructor("test_CreateWallQuadrilateral"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
