@@ -33,7 +33,7 @@ void MetricFastInit<TDim>::Execute()
     int num_nodes = mrThisModelPart.NumberOfNodes();
 
     #pragma omp parallel for firstprivate(zerovector)
-    for(int i = 0; i < num_nodes; i++) 
+    for(int i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
 

@@ -234,9 +234,9 @@ private:
      */
     
     void CalculateStepData(
-        NodeType::Pointer& pNode,
+        NodeType::Pointer pNode,
         const Element::Pointer& pElement,
-        const Vector ShapeFunctions,
+        const Vector& ShapeFunctions,
         const unsigned int Step
         );
     

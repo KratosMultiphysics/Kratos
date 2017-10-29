@@ -28,7 +28,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
     CalculateAuxiliarHessian();
     
     #pragma omp parallel for 
-    for(int i = 0; i < num_nodes; i++) 
+    for(int i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
         
@@ -116,7 +116,7 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
     MathUtils<double>::EigenSystem<TDim>(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
     
     // Recalculate the Metric eigen values
-    for (unsigned int i = 0; i < TDim; i++)
+    for (unsigned int i = 0; i < TDim; ++i)
     {
         eigen_values_matrix(i, i) = MathUtils<double>::Min(MathUtils<double>::Max(CEpsilon * std::abs(eigen_values_matrix(i, i)), max_ratio), min_ratio);
     }
@@ -126,7 +126,7 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
     {
         double eigen_max = eigen_values_matrix(0, 0);
         double eigen_min = eigen_values_matrix(1, 1);
-        for (unsigned int i = 1; i < TDim - 1; i++)
+        for (unsigned int i = 1; i < TDim - 1; ++i)
         {
             eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
             eigen_min = MathUtils<double>::Min(eigen_max, eigen_values_matrix(i, i));
@@ -135,7 +135,7 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
         const double eigen_radius = std::abs(eigen_max - eigen_min) * (1.0 - AnisotropicRatio);
         const double relative_eigen_radius = std::abs(eigen_max - eigen_radius);
         
-        for (unsigned int i = 0; i < TDim; i++)
+        for (unsigned int i = 0; i < TDim; ++i)
         {
             eigen_values_matrix(i, i) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(i, i), eigen_max), relative_eigen_radius);
         }
@@ -143,11 +143,11 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
     else // NOTE: For isotropic we should consider the maximum of the eigenvalues
     {
         double eigen_max = eigen_values_matrix(0, 0);
-        for (unsigned int i = 1; i < TDim - 1; i++)
+        for (unsigned int i = 1; i < TDim - 1; ++i)
         {
             eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
         }
-        for (unsigned int i = 0; i < TDim; i++)
+        for (unsigned int i = 0; i < TDim; ++i)
         {
             eigen_values_matrix(i, i) = eigen_max;
         }
@@ -177,7 +177,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
     const Vector aux_zero_vector = ZeroVector(3 * (TDim - 1));
     
     #pragma omp parallel for
-    for(int i = 0; i < num_nodes; i++) 
+    for(int i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
         
@@ -193,7 +193,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
     int num_elements = elements_array.end() - elements_array.begin();
     
     #pragma omp parallel for
-    for(int i = 0; i < num_elements; i++) 
+    for(int i = 0; i < num_elements; ++i) 
     {
         auto it_elem = elements_array.begin() + i;
         
@@ -266,7 +266,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
     }
         
     #pragma omp parallel for
-    for(int i = 0; i < num_nodes; i++) 
+    for(int i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
         it_node->GetValue(AUXILIAR_HESSIAN) /= it_node->FastGetSolutionStepValue(NODAL_AREA);

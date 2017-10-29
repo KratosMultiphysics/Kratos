@@ -212,7 +212,7 @@ void MmgProcess<TDim>::InitializeMeshData()
         
         /* Elements */
         #pragma omp parallel for
-        for(SizeType i = 0; i < num_elements; i++) 
+        for(SizeType i = 0; i < num_elements; ++i) 
         {
             auto it_elem = elements_array.begin() + i;
             
@@ -239,7 +239,7 @@ void MmgProcess<TDim>::InitializeMeshData()
         
         /* Conditions */
         #pragma omp parallel for
-        for(SizeType i = 0; i < num_conditions; i++) 
+        for(SizeType i = 0; i < num_conditions; ++i) 
         {
             auto it_cond = conditions_array.begin() + i;
             
@@ -261,7 +261,7 @@ void MmgProcess<TDim>::InitializeMeshData()
     /* Nodes */
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
     mDofs = nodes_array.begin()->GetDofs();
-    for (typename Node<3>::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); it_dof++)
+    for (typename Node<3>::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
     {
         it_dof->FreeDof();
     }
@@ -269,7 +269,7 @@ void MmgProcess<TDim>::InitializeMeshData()
     if (mFramework == Lagrangian) // NOTE: The code is repeated due to performance reasons
     {
         #pragma omp parallel for firstprivate(nodes_colors)
-        for(SizeType i = 0; i < num_nodes; i++) 
+        for(SizeType i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
             
@@ -292,7 +292,7 @@ void MmgProcess<TDim>::InitializeMeshData()
     else
     {
         #pragma omp parallel for firstprivate(nodes_colors)
-        for(SizeType i = 0; i < num_nodes; i++) 
+        for(SizeType i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
             
@@ -315,7 +315,7 @@ void MmgProcess<TDim>::InitializeMeshData()
     
     /* Conditions */
     #pragma omp parallel for firstprivate(cond_colors)
-    for(SizeType i = 0; i < num_conditions; i++) 
+    for(SizeType i = 0; i < num_conditions; ++i) 
     {
         auto it_cond = conditions_array.begin() + i;
         
@@ -324,7 +324,7 @@ void MmgProcess<TDim>::InitializeMeshData()
     
     /* Elements */
     #pragma omp parallel for firstprivate(elem_colors)
-    for(SizeType i = 0; i < num_elements; i++) 
+    for(SizeType i = 0; i < num_elements; ++i) 
     {
         auto it_elem = elements_array.begin() + i;
         
@@ -408,7 +408,7 @@ void MmgProcess<TDim>::InitializeSolData()
     SetSolSizeTensor(num_nodes);
 
     #pragma omp parallel for 
-    for(SizeType i = 0; i < num_nodes; i++) 
+    for(SizeType i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
         
@@ -513,7 +513,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     const SizeType num_nodes = nodes_array.end() - nodes_array.begin();
     
     #pragma omp parallel for 
-    for(SizeType i = 0; i < num_nodes; i++) 
+    for(SizeType i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
         
@@ -526,7 +526,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     const SizeType num_conditions = conditions_array.end() - conditions_array.begin();
     
     #pragma omp parallel for 
-    for(SizeType i = 0; i < num_conditions; i++) 
+    for(SizeType i = 0; i < num_conditions; ++i) 
     {
         auto it_cond = conditions_array.begin() + i;
         
@@ -539,7 +539,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     const SizeType num_elements = elements_array.end() - elements_array.begin();
     
     #pragma omp parallel for 
-    for(SizeType i = 0; i < num_elements; i++) 
+    for(SizeType i = 0; i < num_elements; ++i) 
     {
         auto it_elem = elements_array.begin() + i;
         
@@ -552,13 +552,13 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     std::unordered_map<int, std::vector<IndexType>>color_nodes, color_cond_0, color_cond_1, color_elem_0, color_elem_1;
     
     /* NODES */ // TODO: ADD OMP
-    for (unsigned int i_node = 1; i_node <= n_nodes; i_node++)
+    for (unsigned int i_node = 1; i_node <= n_nodes; ++i_node)
     {
         int ref, is_required;
         NodeType::Pointer p_node = CreateNode(i_node, ref, is_required);
         
         // Set the DOFs in the nodes 
-        for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); it_dof++)
+        for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         {
             p_node->pAddDof(*it_dof);
         }
@@ -576,7 +576,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         
         unsigned int counter_cond_0 = 0;
         const std::vector<unsigned int> condition_to_remove_0 = CheckConditions0();
-        for (unsigned int i_cond = 1; i_cond <= n_conditions[0]; i_cond++)
+        for (unsigned int i_cond = 1; i_cond <= n_conditions[0]; ++i_cond)
         {
             bool skip_creation = false;
             if (counter_cond_0 < condition_to_remove_0.size())
@@ -601,7 +601,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         
         unsigned int counter_cond_1 = 0;
         const std::vector<unsigned int> condition_to_remove_1 = CheckConditions1();
-        for (unsigned int i_cond = 1; i_cond <= n_conditions[1]; i_cond++)
+        for (unsigned int i_cond = 1; i_cond <= n_conditions[1]; ++i_cond)
         {                    
             bool skip_creation = false;
             if (counter_cond_1 < condition_to_remove_1.size())
@@ -632,7 +632,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         
         unsigned int counter_elem_0 = 0;
         const std::vector<unsigned int> elements_to_remove_0 = CheckElements0();
-        for (unsigned int i_elem = 1; i_elem <= n_elements[0]; i_elem++)
+        for (unsigned int i_elem = 1; i_elem <= n_elements[0]; ++i_elem)
         {  
             bool skip_creation = false;
             if (counter_elem_0 < elements_to_remove_0.size())
@@ -658,7 +658,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         
         unsigned int counter_elem_1 = 0;
         const std::vector<unsigned int> elements_to_remove_1 = CheckElements1();
-        for (unsigned int i_elem = 1; i_elem <= n_elements[1]; i_elem++)
+        for (unsigned int i_elem = 1; i_elem <= n_elements[1]; ++i_elem)
         {
             bool skip_creation = false;  
             if (counter_elem_1 < elements_to_remove_1.size())
@@ -716,12 +716,12 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         ConditionsArrayType& sub_conditions_array = r_sub_model_part.Conditions();
         const SizeType sub_num_conditions = sub_conditions_array.end() - sub_conditions_array.begin();
         
-        for(IndexType i = 0; i < sub_num_conditions; i++) 
+        for(IndexType i = 0; i < sub_num_conditions; ++i) 
         {
             auto it_cond = sub_conditions_array.begin() + i;
             auto& cond_geom = it_cond->GetGeometry();
             
-            for (SizeType i_node = 0; i_node < cond_geom.size(); i_node++)
+            for (SizeType i_node = 0; i_node < cond_geom.size(); ++i_node)
             {
                 node_ids.insert(cond_geom[i_node].Id());
             }
@@ -730,12 +730,12 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         ElementsArrayType& sub_elements_array = r_sub_model_part.Elements();
         const SizeType sub_num_elements = sub_elements_array.end() - sub_elements_array.begin();
         
-        for(IndexType i = 0; i < sub_num_elements; i++) 
+        for(IndexType i = 0; i < sub_num_elements; ++i) 
         {
             auto it_elem = sub_elements_array.begin() + i;
             auto& elem_geom = it_elem->GetGeometry();
             
-            for (SizeType i_node = 0; i_node < elem_geom.size(); i_node++)
+            for (SizeType i_node = 0; i_node < elem_geom.size(); ++i_node)
             {
                 node_ids.insert(elem_geom[i_node].Id());
             }
@@ -765,7 +765,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         const int num_nodes = static_cast<int>(nodes_array.size());
         
         #pragma omp parallel for
-        for(int i = 0; i < num_nodes; i++)
+        for(int i = 0; i < num_nodes; ++i)
         {
             auto it_node = nodes_array.begin() + i;
 
@@ -794,7 +794,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         const int num_nodes = static_cast<int>(nodes_array.size());
 
         #pragma omp parallel for
-        for(int i = 0; i < num_nodes; i++)
+        for(int i = 0; i < num_nodes; ++i)
         {
             auto it_node = nodes_array.begin() + i;
 
@@ -817,7 +817,7 @@ void MmgProcess<TDim>::ReorderAllIds()
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     const SizeType num_nodes = nodes_array.end() - nodes_array.begin();
 
-    for(SizeType i = 0; i < num_nodes; i++) 
+    for(SizeType i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
         it_node->SetId(i + 1);
@@ -826,7 +826,7 @@ void MmgProcess<TDim>::ReorderAllIds()
     ConditionsArrayType& condition_array = mrThisModelPart.Conditions();
     const SizeType num_conditions = condition_array.end() - condition_array.begin();
     
-    for(SizeType i = 0; i < num_conditions; i++) 
+    for(SizeType i = 0; i < num_conditions; ++i) 
     {
         auto it_condition = condition_array.begin() + i;
         it_condition->SetId(i + 1);
@@ -835,7 +835,7 @@ void MmgProcess<TDim>::ReorderAllIds()
     ElementsArrayType& element_array = mrThisModelPart.Elements();
     const SizeType num_elements = element_array.end() - element_array.begin();
 
-    for(SizeType i = 0; i < num_elements; i++) 
+    for(SizeType i = 0; i < num_elements; ++i) 
     {
         auto it_element = element_array.begin() + i;
         it_element->SetId(i + 1);
@@ -851,7 +851,7 @@ void MmgProcess<TDim>::InitializeElementsAndConditions()
     ConditionsArrayType& condition_array = mrThisModelPart.Conditions();
     const SizeType num_conditions = condition_array.end() - condition_array.begin();
     
-    for(SizeType i = 0; i < num_conditions; i++) 
+    for(SizeType i = 0; i < num_conditions; ++i) 
     {
         auto it_condition = condition_array.begin() + i;
         it_condition->Initialize();
@@ -860,7 +860,7 @@ void MmgProcess<TDim>::InitializeElementsAndConditions()
     ElementsArrayType& element_array = mrThisModelPart.Elements();
     const SizeType num_elements = element_array.end() - element_array.begin();
 
-    for(SizeType i = 0; i < num_elements; i++) 
+    for(SizeType i = 0; i < num_elements; ++i) 
     {
         auto it_element = element_array.begin() + i;
         it_element->Initialize();
@@ -883,7 +883,7 @@ std::vector<unsigned int> MmgProcess<TDim>::CheckNodes()
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     const SizeType num_nodes = nodes_array.end() - nodes_array.begin();
     
-    for(SizeType i = 0; i < num_nodes; i++) 
+    for(SizeType i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
         
@@ -923,7 +923,7 @@ std::vector<unsigned int> MmgProcess<2>::CheckConditions0()
     std::vector<unsigned int> conditions_to_remove;
     
     // Iterate in the conditions
-    for(int i = 0; i < mmgMesh->na; i++) 
+    for(int i = 0; i < mmgMesh->na; ++i) 
     {
         int edge_0, edge_1, prop_id, is_ridge, is_required;
         
@@ -962,7 +962,7 @@ std::vector<unsigned int> MmgProcess<3>::CheckConditions0()
 
     std::vector<unsigned int> conditions_to_remove;
             
-    for(int i = 0; i < mmgMesh->nt; i++) 
+    for(int i = 0; i < mmgMesh->nt; ++i) 
     {
         int vertex_0, vertex_1, vertex_2, prop_id, is_required;
 
@@ -1013,7 +1013,7 @@ std::vector<unsigned int> MmgProcess<3>::CheckConditions1()
 
     std::vector<unsigned int> conditions_to_remove;
             
-    for(int i = 0; i < mmgMesh->nquad; i++) 
+    for(int i = 0; i < mmgMesh->nquad; ++i) 
     {
         int vertex_0, vertex_1, vertex_2, vertex_3, prop_id, is_required;
 
@@ -1055,7 +1055,7 @@ std::vector<unsigned int> MmgProcess<2>::CheckElements0()
     std::vector<unsigned int> elements_to_remove;
     
     // Iterate in the elements
-    for(int i = 0; i < mmgMesh->nt; i++) 
+    for(int i = 0; i < mmgMesh->nt; ++i) 
     {
         int vertex_0, vertex_1, vertex_2, prop_id, is_required;
         
@@ -1095,7 +1095,7 @@ std::vector<unsigned int> MmgProcess<3>::CheckElements0()
 
     std::vector<unsigned int> elements_to_remove;
             
-    for(int i = 0; i < mmgMesh->ne; i++) 
+    for(int i = 0; i < mmgMesh->ne; ++i) 
     {
         int vertex_0, vertex_1, vertex_2, vertex_3, prop_id, is_required;
 
@@ -1148,7 +1148,7 @@ std::vector<unsigned int> MmgProcess<3>::CheckElements1()
 
     std::vector<unsigned int> elements_to_remove;
             
-    for(int i = 0; i < mmgMesh->nprism; i++) 
+    for(int i = 0; i < mmgMesh->nprism; ++i) 
     {
         int vertex_0, vertex_1, vertex_2, vertex_3, vertex_4, vertex_5, prop_id, is_required;
 
@@ -2246,7 +2246,7 @@ void MmgProcess<TDim>::ComputeColors(
     
     // Initialize Colors
     int color = 0;
-    for (SizeType i_sub_model_part = 0; i_sub_model_part < model_part_names.size(); i_sub_model_part++)
+    for (SizeType i_sub_model_part = 0; i_sub_model_part < model_part_names.size(); ++i_sub_model_part)
     {
         mColors[i_sub_model_part].push_back(model_part_names[i_sub_model_part]);
         
@@ -2267,21 +2267,21 @@ void MmgProcess<TDim>::ComputeColors(
             const SizeType num_elements = elements_array.end() - elements_array.begin();
 
             /* Nodes */
-            for(SizeType i = 0; i < num_nodes; i++) 
+            for(SizeType i = 0; i < num_nodes; ++i) 
             {
                 auto it_node = nodes_array.begin() + i;
                 aux_nodes_colors[it_node->Id()].insert(color);
             }
             
             /* Conditions */
-            for(SizeType i = 0; i < num_conditions; i++) 
+            for(SizeType i = 0; i < num_conditions; ++i) 
             {
                 auto it_cond = conditions_array.begin() + i;
                 aux_cond_colors[it_cond->Id()].insert(color);
             }
             
             /* Elements */
-            for(SizeType i = 0; i < num_elements; i++) 
+            for(SizeType i = 0; i < num_elements; ++i) 
             {
                 auto it_elem = elements_array.begin() + i;
                 aux_elem_colors[it_elem->Id()].insert(color);

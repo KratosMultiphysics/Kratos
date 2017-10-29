@@ -34,7 +34,7 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
     
     /* Nodes */
 //         #pragma omp parallel for 
-    for(unsigned int i = 0; i < num_nodes; i++) 
+    for(unsigned int i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
         
@@ -59,9 +59,9 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
         }
         else
         {
-            for(unsigned int iStep = 0; iStep < mBufferSize; iStep++)
+            for(unsigned int i_step = 0; i_step < mBufferSize; ++i_step)
             {
-                CalculateStepData(*(it_node.base()), p_element, shape_functions, iStep);
+                CalculateStepData(*(it_node.base()), p_element, shape_functions, i_step);
             }
         }
     }
@@ -72,9 +72,9 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 
 template<>  
 void NodalValuesInterpolationProcess<2>::CalculateStepData(
-    NodeType::Pointer& pNode,
+    NodeType::Pointer pNode,
     const Element::Pointer& pElement,
-    const Vector ShapeFunctions,
+    const Vector& ShapeFunctions,
     const unsigned int Step
     )
 {
@@ -84,7 +84,7 @@ void NodalValuesInterpolationProcess<2>::CalculateStepData(
     const double* node_data_1 = pElement->GetGeometry()[1].SolutionStepData().Data(Step);
     const double* node_data_2 = pElement->GetGeometry()[2].SolutionStepData().Data(Step);
     
-    for (unsigned int j = 0; j < mStepDataSize; j++)
+    for (unsigned int j = 0; j < mStepDataSize; ++j)
     {
         step_data[j] = ShapeFunctions[0] * node_data_0[j]
                      + ShapeFunctions[1] * node_data_1[j]
@@ -97,9 +97,9 @@ void NodalValuesInterpolationProcess<2>::CalculateStepData(
 
 template<>  
 void NodalValuesInterpolationProcess<3>::CalculateStepData(
-    NodeType::Pointer& pNode,
+    NodeType::Pointer pNode,
     const Element::Pointer& pElement,
-    const Vector ShapeFunctions,
+    const Vector& ShapeFunctions,
     const unsigned int Step
     )
 {
@@ -111,7 +111,7 @@ void NodalValuesInterpolationProcess<3>::CalculateStepData(
     const double* node_data_2 = pElement->GetGeometry()[2].SolutionStepData().Data(Step);
     const double* node_data_3 = pElement->GetGeometry()[3].SolutionStepData().Data(Step);
     
-    for (unsigned int j = 0; j < mStepDataSize; j++)
+    for (unsigned int j = 0; j < mStepDataSize; ++j)
     {
         step_data[j] = ShapeFunctions[0] * node_data_0[j]
                      + ShapeFunctions[1] * node_data_1[j]
