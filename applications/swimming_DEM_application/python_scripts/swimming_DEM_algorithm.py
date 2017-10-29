@@ -526,7 +526,7 @@ class Algorithm(object):
                 self.out = 0
 
             # solving the DEM part
-            self.derivative_recovery_counter.Switch(self.time > self.pp.CFD_DEM["interaction_start_time"].GetDouble())
+            self.derivative_recovery_counter.Activate(self.time > self.pp.CFD_DEM["interaction_start_time"].GetDouble())
 
             if self.derivative_recovery_counter.Tick():
                 self.recovery.Recover()
