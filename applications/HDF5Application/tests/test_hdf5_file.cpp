@@ -30,7 +30,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5Test1, KratosHDF5TestSuite)
                 {
                     "file_name" : "test.h5",
                     "file_access_mode": "exclusive",
-                    "file_driver": "core"
+                    "file_driver": "sec2"
                 })");
 
     HDF5FileSerial test_file(test_params);
@@ -117,6 +117,11 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5Test1, KratosHDF5TestSuite)
 
     // Check GetFileName().
     KRATOS_CHECK(test_file.GetFileName() == "test.h5");
+
+    // Check scalar attribute.
+    test_file.WriteAttribute("/foo", "DENSITY", 1.2);
+    test_file.WriteAttribute("/foo", "INERTIA", write_data_vec_int);
+    test_file.WriteAttribute("/foo", "MATERIAL", write_data_mat_int);
 }
 } // namespace Testing
 } // namespace Kratos.

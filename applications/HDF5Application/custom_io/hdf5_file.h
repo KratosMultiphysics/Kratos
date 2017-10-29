@@ -114,9 +114,20 @@ public:
 
     bool IsDataSet(std::string Path) const;
 
+    bool HasAttribute(std::string ObjectPath, std::string Name) const;
+
     void CreateGroup(std::string Path);
 
     void AddPath(std::string Path);
+
+    template<class TScalar>
+    void WriteAttribute(std::string ObjectPath, std::string Name, TScalar Value);
+
+    template<class TScalar>
+    void WriteAttribute(std::string ObjectPath, std::string Name, const Vector<TScalar>& rValue);
+
+    template<class TScalar>
+    void WriteAttribute(std::string ObjectPath, std::string Name, const Matrix<TScalar>& rValue);
 
     /// Write a data set to the HDF5 file.
     /**
@@ -265,6 +276,89 @@ private:
     ///@}
 
 };
+
+template <class TScalar>
+void HDF5File::WriteAttribute(std::string ObjectPath, std::string Name, TScalar Value)
+{
+    KRATOS_TRY;
+    hid_t type_id, space_id, attr_id;
+
+    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
+    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
+    if (is_int_type)
+        type_id = H5T_NATIVE_INT;
+    else if (is_double_type)
+        type_id = H5T_NATIVE_DOUBLE;
+    else
+        static_assert(is_int_type || is_double_type, "Unsupported data type.");
+
+    space_id = H5Screate(H5S_SCALAR);
+    KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
+    attr_id = H5Acreate_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(), type_id,
+                                space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
+    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &Value) < 0) << "H5Awrite failed." << std::endl;
+    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    KRATOS_CATCH("");
+}
+
+template <class TScalar>
+void HDF5File::WriteAttribute(std::string ObjectPath, std::string Name, const Vector<TScalar>& rValue)
+{
+    KRATOS_TRY;
+    hid_t type_id, space_id, attr_id;
+
+    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
+    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
+    if (is_int_type)
+        type_id = H5T_NATIVE_INT;
+    else if (is_double_type)
+        type_id = H5T_NATIVE_DOUBLE;
+    else
+        static_assert(is_int_type || is_double_type, "Unsupported data type.");
+
+    const hsize_t dim = rValue.size();
+    space_id = H5Screate_simple(1, &dim, nullptr);
+    KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
+    attr_id = H5Acreate_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(), type_id,
+                                space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
+    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue[0]) < 0) << "H5Awrite failed." << std::endl;
+    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    KRATOS_CATCH("");
+}
+
+template <class TScalar>
+void HDF5File::WriteAttribute(std::string ObjectPath, std::string Name, const Matrix<TScalar>& rValue)
+{
+    KRATOS_TRY;
+    hid_t type_id, space_id, attr_id;
+
+    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
+    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
+    if (is_int_type)
+        type_id = H5T_NATIVE_INT;
+    else if (is_double_type)
+        type_id = H5T_NATIVE_DOUBLE;
+    else
+        static_assert(is_int_type || is_double_type, "Unsupported data type.");
+
+    const unsigned ndims = 2;
+    hsize_t dims[ndims];
+    dims[0] = rValue.size1();
+    dims[1] = rValue.size2();
+    space_id = H5Screate_simple(ndims, dims, nullptr);
+    KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
+    attr_id = H5Acreate_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(), type_id,
+                                space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
+    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue(0,0)) < 0) << "H5Awrite failed." << std::endl;
+    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    KRATOS_CATCH("");
+}
 
 ///@} addtogroup
 } // namespace Kratos.

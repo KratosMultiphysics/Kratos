@@ -112,6 +112,16 @@ bool HDF5File::IsDataSet(std::string Path) const
     KRATOS_CATCH("");
 }
 
+bool HDF5File::HasAttribute(std::string ObjectPath, std::string Name) const
+{
+    KRATOS_TRY;
+    htri_t status =
+        H5Aexists_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(), H5P_DEFAULT);
+    KRATOS_ERROR_IF(status < 0) << "H5Aexists_by_name failed" << std::endl;
+    return (status > 0);
+    KRATOS_CATCH("");
+}
+
 void HDF5File::CreateGroup(std::string Path)
 {
     KRATOS_TRY;
