@@ -165,6 +165,13 @@ private:
                      PropertiesContainerType& rProperties,
                      ElementsContainerType& rElements);
 
+    void AddConditions(const Condition& rCondition,
+                       const HDF5File::Vector<int>& rConditionIds,
+                       const HDF5File::Vector<int>& rPropertyIds,
+                       const HDF5File::Matrix<int>& rConnectivities,
+                       NodesContainerType& rNodes,
+                       PropertiesContainerType& rProperties,
+                       ConditionsContainerType& rConditions);
     ///@}
 };
 

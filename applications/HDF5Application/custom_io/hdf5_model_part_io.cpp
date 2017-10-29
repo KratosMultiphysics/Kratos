@@ -147,6 +147,24 @@ void HDF5ModelPartIO::ReadConditions(NodesContainerType& rNodes,
                                      PropertiesContainerType& rProperties,
                                      ConditionsContainerType& rConditions)
 {
+    KRATOS_TRY;
+    rConditions.clear();
+    std::vector<unsigned> dims;
+    HDF5File::Vector<int> cond_ids, prop_ids;
+    HDF5File::Matrix<int> connectivities;
+
+    for (unsigned i = 0; i < mConditionNames.size(); ++i)
+    {
+        const std::string& r_cond_name = mConditionNames[i];
+        const Condition& r_cond = *mConditionPointers[i];
+        const std::string cond_path = "/Conditions/" + r_cond_name;
+        dims = GetFile().GetDataDimensions(cond_path + "/Id");
+        GetFile().ReadDataSet(cond_path + "/Id", cond_ids, 0, dims[0]);
+        GetFile().ReadDataSet(cond_path + "/PropertyId", prop_ids, 0, dims[0]);
+        GetFile().ReadDataSet(cond_path + "/Connectivity", connectivities, 0, dims[0]);
+        AddConditions(r_cond, cond_ids, prop_ids, connectivities, rNodes, rProperties, rConditions);
+    }
+    KRATOS_CATCH("");
 }
 
 void HDF5ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
@@ -481,6 +499,7 @@ void HDF5ModelPartIO::AddElements(const Element& rElement,
                                   PropertiesContainerType& rProperties,
                                   ElementsContainerType& rElements)
 {
+    KRATOS_TRY;
     const unsigned new_size = rElements.size() + rElementIds.size();
     const unsigned num_elem_nodes = rConnectivities.size2();
     rElements.reserve(new_size);
@@ -497,6 +516,35 @@ void HDF5ModelPartIO::AddElements(const Element& rElement,
         Element::Pointer p_elem = rElement.Create(new_id, nodes, rProperties(new_id));
         rElements.push_back(p_elem);
     }
+    KRATOS_CATCH("");
+}
+
+void HDF5ModelPartIO::AddConditions(const Condition& rCondition,
+                                    const HDF5File::Vector<int>& rConditionIds,
+                                    const HDF5File::Vector<int>& rPropertyIds,
+                                    const HDF5File::Matrix<int>& rConnectivities,
+                                    NodesContainerType& rNodes,
+                                    PropertiesContainerType& rProperties,
+                                    ConditionsContainerType& rConditions)
+{
+    KRATOS_TRY;
+    const unsigned new_size = rConditions.size() + rConditionIds.size();
+    const unsigned num_cond_nodes = rConnectivities.size2();
+    rConditions.reserve(new_size);
+    Condition::NodesArrayType nodes(num_cond_nodes);
+
+    for (unsigned i = 0; i < rConditionIds.size(); ++i)
+    {
+        Condition::IndexType new_id = rConditionIds[i];
+        for (unsigned j = 0; j < num_cond_nodes; ++j)
+        {
+            int node_id = rConnectivities(i, j);
+            nodes(j) = rNodes(node_id);
+        }
+        Condition::Pointer p_cond = rCondition.Create(new_id, nodes, rProperties(new_id));
+        rConditions.push_back(p_cond);
+    }
+    KRATOS_CATCH("");
 }
 
 } // namespace Kratos.
