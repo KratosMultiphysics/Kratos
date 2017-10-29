@@ -23,7 +23,7 @@ addons:
     packages:
       - gcc-6
       - g++-6
-      - gfortran
+      - gfortran-6
       - libboost1.55-dev
       - libboost-serialization1.55-dev
       - libboost-python1.55-dev
