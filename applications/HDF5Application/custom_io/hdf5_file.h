@@ -199,6 +199,15 @@ public:
     // Return the total number of processes with file access.
     virtual unsigned GetTotalProcesses() const;
 
+    template<class TScalar>
+    void ReadAttribute(std::string ObjectPath, std::string Name, TScalar& rValue);
+
+    template<class TScalar>
+    void ReadAttribute(std::string ObjectPath, std::string Name, Vector<TScalar>& rValue);
+
+    template<class TScalar>
+    void ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TScalar>& rValue);
+
     /// Read a data set from the HDF5 file.
     /**
      * Performs collective read in MPI. Throws if out of range.
@@ -358,6 +367,138 @@ void HDF5File::WriteAttribute(std::string ObjectPath, std::string Name, const Ma
     KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
     KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue(0,0)) < 0) << "H5Awrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    KRATOS_CATCH("");
+}
+
+template <class TScalar>
+void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, TScalar& rValue)
+{
+    KRATOS_TRY;
+    hid_t mem_type_id, attr_type_id, space_id, attr_id;
+    int ndims;
+
+    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
+    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
+    if (is_int_type)
+        mem_type_id = H5T_NATIVE_INT;
+    else if (is_double_type)
+        mem_type_id = H5T_NATIVE_DOUBLE;
+    else
+        static_assert(is_int_type || is_double_type, "Unsupported data type.");
+
+    attr_id = H5Aopen_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(),
+                                    H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
+
+    // Check data type.
+    attr_type_id = H5Aget_type(attr_id);
+    KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
+    htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
+    KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
+    KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
+
+    // Check dimensions.
+    space_id = H5Aget_space(attr_id);
+    KRATOS_ERROR_IF(space_id < 0) << "H5Aget_space failed." << std::endl;
+    KRATOS_ERROR_IF((ndims = H5Sget_simple_extent_ndims(space_id)) < 0)
+        << "H5Sget_simple_extent_ndims failed." << std::endl;
+    KRATOS_ERROR_IF(ndims != 0) << "Attribute \"" << Name << "\" is not scalar." << std::endl;
+
+    // Read attribute.
+    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue) < 0) << "H5Aread failed." << std::endl; 
+    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
+    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    KRATOS_CATCH("");
+}
+
+template <class TScalar>
+void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, Vector<TScalar>& rValue)
+{
+    KRATOS_TRY;
+    hid_t mem_type_id, attr_type_id, space_id, attr_id;
+    int ndims;
+    hsize_t dims[1];
+
+    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
+    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
+    if (is_int_type)
+        mem_type_id = H5T_NATIVE_INT;
+    else if (is_double_type)
+        mem_type_id = H5T_NATIVE_DOUBLE;
+    else
+        static_assert(is_int_type || is_double_type, "Unsupported data type.");
+
+    attr_id = H5Aopen_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(),
+                                    H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
+
+    // Check data type.
+    attr_type_id = H5Aget_type(attr_id);
+    KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
+    htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
+    KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
+    KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
+
+    // Check dimensions.
+    space_id = H5Aget_space(attr_id);
+    KRATOS_ERROR_IF(space_id < 0) << "H5Aget_space failed." << std::endl;
+    KRATOS_ERROR_IF((ndims = H5Sget_simple_extent_ndims(space_id)) < 0)
+        << "H5Sget_simple_extent_ndims failed." << std::endl;
+    KRATOS_ERROR_IF(ndims != 1) << "Attribute \"" << Name << "\" is not vector." << std::endl;
+    KRATOS_ERROR_IF(H5Sget_simple_extent_dims(space_id, dims, nullptr) < 0)
+        << "H5Sget_simple_extent_dims failed" << std::endl;
+    rValue.resize(dims[0], false);
+    // Read attribute.
+    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue[0]) < 0) << "H5Aread failed." << std::endl; 
+    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
+    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    KRATOS_CATCH("");
+}
+
+template <class TScalar>
+void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TScalar>& rValue)
+{
+    KRATOS_TRY;
+    hid_t mem_type_id, attr_type_id, space_id, attr_id;
+    int ndims;
+    hsize_t dims[2];
+
+    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
+    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
+    if (is_int_type)
+        mem_type_id = H5T_NATIVE_INT;
+    else if (is_double_type)
+        mem_type_id = H5T_NATIVE_DOUBLE;
+    else
+        static_assert(is_int_type || is_double_type, "Unsupported data type.");
+
+    attr_id = H5Aopen_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(),
+                                    H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
+
+    // Check data type.
+    attr_type_id = H5Aget_type(attr_id);
+    KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
+    htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
+    KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
+    KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
+
+    // Check dimensions.
+    space_id = H5Aget_space(attr_id);
+    KRATOS_ERROR_IF(space_id < 0) << "H5Aget_space failed." << std::endl;
+    KRATOS_ERROR_IF((ndims = H5Sget_simple_extent_ndims(space_id)) < 0)
+        << "H5Sget_simple_extent_ndims failed." << std::endl;
+    KRATOS_ERROR_IF(ndims != 2) << "Attribute \"" << Name << "\" is not matrix." << std::endl;
+    KRATOS_ERROR_IF(H5Sget_simple_extent_dims(space_id, dims, nullptr) < 0)
+        << "H5Sget_simple_extent_dims failed" << std::endl;
+    rValue.resize(dims[0], dims[1], false);
+    // Read attribute.
+    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue(0,0)) < 0) << "H5Aread failed." << std::endl; 
+    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     KRATOS_CATCH("");
 }

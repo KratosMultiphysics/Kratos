@@ -1,5 +1,7 @@
 #include "hdf5_file.h"
 
+#include <algorithm>
+
 namespace Kratos
 {
 HDF5File::HDF5File(Parameters& rParams)
@@ -125,12 +127,29 @@ bool HDF5File::HasAttribute(std::string ObjectPath, std::string Name) const
 void HDF5File::GetAttributeNames(std::string ObjectPath, std::vector<std::string>& rNames) const
 {
     KRATOS_TRY;
+    constexpr unsigned max_ssize = 100;
+    char buffer[max_ssize];
     // Get number of attributes.
-    //herr_t H5Oget_info( hid_t object_id, H5O_info_t *object_info  )
-    // Get size of each name.
-    //ssize_t H5Aget_name_by_idx( hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_iter_order_t order, hsize_t n, char *name, size_t size, hid_t lapl_id ) 
-    // Get each name.
-    //ssize_t H5Aget_name_by_idx( hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_iter_order_t order, hsize_t n, char *name, size_t size, hid_t lapl_id ) 
+    hid_t object_id = H5Oopen(m_file_id, ObjectPath.c_str(), H5P_DEFAULT);
+    KRATOS_ERROR_IF(object_id < 0) << "H5Oopen failed." << std::endl;
+    H5O_info_t object_info;
+    KRATOS_ERROR_IF(H5Oget_info(object_id, &object_info) < 0)
+        << "H5Oget_info failed." << std::endl;
+    hsize_t num_attrs = object_info.num_attrs;
+    rNames.resize(num_attrs);
+
+    for (hsize_t i = 0; i < num_attrs; ++i)
+    {
+        // Get size of name.
+        ssize_t ssize;
+        ssize = H5Aget_name_by_idx(m_file_id, ObjectPath.c_str(), H5_INDEX_NAME,
+                                   H5_ITER_INC, i, buffer, max_ssize, H5P_DEFAULT);
+        KRATOS_ERROR_IF(ssize < 0) << "H5Aget_name_by_idx failed." << std::endl;
+        KRATOS_ERROR_IF(ssize > max_ssize) << "Attribute name size exceeds "
+                                           << max_ssize << std::endl;
+        rNames[i].resize(ssize);
+        std::copy_n(buffer, ssize, rNames[i].begin());
+    }
     KRATOS_CATCH("");
 }
 

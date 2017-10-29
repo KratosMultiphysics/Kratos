@@ -13,6 +13,7 @@
 // System includes
 #include <cmath>
 #include <vector>
+#include <string>
 
 // External includes
 
@@ -122,6 +123,12 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5Test1, KratosHDF5TestSuite)
     test_file.WriteAttribute("/foo", "DENSITY", 1.2);
     test_file.WriteAttribute("/foo", "INERTIA", write_data_vec_int);
     test_file.WriteAttribute("/foo", "MATERIAL", write_data_mat_int);
+    std::vector<std::string> attr_names;
+    test_file.GetAttributeNames("/foo", attr_names);
+    KRATOS_CHECK(attr_names.size() == 3);
+    KRATOS_CHECK(attr_names[0] == "DENSITY");
+    KRATOS_CHECK(attr_names[1] == "INERTIA");
+    KRATOS_CHECK(attr_names[2] == "MATERIAL");
 }
 } // namespace Testing
 } // namespace Kratos.
