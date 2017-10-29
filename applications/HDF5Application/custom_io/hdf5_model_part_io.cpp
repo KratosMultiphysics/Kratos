@@ -84,12 +84,20 @@ void HDF5ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     HDF5File::Vector<int> node_ids(rNodes.size());
     HDF5File::Vector<array_1d<double, 3>> node_coords(rNodes.size());
 
-    unsigned pos = 0;
-    for (const auto& r_node : rNodes)
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    OpenMPUtils::PartitionVector partition;
+    OpenMPUtils::DivideInPartitions(rNodes.size(), num_threads, partition);
+#pragma omp parallel
     {
-        node_ids[pos] = r_node.Id();
-        node_coords[pos] = r_node.Coordinates();
-        ++pos;
+        const int thread_id = OpenMPUtils::ThisThread();
+        NodesContainerType::const_iterator it = rNodes.begin() + partition[thread_id];
+        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
+        {
+            const auto& r_node = *it;
+            node_ids[i] = r_node.Id();
+            node_coords[i] = r_node.Coordinates();
+            ++it;
+        }
     }
 
     GetFile().WriteDataSet("/Nodes/Local/Id", node_ids);
