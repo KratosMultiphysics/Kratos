@@ -65,8 +65,6 @@ public:
                       PropertiesContainerType& rProperties,
                       ElementsContainerType& rElements) override;
 
-    std::size_t ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities) override;
-
     void WriteElements(ElementsContainerType const& rElements) override;
 
     void ReadConditions(NodesContainerType& rNodes,
@@ -74,8 +72,6 @@ public:
                         ConditionsContainerType& rConditions) override;
 
     void WriteConditions(ConditionsContainerType const& rConditions) override;
-
-    std::size_t ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
     void ReadInitialValues(ModelPart& rModelPart) override;
 

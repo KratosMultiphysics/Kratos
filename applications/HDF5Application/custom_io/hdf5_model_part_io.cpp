@@ -130,11 +130,6 @@ void HDF5ModelPartIO::ReadElements(NodesContainerType& rNodes,
     KRATOS_CATCH("");
 }
 
-std::size_t HDF5ModelPartIO::ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities)
-{
-    return 0;
-}
-
 void HDF5ModelPartIO::WriteElements(ElementsContainerType const& rElements)
 {
     KRATOS_TRY;
@@ -189,11 +184,6 @@ void HDF5ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions
         WriteMixedConditions(rConditions);
 
     KRATOS_CATCH("");
-}
-
-std::size_t HDF5ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
-{
-    return 0;
 }
 
 void HDF5ModelPartIO::ReadInitialValues(ModelPart& rModelPart)
