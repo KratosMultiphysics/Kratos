@@ -116,6 +116,8 @@ public:
 
     bool HasAttribute(std::string ObjectPath, std::string Name) const;
 
+    void GetAttributeNames(std::string ObjectPath, std::vector<std::string>& rNames) const;
+
     void CreateGroup(std::string Path);
 
     void AddPath(std::string Path);

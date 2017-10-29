@@ -122,6 +122,18 @@ bool HDF5File::HasAttribute(std::string ObjectPath, std::string Name) const
     KRATOS_CATCH("");
 }
 
+void HDF5File::GetAttributeNames(std::string ObjectPath, std::vector<std::string>& rNames) const
+{
+    KRATOS_TRY;
+    // Get number of attributes.
+    //herr_t H5Oget_info( hid_t object_id, H5O_info_t *object_info  )
+    // Get size of each name.
+    //ssize_t H5Aget_name_by_idx( hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_iter_order_t order, hsize_t n, char *name, size_t size, hid_t lapl_id ) 
+    // Get each name.
+    //ssize_t H5Aget_name_by_idx( hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_iter_order_t order, hsize_t n, char *name, size_t size, hid_t lapl_id ) 
+    KRATOS_CATCH("");
+}
+
 void HDF5File::CreateGroup(std::string Path)
 {
     KRATOS_TRY;

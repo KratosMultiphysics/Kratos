@@ -30,7 +30,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5Test1, KratosHDF5TestSuite)
                 {
                     "file_name" : "test.h5",
                     "file_access_mode": "exclusive",
-                    "file_driver": "sec2"
+                    "file_driver": "core"
                 })");
 
     HDF5FileSerial test_file(test_params);
