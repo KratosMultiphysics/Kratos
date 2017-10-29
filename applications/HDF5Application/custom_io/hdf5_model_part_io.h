@@ -157,6 +157,14 @@ private:
 
     void WriteMixedConditions(ConditionsContainerType const& rConditions);
 
+    void AddElements(const Element& rElement,
+                     const HDF5File::Vector<int>& rElementIds,
+                     const HDF5File::Vector<int>& rPropertyIds,
+                     const HDF5File::Matrix<int>& rConnectivities,
+                     NodesContainerType& rNodes,
+                     PropertiesContainerType& rProperties,
+                     ElementsContainerType& rElements);
+
     ///@}
 };
 

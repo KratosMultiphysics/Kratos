@@ -102,6 +102,24 @@ void HDF5ModelPartIO::ReadElements(NodesContainerType& rNodes,
                                    PropertiesContainerType& rProperties,
                                    ElementsContainerType& rElements)
 {
+    KRATOS_TRY;
+    rElements.clear();
+    std::vector<unsigned> dims;
+    HDF5File::Vector<int> elem_ids, prop_ids;
+    HDF5File::Matrix<int> connectivities;
+
+    for (unsigned i = 0; i < mElementNames.size(); ++i)
+    {
+        const std::string& r_elem_name = mElementNames[i];
+        const Element& r_elem = *mElementPointers[i];
+        const std::string elem_path = "/Elements/" + r_elem_name;
+        dims = GetFile().GetDataDimensions(elem_path + "/Id");
+        GetFile().ReadDataSet(elem_path + "/Id", elem_ids, 0, dims[0]);
+        GetFile().ReadDataSet(elem_path + "/PropertyId", prop_ids, 0, dims[0]);
+        GetFile().ReadDataSet(elem_path + "/Connectivity", connectivities, 0, dims[0]);
+        AddElements(r_elem, elem_ids, prop_ids, connectivities, rNodes, rProperties, rElements);
+    }
+    KRATOS_CATCH("");
 }
 
 std::size_t HDF5ModelPartIO::ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities)
@@ -453,6 +471,32 @@ void HDF5ModelPartIO::WriteMixedConditions(ConditionsContainerType const& rCondi
     }
 
     KRATOS_CATCH("");
+}
+
+void HDF5ModelPartIO::AddElements(const Element& rElement,
+                                  const HDF5File::Vector<int>& rElementIds,
+                                  const HDF5File::Vector<int>& rPropertyIds,
+                                  const HDF5File::Matrix<int>& rConnectivities,
+                                  NodesContainerType& rNodes,
+                                  PropertiesContainerType& rProperties,
+                                  ElementsContainerType& rElements)
+{
+    const unsigned new_size = rElements.size() + rElementIds.size();
+    const unsigned num_elem_nodes = rConnectivities.size2();
+    rElements.reserve(new_size);
+    Element::NodesArrayType nodes(num_elem_nodes);
+
+    for (unsigned i = 0; i < rElementIds.size(); ++i)
+    {
+        Element::IndexType new_id = rElementIds[i];
+        for (unsigned j = 0; j < num_elem_nodes; ++j)
+        {
+            int node_id = rConnectivities(i, j);
+            nodes(j) = rNodes(node_id);
+        }
+        Element::Pointer p_elem = rElement.Create(new_id, nodes, rProperties(new_id));
+        rElements.push_back(p_elem);
+    }
 }
 
 } // namespace Kratos.
