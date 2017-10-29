@@ -105,29 +105,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override
-    {
-        KRATOS_TRY;
-
-        constexpr unsigned int size = TDim == 2  ? 3: 6;
-
-        const array_1d<double, size> zerovector(size, 0.0);
-
-        // We iterate over the node
-        NodesArrayType& pNodes = mrThisModelPart.Nodes();
-        int numNodes = mrThisModelPart.NumberOfNodes();
-
-        #pragma omp parallel for firstprivate(zerovector)
-        for(int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNodes.begin() + i;
-
-            // The metric
-            itNode->SetValue(MMG_METRIC, zerovector);
-        }
-
-        KRATOS_CATCH("");
-    }
+    void Execute() override;
 
     ///@}
     ///@name Access
