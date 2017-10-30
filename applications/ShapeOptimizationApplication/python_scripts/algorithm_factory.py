@@ -35,7 +35,7 @@ def CreateAlgorithm( InputModelPart, Analyzer, OptimizationSettings ):
 
     Mapper = mapper_factory.CreateMapper( DesignSurface, OptimizationSettings ) 
     Communicator = communicator_factory.CreateCommunicator( OptimizationSettings )
-    DataLogger = optimization_data_logger_factory.CreateDataLogger( DesignSurface, Communicator, OptimizationSettings )
+    DataLogger = optimization_data_logger_factory.CreateDataLogger( InputModelPart, Communicator, OptimizationSettings )
 
     if AlgorithmName == "steepest_descent":
         return AlgorithmSteepestDescent( DesignSurface, DampingRegions, Analyzer, Mapper, Communicator, DataLogger, OptimizationSettings )
