@@ -129,8 +129,8 @@ void  AddCustomUtilitiesToPython()
     // For input / output
     // ========================================================================
     class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters&>())
-        .def("initializeLogging", &UniversalFileIO::initializeLogging)
-        .def("logNodalResults", &UniversalFileIO::logNodalResults)
+        .def("InitializeLogging", &UniversalFileIO::InitializeLogging)
+        .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
         ;
 
     class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart&, Parameters&>())

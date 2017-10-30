@@ -26,18 +26,18 @@ from design_logger_base import DesignLogger
 class DesignLoggerUNV( DesignLogger ):
 
     # --------------------------------------------------------------------------
-    def __init__( self, designSurface, optimizationSettings ):
-        self.designSurface = designSurface
-        self.optimizationSettings = optimizationSettings
-        self.unvIO = UniversalFileIO( designSurface, optimizationSettings )                
+    def __init__( self, InputModelPart, OptimizationSettings ):
+        self.InputModelPart = InputModelPart
+        self.OptimizationSettings = OptimizationSettings
+        self.unvIO = UniversalFileIO( InputModelPart, OptimizationSettings )                
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
-        self.unvIO.initializeLogging()
+        self.unvIO.InitializeLogging()
 
     # --------------------------------------------------------------------------
     def LogCurrentDesign( self, optimizationIteration ):
-        self.unvIO.logNodalResults( optimizationIteration )
+        self.unvIO.LogNodalResults( optimizationIteration )
 
     # --------------------------------------------------------------------------
     def FinalizeLogging( self ):      

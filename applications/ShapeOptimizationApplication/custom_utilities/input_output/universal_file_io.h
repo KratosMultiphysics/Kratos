@@ -81,7 +81,7 @@ public:
         : mrDesignSurface( designSurface ),
           mrOptimizationSettings( optimizationSettings )
     {
-        mOutputFilename = createCompleteOutputFilenameWithPath( optimizationSettings );
+        mOutputFilename = CreateCompleteOutputFilenameWithPath( optimizationSettings );
     }
 
     /// Destructor.
@@ -100,36 +100,36 @@ public:
     ///@{
 
     // ==============================================================================
-    string createCompleteOutputFilenameWithPath( Parameters& optimizationSettings  )
+    string CreateCompleteOutputFilenameWithPath( Parameters& optimizationSettings  )
     {
         string outputDirectory = optimizationSettings["output"]["output_directory"].GetString();
         string outputFilename = outputDirectory + "/" + optimizationSettings["output"]["design_history_filename"].GetString() + ".unv";
         return outputFilename;
     }
     // --------------------------------------------------------------------------
-    void initializeLogging()
+    void InitializeLogging()
     {
-        writeMeshToResultFile();
+        WriteMeshToResultFile();
     }
 
     // --------------------------------------------------------------------------
-    void writeMeshToResultFile()
+    void WriteMeshToResultFile()
     {
-        initializeOutputFile();
-        writeUnits();
-        writeNodes(); 
-        writeElements();  
+        InitializeOutputFile();
+        WriteUnits();
+        WriteNodes(); 
+        WriteElements();  
     }
 
     // --------------------------------------------------------------------------
-    void initializeOutputFile()
+    void InitializeOutputFile()
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::trunc );
         outputFile.close();     
     }    
     // --------------------------------------------------------------------------
-    void writeUnits()
+    void WriteUnits()
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
@@ -155,7 +155,7 @@ public:
     }   
 
     // --------------------------------------------------------------------------
-    void writeNodes()
+    void WriteNodes()
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
@@ -184,7 +184,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void writeElements()
+    void WriteElements()
     {
         // All conditions given in the design surface are translated to dummy elements with the same geometry
         ofstream outputFile;
@@ -236,11 +236,93 @@ public:
         }
         outputFile << setw(6) << "-1" << "\n";
 
+
+
+
+
+
+
+
+        outputFile << setw(6) << "-1" << "\n";
+        outputFile << setw(6) << dataSetNumberForElements << "\n";
+        for (auto & element_i : mrDesignSurface.Elements())
+        {
+            const int element_label = element_i.Id();
+            ModelPart::ConditionType::GeometryType element_geometry = element_i.GetGeometry();
+
+            // Write triangles
+            if( element_geometry.size()==3 && element_geometry.Dimension()==2 )
+            {
+                const int feDescriptorId = 41; // Plane Stress Linear Triangle
+                const int numberOfNodes = 3; 
+                outputFile << setw(10) << element_label;
+                outputFile << setw(10) << feDescriptorId;
+                outputFile << setw(10) << physicalPropertyTableNumber;
+                outputFile << setw(10) << materialPropertyTableNumber ;
+                outputFile << setw(10) << color;
+                outputFile << setw(10) << numberOfNodes << "\n";
+                outputFile << setw(10) << element_geometry[0].Id(); 
+                outputFile << setw(10) << element_geometry[1].Id(); 
+                outputFile << setw(10) << element_geometry[2].Id() << "\n";                
+            }
+            // Write quads
+            else if( element_geometry.size()==4 && element_geometry.Dimension()==2 )
+            {
+                const int feDescriptorId = 44; // Plane Stress Linear Quadrilateral
+                const int numberOfNodes = 4;
+                outputFile << setw(10) << element_label;
+                outputFile << setw(10) << feDescriptorId; 
+                outputFile << setw(10) << physicalPropertyTableNumber; 
+                outputFile << setw(10) << materialPropertyTableNumber;
+                outputFile << setw(10) << color;
+                outputFile << setw(10) << numberOfNodes << "\n";
+                outputFile << setw(10) << element_geometry[0].Id(); 
+                outputFile << setw(10) << element_geometry[1].Id();
+                outputFile << setw(10) << element_geometry[2].Id();
+                outputFile << setw(10) << element_geometry[3].Id() << "\n";                     
+            }
+            // Write tetrahedras
+            else if( element_geometry.size()==4 && element_geometry.Dimension()==3 )
+            {
+                const int feDescriptorId = 111; // Solid linear tetrahedron
+                const int numberOfNodes = 4;
+                outputFile << setw(10) << element_label;
+                outputFile << setw(10) << feDescriptorId; 
+                outputFile << setw(10) << physicalPropertyTableNumber; 
+                outputFile << setw(10) << materialPropertyTableNumber;
+                outputFile << setw(10) << color;
+                outputFile << setw(10) << numberOfNodes << "\n";
+                outputFile << setw(10) << element_geometry[0].Id(); 
+                outputFile << setw(10) << element_geometry[1].Id();
+                outputFile << setw(10) << element_geometry[2].Id();
+                outputFile << setw(10) << element_geometry[3].Id() << "\n";                     
+            }             
+            else 
+                KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains elements with geometries for which no UNV-output is implemented!","" )
+        }
+        outputFile << setw(6) << "-1" << "\n";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         outputFile.close();     
     }    
 
     // --------------------------------------------------------------------------
-    void logNodalResults( const int optimizationIteration )
+    void LogNodalResults( const int optimizationIteration )
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
