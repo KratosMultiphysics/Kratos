@@ -62,8 +62,8 @@ HDF5File::~HDF5File()
 bool HDF5File::HasPath(std::string Path) const
 {
     KRATOS_TRY;
-
-    KRATOS_ERROR_IF_NOT(HDF5Utils::IsPath(Path)) << "Invalid path: " << Path << std::endl;
+    // Expects a valid path.
+    KRATOS_ERROR_IF_NOT(HDF5Utils::IsPath(Path)) << "Invalid path: \"" << Path << '"' << std::endl;
 
     std::vector<std::string> splitted_path = HDF5Utils::Split(Path, '/');
     std::string sub_path;
@@ -89,7 +89,7 @@ bool HDF5File::HasPath(std::string Path) const
 bool HDF5File::IsGroup(std::string Path) const
 {
     KRATOS_TRY;
-    if (HasPath(Path) == false)
+    if (HasPath(Path) == false) // Expects a valid path.
         return false;
 
     H5O_info_t object_info;
@@ -103,7 +103,7 @@ bool HDF5File::IsGroup(std::string Path) const
 bool HDF5File::IsDataSet(std::string Path) const
 {
     KRATOS_TRY;
-    if (HasPath(Path) == false)
+    if (HasPath(Path) == false) // Expects a valid path.
         return false;
 
     H5O_info_t object_info;
@@ -142,7 +142,7 @@ void HDF5File::GetAttributeNames(std::string ObjectPath, std::vector<std::string
     {
         // Get size of name.
         ssize_t ssize;
-        ssize = H5Aget_name_by_idx(m_file_id, ObjectPath.c_str(), H5_INDEX_NAME,
+        ssize = H5Aget_name_by_idx(m_file_id, ObjectPath.c_str(), H5_INDEX_CRT_ORDER,
                                    H5_ITER_INC, i, buffer, max_ssize, H5P_DEFAULT);
         KRATOS_ERROR_IF(ssize < 0) << "H5Aget_name_by_idx failed." << std::endl;
         KRATOS_ERROR_IF(ssize > max_ssize) << "Attribute name size exceeds "
@@ -150,6 +150,7 @@ void HDF5File::GetAttributeNames(std::string ObjectPath, std::vector<std::string
         rNames[i].resize(ssize);
         std::copy_n(buffer, ssize, rNames[i].begin());
     }
+    KRATOS_ERROR_IF(H5Oclose(object_id) < 0) << "H5Oclose failed." << std::endl;
     KRATOS_CATCH("");
 }
 

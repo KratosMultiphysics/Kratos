@@ -156,13 +156,16 @@ private:
     template <class T>
     void WriteDataSetVectorImpl(std::string Path, const Vector<T>& rData)
     {
-        // Check that full path does not exist before trying to write data.
+        // Expects a valid free path.
         KRATOS_ERROR_IF(HasPath(Path)) << "Path already exists: " << Path << std::endl;
 
         // Create any missing subpaths.
         auto pos = Path.find_last_of('/');
-        std::string sub_path = Path.substr(0, pos);
-        AddPath(sub_path);
+        if (pos != 0) // Skip if last '/' is root.
+        {
+            std::string sub_path = Path.substr(0, pos);
+            AddPath(sub_path);
+        }
 
         // Initialize data space dimensions.
         constexpr bool is_int_type = std::is_same<int, T>::value;
@@ -207,8 +210,11 @@ private:
 
         // Create any missing subpaths.
         auto pos = Path.find_last_of('/');
-        std::string sub_path = Path.substr(0, pos);
-        AddPath(sub_path);
+        if (pos != 0) // Skip if last '/' is root.
+        {
+            std::string sub_path = Path.substr(0, pos);
+            AddPath(sub_path);
+        }
 
         // Initialize data space dimensions.
         constexpr bool is_int_type = std::is_same<int, T>::value;

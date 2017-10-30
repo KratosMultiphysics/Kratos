@@ -162,8 +162,11 @@ private:
         
         // Create any missing subpaths.
         auto pos = Path.find_last_of('/');
-        std::string sub_path = Path.substr(0, pos);
-        AddPath(sub_path);
+        if (pos != 0) // Skip if last '/' is root.
+        {
+            std::string sub_path = Path.substr(0, pos);
+            AddPath(sub_path);
+        }
 
         // Initialize data space dimensions.
         constexpr bool is_int_type = std::is_same<int, T>::value;
@@ -247,8 +250,11 @@ private:
         
         // Create any missing subpaths.
         auto pos = Path.find_last_of('/');
-        std::string sub_path = Path.substr(0, pos);
-        AddPath(sub_path);
+        if (pos != 0) // Skip if last '/' is root.
+        {
+            std::string sub_path = Path.substr(0, pos);
+            AddPath(sub_path);
+        }
 
         // Initialize data space dimensions.
         constexpr bool is_int_type = std::is_same<int, T>::value;
