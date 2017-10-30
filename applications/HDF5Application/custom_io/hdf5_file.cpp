@@ -151,6 +151,8 @@ void HDF5File::GetAttributeNames(std::string ObjectPath, std::vector<std::string
         std::copy_n(buffer, ssize, rNames[i].begin());
     }
     KRATOS_ERROR_IF(H5Oclose(object_id) < 0) << "H5Oclose failed." << std::endl;
+    //ssize_t num_open_objects = H5Fget_obj_count(m_file_id, H5F_OBJ_ALL);
+    //KRATOS_ERROR << "num_open_objects = " << num_open_objects << std::endl;
     KRATOS_CATCH("");
 }
 

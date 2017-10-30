@@ -397,12 +397,7 @@ void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, TScalar& 
     htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
     KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
     KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
-    if (is_valid_type == 0)
-    {
-        // Close attribute before throwing to avoid problems for other unit tests.
-        KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-        KRATOS_ERROR << "Memory and file data types are different." << std::endl;
-    }
+    KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
 
     // Check dimensions.
     space_id = H5Aget_space(attr_id);
@@ -410,11 +405,7 @@ void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, TScalar& 
     KRATOS_ERROR_IF((ndims = H5Sget_simple_extent_ndims(space_id)) < 0)
         << "H5Sget_simple_extent_ndims failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
-    if (ndims != 0)
-    {
-        KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-        KRATOS_ERROR << "Attribute \"" << Name << "\" is not scalar." << std::endl;
-    }
+    KRATOS_ERROR_IF(ndims != 0) << "Attribute \"" << Name << "\" is not scalar." << std::endl;
     
     // Read attribute.
     KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue) < 0) << "H5Aread failed." << std::endl; 
@@ -449,23 +440,14 @@ void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, Vector<TS
     htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
     KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
     KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
-    if (is_valid_type == 0)
-    {
-        // Close attribute before throwing to avoid problems for other unit tests.
-        KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-        KRATOS_ERROR << "Memory and file data types are different." << std::endl;
-    }
+    KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
 
     // Check dimensions.
     space_id = H5Aget_space(attr_id);
     KRATOS_ERROR_IF(space_id < 0) << "H5Aget_space failed." << std::endl;
     KRATOS_ERROR_IF((ndims = H5Sget_simple_extent_ndims(space_id)) < 0)
         << "H5Sget_simple_extent_ndims failed." << std::endl;
-    if (ndims != 1)
-    {
-        KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-        KRATOS_ERROR << "Attribute \"" << Name << "\" is not vector." << std::endl;
-    }
+    KRATOS_ERROR_IF(ndims != 1) << "Attribute \"" << Name << "\" is not vector." << std::endl;
     KRATOS_ERROR_IF(H5Sget_simple_extent_dims(space_id, dims, nullptr) < 0)
         << "H5Sget_simple_extent_dims failed" << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
@@ -503,23 +485,14 @@ void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TS
     htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
     KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
     KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
-    if (is_valid_type == 0)
-    {
-        // Close attribute before throwing to avoid problems for other unit tests.
-        KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-        KRATOS_ERROR << "Memory and file data types are different." << std::endl;
-    }
+    KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
 
     // Check dimensions.
     space_id = H5Aget_space(attr_id);
     KRATOS_ERROR_IF(space_id < 0) << "H5Aget_space failed." << std::endl;
     KRATOS_ERROR_IF((ndims = H5Sget_simple_extent_ndims(space_id)) < 0)
         << "H5Sget_simple_extent_ndims failed." << std::endl;
-    if (ndims != 2)
-    {
-        KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-        KRATOS_ERROR << "Attribute \"" << Name << "\" is not matrix." << std::endl;
-    }
+    KRATOS_ERROR_IF(ndims != 2) << "Attribute \"" << Name << "\" is not matrix." << std::endl;
     KRATOS_ERROR_IF(H5Sget_simple_extent_dims(space_id, dims, nullptr) < 0)
         << "H5Sget_simple_extent_dims failed" << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;

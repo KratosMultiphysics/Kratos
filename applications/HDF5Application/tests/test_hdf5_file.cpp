@@ -56,6 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_HDF5File1, KratosHDF5TestSuite)
             })");
         HDF5File test_file(test_params);
         , "Invalid HDF5 file: test.h5");
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_HDF5File2, KratosHDF5TestSuite)
@@ -69,6 +70,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_HDF5File2, KratosHDF5TestSuite)
             })");
         HDF5File test_file(test_params);
         , "Invalid \"file_access_mode\": bad_access_mode");
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_HDF5File3, KratosHDF5TestSuite)
@@ -82,6 +84,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_HDF5File3, KratosHDF5TestSuite)
             })");
         HDF5File test_file(test_params);
         , "Unsupported \"file_driver\": bad_file_driver");
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_HasPath, KratosHDF5TestSuite)
@@ -101,6 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_HasPath, KratosHDF5TestSuite)
     test_file.CreateGroup("/foo");
     test_file.CreateGroup("/foo/bar");
     KRATOS_CHECK(test_file.HasPath("/foo/bar") == true);
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_IsGroup, KratosHDF5TestSuite)
@@ -119,6 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_IsGroup, KratosHDF5TestSuite)
         , "Invalid path: \"invalid_path\"");
     KRATOS_CHECK(test_file.IsGroup("/foo/bar") == true);
     KRATOS_CHECK(test_file.IsGroup("/abcdef") == false);
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_IsDataSet, KratosHDF5TestSuite)
@@ -138,6 +143,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_IsDataSet, KratosHDF5TestSuite)
         , "Invalid path: \"invalid_path\"");
     KRATOS_CHECK(test_file.IsDataSet("/foo") == false);
     KRATOS_CHECK(test_file.IsDataSet("/foo/data") == true);
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_HasAttribute, KratosHDF5TestSuite)
@@ -157,6 +163,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_HasAttribute, KratosHDF5TestSuite)
     KRATOS_CHECK(test_file.HasAttribute("/foo", "DENSITY") == false);
     test_file.WriteAttribute("/foo", "DENSITY", 1.2);
     KRATOS_CHECK(test_file.HasAttribute("/foo", "DENSITY") == true);
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_GetAttributeNames, KratosHDF5TestSuite)
@@ -182,6 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_GetAttributeNames, KratosHDF5TestSuite)
     KRATOS_CHECK(names.size() == 2);
     KRATOS_CHECK(names[0] == "DENSITY");
     KRATOS_CHECK(names[1] == "VISCOSITY");
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_CreateGroup, KratosHDF5TestSuite)
@@ -201,6 +209,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_CreateGroup, KratosHDF5TestSuite)
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.CreateGroup("/foo");
         , "H5Gcreate failed");
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_AddPath, KratosHDF5TestSuite)
@@ -221,6 +230,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_AddPath, KratosHDF5TestSuite)
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.AddPath("/a_data_set");
         , "Path exists and is not a group: /a_data_set");
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_GetDataDimensions, KratosHDF5TestSuite)
@@ -252,6 +262,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_GetDataDimensions, KratosHDF5TestSuite)
     KRATOS_CHECK(dims.size() == 2);
     KRATOS_CHECK(dims[0] == 2);
     KRATOS_CHECK(dims[1] == 2);
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_HasIntDataType, KratosHDF5TestSuite)
@@ -273,6 +284,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_HasIntDataType, KratosHDF5TestSuite)
         , "H5Dopen failed");
     KRATOS_CHECK(test_file.HasIntDataType("/data1") == true);
     KRATOS_CHECK(test_file.HasIntDataType("/data2") == false);
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_HasFloatDataType, KratosHDF5TestSuite)
@@ -294,6 +306,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_HasFloatDataType, KratosHDF5TestSuite)
         , "H5Dopen failed");
     KRATOS_CHECK(test_file.HasFloatDataType("/data1") == false);
     KRATOS_CHECK(test_file.HasFloatDataType("/data2") == true);
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_GetFileName, KratosHDF5TestSuite)
@@ -307,6 +320,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_GetFileName, KratosHDF5TestSuite)
 
     HDF5File test_file(test_params);
     KRATOS_CHECK(test_file.GetFileName() == "test.h5");
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet1, KratosHDF5TestSuite)
@@ -338,6 +352,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet1, KratosHDF5TestSuite)
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.ReadDataSet("/data", bad_data_type, 0, 3);
         , "Data type is not int: /data")
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet2, KratosHDF5TestSuite)
@@ -366,6 +381,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet2, KratosHDF5TestSuite)
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.ReadDataSet("/data", data_in, 10, 3);
         , "StartIndex (10) + BlockSize (3) > size of data set (3).");
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet3, KratosHDF5TestSuite)
@@ -397,6 +413,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet3, KratosHDF5TestSuite)
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.ReadDataSet("/data", bad_data_type, 0, 3);
         , "Data type is not int: /data")
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet4, KratosHDF5TestSuite)
@@ -417,6 +434,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet4, KratosHDF5TestSuite)
     KRATOS_CHECK(data_in.size() == 3);
     for (int i = 0; i < 3; ++i)
         KRATOS_CHECK(data_in[i] == data_out[i]);
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet5, KratosHDF5TestSuite)
@@ -437,6 +455,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet5, KratosHDF5TestSuite)
     KRATOS_CHECK(data_in.size() == 3);
     for (int i = 0; i < 3; ++i)
         KRATOS_CHECK(data_in[i] == data_out[i]);
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet6, KratosHDF5TestSuite)
@@ -458,6 +477,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet6, KratosHDF5TestSuite)
     for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 3; ++j)
             KRATOS_CHECK(data_in[i][j] == data_out[i][j]);
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet7, KratosHDF5TestSuite)
@@ -481,6 +501,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet7, KratosHDF5TestSuite)
     for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 2; ++j)
             KRATOS_CHECK(data_in(i,j) == data_out(i,j));
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadAttribute1, KratosHDF5TestSuite)
@@ -519,6 +540,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadAttribute1, KratosHDF5TestSuite)
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
        test_file.ReadAttribute("/foo", "DENSITY_VEC", density_in);
        , "Attribute \"DENSITY_VEC\" is not scalar.")
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadAttribute2, KratosHDF5TestSuite)
@@ -560,6 +582,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadAttribute2, KratosHDF5TestSuite)
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
        test_file.ReadAttribute("/foo", "PROPERTY_SCAL", property_in);
        , "Attribute \"PROPERTY_SCAL\" is not vector.")
+    H5close();
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadAttribute3, KratosHDF5TestSuite)
@@ -605,6 +628,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadAttribute3, KratosHDF5TestSuite)
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.ReadAttribute("/foo", "PROPERTY_SCAL", property_in);
         , "Attribute \"PROPERTY_SCAL\" is not matrix.")
+    H5close();
 }
 
 } // namespace Testing
