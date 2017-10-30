@@ -16,9 +16,9 @@
 // System includes
 
 // External includes
-#include <omp.h>
 
 // Project includes
+#include "utilities/openmp_utils.h"
 #include "meshing_application.h"
 #include "processes/process.h"
 #include "includes/model_part.h"

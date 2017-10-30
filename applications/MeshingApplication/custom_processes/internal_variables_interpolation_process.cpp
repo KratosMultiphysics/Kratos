@@ -22,10 +22,10 @@ namespace Kratos
 void InternalVariablesInterpolationProcess::Execute()
 {
     /** NOTE: There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
-        * CPT: Closest point transfer. It transfer the values from the closest GP
-        * LST: Least-square projection transfer. It transfers from the closest GP from the old mesh
-        * SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the sahpe functions all the time (NOTE: THIS DOESN"T WORK, AND REQUIRES EXTRA STORE)
-        */
+    * CPT: Closest point transfer. It transfer the values from the closest GP
+    * LST: Least-square projection transfer. It transfers from the closest GP from the old mesh
+    * SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the sahpe functions all the time (NOTE: THIS DOESN"T WORK, AND REQUIRES EXTRA STORE)
+    */
 
     if (mThisInterpolationType == CPT && mInternalVariableList.size() > 0)
     {
@@ -51,23 +51,23 @@ PointVector InternalVariablesInterpolationProcess::CreateGaussPointList(ModelPar
     GeometryData::IntegrationMethod this_integration_method;
 
     // Iterate in the elements
-    ElementsArrayType& p_elements = ThisModelPart.Elements();
+    ElementsArrayType& elements_array = ThisModelPart.Elements();
     int num_elements = ThisModelPart.NumberOfElements();
 
     const ProcessInfo& current_process_info = ThisModelPart.GetProcessInfo();
 
     // Creating a buffer for parallel vector fill
-    const unsigned int num_threads = omp_get_max_threads();
+    const int num_threads = OpenMPUtils::GetNumThreads();
     std::vector<PointVector> points_buffer(num_threads);
 
     #pragma omp parallel
     {
-        const unsigned int Id = omp_get_thread_num();
+        const int id = OpenMPUtils::ThisThread();
 
         #pragma omp for
         for(int i = 0; i < num_elements; ++i)
         {
-            auto it_elem = p_elements.begin() + i;
+            auto it_elem = elements_array.begin() + i;
 
             // Getting the geometry
             Element::GeometryType& r_this_geometry = it_elem->GetGeometry();
@@ -98,7 +98,7 @@ PointVector InternalVariablesInterpolationProcess::CreateGaussPointList(ModelPar
 
                 // We create the respective GP
                 PointTypePointer p_point = PointTypePointer(new PointType(global_coordinates, constitutive_law_vector[i_gauss_point], weight));
-                (points_buffer[Id]).push_back(p_point);
+                (points_buffer[id]).push_back(p_point);
             }
         }
 
@@ -138,13 +138,13 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsCPT()
         KDTree tree_points(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize);
 
         // Iterate over the destination elements
-        ElementsArrayType& p_elements = mrDestinationMainModelPart.Elements();
-        auto num_elements = p_elements.end() - p_elements.begin();
+        ElementsArrayType& elements_array = mrDestinationMainModelPart.Elements();
+        auto num_elements = elements_array.end() - elements_array.begin();
 
         //#pragma omp for
         for(int i = 0; i < num_elements; ++i)
         {
-            auto it_elem = p_elements.begin() + i;
+            auto it_elem = elements_array.begin() + i;
 
             // Getting the geometry
             Element::GeometryType& r_this_geometry = it_elem->GetGeometry();
@@ -207,13 +207,13 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLST()
         KDTree tree_points(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize);
 
         // Iterate over the destination elements
-        ElementsArrayType& p_elements = mrDestinationMainModelPart.Elements();
-        auto num_elements = p_elements.end() - p_elements.begin();
+        ElementsArrayType& elements_array = mrDestinationMainModelPart.Elements();
+        auto num_elements = elements_array.end() - elements_array.begin();
 
         //#pragma omp for
         for(int i = 0; i < num_elements; ++i)
         {
-            auto it_elem = p_elements.begin() + i;
+            auto it_elem = elements_array.begin() + i;
 
             // Getting the geometry
             Element::GeometryType& r_this_geometry = it_elem->GetGeometry();
@@ -475,8 +475,8 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsSFT()
     }
 
     // Finally we interpolate to the new GP
-    ElementsArrayType& p_elementsDestination = mrDestinationMainModelPart.Elements();
-    num_elements = p_elementsDestination.end() - p_elementsDestination.begin();
+    ElementsArrayType& elements_arrayDestination = mrDestinationMainModelPart.Elements();
+    num_elements = elements_arrayDestination.end() - elements_arrayDestination.begin();
 
     const ProcessInfo& destination_process_info = mrOriginMainModelPart.GetProcessInfo();
 
@@ -484,7 +484,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsSFT()
     #pragma omp parallel for
     for(int i = 0; i < num_elements; ++i)
     {
-        auto it_elem = p_elementsDestination.begin() + i;
+        auto it_elem = elements_arrayDestination.begin() + i;
 
         // Getting the geometry
         Element::GeometryType& r_this_geometry = it_elem->GetGeometry();
