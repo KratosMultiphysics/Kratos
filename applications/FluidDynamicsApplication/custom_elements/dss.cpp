@@ -715,7 +715,7 @@ void AddViscousTerm<2>(double DynamicViscosity,
     constexpr double minus_two_thirds = -2.0 / 3.0;
 
     const unsigned int num_nodes = rDN_DX.size1();
-    const unsigned int block_size = num_nodes * 3;
+    const unsigned int block_size = 3;
 
     unsigned int row(0),col(0);
 
@@ -754,7 +754,7 @@ void AddViscousTerm<3>(double DynamicViscosity,
     constexpr double minus_two_thirds = -2.0 / 3.0;
 
     const unsigned int num_nodes = rDN_DX.size1();
-    const unsigned int block_size = num_nodes * 3;
+    const unsigned int block_size = 4;
 
     unsigned int row(0),col(0);
 
