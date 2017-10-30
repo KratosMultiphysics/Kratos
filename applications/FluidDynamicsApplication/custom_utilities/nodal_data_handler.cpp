@@ -27,12 +27,17 @@ int NodalDataHandler<TDataType,TNumNodes,TStorageType >::Check(const Element& rE
     
     KRATOS_CHECK_VARIABLE_KEY(this->mrVariable);
 
-     for (unsigned int i = 0; i < TNumNodes; i++)
+    for (unsigned int i = 0; i < TNumNodes; i++)
     {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(this->mrVariable,r_geometry[i]);
     }
 
     return 0;
+}
+
+template <class TDataType, unsigned int TNumNodes, class TStorageType>
+TStorageType& NodalDataHandler<TDataType,TNumNodes,TStorageType >::Get() {
+    return mValues;
 }
 
 // Variable<double> version ///////////////////////////////////////////////////
@@ -59,13 +64,6 @@ double NodalDataHandler<double, 3, array_1d<double, 3>>::Interpolate(const boost
 	}
 
 	return result;
-}
-
-
-template <>
-array_1d<double, 3>& NodalDataHandler<double, 3, array_1d<double, 3>>::Get()
-{
-    return mValues;
 }
 
 // Variable< array_1d<double,3> > version /////////////////////////////////////
@@ -97,12 +95,6 @@ array_1d<double, 3> NodalDataHandler< array_1d<double, 3>, 3, boost::numeric::ub
     }
 
 	return result;
-}
-
-template <>
-boost::numeric::ublas::bounded_matrix<double, 3, 2>& NodalDataHandler<array_1d<double, 3>, 3, boost::numeric::ublas::bounded_matrix<double, 3, 2>>::Get()
-{
-    return mValues;
 }
 
 }
