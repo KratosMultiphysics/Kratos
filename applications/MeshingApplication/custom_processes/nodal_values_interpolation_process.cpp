@@ -22,6 +22,36 @@
 namespace Kratos
 {
 template<unsigned int TDim>
+NodalValuesInterpolationProcess<TDim>::NodalValuesInterpolationProcess(
+        ModelPart& rOriginMainModelPart,
+        ModelPart& rDestinationMainModelPart,
+        Parameters ThisParameters
+        ):mrOriginMainModelPart(rOriginMainModelPart),
+          mrDestinationMainModelPart(rDestinationMainModelPart)
+{
+    Parameters DefaultParameters = Parameters(R"(
+    {
+    "echo_level"            : 1, 
+    "framework"             : "Eulerian", 
+    "max_number_of_searchs" : 1000, 
+    "step_data_size"        : 0, 
+    "buffer_size"           : 0
+    })");
+    ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+    
+    mEchoLevel = ThisParameters["echo_level"].GetInt();
+    mFramework = ConvertFramework(ThisParameters["framework"].GetString());
+    mMaxNumberOfResults = ThisParameters["max_number_of_searchs"].GetInt();
+    mStepDataSize = ThisParameters["step_data_size"].GetInt();
+    mBufferSize   = ThisParameters["buffer_size"].GetInt();
+
+    if (mEchoLevel > 0) std::cout << "Step data size: " << mStepDataSize << " Buffer size: " << mBufferSize << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
 void NodalValuesInterpolationProcess<TDim>::Execute()
 {
     // We create the locator

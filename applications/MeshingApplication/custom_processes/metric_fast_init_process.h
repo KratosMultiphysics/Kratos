@@ -65,16 +65,10 @@ public:
     ///@{
 
     /// Default constructor.
-    MetricFastInit( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart)
-    {
-        KRATOS_TRY;
-
-        KRATOS_CATCH("");
-    }
+    MetricFastInit( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart){}
 
     /// Destructor.
-    ~MetricFastInit() override
-    = default;
+    ~MetricFastInit() override = default;
 
     ///@}
     ///@name Access

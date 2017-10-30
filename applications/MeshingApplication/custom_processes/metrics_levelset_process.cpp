@@ -18,6 +18,49 @@
 namespace Kratos
 {
 template<unsigned int TDim>  
+ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
+        ModelPart& rThisModelPart,
+        const Variable<array_1d<double,3>> rVariableGradient,
+        Parameters ThisParameters
+        ):mThisModelPart(rThisModelPart),
+          mVariableGradient(rVariableGradient)
+{   
+    Parameters DefaultParameters = Parameters(R"(
+    {
+        "minimal_size"                         : 0.1, 
+        "enforce_current"                      : true, 
+        "anisotropy_remeshing"                 : true, 
+        "anisotropy_parameters": 
+        {
+            "hmin_over_hmax_anisotropic_ratio"      : 1.0, 
+            "boundary_layer_max_distance"           : 1.0, 
+            "interpolation"                         : "Linear"
+        }
+    })" );
+    ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+    
+    mMinSize = ThisParameters["minimal_size"].GetDouble();
+    mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
+    
+    // In case we have isotropic remeshing (default values)
+    if (ThisParameters["anisotropy_remeshing"].GetBool() == false)
+    {
+        mAnisRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+        mBoundLayer = DefaultParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
+        mInterpolation = ConvertInter(DefaultParameters["anisotropy_parameters"]["interpolation"].GetString());
+    }
+    else
+    {
+        mAnisRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+        mBoundLayer = ThisParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
+        mInterpolation = ConvertInter(ThisParameters["anisotropy_parameters"]["interpolation"].GetString());
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>  
 void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 {
     // Iterate in the nodes
@@ -86,6 +129,7 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
         }
     }
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 

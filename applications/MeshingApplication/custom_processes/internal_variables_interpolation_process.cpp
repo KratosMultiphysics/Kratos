@@ -19,6 +19,49 @@
 
 namespace Kratos
 {
+InternalVariablesInterpolationProcess::InternalVariablesInterpolationProcess(
+        ModelPart& rOriginMainModelPart,
+        ModelPart& rDestinationMainModelPart,
+        Parameters ThisParameters
+        ):mrOriginMainModelPart(rOriginMainModelPart),
+        mrDestinationMainModelPart(rDestinationMainModelPart),
+        mDimension(rDestinationMainModelPart.GetProcessInfo()[DOMAIN_SIZE])
+{
+    Parameters DefaultParameters = Parameters(R"(
+        {
+            "allocation_size"                      : 1000,
+            "bucket_size"                          : 4,
+            "search_factor"                        : 2,
+            "interpolation_type"                   : "LST",
+            "internal_variable_interpolation_list" :[]
+        })" );
+
+    ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+
+    mAllocationSize = ThisParameters["allocation_size"].GetInt();
+    mBucketSize = ThisParameters["bucket_size"].GetInt();
+    mSearchFactor = ThisParameters["search_factor"].GetDouble();
+    mThisInterpolationType = ConvertInter(ThisParameters["interpolation_type"].GetString());
+
+    if (ThisParameters["internal_variable_interpolation_list"].IsArray() == true)
+    {
+        auto variable_array_list = ThisParameters["internal_variable_interpolation_list"];
+
+        for (unsigned int i_var = 0; i_var < variable_array_list.size(); ++i_var)
+        {
+            mInternalVariableList.push_back(KratosComponents<Variable<double>>::Get(variable_array_list[i_var].GetString()));
+        }
+    }
+    else
+    {
+        std::cout << "WARNING:: No variables to interpolate, look that internal_variable_interpolation_list is correctly defined in your parameters" << std::endl;
+        mInternalVariableList.clear();
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void InternalVariablesInterpolationProcess::Execute()
 {
     /** NOTE: There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
