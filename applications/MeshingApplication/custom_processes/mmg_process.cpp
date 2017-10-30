@@ -86,6 +86,7 @@ MmgProcess<TDim>::MmgProcess(
         "max_number_of_searchs"            : 1000,
         "echo_level"                       : 3,
         "step_data_size"                   : 0,
+        "remesh_at_non_linear_iteration"   : false,
         "buffer_size"                      : 0
     })" );
     
@@ -789,6 +790,9 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     /* We do some operations related with the Lagrangian framework */
     if (mFramework == Lagrangian) 
     {
+        // If we remesh during non linear iteration we just move to the previous displacement, to the last displacement otherwise
+        const int step = mThisParameters["remesh_at_non_linear_iteration"].GetBool() ? 1 : 0;
+        
         /* We move the mesh */
         nodes_array = mrThisModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size());
@@ -799,7 +803,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             auto it_node = nodes_array.begin() + i;
 
             noalias(it_node->Coordinates())  = it_node->GetInitialPosition().Coordinates();
-            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT, step);
         }
         
         /* We interpolate the internal variables */
