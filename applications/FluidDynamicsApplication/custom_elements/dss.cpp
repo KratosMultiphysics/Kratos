@@ -19,6 +19,12 @@ namespace Kratos
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+// Class template instantiation
+///////////////////////////////////////////////////////////////////////////////////////////////////
+template class DSS< DSSData2D3N >;
+template class DSS< DSSData3D4N >;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
 template< class TElementData >
@@ -210,26 +216,7 @@ void DSS<TElementData>::GetValueOnIntegrationPoints(Variable<double> const& rVar
 			const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
 			array_1d<double,3> Vorticity(3,0.0);
 
-			if(Dim == 2)
-			{
-				for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
-				{
-					array_1d<double,3>& Vel =
-						this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-					Vorticity[2] += Vel[1] * rDN_DX(iNode,0) - Vel[0] * rDN_DX(iNode,1);
-				}
-			}
-			else
-			{
-				for (unsigned int iNode = 0; iNode < this->GetGeometry().size(); iNode++)
-				{
-					array_1d<double,3>& Vel =
-						this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-					Vorticity[0] += Vel[2] * rDN_DX(iNode,1) - Vel[1] * rDN_DX(iNode,2);
-					Vorticity[1] += Vel[0] * rDN_DX(iNode,2) - Vel[2] * rDN_DX(iNode,0);
-					Vorticity[2] += Vel[1] * rDN_DX(iNode,0) - Vel[0] * rDN_DX(iNode,1);
-				}
-			}
+            this->IntegrationPointVorticity(rDN_DX,Vorticity);
 
 			rValues[g] = sqrt(Vorticity[0] * Vorticity[0] + Vorticity[1] * Vorticity[1]
 					+ Vorticity[2] * Vorticity[2]);
@@ -484,7 +471,7 @@ void DSS<TElementData>::AddSystemTerms(
 
     // Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
     // This could potentially be optimized, as it can be integrated exactly using one less integration order when compared to previous terms.
-    this->AddViscousTerm(Viscosity,rIntegrationPoint.Weight,rIntegrationPoint.DN_DX,rLHS);
+    Internals::AddViscousTerm<Dim>(Viscosity,rIntegrationPoint.Weight,rIntegrationPoint.DN_DX,rLHS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -631,87 +618,6 @@ void DSS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProcessI
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// For Dim == 2
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template< class TElementData >
-void DSS< TElementData >::AddViscousTerm(double DynamicViscosity,
-                            double GaussWeight,
-                            const ShapeFunctionDerivativesType &rDN_DX,
-                            MatrixType &rLHS)
-{
-    double Weight = GaussWeight * DynamicViscosity;
-
-    const double FourThirds = 4.0 / 3.0;
-    const double nTwoThirds = -2.0 / 3.0;
-
-    unsigned int Row(0),Col(0);
-
-    for (unsigned int a = 0; a < NumNodes; ++a)
-    {
-        Row = a*BlockSize;
-        for (unsigned int b = 0; b < NumNodes; ++b)
-        {
-            Col = b*BlockSize;
-
-            // First Row
-            rLHS(Row,Col) += Weight * ( FourThirds * rDN_DX(a,0) * rDN_DX(b,0) + rDN_DX(a,1) * rDN_DX(b,1) );
-            rLHS(Row,Col+1) += Weight * ( nTwoThirds * rDN_DX(a,0) * rDN_DX(b,1) + rDN_DX(a,1) * rDN_DX(b,0) );
-
-            // Second Row
-            rLHS(Row+1,Col) += Weight * ( nTwoThirds * rDN_DX(a,1) * rDN_DX(b,0) + rDN_DX(a,0) * rDN_DX(b,1) );
-            rLHS(Row+1,Col+1) += Weight * ( FourThirds * rDN_DX(a,1) * rDN_DX(b,1) + rDN_DX(a,0) * rDN_DX(b,0) );
-        }
-    }
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// For Dim == 3
-///////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-template< class TElementData >
-void DSS< TElementData >::AddViscousTerm(double DynamicViscosity,
-                            double GaussWeight,
-                            const ShapeFunctionDerivativesType &rDN_DX,
-                            MatrixType &rLHS)
-{
-    double Weight = GaussWeight * DynamicViscosity;
-
-    const double OneThird = 1.0 / 3.0;
-    const double nTwoThirds = -2.0 / 3.0;
-
-    unsigned int Row(0),Col(0);
-
-    for (unsigned int i = 0; i < FluidElementData<3,4>::NumNodes; ++i)
-    {
-        Row = i*FluidElementData<3,4>::BlockSize;
-        for (unsigned int j = 0; j < FluidElementData<3,4>::NumNodes; ++j)
-        {
-            Col = j*FluidElementData<3,4>::BlockSize;
-            // (dN_i/dx_k dN_j/dx_k)
-            const double Diag =  rDN_DX(i,0) * rDN_DX(j,0) + rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,2) * rDN_DX(j,2);
-
-            // First Row
-            rLHS(Row,Col) += Weight * ( OneThird * rDN_DX(i,0) * rDN_DX(j,0) + Diag );
-            rLHS(Row,Col+1) += Weight * ( nTwoThirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0) );
-            rLHS(Row,Col+2) += Weight * ( nTwoThirds * rDN_DX(i,0) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,0) );
-
-            // Second Row
-            rLHS(Row+1,Col) += Weight * ( nTwoThirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1) );
-            rLHS(Row+1,Col+1) += Weight * ( OneThird * rDN_DX(i,1) * rDN_DX(j,1) + Diag );
-            rLHS(Row+1,Col+2) += Weight * ( nTwoThirds * rDN_DX(i,1) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,1) );
-
-            // Third Row
-            rLHS(Row+2,Col) += Weight * ( nTwoThirds * rDN_DX(i,2) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,2) );
-            rLHS(Row+2,Col+1) += Weight * ( nTwoThirds * rDN_DX(i,2) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,2) );
-            rLHS(Row+2,Col+2) += Weight * ( OneThird * rDN_DX(i,2) * rDN_DX(j,2) + Diag );
-        }
-    }
-}*/
-
-
 template< class TElementData >
 void DSS<TElementData>::SubscaleVelocity(
     TElementData& rData,
@@ -787,10 +693,97 @@ void DSS<TElementData>::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElement);
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// Class template instantiation
+// Internals
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-template class DSS< DSSData2D3N >;
-//template class DSS< FluidElementData<3,4> >;
+namespace Internals {
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// For Dim == 2
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <>
+void AddViscousTerm<2>(double DynamicViscosity,
+                       double GaussWeight,
+                       const Kratos::Matrix& rDN_DX,
+                       Kratos::Matrix& rLHS)
+{
+    double weight = GaussWeight * DynamicViscosity;
+
+    constexpr double four_thirds = 4.0 / 3.0;
+    constexpr double minus_two_thirds = -2.0 / 3.0;
+
+    const unsigned int num_nodes = rDN_DX.size1();
+    const unsigned int block_size = num_nodes * 3;
+
+    unsigned int row(0),col(0);
+
+    for (unsigned int a = 0; a < num_nodes; ++a)
+    {
+        row = a*block_size;
+        for (unsigned int b = 0; b < num_nodes; ++b)
+        {
+            col = b*block_size;
+
+            // First row
+            rLHS(row,col) += weight * ( four_thirds * rDN_DX(a,0) * rDN_DX(b,0) + rDN_DX(a,1) * rDN_DX(b,1) );
+            rLHS(row,col+1) += weight * ( minus_two_thirds * rDN_DX(a,0) * rDN_DX(b,1) + rDN_DX(a,1) * rDN_DX(b,0) );
+
+            // Second row
+            rLHS(row+1,col) += weight * ( minus_two_thirds * rDN_DX(a,1) * rDN_DX(b,0) + rDN_DX(a,0) * rDN_DX(b,1) );
+            rLHS(row+1,col+1) += weight * ( four_thirds * rDN_DX(a,1) * rDN_DX(b,1) + rDN_DX(a,0) * rDN_DX(b,0) );
+        }
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// For Dim == 3
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <>
+void AddViscousTerm<3>(double DynamicViscosity,
+                       double GaussWeight,
+                       const Kratos::Matrix& rDN_DX,
+                       Kratos::Matrix& rLHS)
+{
+    double weight = GaussWeight * DynamicViscosity;
+
+    constexpr double one_third = 1.0 / 3.0;
+    constexpr double minus_two_thirds = -2.0 / 3.0;
+
+    const unsigned int num_nodes = rDN_DX.size1();
+    const unsigned int block_size = num_nodes * 3;
+
+    unsigned int row(0),col(0);
+
+    for (unsigned int i = 0; i < num_nodes; ++i)
+    {
+        row = i*block_size;
+        for (unsigned int j = 0; j < num_nodes; ++j)
+        {
+            col = j*block_size;
+            // (dN_i/dx_k dN_j/dx_k)
+            const double diag =  rDN_DX(i,0) * rDN_DX(j,0) + rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,2) * rDN_DX(j,2);
+
+            // First row
+            rLHS(row,col) += weight * ( one_third * rDN_DX(i,0) * rDN_DX(j,0) + diag );
+            rLHS(row,col+1) += weight * ( minus_two_thirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0) );
+            rLHS(row,col+2) += weight * ( minus_two_thirds * rDN_DX(i,0) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,0) );
+
+            // Second row
+            rLHS(row+1,col) += weight * ( minus_two_thirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1) );
+            rLHS(row+1,col+1) += weight * ( one_third * rDN_DX(i,1) * rDN_DX(j,1) + diag );
+            rLHS(row+1,col+2) += weight * ( minus_two_thirds * rDN_DX(i,1) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,1) );
+
+            // Third row
+            rLHS(row+2,col) += weight * ( minus_two_thirds * rDN_DX(i,2) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,2) );
+            rLHS(row+2,col+1) += weight * ( minus_two_thirds * rDN_DX(i,2) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,2) );
+            rLHS(row+2,col+2) += weight * ( one_third * rDN_DX(i,2) * rDN_DX(j,2) + diag );
+        }
+    }
+}
+}
 
 }

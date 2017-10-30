@@ -32,14 +32,14 @@ template <class TDataType, unsigned int TNumNodes, class TStorageType>
 void NodalDataHandler<TDataType, TNumNodes, TStorageType>::Initialize(const Element& rElement,
                                                                       const ProcessInfo& rProcessInfo)
 {
-    Implementation::SpecializedInitialization(mValues,this->mrVariable,rElement,rProcessInfo);
+    Internals::SpecializedInitialization(mValues,this->mrVariable,rElement,rProcessInfo);
 }
 
 template <class TDataType, unsigned int TNumNodes, class TStorageType>
 TDataType NodalDataHandler<TDataType, TNumNodes, TStorageType>::Interpolate(
     const boost::numeric::ublas::matrix_row<Matrix>& rN, Element* pElement)
 {
-    return Implementation::SpecializedInterpolation(mValues, rN, pElement);
+    return Internals::SpecializedInterpolation(mValues, rN, pElement);
 }
 
 template <class TDataType, unsigned int TNumNodes, class TStorageType>

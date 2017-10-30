@@ -260,13 +260,6 @@ protected:
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
 
-
-    void AddViscousTerm(double DynamicViscosity,
-                        double GaussWeight,
-                        const ShapeFunctionDerivativesType& rDN_DX,
-                        MatrixType& rLHS);
-
-
     virtual void MomentumProjTerm(
         TElementData& rData,
         const IntegrationPointGeometryData& rIntegrationPoint,
@@ -382,6 +375,15 @@ private:
 
 
 }; // Class DSS
+
+namespace Internals {
+
+template <unsigned int TDim>
+void AddViscousTerm(double DynamicViscosity,
+                    double GaussWeight,
+                    const Kratos::Matrix& rDN_DX,
+                    Kratos::Matrix& rLHS);
+}
 
 ///@}
 

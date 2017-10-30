@@ -151,7 +151,7 @@ inline std::ostream& operator<<(std::ostream& rOStream, const NodalDataHandler<T
 
 ///@} addtogroup block
 
-namespace Implementation {
+namespace Internals {
 template <size_t TNumNodes>
 void SpecializedInitialization(array_1d<double, TNumNodes>& rValues,
                                const Variable<double>& rVariable,

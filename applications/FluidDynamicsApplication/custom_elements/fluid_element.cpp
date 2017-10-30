@@ -215,7 +215,7 @@ void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResul
     {
         rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_X,xpos).EquationId();
         rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
-        //rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Z,xpos+2).EquationId();
+        if (Dim == 3) rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Z,xpos+2).EquationId();
         rResult[LocalIndex++] = rGeom[i].GetDof(PRESSURE,ppos).EquationId();
     }
 }
@@ -235,7 +235,7 @@ void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList,
      {
          rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(VELOCITY_X);
          rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(VELOCITY_Y);
-         //rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(VELOCITY_Z);
+         if (Dim == 3) rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(VELOCITY_Z);
          rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(PRESSURE);
      }
 }
@@ -668,33 +668,33 @@ void FluidElement<TElementData>::ConvectionOperator(Vector &rResult,
     }
 }
 
-
-template<class TElementData >
-void FluidElement< TElementData >::IntegrationPointVorticity(const ShapeFunctionDerivativesType &rDN_DX,array_1d<double,3>& rVorticity) const
+template <class TElementData>
+void FluidElement<TElementData>::IntegrationPointVorticity(
+    const ShapeFunctionDerivativesType& rDN_DX, array_1d<double, 3>& rVorticity) const
 {
-    rVorticity = array_1d<double,3>(3,0.0);
+    rVorticity = array_1d<double, 3>(3, 0.0);
 
-    for (unsigned int i = 0; i < NumNodes; ++i)
+    if (Dim == 2)
     {
-        const array_1d<double, 3 > & rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-        rVorticity[2] += rDN_DX(i,0)*rVelocity[1] - rDN_DX(i,1)*rVelocity[0];
+        for (unsigned int i = 0; i < NumNodes; ++i)
+        {
+            const array_1d<double, 3>& rVelocity =
+                this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+            rVorticity[2] += rDN_DX(i, 0) * rVelocity[1] - rDN_DX(i, 1) * rVelocity[0];
+        }
+    }
+    else
+    {
+        for (unsigned int i = 0; i < NumNodes; ++i)
+        {
+            const array_1d<double, 3>& rVelocity =
+                this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+            rVorticity[0] += rDN_DX(i, 1) * rVelocity[2] - rDN_DX(i, 2) * rVelocity[1];
+            rVorticity[1] += rDN_DX(i, 2) * rVelocity[0] - rDN_DX(i, 0) * rVelocity[2];
+            rVorticity[2] += rDN_DX(i, 0) * rVelocity[1] - rDN_DX(i, 1) * rVelocity[0];
+        }
     }
 }
-
-/*
-template<>
-void FluidElement< FluidElementData<3,4> >::IntegrationPointVorticity(const ShapeFunctionDerivativesType &rDN_DX,array_1d<double,3>& rVorticity) const
-{
-    rVorticity = array_1d<double,3>(3,0.0);
-
-    for (unsigned int i = 0; i < FluidElementData<3,4>::NumNodes; ++i)
-    {
-        const array_1d<double, 3 > & rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-        rVorticity[0] += rDN_DX(i,1)*rVelocity[2] - rDN_DX(i,2)*rVelocity[1];
-        rVorticity[1] += rDN_DX(i,2)*rVelocity[0] - rDN_DX(i,0)*rVelocity[2];
-        rVorticity[2] += rDN_DX(i,0)*rVelocity[1] - rDN_DX(i,1)*rVelocity[0];
-    }
-}*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private functions
@@ -719,6 +719,6 @@ void FluidElement<TElementData>::load(Serializer& rSerializer)
 // Class template instantiation
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 template class FluidElement< DSSData2D3N >;
-//template class FluidElement< FluidElementData<3,4> >;
+template class FluidElement< DSSData3D4N >;
 
 }
