@@ -74,7 +74,7 @@ namespace Kratos
  * This utility calculates the exact integration necessary for the Mortar Conditions
  */
 template< unsigned int TDim, unsigned int TNumNodes, bool TBelong = false>
-class ExactMortarIntegrationUtility
+class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility
 {
 public:
     ///@name Type Definitions

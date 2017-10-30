@@ -13,7 +13,7 @@ env:
     - CCACHE_COMPILERCHECK=content
     - CCACHE_COMPRESS=true
     - CCACHE_NODISABLE=true
-    - CCACHE_MAXSIZE=50M
+    - CCACHE_MAXSIZE=500M
 
 addons:
   apt:
