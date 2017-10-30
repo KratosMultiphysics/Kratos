@@ -52,11 +52,6 @@ public:
 
     constexpr static unsigned int NumNodes = TNumNodes;
 
-    static constexpr unsigned int BlockSize = Dim + 1;
-
-    static constexpr unsigned int LocalSize = NumNodes * BlockSize;
-
-
     ///@}
     ///@name Life Cycle
     ///@{

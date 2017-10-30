@@ -119,9 +119,9 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    static constexpr unsigned int Dim = 2;
+    static constexpr unsigned int Dim = TElementData::Dim;
 
-    static constexpr unsigned int NumNodes = 3;
+    static constexpr unsigned int NumNodes = TElementData::NumNodes;
 
     static constexpr unsigned int BlockSize = Dim + 1;
 
