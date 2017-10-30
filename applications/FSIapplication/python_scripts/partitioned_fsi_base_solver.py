@@ -248,8 +248,6 @@ class PartitionedFSIBaseSolver:
     def _SetUpMapper(self):
 
         # Recall, to set the INTERFACE flag in both the fluid and solid interface before the mapper construction
-        # Currently this is done with the FSI application Python process set_interface_process.py
-        # TODO: SINCE WE HAVE SUBMODELPARTS, TO SET THE INTERFACE FLAG SEEMS TO NOT BE STRICKLY NECESSARY
         search_radius_factor = 2.0
         mapper_max_iterations = 200
         mapper_tolerance = 1e-12

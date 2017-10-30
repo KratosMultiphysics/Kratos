@@ -91,24 +91,23 @@ class Solution(main_script.Solution):
 
     def Setdt(self):       
         self.dt = dt
-        #return self.dt
 
     def Initialize(self):
         self.DEM_parameters["problem_name"].SetString('benchmark' + str(benchmark_number))
         #self.final_time = slt.final_time  
         #self.dt = slt.dt
         #self.graph_print_interval = slt.graph_print_interval
-        super().Initialize()           
+        super(Solution, self).Initialize()           
 
         print("Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
-        list_of_nodes_ids = [benchmark_number]
+        list_of_nodes_ids = [1]
         if self.nodeplotter:
             os.chdir(self.main_path)
-            self.plotter = plot_variables.variable_plotter(self.spheres_model_part, list_of_nodes_ids)
+            self.plotter = plot_variables.variable_plotter(self.spheres_model_part, list_of_nodes_ids, benchmark_number)
             self.tang_plotter = plot_variables.tangential_force_plotter(self.spheres_model_part, list_of_nodes_ids, self.iteration)
 
     def ReadModelParts(self):
-        super().ReadModelParts()
+        super(Solution, self).ReadModelParts()
         benchmark.set_initial_data(self.spheres_model_part, self.rigid_face_model_part, self.iteration, self.number_of_points_in_the_graphic, coeff_of_restitution_iteration)       
 
     def GetMpFilename(self):
@@ -128,24 +127,24 @@ class Solution(main_script.Solution):
         return 'benchmark' + str(benchmark_number)
 
     def BeforeSolveOperations(self, time): 
-        super().BeforeSolveOperations()     
+        super(Solution, self).BeforeSolveOperations(time)     
         benchmark.ApplyNodalRotation(time, self.dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):
-        super().BeforePrintingOperations(time)
+        super(Solution, self).BeforePrintingOperations(time)
         self.Setdt()
         benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self.dt)        
     
     def Finalize(self):      
         benchmark.get_final_data(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part)
-        super().Finalize()
+        super(Solution, self).Finalize()
         if self.nodeplotter:
             os.chdir(self.main_path)
             self.plotter.close_files()
             self.tang_plotter.close_files()
 
     def FinalizeTimeStep(self, time):
-        super().FinalizeTimeStep(time)
+        super(Solution, self).FinalizeTimeStep(time)
         if self.nodeplotter:
             os.chdir(self.main_path)
             self.plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi
@@ -154,7 +153,7 @@ class Solution(main_script.Solution):
     def CleanUpOperations(self):
         print("running CleanUpOperations") 
         #DBC.delete_archives() #.......Removing some unuseful files 
-        super().CleanUpOperations() 
+        super(Solution, self).CleanUpOperations() 
                   
 
 final_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
