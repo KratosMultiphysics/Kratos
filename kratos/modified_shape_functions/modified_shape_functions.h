@@ -57,15 +57,13 @@ public:
     typedef typename GeometryType::CoordinatesArrayType                                                       CoordinatesArrayType;
     typedef GeometryData::IntegrationMethod                                                                  IntegrationMethodType;
     typedef typename GeometryData::ShapeFunctionsGradientsType                                         ShapeFunctionsGradientsType;
-    
+
     typedef typename DivideGeometry::IndexedPointGeometryType                                             IndexedPointGeometryType;
     typedef typename DivideGeometry::IndexedPointGeometryPointerType                               IndexedPointGeometryPointerType;
 
     typedef IntegrationPoint<3>                                                                               IntegrationPointType;
     typedef std::vector<IntegrationPointType>                                                           IntegrationPointsArrayType;
     typedef boost::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods>      IntegrationPointsContainerType;
-
-    bool mIsSplit; // True if the current element is split.
 
     ///@}
     ///@name Life Cycle
@@ -110,7 +108,7 @@ public:
     * Returns a the member pointer to the input geometry.
     */
     const GeometryPointerType GetInputGeometry() const;
-    
+
     /**
     * Returns a reference to the nodal distances vector member variable.
     */
@@ -127,7 +125,7 @@ public:
                                                                  std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
                                                                  Vector &rPositiveSideWeightsValues,
                                                                  const IntegrationMethodType IntegrationMethod);
-                                                                 
+
     /**
     * Returns the shape function values in the negative split element side for a given quadrature.
     * @return rNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
@@ -151,7 +149,7 @@ public:
                                                                           std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
                                                                           Vector &rInterfacePositiveSideWeightsValues,
                                                                           const IntegrationMethodType IntegrationMethod);
-                                                                 
+
     /**
     * Returns the shape function values in the negative split element side for a given quadrature.
     * @return rInterfaceNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
@@ -185,7 +183,7 @@ protected:
     /**
     * Returns true if the element is split and false otherwise.
     */
-    bool IsSplit();
+    virtual bool IsSplit();
 
     /**
     * Returns true if the element is split and false otherwise.

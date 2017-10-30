@@ -53,7 +53,7 @@ public:
     typedef typename BaseType::GeometryPointerType                             GeometryPointerType;
     typedef typename BaseType::IntegrationMethodType                    IntegrationMethodType;
     typedef typename BaseType::ShapeFunctionsGradientsType              ShapeFunctionsGradientsType;
-    
+
     typedef typename BaseType::IndexedPointGeometryType                 IndexedPointGeometryType;
     typedef typename BaseType::IndexedPointGeometryPointerType          IndexedPointGeometryPointerType;
 
@@ -168,6 +168,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+    * Returns true if the element is split and false otherwise.
+    */
+    bool IsSplit() override;
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -220,8 +225,8 @@ private:
     Triangle2D3ModifiedShapeFunctions& operator=(Triangle2D3ModifiedShapeFunctions const& rOther);
 
     /// Copy constructor.
-    Triangle2D3ModifiedShapeFunctions(Triangle2D3ModifiedShapeFunctions const& rOther) : 
-        ModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()), 
+    Triangle2D3ModifiedShapeFunctions(Triangle2D3ModifiedShapeFunctions const& rOther) :
+        ModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()),
         mpTriangleSplitter(new DivideTriangle2D3(*rOther.GetInputGeometry(), rOther.GetNodalDistances())) {
 
         // Perform the element splitting
