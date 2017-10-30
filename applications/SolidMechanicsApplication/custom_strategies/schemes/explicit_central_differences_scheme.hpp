@@ -248,7 +248,7 @@ namespace Kratos
       const int nnodes = static_cast<int>(rModelPart.Nodes().size());
       NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 
-      #pragma omp parallel for firstprivate(NodeBegin,mTime)
+      #pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i < nnodes; i++)
         {
 	  NodesArrayType::iterator itNode = NodeBegin + i;
@@ -571,7 +571,7 @@ namespace Kratos
       const int nelements = static_cast<int>(rModelPart.Elements().size());
       ElementsArrayType::iterator ElementBegin = rModelPart.Elements().begin();
 
-      #pragma omp parallel for firstprivate(ElementBegin, stable_delta_time)
+      #pragma omp parallel for firstprivate(ElementBegin) private(stable_delta_time)
       for(int i = 0;  i < nelements; i++)
         {
 	  ElementsArrayType::iterator itElement = ElementBegin + i;
