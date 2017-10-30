@@ -818,7 +818,10 @@ public:
         
         array_1d<double, 3> normal;
         MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
-        return normal/norm_2(normal);
+	const double norm_normal = norm_2(normal);
+	if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
+	else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
+        return normal;
     }
 
     /**
