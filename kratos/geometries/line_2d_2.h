@@ -811,7 +811,8 @@ public:
         
         // We normalize
         const double norm_normal = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
-        if (norm_normal > 0.0) normal /= norm_normal;
+        if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
+	    else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
         
         return normal;
     }
