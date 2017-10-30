@@ -48,17 +48,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-#define ELEMENT_VARIABLES(APPLY_MACRO)           \
-    APPLY_MACRO(VELOCITY, NodalVector2D<3>)      \
-    APPLY_MACRO(MESH_VELOCITY, NodalVector2D<3>) \
-    APPLY_MACRO(BODY_FORCE, NodalVector2D<3>)    \
-    APPLY_MACRO(ADVPROJ, NodalVector2D<3>)       \
-    APPLY_MACRO(PRESSURE, NodalScalar<3>)        \
-    APPLY_MACRO(DENSITY, NodalScalar<3>)         \
-    APPLY_MACRO(VISCOSITY, NodalScalar<3>)       \
-    APPLY_MACRO(DIVPROJ, NodalScalar<3>)
+#define ELEMENT_VARIABLES(APPLY_MACRO)      \
+    APPLY_MACRO(VELOCITY, NodalVector)      \
+    APPLY_MACRO(MESH_VELOCITY, NodalVector) \
+    APPLY_MACRO(BODY_FORCE, NodalVector)    \
+    APPLY_MACRO(ADVPROJ, NodalVector)       \
+    APPLY_MACRO(PRESSURE, NodalScalar)      \
+    APPLY_MACRO(DENSITY, NodalScalar)       \
+    APPLY_MACRO(VISCOSITY, NodalScalar)     \
+    APPLY_MACRO(DIVPROJ, NodalScalar)
 
-MAKE_FLUID_ELEMENT_DATA_CONTAINER(DSSData2D3N, ELEMENT_VARIABLES)
+MAKE_FLUID_ELEMENT_DATA_CONTAINER(DSSData2D3N, 2, 3, ELEMENT_VARIABLES)
 #undef FLUID_ELEMENT_VARIABLES
 
 struct IntegrationPointGeometryData

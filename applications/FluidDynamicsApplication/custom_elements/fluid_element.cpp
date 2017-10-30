@@ -11,7 +11,6 @@
 //
 
 #include "fluid_element.h"
-#include "fluid_element_data.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
@@ -212,7 +211,7 @@ void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResul
     const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
     const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
 
-    for (unsigned int i = 0; i < FluidElementData<3,4>::NumNodes; ++i)
+    for (unsigned int i = 0; i < NumNodes; ++i)
     {
         rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_X,xpos).EquationId();
         rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Y,xpos+1).EquationId();

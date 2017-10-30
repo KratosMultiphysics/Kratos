@@ -113,10 +113,10 @@ namespace Kratos {
 
         // In-situ definition of FluidElementDataContainer list for tests
         #define FLUID_ELEMENT_VARIABLES(MACRO_TO_APPLY) \
-        MACRO_TO_APPLY(VELOCITY,NodalVector2D<3>) \
-        MACRO_TO_APPLY(PRESSURE,NodalScalar<3>)
+        MACRO_TO_APPLY(VELOCITY,NodalVector) \
+        MACRO_TO_APPLY(PRESSURE,NodalScalar)
 
-        MAKE_FLUID_ELEMENT_DATA_CONTAINER(TestFluidDataContainer, FLUID_ELEMENT_VARIABLES)
+        MAKE_FLUID_ELEMENT_DATA_CONTAINER(TestFluidDataContainer, 2, 3, FLUID_ELEMENT_VARIABLES)
         #undef FLUID_ELEMENT_VARIABLES
 
         KRATOS_TEST_CASE_IN_SUITE(FluidElementGaussPointData, FluidDynamicsApplicationFastSuite)

@@ -36,20 +36,26 @@ namespace Kratos
 ///@{
 
 ///@brief Base class for data containers used within FluidElement and derived types.
+template< size_t TDim, size_t TNumNodes >
 class FluidElementDataContainer
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    template< unsigned int TNumNodes >
     using NodalScalar = NodalDataHandler< double, TNumNodes, array_1d<double,TNumNodes> >;
 
-    template< unsigned int TNumNodes >
-    using NodalVector2D = NodalDataHandler< array_1d<double,3>, TNumNodes, boost::numeric::ublas::bounded_matrix<double,TNumNodes,2> >;
+    // Note: the first template argument is always array_1d<double,3>, as it refers to the variable type, not dimension
+    using NodalVector = NodalDataHandler< array_1d<double,3>, TNumNodes, boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> >;
 
-    template< unsigned int TNumNodes >
-    using NodalVector3D = NodalDataHandler< array_1d<double,3>, TNumNodes, boost::numeric::ublas::bounded_matrix<double,TNumNodes,3> >;
+    constexpr static unsigned int Dim = TDim;
+
+    constexpr static unsigned int NumNodes = TNumNodes;
+
+    static constexpr unsigned int BlockSize = Dim + 1;
+
+    static constexpr unsigned int LocalSize = NumNodes * BlockSize;
+
 
     ///@}
     ///@name Life Cycle
@@ -107,33 +113,32 @@ MEMBER_NAME(Variable).Initialize(rElement,rProcessInfo);
 #define CHECK_HANDLER(Variable,HandlerType) \
 out = MEMBER_NAME(Variable).Check(rElement);
 
-#define MAKE_FLUID_ELEMENT_DATA_CONTAINER(ClassName, HANDLER_LIST)  \
-class ClassName : public FluidElementDataContainer {                \
-public:                                                             \
-                                                                    \
-    ClassName()                                                     \
-    : FluidElementDataContainer()                                   \
-    HANDLER_LIST(CONSTRUCT_CLASS_MEMBER_FOR_HANDLER) {              \
-    }                                                               \
-                                                                    \
-    ~ClassName() {                                                  \
-    }                                                               \
-                                                                    \
-    void Initialize(                                                \
-        const Element& rElement,                                    \
-        const ProcessInfo& rProcessInfo) {                          \
-        HANDLER_LIST(INITIALIZE_HANDLER)                            \
-    }                                                               \
-                                                                    \
-    int Check(const Element& rElement) {                            \
-        int out = 0;                                                \
-        HANDLER_LIST(CHECK_HANDLER)                                 \
-        return out;                                                 \
-    }                                                               \
-                                                                    \
-    HANDLER_LIST(DECLARE_CLASS_MEMBER_FOR_HANDLER)                  \
-                                                                    \
-    HANDLER_LIST(DEFINE_GET_FUNCTION_FOR_HANDLER)                   \
+#define MAKE_FLUID_ELEMENT_DATA_CONTAINER(ClassName, Dimension, NumNodes, HANDLER_LIST) \
+class ClassName : public FluidElementDataContainer<Dimension, NumNodes>                 \
+{                                                                                       \
+public:                                                                                 \
+    ClassName()                                                                         \
+    : FluidElementDataContainer()                                                       \
+    HANDLER_LIST(CONSTRUCT_CLASS_MEMBER_FOR_HANDLER) {                                  \
+    }                                                                                   \
+                                                                                        \
+    ~ClassName() {                                                                      \
+    }                                                                                   \
+                                                                                        \
+    void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) {         \
+        HANDLER_LIST(INITIALIZE_HANDLER)                                                \
+    }                                                                                   \
+                                                                                        \
+    int Check(const Element& rElement) {                                                \
+        int out = 0;                                                                    \
+        HANDLER_LIST(CHECK_HANDLER)                                                     \
+        return out;                                                                     \
+    }                                                                                   \
+                                                                                        \
+    HANDLER_LIST(DECLARE_CLASS_MEMBER_FOR_HANDLER)                                      \
+                                                                                        \
+    HANDLER_LIST(DEFINE_GET_FUNCTION_FOR_HANDLER)                                       \
 };
 
 #endif // KRATOS_INTEGRATION_POINT_DATA_CONTAINER_H_INCLUDED  defined
+    
