@@ -225,7 +225,7 @@ namespace Kratos
             }
         }
 
-        if (this->HasRotDof()) this->CalculateAndAddWorkEquivalentNodalForcesLineLoad(gauss_load,rRightHandSideVector);
+        //if (this->HasRotDof()) this->CalculateAndAddWorkEquivalentNodalForcesLineLoad(gauss_load,rRightHandSideVector);
 
         KRATOS_CATCH( "" )
     }
