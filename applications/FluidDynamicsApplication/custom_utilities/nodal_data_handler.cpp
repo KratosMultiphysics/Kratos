@@ -21,6 +21,20 @@ NodalDataHandler<TDataType, TNumNodes, TStorageType>::~NodalDataHandler()
 }
 
 template <class TDataType, unsigned int TNumNodes, class TStorageType>
+void NodalDataHandler<TDataType, TNumNodes, TStorageType>::Initialize(const Element& rElement,
+                                                                      const ProcessInfo& rProcessInfo)
+{
+    Implementation::SpecializedInitialization(mValues,this->mrVariable,rElement,rProcessInfo);
+}
+
+template <class TDataType, unsigned int TNumNodes, class TStorageType>
+TDataType NodalDataHandler<TDataType, TNumNodes, TStorageType>::Interpolate(
+    const boost::numeric::ublas::matrix_row<Matrix>& rN, Element* pElement)
+{
+    return Implementation::SpecializedInterpolation(mValues, rN, pElement);
+}
+
+template <class TDataType, unsigned int TNumNodes, class TStorageType>
 int NodalDataHandler<TDataType,TNumNodes,TStorageType >::Check(const Element& rElement) {
 
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
@@ -38,63 +52,6 @@ int NodalDataHandler<TDataType,TNumNodes,TStorageType >::Check(const Element& rE
 template <class TDataType, unsigned int TNumNodes, class TStorageType>
 TStorageType& NodalDataHandler<TDataType,TNumNodes,TStorageType >::Get() {
     return mValues;
-}
-
-// Variable<double> version ///////////////////////////////////////////////////
-
-template <>
-void NodalDataHandler<double, 3, array_1d<double, 3>>::Initialize(const Element& rElement,
-                                                                  const ProcessInfo& rProcessInfo)
-{
-    mValues = array_1d<double, 3>(3, 0.0); // NOTE: The 3 here is TNumNodes!!!
-    const Geometry<Node<3>>& r_geometry = rElement.GetGeometry();
-    for (unsigned int i = 0; i < 3; i++) // NOTE: TNumNodes
-    {
-        mValues[i] = r_geometry[i].FastGetSolutionStepValue(this->mrVariable);
-    }
-}
-
-template<>
-double NodalDataHandler<double, 3, array_1d<double, 3>>::Interpolate(const boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement)
-{
-	double result = 0.0;
-	for (unsigned int i = 0; i < 3; i++) // NOTE: The 3 is TNumNodes
-	{
-		result += rN[i] * this->mValues[i];
-	}
-
-	return result;
-}
-
-// Variable< array_1d<double,3> > version /////////////////////////////////////
-
-template <>
-void NodalDataHandler< array_1d<double, 3>, 3, boost::numeric::ublas::bounded_matrix<double, 3, 2>>::Initialize(
-    const Element& rElement, const ProcessInfo& rProcessInfo)
-{
-    const Geometry<Node<3>> r_geometry = rElement.GetGeometry();
-    for (unsigned int i = 0; i < 3; i++) // NOTE: TNumNodes
-    {
-        const array_1d<double,3>& r_nodal_values = r_geometry[i].FastGetSolutionStepValue(this->mrVariable);
-        for (unsigned int j = 0; j < mValues.size2(); j++)
-        {
-            mValues(i,j) = r_nodal_values[j];
-        }
-    }
-}
-
-template <>
-array_1d<double, 3> NodalDataHandler< array_1d<double, 3>, 3, boost::numeric::ublas::bounded_matrix<double, 3, 2>>::Interpolate(const boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement)
-{
-	array_1d<double, 3> result(3, 0.0);
-
-    for (unsigned int i = 0; i < 3; i++) { // NOTE NumNodes
-        for (unsigned int j = 0; j < 2; j++) { // NOTE Dim
-            result[j] += rN[i] * mValues(i,j);
-        }
-    }
-
-	return result;
 }
 
 }

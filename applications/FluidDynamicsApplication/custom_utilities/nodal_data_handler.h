@@ -151,6 +151,66 @@ inline std::ostream& operator<<(std::ostream& rOStream, const NodalDataHandler<T
 
 ///@} addtogroup block
 
+namespace Implementation {
+template <size_t TNumNodes>
+void SpecializedInitialization(array_1d<double, TNumNodes>& rValues,
+                               const Variable<double>& rVariable,
+                               const Element& rElement,
+                               const ProcessInfo& rProcessInfo)
+{
+    rValues = array_1d<double, TNumNodes>(TNumNodes, 0.0);
+    const Geometry<Node<3>>& r_geometry = rElement.GetGeometry();
+    for (size_t i = 0; i < TNumNodes; i++)
+    {
+        rValues[i] = r_geometry[i].FastGetSolutionStepValue(rVariable);
+    }
+}
+
+template <size_t TNumNodes, size_t TDim>
+void SpecializedInitialization(boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rValues,
+                               const Variable<array_1d<double,3>>& rVariable,
+                               const Element& rElement,
+                               const ProcessInfo& rProcessInfo)
+{
+    const Geometry<Node<3>>& r_geometry = rElement.GetGeometry();
+    for (size_t i = 0; i < TNumNodes; i++)
+    {
+        const array_1d<double,3>& r_nodal_values = r_geometry[i].FastGetSolutionStepValue(rVariable);
+        for (size_t j = 0; j < rValues.size2(); j++)
+        {
+            rValues(i,j) = r_nodal_values[j];
+        }
+    }
+}
+
+template < size_t TNumNodes >
+double SpecializedInterpolation(array_1d<double,TNumNodes>& rValues, const boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement)
+{
+    double result = 0.0;
+	for (size_t i = 0; i < TNumNodes; i++)
+	{
+		result += rN[i] * rValues[i];
+	}
+
+	return result;
+}
+
+template < size_t TNumNodes, size_t TDim >
+array_1d<double,3> SpecializedInterpolation(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>& rValues, const boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement)
+{
+    array_1d<double, 3> result(3, 0.0);
+
+    for (size_t i = 0; i < TNumNodes; i++) {
+        for (size_t j = 0; j < TDim; j++) {
+            result[j] += rN[i] * rValues(i,j);
+        }
+    }
+
+	return result;
+}
+
+}
+
 } // namespace Kratos.
 
 #endif // KRATOS_FILENAME_H_INCLUDED  defined
