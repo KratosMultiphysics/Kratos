@@ -112,7 +112,7 @@ public:
     // ==============================================================================
     // General optimization operations
     // ==============================================================================
-    void compute_design_update()
+    void compute_control_point_update()
     {
         KRATOS_TRY;
 
@@ -139,10 +139,7 @@ public:
             for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             {
                 array_3d design_update = step_size * ( node_i->FastGetSolutionStepValue(SEARCH_DIRECTION)/max_norm_search_dir );
-                noalias(node_i->FastGetSolutionStepValue(DESIGN_UPDATE)) = design_update;
-
-                // Sum design updates to obtain control point position
-                noalias(node_i->FastGetSolutionStepValue(DESIGN_CHANGE_ABSOLUTE)) += design_update;
+                noalias(node_i->FastGetSolutionStepValue(CONTROL_POINT_UPDATE)) = design_update;
             }
         }
         else
@@ -151,14 +148,18 @@ public:
             for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             {
                 array_3d design_update = step_size * ( node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) );
-                noalias(node_i->FastGetSolutionStepValue(DESIGN_UPDATE)) = design_update;
-
-                // Sum design updates to obtain control point position
-                noalias(node_i->FastGetSolutionStepValue(DESIGN_CHANGE_ABSOLUTE)) += design_update;
+                noalias(node_i->FastGetSolutionStepValue(CONTROL_POINT_UPDATE)) = design_update;
             }
         }
 
         KRATOS_CATCH("");
+    }
+
+    // --------------------------------------------------------------------------
+    void update_control_point_position_by_input_variable( const Variable<array_3d> &rNodalVariable )
+    {
+        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+            noalias(node_i->FastGetSolutionStepValue(CONTROL_POINT_CHANGE)) += node_i->FastGetSolutionStepValue(rNodalVariable);
     }
 
     // ==============================================================================

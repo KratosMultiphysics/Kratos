@@ -87,14 +87,14 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             if self.performDamping:
                 self.__dampShapeUpdate()
 
-            self.__updateShape()
-
             self.__logCurrentOptimizationStep( optimizationIteration )
 
             self.__timeOptimizationStep()
 
             if self.__isAlgorithmConverged( optimizationIteration ):
                 break
+
+            self.__updateShape()
 
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
@@ -151,7 +151,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         else:
             self.optimizationTools.compute_search_direction_steepest_descent()
 
-        self.optimizationTools.compute_design_update()
+        self.optimizationTools.compute_control_point_update()
         self.__mapDesignUpdateToGeometrySpace()
 
     # --------------------------------------------------------------------------
@@ -170,15 +170,11 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __mapDesignUpdateToGeometrySpace( self ):
-        self.Mapper.MapToGeometrySpace( DESIGN_UPDATE, SHAPE_UPDATE )
+        self.Mapper.MapToGeometrySpace( CONTROL_POINT_UPDATE, SHAPE_UPDATE )
 
     # --------------------------------------------------------------------------
     def __dampShapeUpdate( self ):
         self.dampingUtilities.DampNodalVariable( SHAPE_UPDATE )
-
-    # --------------------------------------------------------------------------
-    def __updateShape( self ):
-        self.geometryTools.update_coordinates_according_to_input_variable( SHAPE_UPDATE )
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep( self, optimizationIteration ):
@@ -211,5 +207,10 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             if relativeChangeOfObjectiveValue > 0:
                 print("\n> Value of objective function increased!")
                 return False
+
+    # --------------------------------------------------------------------------
+    def __updateShape( self ):
+        self.optimizationTools.update_control_point_position_by_input_variable( CONTROL_POINT_UPDATE )
+        self.geometryTools.update_shape_by_input_variable( SHAPE_UPDATE )
 
 # ==============================================================================

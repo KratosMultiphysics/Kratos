@@ -313,7 +313,7 @@ public:
             outputFile << setw(10) << modelType; 
             outputFile << setw(10) << analysisType; 
             outputFile << setw(10) << dataCharacteristic;
-            if (nodalResultName.compare("SHAPE_CHANGE_ABSOLUTE") == 0)
+            if (nodalResultName.compare("SHAPE_UPDATE_ABSOLUTE") == 0)
                 outputFile << setw(10) << displacementResultType;
             else
                 outputFile << setw(10) << resultType;

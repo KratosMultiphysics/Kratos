@@ -11,8 +11,7 @@
     "structure_solver_settings"          : {
         "solver_type"                        : "structural_mechanics_static_solver",
         "echo_level"                         : 0,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Linear",
+        "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "3D_Hook"
@@ -28,15 +27,17 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type"         : "AMGCL",
-            "max_iteration"       : 500,
-            "tolerance"           : 1e-7,
-            "provide_coordinates" : false,
-            "smoother_type"       : "ilu0",
-            "krylov_type"         : "bicgstab",
-            "coarsening_type"     : "aggregation",
-            "scaling"             : false,
-            "verbosity"           : 1
+                "solver_type": "PastixSolver",
+                "solution_method": "Direct",
+                "tolerance": 0.000001,
+                "max_iteration": 100,
+                "gmres_krylov_space_dimension": 100,
+                "ilu_level_of_fill": 1,
+                "is_symmetric": false,
+                "verbosity": 0,
+                "scaling": false,
+                "block_size": 1,
+                "use_block_matrices_if_possible": true
         },
         "problem_domain_sub_model_part_list" : ["Parts_solid"],
         "processes_sub_model_part_list"      : ["support","SurfacePressure3D_load"],
@@ -48,6 +49,19 @@
                 "input_type"     : "mdpa",
                 "input_filename" : "3D_Hook"
             },
+            "ale_linear_solver_settings"             : {
+                "solver_type": "PastixSolver",
+                "solution_method": "Direct",
+                "tolerance": 0.000001,
+                "max_iteration": 100,
+                "gmres_krylov_space_dimension": 100,
+                "ilu_level_of_fill": 1,
+                "is_symmetric": false,
+                "verbosity": 0,
+                "scaling": false,
+                "block_size": 1,
+                "use_block_matrices_if_possible": true
+            },             
             "compute_reactions"     : true
     },
     "constraints_process_list" : [{
@@ -181,17 +195,13 @@
                                           "CONSTRAINT_SENSITIVITY",
                                           "MAPPED_OBJECTIVE_SENSITIVITY",
                                           "MAPPED_CONSTRAINT_SENSITIVITY",
-                                          "SEARCH_DIRECTION",
-                                          "DESIGN_UPDATE",
+                                          "CONTROL_POINT_UPDATE",
+                                          "CONTROL_POINT_CHANGE",                                                                                    
                                           "SHAPE_UPDATE",
-                                          "SHAPE_CHANGE_ABSOLUTE" ],
+                                          "SHAPE_CHANGE",
+                                          "MESH_CHANGE" ],
             "output_format" : {
-                "name"                   : "gid",
-                "VolumeOutput"           : true,
-                "GiDPostMode"            : "Binary",
-                "GiDWriteMeshFlag"       : true,
-                "GiDWriteConditionsFlag" : true,
-                "GiDMultiFileFlag"       : "Single"
+                "name"                   : "unv"
             }
         }
     }

@@ -78,7 +78,7 @@ public:
         : mrDesignSurface( designSurface ),
           mrOptimizationSettings( optimizationSettings )
     {
-        mOutputFilenamePrefix = initializeOutputFilenameWithPath( optimizationSettings );
+        mOutputFilenamePrefix = InitializeOutputFilenameWithPath( optimizationSettings );
         mDefaultPrecision = 15;
     }
 
@@ -98,7 +98,7 @@ public:
     ///@{
 
     // ==============================================================================
-    string initializeOutputFilenameWithPath( Parameters& optimizationSettings  )
+    string InitializeOutputFilenameWithPath( Parameters& optimizationSettings  )
     {
         string outputDirectory = optimizationSettings["output"]["output_directory"].GetString();
         string outputFilename = outputDirectory + "/" + optimizationSettings["output"]["design_history_filename"].GetString() + "_";
@@ -106,14 +106,14 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void initializeLogging()
+    void InitializeLogging()
     {
-        mKratosIdToVtkId = createMapFromKratosIdToVTKId();
-        mVtkCellListSize = determineVtkCellListSize();
+        mKratosIdToVtkId = CreateMapFromKratosIdToVTKId();
+        mVtkCellListSize = DetermineVtkCellListSize();
     }
 
     // --------------------------------------------------------------------------
-    map<int,int> createMapFromKratosIdToVTKId()
+    map<int,int> CreateMapFromKratosIdToVTKId()
     {
         map<int,int> kratos_id_to_vtk;
         int vtk_id = 0;
@@ -129,7 +129,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    unsigned int determineVtkCellListSize()
+    unsigned int DetermineVtkCellListSize()
     {
          unsigned int vtk_cell_list_size = 0;
 
@@ -143,23 +143,23 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void logNodalResults( const int optimizationIteration )
+    void LogNodalResults( const int optimizationIteration )
     {
-        updateOutputFilename( optimizationIteration );
-        writeHeader();
-        writeMesh();
-        writeNodalResults();
+        UpdateOutputFilename( optimizationIteration );
+        WriteHeader();
+        WriteMesh();
+        WriteNodalResults();
     }
 
     // --------------------------------------------------------------------------
-    void updateOutputFilename( const int optimizationIteration )
+    void UpdateOutputFilename( const int optimizationIteration )
     {
         string outputFilename = mOutputFilenamePrefix + to_string(optimizationIteration) + ".vtk";
         mOutputFilename = outputFilename;
     }
 
     // --------------------------------------------------------------------------
-    void writeHeader()
+    void WriteHeader()
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::trunc );
@@ -171,32 +171,32 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void writeMesh()
+    void WriteMesh()
     {
-        writeNodes();
-        writeElements();
-        writeElementTypes();
+        WriteNodes();
+        WriteElements();
+        WriteElementTypes();
     }
 
     // --------------------------------------------------------------------------
-    void writeNodalResults()
+    void WriteNodalResults()
     {
-        writeFirstNodalResultsAsPointData();
-        writeOtherNodalResultsAsFieldData();
+        WriteFirstNodalResultsAsPointData();
+        WriteOtherNodalResultsAsFieldData();
     }
 
     // --------------------------------------------------------------------------
-    void writeNodes()
+    void WriteNodes()
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
         outputFile << scientific;
         outputFile << setprecision(mDefaultPrecision);
 
-        // write nodes header
+        // Write nodes header
         outputFile << "POINTS " << mrDesignSurface.NumberOfNodes() << " float" << "\n";
 
-        // write nodes
+        // Write nodes
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
             double x_coordinate = node_i->X0();
@@ -211,15 +211,15 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void writeElements()
+    void WriteElements()
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
 
-        // write elements header
+        // Write elements header
         outputFile << "CELLS " << mrDesignSurface.NumberOfConditions() << " " << mVtkCellListSize << "\n";
 
-        // write elements
+        // Write elements
         for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
         {
             ModelPart::ConditionType::GeometryType& condition_geometry = condition_i->GetGeometry();
@@ -235,15 +235,15 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void writeElementTypes()
+    void WriteElementTypes()
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
 
-        // write element types header
+        // Write element types header
         outputFile << "CELL_TYPES " << mrDesignSurface.NumberOfConditions() << "\n";
 
-        // write elements types
+        // Write elements types
         for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
         {
             const unsigned int numberOfNodes =  condition_i->GetGeometry().size();
@@ -263,16 +263,16 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void writeFirstNodalResultsAsPointData()
+    void WriteFirstNodalResultsAsPointData()
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
 
-        // write nodal results header
+        // Write nodal results header
         Parameters nodalResults = mrOptimizationSettings["output"]["nodal_results"];
         outputFile << "POINT_DATA " << mrDesignSurface.NumberOfNodes() << "\n";
 
-        // write nodal results variable header
+        // Write nodal results variable header
         string nodalResultName = nodalResults[0].GetString();
         unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
         if( KratosComponents<Variable<double>>::Has(nodalResultName))
@@ -286,7 +286,7 @@ public:
             outputFile << "VECTORS " << nodalResultName << " float" << "\n";
         }
 
-        // write nodal results
+        // Write nodal results
         outputFile << scientific;
         outputFile << setprecision(mDefaultPrecision);
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
@@ -311,18 +311,18 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void writeOtherNodalResultsAsFieldData()
+    void WriteOtherNodalResultsAsFieldData()
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
 
-        // write nodal results header
+        // Write nodal results header
         Parameters nodalResults = mrOptimizationSettings["output"]["nodal_results"];
         outputFile << "FIELD FieldData " << nodalResults.size()-1 << "\n";
 
         for(unsigned int entry = 1; entry < nodalResults.size(); entry++)
         {
-            // write nodal results variable header
+            // Write nodal results variable header
             string nodalResultName = nodalResults[entry].GetString();
             unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
             if( KratosComponents<Variable<double>>::Has(nodalResultName))
@@ -336,7 +336,7 @@ public:
                 outputFile << nodalResultName << " 3 " << mrDesignSurface.NumberOfNodes() << " float" << "\n";
             }
 
-            // write nodal results
+            // Write nodal results
             outputFile << scientific;
             outputFile << setprecision(mDefaultPrecision);
             for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)

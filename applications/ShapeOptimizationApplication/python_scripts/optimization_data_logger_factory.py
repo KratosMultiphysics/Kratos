@@ -32,19 +32,19 @@ from response_logger_steepest_descent import ResponseLoggerSteepestDescent
 from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
 
 # ==============================================================================
-def CreateDataLogger( DesignSurface, Communicator, OptimizationSettings ):
-    return OptimizationDataLogger( DesignSurface, Communicator, OptimizationSettings )
+def CreateDataLogger( InputModelPart, Communicator, OptimizationSettings ):
+    return OptimizationDataLogger( InputModelPart, Communicator, OptimizationSettings )
 
 # ==============================================================================
 class OptimizationDataLogger():
 
     # --------------------------------------------------------------------------
-    def __init__( self, DesignSurface, Communicator, OptimizationSettings ):
+    def __init__( self, InputModelPart, Communicator, OptimizationSettings ):
         self.OptimizationSettings = OptimizationSettings
 
         self.Timer = timer_factory.CreateTimer()
         self.ResponseLogger = self.__CreateResponseLogger( Communicator,  OptimizationSettings, self.Timer )
-        self.DesignLogger = self.__CreateDesignLogger( DesignSurface, OptimizationSettings )
+        self.DesignLogger = self.__CreateDesignLogger( InputModelPart, OptimizationSettings )
 
         self.__CreateFolderToStoreOptimizationResults()     
         self.__OutputInformationAboutResponseFunctions()   
@@ -60,14 +60,14 @@ class OptimizationDataLogger():
             raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + AlgorithmName)
 
     # -----------------------------------------------------------------------------
-    def __CreateDesignLogger( self, DesignSurface, OptimizationSettings):
+    def __CreateDesignLogger( self, InputModelPart, OptimizationSettings):
         outputFormatName = OptimizationSettings["output"]["output_format"]["name"].GetString()
         if outputFormatName == "gid":
-            return DesignLoggerGID( DesignSurface, OptimizationSettings )
+            return DesignLoggerGID( InputModelPart, OptimizationSettings )
         if outputFormatName == "unv":
-            return DesignLoggerUNV( DesignSurface, OptimizationSettings )  
+            return DesignLoggerUNV( InputModelPart, OptimizationSettings )  
         if outputFormatName == "vtk":
-            return DesignLoggerVTK( DesignSurface, OptimizationSettings )                
+            return DesignLoggerVTK( InputModelPart, OptimizationSettings )                
         else:
             raise NameError("The following output format is not supported by the design logger (name may be misspelled): " + outputFormatName)
 

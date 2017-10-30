@@ -27,18 +27,17 @@ from design_logger_base import DesignLogger
 class DesignLoggerVTK( DesignLogger ):
 
     # --------------------------------------------------------------------------
-    def __init__( self, designSurface, optimizationSettings ):
-        self.designSurface = designSurface
-        self.optimizationSettings = optimizationSettings
-        self.vtkIO = VTKFileIO( designSurface, optimizationSettings )                
+    def __init__( self, InputModelPart, OptimizationSettings ):
+        self.OptimizationSettings = OptimizationSettings
+        self.VtkIO = VTKFileIO( InputModelPart, OptimizationSettings )                
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
-        self.vtkIO.initializeLogging()
+        self.VtkIO.InitializeLogging()
 
     # --------------------------------------------------------------------------
     def LogCurrentDesign( self, optimizationIteration ):
-        self.vtkIO.logNodalResults( optimizationIteration )
+        self.VtkIO.LogNodalResults( optimizationIteration )
 
     # --------------------------------------------------------------------------
     def FinalizeLogging( self ):      

@@ -51,11 +51,12 @@ class VertexMorphingMethod:
         inputModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
         inputModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
         inputModelPart.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY) 
-        inputModelPart.AddNodalSolutionStepVariable(DESIGN_UPDATE)
-        inputModelPart.AddNodalSolutionStepVariable(DESIGN_CHANGE_ABSOLUTE)  
+        inputModelPart.AddNodalSolutionStepVariable(CONTROL_POINT_UPDATE)
+        inputModelPart.AddNodalSolutionStepVariable(CONTROL_POINT_CHANGE)  
         inputModelPart.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
         inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
-        inputModelPart.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
+        inputModelPart.AddNodalSolutionStepVariable(SHAPE_CHANGE)
+        inputModelPart.AddNodalSolutionStepVariable(MESH_CHANGE)        
 
     # --------------------------------------------------------------------------
     def importModelPart( self ):

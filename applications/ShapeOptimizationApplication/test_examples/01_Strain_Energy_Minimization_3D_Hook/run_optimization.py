@@ -196,6 +196,14 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         # Update reference mesh (Since shape updates are imposed as incremental quantities)
         mesh_solver.get_mesh_motion_solver().UpdateReferenceMesh()
 
+        # Log absolute mesh displacement
+        for node in main_model_part.Nodes:
+            mesh_change = Vector(3)
+            mesh_change[0] = node.GetSolutionStepValue(MESH_CHANGE_X) + node.GetSolutionStepValue(MESH_DISPLACEMENT_X)
+            mesh_change[1] = node.GetSolutionStepValue(MESH_CHANGE_Y) + node.GetSolutionStepValue(MESH_DISPLACEMENT_Y)
+            mesh_change[2] = node.GetSolutionStepValue(MESH_CHANGE_Z) + node.GetSolutionStepValue(MESH_DISPLACEMENT_Z)
+            node.SetSolutionStepValue(MESH_CHANGE,0,mesh_change)     
+
     # --------------------------------------------------------------------------
     def solveStructure( self, optimizationIteration ): 
 
