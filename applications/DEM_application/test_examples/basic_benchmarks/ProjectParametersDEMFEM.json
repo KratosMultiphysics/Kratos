@@ -83,5 +83,5 @@
 "PredefinedSkinOption"             : false,
 "MeanRadius"                       : 0.0001,
 
-"problem_name"                     :"benchmark13"
+"problem_name"                     : "benchmark13"
 }

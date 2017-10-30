@@ -100,7 +100,7 @@ def main():
     q = queue.Queue()
 
     #Discontinuum Tests. From 1 to 17
-    D_DEM_Benchmarks_list = list(range(1,12))
+    D_DEM_Benchmarks_list = list(range(1,18))
         
     #Continuum Tests
     C_DEM_Benchmarks_list = list(range(20,26))
