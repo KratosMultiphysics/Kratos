@@ -125,7 +125,7 @@ namespace Kratos
         }
 
         template< class TVectorType1, class TVectorType2 >
-        inline void AtomicAddVector(const TVectorType1& value, TVectorType2 target )
+        inline void AtomicAddVector(const TVectorType1& value, TVectorType2& target )
         {
             for(unsigned int i=0; i<target.size(); i++)
                 AtomicAdd(value[i],target[i]);
@@ -143,7 +143,7 @@ namespace Kratos
         }
 
         template< class TVectorType1, class TVectorType2 >
-        inline void AtomicSubVector(const TVectorType1& value, TVectorType2 target )
+        inline void AtomicSubVector(const TVectorType1& value, TVectorType2& target )
         {
             for(unsigned int i=0; i<target.size(); i++)
                 AtomicSub(value[i],target[i]);
@@ -161,7 +161,7 @@ namespace Kratos
         }
         
         template< class TVectorType1, class TVectorType2 >
-        inline void AtomicAssignVector(const TVectorType1& value, TVectorType2 target )
+        inline void AtomicAssignVector(const TVectorType1& value, TVectorType2& target )
         {
             for(unsigned int i=0; i<target.size(); i++)
                 AtomicAssign(value[i],target[i]);

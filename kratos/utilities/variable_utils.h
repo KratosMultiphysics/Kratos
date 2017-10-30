@@ -541,24 +541,19 @@ public:
         KRATOS_TRY
 
         array_1d<double, 3> sum_value = ZeroVector(3);
-
-        #pragma omp parallel
-        {
-            array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-            #pragma omp for
-            for (int k = 0; k < static_cast<int>(rModelPart.NumberOfConditions()); k++)
-            {
-                ModelPart::ConditionsContainerType::iterator itCondition = rModelPart.ConditionsBegin() + k;
-                private_sum_value += itCondition->GetValue(rVar);
+        
+        //here a reduction is to be made. This is achieved by using the block parallel for and defining the Loops
+        //note also that in order to be "didactic" all the values are being captured explicitly by reference, except for rBuffStep which is captured by value
+        Kratos::Parallel::block_parallel_for(rModelPart.ConditionsBegin(), rModelPart.Conditions().size(), 
+                                             [&sum_value, &rVar, &rModelPart](ModelPart::ConditionsContainerType::iterator it_begin, 
+                                                                              ModelPart::ConditionsContainerType::iterator it_end){
+                array_1d<double, 3> tmp = ZeroVector(3);
+                for(auto it = it_begin; it != it_end; ++it){
+                    noalias(tmp) += it->GetValue(rVar);
+                }
+                Kratos::Parallel::AtomicAddVector(tmp, sum_value); //here we do sum_value += tmp
             }
-
-            for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
-            {
-                #pragma omp atomic
-                sum_value[j] += private_sum_value[j];
-            }
-        }
+        );
 
         rModelPart.GetCommunicator().SumAll(sum_value);
 
@@ -578,15 +573,23 @@ public:
                                       ModelPart& rModelPart)
     {
         KRATOS_TRY
-
+        
+        
         double sum_value = 0.0;
-
-        #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfConditions()); k++)
-        {
-            ModelPart::ConditionsContainerType::iterator itCondition = rModelPart.ConditionsBegin() + k;
-            sum_value += itCondition->GetValue(rVar);
-        }
+        
+        //here a reduction is to be made. This is achieved by using the block parallel for and defining the Loops
+        //note also that in order to be "didactic" all the values are being captured explicitly by reference, except for rBuffStep which is captured by value
+        Kratos::Parallel::block_parallel_for(rModelPart.ConditionsBegin(), rModelPart.Conditions().size(), 
+                                             [&sum_value, &rVar, &rModelPart](ModelPart::ConditionsContainerType::iterator it_begin, 
+                                                                                         ModelPart::ConditionsContainerType::iterator it_end){
+                double tmp = 0.0;
+                for(auto it = it_begin; it != it_end; ++it){
+                    tmp += it->GetValue(rVar);
+                }
+                
+                Kratos::Parallel::AtomicAdd(tmp, sum_value); //here we do sum_value += tmp
+            }
+        );
 
         rModelPart.GetCommunicator().SumAll(sum_value);
 
@@ -606,29 +609,49 @@ public:
     {
         KRATOS_TRY
 
-        array_1d<double, 3> sum_value = ZeroVector(3);
-
-        #pragma omp parallel
-        {
-            array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-            #pragma omp for
-            for (int k = 0; k < static_cast<int>(rModelPart.NumberOfElements()); k++)
-            {
-                ModelPart::ElementsContainerType::iterator itElement = rModelPart.ElementsBegin() + k;
-                private_sum_value += itElement->GetValue(rVar);
+        array_1d<double, 3>  sum_value = ZeroVector(3);
+        
+        //here a reduction is to be made. This is achieved by using the block parallel for and defining the Loops
+        //note also that in order to be "didactic" all the values are being captured explicitly by reference, except for rBuffStep which is captured by value
+        Kratos::Parallel::block_parallel_for(rModelPart.ElementsBegin(), rModelPart.Elements().size(), 
+                                             [&sum_value, &rVar, &rModelPart](ModelPart::ElementsContainerType::iterator it_begin, 
+                                                                                         ModelPart::ElementsContainerType::iterator it_end){
+                array_1d<double, 3>  tmp = ZeroVector(3);
+                for(auto it = it_begin; it != it_end; ++it){
+                    tmp += it->GetValue(rVar);
+                }
+                
+                Kratos::Parallel::AtomicAddVector(tmp, sum_value); //here we do sum_value += tmp
             }
-
-            for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
-            {
-                #pragma omp atomic
-                sum_value[j] += private_sum_value[j];
-            }
-        }
+        );
 
         rModelPart.GetCommunicator().SumAll(sum_value);
 
         return sum_value;
+        
+//         array_1d<double, 3> sum_value = ZeroVector(3);
+// 
+//         #pragma omp parallel
+//         {
+//             array_1d<double, 3> private_sum_value = ZeroVector(3);
+// 
+//             #pragma omp for
+//             for (int k = 0; k < static_cast<int>(rModelPart.NumberOfElements()); k++)
+//             {
+//                 ModelPart::ElementsContainerType::iterator itElement = rModelPart.ElementsBegin() + k;
+//                 private_sum_value += itElement->GetValue(rVar);
+//             }
+// 
+//             for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
+//             {
+//                 #pragma omp atomic
+//                 sum_value[j] += private_sum_value[j];
+//             }
+//         }
+// 
+//         rModelPart.GetCommunicator().SumAll(sum_value);
+// 
+//         return sum_value;
 
         KRATOS_CATCH("")
     }
@@ -645,19 +668,26 @@ public:
     {
         KRATOS_TRY
 
-        double sum_value = 0.0;
-
-        #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfElements()); k++)
-        {
-            ModelPart::ElementsContainerType::iterator itElement = rModelPart.ElementsBegin() + k;
-            sum_value += itElement->GetValue(rVar);
-        }
+        double  sum_value =0.0;
+        
+        //here a reduction is to be made. This is achieved by using the block parallel for and defining the Loops
+        //note also that in order to be "didactic" all the values are being captured explicitly by reference, except for rBuffStep which is captured by value
+        Kratos::Parallel::block_parallel_for(rModelPart.ElementsBegin(), rModelPart.Elements().size(), 
+                                             [&sum_value, &rVar, &rModelPart](ModelPart::ElementsContainerType::iterator it_begin, 
+                                                                              ModelPart::ElementsContainerType::iterator it_end){
+                double  tmp = 0.0;
+                for(auto it = it_begin; it != it_end; ++it){
+                    tmp += it->GetValue(rVar);
+                }
+                
+                Kratos::Parallel::AtomicAdd(tmp, sum_value); //here we do sum_value += tmp
+            }
+        );
 
         rModelPart.GetCommunicator().SumAll(sum_value);
 
         return sum_value;
-
+        
         KRATOS_CATCH("")
     }
     
