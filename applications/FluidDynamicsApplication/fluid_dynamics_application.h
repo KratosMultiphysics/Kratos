@@ -228,7 +228,7 @@ private:
     /// 3D instance of the VMS element
     const VMS<3> mVMS3D;
     /// Expermiental fluid element
-    const DSS< DSSData2D > mDSS2D;
+    const DSS< DSSData2D3N > mDSS2D;
     //const DSS< FluidElementData<3,4> > mDSS3D;
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;

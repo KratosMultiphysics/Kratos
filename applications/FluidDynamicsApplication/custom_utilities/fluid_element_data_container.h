@@ -42,9 +42,14 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef NodalDataHandler< array_1d<double,3>, 3, boost::numeric::ublas::bounded_matrix<double,3,2> > NodalVectorType;
+    template< unsigned int TNumNodes >
+    using NodalScalar = NodalDataHandler< double, TNumNodes, array_1d<double,TNumNodes> >;
 
-    typedef NodalDataHandler< double, 3, array_1d<double,3> > NodalScalarType;
+    template< unsigned int TNumNodes >
+    using NodalVector2D = NodalDataHandler< array_1d<double,3>, TNumNodes, boost::numeric::ublas::bounded_matrix<double,TNumNodes,2> >;
+
+    template< unsigned int TNumNodes >
+    using NodalVector3D = NodalDataHandler< array_1d<double,3>, TNumNodes, boost::numeric::ublas::bounded_matrix<double,TNumNodes,3> >;
 
     ///@}
     ///@name Life Cycle

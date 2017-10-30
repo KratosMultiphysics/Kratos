@@ -6,8 +6,16 @@
 
 namespace Kratos
 {
+
+// Variable<double> version
 template class NodalDataHandler<double, 3, array_1d<double, 3>>;
+template class NodalDataHandler<double, 4, array_1d<double, 4>>;
+
+// Variable< array_1d<double,3> > version (2D case)
 template class NodalDataHandler<array_1d<double, 3>, 3, boost::numeric::ublas::bounded_matrix<double, 3, 2>>;
+
+// Variable< array_1d<double,3> > version (3D case)
+template class NodalDataHandler<array_1d<double, 3>, 4, boost::numeric::ublas::bounded_matrix<double, 4, 3>>;
 
 template <class TDataType, unsigned int TNumNodes, class TStorageType>
 NodalDataHandler<TDataType, TNumNodes, TStorageType>::NodalDataHandler(const Variable<TDataType>& rVariable):
