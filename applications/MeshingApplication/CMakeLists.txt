@@ -2,30 +2,25 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMeshingApplication ****")
 
-add_definitions( -DTETGEN143 )
-add_definitions( -DTETLIBRARY )
+
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
-# include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite )
-# include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite/src/util )
-# include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite/src/malla )
+include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/triangle )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication ) 
 
-#include pragmatic libraries if so selected
-if(PRAGMATIC_ACTIVATED MATCHES ON)
-    add_definitions( -DPRAGMATIC_ACTIVATED )
-    message( "Include directory for PRAGMATIC " ${PRAGMATIC_INCLUDE_DIR} )
-    include_directories( ${PRAGMATIC_INCLUDE_DIR} )
-    include_directories( ${PRAGMATIC_INCLUDE_DIR}/include )
-endif(PRAGMATIC_ACTIVATED MATCHES ON)
+if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+    add_definitions( -DTETGEN143 )
+    add_definitions( -DTETLIBRARY )
+    add_definitions( -DUSE_TETGEN_NONFREE_TPL )
+    include_directories(${TETGEN_INCLUDES})
+    #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
+    #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
+endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
 
 ##add subdirectories for compilation of dependent libraries
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite)
+#add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt)
 
 ## generate variables with the sources
@@ -54,10 +49,18 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 )
 endif(${INCLUDE_MMG} MATCHES ON)
 
+
+
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES})
-target_link_libraries(KratosMeshingApplication KratosCore triangle tetgen tetMeshOpt)
+target_link_libraries(KratosMeshingApplication KratosCore triangle tetMeshOpt)
+
+if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+    target_link_libraries(KratosMeshingApplication ${TETGEN_LIBRARIES})
+endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+
 
 if(${INCLUDE_MMG} MATCHES ON)
     add_definitions( -DINCLUDE_MMG )
