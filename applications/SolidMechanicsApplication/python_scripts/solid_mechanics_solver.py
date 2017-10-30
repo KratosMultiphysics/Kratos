@@ -88,6 +88,13 @@ class MechanicalSolver(object):
             "processes_sub_model_part_list": [""]
         }
         """)
+
+
+        #trick to allow null value in a stabilization_factor variable
+        if(custom_settings.Has("stabilization_factor")):
+            if(custom_settings["stabilization_factor"].IsDouble()):
+                default_settings["stabilization_factor"].SetDouble(0.0)
+
         
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
