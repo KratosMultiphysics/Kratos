@@ -37,7 +37,7 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mDSS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    //mDSS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mDSS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mTwoFluidVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mStationaryStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mStationaryStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -126,7 +126,7 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("VMS2D",mVMS2D);
     KRATOS_REGISTER_ELEMENT("VMS3D",mVMS3D);
     KRATOS_REGISTER_ELEMENT("DSS2D",mDSS2D);
-    //KRATOS_REGISTER_ELEMENT("DSS3D",mDSS3D);
+    KRATOS_REGISTER_ELEMENT("DSS3D",mDSS3D);
     KRATOS_REGISTER_ELEMENT("TwoFluidVMS3D",mTwoFluidVMS3D);
 
     KRATOS_REGISTER_ELEMENT("StationaryStokes2D",mStationaryStokes2D);
