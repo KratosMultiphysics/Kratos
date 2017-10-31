@@ -283,6 +283,9 @@ void DSS<TElementData>::ASGSMomentumResidual(
     this->ConvectionOperator(AGradN,convective_velocity,rIntegrationPoint.DN_DX);
 
     double density = this->Interpolate(rData.GetDENSITY(),rIntegrationPoint.N);
+    const auto& r_body_forces = rData.GetBODY_FORCE().Data();
+    const auto& r_velocities = rData.GetVELOCITY().Data();
+    const auto& r_pressures = rData.GetPRESSURE().Data();
 
     for (unsigned int i = 0; i < NumNodes; i++)
     {
@@ -290,7 +293,7 @@ void DSS<TElementData>::ASGSMomentumResidual(
 
         for (unsigned int d = 0; d < Dim; d++)
         {
-            rMomentumRes[d] += density * ( rIntegrationPoint.N[i]*(rData.GetBODY_FORCE().Data()(i,d) - rAcc[d]) - AGradN[i]*rData.GetVELOCITY().Data()(i,d)) - rIntegrationPoint.DN_DX(i,d)*rData.GetPRESSURE().Data()[i];
+            rMomentumRes[d] += density * ( rIntegrationPoint.N[i]*(r_body_forces(i,d) - rAcc[d]) - AGradN[i]*r_velocities(i,d)) - rIntegrationPoint.DN_DX(i,d)*r_pressures[i];
         }
     }
 }
