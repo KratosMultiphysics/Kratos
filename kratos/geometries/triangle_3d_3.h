@@ -811,7 +811,7 @@ public:
      * It computes the unit normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) override
+    array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) override
     {
         const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
         const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
