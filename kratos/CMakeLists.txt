@@ -128,7 +128,6 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_SOURCES} ${KRATOS_TESTING_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES})
 target_link_libraries(KratosCore ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
-install(TARGETS KratosCore DESTINATION libs )
 
 ## Define library Kratos which defines the basic python interface
 add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
