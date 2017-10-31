@@ -213,9 +213,9 @@ namespace Testing {
     // Compute the baricentre local coordinates
     array_1d<double, 3> baricentre_local_coords = geom->PointLocalCoordinates(baricentre_local_coords, baricentre);
 
-    KRATOS_CHECK_NEAR(baricentre_local_coords(0), 1.0/3.0, 1e-5);
-    KRATOS_CHECK_NEAR(baricentre_local_coords(1), 1.0/3.0, 1e-5);
-    KRATOS_CHECK_NEAR(baricentre_local_coords(2), 0.0, 1e-5);
+    KRATOS_CHECK_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
+    KRATOS_CHECK_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
+    KRATOS_CHECK_NEAR(baricentre_local_coords(2), 0.0, TOLERANCE);
   }
 
   /** Tests the area using 'GI_GAUSS_1' integration method.
