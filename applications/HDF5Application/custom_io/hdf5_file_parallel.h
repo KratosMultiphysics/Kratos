@@ -257,8 +257,6 @@ private:
         }
 
         // Initialize data space dimensions.
-        constexpr bool is_int_type = std::is_same<int, T>::value;
-        constexpr bool is_double_type = std::is_same<double, T>::value;
         const unsigned ndims = 2;
         hsize_t local_dims[ndims], global_dims[ndims];
         // Set first data space dimension.
@@ -285,13 +283,7 @@ private:
             local_start[0] = 0;
  
         // Set the data type.
-        hid_t dtype_id;
-        if (is_int_type)
-            dtype_id = H5T_NATIVE_INT;
-        else if (is_double_type)
-            dtype_id = H5T_NATIVE_DOUBLE;
-        else
-            static_assert(is_int_type || is_double_type, "Unsupported data type.");
+        hid_t dtype_id = HDF5Utils::GetDataType<T>();
 
         // Create and write the data set.
         hid_t file_id = GetFileId();
@@ -479,8 +471,6 @@ private:
         KRATOS_ERROR_IF_NOT(IsDataSet(Path))
             << "Path is not a data set: " << Path << std::endl;
 
-        constexpr bool is_int_type = std::is_same<int, T>::value;
-        constexpr bool is_double_type = std::is_same<double, T>::value;
         const unsigned ndims = 2;
 
         // Check consistency of file's data set dimensions.
@@ -502,21 +492,17 @@ private:
         local_start[0] = StartIndex;
 
         // Set the data type.
-        hid_t dtype_id;
-        if (is_int_type)
+        hid_t dtype_id = HDF5Utils::GetDataType<T>();
+        if (dtype_id == H5T_NATIVE_INT)
         {
             KRATOS_ERROR_IF_NOT(HasIntDataType(Path))
                 << "Data type is not int: " << Path << std::endl;
-            dtype_id = H5T_NATIVE_INT;
         }
-        else if (is_double_type)
+        else if (dtype_id == H5T_NATIVE_DOUBLE)
         {
             KRATOS_ERROR_IF_NOT(HasFloatDataType(Path))
                 << "Data type is not float: " << Path << std::endl;
-            dtype_id = H5T_NATIVE_DOUBLE;
         }
-        else
-            static_assert(is_int_type || is_double_type, "Unsupported data type.");
 
         hid_t file_id = GetFileId();
         hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
