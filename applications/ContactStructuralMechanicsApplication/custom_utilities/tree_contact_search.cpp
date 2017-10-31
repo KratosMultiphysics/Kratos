@@ -68,7 +68,6 @@ TreeContactSearch::TreeContactSearch(
     for(int i = 0; i < num_conditions; ++i) 
     {
         auto it_cond = conditions_array.begin() + i;
-        
         it_cond->Set(ACTIVE, false);
     }
 }   
@@ -582,8 +581,7 @@ inline CheckResult TreeContactSearch::CheckCondition(
         return Fail;
     }
     
-    
-    if (((pCond1->GetValue(ELEMENT_POINTER) != nullptr) && (pCond2->GetValue(ELEMENT_POINTER) != nullptr)) == true)
+    if (((pCond1->Has(ELEMENT_POINTER)) && (pCond2->Has(ELEMENT_POINTER))) == true)
     {
         if ((pCond1->GetValue(ELEMENT_POINTER) != pCond2->GetValue(ELEMENT_POINTER)) == false) // Avoiding "auto element contact"
         {
