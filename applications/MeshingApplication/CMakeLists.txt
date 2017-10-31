@@ -34,6 +34,11 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
 )
 else(${INCLUDE_MMG} MATCHES ON)
@@ -46,6 +51,11 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
 )
 endif(${INCLUDE_MMG} MATCHES ON)
 
