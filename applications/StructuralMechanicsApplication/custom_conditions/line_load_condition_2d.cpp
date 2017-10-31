@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/line_load_condition.h"
+#include "custom_conditions/line_load_condition_2d.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
 
@@ -27,7 +27,7 @@ namespace Kratos
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
     
-    LineLoadCondition::LineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry )
+    LineLoadCondition2D::LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry )
         : BaseLoadCondition( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
@@ -36,7 +36,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    LineLoadCondition::LineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
+    LineLoadCondition2D::LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
         : BaseLoadCondition( NewId, pGeometry, pProperties )
     {
     }
@@ -44,38 +44,38 @@ namespace Kratos
     //********************************* CREATE *******************************************
     //************************************************************************************
     
-    Condition::Pointer LineLoadCondition::Create(
+    Condition::Pointer LineLoadCondition2D::Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const
     {
-        return boost::make_shared<LineLoadCondition>(NewId, pGeom, pProperties);
+        return boost::make_shared<LineLoadCondition2D>(NewId, pGeom, pProperties);
     }
 
     //************************************************************************************
     //************************************************************************************
     
-    Condition::Pointer LineLoadCondition::Create( 
+    Condition::Pointer LineLoadCondition2D::Create( 
         IndexType NewId, 
         NodesArrayType const& ThisNodes,  
         PropertiesType::Pointer pProperties 
         ) const
     {
-        return boost::make_shared<LineLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+        return boost::make_shared<LineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
     
-    LineLoadCondition::~LineLoadCondition()
+    LineLoadCondition2D::~LineLoadCondition2D()
     {
     }
 
     //************************************************************************************
     //************************************************************************************
 
-    void LineLoadCondition::CalculateAll( 
+    void LineLoadCondition2D::CalculateAll( 
         MatrixType& rLeftHandSideMatrix, 
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
@@ -87,11 +87,10 @@ namespace Kratos
         
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        const bool bHasRotDof = this->HasRotDof();
+        const unsigned int block_size = this->GetBlockSize();
 
         // Resizing as needed the LHS
-        unsigned int mat_size = number_of_nodes * dimension;
-        if (bHasRotDof) mat_size *= 2;
+        unsigned int mat_size = number_of_nodes * block_size;
 
         if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
         {
@@ -153,9 +152,9 @@ namespace Kratos
                 pressure_on_nodes[i] -= GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
             }
         }
+
         // Vector with a loading applied to the elemnt
         array_1d<double, 3 > line_load = ZeroVector(3);
-        array_1d<double,3> gauss_load  = ZeroVector(3);
         if( this->Has( LINE_LOAD ) )
         {
             noalias(line_load) = this->GetValue( LINE_LOAD );
@@ -167,7 +166,22 @@ namespace Kratos
 
             const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j); 
             
-            const array_1d<double, 3> normal = GetGeometry().Normal( integration_points[point_number] );
+            array_1d<double, 3> normal;
+            if(GetGeometry().WorkingSpaceDimension() == 2 )
+            {
+                noalias(normal) = GetGeometry().Normal( integration_points[point_number] );
+            }
+            else{
+                if(!Has(LOCAL_AXIS_2))
+                    KRATOS_ERROR << "the variable LOCAL_AXES_2 is needed to compute the normal";
+                const auto& v2 = GetValue(LOCAL_AXIS_2);
+                
+                array_1d<double,3> v1 = GetGeometry()[1].Coordinates() - GetGeometry()[0].Coordinates();
+                
+                MathUtils<double>::CrossProduct(normal,v1,v2 );
+                normal /= norm_2(normal);
+            }
+                
             
             // Calculating the pressure on the gauss point
             double gauss_pressure = 0.0;
@@ -192,7 +206,7 @@ namespace Kratos
                 }
             }
 
-            gauss_load = line_load;
+            array_1d<double,3> gauss_load = line_load;
             for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
                 if( GetGeometry()[ii].SolutionStepsDataHas( LINE_LOAD ) )
@@ -200,11 +214,10 @@ namespace Kratos
                     noalias(gauss_load) += ( Ncontainer( point_number, ii )) * GetGeometry()[ii].FastGetSolutionStepValue( LINE_LOAD );
                 }
             }
-
             for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
-                unsigned int base = ii * dimension;
-                if (bHasRotDof) base *= 2;
+                unsigned int base = ii * block_size;
+                
                 for(unsigned int k = 0; k < dimension; ++k)
                 {
                     rRightHandSideVector[base + k] += integration_weight * Ncontainer( point_number, ii ) * gauss_load[k];
@@ -212,7 +225,7 @@ namespace Kratos
             }
         }
 
-        if (bHasRotDof) this->CalculateAndAddWorkEquivalentNodalForcesLineLoad(gauss_load,rRightHandSideVector);
+        //if (this->HasRotDof()) this->CalculateAndAddWorkEquivalentNodalForcesLineLoad(gauss_load,rRightHandSideVector);
 
         KRATOS_CATCH( "" )
     }
@@ -220,7 +233,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    void LineLoadCondition::CalculateAndSubKp(
+    void LineLoadCondition2D::CalculateAndSubKp(
         Matrix& K,
         const Matrix& DN_De,
         const Vector& N,
@@ -263,7 +276,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    void LineLoadCondition::CalculateAndAddPressureForce(
+    void LineLoadCondition2D::CalculateAndAddPressureForce(
         Vector& rRightHandSideVector,
         const Vector& N,
         const array_1d<double, 3>& Normal,
@@ -273,102 +286,19 @@ namespace Kratos
     {
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int block_size = this->GetBlockSize();
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            unsigned int index = dimension * i;
-            if(this->HasRotDof()) index *= 2;
+            unsigned int index = block_size * i;
+            
 
             const double coeff = Pressure * N[i] * IntegrationWeight;
             
             rRightHandSideVector[index   ]  -= coeff * Normal[0];
             rRightHandSideVector[index + 1] -= coeff * Normal[1];
-            if (dimension == 3)
-            {
-            rRightHandSideVector[index + 2] -= coeff * Normal[2];
-            }
         }
     }
-
-    //***********************************************************************
-    //***********************************************************************
-
-    void LineLoadCondition::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
-        const Vector ForceInput, VectorType& rRightHandSideVector)
-        {
-            KRATOS_TRY;
-            const int dimension = this->GetGeometry().WorkingSpaceDimension();
-            //calculate orthogonal load vector
-            Vector GeometricOrientation = ZeroVector(dimension);
-            GeometricOrientation[0] = this->GetGeometry()[1].X() 
-                - this->GetGeometry()[0].X();
-            GeometricOrientation[1] = this->GetGeometry()[1].Y() 
-                - this->GetGeometry()[0].Y();
-            if (dimension == 3)
-            {
-                GeometricOrientation[2] = this->GetGeometry()[1].Z() 
-                    - this->GetGeometry()[0].Z();
-            }
-   
-            const double VectorNormA = MathUtils<double>::Norm(GeometricOrientation);
-            if (VectorNormA != 0.00) GeometricOrientation /= VectorNormA;
-    
-            Vector LineLoadDir = ZeroVector(dimension);
-            for (int i = 0; i < dimension; ++i)
-            {
-                LineLoadDir[i] = ForceInput[i];
-            }
-    
-            const double VectorNormB = MathUtils<double>::Norm(LineLoadDir);
-            if (VectorNormB != 0.00) LineLoadDir /= VectorNormB;
-    
-            double cosAngle = 0.00;
-            for (int i = 0; i < dimension; ++i)
-            {
-                cosAngle += LineLoadDir[i] * GeometricOrientation[i];
-            }
-    
-            const double sinAngle = sqrt(1.00 - (cosAngle*cosAngle));
-            const double NormForceVectorOrth = sinAngle * VectorNormB;
-    
-    
-            Vector NodeA = ZeroVector(dimension);
-            NodeA[0] = this->GetGeometry()[0].X();
-            NodeA[1] = this->GetGeometry()[0].Y();
-            if (dimension == 3)	NodeA[2] = this->GetGeometry()[0].Z();
-    
-            Vector NodeB = ZeroVector(dimension);
-            NodeB = NodeA + LineLoadDir;
-    
-            Vector NodeC = ZeroVector(dimension);
-            NodeC = NodeA + (GeometricOrientation*cosAngle);
-    
-            Vector LoadOrthogonalDir = ZeroVector(dimension);
-            LoadOrthogonalDir = NodeB - NodeC;
-            const double VectorNormC = MathUtils<double>::Norm(LoadOrthogonalDir);
-            if(VectorNormC != 0.00) LoadOrthogonalDir /= VectorNormC;
-    
-    
-    
-            // now caluclate respective work equivilent nodal moments
-    
-            const double CustomMoment = NormForceVectorOrth *
-                VectorNormA*VectorNormA / 12.00;
-    
-            Vector MomentNodeA = ZeroVector(dimension);
-            MomentNodeA = MathUtils<double>::CrossProduct(GeometricOrientation,
-                LoadOrthogonalDir);
-            MomentNodeA *= CustomMoment;
-    
-            for (int i = 0; i < dimension; ++i)
-            {
-                rRightHandSideVector[(1 * dimension) + i] += MomentNodeA[i];
-                rRightHandSideVector[(3 * dimension) + i] -= MomentNodeA[i];
-            }
-    
-            KRATOS_CATCH("")            
-        }
-
 
 } // Namespace Kratos
 
