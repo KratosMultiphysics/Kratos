@@ -330,12 +330,12 @@ private:
     virtual void save(Serializer& rSerializer) const 
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point<3>);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point);
     }
     virtual void load(Serializer& rSerializer) 
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point<3>);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point);
     }
 
     ///@}
