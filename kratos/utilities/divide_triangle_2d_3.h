@@ -10,8 +10,8 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_DIVIDE_GEOMETRY_UTILS)
-#define KRATOS_DIVIDE_GEOMETRY_UTILS
+#if !defined(KRATOS_DIVIDE_TRIANGLE_2D_3_UTILS)
+#define KRATOS_DIVIDE_TRIANGLE_2D_3_UTILS
 
 // System includes
 
@@ -155,4 +155,4 @@ private:
 };// class DivideTriangle2D3
 
 }
-#endif /* KRATOS_DIVIDE_GEOMETRY_UTILS defined */
+#endif /* KRATOS_DIVIDE_TRIANGLE_2D_3_UTILS defined */
