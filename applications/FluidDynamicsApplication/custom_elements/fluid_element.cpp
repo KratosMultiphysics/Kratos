@@ -365,7 +365,15 @@ template <class TElementData>
 double FluidElement<TElementData>::Interpolate(typename TElementData::NodalScalar& rHandler,
                                                const boost::numeric::ublas::matrix_row<Matrix>& rN)
 {
-    return rHandler.Interpolate(rN, this);
+    auto& r_values = rHandler.Data();
+    double result = 0.0;
+
+	for (size_t i = 0; i < NumNodes; i++)
+	{
+		result += rN[i] * r_values[i];
+	}
+
+	return result;
 }
 
 template <class TElementData>
@@ -373,7 +381,16 @@ array_1d<double, 3> FluidElement<TElementData>::Interpolate(
     typename TElementData::NodalVector& rHandler,
     const boost::numeric::ublas::matrix_row<Matrix>& rN)
 {
-    return rHandler.Interpolate(rN, this);
+    auto& r_values = rHandler.Data();
+    array_1d<double, 3> result(3, 0.0);
+
+    for (size_t i = 0; i < NumNodes; i++) {
+        for (size_t j = 0; j < Dim; j++) {
+            result[j] += rN[i] * r_values(i,j);
+        }
+    }
+
+	return result;
 }
 
 template< class TElementData >
