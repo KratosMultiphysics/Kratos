@@ -132,7 +132,7 @@ class ALMContactProcess(python_process.PythonProcess):
         if (preprocess == True):
             self._interface_preprocess(computing_model_part)
         else:
-            master_slave_process = ContactStructuralMechanicsApplication.MasterSlaveProcess(self.contact_model_part) 
+            master_slave_process = ContactStructuralMechanicsApplication.MasterSlaveProcess(computing_model_part) 
             master_slave_process.Execute()
         
         # We initialize the contact values
