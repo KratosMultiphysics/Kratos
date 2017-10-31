@@ -389,18 +389,6 @@ protected:
         double ElementSize,
         const ProcessInfo &rCurrentProcessInfo);
 
-
-    void ResolvedConvectiveVelocity(
-        TElementData& rData,
-        const ShapeFunctionsType &rN,
-        array_1d<double,3> &rConvVel);
-
-
-    void FullConvectiveVelocity(array_1d<double,3>& rConvVel,
-                                const ShapeFunctionsType& rN,
-                                const array_1d<double,3>& rSubscaleVel);
-
-
     /**
      * @brief Write the convective operator evaluated at this point (for each nodal funciton) to an array
      * Evaluate the convective operator for each node's shape function at an arbitrary point
