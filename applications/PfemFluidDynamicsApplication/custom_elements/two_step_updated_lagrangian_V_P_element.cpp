@@ -181,9 +181,8 @@ namespace Kratos {
     VectorType GaussWeights;
     this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
     const unsigned int NumGauss = GaussWeights.size();
-
     const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-    const double currentTime = rCurrentProcessInfo[TIME];
+
     double theta=this->GetThetaMomentum();
 
     ElementalVariables rElementalVariables;
@@ -215,8 +214,10 @@ namespace Kratos {
 
 	bool computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,rDN_DX,g);
 
-	if(TimeStep>=currentTime)
-	  rElementalVariables.EquivalentStrainRate=1;
+	// if(TimeStep>=(0.99999*currentTime)){
+	//   rElementalVariables.EquivalentStrainRate=0;
+	//   std::cout<<"rElementalVariables.EquivalentStrainRate "<<rElementalVariables.EquivalentStrainRate<<std::endl;
+	// }
 	this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep,rElementalVariables);
 
 	if(computeElement==true){
@@ -1002,7 +1003,8 @@ bool TwoStepUpdatedLagrangianVPElement<2>::CalcCompleteStrainRate(ElementalVaria
   VectorType  NodePosition= ZeroVector(LocalSize);
   VectorType VelocityValues = ZeroVector(LocalSize);
   VectorType RHSVelocities = ZeroVector(LocalSize);
-
+  const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+  const double currentTime = rCurrentProcessInfo[TIME];
   this->GetPositions(NodePosition,rCurrentProcessInfo,theta);
   this->GetVelocityValues(RHSVelocities,0); 
   RHSVelocities*=theta;
@@ -1090,10 +1092,15 @@ bool TwoStepUpdatedLagrangianVPElement<2>::CalcCompleteStrainRate(ElementalVaria
   rElementalVariables.DeviatoricInvariant=sqrt(2*(dev_X*dev_X + dev_Y*dev_Y +
 						  rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2]));
 
-  rElementalVariables.EquivalentStrainRate=sqrt(0.5*(rElementalVariables.SpatialDefRate[0]*rElementalVariables.SpatialDefRate[0] +
+  rElementalVariables.EquivalentStrainRate=sqrt(2.0*(rElementalVariables.SpatialDefRate[0]*rElementalVariables.SpatialDefRate[0] +
 						     rElementalVariables.SpatialDefRate[1]*rElementalVariables.SpatialDefRate[1] +
 						     rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2]));
+
   
+  if(TimeStep>=(0.99999*currentTime)){
+    rElementalVariables.EquivalentStrainRate=0;
+  }
+
   return computeElement;
 
 }  
@@ -1113,7 +1120,8 @@ bool TwoStepUpdatedLagrangianVPElement<3>::CalcCompleteStrainRate(ElementalVaria
   VectorType  NodePosition= ZeroVector(LocalSize);
   VectorType VelocityValues = ZeroVector(LocalSize);
   VectorType RHSVelocities = ZeroVector(LocalSize);
-
+  const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+  const double currentTime = rCurrentProcessInfo[TIME];
   this->GetPositions(NodePosition,rCurrentProcessInfo,theta);
   this->GetVelocityValues(RHSVelocities,0); 
   RHSVelocities*=theta;
@@ -1238,13 +1246,16 @@ bool TwoStepUpdatedLagrangianVPElement<3>::CalcCompleteStrainRate(ElementalVaria
 						  rElementalVariables.SpatialDefRate[4]*rElementalVariables.SpatialDefRate[4] +
 						  rElementalVariables.SpatialDefRate[5]*rElementalVariables.SpatialDefRate[5]));
 
-  rElementalVariables.EquivalentStrainRate=sqrt(0.5*(rElementalVariables.SpatialDefRate[0]*rElementalVariables.SpatialDefRate[0] +
+  rElementalVariables.EquivalentStrainRate=sqrt(2.0*(rElementalVariables.SpatialDefRate[0]*rElementalVariables.SpatialDefRate[0] +
 						     rElementalVariables.SpatialDefRate[1]*rElementalVariables.SpatialDefRate[1] +
 						     rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2] +
 						     rElementalVariables.SpatialDefRate[3]*rElementalVariables.SpatialDefRate[3] +
 						     rElementalVariables.SpatialDefRate[4]*rElementalVariables.SpatialDefRate[4] +
 						     rElementalVariables.SpatialDefRate[5]*rElementalVariables.SpatialDefRate[5]));
-  
+    
+  if(TimeStep>=(0.99999*currentTime)){
+    rElementalVariables.EquivalentStrainRate=0;
+  }
   return computeElement;
 
 }  

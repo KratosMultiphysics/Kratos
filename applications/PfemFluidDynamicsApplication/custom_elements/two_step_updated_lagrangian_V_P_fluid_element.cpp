@@ -82,10 +82,16 @@ namespace Kratos {
 
     // double shearThreshold=100;
     // double rateSensitiveExponent=1000;
+
     double exponent=-FluidAdaptiveExponent*rElementalVariables.EquivalentStrainRate;
-    if(rElementalVariables.EquivalentStrainRate!=1 && rElementalVariables.EquivalentStrainRate!=0)
+    if(rElementalVariables.EquivalentStrainRate!=1 && rElementalVariables.EquivalentStrainRate!=0){
       FluidViscosity+=FluidYieldShear/rElementalVariables.EquivalentStrainRate*(1-exp(exponent));
-  
+    }
+
+    // else{
+    //   FluidViscosity=0.1;
+    // }
+    // std::cout<<"FluidViscosity "<<FluidViscosity<<std::endl;
     if(FluidBulkModulus==0){
       // std::cout<<"FluidBulkModulus was 0 !!!!!!!!"<<std::endl;
       FluidBulkModulus = 1000000000.0;
