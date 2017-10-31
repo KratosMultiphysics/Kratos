@@ -265,6 +265,8 @@ public:
                                        Matrix<double>& rData,
                                        unsigned StartIndex,
                                        unsigned BlockSize);
+
+    unsigned GetOpenObjectsCount() const;
     ///@}
 
 protected:

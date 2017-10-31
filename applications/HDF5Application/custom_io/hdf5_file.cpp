@@ -151,8 +151,6 @@ void HDF5File::GetAttributeNames(std::string ObjectPath, std::vector<std::string
         std::copy_n(buffer, ssize, rNames[i].begin());
     }
     KRATOS_ERROR_IF(H5Oclose(object_id) < 0) << "H5Oclose failed." << std::endl;
-    //ssize_t num_open_objects = H5Fget_obj_count(m_file_id, H5F_OBJ_ALL);
-    //KRATOS_ERROR << "num_open_objects = " << num_open_objects << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -453,6 +451,15 @@ void HDF5File::ReadDataSetIndependent(std::string Path, Matrix<double>& rData, u
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
+    KRATOS_CATCH("");
+}
+
+unsigned HDF5File::GetOpenObjectsCount() const
+{
+    KRATOS_TRY;
+    ssize_t num_open_objects = H5Fget_obj_count(m_file_id, H5F_OBJ_ALL);
+    KRATOS_ERROR_IF(num_open_objects < 0) << "H5Fget_obj_count failed." << std::endl;
+    return num_open_objects;
     KRATOS_CATCH("");
 }
 

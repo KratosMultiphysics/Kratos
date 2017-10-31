@@ -157,7 +157,7 @@ private:
     template <class T>
     void WriteDataSetVectorImpl(std::string Path, const Vector<T>& rData, DataTransferMode Mode)
     {
-        // Check that full path does not exist before trying to write data.
+        // Expects a valid free path.
         KRATOS_ERROR_IF(HasPath(Path)) << "Path already exists: " << Path << std::endl;
         
         // Create any missing subpaths.
