@@ -145,7 +145,7 @@ public:
         const double& tolerance = std::numeric_limits<double>::epsilon();
 
         // Initialize normal vectors
-        const array_1d<double,3>& zero_vect = ZeroVector(3);
+        const array_1d<double,3> zero_vect = ZeroVector(3);
         
         NodesArrayType& nodes_array = rModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size()); 
@@ -178,9 +178,12 @@ public:
             for (unsigned int i = 0; i < number_nodes; ++i)
             {
                 auto& this_node = this_geometry[i];
-                this_node.SetLock();
-                noalias( this_node.GetValue(NORMAL) ) += normal;
-                this_node.UnSetLock();
+                auto& aux_normal = this_node.GetValue(NORMAL);
+                for (unsigned int index = 0; index < 3; ++index)
+                {
+                    #pragma omp atomic
+                    aux_normal[index] += normal[index];
+                }
             }
         }
         
@@ -197,6 +200,7 @@ public:
 
             const double norm_normal = norm_2(it_node->GetValue(NORMAL));
             if (norm_normal > tolerance) it_node->GetValue(NORMAL) /= norm_normal;
+            else KRATOS_ERROR << "WARNING:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
         }
     }
     
@@ -249,10 +253,14 @@ public:
             for (unsigned int i = 0; i < number_nodes; ++i)
             {
                 auto& this_node = this_geometry[i];
-                this_node.SetLock();
+                #pragma omp atomic
                 this_node.GetValue(NODAL_AREA)        += rArea;
-                noalias( this_node.GetValue(NORMAL) ) += rArea * normal;
-                this_node.UnSetLock();
+                auto& aux_normal = this_node.GetValue(NORMAL);
+                for (unsigned int index = 0; index < 3; ++index)
+                {
+                    #pragma omp atomic
+                    aux_normal[index] += normal[index];
+                }
             }
         }
         
@@ -277,10 +285,8 @@ public:
 
             const double norm_normal = norm_2(it_node->GetValue(NORMAL));
             
-            if (norm_normal > tolerance)
-            {
-                it_node->GetValue(NORMAL) /= norm_normal;
-            }
+            if (norm_normal > tolerance) it_node->GetValue(NORMAL) /= norm_normal;
+            else KRATOS_ERROR << "WARNING:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
         }
     }
 
