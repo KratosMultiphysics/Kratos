@@ -11,8 +11,8 @@
 //                   Jordi Cotela
 //
 
-#if !defined(KRATOS_TWO_FLUID_TwoFluidVMS2_H_INCLUDED )
-#define  KRATOS_TWO_FLUID_TwoFluidVMS2_H_INCLUDED
+#if !defined(KRATOS_TWO_FLUID_VMS_H_INCLUDED )
+#define  KRATOS_TWO_FLUID_VMS_H_INCLUDED
 // System includes
 #include <string>
 #include <iostream>
@@ -1214,4 +1214,4 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 ///@}
 ///@} // Fluid Dynamics Application group
 } // namespace Kratos.
-#endif // KRATOS_TWO_FLUID_TwoFluidVMS2_H_INCLUDED  defined
+#endif // KRATOS_TWO_FLUID_VMS_H_INCLUDED  defined
