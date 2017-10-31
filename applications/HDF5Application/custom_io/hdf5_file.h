@@ -64,6 +64,22 @@ struct HDF5Utils
 
         return result;
     }
+
+    template<class TScalar>
+    static hid_t GetDataType()
+    {
+        hid_t type_id;
+        constexpr bool is_int_type = std::is_same<int, TScalar>::value;
+        constexpr bool is_double_type = std::is_same<double, TScalar>::value;
+        if (is_int_type)
+            type_id = H5T_NATIVE_INT;
+        else if (is_double_type)
+            type_id = H5T_NATIVE_DOUBLE;
+        else
+            static_assert(is_int_type || is_double_type, "Unsupported data type.");
+
+        return type_id;
+    }
 };
 
 /// A base class for accessing an HDF5 file.
@@ -296,15 +312,7 @@ void HDF5File::WriteAttribute(std::string ObjectPath, std::string Name, TScalar 
     KRATOS_TRY;
     hid_t type_id, space_id, attr_id;
 
-    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
-    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
-    if (is_int_type)
-        type_id = H5T_NATIVE_INT;
-    else if (is_double_type)
-        type_id = H5T_NATIVE_DOUBLE;
-    else
-        static_assert(is_int_type || is_double_type, "Unsupported data type.");
-
+    type_id = HDF5Utils::GetDataType<TScalar>();
     space_id = H5Screate(H5S_SCALAR);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
     attr_id = H5Acreate_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(), type_id,
@@ -322,15 +330,7 @@ void HDF5File::WriteAttribute(std::string ObjectPath, std::string Name, const Ve
     KRATOS_TRY;
     hid_t type_id, space_id, attr_id;
 
-    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
-    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
-    if (is_int_type)
-        type_id = H5T_NATIVE_INT;
-    else if (is_double_type)
-        type_id = H5T_NATIVE_DOUBLE;
-    else
-        static_assert(is_int_type || is_double_type, "Unsupported data type.");
-
+    type_id = HDF5Utils::GetDataType<TScalar>();
     const hsize_t dim = rValue.size();
     space_id = H5Screate_simple(1, &dim, nullptr);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
@@ -349,15 +349,7 @@ void HDF5File::WriteAttribute(std::string ObjectPath, std::string Name, const Ma
     KRATOS_TRY;
     hid_t type_id, space_id, attr_id;
 
-    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
-    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
-    if (is_int_type)
-        type_id = H5T_NATIVE_INT;
-    else if (is_double_type)
-        type_id = H5T_NATIVE_DOUBLE;
-    else
-        static_assert(is_int_type || is_double_type, "Unsupported data type.");
-
+    type_id = HDF5Utils::GetDataType<TScalar>();
     const unsigned ndims = 2;
     hsize_t dims[ndims];
     dims[0] = rValue.size1();
@@ -380,15 +372,7 @@ void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, TScalar& 
     hid_t mem_type_id, attr_type_id, space_id, attr_id;
     int ndims;
 
-    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
-    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
-    if (is_int_type)
-        mem_type_id = H5T_NATIVE_INT;
-    else if (is_double_type)
-        mem_type_id = H5T_NATIVE_DOUBLE;
-    else
-        static_assert(is_int_type || is_double_type, "Unsupported data type.");
-
+    mem_type_id = HDF5Utils::GetDataType<TScalar>();
     attr_id = H5Aopen_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -423,15 +407,7 @@ void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, Vector<TS
     int ndims;
     hsize_t dims[1];
 
-    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
-    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
-    if (is_int_type)
-        mem_type_id = H5T_NATIVE_INT;
-    else if (is_double_type)
-        mem_type_id = H5T_NATIVE_DOUBLE;
-    else
-        static_assert(is_int_type || is_double_type, "Unsupported data type.");
-
+    mem_type_id = HDF5Utils::GetDataType<TScalar>();
     attr_id = H5Aopen_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -468,15 +444,7 @@ void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TS
     int ndims;
     hsize_t dims[2];
 
-    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
-    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
-    if (is_int_type)
-        mem_type_id = H5T_NATIVE_INT;
-    else if (is_double_type)
-        mem_type_id = H5T_NATIVE_DOUBLE;
-    else
-        static_assert(is_int_type || is_double_type, "Unsupported data type.");
-
+    mem_type_id = HDF5Utils::GetDataType<TScalar>();
     attr_id = H5Aopen_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;

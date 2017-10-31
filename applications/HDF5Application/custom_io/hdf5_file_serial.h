@@ -217,21 +217,13 @@ private:
         }
 
         // Initialize data space dimensions.
-        constexpr bool is_int_type = std::is_same<int, T>::value;
-        constexpr bool is_double_type = std::is_same<double, T>::value;
         const unsigned ndims = 2;
         hsize_t dims[ndims];
         dims[0] = rData.size1();
         dims[1] = rData.size2();
 
         // Set the data type.
-        hid_t dtype_id;
-        if (is_int_type)
-            dtype_id = H5T_NATIVE_INT;
-        else if (is_double_type)
-            dtype_id = H5T_NATIVE_DOUBLE;
-        else
-            static_assert(is_int_type || is_double_type, "Unsupported data type.");
+        hid_t dtype_id = HDF5Utils::GetDataType<T>();
 
         // Create and write the data set.
         hid_t dspace_id = H5Screate_simple(ndims, dims, nullptr);
@@ -345,8 +337,6 @@ private:
         KRATOS_ERROR_IF_NOT(IsDataSet(Path))
             << "Path is not a data set: " << Path << std::endl;
 
-        constexpr bool is_int_type = std::is_same<int, T>::value;
-        constexpr bool is_double_type = std::is_same<double, T>::value;
         const unsigned ndims = 2;
 
         // Check consistency of file's data set dimensions.
@@ -367,21 +357,17 @@ private:
         mem_dims[1] = rData.size2(); // Set second dimension.
 
         // Set the data type.
-        hid_t dtype_id;
-        if (is_int_type)
+        hid_t dtype_id = HDF5Utils::GetDataType<T>();
+        if (dtype_id == H5T_NATIVE_INT)
         {
             KRATOS_ERROR_IF_NOT(HasIntDataType(Path))
                 << "Data type is not int: " << Path << std::endl;
-            dtype_id = H5T_NATIVE_INT;
         }
-        else if (is_double_type)
+        else if (dtype_id == H5T_NATIVE_DOUBLE)
         {
             KRATOS_ERROR_IF_NOT(HasFloatDataType(Path))
                 << "Data type is not float: " << Path << std::endl;
-            dtype_id = H5T_NATIVE_DOUBLE;
         }
-        else
-            static_assert(is_int_type || is_double_type, "Unsupported data type.");
 
         hid_t file_id = GetFileId();
         hid_t dset_id = H5Dopen(file_id, Path.c_str(), H5P_DEFAULT);
