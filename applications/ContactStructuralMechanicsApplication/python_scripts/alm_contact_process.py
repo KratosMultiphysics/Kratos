@@ -131,6 +131,9 @@ class ALMContactProcess(python_process.PythonProcess):
         #If the conditions doesn't exist we create them
         if (preprocess == True):
             self._interface_preprocess(computing_model_part)
+        else:
+            master_slave_process = ContactStructuralMechanicsApplication.MasterSlaveProcess(self.contact_model_part) 
+            master_slave_process.Execute()
         
         # We initialize the contact values
         self._initialize_contact_values(computing_model_part)
@@ -142,19 +145,20 @@ class ALMContactProcess(python_process.PythonProcess):
         self._initialize_alm_parameters(computing_model_part)
 
         # We copy the conditions to the ContactSubModelPart
-        for cond in self.contact_model_part.Conditions:
-            interface_model_part.AddCondition(cond)    
-        del(cond)
-        for node in self.contact_model_part.Nodes:
-            interface_model_part.AddNode(node, 0)   
-        del(node)
+        if (preprocess == True):
+            for cond in self.contact_model_part.Conditions:
+                interface_model_part.AddCondition(cond)    
+            del(cond)
+            for node in self.contact_model_part.Nodes:
+                interface_model_part.AddNode(node, 0)   
+            del(node)
 
         # Creating the search
         self._create_main_search(computing_model_part)
         
         # We initialize the conditions    
-        self.alm_init_var = ContactStructuralMechanicsApplication.ALMFastInit(self.contact_model_part) 
-        self.alm_init_var.Execute()
+        alm_init_var = ContactStructuralMechanicsApplication.ALMFastInit(self.contact_model_part) 
+        alm_init_var.Execute()
         
         # We initialize the search utility
         self.contact_search.CreatePointListMortar()
