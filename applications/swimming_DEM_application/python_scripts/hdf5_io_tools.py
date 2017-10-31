@@ -3,43 +3,19 @@ import numpy as np
 import h5py
 from KratosMultiphysics import *
 
-def GetOldTimeIndicesAndWeights(current_time, times_array, fluid_dt):
-    print(current_time)
-    old_index = bi.bisect(times_array, current_time)
-    print(times_array[old_index])
-    future_index = old_index + 1
-    print('old_index',old_index)
-    print('future_index',future_index)
-    print(times_array[old_index])
-    print(times_array[future_index])
-    old_time =  times_array[old_index]
-
-    if future_index >= len(times_array):
-        alpha_old = 1
-        future_index = old_index
-        alpha_future = 0
-    else:
-        alpha_old = max(0, (current_time - old_time) / fluid_dt)
-        alpha_future = 1.0 - alpha_old
-    print('old_index',old_index)
-    print('future_index',future_index)
-    print('alpha_old',alpha_old)
-    print('alpha_future',alpha_future)
-
-    return old_index, alpha_old, future_index, alpha_future
-
 class FluidHDF5Loader:
     def __init__(self, fluid_model_part, pp, main_path):
         self.n_nodes = len(fluid_model_part.Nodes)
         self.shape = (self.n_nodes,)
         self.store_pressure = pp.CFD_DEM["store_fluid_pressure_option"].GetBool()
         self.store_gradient = pp.CFD_DEM["store_full_gradient_option"].GetBool()
+        self.there_are_more_steps_to_load = True
 
         number_of_variables = 3
 
         if pp.CFD_DEM["store_fluid_pressure_option"].GetBool():
             number_of_variables += 1
-        if pp.CFD_DEM.load_derivatives:
+        if pp.CFD_DEM["load_derivatives"].GetBool():
             number_of_variables += 9
 
         self.extended_shape = self.shape + (number_of_variables,)
@@ -47,7 +23,7 @@ class FluidHDF5Loader:
         self.file_name = main_path + '/box_32_history.hdf5'
         self.fluid_model_part = fluid_model_part
 
-        if pp.CFD_DEM.fluid_already_calculated:
+        if pp.CFD_DEM["fluid_already_calculated"].GetBool():
 
             with h5py.File(self.file_name, 'r') as f:
                 self.times_str = list([str(key) for key in f.keys() if key not in {'nodes'}])
@@ -85,13 +61,34 @@ class FluidHDF5Loader:
                 f.attrs['linear system solver type'] = pp.FluidSolverConfiguration.linear_solver_config.solver_type
                 f.attrs['use orthogonal subscales'] = bool(pp.FluidSolverConfiguration.oss_switch)
                 self.dtype = np.float64
+                nodes = np.array([(node.Id, node.X, node.Y, node.Z) for node in fluid_model_part.Nodes])
+                f.create_dataset(name = 'nodes', compression = self.compression_type, data = nodes, dtype = np.float64)
 
-            if pp.CFD_DEM.store_fluid_in_single_precision:
+            if pp.CFD_DEM["store_fluid_in_single_precision"].GetBool():
                 self.dtype = np.float32
 
         self.last_time = 0.0
 
         self.current_data_array = np.zeros(self.extended_shape)
+
+    def GetOldTimeIndicesAndWeights(self, current_time, times_array, fluid_dt):
+        old_index = bi.bisect(times_array, current_time)
+        future_index = old_index + 1
+        old_time =  times_array[old_index]
+
+        if future_index >= len(times_array):
+            alpha_old = 1
+            future_index = old_index
+            alpha_future = 0
+            self.there_are_more_steps_to_load = False
+        else:
+            alpha_old = max(0, (current_time - old_time) / fluid_dt)
+            alpha_future = 1.0 - alpha_old
+
+        return old_index, alpha_old, future_index, alpha_future
+
+    def CanLoadMoreSteps(self):
+        return self.there_are_more_steps_to_load
 
     def Index(self):
         index = 0
@@ -109,6 +106,9 @@ class FluidHDF5Loader:
     def FillFluidDataStep(self):
         time = self.fluid_model_part.ProcessInfo[TIME]
         name = str(time)
+        with h5py.File(self.file_name) as f:
+            f.create_group(name = name)
+            f[name].attrs['time'] = time
 
         indices = self.Index()
         if not self.last_time == time:
@@ -134,13 +134,13 @@ class FluidHDF5Loader:
 
     def ConvertComponent(self, f, component_name):
         if '/vx' in component_name:
-            read_values = f[component_name][:, 0]
+            read_values = f[component_name][:,]
         elif '/vy' in component_name:
-            read_values = f[component_name][:, 0]
+            read_values = f[component_name][:,]
         elif '/vz' in component_name:
-            read_values = f[component_name][:, 0]
+            read_values = f[component_name][:,]
         else:
-            read_values = f[component_name][:, 0]
+            read_values = f[component_name][:,]
 
         return read_values[self.permutations]
 
@@ -155,8 +155,9 @@ class FluidHDF5Loader:
             node.SetSolutionStepValue(variable, self.current_data_array[i_node, variable_index_in_temp_array])
 
     def LoadFluid(self, DEM_time):
+        print('\nLoading fluid from hdf5 file...')
         # getting time indices and weights (identifyint the two fluid time steps surrounding the current DEM step and assigning correspnding weights)
-        old_time_index, alpha_old, future_time_index, alpha_future = GetOldTimeIndicesAndWeights(DEM_time, self.times, self.dt)
+        old_time_index, alpha_old, future_time_index, alpha_future = self.GetOldTimeIndicesAndWeights(DEM_time, self.times, self.dt)
         old_step_dataset_name    = self.times_str[old_time_index]
         future_step_dataset_name = self.times_str[future_time_index]
         must_load_from_database = not self.old_time_index == old_time_index # old and future time steps must be updated
@@ -183,3 +184,4 @@ class FluidHDF5Loader:
             self.UpdateFluidVariable(future_step_dataset_name + '/dvzx', VELOCITY_Z_GRADIENT_X, next(indices), must_load_from_database, alpha_old, alpha_future)
             self.UpdateFluidVariable(future_step_dataset_name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(indices), must_load_from_database, alpha_old, alpha_future)
             self.UpdateFluidVariable(future_step_dataset_name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(indices), must_load_from_database, alpha_old, alpha_future)
+        print('Finished loading fluid from hdf5 file.\n')

@@ -26,8 +26,8 @@ def AddVariables(model_part, settings):
     model_part.AddNodalSolutionStepVariable(IS_BOUNDARY);
     model_part.AddNodalSolutionStepVariable(settings.GetTransferCoefficientVariable());
     # model_part.AddNodalSolutionStepVariable(HTC);
-    model_part.AddNodalSolutionStepVariable(SOLID_FRACTION);
-    model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_RATE);
+    model_part.AddNodalSolutionStepVariable(SOLIDFRACTION);
+    model_part.AddNodalSolutionStepVariable(SOLIDFRACTION_RATE);
     model_part.AddNodalSolutionStepVariable(DISTANCE);
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
 

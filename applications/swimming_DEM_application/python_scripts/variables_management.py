@@ -24,7 +24,6 @@ def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part): #DEPR
 #       Note that additional variables may be added as well by the fluid and/or DEM strategies.
 
 def AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part):
-
     fluid_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1)
     gravity = Vector(3)
     if pp.CFD_DEM["body_force_on_fluid_option"].GetBool():
@@ -88,10 +87,11 @@ def ConstructListsOfVariables(pp):
     pp.fluid_vars += [TORQUE]
     pp.fluid_vars += pp.fluid_printing_vars
     pp.fluid_vars += pp.coupling_fluid_vars
-    pp.fluid_vars += [PRESSURE_GRADIENT]
-    pp.fluid_vars += [RECOVERED_PRESSURE_GRADIENT]
 
-    if pp.CFD_DEM["gradient_calculation_type"].GetInt():
+    if pp.CFD_DEM["pressure_grad_recovery_type"].GetInt() > 0:
+        pp.fluid_vars += [RECOVERED_PRESSURE_GRADIENT]
+
+    if pp.CFD_DEM["gradient_calculation_type"].GetInt() > 1 or pp.CFD_DEM["pressure_grad_recovery_type"].GetInt() > 1 or pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 7:
         pp.fluid_vars += [NODAL_WEIGHTS]
 
     if pp.CFD_DEM["material_acceleration_calculation_type"].GetInt():
@@ -301,15 +301,12 @@ def ConstructListsOfVariablesForCoupling(pp):
     pp.coupling_fluid_vars = []
     pp.coupling_fluid_vars += [MATERIAL_ACCELERATION]
 
-    if pp.CFD_DEM["embedded_option"].GetBool():
-       pp.coupling_fluid_vars += [DISTANCE]
-
     pp.coupling_fluid_vars += [BODY_FORCE]
 
     if pp.CFD_DEM["fluid_model_type"].GetInt() == 0:
         pp.coupling_fluid_vars += [AVERAGED_FLUID_VELOCITY]
 
-    if pp.CFD_DEM["fluid_model_type"].GetInt() == 0 or pp.CFD_DEM["coupling_level_type"].GetInt() >= 1 or pp.CFD_DEM["drag_force_type"].GetInt() == 4:
+    if pp.CFD_DEM["fluid_model_type"].GetInt() == 0 or pp.CFD_DEM["coupling_level_type"].GetInt() > 1 or pp.CFD_DEM["drag_force_type"].GetInt() == 4:
         pp.coupling_fluid_vars += [FLUID_FRACTION]
 
         if pp.CFD_DEM["print_DISPERSE_FRACTION_option"].GetBool():
@@ -320,7 +317,7 @@ def ConstructListsOfVariablesForCoupling(pp):
             pp.coupling_fluid_vars += [TIME_AVERAGED_ARRAY_3]
             pp.coupling_fluid_vars += [PHASE_FRACTION]
 
-    if pp.CFD_DEM["fluid_model_type"].GetInt() >= 1:
+    if pp.CFD_DEM["fluid_model_type"].GetInt() > 1:
         pp.coupling_fluid_vars += [FLUID_FRACTION_GRADIENT]
         pp.coupling_fluid_vars += [FLUID_FRACTION_RATE]
 
@@ -330,11 +327,13 @@ def ConstructListsOfVariablesForCoupling(pp):
     if pp.CFD_DEM["coupling_level_type"].GetInt() >= 1 and pp.CFD_DEM["time_averaging_type"].GetInt() > 0:
         pp.coupling_fluid_vars += [MEAN_HYDRODYNAMIC_REACTION]
 
-    if pp.CFD_DEM["drag_force_type"].GetInt() >= 2:
+    if pp.CFD_DEM["drag_force_type"].GetInt() == 2 or pp.CFD_DEM["lift_force_type"].GetInt() == 1:
         pp.coupling_fluid_vars += [POWER_LAW_N]
         pp.coupling_fluid_vars += [POWER_LAW_K]
-        pp.coupling_fluid_vars += [GEL_STRENGTH]
         pp.coupling_fluid_vars += [YIELD_STRESS]
+
+        if pp.CFD_DEM["drag_force_type"].GetInt() == 2:
+            pp.coupling_fluid_vars += [GEL_STRENGTH]
 
     if pp.viscosity_modification_type:
         pp.coupling_fluid_vars += [VISCOSITY]
@@ -345,7 +344,6 @@ def ConstructListsOfVariablesForCoupling(pp):
     if pp.CFD_DEM["coupling_level_type"].GetInt() > 0:
         pp.coupling_dem_vars += [FLUID_VEL_PROJECTED]
         pp.coupling_dem_vars += [FLUID_DENSITY_PROJECTED]
-        pp.coupling_dem_vars += [PRESSURE_GRAD_PROJECTED]
         pp.coupling_dem_vars += [FLUID_VISCOSITY_PROJECTED]
         pp.coupling_dem_vars += [HYDRODYNAMIC_FORCE]
         pp.coupling_dem_vars += [HYDRODYNAMIC_MOMENT]
@@ -353,6 +351,9 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
         pp.coupling_dem_vars += [FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED]
         pp.coupling_dem_vars += [ADDITIONAL_FORCE] # Here for safety for the moment
+
+        if pp.CFD_DEM["buoyancy_force_type"].GetInt() != 2 and pp.CFD_DEM["drag_force_type"].GetInt() != 2:
+            pp.coupling_dem_vars += [PRESSURE_GRAD_PROJECTED]
 
         if pp.CFD_DEM["include_faxen_terms_option"].GetBool():
             pp.coupling_dem_vars += [FLUID_VEL_LAPL_PROJECTED]
@@ -377,12 +378,6 @@ def ConstructListsOfVariablesForCoupling(pp):
     if pp.CFD_DEM["embedded_option"].GetBool():
         pp.coupling_dem_vars += [DISTANCE]
 
-    if pp.CFD_DEM["drag_force_type"].GetInt() >= 2:
-        pp.coupling_dem_vars += [POWER_LAW_N]
-        pp.coupling_dem_vars += [POWER_LAW_K]
-        #pp.coupling_dem_vars += [GEL_STRENGTH]
-        pp.coupling_dem_vars += [YIELD_STRESS]
-
     if pp.CFD_DEM["print_REYNOLDS_NUMBER_option"].GetBool():
         pp.coupling_dem_vars += [REYNOLDS_NUMBER]
 
@@ -394,7 +389,7 @@ def ConstructListsOfVariablesForCoupling(pp):
 
 
 def ChangeListOfFluidNodalResultsToPrint(pp):
-    pp.nodal_results += ["TORQUE"]
+
     if pp.CFD_DEM["store_full_gradient_option"].GetBool() and pp.CFD_DEM["print_VELOCITY_GRADIENT_option"].GetBool():
         pp.nodal_results += ["VELOCITY_X_GRADIENT"]
         pp.nodal_results += ["VELOCITY_Y_GRADIENT"]

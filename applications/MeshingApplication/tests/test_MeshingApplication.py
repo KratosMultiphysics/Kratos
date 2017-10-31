@@ -55,9 +55,12 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TTestRedistance('test_refine_all'))
-    smallSuite.addTest(TTestRedistance('test_refine_half'))
-    smallSuite.addTest(TTestRedistance('test_refine_half_and_improve'))
+    if( hasattr(MeshingApplication,  "TetrahedraReconnectUtility") ):
+        smallSuite.addTest(TTestRedistance('test_refine_all'))
+        smallSuite.addTest(TTestRedistance('test_refine_half'))
+        smallSuite.addTest(TTestRedistance('test_refine_half_and_improve'))
+    else:
+        print("TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
         if (missing_external_fluid_dependencies == False):
             smallSuite.addTest(TTwoDHessianTest('test_execution'))
@@ -92,12 +95,15 @@ def AssambleTestSuites():
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TTestRedistance
-        ])
-    )
-
+    if( hasattr(MeshingApplication,  "TetrahedraReconnectUtility") ):
+        allSuite.addTests(
+            KratosUnittest.TestLoader().loadTestsFromTestCases([
+                TTestRedistance
+            ])
+        )
+    else:
+        print("TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
+        
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
         if (missing_external_fluid_dependencies == False):
             allSuite.addTests(

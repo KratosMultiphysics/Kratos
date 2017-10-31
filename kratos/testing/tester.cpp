@@ -237,7 +237,10 @@ namespace Kratos
 			for (auto i_test = GetInstance().mTestCases.begin();
 				i_test != GetInstance().mTestCases.end(); i_test++)
 				if (std::regex_match(i_test->second->Name(), std::regex(regex_pattern_string.str())))
-					i_test->second->Select();
+					if (i_test->second->IsEnabled())
+						i_test->second->Select();
+					else
+						i_test->second->UnSelect();
 #endif  
 		}
 

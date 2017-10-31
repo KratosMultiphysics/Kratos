@@ -559,29 +559,6 @@ public:
         pX->resize(0, false);
     }
 
-    /*	static void Clear(MatrixType& rA)
-            {rA.clear();}
-
-    static void Clear(VectorType& rX) {rX.clear();}*/
-
-    template<class TOtherMatrixType>
-    inline static void ClearData(TOtherMatrixType& rA)
-    {
-        rA.clear();
-    }
-
-    inline static void ClearData(compressed_matrix<TDataType>& rA)
-    {
-        rA.clear();
-        //    	rA.value_data() = unbounded_array<TDataType>();
-        //if(rA.non_zeros() != 0) rA.value_data() = unbounded_array<TDataType>();
-    }
-
-    inline static void ClearData(VectorType& rX)
-    {
-        rX = VectorType();
-    }
-
     template<class TOtherMatrixType>
     inline static void ResizeData(TOtherMatrixType& rA, SizeType m)
     {
@@ -859,7 +836,7 @@ private:
         }
     }
 
-    static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+    static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, boost::numeric::ublas::vector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads + 1);
         int partition_size = number_of_rows / number_of_threads;

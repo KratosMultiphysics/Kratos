@@ -170,12 +170,12 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IsInside, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateRightTriangle2D3<Node<3>>();
 
-    Point<3> PointInside(0.33, 0.33);
-    Point<3> PointOutside(0.66, 0.66);
-    Point<3> PointInVertex(0.0, 0.0);
-    Point<3> PointInEdge(0.5, 0.5);
+    Point PointInside(0.33, 0.33);
+    Point PointOutside(0.66, 0.66);
+    Point PointInVertex(0.0, 0.0);
+    Point PointInEdge(0.5, 0.5);
 
-    Point<3> LocalCoords;
+    Point LocalCoords;
 
     KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
     KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
@@ -437,16 +437,16 @@ namespace Testing {
      */
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxEdge, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle2D3<Node<3>>();
-        Point<3> point_1(-0.1, 0.1, 0.0);
-        Point<3> point_2( 0.1, 0.3, 0.0);
+        Point point_1(-0.1, 0.1, 0.0);
+        Point point_2( 0.1, 0.3, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
         
-        Point<3> point_3( 0.1,-0.1, 0.0);
-        Point<3> point_4( 0.3, 0.1, 0.0);
+        Point point_3( 0.1,-0.1, 0.0);
+        Point point_4( 0.3, 0.1, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
         
-        Point<3> point_5( 0.3, 0.2, 0.0);
-        Point<3> point_6( 1.0, 1.0, 0.0);
+        Point point_5( 0.3, 0.2, 0.0);
+        Point point_6( 1.0, 1.0, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
     }
 
@@ -455,16 +455,16 @@ namespace Testing {
      */
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxNode, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle2D3<Node<3>>();
-        Point<3> point_1(-0.5, 0.8, 0.0);
-        Point<3> point_2( 0.5, 1.2, 0.0);
+        Point point_1(-0.5, 0.8, 0.0);
+        Point point_2( 0.5, 1.2, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
         
-        Point<3> point_3( 0.3,-0.5, 0.0);
-        Point<3> point_4( 1.2, 0.5, 0.0);
+        Point point_3( 0.3,-0.5, 0.0);
+        Point point_4( 1.2, 0.5, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
         
-        Point<3> point_5(-0.8,-0.3, 0.0);
-        Point<3> point_6( 0.2, 0.3, 0.0);
+        Point point_5(-0.8,-0.3, 0.0);
+        Point point_6( 0.2, 0.3, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
     }
 
@@ -473,8 +473,8 @@ namespace Testing {
      */
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxInside, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle2D3<Node<3>>();
-        Point<3> point_1( 0.1, 0.1, 0.0);
-        Point<3> point_2( 0.3, 0.4, 0.0);
+        Point point_1( 0.1, 0.1, 0.0);
+        Point point_2( 0.3, 0.4, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
     }
 
@@ -483,8 +483,8 @@ namespace Testing {
      */
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxNoIntersect, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle2D3<Node<3>>();
-        Point<3> point_1( 0.6, 0.5, 0.0);
-        Point<3> point_2( 1.0, 1.0, 0.0);
+        Point point_1( 0.6, 0.5, 0.0);
+        Point point_2( 1.0, 1.0, 0.0);
         KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
     }
 
@@ -494,8 +494,8 @@ namespace Testing {
      */
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxOutsidePlane, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle2D3<Node<3>>();
-        Point<3> point_1( 0.2, 0.1, 0.1);
-        Point<3> point_2( 0.3, 0.5, 1.0);
+        Point point_1( 0.2, 0.1, 0.1);
+        Point point_2( 0.3, 0.5, 1.0);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
     }
 

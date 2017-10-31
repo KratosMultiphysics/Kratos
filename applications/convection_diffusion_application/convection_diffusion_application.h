@@ -226,7 +226,8 @@ private:
     const ThermalFace3D  mThermalFace3D;
     const FluxCondition<2>  mFluxCondition2D2N;
     const FluxCondition<3>  mFluxCondition3D3N;
-
+    const FluxCondition<4>  mFluxCondition3D4N;
+   
     ///@}
     ///@name Private Operators
     ///@{

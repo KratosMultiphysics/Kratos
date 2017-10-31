@@ -3,15 +3,15 @@
         "problem_name"    : "Shell_Q4_Thick__BendingRollUp_test",
         "model_part_name" : "SolidDomain",
         "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 0.05,
         "start_time"      : 0.001,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+        "solver_type"                        : "Static",
+        "analysis_type"                      : "non_linear",
         "echo_level"                         : 0,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -22,7 +22,7 @@
         },
         "line_search"                        : false,
         "rotation_dofs"						 : true,
-        "convergence_criterion"              : "Residual_criterion",
+        "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 1e-6,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 1e-6,

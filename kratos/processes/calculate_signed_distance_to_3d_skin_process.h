@@ -83,7 +83,7 @@ public:
            MIN_LEVEL = 2    // this cannot be less than 2!!!
          };
 
-    typedef Point<3, double>                                PointType;  /// always the point 3D
+    typedef Point                                           PointType;  /// always the point 3D
     typedef std::vector<double>::iterator                   DistanceIteratorType;
     typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
     typedef ContainerType::value_type                       PointerType;
@@ -187,8 +187,8 @@ public:
 
     static  inline bool  IsIntersected(const Element::Pointer rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
     {
-        Point<3,double> low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
-        Point<3,double> high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
+        Point low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
+        Point high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
 
         KRATOS_THROW_ERROR(std::logic_error, "Not Implemented method", "")
                 //return HasIntersection(rObject->GetGeometry(), low_point, high_point);
@@ -274,7 +274,7 @@ public:
     typedef OctreeBinaryCell<ConfigurationType> CellType;
     typedef OctreeBinary<CellType> OctreeType;
     typedef ConfigurationType::cell_node_data_type CellNodeDataType;
-    typedef Point<3, double> PointType;  /// always the point 3D
+    typedef Point PointType;  /// always the point 3D
     typedef OctreeType::cell_type::object_container_type object_container_type;
     typedef struct{
         array_1d<double,3>  Coordinates;
@@ -540,7 +540,7 @@ public:
 
         //generate the points on the edges at the zero of the distance function
         //generate "father nodes", defined as the end nodes of the edge on which the local point is located
-        std::vector< Point<3> > edge_points;
+        std::vector< Point > edge_points;
         edge_points.reserve(4);
         array_1d<unsigned int, 4> positive_fathers,  negative_fathers;	//there are at most 4 cut edges
         unsigned int k=0;
@@ -558,7 +558,7 @@ public:
                     //generate point on edge by linear interpolation
                     double Ni = fabs(dj) / ( fabs(di) + fabs(dj) );
                     double Nj = 1.0 - Ni;
-                    Point<3> edge_point(Ni * geom[i] + Nj * geom[j]);
+                    Point edge_point(Ni * geom[i] + Nj * geom[j]);
                     edge_points.push_back(edge_point);
 
                     //store the id of the positive and negative fathers
@@ -582,9 +582,9 @@ public:
             Vector Nlocal(3);
 
             //form a triangle with the edge nodes
-            Triangle3D3< Point<3> > triangle(Point<3>::Pointer(new Point<3>(edge_points[0])), 
-					     Point<3>::Pointer(new Point<3>(edge_points[1])), 
-					     Point<3>::Pointer(new Point<3>(edge_points[2]))
+            Triangle3D3< Point > triangle(Point::Pointer(new Point(edge_points[0])), 
+					     Point::Pointer(new Point(edge_points[1])), 
+					     Point::Pointer(new Point(edge_points[2]))
 					     );
 
             array_1d<double,3> local_coords;
@@ -657,11 +657,11 @@ public:
             }
 
             //form a quadrilateral with the edge nodes
-            Quadrilateral3D4< Point<3> > quad = Quadrilateral3D4< Point<3> >(
-			Point<3>::Pointer(new Point<3>(edge_points[0])),
-			Point<3>::Pointer(new Point<3>(edge_points[min_pos])),
-			Point<3>::Pointer(new Point<3>(edge_points[center_pos])), 
-			Point<3>::Pointer(new Point<3>(edge_points[max_pos]))
+            Quadrilateral3D4< Point > quad = Quadrilateral3D4< Point >(
+			Point::Pointer(new Point(edge_points[0])),
+			Point::Pointer(new Point(edge_points[min_pos])),
+			Point::Pointer(new Point(edge_points[center_pos])), 
+			Point::Pointer(new Point(edge_points[max_pos]))
 			);
 
             array_1d<double,3> local_coords;
@@ -1130,9 +1130,9 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void CalculateNormal3D( Point<3>&       Point1,
-                            Point<3>&       Point2,
-                            Point<3>&       Point3,
+    void CalculateNormal3D( Point&       Point1,
+                            Point&       Point2,
+                            Point&       Point3,
                             array_1d<double,3>&   rResultNormal )
     {
         array_1d<double,3> v1 = Point2 - Point1;
@@ -1219,7 +1219,7 @@ public:
     {
         Geometry< Node<3> >& rFluidGeom = i_fluid_Element->GetGeometry();
 
-        Point<3>  P1;
+        Point  P1;
         P1.Coordinates() = NodesOfApproximatedStructure[0].Coordinates;
 
         array_1d<double,3>&  Normal = NodesOfApproximatedStructure[0].StructElemNormal;
@@ -1240,7 +1240,7 @@ public:
     {
         Geometry< Node<3> >& rFluidGeom = i_fluid_Element->GetGeometry();
 
-        Point<3>  P1;
+        Point  P1;
         P1.Coordinates() = NodesOfApproximatedStructure[0].Coordinates;
 
         // Get normal at intersections, average them and check direction of distances
@@ -1281,9 +1281,9 @@ public:
     {
         Geometry< Node<3> >& rFluidGeom = i_fluid_Element->GetGeometry();
 
-        Point<3> P1;
-        Point<3> P2;
-        Point<3> P3;
+        Point P1;
+        Point P2;
+        Point P3;
 
         P1.Coordinates() = NodesOfApproximatedStructure[0].Coordinates;
         P2.Coordinates() = NodesOfApproximatedStructure[1].Coordinates;
@@ -1322,7 +1322,7 @@ public:
         unsigned int numberCutEdges = NodesOfApproximatedStructure.size();
 
         // Compute average of the intersection nodes which is a node on the plane we look for
-        Point<3> P_mean;
+        Point P_mean;
         for(unsigned int k=0; k<numberCutEdges; k++)
             for(unsigned int i=0; i<3; i++)
                 P_mean.Coordinates()[i] += NodesOfApproximatedStructure[k].Coordinates[i];
@@ -1438,9 +1438,9 @@ public:
        * @param ToPoint The point which distance is required
        * @return The distance between the point and the plane spanned by the 3D triangle
        */
-    double PointDistanceToPlane( Point<3>&            planeBasePoint,
+    double PointDistanceToPlane( Point&            planeBasePoint,
                                  array_1d<double, 3>& planeNormal,
-                                 Point<3>&            ToPoint)
+                                 Point&            ToPoint)
     {
         // calculate vector pointing from a node in the plane (e.g. triangle point 1) to the considered node ToPoint
         array_1d<double,3> planeToPointVec = ToPoint - planeBasePoint;
@@ -1552,7 +1552,7 @@ public:
                 Geometry< Node<3> >& geom = i_fluid_element->GetGeometry();
 
                 // generate the points on the edges at the zero of the distance function
-                std::vector< Point<3> > edge_points;
+                std::vector< Point > edge_points;
                 edge_points.reserve(4);
 
                 // loop over all 6 edges of the tetrahedra
@@ -1568,7 +1568,7 @@ public:
                             // generate point on edge by linear interpolation
                             double Ni = fabs(dj) / ( fabs(di) + fabs(dj) );
                             double Nj = 1.0 - Ni;
-                            Point<3> edge_point(Ni * geom[i] + Nj * geom[j]);
+                            Point edge_point(Ni * geom[i] + Nj * geom[j]);
                             edge_points.push_back(edge_point);
                         }
                     }
@@ -2039,7 +2039,7 @@ public:
                 //                cell_point[1] = pCell->GetCoordinate(keys[1]);
                 //                cell_point[2] = pCell->GetCoordinate(keys[2]);
 
-                double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point<3>(cell_point[0], cell_point[1], cell_point[2]));
+                double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point(cell_point[0], cell_point[1], cell_point[2]));
 
                 if(d < distance)
                     distance = d;
@@ -2396,7 +2396,7 @@ public:
             return -1;                 // do not deal with this case
 
 		double triangle_origin_distance = -inner_prod(n, rGeometry[0]);
-		Point<3> ray_point_1, ray_point_2;
+		Point ray_point_1, ray_point_2;
 		
 		for(int i = 0 ; i < 3 ; i++)
         {

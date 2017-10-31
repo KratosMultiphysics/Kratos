@@ -44,7 +44,7 @@ namespace Kratos
 class KRATOS_API(KRATOS_CORE) ReorderAndOptimizeModelPartProcess : public Process
 {
 public:
-    using GeometryType = Geometry<Point<3> >;
+    using GeometryType = Geometry<Point >;
     ///@name Type Definitions
     ///@{
 

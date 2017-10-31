@@ -55,7 +55,7 @@ namespace Kratos
 
 	  typedef WeakPointerVector< Node<3> > NeighboursVectorType;
 
-	  typedef std::vector<Point<3> > PointsVectorType;
+	  typedef std::vector<Point > PointsVectorType;
 
 	  ///@}
 	  ///@name Flags
