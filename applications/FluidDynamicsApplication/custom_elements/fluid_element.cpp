@@ -361,6 +361,21 @@ void FluidElement<TElementData>::PrintInfo(std::ostream& rOStream) const
 // Protected functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <class TElementData>
+double FluidElement<TElementData>::Interpolate(typename TElementData::NodalScalar& rHandler,
+                                               const boost::numeric::ublas::matrix_row<Matrix>& rN)
+{
+    return rHandler.Interpolate(rN, this);
+}
+
+template <class TElementData>
+array_1d<double, 3> FluidElement<TElementData>::Interpolate(
+    typename TElementData::NodalVector& rHandler,
+    const boost::numeric::ublas::matrix_row<Matrix>& rN)
+{
+    return rHandler.Interpolate(rN, this);
+}
+
 template< class TElementData >
 void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
                                       Matrix &rNContainer,
@@ -593,7 +608,7 @@ double FluidElement<TElementData>::EffectiveViscosity(
     const FluidElement* const_this = static_cast<const FluidElement*>(this);
     double Csmag = const_this->GetValue(C_SMAGORINSKY);
 
-    double KinViscosity = rData.GetVISCOSITY().Interpolate(rIntegrationPoint.N,this);
+    double KinViscosity = this->Interpolate(rData.GetVISCOSITY(),rIntegrationPoint.N);
 
     if (Csmag != 0.0 )
     {

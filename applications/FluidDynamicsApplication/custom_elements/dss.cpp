@@ -276,10 +276,13 @@ void DSS<TElementData>::ASGSMomentumResidual(
     const GeometryType rGeom = this->GetGeometry();
 
     Vector AGradN;
-    array_1d<double,3> convective_velocity = rData.GetVELOCITY().Interpolate(rIntegrationPoint.N,this) - rData.GetMESH_VELOCITY().Interpolate(rIntegrationPoint.N,this);
+    array_1d<double, 3> convective_velocity =
+        this->Interpolate(rData.GetVELOCITY(), rIntegrationPoint.N) -
+        this->Interpolate(rData.GetMESH_VELOCITY(), rIntegrationPoint.N);
+    
     this->ConvectionOperator(AGradN,convective_velocity,rIntegrationPoint.DN_DX);
 
-    double density = rData.GetDENSITY().Interpolate(rIntegrationPoint.N,this);
+    double density = this->Interpolate(rData.GetDENSITY(),rIntegrationPoint.N);
 
     for (unsigned int i = 0; i < NumNodes; i++)
     {
@@ -311,7 +314,7 @@ void DSS<TElementData>::OSSMomentumResidual(
 {
     this->MomentumProjTerm(rData,rIntegrationPoint,rMomentumRes);
 
-    array_1d<double,3> momentum_projection = rData.GetADVPROJ().Interpolate(rIntegrationPoint.N,this);
+    array_1d<double,3> momentum_projection = this->Interpolate(rData.GetADVPROJ(),rIntegrationPoint.N);
     for (unsigned int d = 0; d < Dim; d++)
         rMomentumRes[d] -= momentum_projection[d];
 }
@@ -324,7 +327,7 @@ void DSS<TElementData>::OSSMassResidual(
     double &rMassRes)
 {
     this->MassProjTerm(rData,rIntegrationPoint,rMassRes);
-    double mass_projection = rData.GetDIVPROJ().Interpolate(rIntegrationPoint.N,this);
+    double mass_projection = this->Interpolate(rData.GetDIVPROJ(),rIntegrationPoint.N);
     rMassRes -= mass_projection;
 }
 
@@ -335,12 +338,14 @@ void DSS<TElementData>::MomentumProjTerm(
     const IntegrationPointGeometryData& rIntegrationPoint,
     array_1d<double,3> &rMomentumRHS)
 {
-    array_1d<double,3> convective_velocity = rData.GetVELOCITY().Interpolate(rIntegrationPoint.N,this) - rData.GetMESH_VELOCITY().Interpolate(rIntegrationPoint.N,this);
+        array_1d<double, 3> convective_velocity =
+        this->Interpolate(rData.GetVELOCITY(), rIntegrationPoint.N) -
+        this->Interpolate(rData.GetMESH_VELOCITY(), rIntegrationPoint.N);
     
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rIntegrationPoint.DN_DX);
 
-    double density = rData.GetDENSITY().Interpolate(rIntegrationPoint.N,this);
+    double density = this->Interpolate(rData.GetDENSITY(),rIntegrationPoint.N);
 
     for (unsigned int i = 0; i < NumNodes; i++)
     {
@@ -380,15 +385,18 @@ void DSS<TElementData>::AddSystemTerms(
     // Interpolate nodal data on the integration point
     double ElemSize = this->ElementSize();
 
-    double density = rData.GetDENSITY().Interpolate(rIntegrationPoint.N,this);
+    double density = this->Interpolate(rData.GetDENSITY(),rIntegrationPoint.N);
     double viscosity = this->EffectiveViscosity(rData,rIntegrationPoint,ElemSize,rProcessInfo);
-    array_1d<double,3> body_force = rData.GetBODY_FORCE().Interpolate(rIntegrationPoint.N,this);
-    array_1d<double,3> momentum_projection = rData.GetADVPROJ().Interpolate(rIntegrationPoint.N,this);
-    double mass_projection = rData.GetDIVPROJ().Interpolate(rIntegrationPoint.N,this);
+    array_1d<double,3> body_force = this->Interpolate(rData.GetBODY_FORCE(),rIntegrationPoint.N);
+    array_1d<double,3> momentum_projection = this->Interpolate(rData.GetADVPROJ(),rIntegrationPoint.N);
+    double mass_projection = this->Interpolate(rData.GetDIVPROJ(),rIntegrationPoint.N);
 
     double TauOne;
     double TauTwo;
-    array_1d<double,3> convective_velocity = rData.GetVELOCITY().Interpolate(rIntegrationPoint.N,this) - rData.GetMESH_VELOCITY().Interpolate(rIntegrationPoint.N,this);
+    array_1d<double, 3> convective_velocity =
+        this->Interpolate(rData.GetVELOCITY(), rIntegrationPoint.N) -
+        this->Interpolate(rData.GetMESH_VELOCITY(), rIntegrationPoint.N);
+        
     this->CalculateStaticTau(density,viscosity,convective_velocity,ElemSize,rProcessInfo,TauOne,TauTwo);
 
     Vector AGradN;
@@ -483,7 +491,7 @@ void DSS<TElementData>::AddMassTerms(
     unsigned int Row = 0;
     unsigned int Col = 0;
 
-    double density = rData.GetDENSITY().Interpolate(rIntegrationPoint.N,this);
+    double density = this->Interpolate(rData.GetDENSITY(),rIntegrationPoint.N);
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -520,12 +528,12 @@ void DSS<TElementData>::AddMassStabilization(
 {
     double ElemSize = this->ElementSize();
 
-    double density = rData.GetDENSITY().Interpolate(rIntegrationPoint.N,this);
+    double density = this->Interpolate(rData.GetDENSITY(),rIntegrationPoint.N);
     double viscosity = this->EffectiveViscosity(rData,rIntegrationPoint,ElemSize,rProcessInfo);
 
     double TauOne;
     double TauTwo;
-    array_1d<double,3> convective_velocity = rData.GetVELOCITY().Interpolate(rIntegrationPoint.N,this) - rData.GetMESH_VELOCITY().Interpolate(rIntegrationPoint.N,this);
+    array_1d<double,3> convective_velocity = this->Interpolate(rData.GetVELOCITY(),rIntegrationPoint.N) - this->Interpolate(rData.GetMESH_VELOCITY(),rIntegrationPoint.N);
     this->CalculateStaticTau(density,viscosity,convective_velocity,ElemSize,rProcessInfo,TauOne,TauTwo);
 
     Vector AGradN;
@@ -628,8 +636,8 @@ void DSS<TElementData>::SubscaleVelocity(
 
     double TauOne;
     double TauTwo;
-    double density = rData.GetDENSITY().Interpolate(rIntegrationPoint.N,this);
-    array_1d<double,3> convective_velocity = rData.GetVELOCITY().Interpolate(rIntegrationPoint.N,this) - rData.GetMESH_VELOCITY().Interpolate(rIntegrationPoint.N,this);
+    double density = this->Interpolate(rData.GetDENSITY(),rIntegrationPoint.N);
+    array_1d<double,3> convective_velocity = this->Interpolate(rData.GetVELOCITY(),rIntegrationPoint.N) - this->Interpolate(rData.GetMESH_VELOCITY(),rIntegrationPoint.N);
     this->CalculateStaticTau(density,Viscosity,convective_velocity,ElemSize,rProcessInfo,TauOne,TauTwo);
 
     array_1d<double,3> Residual(3,0.0);
@@ -655,9 +663,12 @@ void DSS<TElementData>::SubscalePressure(
 
     double TauOne;
     double TauTwo;
-    double density = rData.GetDENSITY().Interpolate(rIntegrationPoint.N,this);
-    array_1d<double,3> convective_velocity = rData.GetVELOCITY().Interpolate(rIntegrationPoint.N,this) - rData.GetMESH_VELOCITY().Interpolate(rIntegrationPoint.N,this);
-    this->CalculateStaticTau(density,Viscosity,convective_velocity,ElemSize,rProcessInfo,TauOne,TauTwo);
+    double density = this->Interpolate(rData.GetDENSITY(),rIntegrationPoint.N);
+    array_1d<double, 3> convective_velocity =
+        this->Interpolate(rData.GetVELOCITY(), rIntegrationPoint.N) -
+        this->Interpolate(rData.GetMESH_VELOCITY(), rIntegrationPoint.N);
+    this->CalculateStaticTau(density, Viscosity, convective_velocity, ElemSize,
+                             rProcessInfo, TauOne, TauTwo);
 
     double Residual = 0.0;
 

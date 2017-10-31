@@ -350,6 +350,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    virtual double Interpolate(typename TElementData::NodalScalar& rHandler,
+                               const boost::numeric::ublas::matrix_row<Matrix>& rN);
+
+    virtual array_1d<double, 3> Interpolate(typename TElementData::NodalVector& rHandler,
+                                            const boost::numeric::ublas::matrix_row<Matrix>& rN);
 
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
     virtual void CalculateGeometryData(Vector& rGaussWeights,
