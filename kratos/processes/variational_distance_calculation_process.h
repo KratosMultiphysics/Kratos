@@ -283,7 +283,27 @@ public:
                 }
             }
         }
-        mp_distance_model_part->GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
+        
+        //
+        if(mp_distance_model_part->GetCommunicator().TotalProcesses() != 1) //MPI case
+        {
+            #pragma omp parallel for
+            for(int iii=0; iii<nnodes; iii++)
+            {
+                auto it = mp_distance_model_part->NodesBegin() + iii;
+                it->FastGetSolutionStepValue(DISTANCE) = std::abs(it->FastGetSolutionStepValue(DISTANCE));
+            }
+            
+            mp_distance_model_part->GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
+            
+            #pragma omp parallel for
+            for(int iii=0; iii<nnodes; iii++)
+            {
+                auto it = mp_distance_model_part->NodesBegin() + iii;
+                if(it->GetValue(DISTANCE) < 0.0)
+                    it->FastGetSolutionStepValue(DISTANCE) = -it->FastGetSolutionStepValue(DISTANCE);
+            }
+        }
         
         
         mp_solving_strategy->Solve();
