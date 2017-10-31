@@ -386,7 +386,7 @@ protected:
     virtual double EffectiveViscosity(
         TElementData& rData,
         const IntegrationPointGeometryData& rIntegrationPoint,
-        double ElemSize,
+        double ElementSize,
         const ProcessInfo &rCurrentProcessInfo);
 
 

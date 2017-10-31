@@ -136,11 +136,14 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
     VectorType U = ZeroVector(LocalSize);
     int LocalIndex = 0;
 
+    const auto& r_velocities = data.GetVELOCITY().Data();
+    const auto& r_pressures = data.GetPRESSURE().Data();
+
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
         for (unsigned int d = 0; d < Dim; ++d) // Velocity Dofs
-            U[LocalIndex++] = data.GetVELOCITY().Data()(i,d);
-        U[LocalIndex++] = data.GetPRESSURE().Data()[i]; // Pressure Dof
+            U[LocalIndex++] = r_velocities(i,d);
+        U[LocalIndex++] = r_pressures[i]; // Pressure Dof
     }
 
     noalias(rRightHandSideVector) -= prod(rDampMatrix, U);
@@ -599,8 +602,8 @@ void FluidElement<TElementData>::CalculateStaticTau(double Density,
                                    double &TauOne,
                                    double &TauTwo)
 {
-    const double c1 = 8.0;
-    const double c2 = 2.0;
+    constexpr double c1 = 8.0;
+    constexpr double c2 = 2.0;
 
     double VelNorm = Velocity[0]*Velocity[0];
     for (unsigned int d = 1; d < Dim; d++)
@@ -619,37 +622,38 @@ template< class TElementData >
 double FluidElement<TElementData>::EffectiveViscosity(
     TElementData& rData,
     const IntegrationPointGeometryData& rIntegrationPoint,
-    double ElemSize,
+    double ElementSize,
     const ProcessInfo &rCurrentProcessInfo)
 {
     const FluidElement* const_this = static_cast<const FluidElement*>(this);
-    double Csmag = const_this->GetValue(C_SMAGORINSKY);
+    double c_s = const_this->GetValue(C_SMAGORINSKY);
 
-    double KinViscosity = this->Interpolate(rData.GetVISCOSITY(),rIntegrationPoint.N);
+    double kinematic_viscosity = this->Interpolate(rData.GetVISCOSITY(),rIntegrationPoint.N);
+    const auto& r_velocities = rData.GetVELOCITY().Data();
 
-    if (Csmag != 0.0 )
+    if (c_s != 0.0 )
     {
         // Calculate Symetric gradient
-        MatrixType S = ZeroMatrix(Dim,Dim);
+        MatrixType strain_rate = ZeroMatrix(Dim,Dim);
         for (unsigned int n = 0; n < NumNodes; ++n)
         {
             for (unsigned int i = 0; i < Dim; ++i)
                 for (unsigned int j = 0; j < Dim; ++j)
-                    S(i,j) += 0.5 * ( rIntegrationPoint.DN_DX(n,j) * rData.GetVELOCITY().Data()(n,i) + rIntegrationPoint.DN_DX(n,i) * rData.GetVELOCITY().Data()(n,j) );
+                    strain_rate(i,j) += 0.5 * ( rIntegrationPoint.DN_DX(n,j) * r_velocities(n,i) + rIntegrationPoint.DN_DX(n,i) * r_velocities(n,j) );
         }
 
         // Norm of symetric gradient
-        double NormS = 0.0;
+        double strain_rate_norm = 0.0;
         for (unsigned int i = 0; i < Dim; ++i)
             for (unsigned int j = 0; j < Dim; ++j)
-                NormS += S(i,j) * S(i,j);
-        NormS = sqrt(2.0*NormS);
+                strain_rate_norm += strain_rate(i,j) * strain_rate(i,j);
+        strain_rate_norm = sqrt(2.0*strain_rate_norm);
 
-        // Nu_sgs = (Csmag * Delta)^2 * (2*Sij*Sij)^(1/2)
-        KinViscosity += Csmag * Csmag * ElemSize * ElemSize * NormS;
+        // Nu_sgs = (c_s * Delta)^2 * (2*Sij*Sij)^(1/2)
+        kinematic_viscosity += c_s * c_s * ElementSize * ElementSize * strain_rate_norm;
     }
 
-    return KinViscosity;
+    return kinematic_viscosity;
 }
 
 
