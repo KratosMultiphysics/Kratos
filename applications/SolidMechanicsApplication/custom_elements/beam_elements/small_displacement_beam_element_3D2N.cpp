@@ -121,10 +121,10 @@ void SmallDisplacementBeamElement3D2N::EquationIdVector(EquationIdVectorType& rR
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int element_size          = number_of_nodes * ( dimension * 2 );
+    unsigned int       dofs_size       = number_of_nodes * ( dimension * 2 );
 
-    if ( rResult.size() != element_size )
-        rResult.resize( element_size, false );
+    if ( rResult.size() != dofs_size )
+        rResult.resize( dofs_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -149,9 +149,10 @@ void SmallDisplacementBeamElement3D2N::GetValuesVector(Vector& rValues, int Step
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * ( dimension * 2 );
+    unsigned int       dofs_size       = number_of_nodes * ( dimension * 2 );
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -178,9 +179,10 @@ void SmallDisplacementBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * ( dimension * 2 );
+    unsigned int       dofs_size       = number_of_nodes * ( dimension * 2 );
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -207,9 +209,10 @@ void SmallDisplacementBeamElement3D2N::GetSecondDerivativesVector(Vector& rValue
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * ( dimension * 2 );
+    unsigned int       dofs_size       = number_of_nodes * ( dimension * 2 );
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {

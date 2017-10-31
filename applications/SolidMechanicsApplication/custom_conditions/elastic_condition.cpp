@@ -82,7 +82,7 @@ namespace Kratos
   {
   }
 
-
+ 
   //***********************************************************************************
   //***********************************************************************************
 
@@ -116,8 +116,8 @@ namespace Kratos
     KRATOS_TRY
 
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
-    unsigned int MatSize = this->GetDofsSize();
+    unsigned int MatSize   = this->GetDofsSize();
+
     if(rLeftHandSideMatrix.size1() != MatSize)
       rLeftHandSideMatrix.resize(MatSize,MatSize,false);
 

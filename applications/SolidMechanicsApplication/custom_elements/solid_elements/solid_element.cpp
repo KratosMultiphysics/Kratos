@@ -168,10 +168,10 @@ void SolidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo&
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int element_size          = number_of_nodes * dimension;
+    unsigned int       dofs_size       = number_of_nodes * dimension;
 
-    if ( rResult.size() != element_size )
-        rResult.resize( element_size, false );
+    if ( rResult.size() != dofs_size )
+        rResult.resize( dofs_size, false );
 
     unsigned int index = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -192,10 +192,10 @@ void SolidElement::GetValuesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension;
+    unsigned int       dofs_size       = number_of_nodes * dimension;
 
-    if ( rValues.size() != element_size )
-      rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     unsigned int index = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -218,10 +218,10 @@ void SolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension;
+    unsigned int       dofs_size       = number_of_nodes * dimension;
 
-    if ( rValues.size() != element_size )
-      rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     unsigned int index = 0;    
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -242,10 +242,10 @@ void SolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension;
+    unsigned int       dofs_size       = number_of_nodes * dimension;
 
-    if ( rValues.size() != element_size )
-      rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     unsigned int index = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )

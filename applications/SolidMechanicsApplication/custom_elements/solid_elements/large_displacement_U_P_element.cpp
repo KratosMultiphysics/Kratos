@@ -148,10 +148,10 @@ void LargeDisplacementUPElement::EquationIdVector( EquationIdVectorType& rResult
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int element_size          = number_of_nodes * dimension + number_of_nodes;
+    unsigned int       dofs_size       = number_of_nodes * dimension + number_of_nodes;
 
-    if ( rResult.size() != element_size )
-        rResult.resize( element_size, false );
+    if ( rResult.size() != dofs_size )
+        rResult.resize( dofs_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -180,9 +180,10 @@ void LargeDisplacementUPElement::GetValuesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
+    unsigned int       dofs_size       = number_of_nodes * dimension + number_of_nodes;
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -212,9 +213,10 @@ void LargeDisplacementUPElement::GetFirstDerivativesVector( Vector& rValues, int
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
+    unsigned int       dofs_size       = number_of_nodes * dimension + number_of_nodes;
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -240,10 +242,10 @@ void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, in
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
+    unsigned int       dofs_size       = number_of_nodes * dimension + number_of_nodes;
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
-
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {

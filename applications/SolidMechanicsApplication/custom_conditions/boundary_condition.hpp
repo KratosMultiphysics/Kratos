@@ -496,7 +496,12 @@ protected:
 
 
     /**
-     * Get element size from the dofs
+     * Check condition rotation dofs
+     */    
+    virtual bool HasRotationDofs();
+
+    /**
+     * Get condition size from the dofs
      */    
     virtual unsigned int GetDofsSize();
     

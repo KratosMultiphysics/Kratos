@@ -170,10 +170,10 @@ void LinearSolidElement::EquationIdVector( EquationIdVectorType& rResult, Proces
     //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int element_size          = number_of_nodes * dimension;
+    unsigned int       dofs_size       = number_of_nodes * dimension;
 
-    if ( rResult.size() != element_size )
-        rResult.resize( element_size, false );
+    if ( rResult.size() != dofs_size )
+        rResult.resize( dofs_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -194,9 +194,10 @@ void LinearSolidElement::GetValuesVector( Vector& rValues, int Step )
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension;
+    unsigned int       dofs_size       = number_of_nodes * dimension;
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -219,9 +220,10 @@ void LinearSolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
     //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension;
+    unsigned int       dofs_size       = number_of_nodes * dimension;
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -242,9 +244,10 @@ void LinearSolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
     //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension;
+    unsigned int       dofs_size       = number_of_nodes * dimension;
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {

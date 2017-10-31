@@ -140,10 +140,10 @@ namespace Kratos
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int condition_size        = number_of_nodes * dimension;
+    unsigned int       dofs_size       = this->GetDofsSize();
 
-    if (rResult.size() != condition_size)
-      rResult.resize( condition_size, false );
+    if ( rResult.size() != dofs_size )
+      rResult.resize( dofs_size, false );
 
     unsigned int index = 0;
     if( dimension == 2 ){
@@ -175,10 +175,10 @@ namespace Kratos
    
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       condition_size  = number_of_nodes * dimension;
+    unsigned int       dofs_size       = this->GetDofsSize();
 
-    if ( rValues.size() != condition_size ) 
-      rValues.resize( condition_size, false );
+    if ( rValues.size() != dofs_size ) 
+      rValues.resize( dofs_size, false );
 
     unsigned int index = 0;
     if ( dimension == 2 ){
@@ -209,10 +209,10 @@ namespace Kratos
     
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       condition_size  = number_of_nodes * dimension;
+    unsigned int       dofs_size       = this->GetDofsSize();
 
-    if ( rValues.size() != condition_size )
-      rValues.resize( condition_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
     
     unsigned int index = 0;
     if ( dimension == 2 ){
@@ -243,10 +243,10 @@ namespace Kratos
     
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       condition_size    = number_of_nodes * dimension;
+    unsigned int       dofs_size       = this->GetDofsSize();
 
-    if ( rValues.size() != condition_size )
-      rValues.resize( condition_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
       
     unsigned int index = 0;
     if ( dimension == 2 ){

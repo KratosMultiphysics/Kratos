@@ -101,26 +101,26 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+  void BeamElement::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
   {
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     
-    ElementalDofList.resize(0);
+    rElementalDofList.resize(0);
 
     for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
       {
 
-	ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-	ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-	ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+	rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
+	rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+	rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
 
 	if( dimension == 2 ){
-	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
+	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
 	}
 	else{
-	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
-	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
-	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
+	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
+	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
+	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
 	}
 	
       }
@@ -129,15 +129,15 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+  void BeamElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
   {
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int element_size          = number_of_nodes * ( (dimension-1) * 3 );
+    unsigned int       dofs_size       = number_of_nodes * ( (dimension-1) * 3 );
 
-    if ( rResult.size() != element_size )
-      rResult.resize( element_size, false );
+    if ( rResult.size() != dofs_size )
+      rResult.resize( dofs_size, false );
 
     unsigned int index = 0;
 
@@ -176,10 +176,10 @@ namespace Kratos
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * ( (dimension-1) * 3 );
+    unsigned int       dofs_size       = number_of_nodes * ( (dimension-1) * 3 );
 
-    if ( rValues.size() != element_size )
-      rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     unsigned int index = 0;
     if( dimension == 2 ){
@@ -188,7 +188,7 @@ namespace Kratos
 	  index = i * ( (dimension-1) * 3 );	  
 	  rValues[index]   = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
 	  rValues[index+1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
-	  rValues[index+2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+	  rValues[index+2] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
 	}
     }
     else{
@@ -217,10 +217,10 @@ namespace Kratos
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * ( (dimension-1) * 3 );
+    unsigned int       dofs_size       = number_of_nodes * ( (dimension-1) * 3 );
 
-    if ( rValues.size() != element_size )
-      rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     unsigned int index = 0;
     if( dimension == 2 ){
@@ -258,10 +258,10 @@ namespace Kratos
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * ( (dimension-1) * 3 );
+    unsigned int       dofs_size       = number_of_nodes * ( (dimension-1) * 3 );
 
-    if ( rValues.size() != element_size )
-      rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
     unsigned int index = 0;
     if( dimension == 2 ){

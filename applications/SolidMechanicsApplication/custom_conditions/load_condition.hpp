@@ -140,6 +140,13 @@ protected:
     ///@name Protected Operations
     ///@{
 
+
+    /**
+     * Check condition rotation dofs
+     */    
+    virtual bool HasRotationDofs() override {return false;};
+
+    
     /**
      * Initialize General Variables
      */
