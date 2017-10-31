@@ -42,8 +42,8 @@ public:
 
     /// Constructor
     ConstructionUtility(ModelPart& rMechanicalModelPart, ModelPart& rThermalModelPart,
-                        TableType& rTablePhases, TableType& rTableAmbientTemp, Parameters& rParameters
-                        ) : mrMechanicalModelPart(rMechanicalModelPart) , mrThermalModelPart(rThermalModelPart) , mrTablePhases(rTablePhases) , mrTableAmbientTemp(rTableAmbientTemp)
+                        TableType& rTableAmbientTemp, Parameters& rParameters
+                        ) : mrMechanicalModelPart(rMechanicalModelPart) , mrThermalModelPart(rThermalModelPart) , mrTableAmbientTemp(rTableAmbientTemp)
         {
             KRATOS_TRY
     
@@ -53,10 +53,8 @@ public:
             mReferenceCoordinate = rParameters["reservoir_bottom_coordinate_in_gravity_direction"].GetDouble();
             mHeight = rParameters["height_dam"].GetDouble();
             mPhases = rParameters["number_of_phases"].GetInt();
-            mDensity = rParameters["density"].GetDouble();
-            mSpecificHeat = rParameters["specific_heat"].GetDouble();
-            mAlpha = rParameters["alpha"].GetDouble();
-            mTMax = rParameters["tmax"].GetDouble();
+            mSourceType = rParameters["source_type"].GetString();
+            mAlphaInitial = rParameters["alpha_initial"].GetDouble();            
             mH0 = rParameters["h_0"].GetDouble();
             mTimeUnitConverter = mrMechanicalModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
             mMechanicalSoilPart = rParameters["mechanical_soil_part"].GetString();   
@@ -82,7 +80,7 @@ void Initialize()
 
     mMechanicalLastCondition = mrMechanicalModelPart.GetMesh(mMeshId).Conditions().size();
     mThermalLastCondition = mrThermalModelPart.GetMesh(mMeshId).Conditions().size();
-   
+  
     if (nelements != 0)
     {
         ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.ElementsBegin();
@@ -108,6 +106,8 @@ void Initialize()
         }
 
     }
+
+    // Activation of the soil ( User must specify the soil part through the interface)
 
     const unsigned int soil_nelements = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Elements().size();   
     const unsigned int soil_nnodes = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Nodes().size();
@@ -137,13 +137,67 @@ void Initialize()
         }
 
     }
+
+    // Assign Alpha Initial in case of using Azenha Formulation
+    if (mSourceType == "NonAdiabatic")
+    {
+        ModelPart::NodesContainerType::iterator it_begin = mrMechanicalModelPart.NodesBegin();        
+        #pragma omp parallel for
+        for(unsigned int i = 0; i<nnodes; ++i)
+        {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+            it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = mAlphaInitial;
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void AssignTimeActivation(std::string ThermalSubModelPartName, int phase, double time_activation)
+{
+    KRATOS_TRY;
+
+    const unsigned int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();   
+    int direction;
+    if( mGravityDirection == "X")
+        direction = 0;
+    else if( mGravityDirection == "Y")
+        direction = 1;
+    else
+        direction = 2;
+
+    if(nelements != 0)
+    {
+        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).ElementsBegin();               
+        
+        double current_height = mReferenceCoordinate + (mHeight/mPhases)*(phase);
+        double previous_height = mReferenceCoordinate + (mHeight/mPhases)*(phase-1);         
+                
+        #pragma omp parallel for
+        for(unsigned int k = 0; k<nelements; ++k)
+        {
+            ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
+            array_1d<double,3> central_position = it_thermal->GetGeometry().Center();
+
+            if((central_position(direction) >= previous_height) && (central_position(direction) <= current_height) )
+            {
+                const unsigned int number_of_points = it_thermal->GetGeometry().PointsNumber();
+                for(unsigned int i = 0; i<number_of_points; ++i)
+                {
+                    it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION) = time_activation;                    
+                }
+            }
+        }             
+    }
     
     KRATOS_CATCH("");
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void InitializeSolutionStep(std::string ThermalSubModelPartName, std::string MechanicalSubModelPartName)
+void InitializeSolutionStep(std::string ThermalSubModelPartName, std::string MechanicalSubModelPartName, int current_number_of_phase)
 {
     KRATOS_TRY;
     
@@ -156,13 +210,9 @@ void InitializeSolutionStep(std::string ThermalSubModelPartName, std::string Mec
         direction = 1;
     else
         direction = 2;
-
-    double time = mrMechanicalModelPart.GetProcessInfo()[TIME];
-    int int_time = time/mTimeUnitConverter;
     
     // Getting the value of the table and computing the current height
-    unsigned int current_number_of_phases = mrTablePhases.GetValue(int_time-1);
-    double current_height = mReferenceCoordinate + (mHeight/mPhases)*current_number_of_phases;
+    double current_height = mReferenceCoordinate + (mHeight/mPhases)*current_number_of_phase;
 
     if (nelements != 0)
     {
@@ -406,48 +456,86 @@ void SearchingFluxes()
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void ActiveHeatFlux(std::string ThermalSubModelPartName, int phase, double phase_time)
+void ActiveHeatFluxNoorzai(Parameters& NoorzaiParameters)
+{
+    KRATOS_TRY;
+
+    const unsigned int nnodes = mrThermalModelPart.Nodes().size();
+    
+    // Getting Noorzai Values
+    double density = NoorzaiParameters["density"].GetDouble();
+    double specific_heat = NoorzaiParameters["specific_heat"].GetDouble();
+    double alpha = NoorzaiParameters["alpha"].GetDouble();
+    double t_max = NoorzaiParameters["t_max"].GetDouble();
+    double time = mrThermalModelPart.GetProcessInfo()[TIME];
+
+    // Same nodes for both computing model part
+    ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();        
+    #pragma omp parallel for
+    for(unsigned int i = 0; i<nnodes; ++i)
+    {
+        ModelPart::NodesContainerType::iterator it = it_begin + i;
+        time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION)); 
+        if (time >= 0.0)
+        {
+            // Computing the value of heat flux according the time
+            double value = density*specific_heat*alpha*t_max*(exp(-alpha*time));
+            it->FastGetSolutionStepValue(HEAT_FLUX) = value;
+        }    
+    }
+
+    KRATOS_CATCH("");
+}
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void ActiveHeatFluxAzenha(Parameters& AzenhaParameters)
 {
     KRATOS_TRY;
     
-    const unsigned int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
+    const unsigned int nnodes = mrThermalModelPart.Nodes().size();
+    
+    // Getting Azenha Values
+    double activation_energy = AzenhaParameters["activation_energy"].GetDouble();
+    double gas_constant = AzenhaParameters["gas_constant"].GetDouble();
+    double constant_rate = AzenhaParameters["constant_rate"].GetDouble();
+    double q_total = AzenhaParameters["q_total"].GetDouble();
+    double a_coef = AzenhaParameters["A"].GetDouble();
+    double b_coef = AzenhaParameters["B"].GetDouble();
+    double c_coef = AzenhaParameters["C"].GetDouble();
+    double d_coef = AzenhaParameters["D"].GetDouble();
 
-    KRATOS_WATCH(nelements)
+    KRATOS_WATCH("ENTRAAAAAAAAAAAAAAAAAA EN AZENHAAAAAAAAAAAAAAAA")
 
-    int direction;
-    if( mGravityDirection == "X")
-        direction = 0;
-    else if( mGravityDirection == "Y")
-        direction = 1;
-    else
-        direction = 2;
-
-    if(nelements != 0)
-    {
-        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).ElementsBegin();               
-        
-        double current_height = mReferenceCoordinate + (mHeight/mPhases)*(phase);
-        double previous_height = mReferenceCoordinate + (mHeight/mPhases)*(phase-1);         
-        
-        // Computing the value of heat flux according the time
-        double value = mDensity*mSpecificHeat*mAlpha*mTMax*(exp(-mAlpha*phase_time));
-
-        KRATOS_WATCH(value)
-        
-        #pragma omp parallel for
-        for(unsigned int k = 0; k<nelements; ++k)
+    // Tempotal variables
+    double time = mrThermalModelPart.GetProcessInfo()[TIME];    
+    double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
+    
+    ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();        
+    #pragma omp parallel for
+    for(unsigned int i = 0; i<nnodes; ++i)
+    {         
+        ModelPart::NodesContainerType::iterator it = it_begin + i;
+        time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION)); 
+        if (time >= 0.0)
         {
-            ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
-            array_1d<double,3> central_position = it_thermal->GetGeometry().Center();
-            if((central_position(direction) >= previous_height) && (central_position(direction) <= current_height) )
-            {
-                const unsigned int number_of_points = it_thermal->GetGeometry().PointsNumber();
-                for(unsigned int i = 0; i<number_of_points; ++i)
-                {
-                    it_thermal->GetGeometry()[i].FastGetSolutionStepValue(HEAT_FLUX) = value;                    
-                }
-            }
-        }             
+            // Computing the current alpha according las step.
+            double current_alpha = ( (it->FastGetSolutionStepValue(HEAT_FLUX,1))/q_total)*delta_time + (it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE));
+            double f_alpha = a_coef*(pow(current_alpha,2))*exp(-b_coef*pow(current_alpha,3)) + c_coef*current_alpha*exp(-d_coef*current_alpha); 
+
+            // This is neccesary for stopping the addition to the system once the process finish.
+            if (current_alpha>= 1.0)
+                f_alpha = 0.0;
+
+            // Transformation degress to Kelvins, it is necessary since gas constant is in Kelvins.
+            const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE) + 273.0;
+            const double heat_flux = constant_rate*f_alpha*exp((-activation_energy)/(gas_constant*temp_current));         
+
+            // Updating values according the computations
+            it->FastGetSolutionStepValue(HEAT_FLUX) = heat_flux;
+            it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = current_alpha;                    
+
+        }                   
     }
 
     KRATOS_CATCH("");
@@ -530,23 +618,18 @@ protected:
     std::size_t mMeshId;
     std::string mGravityDirection;
     std::string mMechanicalSoilPart;
-    std::string mThermalSoilPart;    
+    std::string mThermalSoilPart;
+    std::string mSourceType;    
     double mReferenceCoordinate;
     double mHeight;
     int mPhases;
-    double mTimeUnitConverter;    
-    double mDensity;
-    double mSpecificHeat;
-    double mAlpha;
-    double mTMax;
     double mH0;
+    double mTimeUnitConverter;    
+    double mAlphaInitial;
     unsigned int mMechanicalLastCondition;
     unsigned int mThermalLastCondition;
-    TableType& mrTablePhases;
     TableType& mrTableAmbientTemp;
     
-
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 };//Class

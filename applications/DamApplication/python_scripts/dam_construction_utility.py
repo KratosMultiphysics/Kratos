@@ -12,43 +12,55 @@ class DamConstructionUtility:
         self.mechanical_model_part = mechanical_model_part
         self.thermal_model_part = thermal_model_part
 
-        phase_input_file_name = parameters["phase_input_file_name"].GetString()
-        times_input_file_name = parameters["times_input_file_name"].GetString()
+        # Getting neccessary files from constructive phase
         ambient_input_file_name = parameters["ambient_input_file_name"].GetString()
+        self.construction_input_file_name = parameters["construction_input_file_name"].GetString()
+        
+        self.heat_source_parameters = Parameters("{}")
+        if (parameters["source_type"].GetString() == "Adiabatic"):
+            self.heat_source_type = "Noorzai"
+            self.heat_source_parameters.AddValue("density",parameters["density"])
+            self.heat_source_parameters.AddValue("specific_heat",parameters["specific_heat"])
+            self.heat_source_parameters.AddValue("alpha",parameters["alpha"])
+            self.heat_source_parameters.AddValue("t_max",parameters["tmax"])
+
+        if (parameters["source_type"].GetString() == "NonAdiabatic"):
+            self.heat_source_type = "Azenha"
+            self.heat_source_parameters.AddValue("activation_energy",parameters["activation_energy"])
+            self.heat_source_parameters.AddValue("gas_constant",parameters["gas_constant"])
+            self.heat_source_parameters.AddValue("constant_rate",parameters["constant_rate"])
+            self.heat_source_parameters.AddValue("alpha_initial",parameters["alpha_initial"])
+            self.heat_source_parameters.AddValue("q_total",parameters["q_total"])
+            self.heat_source_parameters.AddValue("A",parameters["A"])
+            self.heat_source_parameters.AddValue("B",parameters["B"])
+            self.heat_source_parameters.AddValue("C",parameters["C"])
+            self.heat_source_parameters.AddValue("D",parameters["D"])
         
         # Getting the part corresponding to soil part for its activation in the initialize
         part_number = parameters["soil_part"].GetString()
         parameters.RemoveValue("soil_part")
-        parameters.AddEmptyValue("mechanical_soil_part").SetString("Parts_Parts_"+part_number[6:])
-        parameters.AddEmptyValue("thermal_soil_part").SetString("Thermal_Part_"+part_number[6:])
-
-        self.table_phase = PiecewiseLinearTable()
-        with open(phase_input_file_name,'r') as file_name1:
-            for j, line in enumerate(file_name1):
-                file_1 = line.split(" ")
-                if (len(file_1)) > 1: 
-                    self.table_phase.AddRow(float(file_1[0]), float(file_1[1]))
-                self.number_iter = j
-
-        self.table_times = PiecewiseLinearTable()
-        with open(times_input_file_name,'r') as file_name2:
-            for j, line in enumerate(file_name2):
-                file_2 = line.split(" ")
-                if (len(file_2)) > 1: 
-                    self.table_times.AddRow(float(file_2[0]), float(file_2[1]))
+        parameters.AddEmptyValue("mechanical_soil_part").SetString("Parts_Parts_Auto"+part_number[10:])
+        parameters.AddEmptyValue("thermal_soil_part").SetString("Thermal_Part_Auto_"+part_number[10:])
         
         self.table_ambient = PiecewiseLinearTable()
-        with open(ambient_input_file_name,'r') as file_name3:
-            for j, line in enumerate(file_name3):
-                file_3 = line.split(" ")
-                if (len(file_3)) > 1: 
-                    self.table_ambient.AddRow(float(file_3[0]), float(file_3[1]))
+        with open(ambient_input_file_name,'r') as file_name1:
+            for j, line in enumerate(file_name1):
+                file_1= line.split(" ")
+                if (len(file_1)) > 1: 
+                    self.table_ambient.AddRow(float(file_1[0]), float(file_1[1]))
 
         # Construct the utility
-        self.Construction = ConstructionUtility(self.mechanical_model_part,self.thermal_model_part, self.table_phase, self.table_ambient, parameters)
-    
+        self.Construction = ConstructionUtility(self.mechanical_model_part,self.thermal_model_part, self.table_ambient, parameters)
+
     def Initialize(self):
         self.Construction.Initialize()
+
+        # The function recieves the mame of submodel Part, the number of phase and the activation time 
+        with open(self.construction_input_file_name,'r') as file_name2:
+            for j, line in enumerate(file_name2):
+                file_2 = line.split(" ")
+                if (len(file_2)) > 1:
+                    self.Construction.AssignTimeActivation(file_2[1],int(file_2[3]),float(file_2[0]))
 
     def InitializeSolutionStep(self):
 
@@ -56,27 +68,65 @@ class DamConstructionUtility:
         delta_time = self.mechanical_model_part.ProcessInfo[DELTA_TIME]
         step = int(time/delta_time)-1
 
-        with open('thermal_parts.txt','r') as file_name4:
-            it_t=(thermal_linea for i,thermal_linea in enumerate(file_name4) if i==step)
-            for thermal_linea in it_t:
-                thermal_name = thermal_linea.rstrip('\n')
-        
-        with open('mechanical_parts.txt','r') as file_name5:
-            it_m=(mechanical_linea for j,mechanical_linea in enumerate(file_name5) if j==step)
-            for mechanical_linea in it_m:
-                mechanical_name = mechanical_linea.rstrip('\n')
+        with open(self.construction_input_file_name,'r') as file_name3:
+            for j, line in enumerate(file_name3):
+                file_3 = line.split(" ")
+                if ((len(file_3)) > 1 and (float(file_3[0]) == time)):
 
-        self.Construction.InitializeSolutionStep(thermal_name,mechanical_name)
+                    print (float(file_3[0])) 
+                    self.Construction.InitializeSolutionStep(file_3[1],file_3[2],int(file_3[3]))
 
-        for i in range(self.number_iter+1):
-            phase_time = time - self.table_times.GetValue(i)
-            if (phase_time>0.0):
-                with open('thermal_parts.txt','r') as file_name4:
-                    it_t=(thermal_linea for w,thermal_linea in enumerate(file_name4) if w==i)
-                    for thermal_linea in it_t:
-                        thermal_name = thermal_linea.rstrip('\n')
+        if (self.heat_source_type == 'Noorzai'):
+            self.Construction.ActiveHeatFluxNoorzai(self.heat_source_parameters)
 
-                self.Construction.ActiveHeatFlux(thermal_name,int(self.table_phase.GetValue(i)),phase_time)
+        elif (self.heat_source_type == 'Azenha'):
+            self.Construction.ActiveHeatFluxAzenha(self.heat_source_parameters)
+
+        #with open('thermal_parts.txt','r') as file_name4:
+        #    it_t=(thermal_linea for i,thermal_linea in enumerate(file_name4) if i==step)
+        #    for thermal_linea in it_t:
+        #        thermal_name = thermal_linea.rstrip('\n')
+        #
+        #with open('mechanical_parts.txt','r') as file_name5:
+        #    it_m=(mechanical_linea for j,mechanical_linea in enumerate(file_name5) if j==step)
+        #    for mechanical_linea in it_m:
+        #        mechanical_name = mechanical_linea.rstrip('\n')
+#
+        #
+#
+        #if (self.heat_source_type == 'Noorzai'):
+        #    for i in range(self.number_iter+1):
+        #        phase_time = time - self.table_times.GetValue(i)
+        #        if (phase_time>0.0):
+        #            with open('thermal_parts.txt','r') as file_name4:
+        #                it_t=(thermal_linea for w,thermal_linea in enumerate(file_name4) if w==i)
+        #                for thermal_linea in it_t:
+        #                    thermal_name = thermal_linea.rstrip('\n')
+#
+        #            self.Construction.ActiveHeatFluxNoorzai(thermal_name,int(self.table_phase.GetValue(i)),phase_time, self.heat_source_parameters)
+#
+        #elif (self.heat_source_type == 'Azenha'):
+        #    for i in range(self.number_iter+1):
+        #        phase_time = time - self.table_times.GetValue(i)
+        #        if ((phase_time>0.0) and (self.table_times.GetValue(i) != self.table_times.GetValue(i-1))):
+        #            with open('thermal_parts.txt','r') as file_name4:
+        #                it_t=(thermal_linea for w,thermal_linea in enumerate(file_name4) if w==i)
+        #                for thermal_linea in it_t:
+        #                    thermal_name = thermal_linea.rstrip('\n')
+        #                    
+        #                    print(thermal_name)
+#
+        #                    self.Construction.ActiveHeatFluxAzenha(thermal_name,int(self.table_phase.GetValue(i)), self.heat_source_parameters)
+#
+#
+#
+#
+        #                #if(self.table_times.GetValue(i) == self.table_times.GetValue(i-1)):
+        #                #    print("We are not activating")
+        #                #else:
+#
+        #else: 
+        #    print("Error: 'Please select one of the heat sources implemented: Noorzai or Azenha' ")
 
     def AfterOutputStep(self):
         self.Construction.AfterOutputStep()
