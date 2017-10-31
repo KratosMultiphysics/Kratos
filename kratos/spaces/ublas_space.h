@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 //
 
@@ -249,22 +250,68 @@ public:
 
     static TDataType TwoNorm(VectorType const& rX)
     {
-        return sqrt(Dot(rX, rX));
+        return std::sqrt(Dot(rX, rX));
     }
 
     static TDataType TwoNorm(MatrixType const& rA) // Frobenious norm
     {
         TDataType aux_sum = TDataType();
-
-        for (unsigned int i = 1; i < rA.size1(); i++)
+#ifndef _OPENMP
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
         {
-            for (unsigned int j = 1; j < rA.size2(); j++)
+            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
             {
                 aux_sum += rA(i,j) * rA(i,j);
             }
         }
-
+#else
+        #pragma omp parallel reduction(+:aux_sum)
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
+        {
+            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
+            {
+                aux_sum += rA(i,j) * rA(i,j);
+            }
+        }
+#endif
         return std::sqrt(aux_sum);
+    }
+    
+    /**
+     * This method computes the Jacobi norm
+     * @param rA: The matrix to compute the Jacobi norm
+     * @return aux_sum: The Jacobi norm
+     */
+    static TDataType JacobiNorm(MatrixType const& rA)
+    {
+        TDataType aux_sum = TDataType();
+        
+#ifndef _OPENMP
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
+        {
+            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
+            {
+                if (i != j) 
+                {
+                    aux_sum += std::abs(rA(i,j));
+                }
+            }
+        }
+#else
+        #pragma omp parallel for reduction(+:aux_sum)
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
+        {
+            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
+            {
+                if (i != j) 
+                {
+                    aux_sum += std::abs(rA(i,j));
+                }
+            }
+        }
+#endif
+
+        return aux_sum;
     }
 
     static void Mult(Matrix& rA, VectorType& rX, VectorType& rY)
@@ -510,29 +557,6 @@ public:
     {
         pX->clear();
         pX->resize(0, false);
-    }
-
-    /*	static void Clear(MatrixType& rA)
-            {rA.clear();}
-
-    static void Clear(VectorType& rX) {rX.clear();}*/
-
-    template<class TOtherMatrixType>
-    inline static void ClearData(TOtherMatrixType& rA)
-    {
-        rA.clear();
-    }
-
-    inline static void ClearData(compressed_matrix<TDataType>& rA)
-    {
-        rA.clear();
-        //    	rA.value_data() = unbounded_array<TDataType>();
-        //if(rA.non_zeros() != 0) rA.value_data() = unbounded_array<TDataType>();
-    }
-
-    inline static void ClearData(VectorType& rX)
-    {
-        rX = VectorType();
     }
 
     template<class TOtherMatrixType>
@@ -812,7 +836,7 @@ private:
         }
     }
 
-    static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+    static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, boost::numeric::ublas::vector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads + 1);
         int partition_size = number_of_rows / number_of_threads;

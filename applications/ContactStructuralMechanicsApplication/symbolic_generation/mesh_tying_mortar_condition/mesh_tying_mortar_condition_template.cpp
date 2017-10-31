@@ -85,7 +85,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
 //     mThisSlaveElement = this->GetValue(ELEMENT_POINTER);
     
     // Populate of the vector of master elements (it is supposed to be constant)    
-    boost::shared_ptr<ConditionMap>& AllConditionMaps = this->GetValue( MAPPING_PAIRS );
+    ConditionMap::Pointer& AllConditionMaps = this->GetValue( MAPPING_PAIRS );
     
     mIntegrationOrder = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
@@ -121,7 +121,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
                 
                 DecompositionType DecompGeom( PointsArray );
                 
-                const bool BadShape = (TDim == 2) ? false : ContactUtilities::HeronCheck(DecompGeom);
+                const bool BadShape = (TDim == 2) ? false : MortarUtilities::HeronCheck(DecompGeom);
                 
                 if (BadShape == false)
                 {
@@ -821,11 +821,11 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::MasterShapeFunctionVa
     GeometryType& MasterSegment = rVariables.GetMasterElement( );
 
     PointType ProjectedGPGlobal;
-    const array_1d<double,3> GPNormal = ContactUtilities::GaussPointNormal(rVariables.N_Slave, GetGeometry());
+    const array_1d<double,3> GPNormal = MortarUtilities::GaussPointUnitNormal(rVariables.N_Slave, GetGeometry());
     
     GeometryType::CoordinatesArrayType SlaveGPGlobal;
     this->GetGeometry( ).GlobalCoordinates( SlaveGPGlobal, LocalPoint );
-    ContactUtilities::FastProjectDirection( MasterSegment, SlaveGPGlobal, ProjectedGPGlobal, MasterNormal, -GPNormal ); // The opposite direction
+    MortarUtilities::FastProjectDirection( MasterSegment, SlaveGPGlobal, ProjectedGPGlobal, MasterNormal, -GPNormal ); // The opposite direction
     
     GeometryType::CoordinatesArrayType ProjectedGPLocal;
     

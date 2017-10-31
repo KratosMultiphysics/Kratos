@@ -28,6 +28,8 @@
 #include "custom_processes/dam_temperature_by_device_process.hpp"
 #include "custom_processes/dam_construction_process.hpp"
 #include "custom_processes/dam_added_mass_condition_process.hpp"
+#include "custom_processes/dam_t_sol_air_heat_flux_process.hpp"
+
 
 namespace Kratos
 {
@@ -78,6 +80,11 @@ void  AddCustomProcessesToPython()
     //Temperature by device     
     class_< DamTemperaturebyDeviceProcess, bases< Process >, boost::noncopyable > ( "DamTemperaturebyDeviceProcess",
         init < ModelPart&, Parameters&>());
+
+    //Heat Flux by t_sol_air      
+    class_< DamTSolAirHeatFluxProcess, bases< Process >, boost::noncopyable > ( "DamTSolAirHeatFluxProcess",
+        init < ModelPart&, Parameters&>());
+    
 }
 
 }  // namespace Python.

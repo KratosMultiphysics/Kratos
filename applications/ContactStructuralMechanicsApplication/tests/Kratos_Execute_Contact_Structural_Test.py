@@ -58,8 +58,8 @@ class Kratos_Execute_Test:
             self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_check_process"])
         if (ProjectParameters.Has("json_output_process") == True):
             self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_output_process"])
-        if (ProjectParameters.Has("contact_processes") == True): # NOTE: Always add the contact processes the last one (to avoid problems imposing displacements)
-            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["contact_processes"])
+        if (ProjectParameters.Has("contact_process_list") == True): # NOTE: Always add the contact processes the last one (to avoid problems imposing displacements)
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["contact_process_list"])
         
         for process in self.list_of_processes:
             process.ExecuteInitialize()

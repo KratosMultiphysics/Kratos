@@ -19,18 +19,24 @@ def num_type(value):
         return None
 
 class Algorithm(BaseAlgorithm):
-    def __init__(self, varying_parameters = dict()):
+    def __init__(self, varying_parameters = Parameters("{}")):
         BaseAlgorithm.__init__(self, varying_parameters)
 
     def SetBetaParameters(self):
         BaseAlgorithm.SetBetaParameters(self)
-        self.pp.CFD_DEM.size_parameter = 0
-        self.pp.CFD_DEM.store_full_gradient = 1
+        self.pp.CFD_DEM.AddEmptyValue("pressure_grad_recovery_type")
+        self.pp.CFD_DEM.AddEmptyValue("size_parameter").SetInt(1)
+        self.pp.CFD_DEM.AddEmptyValue("store_full_gradient_option").SetBool(True)
 
-    def SetCustomBetaParameters(self, dictionary):
-        BaseAlgorithm.SetCustomBetaParameters(self, dictionary)
+    def SetCustomBetaParameters(self, custom_parameters):
+        BaseAlgorithm.SetCustomBetaParameters(self, custom_parameters)
+        self.pp.CFD_DEM.size_parameter = self.pp.CFD_DEM["size_parameter"].GetInt()
         # Creating a code for the used input variables
-        self.run_code = '_ndiv_' + str(self.pp.CFD_DEM.size_parameter) + '_mat_deriv_type_' + str(self.pp.CFD_DEM.material_acceleration_calculation_type) + '_lapl_type_' + str(self.pp.CFD_DEM.laplacian_calculation_type)
+        self.run_code = '_ndiv_' + str(self.pp.CFD_DEM["size_parameter"].GetDouble()) \
+                                 + '_mat_deriv_type_' \
+                                 + str(self.pp.CFD_DEM["material_acceleration_calculation_type"].GetInt()) \
+                                 + '_lapl_type_' \
+                                 + str(self.pp.CFD_DEM["laplacian_calculation_type"].GetInt())
 
     def ReadFluidModelParts(self):
         os.chdir(self.main_path)
@@ -53,7 +59,7 @@ class Algorithm(BaseAlgorithm):
         return self.field_utility
 
     def GetRecoveryCounter(self):
-        return SDP.Counter(1, 1, self.pp.CFD_DEM.coupling_level_type or self.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
+        return SDP.Counter(1, 1, self.pp.CFD_DEM["coupling_level_type"].GetInt() or self.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 
     def GetRunCode(self):
         return self.run_code
@@ -65,12 +71,12 @@ class Algorithm(BaseAlgorithm):
         self.current_laplacian_errors = np.zeros(2)
         fluid_model_part = self.all_model_parts.Get('FluidPart')
         for node in fluid_model_part.Nodes:
-            vel= Vector(3)
-            coor= Vector(3)
+            vel = Vector(3)
+            coor = Vector(3)
             coor[0]=node.X
             coor[1]=node.Y
             coor[2]=node.Z
-            self.flow_field.Evaluate(0.0 , coor,vel, 0)
+            self.flow_field.Evaluate(0.0, coor, vel, 0)
             node.SetSolutionStepValue(VELOCITY_X, vel[0])
             node.SetSolutionStepValue(VELOCITY_Y, vel[1])
             node.SetSolutionStepValue(VELOCITY_Z, vel[2])
@@ -154,9 +160,9 @@ class Algorithm(BaseAlgorithm):
             norm_mat_deriv_average += SDP.Norm(mat_deriv)
             norm_laplacian_average += SDP.Norm(laplacian)
 
-            node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, calc_mat_deriv[0] - mat_deriv[0])
-            node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, calc_mat_deriv[1] - mat_deriv[1])
-            node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z, calc_mat_deriv[2] - mat_deriv[2])
+            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_RATE_X, calc_mat_deriv[0] - mat_deriv[0])
+            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_RATE_Y, calc_mat_deriv[1] - mat_deriv[1])
+            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_RATE_Z, calc_mat_deriv[2] - mat_deriv[2])
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, mat_deriv[0])
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, mat_deriv[1])
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z, mat_deriv[2])
@@ -174,7 +180,7 @@ class Algorithm(BaseAlgorithm):
 
         module_mat_deriv /= len(fluid_model_part.Nodes)
         module_laplacian /= len(fluid_model_part.Nodes)
-        SDP.MultiplyNodalVariableByFactor(fluid_model_part, MATERIAL_ACCELERATION, 1.0 / module_mat_deriv)
+        SDP.MultiplyNodalVariableByFactor(fluid_model_part, VELOCITY_LAPLACIAN_RATE, 1.0 / module_mat_deriv)
         SDP.MultiplyNodalVariableByFactor(fluid_model_part, VELOCITY_LAPLACIAN, 1.0 / module_laplacian)
 
         if norm_mat_deriv_average > 0. and norm_laplacian_average > 0:
@@ -202,9 +208,9 @@ class Algorithm(BaseAlgorithm):
         size_parameter = self.pp.CFD_DEM.size_parameter
         with h5py.File(file_name) as f:
             mat_deriv_grp = f.require_group('material derivative')
-            mat_deriv_mthd_group = mat_deriv_grp.require_group('method = ' + str(self.pp.CFD_DEM.material_acceleration_calculation_type))
+            mat_deriv_mthd_group = mat_deriv_grp.require_group('method = ' + str(self.pp.CFD_DEM["material_acceleration_calculation_type"].GetInt()))
             laplacian_grp = f.require_group('laplacian')
-            laplacian_mthd_group = laplacian_grp.require_group('method = ' + str(self.pp.CFD_DEM.laplacian_calculation_type))
+            laplacian_mthd_group = laplacian_grp.require_group('method = ' + str(self.pp.CFD_DEM["laplacian_calculation_type"].GetInt()))
 
             if num_type(size_parameter) == 'int':
                 mesh_grp_mat_deriv = mat_deriv_mthd_group.require_group('regular mesh')
@@ -214,8 +220,8 @@ class Algorithm(BaseAlgorithm):
             elif num_type(size_parameter) == 'float':
                 mesh_grp_mat_deriv = mat_deriv_mthd_group.require_group('irregular mesh')
                 mesh_grp_laplacian = laplacian_mthd_group.require_group('irregular mesh')
-                dset_mat_deriv = mesh_grp_mat_deriv.require_dataset('h = '   + str(size_parameter), (2,), dtype = np.float64)
-                dset_laplacian = mesh_grp_laplacian.require_dataset('h = '   + str(size_parameter), (2,), dtype = np.float64)
+                dset_mat_deriv = mesh_grp_mat_deriv.require_dataset('h = ' + str(size_parameter), (2,), dtype = np.float64)
+                dset_laplacian = mesh_grp_laplacian.require_dataset('h = ' + str(size_parameter), (2,), dtype = np.float64)
             dset_mat_deriv.attrs['mesh size'] =  min(float(size_parameter), 1.0 / float(size_parameter))
             dset_mat_deriv[0] = self.current_mat_deriv_errors[0]
             dset_mat_deriv[1] = self.current_mat_deriv_errors[1]
@@ -226,10 +232,10 @@ class Algorithm(BaseAlgorithm):
             size_parameter_name = '_ndiv_'
         elif num_type(size_parameter) == 'float':
             size_parameter_name = '_h_'
-        with open('../errors_recorded/mat_deriv_errors' + size_parameter_name + str(self.pp.CFD_DEM.size_parameter) + '_type_' + str(self.pp.CFD_DEM.material_acceleration_calculation_type) + '.txt', 'w') as mat_errors_file:
+        with open('../errors_recorded/mat_deriv_errors' + size_parameter_name + str(self.pp.CFD_DEM.size_parameter) + '_type_' + str(self.pp.CFD_DEM["material_acceleration_calculation_type"].GetInt()) + '.txt', 'w') as mat_errors_file:
             for error in self.mat_deriv_errors:
                 mat_errors_file.write(str(error) + '\n')
-        with open('../errors_recorded/laplacian_errors' + size_parameter_name + str(size_parameter) + '_type_' + str(self.pp.CFD_DEM.laplacian_calculation_type) + '.txt', 'w') as laplacian_errors_file:
+        with open('../errors_recorded/laplacian_errors' + size_parameter_name + str(size_parameter) + '_type_' + str(self.pp.CFD_DEM["laplacian_calculation_type"].GetInt()) + '.txt', 'w') as laplacian_errors_file:
             for error in self.laplacian_errors:
                 laplacian_errors_file.write(str(error) + '\n')
         sys.stdout.flush()

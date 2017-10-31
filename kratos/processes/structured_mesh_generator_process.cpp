@@ -18,15 +18,18 @@
 // Project includes
 #include "processes/structured_mesh_generator_process.h"
 #include "geometries/geometry.h"
+#include "geometries/point.h"
+#include "geometries/triangle_2d_3.h"
+#include "geometries/tetrahedra_3d_4.h"
 #include "includes/checks.h"
 
 
 namespace Kratos
 {
-	StructuredMeshGeneratorProcess::StructuredMeshGeneratorProcess(GeometryType& rGeometry, ModelPart& rOutputModelPart, Parameters TheParameters)
+    StructuredMeshGeneratorProcess::StructuredMeshGeneratorProcess(const GeometryType& rGeometry, ModelPart& rOutputModelPart, Parameters& TheParameters)
 		: Process()
 		, mrGeometry(rGeometry)
-		, mrOutputModelPart(rOutputModelPart) {
+        , mrOutputModelPart(rOutputModelPart) {
 
 		Parameters default_parameters(R"(
             {
@@ -49,38 +52,28 @@ namespace Kratos
 		mStartElementId = TheParameters["start_element_id"].GetInt();
 		mStartConditionId = TheParameters["start_condition_id"].GetInt();
 
-		mNumberOfDivisions = TheParameters["number_of_divisions"].GetInt();
+        mNumberOfDivisions = TheParameters["number_of_divisions"].GetInt();
 		mElementPropertiesId = TheParameters["elements_properties_id"].GetInt();
 		mConditiongPropertiesId = TheParameters["conditions_properties_id"].GetInt();
 		mElementName = TheParameters["element_name"].GetString();
 		mConditionName = TheParameters["condition_name"].GetString();
-		mCrateSkinSubModelPart = TheParameters["create_skin_sub_model_part"].GetBool();
+        mCreateSkinSubModelPart = TheParameters["create_skin_sub_model_part"].GetBool();
 
-		KRATOS_CHECK(KratosComponents<Element>::Has(mElementName));
-		//Element const& r_element = KratosComponents<Element>::Get(mElementName);
+        Check();
 
-		// I cannot do this test because the GetGeometryType is not a constant method! Pooyan.
-		//if (r_element.GetGeometry().GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
-		//	KRATOS_ERROR << "Un supported geometry is given. Only Quadrilateral2D4 is supported and given geometry is : " << rGeometry << std::endl;
-
-		if ((rGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) &
-			(rGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Hexahedra3D8))
-			KRATOS_ERROR << "Un supported geometry is given. Only Quadrilateral2D4 and Hexahedra3D8 are supported and given geometry is : " << rGeometry << std::endl;
-
-		KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions, 0);
-	}
+    }
 
 	StructuredMeshGeneratorProcess::~StructuredMeshGeneratorProcess() {
 
 	}
 
 	void StructuredMeshGeneratorProcess::Execute() {
-		if (mCrateSkinSubModelPart)
-			mrOutputModelPart.CreateSubModelPart("Skin");
+        if (mCreateSkinSubModelPart)
+            mrOutputModelPart.CreateSubModelPart("Skin");
 		if (mrGeometry.LocalSpaceDimension() == 2)
 			Generate2DMesh();
 		else if (mrGeometry.LocalSpaceDimension() == 3)
-			Generate3DMesh();
+            Generate3DMesh();
 		else
 			KRATOS_ERROR << "Not supported geometry is given" << std::endl;
 
@@ -99,8 +92,8 @@ namespace Kratos
 	}
 
 	void StructuredMeshGeneratorProcess::Generate2DMesh() {
-		Point<3> min_point(1.00, 1.00, 1.00);
-		Point<3> max_point(-1.00, -1.00, -1.00);
+		Point min_point(1.00, 1.00, 1.00);
+		Point max_point(-1.00, -1.00, -1.00);
 		GetLocalCoordinatesRange(min_point, max_point);
 
 		GenerateNodes2D(min_point, max_point);
@@ -109,8 +102,8 @@ namespace Kratos
 	}
 
 	void StructuredMeshGeneratorProcess::Generate3DMesh() {
-		Point<3> min_point(1.00, 1.00, 1.00);
-		Point<3> max_point(-1.00, -1.00, -1.00);
+		Point min_point(1.00, 1.00, 1.00);
+		Point max_point(-1.00, -1.00, -1.00);
 		GetLocalCoordinatesRange(min_point, max_point);
 
 		GenerateNodes3D(min_point, max_point);
@@ -118,12 +111,12 @@ namespace Kratos
 		GenerateTetrahedraElements();
 	}
 
-	void StructuredMeshGeneratorProcess::GenerateNodes2D(Point<3> const& rMinPoint, Point<3> const& rMaxPoint) {
+	void StructuredMeshGeneratorProcess::GenerateNodes2D(Point const& rMinPoint, Point const& rMaxPoint) {
 		GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
 		local_element_size /= mNumberOfDivisions;
 		//const std::size_t local_space_dimension = mrGeometry.LocalSpaceDimension();
-		Point<3> local_coordinates = rMinPoint;
-		Point<3> global_coordinates = ZeroVector(3);
+		Point local_coordinates = rMinPoint;
+		Point global_coordinates = ZeroVector(3);
 		std::size_t node_id = mStartNodeId;
 
 		for (std::size_t j = 0; j <= mNumberOfDivisions; j++) {
@@ -139,11 +132,11 @@ namespace Kratos
 		}
 	}
 
-	void StructuredMeshGeneratorProcess::GenerateNodes3D(Point<3> const& rMinPoint, Point<3> const& rMaxPoint) {
+	void StructuredMeshGeneratorProcess::GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint) {
 		GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
 		local_element_size /= mNumberOfDivisions;
-		Point<3> local_coordinates = rMinPoint;
-		Point<3> global_coordinates = ZeroVector(3);
+		Point local_coordinates = rMinPoint;
+		Point global_coordinates = ZeroVector(3);
 		std::size_t node_id = mStartNodeId;
 
 		for (std::size_t k = 0; k <= mNumberOfDivisions; k++) {
@@ -217,7 +210,7 @@ namespace Kratos
 		return mStartNodeId + (K * (mNumberOfDivisions + 1) * (mNumberOfDivisions + 1)) + (J * (mNumberOfDivisions + 1)) + I;
 	}
 
-    void StructuredMeshGeneratorProcess::GetLocalCoordinatesRange(Point<3>& rMinPoint, Point<3>& rMaxPoint) {
+    void StructuredMeshGeneratorProcess::GetLocalCoordinatesRange(Point& rMinPoint, Point& rMaxPoint) {
 		const std::size_t local_space_dimension = mrGeometry.LocalSpaceDimension();
 		Matrix geometry_points_local_coordinates;
 		mrGeometry.PointsLocalCoordinates(geometry_points_local_coordinates);
@@ -231,6 +224,99 @@ namespace Kratos
 			}
 		}
 	}
+
+    void StructuredMeshGeneratorProcess::Check()
+    {
+        KRATOS_TRY
+
+        KRATOS_CHECK(CheckDomainGeometry());
+        KRATOS_CHECK(KratosComponents<Element>::Has(mElementName));
+
+        if ((mrGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) &
+            (mrGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Hexahedra3D8))
+            KRATOS_ERROR << "An unsupported geometry was given. Only Quadrilateral2D4 and Hexahedra3D8 are supported and given geometry is : " << mrGeometry << std::endl;
+
+        KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions, 0);
+
+        KRATOS_CATCH("")
+    }
+
+    bool StructuredMeshGeneratorProcess::CheckDomainGeometry() {
+        if (mrGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) {
+            return CheckDomainGeometryConnectivityForQuadrilateral2D4();
+        }
+
+        else if (mrGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8) {
+            return CheckDomainGeometryConnectivityForHexahedra3D8();
+        }
+
+        return true;
+    }
+
+    bool StructuredMeshGeneratorProcess::CheckDomainGeometryConnectivityForQuadrilateral2D4() {
+        using triangle_connectivity_in_cell_type = std::array<std::size_t, 3>;
+        constexpr std::size_t number_of_cases = 2;
+
+        std::vector<std::array<double, 3> > cell_points;
+        for (std::size_t i = 0; i < 4; ++i){
+            std::array<double, 3> coordinates{{mrGeometry[i][0], mrGeometry[i][1], mrGeometry[i][2]}};
+            cell_points.push_back(coordinates);
+        }
+
+        constexpr triangle_connectivity_in_cell_type connectivity_cases[number_of_cases] = { {{ 1,3,2 }},{{ 1,4,3 }} };
+
+        std::vector<Point::Pointer> my_points(3);
+        double min_area = 1.0;
+
+        for (std::size_t i_case = 0; i_case < number_of_cases; i_case++) {
+            auto connectivity = connectivity_cases[i_case];
+            for (std::size_t i_position = 0; i_position < 3; i_position++)
+            {
+                auto& cell_point = cell_points[connectivity[i_position]];
+                Point::Pointer pPi(new Point(cell_point[0], cell_point[1], cell_point[2]));
+                my_points[i_position] = pPi;
+            }
+
+            Triangle2D3<Point > trial_triangle(my_points[0], my_points[1], my_points[2]);
+            min_area = std::min(min_area, trial_triangle.DomainSize());
+        }
+
+        bool all_triangles_have_positive_area = min_area > 0.0;
+        return all_triangles_have_positive_area;
+    }
+
+
+    bool StructuredMeshGeneratorProcess::CheckDomainGeometryConnectivityForHexahedra3D8() {
+        using tetrahedra_connectivity_in_cell_type = std::array<std::size_t, 4>;
+        constexpr std::size_t number_of_cases = 6;
+
+        std::vector<std::array<double, 3> > cell_points;
+        for (std::size_t i = 0; i < 8; ++i){
+            std::array<double, 3> coordinates{{mrGeometry[i][0], mrGeometry[i][1], mrGeometry[i][2]}};
+            cell_points.push_back(coordinates);
+        }
+
+        constexpr tetrahedra_connectivity_in_cell_type connectivity_cases[number_of_cases] = { {{ 0,3,6,2 }},{{ 3,6,7,0 }},{{ 4,7,6,0 }},
+                                                                                               {{ 0,4,5,6 }},{{ 0,1,2,6 }},{{ 1,5,6,0 }} };
+        std::vector<Point::Pointer> my_points(4);
+        double min_volume = 1.0;
+
+        for (std::size_t i_case = 0; i_case < number_of_cases; i_case++) {
+            auto connectivity = connectivity_cases[i_case];
+            for (std::size_t i_position = 0; i_position < 4; i_position++)
+            {
+                auto& cell_point = cell_points[connectivity[i_position]];
+                Point::Pointer pPi(new Point(cell_point[0], cell_point[1], cell_point[2]));
+                my_points[i_position] = pPi;
+            }
+
+            Tetrahedra3D4<Point > trial_tetra(my_points[0], my_points[1], my_points[2], my_points[3]);
+            min_volume = std::min(min_volume, trial_tetra.DomainSize());
+        }
+
+        bool all_tetrahedra_have_positive_volume = min_volume > 0.0;
+        return all_tetrahedra_have_positive_volume;
+    }
 
 
 

@@ -67,7 +67,7 @@ public:
            MAX_LEVEL = 12,
            MIN_LEVEL = 2
          };
-    typedef Point<3, double>                                PointType;  /// always the point 3D
+    typedef Point                                           PointType;  /// always the point 3D
     typedef std::vector<double>::iterator                   DistanceIteratorType;
     typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
     typedef ContainerType::value_type                       PointerType;
@@ -171,8 +171,8 @@ public:
     {
         Kratos::Element::GeometryType& geom_1 = rObject->GetGeometry();
         
-        Kratos::Point<3,double> rLowPointTolerance;
-        Kratos::Point<3,double> rHighPointTolerance;
+        Kratos::Point rLowPointTolerance;
+        Kratos::Point rHighPointTolerance;
         
         for(std::size_t i = 0; i<3; i++)
         {
@@ -603,7 +603,7 @@ private:
                 //cell_point[1] = pCell->GetCoordinate(keys[1]);
                 //cell_point[2] = pCell->GetCoordinate(keys[2]);
 
-                double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point<3>(cell_point[0], cell_point[1], cell_point[2]));
+                double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point(cell_point[0], cell_point[1], cell_point[2]));
 
                 if(d < distance)
                     distance = d;

@@ -39,114 +39,6 @@ class PartitionedFSIBaseSolver:
         self.structure_main_model_part = structure_main_model_part
         self.fluid_main_model_part = fluid_main_model_part
 
-        # Settings string in JSON format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-        "structure_solver_settings":
-            {
-            "solver_type"           : "structural_mechanics_implicit_dynamic_solver",
-            "model_import_settings" : {
-                "input_type"     : "mdpa",
-                "input_filename" : "unknown_name"
-            },
-            "material_import_settings" :{
-                "materials_filename" : "materials.json"
-            },
-            "echo_level"               : 0,
-            "time_integration_method"  : "Implicit",
-            "analysis_type"            : "nonlinear",
-            "rotation_dofs"            : false,
-            "pressure_dofs"            : false,
-            "reform_dofs_at_each_step" : false,
-            "line_search"              : false,
-            "compute_reactions"        : true,
-            "compute_contact_forces"   : false,
-            "block_builder"            : true,
-            "move_mesh_flag"           : true,
-            "solution_type"            : "Dynamic",
-            "scheme_type"              : "Newmark",
-            "convergence_criterion"    : "Residual_criteria",
-            "displacement_relative_tolerance" : 1.0e-3,
-            "displacement_absolute_tolerance" : 1.0e-5,
-            "residual_relative_tolerance"     : 1.0e-3,
-            "residual_absolute_tolerance"     : 1.0e-5,
-            "max_iteration"          : 10,
-            "linear_solver_settings"    :{
-                "solver_type"   : "SuperLUSolver",
-                "max_iteration" : 200,
-                "tolerance"     : 1e-7,
-                "scaling"       : false,
-                "verbosity"     : 1
-            },
-            "processes_sub_model_part_list"      : [""],
-            "problem_domain_sub_model_part_list" : ["solid_model_part"]
-            },
-        "fluid_solver_settings": {
-            "solver_type"           : "navier_stokes_solver_vmsmonolithic",
-            "model_import_settings" : {
-                "input_type"     : "mdpa",
-                "input_filename" : "unknown_name"
-            },
-            "maximum_iterations"           : 10,
-            "dynamic_tau"                  : 0.0,
-            "oss_switch"                   : 0,
-            "echo_level"                   : 0,
-            "consider_periodic_conditions" : false,
-            "compute_reactions"            : true,
-            "divergence_clearance_steps"   : 0,
-            "reform_dofs_at_each_step"     : true,
-            "relative_velocity_tolerance"  : 1e-3,
-            "absolute_velocity_tolerance"  : 1e-5,
-            "relative_pressure_tolerance"  : 1e-3,
-            "absolute_pressure_tolerance"  : 1e-5,
-            "linear_solver_settings"       : {
-                "solver_type"         : "AMGCL",
-                "max_iteration"       : 200,
-                "tolerance"           : 1e-9,
-                "provide_coordinates" : true,
-                "smoother_type"       : "ilu0",
-                "krylov_type"         : "gmres",
-                "coarsening_type"     : "aggregation",
-                "scaling"             : true,
-                "verbosity"           : 0
-            },
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts"             : [""],
-            "no_skin_parts"          : [""],
-            "time_stepping"          : {
-                "automatic_time_step" : false,
-                "time_step"           : 0.1
-            },
-            "alpha"                  :-0.3,
-            "move_mesh_strategy"     : 0,
-            "periodic"               : "periodic",
-            "move_mesh_flag"         : false,
-            "turbulence_model"       : "None"
-            },
-        "coupling_solver_settings":
-            {
-            "coupling_scheme"              : "DirichletNeumann",
-            "solver_type"                  : "partitioned_fsi_solver",
-            "nl_tol"                       : 1e-5,
-            "nl_max_it"                    : 50,
-            "solve_mesh_at_each_iteration" : true,
-            "coupling_strategy" : {
-                "solver_type"       : "Relaxation",
-                "acceleration_type" : "Aitken",
-                "w_0"               : 0.825
-                },
-            "mesh_solver"                : "mesh_solver_structural_similarity",
-            "structure_interfaces_list"  : [""],
-            "fluid_interfaces_list"      : [""]
-            },
-        "mapper_settings"              : [{
-            "mapper_face"                                : "Unique",
-            "positive_fluid_interface_submodelpart_name" : "Default_interface_submodelpart_name",
-            "structure_interface_submodelpart_name"      : "Default_interface_submodelpart_name"
-            }]
-        }
-        """)
-
         # Time stepping checks (no sub-stepping between subdomains has been implemented yed)
         time_step_structure = project_parameters["structure_solver_settings"]["problem_data"]["time_step"].GetDouble()
         # If automatic time stepping has been selected in the fluid domain, deactivate it and use the structure time step
@@ -162,14 +54,12 @@ class PartitionedFSIBaseSolver:
         self.time_step = time_step_fluid
 
         # Take the each one of the solvers settings from the ProjectParameters
+        # Note that the defaults check will be performed inside each field solver
         self.settings = KratosMultiphysics.Parameters("{}")
         self.settings.AddValue("structure_solver_settings",project_parameters["structure_solver_settings"]["solver_settings"])
         self.settings.AddValue("fluid_solver_settings",project_parameters["fluid_solver_settings"]["solver_settings"])
         self.settings.AddValue("coupling_solver_settings",project_parameters["coupling_solver_settings"]["solver_settings"])
         self.settings.AddValue("mapper_settings",project_parameters["coupling_solver_settings"]["mapper_settings"])
-
-        # Overwrite the default settings with user-provided parameters
-        self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
         # Auxiliar variables
         self.max_nl_it = self.settings["coupling_solver_settings"]["nl_max_it"].GetInt()
@@ -358,8 +248,6 @@ class PartitionedFSIBaseSolver:
     def _SetUpMapper(self):
 
         # Recall, to set the INTERFACE flag in both the fluid and solid interface before the mapper construction
-        # Currently this is done with the FSI application Python process set_interface_process.py
-        # TODO: SINCE WE HAVE SUBMODELPARTS, TO SET THE INTERFACE FLAG SEEMS TO NOT BE STRICKLY NECESSARY
         search_radius_factor = 2.0
         mapper_max_iterations = 200
         mapper_tolerance = 1e-12

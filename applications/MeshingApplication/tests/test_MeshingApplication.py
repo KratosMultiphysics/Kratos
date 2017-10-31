@@ -28,6 +28,7 @@ from SmallTests  import TwoDHessianTest                     as TTwoDHessianTest
 from SmallTests  import ThreeDHessianTest                   as TThreeDHessianTest
 from SmallTests  import TwoDCavityTest                      as TTwoDCavityTest
 from SmallTests  import TwoDDynamicBeamTest                 as TTwoDDynamicBeamTest
+from SmallTests  import TwoDDynamicBeamLineLoadTest         as TTwoDDynamicBeamLineLoadTest
 from SmallTests  import ThreeDDynamicBeamTest               as TThreeDDynamicBeamTest
 from SmallTests  import TwoDDynamicPlasticBeamTest          as TTwoDDynamicPlasticBeamTest
 
@@ -54,9 +55,12 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TTestRedistance('test_refine_all'))
-    smallSuite.addTest(TTestRedistance('test_refine_half'))
-    smallSuite.addTest(TTestRedistance('test_refine_half_and_improve'))
+    if( hasattr(MeshingApplication,  "TetrahedraReconnectUtility") ):
+        smallSuite.addTest(TTestRedistance('test_refine_all'))
+        smallSuite.addTest(TTestRedistance('test_refine_half'))
+        smallSuite.addTest(TTestRedistance('test_refine_half_and_improve'))
+    else:
+        print("TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
         if (missing_external_fluid_dependencies == False):
             smallSuite.addTest(TTwoDHessianTest('test_execution'))
@@ -65,6 +69,7 @@ def AssambleTestSuites():
             smallSuite.addTest(TTestRemeshMMG('test_remesh_sphere'))
         if (missing_external_solid_dependencies == False):
             smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
+            smallSuite.addTest(TTwoDDynamicBeamLineLoadTest('test_execution'))
             smallSuite.addTest(TThreeDDynamicBeamTest('test_execution'))
             smallSuite.addTest(TTwoDDynamicPlasticBeamTest('test_execution'))
     else:
@@ -90,12 +95,15 @@ def AssambleTestSuites():
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TTestRedistance
-        ])
-    )
-
+    if( hasattr(MeshingApplication,  "TetrahedraReconnectUtility") ):
+        allSuite.addTests(
+            KratosUnittest.TestLoader().loadTestsFromTestCases([
+                TTestRedistance
+            ])
+        )
+    else:
+        print("TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
+        
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
         if (missing_external_fluid_dependencies == False):
             allSuite.addTests(
@@ -113,8 +121,9 @@ def AssambleTestSuites():
             allSuite.addTests(
                 KratosUnittest.TestLoader().loadTestsFromTestCases([
                     TTwoDDynamicBeamTest,
+                    TTwoDDynamicBeamLineLoadTest,
                     TThreeDDynamicBeamTest,
-                    #TTwoDDynamicPlasticBeamTest,
+                    ##TTwoDDynamicPlasticBeamTest,
                 ])
             )
     else:

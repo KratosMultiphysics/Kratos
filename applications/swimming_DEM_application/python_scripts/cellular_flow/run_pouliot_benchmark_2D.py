@@ -5,8 +5,8 @@ import DEM_explicit_solver_var as DEM_parameters
 varying_parameters = dict()
 
 irregular_mesh_sizes = set() #{0.1, 0.2, 0.4}
-regular_mesh_n_points = {10, 20}
-derivatives_types = range(6, 7)
+regular_mesh_n_points = {10}
+derivatives_types = {6}
 combinations_that_failed = []
 for size in irregular_mesh_sizes.union(regular_mesh_n_points):
     varying_parameters['size_parameter'] = size
@@ -30,6 +30,7 @@ if len(combinations_that_failed):
     print()
     for combination in combinations_that_failed:
         print(combination)
+        print(error)
 else:
     print('All combinations run without errors')
 print('****************************************')

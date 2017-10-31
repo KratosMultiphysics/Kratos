@@ -34,18 +34,19 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         {
             "contact_settings" :
             {
-                "mortar_type": "",
-                "contact_tolerance": 0.0e0,
-                "fancy_convergence_criterion": true,
-                "print_convergence_criterion": false,
-                "ensure_contact": false,
-                "adaptative_strategy": false,
-                "split_factor": 10.0,
-                "max_number_splits": 3,
+                "mortar_type"                            : "",
+                "contact_tolerance"                      : 0.0e0,
+                "condn_convergence_criterion"            : false,
+                "fancy_convergence_criterion"            : true,
+                "print_convergence_criterion"            : false,
+                "ensure_contact"                         : false,
+                "adaptative_strategy"                    : false,
+                "split_factor"                           : 10.0,
+                "max_number_splits"                      : 3,
                 "contact_displacement_relative_tolerance": 1.0e-4,
                 "contact_displacement_absolute_tolerance": 1.0e-9,
-                "contact_residual_relative_tolerance": 1.0e-4,
-                "contact_residual_absolute_tolerance": 1.0e-9
+                "contact_residual_relative_tolerance"    : 1.0e-4,
+                "contact_residual_absolute_tolerance"    : 1.0e-9
             }
         }
         """)
@@ -59,8 +60,9 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         super().__init__(self.main_model_part, self.settings)
         
         # Setting reactions true by default
-        self.settings["compute_reactions"].SetBool(True)
-        
+        self.settings["clear_storage"].SetBool(True)
+        self.settings["reform_dofs_at_each_step"].SetBool(True)
+
         # Setting echo level
         self.echo_level =  self.settings["echo_level"].GetInt()
     
@@ -125,6 +127,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         conv_params.AddValue("contact_residual_absolute_tolerance",self.contact_settings["contact_residual_absolute_tolerance"])
         conv_params.AddValue("mortar_type",self.contact_settings["mortar_type"])
         conv_params.AddValue("contact_tolerance",self.contact_settings["contact_tolerance"])
+        conv_params.AddValue("condn_convergence_criterion",self.contact_settings["condn_convergence_criterion"])
         conv_params.AddValue("fancy_convergence_criterion",self.contact_settings["fancy_convergence_criterion"])
         conv_params.AddValue("print_convergence_criterion",self.contact_settings["print_convergence_criterion"])
         conv_params.AddValue("ensure_contact",self.contact_settings["ensure_contact"])
@@ -136,11 +139,11 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         if(self.settings["line_search"].GetBool()):
             mechanical_solver = self._create_line_search_strategy()
         else:
-            if self.settings["analysis_type"].GetString() == "Linear":
+            if self.settings["analysis_type"].GetString() == "linear":
                 mechanical_solver = self._create_linear_strategy()
-            elif self.settings["analysis_type"].GetString() == "Arc-Length":
+            elif self.settings["analysis_type"].GetString() == "arc_length":
                 mechanical_solver = self._create_arc_length_strategy()
-            elif self.settings["analysis_type"].GetString() == "Formfinding":
+            elif self.settings["analysis_type"].GetString() == "formfinding":
                 mechanical_solver = self._create_formfinding_strategy()
             else:
                 if  self.contact_settings["mortar_type"].GetString() != "":

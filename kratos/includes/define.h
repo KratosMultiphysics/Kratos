@@ -330,10 +330,6 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KratosComponents<Condition >::Add(name, reference); \
     Serializer::Register(name, reference);
 
-
-
-
-
 #ifdef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #endif
@@ -349,7 +345,18 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Y) \
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Z)
 
-
+#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
+#undef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
+    scope().attr(#flag) = boost::ref(flag)      \
+ 
+#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
+#undef KRATOS_REGISTER_IN_PYTHON_FLAG
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_FLAG(flag) \
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
 
 
 namespace Kratos

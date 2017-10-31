@@ -15,6 +15,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         
         self.thermal_model_part_name  = Parameters["thermal_model_part_name"].GetString()
         self.thermal_domain_sub_model_part_list = Parameters["thermal_domain_sub_model_part_list"]
+        self.thermal_loads_sub_model_part_list = Parameters["thermal_loads_sub_model_part_list"]
         
         self.mechanical_model_part_name  = Parameters["mechanical_model_part_name"].GetString()
         self.mechanical_domain_sub_model_part_list = Parameters["mechanical_domain_sub_model_part_list"]
@@ -43,6 +44,15 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             for elem in part.Elements:
                 list_of_ids.add(elem.Id)
         thermal_model_part.AddElements(list(list_of_ids))
+        # Thermal Conditions
+        thermal_conditions = []
+        for i in range(self.thermal_loads_sub_model_part_list.size()):
+            thermal_conditions.append(self.main_model_part.GetSubModelPart(self.thermal_loads_sub_model_part_list[i].GetString()))
+        list_of_ids = set()
+        for part in thermal_conditions:
+            for cond in part.Conditions:
+                list_of_ids.add(cond.Id)
+        thermal_model_part.AddConditions(list(list_of_ids))
         print(thermal_model_part)
         
         ## Construct the mechanical model part:
@@ -62,9 +72,17 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             for elem in part.Elements:
                 list_of_ids.add(elem.Id)
         mechanical_model_part.AddElements(list(list_of_ids))
-        for cond in self.main_model_part.Conditions:
-            mechanical_model_part.AddCondition(cond,0)
+        # Mechanical Conditions
+        mechanical_conditions = []
+        for i in range(self.loads_sub_model_part_list.size()):
+            mechanical_conditions.append(self.main_model_part.GetSubModelPart(self.loads_sub_model_part_list[i].GetString()))
+        list_of_ids = set()
+        for part in mechanical_conditions:
+            for cond in part.Conditions:
+                list_of_ids.add(cond.Id)
+        mechanical_model_part.AddConditions(list(list_of_ids))
         # Sub sub model parts
+        # Body - Joints
         for i in range(self.body_domain_sub_model_part_list.size()):
             body_sub_model_part = self.main_model_part.GetSubModelPart(self.body_domain_sub_model_part_list[i].GetString())
             mechanical_model_part.CreateSubModelPart(self.body_domain_sub_model_part_list[i].GetString())
@@ -73,6 +91,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             for elem in body_sub_model_part.Elements:
                 list_of_ids.add(elem.Id)
             body_sub_sub_model_part.AddElements(list(list_of_ids))
+        # Arc-length
         for i in range(self.loads_sub_model_part_list.size()):
             load_sub_model_part = self.main_model_part.GetSubModelPart(self.loads_sub_model_part_list[i].GetString())
             mechanical_model_part.CreateSubModelPart(self.loads_sub_model_part_list[i].GetString())

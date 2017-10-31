@@ -10,7 +10,7 @@
 namespace Kratos
 {
 template <std::size_t TDim>
-void DerivativeRecoveryMeshingTools<TDim>::FillUpEdgesModelPartFromTetrahedraModelPart(ModelPart& r_edges_model_part, ModelPart& r_tetra_model_part, std::string element_type)
+void DerivativeRecoveryMeshingTools<TDim>::FillUpEdgesModelPartFromSimplicesModelPart(ModelPart& r_edges_model_part, ModelPart& r_tetra_model_part, std::string element_type)
 {
     std::set< std::set<int> > set_of_all_edges; // actually, this is a set of pairs of Nodes Ids
 
