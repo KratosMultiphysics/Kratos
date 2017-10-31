@@ -162,6 +162,10 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        # This Variable is used for computing heat source according Azenha Formulation
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.ALPHA_HEAT_SOURCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.TIME_ACTIVATION)
+
 
         print("Variables correctly added")
 
