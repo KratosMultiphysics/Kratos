@@ -121,10 +121,11 @@ public:
     * @return rPositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void GetPositiveSideShapeFunctionsAndGradientsValues(Matrix &rPositiveSideShapeFunctionsValues,
-                                                                 std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
-                                                                 Vector &rPositiveSideWeightsValues,
-                                                                 const IntegrationMethodType IntegrationMethod);
+    virtual void GetPositiveSideShapeFunctionsAndGradientsValues(
+        Matrix &rPositiveSideShapeFunctionsValues,
+        std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
+        Vector &rPositiveSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Returns the shape function values in the negative split element side for a given quadrature.
@@ -133,10 +134,11 @@ public:
     * @return rNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void GetNegativeSideShapeFunctionsAndGradientsValues(Matrix &rNegativeSideShapeFunctionsValues,
-                                                                 std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
-                                                                 Vector &rNegativeSideWeightsValues,
-                                                                 const IntegrationMethodType IntegrationMethod);
+    virtual void GetNegativeSideShapeFunctionsAndGradientsValues(
+        Matrix &rNegativeSideShapeFunctionsValues,
+        std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
+        Vector &rNegativeSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Returns the shape function values in the positive split element interface side for a given quadrature.
@@ -145,10 +147,11 @@ public:
     * @return rInterfacePositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void GetInterfacePositiveSideShapeFunctionsAndGradientsValues(Matrix &rInterfacePositiveSideShapeFunctionsValues,
-                                                                          std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
-                                                                          Vector &rInterfacePositiveSideWeightsValues,
-                                                                          const IntegrationMethodType IntegrationMethod);
+    virtual void GetInterfacePositiveSideShapeFunctionsAndGradientsValues(
+        Matrix &rInterfacePositiveSideShapeFunctionsValues,
+        std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
+        Vector &rInterfacePositiveSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Returns the shape function values in the negative split element side for a given quadrature.
@@ -157,10 +160,29 @@ public:
     * @return rInterfaceNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void GetInterfaceNegativeSideShapeFunctionsAndGradientsValues(Matrix &rInterfaceNegativeSideShapeFunctionsValues,
-                                                                          std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
-                                                                          Vector &rInterfaceNegativeSideWeightsValues,
-                                                                          const IntegrationMethodType IntegrationMethod);
+    virtual void GetInterfaceNegativeSideShapeFunctionsAndGradientsValues(
+        Matrix &rInterfaceNegativeSideShapeFunctionsValues,
+        std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
+        Vector &rInterfaceNegativeSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod);
+        
+    /**
+    * Returns the positive side outwards unit normal vector values for the Gauss pts. of given quadrature.
+    * @return rPositiveSideInterfaceUnitNormal: Outwards unit normal vector list.
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    virtual void GetPositiveSideInterfaceUnitNormals(
+        std::vector<Vector> &rPositiveSideInterfaceUnitNormal,
+        const IntegrationMethodType IntegrationMethod);
+
+    /**
+    * Returns the positive side outwards unit normal vector values for the Gauss pts. of given quadrature.
+    * @return rNegativeSideInterfaceUnitNormal: Outwards unit normal vector list.
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    virtual void GetNegativeSideInterfaceUnitNormals(
+        std::vector<Vector> &rNegativeSideInterfaceUnitNormal,
+        const IntegrationMethodType IntegrationMethod);
 
     ///@}
 
@@ -193,11 +215,12 @@ protected:
     * @param rSplitEdges: Integers array containing the original nodes ids and the intersected edges nodes ones.
     * @param splitEdgesNumber: Number of splitted edges.
     */
-    void SetIntersectionPointsCondensationMatrix(Matrix& rIntPointCondMatrix,
-                                                 const int rEdgeNodeI[],
-                                                 const int rEdgeNodeJ[],
-                                                 const int rSplitEdges[],
-                                                 const unsigned int splitEdgesNumber);
+    void SetIntersectionPointsCondensationMatrix(
+        Matrix& rIntPointCondMatrix,
+        const int rEdgeNodeI[],
+        const int rEdgeNodeJ[],
+        const int rSplitEdges[],
+        const unsigned int splitEdgesNumber);
 
     /**
     * Returns the shape function values in either the positive or negative element subdivision for a given quadrature.
@@ -208,27 +231,40 @@ protected:
     * @param rSubdivisionGeom: std::vector of subdivisions point based geometries where the values are to be computed.
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void ComputeValuesOnOneSide(Matrix &rShapeFunctionsValues,
-                                        std::vector<Matrix> &rShapeFunctionsGradientsValues,
-                                        Vector &rWeightsValues,
-                                        const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
-                                        const Matrix &rPmatrix,
-                                        const IntegrationMethodType IntegrationMethod);
+    virtual void ComputeValuesOnOneSide(
+        Matrix &rShapeFunctionsValues,
+        std::vector<Matrix> &rShapeFunctionsGradientsValues,
+        Vector &rWeightsValues,
+        const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
+        const Matrix &rPmatrix,
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Returns the shape function values in either the positive or negative element interfaces for a given quadrature.
     * @return rInterfaceShapeFunctionValues: Matrix containing the computed shape function values.
     * @return rInterfaceShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values.
     * @return rInterfaceWeightsValues: Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
-    * @param rSubdivisionGeom: std::vector of subdivisions point based geometries where the values are to be computed.
+    * @param rInterfacesVector: std::vector of intersection point based geometries where the values are to be computed.
+    * @param rPmatrix: reference to the interpolation matrix
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void ComputeInterfaceValuesOnOneSide(Matrix &rInterfaceShapeFunctionsValues,
-                                                 std::vector<Matrix> &rInterfaceShapeFunctionsGradientsValues,
-                                                 Vector &rInterfaceWeightsValues,
-                                                 const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
-                                                 const Matrix &rPmatrix,
-                                                 const IntegrationMethodType IntegrationMethod);
+    virtual void ComputeInterfaceValuesOnOneSide(
+        Matrix &rInterfaceShapeFunctionsValues,
+        std::vector<Matrix> &rInterfaceShapeFunctionsGradientsValues,
+        Vector &rInterfaceWeightsValues,
+        const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
+        const IntegrationMethodType IntegrationMethod);
+
+    /**
+    * Returns the outwards unit normal vector values in either the positive or negative element interfaces for a given quadrature.
+    * @return rInterfaceUnitNormalValues: std::vector of subdivisions point based geometries where the values are to be computed.
+    * @param rInterfacesVector: std::vector of intersection point based geometries where the values are to be computed.
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    virtual void ComputeInterfaceNormalOnOneSide(
+        std::vector<Vector> &rInterfaceUnitNormalValues,
+        const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
+        const IntegrationMethodType IntegrationMethod);
 
     ///@}
     ///@name Protected  Access

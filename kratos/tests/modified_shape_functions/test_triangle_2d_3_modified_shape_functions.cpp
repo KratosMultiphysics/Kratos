@@ -82,7 +82,16 @@ namespace Kratos
 			triangle_shape_functions.GetInterfacePositiveSideShapeFunctionsAndGradientsValues(negative_interface_side_sh_func,
 																					 		  negative_interface_side_sh_func_gradients,
 																					 		  negative_interface_side_weights,
-																					 		  GeometryData::GI_GAUSS_1);
+																							  GeometryData::GI_GAUSS_1);
+																							   
+			// Call the interface outwards normal unit vector calculator
+			std::vector<Vector> positive_side_unit_normals, negative_side_unit_normals;
+			
+			triangle_shape_functions.GetPositiveSideInterfaceUnitNormals(positive_side_unit_normals,
+																		 GeometryData::GI_GAUSS_1);
+			
+			triangle_shape_functions.GetNegativeSideInterfaceUnitNormals(negative_side_unit_normals,
+																		 GeometryData::GI_GAUSS_1);
 
 			// Check shape functions values
 			KRATOS_CHECK_NEAR(positive_side_sh_func(0,0), 1.0/6.0, 1e-5);
@@ -145,6 +154,14 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
 			KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
 			KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
+
+			// Check Gauss pts. outwards unit normal values
+			KRATOS_CHECK_NEAR(positive_side_unit_normals[0](0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_unit_normals[0](1), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_unit_normals[0](2),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_unit_normals[0](0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_unit_normals[0](1),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_unit_normals[0](2),  0.0, 1e-5);
 		}
 
 
@@ -207,7 +224,16 @@ namespace Kratos
 			triangle_shape_functions.GetInterfacePositiveSideShapeFunctionsAndGradientsValues(negative_interface_side_sh_func,
 																					 		  negative_interface_side_sh_func_gradients,
 																					 		  negative_interface_side_weights,
-																					 		  GeometryData::GI_GAUSS_1);
+																							  GeometryData::GI_GAUSS_1);
+																							   
+			// Call the interface outwards normal unit vector calculator
+			std::vector<Vector> positive_side_unit_normals, negative_side_unit_normals;
+			
+			triangle_shape_functions.GetPositiveSideInterfaceUnitNormals(positive_side_unit_normals,
+																		 GeometryData::GI_GAUSS_1);
+			
+			triangle_shape_functions.GetNegativeSideInterfaceUnitNormals(negative_side_unit_normals,
+																		 GeometryData::GI_GAUSS_1);
 
 			// Check shape functions values
 			KRATOS_CHECK_NEAR(positive_side_sh_func(0,0), 1.0/6.0, 1e-5);
@@ -270,6 +296,14 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
 			KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
 			KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
+
+			// Check Gauss pts. outwards unit normal values
+			KRATOS_CHECK_NEAR(positive_side_unit_normals[0](0), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_unit_normals[0](1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_unit_normals[0](2),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_unit_normals[0](0),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_unit_normals[0](1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_unit_normals[0](2),  0.0, 1e-5);
 		}
 
 	}   // namespace Testing.
