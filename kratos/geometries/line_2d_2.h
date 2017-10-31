@@ -795,7 +795,7 @@ public:
      * It computes the unit normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) override
+    array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const override
     {
         // We define the normal
         array_1d<double,3> normal;

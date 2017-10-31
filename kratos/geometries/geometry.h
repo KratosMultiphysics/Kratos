@@ -690,7 +690,7 @@ public:
      * It computes the unit normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    virtual array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates)
+    virtual array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const
     {
         const unsigned int local_space_dimension = this->LocalSpaceDimension();
         const unsigned int dimension = this->WorkingSpaceDimension();
@@ -730,7 +730,7 @@ public:
         return normal;
     }
     
-    virtual array_1d<double, 3> UnitNormal(const CoordinatesArrayType& rPointLocalCoordinates)
+    virtual array_1d<double, 3> UnitNormal(const CoordinatesArrayType& rPointLocalCoordinates) const
     {
         array_1d<double, 3> normal = AreaNormal(rPointLocalCoordinates);
 	const double norm_normal = norm_2(normal);
