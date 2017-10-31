@@ -243,7 +243,7 @@ public:
         
         const int nelem = static_cast<int>(mp_distance_model_part->Elements().size());
         #pragma omp parallel for
-        for(int iii=0; iii<nnodes; iii++)
+        for(int iii=0; iii<nelem; iii++)
         {
             auto it = mp_distance_model_part->ElementsBegin() + iii;
             array_1d<double,TDim+1> distances;
@@ -288,8 +288,6 @@ public:
         
         mp_solving_strategy->Solve();
 
-        //compute the average gradient and scale the distance so that the gradient is approximately 1
-        ScaleDistance();
 
         //step2 - minimize the target residual
         mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
@@ -444,66 +442,6 @@ protected:
         mdistance_part_is_initialized = true;
 
         KRATOS_CATCH("")
-    }
-
-    void ScaleDistance()
-    {
-//         double min_grad = 0.0;
-//         double max_grad = 0.0;
-        double avg_grad = 0.0;
-        double tot_vol = 0.0;
-        Vector grad_norms(mp_distance_model_part->Elements().size());
-        Vector vols(mp_distance_model_part->Elements().size());
-
-        for (ModelPart::ElementsContainerType::iterator iii = mp_distance_model_part->ElementsBegin();
-                iii != mp_distance_model_part->ElementsEnd(); iii++)
-        {
-            Geometry< Node<3> >& geom = iii->GetGeometry();
-
-            boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim > DN_DX;
-            array_1d<double, TDim+1 > N;
-            double vol;
-            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, vol);
-
-            //get distances at the nodes
-            array_1d<double, TDim+1 > distances;
-            for(unsigned int i=0; i<TDim+1; i++)
-            {
-                distances[i] = geom[i].FastGetSolutionStepValue(DISTANCE);
-            }
-
-            const array_1d<double,TDim> grad = prod(trans(DN_DX),distances);
-            const double grad_norm = norm_2(grad);
-
-            tot_vol += vol;
-            avg_grad += vol*grad_norm;
-
-//             min_grad = std::min(min_grad, grad_norm);
-//             max_grad = std::max(max_grad, grad_norm);
-        }
-
-        // For MPI: assemble results across partitions
-        mp_distance_model_part->GetCommunicator().SumAll(avg_grad);
-        mp_distance_model_part->GetCommunicator().SumAll(tot_vol);
-
-        avg_grad /= tot_vol;
-
-
-        if(avg_grad < 1e-20)
-            KRATOS_THROW_ERROR(std::logic_error,"the average gradient is found to be zero after step 1. Something wrong!", "");
-
-
-        const double ratio = 1.0/avg_grad;
-
-//         KRATOS_WATCH(avg_grad);
-//         KRATOS_WATCH(max_grad);
-//         KRATOS_WATCH(min_grad);
-//         KRATOS_WATCH(ratio);
-
-        for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
-        {
-            iii->FastGetSolutionStepValue(DISTANCE) *= ratio;
-        }
     }
 
 
