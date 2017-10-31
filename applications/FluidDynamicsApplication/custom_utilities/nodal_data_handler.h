@@ -160,8 +160,8 @@ void SpecializedInitialization(array_1d<double, TNumNodes>& rValues,
 {
     rValues = array_1d<double, TNumNodes>(TNumNodes, 0.0);
     const Geometry<Node<3>>& r_geometry = rElement.GetGeometry();
-    for (size_t i = 0; i < TNumNodes; i++)
-    {
+    
+    for (size_t i = 0; i < TNumNodes; i++) {
         rValues[i] = r_geometry[i].FastGetSolutionStepValue(rVariable);
     }
 }
@@ -173,12 +173,12 @@ void SpecializedInitialization(boost::numeric::ublas::bounded_matrix<double, TNu
                                const ProcessInfo& rProcessInfo)
 {
     const Geometry<Node<3>>& r_geometry = rElement.GetGeometry();
-    for (size_t i = 0; i < TNumNodes; i++)
-    {
-        const array_1d<double,3>& r_nodal_values = r_geometry[i].FastGetSolutionStepValue(rVariable);
-        for (size_t j = 0; j < rValues.size2(); j++)
-        {
-            rValues(i,j) = r_nodal_values[j];
+
+    for (size_t i = 0; i < TNumNodes; i++) {
+        const array_1d<double, 3>& r_nodal_values =
+            r_geometry[i].FastGetSolutionStepValue(rVariable);
+        for (size_t j = 0; j < rValues.size2(); j++) {
+            rValues(i, j) = r_nodal_values[j];
         }
     }
 }

@@ -114,39 +114,38 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
     rRightHandSideVector = ZeroVector(LocalSize);
 
     // Get Shape function data
-    Vector GaussWeights;
-    Matrix ShapeFunctions;
-    ShapeFunctionDerivativesArrayType ShapeDerivatives;
-    this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-    const unsigned int NumGauss = GaussWeights.size();
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(gauss_weights,shape_functions,shape_derivatives);
+    const unsigned int number_of_gauss_points = gauss_weights.size();
 
     TElementData data;
     data.Initialize(*this,rCurrentProcessInfo);
 
     // Iterate over integration points to evaluate local contribution
-    for (unsigned int g = 0; g < NumGauss; g++)
+    for (unsigned int g = 0; g < number_of_gauss_points; g++)
     {
         IntegrationPointGeometryData integration_point(
-            GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+            gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
 
         this->AddSystemTerms(data,integration_point,rCurrentProcessInfo,rDampMatrix,rRightHandSideVector);
     }
 
     // Rewrite local contribution into residual form (A*dx = b - A*x)
-    VectorType U = ZeroVector(LocalSize);
+    VectorType values = ZeroVector(LocalSize);
     int LocalIndex = 0;
 
     const auto& r_velocities = data.GetVELOCITY().Data();
     const auto& r_pressures = data.GetPRESSURE().Data();
 
-    for (unsigned int i = 0; i < NumNodes; ++i)
-    {
+    for (unsigned int i = 0; i < NumNodes; ++i) {
         for (unsigned int d = 0; d < Dim; ++d) // Velocity Dofs
-            U[LocalIndex++] = r_velocities(i,d);
-        U[LocalIndex++] = r_pressures[i]; // Pressure Dof
+            values[LocalIndex++] = r_velocities(i,d);
+        values[LocalIndex++] = r_pressures[i]; // Pressure Dof
     }
 
-    noalias(rRightHandSideVector) -= prod(rDampMatrix, U);
+    noalias(rRightHandSideVector) -= prod(rDampMatrix, values);
 }
 
 template <class TElementData>
@@ -160,20 +159,20 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
     rMassMatrix = ZeroMatrix(LocalSize,LocalSize);
 
     // Get Shape function data
-    Vector GaussWeights;
-    Matrix ShapeFunctions;
-    ShapeFunctionDerivativesArrayType ShapeDerivatives;
-    this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-    const unsigned int NumGauss = GaussWeights.size();
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(gauss_weights,shape_functions,shape_derivatives);
+    const unsigned int number_of_gauss_points = gauss_weights.size();
 
     TElementData data;
     data.Initialize(*this,rCurrentProcessInfo);
 
     // Iterate over integration points to evaluate local contribution
-    for (unsigned int g = 0; g < NumGauss; g++)
+    for (unsigned int g = 0; g < number_of_gauss_points; g++)
     {
         IntegrationPointGeometryData integration_point(
-            GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+            gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
 
         this->AddMassTerms(data,integration_point, rCurrentProcessInfo, rMassMatrix);
     }
@@ -371,12 +370,11 @@ double FluidElement<TElementData>::Interpolate(typename TElementData::NodalScala
     auto& r_values = rHandler.Data();
     double result = 0.0;
 
-	for (size_t i = 0; i < NumNodes; i++)
-	{
-		result += rN[i] * r_values[i];
-	}
+    for (size_t i = 0; i < NumNodes; i++) {
+        result += rN[i] * r_values[i];
+    }
 
-	return result;
+    return result;
 }
 
 template <class TElementData>
@@ -389,11 +387,11 @@ array_1d<double, 3> FluidElement<TElementData>::Interpolate(
 
     for (size_t i = 0; i < NumNodes; i++) {
         for (size_t j = 0; j < Dim; j++) {
-            result[j] += rN[i] * r_values(i,j);
+            result[j] += rN[i] * r_values(i, j);
         }
     }
 
-	return result;
+    return result;
 }
 
 template< class TElementData >
