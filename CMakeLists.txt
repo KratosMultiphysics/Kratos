@@ -158,6 +158,21 @@ if(DEFINED KRATOS_INSTALL_PREFIX)
 	SET(INSTALL_PYTHON_FILES ON)
 endif(DEFINED KRATOS_INSTALL_PREFIX)
 
+# Support for unitary builds
+function(enable_unity_build UB_SUFFIX SOURCE_VARIABLE_NAME)
+  SET(files ${${SOURCE_VARIABLE_NAME}})
+  # Generate a unique filename for the unity build translation unit
+  SET(unit_build_file ${CMAKE_CURRENT_BINARY_DIR}/ub_${UB_SUFFIX}.cpp)
+  # Exclude all translation units from compilation
+  set_source_files_properties(${files} PROPERTIES HEADER_FILE_ONLY true)
+  # Add include statement for each translation unit
+  foreach(source_file ${files} )
+    FILE( APPEND ${unit_build_file} "#include <${CMAKE_CURRENT_SOURCE_DIR}/${source_file}>\n")
+  endforeach(source_file)
+  # Complement list of translation units with the name of ub
+  SET(${SOURCE_VARIABLE_NAME} ${${SOURCE_VARIABLE_NAME}} ${unit_build_file} PARENT_SCOPE)  
+endfunction(enable_unity_build)
+
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
