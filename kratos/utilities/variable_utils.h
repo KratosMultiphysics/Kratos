@@ -203,12 +203,12 @@ public:
                        ModelPart::NodesContainerType& rNodes)
     {
         KRATOS_TRY
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
-        {
-            ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
-            noalias(i->FastGetSolutionStepValue(DestinationVariable)) = i->FastGetSolutionStepValue(OriginVariable);
-        }
+        
+         Kratos::Parallel::parallel_for(rNodes, [&](ModelPart::NodesContainerType::iterator it){
+            noalias(it->FastGetSolutionStepValue(DestinationVariable)) = it->FastGetSolutionStepValue(OriginVariable);
+            }
+        );
+
         KRATOS_CATCH("")
     }
 
@@ -223,12 +223,12 @@ public:
                        ModelPart::NodesContainerType& rNodes)
     {
         KRATOS_TRY
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
-        {
-            ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
-            i->FastGetSolutionStepValue(DestinationVariable) = i->FastGetSolutionStepValue(OriginVariable);
-        }
+        
+        Kratos::Parallel::parallel_for(rNodes, [&](ModelPart::NodesContainerType::iterator it){
+            it->FastGetSolutionStepValue(DestinationVariable) = it->FastGetSolutionStepValue(OriginVariable);
+            }
+        );
+         
         KRATOS_CATCH("")
     }
 
@@ -240,12 +240,12 @@ public:
     void SetToZero_VectorVar(const Variable< array_1d<double, 3 > >& Variable, ModelPart::NodesContainerType& rNodes)
     {
         KRATOS_TRY
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
-        {
-            ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
-            noalias(i->FastGetSolutionStepValue(Variable)) = ZeroVector(3);
-        }
+        
+        Kratos::Parallel::parallel_for(rNodes, [&](ModelPart::NodesContainerType::iterator it){
+            it->FastGetSolutionStepValue(Variable).clear();
+            }
+        );
+
         KRATOS_CATCH("")
     }
 
@@ -544,7 +544,7 @@ public:
         
         //here a reduction is to be made. This is achieved by using the block parallel for and defining the Loops
         //note also that in order to be "didactic" all the values are being captured explicitly by reference, except for rBuffStep which is captured by value
-        Kratos::Parallel::block_parallel_for(rModelPart.ConditionsBegin(), rModelPart.Conditions().size(), 
+        Kratos::Parallel::block_parallel_for(rModelPart.Conditions(), 
                                              [&sum_value, &rVar, &rModelPart](ModelPart::ConditionsContainerType::iterator it_begin, 
                                                                               ModelPart::ConditionsContainerType::iterator it_end){
                 array_1d<double, 3> tmp = ZeroVector(3);
@@ -579,7 +579,7 @@ public:
         
         //here a reduction is to be made. This is achieved by using the block parallel for and defining the Loops
         //note also that in order to be "didactic" all the values are being captured explicitly by reference, except for rBuffStep which is captured by value
-        Kratos::Parallel::block_parallel_for(rModelPart.ConditionsBegin(), rModelPart.Conditions().size(), 
+        Kratos::Parallel::block_parallel_for(rModelPart.Conditions(), 
                                              [&sum_value, &rVar, &rModelPart](ModelPart::ConditionsContainerType::iterator it_begin, 
                                                                                          ModelPart::ConditionsContainerType::iterator it_end){
                 double tmp = 0.0;
@@ -613,7 +613,7 @@ public:
         
         //here a reduction is to be made. This is achieved by using the block parallel for and defining the Loops
         //note also that in order to be "didactic" all the values are being captured explicitly by reference, except for rBuffStep which is captured by value
-        Kratos::Parallel::block_parallel_for(rModelPart.ElementsBegin(), rModelPart.Elements().size(), 
+        Kratos::Parallel::block_parallel_for(rModelPart.Elements(), 
                                              [&sum_value, &rVar, &rModelPart](ModelPart::ElementsContainerType::iterator it_begin, 
                                                                                          ModelPart::ElementsContainerType::iterator it_end){
                 array_1d<double, 3>  tmp = ZeroVector(3);
@@ -670,9 +670,7 @@ public:
 
         double  sum_value =0.0;
         
-        //here a reduction is to be made. This is achieved by using the block parallel for and defining the Loops
-        //note also that in order to be "didactic" all the values are being captured explicitly by reference, except for rBuffStep which is captured by value
-        Kratos::Parallel::block_parallel_for(rModelPart.ElementsBegin(), rModelPart.Elements().size(), 
+        Kratos::Parallel::block_parallel_for(rModelPart.Elements(), 
                                              [&sum_value, &rVar, &rModelPart](ModelPart::ElementsContainerType::iterator it_begin, 
                                                                               ModelPart::ElementsContainerType::iterator it_end){
                 double  tmp = 0.0;

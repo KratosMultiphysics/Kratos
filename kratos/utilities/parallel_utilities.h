@@ -28,14 +28,50 @@ namespace Kratos
 {
     namespace Parallel
     {
-    ///@addtogroup Kratos
-    ///@{
-
+        ///@addtogroup Kratos
+        ///@{
+        typedef omp_lock_t LockType;
+        
+        inline LockType ConstructLock()
+        {
+            LockType my_lock;
+            omp_init_lock(&my_lock);
+            return my_lock;
+        }
+        
+        inline void SetLock(LockType& Lock)
+        {
+            omp_set_lock(&Lock);
+        }
+        
+        inline void UnSetLock(LockType& Lock)
+        {
+            omp_unset_lock(&Lock);
+        }
+        
+        inline int GetNumThreads()
+        {
+    #ifdef _OPENMP
+            return omp_get_max_threads();
+    #else
+            return 1;
+    #endif
+        }
+        
+        inline int GetThreadHashId()
+        {
+    #ifdef _OPENMP
+            return omp_get_thread_num();
+    #else
+            return 0;
+    #endif
+        }
+    
     ///@name Kratos Globals
     ///@{
         //this function implements a parallel for, in which f is a lambda function which captures its parameters once per very time it is called
         template<class InputIt, class UnaryFunction>
-        inline void parallel_for(InputIt first, const int n, UnaryFunction f)
+        inline void parallel_for(InputIt first, const int n, UnaryFunction&& f)
         {
             
             #pragma omp parallel for firstprivate(first)
@@ -49,7 +85,7 @@ namespace Kratos
         //note that the function b must implement the loop from start to end
         //work allocation is static
         template<class TContainterType, class UnaryFunction>
-        inline void parallel_for(TContainterType& data, UnaryFunction f)
+        inline void parallel_for(TContainterType& data, UnaryFunction&& f)
         {
             parallel_for(data.begin(), data.size(), f);
         }
@@ -57,7 +93,7 @@ namespace Kratos
         //the function f is executed in parallel. The parameter passed to f is the number of the thread executing it. 
         //one lambda capture is passed per every thread
         template< class UnaryFunction>
-        inline void execute(UnaryFunction f)
+        inline void execute(UnaryFunction&& f)
         {
             const int NumThreads = OpenMPUtils::GetNumThreads();
 
@@ -72,7 +108,7 @@ namespace Kratos
         //note that the function b must implement the loop from start to end
         //work allocation is static
         template<class InputIt, class BinaryFunction>
-        inline void block_parallel_for(InputIt first, const int n, BinaryFunction b)
+        inline void block_parallel_for(InputIt first, const int n, BinaryFunction&& b)
         {
             const int NumThreads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::PartitionVector Partitions;
@@ -89,7 +125,7 @@ namespace Kratos
         //note that the function b must implement the loop from start to end
         //work allocation is dynamic
         template<class InputIt, class BinaryFunction>
-        inline void block_parallel_for(InputIt first, const int n, const int NChunks, BinaryFunction f)
+        inline void block_parallel_for(InputIt first, const int n, const int NChunks, BinaryFunction&& b)
         {
             OpenMPUtils::PartitionVector Partitions;
             OpenMPUtils::DivideInPartitions(n,NChunks,Partitions);
@@ -97,18 +133,18 @@ namespace Kratos
             #pragma omp parallel for firstprivate(first, NChunks) schedule(dynamic)
             for (int i = 0; i < NChunks; ++i) 
             {
-                f(first+Partitions[i], first+Partitions[i+1]);
+                b(first+Partitions[i], first+Partitions[i+1]);
             }
         }
         
         template<class TContainterType, class BinaryFunction>
-        inline void block_parallel_for(TContainterType& data, BinaryFunction b)
+        inline void block_parallel_for(TContainterType& data, BinaryFunction&& b)
         {
             Kratos::Parallel::block_parallel_for(data.begin(), data.size(), b);
         }
 
         template<class TContainterType, class BinaryFunction>
-        inline void block_parallel_for(TContainterType& data, const int NChunks,  BinaryFunction b)
+        inline void block_parallel_for(TContainterType& data, const int NChunks,  BinaryFunction&& b)
         {
             Kratos::Parallel::block_parallel_for(data.begin(), data.size(), NChunks, b);
         }
