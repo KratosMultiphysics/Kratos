@@ -162,12 +162,14 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 function(enable_unity_build UB_SUFFIX SOURCE_VARIABLE_NAME)
   SET(files ${${SOURCE_VARIABLE_NAME}})
   # Generate a unique filename for the unity build translation unit
-  SET(unit_build_file ${CMAKE_CURRENT_BINARY_DIR}/ub_${UB_SUFFIX}.cpp)
+  message("Writing: " ${CMAKE_CURRENT_BINARY_DIR}/${UB_SUFFIX}.cpp)
+  SET(unit_build_file ${CMAKE_CURRENT_BINARY_DIR}/${UB_SUFFIX}.cpp)
   # Exclude all translation units from compilation
   set_source_files_properties(${files} PROPERTIES HEADER_FILE_ONLY true)
   # Add include statement for each translation unit
+  file(WRITE ${unit_build_file} "")
   foreach(source_file ${files} )
-    FILE( APPEND ${unit_build_file} "#include <${CMAKE_CURRENT_SOURCE_DIR}/${source_file}>\n")
+    FILE( APPEND ${unit_build_file} "#include <${source_file}>\n")
   endforeach(source_file)
   # Complement list of translation units with the name of ub
   SET(${SOURCE_VARIABLE_NAME} ${${SOURCE_VARIABLE_NAME}} ${unit_build_file} PARENT_SCOPE)  
