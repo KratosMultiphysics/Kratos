@@ -317,8 +317,8 @@ public:
 
    static inline bool DistanceHierarchy(SphericParticle* rObj_1,
                                         DEMWall* rObj_2,
-                                        double LocalCoordSystem[3][3],
-                                        double DistPToB,
+                                        const double LocalCoordSystem[3][3],
+                                        const double DistPToB,
                                         std::vector<double> Weight,
                                         int ContactType,
                                         std::vector< double > & Distance_Array,
@@ -348,15 +348,15 @@ public:
             double New_Dist = DistPToB;
             double Old_dist = Distance_Array[i_old_neigh];
 
-           double New_projected_on_old = GeometryFunctions::DotProduct(LocalCoordSystem[2], Old_Normal_Vector);
+           double New_projected_on_old = DEM_INNER_PRODUCT_3(LocalCoordSystem[2], Old_Normal_Vector);
            double New_projected_distance = New_projected_on_old * New_Dist;
            double Old_projected_distance = New_projected_on_old * Old_dist;
            
-           if ( ( (New_projected_distance - Old_dist) / fabs(Old_dist) ) > -1.0e-15 ) {//old has hierarchy over new  //DO NOT SAVE NEW NEIGH
+           if ( ( (New_projected_distance - Old_dist) / std::abs(Old_dist) ) > -1.0e-15 ) {//old has hierarchy over new  //DO NOT SAVE NEW NEIGH
              return false;
            }
 
-           if ( ( (Old_projected_distance-New_Dist )  / fabs(New_Dist) ) > -1.0e-15 ) { //new has hierarchy over old
+           if ( ( (Old_projected_distance-New_Dist )  / std::abs(New_Dist) ) > -1.0e-15 ) { //new has hierarchy over old
 
              int old_ID = Id_Array[i_old_neigh];
              if (new_ID == old_ID) {//SUBSTITUTE
