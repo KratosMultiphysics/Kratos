@@ -265,7 +265,6 @@ std::vector<DEMWall*>             mNeighbourPotentialRigidFaces;
 
 std::vector<array_1d<double, 4> > mContactConditionWeights;
 std::vector<int>                  mContactConditionContactTypes;
-std::vector< array_1d<double,3> > mConditionContactPoints;
 
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesTotalContactForce;
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesElasticContactForce;
