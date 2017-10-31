@@ -173,19 +173,6 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     double RollingResistance = 0.0;
 
-//    KRATOS_WATCH("*****************************");
-//    KRATOS_WATCH(this->GetGeometry()[0].Id());
-//    KRATOS_WATCH(GetRadius());
-//    KRATOS_WATCH(GetSearchRadius());
-//    KRATOS_WATCH(GetInteractionRadius());
-//    KRATOS_WATCH("*****************************");
-
-//    for (unsigned int i = 0; i < mNeighbourElements.size(); ++i){
-
-//         KRATOS_WATCH(mNeighbourElements[i]->GetGeometry()[0].Id())
-
-//    }
-
     ComputeBallToBallContactForce(data_buffer, r_process_info, elastic_force, contact_force, RollingResistance);
 
     ComputeBallToRigidFaceContactForce(data_buffer, elastic_force, contact_force, RollingResistance, rigid_element_force, r_process_info, search_control);
