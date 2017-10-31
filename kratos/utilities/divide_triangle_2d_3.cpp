@@ -175,7 +175,7 @@ void DivideTriangle2D3::GenerateIntersectionsSkin() {
                     if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes)) {
                         // Generate an indexed point line geometry pointer with the two interface nodes
                         IndexedPointGeometryPointerType p_intersection_line = boost::make_shared<IndexedPointLineType>(mAuxPointsContainer(node_i_key), 
-                                                                                                                    mAuxPointsContainer(node_j_key));
+                                                                                                                       mAuxPointsContainer(node_j_key));
                         mPositiveInterfaces.push_back(p_intersection_line);
 
                         // In triangles, a unique face can belong to the interface
@@ -200,7 +200,7 @@ void DivideTriangle2D3::GenerateIntersectionsSkin() {
                     if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes)) {
                         // Generate an indexed point line geometry pointer with the two interface nodes
                         IndexedPointGeometryPointerType p_intersection_line = boost::make_shared<IndexedPointLineType>(mAuxPointsContainer(node_i_key), 
-                                                                                                                    mAuxPointsContainer(node_j_key));
+                                                                                                                       mAuxPointsContainer(node_j_key));
                         mNegativeInterfaces.push_back(p_intersection_line);
 
                         // In triangles, a unique face can belong to the interface

@@ -230,7 +230,7 @@ public:
     ///@name Operations
     ///@{
 
-    Vector GetNodalDistances() const ;
+    Vector GetNodalDistances() const;
 
     GeometryType GetInputGeometry() const;
 
