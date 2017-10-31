@@ -20,7 +20,7 @@ namespace Kratos
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-///////////////////////////////////////////////////////////////////////////////////////////////////
+
 template class DSS< DSSData2D3N >;
 template class DSS< DSSData3D4N >;
 
@@ -86,6 +86,7 @@ int DSS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 
     return out;
 }
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
@@ -248,7 +249,6 @@ void DSS<TElementData>::GetValueOnIntegrationPoints(Variable<Matrix> const& rVar
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
 
-
 template< class TElementData >
 std::string DSS<TElementData>::Info() const
 {
@@ -266,7 +266,6 @@ void DSS<TElementData>::PrintInfo(std::ostream& rOStream) const
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected functions
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
 void DSS<TElementData>::ASGSMomentumResidual(
@@ -288,7 +287,7 @@ void DSS<TElementData>::ASGSMomentumResidual(
 
         for (unsigned int d = 0; d < Dim; d++)
         {
-            rMomentumRes[d] += density * ( rIntegrationPoint.N[i]*(rData.GetBODY_FORCE().Get()(i,d) - rAcc[d]) - AGradN[i]*rData.GetVELOCITY().Get()(i,d)) - rIntegrationPoint.DN_DX(i,d)*rData.GetPRESSURE().Get()[i];
+            rMomentumRes[d] += density * ( rIntegrationPoint.N[i]*(rData.GetBODY_FORCE().Data()(i,d) - rAcc[d]) - AGradN[i]*rData.GetVELOCITY().Data()(i,d)) - rIntegrationPoint.DN_DX(i,d)*rData.GetPRESSURE().Data()[i];
         }
     }
 }
@@ -347,7 +346,7 @@ void DSS<TElementData>::MomentumProjTerm(
     {
         for (unsigned int d = 0; d < Dim; d++)
         {
-            rMomentumRHS[d] += density * ( rIntegrationPoint.N[i]*(rData.GetBODY_FORCE().Get()(i,d) /*- rAcc[d]*/) - AGradN[i]*rData.GetVELOCITY().Get()(i,d)) - rIntegrationPoint.DN_DX(i,d)*rData.GetPRESSURE().Get()[i];
+            rMomentumRHS[d] += density * ( rIntegrationPoint.N[i]*(rData.GetBODY_FORCE().Data()(i,d) /*- rAcc[d]*/) - AGradN[i]*rData.GetVELOCITY().Data()(i,d)) - rIntegrationPoint.DN_DX(i,d)*rData.GetPRESSURE().Data()[i];
         }
     }
 }
@@ -362,15 +361,13 @@ void DSS<TElementData>::MassProjTerm(
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         for (unsigned int d = 0; d < Dim; d++)
-            rMassRHS -= rIntegrationPoint.DN_DX(i,d)*rData.GetVELOCITY().Get()(i,d);
+            rMassRHS -= rIntegrationPoint.DN_DX(i,d)*rData.GetVELOCITY().Data()(i,d);
     }
 
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Evaluation of system terms on Gauss Points
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
 void DSS<TElementData>::AddSystemTerms(

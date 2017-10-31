@@ -70,7 +70,7 @@ public:
     ///@name Access
     ///@{
 
-    TStorageType& Get() override;
+    TStorageType& Data() override;
 
     ///@}
     ///@name Inquiry

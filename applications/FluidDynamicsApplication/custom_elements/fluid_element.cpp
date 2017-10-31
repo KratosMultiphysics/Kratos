@@ -139,8 +139,8 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
         for (unsigned int d = 0; d < Dim; ++d) // Velocity Dofs
-            U[LocalIndex++] = data.GetVELOCITY().Get()(i,d);
-        U[LocalIndex++] = data.GetPRESSURE().Get()[i]; // Pressure Dof
+            U[LocalIndex++] = data.GetVELOCITY().Data()(i,d);
+        U[LocalIndex++] = data.GetPRESSURE().Data()[i]; // Pressure Dof
     }
 
     noalias(rRightHandSideVector) -= prod(rDampMatrix, U);
@@ -603,7 +603,7 @@ double FluidElement<TElementData>::EffectiveViscosity(
         {
             for (unsigned int i = 0; i < Dim; ++i)
                 for (unsigned int j = 0; j < Dim; ++j)
-                    S(i,j) += 0.5 * ( rIntegrationPoint.DN_DX(n,j) * rData.GetVELOCITY().Get()(n,i) + rIntegrationPoint.DN_DX(n,i) * rData.GetVELOCITY().Get()(n,j) );
+                    S(i,j) += 0.5 * ( rIntegrationPoint.DN_DX(n,j) * rData.GetVELOCITY().Data()(n,i) + rIntegrationPoint.DN_DX(n,i) * rData.GetVELOCITY().Data()(n,j) );
         }
 
         // Norm of symetric gradient
@@ -628,12 +628,12 @@ void FluidElement<TElementData>::ResolvedConvectiveVelocity(
     array_1d<double,3> &rConvVel)
 {
     for (unsigned int d = 0; d < Dim; d++)
-        rConvVel[d] = rN[0] * ( rData.GetVELOCITY().Get()(0,d) - rData.GetMESH_VELOCITY().Get()(0,d) );
+        rConvVel[d] = rN[0] * ( rData.GetVELOCITY().Data()(0,d) - rData.GetMESH_VELOCITY().Data()(0,d) );
 
     for (unsigned int i = 1; i < NumNodes; i++)
     {
         for (unsigned int d = 0; d < Dim; d++)
-            rConvVel[d] += rN[i] * ( rData.GetVELOCITY().Get()(i,d) - rData.GetMESH_VELOCITY().Get()(i,d) );
+            rConvVel[d] += rN[i] * ( rData.GetVELOCITY().Data()(i,d) - rData.GetMESH_VELOCITY().Data()(i,d) );
     }
 }
 

@@ -58,7 +58,7 @@ int NodalDataHandler<TDataType,TNumNodes,TStorageType >::Check(const Element& rE
 }
 
 template <class TDataType, unsigned int TNumNodes, class TStorageType>
-TStorageType& NodalDataHandler<TDataType,TNumNodes,TStorageType >::Get() {
+TStorageType& NodalDataHandler<TDataType,TNumNodes,TStorageType >::Data() {
     return mValues;
 }
 
