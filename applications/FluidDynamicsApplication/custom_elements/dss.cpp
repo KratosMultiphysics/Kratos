@@ -379,25 +379,25 @@ void DSS<TElementData>::AddSystemTerms(
 {
     // Interpolate nodal data on the integration point
     double ElemSize = this->ElementSize();
-    double Viscosity = this->EffectiveViscosity(rData,rIntegrationPoint,ElemSize,rProcessInfo);
+
+    double density = rData.GetDENSITY().Interpolate(rIntegrationPoint.N,this);
+    double viscosity = this->EffectiveViscosity(rData,rIntegrationPoint,ElemSize,rProcessInfo);
+    array_1d<double,3> body_force = rData.GetBODY_FORCE().Interpolate(rIntegrationPoint.N,this);
+    array_1d<double,3> momentum_projection = rData.GetADVPROJ().Interpolate(rIntegrationPoint.N,this);
+    double mass_projection = rData.GetDIVPROJ().Interpolate(rIntegrationPoint.N,this);
 
     double TauOne;
     double TauTwo;
-    double density = rData.GetDENSITY().Interpolate(rIntegrationPoint.N,this);
     array_1d<double,3> convective_velocity = rData.GetVELOCITY().Interpolate(rIntegrationPoint.N,this) - rData.GetMESH_VELOCITY().Interpolate(rIntegrationPoint.N,this);
-    this->CalculateStaticTau(density,Viscosity,convective_velocity,ElemSize,rProcessInfo,TauOne,TauTwo);
+    this->CalculateStaticTau(density,viscosity,convective_velocity,ElemSize,rProcessInfo,TauOne,TauTwo);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rIntegrationPoint.DN_DX);
     
     // Multiplying some quantities by density to have correct units
-    Viscosity *= density; // Dynamic viscosity
-    //BodyForce *= Density; // Force per unit of volume
+    viscosity *= density; // Dynamic viscosity
+    body_force *= density; // Force per unit of volume
     AGradN *= density; // Convective term is always multiplied by density
-
-    array_1d<double,3> body_force = rData.GetBODY_FORCE().Interpolate(rIntegrationPoint.N,this);
-    array_1d<double,3> momentum_projection = rData.GetADVPROJ().Interpolate(rIntegrationPoint.N,this);
-    double mass_projection = rData.GetDIVPROJ().Interpolate(rIntegrationPoint.N,this);
 
     // Auxiliary variables for matrix looping
     unsigned int Row = 0;
@@ -458,17 +458,17 @@ void DSS<TElementData>::AddSystemTerms(
         qF = 0.0;
         for (unsigned int d = 0; d < Dim; ++d)
         {
-            rRHS[Row+d] += rIntegrationPoint.Weight * rIntegrationPoint.N[i] * density*body_force[d]; // v*BodyForce
-            rRHS[Row+d] += rIntegrationPoint.Weight * TauOne * AGradN[i] * ( density*body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+            rRHS[Row+d] += rIntegrationPoint.Weight * rIntegrationPoint.N[i] * body_force[d]; // v*BodyForce
+            rRHS[Row+d] += rIntegrationPoint.Weight * TauOne * AGradN[i] * ( body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
             rRHS[Row+d] -= rIntegrationPoint.Weight * TauTwo * rIntegrationPoint.DN_DX(i,d) * mass_projection;
-            qF += rIntegrationPoint.DN_DX(i, d) * (density*body_force[d] - momentum_projection[d]);
+            qF += rIntegrationPoint.DN_DX(i, d) * (body_force[d] - momentum_projection[d]);
         }
         rRHS[Row + Dim] += rIntegrationPoint.Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
     }
 
     // Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
     // This could potentially be optimized, as it can be integrated exactly using one less integration order when compared to previous terms.
-    Internals::AddViscousTerm<Dim>(Viscosity,rIntegrationPoint.Weight,rIntegrationPoint.DN_DX,rLHS);
+    Internals::AddViscousTerm<Dim>(viscosity,rIntegrationPoint.Weight,rIntegrationPoint.DN_DX,rLHS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -519,13 +519,14 @@ void DSS<TElementData>::AddMassStabilization(
     MatrixType &rMassMatrix)
 {
     double ElemSize = this->ElementSize();
-    double Viscosity = this->EffectiveViscosity(rData,rIntegrationPoint,ElemSize,rProcessInfo);
+
+    double density = rData.GetDENSITY().Interpolate(rIntegrationPoint.N,this);
+    double viscosity = this->EffectiveViscosity(rData,rIntegrationPoint,ElemSize,rProcessInfo);
 
     double TauOne;
     double TauTwo;
-    double density = rData.GetDENSITY().Interpolate(rIntegrationPoint.N,this);
     array_1d<double,3> convective_velocity = rData.GetVELOCITY().Interpolate(rIntegrationPoint.N,this) - rData.GetMESH_VELOCITY().Interpolate(rIntegrationPoint.N,this);
-    this->CalculateStaticTau(density,Viscosity,convective_velocity,ElemSize,rProcessInfo,TauOne,TauTwo);
+    this->CalculateStaticTau(density,viscosity,convective_velocity,ElemSize,rProcessInfo,TauOne,TauTwo);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rIntegrationPoint.DN_DX);
