@@ -240,6 +240,13 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             density = elem.Properties.GetValue(KratosMultiphysics.DENSITY)
             bulk_modulus = elem.Properties.GetValue(KratosMultiphysics.BULK_MODULUS)
             viscosity = elem.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+            flow_index = elem.Properties.GetValue(KratosPfemFluid.FLOW_INDEX)
+            yield_shear = elem.Properties.GetValue(KratosPfemFluid.YIELD_SHEAR)
+            adaptive_exponent = elem.Properties.GetValue(KratosPfemFluid.ADAPTIVE_EXPONENT)
+            if(flow_index==0 and yield_shear==0 and adaptive_exponent==0):
+                flow_index = 1
+                yield_shear=0
+                adaptive_exponent=0
             break
 
         for nn in rigid_model_part.Nodes:
@@ -247,6 +254,9 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             nn.SetSolutionStepValue(KratosMultiphysics.BULK_MODULUS,bulk_modulus)
             nn.SetSolutionStepValue(KratosMultiphysics.DENSITY,density)
             nn.SetSolutionStepValue(KratosMultiphysics.VISCOSITY,viscosity)
+            nn.SetSolutionStepValue(KratosPfemFluid.FLOW_INDEX,flow_index)
+            nn.SetSolutionStepValue(KratosPfemFluid.YIELD_SHEAR,yield_shear)
+            nn.SetSolutionStepValue(KratosPfemFluid.ADAPTIVE_EXPONENT,adaptive_exponent)
 
 
     def SetMaterialPropertiesToFluidNodes(self,model_part):
@@ -256,6 +266,13 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             density = elem.Properties.GetValue(KratosMultiphysics.DENSITY)
             bulk_modulus = elem.Properties.GetValue(KratosMultiphysics.BULK_MODULUS)
             viscosity = elem.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+            flow_index = elem.Properties.GetValue(KratosPfemFluid.FLOW_INDEX)
+            yield_shear = elem.Properties.GetValue(KratosPfemFluid.YIELD_SHEAR)
+            adaptive_exponent = elem.Properties.GetValue(KratosPfemFluid.ADAPTIVE_EXPONENT)
+            if(flow_index==0 and yield_shear==0 and adaptive_exponent==0):
+                flow_index = 1
+                yield_shear=0
+                adaptive_exponent=0
             break
 
         for nn in model_part.Nodes:
@@ -263,6 +280,9 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             nn.SetSolutionStepValue(KratosMultiphysics.BULK_MODULUS,bulk_modulus)
             nn.SetSolutionStepValue(KratosMultiphysics.DENSITY,density)
             nn.SetSolutionStepValue(KratosMultiphysics.VISCOSITY,viscosity)
+            nn.SetSolutionStepValue(KratosPfemFluid.FLOW_INDEX,flow_index)
+            nn.SetSolutionStepValue(KratosPfemFluid.YIELD_SHEAR,yield_shear)
+            nn.SetSolutionStepValue(KratosPfemFluid.ADAPTIVE_EXPONENT,adaptive_exponent)
 
 
     def SetMaterialPropertiesToSolidNodes(self,model_part):

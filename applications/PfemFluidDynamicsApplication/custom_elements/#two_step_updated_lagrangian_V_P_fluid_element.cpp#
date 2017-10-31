@@ -82,6 +82,7 @@ namespace Kratos {
 
     // double shearThreshold=100;
     // double rateSensitiveExponent=1000;
+
     double exponent=-FluidAdaptiveExponent*rElementalVariables.EquivalentStrainRate;
     if(rElementalVariables.EquivalentStrainRate!=1 && rElementalVariables.EquivalentStrainRate!=0)
       FluidViscosity+=FluidYieldShear/rElementalVariables.EquivalentStrainRate*(1-exp(exponent));

@@ -306,7 +306,8 @@ namespace Kratos
       void ComputeMaterialParameters (double& Density,
 				      double& DeviatoricCoeff,
 				      double& VolumetricCoeff,
-				      double timeStep);
+				      double timeStep,
+				      ElementalVariables& rElementalVariables);
 
    
 

@@ -82,7 +82,7 @@ void UpdatedLagrangianVSolidElement<2>:: CalcElasticPlasticCauchySplitted(Elemen
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
+  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep,rElementalVariables);
  
   double CurrFirstLame  = 0;
   CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
@@ -133,7 +133,7 @@ void UpdatedLagrangianVSolidElement<3>:: CalcElasticPlasticCauchySplitted(Elemen
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
+  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep,rElementalVariables);
   
   double CurrFirstLame   = 0;
   CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;

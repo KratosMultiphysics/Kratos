@@ -183,6 +183,7 @@ namespace Kratos {
     const unsigned int NumGauss = GaussWeights.size();
 
     const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+    const double currentTime = rCurrentProcessInfo[TIME];
     double theta=this->GetThetaMomentum();
 
     ElementalVariables rElementalVariables;
@@ -193,7 +194,7 @@ namespace Kratos {
     double Density=0.0;
     double DeviatoricCoeff = 0;
     double VolumetricCoeff = 0;
-    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep);
+    // this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep);
  
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
@@ -213,6 +214,11 @@ namespace Kratos {
 	rElementalVariables.MeanPressure=OldPressure*(1-theta)+Pressure*theta;  
 
 	bool computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,rDN_DX,g);
+
+	if(TimeStep>=currentTime)
+	  rElementalVariables.EquivalentStrainRate=1;
+	this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep,rElementalVariables);
+
 	if(computeElement==true){
 	  // Add integration point contribution to the local mass matrix
 	  // double DynamicWeight=GaussWeight*Density;
@@ -1084,6 +1090,10 @@ bool TwoStepUpdatedLagrangianVPElement<2>::CalcCompleteStrainRate(ElementalVaria
   rElementalVariables.DeviatoricInvariant=sqrt(2*(dev_X*dev_X + dev_Y*dev_Y +
 						  rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2]));
 
+  rElementalVariables.EquivalentStrainRate=sqrt(0.5*(rElementalVariables.SpatialDefRate[0]*rElementalVariables.SpatialDefRate[0] +
+						     rElementalVariables.SpatialDefRate[1]*rElementalVariables.SpatialDefRate[1] +
+						     rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2]));
+  
   return computeElement;
 
 }  
@@ -1228,7 +1238,13 @@ bool TwoStepUpdatedLagrangianVPElement<3>::CalcCompleteStrainRate(ElementalVaria
 						  rElementalVariables.SpatialDefRate[4]*rElementalVariables.SpatialDefRate[4] +
 						  rElementalVariables.SpatialDefRate[5]*rElementalVariables.SpatialDefRate[5]));
 
-
+  rElementalVariables.EquivalentStrainRate=sqrt(0.5*(rElementalVariables.SpatialDefRate[0]*rElementalVariables.SpatialDefRate[0] +
+						     rElementalVariables.SpatialDefRate[1]*rElementalVariables.SpatialDefRate[1] +
+						     rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2] +
+						     rElementalVariables.SpatialDefRate[3]*rElementalVariables.SpatialDefRate[3] +
+						     rElementalVariables.SpatialDefRate[4]*rElementalVariables.SpatialDefRate[4] +
+						     rElementalVariables.SpatialDefRate[5]*rElementalVariables.SpatialDefRate[5]));
+  
   return computeElement;
 
 }  
@@ -1299,6 +1315,8 @@ bool TwoStepUpdatedLagrangianVPElement<TDim>::CalcStrainRate(ElementalVariables 
   this->CalcDeviatoricInvariant(rElementalVariables.SpatialDefRate,
 				rElementalVariables.DeviatoricInvariant);
 
+  this->CalcEquivalentStrainRate(rElementalVariables.SpatialDefRate,
+				 rElementalVariables.EquivalentStrainRate);
   return computeElement;
 
 }  
@@ -1637,6 +1655,16 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcDeviatoricInvariant(VectorType &S
 
 
 template < > 
+void TwoStepUpdatedLagrangianVPElement<2>::CalcEquivalentStrainRate(VectorType &SpatialDefRate,
+								    double &EquivalentStrainRate)
+{
+  EquivalentStrainRate=sqrt(0.5*(SpatialDefRate[0]*SpatialDefRate[0] +
+				 SpatialDefRate[1]*SpatialDefRate[1] +
+				 SpatialDefRate[2]*SpatialDefRate[2]));
+}
+
+
+template < > 
 void TwoStepUpdatedLagrangianVPElement<3>::CalcDeviatoricInvariant(VectorType &SpatialDefRate,
 								   double &DeviatoricInvariant)
 {
@@ -1650,6 +1678,18 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcDeviatoricInvariant(VectorType &S
 			      SpatialDefRate[5]*SpatialDefRate[5]));
 }
 
+
+template < > 
+void TwoStepUpdatedLagrangianVPElement<3>::CalcEquivalentStrainRate(VectorType &SpatialDefRate,
+								    double &EquivalentStrainRate)
+{
+  EquivalentStrainRate=sqrt(0.5*(SpatialDefRate[0]*SpatialDefRate[0] +
+				 SpatialDefRate[1]*SpatialDefRate[1] +
+				 SpatialDefRate[2]*SpatialDefRate[2] +
+				 SpatialDefRate[3]*SpatialDefRate[3] +
+				 SpatialDefRate[4]*SpatialDefRate[4] +
+				 SpatialDefRate[5]*SpatialDefRate[5]));
+}
 
 template < > 
 double TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate)

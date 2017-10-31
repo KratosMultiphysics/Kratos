@@ -135,7 +135,8 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeMaterialParameters(double& Density,
 									       double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
-									       double timeStep)
+									       double timeStep,
+									       ElementalVariables& rElementalVariables)
   {
 
     Density=this->GetProperties()[DENSITY];
@@ -357,6 +358,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: InitializeElementalVariables
     rElementalVariables.DetFgrad=1;
     rElementalVariables.DetFgradVel=1;
     rElementalVariables.DeviatoricInvariant=1;
+    rElementalVariables.EquivalentStrainRate=1;
     rElementalVariables.VolumetricDefRate=1;
     rElementalVariables.SpatialDefRate.resize(voigtsize);
     rElementalVariables.MDGreenLagrangeMaterial.resize(voigtsize);
@@ -386,7 +388,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
+  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep,rElementalVariables);
  
   double CurrFirstLame  = 0;
   CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
@@ -448,7 +450,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitte
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
+  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep,rElementalVariables);
  
   double CurrFirstLame   = 0;
   CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
@@ -621,7 +623,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
     double Density  = 0;
     double DeviatoricCoeff = 0;
     double VolumetricCoeff = 0;   
-    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep);
+    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep,rElementalVariables);
     
     double totalVolume=0;
 
