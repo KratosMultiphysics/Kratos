@@ -38,12 +38,15 @@
 //elements
 #include "custom_elements/total_updated_lagrangian_element.hpp"
 #include "custom_elements/total_updated_lagrangian_U_P_element.hpp"
+
 #include "custom_elements/updated_lagrangian_U_wP_element.hpp"
 #include "custom_elements/updated_lagrangian_U_wP_Stab_element.hpp"
 
 
 #include "custom_elements/axisym_updated_lagrangian_U_wP_element.hpp"
 #include "custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.hpp"
+
+#include "custom_elements/updated_lagrangian_U_W_element.hpp"
 
 
 #include "custom_elements/updated_lagrangian_U_J_element.hpp"
@@ -273,6 +276,8 @@ namespace Kratos
     const UpdatedLagrangianUwPElement                      mUpdatedLagrangianUwPElement3D4N;
     const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement2D3N;
     const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement3D4N;
+
+    const UpdatedLagrangianUWElement                      mUpdatedLagrangianUWElement2D3N;
 
     const AxisymUpdatedLagrangianUwPElement          mAxisymUpdatedLagrangianUwPElement2D3N;
     const AxisymUpdatedLagrangianUwPStabElement  mAxisymUpdatedLagrangianUwPStabElement2D3N;

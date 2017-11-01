@@ -215,6 +215,24 @@ Begin Elements UpdatedLagrangianUwPElement2D3N
 End Elements
 
 *endif
+*set cond surface_UpdatedLagrangianUWElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements UpdatedLagrangianUWElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
 *set cond surface_UpdatedLagrangianUwPStabElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements UpdatedLagrangianUwPStabElement2D3N
@@ -677,6 +695,29 @@ End SubModelPart
 *end groups    
 *endif
 *set cond group_WATER_PRESSURE *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin SubModelPart *GroupName // *GroupNum
+
+ Begin SubModelPartNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+ End SubModelPartConditions
+
+End SubModelPart
+*end groups    
+*endif
+*set cond group_WATER_MOVEMENT *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
 Begin SubModelPart *GroupName // *GroupNum

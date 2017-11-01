@@ -60,6 +60,7 @@ class MechanicalSolver(object):
             "contact_dofs": false,
             "water_pressure_dofs": false,
             "jacobian_dofs": false,
+            "water_displacement_dofs": false,
             "thermal_dofs":false, 
             "stabilization_factor": null,
             "reform_dofs_at_each_step": false,

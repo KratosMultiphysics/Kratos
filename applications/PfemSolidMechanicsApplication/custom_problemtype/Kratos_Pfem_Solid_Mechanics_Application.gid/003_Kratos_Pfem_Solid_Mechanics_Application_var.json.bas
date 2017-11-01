@@ -19,9 +19,15 @@
         "time_integration_method"            : "Explicit",
         "scheme_type"                        : "CentralDifferences",        
 *elseif(strcmp(GenData(Time_Integration_Method),"Implicit")==0)
+*if(strcmp(GenData(DOFS),"U-W")==0)
+        "solver_type"                        : "pfem_solid_mechanics_implicit_dynamic_solver",
+        "time_integration_method"            : "Implicit",
+        "scheme_type"                        : "Bossak",
+*else
         "solver_type"                        : "solid_mechanics_implicit_dynamic_solver",
         "time_integration_method"            : "Implicit",
         "scheme_type"                        : "Bossak",
+*endif
 *endif
 *else
         "solver_type"                        : "pfem_solid_mechanics_static_solver",
@@ -63,6 +69,9 @@
 *if(strcmp(GenData(DOFS),"U-J-wP")==0)
         "jacobian_dofs"                      : true,
         "water_pressure_dofs"                : true,
+*endif
+*if(strcmp(GenData(DOFS),"U-W")==0)
+        "water_displacement_dofs"                      : true,
 *endif
 *if(strcmp(GenData(DOFS),"U-J")==0)
         "jacobian_dofs"                      : true,
@@ -132,6 +141,7 @@
 *add cond group_POINT_MOMENT *groups
 *add cond group_VOLUME_ACCELERATION *groups
 *add cond group_WATER_PRESSURE *groups
+*add cond group_WATER_MOVEMENT *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
 *loop groups *OnlyInCond
@@ -495,7 +505,8 @@
     }],
     "constraints_process_list" : [
 *set var numberconstraints= 0
-*set cond group_LINEAR_MOVEMENT *groups
+*set cond group_WATER_MOVEMENT *groups 
+*add cond group_LINEAR_MOVEMENT *groups
 *add cond group_ANGULAR_MOVEMENT *groups
 *add cond group_WATER_PRESSURE *groups
 *loop groups *OnlyInCond
@@ -504,6 +515,7 @@
 *set var Counter = 0
 *set cond group_LINEAR_MOVEMENT *groups
 *add cond group_ANGULAR_MOVEMENT *groups
+*add cond group_WATER_MOVEMENT *groups
 *if(strcmp(GenData(Set_initial_state),"True")==0)
 *set var numberconstraints(int)=Operation(numberconstraints(int)+1)
 *endif
@@ -804,6 +816,11 @@
 *if(strcmp(GenData(Solver_Type),"DynamicSolver")==0)
                                       "VELOCITY",
 				      "ACCELERATION",
+*if(strcmp(GenData(DOFS),"U-W")==0)
+                                      "WATER_DISPLACEMENT",
+                                      "WATER_VELOCITY",
+				      "WATER_ACCELERATION",
+*endif
 *endif
 *if(strcmp(GenData(Write_Reactions),"True")==0)
 				      "REACTION",
@@ -833,6 +850,9 @@
 *if(strcmp(GenData(Problem_Type),"mechanical")==0)
 				      "CAUCHY_STRESS_TENSOR",
 				      "GREEN_LAGRANGE_STRAIN_TENSOR",
+*endif
+*if(strcmp(GenData(DOFS),"U-W")==0)
+				      "WATER_PRESSURE",
 *endif
 				      "VON_MISES_STRESS"
 				    ],
