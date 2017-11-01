@@ -25,11 +25,13 @@
 
 namespace Kratos
 {
+namespace HDF5
+{
 ///@addtogroup HDF5Application
 ///@{
 
 /// A class for accessing a single shared HDF5 file across MPI processes.
-class HDF5FileParallel : public HDF5File
+class FileParallel : public File
 {
     enum class DataTransferMode { independent, collective };
 public:
@@ -37,20 +39,20 @@ public:
     ///@{
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(HDF5FileParallel);
+    KRATOS_CLASS_POINTER_DEFINITION(FileParallel);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    explicit HDF5FileParallel(Parameters& rParams);
+    explicit FileParallel(Parameters& rParams);
 
     // Copy constructor.
-    HDF5FileParallel(const HDF5FileParallel& rOther) = delete;
+    FileParallel(const FileParallel& rOther) = delete;
 
     /// Assignment operator.
-    HDF5FileParallel& operator=(const HDF5FileParallel& rOther) = delete;
+    FileParallel& operator=(const FileParallel& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -283,7 +285,7 @@ private:
             local_start[0] = 0;
  
         // Set the data type.
-        hid_t dtype_id = HDF5Utils::GetDataType<T>();
+        hid_t dtype_id = Detail::GetScalarDataType<T>();
 
         // Create and write the data set.
         hid_t file_id = GetFileId();
@@ -492,7 +494,7 @@ private:
         local_start[0] = StartIndex;
 
         // Set the data type.
-        hid_t dtype_id = HDF5Utils::GetDataType<T>();
+        hid_t dtype_id = Detail::GetScalarDataType<T>();
         if (dtype_id == H5T_NATIVE_INT)
         {
             KRATOS_ERROR_IF_NOT(HasIntDataType(Path))
@@ -529,6 +531,7 @@ private:
 };
 
 ///@} addtogroup
+} // namespace HDF5.
 } // namespace Kratos.
 
 #endif // KRATOS_HDF5_FILE_PARALLEL_H_INCLUDED defined

@@ -21,103 +21,58 @@
 #include <regex>
 
 // External includes
-extern "C" {
-#include "hdf5.h"
-}
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
 
 // Project includes
 #include "includes/define.h"
 #include "containers/array_1d.h"
 #include "includes/kratos_parameters.h"
 
+// Application includes
+#include "custom_utilities/hdf5_utils.h"
+
 namespace Kratos
+{
+namespace HDF5
 {
 ///@addtogroup HDF5Application
 ///@{
 
-/// Provides helper functions that don't depend on the representation of a
-/// particular class.
-struct HDF5Utils
-{
-    /// Check if string is a valid path.
-    /**
-     * Valid paths are similar to linux file system with alphanumeric names
-     * and possible underscores separated by '/'. All paths are absolute.
-     */
-    static bool IsPath(std::string Path)
-    {
-        return regex_match(Path, std::regex("(/\\w+)+"));
-    }
-
-    // Return vector of non-empty substrings separated by a delimiter.
-    static std::vector<std::string> Split(std::string Path, char Delimiter)
-    {
-        std::vector<std::string> result;
-        result.reserve(10);
-        std::stringstream ss(Path);
-        std::string sub_string;
-        while (std::getline(ss, sub_string, Delimiter))
-          if (sub_string.size() > 0)
-            result.push_back(sub_string);
-
-        return result;
-    }
-
-    template<class TScalar>
-    static hid_t GetDataType()
-    {
-        hid_t type_id;
-        constexpr bool is_int_type = std::is_same<int, TScalar>::value;
-        constexpr bool is_double_type = std::is_same<double, TScalar>::value;
-        if (is_int_type)
-            type_id = H5T_NATIVE_INT;
-        else if (is_double_type)
-            type_id = H5T_NATIVE_DOUBLE;
-        else
-            static_assert(is_int_type || is_double_type, "Unsupported data type.");
-
-        return type_id;
-    }
-};
-
 /// A base class for accessing an HDF5 file.
 /**
- * Defines the interface to HDF5 files in Kratos. All functions reading or 
+ * Provides the interface to HDF5 files in Kratos. All functions reading or 
  * writing HDF5 meta data should be defined in this class. Functions reading
  * or writing data sets are defined by the derived class.
  */
-class HDF5File
+class File
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    template <class T>
+    using Vector = HDF5::Vector<T>;
+
+    template <class T>
+    using Matrix = HDF5::Matrix<T>;
+
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(HDF5File);
-
-    template <class T>
-    using Vector = boost::numeric::ublas::vector<T>;
-
-    template <class T>
-    using Matrix = boost::numeric::ublas::matrix<T>;
+    KRATOS_CLASS_POINTER_DEFINITION(File);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    explicit HDF5File(Parameters& rParams);
+    explicit File(Parameters& rParams);
 
     // Copy constructor.
-    HDF5File(const HDF5File& rOther) = delete;
+    File(const File& rOther) = delete;
 
     /// Destructor.
-    virtual ~HDF5File();
+    virtual ~File();
 
     // Assignment operator.
-    HDF5File& operator=(const HDF5File& rOther) = delete;
+    File& operator=(const File& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -307,12 +262,12 @@ private:
 };
 
 template <class TScalar>
-void HDF5File::WriteAttribute(std::string ObjectPath, std::string Name, TScalar Value)
+void File::WriteAttribute(std::string ObjectPath, std::string Name, TScalar Value)
 {
     KRATOS_TRY;
     hid_t type_id, space_id, attr_id;
 
-    type_id = HDF5Utils::GetDataType<TScalar>();
+    type_id = Detail::GetScalarDataType<TScalar>();
     space_id = H5Screate(H5S_SCALAR);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
     attr_id = H5Acreate_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(), type_id,
@@ -325,12 +280,12 @@ void HDF5File::WriteAttribute(std::string ObjectPath, std::string Name, TScalar 
 }
 
 template <class TScalar>
-void HDF5File::WriteAttribute(std::string ObjectPath, std::string Name, const Vector<TScalar>& rValue)
+void File::WriteAttribute(std::string ObjectPath, std::string Name, const Vector<TScalar>& rValue)
 {
     KRATOS_TRY;
     hid_t type_id, space_id, attr_id;
 
-    type_id = HDF5Utils::GetDataType<TScalar>();
+    type_id = Detail::GetScalarDataType<TScalar>();
     const hsize_t dim = rValue.size();
     space_id = H5Screate_simple(1, &dim, nullptr);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
@@ -344,12 +299,12 @@ void HDF5File::WriteAttribute(std::string ObjectPath, std::string Name, const Ve
 }
 
 template <class TScalar>
-void HDF5File::WriteAttribute(std::string ObjectPath, std::string Name, const Matrix<TScalar>& rValue)
+void File::WriteAttribute(std::string ObjectPath, std::string Name, const Matrix<TScalar>& rValue)
 {
     KRATOS_TRY;
     hid_t type_id, space_id, attr_id;
 
-    type_id = HDF5Utils::GetDataType<TScalar>();
+    type_id = Detail::GetScalarDataType<TScalar>();
     const unsigned ndims = 2;
     hsize_t dims[ndims];
     dims[0] = rValue.size1();
@@ -366,13 +321,13 @@ void HDF5File::WriteAttribute(std::string ObjectPath, std::string Name, const Ma
 }
 
 template <class TScalar>
-void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, TScalar& rValue)
+void File::ReadAttribute(std::string ObjectPath, std::string Name, TScalar& rValue)
 {
     KRATOS_TRY;
     hid_t mem_type_id, attr_type_id, space_id, attr_id;
     int ndims;
 
-    mem_type_id = HDF5Utils::GetDataType<TScalar>();
+    mem_type_id = Detail::GetScalarDataType<TScalar>();
     attr_id = H5Aopen_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -400,14 +355,14 @@ void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, TScalar& 
 }
 
 template <class TScalar>
-void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, Vector<TScalar>& rValue)
+void File::ReadAttribute(std::string ObjectPath, std::string Name, Vector<TScalar>& rValue)
 {
     KRATOS_TRY;
     hid_t mem_type_id, attr_type_id, space_id, attr_id;
     int ndims;
     hsize_t dims[1];
 
-    mem_type_id = HDF5Utils::GetDataType<TScalar>();
+    mem_type_id = Detail::GetScalarDataType<TScalar>();
     attr_id = H5Aopen_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -437,14 +392,14 @@ void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, Vector<TS
 }
 
 template <class TScalar>
-void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TScalar>& rValue)
+void File::ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TScalar>& rValue)
 {
     KRATOS_TRY;
     hid_t mem_type_id, attr_type_id, space_id, attr_id;
     int ndims;
     hsize_t dims[2];
 
-    mem_type_id = HDF5Utils::GetDataType<TScalar>();
+    mem_type_id = Detail::GetScalarDataType<TScalar>();
     attr_id = H5Aopen_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -474,6 +429,7 @@ void HDF5File::ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TS
 }
 
 ///@} addtogroup
+} // namespace HDF5.
 } // namespace Kratos.
 
 #endif // KRATOS_HDF5_FILE_H_INCLUDED defined

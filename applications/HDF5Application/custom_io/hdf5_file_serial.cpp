@@ -2,39 +2,41 @@
 
 namespace Kratos
 {
-HDF5FileSerial::HDF5FileSerial(Parameters& rParams) : HDF5File(rParams)
+namespace HDF5
+{
+FileSerial::FileSerial(Parameters& rParams) : File(rParams)
 {
 }
 
-void HDF5FileSerial::WriteDataSet(std::string Path, const Vector<int>& rData)
-{
-    KRATOS_TRY;
-    WriteDataSetVectorImpl(Path, rData);
-    KRATOS_CATCH("");
-}
-
-void HDF5FileSerial::WriteDataSet(std::string Path, const Vector<double>& rData)
+void FileSerial::WriteDataSet(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
     WriteDataSetVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData)
+void FileSerial::WriteDataSet(std::string Path, const Vector<double>& rData)
 {
     KRATOS_TRY;
     WriteDataSetVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::WriteDataSet(std::string Path, const Matrix<int>& rData)
+void FileSerial::WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData)
+{
+    KRATOS_TRY;
+    WriteDataSetVectorImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
+void FileSerial::WriteDataSet(std::string Path, const Matrix<int>& rData)
 {
     KRATOS_TRY;
     WriteDataSetMatrixImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::WriteDataSet(std::string Path, const Matrix<double>& rData)
+void FileSerial::WriteDataSet(std::string Path, const Matrix<double>& rData)
 {
     KRATOS_TRY;
     WriteDataSetMatrixImpl(Path, rData);
@@ -42,154 +44,155 @@ void HDF5FileSerial::WriteDataSet(std::string Path, const Matrix<double>& rData)
 }
 
 
-void HDF5FileSerial::WriteDataPartition(std::string Path, const Vector<int>& rData)
+void FileSerial::WriteDataPartition(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
     WriteDataPartitionVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::WriteDataPartition(std::string Path, const Vector<double>& rData)
+void FileSerial::WriteDataPartition(std::string Path, const Vector<double>& rData)
 {
     KRATOS_TRY;
     WriteDataPartitionVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData)
+void FileSerial::WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData)
 {
     KRATOS_TRY;
     WriteDataPartitionVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::WriteDataPartition(std::string Path, const Matrix<int>& rData)
+void FileSerial::WriteDataPartition(std::string Path, const Matrix<int>& rData)
 {
     KRATOS_TRY;
     WriteDataPartitionMatrixImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::WriteDataPartition(std::string Path, const Matrix<double>& rData)
+void FileSerial::WriteDataPartition(std::string Path, const Matrix<double>& rData)
 {
     KRATOS_TRY;
     WriteDataPartitionMatrixImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::WriteDataSetIndependent(std::string Path, const Vector<int>& rData)
+void FileSerial::WriteDataSetIndependent(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
     WriteDataSetVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::WriteDataSetIndependent(std::string Path, const Vector<double>& rData)
+void FileSerial::WriteDataSetIndependent(std::string Path, const Vector<double>& rData)
 {
     KRATOS_TRY;
     WriteDataSetVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::WriteDataSetIndependent(std::string Path, const Vector<array_1d<double, 3>>& rData)
+void FileSerial::WriteDataSetIndependent(std::string Path, const Vector<array_1d<double, 3>>& rData)
 {
     KRATOS_TRY;
     WriteDataSetVectorImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::WriteDataSetIndependent(std::string Path, const Matrix<int>& rData)
+void FileSerial::WriteDataSetIndependent(std::string Path, const Matrix<int>& rData)
 {
     KRATOS_TRY;
     WriteDataSetMatrixImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::WriteDataSetIndependent(std::string Path, const Matrix<double>& rData)
+void FileSerial::WriteDataSetIndependent(std::string Path, const Matrix<double>& rData)
 {
     KRATOS_TRY;
     WriteDataSetMatrixImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-unsigned HDF5FileSerial::GetPID() const
+unsigned FileSerial::GetPID() const
 {
     return 0;
 }
 
-unsigned HDF5FileSerial::GetTotalProcesses() const
+unsigned FileSerial::GetTotalProcesses() const
 {
     return 1;
 }
 
-void HDF5FileSerial::ReadDataSet(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void FileSerial::ReadDataSet(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::ReadDataSet(std::string Path, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void FileSerial::ReadDataSet(std::string Path, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::ReadDataSet(std::string Path, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
+void FileSerial::ReadDataSet(std::string Path, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::ReadDataSet(std::string Path, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void FileSerial::ReadDataSet(std::string Path, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetMatrixImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::ReadDataSet(std::string Path, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void FileSerial::ReadDataSet(std::string Path, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetMatrixImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::ReadDataSetIndependent(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void FileSerial::ReadDataSetIndependent(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::ReadDataSetIndependent(std::string Path, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void FileSerial::ReadDataSetIndependent(std::string Path, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::ReadDataSetIndependent(std::string Path, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
+void FileSerial::ReadDataSetIndependent(std::string Path, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetVectorImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::ReadDataSetIndependent(std::string Path, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void FileSerial::ReadDataSetIndependent(std::string Path, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetMatrixImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5FileSerial::ReadDataSetIndependent(std::string Path, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void FileSerial::ReadDataSetIndependent(std::string Path, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetMatrixImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-} // // namespace Kratos.
+} // namespace HDF5.
+} // namespace Kratos.

@@ -3,8 +3,9 @@
 
 namespace Kratos
 {
-
-HDF5PartitionedModelPartIO::HDF5PartitionedModelPartIO(Parameters& rParams, HDF5File::Pointer pFile)
+namespace HDF5
+{
+PartitionedModelPartIO::PartitionedModelPartIO(Parameters& rParams, HDF5::File::Pointer pFile)
 : mpFile(pFile)
 {
     KRATOS_TRY;
@@ -12,7 +13,7 @@ HDF5PartitionedModelPartIO::HDF5PartitionedModelPartIO(Parameters& rParams, HDF5
     KRATOS_CATCH("");
 }
 
-bool HDF5PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
+bool PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
 {
     KRATOS_TRY;
 
@@ -25,8 +26,8 @@ bool HDF5PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
     rNodes.reserve(local_block_size + ghost_block_size);
 
     // Read local nodes.
-    HDF5File::Vector<int> local_node_ids;
-    HDF5File::Vector<array_1d<double, 3>> local_node_coords;
+    HDF5::File::Vector<int> local_node_ids;
+    HDF5::File::Vector<array_1d<double, 3>> local_node_coords;
     GetFile().ReadDataSet("/Nodes/Local/Id", local_node_ids, local_start_index, local_block_size);
     GetFile().ReadDataSet("/Nodes/Local/Coordinate", local_node_coords, local_start_index, local_block_size);
     for (unsigned i = 0; i < local_block_size; ++i)
@@ -40,8 +41,8 @@ bool HDF5PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
     local_node_coords.clear();
 
     // Read ghost nodes.
-    HDF5File::Vector<int> ghost_node_ids;
-    HDF5File::Vector<array_1d<double, 3>> ghost_node_coords;
+    HDF5::File::Vector<int> ghost_node_ids;
+    HDF5::File::Vector<array_1d<double, 3>> ghost_node_coords;
     GetFile().ReadDataSet("/Nodes/Ghost/Id", ghost_node_ids, ghost_start_index, ghost_block_size);
     GetFile().ReadDataSet("/Nodes/Ghost/Coordinate", ghost_node_coords, ghost_start_index, ghost_block_size);
     for (unsigned i = 0; i < ghost_block_size; ++i)
@@ -58,13 +59,13 @@ bool HDF5PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
     KRATOS_CATCH("");
 }
 
-std::size_t HDF5PartitionedModelPartIO::ReadNodesNumber()
+std::size_t PartitionedModelPartIO::ReadNodesNumber()
 {
     const std::vector<unsigned> dims = GetFile().GetDataDimensions("/Nodes/Local/Id");
     return dims[0];
 }
 
-void HDF5PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
+void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 {
     KRATOS_TRY;
 
@@ -86,8 +87,8 @@ void HDF5PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     }
 
     // Write local nodes.
-    HDF5File::Vector<int> local_node_ids(local_nodes.size());
-    HDF5File::Vector<array_1d<double, 3>> local_node_coords(local_nodes.size());
+    HDF5::File::Vector<int> local_node_ids(local_nodes.size());
+    HDF5::File::Vector<array_1d<double, 3>> local_node_coords(local_nodes.size());
     unsigned local_pos = 0;
     for (const auto& r_node : local_nodes)
     {
@@ -102,9 +103,9 @@ void HDF5PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     local_node_coords.clear();
 
     // Write ghost nodes.
-    HDF5File::Vector<int> ghost_node_ids(ghost_nodes.size());
-    HDF5File::Vector<int> ghost_node_pids(ghost_nodes.size());
-    HDF5File::Vector<array_1d<double, 3>> ghost_node_coords(ghost_nodes.size());
+    HDF5::File::Vector<int> ghost_node_ids(ghost_nodes.size());
+    HDF5::File::Vector<int> ghost_node_pids(ghost_nodes.size());
+    HDF5::File::Vector<array_1d<double, 3>> ghost_node_coords(ghost_nodes.size());
     unsigned ghost_pos = 0;
     for (const auto& r_node : ghost_nodes)
     {
@@ -124,70 +125,71 @@ void HDF5PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     KRATOS_CATCH("");
 }
 
-void HDF5PartitionedModelPartIO::ReadElements(NodesContainerType& rNodes,
+void PartitionedModelPartIO::ReadElements(NodesContainerType& rNodes,
                                    PropertiesContainerType& rProperties,
                                    ElementsContainerType& rElements)
 {
 }
 
-std::size_t HDF5PartitionedModelPartIO::ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities)
+std::size_t PartitionedModelPartIO::ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities)
 {
     return 0;
 }
 
-void HDF5PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElements)
+void PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElements)
 {
     
 }
 
-void HDF5PartitionedModelPartIO::ReadConditions(NodesContainerType& rNodes,
+void PartitionedModelPartIO::ReadConditions(NodesContainerType& rNodes,
                                      PropertiesContainerType& rProperties,
                                      ConditionsContainerType& rConditions)
 {
 }
 
-std::size_t HDF5PartitionedModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
+std::size_t PartitionedModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
 {
     return 0;
 }
 
-void HDF5PartitionedModelPartIO::ReadInitialValues(ModelPart& rModelPart)
+void PartitionedModelPartIO::ReadInitialValues(ModelPart& rModelPart)
 {
 }
 
-void HDF5PartitionedModelPartIO::ReadInitialValues(NodesContainerType& rNodes,
+void PartitionedModelPartIO::ReadInitialValues(NodesContainerType& rNodes,
                                         ElementsContainerType& rElements,
                                         ConditionsContainerType& rConditions)
 {
 }
 
-void HDF5PartitionedModelPartIO::ReadModelPart(ModelPart& rModelPart)
+void PartitionedModelPartIO::ReadModelPart(ModelPart& rModelPart)
 {
 }
 
-void HDF5PartitionedModelPartIO::WriteModelPart(ModelPart& rModelPart)
+void PartitionedModelPartIO::WriteModelPart(ModelPart& rModelPart)
 {
 }
 
-HDF5File& HDF5PartitionedModelPartIO::GetFile() const
+HDF5::File& PartitionedModelPartIO::GetFile() const
 {
     return *mpFile;
 }
 
-void HDF5PartitionedModelPartIO::Check()
+void PartitionedModelPartIO::Check()
 {
     if (mpFile->GetTotalProcesses() == 1)
-        std::cout << "Warning: using HDF5PartitionedModelPartIO with single process file access." << std::endl;
+        std::cout << "Warning: using PartitionedModelPartIO with single process file access." << std::endl;
 }
 
-std::tuple<unsigned, unsigned> HDF5PartitionedModelPartIO::GetPartitionStartIndexAndBlockSize(std::string Path) const
+std::tuple<unsigned, unsigned> PartitionedModelPartIO::GetPartitionStartIndexAndBlockSize(std::string Path) const
 {
     unsigned my_pid = GetFile().GetPID();
-    HDF5File::Vector<int> my_partition;
+    HDF5::File::Vector<int> my_partition;
     GetFile().ReadDataSet(Path, my_partition, my_pid, 2);
     unsigned start_index = my_partition[0];
     unsigned block_size = my_partition[1] - my_partition[0];
     return std::make_tuple(start_index, block_size);
 }
 
+} // namespace HDF5.
 } // namespace Kratos.

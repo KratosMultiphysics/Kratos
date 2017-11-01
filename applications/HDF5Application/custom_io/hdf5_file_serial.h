@@ -25,31 +25,33 @@
 
 namespace Kratos
 {
+namespace HDF5
+{
 ///@addtogroup HDF5Application
 ///@{
 
 /// A class for accessing an HDF5 file from a single process.
-class HDF5FileSerial : public HDF5File
+class FileSerial : public File
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(HDF5FileSerial);
+    KRATOS_CLASS_POINTER_DEFINITION(FileSerial);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    explicit HDF5FileSerial(Parameters& rParams);
+    explicit FileSerial(Parameters& rParams);
 
     // Copy constructor.
-    HDF5FileSerial(const HDF5FileSerial& rOther) = delete;
+    FileSerial(const FileSerial& rOther) = delete;
 
     // Assignment operator.
-    HDF5FileSerial& operator=(const HDF5FileSerial& rOther) = delete;
+    FileSerial& operator=(const FileSerial& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -223,7 +225,7 @@ private:
         dims[1] = rData.size2();
 
         // Set the data type.
-        hid_t dtype_id = HDF5Utils::GetDataType<T>();
+        hid_t dtype_id = Detail::GetScalarDataType<T>();
 
         // Create and write the data set.
         hid_t dspace_id = H5Screate_simple(ndims, dims, nullptr);
@@ -357,7 +359,7 @@ private:
         mem_dims[1] = rData.size2(); // Set second dimension.
 
         // Set the data type.
-        hid_t dtype_id = HDF5Utils::GetDataType<T>();
+        hid_t dtype_id = Detail::GetScalarDataType<T>();
         if (dtype_id == H5T_NATIVE_INT)
         {
             KRATOS_ERROR_IF_NOT(HasIntDataType(Path))
@@ -388,6 +390,7 @@ private:
 };
 
 ///@} addtogroup
+} // namespace HDF5.
 } // namespace Kratos.
 
 #endif // KRATOS_HDF5_FILE_SERIAL_H_INCLUDED defined

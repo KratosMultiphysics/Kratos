@@ -4,7 +4,9 @@
 
 namespace Kratos
 {
-HDF5File::HDF5File(Parameters& rParams)
+namespace HDF5
+{
+File::File(Parameters& rParams)
 {
     KRATOS_TRY;
 
@@ -54,18 +56,18 @@ HDF5File::HDF5File(Parameters& rParams)
     KRATOS_CATCH("");
 }
 
-HDF5File::~HDF5File()
+File::~File()
 {
     H5Fclose(m_file_id);
 }
 
-bool HDF5File::HasPath(std::string Path) const
+bool File::HasPath(std::string Path) const
 {
     KRATOS_TRY;
     // Expects a valid path.
-    KRATOS_ERROR_IF_NOT(HDF5Utils::IsPath(Path)) << "Invalid path: \"" << Path << '"' << std::endl;
+    KRATOS_ERROR_IF_NOT(Detail::IsPath(Path)) << "Invalid path: \"" << Path << '"' << std::endl;
 
-    std::vector<std::string> splitted_path = HDF5Utils::Split(Path, '/');
+    std::vector<std::string> splitted_path = Detail::Split(Path, '/');
     std::string sub_path;
     for (const auto& r_link: splitted_path)
     {
@@ -86,7 +88,7 @@ bool HDF5File::HasPath(std::string Path) const
     KRATOS_CATCH("");
 }
 
-bool HDF5File::IsGroup(std::string Path) const
+bool File::IsGroup(std::string Path) const
 {
     KRATOS_TRY;
     if (HasPath(Path) == false) // Expects a valid path.
@@ -100,7 +102,7 @@ bool HDF5File::IsGroup(std::string Path) const
     KRATOS_CATCH("");
 }
 
-bool HDF5File::IsDataSet(std::string Path) const
+bool File::IsDataSet(std::string Path) const
 {
     KRATOS_TRY;
     if (HasPath(Path) == false) // Expects a valid path.
@@ -114,7 +116,7 @@ bool HDF5File::IsDataSet(std::string Path) const
     KRATOS_CATCH("");
 }
 
-bool HDF5File::HasAttribute(std::string ObjectPath, std::string Name) const
+bool File::HasAttribute(std::string ObjectPath, std::string Name) const
 {
     KRATOS_TRY;
     htri_t status =
@@ -124,7 +126,7 @@ bool HDF5File::HasAttribute(std::string ObjectPath, std::string Name) const
     KRATOS_CATCH("");
 }
 
-void HDF5File::GetAttributeNames(std::string ObjectPath, std::vector<std::string>& rNames) const
+void File::GetAttributeNames(std::string ObjectPath, std::vector<std::string>& rNames) const
 {
     KRATOS_TRY;
     constexpr unsigned max_ssize = 100;
@@ -154,7 +156,7 @@ void HDF5File::GetAttributeNames(std::string ObjectPath, std::vector<std::string
     KRATOS_CATCH("");
 }
 
-void HDF5File::CreateGroup(std::string Path)
+void File::CreateGroup(std::string Path)
 {
     KRATOS_TRY;
     hid_t group_id =
@@ -164,11 +166,11 @@ void HDF5File::CreateGroup(std::string Path)
     KRATOS_CATCH("");
 }
 
-void HDF5File::AddPath(std::string Path)
+void File::AddPath(std::string Path)
 {
-    KRATOS_ERROR_IF(HDF5Utils::IsPath(Path) == false) << "Invalid path: " << Path << std::endl;
+    KRATOS_ERROR_IF(Detail::IsPath(Path) == false) << "Invalid path: " << Path << std::endl;
 
-    std::vector<std::string> splitted_path = HDF5Utils::Split(Path, '/');
+    std::vector<std::string> splitted_path = Detail::Split(Path, '/');
     std::string sub_path;
     for (const auto& r_link: splitted_path)
     {
@@ -181,112 +183,112 @@ void HDF5File::AddPath(std::string Path)
     }
 }
 
-void HDF5File::WriteDataSet(std::string Path, const Vector<int>& rData)
+void File::WriteDataSet(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSet(std::string Path, const Vector<double>& rData)
+void File::WriteDataSet(std::string Path, const Vector<double>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData)
+void File::WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSet(std::string Path, const Matrix<int>& rData)
+void File::WriteDataSet(std::string Path, const Matrix<int>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSet(std::string Path, const Matrix<double>& rData)
+void File::WriteDataSet(std::string Path, const Matrix<double>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataPartition(std::string Path, const Vector<int>& rData)
+void File::WriteDataPartition(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataPartition(std::string Path, const Vector<double>& rData)
+void File::WriteDataPartition(std::string Path, const Vector<double>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData)
+void File::WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataPartition(std::string Path, const Matrix<int>& rData)
+void File::WriteDataPartition(std::string Path, const Matrix<int>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataPartition(std::string Path, const Matrix<double>& rData)
+void File::WriteDataPartition(std::string Path, const Matrix<double>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSetIndependent(std::string Path, const Vector<int>& rData)
+void File::WriteDataSetIndependent(std::string Path, const Vector<int>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSetIndependent(std::string Path, const Vector<double>& rData)
+void File::WriteDataSetIndependent(std::string Path, const Vector<double>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSetIndependent(std::string Path, const Vector<array_1d<double, 3>>& rData)
+void File::WriteDataSetIndependent(std::string Path, const Vector<array_1d<double, 3>>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSetIndependent(std::string Path, const Matrix<int>& rData)
+void File::WriteDataSetIndependent(std::string Path, const Matrix<int>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSetIndependent(std::string Path, const Matrix<double>& rData)
+void File::WriteDataSetIndependent(std::string Path, const Matrix<double>& rData)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-std::vector<unsigned> HDF5File::GetDataDimensions(std::string Path) const
+std::vector<unsigned> File::GetDataDimensions(std::string Path) const
 {
     KRATOS_TRY;
     constexpr int max_ndims = 5;
@@ -310,7 +312,7 @@ std::vector<unsigned> HDF5File::GetDataDimensions(std::string Path) const
     KRATOS_CATCH("");
 }
 
-bool HDF5File::HasIntDataType(std::string Path) const
+bool File::HasIntDataType(std::string Path) const
 {
     KRATOS_TRY;
     hid_t dset_id, dtype_id;
@@ -327,7 +329,7 @@ bool HDF5File::HasIntDataType(std::string Path) const
     KRATOS_CATCH("");
 }
 
-bool HDF5File::HasFloatDataType(std::string Path) const
+bool File::HasFloatDataType(std::string Path) const
 {
     KRATOS_TRY;
     hid_t dset_id, dtype_id;
@@ -344,13 +346,13 @@ bool HDF5File::HasFloatDataType(std::string Path) const
     KRATOS_CATCH("");
 }
 
-void HDF5File::Flush()
+void File::Flush()
 {
     KRATOS_ERROR_IF(H5Fflush(m_file_id, H5F_SCOPE_GLOBAL) < 0)
         << "H5Fflush failed." << std::endl;
 }
 
-unsigned HDF5File::GetFileSize() const
+unsigned File::GetFileSize() const
 {
     hsize_t size;
     KRATOS_ERROR_IF(H5Fget_filesize(m_file_id, &size) < 0)
@@ -359,102 +361,102 @@ unsigned HDF5File::GetFileSize() const
     return size;
 }
 
-std::string HDF5File::GetFileName() const
+std::string File::GetFileName() const
 {
     return m_file_name;
 }
 
-int HDF5File::GetEchoLevel() const
+int File::GetEchoLevel() const
 {
     return m_echo_level;
 }
 
-void HDF5File::SetEchoLevel(int Level)
+void File::SetEchoLevel(int Level)
 {
     m_echo_level = Level;
 }
 
-unsigned HDF5File::GetPID() const
+unsigned File::GetPID() const
 {
     return 0;
 }
 
-unsigned HDF5File::GetTotalProcesses() const
+unsigned File::GetTotalProcesses() const
 {
     return 1;
 }
 
-void HDF5File::ReadDataSet(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSet(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSet(std::string Path, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSet(std::string Path, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSet(std::string Path, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSet(std::string Path, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSet(std::string Path, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSet(std::string Path, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSet(std::string Path, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSet(std::string Path, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSetIndependent(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSetIndependent(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSetIndependent(std::string Path, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSetIndependent(std::string Path, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSetIndependent(std::string Path, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSetIndependent(std::string Path, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSetIndependent(std::string Path, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSetIndependent(std::string Path, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSetIndependent(std::string Path, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSetIndependent(std::string Path, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-unsigned HDF5File::GetOpenObjectsCount() const
+unsigned File::GetOpenObjectsCount() const
 {
     KRATOS_TRY;
     ssize_t num_open_objects = H5Fget_obj_count(m_file_id, H5F_OBJ_ALL);
@@ -463,12 +465,12 @@ unsigned HDF5File::GetOpenObjectsCount() const
     KRATOS_CATCH("");
 }
 
-hid_t HDF5File::GetFileId() const
+hid_t File::GetFileId() const
 { 
     return m_file_id;
 }
 
-void HDF5File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
+void File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
 {
     KRATOS_TRY;
 #if (defined(_WIN32) || defined(_WIN64))
@@ -509,4 +511,5 @@ void HDF5File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
     KRATOS_CATCH("");
 }
 
-} // // namespace Kratos.
+} // namespace HDF5.
+} // namespace Kratos.

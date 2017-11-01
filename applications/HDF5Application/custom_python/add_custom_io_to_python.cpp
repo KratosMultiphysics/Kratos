@@ -47,35 +47,35 @@ void AddCustomIOToPython()
         .def("WriteModelPart",&HDF5IO::WriteModelPart)
     ;
 
-    class_<HDF5File, HDF5File::Pointer, boost::noncopyable >("HDF5File", init<Parameters&>())
-    .def("HasPath",&HDF5File::HasPath)
-    .def("IsGroup",&HDF5File::IsGroup)
-    .def("IsDataSet",&HDF5File::IsDataSet)
-    .def("CreateGroup",&HDF5File::CreateGroup)
-    .def("AddPath",&HDF5File::AddPath)
-    .def("GetDataDimensions",&HDF5File::GetDataDimensions)
-    .def("HasIntDataType",&HDF5File::HasIntDataType)
-    .def("HasFloatDataType",&HDF5File::HasFloatDataType)
-    .def("Flush",&HDF5File::Flush)
-    .def("GetFileSize",&HDF5File::GetFileSize)
-    .def("GetFileName",&HDF5File::GetFileName)
+    class_<HDF5::File, HDF5::File::Pointer, boost::noncopyable >("HDF5File", init<Parameters&>())
+    .def("HasPath",&HDF5::File::HasPath)
+    .def("IsGroup",&HDF5::File::IsGroup)
+    .def("IsDataSet",&HDF5::File::IsDataSet)
+    .def("CreateGroup",&HDF5::File::CreateGroup)
+    .def("AddPath",&HDF5::File::AddPath)
+    .def("GetDataDimensions",&HDF5::File::GetDataDimensions)
+    .def("HasIntDataType",&HDF5::File::HasIntDataType)
+    .def("HasFloatDataType",&HDF5::File::HasFloatDataType)
+    .def("Flush",&HDF5::File::Flush)
+    .def("GetFileSize",&HDF5::File::GetFileSize)
+    .def("GetFileName",&HDF5::File::GetFileName)
     ;
 
-    class_<HDF5FileSerial, HDF5FileSerial::Pointer, bases<HDF5File>, boost::noncopyable>(
-        "HDF5FileSerial", init<Parameters&>())
+    class_<HDF5::FileSerial, HDF5::FileSerial::Pointer, bases<HDF5::File>, boost::noncopyable>(
+        "HDF5::FileSerial", init<Parameters&>())
     ;
     
-    class_<HDF5ModelPartIO, HDF5ModelPartIO::Pointer, bases<IO>, boost::noncopyable>(
-        "HDF5ModelPartIO", init<Parameters&, HDF5File::Pointer>())
+    class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, bases<IO>, boost::noncopyable>(
+        "HDF5ModelPartIO", init<Parameters&, HDF5::File::Pointer>())
     ;
 
 #ifdef KRATOS_USING_MPI
-    class_<HDF5FileParallel, HDF5FileParallel::Pointer, bases<HDF5File>, boost::noncopyable>(
-        "HDF5FileParallel", init<Parameters&>())
+    class_<HDF5::FileParallel, HDF5::FileParallel::Pointer, bases<HDF5::File>, boost::noncopyable>(
+        "HDF5::FileParallel", init<Parameters&>())
     ;
 
-    class_<HDF5PartitionedModelPartIO, HDF5PartitionedModelPartIO::Pointer, bases<IO>, boost::noncopyable>(
-        "HDF5PartitionedModelPartIO", init<Parameters&, HDF5File::Pointer>())
+    class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, bases<IO>, boost::noncopyable>(
+        "HDF5PartitionedModelPartIO", init<Parameters&, HDF5::File::Pointer>())
     ;
 #endif
     

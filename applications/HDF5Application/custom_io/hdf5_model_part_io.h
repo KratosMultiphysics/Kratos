@@ -32,25 +32,27 @@
 
 namespace Kratos
 {
+namespace HDF5
+{
 ///@addtogroup HDF5Application
 ///@{
 
 /// A class for serial IO of a model part in HDF5.
-class HDF5ModelPartIO : public IO
+class ModelPartIO : public IO
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(HDF5ModelPartIO);
+    KRATOS_CLASS_POINTER_DEFINITION(ModelPartIO);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    HDF5ModelPartIO(Parameters& rParams, HDF5File::Pointer pFile);
+    ModelPartIO(Parameters& rParams, HDF5::File::Pointer pFile);
 
     ///@}
     ///@name Operations
@@ -89,7 +91,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    HDF5File& GetFile() const;
+    HDF5::File& GetFile() const;
 
     virtual void Check();
 
@@ -99,7 +101,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    HDF5File::Pointer mpFile;
+    HDF5::File::Pointer mpFile;
     std::vector<unsigned> mCurrentFillPosition;
     std::vector<std::string> mElementNames;
     std::vector<const Element*> mElementPointers;
@@ -154,17 +156,17 @@ private:
     void WriteMixedConditions(ConditionsContainerType const& rConditions);
 
     void AddElements(const Element& rElement,
-                     const HDF5File::Vector<int>& rElementIds,
-                     const HDF5File::Vector<int>& rPropertyIds,
-                     const HDF5File::Matrix<int>& rConnectivities,
+                     const HDF5::File::Vector<int>& rElementIds,
+                     const HDF5::File::Vector<int>& rPropertyIds,
+                     const HDF5::File::Matrix<int>& rConnectivities,
                      NodesContainerType& rNodes,
                      PropertiesContainerType& rProperties,
                      ElementsContainerType& rElements);
 
     void AddConditions(const Condition& rCondition,
-                       const HDF5File::Vector<int>& rConditionIds,
-                       const HDF5File::Vector<int>& rPropertyIds,
-                       const HDF5File::Matrix<int>& rConnectivities,
+                       const HDF5::File::Vector<int>& rConditionIds,
+                       const HDF5::File::Vector<int>& rPropertyIds,
+                       const HDF5::File::Matrix<int>& rConnectivities,
                        NodesContainerType& rNodes,
                        PropertiesContainerType& rProperties,
                        ConditionsContainerType& rConditions);
@@ -172,6 +174,7 @@ private:
 };
 
 ///@} addtogroup
+} // namespace HDF5.
 } // namespace Kratos.
 
 #endif // KRATOS_HDF5_MODEL_PART_IO_H_INCLUDED defined

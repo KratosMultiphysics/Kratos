@@ -29,25 +29,27 @@
 
 namespace Kratos
 {
+namespace HDF5
+{
 ///@addtogroup HDF5Application
 ///@{
 
 /// A class for partitioned IO of a model part in HDF5.
-class HDF5PartitionedModelPartIO : public IO
+class PartitionedModelPartIO : public IO
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(HDF5PartitionedModelPartIO);
+    KRATOS_CLASS_POINTER_DEFINITION(PartitionedModelPartIO);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    HDF5PartitionedModelPartIO(Parameters& rParams, HDF5File::Pointer pFile);
+    PartitionedModelPartIO(Parameters& rParams, HDF5::File::Pointer pFile);
 
     ///@}
     ///@name Operations
@@ -88,7 +90,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    HDF5File& GetFile() const;
+    HDF5::File& GetFile() const;
 
     virtual void Check();
 
@@ -97,7 +99,7 @@ protected:
 private:
     ///@name Member Variables
     ///@{
-    HDF5File::Pointer mpFile;
+    HDF5::File::Pointer mpFile;
     ///@}
 
     ///@name Private Operations
@@ -107,6 +109,7 @@ private:
 };
 
 ///@} addtogroup
+} // namespace HDF5.
 } // namespace Kratos.
 
 #endif // KRATOS_PARTITIONED_HDF5_MODEL_PART_IO_H_INCLUDED defined
