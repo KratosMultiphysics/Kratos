@@ -348,7 +348,7 @@ namespace Kratos
 
             // Compute the ouwards unit normal vector values
             for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
-                array_1d<double,3> aux_unit_normal = r_interface_geom.Normal(interface_gauss_pts[i_gauss].Coordinates());
+                array_1d<double,3> aux_unit_normal = r_interface_geom.UnitNormal(interface_gauss_pts[i_gauss].Coordinates());
                 // array_1d<double,3> aux_unit_normal = ZeroVector(3);
                 rInterfaceUnitNormalValues.push_back(aux_unit_normal);
             }
