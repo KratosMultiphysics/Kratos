@@ -30,7 +30,10 @@ namespace Kratos
     {
         ///@addtogroup Kratos
         ///@{
+        
+        ///type definitions
         typedef omp_lock_t LockType;
+        typedef int ThreadIdType; //do not expect this to be an int. It is not for C++11 parallelism
         
         inline LockType ConstructLock()
         {
@@ -58,7 +61,7 @@ namespace Kratos
     #endif
         }
         
-        inline int GetThreadHashId()
+        inline ThreadIdType GetThreadHashId()
         {
     #ifdef _OPENMP
             return omp_get_thread_num();
