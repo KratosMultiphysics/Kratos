@@ -271,7 +271,7 @@ public:
 
     static void ScaleAndAdd(const double A, const VectorType& rX, const double B, const VectorType& rY, VectorType& rZ) // rZ = (A * rX) + (B * rY)
     {
-        rZ.Update(A, rX, B, rY, 1.0);
+        rZ.Update(A, rX, B, rY, 0.0);
     }
 
     static void ScaleAndAdd(const double A, const VectorType& rX, const double B, VectorType& rY) // rY = (A * rX) + (B * rY)
@@ -370,19 +370,6 @@ public:
         }
     }
 
-    // 	static void Clear(VectorType& rX)
-    // 	{
-    // 		int global_elems = 0;
-    // 		Epetra_Map Map(global_elems,0,rX.Comm());
-    // 		rX = VectorType(Map);
-    // 	}
-
-    template<class TOtherMatrixType>
-    inline static void ClearData(TOtherMatrixType& rA)
-    {
-        rA.PutScalar(0.0);
-    }
-
     inline static void SetToZero(MatrixType& rA)
     {
         rA.PutScalar(0.0);
@@ -391,7 +378,6 @@ public:
     inline static void SetToZero(VectorType& rX)
     {
         rX.PutScalar(0.0);
-        ;
     }
 
     /// TODO: creating the the calculating reaction version

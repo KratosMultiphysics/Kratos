@@ -3,16 +3,16 @@
         "problem_name"    : "Eigen_Q4_Thick_2x2_Plate_test",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_eigensolver",
+        "solver_type"                        : "eigen_value",
+        "scheme_type"                        : "dynamic",
         "echo_level"                         : 0,
-        "solution_type"                      : "Dynamic",
-        "analysis_type"                      : "Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "eigen_test/Eigen_Q4_Thick_2x2_Plate"
@@ -29,7 +29,7 @@
         "lambda_max": 1.0e4,
         "search_dimension": 9,
         "linear_solver_settings":{
-            "solver_type": "skyline_lu"
+            "solver_type": "complex_skyline_lu_solver"
         }
 	},
         "problem_domain_sub_model_part_list" : ["Parts_plate"],
@@ -37,30 +37,27 @@
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_support",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
     }],
     "loads_process_list"       : [],
     "list_other_processes" :[{
         "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
-        "python_module"   : "check_eigenvalues_process",
-        "help"                  : "",
-        "process_name"          : "CheckEigenvaluesProcess",
-        "Parameters"            : {
+        "python_module" : "check_eigenvalues_process",
+        "help"          : "",
+        "process_name"  : "CheckEigenvaluesProcess",
+        "Parameters"    : {
             "model_part_name"  : "Structure",
-	    "variable_name"   : "EIGENVALUE_VECTOR",                                              
-            "reference_values": "[138.05922354056685, 3955.0855388258715, 7796.83946434412]"
+	        "variable_name"    : "EIGENVALUE_VECTOR",                                              
+            "reference_values" : "[138.05922354056685, 3955.0855388258715, 7796.83946434412]"
         }
     }],
     "restart_options"          : {

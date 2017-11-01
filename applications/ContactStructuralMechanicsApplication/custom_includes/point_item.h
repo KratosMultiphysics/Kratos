@@ -20,6 +20,9 @@
 #include "includes/condition.h"
 #include "geometries/point.h"
 
+/* Custom utilities */
+#include "custom_utilities/contact_utilities.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -43,7 +46,7 @@ namespace Kratos
 
 /** @brief Custom Point container to be used by the mapper
  */
-class PointItem: public Point<3>
+class PointItem: public Point
 {
 public:
 
@@ -58,30 +61,30 @@ public:
 
     /// Default constructors
     PointItem():
-        Point<3>()
+        Point()
     {}
 
     PointItem(const array_1d<double, 3> Coords):
-        Point<3>(Coords)
+        Point(Coords)
     {}
     
-    PointItem(Condition::Pointer Cond):
-        mpOriginCond(Cond)
+    PointItem(Condition::Pointer pCond):
+        mpOriginCond(pCond)
     {
-        UpdatePoint();
+        UpdatePoint(0.0);
     }
     
     PointItem(
         const array_1d<double, 3> Coords,
-        Condition::Pointer Cond
+        Condition::Pointer pCond
     ):
-        Point<3>(Coords),
-        mpOriginCond(Cond)
+        Point(Coords),
+        mpOriginCond(pCond)
     {}
 
     ///Copy constructor  (not really required)
     PointItem(const PointItem& rhs):
-        Point<3>(rhs),
+        Point(rhs),
         mpOriginCond(rhs.mpOriginCond)
     {
     }
@@ -101,9 +104,9 @@ public:
      * Returns the point
      * @return The point
      */
-    Point<3> GetPoint()
+    Point GetPoint()
     {
-        Point<3> Point(this->Coordinates());
+        Point Point(this->Coordinates());
         
         return Point;
     }
@@ -112,7 +115,7 @@ public:
      * Set the point
      * @param The point
      */
-    void SetPoint(const Point<3> Point)
+    void SetPoint(const Point Point)
     {
         this->Coordinates() = Point.Coordinates();
     }
@@ -122,9 +125,9 @@ public:
      * @param Cond: The pointer to the condition
      */
 
-    void SetCondition(Condition::Pointer Cond)
+    void SetCondition(Condition::Pointer pCond)
     {
-        mpOriginCond = Cond;
+        mpOriginCond = pCond;
     }
     
     /**
@@ -142,9 +145,21 @@ public:
      * @return Coordinates: The coordinates of the item
      */
 
-    void UpdatePoint()
-    {
-        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
+    void UpdatePoint(const double& DeltaTime)
+    {        
+        bool update_coordinates = false;
+        if (mpOriginCond->GetGeometry()[0].SolutionStepsDataHas(VELOCITY_X) == true && DeltaTime > 0.0)
+        {
+            update_coordinates = true;
+        }
+        if (update_coordinates == true)
+        {
+            this->Coordinates() = ContactUtilities::GetHalfJumpCenter(mpOriginCond->GetGeometry(), DeltaTime); // NOTE: Center in half delta time
+        }
+        else
+        {
+            this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates(); // NOTE: Real center
+        }
     }
 
 protected:

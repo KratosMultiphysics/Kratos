@@ -32,7 +32,6 @@
 #include "thermo_mechanical_application.h"
 #include "includes/convection_diffusion_settings.h"
 #include "utilities/geometry_utilities.h"
-#include "includes/deprecated_variables.h"
 #include "includes/c2c_variables.h"
 #include "includes/cfd_variables.h"
 
@@ -150,9 +149,9 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	const array_1d<double, 3 > & w = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
 	double gp_dist = N[0]*GetGeometry()[0].FastGetSolutionStepValue(DISTANCE);
 
-	double FF = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SOLID_FRACTION);
-	double old_FF = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SOLID_FRACTION,1);	
-    double DF_DT = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SOLID_FRACTION_RATE);
+	double FF = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SOLIDFRACTION);
+	double old_FF = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SOLIDFRACTION,1);	
+    double DF_DT = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SOLIDFRACTION_RATE);
 	double old_T = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar, 1);
 	double T =  N[0]*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
 
@@ -166,9 +165,9 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	    specific_heat += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
 	    heat_source += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
 
-	    FF += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION);
-	    old_FF += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION,1);
-	    DF_DT += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_RATE);
+	    FF += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SOLIDFRACTION);
+	    old_FF += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SOLIDFRACTION,1);
+	    DF_DT += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SOLIDFRACTION_RATE);
 	    old_T += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar, 1);	    
 	    T += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
 		gp_dist += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);

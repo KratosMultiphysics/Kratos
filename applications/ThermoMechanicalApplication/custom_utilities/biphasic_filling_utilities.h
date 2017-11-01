@@ -40,7 +40,7 @@
 //#include "includes/variables.h"
 #include "../incompressible_fluid_application/custom_utilities/parallel_extrapolation_utilities.h"
 #include "includes/kratos_flags.h"
-#include "includes/deprecated_variables.h"
+#include "includes/c2c_variables.h"
 #include "includes/cfd_variables.h"
 
 
@@ -752,7 +752,7 @@ public:
 		const double dist = it->FastGetSolutionStepValue(DISTANCE);
 		if(dist<=0.0)
 		{
-			const double alpha = 1.0 + pow(it->FastGetSolutionStepValue(SOLID_FRACTION),2);
+			const double alpha = 1.0 + pow(it->FastGetSolutionStepValue(SOLIDFRACTION),2);
 			double& visc = it->FastGetSolutionStepValue(VISCOSITY);
                         visc *= alpha*ViscosityFactor;
 			//visc *= (ViscosityFactor - (ViscosityFactor -1.0)*(1.0 - alpha));
@@ -1214,7 +1214,7 @@ private:
 		//double temperature = it->FastGetSolutionStepValue(TEMPERATURE);
 		double distance = it->FastGetSolutionStepValue(DISTANCE);
 		if(distance <= 0.0 && fabs(distance) <= ref_dist){
-			double solid_fraction = it->FastGetSolutionStepValue(SOLID_FRACTION);
+			double solid_fraction = it->FastGetSolutionStepValue(SOLIDFRACTION);
 			if(solid_fraction < 0.9)
             {
 				is_hot=1;

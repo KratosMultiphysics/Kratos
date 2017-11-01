@@ -3,16 +3,16 @@
         "problem_name"    : "4PunktSegel_noCable",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 10.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
+        "solver_type"                        : "Static",
         "echo_level"                         : 0,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Formfinding",
+        "analysis_type"                      : "formfinding",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "formfinding_test/Fofi_4Point_Tent_noCable"
@@ -21,7 +21,7 @@
             "materials_filename": "formfinding_test/Fofi_4Point_Tent_noCable_test_materials.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "Residual_criterion",
+        "convergence_criterion"              : "residual_criterion",
         "residual_relative_tolerance"        : 0.00000001,
         "max_iteration"                      : 1,
 		"move_mesh_flag"					 : true,
@@ -35,17 +35,15 @@
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_dirichlet",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0]
         }
     }],
@@ -62,11 +60,11 @@
     },
     "list_other_processes": [
     {
-        "python_module"   : "from_json_check_result_process",
+        "python_module" : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
+        "help"          : "",
+        "process_name"  : "FromJsonCheckResultProcess",
+        "Parameters"    : {
             "check_variables"  : ["DISPLACEMENT_Z"],
             "input_file_name"  : "formfinding_test/Fofi_4Point_Tent_noCable_test_results.json",
             "model_part_name"  : "Structure",
@@ -76,11 +74,11 @@
     ],
     "print_output_process" : [
     {
-        "python_module"   : "json_output_process",
+        "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
+        "help"          : "",
+        "process_name"  : "JsonOutputProcess",
+        "Parameters"    : {
             "output_variables" : ["DISPLACEMENT_Z"],
             "output_file_name" : "formfinding_test/Fofi_4Point_Tent_noCable_test_results.json",
             "model_part_name"  : "Structure",

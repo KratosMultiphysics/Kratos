@@ -1,0 +1,276 @@
+Begin ModelPartData
+
+End ModelPartData
+Begin Properties 0
+End Properties
+Begin Properties 2
+    DENSITY   7.85000E+03 
+    VISCOSITY   1.00000E-06 
+End Properties
+Begin Nodes 
+34	0.01401	-0.35733	0.00000
+39	0.17300	-0.50000	0.00000
+11	0.18145	-0.31476	0.00000
+69	0.01900	-0.28426	0.19353
+49	0.10070	-0.37871	0.15839
+68	-0.00077	-0.50000	0.25000
+7	0.19212	-0.17700	0.00000
+40	0.35680	-0.50000	0.00000
+30	0.13799	-0.03012	0.10978
+8	0.33541	-0.21888	0.00000
+60	0.32911	-0.33505	0.13976
+42	0.18428	-0.19133	0.25000
+41	0.27488	-0.50000	0.25000
+2	0.32613	0.01200	0.00000
+9	0.30550	-0.10401	0.12232
+66	0.50000	-0.50000	0.00000
+16	0.50000	-0.32500	0.00000
+4	0.27504	0.07646	0.10536
+17	0.50000	-0.10561	0.00000
+67	0.50000	-0.50000	0.25000
+5	0.50000	0.19874	0.00000
+18	0.50000	-0.27542	0.25000
+10	0.50000	-0.00077	0.25000
+End Nodes
+Begin Elements Element3D4N
+5	2	7	8	2	9	
+6	2	2	7	9	4	
+7	2	9	2	4	10	
+8	2	7	11	8	9	
+11	2	16	17	8	18	
+18	2	2	17	5	10	
+24	2	8	17	2	9	
+25	2	39	40	11	41	
+37	2	7	34	11	42	
+41	2	7	9	4	30	
+42	2	9	4	30	42	
+43	2	30	9	42	7	
+44	2	9	42	7	11	
+53	2	11	34	39	49	
+54	2	11	34	49	42	
+58	2	39	11	49	41	
+69	2	9	4	42	10	
+86	2	11	8	9	60	
+87	2	11	8	60	40	
+88	2	8	9	60	18	
+89	2	17	2	9	10	
+94	2	40	66	16	60	
+95	2	8	17	9	18	
+96	2	49	11	42	60	
+98	2	60	11	40	41	
+99	2	40	60	41	67	
+100	2	60	41	67	18	
+101	2	67	60	18	16	
+102	2	60	18	16	8	
+103	2	16	60	8	40	
+106	2	42	30	7	34	
+107	2	42	49	60	41	
+108	2	49	60	41	11	
+114	2	66	16	60	67	
+115	2	60	41	18	42	
+126	2	40	66	60	67	
+127	2	9	60	18	42	
+128	2	9	60	42	11	
+137	2	39	49	68	41	
+138	2	49	68	41	42	
+150	2	49	42	69	68	
+165	2	18	9	42	10	
+170	2	9	17	10	18	
+End Elements
+Begin Conditions Condition3D
+3	0	16	17	8	
+6	0	8	17	2	
+9	0	2	17	5	
+20	0	7	34	11	
+23	0	7	11	8	
+24	0	8	11	40	
+25	0	7	8	2	
+45	0	40	66	16	
+47	0	39	40	11	
+48	0	11	34	39	
+51	0	16	8	40	
+End Conditions
+Begin SubModelPart Parts_vol_orig_fluid
+Begin SubModelPartNodes 
+34
+39
+11
+69
+49
+68
+7
+40
+30
+8
+60
+42
+41
+2
+9
+66
+16
+4
+17
+67
+5
+18
+10
+End SubModelPartNodes
+Begin SubModelPartElements 
+5
+6
+7
+8
+11
+18
+24
+25
+37
+41
+42
+43
+44
+53
+54
+58
+69
+86
+87
+88
+89
+94
+95
+96
+98
+99
+100
+101
+102
+103
+106
+107
+108
+114
+115
+126
+127
+128
+137
+138
+150
+165
+170
+End SubModelPartElements
+Begin SubModelPartConditions 
+End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart FluidNoSlipInterface3D_interface_orig_fluid
+Begin SubModelPartNodes 
+34
+39
+11
+7
+40
+8
+2
+66
+16
+17
+5
+End SubModelPartNodes
+Begin SubModelPartElements 
+End SubModelPartElements
+Begin SubModelPartConditions 
+3
+6
+9
+20
+23
+24
+25
+45
+47
+48
+51
+End SubModelPartConditions
+End SubModelPart
+Begin NodalData PARTITION_INDEX
+2  0  0
+4  0  1
+5  0  1
+7  0  0
+8  0  0
+9  0  0
+10  0  0
+11  0  0
+16  0  0
+17  0  0
+18  0  0
+30  0  1
+34  0  2
+39  0  0
+40  0  0
+41  0  0
+42  0  0
+49  0  0
+60  0  0
+66  0  0
+67  0  0
+68  0  2
+69  0  2
+End NodalData 
+Begin CommunicatorData 
+NEIGHBOURS_INDICES    [8](1,2,3,-1,-1,-1,-1,-1)
+NUMBER_OF_COLORS    3
+    Begin LocalNodes 0
+    2
+    7
+    8
+    9
+    10
+    11
+    16
+    17
+    18
+    39
+    40
+    41
+    42
+    49
+    60
+    66
+    67
+    End LocalNodes 
+    Begin LocalNodes 1
+    2
+    7
+    10
+    42
+    End LocalNodes 
+    Begin LocalNodes 2
+    39
+    42
+    49
+    End LocalNodes 
+    Begin LocalNodes 3
+    42
+    End LocalNodes 
+    Begin GhostNodes 1
+    4
+    5
+    30
+    End GhostNodes 
+    Begin GhostNodes 2
+    34
+    68
+    69
+    End GhostNodes 
+    Begin GhostNodes 0
+    4
+    5
+    30
+    34
+    68
+    69
+    End GhostNodes 
+End CommunicatorData 
