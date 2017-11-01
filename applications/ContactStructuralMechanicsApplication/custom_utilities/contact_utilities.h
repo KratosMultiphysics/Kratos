@@ -172,7 +172,7 @@ public:
                 CoordinatesArrayType aux_coords;
                 aux_coords = it_cond->GetGeometry().PointLocalCoordinates(aux_coords, it_cond->GetGeometry().Center());
                 array_1d<double, 3>& rNormal = it_cond->GetValue(NORMAL);
-                rNormal = it_cond->GetGeometry().Normal(aux_coords);
+                rNormal = it_cond->GetGeometry().UnitNormal(aux_coords);
                 
                 const unsigned int number_nodes = it_cond->GetGeometry().PointsNumber();
                 
@@ -246,7 +246,7 @@ public:
             {
                 aux_coords = it_cond->GetGeometry().PointLocalCoordinates(aux_coords, it_cond->GetGeometry().Center());
                 array_1d<double, 3>& rNormal = it_cond->GetValue(NORMAL);
-                rNormal = it_cond->GetGeometry().Normal(aux_coords);
+                rNormal = it_cond->GetGeometry().UnitNormal(aux_coords);
                 
                 const unsigned int number_nodes = it_cond->GetGeometry().PointsNumber();
                 const double & rArea = it_cond->GetGeometry().Area()/number_nodes;
