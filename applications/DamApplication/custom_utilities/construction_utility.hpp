@@ -54,12 +54,17 @@ public:
             mHeight = rParameters["height_dam"].GetDouble();
             mPhases = rParameters["number_of_phases"].GetInt();
             mSourceType = rParameters["source_type"].GetString();
-            mAlphaInitial = rParameters["alpha_initial"].GetDouble();            
             mH0 = rParameters["h_0"].GetDouble();
             mTimeUnitConverter = mrMechanicalModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
             mMechanicalSoilPart = rParameters["mechanical_soil_part"].GetString();   
             mThermalSoilPart = rParameters["thermal_soil_part"].GetString();   
             
+            mAlphaInitial = 0.0;
+            if (mSourceType == "NonAdiabatic")
+            {            
+                mAlphaInitial = rParameters["alpha_initial"].GetDouble();            
+            }
+
             KRATOS_CATCH("");
         }
 
@@ -97,18 +102,18 @@ void Initialize()
         }
 
         // Same nodes for both computing model part
-        ModelPart::NodesContainerType::iterator it_begin = mrMechanicalModelPart.NodesBegin();        
+        ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();        
         #pragma omp parallel for
         for(unsigned int i = 0; i<nnodes; ++i)
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
             it->Set(ACTIVE,false);
+            it->Set(SOLID,false);
         }
 
     }
 
     // Activation of the soil ( User must specify the soil part through the interface)
-
     const unsigned int soil_nelements = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Elements().size();   
     const unsigned int soil_nnodes = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Nodes().size();
 
@@ -128,20 +133,20 @@ void Initialize()
         }
 
         // Same nodes for both computing model part
-        ModelPart::NodesContainerType::iterator it_begin = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).NodesBegin();        
+        ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.GetSubModelPart(mThermalSoilPart).NodesBegin();        
         #pragma omp parallel for
         for(unsigned int i = 0; i<soil_nnodes; ++i)
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
             it->Set(ACTIVE,true);
+            it->Set(SOLID,true);
         }
-
     }
 
     // Assign Alpha Initial in case of using Azenha Formulation
     if (mSourceType == "NonAdiabatic")
     {
-        ModelPart::NodesContainerType::iterator it_begin = mrMechanicalModelPart.NodesBegin();        
+        ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();        
         #pragma omp parallel for
         for(unsigned int i = 0; i<nnodes; ++i)
         {
@@ -181,7 +186,7 @@ void AssignTimeActivation(std::string ThermalSubModelPartName, int phase, double
             ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
             array_1d<double,3> central_position = it_thermal->GetGeometry().Center();
 
-            if((central_position(direction) >= previous_height) && (central_position(direction) <= current_height) )
+            if((central_position(direction) >= previous_height) && (central_position(direction) <= current_height))
             {
                 const unsigned int number_of_points = it_thermal->GetGeometry().PointsNumber();
                 for(unsigned int i = 0; i<number_of_points; ++i)
@@ -240,9 +245,6 @@ void InitializeSolutionStep(std::string ThermalSubModelPartName, std::string Mec
             }
         }
     }
-
-    // Detecting and creating face heat flux
-    this->SearchingFluxes();
            
     KRATOS_CATCH("");
 }
@@ -428,8 +430,8 @@ void SearchingFluxes()
                         {
                             for  (unsigned int m = 0; m < number_of_points; ++m)
                             {
-                                ConditionNodeIds[m] = (*it_thermal).GetGeometry().Faces()[i_face][m].Id();
-                            }                       
+                                ConditionNodeIds[m] = (*it_thermal).GetGeometry().Faces()[i_face][m].Id();                                
+                            }
                             this->ActiveFaceHeatFluxStep(ConditionNodeIds);
                             #pragma omp critical
                             {
@@ -461,7 +463,7 @@ void ActiveHeatFluxNoorzai(Parameters& NoorzaiParameters)
     KRATOS_TRY;
 
     const unsigned int nnodes = mrThermalModelPart.Nodes().size();
-    
+   
     // Getting Noorzai Values
     double density = NoorzaiParameters["density"].GetDouble();
     double specific_heat = NoorzaiParameters["specific_heat"].GetDouble();
@@ -469,17 +471,17 @@ void ActiveHeatFluxNoorzai(Parameters& NoorzaiParameters)
     double t_max = NoorzaiParameters["t_max"].GetDouble();
     double time = mrThermalModelPart.GetProcessInfo()[TIME];
 
-    // Same nodes for both computing model part
     ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();        
-    #pragma omp parallel for
+    
+    //#pragma omp parallel for
     for(unsigned int i = 0; i<nnodes; ++i)
     {
         ModelPart::NodesContainerType::iterator it = it_begin + i;
-        time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION)); 
-        if (time >= 0.0)
+        double current_activation_time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION)); 
+        if (current_activation_time >= 0.0 && (it->Is(SOLID)==false))
         {
             // Computing the value of heat flux according the time
-            double value = density*specific_heat*alpha*t_max*(exp(-alpha*time));
+            double value = density*specific_heat*alpha*t_max*(exp(-alpha*current_activation_time));
             it->FastGetSolutionStepValue(HEAT_FLUX) = value;
         }    
     }
@@ -505,8 +507,6 @@ void ActiveHeatFluxAzenha(Parameters& AzenhaParameters)
     double c_coef = AzenhaParameters["C"].GetDouble();
     double d_coef = AzenhaParameters["D"].GetDouble();
 
-    KRATOS_WATCH("ENTRAAAAAAAAAAAAAAAAAA EN AZENHAAAAAAAAAAAAAAAA")
-
     // Tempotal variables
     double time = mrThermalModelPart.GetProcessInfo()[TIME];    
     double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
@@ -516,8 +516,8 @@ void ActiveHeatFluxAzenha(Parameters& AzenhaParameters)
     for(unsigned int i = 0; i<nnodes; ++i)
     {         
         ModelPart::NodesContainerType::iterator it = it_begin + i;
-        time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION)); 
-        if (time >= 0.0)
+        double current_activation_time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION)); 
+        if (current_activation_time >= 0.0 && (it->Is(SOLID)==false))
         {
             // Computing the current alpha according las step.
             double current_alpha = ( (it->FastGetSolutionStepValue(HEAT_FLUX,1))/q_total)*delta_time + (it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE));

@@ -68,65 +68,23 @@ class DamConstructionUtility:
         delta_time = self.mechanical_model_part.ProcessInfo[DELTA_TIME]
         step = int(time/delta_time)-1
 
+        # Activation according the input file
         with open(self.construction_input_file_name,'r') as file_name3:
             for j, line in enumerate(file_name3):
                 file_3 = line.split(" ")
                 if ((len(file_3)) > 1 and (float(file_3[0]) == time)):
-
-                    print (float(file_3[0])) 
+                    print("New phase has been Activated")
                     self.Construction.InitializeSolutionStep(file_3[1],file_3[2],int(file_3[3]))
 
+        # Detection of fluxes (it must be done each step)
+        self.Construction.SearchingFluxes()
+
+        # Contribution of heat source
         if (self.heat_source_type == 'Noorzai'):
             self.Construction.ActiveHeatFluxNoorzai(self.heat_source_parameters)
 
         elif (self.heat_source_type == 'Azenha'):
             self.Construction.ActiveHeatFluxAzenha(self.heat_source_parameters)
-
-        #with open('thermal_parts.txt','r') as file_name4:
-        #    it_t=(thermal_linea for i,thermal_linea in enumerate(file_name4) if i==step)
-        #    for thermal_linea in it_t:
-        #        thermal_name = thermal_linea.rstrip('\n')
-        #
-        #with open('mechanical_parts.txt','r') as file_name5:
-        #    it_m=(mechanical_linea for j,mechanical_linea in enumerate(file_name5) if j==step)
-        #    for mechanical_linea in it_m:
-        #        mechanical_name = mechanical_linea.rstrip('\n')
-#
-        #
-#
-        #if (self.heat_source_type == 'Noorzai'):
-        #    for i in range(self.number_iter+1):
-        #        phase_time = time - self.table_times.GetValue(i)
-        #        if (phase_time>0.0):
-        #            with open('thermal_parts.txt','r') as file_name4:
-        #                it_t=(thermal_linea for w,thermal_linea in enumerate(file_name4) if w==i)
-        #                for thermal_linea in it_t:
-        #                    thermal_name = thermal_linea.rstrip('\n')
-#
-        #            self.Construction.ActiveHeatFluxNoorzai(thermal_name,int(self.table_phase.GetValue(i)),phase_time, self.heat_source_parameters)
-#
-        #elif (self.heat_source_type == 'Azenha'):
-        #    for i in range(self.number_iter+1):
-        #        phase_time = time - self.table_times.GetValue(i)
-        #        if ((phase_time>0.0) and (self.table_times.GetValue(i) != self.table_times.GetValue(i-1))):
-        #            with open('thermal_parts.txt','r') as file_name4:
-        #                it_t=(thermal_linea for w,thermal_linea in enumerate(file_name4) if w==i)
-        #                for thermal_linea in it_t:
-        #                    thermal_name = thermal_linea.rstrip('\n')
-        #                    
-        #                    print(thermal_name)
-#
-        #                    self.Construction.ActiveHeatFluxAzenha(thermal_name,int(self.table_phase.GetValue(i)), self.heat_source_parameters)
-#
-#
-#
-#
-        #                #if(self.table_times.GetValue(i) == self.table_times.GetValue(i-1)):
-        #                #    print("We are not activating")
-        #                #else:
-#
-        #else: 
-        #    print("Error: 'Please select one of the heat sources implemented: Noorzai or Azenha' ")
 
     def AfterOutputStep(self):
         self.Construction.AfterOutputStep()
