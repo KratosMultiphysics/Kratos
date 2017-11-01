@@ -761,7 +761,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     if (mFramework == Lagrangian) 
     {
         NodesArrayType& old_nodes_array = r_old_model_part.Nodes();
-        const SizeType old_num_nodes = old_nodes_array.end() - old_nodes_array.begin();
+        const int old_num_nodes = static_cast<int>(old_nodes_array.size());
         
         #pragma omp parallel for
         for(int i = 0; i < old_num_nodes; ++i)
