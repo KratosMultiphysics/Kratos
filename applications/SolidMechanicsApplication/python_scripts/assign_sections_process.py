@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import importlib
+import math
 
 def Factory(custom_settings, Model):
     if(type(custom_settings) != KratosMultiphysics.Parameters):
@@ -40,8 +41,13 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
         #read variables
         self.variables = self.settings["variables"]
         for key, value in self.variables.items():
-            my_key = "KratosMultiphysics."+key
-            variable = self._GetItemFromModule(my_key)
+            try:
+                my_key = "KratosMultiphysics."+key
+                variable = self._GetItemFromModule(my_key)
+            except:
+                my_key = "KratosMultiphysics.SolidMechanicsApplication."+key
+                variable = self._GetItemFromModule(my_key)
+             
             if( value.IsDouble() ):
                 self.properties.SetValue(variable, value.GetDouble())
             elif( value.IsArray() ):
@@ -77,7 +83,6 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
     def Execute(self):
         
         self._AssignMaterialProperties()
-
         print("::[Section_Assigned]::", self.settings["section_type"].GetString())
         
     #
@@ -111,14 +116,17 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
                     module_name += "."
 
             module = importlib.import_module(module_name)
-            return getattr(module,splitted[-1]) 
+            try:
+                return getattr(module,splitted[-1])
+            except:
+                raise
 
  
     def _AddSectionProperties(self,properties,variables,section_type):
 
         if( (section_type == "IPN") or (section_type == "IPE") or (section_type == "HEB") or (section_type == "HEA") or (section_type == "HEM") or (section_type == "UPN") ):
                         
-            size = self._GetScalarVariableValue("SIZE")
+            size = self._GetScalarVariableValue("SECTION_SIZE")
 
             import os
             csv_file = os.path.dirname(__file__) + '/beam_profiles.csv'
@@ -165,8 +173,8 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
 
         elif( section_type == "Rectangular" ):
 
-            height_square = self._GetScalarVariableValue("HEIGHT")
-            base_square   = self._GetScalarVariableValue("WIDTH")
+            height_square = self._GetScalarVariableValue("SECTION_HEIGHT")
+            base_square   = self._GetScalarVariableValue("SECTION_WIDTH")
             
             square_area = base_square * height_square
             square_inertia_z = (base_square * height_square ** 3) / 12.0
@@ -184,7 +192,7 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
             
             properties.SetValue(KratosMultiphysics.LOCAL_INERTIA_TENSOR, inertia_matrix)
             properties.SetValue(KratosSolid.CROSS_SECTION_AREA, square_area)
-            mean_radius = sqrt(square_area)
+            mean_radius = math.sqrt(square_area)
             properties.SetValue(KratosSolid.CROSS_SECTION_RADIUS, mean_radius)
             sides = 4
             properties.SetValue(KratosSolid.CROSS_SECTION_SIDES, sides)
@@ -213,7 +221,7 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
             circular_inertia_polar = circular_inertia + circular_inertia
             
             circular_module = (3.14 * (diameter_D ** 2) * thickness) * 0.25
-            circular_turning_radius = sqrt(distance_b) * 0.25
+            circular_turning_radius = math.sqrt(distance_b) * 0.25
 
             inertia_matrix = KratosMultiphysics.Matrix(2, 2)
             inertia_matrix[0, 0] = circular_inertia
@@ -230,11 +238,11 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
         
         elif( section_type == "UserDefined" ):
 
-            area = self._GetScalarVariableValue("AREA")
+            area = self._GetScalarVariableValue("CROSS_SECTION_AREA")
             inertia_z = self._GetScalarVariableValue("INERTIA_X")
             inertia_y = self._GetScalarVariableValue("INERTIA_Y")
 
-            radius = sqrt(area)
+            radius = math.sqrt(area)
             inertia_polar = inertia_z + inertia_y
             
             inertia_matrix = KratosMultiphysics.Matrix(2, 2)
@@ -261,7 +269,7 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
 
             ConstitutiveMatrix[0,0] = self._GetScalarVariableValue("SHEARxREDUCED_AREA")  # GAy
             ConstitutiveMatrix[1,1] = self._GetScalarVariableValue("SHEARxREDUCED_AREA")  # GAz
-            ConstitutiveMatrix[2,2] = self._GetScalarVariableValue("YOUNG_AREA")  # EA
+            ConstitutiveMatrix[2,2] = self._GetScalarVariableValue("YOUNGxAREA")  # EA
             
             ConstitutiveMatrix[3,3] = self._GetScalarVariableValue("YOUNGxINERTIA_X")  # EIy
             ConstitutiveMatrix[4,4] = self._GetScalarVariableValue("YOUNGxINERTIA_Y")  # EIz

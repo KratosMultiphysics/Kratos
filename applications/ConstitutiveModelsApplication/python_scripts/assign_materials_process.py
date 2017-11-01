@@ -42,8 +42,13 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         #read variables
         self.variables = self.settings["variables"]
         for key, value in self.variables.items():
-            my_key = "KratosMultiphysics."+key
-            variable = self._GetItemFromModule(my_key)
+            try:
+                my_key = "KratosMultiphysics."+key
+                variable = self._GetItemFromModule(my_key)
+            except:
+                my_key = "KratosMultiphysics.SolidMechanicsApplication."+key
+                variable = self._GetItemFromModule(my_key)
+ 
             if( value.IsDouble() ):
                 self.properties.SetValue(variable, value.GetDouble())
             elif( value.IsArray() ):
@@ -153,6 +158,10 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
                     module_name += "."
 
             module = importlib.import_module(module_name)
-            return getattr(module,splitted[-1]) 
+            try:
+                return getattr(module,splitted[-1])
+            except:
+                raise
+
 
  
