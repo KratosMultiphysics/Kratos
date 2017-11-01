@@ -760,7 +760,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     /* Unmoving the original mesh to be able to interpolate */
     if (mFramework == Lagrangian) 
     {
-        NodesArrayType& old_nodes_array = old_nodes_array.Nodes();
+        NodesArrayType& old_nodes_array = r_old_model_part.Nodes();
         const SizeType old_num_nodes = old_nodes_array.end() - old_nodes_array.begin();
         
         #pragma omp parallel for
