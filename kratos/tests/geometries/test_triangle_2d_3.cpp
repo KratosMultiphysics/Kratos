@@ -57,6 +57,19 @@ namespace Testing {
     ));
   }
 
+  /** Generates a sample triangle2D3.
+   * Generates a right triangle with origin in (1,1).
+   * @return  Pointer to a triangle2D3
+   */
+  template<class TPointType>
+  typename Triangle2D3<TPointType>::Pointer GenerateIrregularTriangle2D3() {
+    return typename Triangle2D3<TPointType>::Pointer(new Triangle2D3<TPointType>(
+      GeneratePoint<TPointType>(1.0, 1.0, 0.0),
+      GeneratePoint<TPointType>(3.0, 0.5, 0.0),
+      GeneratePoint<TPointType>(2.5, 2.0, 0.0)
+    ));
+  }
+
   /// Tests
 
   /** Checks if the number of edges is correct.
@@ -181,6 +194,28 @@ namespace Testing {
     KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
     KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
     KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+  }
+
+  /** Checks the point local coordinates for a given point respect to the
+   * triangle. The baricentre of the triangle is selected due to its known
+   * solution.
+   */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+
+    auto geom = GenerateIrregularTriangle2D3<Node<3>>();
+
+    // Compute the global coordinates of the baricentre
+    array_1d<double, 3> baricentre = ZeroVector(3);
+    const Geometry<Node<3>>::PointsArrayType geom_pts = geom->Points();
+    baricentre(0) = (geom_pts[0].X() + geom_pts[1].X() + geom_pts[2].X()) / 3.0;
+    baricentre(1) = (geom_pts[0].Y() + geom_pts[1].Y() + geom_pts[2].Y()) / 3.0;
+
+    // Compute the baricentre local coordinates
+    array_1d<double, 3> baricentre_local_coords = geom->PointLocalCoordinates(baricentre_local_coords, baricentre);
+
+    KRATOS_CHECK_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
+    KRATOS_CHECK_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
+    KRATOS_CHECK_NEAR(baricentre_local_coords(2), 0.0, TOLERANCE);
   }
 
   /** Tests the area using 'GI_GAUSS_1' integration method.

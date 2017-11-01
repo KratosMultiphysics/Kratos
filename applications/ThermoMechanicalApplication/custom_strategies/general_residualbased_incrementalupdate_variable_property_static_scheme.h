@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "includes/variables.h"
+#include "includes/c2c_variables.h"
 #include "includes/convection_diffusion_settings.h"
 
 namespace Kratos
@@ -226,11 +227,11 @@ public:
                 ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = specific_heat_var;
                 ind->FastGetSolutionStepValue(SPECIFIC_HEAT,1) = specific_heat_var;
 
-                ind->FastGetSolutionStepValue(SOLID_FRACTION) = solid_fraction_var;
-                ind->FastGetSolutionStepValue(SOLID_FRACTION,1) = solid_fraction_var;
+                ind->FastGetSolutionStepValue(SOLIDFRACTION) = solid_fraction_var;
+                ind->FastGetSolutionStepValue(SOLIDFRACTION,1) = solid_fraction_var;
 
-                ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = solid_fraction_rate_var;
-                ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE,1) = solid_fraction_rate_var;
+                ind->FastGetSolutionStepValue(SOLIDFRACTION_RATE) = solid_fraction_rate_var;
+                ind->FastGetSolutionStepValue(SOLIDFRACTION_RATE,1) = solid_fraction_rate_var;
 
                 ind->FastGetSolutionStepValue(rDiffusionVar) = conductvity_var;
                 ind->FastGetSolutionStepValue(rDiffusionVar,1) = conductvity_var;
@@ -244,8 +245,8 @@ public:
                 ind->FastGetSolutionStepValue(rDensityVar) = 800.0;
                 ind->FastGetSolutionStepValue(VISCOSITY) = second_visc;
                 ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = 2000.0;
-                ind->FastGetSolutionStepValue(SOLID_FRACTION) = 0.0;
-                ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;
+                ind->FastGetSolutionStepValue(SOLIDFRACTION) = 0.0;
+                ind->FastGetSolutionStepValue(SOLIDFRACTION_RATE) = 0.0;
                 ind->FastGetSolutionStepValue(rDiffusionVar) = 120.0;
                 ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
                 //ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
@@ -321,8 +322,8 @@ public:
 
                 ind->FastGetSolutionStepValue(rDensityVar) = density_var;
                 ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = specific_heat_var;
-                ind->FastGetSolutionStepValue(SOLID_FRACTION) = solid_fraction_var;
-                ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = solid_fraction_rate_var;
+                ind->FastGetSolutionStepValue(SOLIDFRACTION) = solid_fraction_var;
+                ind->FastGetSolutionStepValue(SOLIDFRACTION_RATE) = solid_fraction_rate_var;
                 ind->FastGetSolutionStepValue(rDiffusionVar) = conductvity_var;
                 //ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
             }
@@ -331,8 +332,8 @@ public:
                 ind->FastGetSolutionStepValue(rDensityVar) = 800.0;
                 ind->FastGetSolutionStepValue(VISCOSITY) = second_visc;
                 ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = 2000.0;
-                ind->FastGetSolutionStepValue(SOLID_FRACTION) = 0.0;
-                ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;
+                ind->FastGetSolutionStepValue(SOLIDFRACTION) = 0.0;
+                ind->FastGetSolutionStepValue(SOLIDFRACTION_RATE) = 0.0;
                 ind->FastGetSolutionStepValue(rDiffusionVar) = 120.0;
                 ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
                 //ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;

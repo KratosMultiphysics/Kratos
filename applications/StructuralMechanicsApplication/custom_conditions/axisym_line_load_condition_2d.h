@@ -9,15 +9,15 @@
 //  Main authors:    Vicente Mataix Ferrándiz
 //
 
-#if !defined(KRATOS_AXISYM_LINE_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_AXISYM_LINE_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED )
+#define  KRATOS_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/line_load_condition.h"
+#include "custom_conditions/line_load_condition_2d.h"
 
 namespace Kratos
 {
@@ -45,7 +45,7 @@ namespace Kratos
  */
 
 class AxisymLineLoadCondition2D
-    : public LineLoadCondition
+    : public LineLoadCondition2D
 {
 public:
     ///@name Type Definitions
@@ -121,7 +121,7 @@ protected:
     ///@name Protected Operators
     ///@{
     
-    AxisymLineLoadCondition2D() : LineLoadCondition()
+    AxisymLineLoadCondition2D() : LineLoadCondition2D()
     {
     }
     
