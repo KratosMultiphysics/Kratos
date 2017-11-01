@@ -170,7 +170,7 @@ public:
             // Aux coordinates
             CoordinatesArrayType aux_coords;
             aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
-            it_cond->SetValue(NORMAL, this_geometry.Normal(aux_coords));
+            it_cond->SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
             const array_1d<double, 3>& normal = it_cond->GetValue(NORMAL);
             
             const unsigned int number_nodes = this_geometry.PointsNumber();
@@ -244,7 +244,7 @@ public:
             GeometryType& this_geometry = it_cond->GetGeometry();
             
             aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
-            it_cond->SetValue(NORMAL, this_geometry.Normal(aux_coords));
+            it_cond->SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
             const array_1d<double, 3>& normal = it_cond->GetValue(NORMAL);
             
             const unsigned int number_nodes = this_geometry.PointsNumber();
@@ -253,8 +253,9 @@ public:
             for (unsigned int i = 0; i < number_nodes; ++i)
             {
                 auto& this_node = this_geometry[i];
+                double& nodal_area = this_node.GetValue(NODAL_AREA);
                 #pragma omp atomic
-                this_node.GetValue(NODAL_AREA)        += rArea;
+                nodal_area += rArea;
                 auto& aux_normal = this_node.GetValue(NORMAL);
                 for (unsigned int index = 0; index < 3; ++index)
                 {

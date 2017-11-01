@@ -169,7 +169,7 @@ namespace Kratos
             array_1d<double, 3> normal;
             if(GetGeometry().WorkingSpaceDimension() == 2 )
             {
-                noalias(normal) = GetGeometry().Normal( integration_points[point_number] );
+                noalias(normal) = GetGeometry().UnitNormal( integration_points[point_number] );
             }
             else{
                 if(!Has(LOCAL_AXIS_2))
