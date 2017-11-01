@@ -30,6 +30,9 @@
 #include "utilities/binbased_fast_point_locator.h"
 // Include the spatial containers needed for search
 #include "spatial_containers/spatial_containers.h" // kd-tree 
+#include "includes/io.h"
+#include "includes/model_part_io.h"
+
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -83,6 +86,7 @@ MmgProcess<TDim>::MmgProcess(
             "internal_variable_interpolation_list" :[]
         },
         "save_external_files"              : false,
+        "save_mdpa_file"                   : false,
         "max_number_of_searchs"            : 1000,
         "echo_level"                       : 3,
         "step_data_size"                   : 0,
@@ -137,10 +141,7 @@ void MmgProcess<TDim>::Execute()
     CheckMeshData();
     
     // Save to file
-    if (safe_to_file == true)
-    {
-        SaveSolutionToFile(false);
-    }
+    if (safe_to_file == true) SaveSolutionToFile(false);
     
     // We execute the remeshing
     ExecuteRemeshing();
@@ -413,22 +414,22 @@ void MmgProcess<TDim>::InitializeSolData()
     {
         auto it_node = nodes_array.begin() + i;
         
-        #ifdef KRATOS_DEBUG 
+    #ifdef KRATOS_DEBUG 
         if( it_node->Has(MMG_METRIC) == false) 
         {
             KRATOS_ERROR <<  " MMG_METRIC not defined for node " << it_node->Id();
         }
-        #endif     
+    #endif     
         
         // We get the metric
         const Vector& metric = it_node->GetValue(MMG_METRIC);
         
-        #ifdef KRATOS_DEBUG 
+    #ifdef KRATOS_DEBUG 
         if(metric.size() != TDim * 3 - 3) 
         {
             KRATOS_ERROR << "Wrong size of vector MMG_METRIC found for node " << it_node->Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
         }
-        #endif
+    #endif
         
         // We set the metric
         SetMetricTensor(metric, i + 1);
@@ -748,11 +749,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     }
     
     /* Save to file */
-    if (save_to_file == true)
-    {
-        SaveSolutionToFile(true);
-    }
-    
+    if (save_to_file == true) SaveSolutionToFile(true);
+
     /* Free memory */
     FreeMemory();
     
@@ -762,18 +760,18 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     /* Unmoving the original mesh to be able to interpolate */
     if (mFramework == Lagrangian) 
     {
-        nodes_array = r_old_model_part.Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
+        NodesArrayType& old_nodes_array = mrThisModelPart.Nodes();
+        const SizeType old_num_nodes = old_nodes_array.end() - old_nodes_array.begin();
         
         #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i)
+        for(int i = 0; i < old_num_nodes; ++i)
         {
-            auto it_node = nodes_array.begin() + i;
+            auto it_node = old_nodes_array.begin() + i;
 
             noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
         }
     }
-
+    
     /* We interpolate all the values */
     Parameters InterpolateParameters = Parameters(R"({"echo_level": 1, "framework": "Eulerian", "max_number_of_searchs": 1000, "step_data_size": 0, "buffer_size": 0})" );
     InterpolateParameters["echo_level"].SetInt(mThisParameters["echo_level"].GetInt());
@@ -1556,6 +1554,10 @@ void MmgProcess<TDim>::SaveSolutionToFile(const bool PostOutput)
 
     // Automatically save the solution 
     OutputSol(PostOutput, step);
+    
+    // Save the mesh in an .mdpa format 
+    const bool save_mdpa_file = mThisParameters["save_mdpa_file"].GetBool(); 
+    if(save_mdpa_file == true) OutputMdpa(); 
 }
 
 /***********************************************************************************/
@@ -1850,6 +1852,17 @@ void MmgProcess<3>::OutputMesh(
     {
         std::cout << "UNABLE TO SAVE MESH" << std::endl;
     }
+}
+
+/***********************************************************************************/ 
+/***********************************************************************************/ 
+ 
+template<unsigned int TDim>   
+void MmgProcess<TDim>::OutputMdpa() 
+{ 
+    std::ofstream output_file; 
+    ModelPartIO model_part_io("output", IO::WRITE); 
+    model_part_io.WriteModelPart(mrThisModelPart); 
 }
 
 /***********************************************************************************/
