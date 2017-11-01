@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_POINT_ELASTIC_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_ELASTIC_CONDITION_H_INCLUDED
+#if !defined(KRATOS_AXISYMMETRIC_POINT_ELASTIC_CONDITION_H_INCLUDED )
+#define  KRATOS_AXISYMMETRIC_POINT_ELASTIC_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/elastic_condition.hpp"
+#include "custom_conditions/elastic_conditions/point_elastic_condition.hpp"
 
 
 namespace Kratos
@@ -35,32 +35,32 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Point Load Condition for 3D and 2D geometries. (base class)
+/// Axisymmetric point elastic condition for 2D geometries
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) PointElasticCondition
-    : public ElasticCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) AxisymmetricPointElasticCondition
+    : public PointElasticCondition
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    // Counted pointer of PointElasticCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointElasticCondition );
+    // Counted pointer of AxisymmetricPointElasticCondition
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymmetricPointElasticCondition );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointElasticCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    AxisymmetricPointElasticCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    PointElasticCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    AxisymmetricPointElasticCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
-    PointElasticCondition( PointElasticCondition const& rOther);
+    AxisymmetricPointElasticCondition( AxisymmetricPointElasticCondition const& rOther);
 
     /// Destructor
-    virtual ~PointElasticCondition();
+    virtual ~AxisymmetricPointElasticCondition();
 
     ///@}
     ///@name Operators
@@ -80,7 +80,7 @@ public:
      */
     Condition::Pointer Create(IndexType NewId,
 			      NodesArrayType const& ThisNodes,
-			      PropertiesType::Pointer pProperties) const override;
+			      PropertiesType::Pointer pProperties ) const override;
 
 
     /**
@@ -114,30 +114,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-
-    virtual std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "Point Elastic Condition #" << Id();
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-
-    virtual void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "Point Elastic Condition #" << Id();
-    }
-
-    /// Print object's data.
-
-    virtual void PrintData(std::ostream& rOStream) const override
-    {
-        pGetGeometry()->PrintData(rOStream);
-    }
-
     ///@}
     ///@name Friends
     ///@{
@@ -149,40 +125,40 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    PointElasticCondition() {};
+    AxisymmetricPointElasticCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * Initialize System Matrices
-     */
-    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
-					    const ProcessInfo& rCurrentProcessInfo) override;
-
-
+   
     /**
      * Calculate Condition Kinematics
      */
     virtual void CalculateKinematics(ConditionVariables& rVariables, 
 				     const double& rPointNumber) override;
 
-    /**
-     * Calculate the External Stiffness of the Condition
-     */
-    virtual void CalculateExternalStiffness(ConditionVariables& rVariables) override;
-
 
     /**
-     * Calculates the condition contributions
+     * Calculation and addition of the matrices of the LHS
      */
-    virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-					  const ProcessInfo& rCurrentProcessInfo) override;
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                                    ConditionVariables& rVariables,
+                                    double& rIntegrationWeight) override;
 
+    /**
+     * Calculation and addition of the vectors of the RHS
+     */
+    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+                                    ConditionVariables& rVariables,
+				    double& rIntegrationWeight) override;
 
+    /**
+     * Calculation of the contidion radius (axisymmetry)
+     */
+    void CalculateRadius(double & rCurrentRadius,
+			 double & rReferenceRadius);
     ///@}
     ///@name Protected  Access
     ///@{
@@ -239,8 +215,8 @@ private:
     virtual void load(Serializer& rSerializer) override;
 
 
-}; // class PointElasticCondition.
+}; // class AxisymmetricPointElasticCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_POINT_ELASTIC_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_AXISYMMETRIC_POINT_ELASTIC_CONDITION_H_INCLUDED defined 

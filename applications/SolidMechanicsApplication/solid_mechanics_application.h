@@ -63,20 +63,17 @@
 #include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
 
 //conditions
-#include "custom_conditions/axisymmetric_point_load_condition.hpp"
-#include "custom_conditions/axisymmetric_line_load_condition.hpp"
+#include "custom_conditions/load_conditions/axisymmetric_point_load_condition.hpp"
+#include "custom_conditions/load_conditions/axisymmetric_line_load_condition.hpp"
+#include "custom_conditions/load_conditions/surface_load_condition.hpp"
 
-#include "custom_conditions/surface_load_condition.hpp"
+#include "custom_conditions/moment_conditions/point_moment_condition.hpp"
+#include "custom_conditions/moment_conditions/line_moment_condition.hpp"
+#include "custom_conditions/moment_conditions/surface_moment_condition.hpp"
 
-#include "custom_conditions/point_moment_condition.hpp"
-#include "custom_conditions/line_moment_condition.hpp"
-
-#include "custom_conditions/surface_moment_condition.hpp"
-
-#include "custom_conditions/axisymmetric_point_elastic_condition.hpp"
-#include "custom_conditions/axisymmetric_line_elastic_condition.hpp"
-
-#include "custom_conditions/surface_elastic_condition.hpp"
+#include "custom_conditions/elastic_conditions/axisymmetric_point_elastic_condition.hpp"
+#include "custom_conditions/elastic_conditions/axisymmetric_line_elastic_condition.hpp"
+#include "custom_conditions/elastic_conditions/surface_elastic_condition.hpp"
 
 //flow rules
 #include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp"

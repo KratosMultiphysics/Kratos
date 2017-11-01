@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 # Import system python modules
 import time as timer
+import sys
 import os
 
 # Import kratos core and applications
@@ -124,7 +125,7 @@ class Solution(object):
     def Run(self):
 
         self.Initialize()
-
+        
         self.RunMainTemporalLoop()
 
         self.Finalize()
@@ -195,6 +196,7 @@ class Solution(object):
         self.end_time   = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
         self.delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
 
+        sys.stdout.flush()
 
     def RunMainTemporalLoop(self):
         
@@ -204,6 +206,8 @@ class Solution(object):
             self.InitializeSolutionStep()
             self.SolveSolutionStep()
             self.FinalizeSolutionStep()
+
+            sys.stdout.flush()
       
             
     def InitializeSolutionStep(self):
@@ -286,7 +290,6 @@ class Solution(object):
 
         print(timer.ctime())
 
-
         
     def SetGraphicalOutput(self):
         from gid_output_process import GiDOutputProcess
@@ -317,8 +320,7 @@ class Solution(object):
     def GraphicalOutputExecuteFinalize(self):
         self.graphical_output.ExecuteFinalize()
                 
-  
-    
+     
     def SetParallelSize(self, num_threads):
         parallel = KratosMultiphysics.OpenMPUtils()
         parallel.SetNumThreads(int(num_threads))

@@ -7,16 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_POINT_MOMENT_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_MOMENT_CONDITION_H_INCLUDED
+#if !defined(KRATOS_SURFACE_MOMENT_CONDITION_H_INCLUDED )
+#define  KRATOS_SURFACE_MOMENT_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/moment_condition.hpp"
-
+#include "custom_conditions/moment_conditions/moment_condition.hpp"
 
 namespace Kratos
 {
@@ -35,32 +34,32 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Point Load Condition for 3D and 2D geometries. (base class)
+// Surface moment condition for 3D geometries.
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) PointMomentCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SurfaceMomentCondition
     : public MomentCondition
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    // Counted pointer of PointMomentCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointMomentCondition );
+    // Counted pointer of SurfaceMomentCondition
+    KRATOS_CLASS_POINTER_DEFINITION( SurfaceMomentCondition );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointMomentCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    SurfaceMomentCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    PointMomentCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    SurfaceMomentCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
-    PointMomentCondition( PointMomentCondition const& rOther);
+    SurfaceMomentCondition( SurfaceMomentCondition const& rOther);
 
     /// Destructor
-    virtual ~PointMomentCondition();
+    virtual ~SurfaceMomentCondition();
 
     ///@}
     ///@name Operators
@@ -80,7 +79,7 @@ public:
      */
     Condition::Pointer Create(IndexType NewId,
 			      NodesArrayType const& ThisNodes,
-			      PropertiesType::Pointer pProperties) const override;
+			      PropertiesType::Pointer pProperties ) const override;
 
 
     /**
@@ -94,8 +93,10 @@ public:
 			     NodesArrayType const& ThisNodes) const override;
 
 
-    //************************************************************************************
-    //************************************************************************************
+
+    //************* COMPUTING  METHODS
+
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -114,30 +115,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-
-    virtual std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "Point Moment Condition #" << Id();
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-
-    virtual void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "Point Moment Condition #" << Id();
-    }
-
-    /// Print object's data.
-
-    virtual void PrintData(std::ostream& rOStream) const override
-    {
-        pGetGeometry()->PrintData(rOStream);
-    }
-
     ///@}
     ///@name Friends
     ///@{
@@ -149,7 +126,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    PointMomentCondition() {};
+    SurfaceMomentCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
@@ -175,12 +152,37 @@ protected:
      */
     virtual void CalculateExternalMoment(ConditionVariables& rVariables) override;
 
-
     /**
-     * Calculates the condition contributions
+     * Calculation of the Moment Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
-    virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-					  const ProcessInfo& rCurrentProcessInfo) override;
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+				     ConditionVariables& rVariables,
+				     double& rIntegrationWeight) override;
+
+
+    //utilities::
+
+    void MakeCrossMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
+			 Vector& U );
+
+    void CrossProduct(Vector& cross,
+		      Vector& a,
+		      Vector& b );
+
+
+    void AddMatrix(MatrixType& Destination,
+		   boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+		   int InitialRow,
+		   int InitialCol );
+
+    void SubtractMatrix(MatrixType& Destination,
+			boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+			int InitialRow,
+			int InitialCol );
+
+
+    void ExpandReducedMatrix(Matrix& Destination,
+			     Matrix& ReducedMatrix );
 
 
     ///@}
@@ -238,9 +240,8 @@ private:
 
     virtual void load(Serializer& rSerializer) override;
 
-
-}; // class PointMomentCondition.
+}; // class SurfaceMomentCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_POINT_MOMENT_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_SURFACE_MOMENT_CONDITION_H_INCLUDED defined 

@@ -2,20 +2,20 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:              August 2017 $
+//   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
 
-#if !defined(KRATOS_LINE_ELASTIC_CONDITION_H_INCLUDED )
-#define  KRATOS_LINE_ELASTIC_CONDITION_H_INCLUDED
+#if !defined(KRATOS_SURFACE_LOAD_CONDITION_H_INCLUDED )
+#define  KRATOS_SURFACE_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/elastic_condition.hpp"
+#include "custom_conditions/load_conditions/load_condition.hpp"
 
 namespace Kratos
 {
@@ -34,32 +34,32 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Line load condition for 3D and 2D geometries.
+// Surface load condition for 3D geometries.
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineElasticCondition
-  : public ElasticCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SurfaceLoadCondition
+    : public LoadCondition
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    // Counted pointer of LineElasticCondition
-    KRATOS_CLASS_POINTER_DEFINITION( LineElasticCondition );
+    // Counted pointer of SurfaceLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoadCondition );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    LineElasticCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    SurfaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    LineElasticCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    SurfaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
-    LineElasticCondition( LineElasticCondition const& rOther);
+    SurfaceLoadCondition( SurfaceLoadCondition const& rOther);
 
     /// Destructor
-    virtual ~LineElasticCondition();
+    virtual ~SurfaceLoadCondition();
 
     ///@}
     ///@name Operators
@@ -126,7 +126,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    LineElasticCondition() {};
+    SurfaceLoadCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
@@ -140,6 +140,7 @@ protected:
     virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
+
     /**
      * Calculate Condition Kinematics
      */
@@ -149,7 +150,40 @@ protected:
     /**
      * Calculate the External Load of the Condition
      */
-    virtual void CalculateExternalStiffness(ConditionVariables& rVariables) override;
+    virtual void CalculateExternalLoad(ConditionVariables& rVariables) override;
+
+    /**
+     * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
+     */
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+				     ConditionVariables& rVariables,
+				     double& rIntegrationWeight) override;
+
+
+    //utilities::
+
+    void MakeCrossMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
+			 Vector& U );
+
+    void CrossProduct(Vector& cross,
+		      Vector& a,
+		      Vector& b );
+
+
+    void AddMatrix(MatrixType& Destination,
+		   boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+		   int InitialRow,
+		   int InitialCol );
+
+    void SubtractMatrix(MatrixType& Destination,
+			boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+			int InitialRow,
+			int InitialCol );
+
+
+    void ExpandReducedMatrix(Matrix& Destination,
+			     Matrix& ReducedMatrix );
+
 
     ///@}
     ///@name Protected  Access
@@ -206,9 +240,8 @@ private:
 
     virtual void load(Serializer& rSerializer) override;
 
-
-}; // class LineElasticCondition.
+}; // class SurfaceLoadCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_LINE_ELASTIC_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_SURFACE_LOAD_CONDITION_H_INCLUDED defined 

@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/axisymmetric_point_load_condition.hpp"
+#include "custom_conditions/load_conditions/axisymmetric_point_load_condition.hpp"
 
 #include "solid_mechanics_application_variables.h"
 

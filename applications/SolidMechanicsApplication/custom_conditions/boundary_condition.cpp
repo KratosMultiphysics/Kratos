@@ -188,15 +188,6 @@ namespace Kratos
       rResult.resize( dofs_size, false );
 
     unsigned int index = 0;
-
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-      {
-        index = i * dimension;
-        rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-        rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-	if( dimension == 3)
-	  rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-      }
     
     if( HasRotationDofs() ){
       if( dimension == 2 ){
@@ -222,6 +213,17 @@ namespace Kratos
 	  }
       }
     }
+    else{
+
+      for (unsigned int i = 0; i < number_of_nodes; i++)
+	{
+	  index = i * dimension;
+	  rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+	  rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+	  if( dimension == 3)
+	    rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
+	}
+    }
 
     KRATOS_CATCH( "" )
   }
@@ -241,19 +243,8 @@ namespace Kratos
     if ( rValues.size() != dofs_size ) 
       rValues.resize( dofs_size, false );
 
-
     unsigned int index = 0;
     
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-      {
-        index = i * dimension;
-        rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
-        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
-
-        if ( dimension == 3 )
-	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
-      }
-
     if( HasRotationDofs() ){
 
       if( dimension == 2 ){
@@ -279,7 +270,20 @@ namespace Kratos
 	  }
       }
 
-    } 
+    }
+    else{
+
+      for (unsigned int i = 0; i < number_of_nodes; i++)
+	{
+	  index = i * dimension;
+	  rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
+	  rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
+
+	  if ( dimension == 3 )
+	    rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+	}
+
+    }
 
     KRATOS_CATCH( "" )
   }
@@ -300,40 +304,43 @@ namespace Kratos
 
     unsigned int index = 0;
     
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-        index = i * dimension;
-        rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
-        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
-
-        if ( dimension == 3 )
-	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
-      }
-
     if( HasRotationDofs() ){
 
       if( dimension == 2 ){
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	  {
 	    index = i * ( (dimension-1) * 3 );	  
-	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
-	    rValues[index+1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
-	    rValues[index+2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
+	    rValues[index+1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+	    rValues[index+2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
 	  }
       }
       else{
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	  {
 	    index = i * ( (dimension-1) * 3 );	  
-	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
-	    rValues[index+1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
-	    rValues[index+2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
+	    rValues[index+1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+	    rValues[index+2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
 	  
 	    rValues[index+3] = GetGeometry()[i].GetSolutionStepValue( ROTATION_X, Step );
 	    rValues[index+4] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Y, Step );
 	    rValues[index+5] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );	  
 	  }
       }
+
+    }
+    else{
+
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  index = i * dimension;
+	  rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
+	  rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+
+	  if ( dimension == 3 )
+	    rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
+	}
 
     }
     
@@ -356,16 +363,6 @@ namespace Kratos
       rValues.resize( dofs_size, false );
 
     unsigned int index = 0;
-    
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-        index = i * dimension;
-        rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
-        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
-
-        if ( dimension == 3 )
-	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
-      }
     
     if( HasRotationDofs() ){
 
@@ -394,6 +391,18 @@ namespace Kratos
       }
       
     }
+    else{
+
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  index = i * dimension;
+	  rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
+	  rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
+
+	  if ( dimension == 3 )
+	    rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
+	}
+    }
     
     KRATOS_CATCH( "" )  	  
   }
@@ -401,6 +410,7 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
+  
   void BoundaryCondition::InitializeExplicitContributions()
   {
     KRATOS_TRY

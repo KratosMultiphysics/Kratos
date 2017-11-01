@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/point_moment_condition.hpp"
+#include "custom_conditions/moment_conditions/point_moment_condition.hpp"
 
 #include "solid_mechanics_application_variables.h"
 

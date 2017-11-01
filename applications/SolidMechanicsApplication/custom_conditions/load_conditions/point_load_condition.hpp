@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/load_condition.hpp"
+#include "custom_conditions/load_conditions/load_condition.hpp"
 
 
 namespace Kratos

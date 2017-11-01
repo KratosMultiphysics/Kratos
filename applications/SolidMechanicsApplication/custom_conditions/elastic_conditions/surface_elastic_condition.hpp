@@ -2,21 +2,20 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
+//   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
 
-#if !defined(KRATOS_AXISYMMETRIC_POINT_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_AXISYMMETRIC_POINT_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_SURFACE_ELASTIC_CONDITION_H_INCLUDED )
+#define  KRATOS_SURFACE_ELASTIC_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/point_load_condition.hpp"
-
+#include "custom_conditions/elastic_conditions/elastic_condition.hpp"
 
 namespace Kratos
 {
@@ -35,32 +34,32 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Axisymmetric point load condition for 2D geometries
+// Surface elastic condition for 3D geometries.
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) AxisymmetricPointLoadCondition
-    : public PointLoadCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SurfaceElasticCondition
+    : public ElasticCondition
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    // Counted pointer of AxisymmetricPointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymmetricPointLoadCondition );
+    // Counted pointer of SurfaceElasticCondition
+    KRATOS_CLASS_POINTER_DEFINITION( SurfaceElasticCondition );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AxisymmetricPointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    SurfaceElasticCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    AxisymmetricPointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    SurfaceElasticCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
-    AxisymmetricPointLoadCondition( AxisymmetricPointLoadCondition const& rOther);
+    SurfaceElasticCondition( SurfaceElasticCondition const& rOther);
 
     /// Destructor
-    virtual ~AxisymmetricPointLoadCondition();
+    virtual ~SurfaceElasticCondition();
 
     ///@}
     ///@name Operators
@@ -94,8 +93,10 @@ public:
 			     NodesArrayType const& ThisNodes) const override;
 
 
-    //************************************************************************************
-    //************************************************************************************
+
+    //************* COMPUTING  METHODS
+
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -125,40 +126,65 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    AxisymmetricPointLoadCondition() {};
+    SurfaceElasticCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
     ///@}
     ///@name Protected Operations
     ///@{
-   
+
+    /**
+     * Initialize System Matrices
+     */
+    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
+					    const ProcessInfo& rCurrentProcessInfo) override;
+
+
     /**
      * Calculate Condition Kinematics
      */
     virtual void CalculateKinematics(ConditionVariables& rVariables, 
 				     const double& rPointNumber) override;
 
+    /**
+     * Calculate the External Stiffness of the Condition
+     */
+    virtual void CalculateExternalStiffness(ConditionVariables& rVariables) override;
 
     /**
-     * Calculation and addition of the matrices of the LHS
+     * Calculation of the Elastic Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ConditionVariables& rVariables,
-                                    double& rIntegrationWeight) override;
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+				     ConditionVariables& rVariables,
+				     double& rIntegrationWeight) override;
 
-    /**
-     * Calculation and addition of the vectors of the RHS
-     */
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ConditionVariables& rVariables,
-				    double& rIntegrationWeight) override;
 
-    /**
-     * Calculation of the contidion radius (axisymmetry)
-     */
-    void CalculateRadius(double & rCurrentRadius,
-			 double & rReferenceRadius);
+    //utilities::
+
+    void MakeCrossMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
+			 Vector& U );
+
+    void CrossProduct(Vector& cross,
+		      Vector& a,
+		      Vector& b );
+
+
+    void AddMatrix(MatrixType& Destination,
+		   boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+		   int InitialRow,
+		   int InitialCol );
+
+    void SubtractMatrix(MatrixType& Destination,
+			boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+			int InitialRow,
+			int InitialCol );
+
+
+    void ExpandReducedMatrix(Matrix& Destination,
+			     Matrix& ReducedMatrix );
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -214,9 +240,8 @@ private:
 
     virtual void load(Serializer& rSerializer) override;
 
-
-}; // class AxisymmetricPointLoadCondition.
+}; // class SurfaceElasticCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_AXISYMMETRIC_POINT_LOAD_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_SURFACE_ELASTIC_CONDITION_H_INCLUDED defined 

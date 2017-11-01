@@ -1124,13 +1124,17 @@ namespace Kratos
     noalias(GravityForce) = ZeroVector(3);
 
     Vector GravityCouple(3);
-    noalias(GravityCouple) = ZeroVector(3);    
+    noalias(GravityCouple) = ZeroVector(3);
+    
     Matrix SkewSymMatrix(3,3);
-    noalias(SkewSymMatrix) = ZeroMatrix(3,3);  
+    noalias(SkewSymMatrix) = ZeroMatrix(3,3);
+    
     Vector IntegrationPointPosition(3);
     noalias(IntegrationPointPosition) = ZeroVector(3);
+    
     Vector CurrentValueVector(3);
     noalias(CurrentValueVector) = ZeroVector(3);
+    
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	CurrentValueVector = GetGeometry()[i].Coordinates();
@@ -1153,8 +1157,8 @@ namespace Kratos
         GravityCouple = prod(SkewSymMatrix,CurrentValueVector);	
 	
 	if( dimension == 2 ){
-	  BeamMathUtilsType::AddVector(GravityForce,  rRightHandSideVector, RowIndex);
 	  GravityForce[2] = GravityCouple[2];
+	  BeamMathUtilsType::AddVector(GravityForce,  rRightHandSideVector, RowIndex);
 	}
 	else{
 	  BeamMathUtilsType::AddVector(GravityForce,  rRightHandSideVector, RowIndex);

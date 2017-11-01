@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/point_load_condition.hpp"
+#include "custom_conditions/elastic_conditions/point_elastic_condition.hpp"
 
 #include "solid_mechanics_application_variables.h"
 
@@ -22,59 +22,56 @@ namespace Kratos
 
   //***********************************************************************************
   //***********************************************************************************
-  PointLoadCondition::PointLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : LoadCondition(NewId, pGeometry)
+  PointElasticCondition::PointElasticCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : ElasticCondition(NewId, pGeometry)
   {
-    //DO NOT ADD DOFS HERE!!!
+
   }
 
   //***********************************************************************************
   //***********************************************************************************
-  PointLoadCondition::PointLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : LoadCondition(NewId, pGeometry, pProperties)
+  PointElasticCondition::PointElasticCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : ElasticCondition(NewId, pGeometry, pProperties)
   {
-
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-
-    //DO NOT ADD DOFS HERE!!!
   }
 
   //************************************************************************************
   //************************************************************************************
-  PointLoadCondition::PointLoadCondition( PointLoadCondition const& rOther )
-    : LoadCondition(rOther)     
+  PointElasticCondition::PointElasticCondition( PointElasticCondition const& rOther )
+    : ElasticCondition(rOther)     
   {
   }
 
   //***********************************************************************************
   //***********************************************************************************
-  Condition::Pointer PointLoadCondition::Create(
+  Condition::Pointer PointElasticCondition::Create(
 						  IndexType NewId,
 						  NodesArrayType const& ThisNodes,
 						  PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new PointLoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new PointElasticCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
   }
 
 
   //************************************CLONE*******************************************
   //************************************************************************************
 
-  Condition::Pointer PointLoadCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+  Condition::Pointer PointElasticCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
-    PointLoadCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    PointElasticCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
     //-----------//      
-    return Condition::Pointer( new PointLoadCondition(NewCondition) );
+    return Condition::Pointer( new PointElasticCondition(NewCondition) );
   }
 
 
   //***********************************************************************************
   //***********************************************************************************
-  PointLoadCondition::~PointLoadCondition()
+  PointElasticCondition::~PointElasticCondition()
   {
   }
 
@@ -82,7 +79,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void PointLoadCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void PointElasticCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
       
@@ -103,7 +100,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void PointLoadCondition::CalculateExternalLoad(ConditionVariables& rVariables)
+  void PointElasticCondition::CalculateExternalStiffness(ConditionVariables& rVariables)
   {
     KRATOS_TRY
 
@@ -115,27 +112,28 @@ namespace Kratos
 
     noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
    
-    //FORCE CONDITION:
+    //STIFFNESS CONDITION:
+    
     //defined on condition
-    if( this->Has( POINT_LOAD ) ){
-      array_1d<double, 3 > & PointLoad = this->GetValue( POINT_LOAD );
+    if( this->Has( POINT_STIFFNESS ) ){
+      array_1d<double, 3 > & PointStiffness = this->GetValue( POINT_STIFFNESS );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoad[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointStiffness[k];
 	}
     }
     
     //defined on condition nodes
-    if( this->Has( POINT_LOAD_VECTOR ) ){
-      Vector& PointLoads = this->GetValue( POINT_LOAD_VECTOR );
+    if( this->Has( POINT_STIFFNESS_VECTOR ) ){
+      Vector& PointStiffnesss = this->GetValue( POINT_STIFFNESS_VECTOR );
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  counter = i*3;
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    {
-	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoads[counter+k];
+	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointStiffnesss[counter+k];
 	    }
 	  
 	}
@@ -144,10 +142,10 @@ namespace Kratos
     //defined on condition nodes      
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( POINT_LOAD ) ){
-	  array_1d<double, 3 > & PointLoad = GetGeometry()[i].FastGetSolutionStepValue( POINT_LOAD );
+	if( GetGeometry()[i].SolutionStepsDataHas( POINT_STIFFNESS ) ){
+	  array_1d<double, 3 > & PointStiffness = GetGeometry()[i].FastGetSolutionStepValue( POINT_STIFFNESS );
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoad[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointStiffness[k];
  
 	}
       }
@@ -159,14 +157,14 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
-  void PointLoadCondition::CalculateKinematics(ConditionVariables& rVariables,
+  void PointElasticCondition::CalculateKinematics(ConditionVariables& rVariables,
 						 const double& rPointNumber)
   {
     KRATOS_TRY
 
     rVariables.Jacobian = 1.0;
 
-    this->CalculateExternalLoad(rVariables);
+    this->CalculateExternalStiffness(rVariables);
 
     KRATOS_CATCH( "" )
   }
@@ -175,7 +173,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void PointLoadCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
+  void PointElasticCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
 						      const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
@@ -189,10 +187,10 @@ namespace Kratos
 
     //compute element kinematics B, F, DN_DX ...
     this->CalculateKinematics(Variables,PointNumber);
-
+    
     //calculating weights for integration on the "reference configuration"
     double IntegrationWeight = 1;
-
+    
     if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
       {
 	//contributions to stiffness matrix calculated on the reference config
@@ -209,21 +207,23 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
+ 
+  //************* COMPUTING  METHODS
   //************************************************************************************
   //************************************************************************************
 
-  int PointLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int PointElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
     // Perform base condition checks
     int ErrorCode = 0;
-    ErrorCode = LoadCondition::Check(rCurrentProcessInfo);
-
+    ErrorCode = ElasticCondition::Check(rCurrentProcessInfo);
+    
     // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(POINT_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(POINT_LOAD_VECTOR);
-        
+    KRATOS_CHECK_VARIABLE_KEY(POINT_STIFFNESS);
+    KRATOS_CHECK_VARIABLE_KEY(POINT_STIFFNESS_VECTOR);
+
     return ErrorCode;
     
     KRATOS_CATCH( "" )
@@ -232,14 +232,14 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void PointLoadCondition::save( Serializer& rSerializer ) const
+  void PointElasticCondition::save( Serializer& rSerializer ) const
   {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LoadCondition )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticCondition )
   }
 
-  void PointLoadCondition::load( Serializer& rSerializer )
+  void PointElasticCondition::load( Serializer& rSerializer )
   {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LoadCondition )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticCondition )
   }
 
 
