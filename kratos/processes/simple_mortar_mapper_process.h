@@ -98,25 +98,7 @@ public:
         TVarType& ThisVariable, 
         Parameters ThisParameters = Parameters(R"({})" ),
         LinearSolverType::Pointer pThisLinearSolver = nullptr
-        ): mrThisModelPart(rThisModelPart),
-           mOriginVariable(ThisVariable),
-           mDestinationVariable(ThisVariable),
-           mThisParameters(ThisParameters),
-           mpThisLinearSolver(pThisLinearSolver)
-    {
-        Parameters DefaultParameters = Parameters(R"(
-        {
-            "echo_level"                       : 0,
-            "absolute_convergence_tolerance"   : 1.0e-9,
-            "relative_convergence_tolerance"   : 1.0e-4,
-            "max_number_iterations"            : 10,
-            "integration_order"                : 2
-        })" );
-        
-        mThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-
-        mEchoLevel = mThisParameters["echo_level"].GetInt();
-    }
+        );
     
     SimpleMortarMapperProcess( 
         ModelPart& rThisModelPart,
@@ -124,29 +106,10 @@ public:
         TVarType& DestinationVariable,
         Parameters ThisParameters = Parameters(R"({})" ),
         LinearSolverType::Pointer pThisLinearSolver = nullptr
-        ): mrThisModelPart(rThisModelPart),
-           mOriginVariable(OriginVariable),
-           mDestinationVariable(DestinationVariable),
-           mThisParameters(ThisParameters),
-           mpThisLinearSolver(pThisLinearSolver)
-    {
-        Parameters DefaultParameters = Parameters(R"(
-        {
-            "echo_level"                       : 0,
-            "absolute_convergence_tolerance"   : 1.0e-9,
-            "relative_convergence_tolerance"   : 1.0e-4,
-            "max_number_iterations"            : 10,
-            "integration_order"                : 2
-        })" );
-        
-        mThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-
-        mEchoLevel = mThisParameters["echo_level"].GetInt();
-    }
+        );
 
     /// Destructor.
-    ~SimpleMortarMapperProcess() override
-    = default;
+    ~SimpleMortarMapperProcess() override = default;
 
     ///@}
     ///@name Access
@@ -177,21 +140,7 @@ public:
     ///@name Operations
     ///@{
     
-    void Execute() override
-    {
-        KRATOS_TRY;
-
-        if (mpThisLinearSolver == nullptr)
-        {
-            ExecuteExplicitMapping();
-        }
-        else
-        {
-            ExecuteImplicitMapping();
-        }
-        
-        KRATOS_CATCH("");
-    }
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -271,6 +220,7 @@ private:
     TVarType mDestinationVariable;                // The destiny variable to map
     
     unsigned int mEchoLevel;                      // The verbosity level
+    bool mInvertedPairing;                        // The if the master/slaves are paired inverted
     Parameters mThisParameters;                   // The configuration parameters
     
     LinearSolverType::Pointer mpThisLinearSolver; // The linear solver used to compute the solution
