@@ -130,18 +130,18 @@ class EPPointRigidContactPenalty3DCondition
     /**
      * Called at the end of each solution step
      */
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each solution step
      */
-    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     
     /**
      * Called at the beginning of each iteration
      */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     ///@name Access
     ///@{
@@ -181,12 +181,12 @@ protected:
 
     virtual void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
 				     ConditionVariables& rVariables,
-				     double& rIntegrationWeight);
+				     double& rIntegrationWeight) override;
 
 
 
 
-    virtual void CalculateAndAddTangentContactForce(Vector& rRightHandSideVector, ConditionVariables& rVariables, double& rIntegrationWeight);
+    virtual void CalculateAndAddTangentContactForce(Vector& rRightHandSideVector, ConditionVariables& rVariables, double& rIntegrationWeight) override;
 
 
     bool CalculateFrictionLaw( ConditionVariables & rVariables, ConstitutiveVariables & rConstitutiveVariables, Vector & rTangentForce);
@@ -200,7 +200,7 @@ protected:
     /**
      * Calculation of the Contact Force Factors
      */
-    virtual void CalculateContactFactors(GeneralVariables &rContact);
+    virtual void CalculateContactFactors(ConditionVariables &rContact) override;
     ///@}
     ///@name Protected  Access
     ///@{

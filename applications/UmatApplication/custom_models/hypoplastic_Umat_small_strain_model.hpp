@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_VON_MISES_LARGE_STRAIN_UMAT_MODEL_H_INCLUDED )
-#define  KRATOS_VON_MISES_LARGE_STRAIN_UMAT_MODEL_H_INCLUDED
+#if !defined(KRATOS_HYPOPLASTIC_SMALL_STRAIN_UMAT_MODEL_H_INCLUDED )
+#define  KRATOS_HYPOPLASTIC_SMALL_STRAIN_UMAT_MODEL_H_INCLUDED
 
 // System includes
 #include <string>
@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/large_strain_Umat_model.hpp"
+#include "custom_models/small_strain_Umat_model.hpp"
 
 namespace Kratos
 {
@@ -46,7 +46,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesLargeStrainUmatModel : public LargeStrainUmatModel
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) HypoplasticSmallStrainUmatModel : public SmallStrainUmatModel
    {
 
 
@@ -55,27 +55,27 @@ namespace Kratos
          ///@name Type Definitions
          ///@{
 
-         /// Pointer definition of VonMisesLargeStrainUmatModel
-         KRATOS_CLASS_POINTER_DEFINITION( VonMisesLargeStrainUmatModel );
+         /// Pointer definition of HypoplasticSmallStrainUmatModel
+         KRATOS_CLASS_POINTER_DEFINITION( HypoplasticSmallStrainUmatModel );
 
          ///@}
          ///@name Life Cycle
          ///@{
 
          /// Default constructor.    
-         VonMisesLargeStrainUmatModel();
+         HypoplasticSmallStrainUmatModel();
 
          /// Copy constructor.
-         VonMisesLargeStrainUmatModel(VonMisesLargeStrainUmatModel const& rOther);
+         HypoplasticSmallStrainUmatModel(HypoplasticSmallStrainUmatModel const& rOther);
 
          /// Clone.
          virtual ConstitutiveModel::Pointer Clone() const override;
 
          /// Assignment operator.
-         VonMisesLargeStrainUmatModel& operator=(VonMisesLargeStrainUmatModel const& rOther);
+         HypoplasticSmallStrainUmatModel& operator=(HypoplasticSmallStrainUmatModel const& rOther);
 
          /// Destructor.
-         virtual ~VonMisesLargeStrainUmatModel();
+         virtual ~HypoplasticSmallStrainUmatModel();
 
 
          ///@}
@@ -101,20 +101,20 @@ namespace Kratos
          virtual std::string Info() const override
          {
             std::stringstream buffer;
-            buffer << "VonMisesLargeStrainUmatModel";
+            buffer << "HypoplasticSmallStrainUmatModel";
             return buffer.str();
          }
 
          /// Print information about this object.
          virtual void PrintInfo(std::ostream& rOStream) const override
          {
-            rOStream << "VonMisesLargeStrainUmatModel";
+            rOStream << "HypoplasticSmallStrainUmatModel";
          }
 
          /// Print object's data.
          virtual void PrintData(std::ostream& rOStream) const override
          {
-            rOStream << "VonMisesLargeStrainUmatModel Data";
+            rOStream << "HypoplasticSmallStrainUmatModel Data";
          }
 
 
@@ -152,18 +152,29 @@ namespace Kratos
             return 13;
          };
 
-         
+
          /*
             Create the vector with constitutive parameters value
           */
          virtual void CreateConstitutiveParametersVector(double* & pVector, int & rNumberParameters, const Properties & rMaterialProperties) override {
-            rNumberParameters = 3;
+            rNumberParameters = 16;
             pVector = new double[rNumberParameters];
-            pVector[0] = rMaterialProperties[YOUNG_MODULUS]; // young
-            pVector[1] = rMaterialProperties[POISSON_RATIO]; // poisson
-            pVector[2] = rMaterialProperties[YIELD_STRESS]; // yield
-            if ( pVector[2] < 1e-7)
-               pVector[2] = 10e+7;
+            pVector[0] = 30.0; // phi_deg
+            pVector[1] = 10.0; // p_t
+            pVector[2] = 5800.0; // hs
+            pVector[3] = 0.28; // e_n
+            pVector[4] = 0.53; // ed0
+            pVector[5] = 0.84; // ec0
+            pVector[6] = 1.0; // ei0
+            pVector[7] = 0.130; // alpha
+            pVector[8] = 1.00; // beta
+            pVector[9] = 2.0; // m_R
+            pVector[10] = 5.0; // m_T
+            pVector[11] = 1.0e-4; // r_uc
+            pVector[12] = 0.05; // beta_r
+            pVector[13] = 1.0; // chi
+            pVector[14] = 10.0E5; // bulk_w
+            pVector[15] = 11.1; // ?? line 155
          };
 
          /*
@@ -171,7 +182,7 @@ namespace Kratos
           */
          virtual int GetConstitutiveEquationNumber() override
          {
-            return 0;
+            return 1;
          }
          ///@}
          ///@name Protected  Access
@@ -242,7 +253,7 @@ namespace Kratos
 
          ///@}
 
-   }; // Class VonMisesLargeStrainUmatModel
+   }; // Class HypoplasticSmallStrainUmatModel
 
    ///@}
 
@@ -260,6 +271,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VON_MISES_LARGE_STRAIN_UMAT_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_HYPOPLASTIC_SMALL_STRAIN_UMAT_MODEL_H_INCLUDED  defined 
 
 

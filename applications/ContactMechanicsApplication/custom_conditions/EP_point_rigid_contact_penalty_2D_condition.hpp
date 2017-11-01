@@ -143,14 +143,14 @@ protected:
     /**
      * Calculation of the Integration Weight
      */
-    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
+    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight) override;
 
-    virtual double CalculateSomeSortOfArea();
+    virtual double CalculateSomeSortOfArea() override;
 
     /**
      * Calculation of the Contact Force Factors
      */
-    virtual void CalculateContactFactors(GeneralVariables &rContact);
+    virtual void CalculateContactFactors(ConditionVariables &rContact) override;
 
     ///@}
     ///@name Protected  Access

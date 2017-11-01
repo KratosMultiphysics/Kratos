@@ -16,14 +16,21 @@ set( KRATOS_UMAT_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/umat_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/umat_3D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/small_strain_umat_3D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/large_strain_umat_3D_law.cpp
+
+	#/${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/small_strain_umat_3D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/large_strain_umat_3D_law.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/mises_umat.f
-	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/umat_hypo.f
+	#${CMAKE_CURRENT_SOURCE_DIR}/umat_models/umat_hypo.f
+	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/hypoplastic_umat.f
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/umat_fortran_wrapper.f
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/xit.f
+	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/small_strain_Umat_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/von_mises_Umat_small_strain_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/hypoplastic_Umat_small_strain_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/large_strain_Umat_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/von_mises_Umat_large_strain_model.cpp
 
 )
 

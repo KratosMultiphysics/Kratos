@@ -88,7 +88,7 @@ namespace Kratos
    //*********************************COMPUTE KINEMATICS*********************************
    //************************************************************************************
 
-   void EPAxisymPointRigidContactPenalty2DCondition::CalculateKinematics(GeneralVariables& rVariables,
+   void EPAxisymPointRigidContactPenalty2DCondition::CalculateKinematics(ConditionVariables& rVariables,
          const ProcessInfo& rCurrentProcessInfo,
          const double& rPointNumber)
    {
@@ -151,7 +151,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void  EPAxisymPointRigidContactPenalty2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+   void  EPAxisymPointRigidContactPenalty2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
    {
 
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
@@ -170,7 +170,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void  EPAxisymPointRigidContactPenalty2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+   void  EPAxisymPointRigidContactPenalty2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
    {
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 

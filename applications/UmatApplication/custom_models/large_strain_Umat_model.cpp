@@ -112,4 +112,105 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
+
+   //***********************
+   //************************************************************************************
+   //************************************************************************************
+   void LargeStrainUmatModel::SetConstitutiveMatrix( Matrix & rC, const Matrix & rpCBig, const MatrixType & rStressMatrix)
+   {
+      KRATOS_TRY
+
+      Matrix ExtraMatrix = ZeroMatrix(6);
+      ExtraMatrix = CalculateExtraMatrix( rStressMatrix, ExtraMatrix);
+      for (unsigned int i = 0; i < 6; i++){
+         for (unsigned int j = 0; j < 6; j++){
+            ExtraMatrix(i,j) += rpCBig(i,j);
+         }
+      }
+
+      SmallStrainUmatModel::SetConstitutiveMatrix( rC, ExtraMatrix, rStressMatrix);
+
+      KRATOS_CATCH("")
+   }
+   // ************************** COMPUTE MORE CONSTITUTIVE TERMS *********************
+   // ********************************************************************************
+   // ****** SOME SORT OF TERMS
+   Matrix& LargeStrainUmatModel::CalculateExtraMatrix( const MatrixType& rStressMatrix, Matrix& rExtraMatrix)
+   {
+      KRATOS_TRY
+
+      // NO SE M'ACUT UNA MANERA MÉS GUARRA DE FER AIXÒ.
+      Matrix ExtraMatrix = ZeroMatrix(6,6);
+      Matrix Identity = identity_matrix<double>(3);
+
+      unsigned indexi, indexj;
+      for ( unsigned int i = 0; i < 3; i++) {
+         for (unsigned int j = 0; j < 3; j++) {
+            for (unsigned int k = 0; k < 3; k++) {
+               for (unsigned int l = 0; l < 3; l++) {
+                  unsigned int auxi, auxj;
+                  if ( i < j) {
+                     auxi = i;
+                     auxj = j;
+                  } else {
+                     auxi = j; 
+                     auxj = i;
+                  }
+                  unsigned int auxk, auxl;
+                  if ( k < l) {
+                     auxk = k;
+                     auxl = l;
+                  } else {
+                     auxk = l;
+                     auxl = k;
+                  }
+
+                  // now I have to decide where i put and what I put
+                  if ( auxi == auxj) {
+                     indexi = auxi;
+                  }
+                  else if ( auxi ==0) {
+                     if ( auxj == 1) {
+                        indexi = 3;
+                     }
+                     else {
+                        indexi = 4;
+                     }
+                  }
+                  else {
+                     indexi = 5;
+                  }
+                  if (auxk == auxl) {
+                     indexj = auxk;
+                  }
+                  else if ( auxk ==0) {
+                     if ( auxl == 1) {
+                        indexj = 3;
+                     }
+                     else {
+                        indexj = 4;
+                     }
+                  }
+                  else {
+                     indexj = 5;
+                  }
+                  double voigtnumber = 1.0;
+                  if ( indexj > 2)
+                     voigtnumber *= 0.50;
+                  if ( indexi > 2)
+                     voigtnumber *=0.5;
+                  ExtraMatrix(indexi, indexj) -= voigtnumber * (Identity(i,k) * rStressMatrix(j,l) +  Identity(j,k)*rStressMatrix(i,l) ); // vale, molt bé, però no sé on queda la "voigt notation"
+
+               }
+            }
+         }
+      }
+
+
+      noalias(rExtraMatrix) = ExtraMatrix;
+      return rExtraMatrix;
+
+      KRATOS_CATCH("")
+   }
+
 } // Namespace Kratos

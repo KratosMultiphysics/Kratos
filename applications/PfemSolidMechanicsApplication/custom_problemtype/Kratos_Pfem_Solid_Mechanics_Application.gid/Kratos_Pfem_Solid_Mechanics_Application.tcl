@@ -951,29 +951,29 @@ proc Print3DFaceElement { element_id face_index } {
 
   if { $face_index == 1 } {
       set element_connectivities [lindex $element_data 1]
-      lappend element_connectivities [lindex $element_data 2]
       lappend element_connectivities [lindex $element_data 3]
+      lappend element_connectivities [lindex $element_data 2]
       set material_id [lindex $element_data end]
       set material_id 1
       return "$condition_id $material_id $element_connectivities"
   } elseif { $face_index == 2 } {
       set element_connectivities [lindex $element_data 2]
-      lappend element_connectivities [lindex $element_data 4]
       lappend element_connectivities [lindex $element_data 3]
+      lappend element_connectivities [lindex $element_data 4]
       set material_id [lindex $element_data end]
       set material_id 1
       return "$condition_id $material_id $element_connectivities"
   } elseif { $face_index == 3 } {
       set element_connectivities [lindex $element_data 3]
-      lappend element_connectivities [lindex $element_data 4]
       lappend element_connectivities [lindex $element_data 1]
+      lappend element_connectivities [lindex $element_data 4]
       set material_id [lindex $element_data end]
       set material_id 1
       return "$condition_id $material_id $element_connectivities"
   } else {
-      set element_connectivities [lindex $element_data 4]
+      set element_connectivities [lindex $element_data 1]
       lappend element_connectivities [lindex $element_data 2]
-      lappend element_connectivities [lindex $element_data 1]
+      lappend element_connectivities [lindex $element_data 4]
       set material_id [lindex $element_data end]
       set material_id 1
       return "$condition_id $material_id $element_connectivities"

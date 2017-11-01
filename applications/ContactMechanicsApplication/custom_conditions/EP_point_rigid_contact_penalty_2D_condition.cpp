@@ -85,7 +85,7 @@ namespace Kratos
 
    //************************************************************************************
    //************************************************************************************
-   void EPPointRigidContactPenalty2DCondition::CalculateContactFactors(GeneralVariables &rVariables)
+   void EPPointRigidContactPenalty2DCondition::CalculateContactFactors(ConditionVariables &rVariables)
   {
 
       KRATOS_TRY

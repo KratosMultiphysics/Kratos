@@ -162,6 +162,17 @@ namespace Kratos
           */
          virtual void CreateStressAtInitialState( UmatDataType & rVariables, double* & rpStressVector) override;
 
+         /*
+            Add more constitutive terms to the matrix
+            */
+         Matrix& CalculateExtraMatrix(const MatrixType& rStressMatrix, Matrix& rExtraMatrix);
+
+         
+         /*
+            Set the constitutiveMatrixToThe appropiate size
+            */
+
+         virtual void SetConstitutiveMatrix( Matrix & rC, const Matrix & rCBig, const MatrixType& rStressMatrix) override;
 
          ///@}
          ///@name Protected  Access

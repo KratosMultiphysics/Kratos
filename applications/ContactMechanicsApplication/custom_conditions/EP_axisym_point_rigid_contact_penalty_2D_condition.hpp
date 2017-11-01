@@ -142,24 +142,24 @@ protected:
      /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables,
+    virtual void CalculateKinematics(ConditionVariables& rVariables,
 				     const ProcessInfo& rCurrentProcessInfo,
-				     const double& rPointNumber);
+				     const double& rPointNumber) override;
 
 
     /**
      * Calculation and addition of the matrices of the LHS
      */
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
-                                    double& rIntegrationWeight);
+                                    ConditionVariables& rVariables,
+                                    double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
-                                    double& rIntegrationWeight);
+                                    ConditionVariables& rVariables,
+                                    double& rIntegrationWeight) override;
 
     /**
      * Calculation of the contidion radius (axisymmetry)

@@ -262,7 +262,7 @@ namespace Kratos
 
          bool mInitializedModel;
 
-         double* mpStateVariablesFinalized;
+         Vector     mStateVariablesFinalized;
          VectorType mStressVectorFinalized;
          VectorType mStrainVectorFinalized;
 
@@ -305,7 +305,7 @@ namespace Kratos
             rpStateVariables = new double[rNumberStateVariables];
             for (int i = 0; i < rNumberStateVariables; i++)
             {
-               rpStateVariables[i] = mpStateVariablesFinalized[i];
+               rpStateVariables[i] = mStateVariablesFinalized(i);
             }
          };
 
@@ -350,19 +350,32 @@ namespace Kratos
          /* 
             Update constitutive model variables
           */
-         virtual void UpdateVariables( UmatDataType & rVariables, double* & rpStressVector, double* & rpStateVariables)
+         virtual void UpdateVariables( UmatDataType & rVariables, double* & rpStressVector, double* & rpStateVariables, double Pressure = 0.0)
          {
             VectorType StrainVector;
             StrainVector = ConstitutiveModelUtilities::StrainTensorToVector( rVariables.TotalStrainMatrix, StrainVector);
             mStrainVectorFinalized = StrainVector;
 
-            for (unsigned int i = 0; i < 6; i++) {
-               mStressVectorFinalized(i) = rpStressVector[i];
+
+            if ( fabs( Pressure) < 1e-5) {
+               for (unsigned int i = 0; i < 6; i++) 
+                  mStressVectorFinalized(i) = rpStressVector[i];
+            } else {
+
+               double meanP = 0;
+               for (unsigned int i = 0; i < 3; i++) 
+                  meanP += rpStressVector[i];
+               meanP /= 3.0;
+
+               for (unsigned int i = 0; i < 3; i++) 
+                  mStressVectorFinalized(i) = rpStressVector[i] + Pressure - meanP;
+               for (unsigned int i = 3; i < 6; i++) 
+                  mStressVectorFinalized(i) = rpStressVector[i];
             }
 
             int nStateVariables = this->GetNumberOfStateVariables();
             for (int i = 0; i < nStateVariables; i++)
-               mpStateVariablesFinalized[i] = rpStateVariables[i];
+               mStateVariablesFinalized(i) = rpStateVariables[i];
 
          }
 
@@ -375,7 +388,7 @@ namespace Kratos
             return 0;
          }
 
-         void SetConstitutiveMatrix( Matrix & rC, const Matrix & rCBig);
+         virtual void SetConstitutiveMatrix( Matrix & rC, const Matrix & rCBig, const MatrixType& rStressMatrix);
          ///@}
          ///@name Protected  Access
          ///@{
@@ -427,11 +440,17 @@ namespace Kratos
          virtual void save(Serializer& rSerializer) const override
          {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
+            rSerializer.save("StressVectorFinalized", mStressVectorFinalized );
+            rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized );
+            rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized );
          }
 
          virtual void load(Serializer& rSerializer) override
          {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
+            rSerializer.load("StressVectorFinalized", mStressVectorFinalized );
+            rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized );
+            rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized );
          }
 
          ///@}
