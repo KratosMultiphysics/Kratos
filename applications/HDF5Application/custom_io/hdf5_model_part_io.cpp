@@ -1,10 +1,13 @@
-#include "hdf5_model_part_io.h"
+#include "custom_io/hdf5_model_part_io.h"
+
+#include "custom_utilities/hdf5_points_data.h"
+#include "custom_utilities/hdf5_connectivities_data.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
-ModelPartIO::ModelPartIO(Parameters& rParams, HDF5::File::Pointer pFile)
+ModelPartIO::ModelPartIO(Parameters& rParams, File::Pointer pFile)
 : mpFile(pFile)
 {
     KRATOS_TRY;
@@ -51,22 +54,14 @@ bool ModelPartIO::ReadNodes(NodesContainerType& rNodes)
 {
     KRATOS_TRY;
 
-    HDF5::File::Vector<int> node_ids;
-    HDF5::File::Vector<array_1d<double, 3>> node_coords;
     rNodes.clear();
 
     const std::size_t num_nodes = ReadNodesNumber();
-    GetFile().ReadDataSet("/Nodes/Local/Id", node_ids, 0, num_nodes);
-    GetFile().ReadDataSet("/Nodes/Local/Coordinate", node_coords, 0, num_nodes);
+    File& r_file = GetFile();
+    PointsData points;
 
-    rNodes.reserve(num_nodes);
-    for (unsigned i = 0; i < num_nodes; ++i)
-    {
-        const array_1d<double, 3>& r_coord = node_coords[i];
-        NodeType::Pointer p_node = boost::make_shared<NodeType>(
-            node_ids[i], r_coord[0], r_coord[1], r_coord[2]);
-        rNodes.push_back(p_node);
-    }
+    points.ReadData(r_file, "/Nodes/Local", 0, num_nodes);
+    points.CreateNodes(rNodes);
 
     return true;
     KRATOS_CATCH("");
@@ -74,7 +69,7 @@ bool ModelPartIO::ReadNodes(NodesContainerType& rNodes)
 
 std::size_t ModelPartIO::ReadNodesNumber()
 {
-    const std::vector<unsigned> dims = GetFile().GetDataDimensions("/Nodes/Local/Id");
+    const std::vector<unsigned> dims = GetFile().GetDataDimensions("/Nodes/Local/Ids");
     return dims[0];
 }
 
@@ -82,52 +77,35 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 {
     KRATOS_TRY;
 
-    HDF5::File::Vector<int> node_ids(rNodes.size());
-    HDF5::File::Vector<array_1d<double, 3>> node_coords(rNodes.size());
-
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector partition;
-    OpenMPUtils::DivideInPartitions(rNodes.size(), num_threads, partition);
-#pragma omp parallel
-    {
-        const int thread_id = OpenMPUtils::ThisThread();
-        NodesContainerType::const_iterator it = rNodes.begin() + partition[thread_id];
-        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
-        {
-            const auto& r_node = *it;
-            node_ids[i] = r_node.Id();
-            node_coords[i] = r_node.Coordinates();
-            ++it;
-        }
-    }
-
-    GetFile().WriteDataSet("/Nodes/Local/Id", node_ids);
-    GetFile().WriteDataSet("/Nodes/Local/Coordinate", node_coords);
+    PointsData points;
+    points.SetData(rNodes);
+    File& r_file = GetFile();
+    points.WriteData(r_file, "/Nodes/Local");
     
     KRATOS_CATCH("");
 }
 
 void ModelPartIO::ReadElements(NodesContainerType& rNodes,
-                                   PropertiesContainerType& rProperties,
-                                   ElementsContainerType& rElements)
+                               PropertiesContainerType& rProperties,
+                               ElementsContainerType& rElements)
 {
     KRATOS_TRY;
+
     rElements.clear();
-    std::vector<unsigned> dims;
-    HDF5::File::Vector<int> elem_ids, prop_ids;
-    HDF5::File::Matrix<int> connectivities;
+
+    File& r_file = GetFile();
+    ConnectivitiesData connectivities;
 
     for (unsigned i = 0; i < mElementNames.size(); ++i)
     {
-        const std::string& r_elem_name = mElementNames[i];
+        const std::string elem_path = "/Elements/" + mElementNames[i];
+        const unsigned num_elems = r_file.GetDataDimensions(elem_path + "/Ids")[0];
+        connectivities.Clear();
+        connectivities.ReadData(r_file, elem_path, 0, num_elems);
         const Element& r_elem = *mElementPointers[i];
-        const std::string elem_path = "/Elements/" + r_elem_name;
-        dims = GetFile().GetDataDimensions(elem_path + "/Id");
-        GetFile().ReadDataSet(elem_path + "/Id", elem_ids, 0, dims[0]);
-        GetFile().ReadDataSet(elem_path + "/PropertyId", prop_ids, 0, dims[0]);
-        GetFile().ReadDataSet(elem_path + "/Connectivity", connectivities, 0, dims[0]);
-        AddElements(r_elem, elem_ids, prop_ids, connectivities, rNodes, rProperties, rElements);
+        connectivities.CreateElements(r_elem, rNodes, rProperties, rElements);
     }
+
     KRATOS_CATCH("");
 }
 
@@ -148,26 +126,26 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rElements)
 }
 
 void ModelPartIO::ReadConditions(NodesContainerType& rNodes,
-                                     PropertiesContainerType& rProperties,
-                                     ConditionsContainerType& rConditions)
+                                 PropertiesContainerType& rProperties,
+                                 ConditionsContainerType& rConditions)
 {
     KRATOS_TRY;
+
     rConditions.clear();
-    std::vector<unsigned> dims;
-    HDF5::File::Vector<int> cond_ids, prop_ids;
-    HDF5::File::Matrix<int> connectivities;
+
+    File& r_file = GetFile();
+    ConnectivitiesData connectivities;
 
     for (unsigned i = 0; i < mConditionNames.size(); ++i)
     {
-        const std::string& r_cond_name = mConditionNames[i];
+        const std::string cond_path = "/Conditions/" + mConditionNames[i];
+        const unsigned num_conds = r_file.GetDataDimensions(cond_path + "/Ids")[0];
+        connectivities.Clear();
+        connectivities.ReadData(r_file, cond_path, 0, num_conds);
         const Condition& r_cond = *mConditionPointers[i];
-        const std::string cond_path = "/Conditions/" + r_cond_name;
-        dims = GetFile().GetDataDimensions(cond_path + "/Id");
-        GetFile().ReadDataSet(cond_path + "/Id", cond_ids, 0, dims[0]);
-        GetFile().ReadDataSet(cond_path + "/PropertyId", prop_ids, 0, dims[0]);
-        GetFile().ReadDataSet(cond_path + "/Connectivity", connectivities, 0, dims[0]);
-        AddConditions(r_cond, cond_ids, prop_ids, connectivities, rNodes, rProperties, rConditions);
+        connectivities.CreateConditions(r_cond, rNodes, rProperties, rConditions);
     }
+
     KRATOS_CATCH("");
 }
 
@@ -237,46 +215,15 @@ void ModelPartIO::WriteUniformElements(ElementsContainerType const& rElements)
     KRATOS_TRY;
 
     const Element& r_expected_element = *mElementPointers[0];
-    unsigned size1 = rElements.size();
-    unsigned size2 = r_expected_element.GetGeometry().size();
-    HDF5::File::Vector<int> elem_ids(size1);
-    HDF5::File::Vector<int> prop_ids(size1);
-    HDF5::File::Matrix<int> connectivities(size1, size2);
+    const Element& r_elem = rElements.front();
+    KRATOS_ERROR_IF(typeid(r_elem) != typeid(r_expected_element))
+        << "Elements are not of type: " << typeid(r_expected_element).name()
+        << std::endl;
 
-    // Fill arrays and perform checks.
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector partition;
-    OpenMPUtils::DivideInPartitions(rElements.size(), num_threads, partition);
-#pragma omp parallel
-    {
-        const int thread_id = OpenMPUtils::ThisThread();
-        ElementsContainerType::const_iterator it = rElements.begin() + partition[thread_id];
-        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
-        {
-            const Element& r_elem = *it;
-            // Check element type.
-            KRATOS_ERROR_IF(typeid(r_elem) != typeid(r_expected_element))
-                << "Element #" << r_elem.Id() << " is not "
-                << typeid(r_expected_element).name() << std::endl;
-            // Fill ids.
-            elem_ids[i] = r_elem.Id();
-            prop_ids[i] = r_elem.GetProperties().Id();
-            // Check for matching node count.
-            const Element::GeometryType& r_geom = r_elem.GetGeometry();
-            KRATOS_ERROR_IF(r_geom.size() != size2)
-                << "Geometry has non-standard size for element #" << r_elem.Id()
-                << std::endl;
-            // Fill connectivities.
-            for (unsigned k = 0; k < size2; ++k)
-                connectivities(i, k) = r_geom[k].Id();
-            ++it;
-        }
-    }
-
-    // Write to HDF5 file.
-    GetFile().WriteDataSet("/Elements/" + mElementNames[0] + "/Id", elem_ids);
-    GetFile().WriteDataSet("/Elements/" + mElementNames[0] + "/PropertyId", prop_ids);
-    GetFile().WriteDataSet("/Elements/" + mElementNames[0] + "/Connectivity", connectivities);
+    ConnectivitiesData connectivities;
+    connectivities.SetData(rElements);
+    File& r_file = GetFile();
+    connectivities.WriteData(r_file, "/Elements/" + mElementNames[0]);
 
     KRATOS_CATCH("");
 }
@@ -366,46 +313,15 @@ void ModelPartIO::WriteUniformConditions(ConditionsContainerType const& rConditi
     KRATOS_TRY;
 
     const Condition& r_expected_condition = *mConditionPointers[0];
-    unsigned size1 = rConditions.size();
-    unsigned size2 = r_expected_condition.GetGeometry().size();
-    HDF5::File::Vector<int> cond_ids(size1);
-    HDF5::File::Vector<int> prop_ids(size1);
-    HDF5::File::Matrix<int> connectivities(size1, size2);
+    const Condition& r_cond = rConditions.front();
+    KRATOS_ERROR_IF(typeid(r_cond) != typeid(r_expected_condition))
+        << "Conditions are not of type: " << typeid(r_expected_condition).name()
+        << std::endl;
 
-    // Fill arrays and perform checks.
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector partition;
-    OpenMPUtils::DivideInPartitions(rConditions.size(), num_threads, partition);
-#pragma omp parallel
-    {
-        const int thread_id = OpenMPUtils::ThisThread();
-        ConditionsContainerType::const_iterator it = rConditions.begin() + partition[thread_id];
-        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
-        {
-            const Condition& r_cond = *it;
-            // Check condition type.
-            KRATOS_ERROR_IF(typeid(r_cond) != typeid(r_expected_condition))
-                << "Condition #" << r_cond.Id() << " is not "
-                << typeid(r_expected_condition).name() << std::endl;
-            // Fill ids.
-            cond_ids[i] = r_cond.Id();
-            prop_ids[i] = r_cond.GetProperties().Id();
-            // Check for matching node count.
-            const Condition::GeometryType& r_geom = r_cond.GetGeometry();
-            KRATOS_ERROR_IF(r_geom.size() != size2)
-                << "Geometry has non-standard size for condition #" << r_cond.Id()
-                << std::endl;
-            // Fill connectivities.
-            for (unsigned k = 0; k < size2; ++k)
-                connectivities(i, k) = r_geom[k].Id();
-            ++it;
-        }
-    }
-
-    // Write to HDF5 file.
-    GetFile().WriteDataSet("/Conditions/" + mConditionNames[0] + "/Id", cond_ids);
-    GetFile().WriteDataSet("/Conditions/" + mConditionNames[0] + "/PropertyId", prop_ids);
-    GetFile().WriteDataSet("/Conditions/" + mConditionNames[0] + "/Connectivity", connectivities);
+    ConnectivitiesData connectivities;
+    connectivities.SetData(rConditions);
+    File& r_file = GetFile();
+    connectivities.WriteData(r_file, "/Conditions/" + mConditionNames[0]);
 
     KRATOS_CATCH("");
 }
@@ -487,62 +403,6 @@ void ModelPartIO::WriteMixedConditions(ConditionsContainerType const& rCondition
         GetFile().WriteDataSet("/Conditions/" + r_cond_name + "/Connectivity", connectivities[i_type]);
     }
 
-    KRATOS_CATCH("");
-}
-
-void ModelPartIO::AddElements(const Element& rElement,
-                                  const HDF5::File::Vector<int>& rElementIds,
-                                  const HDF5::File::Vector<int>& rPropertyIds,
-                                  const HDF5::File::Matrix<int>& rConnectivities,
-                                  NodesContainerType& rNodes,
-                                  PropertiesContainerType& rProperties,
-                                  ElementsContainerType& rElements)
-{
-    KRATOS_TRY;
-    const unsigned new_size = rElements.size() + rElementIds.size();
-    const unsigned num_elem_nodes = rConnectivities.size2();
-    rElements.reserve(new_size);
-    Element::NodesArrayType nodes(num_elem_nodes);
-
-    for (unsigned i = 0; i < rElementIds.size(); ++i)
-    {
-        Element::IndexType new_id = rElementIds[i];
-        for (unsigned j = 0; j < num_elem_nodes; ++j)
-        {
-            int node_id = rConnectivities(i, j);
-            nodes(j) = rNodes(node_id);
-        }
-        Element::Pointer p_elem = rElement.Create(new_id, nodes, rProperties(new_id));
-        rElements.push_back(p_elem);
-    }
-    KRATOS_CATCH("");
-}
-
-void ModelPartIO::AddConditions(const Condition& rCondition,
-                                    const HDF5::File::Vector<int>& rConditionIds,
-                                    const HDF5::File::Vector<int>& rPropertyIds,
-                                    const HDF5::File::Matrix<int>& rConnectivities,
-                                    NodesContainerType& rNodes,
-                                    PropertiesContainerType& rProperties,
-                                    ConditionsContainerType& rConditions)
-{
-    KRATOS_TRY;
-    const unsigned new_size = rConditions.size() + rConditionIds.size();
-    const unsigned num_cond_nodes = rConnectivities.size2();
-    rConditions.reserve(new_size);
-    Condition::NodesArrayType nodes(num_cond_nodes);
-
-    for (unsigned i = 0; i < rConditionIds.size(); ++i)
-    {
-        Condition::IndexType new_id = rConditionIds[i];
-        for (unsigned j = 0; j < num_cond_nodes; ++j)
-        {
-            int node_id = rConnectivities(i, j);
-            nodes(j) = rNodes(node_id);
-        }
-        Condition::Pointer p_cond = rCondition.Create(new_id, nodes, rProperties(new_id));
-        rConditions.push_back(p_cond);
-    }
     KRATOS_CATCH("");
 }
 

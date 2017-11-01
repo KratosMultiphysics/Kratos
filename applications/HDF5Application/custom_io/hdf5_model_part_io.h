@@ -52,7 +52,7 @@ public:
     ///@{
 
     /// Constructor.
-    ModelPartIO(Parameters& rParams, HDF5::File::Pointer pFile);
+    ModelPartIO(Parameters& rParams, File::Pointer pFile);
 
     ///@}
     ///@name Operations
@@ -155,21 +155,6 @@ private:
 
     void WriteMixedConditions(ConditionsContainerType const& rConditions);
 
-    void AddElements(const Element& rElement,
-                     const HDF5::File::Vector<int>& rElementIds,
-                     const HDF5::File::Vector<int>& rPropertyIds,
-                     const HDF5::File::Matrix<int>& rConnectivities,
-                     NodesContainerType& rNodes,
-                     PropertiesContainerType& rProperties,
-                     ElementsContainerType& rElements);
-
-    void AddConditions(const Condition& rCondition,
-                       const HDF5::File::Vector<int>& rConditionIds,
-                       const HDF5::File::Vector<int>& rPropertyIds,
-                       const HDF5::File::Matrix<int>& rConnectivities,
-                       NodesContainerType& rNodes,
-                       PropertiesContainerType& rProperties,
-                       ConditionsContainerType& rConditions);
     ///@}
 };
 
