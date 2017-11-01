@@ -1,25 +1,24 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
-//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
-//        | |  | | |___ ___) |  _  || || |\  | |_| |
-//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:             BSD License
+//                                       license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_METRIC_FAST_INIT_PROCESS)
-#define KRATOS_METRIC_FAST_INIT_PROCESS
+#if !defined(KRATOS_MASTER_SLAVE_PROCESS)
+#define KRATOS_MASTER_SLAVE_PROCESS
 
 // System includes
 
 // External includes
 
 // Project includes
+#include "utilities/openmp_utils.h"
 #include "processes/process.h"
-#include "meshing_application.h"
 #include "includes/model_part.h"
 
 namespace Kratos
@@ -30,30 +29,29 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
+    
 ///@}
 ///@name  Enum's
 ///@{
-
+    
 ///@}
 ///@name  Functions
 ///@{
-
+    
 /// Short class definition.
-// This process initializes the variables related with the ALM
+// This process assigns as master/slave the conditions
 /** Detail class definition.
 */
-template<unsigned int TDim>
-class MetricFastInit
+class MasterSlaveProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of MetricFastInit
-    KRATOS_CLASS_POINTER_DEFINITION(MetricFastInit);
-
+    /// Pointer definition of MasterSlaveProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveProcess);
+    
     // General type definitions
     typedef Node<3>                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
@@ -65,10 +63,16 @@ public:
     ///@{
 
     /// Default constructor.
-    MetricFastInit( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart){}
+    MasterSlaveProcess( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart)
+    {
+        KRATOS_TRY;
+        
+        KRATOS_CATCH(""); 
+    }
 
     /// Destructor.
-    ~MetricFastInit() override = default;
+    ~MasterSlaveProcess() override
+    = default;
 
     ///@}
     ///@name Access
@@ -85,7 +89,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
-
+    
     ///@}
     ///@name Operators
     ///@{
@@ -94,13 +98,13 @@ public:
     {
         Execute();
     }
-
+    
     ///@}
     ///@name Operations
     ///@{
-
-    void Execute() override;
-
+    
+    void Execute();
+    
     ///@}
     ///@name Access
     ///@{
@@ -118,13 +122,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "MetricFastInit";
+        return "MasterSlaveProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "MetricFastInit";
+        rOStream << "MasterSlaveProcess";
     }
 
     /// Print object's data.
@@ -184,7 +188,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
     ModelPart& mrThisModelPart;
 
     ///@}
@@ -211,15 +214,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    MetricFastInit& operator=(MetricFastInit const& rOther);
+    MasterSlaveProcess& operator=(MasterSlaveProcess const& rOther) = delete;
 
     /// Copy constructor.
-    //MetricFastInit(MetricFastInit const& rOther);
+    //MasterSlaveProcess(MasterSlaveProcess const& rOther);
 
 
     ///@}
 
-}; // Class MetricFastInit
+}; // Class MasterSlaveProcess
 
 ///@}
 
@@ -233,18 +236,18 @@ private:
 
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   MetricFastInit& rThis);
-//
+//                                   MasterSlaveProcess& rThis);
+// 
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const MetricFastInit& rThis)
+//                                   const MasterSlaveProcess& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-//
+// 
 //     return rOStream;
 // }
 
 }
-#endif /* KRATOS_METRIC_FAST_INIT_PROCESS defined */
+#endif /* KRATOS_MASTER_SLAVE_PROCESS defined */
