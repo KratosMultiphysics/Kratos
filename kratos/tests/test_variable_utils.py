@@ -108,6 +108,29 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), node.GetValue(VELOCITY_Y))
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), node.GetValue(VELOCITY_Z))
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), node.GetValue(DENSITY))
+            
+    def test_save_nonhist_var(self):
+        ##set the model part
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DENSITY)
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        ##save the variable values
+        VariableUtils().SetToZero_NonHistScalarVar(VISCOSITY, model_part.Nodes)
+        VariableUtils().SetToZero_NonHistVectorVar(DISPLACEMENT, model_part.Nodes)
+        VariableUtils().SaveScalarNonHistVar(VISCOSITY, DENSITY, model_part.Nodes)
+        VariableUtils().SaveVectorNonHistVar(DISPLACEMENT, VELOCITY, model_part.Nodes)
+
+        ##verify the result
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetValue(DISPLACEMENT_X), node.GetValue(VELOCITY_X))
+            self.assertEqual(node.GetValue(DISPLACEMENT_Y), node.GetValue(VELOCITY_Y))
+            self.assertEqual(node.GetValue(DISPLACEMENT_Z), node.GetValue(VELOCITY_Z))
+            self.assertEqual(node.GetValue(VISCOSITY), node.GetValue(DENSITY))
 
     def test_set_to_zero(self):
         ##set the model part
@@ -127,6 +150,25 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), 0.0)
+            
+    def test_set_to_nonhist_zero(self):
+        ##set the model part
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        ##save the variable values
+        VariableUtils().SetToZero_NonHistScalarVar(VISCOSITY, model_part.Nodes)
+        VariableUtils().SetToZero_NonHistVectorVar(DISPLACEMENT, model_part.Nodes)
+
+        ##verify the result
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetValue(DISPLACEMENT_X), 0.0)
+            self.assertEqual(node.GetValue(DISPLACEMENT_Y), 0.0)
+            self.assertEqual(node.GetValue(DISPLACEMENT_Z), 0.0)
+            self.assertEqual(node.GetValue(VISCOSITY), 0.0)
 
     def test_select_node_list(self):
         ##set the model part
