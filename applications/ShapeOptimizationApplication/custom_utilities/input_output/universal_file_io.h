@@ -18,7 +18,7 @@
 #include <fstream>
 #include <string>
 #include <algorithm>
-#include <iomanip>      // for setprecision
+#include <iomanip>      // for std::setprecision
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -38,8 +38,6 @@ namespace Kratos
 
 ///@name Kratos Globals
 ///@{
-
-using namespace std;
 
 ///@}
 ///@name Type Definitions
@@ -77,11 +75,11 @@ public:
     ///@{
 
     /// Default constructor.
-    UniversalFileIO( ModelPart& designSurface, Parameters& optimizationSettings )
-        : mrDesignSurface( designSurface ),
-          mrOptimizationSettings( optimizationSettings )
+    UniversalFileIO( ModelPart& OutputModelPart, Parameters& OptimizationSettings )
+        : mrOutputModelPart( OutputModelPart ),
+          mrOptimizationSettings( OptimizationSettings )
     {
-        mOutputFilename = CreateCompleteOutputFilenameWithPath( optimizationSettings );
+        mOutputFilename = CreateCompleteOutputFilenameWithPath( OptimizationSettings );
     }
 
     /// Destructor.
@@ -100,12 +98,13 @@ public:
     ///@{
 
     // ==============================================================================
-    string CreateCompleteOutputFilenameWithPath( Parameters& optimizationSettings  )
+    std::string CreateCompleteOutputFilenameWithPath( Parameters& OptimizationSettings  )
     {
-        string outputDirectory = optimizationSettings["output"]["output_directory"].GetString();
-        string outputFilename = outputDirectory + "/" + optimizationSettings["output"]["design_history_filename"].GetString() + ".unv";
+        std::string outputDirectory = OptimizationSettings["output"]["output_directory"].GetString();
+        std::string outputFilename = outputDirectory + "/" + OptimizationSettings["output"]["design_history_filename"].GetString() + ".unv";
         return outputFilename;
     }
+
     // --------------------------------------------------------------------------
     void InitializeLogging()
     {
@@ -124,17 +123,17 @@ public:
     // --------------------------------------------------------------------------
     void InitializeOutputFile()
     {
-        ofstream outputFile;
-        outputFile.open(mOutputFilename, ios::out | ios::trunc );
+        std::ofstream outputFile;
+        outputFile.open(mOutputFilename, std::ios::out | std::ios::trunc );
         outputFile.close();     
     }    
     // --------------------------------------------------------------------------
     void WriteUnits()
     {
-        ofstream outputFile;
-        outputFile.open(mOutputFilename, ios::out | ios::app );
-        outputFile << scientific;
-        outputFile << setprecision(15);
+        std::ofstream outputFile;
+        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile << std::scientific;
+        outputFile << std::setprecision(15);
 
         const int dataSetNumberForNodes = 164;
         const int unitCode = 5;
@@ -144,12 +143,12 @@ public:
         const double unitFactorTemperature = 1.0;
         const double temperatureOffset = 273.15;
 
-        outputFile << setw(6) << "-1" << "\n";
-        outputFile << setw(6) << dataSetNumberForNodes << "\n";
-        outputFile << setw(10) << unitCode << setw(30) << temperatureMode << "\n";
-        outputFile << setw(25) << unitFactorLenght << setw(25) <<  unitFactorForce << setw(25) << unitFactorTemperature << "\n";
-        outputFile << setw(25) << temperatureOffset << "\n";
-        outputFile << setw(6) << "-1" << "\n";
+        outputFile << std::setw(6) << "-1" << "\n";
+        outputFile << std::setw(6) << dataSetNumberForNodes << "\n";
+        outputFile << std::setw(10) << unitCode << std::setw(30) << temperatureMode << "\n";
+        outputFile << std::setw(25) << unitFactorLenght << std::setw(25) <<  unitFactorForce << std::setw(25) << unitFactorTemperature << "\n";
+        outputFile << std::setw(25) << temperatureOffset << "\n";
+        outputFile << std::setw(6) << "-1" << "\n";
 
         outputFile.close();     
     }   
@@ -157,28 +156,28 @@ public:
     // --------------------------------------------------------------------------
     void WriteNodes()
     {
-        ofstream outputFile;
-        outputFile.open(mOutputFilename, ios::out | ios::app );
-        outputFile << scientific;
-        outputFile << setprecision(15);
+        std::ofstream outputFile;
+        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile << std::scientific;
+        outputFile << std::setprecision(15);
 
         const int dataSetNumberForNodes = 2411;
         const int exportCoordinateSystemNumber = 0;
         const int displacementCoordinateSystemNumber = 0;
         const int color = 0;
 
-        outputFile << setw(6) << "-1" << "\n";
-        outputFile << setw(6) << dataSetNumberForNodes << "\n";
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        outputFile << std::setw(6) << "-1" << "\n";
+        outputFile << std::setw(6) << dataSetNumberForNodes << "\n";
+        for (auto & node_i : mrOutputModelPart.Nodes())
         {
-            int node_label = node_i->Id();
-            double x_coordinate = node_i->X();
-            double y_coordinate = node_i->Y();
-            double z_coordinate = node_i->Z();
-            outputFile << setw(10) << node_label << setw(10) << exportCoordinateSystemNumber << setw(10) << displacementCoordinateSystemNumber << setw(10) << color << "\n";
-            outputFile << setw(25) << x_coordinate << setw(25) <<  y_coordinate << setw(25) << z_coordinate << "\n";
+            int node_label = node_i.Id();
+            double x_coordinate = node_i.X();
+            double y_coordinate = node_i.Y();
+            double z_coordinate = node_i.Z();
+            outputFile << std::setw(10) << node_label << std::setw(10) << exportCoordinateSystemNumber << std::setw(10) << displacementCoordinateSystemNumber << std::setw(10) << color << "\n";
+            outputFile << std::setw(25) << x_coordinate << std::setw(25) <<  y_coordinate << std::setw(25) << z_coordinate << "\n";
         }
-        outputFile << setw(6) << "-1" << "\n";
+        outputFile << std::setw(6) << "-1" << "\n";
 
         outputFile.close();     
     }
@@ -186,73 +185,29 @@ public:
     // --------------------------------------------------------------------------
     void WriteElements()
     {
-        // All conditions given in the design surface are translated to dummy elements with the same geometry
-        ofstream outputFile;
-        outputFile.open(mOutputFilename, ios::out | ios::app );
+        if( mrOptimizationSettings["output"]["output_complete_optimization_model_part"].GetBool() )
+            WriteAllElementsButNoConditions();
+        else
+            WriteOnlyConditionsAsDummyElements();
+    }
 
+    // --------------------------------------------------------------------------
+    void WriteAllElementsButNoConditions()
+    {
+        std::ofstream outputFile;
+        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );        
+        
         const int dataSetNumberForElements = 2412;
         const int physicalPropertyTableNumber = 1;
         const int materialPropertyTableNumber = 1;
         const int color = 0;
 
+        outputFile << std::setw(6) << "-1" << "\n";
+        outputFile << std::setw(6) << dataSetNumberForElements << "\n";        
 
-
-
-
-        int new_element_id = 0;
-
-
-
-        outputFile << setw(6) << "-1" << "\n";
-        outputFile << setw(6) << dataSetNumberForElements << "\n";
-        for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
+        for (auto & element_i : mrOutputModelPart.Elements())
         {
-            const int element_label = ++new_element_id;
-            ModelPart::ConditionType::GeometryType condition_geometry = condition_i->GetGeometry();
-
-            if( condition_geometry.size()==3 )
-            {
-                const int feDescriptorId = 41; // Plane Stress Linear Triangle
-                const int numberOfNodes = 3; 
-                outputFile << setw(10) << element_label;
-                outputFile << setw(10) << feDescriptorId;
-                outputFile << setw(10) << physicalPropertyTableNumber;
-                outputFile << setw(10) << materialPropertyTableNumber ;
-                outputFile << setw(10) << color;
-                outputFile << setw(10) << numberOfNodes << "\n";
-                outputFile << setw(10) << condition_geometry[0].Id(); 
-                outputFile << setw(10) << condition_geometry[1].Id(); 
-                outputFile << setw(10) << condition_geometry[2].Id() << "\n";                
-            }
-            else if( condition_geometry.size()==4 )
-            {
-                const int feDescriptorId = 44; // Plane Stress Linear Quadrilateral
-                const int numberOfNodes = 4;
-                outputFile << setw(10) << element_label;
-                outputFile << setw(10) << feDescriptorId; 
-                outputFile << setw(10) << physicalPropertyTableNumber; 
-                outputFile << setw(10) << materialPropertyTableNumber;
-                outputFile << setw(10) << color;
-                outputFile << setw(10) << numberOfNodes << "\n";
-                outputFile << setw(10) << condition_geometry[0].Id(); 
-                outputFile << setw(10) << condition_geometry[1].Id();
-                outputFile << setw(10) << condition_geometry[2].Id();
-                outputFile << setw(10) << condition_geometry[3].Id() << "\n";                     
-            } 
-            else 
-                KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains conditions with geometries for which no UNV-output is implemented!","" )
-        }
-
-
-
-
-
-
-
-
-        for (auto & element_i : mrDesignSurface.Elements())
-        {
-            const int element_label = ++new_element_id;
+            const int element_label =element_i.Id();
             ModelPart::ConditionType::GeometryType element_geometry = element_i.GetGeometry();
 
             // Write triangles
@@ -260,91 +215,125 @@ public:
             {
                 const int feDescriptorId = 41; // Plane Stress Linear Triangle
                 const int numberOfNodes = 3; 
-                outputFile << setw(10) << element_label;
-                outputFile << setw(10) << feDescriptorId;
-                outputFile << setw(10) << physicalPropertyTableNumber;
-                outputFile << setw(10) << materialPropertyTableNumber ;
-                outputFile << setw(10) << color;
-                outputFile << setw(10) << numberOfNodes << "\n";
-                outputFile << setw(10) << element_geometry[0].Id(); 
-                outputFile << setw(10) << element_geometry[1].Id(); 
-                outputFile << setw(10) << element_geometry[2].Id() << "\n";                
+                outputFile << std::setw(10) << element_label;
+                outputFile << std::setw(10) << feDescriptorId;
+                outputFile << std::setw(10) << physicalPropertyTableNumber;
+                outputFile << std::setw(10) << materialPropertyTableNumber ;
+                outputFile << std::setw(10) << color;
+                outputFile << std::setw(10) << numberOfNodes << "\n";
+                outputFile << std::setw(10) << element_geometry[0].Id(); 
+                outputFile << std::setw(10) << element_geometry[1].Id(); 
+                outputFile << std::setw(10) << element_geometry[2].Id() << "\n";                
             }
             // Write quads
             else if( element_geometry.size()==4 && element_geometry.Dimension()==2 )
             {
                 const int feDescriptorId = 44; // Plane Stress Linear Quadrilateral
                 const int numberOfNodes = 4;
-                outputFile << setw(10) << element_label;
-                outputFile << setw(10) << feDescriptorId; 
-                outputFile << setw(10) << physicalPropertyTableNumber; 
-                outputFile << setw(10) << materialPropertyTableNumber;
-                outputFile << setw(10) << color;
-                outputFile << setw(10) << numberOfNodes << "\n";
-                outputFile << setw(10) << element_geometry[0].Id(); 
-                outputFile << setw(10) << element_geometry[1].Id();
-                outputFile << setw(10) << element_geometry[2].Id();
-                outputFile << setw(10) << element_geometry[3].Id() << "\n";                     
+                outputFile << std::setw(10) << element_label;
+                outputFile << std::setw(10) << feDescriptorId; 
+                outputFile << std::setw(10) << physicalPropertyTableNumber; 
+                outputFile << std::setw(10) << materialPropertyTableNumber;
+                outputFile << std::setw(10) << color;
+                outputFile << std::setw(10) << numberOfNodes << "\n";
+                outputFile << std::setw(10) << element_geometry[0].Id(); 
+                outputFile << std::setw(10) << element_geometry[1].Id();
+                outputFile << std::setw(10) << element_geometry[2].Id();
+                outputFile << std::setw(10) << element_geometry[3].Id() << "\n";                     
             }
             // Write tetrahedras
             else if( element_geometry.size()==4 && element_geometry.Dimension()==3 )
             {
                 const int feDescriptorId = 111; // Solid linear tetrahedron
                 const int numberOfNodes = 4;
-                outputFile << setw(10) << element_label;
-                outputFile << setw(10) << feDescriptorId; 
-                outputFile << setw(10) << physicalPropertyTableNumber; 
-                outputFile << setw(10) << materialPropertyTableNumber;
-                outputFile << setw(10) << color;
-                outputFile << setw(10) << numberOfNodes << "\n";
-                outputFile << setw(10) << element_geometry[0].Id(); 
-                outputFile << setw(10) << element_geometry[1].Id();
-                outputFile << setw(10) << element_geometry[2].Id();
-                outputFile << setw(10) << element_geometry[3].Id() << "\n";                     
+                outputFile << std::setw(10) << element_label;
+                outputFile << std::setw(10) << feDescriptorId; 
+                outputFile << std::setw(10) << physicalPropertyTableNumber; 
+                outputFile << std::setw(10) << materialPropertyTableNumber;
+                outputFile << std::setw(10) << color;
+                outputFile << std::setw(10) << numberOfNodes << "\n";
+                outputFile << std::setw(10) << element_geometry[0].Id(); 
+                outputFile << std::setw(10) << element_geometry[1].Id();
+                outputFile << std::setw(10) << element_geometry[2].Id();
+                outputFile << std::setw(10) << element_geometry[3].Id() << "\n";                     
             }             
             else 
                 KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains elements with geometries for which no UNV-output is implemented!","" )
         }
 
+        outputFile << std::setw(6) << "-1" << "\n";
+        outputFile.close();           
+    }
+    
+    // --------------------------------------------------------------------------
+    void WriteOnlyConditionsAsDummyElements()
+    {
+        std::ofstream outputFile;
+        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
 
+        const int dataSetNumberForElements = 2412;
+        const int physicalPropertyTableNumber = 1;
+        const int materialPropertyTableNumber = 1;
+        const int color = 0;
 
+        outputFile << std::setw(6) << "-1" << "\n";
+        outputFile << std::setw(6) << dataSetNumberForElements << "\n";
 
+        for (auto & condition_i : mrOutputModelPart.Conditions())
+        {
+            const int element_label = condition_i.Id();
+            ModelPart::ConditionType::GeometryType condition_geometry = condition_i.GetGeometry();
 
+            if( condition_geometry.size()==3 )
+            {
+                const int feDescriptorId = 41; // Plane Stress Linear Triangle
+                const int numberOfNodes = 3; 
+                outputFile << std::setw(10) << element_label;
+                outputFile << std::setw(10) << feDescriptorId;
+                outputFile << std::setw(10) << physicalPropertyTableNumber;
+                outputFile << std::setw(10) << materialPropertyTableNumber ;
+                outputFile << std::setw(10) << color;
+                outputFile << std::setw(10) << numberOfNodes << "\n";
+                outputFile << std::setw(10) << condition_geometry[0].Id(); 
+                outputFile << std::setw(10) << condition_geometry[1].Id(); 
+                outputFile << std::setw(10) << condition_geometry[2].Id() << "\n";                
+            }
+            else if( condition_geometry.size()==4 )
+            {
+                const int feDescriptorId = 44; // Plane Stress Linear Quadrilateral
+                const int numberOfNodes = 4;
+                outputFile << std::setw(10) << element_label;
+                outputFile << std::setw(10) << feDescriptorId; 
+                outputFile << std::setw(10) << physicalPropertyTableNumber; 
+                outputFile << std::setw(10) << materialPropertyTableNumber;
+                outputFile << std::setw(10) << color;
+                outputFile << std::setw(10) << numberOfNodes << "\n";
+                outputFile << std::setw(10) << condition_geometry[0].Id(); 
+                outputFile << std::setw(10) << condition_geometry[1].Id();
+                outputFile << std::setw(10) << condition_geometry[2].Id();
+                outputFile << std::setw(10) << condition_geometry[3].Id() << "\n";                     
+            } 
+            else 
+                KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains conditions with geometries for which no UNV-output is implemented!","" )
+        }
 
-        outputFile << setw(6) << "-1" << "\n";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        outputFile.close();     
-    }    
+        outputFile << std::setw(6) << "-1" << "\n";
+        outputFile.close();                   
+    }
 
     // --------------------------------------------------------------------------
     void LogNodalResults( const int optimizationIteration )
     {
-        ofstream outputFile;
-        outputFile.open(mOutputFilename, ios::out | ios::app );
-        outputFile << scientific;
-        outputFile << setprecision(5);
+        std::ofstream outputFile;
+        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile << std::scientific;
+        outputFile << std::setprecision(5);
 
         const int dataSetNumberForResults = 2414;
 
         const int analysisDataSetLabel = 1;
         const int dataSetLocation = 1; // Data at nodes
-        string analysisDataSetName = "KratosShapeOptimization";
+        std::string analysisDataSetName = "KratosShapeOptimization";
         const int expressionNameKey = 1;
 
         const int modelType = 1; // Structural
@@ -383,7 +372,7 @@ public:
         Parameters nodalResults = mrOptimizationSettings["output"]["nodal_results"];
         for(unsigned int entry = 0; entry<nodalResults.size(); entry++)
         {
-            string nodalResultName = nodalResults[entry].GetString();
+            std::string nodalResultName = nodalResults[entry].GetString();
 
             unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
             if( KratosComponents<Variable<double>>::Has(nodalResultName))
@@ -391,73 +380,73 @@ public:
             else if( KratosComponents<Variable< array_1d<double,3>>>::Has(nodalResultName))
                 dataCharacteristic = 2;
 
-            outputFile << setw(6) << "-1" << "\n";
-            outputFile << setw(6) << dataSetNumberForResults << "\n";
+            outputFile << std::setw(6) << "-1" << "\n";
+            outputFile << std::setw(6) << dataSetNumberForResults << "\n";
 
-            outputFile << setw(10) << analysisDataSetLabel << "\n";
+            outputFile << std::setw(10) << analysisDataSetLabel << "\n";
             outputFile << "LOADCASE_NAME_KEY " << analysisDataSetName << "\n";
-            outputFile << setw(10) << dataSetLocation << "\n";
+            outputFile << std::setw(10) << dataSetLocation << "\n";
             outputFile << "RESULT_NAME_KEY " << nodalResultName << "\n";
             outputFile << "NONE" << "\n";
             outputFile << "EXPRESSION_NAME_KEY " << expressionNameKey << "\n";
             outputFile << "NONE" << "\n";
             outputFile << "NONE" << "\n";    
 
-            outputFile << setw(10) << modelType; 
-            outputFile << setw(10) << analysisType; 
-            outputFile << setw(10) << dataCharacteristic;
+            outputFile << std::setw(10) << modelType; 
+            outputFile << std::setw(10) << analysisType; 
+            outputFile << std::setw(10) << dataCharacteristic;
             if (nodalResultName.compare("SHAPE_UPDATE_ABSOLUTE") == 0)
-                outputFile << setw(10) << displacementResultType;
+                outputFile << std::setw(10) << displacementResultType;
             else
-                outputFile << setw(10) << resultType;
-            outputFile << setw(10) << dataType;
-            outputFile << setw(10) << numberOfDataValuesForTheDataComponent << "\n";
+                outputFile << std::setw(10) << resultType;
+            outputFile << std::setw(10) << dataType;
+            outputFile << std::setw(10) << numberOfDataValuesForTheDataComponent << "\n";
 
-            outputFile << setw(10) << DesignSetId; 
-            outputFile << setw(10) << iterationNumber; 
-            outputFile << setw(10) << solutionSetId;
-            outputFile << setw(10) << boundaryCondition;
-            outputFile << setw(10) << loadSet;
-            outputFile << setw(10) << modeNumber;
-            outputFile << setw(10) << timeStepNumber;
-            outputFile << setw(10) << frequencyNumber << "\n";
+            outputFile << std::setw(10) << DesignSetId; 
+            outputFile << std::setw(10) << iterationNumber; 
+            outputFile << std::setw(10) << solutionSetId;
+            outputFile << std::setw(10) << boundaryCondition;
+            outputFile << std::setw(10) << loadSet;
+            outputFile << std::setw(10) << modeNumber;
+            outputFile << std::setw(10) << timeStepNumber;
+            outputFile << std::setw(10) << frequencyNumber << "\n";
 
-            outputFile << setw(10) << creationOption;
-            outputFile << setw(10) << numberRetained << "\n";
+            outputFile << std::setw(10) << creationOption;
+            outputFile << std::setw(10) << numberRetained << "\n";
 
-            outputFile << setw(13) << givenTime; 
-            outputFile << setw(13) << frequency; 
-            outputFile << setw(13) << eigenvalue;
-            outputFile << setw(13) << modalMass;
-            outputFile << setw(13) << viscousDampingRation;
-            outputFile << setw(13) << hystereticDampingRatio << "\n";      
+            outputFile << std::setw(13) << givenTime; 
+            outputFile << std::setw(13) << frequency; 
+            outputFile << std::setw(13) << eigenvalue;
+            outputFile << std::setw(13) << modalMass;
+            outputFile << std::setw(13) << viscousDampingRation;
+            outputFile << std::setw(13) << hystereticDampingRatio << "\n";      
 
-            outputFile << setw(13) << realPartEigenvalue; 
-            outputFile << setw(13) << imaginaryPartEigenvalue; 
-            outputFile << setw(13) << realPartOfModalA;
-            outputFile << setw(13) << realPartOfMass;
-            outputFile << setw(13) << imaginaryPartOfModalA;
-            outputFile << setw(13) << imaginaryPartOfMass << "\n";    
+            outputFile << std::setw(13) << realPartEigenvalue; 
+            outputFile << std::setw(13) << imaginaryPartEigenvalue; 
+            outputFile << std::setw(13) << realPartOfModalA;
+            outputFile << std::setw(13) << realPartOfMass;
+            outputFile << std::setw(13) << imaginaryPartOfModalA;
+            outputFile << std::setw(13) << imaginaryPartOfMass << "\n";    
 
-            for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+            for (auto & node_i : mrOutputModelPart.Nodes())
             {
-                outputFile << setw(10) << node_i->Id() << "\n"; 
+                outputFile << std::setw(10) << node_i.Id() << "\n"; 
                 if(dataCharacteristic==1)
                 {
                     Variable<double> nodalResultVariable = KratosComponents<Variable<double>>::Get(nodalResultName);
-                    double& nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
-                    outputFile << setw(13) << nodalResult << "\n"; 
+                    double& nodalResult = node_i.FastGetSolutionStepValue(nodalResultVariable);
+                    outputFile << std::setw(13) << nodalResult << "\n"; 
                 }
                 else if(dataCharacteristic==2)
                 {
                     Variable< array_1d<double,3>> nodalResultVariable = KratosComponents<Variable< array_1d<double,3>>>::Get(nodalResultName);
-                    array_1d<double,3>& nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
-                    outputFile << setw(13) << nodalResult[0];
-                    outputFile << setw(13) << nodalResult[1];
-                    outputFile << setw(13) << nodalResult[2] << "\n"; 
+                    array_1d<double,3>& nodalResult = node_i.FastGetSolutionStepValue(nodalResultVariable);
+                    outputFile << std::setw(13) << nodalResult[0];
+                    outputFile << std::setw(13) << nodalResult[1];
+                    outputFile << std::setw(13) << nodalResult[2] << "\n"; 
                 }
             }
-            outputFile << setw(6) << "-1" << "\n";
+            outputFile << std::setw(6) << "-1" << "\n";
         }
 
         outputFile.close(); 
@@ -479,20 +468,20 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-    virtual string Info() const
+    /// Turn back information as a std::string.
+    virtual std::string Info() const
     {
         return "UniversalFileIO";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "UniversalFileIO";
     }
 
     /// Print object's data.
-    virtual void PrintData(ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const
     {
     }
 
@@ -553,9 +542,9 @@ private:
     // ==============================================================================
     // Initialized by class constructor
     // ==============================================================================
-    ModelPart& mrDesignSurface;
+    ModelPart& mrOutputModelPart;
     Parameters& mrOptimizationSettings;
-    string mOutputFilename;
+    std::string mOutputFilename;
 
     ///@}
     ///@name Private Operators

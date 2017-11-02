@@ -27,15 +27,15 @@ from algorithm_steepest_descent import AlgorithmSteepestDescent
 from algorithm_penalized_projection import AlgorithmPenalizedProjection
 
 # ==============================================================================
-def CreateAlgorithm( InputModelPart, Analyzer, OptimizationSettings ):
+def CreateAlgorithm( OptimizationModelPart, Analyzer, OptimizationSettings ):
     AlgorithmName = OptimizationSettings["optimization_algorithm"]["name"].GetString()
 
-    DesignSurface = GetDesignSurfaceFromInputModelPart( InputModelPart, OptimizationSettings )
-    DampingRegions = GetDampingRegionsFromInputModelPart( InputModelPart, OptimizationSettings )
+    DesignSurface = GetDesignSurfaceFromOptimizationModelPart( OptimizationModelPart, OptimizationSettings )
+    DampingRegions = GetDampingRegionsFromOptimizationModelPart( OptimizationModelPart, OptimizationSettings )
 
     Mapper = mapper_factory.CreateMapper( DesignSurface, OptimizationSettings ) 
     Communicator = communicator_factory.CreateCommunicator( OptimizationSettings )
-    DataLogger = optimization_data_logger_factory.CreateDataLogger( InputModelPart, Communicator, OptimizationSettings )
+    DataLogger = optimization_data_logger_factory.CreateDataLogger( OptimizationModelPart, DesignSurface, Communicator, OptimizationSettings )
 
     if AlgorithmName == "steepest_descent":
         return AlgorithmSteepestDescent( DesignSurface, DampingRegions, Analyzer, Mapper, Communicator, DataLogger, OptimizationSettings )
@@ -45,25 +45,25 @@ def CreateAlgorithm( InputModelPart, Analyzer, OptimizationSettings ):
         raise NameError("The following optimization algorithm not supported by the algorithm driver (name may be misspelled): " + AlgorithmName)              
 
 # --------------------------------------------------------------------------
-def GetDesignSurfaceFromInputModelPart( InputModelPart, OptimizationSettings ):
-    nameOfDesingSurface = OptimizationSettings["design_variables"]["design_submodel_part_name"].GetString()
-    if InputModelPart.HasSubModelPart( nameOfDesingSurface ):
-        optimizationModel = InputModelPart.GetSubModelPart( nameOfDesingSurface )
-        print("> The following design surface was defined:\n\n",optimizationModel)
-        return optimizationModel
+def GetDesignSurfaceFromOptimizationModelPart( OptimizationModelPart, OptimizationSettings ):
+    nameOfDesingSurface = OptimizationSettings["design_variables"]["design_surface_sub_model_part_name"].GetString()
+    if OptimizationModelPart.HasSubModelPart( nameOfDesingSurface ):
+        DesignSurface = OptimizationModelPart.GetSubModelPart( nameOfDesingSurface )
+        print("> The following design surface was defined:\n\n",DesignSurface)
+        return DesignSurface
     else:
         raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)         
 
 # --------------------------------------------------------------------------
-def GetDampingRegionsFromInputModelPart( InputModelPart, OptimizationSettings ):
+def GetDampingRegionsFromOptimizationModelPart( OptimizationModelPart, OptimizationSettings ):
     DampingRegions = {}
     if(OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()):
         print("> The following damping regions are defined: \n")
         for regionNumber in range(OptimizationSettings["design_variables"]["damping"]["damping_regions"].size()):
             regionName = OptimizationSettings["design_variables"]["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
-            if InputModelPart.HasSubModelPart(regionName):
+            if OptimizationModelPart.HasSubModelPart(regionName):
                 print(regionName)
-                DampingRegions[regionName] = InputModelPart.GetSubModelPart(regionName)
+                DampingRegions[regionName] = OptimizationModelPart.GetSubModelPart(regionName)
             else:
                 raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)    
         print("")    

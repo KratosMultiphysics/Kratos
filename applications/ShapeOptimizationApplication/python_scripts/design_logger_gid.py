@@ -29,8 +29,8 @@ from design_logger_base import DesignLogger
 class DesignLoggerGID( DesignLogger ):
 
     # --------------------------------------------------------------------------
-    def __init__( self, InputModelPart, OptimizationSettings ):
-        self.InputModelPart = InputModelPart
+    def __init__( self, OptimizationModelPart, DesignSurface, OptimizationSettings ):
+        self.OptimizationModelPart = OptimizationModelPart
         self.OptimizationSettings = OptimizationSettings
         self.NodalResults = self.__CreateListOfNodalResults( self.OptimizationSettings["output"] )
         self.gaussPointResults = []
@@ -59,11 +59,11 @@ class DesignLoggerGID( DesignLogger ):
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
         iteratorForInitialDesign = 0
-        self.GidIO.initialize_results( self.InputModelPart )
+        self.GidIO.initialize_results( self.OptimizationModelPart )
 
     # --------------------------------------------------------------------------
     def LogCurrentDesign( self, optimizationIteration ):
-        self.GidIO.write_results( optimizationIteration, self.InputModelPart, self.NodalResults, self.gaussPointResults )         
+        self.GidIO.write_results( optimizationIteration, self.OptimizationModelPart, self.NodalResults, self.gaussPointResults )         
 
     # --------------------------------------------------------------------------
     def FinalizeLogging( self ):      

@@ -136,7 +136,7 @@ public:
     void CreateListOfNodesOfModelPart()
     {
         mListOfNodesOfModelPart.resize(mrModelPartToDamp.Nodes().size());
-        std::size_t counter = 0;
+        int counter = 0;
         for (ModelPart::NodesContainerType::iterator node_it = mrModelPartToDamp.NodesBegin(); node_it != mrModelPartToDamp.NodesEnd(); ++node_it)
         {
             NodeTypePointer pnode = *(node_it.base());
