@@ -126,19 +126,19 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
 
         if( (section_type == "IPN") or (section_type == "IPE") or (section_type == "HEB") or (section_type == "HEA") or (section_type == "HEM") or (section_type == "UPN") ):
                         
-            size = self._GetScalarVariableValue("SECTION_SIZE")
+            size = str(int(self._GetScalarVariableValue("SECTION_SIZE")))
 
             import os
             csv_file = os.path.dirname(__file__) + '/beam_profiles.csv'
 
             section_properties = self._SearchCSVProperties(csv_file, section_type, size)
 
-            area = float(SectionProperties["A(m2)"])
+            area = float(section_properties["A(m2)"])
             inertia_matrix = KratosMultiphysics.Matrix(2, 2)            
-            inertia_matrix[0, 0] = float(SectionProperties["Iz(m4)"])  # z is the horizontal axis of the section
-            inertia_matrix[0, 1] = float(SectionProperties["Izy(m4)"]) 
-            inertia_matrix[1, 0] = float(SectionProperties["Iyz(m4)"])
-            inertia_matrix[1, 1] = float(SectionProperties["Iy(m4)"])  # y is the vertical axis of the section
+            inertia_matrix[0, 0] = float(section_properties["Iz(m4)"])  # z is the horizontal axis of the section
+            inertia_matrix[0, 1] = float(section_properties["Iz(m4)"]) + float(section_properties["Iy(m4)"]) 
+            inertia_matrix[1, 0] = float(section_properties["Iz(m4)"]) + float(section_properties["Iy(m4)"])
+            inertia_matrix[1, 1] = float(section_properties["Iy(m4)"])  # y is the vertical axis of the section
 
             properties.SetValue(KratosMultiphysics.LOCAL_INERTIA_TENSOR, inertia_matrix)
             properties.SetValue(KratosSolid.CROSS_SECTION_AREA, area)
@@ -294,21 +294,21 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
         
     def _SearchCSVProperties(self,file_name,shape,size):
         separator = ";"
-
+        
         with open(file_name, "rU") as f:
             header = f.readline()
             header = header.rstrip("\n")
             header = header.split(separator)
             line = f.readline()
-            
+
             while line != "":
                 line = line.rstrip("\n")
                 line = line.split(separator)
-                if line[0] == shape and line[1] == size:
+                if (line[0] == shape and line[1] == size):
                     result = dict(list(zip(header, line)))
                     break
                 line = f.readline()
-                
+
         if line == "":
             msg = "Error: section {0} {1} not found in section definition file {2}".format(profile, size, file_name)
             raise KeyError(msg)

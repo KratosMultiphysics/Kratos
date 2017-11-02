@@ -25,8 +25,8 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         inertia = Matrix(2, 2)
         cross_area = float(SectionProperties["A(m2)"])
         inertia[0, 0] = float(SectionProperties["Iz(m4)"])  #z is the horizontal axis of the section
-        inertia[0, 1] = float(SectionProperties["Iz(m4)"])  # we have to set this correctly
-        inertia[1, 0] = float(SectionProperties["Iz(m4)"])  # we have to set this correctly
+        inertia[0, 1] = float(SectionProperties["Iy(m4)"]) + float(SectionProperties["Iz(m4)"])  # we have to set this correctly
+        inertia[1, 0] = float(SectionProperties["Iy(m4)"]) + float(SectionProperties["Iz(m4)"])  # we have to set this correctly
         inertia[1, 1] = float(SectionProperties["Iy(m4)"])  #y is the vertical axis of the section
 
         BeamProperties.SetValue(LOCAL_INERTIA_TENSOR, inertia)
