@@ -149,6 +149,9 @@ CMAKE_BUILD=(
 
   # Custom python suffix for liboost-python
   -DBOOST_PYTHON_SUFFIX="-py34"
+
+  # Unity build
+  -DKRATOS_BUILD_UNITY=ON
 )
 
 ########################################################################################################################
