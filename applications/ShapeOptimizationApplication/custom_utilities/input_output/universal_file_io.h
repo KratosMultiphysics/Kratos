@@ -80,6 +80,7 @@ public:
           mrOptimizationSettings( OptimizationSettings )
     {
         mOutputFilename = CreateCompleteOutputFilenameWithPath( OptimizationSettings );
+        mOutputCompleteOptimizationModelPart = mrOptimizationSettings["output"]["output_complete_optimization_model_part"].GetBool();
     }
 
     /// Destructor.
@@ -185,7 +186,7 @@ public:
     // --------------------------------------------------------------------------
     void WriteElements()
     {
-        if( mrOptimizationSettings["output"]["output_complete_optimization_model_part"].GetBool() )
+        if( mOutputCompleteOptimizationModelPart )
             WriteAllElementsButNoConditions();
         else
             WriteConditionsAsDummyElements();
@@ -545,6 +546,7 @@ private:
     ModelPart& mrOutputModelPart;
     Parameters& mrOptimizationSettings;
     std::string mOutputFilename;
+    bool mOutputCompleteOptimizationModelPart;
 
     ///@}
     ///@name Private Operators

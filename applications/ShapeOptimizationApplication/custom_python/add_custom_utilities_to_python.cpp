@@ -133,7 +133,7 @@ void  AddCustomUtilitiesToPython()
         .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
         ;
 
-    class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart&, Parameters&>())
+    class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart*, ModelPart*, Parameters&>())
         .def("InitializeLogging", &VTKFileIO::InitializeLogging)
         .def("LogNodalResults", &VTKFileIO::LogNodalResults)
         ;

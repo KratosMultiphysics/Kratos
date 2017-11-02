@@ -67,7 +67,7 @@ class OptimizationDataLogger():
         if outputFormatName == "unv":
             return DesignLoggerUNV( OptimizationModelPart, DesignSurface, OptimizationSettings )  
         if outputFormatName == "vtk":
-            return DesignLoggerVTK( OptimizationModelPart, OptimizationSettings )                
+            return DesignLoggerVTK( OptimizationModelPart, DesignSurface, OptimizationSettings )                
         else:
             raise NameError("The following output format is not supported by the design logger (name may be misspelled): " + outputFormatName)
 

@@ -18,7 +18,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
-#include <iomanip>      // for setprecision
+#include <iomanip>      // for std::setprecision
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -38,8 +38,6 @@ namespace Kratos
 
 ///@name Kratos Globals
 ///@{
-
-using namespace std;
 
 ///@}
 ///@name Type Definitions
@@ -74,12 +72,16 @@ public:
     ///@{
 
     /// Default constructor.
-    VTKFileIO( ModelPart& designSurface, Parameters& optimizationSettings )
-        : mrDesignSurface( designSurface ),
-          mrOptimizationSettings( optimizationSettings )
+    VTKFileIO( ModelPart* OptimizationModelPart, ModelPart* DesignSurface, Parameters& OptimizationSettings )
+        : mrOptimizationSettings( OptimizationSettings )
     {
-        mOutputFilenamePrefix = InitializeOutputFilenameWithPath( optimizationSettings );
         mDefaultPrecision = 15;
+        mOutputFilenamePrefix = InitializeOutputFilenameWithPath( OptimizationSettings );
+        mOutputCompleteOptimizationModelPart = OptimizationSettings["output"]["output_complete_optimization_model_part"].GetBool(); 
+        if(mOutputCompleteOptimizationModelPart)
+            mpOutputModelPart = OptimizationModelPart;
+        else
+            mpOutputModelPart = DesignSurface;
     }
 
     /// Destructor.
@@ -98,10 +100,10 @@ public:
     ///@{
 
     // ==============================================================================
-    string InitializeOutputFilenameWithPath( Parameters& optimizationSettings  )
+    std::string InitializeOutputFilenameWithPath( Parameters& OptimizationSettings  )
     {
-        string outputDirectory = optimizationSettings["output"]["output_directory"].GetString();
-        string outputFilename = outputDirectory + "/" + optimizationSettings["output"]["design_history_filename"].GetString() + "_";
+        std::string outputDirectory = OptimizationSettings["output"]["output_directory"].GetString();
+        std::string outputFilename = outputDirectory + "/" + OptimizationSettings["output"]["design_history_filename"].GetString() + "_";
         return outputFilename;
     }
 
@@ -113,14 +115,14 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    map<int,int> CreateMapFromKratosIdToVTKId()
+    std::map<int,int> CreateMapFromKratosIdToVTKId()
     {
-        map<int,int> kratos_id_to_vtk;
+        std::map<int,int> kratos_id_to_vtk;
         int vtk_id = 0;
 
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        for(auto & node_i : mpOutputModelPart->Nodes())
         {
-            int KratosId = node_i->Id();
+            int KratosId = node_i.Id();
             kratos_id_to_vtk[KratosId] = vtk_id;
             vtk_id++;
         }
@@ -133,11 +135,22 @@ public:
     {
          unsigned int vtk_cell_list_size = 0;
 
-        for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
-        {
-            vtk_cell_list_size++;
-            vtk_cell_list_size += condition_i->GetGeometry().size();
-        }
+         if(mOutputCompleteOptimizationModelPart)
+         {
+            for (auto & element_i : mpOutputModelPart->Elements())
+            {
+                vtk_cell_list_size++;
+                vtk_cell_list_size += element_i.GetGeometry().size();
+            }
+         }
+         else
+         {
+             for (auto & condition_i : mpOutputModelPart->Conditions())
+             {
+                 vtk_cell_list_size++;
+                 vtk_cell_list_size += condition_i.GetGeometry().size();
+             }
+         }
 
         return vtk_cell_list_size;
     }
@@ -154,15 +167,15 @@ public:
     // --------------------------------------------------------------------------
     void UpdateOutputFilename( const int optimizationIteration )
     {
-        string outputFilename = mOutputFilenamePrefix + to_string(optimizationIteration) + ".vtk";
+        std::string outputFilename = mOutputFilenamePrefix + std::to_string(optimizationIteration) + ".vtk";
         mOutputFilename = outputFilename;
     }
 
     // --------------------------------------------------------------------------
     void WriteHeader()
     {
-        ofstream outputFile;
-        outputFile.open(mOutputFilename, ios::out | ios::trunc );
+        std::ofstream outputFile;
+        outputFile.open(mOutputFilename, std::ios::out | std::ios::trunc );
         outputFile << "# vtk DataFile Version 4.0" << "\n";
         outputFile << "vtk output" << "\n";
         outputFile << "ASCII" << "\n";
@@ -188,20 +201,20 @@ public:
     // --------------------------------------------------------------------------
     void WriteNodes()
     {
-        ofstream outputFile;
-        outputFile.open(mOutputFilename, ios::out | ios::app );
-        outputFile << scientific;
-        outputFile << setprecision(mDefaultPrecision);
+        std::ofstream outputFile;
+        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile << std::scientific;
+        outputFile << std::setprecision(mDefaultPrecision);
 
         // Write nodes header
-        outputFile << "POINTS " << mrDesignSurface.NumberOfNodes() << " float" << "\n";
+        outputFile << "POINTS " << mpOutputModelPart->NumberOfNodes() << " float" << "\n";
 
         // Write nodes
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        for (auto & node_i : mpOutputModelPart->Nodes())
         {
-            double x_coordinate = node_i->X0();
-            double y_coordinate = node_i->Y0();
-            double z_coordinate = node_i->Z0();
+            double x_coordinate = node_i.X0();
+            double y_coordinate = node_i.Y0();
+            double z_coordinate = node_i.Z0();
             outputFile << " " << x_coordinate;
             outputFile << " " << y_coordinate;
             outputFile << " " << z_coordinate << "\n";
@@ -213,67 +226,115 @@ public:
     // --------------------------------------------------------------------------
     void WriteElements()
     {
-        ofstream outputFile;
-        outputFile.open(mOutputFilename, ios::out | ios::app );
-
-        // Write elements header
-        outputFile << "CELLS " << mrDesignSurface.NumberOfConditions() << " " << mVtkCellListSize << "\n";
-
-        // Write elements
-        for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
+        if(mOutputCompleteOptimizationModelPart)
         {
-            ModelPart::ConditionType::GeometryType& condition_geometry = condition_i->GetGeometry();
-            const unsigned int numberOfNodes = condition_geometry.size();
-
-            outputFile << numberOfNodes;
-            for (unsigned int i=0; i<numberOfNodes; i++)
-                outputFile << " " << mKratosIdToVtkId[condition_geometry[i].Id()];
-            outputFile << "\n";
+            std::ofstream outputFile;
+            outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+    
+            outputFile << "CELLS " << mpOutputModelPart->NumberOfElements() << " " << mVtkCellListSize << "\n";
+            for (auto & element_i : mpOutputModelPart->Elements())
+            {
+                ModelPart::ElementType::GeometryType& element_geometry = element_i.GetGeometry();
+                const unsigned int numberOfNodes = element_geometry.size();
+    
+                outputFile << numberOfNodes;
+                for (unsigned int i=0; i<numberOfNodes; i++)
+                    outputFile << " " << mKratosIdToVtkId[element_geometry[i].Id()];
+                outputFile << "\n";
+            }
+    
+            outputFile.close();           
         }
-
-        outputFile.close();
+        else
+        {
+            std::ofstream outputFile;
+            outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+    
+            outputFile << "CELLS " << mpOutputModelPart->NumberOfConditions() << " " << mVtkCellListSize << "\n";
+            for (auto & condition_i : mpOutputModelPart->Conditions())
+            {
+                ModelPart::ConditionType::GeometryType& condition_geometry = condition_i.GetGeometry();
+                const unsigned int numberOfNodes = condition_geometry.size();
+    
+                outputFile << numberOfNodes;
+                for (unsigned int i=0; i<numberOfNodes; i++)
+                    outputFile << " " << mKratosIdToVtkId[condition_geometry[i].Id()];
+                outputFile << "\n";
+            }
+    
+            outputFile.close();
+        }
     }
 
     // --------------------------------------------------------------------------
     void WriteElementTypes()
     {
-        ofstream outputFile;
-        outputFile.open(mOutputFilename, ios::out | ios::app );
-
-        // Write element types header
-        outputFile << "CELL_TYPES " << mrDesignSurface.NumberOfConditions() << "\n";
-
-        // Write elements types
-        for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
+        if(mOutputCompleteOptimizationModelPart)
         {
-            const unsigned int numberOfNodes =  condition_i->GetGeometry().size();
-            unsigned int element_type;
+            std::ofstream outputFile;
+            outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
 
-            if( numberOfNodes == 3 )
-                element_type = 5;
-            else if( numberOfNodes == 4 )
-                element_type = 9;
-            else
-                KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains conditions with geometries for which no VTK-output is implemented!","" )
+            outputFile << "CELL_TYPES " << mpOutputModelPart->NumberOfElements() << "\n";
+            for (auto & element_i : mpOutputModelPart->Elements())
+            {
+                const unsigned int numberOfNodes =  element_i.GetGeometry().size();
+                const unsigned int dimension = element_i.GetGeometry().Dimension();              
+                
+                unsigned int vtk_cell_type;
+                if( numberOfNodes == 3  && dimension == 2) // triangle
+                    vtk_cell_type = 5;
+                else if( numberOfNodes == 4  && dimension == 2) // quad
+                    vtk_cell_type = 9;
+                else if( numberOfNodes == 4  && dimension == 3) // tet
+                    vtk_cell_type = 10;
+                else if( numberOfNodes == 8 && dimension == 3) // hex
+                    vtk_cell_type = 12;                                        
+                else
+                    KRATOS_THROW_ERROR(std::runtime_error,"Optimization model part contains elements with geometries for which no VTK-output is implemented!","" )
 
-            outputFile << element_type << "\n";
+                outputFile << vtk_cell_type << "\n";
+            }
+
+            outputFile.close();
         }
+        else
+        { 
+            std::ofstream outputFile;
+            outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
 
-        outputFile.close();
+            outputFile << "CELL_TYPES " << mpOutputModelPart->NumberOfConditions() << "\n";
+            for (auto & condition_i : mpOutputModelPart->Conditions())
+            {
+                const unsigned int numberOfNodes =  condition_i.GetGeometry().size();
+                const unsigned int dimension = condition_i.GetGeometry().Dimension();
+                
+                unsigned int vtk_cell_type;
+                if( numberOfNodes == 3 && dimension == 2) // triangle
+                    vtk_cell_type = 5;
+                else if( numberOfNodes == 4  && dimension == 2) // quad
+                    vtk_cell_type = 9;
+                else
+                    KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains conditions with geometries for which no VTK-output is implemented!","" )
+
+                outputFile << vtk_cell_type << "\n";
+            }
+
+            outputFile.close();
+        }
     }
 
     // --------------------------------------------------------------------------
     void WriteFirstNodalResultsAsPointData()
     {
-        ofstream outputFile;
-        outputFile.open(mOutputFilename, ios::out | ios::app );
+        std::ofstream outputFile;
+        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
 
         // Write nodal results header
         Parameters nodalResults = mrOptimizationSettings["output"]["nodal_results"];
-        outputFile << "POINT_DATA " << mrDesignSurface.NumberOfNodes() << "\n";
+        outputFile << "POINT_DATA " << mpOutputModelPart->NumberOfNodes() << "\n";
 
         // Write nodal results variable header
-        string nodalResultName = nodalResults[0].GetString();
+        std::string nodalResultName = nodalResults[0].GetString();
         unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
         if( KratosComponents<Variable<double>>::Has(nodalResultName))
         {
@@ -287,9 +348,9 @@ public:
         }
 
         // Write nodal results
-        outputFile << scientific;
-        outputFile << setprecision(mDefaultPrecision);
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        outputFile << std::scientific;
+        outputFile << std::setprecision(mDefaultPrecision);
+        for (ModelPart::NodeIterator node_i = mpOutputModelPart->NodesBegin(); node_i != mpOutputModelPart->NodesEnd(); ++node_i)
         {
             if(dataCharacteristic==1)
             {
@@ -313,8 +374,8 @@ public:
     // --------------------------------------------------------------------------
     void WriteOtherNodalResultsAsFieldData()
     {
-        ofstream outputFile;
-        outputFile.open(mOutputFilename, ios::out | ios::app );
+        std::ofstream outputFile;
+        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
 
         // Write nodal results header
         Parameters nodalResults = mrOptimizationSettings["output"]["nodal_results"];
@@ -323,23 +384,23 @@ public:
         for(unsigned int entry = 1; entry < nodalResults.size(); entry++)
         {
             // Write nodal results variable header
-            string nodalResultName = nodalResults[entry].GetString();
+            std::string nodalResultName = nodalResults[entry].GetString();
             unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
             if( KratosComponents<Variable<double>>::Has(nodalResultName))
             {
                 dataCharacteristic = 1;
-                outputFile << nodalResultName << " 1 " << mrDesignSurface.NumberOfNodes() << " float" << "\n";
+                outputFile << nodalResultName << " 1 " << mpOutputModelPart->NumberOfNodes() << " float" << "\n";
             }
             else if( KratosComponents<Variable< array_1d<double,3>>>::Has(nodalResultName))
             {
                 dataCharacteristic = 2;
-                outputFile << nodalResultName << " 3 " << mrDesignSurface.NumberOfNodes() << " float" << "\n";
+                outputFile << nodalResultName << " 3 " << mpOutputModelPart->NumberOfNodes() << " float" << "\n";
             }
 
             // Write nodal results
-            outputFile << scientific;
-            outputFile << setprecision(mDefaultPrecision);
-            for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+            outputFile << std::scientific;
+            outputFile << std::setprecision(mDefaultPrecision);
+            for (ModelPart::NodeIterator node_i = mpOutputModelPart->NodesBegin(); node_i != mpOutputModelPart->NodesEnd(); ++node_i)
             {
                 if(dataCharacteristic==1)
                 {
@@ -377,20 +438,20 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-    virtual string Info() const
+    /// Turn back information as a std::string.
+    virtual std::string Info() const
     {
         return "VTKFileIO";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "VTKFileIO";
     }
 
     /// Print object's data.
-    virtual void PrintData(ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const
     {
     }
 
@@ -451,13 +512,14 @@ private:
     // ==============================================================================
     // Initialized by class constructor
     // ==============================================================================
-    ModelPart& mrDesignSurface;
+    ModelPart* mpOutputModelPart;    
     Parameters& mrOptimizationSettings;
-    string mOutputFilename;
-    string mOutputFilenamePrefix;
+    std::string mOutputFilenamePrefix;
+    bool mOutputCompleteOptimizationModelPart;    
     unsigned int mDefaultPrecision;
-    map<int,int> mKratosIdToVtkId;
+    std::map<int,int> mKratosIdToVtkId;
     unsigned int mVtkCellListSize;
+    std::string mOutputFilename;
 
     ///@}
     ///@name Private Operators

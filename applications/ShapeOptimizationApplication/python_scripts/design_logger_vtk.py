@@ -27,9 +27,8 @@ from design_logger_base import DesignLogger
 class DesignLoggerVTK( DesignLogger ):
 
     # --------------------------------------------------------------------------
-    def __init__( self, OptimizationModelPart, OptimizationSettings ):
-        self.OptimizationSettings = OptimizationSettings
-        self.VtkIO = VTKFileIO( OptimizationModelPart, OptimizationSettings )                
+    def __init__( self, OptimizationModelPart, DesignSurface, OptimizationSettings ):
+        self.VtkIO = VTKFileIO( OptimizationModelPart, DesignSurface, OptimizationSettings )                
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
