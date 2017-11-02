@@ -1117,17 +1117,26 @@ namespace Kratos {
         KRATOS_TRY
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
-        #pragma omp parallel for
+        #pragma omp parallel 
+        {
+            
+        std::vector< double > Distance_Array; //MACELI: reserve.. or take it out of the loop and have one for every thread
+        std::vector< array_1d<double, 3> > Normal_Array;
+        std::vector< array_1d<double, 4> > Weight_Array;
+        std::vector< int > Id_Array;
+        std::vector< int > ContactType_Array;
+            
+        #pragma omp for
         for (int i = 0; i < number_of_particles; i++) {
 
             mListOfSphericParticles[i]->mNeighbourRigidFaces.resize(0);
             mListOfSphericParticles[i]->mContactConditionWeights.resize(0);
 
-            std::vector< double > Distance_Array; //MACELI: reserve.. or take it out of the loop and have one for every thread
-            std::vector< array_1d<double, 3> > Normal_Array;
-            std::vector< array_1d<double, 4> > Weight_Array;
-            std::vector< int > Id_Array;
-            std::vector< int > ContactType_Array;
+            Distance_Array.clear(); 
+            Normal_Array.clear();
+            Weight_Array.clear();
+            Id_Array.clear();
+            ContactType_Array.clear();
 
             for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it) {
 
@@ -1175,6 +1184,7 @@ namespace Kratos {
             this->GetRigidFaceResults()[i].clear();
             this->GetRigidFaceResultsDistances()[i].clear();
         }//for particles
+        } //parallel region
         KRATOS_CATCH("")
     }//DoubleHierarchyMethod
 

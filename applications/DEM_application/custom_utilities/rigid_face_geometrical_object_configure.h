@@ -200,11 +200,6 @@ public:
     {
       //rObj_1 is particle,  and rObj_2 is condition
 
-      double Particle_Coord[3]         = {0.0};
-      Particle_Coord[0]                = DE_Geom[0].Coordinates()[0];
-      Particle_Coord[1]                = DE_Geom[0].Coordinates()[1];
-      Particle_Coord[2]                = DE_Geom[0].Coordinates()[2];
-
       std::vector< array_1d<double,3> > Coord(2);
 
       for (unsigned int i = 0; i<2; i++) {
@@ -213,18 +208,13 @@ public:
         }
       }
 
-      return GeometryFunctions::FastEdgeVertexCheck( Coord[0], Coord[1],  Particle_Coord, Radius );
+      return GeometryFunctions::FastEdgeVertexCheck( Coord[0], Coord[1],  DE_Geom[0].Coordinates(), Radius );
     }//FastIntersection2D
 
     static inline bool FastIntersection3D(const GeometryType& DE_Geom,const GeometryType& FE_Geom,  const double& Radius)
     {
       //rObj_1 is particle,  and rObj_2 is condition
       bool ContactExists = false;
-
-      double Particle_Coord[3];
-      Particle_Coord[0]                = DE_Geom[0].Coordinates()[0];
-      Particle_Coord[1]                = DE_Geom[0].Coordinates()[1];
-      Particle_Coord[2]                = DE_Geom[0].Coordinates()[2];
 
       unsigned int FE_size = FE_Geom.size();
       std::vector< array_1d<double,3> > Coord;
@@ -239,7 +229,7 @@ public:
       double distance_point_to_plane   = 0.0;
       unsigned int current_edge_index  = 0;
 
-      ContactExists = GeometryFunctions::FastFacetCheck( Coord,  Particle_Coord, Radius, distance_point_to_plane, current_edge_index);
+      ContactExists = GeometryFunctions::FastFacetCheck( Coord,  DE_Geom[0].Coordinates(), Radius, distance_point_to_plane, current_edge_index);
 
       if (ContactExists){return true;}
 
@@ -249,7 +239,7 @@ public:
       else if (distance_point_to_plane < Radius) {
         bool local_contact_exists = false;
         for (unsigned int e = current_edge_index; e < FE_size; e++ ) {
-          local_contact_exists = GeometryFunctions::FastEdgeVertexCheck( Coord[e], Coord[(e+1)%FE_size],  Particle_Coord, Radius );
+          local_contact_exists = GeometryFunctions::FastEdgeVertexCheck( Coord[e], Coord[(e+1)%FE_size],  DE_Geom[0].Coordinates(), Radius );
           if (local_contact_exists) {return true;}
         }//for every edge
        }//no plane contact found
@@ -443,10 +433,7 @@ public:
 
        bool ContactExists = false;
        const GeometryType& DE_Geom = rObj_1->GetGeometry();
-       double Particle_Coord[3]         = {0.0};
-       Particle_Coord[0]                = DE_Geom[0].Coordinates()[0];
-       Particle_Coord[1]                = DE_Geom[0].Coordinates()[1];
-       Particle_Coord[2]                = DE_Geom[0].Coordinates()[2];
+
        double Radius                    = rObj_1->GetInteractionRadius();
 
        const GeometryType& FE_Geom = rObj_2->GetGeometry();
@@ -465,7 +452,7 @@ public:
 
        double distance_point_to_plane   = 0.0;
        unsigned int current_edge_index  = 0;
-       ContactExists = GeometryFunctions::FacetCheck(Coord, Particle_Coord, Radius, local_coord_system,
+       ContactExists = GeometryFunctions::FacetCheck(Coord, DE_Geom[0].Coordinates(), Radius, local_coord_system,
                                                      distance_point_to_plane, Weight, current_edge_index);
        if (ContactExists == true) {
          ContactType = 1;
@@ -485,7 +472,7 @@ public:
             double eta = 0.5; // dummy initialize
             double distance_point_to_edge = 2.0 * Radius; //dummy big initialization
 
-            local_contact_exists = GeometryFunctions::EdgeCheck( Coord[e], Coord[(e+1)%FE_size],  Particle_Coord, Radius, local_coord_system,
+            local_contact_exists = GeometryFunctions::EdgeCheck( Coord[e], Coord[(e+1)%FE_size],  DE_Geom[0].Coordinates(), Radius, local_coord_system,
                                                           distance_point_to_edge, eta);
             if (local_contact_exists) {
                 //save data
@@ -502,7 +489,7 @@ public:
               else if(eta>1.0){ vertex_to_check = (e+1)%FE_size;}
               else {continue;}
               double distance_point_to_vertex = 0.0;
-              local_contact_exists = GeometryFunctions::VertexCheck(Coord[vertex_to_check], Particle_Coord, Radius, local_coord_system, distance_point_to_vertex);
+              local_contact_exists = GeometryFunctions::VertexCheck(Coord[vertex_to_check], DE_Geom[0].Coordinates(), Radius, local_coord_system, distance_point_to_vertex);
               
               if(local_contact_exists) {
                 ContactType             = 3;
@@ -534,10 +521,7 @@ public:
       bool ContactExists = false;
 
       const GeometryType& DE_Geom = rObj_1->GetGeometry();
-      double Particle_Coord[3]         = {0.0};
-      Particle_Coord[0]                = DE_Geom[0].Coordinates()[0];
-      Particle_Coord[1]                = DE_Geom[0].Coordinates()[1];
-      Particle_Coord[2]                = DE_Geom[0].Coordinates()[2];
+
       double Radius                    = rObj_1->GetInteractionRadius();
 
       const GeometryType& FE_Geom = rObj_2->GetGeometry();
@@ -555,7 +539,7 @@ public:
       double eta = 0.5; // dummy initialize
       double distance_point_to_edge = 2*Radius; //dummy big initialization
 
-      ContactExists = GeometryFunctions::EdgeCheck( Coord[0], Coord[1],  Particle_Coord, Radius, local_coord_system,
+      ContactExists = GeometryFunctions::EdgeCheck( Coord[0], Coord[1],  DE_Geom[0].Coordinates(), Radius, local_coord_system,
                                                         distance_point_to_edge, eta);
       if (ContactExists) { //save data
           ContactType           = 2;
@@ -571,7 +555,7 @@ public:
         if(eta<0.0){ vertex_to_check = 0;}
         else if(eta>1.0){ vertex_to_check = 1;}
         double distance_point_to_vertex = 0.0;
-        ContactExists = GeometryFunctions::VertexCheck( Coord[vertex_to_check], Particle_Coord, Radius, local_coord_system, distance_point_to_vertex);
+        ContactExists = GeometryFunctions::VertexCheck( Coord[vertex_to_check], DE_Geom[0].Coordinates(), Radius, local_coord_system, distance_point_to_vertex);
 
         if(ContactExists) {
           ContactType             = 3;

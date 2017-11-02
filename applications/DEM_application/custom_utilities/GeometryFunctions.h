@@ -966,7 +966,7 @@ namespace Kratos {
         }
     }//WeightsCalculation
     
-    static inline bool FastFacetCheck(std::vector< array_1d <double,3> >Coord, double Particle_Coord[3], double rad, double &DistPToB, unsigned int &current_edge_index) 
+    static inline bool FastFacetCheck(const std::vector< array_1d <double,3> >& Coord, const array_1d <double,3>& Particle_Coord, double rad, double &DistPToB, unsigned int &current_edge_index) 
     { 
         double A[3];
         double B[3];
@@ -1031,7 +1031,7 @@ namespace Kratos {
         return false;
     }//FastFacetCheck
         
-    static inline bool FacetCheck(std::vector< array_1d <double,3> >Coord, double Particle_Coord[3], double rad,
+    static inline bool FacetCheck(const std::vector< array_1d <double,3> >& Coord, const array_1d <double,3>& Particle_Coord, double rad,
                                   double LocalCoordSystem[3][3], double& DistPToB, std::vector<double>& Weight, unsigned int& current_edge_index) 
     {
         int facet_size = Coord.size();
@@ -1125,7 +1125,7 @@ namespace Kratos {
 
     } //FacetCheck   
     
-    static inline bool FastEdgeVertexCheck(const array_1d<double,3>& Coord1, const array_1d<double,3>& Coord2, double Particle_Coord[3], double Radius)
+    static inline bool FastEdgeVertexCheck(const array_1d<double,3>& Coord1, const array_1d<double,3>& Coord2, const array_1d<double,3>& Particle_Coord, double Radius)
     {
         double IntersectionCoordEdge[3];
         double normal_unit_vector[3];
@@ -1198,7 +1198,7 @@ namespace Kratos {
       
     }//FastEdgeVertexCheck;     
     
-    static inline bool EdgeCheck(const array_1d<double,3>& Coord1, const array_1d<double,3>& Coord2, double Particle_Coord[3], double Radius,
+    static inline bool EdgeCheck(const array_1d<double,3>& Coord1, const array_1d<double,3>& Coord2, const array_1d<double,3>& Particle_Coord, double Radius,
                                   double LocalCoordSystem[3][3], double& DistParticleToEdge, double& eta) 
     {
         double IntersectionCoordEdge[3];
@@ -1250,7 +1250,7 @@ namespace Kratos {
 
     }//EdgeCheck
 
-    static inline bool VertexCheck(const array_1d<double,3>& Coord, double Particle_Coord[3], double Radius, double LocalCoordSystem[3][3], double& DistParticleToVertex)
+    static inline bool VertexCheck(const array_1d<double,3>& Coord, const array_1d<double,3>& Particle_Coord, double Radius, double LocalCoordSystem[3][3], double& DistParticleToVertex)
     {
         double dist_sq = 0.0;
         array_1d<double, 3> normal_v;
