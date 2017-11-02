@@ -209,7 +209,7 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
 
         # SEARCH-RELATED
-        #self.search_increment_for_walls = 0.0 # for the moment, until all bugs have been removed
+        self.search_increment_for_walls = 0.0 # for the moment, until all bugs have been removed
         self.do_search_neighbours = True # Hard-coded until needed as an option
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
