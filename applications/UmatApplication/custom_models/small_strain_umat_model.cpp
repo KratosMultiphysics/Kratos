@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/small_strain_Umat_model.hpp"
+#include "custom_models/small_strain_umat_model.hpp"
 
 /* WRAPPER */
 extern "C" void umat_wrapper_( double* STRESS, double* STATEV, double** DDSDDE, double* SSE, double* SPD, double* SCD,

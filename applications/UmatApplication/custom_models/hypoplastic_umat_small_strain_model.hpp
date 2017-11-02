@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_LARGE_STRAIN_UMAT_MODEL_H_INCLUDED )
-#define  KRATOS_LARGE_STRAIN_UMAT_MODEL_H_INCLUDED
+#if !defined(KRATOS_HYPOPLASTIC_SMALL_STRAIN_UMAT_MODEL_H_INCLUDED )
+#define  KRATOS_HYPOPLASTIC_SMALL_STRAIN_UMAT_MODEL_H_INCLUDED
 
 // System includes
 #include <string>
@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/small_strain_Umat_model.hpp"
+#include "custom_models/small_strain_umat_model.hpp"
 
 namespace Kratos
 {
@@ -46,36 +46,36 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) LargeStrainUmatModel : public SmallStrainUmatModel
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) HypoplasticSmallStrainUmatModel : public SmallStrainUmatModel
    {
+
+
       public:
 
          ///@name Type Definitions
          ///@{
-         typedef SmallStrainUmatModel::UmatModelData              UmatDataType;
 
-
-         /// Pointer definition of LargeStrainUmatModel
-         KRATOS_CLASS_POINTER_DEFINITION( LargeStrainUmatModel );
+         /// Pointer definition of HypoplasticSmallStrainUmatModel
+         KRATOS_CLASS_POINTER_DEFINITION( HypoplasticSmallStrainUmatModel );
 
          ///@}
          ///@name Life Cycle
          ///@{
 
          /// Default constructor.    
-         LargeStrainUmatModel();
+         HypoplasticSmallStrainUmatModel();
 
          /// Copy constructor.
-         LargeStrainUmatModel(LargeStrainUmatModel const& rOther);
+         HypoplasticSmallStrainUmatModel(HypoplasticSmallStrainUmatModel const& rOther);
 
          /// Clone.
          virtual ConstitutiveModel::Pointer Clone() const override;
 
          /// Assignment operator.
-         LargeStrainUmatModel& operator=(LargeStrainUmatModel const& rOther);
+         HypoplasticSmallStrainUmatModel& operator=(HypoplasticSmallStrainUmatModel const& rOther);
 
          /// Destructor.
-         virtual ~LargeStrainUmatModel();
+         virtual ~HypoplasticSmallStrainUmatModel();
 
 
          ///@}
@@ -85,11 +85,6 @@ namespace Kratos
 
          ///@}
          ///@name Operations
-         ///@{
-
-
-         ///@}
-         ///@name Access
          ///@{
 
 
@@ -106,20 +101,20 @@ namespace Kratos
          virtual std::string Info() const override
          {
             std::stringstream buffer;
-            buffer << "LargeStrainUmatModel";
+            buffer << "HypoplasticSmallStrainUmatModel";
             return buffer.str();
          }
 
          /// Print information about this object.
          virtual void PrintInfo(std::ostream& rOStream) const override
          {
-            rOStream << "LargeStrainUmatModel";
+            rOStream << "HypoplasticSmallStrainUmatModel";
          }
 
          /// Print object's data.
          virtual void PrintData(std::ostream& rOStream) const override
          {
-            rOStream << "LargeStrainUmatModel Data";
+            rOStream << "HypoplasticSmallStrainUmatModel Data";
          }
 
 
@@ -139,6 +134,7 @@ namespace Kratos
          ///@name Protected member Variables
          ///@{
 
+
          ///@}
          ///@name Protected Operators
          ///@{
@@ -148,32 +144,46 @@ namespace Kratos
          ///@name Protected Operations
          ///@{
 
-
          /*
-            Create strain_n and incremental strain
-            ( for large strains should be overrided ) 
+            Get the dimension of StateVariables 
           */
 
-         virtual void CreateStrainsVectors( UmatDataType & rVariables, double* & rpStrain, double* & rpIncrementalStrain) override;
+         virtual unsigned int GetNumberOfStateVariables() override {
+            return 13;
+         };
 
-         /* 
-            Create stress_n
-            ( for large strains should be overrided )
+
+         /*
+            Create the vector with constitutive parameters value
           */
-         virtual void CreateStressAtInitialState( UmatDataType & rVariables, double* & rpStressVector) override;
+         virtual void CreateConstitutiveParametersVector(double* & pVector, int & rNumberParameters, const Properties & rMaterialProperties) override {
+            rNumberParameters = 16;
+            pVector = new double[rNumberParameters];
+            pVector[0] = 30.0; // phi_deg
+            pVector[1] = 10.0; // p_t
+            pVector[2] = 5800.0; // hs
+            pVector[3] = 0.28; // e_n
+            pVector[4] = 0.53; // ed0
+            pVector[5] = 0.84; // ec0
+            pVector[6] = 1.0; // ei0
+            pVector[7] = 0.130; // alpha
+            pVector[8] = 1.00; // beta
+            pVector[9] = 2.0; // m_R
+            pVector[10] = 5.0; // m_T
+            pVector[11] = 1.0e-4; // r_uc
+            pVector[12] = 0.05; // beta_r
+            pVector[13] = 1.0; // chi
+            pVector[14] = 10.0E5; // bulk_w
+            pVector[15] = 11.1; // ?? line 155
+         };
 
          /*
-            Add more constitutive terms to the matrix
-            */
-         Matrix& CalculateExtraMatrix(const MatrixType& rStressMatrix, Matrix& rExtraMatrix);
-
-         
-         /*
-            Set the constitutiveMatrixToThe appropiate size
-            */
-
-         virtual void SetConstitutiveMatrix( Matrix & rC, const Matrix & rCBig, const MatrixType& rStressMatrix) override;
-
+            Number of the constitutive equation in the fortran wrapper
+          */
+         virtual int GetConstitutiveEquationNumber() override
+         {
+            return 1;
+         }
          ///@}
          ///@name Protected  Access
          ///@{
@@ -243,7 +253,7 @@ namespace Kratos
 
          ///@}
 
-   }; // Class LargeStrainUmatModel
+   }; // Class HypoplasticSmallStrainUmatModel
 
    ///@}
 
@@ -261,6 +271,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LARGE_STRAIN_UMAT_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_HYPOPLASTIC_SMALL_STRAIN_UMAT_MODEL_H_INCLUDED  defined 
 
 

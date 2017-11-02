@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/small_strain_Umat_model.hpp"
+#include "custom_models/small_strain_umat_model.hpp"
 
 namespace Kratos
 {

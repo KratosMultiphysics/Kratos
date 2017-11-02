@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/hypoplastic_Umat_small_strain_model.hpp"
+#include "custom_models/hypoplastic_umat_small_strain_model.hpp"
 
 
 
