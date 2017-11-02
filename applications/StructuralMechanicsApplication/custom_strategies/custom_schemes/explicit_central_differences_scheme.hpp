@@ -427,8 +427,6 @@ virtual void Update(ModelPart& r_model_part,
 
         for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
         {
-
-          if (i->HasDofFor(ROTATION_X)) std::cout << ">>>>>> ROTATION DOFS" << std::endl;
           //Current step information "N+1" (before step update).
 
           const double& nodal_mass                    = i->FastGetSolutionStepValue(NODAL_MASS);
@@ -478,7 +476,7 @@ virtual void Update(ModelPart& r_model_part,
           if (i->HasDofFor(ROTATION_X))
           {
             //const double& nodal_inertia     = i->FastGetSolutionStepValue(NODAL_INERTIA);           
-            const double nodal_inertia = 9.8125; //for testing now ---> change this by rewriting beam mass matrix
+            const double nodal_inertia = 6.728; //for testing now ---> change this by rewriting beam mass matrix
             array_1d<double,3>& current_residual_moment          = i->FastGetSolutionStepValue(MOMENT_RESIDUAL);
             array_1d<double,3>& current_angular_velocity         = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
             array_1d<double,3>& current_rotation                 = i->FastGetSolutionStepValue(ROTATION);
@@ -595,7 +593,7 @@ virtual void Update(ModelPart& r_model_part,
           {
             //const double& nodal_inertia     = i->FastGetSolutionStepValue(NODAL_INERTIA);
             //for testing now ---> change this by rewriting beam mass matrix
-            const double nodal_inertia = 10.00;
+            const double nodal_inertia = 6.728;
             array_1d<double,3>& current_residual_moment          = i->FastGetSolutionStepValue(MOMENT_RESIDUAL);
             array_1d<double,3>& current_angular_velocity         = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
             array_1d<double,3>& current_rotation                 = i->FastGetSolutionStepValue(ROTATION);
@@ -669,6 +667,7 @@ virtual void Update(ModelPart& r_model_part,
 
     //add explicit contribution of the Element Residual (RHS) to nodal Force Residual (nodal RHS)
     (rCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+    (rCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
     KRATOS_CATCH( "" )
   }
 
@@ -842,6 +841,7 @@ virtual void Update(ModelPart& r_model_part,
     //add explicit contribution of the Condition Residual (RHS) to nodal Force Residual (nodal RHS)
 
     (rCurrentCondition) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+    (rCurrentCondition) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
 
     KRATOS_CATCH( "" )
   }
