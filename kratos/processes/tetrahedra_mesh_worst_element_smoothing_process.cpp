@@ -73,7 +73,7 @@ namespace Kratos
 		const int tetrahedra_connectivity[4][3] = { {3,2,1},{2,3,0},{0,3,1},{0,1,2} };
 		Triangle3D3<Point > face(rTetrahedra(tetrahedra_connectivity[i][0]), rTetrahedra(tetrahedra_connectivity[i][1]), rTetrahedra(tetrahedra_connectivity[i][2]));
 		Point center(0.5,0.5,0.5);
-		Point normal = face.Normal(center);
+		Point normal = face.UnitNormal(center);
 		const double height_coeficient = 0.81649658092772603273242802490196; // sqrt(6.00)/3.00
 		rOptimumPoint = center + normal * face.AverageEdgeLength() * height_coeficient;
 	}

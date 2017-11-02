@@ -122,7 +122,7 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==16:
 
         final_time                      = 2.5
-        dt                              = 1.0e-4
+        dt                              = 0.50e-4
         graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
 

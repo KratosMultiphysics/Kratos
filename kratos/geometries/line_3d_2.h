@@ -662,7 +662,15 @@ public:
         return( rResult );
     }
 
-
+    /**
+     * It computes the unit normal of the geometry, if possible
+     * @return The normal of the geometry
+     */
+    array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const override
+    {
+    	KRATOS_ERROR << "ERROR: Line3D2 can not define a normal. Please, define the normal in your implementation" << std::endl;
+        return ZeroVector(3);
+    }
 
     ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
     {

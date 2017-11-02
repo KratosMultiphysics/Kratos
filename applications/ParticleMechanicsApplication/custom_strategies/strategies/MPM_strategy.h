@@ -795,7 +795,7 @@ public:
 
         
         #pragma omp parallel for
-        for(unsigned int i = 0; i < grid_model_part.Elements().size(); ++i){
+        for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
 			
 			auto elemItr = grid_model_part.Elements().begin() + i;
 			elemItr -> Reset(ACTIVE);
@@ -831,7 +831,7 @@ public:
 
 
 			#pragma omp for
-            for(unsigned int i = 0; i < mpm_model_part.Elements().size(); ++i){
+            for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
 
 				auto elemItr = mpm_model_part.Elements().begin() + i;
 				
@@ -896,7 +896,7 @@ public:
 
             //loop over the material points
             #pragma omp for
-            for(unsigned int i = 0; i < mpm_model_part.Elements().size(); ++i){
+            for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
 
 		auto elemItr = mpm_model_part.Elements().begin() + i;
                 
