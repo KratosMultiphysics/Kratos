@@ -20,7 +20,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # For GID output
-from gid_output import GiDOutput
+from gid_output_process import GiDOutputProcess
 
 # Import logger base classes
 from design_logger_base import DesignLogger
@@ -31,42 +31,63 @@ class DesignLoggerGID( DesignLogger ):
     # --------------------------------------------------------------------------
     def __init__( self, OptimizationModelPart, DesignSurface, OptimizationSettings ):
         self.OptimizationModelPart = OptimizationModelPart
+        self.DesignSurface = DesignSurface
         self.OptimizationSettings = OptimizationSettings
-        self.NodalResults = self.__CreateListOfNodalResults( self.OptimizationSettings["output"] )
-        self.gaussPointResults = []
-        self.GidIO = self.__CreateGiDIO( OptimizationSettings )
-
-    # ---------------------------------------------------------------------------
-    def __CreateListOfNodalResults( self, outputSettings ):
-        ListOfNodalResults = []
-        for NodalResultNumber in range(outputSettings["nodal_results"].size()):
-            ListOfNodalResults.append( outputSettings["nodal_results"][NodalResultNumber].GetString() )
-        return ListOfNodalResults          
+        self.WriteCompleteOptimizationModelPart = OptimizationSettings["output"]["output_complete_optimization_model_part"].GetBool()
+        
+        self.__ModifySettingsToStickToDefaultGiDOutputProcess()
+        self.__CreateGiDIO()
 
     # --------------------------------------------------------------------------
-    def __CreateGiDIO( self, OptimizationSettings ):
-        ResultsDirectory = OptimizationSettings["output"]["output_directory"].GetString()
-        DesignHistoryFilename = OptimizationSettings["output"]["design_history_filename"].GetString()
+    def __ModifySettingsToStickToDefaultGiDOutputProcess( self ):      
+        self.__AddNodalResultsToGidConfiguration()
+        self.__EnsureConditionsAreWrittenIfOnlyDesignSurfaceShallBeOutput()
+
+    # --------------------------------------------------------------------------
+    def __AddNodalResultsToGidConfiguration( self ):
+        NodalResults = self.OptimizationSettings["output"]["nodal_results"]        
+        self.OptimizationSettings["output"]["output_format"]["gid_configuration"]["result_file_configuration"].AddValue("nodal_results", NodalResults)
+        
+    # --------------------------------------------------------------------------
+    def __EnsureConditionsAreWrittenIfOnlyDesignSurfaceShallBeOutput( self ):  
+        GidConfig = self.OptimizationSettings["output"]["output_format"]["gid_configuration"]
+        
+        ConditionSettingsAlreadyGiven = GidConfig["result_file_configuration"]["gidpost_flags"].Has("WriteConditionsFlag")
+        if not ConditionSettingsAlreadyGiven:           
+            GidConfig["result_file_configuration"]["gidpost_flags"].AddEmptyValue("WriteConditionsFlag")
+
+        if self.WriteCompleteOptimizationModelPart:
+            GidConfig["result_file_configuration"]["gidpost_flags"]["WriteConditionsFlag"].SetString("WriteElementsOnly")       
+        else:     
+            GidConfig["result_file_configuration"]["gidpost_flags"]["WriteConditionsFlag"].SetString("WriteConditions")
+
+    # --------------------------------------------------------------------------
+    def __CreateGiDIO( self ):
+        ResultsDirectory = self.OptimizationSettings["output"]["output_directory"].GetString()
+        DesignHistoryFilename = self.OptimizationSettings["output"]["design_history_filename"].GetString()
         DesignHistoryFilenameWithPath =  ResultsDirectory+"/"+DesignHistoryFilename
-        GidIO = GiDOutput( DesignHistoryFilenameWithPath,
-                           OptimizationSettings["output"]["output_format"]["VolumeOutput"].GetBool(),
-                           OptimizationSettings["output"]["output_format"]["GiDPostMode"].GetString(),
-                           OptimizationSettings["output"]["output_format"]["GiDMultiFileFlag"].GetString(),
-                           OptimizationSettings["output"]["output_format"]["GiDWriteMeshFlag"].GetBool(),
-                           OptimizationSettings["output"]["output_format"]["GiDWriteConditionsFlag"].GetBool() )
-        return GidIO            
+        
+        GidConfig = self.OptimizationSettings["output"]["output_format"]["gid_configuration"]
+
+        if self.WriteCompleteOptimizationModelPart:
+            self.GidIO = GiDOutputProcess(self.OptimizationModelPart, DesignHistoryFilenameWithPath, GidConfig)
+        else:
+            self.GidIO = GiDOutputProcess(self.DesignSurface, DesignHistoryFilenameWithPath, GidConfig)
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
-        iteratorForInitialDesign = 0
-        self.GidIO.initialize_results( self.OptimizationModelPart )
+        self.GidIO.ExecuteInitialize()
+        self.GidIO.ExecuteBeforeSolutionLoop()        
 
     # --------------------------------------------------------------------------
     def LogCurrentDesign( self, optimizationIteration ):
-        self.GidIO.write_results( optimizationIteration, self.OptimizationModelPart, self.NodalResults, self.gaussPointResults )         
-
+        self.GidIO.ExecuteInitializeSolutionStep()
+        if(self.GidIO.IsOutputStep()):
+            self.GidIO.PrintOutput()
+        self.GidIO.ExecuteFinalizeSolutionStep()
+                    
     # --------------------------------------------------------------------------
     def FinalizeLogging( self ):      
-        self.GidIO.finalize_results()        
+        self.GidIO.ExecuteFinalize()
 
 # ==============================================================================

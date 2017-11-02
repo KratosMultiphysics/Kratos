@@ -174,7 +174,7 @@
             "name"                    : "penalized_projection",
             "correction_scaling"      : 0.1,
             "use_adaptive_correction" : true,
-            "max_iterations"          : 3,
+            "max_iterations"          : 4,
             "relative_tolerance"      : 1e-0
         },
         "line_search" : {
@@ -198,12 +198,15 @@
                                 "SHAPE_CHANGE",
                                 "MESH_CHANGE" ],
             "output_format" : {
-                "name"                   : "gid",
-                "VolumeOutput"           : true,
-                "GiDPostMode"            : "Binary",
-                "GiDWriteMeshFlag"       : true,
-                "GiDWriteConditionsFlag" : true,
-                "GiDMultiFileFlag"       : "Single"
+                "name"              : "gid",
+                "gid_configuration" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary"
+                        },
+                        "output_frequency"    : 1.0
+                    }
+                }
             }
         }
     }

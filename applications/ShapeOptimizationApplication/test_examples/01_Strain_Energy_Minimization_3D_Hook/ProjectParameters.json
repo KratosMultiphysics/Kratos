@@ -27,17 +27,15 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-                    "solver_type": "PastixSolver",
-                    "solution_method": "Direct",
-                    "tolerance": 0.000001,
-                    "max_iteration": 100,
-                    "gmres_krylov_space_dimension": 100,
-                    "ilu_level_of_fill": 1,
-                    "is_symmetric": false,
-                    "verbosity": 0,
-                    "scaling": false,
-                    "block_size": 1,
-                    "use_block_matrices_if_possible": true
+            "solver_type"         : "AMGCL",
+            "max_iteration"       : 500,
+            "tolerance"           : 1e-7,
+            "provide_coordinates" : false,
+            "smoother_type"       : "ilu0",
+            "krylov_type"         : "bicgstab",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : false,
+            "verbosity"           : 1
         },
         "problem_domain_sub_model_part_list" : ["Parts_solid"],
         "processes_sub_model_part_list"      : ["support","SurfacePressure3D_load"],
@@ -50,17 +48,15 @@
                 "input_filename" : "3D_Hook"
             },
             "ale_linear_solver_settings"             : {
-                "solver_type": "PastixSolver",
-                "solution_method": "Direct",
-                "tolerance": 0.000001,
-                "max_iteration": 100,
-                "gmres_krylov_space_dimension": 100,
-                "ilu_level_of_fill": 1,
-                "is_symmetric": false,
-                "verbosity": 0,
-                "scaling": false,
-                "block_size": 1,
-                "use_block_matrices_if_possible": true
+                "solver_type"         : "AMGCL",
+                "max_iteration"       : 500,
+                "tolerance"           : 1e-7,
+                "provide_coordinates" : false,
+                "smoother_type"       : "ilu0",
+                "krylov_type"         : "bicgstab",
+                "coarsening_type"     : "aggregation",
+                "scaling"             : false,
+                "verbosity"           : 1
             },            
             "compute_reactions"     : true
     },    
@@ -131,10 +127,10 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "design_variables_type"     : "vertex_morphing",
-            "input_model_part_name"     : "3D_Hook",
-            "design_submodel_part_name" : "design_surface",
-            "domain_size"               : 3,
+            "design_variables_type"              : "vertex_morphing",
+            "optimization_model_part_name"       : "3D_Hook",
+            "design_surface_sub_model_part_name" : "design_surface",
+            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 30.0,
@@ -178,23 +174,28 @@
             "step_size"                  : 2.75
         },
         "output" : {
-            "output_directory"        : "Optimization_Results",
-            "design_history_filename" : "design_history",
-            "response_log_filename"   : "response_log",
-            "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
-                                          "OBJECTIVE_SENSITIVITY",
-                                          "MAPPED_OBJECTIVE_SENSITIVITY",
-                                          "CONTROL_POINT_UPDATE",
-                                          "CONTROL_POINT_CHANGE",                                            
-                                          "SHAPE_UPDATE",
-                                          "SHAPE_CHANGE" ],
+            "output_directory"                        : "Optimization_Results",
+            "response_log_filename"                   : "response_log",
+            "design_history_filename"                 : "design_history",
+            "output_complete_optimization_model_part" : true,
+            "nodal_results" : [ "NORMALIZED_SURFACE_NORMAL",
+                                "OBJECTIVE_SENSITIVITY",
+                                "MAPPED_OBJECTIVE_SENSITIVITY",
+                                "CONTROL_POINT_UPDATE",
+                                "CONTROL_POINT_CHANGE",                                                                                    
+                                "SHAPE_UPDATE",
+                                "SHAPE_CHANGE",
+                                "MESH_CHANGE" ],
             "output_format" : {
-                "name"                   : "gid",
-                "VolumeOutput"           : true,
-                "GiDPostMode"            : "Binary",
-                "GiDWriteMeshFlag"       : true,
-                "GiDWriteConditionsFlag" : true,
-                "GiDMultiFileFlag"       : "Single"
+                "name"              : "gid",
+                "gid_configuration" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary"
+                        },
+                        "output_frequency"    : 1.0
+                    }
+                }
             }
         }
     }

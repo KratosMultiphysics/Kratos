@@ -188,7 +188,7 @@ public:
         if( mrOptimizationSettings["output"]["output_complete_optimization_model_part"].GetBool() )
             WriteAllElementsButNoConditions();
         else
-            WriteOnlyConditionsAsDummyElements();
+            WriteConditionsAsDummyElements();
     }
 
     // --------------------------------------------------------------------------
@@ -266,7 +266,7 @@ public:
     }
     
     // --------------------------------------------------------------------------
-    void WriteOnlyConditionsAsDummyElements()
+    void WriteConditionsAsDummyElements()
     {
         std::ofstream outputFile;
         outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
