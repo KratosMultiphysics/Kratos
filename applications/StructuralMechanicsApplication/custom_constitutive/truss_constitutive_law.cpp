@@ -15,7 +15,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/dummy_truss_constitutive_law.h"
+#include "custom_constitutive/truss_constitutive_law.h"
 
 namespace Kratos
 {
@@ -23,7 +23,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-DummyTrussConstitutiveLaw::DummyTrussConstitutiveLaw()
+TrussConstitutiveLaw::TrussConstitutiveLaw()
     : ConstitutiveLaw()
 {
 }
@@ -31,7 +31,7 @@ DummyTrussConstitutiveLaw::DummyTrussConstitutiveLaw()
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-DummyTrussConstitutiveLaw::DummyTrussConstitutiveLaw(const DummyTrussConstitutiveLaw& rOther)
+TrussConstitutiveLaw::TrussConstitutiveLaw(const TrussConstitutiveLaw& rOther)
     : ConstitutiveLaw(rOther)
 {
 }
@@ -39,16 +39,16 @@ DummyTrussConstitutiveLaw::DummyTrussConstitutiveLaw(const DummyTrussConstitutiv
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer DummyTrussConstitutiveLaw::Clone() const
+ConstitutiveLaw::Pointer TrussConstitutiveLaw::Clone() const
 {
-    DummyTrussConstitutiveLaw::Pointer p_clone(new DummyTrussConstitutiveLaw(*this));
+    TrussConstitutiveLaw::Pointer p_clone(new TrussConstitutiveLaw(*this));
     return p_clone;
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-DummyTrussConstitutiveLaw::~DummyTrussConstitutiveLaw()
+TrussConstitutiveLaw::~TrussConstitutiveLaw()
 {
     // TODO: Add if necessary
 }
@@ -56,7 +56,7 @@ DummyTrussConstitutiveLaw::~DummyTrussConstitutiveLaw()
 //************************************************************************************
 //************************************************************************************
 
-void  DummyTrussConstitutiveLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
+void  TrussConstitutiveLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -64,7 +64,7 @@ void  DummyTrussConstitutiveLaw::CalculateMaterialResponsePK2 (Parameters& rValu
 //************************************************************************************
 //************************************************************************************
 
-void DummyTrussConstitutiveLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
+void TrussConstitutiveLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -72,7 +72,7 @@ void DummyTrussConstitutiveLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 //************************************************************************************
 //************************************************************************************
 
-void DummyTrussConstitutiveLaw::CalculateMaterialResponsePK1 (Parameters& rValues)
+void TrussConstitutiveLaw::CalculateMaterialResponsePK1 (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -80,7 +80,7 @@ void DummyTrussConstitutiveLaw::CalculateMaterialResponsePK1 (Parameters& rValue
 //************************************************************************************
 //************************************************************************************
 
-void DummyTrussConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
+void TrussConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -88,7 +88,7 @@ void DummyTrussConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rVa
 //************************************************************************************
 //************************************************************************************
 
-void DummyTrussConstitutiveLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
+void TrussConstitutiveLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -96,7 +96,7 @@ void DummyTrussConstitutiveLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void DummyTrussConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
+void TrussConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -104,7 +104,7 @@ void DummyTrussConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void DummyTrussConstitutiveLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void TrussConstitutiveLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -112,7 +112,7 @@ void DummyTrussConstitutiveLaw::FinalizeMaterialResponseCauchy(Parameters& rValu
 //************************************************************************************
 //************************************************************************************
 
-void DummyTrussConstitutiveLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+void TrussConstitutiveLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -120,7 +120,7 @@ void DummyTrussConstitutiveLaw::FinalizeMaterialResponseKirchhoff(Parameters& rV
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
-void DummyTrussConstitutiveLaw::GetLawFeatures(Features& rFeatures)
+void TrussConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 {
     //Set the strain size
     rFeatures.mStrainSize = 1;
@@ -132,7 +132,7 @@ void DummyTrussConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-int DummyTrussConstitutiveLaw::Check(
+int TrussConstitutiveLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo

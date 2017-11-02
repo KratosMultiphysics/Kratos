@@ -15,7 +15,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/dummy_beam_constitutive_law.h"
+#include "custom_constitutive/beam_constitutive_law.h"
 
 namespace Kratos
 {
@@ -23,7 +23,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-DummyBeamConstitutiveLaw::DummyBeamConstitutiveLaw()
+BeamConstitutiveLaw::BeamConstitutiveLaw()
     : ConstitutiveLaw()
 {
 }
@@ -31,7 +31,7 @@ DummyBeamConstitutiveLaw::DummyBeamConstitutiveLaw()
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-DummyBeamConstitutiveLaw::DummyBeamConstitutiveLaw(const DummyBeamConstitutiveLaw& rOther)
+BeamConstitutiveLaw::BeamConstitutiveLaw(const BeamConstitutiveLaw& rOther)
     : ConstitutiveLaw(rOther)
 {
 }
@@ -39,16 +39,16 @@ DummyBeamConstitutiveLaw::DummyBeamConstitutiveLaw(const DummyBeamConstitutiveLa
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer DummyBeamConstitutiveLaw::Clone() const
+ConstitutiveLaw::Pointer BeamConstitutiveLaw::Clone() const
 {
-    DummyBeamConstitutiveLaw::Pointer p_clone(new DummyBeamConstitutiveLaw(*this));
+    BeamConstitutiveLaw::Pointer p_clone(new BeamConstitutiveLaw(*this));
     return p_clone;
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-DummyBeamConstitutiveLaw::~DummyBeamConstitutiveLaw()
+BeamConstitutiveLaw::~BeamConstitutiveLaw()
 {
     // TODO: Add if necessary
 }
@@ -56,7 +56,7 @@ DummyBeamConstitutiveLaw::~DummyBeamConstitutiveLaw()
 //************************************************************************************
 //************************************************************************************
 
-void  DummyBeamConstitutiveLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
+void  BeamConstitutiveLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -64,7 +64,7 @@ void  DummyBeamConstitutiveLaw::CalculateMaterialResponsePK2 (Parameters& rValue
 //************************************************************************************
 //************************************************************************************
 
-void DummyBeamConstitutiveLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
+void BeamConstitutiveLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -72,7 +72,7 @@ void DummyBeamConstitutiveLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 //************************************************************************************
 //************************************************************************************
 
-void DummyBeamConstitutiveLaw::CalculateMaterialResponsePK1 (Parameters& rValues)
+void BeamConstitutiveLaw::CalculateMaterialResponsePK1 (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -80,7 +80,7 @@ void DummyBeamConstitutiveLaw::CalculateMaterialResponsePK1 (Parameters& rValues
 //************************************************************************************
 //************************************************************************************
 
-void DummyBeamConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
+void BeamConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -88,7 +88,7 @@ void DummyBeamConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rVal
 //************************************************************************************
 //************************************************************************************
 
-void DummyBeamConstitutiveLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
+void BeamConstitutiveLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -96,7 +96,7 @@ void DummyBeamConstitutiveLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void DummyBeamConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
+void BeamConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -104,7 +104,7 @@ void DummyBeamConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void DummyBeamConstitutiveLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void BeamConstitutiveLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -112,7 +112,7 @@ void DummyBeamConstitutiveLaw::FinalizeMaterialResponseCauchy(Parameters& rValue
 //************************************************************************************
 //************************************************************************************
 
-void DummyBeamConstitutiveLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+void BeamConstitutiveLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -120,7 +120,7 @@ void DummyBeamConstitutiveLaw::FinalizeMaterialResponseKirchhoff(Parameters& rVa
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
-void DummyBeamConstitutiveLaw::GetLawFeatures(Features& rFeatures)
+void BeamConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 {
     //Set the strain size
     rFeatures.mStrainSize = 1;
@@ -132,7 +132,7 @@ void DummyBeamConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-int DummyBeamConstitutiveLaw::Check(
+int BeamConstitutiveLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo

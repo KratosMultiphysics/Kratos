@@ -23,7 +23,7 @@ namespace Kratos
 {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DummyTrussConstitutiveLaw : public ConstitutiveLaw
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussConstitutiveLaw : public ConstitutiveLaw
 {
 public:
     /**
@@ -33,10 +33,10 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
     /**
-     * Counted pointer of DummyTrussConstitutiveLaw
+     * Counted pointer of TrussConstitutiveLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( DummyTrussConstitutiveLaw );
+    KRATOS_CLASS_POINTER_DEFINITION( TrussConstitutiveLaw );
 
     /**
      * Life Cycle
@@ -45,20 +45,20 @@ public:
     /**
      * Default constructor.
      */
-    DummyTrussConstitutiveLaw();
+    TrussConstitutiveLaw();
 
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
      */
-    DummyTrussConstitutiveLaw (const DummyTrussConstitutiveLaw& rOther);
+    TrussConstitutiveLaw (const TrussConstitutiveLaw& rOther);
 
 
     /**
      * Destructor.
      */
-    ~DummyTrussConstitutiveLaw() override;
+    ~TrussConstitutiveLaw() override;
 
     /**
      * Operators
@@ -219,6 +219,6 @@ private:
     }
 
 
-}; // Class DummyTrussConstitutiveLaw
+}; // Class TrussConstitutiveLaw
 }  // namespace Kratos.
 #endif // KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED  defined 

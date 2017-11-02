@@ -23,7 +23,7 @@ namespace Kratos
 {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DummyBeamConstitutiveLaw : public ConstitutiveLaw
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) BeamConstitutiveLaw : public ConstitutiveLaw
 {
 public:
     /**
@@ -33,10 +33,10 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
     /**
-     * Counted pointer of DummyBeamConstitutiveLaw
+     * Counted pointer of BeamConstitutiveLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( DummyBeamConstitutiveLaw );
+    KRATOS_CLASS_POINTER_DEFINITION( BeamConstitutiveLaw );
 
     /**
      * Life Cycle
@@ -45,20 +45,20 @@ public:
     /**
      * Default constructor.
      */
-    DummyBeamConstitutiveLaw();
+    BeamConstitutiveLaw();
 
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
      */
-    DummyBeamConstitutiveLaw (const DummyBeamConstitutiveLaw& rOther);
+    BeamConstitutiveLaw (const BeamConstitutiveLaw& rOther);
 
 
     /**
      * Destructor.
      */
-    ~DummyBeamConstitutiveLaw() override;
+    ~BeamConstitutiveLaw() override;
 
     /**
      * Operators
@@ -219,6 +219,6 @@ private:
     }
 
 
-}; // Class DummyBeamConstitutiveLaw
+}; // Class BeamConstitutiveLaw
 }  // namespace Kratos.
 #endif // KRATOS_DUMMY_BEAM_LAW_H_INCLUDED  defined 

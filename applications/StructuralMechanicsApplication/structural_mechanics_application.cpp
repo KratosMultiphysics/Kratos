@@ -414,8 +414,8 @@ void KratosStructuralMechanicsApplication::Register()
     // For MPC implementations
     KRATOS_REGISTER_VARIABLE(MPC_DATA_CONTAINER)
     // Register linear elastics laws
-    Serializer::Register( "DummyTrussConstitutiveLaw", mDummyTrussConstitutiveLaw );
-    Serializer::Register( "DummyBeamConstitutiveLaw", mDummyBeamConstitutiveLaw );
+    Serializer::Register( "TrussConstitutiveLaw", mTrussConstitutiveLaw );
+    Serializer::Register( "BeamConstitutiveLaw", mBeamConstitutiveLaw );
     Serializer::Register( "LinearElastic3DLaw", mElasticIsotropic3D );
     Serializer::Register( "LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain );
     Serializer::Register( "LinearElasticPlaneStress2DLaw", mLinearPlaneStress );
