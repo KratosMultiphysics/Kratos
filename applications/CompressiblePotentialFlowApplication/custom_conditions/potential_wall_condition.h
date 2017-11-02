@@ -93,6 +93,10 @@ public:
 
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
 
+    typedef Element::WeakPointer ElementWeakPointerType;
+    
+    typedef Element::Pointer ElementPointerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -201,6 +205,95 @@ public:
 
         return pNewCondition;
     }
+
+    /// Find the condition's parent element.
+	void Initialize() override
+	{
+		KRATOS_TRY;
+
+		const array_1d<double,3>& rNormal = this->GetValue(NORMAL);
+		if (norm_2(rNormal) == 0.0)
+		  {
+		    std::cout << "error on condition -> " << this->Id() << std::endl;
+		    KRATOS_THROW_ERROR(std::logic_error, "NORMAL must be calculated before using this condition","");
+		  }
+
+		if (mInitializeWasPerformed)
+		{
+			return;
+		}
+
+		mInitializeWasPerformed = true;
+
+		double EdgeLength;
+		array_1d<double,3> Edge;
+		GeometryType& rGeom = this->GetGeometry();
+		WeakPointerVector<Element> ElementCandidates;
+		for (SizeType i = 0; i < TDim; i++)
+		{
+			WeakPointerVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+			for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
+			{
+				ElementCandidates.push_back(rNodeElementCandidates(j));
+			}
+		}
+
+		std::vector<IndexType> NodeIds(TNumNodes), ElementNodeIds;
+
+		for (SizeType i=0; i < TNumNodes; i++)
+		{
+			NodeIds[i] = rGeom[i].Id();
+		}
+
+		std::sort(NodeIds.begin(), NodeIds.end());
+
+		for (SizeType i=0; i < ElementCandidates.size(); i++)
+		{
+			GeometryType& rElemGeom = ElementCandidates[i].GetGeometry();
+			ElementNodeIds.resize(rElemGeom.PointsNumber());
+
+			for (SizeType j=0; j < rElemGeom.PointsNumber(); j++)
+			{
+				ElementNodeIds[j] = rElemGeom[j].Id();
+			}
+
+			std::sort(ElementNodeIds.begin(), ElementNodeIds.end());
+
+			if ( std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()) )
+			{
+				mpElement = ElementCandidates(i);
+
+				Edge = rElemGeom[1].Coordinates() - rElemGeom[0].Coordinates();
+				mMinEdgeLength = Edge[0]*Edge[0];
+				for (SizeType d=1; d < TDim; d++)
+				{
+					mMinEdgeLength += Edge[d]*Edge[d];
+				}
+
+				for (SizeType j=2; j < rElemGeom.PointsNumber(); j++)
+				{
+					for (SizeType k=0; k < j; k++)
+					{
+						Edge = rElemGeom[j].Coordinates() - rElemGeom[k].Coordinates();
+						EdgeLength = Edge[0]*Edge[0];
+
+						for (SizeType d = 1; d < TDim; d++)
+						{
+							EdgeLength += Edge[d]*Edge[d];
+						}
+
+						mMinEdgeLength = (EdgeLength < mMinEdgeLength) ? EdgeLength : mMinEdgeLength;
+					}
+				}
+				mMinEdgeLength = sqrt(mMinEdgeLength);
+				return;
+			}
+		}
+
+		std::cout << "error in condition -> " << this->Id() << std::endl;
+		KRATOS_THROW_ERROR(std::logic_error, "Condition cannot find parent element","");
+		KRATOS_CATCH("");
+	}
 
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
@@ -380,10 +473,10 @@ protected:
         ///@name Protected Operations
         ///@{
 
-
-
-
-
+        ElementPointerType pGetElement()
+        {
+            return mpElement.lock();
+        }
 
         ///@}
         ///@name Protected  Access
@@ -410,6 +503,10 @@ private:
         ///@}
         ///@name Member Variables
         ///@{
+
+        bool mInitializeWasPerformed;
+        double mMinEdgeLength;
+        ElementWeakPointerType mpElement;
 
         void CalculateNormal2D(array_1d<double,3>& An)
         {

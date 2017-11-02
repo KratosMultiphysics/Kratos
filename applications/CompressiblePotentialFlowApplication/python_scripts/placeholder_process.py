@@ -18,6 +18,12 @@ class PlaceholderProcess(KratosMultiphysics.Process):
                 "model_part_name"           : "please specify the model part that contains the body nodes and conditions"
             }
             """)
+        
+        settings.ValidateAndAssignDefaults(default_settings);
+        
+        self.model_part = Model[settings["model_part_name"].GetString()]
+        
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part,self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
 
         

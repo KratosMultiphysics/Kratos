@@ -31,6 +31,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.VELOCITY,self.velocity_infinity)
         
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part,self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        
         
     def Execute(self):
         for cond in self.model_part.Conditions:
