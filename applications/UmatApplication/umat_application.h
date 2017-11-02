@@ -38,9 +38,9 @@
 //#include "custom_laws/small_strain_umat_3D_law.hpp"
 //#include "custom_laws/large_strain_umat_3D_law.hpp"
 
-#include "custom_models/von_mises_Umat_small_strain_model.hpp"
-#include "custom_models/hypoplastic_Umat_small_strain_model.hpp"
-#include "custom_models/von_mises_Umat_large_strain_model.hpp"
+#include "custom_models/von_mises_umat_small_strain_model.hpp"
+#include "custom_models/hypoplastic_umat_small_strain_model.hpp"
+#include "custom_models/von_mises_umat_large_strain_model.hpp"
 
 namespace Kratos {
 

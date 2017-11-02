@@ -116,7 +116,7 @@ namespace Kratos
           * @param pProperties: the properties assigned to the new element
           * @return a Pointer to the new element
           */
-         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
          /**
           * clones the selected element variables, creating a new one
@@ -125,7 +125,7 @@ namespace Kratos
           * @param pProperties: the properties assigned to the new element
           * @return a Pointer to the new element
           */
-         Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+         Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 
 
@@ -139,17 +139,17 @@ namespace Kratos
           * or that no common error is found.
           * @param rCurrentProcessInfo
           */
-         int Check(const ProcessInfo& rCurrentProcessInfo);
+         int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
          /*
           * Get on rVariable a Matrix Value from the Element Constitutive Law
           */
-         virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+         void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Calculate a Matrix Variable on the Element Constitutive Law
           */
-         void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo);
+         void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
          ///@}
@@ -195,7 +195,7 @@ namespace Kratos
 
          virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                ElementVariables& rVariables,
-               double& rIntegrationWeight);
+               double& rIntegrationWeight) override;
 
          /**
           * Calculation and addition of the vectors of the RHS
@@ -204,13 +204,13 @@ namespace Kratos
          virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                ElementVariables& rVariables,
                Vector& rVolumeForce,
-               double& rIntegrationWeight);
+               double& rIntegrationWeight) override;
 
          /**
           * Initialize Element General Variables
           */
          virtual void InitializeElementVariables(ElementVariables & rVariables, 
-               const ProcessInfo& rCurrentProcessInfo);
+               const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -346,9 +346,9 @@ namespace Kratos
 
          // A private default constructor necessary for serialization
 
-         virtual void save(Serializer& rSerializer) const;
+         virtual void save(Serializer& rSerializer) const override;
 
-         virtual void load(Serializer& rSerializer);
+         virtual void load(Serializer& rSerializer) override;
 
 
          ///@name Private Inquiry

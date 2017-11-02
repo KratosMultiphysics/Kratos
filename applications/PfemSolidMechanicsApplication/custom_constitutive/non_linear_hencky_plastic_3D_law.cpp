@@ -104,7 +104,7 @@ namespace Kratos
       const GeometryType&  DomainGeometry   = rValues.GetElementGeometry ();
       const Vector&        ShapeFunctions   = rValues.GetShapeFunctionsValues ();
 
-      Vector& StrainVector                  = rValues.GetStrainVector();
+      //Vector& StrainVector                  = rValues.GetStrainVector();
       Vector& StressVector                  = rValues.GetStressVector();
       Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
 
