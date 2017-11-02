@@ -442,7 +442,7 @@ namespace Kratos
 
 			VectorNorm = MathUtils<double>::Norm(DirectionVectorZ);
 			if (VectorNorm > numerical_limit) DirectionVectorZ /= VectorNorm;
-			else KRATOS_ERROR << "LOCAL_AXIS_3 has length 0 !" << this->Id() << std::endl;
+			else KRATOS_ERROR << "LOCAL_AXIS_3 has length 0 for element " << this->Id() << std::endl;
 
 			for (int i = 0; i < msDimension; ++i)
 			{
