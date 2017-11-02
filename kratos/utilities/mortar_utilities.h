@@ -659,7 +659,8 @@ public:
     template< class TVarType, HistoricalValues THist>
     static inline void ResetValue(
         ModelPart& rThisModelPart,
-        TVarType& ThisVariable
+        TVarType& ThisVariable, 
+        const bool InvertedPair = false
         );
     
     /**
@@ -746,7 +747,8 @@ private:
 template<> 
 inline void MortarUtilities::ResetValue<Variable<double>, Historical>(
         ModelPart& rThisModelPart,
-        Variable<double>& ThisVariable
+        Variable<double>& ThisVariable, 
+        const bool InvertedPair
         )
 {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
@@ -757,17 +759,16 @@ inline void MortarUtilities::ResetValue<Variable<double>, Historical>(
     for(int i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == true) 
-        {
+        if (it_node->Is(SLAVE) == !InvertedPair) 
             it_node->FastGetSolutionStepValue(ThisVariable) = 0.0;
-        }
     }
 }
 
 template<> 
 inline void MortarUtilities::ResetValue<ComponentType, Historical>(
         ModelPart& rThisModelPart,
-        ComponentType& ThisVariable
+        ComponentType& ThisVariable, 
+        const bool InvertedPair
         )
 {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
@@ -778,17 +779,16 @@ inline void MortarUtilities::ResetValue<ComponentType, Historical>(
     for(int i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == true) 
-        {
+        if (it_node->Is(SLAVE) == !InvertedPair) 
             it_node->FastGetSolutionStepValue(ThisVariable) = 0.0;
-        }
     }
 }
 
 template<> 
 inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, Historical>(
         ModelPart& rThisModelPart,
-        Variable<array_1d<double, 3>>& ThisVariable
+        Variable<array_1d<double, 3>>& ThisVariable, 
+        const bool InvertedPair
         )
 {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
@@ -799,7 +799,7 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, Historica
     for(int i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == true) 
+        if (it_node->Is(SLAVE) == !InvertedPair) 
         {
             array_1d<double, 3>& aux_value = it_node->FastGetSolutionStepValue(ThisVariable);
             noalias(aux_value) = ZeroVector(3);
@@ -810,7 +810,8 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, Historica
 template<> 
 inline void MortarUtilities::ResetValue<Variable<double>, NonHistorical>(
         ModelPart& rThisModelPart,
-        Variable<double>& ThisVariable
+        Variable<double>& ThisVariable, 
+        const bool InvertedPair
         )
 {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
@@ -821,17 +822,16 @@ inline void MortarUtilities::ResetValue<Variable<double>, NonHistorical>(
     for(int i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == true) 
-        {
+        if (it_node->Is(SLAVE) == !InvertedPair) 
             it_node->SetValue(ThisVariable, 0.0);
-        }
     }
 }
 
 template<> 
 inline void MortarUtilities::ResetValue<ComponentType, NonHistorical>(
         ModelPart& rThisModelPart,
-        ComponentType& ThisVariable
+        ComponentType& ThisVariable, 
+        const bool InvertedPair
         )
 {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
@@ -842,17 +842,16 @@ inline void MortarUtilities::ResetValue<ComponentType, NonHistorical>(
     for(int i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == true) 
-        {
+        if (it_node->Is(SLAVE) == !InvertedPair) 
             it_node->SetValue(ThisVariable, 0.0);
-        }
     }
 }
 
 template<> 
 inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, NonHistorical>(
         ModelPart& rThisModelPart,
-        Variable<array_1d<double, 3>>& ThisVariable
+        Variable<array_1d<double, 3>>& ThisVariable, 
+        const bool InvertedPair
         )
 {
     // Zero vector
@@ -866,10 +865,8 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, NonHistor
     for(int i = 0; i < num_nodes; ++i) 
     {
         auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == true) 
-        {
+        if (it_node->Is(SLAVE) == !InvertedPair) 
             it_node->SetValue(ThisVariable, zero_vector);
-        }
     }
 }
 

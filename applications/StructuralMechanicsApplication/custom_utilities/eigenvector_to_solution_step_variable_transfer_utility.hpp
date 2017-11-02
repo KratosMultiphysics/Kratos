@@ -88,6 +88,13 @@ public:
         {
             ModelPart::NodeType::DofsContainerType& rNodeDofs = itNode->GetDofs();
             Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
+
+            // in case ComputingModelPart != MainModelPart:
+            if (rNodeDofs.size() != rNodeEigenvectors.size2())
+            continue;
+            if (iEigenMode >= rNodeEigenvectors.size1())
+                KRATOS_ERROR << "invalid iEigenMode = " << iEigenMode << std::endl;
+
             std::size_t j=0;
             for (auto itDof = std::begin(rNodeDofs); itDof != std::end(rNodeDofs); itDof++)
                 itDof->GetSolutionStepValue(step) = rNodeEigenvectors(iEigenMode,j++);

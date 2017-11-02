@@ -14,7 +14,7 @@
 "BoundingBoxMinZ"                  : -0.003,
 "dem_inlet_option"                 : false,
 "GravityX"                         : 0.0,
-"GravityY"                         : -9.81
+"GravityY"                         : -9.81,
 "GravityZ"                         : 0.0,
 "VelocityTrapOption"               : false,
 "RotationOption"                   : true,
