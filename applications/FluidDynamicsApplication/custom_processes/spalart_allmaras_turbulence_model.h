@@ -7,8 +7,8 @@
 //
 
 
-#if !defined(KRATOS_SPALART_ALLMARAS_H_INCLUDED )
-#define  KRATOS_SPALART_ALLMARAS_H_INCLUDED
+#if !defined(KRATOS_SPALART_ALLMARAS_TURBULENCE_H_INCLUDED )
+#define  KRATOS_SPALART_ALLMARAS_TURBULENCE_H_INCLUDED
 
 
 
@@ -640,6 +640,6 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_SPALART_ALLMARAS_H_INCLUDED  defined
+#endif // KRATOS_SPALART_ALLMARAS_TURBULENCE_H_INCLUDED  defined
 
 
