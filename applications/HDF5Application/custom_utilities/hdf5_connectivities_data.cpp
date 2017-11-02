@@ -1,6 +1,5 @@
 #include "custom_utilities/hdf5_connectivities_data.h"
 
-#include <typeinfo>
 #include "utilities/openmp_utils.h"
 
 namespace Kratos

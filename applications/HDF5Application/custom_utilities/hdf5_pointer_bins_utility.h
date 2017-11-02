@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "utilities/openmp_utils.h"
 
 // Application includes
 
@@ -61,6 +62,8 @@ public:
     // Get a bin by its key.
     BinType& GetBin(KeyType key)
     {
+        KRATOS_TRY;
+
         unsigned i;
         bool found = false;
         for (i = 0; i < mBinKeys.size(); ++i)
@@ -73,6 +76,8 @@ public:
             KRATOS_ERROR << "No bin exists for key." << std::endl;
 
         return mBins[i];
+
+        KRATOS_CATCH("");
     }
 
     void Clear()
@@ -93,19 +98,49 @@ template <class DataType>
 template <class TOtherContainerType>
 void PointerBinsUtility<DataType>::CreateBins(TOtherContainerType& rData)
 {
+    KRATOS_TRY;
+
     for (auto& r_bin : mBins)
         r_bin.reserve(rData.size());
 
-    for (auto& r_item : rData)
+    const int num_threads = OpenMPUtils::GetNumThreads();
+#ifdef _OPENMP
+    std::vector<omp_lock_t> bin_locks(mBins.size());
+    for (auto& lock : bin_locks)
+        omp_init_lock(&lock);
+#endif
+    OpenMPUtils::PartitionVector partition;
+    OpenMPUtils::DivideInPartitions(rData.size(), num_threads, partition);
+#pragma omp parallel
     {
-        ConstPointerType p_item = &r_item;
-        for (unsigned i = 0; i < mBinKeys.size(); ++i)
-            if (typeid(p_item) == typeid(mBinKeys[i]))
+        const int thread_id = OpenMPUtils::ThisThread();
+        typename TOtherContainerType::const_iterator it = rData.begin() + partition[thread_id];
+        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
+        {
+            bool found = false;
+            ConstPointerType p_item = &(*it);
+            for (unsigned i = 0; i < mBinKeys.size(); ++i)
             {
-                mBins[i].push_back(p_item);
-                break;
+                if (typeid(p_item) == typeid(mBinKeys[i]))
+                {
+#ifdef _OPENMP
+                    omp_set_lock(&bin_locks[i]);
+#endif
+                    mBins[i].push_back(p_item);
+#ifdef _OPENMP
+                    omp_unset_lock(&bin_locks[i]);
+#endif
+                    found = true;
+                    break;
+                }
             }
+            KRATOS_ERROR_IF(!found) << "Did not find bin for element #"
+                                    << p_item->Id() << std::endl;
+            ++it;
+        }
     }
+
+    KRATOS_CATCH("");
 }
 
 ///@} addtogroup
