@@ -23,7 +23,7 @@ endif(NOT (${CONTACT_MECHANICS_APPLICATION} MATCHES "ON"))
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PfemApplication/external_modules/triangle/)
+  set(TRIANGLE_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle/)
   include_directories( ${TRIANGLE_INSTALL_DIR} )
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
