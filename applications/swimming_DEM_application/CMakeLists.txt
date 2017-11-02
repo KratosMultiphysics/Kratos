@@ -18,7 +18,6 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 
 ## generate variables with the sources
 set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES
-
     ${CMAKE_CURRENT_SOURCE_DIR}/swimming_DEM_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled_weak.cpp
@@ -58,10 +57,18 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/shear_flow_1D_with_exponential_viscosity_field.cpp
 )
 
+## If unity build is enable, pack all the sources
+if(${KRATOS_BUILD_UNITY} MATCHES ON)
+    message("Using unity build mode in SwimingDEM")
+    enable_unity_build(UB_KRATOS_SWIMMING_DEM_APPLICATION_SOURCES KRATOS_SWIMMING_DEM_APPLICATION_SOURCES)
+endif(${KRATOS_BUILD_UNITY} MATCHES ON)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosSwimmingDEMApplication SHARED ${KRATOS_SWIMMING_DEM_APPLICATION_SOURCES})
+add_library(KratosSwimmingDEMApplication SHARED 
+    ${KRATOS_SWIMMING_DEM_APPLICATION_SOURCES}  ${UB_KRATOS_SWIMMING_DEM_APPLICATION_SOURCES}
+)
+
 target_link_libraries(KratosSwimmingDEMApplication KratosDEMApplication KratosFluidDynamicsApplication KratosCore)
 set_target_properties(KratosSwimmingDEMApplication PROPERTIES PREFIX "")
 install(TARGETS KratosSwimmingDEMApplication DESTINATION libs )
