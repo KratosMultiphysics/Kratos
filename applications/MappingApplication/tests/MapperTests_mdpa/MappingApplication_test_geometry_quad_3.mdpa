@@ -1,0 +1,255 @@
+Begin ModelPartData
+
+End ModelPartData
+Begin Properties 0
+End Properties
+Begin Properties 1
+    DENSITY   7.85000E+03 
+    YOUNG_MODULUS   2.06900E+11 
+    POISSON_RATIO   2.90000E-01 
+End Properties
+Begin Nodes 
+40	0.40000	0.40000	0.00000
+39	0.40000	0.40000	0.1501
+32	0.17500	0.40000	0.00000
+31	0.17500	0.40000	0.1501
+60	0.40000	0.40000	0.30000
+38	0.40000	0.10000	0.00000
+37	0.40000	0.10000	0.1501
+30	0.17500	0.10000	0.00000
+56	0.17500	0.40000	0.30000
+29	0.17500	0.10000	0.1501
+59	0.40000	0.10000	0.30000
+24	-0.05000	0.40000	0.00000
+23	-0.05000	0.40000	0.1501
+55	0.17500	0.10000	0.30000
+52	-0.05000	0.40000	0.30000
+22	-0.05000	0.10000	0.00000
+21	-0.05000	0.10000	0.1501
+51	-0.05000	0.10000	0.30000
+27	0.17500	-0.20000	0.00000
+25	0.17500	-0.20000	0.1501
+15	-0.27500	0.40000	0.00000
+13	-0.27500	0.40000	0.1501
+53	0.17500	-0.20000	0.30000
+47	-0.27500	0.40000	0.30000
+11	-0.27500	0.10000	0.00000
+19	-0.05000	-0.20000	0.00000
+9	-0.27500	0.10000	0.1501
+17	-0.05000	-0.20000	0.1501
+45	-0.27500	0.10000	0.30000
+49	-0.05000	-0.20000	0.30000
+End Nodes
+Begin Elements Element3D8N
+6	1	23	21	9	13	24	22	11	15	
+8	1	29	25	17	21	30	27	19	22	
+9	1	31	29	21	23	32	30	22	24	
+12	1	39	37	29	31	40	38	30	32	
+18	1	52	51	45	47	23	21	9	13	
+20	1	55	53	49	51	29	25	17	21	
+21	1	56	55	51	52	31	29	21	23	
+24	1	60	59	55	56	39	37	29	31	
+End Elements
+Begin Conditions LineCondition3D2N
+End Conditions
+Begin Conditions SurfaceCondition3D4N
+8	0	11	22	24	15	
+11	0	22	30	32	24	
+12	0	19	27	30	22	
+14	0	30	38	40	32	
+End Conditions
+Begin SubModelPart Parts_domain_quad
+Begin SubModelPartNodes 
+40
+39
+32
+31
+60
+38
+37
+30
+56
+29
+59
+24
+23
+55
+52
+22
+21
+51
+27
+25
+15
+13
+53
+47
+11
+19
+9
+17
+45
+49
+End SubModelPartNodes
+Begin SubModelPartElements 
+6
+8
+9
+12
+18
+20
+21
+24
+End SubModelPartElements
+Begin SubModelPartConditions 
+End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_dirichlet_surface
+Begin SubModelPartNodes 
+60
+56
+59
+55
+52
+51
+53
+47
+45
+49
+End SubModelPartNodes
+Begin SubModelPartElements 
+End SubModelPartElements
+Begin SubModelPartConditions 
+End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart LineLoad3D_mapping_line_quad
+Begin SubModelPartNodes 
+End SubModelPartNodes
+Begin SubModelPartElements 
+End SubModelPartElements
+Begin SubModelPartConditions 
+End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart SurfaceLoad3D_mapping_surface_quad
+Begin SubModelPartNodes 
+40
+32
+38
+30
+24
+22
+27
+15
+11
+19
+End SubModelPartNodes
+Begin SubModelPartElements 
+End SubModelPartElements
+Begin SubModelPartConditions 
+8
+11
+12
+14
+End SubModelPartConditions
+End SubModelPart
+Begin NodalData PARTITION_INDEX
+9  0  0
+11  0  0
+13  0  0
+15  0  0
+17  0  1
+19  0  1
+21  0  3
+22  0  3
+23  0  3
+24  0  3
+25  0  2
+27  0  2
+29  0  3
+30  0  3
+31  0  3
+32  0  3
+37  0  2
+38  0  2
+39  0  3
+40  0  3
+45  0  0
+47  0  0
+49  0  1
+51  0  3
+52  0  3
+53  0  2
+55  0  3
+56  0  3
+59  0  2
+60  0  3
+End NodalData 
+Begin CommunicatorData 
+NEIGHBOURS_INDICES    [8](2,0,1,-1,-1,-1,-1,-1)
+NUMBER_OF_COLORS    3
+    Begin LocalNodes 0
+    21
+    22
+    23
+    24
+    29
+    30
+    31
+    32
+    39
+    40
+    51
+    52
+    55
+    56
+    60
+    End LocalNodes 
+    Begin LocalNodes 1
+    29
+    30
+    55
+    End LocalNodes 
+    Begin LocalNodes 3
+    21
+    22
+    51
+    End LocalNodes 
+    Begin GhostNodes 1
+    25
+    27
+    37
+    38
+    53
+    59
+    End GhostNodes 
+    Begin GhostNodes 2
+    9
+    11
+    13
+    15
+    45
+    47
+    End GhostNodes 
+    Begin GhostNodes 3
+    17
+    19
+    49
+    End GhostNodes 
+    Begin GhostNodes 0
+    9
+    11
+    13
+    15
+    17
+    19
+    25
+    27
+    37
+    38
+    45
+    47
+    49
+    53
+    59
+    End GhostNodes 
+End CommunicatorData 

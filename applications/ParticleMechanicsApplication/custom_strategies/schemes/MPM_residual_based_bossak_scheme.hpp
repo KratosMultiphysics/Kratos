@@ -226,8 +226,7 @@ public:
 
 
 		#pragma omp parallel for
-		
-		for(unsigned int iter = 0; iter < r_model_part.Nodes().size(); ++iter)
+		for(int iter = 0; iter < static_cast<int>(r_model_part.Nodes().size()); ++iter)
 		{
 			
 			auto i = r_model_part.NodesBegin() + iter;
@@ -275,8 +274,7 @@ public:
         //array_1d<double, 3 > DeltaDisplacement;
 
 		#pragma omp parallel for
-		
-		for(unsigned int iter = 0; iter < r_model_part.Nodes().size(); ++iter)
+		for(int iter = 0; iter < static_cast<int>(r_model_part.Nodes().size()); ++iter)
 		{
 			
 			auto i = r_model_part.NodesBegin() + iter;
@@ -449,8 +447,7 @@ public:
 
 
 		#pragma omp parallel for
-		
-		for(unsigned int iter = 0; iter < mr_grid_model_part.Nodes().size(); ++iter)
+		for(int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
 		{
 			
 			auto i = mr_grid_model_part.NodesBegin() + iter;
@@ -537,8 +534,7 @@ public:
             
             
             #pragma omp parallel for
-		
-			for(unsigned int iter = 0; iter < mr_grid_model_part.Nodes().size(); ++iter)
+			for( int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
 			{
 			
 			auto i = mr_grid_model_part.NodesBegin() + iter;
@@ -578,8 +574,7 @@ public:
 
 
 			#pragma omp parallel for
-		
-			for(unsigned int iter = 0; iter < mr_grid_model_part.Nodes().size(); ++iter)
+			for(int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
 			{
 			
 			auto i = mr_grid_model_part.NodesBegin() + iter;

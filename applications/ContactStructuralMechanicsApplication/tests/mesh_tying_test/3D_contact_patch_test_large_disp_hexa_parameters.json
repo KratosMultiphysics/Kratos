@@ -11,9 +11,8 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+        "echo_level"                         : 0,        
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "mesh_tying_test/3D_contact_patch_test_large_disp_hexa",
@@ -27,7 +26,7 @@
             "mortar_type"                    : "ComponentsMeshTying"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "Contact_Mixed_criterion",
+        "convergence_criterion"              : "contact_mixed_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,

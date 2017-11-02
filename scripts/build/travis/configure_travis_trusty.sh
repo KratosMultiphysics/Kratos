@@ -53,7 +53,7 @@ CXX_COMPILER=g++-6
 #    - Example:
 #        BUILD_TYPE="RelWithDebInfo"
 # --------------------------------------------------------------------------------------------------------------
-# BUILD_TYPE="Release"
+BUILD_TYPE="Custom"
 
 # Flags for performance
 #    Indicate the compiler performance related flags. Please notice that OX flags are added by cmake
@@ -111,10 +111,10 @@ CMAKE_LIBS=(
 
 CMAKE_APPLICATION=(
   -DEXTERNAL_SOLVERS_APPLICATION=ON
-  -DSOLID_MECHANICS_APPLICATION=ON
+  -DSTRUCTURAL_MECHANICS_APPLICATION=ON
   -DFLUID_DYNAMICS_APPLICATION=ON
   -DDEM_APPLICATION=ON
-  -DSWIMMING_DEM_APPLICATION=ON
+  -DSWIMMING_DEM_APPLICATION=OFF
 )
 
 ########################################################################################################################

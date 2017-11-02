@@ -106,22 +106,6 @@ public:
         return 3;
     };
     
-    /**
-     * Computes the material response:
-     * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
-
-    /**
-     * Computes the material response:
-     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
-    
 protected:
 
     ///@name Protected static Member Variables
@@ -155,16 +139,30 @@ private:
     ///@{
 
     /**
-     * It calculates the constitutive matrix C
+     * It calculates the constitutive matrix C (PK2)
      * @param ConstitutiveMatrix: The constitutive matrix
-     * @param CTensor: The right Cauchy-Green tensor
+     * @param InverseCTensor: The inverse right Cauchy-Green tensor
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
      * @param LameMu: Seconf Lame parameter
      */
-    void CalculateConstitutiveMatrix(
+    void CalculateConstitutiveMatrixPK2(
         Matrix& ConstitutiveMatrix,
         const Matrix& InverseCTensor,
+        const double& DeterminantF,
+        const double& LameLambda,
+        const double& LameMu
+        ) override;
+
+    /**
+     * It calculates the constitutive matrix C (Kirchoff)
+     * @param ConstitutiveMatrix: The constitutive matrix
+     * @param DeterminantF: The determinant of the deformation gradient
+     * @param LameLambda: First Lame parameter
+     * @param LameMu: Seconf Lame parameter
+     */
+    void CalculateConstitutiveMatrixKirchoff(
+        Matrix& ConstitutiveMatrix,
         const double& DeterminantF,
         const double& LameLambda,
         const double& LameMu

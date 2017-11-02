@@ -68,32 +68,37 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
     def RunTestCase(self):
         StructureSolverSettings = Parameters("""
         {
-            "solver_type"                        : "structural_mechanics_implicit_dynamic_solver",
-            "echo_level"                         : 0,
-            "solution_type"                      : "Dynamic",
-            "time_integration_method"            : "Implicit",
-            "scheme_type"                        : "Bossak",
-            "model_import_settings"              : {
-                "input_type"       : "mdpa",
-                "input_filename"   : "test_FSI_emulator_Structural",
-                "input_file_label" : 0
+            "problem_data": {
+                "parallel_type" : "OpenMP"
             },
-            "material_import_settings" :{
-                "materials_filename": "materials_2D.json"
-            },
-            "line_search"                        : false,
-            "convergence_criterion"              : "Residual_criterion",
-            "displacement_relative_tolerance"    : 1e-8,
-            "displacement_absolute_tolerance"    : 1e-10,
-            "residual_relative_tolerance"        : 1e-8,
-            "residual_absolute_tolerance"        : 1e-10,
-            "max_iteration"                      : 20,
-            "problem_domain_sub_model_part_list" : ["Parts_Solid"],
-            "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_BC","PointLoad2D_Point_load","StructureInterface2D_Solid_interface"],
-            "rotation_dofs"                      : false,
-            "linear_solver_settings"             : {
-                "solver_type" : "SuperLUSolver",
-                "scaling"     : true
+            "solver_settings" : {
+                "solver_type"             : "Dynamic",
+                "echo_level"              : 0,
+                "analysis_type"           : "linear",
+                "time_integration_method" : "implicit",
+                "scheme_type"             : "bossak",
+                "model_import_settings"              : {
+                    "input_type"       : "mdpa",
+                    "input_filename"   : "test_FSI_emulator_Structural",
+                    "input_file_label" : 0
+                },
+                "material_import_settings" :{
+                    "materials_filename": "materials_2D.json"
+                },
+                "line_search"                        : false,
+                "convergence_criterion"              : "Residual_criterion",
+                "displacement_relative_tolerance"    : 1e-8,
+                "displacement_absolute_tolerance"    : 1e-10,
+                "residual_relative_tolerance"        : 1e-8,
+                "residual_absolute_tolerance"        : 1e-10,
+                "max_iteration"                      : 20,
+                "problem_domain_sub_model_part_list" : ["Parts_Solid"],
+                "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_BC","PointLoad2D_Point_load","StructureInterface2D_Solid_interface"],
+                "rotation_dofs"                      : false,
+                "linear_solver_settings"             : {
+                    "solver_type" : "SuperLUSolver",
+                    "scaling"     : true
+                }
             }
         }
         """)
@@ -104,8 +109,8 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
             self.structure_main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, 2)
 
             # Construct the structure solver
-            structure_solver_module = __import__(StructureSolverSettings["solver_type"].GetString())
-            self.structure_solver = structure_solver_module.CreateSolver(self.structure_main_model_part, StructureSolverSettings)
+            import python_solvers_wrapper_structural
+            self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.structure_main_model_part, StructureSolverSettings)
 
             self.structure_solver.AddVariables()
 
