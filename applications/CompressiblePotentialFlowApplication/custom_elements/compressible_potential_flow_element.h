@@ -530,6 +530,33 @@ public:
 
                 p = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
             }
+            else if(this->Is(MARKER) && active==true)
+            {
+                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+                const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
+
+                ElementalData<NumNodes,Dim> data;
+
+                //calculate shape functions
+                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+                array_1d<double,NumNodes> distances;
+                GetWakeDistances(distances);
+
+                //taking only positive part
+                for (unsigned int i = 0; i < NumNodes; i++)
+                {
+                    if(distances[i] > 0)
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                    else
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                }
+
+                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
+                
+                
+                p = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+            }
 
 
             rValues[0] = p;
@@ -560,6 +587,29 @@ public:
                 for(unsigned int i=0; i<NumNodes; i++)
                 {
                     data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                }
+
+                array_1d<double,Dim> vaux = -prod(trans(data.DN_DX), data.phis);
+                
+                for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
+            }
+            else if(this->Is(MARKER) && active==true)
+            {
+                ElementalData<NumNodes,Dim> data;
+                
+                //calculate shape functions
+                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+                array_1d<double,NumNodes> distances;
+                GetWakeDistances(distances);
+
+                //taking only positive part
+                for (unsigned int i = 0; i < NumNodes; i++)
+                {
+                    if(distances[i] > 0)
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                    else
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
                 }
 
                 array_1d<double,Dim> vaux = -prod(trans(data.DN_DX), data.phis);
