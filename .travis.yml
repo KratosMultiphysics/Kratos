@@ -13,7 +13,8 @@ env:
     - CCACHE_COMPILERCHECK=content
     - CCACHE_COMPRESS=true
     - CCACHE_NODISABLE=true
-    - CCACHE_MAXSIZE=50M
+    - CCACHE_MAXSIZE=500M
+    - FC=gfortran-6
 
 addons:
   apt:
@@ -23,7 +24,7 @@ addons:
     packages:
       - gcc-6
       - g++-6
-      - gfortran
+      - gfortran-6
       - libboost1.55-dev
       - libboost-serialization1.55-dev
       - libboost-python1.55-dev

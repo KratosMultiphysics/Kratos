@@ -17,14 +17,21 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_meshers_to_python.h"
+
+#ifdef USE_TETGEN_NONFREE_TPL
 #include "external_includes/tetgen_pfem_refine.h"
 #include "external_includes/tetgen_pfem_refine_vms.h"
 #include "external_includes/tetgen_pfem_refine_face.h"
+#include "external_includes/tetgen_pfem_contact.h"
+#include "external_includes/tetgen_cdt.h"
+#else
+#define REAL double
+#endif 
+
+// #include "triangle.h"
 #include "external_includes/trigen_pfem_refine.h"
 #include "external_includes/trigen_pfem_refine_vms.h"
 #include "external_includes/trigen_pfem_refine_segment.h"
-#include "external_includes/tetgen_pfem_contact.h"
-#include "external_includes/tetgen_cdt.h"
 
 //#include "external_includes/trigen_mesh_suite.h"
 #include "external_includes/trigen_cdt.h"
@@ -38,6 +45,8 @@ namespace Kratos
 
 namespace Python
 {
+    
+#ifdef USE_TETGEN_NONFREE_TPL
 ///////////////////////////////////////////////////////////////////////////////////////////
 //											//
 //				ADAPTIVE 3D MESHER					//
@@ -101,6 +110,7 @@ void TetRegenerateMeshVMS(TetGenPfemModelerVms& Mesher, char* ElementName, char*
 
 
 }
+#endif
 
 
 
@@ -197,6 +207,8 @@ void  AddMeshersToPython()
 {
 
     using namespace boost::python;
+    
+#ifdef USE_TETGEN_NONFREE_TPL
     //class that allows 3D adaptive remeshing (inserting and erasing nodes)
     class_<TetGenPfemModeler >("TetGenPfemModeler",
                                init< >())
@@ -223,6 +235,7 @@ void  AddMeshersToPython()
                                   init< >())
     .def("ReGenerateMesh",&TetGenPfemModelerVms::ReGenerateMesh)
     ;
+#endif
     
     //class that allows 2D adaptive remeshing (inserting and erasing nodes)
     class_<TriGenPFEMModeler >("TriGenPFEMModeler",

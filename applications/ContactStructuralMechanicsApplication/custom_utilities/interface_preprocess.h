@@ -163,7 +163,8 @@ private:
             Element::Pointer rpElem,
             Geometry<Node<3> > & rGeometry,
             const unsigned int CondId,
-            const std::string& ConditionName
+            const std::string& ConditionName,
+            const bool IsMortar
             );
     
     /**
@@ -204,7 +205,8 @@ private:
         const std::string& FinalString,
         const bool& SimplestGeometry,
         unsigned int& CondCounter,
-        unsigned int& CondId
+        unsigned int& CondId,
+        const bool IsMortar
         );
     
     /**
@@ -227,7 +229,8 @@ private:
         const std::string& FinalString,
         const bool& SimplestGeometry,
         unsigned int& CondCounter,
-        unsigned int& CondId
+        unsigned int& CondId,
+        const bool IsMortar
         );
     
     ///@}
