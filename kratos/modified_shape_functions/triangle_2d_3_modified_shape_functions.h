@@ -172,6 +172,11 @@ public:
         std::vector<Vector> &rNegativeSideInterfaceUnitNormal,
         const IntegrationMethodType IntegrationMethod) override;
 
+    /**
+    * Returns true if the element is split and false otherwise.
+    */
+    bool IsSplit() override;
+
     ///@}
 
 protected:
@@ -189,11 +194,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-    * Returns true if the element is split and false otherwise.
-    */
-    bool IsSplit() override;
 
     ///@}
     ///@name Protected  Access

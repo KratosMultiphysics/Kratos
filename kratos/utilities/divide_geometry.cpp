@@ -100,14 +100,6 @@ namespace Kratos
         return mrNodalDistances;
     };
 
-    void DivideGeometry::GenerateDivision() {
-        KRATOS_ERROR << "Calling the base class geometry splitting DivideGeometry method. Call the specific geometry one.";
-    };
-    
-    void DivideGeometry::GenerateIntersectionsSkin() {
-        KRATOS_ERROR << "Calling the base class geometry splitting GenerateIntersectionsSkin method. Call the specific geometry one.";
-    };
-
     void DivideGeometry::IsSplit() {
         unsigned int n_pos = 0 , n_neg = 0;
 

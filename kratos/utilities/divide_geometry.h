@@ -237,12 +237,12 @@ public:
     /**
      * Divides the input geometry according to the provided distance data.
      */
-    virtual void GenerateDivision();
+    virtual void GenerateDivision() = 0;
 
     /**
      * Generates a list containing the intersection interface geometries for either the positive or the negative element subdivisions.
      */
-    virtual void GenerateIntersectionsSkin();
+    virtual void GenerateIntersectionsSkin() = 0;
 
     ///@}
 

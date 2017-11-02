@@ -42,7 +42,7 @@ namespace Kratos
     /// Print object's data.
     void ModifiedShapeFunctions::PrintData(std::ostream& rOStream) const {
         const GeometryPointerType p_geometry = this->GetInputGeometry();
-        const Vector nodal_distances = this->GetNodalDistances();
+        const Vector& nodal_distances = this->GetNodalDistances();
         rOStream << "Modified shape functions computation base class:\n";
         rOStream << "\tGeometry type: " << (*p_geometry).Info() << "\n";
         std::stringstream distances_buffer;
@@ -60,68 +60,6 @@ namespace Kratos
     // Returns the nodal distances vector.
     const Vector& ModifiedShapeFunctions::GetNodalDistances() const {
         return mrNodalDistances;
-    };
-
-    // Computes all the shape function values for the positive side.
-    void ModifiedShapeFunctions::GetPositiveSideShapeFunctionsAndGradientsValues(
-        Matrix &rPositiveSideShapeFunctionsValues,
-        std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
-        Vector &rPositiveSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod) {
-
-        KRATOS_ERROR << "Calling the base class GetShapeFunctionsAndGradientsValuesPositiveSide method. Call the specific geometry one.";
-    };
-
-    // Computes all the shape function values for the negative side.
-    void ModifiedShapeFunctions::GetNegativeSideShapeFunctionsAndGradientsValues(
-        Matrix &rNegativeSideShapeFunctionsValues,
-        std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
-        Vector &rNegativeSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod) {
-
-        KRATOS_ERROR << "Calling the base class GetShapeFunctionsAndGradientsValuesNegativeSide method. Call the specific geometry one.";
-    };
-
-    // Computes all the shape function values for the positive interface side.
-    void ModifiedShapeFunctions::GetInterfacePositiveSideShapeFunctionsAndGradientsValues(
-        Matrix &rInterfacePositiveSideShapeFunctionsValues,
-        std::vector<Matrix> &rPositiveInterfaceSideShapeFunctionsGradientsValues,
-        Vector &rPositiveInterfaceSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod) {
-
-        KRATOS_ERROR << "Calling the base class GetInterfaceShapeFunctionsAndGradientsValuesPositiveSide method. Call the specific geometry one.";
-    };
-
-    // Computes all the shape function values for the negative interface side.
-    void ModifiedShapeFunctions::GetInterfaceNegativeSideShapeFunctionsAndGradientsValues(
-        Matrix &rInterfaceNegativeSideShapeFunctionsValues,
-        std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
-        Vector &rInterfaceNegativeSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod) {
-
-        KRATOS_ERROR << "Calling the base class GetInterfaceShapeFunctionsAndGradientsValuesNegativeSide method. Call the specific geometry one.";
-    };
-
-    // Computes the positive side interface outwards unit normal vector values.
-    void ModifiedShapeFunctions::GetPositiveSideInterfaceUnitNormals(
-        std::vector<Vector> &rPositiveSideInterfaceUnitNormal,
-        const IntegrationMethodType IntegrationMethod) {
-
-        KRATOS_ERROR << "Calling the base class GetPositiveSideInterfaceUnitNormals method. Call the specific geometry one.";
-    };
-
-    // Computes the positive side interface outwards unit normal vector values.
-    void ModifiedShapeFunctions::GetNegativeSideInterfaceUnitNormals(
-        std::vector<Vector> &rNegativeSideInterfaceUnitNormal,
-        const IntegrationMethodType IntegrationMethod) {
-
-        KRATOS_ERROR << "Calling the base class GetNegativeSideInterfaceUnitNormals method. Call the specific geometry one.";
-    };
-
-    // Returns true if the element is splitting
-    bool ModifiedShapeFunctions::IsSplit() {
-
-        KRATOS_ERROR << "Calling the base class IsSplit method. Call the specific geometry one.";
     };
 
     // Sets the condensation matrix to transform the subdivsion values to entire element ones.

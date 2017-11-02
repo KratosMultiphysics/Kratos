@@ -125,7 +125,7 @@ public:
         Matrix &rPositiveSideShapeFunctionsValues,
         std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
         Vector &rPositiveSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod);
+        const IntegrationMethodType IntegrationMethod) = 0;
 
     /**
     * Returns the shape function values in the negative split element side for a given quadrature.
@@ -138,7 +138,7 @@ public:
         Matrix &rNegativeSideShapeFunctionsValues,
         std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
         Vector &rNegativeSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod);
+        const IntegrationMethodType IntegrationMethod) = 0;
 
     /**
     * Returns the shape function values in the positive split element interface side for a given quadrature.
@@ -151,7 +151,7 @@ public:
         Matrix &rInterfacePositiveSideShapeFunctionsValues,
         std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
         Vector &rInterfacePositiveSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod);
+        const IntegrationMethodType IntegrationMethod) = 0;
 
     /**
     * Returns the shape function values in the negative split element side for a given quadrature.
@@ -164,7 +164,7 @@ public:
         Matrix &rInterfaceNegativeSideShapeFunctionsValues,
         std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
         Vector &rInterfaceNegativeSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod);
+        const IntegrationMethodType IntegrationMethod) = 0;
         
     /**
     * Returns the positive side outwards unit normal vector values for the Gauss pts. of given quadrature.
@@ -173,7 +173,7 @@ public:
     */
     virtual void GetPositiveSideInterfaceUnitNormals(
         std::vector<Vector> &rPositiveSideInterfaceUnitNormal,
-        const IntegrationMethodType IntegrationMethod);
+        const IntegrationMethodType IntegrationMethod) = 0;
 
     /**
     * Returns the positive side outwards unit normal vector values for the Gauss pts. of given quadrature.
@@ -182,7 +182,12 @@ public:
     */
     virtual void GetNegativeSideInterfaceUnitNormals(
         std::vector<Vector> &rNegativeSideInterfaceUnitNormal,
-        const IntegrationMethodType IntegrationMethod);
+        const IntegrationMethodType IntegrationMethod) = 0;
+
+    /**
+    * Returns true if the element is split and false otherwise.
+    */
+    virtual bool IsSplit() = 0;
 
     ///@}
 
@@ -201,11 +206,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-    * Returns true if the element is split and false otherwise.
-    */
-    virtual bool IsSplit();
 
     /**
     * Returns true if the element is split and false otherwise.
