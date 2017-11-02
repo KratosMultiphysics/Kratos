@@ -56,17 +56,21 @@ public:
       : ResponseFunction(rModelPart, rParameters)
     {
         KRATOS_TRY;
-
+        
         Parameters default_settings(R"(
         {
             "structure_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
-            "drag_direction": [1.0, 0.0, 0.0]
+            "drag_direction": [1.0, 0.0, 0.0],
+            "output_file": "PLEASE_SPECIFY_RESPONSE_VALUE_OUTPUT_FILE"
         })");
 
         Parameters custom_settings = rParameters["custom_settings"];
         custom_settings.ValidateAndAssignDefaults(default_settings);
 
         mStructureModelPartName = custom_settings["structure_model_part_name"].GetString();
+
+        this->SetResponseName("DRAG");
+        this->SetOutputFilename(rParameters["output_file"].GetString());
 
         if (custom_settings["drag_direction"].IsArray() == false ||
             custom_settings["drag_direction"].size() != 3)
@@ -204,6 +208,28 @@ public:
         noalias(rResponseGradient) = prod(rAdjointMatrix, r_drag_flag_vector);
 
         KRATOS_CATCH("");
+    }
+
+    virtual double CalculateValue(ModelPart& rModelPart) override
+    {
+        double result = 0.0;
+        
+        ModelPart& rSurfaceModelPart = rModelPart.GetSubModelPart(mStructureModelPartName);
+
+        #pragma omp parallel reduction(+:result)
+        {
+            ModelPart::NodeIterator NodesBegin;
+            ModelPart::NodeIterator NodesEnd;
+            OpenMPUtils::PartitionedIterators(rSurfaceModelPart.Nodes(), NodesBegin, NodesEnd);
+
+            for (auto it = NodesBegin; it != NodesEnd; ++it)
+            {
+                const array_1d<double,3>& reaction = it->FastGetSolutionStepValue(REACTION, 0);
+                result -= inner_prod(reaction, mDragDirection);
+            }
+        }
+        
+        return result;
     }
 
     ///@}

@@ -60,6 +60,9 @@ public:
         mNodalSensitivityVariables.resize(nodal_sensitivity_variables.size());
         for (unsigned int i = 0; i < nodal_sensitivity_variables.size(); ++i)
             mNodalSensitivityVariables[i] = nodal_sensitivity_variables[i].GetString();
+        
+        mResponseName = "";
+        mOutputFilename = "";
 
         KRATOS_CATCH("");
     }
@@ -67,6 +70,8 @@ public:
     /// Destructor.
     virtual ~ResponseFunction()
     {
+        if (mIsOutputFileOpened)
+            mOutputFileStream.close();
     }
 
     ///@}
@@ -85,6 +90,16 @@ public:
     const ModelPart& GetModelPart() const
     {
       return mrModelPart;
+    }
+
+    void SetOutputFilename(const std::string OutputFilename)
+    {
+        this->mOutputFilename = OutputFilename;
+    }
+
+    void SetResponseName(const std::string ResponseName)
+    {
+        this->mResponseName = ResponseName;
     }
 
     virtual void Initialize()
@@ -108,6 +123,13 @@ public:
                 it->SetValue(UPDATE_SENSITIVITIES, true);
         }
 
+        if (mOutputFilename.compare("") != 0) 
+        {
+            mOutputFileStream.open(mOutputFilename + ".data");
+            mOutputFileStream<<"#time       "<<mResponseName<<std::endl;
+            mIsOutputFileOpened = true;
+        }
+
         KRATOS_CATCH("");
     }
 
@@ -120,6 +142,17 @@ public:
         KRATOS_TRY;
 
         this->UpdateSensitivities();
+
+        double response_value = this->CalculateValue( this->GetModelPart() );
+        
+        if (mIsOutputFileOpened) 
+        {
+            ProcessInfo& rProcessInfo = this->GetModelPart().GetProcessInfo();
+            mOutputFileStream.precision(5);
+            mOutputFileStream<<std::scientific<<rProcessInfo[TIME]<<" ";
+            mOutputFileStream.precision(15);
+            mOutputFileStream<<std::scientific<<response_value<<std::endl;        
+        }
 
         KRATOS_CATCH("");
     }
@@ -530,7 +563,7 @@ protected:
     //                                           const Variable<double>& rVariable,
     //                                           const Matrix& rDerivativesMatrix,
     //                                           Vector& rResponseGradient,
-    //                                           ProcessInfo& rProcessInfo)
+    //                                         mIsOutputFileOpened  ProcessInfo& rProcessInfo)
     // {
     //     KRATOS_TRY;
 
@@ -623,6 +656,10 @@ private:
 
     std::string mSensitivityModelPartName;
     std::vector<std::string> mNodalSensitivityVariables;
+    std::string mOutputFilename;
+    std::ofstream mOutputFileStream; 
+    std::string mResponseName;
+    bool mIsOutputFileOpened;
 
     ///@}
     ///@name Private Operators
