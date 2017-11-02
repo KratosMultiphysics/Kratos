@@ -20,6 +20,8 @@
 #include "includes/define.h"
 #include "includes/constitutive_law.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_constitutive/dummy_truss_constitutive_law.h"
+#include "custom_constitutive/dummy_beam_constitutive_law.h"
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
@@ -38,6 +40,16 @@ using namespace boost::python;
 
 void  AddCustomConstitutiveLawsToPython()
 {
+
+    class_< DummyTrussConstitutiveLaw, bases< ConstitutiveLaw >, boost::noncopyable >
+    ( "DummyTrussConstitutiveLaw",
+      init<>() )
+    ;
+
+    class_< DummyBeamConstitutiveLaw, bases< ConstitutiveLaw >, boost::noncopyable >
+    ( "DummyBeamConstitutiveLaw",
+      init<>() )
+    ;
 
     class_< LinearPlaneStress, bases< ConstitutiveLaw >, boost::noncopyable >
     ( "LinearElasticPlaneStress2DLaw",
