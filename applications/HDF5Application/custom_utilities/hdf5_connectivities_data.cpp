@@ -81,11 +81,11 @@ void ConnectivitiesData::CreateConditions(ConditionType const& rConditionType,
 }
 
 // Fill data from elements of a single element type.
-void ConnectivitiesData::SetData(ElementsContainerType const& rElements)
+void ConnectivitiesData::SetData(std::vector<ElementType const*> const& rElements)
 {
     KRATOS_TRY;
 
-    const ElementType& r_expected_element = rElements.front();
+    const ElementType& r_expected_element = *rElements.front();
     const unsigned num_elems = rElements.size();
     const unsigned geometry_size = r_expected_element.GetGeometry().size();
     mIds.resize(num_elems, false);
@@ -99,10 +99,9 @@ void ConnectivitiesData::SetData(ElementsContainerType const& rElements)
 #pragma omp parallel
     {
         const int thread_id = OpenMPUtils::ThisThread();
-        ElementsContainerType::const_iterator it = rElements.begin() + partition[thread_id];
         for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
         {
-            const ElementType& r_elem = *it;
+            const ElementType& r_elem = *rElements[i];
             // Check element type.
             KRATOS_ERROR_IF(typeid(r_elem) != typeid(r_expected_element))
                 << "Element #" << r_elem.Id() << " is not "
@@ -118,7 +117,6 @@ void ConnectivitiesData::SetData(ElementsContainerType const& rElements)
             // Fill connectivities.
             for (unsigned k = 0; k < geometry_size; ++k)
                 mConnectivities(i, k) = r_geom[k].Id();
-            ++it;
         }
     }
 
@@ -126,11 +124,11 @@ void ConnectivitiesData::SetData(ElementsContainerType const& rElements)
 }
 
 // Fill data from conditions of a single condition type.
-void ConnectivitiesData::SetData(ConditionsContainerType const& rConditions)
+void ConnectivitiesData::SetData(std::vector<ConditionType const*> const& rConditions)
 {
     KRATOS_TRY;
 
-    const ConditionType& r_expected_condition = rConditions.front();
+    const ConditionType& r_expected_condition = *rConditions.front();
     const unsigned num_conds = rConditions.size();
     const unsigned geometry_size = r_expected_condition.GetGeometry().size();
     mIds.resize(num_conds, false);
@@ -144,10 +142,9 @@ void ConnectivitiesData::SetData(ConditionsContainerType const& rConditions)
 #pragma omp parallel
     {
         const int thread_id = OpenMPUtils::ThisThread();
-        ConditionsContainerType::const_iterator it = rConditions.begin() + partition[thread_id];
         for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
         {
-            const ConditionType& r_cond = *it;
+            const ConditionType& r_cond = *rConditions[i];
             // Check element type.
             KRATOS_ERROR_IF(typeid(r_cond) != typeid(r_expected_condition))
                 << "Condition #" << r_cond.Id() << " is not "
@@ -163,7 +160,6 @@ void ConnectivitiesData::SetData(ConditionsContainerType const& rConditions)
             // Fill connectivities.
             for (unsigned k = 0; k < geometry_size; ++k)
                 mConnectivities(i, k) = r_geom[k].Id();
-            ++it;
         }
     }
 

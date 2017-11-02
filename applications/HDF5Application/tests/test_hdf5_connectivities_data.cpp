@@ -25,6 +25,7 @@
 // Application includes
 #include "custom_io/hdf5_file_serial.h"
 #include "custom_utilities/hdf5_connectivities_data.h"
+#include "custom_utilities/hdf5_utils.h"
 
 namespace Kratos
 {
@@ -246,15 +247,18 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_SetData1, KratosHDF5TestSuite)
     CreateTestMesh(nodes, properties, elements, ids, pids, connectivities);
 
     HDF5::ConnectivitiesData data;
-    data.SetData(elements);
-    KRATOS_CHECK(data.size() == elements.size());
+    std::vector<Element const*> element_ptrs;
+    HDF5::Detail::GetRawPointers(elements, element_ptrs);
+    data.SetData(element_ptrs);
+    KRATOS_CHECK(data.size() == element_ptrs.size());
     for (unsigned i = 0; i < data.size(); ++i)
     {
-        Element& r_elem = elements[ids[i]];
-        KRATOS_CHECK(r_elem.GetProperties().Id() == static_cast<unsigned>(pids[i]));
-        KRATOS_CHECK(r_elem.GetGeometry().size() == static_cast<unsigned>(connectivities.size2()));
-        for (unsigned j = 0; j < connectivities.size2(); ++j)
-            KRATOS_CHECK(r_elem.GetGeometry()[j].Id() == static_cast<unsigned>(connectivities(i, j)));
+        Element const& r_elem = *element_ptrs[i];
+        KRATOS_CHECK(r_elem.Id() == static_cast<unsigned>(data.GetIds()[i]));
+        KRATOS_CHECK(r_elem.GetProperties().Id() == static_cast<unsigned>(data.GetPropertiesIds()[i]));
+        KRATOS_CHECK(r_elem.GetGeometry().size() == static_cast<unsigned>(data.GetConnectivities().size2()));
+        for (unsigned j = 0; j < data.GetConnectivities().size2(); ++j)
+            KRATOS_CHECK(r_elem.GetGeometry()[j].Id() == static_cast<unsigned>(data.GetConnectivities()(i, j)));
     }
 }
 
@@ -268,15 +272,18 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_SetData2, KratosHDF5TestSuite)
     CreateTestMesh(nodes, properties, conditions, ids, pids, connectivities);
 
     HDF5::ConnectivitiesData data;
-    data.SetData(conditions);
+    std::vector<Condition const*> condition_ptrs;
+    HDF5::Detail::GetRawPointers(conditions, condition_ptrs);
+    data.SetData(condition_ptrs);
     KRATOS_CHECK(data.size() == conditions.size());
     for (unsigned i = 0; i < data.size(); ++i)
     {
-        Condition& r_cond = conditions[ids[i]];
-        KRATOS_CHECK(r_cond.GetProperties().Id() == static_cast<unsigned>(pids[i]));
-        KRATOS_CHECK(r_cond.GetGeometry().size() == static_cast<unsigned>(connectivities.size2()));
-        for (unsigned j = 0; j < connectivities.size2(); ++j)
-            KRATOS_CHECK(r_cond.GetGeometry()[j].Id() == static_cast<unsigned>(connectivities(i, j)));
+        Condition const& r_cond = *condition_ptrs[i];
+        KRATOS_CHECK(r_cond.Id() == static_cast<unsigned>(data.GetIds()[i]));
+        KRATOS_CHECK(r_cond.GetProperties().Id() == static_cast<unsigned>(data.GetPropertiesIds()[i]));
+        KRATOS_CHECK(r_cond.GetGeometry().size() == static_cast<unsigned>(data.GetConnectivities().size2()));
+        for (unsigned j = 0; j < data.GetConnectivities().size2(); ++j)
+            KRATOS_CHECK(r_cond.GetGeometry()[j].Id() == static_cast<unsigned>(data.GetConnectivities()(i, j)));
     }
 }
 
@@ -298,7 +305,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_WriteData, KratosHDF5TestSuite)
     CreateTestMesh(nodes, properties, elements, ids, pids, connectivities);
 
     HDF5::ConnectivitiesData data;
-    data.SetData(elements);
+    std::vector<Element const*> element_ptrs;
+    HDF5::Detail::GetRawPointers(elements, element_ptrs);
+    data.SetData(element_ptrs);
     data.WriteData(test_file, "/Elements");
 
     HDF5::Vector<int> new_ids, new_pids;

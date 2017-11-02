@@ -29,6 +29,7 @@ extern "C" {
 // Project includes
 #include "includes/define.h"
 #include "containers/array_1d.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -42,6 +43,18 @@ using Vector = boost::numeric::ublas::vector<T>;
 
 template <class T>
 using Matrix = boost::numeric::ublas::matrix<T>;
+
+typedef ModelPart::NodeType NodeType;
+
+typedef ModelPart::ElementType ElementType;
+
+typedef ModelPart::ConditionType ConditionType;
+
+typedef ModelPart::NodesContainerType NodesContainerType;
+
+typedef ModelPart::ElementsContainerType ElementsContainerType;
+
+typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
 namespace Detail
 {
@@ -70,9 +83,15 @@ namespace Detail
                           "Unsupported scalar data type.");
 
         return type_id;
-}
+    }
 
-///@} addtogroup
+    void GetRawPointers(ElementsContainerType const& rElementsIn,
+                        std::vector<ElementType const*>& rElementsOut);
+
+    void GetRawPointers(ConditionsContainerType const& rConditionsIn,
+                        std::vector<ConditionType const*>& rConditionsOut);
+
+    ///@} addtogroup
 } // namespace Detail.
 } // namespace HDF5.
 } // namespace Kratos.

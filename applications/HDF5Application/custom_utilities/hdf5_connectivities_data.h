@@ -15,6 +15,7 @@
 
 // System includes
 #include <string>
+#include <vector>
 
 // External includes
 
@@ -97,10 +98,10 @@ public:
                           ConditionsContainerType& rConditions);
 
     // Fill data from elements of a single element type.
-    void SetData(ElementsContainerType const& rElements);
+    void SetData(std::vector<ElementType const*> const& rElements);
 
     // Fill data from conditions of a single condition type.
-    void SetData(ConditionsContainerType const& rConditions);
+    void SetData(std::vector<ConditionType const*> const& rConditions);
 
     void Clear();
     ///@}
