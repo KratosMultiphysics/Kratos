@@ -31,7 +31,7 @@
         }
 	},
         "problem_domain_sub_model_part_list" : ["Parts_Solid"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet"]
     },
     "constraints_process_list" : [{
         "python_module"   : "assign_vector_components_to_nodes_process",

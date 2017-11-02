@@ -128,7 +128,7 @@ class MechanicalSolver(object):
                 self.nodal_variables = self.nodal_variables + ['INTERNAL_FORCE','EXTERNAL_FORCE']
  
         # Add rotational variables
-        if self._check_input_dof("ROTATION"):
+        if self._check_input_dof("ROTATION"):                    
             # Add specific variables for the problem (rotation dofs)
             self.dof_variables = self.dof_variables + ['ROTATION']
             self.dof_reactions = self.dof_reactions + ['TORQUE']
@@ -289,7 +289,7 @@ class MechanicalSolver(object):
     def _check_input_dof(self, variable):
         dofs_list = self.settings["dofs"]
         for i in range(0, dofs_list.size() ):
-            if i == variable:
+            if dofs_list[i].GetString() == variable:
                 return True
         return False
             
@@ -443,7 +443,7 @@ class MechanicalSolver(object):
         # Creation of an auxiliar Kratos parameters object to store the convergence settings
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
-        conv_params.AddValue("rotation_dofs",self._check_input_dof("ROTATION"))
+        conv_params.AddEmptyValue("rotation_dofs").SetBool(self._check_input_dof("ROTATION"))
         conv_params.AddValue("echo_level",self.settings["echo_level"])
         conv_params.AddValue("component_wise",self.settings["component_wise"])
         conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
