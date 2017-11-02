@@ -28,8 +28,7 @@ extern "C" {
 
 // Project includes
 #include "includes/define.h"
-#include "containers/array_1d.h"
-#include "includes/model_part.h"
+#include "includes/io.h"
 
 namespace Kratos
 {
@@ -44,17 +43,25 @@ using Vector = boost::numeric::ublas::vector<T>;
 template <class T>
 using Matrix = boost::numeric::ublas::matrix<T>;
 
-typedef ModelPart::NodeType NodeType;
+typedef IO::MeshType::NodeType NodeType;
 
-typedef ModelPart::ElementType ElementType;
+typedef IO::MeshType::ElementType ElementType;
 
-typedef ModelPart::ConditionType ConditionType;
+typedef IO::MeshType::ConditionType ConditionType;
 
-typedef ModelPart::NodesContainerType NodesContainerType;
+typedef IO::MeshType::PropertiesType PropertiesType;
 
-typedef ModelPart::ElementsContainerType ElementsContainerType;
+typedef IO::MeshType::NodesContainerType NodesContainerType;
 
-typedef ModelPart::ConditionsContainerType ConditionsContainerType;
+typedef IO::MeshType::ElementsContainerType ElementsContainerType;
+
+typedef IO::MeshType::PropertiesContainerType PropertiesContainerType;
+
+typedef std::vector<ElementType const*> ConstElementsContainerType;
+
+typedef IO::MeshType::ConditionsContainerType ConditionsContainerType;
+
+typedef std::vector<ConditionType const*> ConstConditionsContainerType;
 
 namespace Detail
 {
@@ -84,12 +91,6 @@ namespace Detail
 
         return type_id;
     }
-
-    void GetRawPointers(ElementsContainerType const& rElementsIn,
-                        std::vector<ElementType const*>& rElementsOut);
-
-    void GetRawPointers(ConditionsContainerType const& rConditionsIn,
-                        std::vector<ConditionType const*>& rConditionsOut);
 
     ///@} addtogroup
 } // namespace Detail.

@@ -31,6 +31,8 @@ namespace Kratos
 {
 namespace HDF5
 {
+namespace Detail
+{
 ///@addtogroup HDF5Application
 ///@{
 
@@ -41,10 +43,6 @@ public:
     ///@{
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(PointsData);
-
-    typedef ModelPart::NodesContainerType NodesContainerType;
-
-    typedef ModelPart::NodeType NodeType;
 
     ///@}
     ///@name Life Cycle
@@ -87,6 +85,7 @@ private:
 }; // class PointsData
 
 ///@} addtogroup
+} // namespace Detail.
 } // namespace HDF5.
 } // namespace Kratos.
 

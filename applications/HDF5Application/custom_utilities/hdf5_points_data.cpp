@@ -6,7 +6,8 @@ namespace Kratos
 {
 namespace HDF5
 {
-
+namespace Detail
+{
 void PointsData::ReadData(File& rFile, std::string Path, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
@@ -72,5 +73,6 @@ void PointsData::Clear()
     mCoords.clear();
 }
 
+} // namespace Detail.
 } // namespace HDF5.
 } // namespace Kratos.

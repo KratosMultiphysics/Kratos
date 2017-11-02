@@ -30,6 +30,8 @@ namespace Kratos
 {
 namespace HDF5
 {
+namespace Detail
+{
 ///@addtogroup HDF5Application
 ///@{
 
@@ -40,22 +42,6 @@ public:
     ///@{
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(ConnectivitiesData);
-
-    typedef ModelPart::NodesContainerType NodesContainerType;
-
-    typedef ModelPart::ElementsContainerType ElementsContainerType;
-
-    typedef ModelPart::ConditionsContainerType ConditionsContainerType;
-
-    typedef ModelPart::PropertiesContainerType PropertiesContainerType;
-
-    typedef ModelPart::NodeType NodeType;
-
-    typedef ModelPart::ElementType ElementType;
-
-    typedef ModelPart::ConditionType ConditionType;
-
-    typedef ModelPart::PropertiesType PropertiesType;
 
     ///@}
     ///@name Life Cycle
@@ -98,10 +84,10 @@ public:
                           ConditionsContainerType& rConditions);
 
     // Fill data from elements of a single element type.
-    void SetData(std::vector<ElementType const*> const& rElements);
+    void SetData(ConstElementsContainerType const& rElements);
 
     // Fill data from conditions of a single condition type.
-    void SetData(std::vector<ConditionType const*> const& rConditions);
+    void SetData(ConstConditionsContainerType const& rConditions);
 
     void Clear();
     ///@}
@@ -115,6 +101,7 @@ private:
 }; // class ConnectivitiesData
 
 ///@} addtogroup
+} // namespace Detail.
 } // namespace HDF5.
 } // namespace Kratos.
 

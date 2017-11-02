@@ -24,7 +24,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "utilities/openmp_utils.h"
 #include "includes/io.h"
 
 // Application includes
@@ -102,7 +101,6 @@ private:
     ///@{
 
     HDF5::File::Pointer mpFile;
-    std::vector<unsigned> mCurrentFillPosition;
     std::vector<std::string> mElementNames;
     std::vector<const Element*> mElementPointers;
     std::vector<std::string> mConditionNames;
@@ -112,48 +110,6 @@ private:
 
     ///@name Private Operations
     ///@{
-
-    inline unsigned FindIndexOfMatchingReferenceElement(Element const& rElement)
-    {
-        const int thread_id = OpenMPUtils::ThisThread();
-        unsigned& r_i = mCurrentFillPosition[thread_id];
-        // Check the most recent element type.
-        if (typeid(rElement) == typeid(*mElementPointers[r_i]))
-            return r_i; // Element type didn't change.
-        
-        // Search for the new element type.
-        for (r_i = 0; r_i < mElementPointers.size(); ++r_i)
-            if (typeid(rElement) == typeid(*mElementPointers[r_i]))
-                return r_i;
-
-        KRATOS_ERROR << "The element's type (" << typeid(rElement).name()
-                     << ") was not found." << std::endl;
-    }
-
-    inline unsigned FindIndexOfMatchingReferenceCondition(Condition const& rCondition)
-    {
-        const int thread_id = OpenMPUtils::ThisThread();
-        unsigned& r_i = mCurrentFillPosition[thread_id];
-        // Check the most recent condition type.
-        if (typeid(rCondition) == typeid(*mConditionPointers[r_i]))
-            return r_i; // condition type didn't change.
-        
-        // Search for the new condition type.
-        for (r_i = 0; r_i < mConditionPointers.size(); ++r_i)
-            if (typeid(rCondition) == typeid(*mConditionPointers[r_i]))
-                return r_i;
-
-        KRATOS_ERROR << "The condition's type (" << typeid(rCondition).name()
-                     << ") was not found." << std::endl;
-    }
-
-    void WriteUniformElements(ElementsContainerType const& rElements);
-
-    void WriteMixedElements(ElementsContainerType const& rElements);
-
-    void WriteUniformConditions(ConditionsContainerType const& rConditions);
-
-    void WriteMixedConditions(ConditionsContainerType const& rConditions);
 
     ///@}
 };

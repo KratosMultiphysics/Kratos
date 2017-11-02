@@ -7,6 +7,8 @@ namespace Kratos
 {
 namespace HDF5
 {
+namespace Detail
+{
 void ConnectivitiesData::ReadData(File& rFile, std::string Path, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
@@ -81,12 +83,17 @@ void ConnectivitiesData::CreateConditions(ConditionType const& rConditionType,
 }
 
 // Fill data from elements of a single element type.
-void ConnectivitiesData::SetData(std::vector<ElementType const*> const& rElements)
+void ConnectivitiesData::SetData(ConstElementsContainerType const& rElements)
 {
     KRATOS_TRY;
 
-    const ElementType& r_expected_element = *rElements.front();
     const unsigned num_elems = rElements.size();
+    if (num_elems == 0)
+    {
+        Clear();
+        return;
+    }
+    const ElementType& r_expected_element = *rElements.front();
     const unsigned geometry_size = r_expected_element.GetGeometry().size();
     mIds.resize(num_elems, false);
     mPropertiesIds.resize(num_elems, false);
@@ -102,10 +109,10 @@ void ConnectivitiesData::SetData(std::vector<ElementType const*> const& rElement
         for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
         {
             const ElementType& r_elem = *rElements[i];
-            // Check element type.
-            KRATOS_ERROR_IF(typeid(r_elem) != typeid(r_expected_element))
-                << "Element #" << r_elem.Id() << " is not "
-                << typeid(r_expected_element).name() << std::endl;
+            // Check element type. (this is done by the bins utility.)
+            //KRATOS_ERROR_IF(typeid(r_elem) != typeid(r_expected_element))
+            //    << "Element #" << r_elem.Id() << " is not "
+            //    << typeid(r_expected_element).name() << std::endl;
             // Fill ids.
             mIds[i] = r_elem.Id();
             mPropertiesIds[i] = r_elem.GetProperties().Id();
@@ -124,12 +131,17 @@ void ConnectivitiesData::SetData(std::vector<ElementType const*> const& rElement
 }
 
 // Fill data from conditions of a single condition type.
-void ConnectivitiesData::SetData(std::vector<ConditionType const*> const& rConditions)
+void ConnectivitiesData::SetData(ConstConditionsContainerType const& rConditions)
 {
     KRATOS_TRY;
 
-    const ConditionType& r_expected_condition = *rConditions.front();
     const unsigned num_conds = rConditions.size();
+    if (num_conds == 0)
+    {
+        Clear();
+        return;
+    }
+    const ConditionType& r_expected_condition = *rConditions.front();
     const unsigned geometry_size = r_expected_condition.GetGeometry().size();
     mIds.resize(num_conds, false);
     mPropertiesIds.resize(num_conds, false);
@@ -145,10 +157,10 @@ void ConnectivitiesData::SetData(std::vector<ConditionType const*> const& rCondi
         for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
         {
             const ConditionType& r_cond = *rConditions[i];
-            // Check element type.
-            KRATOS_ERROR_IF(typeid(r_cond) != typeid(r_expected_condition))
-                << "Condition #" << r_cond.Id() << " is not "
-                << typeid(r_expected_condition).name() << std::endl;
+            // Check condition type. (this is done by the bins utility.)
+            //KRATOS_ERROR_IF(typeid(r_cond) != typeid(r_expected_condition))
+            //    << "Condition #" << r_cond.Id() << " is not "
+            //    << typeid(r_expected_condition).name() << std::endl;
             // Fill ids.
             mIds[i] = r_cond.Id();
             mPropertiesIds[i] = r_cond.GetProperties().Id();
@@ -172,5 +184,6 @@ void ConnectivitiesData::Clear()
     mPropertiesIds.clear();
     mConnectivities.clear();
 }
+} // namespace Detail.
 } // namespace HDF5.
 } // namespace Kratos.

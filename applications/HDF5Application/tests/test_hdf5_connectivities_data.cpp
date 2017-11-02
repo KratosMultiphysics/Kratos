@@ -26,14 +26,15 @@
 #include "custom_io/hdf5_file_serial.h"
 #include "custom_utilities/hdf5_connectivities_data.h"
 #include "custom_utilities/hdf5_utils.h"
+#include "custom_utilities/hdf5_pointer_bins_utility.h"
 
 namespace Kratos
 {
 namespace Testing
 {
-void CreateTestMesh(HDF5::ConnectivitiesData::NodesContainerType& rNodes,
-                    HDF5::ConnectivitiesData::PropertiesContainerType& rProperties,
-                    HDF5::ConnectivitiesData::ElementsContainerType& rElements,
+void CreateTestMesh(HDF5::NodesContainerType& rNodes,
+                    HDF5::PropertiesContainerType& rProperties,
+                    HDF5::ElementsContainerType& rElements,
                     HDF5::Vector<int>& rElementIds,
                     HDF5::Vector<int>& rPropertiesIds,
                     HDF5::Matrix<int>& rConnectivities)
@@ -54,12 +55,12 @@ void CreateTestMesh(HDF5::ConnectivitiesData::NodesContainerType& rNodes,
     // Create nodes.
     for (unsigned i = 0; i < num_nodes; ++i)
     {
-        auto p_node = boost::make_shared<HDF5::ConnectivitiesData::NodeType>(
+        auto p_node = boost::make_shared<HDF5::NodeType>(
             i + 1, 1.0, 2.0, 3.0);
         rNodes.push_back(p_node);
     }
     // Create properties.
-    rProperties.push_back(boost::make_shared<HDF5::ConnectivitiesData::PropertiesType>(1));
+    rProperties.push_back(boost::make_shared<HDF5::PropertiesType>(1));
     // Create elements.
     Element::NodesArrayType geom_nodes(3);
     for (unsigned i = 0; i < num_elems; ++i)
@@ -76,9 +77,9 @@ void CreateTestMesh(HDF5::ConnectivitiesData::NodesContainerType& rNodes,
     }
 }
 
-void CreateTestMesh(HDF5::ConnectivitiesData::NodesContainerType& rNodes,
-                    HDF5::ConnectivitiesData::PropertiesContainerType& rProperties,
-                    HDF5::ConnectivitiesData::ConditionsContainerType& rConditions,
+void CreateTestMesh(HDF5::NodesContainerType& rNodes,
+                    HDF5::PropertiesContainerType& rProperties,
+                    HDF5::ConditionsContainerType& rConditions,
                     HDF5::Vector<int>& rConditionIds,
                     HDF5::Vector<int>& rPropertiesIds,
                     HDF5::Matrix<int>& rConnectivities)
@@ -99,12 +100,12 @@ void CreateTestMesh(HDF5::ConnectivitiesData::NodesContainerType& rNodes,
     // Create nodes.
     for (unsigned i = 0; i < num_nodes; ++i)
     {
-        auto p_node = boost::make_shared<HDF5::ConnectivitiesData::NodeType>(
+        auto p_node = boost::make_shared<HDF5::NodeType>(
             i + 1, 1.0, 2.0, 3.0);
         rNodes.push_back(p_node);
     }
     // Create properties.
-    rProperties.push_back(boost::make_shared<HDF5::ConnectivitiesData::PropertiesType>(1));
+    rProperties.push_back(boost::make_shared<HDF5::PropertiesType>(1));
     // Create conditions.
     Condition::NodesArrayType geom_nodes(3);
     for (unsigned i = 0; i < num_conds; ++i)
@@ -131,9 +132,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_ReadData, KratosHDF5TestSuite)
         })");
     HDF5::FileSerial test_file(test_params);
 
-    HDF5::ConnectivitiesData::NodesContainerType nodes;
-    HDF5::ConnectivitiesData::PropertiesContainerType properties;
-    HDF5::ConnectivitiesData::ElementsContainerType elements;
+    HDF5::NodesContainerType nodes;
+    HDF5::PropertiesContainerType properties;
+    HDF5::ElementsContainerType elements;
     HDF5::Vector<int> ids, pids;
     HDF5::Matrix<int> connectivities;
     CreateTestMesh(nodes, properties, elements, ids, pids, connectivities);
@@ -142,7 +143,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_ReadData, KratosHDF5TestSuite)
     test_file.WriteDataSet("/Elements/PropertiesIds", pids);
     test_file.WriteDataSet("/Elements/Connectivities", connectivities);
 
-    HDF5::ConnectivitiesData data;
+    HDF5::Detail::ConnectivitiesData data;
     data.ReadData(test_file, "/Elements", 0, ids.size());
     KRATOS_CHECK(data.size() == ids.size());
     KRATOS_CHECK(data.GetConnectivities().size2() == connectivities.size2());
@@ -165,9 +166,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateElements, KratosHDF5TestS
         })");
     HDF5::FileSerial test_file(test_params);
 
-    HDF5::ConnectivitiesData::NodesContainerType nodes;
-    HDF5::ConnectivitiesData::PropertiesContainerType properties;
-    HDF5::ConnectivitiesData::ElementsContainerType elements;
+    HDF5::NodesContainerType nodes;
+    HDF5::PropertiesContainerType properties;
+    HDF5::ElementsContainerType elements;
     HDF5::Vector<int> ids, pids;
     HDF5::Matrix<int> connectivities;
     CreateTestMesh(nodes, properties, elements, ids, pids, connectivities);
@@ -180,9 +181,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateElements, KratosHDF5TestS
         new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)));
     Element Element2D3N(0, p_geom);
 
-    HDF5::ConnectivitiesData data;
+    HDF5::Detail::ConnectivitiesData data;
     data.ReadData(test_file, "/Elements", 0, ids.size());
-    HDF5::ConnectivitiesData::ElementsContainerType new_elements;
+    HDF5::ElementsContainerType new_elements;
     data.CreateElements(Element2D3N, nodes, properties, new_elements);
 
     KRATOS_CHECK(new_elements.size() == elements.size());
@@ -206,9 +207,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateConditions, KratosHDF5Tes
         })");
     HDF5::FileSerial test_file(test_params);
 
-    HDF5::ConnectivitiesData::NodesContainerType nodes;
-    HDF5::ConnectivitiesData::PropertiesContainerType properties;
-    HDF5::ConnectivitiesData::ConditionsContainerType conditions;
+    HDF5::NodesContainerType nodes;
+    HDF5::PropertiesContainerType properties;
+    HDF5::ConditionsContainerType conditions;
     HDF5::Vector<int> ids, pids;
     HDF5::Matrix<int> connectivities;
     CreateTestMesh(nodes, properties, conditions, ids, pids, connectivities);
@@ -221,9 +222,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateConditions, KratosHDF5Tes
         new Triangle2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)));
     Condition Condition3D3N(0, p_geom);
 
-    HDF5::ConnectivitiesData data;
+    HDF5::Detail::ConnectivitiesData data;
     data.ReadData(test_file, "/Conditions", 0, ids.size());
-    HDF5::ConnectivitiesData::ConditionsContainerType new_conditions;
+    HDF5::ConditionsContainerType new_conditions;
     data.CreateConditions(Condition3D3N, nodes, properties, new_conditions);
 
     KRATOS_CHECK(new_conditions.size() == conditions.size());
@@ -239,16 +240,18 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateConditions, KratosHDF5Tes
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_SetData1, KratosHDF5TestSuite)
 {
-    HDF5::ConnectivitiesData::NodesContainerType nodes;
-    HDF5::ConnectivitiesData::PropertiesContainerType properties;
-    HDF5::ConnectivitiesData::ElementsContainerType elements;
+    HDF5::NodesContainerType nodes;
+    HDF5::PropertiesContainerType properties;
+    HDF5::ElementsContainerType elements;
     HDF5::Vector<int> ids, pids;
     HDF5::Matrix<int> connectivities;
     CreateTestMesh(nodes, properties, elements, ids, pids, connectivities);
 
-    HDF5::ConnectivitiesData data;
-    std::vector<Element const*> element_ptrs;
-    HDF5::Detail::GetRawPointers(elements, element_ptrs);
+    HDF5::Detail::ConnectivitiesData data;
+    std::vector<const HDF5::ElementType*> bin_keys{&elements.front()};
+    HDF5::Detail::PointerBinsUtility<HDF5::ElementType> elem_bins(bin_keys);
+    elem_bins.CreateBins(elements);
+    HDF5::ConstElementsContainerType& element_ptrs = elem_bins.GetBin(bin_keys.front());
     data.SetData(element_ptrs);
     KRATOS_CHECK(data.size() == element_ptrs.size());
     for (unsigned i = 0; i < data.size(); ++i)
@@ -264,16 +267,18 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_SetData1, KratosHDF5TestSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_SetData2, KratosHDF5TestSuite)
 {
-    HDF5::ConnectivitiesData::NodesContainerType nodes;
-    HDF5::ConnectivitiesData::PropertiesContainerType properties;
-    HDF5::ConnectivitiesData::ConditionsContainerType conditions;
+    HDF5::NodesContainerType nodes;
+    HDF5::PropertiesContainerType properties;
+    HDF5::ConditionsContainerType conditions;
     HDF5::Vector<int> ids, pids;
     HDF5::Matrix<int> connectivities;
     CreateTestMesh(nodes, properties, conditions, ids, pids, connectivities);
 
-    HDF5::ConnectivitiesData data;
-    std::vector<Condition const*> condition_ptrs;
-    HDF5::Detail::GetRawPointers(conditions, condition_ptrs);
+    HDF5::Detail::ConnectivitiesData data;
+    std::vector<const HDF5::ConditionType*> bin_keys{&conditions.front()};
+    HDF5::Detail::PointerBinsUtility<HDF5::ConditionType> cond_bins(bin_keys);
+    cond_bins.CreateBins(conditions);
+    HDF5::ConstConditionsContainerType& condition_ptrs = cond_bins.GetBin(bin_keys.front());
     data.SetData(condition_ptrs);
     KRATOS_CHECK(data.size() == conditions.size());
     for (unsigned i = 0; i < data.size(); ++i)
@@ -297,16 +302,18 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_WriteData, KratosHDF5TestSuite)
         })");
     HDF5::FileSerial test_file(test_params);
 
-    HDF5::ConnectivitiesData::NodesContainerType nodes;
-    HDF5::ConnectivitiesData::PropertiesContainerType properties;
-    HDF5::ConnectivitiesData::ElementsContainerType elements;
+    HDF5::NodesContainerType nodes;
+    HDF5::PropertiesContainerType properties;
+    HDF5::ElementsContainerType elements;
     HDF5::Vector<int> ids, pids;
     HDF5::Matrix<int> connectivities;
     CreateTestMesh(nodes, properties, elements, ids, pids, connectivities);
 
-    HDF5::ConnectivitiesData data;
-    std::vector<Element const*> element_ptrs;
-    HDF5::Detail::GetRawPointers(elements, element_ptrs);
+    HDF5::Detail::ConnectivitiesData data;
+    std::vector<const HDF5::ElementType*> bin_keys{&elements.front()};
+    HDF5::Detail::PointerBinsUtility<HDF5::ElementType> elem_bins(bin_keys);
+    elem_bins.CreateBins(elements);
+    HDF5::ConstElementsContainerType& element_ptrs = elem_bins.GetBin(bin_keys.front());
     data.SetData(element_ptrs);
     data.WriteData(test_file, "/Elements");
 
