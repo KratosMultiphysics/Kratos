@@ -27,19 +27,8 @@ namespace Parallel {
 ///@{
 
 /// type definitions
-typedef omp_lock_t LockType;
 typedef int ThreadIdType;  // do not expect this to be an int. It is not for
                            // C++11 parallelism
-
-inline LockType ConstructLock() {
-    LockType my_lock;
-    omp_init_lock(&my_lock);
-    return my_lock;
-}
-
-inline void SetLock(LockType &Lock) { omp_set_lock(&Lock); }
-
-inline void UnSetLock(LockType &Lock) { omp_unset_lock(&Lock); }
 
 inline int GetNumThreads() {
 #ifdef _OPENMP
