@@ -1,59 +1,64 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 ## Kratos main source code
+set( KRATOS_CORE_SOURCES_NO_MERGEABLE
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c
+)
+
 set( KRATOS_CORE_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/global_variables.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/deprecated_variables.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/c2c_variables.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/cfd_variables.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/ale_variables.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/mapping_variables.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/dem_variables.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/fsi_variables.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/mat_variables.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list_data_value_container.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/timer.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/serializer.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/kernel.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/periodic_condition.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/constitutive_law.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_components.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
-	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_signed_distance_to_3d_skin_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list_data_value_container.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/timer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/serializer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/kernel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/periodic_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/constitutive_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_components.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp
 	#${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_local_smoothing_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_worst_element_smoothing_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_quality_weighted_smoothing_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/measure_mesh_quality_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/structured_mesh_generator_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_coarsening_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_node_collapsing_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/structured_mesh_generator_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_edge_swapping_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/find_intersected_geometrical_objects_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_discontinuous_distance_to_skin_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_distance_to_skin_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/prime_numbers.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/prime_numbers.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp
+)
+
+set(KRATOS_CORE_VARIABLE_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/global_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/deprecated_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/c2c_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/cfd_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/ale_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/mapping_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/dem_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/fsi_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/mat_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp
+)
+
+set(KRATOS_CORE_PROCESSES_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_local_smoothing_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_worst_element_smoothing_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_quality_weighted_smoothing_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/measure_mesh_quality_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/structured_mesh_generator_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_coarsening_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_node_collapsing_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_edge_swapping_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/find_intersected_geometrical_objects_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_discontinuous_distance_to_skin_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_distance_to_skin_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp
+	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_signed_distance_to_3d_skin_process.cpp
 )
 
 ## Kratos python interface code
@@ -135,6 +140,10 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## If unity build is enable, pack all the sources
 if(${KRATOS_BUILD_UNITY} MATCHES ON)
 	message("Using unity build mode in core")
+	enable_unity_build(UB_KRATOS_CORE_SOURCES KRATOS_CORE_SOURCES)
+	enable_unity_build(UB_KRATOS_CORE_VARIABLE_SOURCES KRATOS_CORE_VARIABLE_SOURCES)
+	enable_unity_build(UB_KRATOS_CORE_PROCESSES_SOURCES KRATOS_CORE_PROCESSES_SOURCES)
+	enable_unity_build(UB_KRATOS_PYTHON_SOURCES_0 KRATOS_PYTHON_SOURCES_0)
 	enable_unity_build(UB_KRATOS_PYTHON_SOURCES_1 KRATOS_PYTHON_SOURCES_1)
 	enable_unity_build(UB_KRATOS_CORE_TESTING_SOURCES KRATOS_CORE_TESTING_SOURCES)
 	enable_unity_build(UB_KRATOS_CORE_INPUT_OUTPUT_SOURCES KRATOS_CORE_INPUT_OUTPUT_SOURCES)
@@ -143,7 +152,10 @@ endif(${KRATOS_BUILD_UNITY} MATCHES ON)
 
 ## Define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED 
-	${KRATOS_CORE_SOURCES} 
+	${KRATOS_CORE_SOURCES_NO_MERGEABLE}
+	${KRATOS_CORE_SOURCES} 							${UB_KRATOS_CORE_SOURCES}
+	${KRATOS_CORE_VARIABLE_SOURCES} 		${UB_KRATOS_CORE_VARIABLE_SOURCES} 
+	${KRATOS_CORE_PROCESSES_SOURCES} 		${UB_KRATOS_CORE_PROCESSES_SOURCES} 
 	${KRATOS_CORE_TESTING_SOURCES} 			${UB_KRATOS_CORE_TESTING_SOURCES} 
 	${KRATOS_TESTING_SOURCES} 					${UB_KRATOS_TESTING_SOURCES} 
 	${KRATOS_CORE_INPUT_OUTPUT_SOURCES}	${UB_KRATOS_CORE_INPUT_OUTPUT_SOURCES} 
@@ -154,8 +166,8 @@ set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMP
 
 ## Define library Kratos which defines the basic python interface
 add_library(Kratos SHARED 
-	${KRATOS_PYTHON_SOURCES_0}
-	${KRATOS_PYTHON_SOURCES_1} ${UB_KRATOS_PYTHON_SOURCES_1}
+	${KRATOS_PYTHON_SOURCES_0}	${BU_KRATOS_PYTHON_SOURCES_0}
+	${KRATOS_PYTHON_SOURCES_1} 	${UB_KRATOS_PYTHON_SOURCES_1}
 )
 target_link_libraries(Kratos KratosCore)
 set_target_properties(Kratos PROPERTIES PREFIX "")
