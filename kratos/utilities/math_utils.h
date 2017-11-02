@@ -792,7 +792,7 @@ public:
     //this function is deprecated since instead of giving back vec x Tuple it gives back Tuple x Vec ( = -Vec x Tuple)
     //THAT IS -- THIS FUNCTION GIVES BACK THE OPPOSITE SIGN OF THE PRODUCT
     //please use instead CrossProd(c,a,b) which is also in general more optimal since it never creates tmp on return
-    DEPRECATED static inline array_1d<double, 3> UnitCrossProduct(
+    KRATOS_DEPRECATED static inline array_1d<double, 3> UnitCrossProduct(
         const array_1d<double, 3>& vec, 
         const array_1d<double, 3>& Tuple
         )
@@ -811,7 +811,7 @@ public:
     //this function is deprecated since instead of giving back vec x Tuple it gives back Tuple x Vec ( = -Vec x Tuple)
     //THAT IS -- THIS FUNCTION GIVES BACK THE OPPOSITE SIGN OF THE PRODUCT
     //please use instead CrossProd(c,a,b) which is also in general more optimal since it never creates tmp on return
-    DEPRECATED static inline array_1d<double, 3> CrossProduct(
+    KRATOS_DEPRECATED static inline array_1d<double, 3> CrossProduct(
         const array_1d<double, 3>& vec, 
         const array_1d<double, 3>& Tuple
         )
