@@ -197,6 +197,10 @@ namespace Kratos
             rWeightsValues.resize(n_total_int_pts, false);
         }
 
+        // Clear the gradients vector
+        rShapeFunctionsGradientsValues.clear();
+        rShapeFunctionsGradientsValues.reserve(n_total_int_pts);
+
         // Compute each Gauss pt. shape functions values
         for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
 
@@ -259,11 +263,10 @@ namespace Kratos
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of positive or negative subdivisions
         const unsigned int n_nodes = mpInputGeometry->PointsNumber();                                        // Split geometry number of nodes
         const unsigned int n_int_pts = (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per interface
+        const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
         GeometryPointerType p_input_geometry = this->GetInputGeometry();                                     // Pointer to the input geometry
 
         // Resize the shape function values matrix
-        const unsigned int n_total_int_pts = n_interfaces * n_int_pts;
-
         if (rInterfaceShapeFunctionsValues.size1() != n_total_int_pts) {
             rInterfaceShapeFunctionsValues.resize(n_total_int_pts, n_nodes, false);
         } else if (rInterfaceShapeFunctionsValues.size2() != n_nodes) {
@@ -275,10 +278,20 @@ namespace Kratos
             rInterfaceWeightsValues.resize(n_total_int_pts, false);
         }
 
+        // Clear the gradients vector
+        rInterfaceShapeFunctionsGradientsValues.clear();
+        rInterfaceShapeFunctionsGradientsValues.reserve(n_total_int_pts);
+
         // Compute each Gauss pt. shape functions values
         for (unsigned int i_interface = 0; i_interface < n_interfaces; ++i_interface) {
 
             const IndexedPointGeometryType& r_interface_geom = *rInterfacesVector[i_interface];
+
+            std::vector < CoordinatesArrayType > interface_gauss_pts_gl_coords, interface_gauss_pts_loc_coords;
+            interface_gauss_pts_gl_coords.clear();
+            interface_gauss_pts_loc_coords.clear();
+            interface_gauss_pts_gl_coords.reserve(n_int_pts);
+            interface_gauss_pts_loc_coords.reserve(n_int_pts);
 
             // Get the intersection Gauss points coordinates
             IntegrationPointsArrayType interface_gauss_pts;
@@ -294,7 +307,6 @@ namespace Kratos
             }
 
             // Compute the global coordinates of the intersection Gauss pts.
-            std::vector < CoordinatesArrayType > interface_gauss_pts_gl_coords;
             for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
                 CoordinatesArrayType global_coordinates = ZeroVector(3);
                 r_interface_geom.GlobalCoordinates(global_coordinates, interface_gauss_pts[i_gauss].Coordinates());
@@ -302,7 +314,6 @@ namespace Kratos
             }
 
             // Compute the local coordinates of the intersection Gauss pts in the complete geometry.
-            std::vector < CoordinatesArrayType > interface_gauss_pts_loc_coords;
             for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
                 CoordinatesArrayType local_coordinates = ZeroVector(3);
                 local_coordinates = p_input_geometry->PointLocalCoordinates(local_coordinates, interface_gauss_pts_gl_coords[i_gauss]);
@@ -334,7 +345,12 @@ namespace Kratos
         const IntegrationMethodType IntegrationMethod) {
 
         // Set some auxiliar variables
-        const unsigned int n_interfaces = rInterfacesVector.size();
+        const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
+        const unsigned int n_int_pts = (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per interface
+        const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
+
+        rInterfaceUnitNormalValues.clear();
+        rInterfaceUnitNormalValues.reserve(n_total_int_pts);
 
         // Compute each Gauss pt. shape functions values
         for (unsigned int i_interface = 0; i_interface < n_interfaces; ++i_interface) {
@@ -349,7 +365,6 @@ namespace Kratos
             // Compute the ouwards unit normal vector values
             for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
                 array_1d<double,3> aux_unit_normal = r_interface_geom.UnitNormal(interface_gauss_pts[i_gauss].Coordinates());
-                // array_1d<double,3> aux_unit_normal = ZeroVector(3);
                 rInterfaceUnitNormalValues.push_back(aux_unit_normal);
             }
         }

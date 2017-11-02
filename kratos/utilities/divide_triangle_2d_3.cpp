@@ -66,11 +66,18 @@ namespace Kratos
 
             // Clear the auxiliar vector points set
             mAuxPointsContainer.clear();
+            mAuxPointsContainer.reserve(6);
+
+            // Clear the subdivision vectors
+            mPositiveSubdivisions.clear();
+            mNegativeSubdivisions.clear();
+            mPositiveSubdivisions.reserve(2);
+            mNegativeSubdivisions.reserve(2);
 
             // Add the original geometry points
             for (unsigned int i = 0; i < n_nodes; ++i) {
                 const array_1d<double, 3> aux_point_coords = geometry[i].Coordinates();
-                IndexedPointPointerType paux_point(new IndexedPoint(aux_point_coords, i));
+                IndexedPointPointerType paux_point = boost::make_shared<IndexedPoint>(aux_point_coords, i);
                 mAuxPointsContainer.push_back(paux_point);
             }
 
@@ -98,7 +105,7 @@ namespace Kratos
                     }
 
                     // Add the intersection point to the auxiliar points array
-                    IndexedPointPointerType paux_point(new IndexedPoint(aux_point_coords, aux_node_id));
+                    IndexedPointPointerType paux_point = boost::make_shared<IndexedPoint>(aux_point_coords, aux_node_id);
                     mAuxPointsContainer.push_back(paux_point);
                 }
 
@@ -150,9 +157,16 @@ namespace Kratos
     };
 
 void DivideTriangle2D3::GenerateIntersectionsSkin() {
+        
         // Set some geometry constant parameters
         const int n_nodes = 3;
         const unsigned int n_faces = 3;
+
+        // Clear the interfaces vectors
+        mPositiveInterfaces.clear();
+        mNegativeInterfaces.clear();
+        mPositiveInterfaces.reserve(1);
+        mNegativeInterfaces.reserve(1);
 
         if (mIsSplit) {
 
