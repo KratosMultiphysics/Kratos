@@ -93,13 +93,12 @@ void ModelPartIO::ReadElements(NodesContainerType& rNodes,
     rElements.clear();
 
     File& r_file = GetFile();
-    Detail::ConnectivitiesData connectivities;
 
     for (unsigned i = 0; i < mElementNames.size(); ++i)
     {
         const std::string elem_path = "/Elements/" + mElementNames[i];
         const unsigned num_elems = r_file.GetDataDimensions(elem_path + "/Ids")[0];
-        connectivities.Clear();
+        Detail::ConnectivitiesData connectivities;
         connectivities.ReadData(r_file, elem_path, 0, num_elems);
         const Element& r_elem = *mElementPointers[i];
         connectivities.CreateElements(r_elem, rNodes, rProperties, rElements);
@@ -138,13 +137,12 @@ void ModelPartIO::ReadConditions(NodesContainerType& rNodes,
     rConditions.clear();
 
     File& r_file = GetFile();
-    Detail::ConnectivitiesData connectivities;
 
     for (unsigned i = 0; i < mConditionNames.size(); ++i)
     {
         const std::string cond_path = "/Conditions/" + mConditionNames[i];
         const unsigned num_conds = r_file.GetDataDimensions(cond_path + "/Ids")[0];
-        connectivities.Clear();
+        Detail::ConnectivitiesData connectivities;
         connectivities.ReadData(r_file, cond_path, 0, num_conds);
         const Condition& r_cond = *mConditionPointers[i];
         connectivities.CreateConditions(r_cond, rNodes, rProperties, rConditions);
