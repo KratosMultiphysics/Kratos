@@ -17,7 +17,7 @@
                 "input_filename" : "element_tests/shell_elements/Shell_T3_Thin__DrillingRollUp"
             },
             "line_search"                        : false,
-            "rotation_dofs"						 : true,
+            "dofs"                               : ["ROTATION"],
             "convergence_criterion"              : "Residual_criterion",
             "displacement_relative_tolerance"    : 1e-6,
             "displacement_absolute_tolerance"    : 1e-9,

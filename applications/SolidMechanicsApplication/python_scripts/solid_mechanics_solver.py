@@ -53,17 +53,11 @@ class MechanicalSolver(object):
                 "input_file_label": 0
             },
             "computing_model_part_name" : "computing_domain",
+            "dofs": [],
+            "reform_dofs_at_each_step": false,
             "line_search": false,
             "implex": false,
-            "rotation_dofs": false,
-            "pressure_dofs": false,
-            "contact_dofs": false,
-            "water_pressure_dofs": false,
-            "jacobian_dofs": false,
-            "water_displacement_dofs": false,
-            "thermal_dofs":false, 
             "stabilization_factor": null,
-            "reform_dofs_at_each_step": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
             "axisymmetric": false,
@@ -134,7 +128,7 @@ class MechanicalSolver(object):
                 self.nodal_variables = self.nodal_variables + ['INTERNAL_FORCE','EXTERNAL_FORCE']
  
         # Add rotational variables
-        if self.settings["rotation_dofs"].GetBool():
+        if self._check_input_dof("ROTATION"):
             # Add specific variables for the problem (rotation dofs)
             self.dof_variables = self.dof_variables + ['ROTATION']
             self.dof_reactions = self.dof_reactions + ['TORQUE']
@@ -148,7 +142,7 @@ class MechanicalSolver(object):
 
             
         # Add pressure variables
-        if self.settings["pressure_dofs"].GetBool():
+        if self._check_input_dof("PRESSURE"):
             # Add specific variables for the problem (pressure dofs)
             self.dof_variables = self.dof_variables + ['PRESSURE']
             self.dof_reactions = self.dof_reactions + ['PRESSURE_REACTION']
@@ -156,7 +150,7 @@ class MechanicalSolver(object):
                 self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
 
         # Add contat variables
-        if self.settings["contact_dofs"].GetBool():
+        if self._check_input_dof("LAGRANGE_MULTIPLIER"):
             # Add specific variables for the problem (contact dofs)
             self.dof_variables = self.dof_variables + ['LAGRANGE_MULTIPLIER_NORMAL']
             self.dof_reactions = self.dof_reactions + ['LAGRANGE_MULTIPLIER_NORMAL_REACTION']
@@ -291,7 +285,14 @@ class MechanicalSolver(object):
         self._get_mechanical_solver().Check()
                                                     
     #### Solver internal methods ####
-                                                    
+
+    def _check_input_dof(self, variable):
+        dofs_list = self.settings["dofs"]
+        for i in range(0, dofs_list.size() ):
+            if i == variable:
+                return True
+        return False
+            
     def _get_solution_scheme(self):
         if not hasattr(self, '_solution_scheme'):
             self._solution_scheme = self._create_solution_scheme()
@@ -442,7 +443,7 @@ class MechanicalSolver(object):
         # Creation of an auxiliar Kratos parameters object to store the convergence settings
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
-        conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
+        conv_params.AddValue("rotation_dofs",self._check_input_dof("ROTATION"))
         conv_params.AddValue("echo_level",self.settings["echo_level"])
         conv_params.AddValue("component_wise",self.settings["component_wise"])
         conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])

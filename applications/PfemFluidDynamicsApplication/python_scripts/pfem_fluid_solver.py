@@ -28,8 +28,7 @@ class PfemFluidSolver:
                 "input_filename": "unknown_name",
                 "input_file_label": 0
             },
-            "rotation_dofs": false,
-            "pressure_dofs": false,
+            "dofs"                : [],
             "stabilization_factor": 1.0,
             "reform_dofs_at_each_step": false,
             "line_search": false,

@@ -54,28 +54,26 @@
         "compute_reactions"                  : *tcl(string tolower *GenData(Write_Reactions)),
 	"compute_contact_forces"             : *tcl(string tolower *GenData(Write_Contact_Forces)),
         "convergence_criterion"              : "*GenData(Convergence_Criteria)",
-*if(strcmp(GenData(DOFS),"ROTATIONS")==0)
-        "rotation_dofs"                      : true,
-*endif
-*if(strcmp(GenData(DOFS),"U-P")==0)
-        "pressure_dofs"                      : true,
-*endif
 *if( strcmp(GenData(DOFS),"U-P")==0 || strcmp(GenData(DOFS),"U-wP")==0)
         "stabilization_factor"               : *GenData(Stabilization_Factor),
 *endif
-*if(strcmp(GenData(DOFS),"U-wP")==0)
-        "water_pressure_dofs"                : true,
+        "dofs"                               : [
+*if(strcmp(GenData(DOFS),"ROTATIONS")==0)
+                                                "ROTATION",
 *endif
-*if(strcmp(GenData(DOFS),"U-J-wP")==0)
-        "jacobian_dofs"                      : true,
-        "water_pressure_dofs"                : true,
+*if(strcmp(GenData(DOFS),"U-P")==0)
+                                                "PRESSURE",
+*endif
+*if(strcmp(GenData(DOFS),"U-wP")==0 || strcmp(GenData(DOFS),"U-J-wP")==0 )
+                                                "WATER_PRESSURE",
+*endif
+*if(strcmp(GenData(DOFS),"U-J-wP")==0 || strcmp(GenData(DOFS),"U-J")==0 )
+						"JACOBIAN",
 *endif
 *if(strcmp(GenData(DOFS),"U-W")==0)
-        "water_displacement_dofs"                      : true,
+						"WATER_DISPLACEMENT"
 *endif
-*if(strcmp(GenData(DOFS),"U-J")==0)
-        "jacobian_dofs"                      : true,
-*endif
+					       ],
         "reform_dofs_at_each_step"           : true,
         "displacement_relative_tolerance"    : *GenData(Convergence_Tolerance),
         "displacement_absolute_tolerance"    : *GenData(Absolute_Tolerance),

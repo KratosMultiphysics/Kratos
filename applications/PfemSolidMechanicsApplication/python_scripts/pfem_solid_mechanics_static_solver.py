@@ -31,17 +31,15 @@ class PfemStaticMechanicalSolver(BaseSolver.StaticMechanicalSolver):
         super(PfemStaticMechanicalSolver, self).SetVariables()
         self.nodal_variables = self.nodal_variables + ['CONTACT_FORCE']
 
-        if self.settings.Has("water_pressure_dofs"):
-            if self.settings["water_pressure_dofs"].GetBool():
-                # Add specific variables for the problem (pressure dofs)
-                self.dof_variables = self.dof_variables + ['WATER_PRESSURE']
-                self.dof_reactions = self.dof_reactions + ['REACTION_WATER_PRESSURE']
-
-        if self.settings.Has("jacobian_dofs"):
-            if self.settings["jacobian_dofs"].GetBool():
-                # Add specific variables for the problem (jacobian dofs)
-                self.dof_variables = self.dof_variables + ['JACOBIAN']
-                self.dof_reactions = self.dof_reactions + ['REACTION_JACOBIAN']
+        if self._check_input_dof("WATER_PRESSURE"):
+            # Add specific variables for the problem (pressure dofs)
+            self.dof_variables = self.dof_variables + ['WATER_PRESSURE']
+            self.dof_reactions = self.dof_reactions + ['REACTION_WATER_PRESSURE']
+            
+        if self._check_input_dof("JACOBIAN"):
+            # Add specific variables for the problem (jacobian dofs)
+            self.dof_variables = self.dof_variables + ['JACOBIAN']
+            self.dof_reactions = self.dof_reactions + ['REACTION_JACOBIAN']
 
 
  
