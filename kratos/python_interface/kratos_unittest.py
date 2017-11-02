@@ -27,7 +27,7 @@ class TestCase(TestCase):
         tolerance '''
 
         if first < (second - tolerance) or first > (second + tolerance):
-            raise self.failureException, (msg or '%r != %r within %r places' % (first, second, tolerance))
+            raise self.failureException(msg or '%r != %r within %r places' % (first, second, tolerance))
 
     assertEqualTolerance = failUnlessEqualWithTolerance
 
