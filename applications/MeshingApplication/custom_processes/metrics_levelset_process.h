@@ -248,7 +248,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    ComputeLevelSetSolMetricProcess& operator=(ComputeLevelSetSolMetricProcess const& rOther) {};
+    ComputeLevelSetSolMetricProcess& operator=(ComputeLevelSetSolMetricProcess const& rOther) 
+    {
+        return *this;
+    };
 
     /// Copy constructor.
     //ComputeLevelSetSolMetricProcess(ComputeLevelSetSolMetricProcess const& rOther);
