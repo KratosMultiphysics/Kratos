@@ -76,16 +76,15 @@ void Triangle2D3ModifiedShapeFunctions::GetPositiveSideShapeFunctionsAndGradient
         SetIntersectionPointsCondensationMatrix(p_matrix,
                                                 mpTriangleSplitter->mEdgeNodeI,
                                                 mpTriangleSplitter->mEdgeNodeJ,
-                                                mpTriangleSplitter->mSplitEdges,
-                                                mpTriangleSplitter->mSplitEdgesSize);
+                                                mpTriangleSplitter->mSplitEdges);
 
         // Compute the positive side values
         this->ComputeValuesOnOneSide(rPositiveSideShapeFunctionsValues,
-                                        rPositiveSideShapeFunctionsGradientsValues,
-                                        rPositiveSideWeightsValues,
-                                        mpTriangleSplitter->mPositiveSubdivisions,
-                                        p_matrix,
-                                        IntegrationMethod);
+                                     rPositiveSideShapeFunctionsGradientsValues,
+                                     rPositiveSideWeightsValues,
+                                     mpTriangleSplitter->mPositiveSubdivisions,
+                                     p_matrix,
+                                     IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the GetPositiveSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
     }
@@ -104,16 +103,15 @@ void Triangle2D3ModifiedShapeFunctions::GetNegativeSideShapeFunctionsAndGradient
         SetIntersectionPointsCondensationMatrix(p_matrix,
                                                 mpTriangleSplitter->mEdgeNodeI,
                                                 mpTriangleSplitter->mEdgeNodeJ,
-                                                mpTriangleSplitter->mSplitEdges,
-                                                mpTriangleSplitter->mSplitEdgesSize);
+                                                mpTriangleSplitter->mSplitEdges);
 
         // Compute the negative side values
         this->ComputeValuesOnOneSide(rNegativeSideShapeFunctionsValues,
-                                        rNegativeSideShapeFunctionsGradientsValues,
-                                        rNegativeSideWeightsValues,
-                                        mpTriangleSplitter->mNegativeSubdivisions,
-                                        p_matrix,
-                                        IntegrationMethod);
+                                     rNegativeSideShapeFunctionsGradientsValues,
+                                     rNegativeSideWeightsValues,
+                                     mpTriangleSplitter->mNegativeSubdivisions,
+                                     p_matrix,
+                                     IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the GetNegativeSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
     }

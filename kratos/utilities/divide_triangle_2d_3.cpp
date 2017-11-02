@@ -113,19 +113,19 @@ namespace Kratos
             }
 
             // Call the splitting mode computation function
-            int edge_ids[3];
-            TriangleSplitMode(mSplitEdges, edge_ids);
+            std::vector<int> edge_ids(3);
+            TriangleSplitMode(&mSplitEdges[0], &edge_ids[0]);
 
             // Call the splitting function
-            int t[12];          // Ids of the generated subdivisions
-            int n_int = 0;      // Number of internal nodes (set to 0 since it is not needed for triangle splitting)
-            Split_Triangle(edge_ids, t, &mDivisionsNumber, &mSplitEdgesNumber, &n_int);
+            std::vector<int> t(12);     // Ids of the generated subdivisions
+            int n_int = 0;              // Number of internal nodes (set to 0 since it is not needed for triangle splitting)
+            Split_Triangle(&edge_ids[0], &t[0], &mDivisionsNumber, &mSplitEdgesNumber, &n_int);
 
             // Fill the subdivisions arrays
             for (int idivision = 0; idivision < mDivisionsNumber; ++idivision) {
                 // Get the subdivision indices
                 int i0, i1, i2;
-                TriangleGetNewConnectivityGID(idivision, t, mSplitEdges, &i0, &i1, &i2);
+                TriangleGetNewConnectivityGID(idivision, &t[0], &mSplitEdges[0], &i0, &i1, &i2);
 
                 // Generate a pointer to an auxiliar triangular geometry made with the subdivision points
                 IndexedPointGeometryPointerType p_aux_partition = boost::make_shared<IndexedPointTriangleType>(mAuxPointsContainer(i0), 

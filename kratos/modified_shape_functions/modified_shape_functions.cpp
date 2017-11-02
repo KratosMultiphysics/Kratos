@@ -65,16 +65,15 @@ namespace Kratos
     // Sets the condensation matrix to transform the subdivsion values to entire element ones.
     void ModifiedShapeFunctions::SetIntersectionPointsCondensationMatrix(
         Matrix& rIntPointCondMatrix,
-        const int EdgeNodeI[],
-        const int EdgeNodeJ[],
-        const int SplitEdges[],
-        const unsigned int SplitEdgesSize) {
+        const std::vector<int>& rEdgeNodeI,
+        const std::vector<int>& rEdgeNodeJ,
+        const std::vector<int>& rSplitEdges) {
 
-        // Initialize intersection points condensation matrix
         const unsigned int nedges = mpInputGeometry->EdgesNumber();
         const unsigned int nnodes = mpInputGeometry->PointsNumber();
-
-        rIntPointCondMatrix = ZeroMatrix(SplitEdgesSize, nnodes);
+            
+        // Initialize intersection points condensation matrix
+        rIntPointCondMatrix = ZeroMatrix(rSplitEdges.size(), nnodes);
 
         // Fill the original geometry points main diagonal
         for (unsigned int i = 0; i < nnodes; ++i) {
@@ -85,10 +84,10 @@ namespace Kratos
         unsigned int row = nnodes;
         for (unsigned int idedge = 0; idedge < nedges; ++idedge) {
             // Check if the edge has an intersection point
-            if (SplitEdges[nnodes+idedge] != -1) {
+            if (rSplitEdges[nnodes+idedge] != -1) {
                 // Get the nodes that compose the edge
-                const unsigned int edge_node_i = EdgeNodeI[idedge];
-                const unsigned int edge_node_j = EdgeNodeJ[idedge];
+                const unsigned int edge_node_i = rEdgeNodeI[idedge];
+                const unsigned int edge_node_j = rEdgeNodeJ[idedge];
 
                 // Compute the relative coordinate of the intersection point over the edge
                 const double aux_node_rel_location = std::abs (mrNodalDistances(edge_node_i)/(mrNodalDistances(edge_node_j)-mrNodalDistances(edge_node_i)));

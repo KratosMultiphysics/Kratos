@@ -217,10 +217,9 @@ protected:
     */
     void SetIntersectionPointsCondensationMatrix(
         Matrix& rIntPointCondMatrix,
-        const int rEdgeNodeI[],
-        const int rEdgeNodeJ[],
-        const int rSplitEdges[],
-        const unsigned int splitEdgesNumber);
+        const std::vector<int>& rEdgeNodeI,
+        const std::vector<int>& rEdgeNodeJ,
+        const std::vector<int>& rSplitEdges);
 
     /**
     * Returns the shape function values in either the positive or negative element subdivision for a given quadrature.
