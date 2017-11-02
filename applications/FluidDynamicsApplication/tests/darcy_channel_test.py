@@ -42,7 +42,6 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.do_check = True
         self.check_tolerance = 1e-6
         self.print_output = False
-        self.print_reference_values = False
 
     def tearDown(self):
         import os
@@ -74,14 +73,12 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.u0 = 2.0
         self.linear_darcy_coefficient = 1.0
         self.nonlinear_darcy_coefficient = 0.0
-        self.reference_file = "reference_darcy_linear"
         self.testDarcyChannel()
 
     def testDarcyNonLinear(self):
         self.u0 = 2.0
         self.linear_darcy_coefficient = 0.0
         self.nonlinear_darcy_coefficient = 1.0
-        self.reference_file = "reference_darcy_nonlinear"
         self.testDarcyChannel()
 
     def testDarcyDensity(self):
@@ -89,7 +86,6 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.linear_darcy_coefficient = 1.0
         self.nonlinear_darcy_coefficient = 1.0
         self.rho = 1000.0
-        self.reference_file = "reference_darcy_density"
         self.testDarcyChannel()
 
     def testReferenceValues(self):
@@ -295,29 +291,24 @@ class DarcyChannelTest(UnitTest.TestCase):
 
     def checkResults(self):
 
-        if self.print_reference_values:
-            with open(self.reference_file+'.csv','w') as ref_file:
-                ref_file.write("#ID, PRESSURE\n")
-                for node in self.fluid_model_part.Nodes:
-                    value = node.GetSolutionStepValue(PRESSURE,0)
-                    ref_file.write("{0}, {1}\n".format(node.Id, value))
+        node_in = None
+        node_out = None
+        for node in self.fluid_model_part.Nodes:
+            if node.X == self.xmin:
+                node_in = node
+            elif node.X == self.xmax:
+                node_out = node
+
+        if node_in is not None and node_out is not None:
+            p_in = node_in.GetSolutionStepValue(PRESSURE)
+            p_out = node_out.GetSolutionStepValue(PRESSURE)
+
+            # dP/dX = (mu/k1) * u0 + (rho/k2) * u0**2
+            expected_pressure_drop = (self.xmax-self.xmin) * (self.linear_darcy_coefficient*self.u0 + self.nonlinear_darcy_coefficient*self.u0**2)
+            measured_pressure_drop = p_in - p_out
+            self.assertAlmostEqual(expected_pressure_drop,measured_pressure_drop,6)
         else:
-            with open(self.reference_file+'.csv','r') as reference_file:
-                reference_file.readline() # skip header
-                line = reference_file.readline()
-                node_iter = self.fluid_model_part.Nodes
-
-                for node in self.fluid_model_part.Nodes:
-                    values = [ float(i) for i in line.rstrip('\n ').split(',') ]
-                    node_id = values[0]
-                    reference_pressure = values[1]
-
-                    solution_pressure = node.GetSolutionStepValue(PRESSURE)
-                    self.assertAlmostEqual(reference_pressure, solution_pressure, delta=self.check_tolerance)
-
-                    line = reference_file.readline()
-                if line != '': # If we did not reach the end of the reference file
-                    self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
+            self.fail("Could not find inlet and/or outlet nodes: something is wrong with the input mesh.")
 
     def InitializeOutput(self):
         gid_mode = GiDPostMode.GiD_PostBinary
@@ -342,10 +333,9 @@ class DarcyChannelTest(UnitTest.TestCase):
 if __name__ == '__main__':
     test = DarcyChannelTest()
     test.setUp()
-    test.print_reference_values = True
     test.print_output = True
     #test.testDarcyLinear()
     #test.testDarcyNonLinear()
-    #test.testDarcyDensity()
-    test.testReferenceValues()
+    test.testDarcyDensity()
+    #test.testReferenceValues()
     test.tearDown()
