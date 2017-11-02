@@ -8,7 +8,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 ## to avoid problems with the define linkage block. By default we will compile the lib
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external_modules/triangle/)
+  set(TRIANGLE_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle/)
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
