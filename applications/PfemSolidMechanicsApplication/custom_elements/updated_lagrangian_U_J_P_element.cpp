@@ -373,8 +373,8 @@ namespace Kratos
          const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
          //create and initialize element variables:
-         GeneralVariables Variables;
-         this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+         ElementVariables Variables;
+         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
          //create constitutive law parameters:
          ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -398,7 +398,7 @@ namespace Kratos
             }		
 
             //set general variables to constitutivelaw parameters
-            this->SetGeneralVariables(Variables,Values,PointNumber);
+            this->SetElementVariables(Variables,Values,PointNumber);
 
             double NodalPressure = 0;
             for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -406,25 +406,25 @@ namespace Kratos
             }
 
          // OBS, now changing Variables I change Values because they are pointers ( I hope);
-            double ElementalDetFT = Variables.detFT;
-            Matrix ElementalFT = Variables.FT;
+            double ElementalDetFT = Variables.detH;
+            Matrix ElementalFT = Variables.H;
 
             // AND NOW IN THE OTHER WAY
             Matrix m; double d;
             ComputeConstitutiveVariables( Variables, m, d);
 
-            Variables.FT = m;
-            Variables.detFT = d;
-            Values.SetDeformationGradientF( Variables.FT );
-            Values.SetDeterminantF( Variables.detFT );
+            Variables.H = m;
+            Variables.detH = d;
+            Values.SetDeformationGradientF( Variables.H );
+            Values.SetDeterminantF( Variables.detH );
 
 
             //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy (Values);
 
             // T1
-            Variables.FT  = ElementalFT;
-            Variables.detFT = ElementalDetFT;
+            Variables.H  = ElementalFT;
+            Variables.detH = ElementalDetFT;
 
             Vector StressVector = Variables.StressVector;
             double ElementalPressure = 0;
@@ -480,9 +480,9 @@ namespace Kratos
    //************* STARTING - ENDING  METHODS
    //************************************************************************************
    //************************************************************************************
-   void UpdatedLagrangianUJPElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUJPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
-      UpdatedLagrangianUJElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
+      UpdatedLagrangianUJElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
 
       rVariables.StressVector.resize(6);
 
@@ -536,7 +536,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+   void UpdatedLagrangianUJPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
    {
 
 
@@ -548,8 +548,8 @@ namespace Kratos
       MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
       // operation performed: add Km to the rLefsHandSideMatrix
-      UJPGeneralVariables  ElementVariables; 
-      CalculateThisElementGeneralVariables( ElementVariables, rVariables);
+      UJPElementVariables  ElementVariables; 
+      CalculateThisElementVariables( ElementVariables, rVariables);
 
       //respect to the current configuration n+1
       CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, ElementVariables,  rIntegrationWeight );
@@ -592,10 +592,10 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void UpdatedLagrangianUJPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
       if (this->Id() == 0 ) {
-         std::cout << " FT " << rVariables.detFT << std::endl;
+         std::cout << " FT " << rVariables.detH << std::endl;
          std::cout << " FF " << rVariables.detF << std::endl;
          std::cout << " F0 " << rVariables.detF0 << std::endl;
          std::cout << " " << std::endl;
@@ -609,8 +609,8 @@ namespace Kratos
       //contribution of the internal and external forces
       VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
 
-      UJPGeneralVariables  ElementVariables; 
-      CalculateThisElementGeneralVariables( ElementVariables, rVariables);
+      UJPElementVariables  ElementVariables; 
+      CalculateThisElementVariables( ElementVariables, rVariables);
 
 
       // operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
@@ -643,8 +643,8 @@ namespace Kratos
    //************************************** Idem but with Total Stress ***********
 
    void UpdatedLagrangianUJPElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-         GeneralVariables & rVariables,
-         UJPGeneralVariables& rElementVariables, 
+         ElementVariables & rVariables,
+         UJPElementVariables& rElementVariables, 
          double& rIntegrationWeight
          )
    {
@@ -676,8 +676,8 @@ namespace Kratos
    //******************************** PRESSURE FORCES  **********************************
    //************************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddJacobianForces( VectorType& rRightHandSideVector,
-         GeneralVariables & rVariables,
-         UJPGeneralVariables& rElementVariables, 
+         ElementVariables & rVariables,
+         UJPElementVariables& rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -690,7 +690,7 @@ namespace Kratos
 
       VectorType Fh=rRightHandSideVector;
 
-      double JacobianElement = rVariables.detFT;
+      double JacobianElement = rVariables.detH;
 
       double consistent = 1.0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -702,11 +702,11 @@ namespace Kratos
                consistent *= 2.0;
             const double& JacobianNodal = GetGeometry()[j].GetSolutionStepValue(JACOBIAN) ;
 
-            rRightHandSideVector[indexp] -=  consistent * JacobianNodal * rIntegrationWeight / rVariables.detFT ;
+            rRightHandSideVector[indexp] -=  consistent * JacobianNodal * rIntegrationWeight / rVariables.detH ;
 
          }
 
-         rRightHandSideVector[indexp] += rVariables.N[i] * JacobianElement * rIntegrationWeight / rVariables.detFT;
+         rRightHandSideVector[indexp] += rVariables.N[i] * JacobianElement * rIntegrationWeight / rVariables.detH;
 
 
          indexp += (dimension + 2);
@@ -720,8 +720,8 @@ namespace Kratos
    //************************************************************************************
 
    void UpdatedLagrangianUJPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-         GeneralVariables & rVariables,
-         UJPGeneralVariables& rElementVariables, 
+         ElementVariables & rVariables,
+         UJPElementVariables& rElementVariables, 
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -744,11 +744,11 @@ namespace Kratos
             if ( i == j)
                consistent *= 2.0;
             const double& Pressure = GetGeometry()[j].GetSolutionStepValue(PRESSURE) ;
-            rRightHandSideVector[indexp] -=   consistent * Pressure * rIntegrationWeight / rVariables.detFT ;
+            rRightHandSideVector[indexp] -=   consistent * Pressure * rIntegrationWeight / rVariables.detH ;
 
          }
 
-         rRightHandSideVector[indexp] += rVariables.N[i] * ElementalMeanStress * rIntegrationWeight / rVariables.detFT;
+         rRightHandSideVector[indexp] += rVariables.N[i] * ElementalMeanStress * rIntegrationWeight / rVariables.detH;
 
          indexp += (dimension + 2);
 
@@ -762,8 +762,8 @@ namespace Kratos
    //****************** STABILIZATION *********************************************************
    //************************* defined in the Stab element ************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddStabilizedJacobian(VectorType& rRightHandSideVector,
-         GeneralVariables & rVariables,
-         UJPGeneralVariables & rElementVariables, 
+         ElementVariables & rVariables,
+         UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -818,8 +818,8 @@ namespace Kratos
    // **************************** ADD STABILIZED PRESSURE *************************
    // ********************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-         GeneralVariables & rVariables,
-         UJPGeneralVariables & rElementVariables, 
+         ElementVariables & rVariables,
+         UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -870,8 +870,8 @@ namespace Kratos
    //***************** It includes the pw geometric stiffness ************************
 
    void UpdatedLagrangianUJPElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         UJPGeneralVariables &  rElementVariables, 
+         ElementVariables& rVariables,
+         UJPElementVariables &  rElementVariables, 
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1103,8 +1103,8 @@ namespace Kratos
    //*********************************************************************************
 
    void UpdatedLagrangianUJPElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         UJPGeneralVariables & rElementVariables, 
+         ElementVariables& rVariables,
+         UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1243,8 +1243,8 @@ namespace Kratos
    //************************************************************************************
 
    void UpdatedLagrangianUJPElement::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         UJPGeneralVariables & rElementVariables, 
+         ElementVariables& rVariables,
+         UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1304,8 +1304,8 @@ namespace Kratos
    // *********************** KuJ TERMS ***********************************************
    // *********************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddKuJ (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         UJPGeneralVariables & rElementVariables, 
+         ElementVariables& rVariables,
+         UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1432,8 +1432,8 @@ namespace Kratos
    // ******************** KJu term *******************************************************
    // *************************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddKJu (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         UJPGeneralVariables & rElementVariables, 
+         ElementVariables& rVariables,
+         UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1471,8 +1471,8 @@ namespace Kratos
    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^KJJ term ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    void UpdatedLagrangianUJPElement::CalculateAndAddKJJ (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         UJPGeneralVariables&  rElementVariables, 
+         ElementVariables& rVariables,
+         UJPElementVariables&  rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1497,7 +1497,7 @@ namespace Kratos
             if ( i == j)
                consistent *= 2.0;
 
-            rLeftHandSideMatrix(indexpi,indexpj)  += consistent * rIntegrationWeight / rVariables.detFT;
+            rLeftHandSideMatrix(indexpi,indexpj)  += consistent * rIntegrationWeight / rVariables.detH;
             indexpj += (dimension+2);
          }
 
@@ -1511,8 +1511,8 @@ namespace Kratos
    // ****************************** KJp TERM ( is zero ) ********************************
    // ************************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddKJp (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         UJPGeneralVariables & rElementVariables, 
+         ElementVariables& rVariables,
+         UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1529,8 +1529,8 @@ namespace Kratos
    // ******************************** TERM KpJ ****************************************
    // **********************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddKpJ (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         UJPGeneralVariables & rElementVariables, 
+         ElementVariables& rVariables,
+         UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1566,7 +1566,7 @@ namespace Kratos
       }
 
       KNumber *=  rElementVariables.Beta / rElementVariables.NodalJacobian; 
-      KNumber *= rIntegrationWeight / rVariables.detFT ;
+      KNumber *= rIntegrationWeight / rVariables.detH ;
 
 
       double consistent = 1.0;
@@ -1588,8 +1588,8 @@ namespace Kratos
    //************************************************************************************
 
    void UpdatedLagrangianUJPElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         UJPGeneralVariables & rElementVariables, 
+         ElementVariables& rVariables,
+         UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1683,7 +1683,7 @@ namespace Kratos
          //std::cout << " STRESS " << rVariables.StressVector << std::endl;
       }
 
-      ConstMatrix *= rIntegrationWeight / rVariables.detFT;
+      ConstMatrix *= rIntegrationWeight / rVariables.detH;
       ConstMatrix *= rElementVariables.Beta; 
       ConstMatrix = prod( ConstMatrix, rVariables.B);
 
@@ -1743,8 +1743,8 @@ namespace Kratos
    //************************************************************************************
 
    void UpdatedLagrangianUJPElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         UJPGeneralVariables & rElementVariables, 
+         ElementVariables& rVariables,
+         UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1766,7 +1766,7 @@ namespace Kratos
             consistent = 1.0/12.0;
             if ( i == j)
                consistent *= 2.0;
-            rLeftHandSideMatrix(indexpi,indexpj)  += consistent * rIntegrationWeight / rVariables.detFT;
+            rLeftHandSideMatrix(indexpi,indexpj)  += consistent * rIntegrationWeight / rVariables.detH;
             indexpj += (dimension + 2);
          }
 
@@ -1781,8 +1781,8 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddKJJStab (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables & rVariables,
-         UJPGeneralVariables & rElementVariables, 
+         ElementVariables & rVariables,
+         UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
    {
 
@@ -1839,8 +1839,8 @@ namespace Kratos
    }
 
    void UpdatedLagrangianUJPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables & rVariables,
-         UJPGeneralVariables & rElementVariables, 
+         ElementVariables & rVariables,
+         UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
    {
 
@@ -1895,9 +1895,9 @@ namespace Kratos
 
 
 
-   // ^****************** CalculateThisElementGeneralVariables ******************************************
+   // ^****************** CalculateThisElementVariables ******************************************
    // *********** Compute only once some terms **********************************************************
-   void UpdatedLagrangianUJPElement::CalculateThisElementGeneralVariables( UJPGeneralVariables& rElementVariables, const GeneralVariables & rVariables)
+   void UpdatedLagrangianUJPElement::CalculateThisElementVariables( UJPElementVariables& rElementVariables, const ElementVariables & rVariables)
    {
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -1984,8 +1984,8 @@ namespace Kratos
       KRATOS_TRY
 
       //create and initialize element variables:
-      GeneralVariables Variables;
-      this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+      ElementVariables Variables;
+      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
       //create constitutive law parameters:
       ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -2009,30 +2009,30 @@ namespace Kratos
          this->CalculateKinematics(Variables,PointNumber);
 
          //set general variables to constitutivelaw parameters
-         this->SetGeneralVariables(Variables,Values,PointNumber);
+         this->SetElementVariables(Variables,Values,PointNumber);
 
          // OBS, now changing Variables I change Values because they are pointers ( I hope);
          double NodalJacobian = 0;
          for (int i = 0; i < 3; i++)
             NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
 
-         double detFT = Variables.detFT;
+         double detFT = Variables.detH;
          const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
          double dimension_double = double(dimension);
 
          // T1
-         Variables.FT *= pow( (NodalJacobian) / Variables.detFT, 1.0/dimension_double);
-         Variables.detFT = (NodalJacobian);
+         Variables.H *= pow( (NodalJacobian) / Variables.detH, 1.0/dimension_double);
+         Variables.detH = (NodalJacobian);
 
          //compute stresses and constitutive parameters
          mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
          // T1
-         Variables.FT *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
-         Variables.detFT = detFT;
+         Variables.H *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
+         Variables.detH = detFT;
 
          //some transformation of the configuration can be needed (UL element specially)
-         this->TransformGeneralVariables(Variables,PointNumber);
+         this->TransformElementVariables(Variables,PointNumber);
 
          //calculating weights for integration on the "reference configuration"
          double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
@@ -2129,31 +2129,31 @@ namespace Kratos
                this->CalculateKinematics(Variables,PointNumber);
 
                //set general variables to constitutivelaw parameters
-               this->SetGeneralVariables(Variables,Values,PointNumber);
+               this->SetElementVariables(Variables,Values,PointNumber);
 
                // OBS, now changing Variables I change Values because they are pointers ( I hope);
                double NodalJacobian = 0;
                for (int i = 0; i < 3; i++)
                   NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
 
-               double detFT = Variables.detFT;
+               double detFT = Variables.detH;
                const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
                double dimension_double = double(dimension);
 
                // T1
-               Variables.FT *= pow( (NodalJacobian) / Variables.detFT, 1.0/dimension_double);
-               Variables.detFT = (NodalJacobian);
+               Variables.H *= pow( (NodalJacobian) / Variables.detH, 1.0/dimension_double);
+               Variables.detH = (NodalJacobian);
 
                //compute stresses and constitutive parameters
                ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
                // T1
-               Variables.FT *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
-               Variables.detFT = detFT;
+               Variables.H *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
+               Variables.detH = detFT;
 
                //some transformation of the configuration can be needed (UL element specially)
-               this->TransformGeneralVariables(Variables,PointNumber);
+               this->TransformElementVariables(Variables,PointNumber);
 
                //calculating weights for integration on the "reference configuration"
                double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
@@ -2193,30 +2193,30 @@ namespace Kratos
                this->CalculateKinematics(Variables,PointNumber);
 
                //set general variables to constitutivelaw parameters
-               this->SetGeneralVariables(Variables,Values,PointNumber);
+               this->SetElementVariables(Variables,Values,PointNumber);
 
                // OBS, now changing Variables I change Values because they are pointers ( I hope);
                double NodalJacobian = 0;
                for (int i = 0; i < 3; i++)
                   NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
 
-               double detFT = Variables.detFT;
+               double detFT = Variables.detH;
                const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
                double dimension_double = double(dimension);
 
                // T1
-               Variables.FT *= pow( (NodalJacobian) / Variables.detFT, 1.0/dimension_double);
-               Variables.detFT = (NodalJacobian);
+               Variables.H *= pow( (NodalJacobian) / Variables.detH, 1.0/dimension_double);
+               Variables.detH = (NodalJacobian);
 
                //compute stresses and constitutive parameters
                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
                // T1
-               Variables.FT *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
-               Variables.detFT = detFT;
+               Variables.H *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
+               Variables.detH = detFT;
 
                //some transformation of the configuration can be needed (UL element specially)
-               this->TransformGeneralVariables(Variables,PointNumber);
+               this->TransformElementVariables(Variables,PointNumber);
 
                //calculating weights for integration on the "reference configuration"
                double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
@@ -2257,38 +2257,38 @@ namespace Kratos
 
                   const array_1d< double, 3 > PlotDispl = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
             
-                  this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+                  this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
                   // DO THE STUPID COMPUTATION 
                   //compute element kinematics B, F, DN_DX ...
                   this->CalculateKinematics(Variables,PointNumber);
 
                   //set general variables to constitutivelaw parameters
-                  this->SetGeneralVariables(Variables,Values,PointNumber);
+                  this->SetElementVariables(Variables,Values,PointNumber);
 
                   // OBS, now changing Variables I change Values because they are pointers ( I hope);
                   double NodalJacobian = 0;
                   for (int i = 0; i < 3; i++)
                      NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
 
-                  double detFT = Variables.detFT;
+                  double detFT = Variables.detH;
                   const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
                   double dimension_double = double(dimension);
 
                   // T1
-                  Variables.FT *= pow( (NodalJacobian) / Variables.detFT, 1.0/dimension_double);
-                  Variables.detFT = (NodalJacobian);
+                  Variables.H *= pow( (NodalJacobian) / Variables.detH, 1.0/dimension_double);
+                  Variables.detH = (NodalJacobian);
 
                   //compute stresses and constitutive parameters
                   mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
 
                   // T1
-                  Variables.FT *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
-                  Variables.detFT = detFT;
+                  Variables.H *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
+                  Variables.detH = detFT;
 
                   //some transformation of the configuration can be needed (UL element specially)
-                  this->TransformGeneralVariables(Variables,PointNumber);
+                  this->TransformElementVariables(Variables,PointNumber);
 
                   //calculating weights for integration on the "reference configuration"
                   double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;

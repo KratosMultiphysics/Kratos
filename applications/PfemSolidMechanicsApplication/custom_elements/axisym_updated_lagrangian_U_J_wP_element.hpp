@@ -189,7 +189,7 @@ namespace Kratos
           */
 
          virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-               GeneralVariables& rVariables,
+               ElementVariables& rVariables,
                double& rIntegrationWeight);
 
          /**
@@ -197,14 +197,14 @@ namespace Kratos
           */
 
          virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-               GeneralVariables& rVariables,
+               ElementVariables& rVariables,
                Vector& rVolumeForce,
                double& rIntegrationWeight);
 
          /**
           * Initialize Element General Variables
           */
-         virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+         virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
          /**

@@ -180,7 +180,7 @@ namespace Kratos
 
       
     // calculate ratial return
-    virtual bool CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    virtual bool CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -357,7 +357,7 @@ namespace Kratos
     
 
     // implex protected methods
-    virtual void CalculateImplexRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    virtual void CalculateImplexRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 

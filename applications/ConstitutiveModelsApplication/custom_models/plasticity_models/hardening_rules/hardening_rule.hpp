@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosContactMechanicsApplication $
-//   Created by:          $Author:              JMCarbonell $
-//   Last modified by:    $Co-Author:                       $
-//   Date:                $Date:                  July 2017 $
-//   Revision:            $Revision:                    0.0 $
+//   Project Name:        KratosConstitutiveModelApplication $
+//   Created by:          $Author:               JMCarbonell $
+//   Last modified by:    $Co-Author:                        $
+//   Date:                $Date:                   July 2017 $
+//   Revision:            $Revision:                     0.0 $
 //
 //
 

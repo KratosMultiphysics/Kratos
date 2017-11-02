@@ -101,7 +101,7 @@ namespace Kratos
     
     
     //Linear Hardening rule: (mTheta = 1)
-    rDeltaThermalHardening  = ( YieldStress * ReferenceConductivity +  SimoExponentialHardeningRule::mTheta * KinematicHardeningConstant * HardnessConductivity * rEquivalentPlasticStrain );
+    rDeltaThermalHardening  = ( YieldStress * ReferenceConductivity + SimoExponentialHardeningRule::mTheta * KinematicHardeningConstant * HardnessConductivity * rEquivalentPlasticStrain );
 	
     //Exponential Saturation:
     rDeltaThermalHardening += ( K_infinity * HardnessConductivity -K_reference * ReferenceConductivity ) * (1.0 - exp( (-1.0) * Delta * rEquivalentPlasticStrain ) );

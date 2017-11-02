@@ -185,7 +185,7 @@ namespace Kratos
 
     //specialized methods:
 
-    virtual void CalculateVolumetricFactor(HyperElasticDataType& rVariables, double& rFactor)
+    virtual void CalculateVolumetricFactor(HyperElasticDataType& rVariables, double& rFactor) override
     {
       KRATOS_TRY
 
@@ -195,7 +195,7 @@ namespace Kratos
     }
     
 
-    virtual void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor)
+    virtual void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor) override
     {
       KRATOS_TRY
 
@@ -206,7 +206,7 @@ namespace Kratos
     
     //************// W
     
-    virtual void CalculateAndAddIsochoricStrainEnergy(HyperElasticDataType& rVariables, double& rIsochoricDensityFunction)
+    virtual void CalculateAndAddIsochoricStrainEnergy(HyperElasticDataType& rVariables, double& rIsochoricDensityFunction) override
     {
       KRATOS_TRY
 
@@ -218,7 +218,7 @@ namespace Kratos
     }
     
     
-    virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction)
+    virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction) override
     {
       KRATOS_TRY
 
@@ -232,7 +232,7 @@ namespace Kratos
 
     //************// dW
     
-    virtual double& GetFunction1stI1Derivative(HyperElasticDataType& rVariables, double& rDerivative) //dW/dI1
+    virtual double& GetFunction1stI1Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //dW/dI1
     {
       KRATOS_TRY
 
@@ -245,7 +245,7 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
-    virtual double& GetFunction1stI2Derivative(HyperElasticDataType& rVariables, double& rDerivative) //dW/dI2
+    virtual double& GetFunction1stI2Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //dW/dI2
     {
       KRATOS_TRY
 	
@@ -256,7 +256,7 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
-    virtual double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) //dW/dI3
+    virtual double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //dW/dI3
     {
       KRATOS_TRY
 
@@ -267,7 +267,7 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
     
-    virtual double& GetVolumetricFunctionJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //dU/dJ
+    virtual double& GetVolumetricFunctionJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
     {
       KRATOS_TRY
 	
@@ -285,7 +285,7 @@ namespace Kratos
     }
 
 
-    virtual double& GetFunction2ndI1Derivative(HyperElasticDataType& rVariables, double& rDerivative) //ddW/dI1dI1
+    virtual double& GetFunction2ndI1Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddW/dI1dI1
     {
       KRATOS_TRY
 	
@@ -296,7 +296,7 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
-    virtual double& GetFunction2ndI2Derivative(HyperElasticDataType& rVariables, double& rDerivative) //ddW/dI2dI2
+    virtual double& GetFunction2ndI2Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddW/dI2dI2
     {
       KRATOS_TRY
 
@@ -307,7 +307,7 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
-    virtual double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) //ddW/dI3dI3
+    virtual double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddW/dI3dI3
     {
       KRATOS_TRY
 	
@@ -319,7 +319,7 @@ namespace Kratos
     }
     
 
-    virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //ddU/dJdJ
+    virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddU/dJdJ
     {
       KRATOS_TRY
 

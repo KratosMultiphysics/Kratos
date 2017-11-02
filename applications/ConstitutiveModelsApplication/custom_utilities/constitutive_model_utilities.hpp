@@ -54,7 +54,7 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
     typedef bounded_matrix<double,3,3>    MatrixType;
-	
+    typedef array_1d<double,6>            VectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -638,6 +638,67 @@ namespace Kratos
      * @return the corresponding stress tensor in vector form
      */
     
+    static inline MatrixType& StressVectorToTensor(const Vector& rStressVector, MatrixType& rStressTensor)
+    {
+        KRATOS_TRY;
+        
+	if (rStressVector.size() == 3)
+        {
+   	    rStressTensor(0,0) = rStressVector[0];
+	    rStressTensor(0,1) = rStressVector[2];
+	    rStressTensor(0,2) = 0.0;
+
+	    rStressTensor(1,0) = rStressVector[2];
+	    rStressTensor(1,1) = rStressVector[1];
+	    rStressTensor(1,2) = 0.0;
+
+	    rStressTensor(2,0) = 0.0;
+	    rStressTensor(2,1) = 0.0;
+	    rStressTensor(2,2) = 0.0;
+        }
+        else if (rStressVector.size() == 4)
+        {
+   	    rStressTensor(0,0) = rStressVector[0];
+	    rStressTensor(0,1) = rStressVector[3];
+	    rStressTensor(0,2) = 0.0;
+
+	    rStressTensor(1,0) = rStressVector[3];
+	    rStressTensor(1,1) = rStressVector[1];
+	    rStressTensor(1,2) = 0.0;
+
+	    rStressTensor(2,0) = 0.0;
+	    rStressTensor(2,1) = 0.0;
+	    rStressTensor(2,2) = rStressVector[2];
+        }
+        else if (rStressVector.size() == 6)
+        {
+	    rStressTensor(0,0) = rStressVector[0];
+	    rStressTensor(0,1) = rStressVector[3];
+	    rStressTensor(0,2) = rStressVector[5];
+
+	    rStressTensor(1,0) = rStressVector[3];
+	    rStressTensor(1,1) = rStressVector[1];
+	    rStressTensor(1,2) = rStressVector[4];
+
+	    rStressTensor(2,0) = rStressVector[5];
+	    rStressTensor(2,1) = rStressVector[4];
+	    rStressTensor(2,2) = rStressVector[2];	    
+        }
+
+        return rStressTensor;
+	
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Transforms a given symmetric Stress Tensor to Voigt Notation:
+     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
+     * in the 2D case: from a second order tensor (3*3) Matrix  to a corresponing (3*1) Vector
+     * @param rStressTensor the given symmetric second order stress tensor
+     * @return the corresponding stress tensor in vector form
+     */
+    
     static inline Vector& StressTensorToVector(const MatrixType& rStressTensor, Vector& rStressVector)
     {
         KRATOS_TRY;
@@ -877,6 +938,59 @@ namespace Kratos
     }
     
 
+    /**
+     * Calculates perturbations in each direction of a given vector.
+     * @param InputVector the given vector used to obtain the perturbations.
+     */
+    
+    static inline void ComputePerturbationVector( VectorType& rPerturbationVector, const VectorType& InputVector )
+    {        
+        const unsigned int VSize = InputVector.size();
+        if(rPerturbationVector.size() != VSize)
+            rPerturbationVector.resize(VSize,false);
+        
+        const double MinTol = 1.0e-10;
+        const double MaxTol = 1.0e-5;
+        
+        //Maximum and minimum vector components
+        double max_component = fabs(InputVector[0]) , min_component = fabs(InputVector[0]);
+
+        for( unsigned int i=1; i<VSize; i++ )
+        {
+            if( fabs(InputVector[i]) < min_component )
+            {
+                min_component = fabs(InputVector[i]);
+            }   
+            else if( fabs(InputVector[i]) > max_component )
+            {
+                max_component = fabs(InputVector[i]);
+            }
+        }
+
+        double aux = min_component*MaxTol;
+
+        if( aux < (max_component*MinTol) )
+        {
+            aux = max_component*MinTol;
+        }
+        
+        //PerturbationVector
+        for( unsigned int i=0; i<VSize; i++ )
+        {
+            if( fabs(InputVector[i]) > 1.0e-20 ) // different from zero
+            {
+                rPerturbationVector[i] = InputVector[i]*MaxTol;
+            }
+            else if( InputVector[i] >= 0.0 )
+            {
+                rPerturbationVector[i] = aux;
+            }
+            else
+            {
+                rPerturbationVector[i] = -aux;
+            }
+        }
+    }
     
     ///@}
     ///@name Access

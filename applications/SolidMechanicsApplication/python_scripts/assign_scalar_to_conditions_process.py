@@ -22,7 +22,6 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
         # set processes
         params = KratosMultiphysics.Parameters("{}")           
         params.AddValue("model_part_name", self.settings["model_part_name"])
-        params.AddValue("mesh_id", self.settings["mesh_id"])
         
         if( self.value_is_numeric ):
             print(" numeric value ",self.value)
@@ -36,7 +35,7 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
             
             #function values are assigned to a vector variable :: transformation is needed
             if(type(self.var) == KratosMultiphysics.DoubleVariable):
-                variable_name = self.settings["variable_name"].GetString() + "S_VECTOR"
+                variable_name = self.settings["variable_name"].GetString() + "_VECTOR"
                 print(" variable name modified:", variable_name)
                 params.AddEmptyValue("variable_name")
                 params["variable_name"].SetString(variable_name)

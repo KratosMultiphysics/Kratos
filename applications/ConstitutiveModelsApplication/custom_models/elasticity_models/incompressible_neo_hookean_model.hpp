@@ -74,7 +74,7 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const
+    virtual ConstitutiveModel::Pointer Clone() const override
     {
       return ( IncompressibleNeoHookeanModel::Pointer(new IncompressibleNeoHookeanModel(*this)) );      
     }
@@ -208,7 +208,7 @@ namespace Kratos
     
     //************// dW
         
-    virtual double& GetVolumetricFunctionJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //dU/dJ
+    virtual double& GetVolumetricFunctionJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
     {
       KRATOS_TRY
 
@@ -222,7 +222,7 @@ namespace Kratos
     };
    
 
-    virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //ddU/dJdJ
+    virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddU/dJdJ
     {
       KRATOS_TRY
 

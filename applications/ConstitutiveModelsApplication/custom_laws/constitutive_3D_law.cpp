@@ -161,7 +161,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    return( rValue );
+    return rValue;
     
     KRATOS_CATCH(" ")   
   }
@@ -170,7 +170,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    return( rValue );
+    return rValue;
     
     KRATOS_CATCH(" ")   
   }
@@ -179,7 +179,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    return( rValue );
+    return rValue;
     
     KRATOS_CATCH(" ")   
   }
@@ -188,7 +188,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    return( rValue );
+    return rValue;
     
     KRATOS_CATCH(" ")   
   }
@@ -197,7 +197,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    return( rValue );
+    return rValue;
     
     KRATOS_CATCH(" ")   
   }
@@ -209,6 +209,12 @@ namespace Kratos
   {
     KRATOS_TRY
 
+    ModelDataType ModelValues;
+
+    ModelValues.SetIntVariableData(rThisVariable,rValue);
+
+    this->CalculateValue(rParameterValues,ModelValues);
+    
     return rValue;
       
     KRATOS_CATCH(" ")
@@ -217,6 +223,12 @@ namespace Kratos
   double& Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
   {
     KRATOS_TRY
+
+    ModelDataType ModelValues;
+
+    ModelValues.SetDoubleVariableData(rThisVariable,rValue);
+    
+    this->CalculateValue(rParameterValues,ModelValues);
 
     return rValue;
       
@@ -227,6 +239,12 @@ namespace Kratos
   {
     KRATOS_TRY
 
+    ModelDataType ModelValues;
+
+    ModelValues.SetVectorVariableData(rThisVariable,rValue);
+    
+    this->CalculateValue(rParameterValues,ModelValues);
+
     return rValue;
     
     KRATOS_CATCH(" ")
@@ -236,23 +254,41 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    return rValue;
-      
-    KRATOS_CATCH(" ")
-  }
-  
-  array_1d<double, 3 > & Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,3> >& rVariable, array_1d<double,3> & rValue)
-  {
-    KRATOS_TRY
+    ModelDataType ModelValues;
+
+    ModelValues.SetMatrixVariableData(rThisVariable,rValue);
+
+    this->CalculateValue(rParameterValues,ModelValues);
 
     return rValue;
       
     KRATOS_CATCH(" ")
   }
   
-  array_1d<double, 6 > & Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,6> >& rVariable, array_1d<double,6> & rValue)
+  array_1d<double, 3 > & Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,3> >& rThisVariable, array_1d<double,3> & rValue)
   {
     KRATOS_TRY
+
+    ModelDataType ModelValues;
+    
+    ModelValues.SetArray3VariableData(rThisVariable,rValue);
+
+    this->CalculateValue(rParameterValues,ModelValues);
+
+    return rValue;
+      
+    KRATOS_CATCH(" ")
+  }
+  
+  array_1d<double, 6 > & Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,6> >& rThisVariable, array_1d<double,6> & rValue)
+  {
+    KRATOS_TRY
+
+    ModelDataType ModelValues;
+
+    ModelValues.SetArray6VariableData(rThisVariable,rValue);
+
+    this->CalculateValue(rParameterValues,ModelValues);
 
     return rValue;      
       
@@ -322,7 +358,7 @@ namespace Kratos
     KRATOS_CATCH(" ")      
   }
   
-  
+
   //*****************************MATERIAL RESPONSES*************************************
   //************************************************************************************
 
@@ -424,6 +460,131 @@ namespace Kratos
     KRATOS_TRY
       
     this->CalculateMaterialResponseKirchhoff(rValues);
+
+    const double& rDeltaDeformationDet   = rValues.GetDeterminantF();
+    Vector& rStressVector                = rValues.GetStressVector();
+    Matrix& rConstitutiveMatrix          = rValues.GetConstitutiveMatrix();
+
+    //Set to cauchy Stress:
+    rStressVector       /= rDeltaDeformationDet;
+    rConstitutiveMatrix /= rDeltaDeformationDet;
+
+    KRATOS_CATCH(" ")
+  }
+
+  
+  //***************************MATERIAL RESPONSES WITH MODELS***************************
+  //************************************************************************************
+
+  void Constitutive3DLaw::CalculateValue(Parameters& rValues, ModelDataType& rModelValues)
+  {
+    KRATOS_TRY
+
+    this->CalculateMaterialResponseKirchhoff(rValues,rModelValues);
+      
+    KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+  
+  void Constitutive3DLaw::CalculateMaterialResponsePK2(Parameters& rValues, ModelDataType& rModelValues)
+  {
+    KRATOS_TRY
+ 
+    this->CalculateMaterialResponseKirchhoff(rValues, rModelValues);
+
+    //1.- Obtain parameters
+    Flags & Options                      = rValues.GetOptions();    
+
+    Vector& StressVector                 = rValues.GetStressVector();
+
+    const Matrix& DeltaDeformationMatrix = rValues.GetDeformationGradientF();
+    const double& DeltaDeformationDet    = rValues.GetDeterminantF();
+
+    Matrix& ConstitutiveMatrix           = rValues.GetConstitutiveMatrix();
+
+
+    //2.-Calculate Total PK2 stress
+    if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
+      {
+	TransformStresses(StressVector, DeltaDeformationMatrix, DeltaDeformationDet, StressMeasure_Kirchhoff, StressMeasure_PK2);
+      }
+
+    //3.-Calculate PK2 constitutive tensor
+    if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
+      {
+	PullBackConstitutiveMatrix(ConstitutiveMatrix, DeltaDeformationMatrix);
+      }
+    
+    KRATOS_CATCH(" ")      
+  }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+
+  void Constitutive3DLaw::CalculateMaterialResponsePK1(Parameters& rValues, ModelDataType& rModelValues)
+  {
+    KRATOS_TRY
+ 
+    this->CalculateMaterialResponsePK2(rValues, rModelValues);
+
+    Vector& rStressVector                 = rValues.GetStressVector();
+    const Matrix& rDeltaDeformationMatrix = rValues.GetDeformationGradientF();
+    const double& rDeltaDeformationDet    = rValues.GetDeterminantF();
+
+    TransformStresses(rStressVector,rDeltaDeformationMatrix,rDeltaDeformationDet,StressMeasure_PK2,StressMeasure_PK1);
+    
+    KRATOS_CATCH(" ")
+	  
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void Constitutive3DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues, ModelDataType& rModelValues)
+  {
+    KRATOS_TRY
+      
+    this->CalculateMaterialResponsePK2(rValues, rModelValues);
+
+    //1.- Obtain parameters
+    Flags & Options                      = rValues.GetOptions();    
+
+    Vector& StressVector                 = rValues.GetStressVector();
+
+    const Matrix& DeltaDeformationMatrix = rValues.GetDeformationGradientF();
+    const double& DeltaDeformationDet    = rValues.GetDeterminantF();
+
+    Matrix& ConstitutiveMatrix           = rValues.GetConstitutiveMatrix();
+
+
+    //2.-Calculate Total Kirchhoff stress
+    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
+      {
+        TransformStresses(StressVector, DeltaDeformationMatrix, DeltaDeformationDet, StressMeasure_PK2, StressMeasure_Kirchhoff);
+      }
+
+    //3.-Calculate Kirchhoff constitutive tensor
+    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+      {
+        PushForwardConstitutiveMatrix(ConstitutiveMatrix, DeltaDeformationMatrix);
+      }
+
+    KRATOS_CATCH(" ")      
+  }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void Constitutive3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues, ModelDataType& rModelValues)
+  {
+    KRATOS_TRY
+      
+    this->CalculateMaterialResponseKirchhoff(rValues, rModelValues);
 
     const double& rDeltaDeformationDet   = rValues.GetDeterminantF();
     Vector& rStressVector                = rValues.GetStressVector();

@@ -152,8 +152,8 @@ namespace Kratos
       /*if ( rVariable == EFF_CON_WATER_FORCE) {
 
          // vale, torno a fer de les meves...
-         GeneralVariables Variables;
-         this->InitializeGeneralVariables( Variables, rCurrentProcessInfo);
+         ElementVariables Variables;
+         this->InitializeElementVariables( Variables, rCurrentProcessInfo);
 
          const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod);
          //reading integration points
@@ -185,8 +185,8 @@ namespace Kratos
       else if ( ( rVariable == EFF_CON_TOTAL_FORCE) || ( rVariable == EFF_CON_EFFEC_FORCE) )
       {
          // vale, torno a fer de les meves...
-         GeneralVariables Variables;
-         this->InitializeGeneralVariables( Variables, rCurrentProcessInfo);
+         ElementVariables Variables;
+         this->InitializeElementVariables( Variables, rCurrentProcessInfo);
 
          //create constitutive law parameters:
          ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -215,25 +215,25 @@ namespace Kratos
             }		
 
             //set general variables to constitutivelaw parameters
-            this->SetGeneralVariables(Variables,Values,PointNumber);
+            this->SetElementVariables(Variables,Values,PointNumber);
 
             // OBS, now changing Variables I change Values because they are pointers ( I hope);
-            double ElementalDetFT = Variables.detFT;
-            Matrix ElementalFT = Variables.FT;
+            double ElementalDetFT = Variables.detH;
+            Matrix ElementalFT = Variables.H;
 
             // AND NOW IN THE OTHER WAY
             Matrix m; double d; 
             ComputeConstitutiveVariables( Variables, m, d);
 
-            Variables.FT = m;
-            Variables.detFT = d; 
-            Values.SetDeformationGradientF( Variables.FT);
-            Values.SetDeterminantF( Variables.detFT );
+            Variables.H = m;
+            Variables.detH = d; 
+            Values.SetDeformationGradientF( Variables.H);
+            Values.SetDeterminantF( Variables.detH );
 
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
-            Variables.FT = ElementalFT;
-            Variables.detFT = ElementalDetFT;
+            Variables.H = ElementalFT;
+            Variables.detH = ElementalDetFT;
 
 
             // 2. Do My THIngs
@@ -379,9 +379,9 @@ namespace Kratos
    // ********************** Initialize General Variables ***********************************
    // ***************************************************************************************
 
-   void AxisymUpdatedLagrangianUJwPElement::InitializeGeneralVariables ( GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void AxisymUpdatedLagrangianUJwPElement::InitializeElementVariables ( ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
-      AxisymUpdatedLagrangianUJElement::InitializeGeneralVariables( rVariables, rCurrentProcessInfo );
+      AxisymUpdatedLagrangianUJElement::InitializeElementVariables( rVariables, rCurrentProcessInfo );
 
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
 
@@ -418,10 +418,20 @@ namespace Kratos
 
             //verify that the variables are correctly initialized
 
-            if ( WATER_PRESSURE.Key() == 0 )
+      if ( WATER_PRESSURE.Key() == 0 )
          KRATOS_THROW_ERROR( std::invalid_argument, "WATER PRESSURE has Key zero! (check if the application is correctly registered", "" )
 
-                  return correct;
+      if ( this->GetProperties().Has(THICKNESS) ) {
+	      double thickness = this->GetProperties()[THICKNESS];
+	      if ( thickness <= 0.0) {
+		      this->GetProperties()[THICKNESS] = 1.0;
+	      }
+      } else {
+	     this->GetProperties()[THICKNESS] = 1.0;
+      } 
+
+
+      return correct;
 
       KRATOS_CATCH( "" );
    }
@@ -472,7 +482,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUJwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -546,7 +556,7 @@ HMVariables.ConstrainedModulus = ConstrainedModulus;
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUJwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -570,6 +580,7 @@ HMVariables.ConstrainedModulus = ConstrainedModulus;
       AxisymUpdatedLagrangianUJElement::CalculateAndAddRHS( BaseClassLocalSystem, rVariables, VolumeForce, rIntegrationWeight);
 
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
+
       // Reshape the BaseClass RHS and Add the Hydro Part
       AxisymWaterPressureJacobianUtilities WaterUtility;
       Matrix TotalF = prod( rVariables.F, rVariables.F0);

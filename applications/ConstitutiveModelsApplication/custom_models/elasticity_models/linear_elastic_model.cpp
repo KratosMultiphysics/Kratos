@@ -92,14 +92,17 @@ namespace Kratos
 
     //add initial strain
     if(this->mOptions.Is(ConstitutiveModel::ADD_HISTORY_VECTOR) && this->mOptions.Is(ConstitutiveModel::HISTORY_STRAIN_MEASURE) ){
-      VectorType StrainVector;
-      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
-      for(unsigned int i=0; i<StrainVector.size(); i++)
-	{
-	  StrainVector[i] += this->mHistoryVector[i];	
-	}
-      rValues.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector, rValues.StrainMatrix);
+       VectorType StrainVector;
+       StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+       for(unsigned int i=0; i<StrainVector.size(); i++)
+       {
+          StrainVector[i] += this->mHistoryVector[i];	
+       }
+       rValues.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector, rValues.StrainMatrix);
     }
+
+    rValues.SetStrainMeasure( ConstitutiveModelData::CauchyGreen_None);
+    rValues.MaterialParameters.LameMuBar = rValues.MaterialParameters.LameMu; 
         
     KRATOS_CATCH(" ")
   }
@@ -164,7 +167,18 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;    
+    ElasticDataType Variables;
+    this->InitializeElasticData(rValues,Variables);
+    
+    VectorType StrainVector;
+    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+
+    this->CalculateAndAddConstitutiveTensor(Variables);
+    
+    VectorType StressVector;
+    this->CalculateAndAddIsochoricStressTensor(Variables,StrainVector,StressVector);
+
+    rStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);
     
     KRATOS_CATCH(" ")
   }
@@ -175,8 +189,17 @@ namespace Kratos
   void LinearElasticModel::CalculateAndAddIsochoricStressTensor(ElasticDataType& rVariables, VectorType& rStrainVector, VectorType& rStressVector)
   {
     KRATOS_TRY
-     
-    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
+
+    //total stress
+    noalias(rStressVector) = prod(rVariables.ConstitutiveTensor,rStrainVector);
+
+    //deviatoric stress
+    double MeanStress = (1.0/3.0) * (rStressVector[0]+rStressVector[1]+rStressVector[2]);
+    rStressVector[0] -= MeanStress;
+    rStressVector[1] -= MeanStress;
+    rStressVector[2] -= MeanStress;
+	
+    rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
 	
     KRATOS_CATCH(" ")
   }
@@ -189,7 +212,13 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
+    this->CalculateStressTensor( rValues, rStressMatrix);
+    double MeanPressure = 0;
+    for (unsigned int i = 0; i < 3; i++)
+       MeanPressure += rStressMatrix(i,i)/3.0;
+    rStressMatrix = identity_matrix<double>(3);
+    rStressMatrix *= MeanPressure; 
+
       
     KRATOS_CATCH(" ")
   }

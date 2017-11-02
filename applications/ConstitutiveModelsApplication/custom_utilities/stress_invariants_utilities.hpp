@@ -1,21 +1,14 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:              LMonforte $
-//   Date:                $Date:                July 2015 $
-//   Revision:            $Revision:                  0.1 $
+//   Project Name:        KratosConstitutiveModelsApplication $
+//   Created by:          $Author:                 LlMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                   April 2017 $
+//   Revision:            $Revision:                      0.0 $
 //
 //
 
 #if !defined(KRATOS_STRESS_INVARIANTS_UTILITIES)
 #define KRATOS_STRESS_INVARIANTS_UTILITIES
-#define PI 3.1415926535898
-
-/*#ifdef FIND_MAX
-#undef FIND_MAX
-#endif
-
-#define FIND_MAX(a, b) ((a)>(b)?(a):(b))
-*/
 
 
 // System includes
@@ -66,12 +59,12 @@ namespace Kratos
 
             J2 = 0;
             for (unsigned int i = 0; i < 3; i++)
-               J2 += pow( rStress(i) - I1, 2.0);
+               J2 += pow( rStress(i) - I1, 2);
 
             for (unsigned int i = 3; i < 6; i++)
-               J2 += 2.0*pow( rStress(i), 2.0);
+               J2 += 2.0*pow( rStress(i), 2);
 
-            J2 = pow( J2 /2.0, 1.0/2.0);
+            J2 = sqrt( 0.5 * J2 );
 
          }
 
@@ -90,14 +83,14 @@ namespace Kratos
                StressTensor(i,i) -= I1;
 
             Lode = MathUtils<double>::Det(StressTensor); 
-            Lode = 3.0 * sqrt(3.0) / 2.0 * Lode / pow( J2, 3.0);
+            Lode = 3.0 * sqrt(3.0) / 2.0 * Lode / pow( J2, 3);
 
             double epsi = 1.0e-9;
             if ( fabs( Lode ) > 1.0-epsi) {
-               Lode = -30.0*PI / 180.0 * Lode / fabs(Lode);
+               Lode = -30.0*KRATOS_M_PI / 180.0 * Lode / fabs(Lode);
             }
             else if ( J2 < 10.0*epsi) {
-               Lode = 30.0*PI / 180.0;
+               Lode = 30.0*KRATOS_M_PI / 180.0;
             } 
             else {
                Lode = std::asin( -Lode) / 3.0;
@@ -173,23 +166,23 @@ namespace Kratos
             for (int i = 0; i < 3; i++)
                ShearStress(i) -= I1;
 
-            C3(0) = ShearStress(1)*ShearStress(2) - pow( ShearStress(4), 2.0); 
-            C3(1) = ShearStress(2)*ShearStress(0) - pow( ShearStress(5), 2.0); 
-            C3(2) = ShearStress(0)*ShearStress(1) - pow( ShearStress(3), 2.0); 
+            C3(0) = ShearStress(1)*ShearStress(2) - pow( ShearStress(4), 2); 
+            C3(1) = ShearStress(2)*ShearStress(0) - pow( ShearStress(5), 2); 
+            C3(2) = ShearStress(0)*ShearStress(1) - pow( ShearStress(3), 2); 
 
             C3(3) = 2.0 * ( ShearStress(4)*ShearStress(5) - ShearStress(2)*ShearStress(3));
             C3(4) = 2.0 * ( ShearStress(5)*ShearStress(3) - ShearStress(0)*ShearStress(4));
             C3(5) = 2.0 * ( ShearStress(3)*ShearStress(4) - ShearStress(1)*ShearStress(5));
 
             for (unsigned int i = 0; i < 3; ++i)
-               C3(i) += pow(J2, 2.0) / 3.0;
+               C3(i) += pow(J2, 2) / 3.0;
 
             Matrix Aux, ShearStressM;
             ShearStressM = MathUtils<double>::StressVectorToTensor( ShearStress);
             Aux = prod(  ShearStressM, ShearStressM);
 
             for (unsigned int i = 0; i < 3; i++)
-               Aux(i,i) -= 1.0/3.0 * 2.0*pow( J2 , 2.0);
+               Aux(i,i) -= 1.0/3.0 * 2.0 * pow( J2 , 2);
 
             C3 = MathUtils<double>::StrainTensorToVector( Aux, 6);
 

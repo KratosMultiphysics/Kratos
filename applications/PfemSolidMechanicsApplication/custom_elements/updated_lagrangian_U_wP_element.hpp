@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_element.hpp"
+#include "custom_elements/solid_elements/updated_lagrangian_element.hpp"
 
 namespace Kratos
 {
@@ -203,7 +203,7 @@ protected:
      */
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
+                                    ElementVariables& rVariables,
                                     double& rIntegrationWeight);
 
     /**
@@ -211,14 +211,14 @@ protected:
      */
 
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
+                                    ElementVariables& rVariables,
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight);
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
 

@@ -23,13 +23,13 @@ endif(NOT (${CONTACT_MECHANICS_APPLICATION} MATCHES "ON"))
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle/)
+  set(TRIANGLE_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PfemApplication/external_modules/triangle/)
   include_directories( ${TRIANGLE_INSTALL_DIR} )
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
   set(INCLUDE_TETGEN ON)
-  set(TETGEN_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PfemApplication/custom_external_libraries/tetgen/tetgen1.4.3/)
+  set(TETGEN_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PfemApplication/external_modules/tetgen/)
   include_directories( ${TETGEN_INSTALL_DIR} )
   link_directories( ${TETGEN_INSTALL_DIR} )
 endif(NOT DEFINED ${INCLUDE_TETGEN})
@@ -52,6 +52,8 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_wP_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.cpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_W_element.cpp
+
 	## mixed elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_wP_element.cpp
@@ -64,8 +66,9 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_Pressure_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_P_wP_element.cpp
 
+
 	##conditions
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.cpp
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_penalty_3D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_LM_3D_condition.cpp
@@ -81,14 +84,16 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_U_P_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_J2_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_J2_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_J2_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_plane_strain_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.cpp
 
@@ -128,7 +133,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosPfemSolidMechanicsApplication SHARED ${KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES})
 #####***target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore)
-target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosConstitutiveModelsApplication KratosSolidMechanicsApplication KratosContactMechanicsApplication)
+target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosSolidMechanicsApplication KratosContactMechanicsApplication)
 set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES PREFIX "")
 set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "PFEM_SOLID_MECHANICS_APPLICATION=EXPORT,API")
 

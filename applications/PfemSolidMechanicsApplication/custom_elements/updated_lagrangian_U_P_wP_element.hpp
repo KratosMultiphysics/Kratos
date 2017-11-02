@@ -216,7 +216,7 @@ namespace Kratos
           */
 
          virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-               GeneralVariables& rVariables,
+               ElementVariables& rVariables,
                double& rIntegrationWeight);
 
          /**
@@ -224,20 +224,20 @@ namespace Kratos
           */
 
          virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-               GeneralVariables& rVariables,
+               ElementVariables& rVariables,
                Vector& rVolumeForce,
                double& rIntegrationWeight);
 
          /**
           * Initialize Element General Variables
           */
-         virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+         virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
          /**
           * Calculation of the geometric terms due to the water pressure 
           */
          virtual void CalculateAndAddUnconsideredKuuTerms(MatrixType& rK,
-               GeneralVariables & rVariables,
+               ElementVariables & rVariables,
                double& rIntegrationWeight
                );
 
@@ -245,7 +245,7 @@ namespace Kratos
           * Calculation of the Ku wP Matrix
           */
          virtual void CalculateAndAddKuwP(MatrixType& rK,
-               GeneralVariables & rVariables,
+               ElementVariables & rVariables,
                double& rIntegrationWeight
                );
 
@@ -253,7 +253,7 @@ namespace Kratos
           * Calculation of the KwP U Matrix
           */
          virtual void CalculateAndAddKwPu(MatrixType& rK,
-               GeneralVariables & rVariables,
+               ElementVariables & rVariables,
                double& rIntegrationWeight
                );
 
@@ -261,7 +261,7 @@ namespace Kratos
           * Calculation of the KwP P Matrix
           */
          virtual void CalculateAndAddKwPP(MatrixType& rK,
-               GeneralVariables & rVariables,
+               ElementVariables & rVariables,
                double& rIntegrationWeight
                );
 
@@ -269,7 +269,7 @@ namespace Kratos
           * Calculation of the K wP wP Matrix
           */
          virtual void CalculateAndAddKwPwP(MatrixType& rK,
-               GeneralVariables & rVariables,
+               ElementVariables & rVariables,
                double& rIntegrationWeight
                );
 
@@ -277,7 +277,7 @@ namespace Kratos
           * Calculation of the Stabilization Tangent Matrix
           */
          virtual void CalculateAndAddKwPwPStab(MatrixType& rK,
-               GeneralVariables & rVariables,
+               ElementVariables & rVariables,
                double& rIntegrationWeight
                );
 
@@ -285,7 +285,7 @@ namespace Kratos
           * Calculation of the External Forces Vector. Fe = N * t + N * b
           */
          void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-               GeneralVariables& rVariables,
+               ElementVariables& rVariables,
                Vector& rVolumeForce,
                double& rIntegrationWeight
                );
@@ -295,7 +295,7 @@ namespace Kratos
           * Calculation of the Internal Forces due to Pressure-Balance
           */
          virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-               GeneralVariables & rVariables,
+               ElementVariables & rVariables,
                double& rIntegrationWeight
                );
 
@@ -304,7 +304,7 @@ namespace Kratos
           * Calculation of the Internal Forces due to Pressure-Balance
           */
          virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-               GeneralVariables & rVariables,
+               ElementVariables & rVariables,
                double& rIntegrationWeight
                );
 
@@ -312,7 +312,7 @@ namespace Kratos
           * Calculation of the Internal Forces due to sigma. Fi = B * sigma
           */
          virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-               GeneralVariables & rVariables,
+               ElementVariables & rVariables,
                double& rIntegrationWeight
                );
 
@@ -320,14 +320,14 @@ namespace Kratos
           * Calculation of the Mass Balance ( ie water pressure equation)
           */
          virtual void CalculateAndAddWaterPressureForces( VectorType& rRightHandSideVector,
-               GeneralVariables& rVariables,
+               ElementVariables& rVariables,
                double& rIntegrationWeight
                );
          /**
           * Stabilization of the MassBalance equation
           */
          virtual void CalculateAndAddStabilizedWaterPressure( VectorType& rRightHandSideVector, 
-               GeneralVariables& rVariables,
+               ElementVariables& rVariables,
                double& rIntegartionWeight
                );
 
@@ -353,7 +353,7 @@ namespace Kratos
          /**
           * Calculation of the Volume Change of the Element
           */
-         virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
+         virtual double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables);
 
 
          void GetConstants( double& rScalingConstant, double& rWaterBulk, double& rDeltaTime, double& rPermeability);

@@ -76,7 +76,7 @@ namespace Kratos
     const double& rFractureEnergy         = rMaterialProperties[FRACTURE_ENERGY];
     const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];
     const double& rCharacteristicSize     = rModelData.GetCharacteristicSize();
-    const double& rStateVariable          = rVariables.GetDeltaInternalVariables()[0];
+    const double& rStateVariable          = rVariables.GetInternalVariables()[0];
 
     
     double A = 1.0/(rFractureEnergy/(rCharacteristicSize*rDamageThreshold*rDamageThreshold)-0.5);
@@ -114,7 +114,7 @@ namespace Kratos
     const double& rFractureEnergy         = rMaterialProperties[FRACTURE_ENERGY];
     const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];
     const double& rCharacteristicSize     = rModelData.GetCharacteristicSize();
-    const double& rStateVariable          = rVariables.GetDeltaInternalVariables()[0];
+    const double& rStateVariable          = rVariables.GetInternalVariables()[0];
 
     double A = 1.0/(rFractureEnergy/(rCharacteristicSize*rDamageThreshold*rDamageThreshold)-0.5);
 

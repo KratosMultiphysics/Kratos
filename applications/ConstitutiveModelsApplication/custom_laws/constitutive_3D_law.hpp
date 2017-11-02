@@ -44,7 +44,6 @@ namespace Kratos
     typedef ConstitutiveModelData::MatrixType                          MatrixType;
     typedef ConstitutiveModelData::ModelData                        ModelDataType;
     typedef ConstitutiveModelData::ConstitutiveLawData                LawDataType;
-       
     
     /// Pointer definition of Constitutive3DLaw
     KRATOS_CLASS_POINTER_DEFINITION( Constitutive3DLaw );
@@ -352,6 +351,53 @@ namespace Kratos
     ///@{
 
     /**
+     * Computes an internal value of the material response:
+     * @param rValues
+     * @see   Parameters
+     * @param rModelValues
+     */
+    virtual void CalculateValue (Parameters & rValues, ModelDataType& rModelValues);
+    
+    /**
+     * Computes the material response with model data:
+     * PK1 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     * @param rModelValues
+     */
+    virtual void CalculateMaterialResponsePK1 (Parameters & rValues, ModelDataType& rModelValues);
+
+    /**
+     * Computes the material response with model data:
+     * PK2 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     * @param rModelValues
+     */
+    virtual void CalculateMaterialResponsePK2 (Parameters & rValues, ModelDataType& rModelValues);
+
+    /**
+     * Computes the material response with model data:
+     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     * @param rModelValues
+     */
+    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues, ModelDataType& rModelValues);
+
+
+    /**
+     * Computes the material response with model data:
+     * Cauchy stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     * @param rModelValues
+     */
+    virtual void CalculateMaterialResponseCauchy (Parameters & rValues, ModelDataType& rModelValues);
+   
+
+    
+    /**
      * Get voigt index tensor:
      */
     virtual VoigtIndexType GetVoigtIndexTensor()
@@ -363,7 +409,6 @@ namespace Kratos
      * Initialize ModelData type:
      */
     virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues);	
-
 
     /**
      * Finalize ModelData type:

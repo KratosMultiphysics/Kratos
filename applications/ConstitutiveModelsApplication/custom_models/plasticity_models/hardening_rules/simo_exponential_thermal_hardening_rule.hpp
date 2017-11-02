@@ -148,9 +148,9 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
   
-    virtual double& CalculateThermalReferenceEffect(const PlasticDataType& rVariables, double& rThermalFactor);
+    virtual double& CalculateThermalReferenceEffect(const PlasticDataType& rVariables, double& rThermalFactor) override;
 
-    virtual double& CalculateThermalCurrentEffect(const PlasticDataType& rVariables, double& rThermalFactor);
+    virtual double& CalculateThermalCurrentEffect(const PlasticDataType& rVariables, double& rThermalFactor) override;
     
     ///@}
     ///@name Protected  Access

@@ -68,7 +68,7 @@ namespace Kratos
     BorjaModel& operator=(BorjaModel const& rOther);
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const;
+    virtual ConstitutiveModel::Pointer Clone() const override;
 
 
     /// Destructor.
@@ -149,12 +149,12 @@ namespace Kratos
     /**
      * Calculate Stresses
      */
-    virtual void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix);
+    virtual void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override;
 
     /**
      * Calculate Constitutive Tensor
      */
-    virtual void CalculateAndAddConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix);
+    virtual void CalculateAndAddConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix) override;
 
     /**
       * Calculate some strain invariants

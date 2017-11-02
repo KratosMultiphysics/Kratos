@@ -56,7 +56,7 @@ namespace Kratos
     SmallStrain3DLaw (const SmallStrain3DLaw& rOther);
 
     /// Clone.
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /// Assignment operator.
     SmallStrain3DLaw& operator=(const SmallStrain3DLaw& rOther);
@@ -80,14 +80,14 @@ namespace Kratos
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues);
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
 
     
     /**
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
 
 
     /**
@@ -168,15 +168,24 @@ namespace Kratos
     ///@}
 
     /**
+     * Computes the material response with model data:
+     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     * @param rModelValues
+     */
+    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues, ModelDataType& rModelValues) override;
+
+    /**
      * Initialize ModelData type:
      */
-    virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues);	
+    virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues) override;	
 
 
     /**
      * Finalize ModelData type:
      */
-    virtual void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues);
+    virtual void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
     
     /**
      * Calculates the stress vector

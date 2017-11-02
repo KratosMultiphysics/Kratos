@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.ConstitutiveModelsApplication import *
+from KratosMultiphysics.PfemSolidMechanicsApplication import *
 #from beam_sections_python_utility import SetProperties
 #from beam_sections_python_utility import SetMaterialProperties
 
@@ -18,5 +19,8 @@ def AssignMaterial(Properties):
     prop.SetValue( C10, c10)
     mat = LargeStrainPlaneStrain2DLaw(NeoHookeanModel())
     prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
+    mat = HenckyTrescaPlasticPlaneStrain2DLaw()
+    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
+
         
         

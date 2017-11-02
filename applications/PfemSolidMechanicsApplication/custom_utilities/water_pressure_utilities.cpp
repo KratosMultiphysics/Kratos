@@ -115,7 +115,7 @@ namespace Kratos
 
       mPPP = true;
       if ( mPPP) {
-         rAlphaStabilization = 2.0 / rVariables.ConstrainedModulus - 12.0 * Permeability * rVariables.DeltaTime / ElementSize; 
+         rAlphaStabilization = 2.0 / rVariables.ConstrainedModulus - 12.0 * Permeability * rVariables.DeltaTime / pow(ElementSize, 2); 
       }
       else {
          rAlphaStabilization = pow(ElementSize, 2.0) / ( 6.0 * rVariables.ConstrainedModulus) - rVariables.DeltaTime * Permeability/2.0;

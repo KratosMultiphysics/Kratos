@@ -107,57 +107,14 @@ namespace Kratos
     double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override
     {
       KRATOS_TRY
-
+	
       const ModelDataType& rModelData = rVariables.GetModelData();
-    
-      // Compute Theta parameter
-      double Theta;
-    
-      const Matrix& rStressMatrix = rModelData.GetStressMatrix();
-    
-      VectorType PrincipalStresses;
-      noalias(PrincipalStresses) = ConstitutiveModelUtilities::EigenValuesDirectMethod(rStressMatrix);
-
-
-      double Macaulay_PrincipalStress = 0.0, Absolute_PrincipalStress = 0.0;
-    
-      for(unsigned int i=0; i<3; i++)
-	{ 
-	  if(PrincipalStresses[i] > 0.0)
-	    {
-	      Macaulay_PrincipalStress += PrincipalStresses[i];
-	      Absolute_PrincipalStress += PrincipalStresses[i];
-	    }
-	  else
-	    {
-	      Absolute_PrincipalStress -= PrincipalStresses[i];
-	    }
-	}
-
-      if(Absolute_PrincipalStress > 1.0e-20)
-	{
-	  Theta = Macaulay_PrincipalStress/Absolute_PrincipalStress;
-	}
-      else
-	{
-	  Theta = 0.5;
-	}
-    
-      // Compute Equivalent Strain (rYieldCondition)
-      const Matrix& rStrainMatrix = rModelData.GetStrainMatrix();
-      MatrixType Auxiliar;
-      noalias(Auxiliar) = prod(rStrainMatrix,rStressMatrix);
-    
-      double StressNorm = 0.0;
-    
-      for(unsigned int i=0; i<3; i++) 
-	{
-	  StressNorm += Auxiliar(i,i);
-	}
-    
       const double& StrengthRatio = rModelData.GetMaterialProperties()[STRENGTH_RATIO];
-    
-      rYieldCondition = (Theta+(1.0-Theta)/StrengthRatio)*sqrt(StressNorm);
+
+      const double& rStressNorm = rVariables.GetStressNorm();
+      const double& rTheta      = rVariables.GetRateFactor();
+      
+      rYieldCondition = (rTheta+(1.0-rTheta)/StrengthRatio)*sqrt(rStressNorm);
     
       return rYieldCondition;
 
