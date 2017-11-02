@@ -64,7 +64,7 @@ bool Triangle2D3ModifiedShapeFunctions::IsSplit() {
 };
 
 // Internally computes the splitting pattern and returns all the shape function values for the positive side.
-void Triangle2D3ModifiedShapeFunctions::GetPositiveSideShapeFunctionsAndGradientsValues(
+void Triangle2D3ModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAndGradientsValues(
     Matrix &rPositiveSideShapeFunctionsValues,
     std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
     Vector &rPositiveSideWeightsValues,
@@ -86,12 +86,12 @@ void Triangle2D3ModifiedShapeFunctions::GetPositiveSideShapeFunctionsAndGradient
                                      p_matrix,
                                      IntegrationMethod);
     } else {
-        KRATOS_ERROR << "Using the GetPositiveSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
+        KRATOS_ERROR << "Using the ComputePositiveSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
     }
 };
 
 // Internally computes the splitting pattern and returns all the shape function values for the negative side.
-void Triangle2D3ModifiedShapeFunctions::GetNegativeSideShapeFunctionsAndGradientsValues(
+void Triangle2D3ModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAndGradientsValues(
     Matrix &rNegativeSideShapeFunctionsValues,
     std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
     Vector &rNegativeSideWeightsValues,
@@ -113,12 +113,12 @@ void Triangle2D3ModifiedShapeFunctions::GetNegativeSideShapeFunctionsAndGradient
                                      p_matrix,
                                      IntegrationMethod);
     } else {
-        KRATOS_ERROR << "Using the GetNegativeSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
+        KRATOS_ERROR << "Using the ComputeNegativeSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
     }
 };
 
 // Internally computes the splitting pattern and returns all the shape function values for the positive interface side.
-void Triangle2D3ModifiedShapeFunctions::GetInterfacePositiveSideShapeFunctionsAndGradientsValues(
+void Triangle2D3ModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
     Matrix &rInterfacePositiveSideShapeFunctionsValues,
     std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
     Vector &rInterfacePositiveSideWeightsValues,
@@ -132,12 +132,12 @@ void Triangle2D3ModifiedShapeFunctions::GetInterfacePositiveSideShapeFunctionsAn
                                               mpTriangleSplitter->mPositiveInterfaces,
                                               IntegrationMethod);
     } else {
-        KRATOS_ERROR << "Using the GetInterfacePositiveSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
+        KRATOS_ERROR << "Using the ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
     }
 };
 
 // Internally computes the splitting pattern and returns all the shape function values for the negative interface side.
-void Triangle2D3ModifiedShapeFunctions::GetInterfaceNegativeSideShapeFunctionsAndGradientsValues(
+void Triangle2D3ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
     Matrix &rInterfaceNegativeSideShapeFunctionsValues,
     std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
     Vector &rInterfaceNegativeSideWeightsValues,
@@ -151,12 +151,12 @@ void Triangle2D3ModifiedShapeFunctions::GetInterfaceNegativeSideShapeFunctionsAn
                                               mpTriangleSplitter->mNegativeInterfaces,
                                               IntegrationMethod);
     } else {
-        KRATOS_ERROR << "Using the GetInterfaceNegativeSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
+        KRATOS_ERROR << "Using the ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
     }
 };
 
 // Compute the positive side interface outwards unit normal vector values.
-void Triangle2D3ModifiedShapeFunctions::GetPositiveSideInterfaceUnitNormals(
+void Triangle2D3ModifiedShapeFunctions::ComputePositiveSideInterfaceUnitNormals(
     std::vector<Vector> &rPositiveSideInterfaceUnitNormal,
     const IntegrationMethodType IntegrationMethod) {
 
@@ -166,12 +166,12 @@ void Triangle2D3ModifiedShapeFunctions::GetPositiveSideInterfaceUnitNormals(
                                               mpTriangleSplitter->mPositiveInterfaces,
                                               IntegrationMethod);
     } else {
-        KRATOS_ERROR << "Using the GetPositiveSideInterfaceUnitNormals method for a non divided geometry.";
+        KRATOS_ERROR << "Using the ComputePositiveSideInterfaceUnitNormals method for a non divided geometry.";
     }
 };
 
 // Compute the positive side interface outwards unit normal vector values.
-void Triangle2D3ModifiedShapeFunctions::GetNegativeSideInterfaceUnitNormals(
+void Triangle2D3ModifiedShapeFunctions::ComputeNegativeSideInterfaceUnitNormals(
     std::vector<Vector> &rNegativeSideInterfaceUnitNormal,
     const IntegrationMethodType IntegrationMethod) {
 
@@ -181,7 +181,7 @@ void Triangle2D3ModifiedShapeFunctions::GetNegativeSideInterfaceUnitNormals(
                                               mpTriangleSplitter->mNegativeInterfaces,
                                               IntegrationMethod);
     } else {
-        KRATOS_ERROR << "Using the GetNegativeSideInterfaceUnitNormals method for a non divided geometry.";
+        KRATOS_ERROR << "Using the ComputeNegativeSideInterfaceUnitNormals method for a non divided geometry.";
     }
 };
 

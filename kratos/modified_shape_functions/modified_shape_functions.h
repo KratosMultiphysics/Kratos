@@ -121,7 +121,7 @@ public:
     * @return rPositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void GetPositiveSideShapeFunctionsAndGradientsValues(
+    virtual void ComputePositiveSideShapeFunctionsAndGradientsValues(
         Matrix &rPositiveSideShapeFunctionsValues,
         std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
         Vector &rPositiveSideWeightsValues,
@@ -134,7 +134,7 @@ public:
     * @return rNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void GetNegativeSideShapeFunctionsAndGradientsValues(
+    virtual void ComputeNegativeSideShapeFunctionsAndGradientsValues(
         Matrix &rNegativeSideShapeFunctionsValues,
         std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
         Vector &rNegativeSideWeightsValues,
@@ -147,7 +147,7 @@ public:
     * @return rInterfacePositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void GetInterfacePositiveSideShapeFunctionsAndGradientsValues(
+    virtual void ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
         Matrix &rInterfacePositiveSideShapeFunctionsValues,
         std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
         Vector &rInterfacePositiveSideWeightsValues,
@@ -160,7 +160,7 @@ public:
     * @return rInterfaceNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void GetInterfaceNegativeSideShapeFunctionsAndGradientsValues(
+    virtual void ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
         Matrix &rInterfaceNegativeSideShapeFunctionsValues,
         std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
         Vector &rInterfaceNegativeSideWeightsValues,
@@ -171,7 +171,7 @@ public:
     * @return rPositiveSideInterfaceUnitNormal: Outwards unit normal vector list.
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void GetPositiveSideInterfaceUnitNormals(
+    virtual void ComputePositiveSideInterfaceUnitNormals(
         std::vector<Vector> &rPositiveSideInterfaceUnitNormal,
         const IntegrationMethodType IntegrationMethod) = 0;
 
@@ -180,7 +180,7 @@ public:
     * @return rNegativeSideInterfaceUnitNormal: Outwards unit normal vector list.
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void GetNegativeSideInterfaceUnitNormals(
+    virtual void ComputeNegativeSideInterfaceUnitNormals(
         std::vector<Vector> &rNegativeSideInterfaceUnitNormal,
         const IntegrationMethodType IntegrationMethod) = 0;
 
