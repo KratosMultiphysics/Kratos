@@ -195,11 +195,19 @@ public:
         const int materialPropertyTableNumber = 1;
         const int color = 0;
 
+
+
+
+
+        int new_element_id = 0;
+
+
+
         outputFile << setw(6) << "-1" << "\n";
         outputFile << setw(6) << dataSetNumberForElements << "\n";
         for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
         {
-            const int element_label = condition_i->Id();
+            const int element_label = ++new_element_id;
             ModelPart::ConditionType::GeometryType condition_geometry = condition_i->GetGeometry();
 
             if( condition_geometry.size()==3 )
@@ -234,7 +242,6 @@ public:
             else 
                 KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains conditions with geometries for which no UNV-output is implemented!","" )
         }
-        outputFile << setw(6) << "-1" << "\n";
 
 
 
@@ -243,11 +250,9 @@ public:
 
 
 
-        outputFile << setw(6) << "-1" << "\n";
-        outputFile << setw(6) << dataSetNumberForElements << "\n";
         for (auto & element_i : mrDesignSurface.Elements())
         {
-            const int element_label = element_i.Id();
+            const int element_label = ++new_element_id;
             ModelPart::ConditionType::GeometryType element_geometry = element_i.GetGeometry();
 
             // Write triangles
@@ -300,6 +305,12 @@ public:
             else 
                 KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains elements with geometries for which no UNV-output is implemented!","" )
         }
+
+
+
+
+
+
         outputFile << setw(6) << "-1" << "\n";
 
 
