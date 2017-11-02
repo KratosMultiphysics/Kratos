@@ -407,6 +407,7 @@ namespace Kratos
 	void CrBeamElement3D2N::CalculateInitialLocalCS() {
 
 		KRATOS_TRY
+		const double numerical_limit = std::numeric_limits<double>::epsilon();
 		array_1d<double, msDimension> DirectionVectorX = ZeroVector(msDimension);
 		array_1d<double, msDimension> DirectionVectorY = ZeroVector(msDimension);
 		array_1d<double, msDimension> DirectionVectorZ = ZeroVector(msDimension);
@@ -425,24 +426,51 @@ namespace Kratos
 				- ReferenceCoordinates[i]);
 		}
 
-		//use orientation class 1st constructor
-		double theta_costum = 0.00;
-		if (this->GetProperties().Has(ANG_ROT)) theta_costum = this->GetProperties()[ANG_ROT];
+		Matrix Temp = ZeroMatrix(msDimension);
+		this->mRotationMatrix0 = ZeroMatrix(msElementSize);
+
+		// take user defined local axis 2 from GID input
+		if (this->Has(LOCAL_AXIS_2)) 
+		{
+			double VectorNorm = MathUtils<double>::Norm(DirectionVectorX);
+			if (VectorNorm > numerical_limit) DirectionVectorX /= VectorNorm;
+
+			DirectionVectorY = this->GetValue(LOCAL_AXIS_2);
+			DirectionVectorZ[0] = DirectionVectorX[1]*DirectionVectorY[2]-DirectionVectorX[2]*DirectionVectorY[1];
+			DirectionVectorZ[1] = DirectionVectorX[2]*DirectionVectorY[0]-DirectionVectorX[0]*DirectionVectorY[2];
+			DirectionVectorZ[2] = DirectionVectorX[0]*DirectionVectorY[1]-DirectionVectorX[1]*DirectionVectorY[0];
+
+			VectorNorm = MathUtils<double>::Norm(DirectionVectorZ);
+			if (VectorNorm > numerical_limit) DirectionVectorZ /= VectorNorm;
+			else KRATOS_ERROR << "LOCAL_AXIS_3 has length 0 for element " << this->Id() << std::endl;
+
+			for (int i = 0; i < msDimension; ++i)
+			{
+				Temp(i, 0) = DirectionVectorX[i];
+				Temp(i, 1) = DirectionVectorY[i];
+				Temp(i, 2) = DirectionVectorZ[i];
+			}
+		}
+
+		// if no user defined local axis 2 input available use this
+		else
+		{
+			//use orientation class 1st constructor
+			double theta_costum = 0.00;
+			if (this->GetProperties().Has(ANG_ROT)) theta_costum = this->GetProperties()[ANG_ROT];
 			
+			Orientation element_axis(DirectionVectorX, theta_costum);
+			element_axis.CalculateBasisVectors(DirectionVectorX, DirectionVectorY,
+				DirectionVectorZ);
+			element_axis.CalculateRotationMatrix(Temp);
+		}
 
-
-		Orientation element_axis(DirectionVectorX, theta_costum);
-		element_axis.CalculateBasisVectors(DirectionVectorX, DirectionVectorY,
-			DirectionVectorZ);
 		//save them to update the local axis in every following iter. step
 		this->mNX0 = DirectionVectorX;
 		this->mNY0 = DirectionVectorY;
 		this->mNZ0 = DirectionVectorZ;
 
-
-		Matrix Temp = ZeroMatrix(msDimension);
-		this->mRotationMatrix0 = ZeroMatrix(msElementSize);
-		element_axis.CalculateRotationMatrix(Temp);
+		//Create big rotation Matrix
 		this->AssembleSmallInBigMatrix(Temp, this->mRotationMatrix0);
 
 		//provide Initial Rotation Matrix for strategies that dont call 'CalculateLocalSystem'
@@ -500,6 +528,7 @@ namespace Kratos
 	CrBeamElement3D2N::UpdateRotationMatrixLocal() {
 
 		KRATOS_TRY
+		const double numerical_limit = std::numeric_limits<double>::epsilon();
 		bounded_vector<double,msDimension> dPhiA = ZeroVector(msDimension);
 		bounded_vector<double,msDimension> dPhiB = ZeroVector(msDimension);
 		bounded_vector<double,msElementSize>  IncrementDeformation = ZeroVector(msElementSize);
@@ -629,12 +658,12 @@ namespace Kratos
 
 
 		VectorNorm = MathUtils<double>::Norm(deltaX);
-		if (VectorNorm != 0.00) deltaX /= VectorNorm;
+		if (VectorNorm > numerical_limit) deltaX /= VectorNorm;
 
 
 		n_bisectrix = rotatedNX0 + deltaX;
 		VectorNorm = MathUtils<double>::Norm(n_bisectrix);
-		if (VectorNorm != 0.00) n_bisectrix /= VectorNorm;
+		if (VectorNorm > numerical_limit) n_bisectrix /= VectorNorm;
 
 		bounded_matrix<double,msDimension,msDimension> n_xyz = ZeroMatrix(msDimension);
 		for (unsigned int i = 0; i < msDimension; ++i) {
@@ -902,6 +931,7 @@ namespace Kratos
 	{
 		KRATOS_TRY;
 		//calculate orthogonal load vector
+		const double numerical_limit = std::numeric_limits<double>::epsilon();
 		Vector GeometricOrientation = ZeroVector(msDimension);
 		GeometricOrientation[0] = this->GetGeometry()[1].X()
 			- this->GetGeometry()[0].X();
@@ -914,7 +944,7 @@ namespace Kratos
 		}
 
 		const double VectorNormA = MathUtils<double>::Norm(GeometricOrientation);
-		if (VectorNormA != 0.00) GeometricOrientation /= VectorNormA;
+		if (VectorNormA > numerical_limit) GeometricOrientation /= VectorNormA;
 
 		Vector LineLoadDir = ZeroVector(msDimension);
 		for (int i = 0; i < msDimension; ++i)
@@ -923,7 +953,7 @@ namespace Kratos
 		}
 
 		const double VectorNormB = MathUtils<double>::Norm(LineLoadDir);
-		if (VectorNormB != 0.00) LineLoadDir /= VectorNormB;
+		if (VectorNormB > numerical_limit) LineLoadDir /= VectorNormB;
 
 		double cosAngle = 0.00;
 		for (int i = 0; i < msDimension; ++i)
@@ -949,7 +979,7 @@ namespace Kratos
 		Vector LoadOrthogonalDir = ZeroVector(msDimension);
 		LoadOrthogonalDir = NodeB - NodeC;
 		const double VectorNormC = MathUtils<double>::Norm(LoadOrthogonalDir);
-		if (VectorNormC != 0.00) LoadOrthogonalDir /= VectorNormC;
+		if (VectorNormC > numerical_limit) LoadOrthogonalDir /= VectorNormC;
 
 
 
@@ -1723,6 +1753,7 @@ namespace Kratos
 		KRATOS_TRY
 		//!!!!!!!!!! if crossproduct with array_1d type switch input order !!!!!!!
 		//If only direction of v1 is given -> Default case
+		const double numerical_limit = std::numeric_limits<double>::epsilon();
 		array_1d<double, msDimension> GlobalZ = ZeroVector(msDimension);
 		GlobalZ[2] = 1.0;
 
@@ -1731,7 +1762,7 @@ namespace Kratos
 
 		double VectorNorm;
 		VectorNorm = MathUtils<double>::Norm(v1);
-		if (VectorNorm != 0) v1 /= VectorNorm;
+		if (VectorNorm > numerical_limit) v1 /= VectorNorm;
 
 		if (v1[2] == 1.00) {
 			v2[1] = 1.0;
@@ -1747,11 +1778,11 @@ namespace Kratos
 
 			v2 = MathUtils<double>::CrossProduct(v1, GlobalZ);
 			VectorNorm = MathUtils<double>::Norm(v2);
-			if (VectorNorm != 0) v2 /= VectorNorm;
+			if (VectorNorm > numerical_limit) v2 /= VectorNorm;
 
 			v3 = MathUtils<double>::CrossProduct(v2, v1);
 			VectorNorm = MathUtils<double>::Norm(v3);
-			if (VectorNorm != 0) v3 /= VectorNorm;
+			if (VectorNorm > numerical_limit) v3 /= VectorNorm;
 		}
 
 		//manual rotation around the beam axis
@@ -1763,11 +1794,11 @@ namespace Kratos
 
 			v2 = ny_temp * CosTheta + nz_temp * SinTheta;
 			VectorNorm = MathUtils<double>::Norm(v2);
-			if (VectorNorm != 0) v2 /= VectorNorm;
+			if (VectorNorm > numerical_limit) v2 /= VectorNorm;
 
 			v3 = nz_temp * CosTheta - ny_temp * SinTheta;
 			VectorNorm = MathUtils<double>::Norm(v3);
-			if (VectorNorm != 0) v3 /= VectorNorm;
+			if (VectorNorm > numerical_limit) v3 /= VectorNorm;
 		}
 
 		Matrix RotationMatrix = ZeroMatrix(msDimension);
@@ -1786,18 +1817,19 @@ namespace Kratos
 
 		KRATOS_TRY
 		//If the user defines an aditional direction v2
+		const double numerical_limit = std::numeric_limits<double>::epsilon();
 		array_1d<double, msDimension> v3 = ZeroVector(msDimension);
 
 		double VectorNorm;
 		VectorNorm = MathUtils<double>::Norm(v1);
-		if (VectorNorm != 0) v1 /= VectorNorm;
+		if (VectorNorm > numerical_limit) v1 /= VectorNorm;
 
 		VectorNorm = MathUtils<double>::Norm(v2);
-		if (VectorNorm != 0) v2 /= VectorNorm;
+		if (VectorNorm > numerical_limit) v2 /= VectorNorm;
 
 		v3 = MathUtils<double>::CrossProduct(v2, v1);
 		VectorNorm = MathUtils<double>::Norm(v3);
-		if (VectorNorm != 0) v3 /= VectorNorm;
+		if (VectorNorm > numerical_limit) v3 /= VectorNorm;
 
 
 		Matrix RotationMatrix = ZeroMatrix(msDimension);
