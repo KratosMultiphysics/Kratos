@@ -334,8 +334,7 @@ void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
                                                int& ContactType)
 {
     size_t FE_size = this->GetGeometry().size();
-    std::vector< array_1d <double,3> >Coord;
-    Coord.resize(FE_size, array_1d<double,3>(3,0.0) );
+    
     std::vector<double> TempWeight;
     TempWeight.resize(FE_size);
 
@@ -346,11 +345,6 @@ void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
     for (unsigned int inode = 0; inode < FE_size; inode++) {
 
         if (Weight[inode] > 1.0e-12) {
-
-            for (unsigned int j = 0; j < 3; j++)
-            {
-                Coord[inode][j] = this->GetGeometry()[inode].Coordinates()[j];
-            }
             total_weight = total_weight + Weight[inode];
             points++;
             if (points == 1) {inode1 = inode;}
@@ -370,7 +364,7 @@ void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
     if (points == 3 || points == 4)
     {
         unsigned int dummy_current_edge_index;
-        contact_exists = GeometryFunctions::FacetCheck(Coord, node_coordinates, radius, LocalCoordSystem, DistPToB, TempWeight, dummy_current_edge_index);
+        contact_exists = GeometryFunctions::FacetCheck(this->GetGeometry(), node_coordinates, radius, LocalCoordSystem, DistPToB, TempWeight, dummy_current_edge_index);
         ContactType = 1;
         Weight[0]=TempWeight[0];
         Weight[1]=TempWeight[1];
@@ -388,7 +382,7 @@ void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
     else if (points == 2) {
 
         double eta = 0.0;
-        contact_exists = GeometryFunctions::EdgeCheck(Coord[inode1], Coord[inode2], node_coordinates, radius, LocalCoordSystem, DistPToB, eta);
+        contact_exists = GeometryFunctions::EdgeCheck(this->GetGeometry()[inode1], this->GetGeometry()[inode2], node_coordinates, radius, LocalCoordSystem, DistPToB, eta);
 
         Weight[inode1] = 1-eta;
         Weight[inode2] = eta;
@@ -397,7 +391,7 @@ void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
     }
 
     else if (points == 1) {
-        contact_exists = GeometryFunctions::VertexCheck(Coord[inode1], node_coordinates, radius, LocalCoordSystem, DistPToB);
+        contact_exists = GeometryFunctions::VertexCheck(this->GetGeometry()[inode1], node_coordinates, radius, LocalCoordSystem, DistPToB);
         Weight[inode1] = 1.0;
         ContactType = 3;
     }

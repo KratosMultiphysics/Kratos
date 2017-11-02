@@ -17,6 +17,8 @@
 namespace Kratos {
     
     namespace GeometryFunctions {
+        
+    typedef Geometry<Node < 3 > > GeometryType;
     
     static inline void RotateAVectorAGivenAngleAroundAUnitaryVector(const array_1d<double, 3>& old_vec, const array_1d<double, 3>& axis,
                                                                     const double ang, array_1d<double, 3>& new_vec) {
@@ -1031,7 +1033,7 @@ namespace Kratos {
         return false;
     }//FastFacetCheck
         
-    static inline bool FacetCheck(const std::vector< array_1d <double,3> >& Coord, const array_1d <double,3>& Particle_Coord, double rad,
+    static inline bool FacetCheck(const GeometryType&  Coord, const array_1d <double,3>& Particle_Coord, double rad,
                                   double LocalCoordSystem[3][3], double& DistPToB, std::vector<double>& Weight, unsigned int& current_edge_index) 
     {
         int facet_size = Coord.size();
@@ -1044,9 +1046,9 @@ namespace Kratos {
       
         for (unsigned int i = 0; i<3; i++)
         {
-            A[i] = Coord[2][i]-Coord[1][i];
-            B[i] = Coord[0][i]-Coord[1][i];
-            PC[i] = Particle_Coord[i]-Coord[1][i];
+            A[i] = Coord[2].Coordinates()[i]-Coord[1].Coordinates()[i];
+            B[i] = Coord[0].Coordinates()[i]-Coord[1].Coordinates()[i];
+            PC[i] = Particle_Coord[i]-Coord[1].Coordinates()[i];
         }
   
         N[0] = A[1]*B[2] - A[2]*B[1];
