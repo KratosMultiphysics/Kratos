@@ -17,7 +17,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
-
 #include "constitutive_laws_application.h"
 
 namespace Kratos
@@ -28,9 +27,6 @@ void KratosConstitutiveLawsApplication::Register()
     // calling base class register to register Kratos components
     KratosApplication::Register();
     std::cout << "Initializing KratosConstitutiveLawsApplication... " << std::endl;
-
-    Serializer::Register( "UmatLaw" , mUmatLaw);
-    Serializer::Register( "LargeStrainsUmatLaw" , mLargeStrainsUmatLaw);
 
 }
 
