@@ -81,10 +81,13 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         mechanical_model_part.Properties = self.main_model_part.Properties
         mechanical_model_part.Set(KratosMultiphysics.ACTIVE)
         print("Adding Nodes to Mechanical Model Part")
-        for node in self.main_model_part.Nodes:
-            mechanical_model_part.AddNode(node,0)
         list_of_ids = set()
+        for part in mechanical_parts:
+            for node in part.Nodes:
+                list_of_ids.add(node.Id)
+        mechanical_model_part.AddNodes(list(list_of_ids))
         print("Adding Elements to Mechanical Model Part")
+        list_of_ids = set()
         for part in mechanical_parts:
             for elem in part.Elements:
                 list_of_ids.add(elem.Id)
@@ -106,6 +109,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             body_sub_model_part = self.main_model_part.GetSubModelPart(self.body_domain_sub_model_part_list[i].GetString())
             mechanical_model_part.CreateSubModelPart(self.body_domain_sub_model_part_list[i].GetString())
             body_sub_sub_model_part = mechanical_model_part.GetSubModelPart(self.body_domain_sub_model_part_list[i].GetString())
+            list_of_ids = set()
+            for node in body_sub_model_part.Nodes:
+                list_of_ids.add(node.Id)
+            body_sub_sub_model_part.AddNodes(list(list_of_ids))
             list_of_ids = set()
             for elem in body_sub_model_part.Elements:
                 list_of_ids.add(elem.Id)

@@ -35,21 +35,39 @@ namespace Python
 {
 
 inline
-void InitializeSolutionStep(
+void AssignTimeActivation(
         ConstructionUtility& rThisUtil,
         std::string ThermalSubModelPartName,
-        std::string MechanicalSubModelPartName)
+        int phase, double time_activation)
 {
-    rThisUtil.InitializeSolutionStep(ThermalSubModelPartName, MechanicalSubModelPartName);
+    rThisUtil.AssignTimeActivation(ThermalSubModelPartName, phase, time_activation);
 }
 
 inline
-void ActiveHeatFlux(
-        ConstructionUtility& rThisUtil,    
+void InitializeSolutionStep(
+        ConstructionUtility& rThisUtil,
         std::string ThermalSubModelPartName,
-        int phase, double phase_time)
+        std::string MechanicalSubModelPartName,
+        int phase)
 {
-    rThisUtil.ActiveHeatFlux(ThermalSubModelPartName, phase, phase_time);
+    rThisUtil.InitializeSolutionStep(ThermalSubModelPartName, MechanicalSubModelPartName, phase);
+}
+
+
+inline
+void ActiveHeatFluxNoorzai(
+        ConstructionUtility& rThisUtil,    
+        Parameters& NoorzaiParameters)
+{
+    rThisUtil.ActiveHeatFluxNoorzai(NoorzaiParameters);
+}
+
+inline
+void ActiveHeatFluxAzenha(
+        ConstructionUtility& rThisUtil,    
+        Parameters& AzenhaParameters)
+{
+    rThisUtil.ActiveHeatFluxAzenha(AzenhaParameters);
 }
 
 
@@ -71,13 +89,15 @@ void  AddCustomUtilitiesToPython()
     .def("Transfer",&TransferSelfweightStressUtility::Transfer)
     ;
     
-    class_< ConstructionUtility > ("ConstructionUtility", init<ModelPart&, ModelPart&, TableType&, TableType&, Parameters&>())
+    class_< ConstructionUtility > ("ConstructionUtility", init<ModelPart&, ModelPart&, TableType&, Parameters&>())
     .def("Initialize",&ConstructionUtility::Initialize)
+    .def("AssignTimeActivation", AssignTimeActivation)    
     .def("InitializeSolutionStep",InitializeSolutionStep)
-    .def("ActiveHeatFlux",ActiveHeatFlux)    
+    .def("SearchingFluxes",&ConstructionUtility::SearchingFluxes)
+    .def("ActiveHeatFluxNoorzai",ActiveHeatFluxNoorzai)    
+    .def("ActiveHeatFluxAzenha",ActiveHeatFluxAzenha)       
     .def("AfterOutputStep",&ConstructionUtility::AfterOutputStep)
     ;
-    
 
 }
 
