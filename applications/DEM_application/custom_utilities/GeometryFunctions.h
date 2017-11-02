@@ -891,7 +891,11 @@ namespace Kratos {
 
     }*/
    
-    static inline  bool InsideOutside(const array_1d<double, 3>& Coord1, const array_1d<double, 3> &Coord2, const array_1d<double, 3>& JudgeCoord,  const array_1d<double, 3>& normal_element, double& area){
+    static inline  bool InsideOutside(const array_1d<double, 3>& Coord1,
+                                      const array_1d<double, 3>& Coord2,
+                                      const array_1d<double, 3>& JudgeCoord,
+                                      const array_1d<double, 3>& normal_element,
+                                      double& area){
 
         //NOTE:: Normal_out here has to be the normal of the element orientation (not pointing particle)
         double b[3];
@@ -914,7 +918,10 @@ namespace Kratos {
 
     }//InsideOutside
     
-    static inline bool InsideOutside(const array_1d<double, 3> &Coord1, const array_1d<double, 3>& Coord2, const array_1d<double, 3>& JudgeCoord, const array_1d<double, 3>& normal_element) {
+    static inline bool InsideOutside(const array_1d<double, 3> &Coord1,
+                                     const array_1d<double, 3>& Coord2,
+                                     const array_1d<double, 3>& JudgeCoord,
+                                     const array_1d<double, 3>& normal_element) {
 
         //NOTE:: Normal_out here has to be the normal of the element orientation (not pointing particle)
         array_1d<double, 3> cp1;
@@ -1082,7 +1089,11 @@ namespace Kratos {
             for (int i = 0; i<facet_size; i++)
             {
                 double this_area = 0.0;
-                if (InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, normal_flag*N, this_area) == false)
+                if (InsideOutside(Coord[i],
+                                  Coord[(i+1)%facet_size],
+                                  IntersectionCoord,
+                                  normal_flag*N,
+                                  this_area) == false)
                 {
                     current_edge_index = i;
                     return false;

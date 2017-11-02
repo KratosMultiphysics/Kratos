@@ -1672,14 +1672,11 @@ void   SphericParticle::SetRadius()                                             
 double SphericParticle::GetInteractionRadius(const int radius_index)                             { return mRadius;         }
 void   SphericParticle::SetInteractionRadius(const double radius, const int radius_index)        { mRadius = radius; GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;}
 double SphericParticle::GetSearchRadius()                                                        { return mSearchRadius;   }
-double SphericParticle::GetSearchRadiusWithFem()                                                 { return mSearchRadiusWithFem;   }
 void   SphericParticle::SetSearchRadius(const double radius)                                     { mSearchRadius = radius; }
-void   SphericParticle::SetSearchRadiusWithFem(const double radius)                              { mSearchRadiusWithFem = radius; }
 void SphericParticle::SetDefaultRadiiHierarchy(const double radius)
 {
     SetRadius(radius);
     SetSearchRadius(radius);
-    SetSearchRadiusWithFem(radius);
 }
 
 double SphericParticle::GetMass()                                                                { return mRealMass;       }

@@ -52,7 +52,7 @@ class ExplicitStrategy:
 
         self.delta_option = DEM_parameters["DeltaOption"].GetString() #TODO: this is not an option (bool) let's change the name to something including 'type'
 
-        self.search_tolerance = 0.0
+        self.search_increment = 0.0
         self.coordination_number = 10.0
         self.case_option = 3
         self.search_control = 1
@@ -72,12 +72,12 @@ class ExplicitStrategy:
 
         elif DEM_parameters["DeltaOption"].GetString() == "Absolute":
             self.delta_option = 1
-            self.search_tolerance = DEM_parameters["SearchTolerance"].GetDouble()
+            self.search_increment = DEM_parameters["SearchTolerance"].GetDouble()
 
         elif DEM_parameters["DeltaOption"].GetString() == "Coordination_Number":
             self.delta_option = 2
             self.coordination_number = DEM_parameters["CoordinationNumber"].GetDouble()
-            self.search_tolerance = 0.01 * 0.0001 #DEM_parameters-MeanRadius
+            self.search_increment = 0.01 * 0.0001 #DEM_parameters-MeanRadius
 
         # TIME RELATED PARAMETERS
         self.delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
@@ -209,8 +209,10 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
 
         # SEARCH-RELATED
+        #self.search_increment_for_walls = 0.0 # for the moment, until all bugs have been removed
         self.do_search_neighbours = True # Hard-coded until needed as an option
-        self.spheres_model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance)
+        self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
+        self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
         self.spheres_model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
         self.spheres_model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
 
@@ -300,7 +302,7 @@ class ExplicitStrategy:
         (self.cplusplus_strategy).SetNormalRadiiOnAllParticles(self.spheres_model_part)
         
     def SetSearchRadiiOnAllParticles(self):
-        (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_tolerance, 1.0)
+        (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
         
     def RebuildListOfDiscontinuumSphericParticles(self):
         (self.cplusplus_strategy).RebuildListOfDiscontinuumSphericParticles()

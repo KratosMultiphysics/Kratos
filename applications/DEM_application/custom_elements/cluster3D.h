@@ -68,7 +68,7 @@ namespace Kratos
         std::vector<SphericParticle*>  GetSpheres() { return mListOfSphericParticles; }; 
         virtual void SetContinuumGroupToBreakableClusterSpheres(const int Id);
         virtual void SetInitialConditionsToSpheres(const array_1d<double,3>& velocity);
-        virtual void SetInitialNeighbours(const double search_tolerance);
+        virtual void SetInitialNeighbours(const double search_increment);
         virtual void CreateContinuumConstitutiveLaws();
         virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
         

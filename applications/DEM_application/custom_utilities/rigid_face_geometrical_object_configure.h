@@ -447,7 +447,7 @@ public:
        Particle_Coord[0]                = DE_Geom[0].Coordinates()[0];
        Particle_Coord[1]                = DE_Geom[0].Coordinates()[1];
        Particle_Coord[2]                = DE_Geom[0].Coordinates()[2];
-       double Radius                    = rObj_1->GetSearchRadius(); 
+       double Radius                    = rObj_1->GetInteractionRadius();
 
        const GeometryType& FE_Geom = rObj_2->GetGeometry();
        unsigned int FE_size = FE_Geom.size();
@@ -465,7 +465,7 @@ public:
 
        double distance_point_to_plane   = 0.0;
        unsigned int current_edge_index  = 0;
-       ContactExists = GeometryFunctions::FacetCheck(Coord,  Particle_Coord, Radius, local_coord_system,
+       ContactExists = GeometryFunctions::FacetCheck(Coord, Particle_Coord, Radius, local_coord_system,
                                                      distance_point_to_plane, Weight, current_edge_index);
        if (ContactExists == true) {
          ContactType = 1;
@@ -538,7 +538,7 @@ public:
       Particle_Coord[0]                = DE_Geom[0].Coordinates()[0];
       Particle_Coord[1]                = DE_Geom[0].Coordinates()[1];
       Particle_Coord[2]                = DE_Geom[0].Coordinates()[2];
-      double Radius                    = rObj_1->GetSearchRadius(); 
+      double Radius                    = rObj_1->GetInteractionRadius();
 
       const GeometryType& FE_Geom = rObj_2->GetGeometry();
 
