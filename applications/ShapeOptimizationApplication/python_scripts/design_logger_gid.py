@@ -81,10 +81,15 @@ class DesignLoggerGID( DesignLogger ):
 
     # --------------------------------------------------------------------------
     def LogCurrentDesign( self, optimizationIteration ):
+        OriginalTime = self.OptimizationModelPart.ProcessInfo[TIME]
+        self.OptimizationModelPart.ProcessInfo[TIME] = optimizationIteration
+
         self.GidIO.ExecuteInitializeSolutionStep()
         if(self.GidIO.IsOutputStep()):
             self.GidIO.PrintOutput()
         self.GidIO.ExecuteFinalizeSolutionStep()
+
+        self.OptimizationModelPart.ProcessInfo[TIME] = OriginalTime
                     
     # --------------------------------------------------------------------------
     def FinalizeLogging( self ):      
