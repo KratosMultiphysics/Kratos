@@ -1,1 +1,0 @@
-set grid; plot 'variables_for_node_1.txt' every 20 u 1:8 w lp lt -1 lw 1.5 ps 1 pt 4
