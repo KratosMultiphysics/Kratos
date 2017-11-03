@@ -32,47 +32,62 @@ class DesignLoggerGID( DesignLogger ):
     def __init__( self, OptimizationModelPart, DesignSurface, OptimizationSettings ):
         self.OptimizationModelPart = OptimizationModelPart
         self.DesignSurface = DesignSurface
-        self.OptimizationSettings = OptimizationSettings
-        self.WriteCompleteOptimizationModelPart = OptimizationSettings["output"]["output_complete_optimization_model_part"].GetBool()
+        self.OutputSettings = OptimizationSettings["output"]
         
-        self.__ModifySettingsToStickToDefaultGiDOutputProcess()
+        self.__DetermineOutputMode()
         self.__CreateGiDIO()
 
     # --------------------------------------------------------------------------
-    def __ModifySettingsToStickToDefaultGiDOutputProcess( self ):      
-        self.__AddNodalResultsToGidConfiguration()
-        self.__EnsureConditionsAreWrittenIfOnlyDesignSurfaceShallBeOutput()
-
-    # --------------------------------------------------------------------------
-    def __AddNodalResultsToGidConfiguration( self ):
-        NodalResults = self.OptimizationSettings["output"]["nodal_results"]        
-        self.OptimizationSettings["output"]["output_format"]["gid_configuration"]["result_file_configuration"].AddValue("nodal_results", NodalResults)
+    def __DetermineOutputMode( self ):
+        OutputMode = self.OutputSettings["design_output_mode"].GetString()
         
-    # --------------------------------------------------------------------------
-    def __EnsureConditionsAreWrittenIfOnlyDesignSurfaceShallBeOutput( self ):  
-        GidConfig = self.OptimizationSettings["output"]["output_format"]["gid_configuration"]
-        
-        ConditionSettingsAlreadyGiven = GidConfig["result_file_configuration"]["gidpost_flags"].Has("WriteConditionsFlag")
-        if not ConditionSettingsAlreadyGiven:           
-            GidConfig["result_file_configuration"]["gidpost_flags"].AddEmptyValue("WriteConditionsFlag")
+        self.WriteDesignSurface = False
+        self.WriteOptimizationModelPart = False
 
-        if self.WriteCompleteOptimizationModelPart:
-            GidConfig["result_file_configuration"]["gidpost_flags"]["WriteConditionsFlag"].SetString("WriteElementsOnly")       
-        else:     
-            GidConfig["result_file_configuration"]["gidpost_flags"]["WriteConditionsFlag"].SetString("WriteConditions")
+        if OutputMode == "WriteDesignSurface":
+            self.WriteDesignSurface = True
+        elif OutputMode == "WriteOptimizationModelPart":
+            if self.OptimizationModelPart.NumberOfElements() == 0:
+                raise NameError("Output of optimization model part in Gid-format requires definition of elements. No elements are given in current mdpa! You may change the design output mode.")              
+            self.WriteOptimizationModelPart = True
+        else:
+            raise NameError("The following design output mode is not defined within a GiD output (name may be misspelled): " + OutputMode)              
 
     # --------------------------------------------------------------------------
     def __CreateGiDIO( self ):
-        ResultsDirectory = self.OptimizationSettings["output"]["output_directory"].GetString()
-        DesignHistoryFilename = self.OptimizationSettings["output"]["design_history_filename"].GetString()
-        DesignHistoryFilenameWithPath =  ResultsDirectory+"/"+DesignHistoryFilename
-        
-        GidConfig = self.OptimizationSettings["output"]["output_format"]["gid_configuration"]
+        self.__ModifySettingsToMatchDefaultGiDOutputProcess()        
 
-        if self.WriteCompleteOptimizationModelPart:
-            self.GidIO = GiDOutputProcess(self.OptimizationModelPart, DesignHistoryFilenameWithPath, GidConfig)
-        else:
+        GidConfig = self.OutputSettings["output_format"]["gid_configuration"]
+        ResultsDirectory = self.OutputSettings["output_directory"].GetString()
+        DesignHistoryFilename = self.OutputSettings["design_history_filename"].GetString()
+        DesignHistoryFilenameWithPath =  ResultsDirectory+"/"+DesignHistoryFilename
+
+        if self.WriteDesignSurface:     
             self.GidIO = GiDOutputProcess(self.DesignSurface, DesignHistoryFilenameWithPath, GidConfig)
+        elif self.WriteOptimizationModelPart:
+            self.GidIO = GiDOutputProcess(self.OptimizationModelPart, DesignHistoryFilenameWithPath, GidConfig)
+
+    # --------------------------------------------------------------------------
+    def __ModifySettingsToMatchDefaultGiDOutputProcess( self ):      
+        self.__AddNodalResultsToGidConfiguration()
+        self.__SetConditionsFlagAccordingOutputMode()
+
+    # --------------------------------------------------------------------------
+    def __AddNodalResultsToGidConfiguration( self ):
+        NodalResults = self.OutputSettings["nodal_results"]        
+        self.OutputSettings["output_format"]["gid_configuration"]["result_file_configuration"].AddValue("nodal_results", NodalResults)
+        
+    # --------------------------------------------------------------------------
+    def __SetConditionsFlagAccordingOutputMode( self ):  
+        GidConfig = self.OutputSettings["output_format"]["gid_configuration"]
+        
+        if not GidConfig["result_file_configuration"]["gidpost_flags"].Has("WriteConditionsFlag"):           
+            GidConfig["result_file_configuration"]["gidpost_flags"].AddEmptyValue("WriteConditionsFlag")
+
+        if self.WriteDesignSurface:     
+            GidConfig["result_file_configuration"]["gidpost_flags"]["WriteConditionsFlag"].SetString("WriteConditions")
+        elif self.WriteOptimizationModelPart:
+            GidConfig["result_file_configuration"]["gidpost_flags"]["WriteConditionsFlag"].SetString("WriteElementsOnly")       
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):

@@ -31,7 +31,24 @@ class DesignLoggerUNV( DesignLogger ):
         self.DesignSurface = DesignSurface
         self.OutputSettings = OptimizationSettings["output"]
         
+        self.__DetermineOutputMode()
         self.__CreateUNVIO()
+
+    # --------------------------------------------------------------------------
+    def __DetermineOutputMode( self ):
+        OutputMode = self.OutputSettings["design_output_mode"].GetString()
+        
+        self.WriteDesignSurface = False
+        self.WriteOptimizationModelPart = False
+
+        if OutputMode == "WriteDesignSurface":
+            self.WriteDesignSurface = True
+        elif OutputMode == "WriteOptimizationModelPart":
+            if self.OptimizationModelPart.NumberOfElements() == 0:
+                raise NameError("Output of optimization model part in UNV-format requires definition of elements. No elements are given in current mdpa! You may change the design output mode.")              
+            self.WriteOptimizationModelPart = True
+        else:
+            raise NameError("The following design output mode is not defined within a UNV output (name may be misspelled): " + OutputMode)              
 
     # --------------------------------------------------------------------------
     def __CreateUNVIO( self ):
@@ -40,12 +57,11 @@ class DesignLoggerUNV( DesignLogger ):
         DesignHistoryFilenameWithPath =  ResultsDirectory+"/"+DesignHistoryFilename
 
         NodalResults = self.OutputSettings["nodal_results"]
-        WriteCompleteOptimizationModelPart = self.OutputSettings["output_complete_optimization_model_part"].GetBool()
        
-        if WriteCompleteOptimizationModelPart:
-            self.UNVIO = UniversalFileIO( self.OptimizationModelPart, DesignHistoryFilenameWithPath, "WriteElementsOnly", NodalResults )                
-        else:
+        if self.WriteDesignSurface:
             self.UNVIO = UniversalFileIO( self.DesignSurface, DesignHistoryFilenameWithPath, "WriteConditionsOnly", NodalResults )  
+        elif self.WriteOptimizationModelPart:
+            self.UNVIO = UniversalFileIO( self.OptimizationModelPart, DesignHistoryFilenameWithPath, "WriteElementsOnly", NodalResults )                
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):

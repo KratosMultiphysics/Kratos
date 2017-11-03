@@ -390,7 +390,7 @@ public:
             outputFile << std::setw(10) << modelType; 
             outputFile << std::setw(10) << analysisType; 
             outputFile << std::setw(10) << dataCharacteristic;
-            if (nodalResultName.compare("SHAPE_UPDATE_ABSOLUTE") == 0)
+            if (nodalResultName.compare("SHAPE_CHANGE") == 0 || nodalResultName.compare("MESH_CHANGE") == 0)
                 outputFile << std::setw(10) << displacementResultType;
             else
                 outputFile << std::setw(10) << resultType;

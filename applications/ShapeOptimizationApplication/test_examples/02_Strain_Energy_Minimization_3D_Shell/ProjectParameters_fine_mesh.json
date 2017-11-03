@@ -161,7 +161,7 @@
             "output_directory"        : "Optimization_Results_Fine",
             "design_history_filename" : "design_history",
             "response_log_filename"   : "response_log",
-            "output_complete_optimization_model_part" : false,            
+            "design_output_mode"      : "WriteDesignSurface",            
             "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
                                           "OBJECTIVE_SENSITIVITY",
                                           "MAPPED_OBJECTIVE_SENSITIVITY",

@@ -183,10 +183,10 @@
             "step_size"                  : 3
         },
         "output" : {
-            "output_directory"                        : "Optimization_Results_With_Mass_Constraint",
-            "response_log_filename"                   : "response_log",
-            "design_history_filename"                 : "design_history",
-            "output_complete_optimization_model_part" : false,
+            "output_directory"        : "Optimization_Results_With_Mass_Constraint",
+            "response_log_filename"   : "response_log",
+            "design_history_filename" : "design_history",
+            "design_output_mode"      : "WriteOptimizationModelPart",            
             "nodal_results" : [ "NORMALIZED_SURFACE_NORMAL",
                                 "OBJECTIVE_SENSITIVITY",
                                 "CONSTRAINT_SENSITIVITY",
