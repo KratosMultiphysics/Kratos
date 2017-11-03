@@ -475,16 +475,15 @@ virtual void Update(ModelPart& r_model_part,
           ////// ROTATION DEGRESS OF FREEDOM
           if (i->HasDofFor(ROTATION_X))
           {
-            //const double& nodal_inertia     = i->FastGetSolutionStepValue(NODAL_INERTIA);           
-            const double nodal_inertia = 6.728; //for testing now ---> change this by rewriting beam mass matrix
+            array_1d<double,3> nodal_inertia     = i->FastGetSolutionStepValue(NODAL_INERTIA);  
             array_1d<double,3>& current_residual_moment          = i->FastGetSolutionStepValue(MOMENT_RESIDUAL);
             array_1d<double,3>& current_angular_velocity         = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
             array_1d<double,3>& current_rotation                 = i->FastGetSolutionStepValue(ROTATION);
             array_1d<double,3>& middle_angular_velocity          = i->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
             array_1d<double,3>& current_angular_acceleration     = i->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
-
-            current_angular_acceleration = current_residual_moment / nodal_inertia;
+            for (int kk = 0; kk<3; ++kk) current_angular_acceleration[kk] = current_residual_moment[kk] / nodal_inertia[kk];
+            
 
             DoF = 2;
             bool Fix_rot[3] = {false, false, false};
@@ -591,9 +590,8 @@ virtual void Update(ModelPart& r_model_part,
           ////// ROTATION DEGRESS OF FREEDOM
           if (i->HasDofFor(ROTATION_X))
           {
-            //const double& nodal_inertia     = i->FastGetSolutionStepValue(NODAL_INERTIA);
-            //for testing now ---> change this by rewriting beam mass matrix
-            const double nodal_inertia = 6.728;
+            
+            array_1d<double,3> nodal_inertia     = i->FastGetSolutionStepValue(NODAL_INERTIA);  
             array_1d<double,3>& current_residual_moment          = i->FastGetSolutionStepValue(MOMENT_RESIDUAL);
             array_1d<double,3>& current_angular_velocity         = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
             array_1d<double,3>& current_rotation                 = i->FastGetSolutionStepValue(ROTATION);
@@ -601,7 +599,7 @@ virtual void Update(ModelPart& r_model_part,
             array_1d<double,3>& current_angular_acceleration     = i->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
 
-            current_angular_acceleration = current_residual_moment / nodal_inertia;
+            for (int kk = 0; kk<3; ++kk) current_angular_acceleration[kk] = current_residual_moment[kk] / nodal_inertia[kk];
 
             DoF = 2;
             bool Fix_rot[3] = {false, false, false};

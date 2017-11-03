@@ -484,9 +484,6 @@ namespace Kratos
 		CrBeamElement3D2N::msElementSize,CrBeamElement3D2N::msElementSize>& rRotationMatrix) {
 
 		KRATOS_TRY
-		//initialize local CS
-		if (this->mIterationCount == 0) this->CalculateInitialLocalCS();
-
 		//update local CS
 		Matrix AuxRotationMatrix = ZeroMatrix(msDimension);
 		AuxRotationMatrix = this->UpdateRotationMatrixLocal();
@@ -815,18 +812,11 @@ namespace Kratos
 		else
 		{
 			this->CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
-
+			//KRATOS_WATCH(rMassMatrix);
 			bounded_matrix<double,msElementSize,msElementSize> RotationMatrix = ZeroMatrix(msElementSize,msElementSize);
 			bounded_matrix<double,msElementSize,msElementSize> aux_matrix = ZeroMatrix(msElementSize,msElementSize);
 
-			if (this->mIsLinearElement)
-			{
-				RotationMatrix = this->mRotationMatrix0;
-			}
-			else
-			{
-				RotationMatrix = this->mRotationMatrix;
-			}
+			RotationMatrix = this->mRotationMatrix;
 			aux_matrix = prod(RotationMatrix, rMassMatrix);
 			rMassMatrix = prod(aux_matrix,
 				Matrix(trans(RotationMatrix)));
@@ -1264,7 +1254,7 @@ namespace Kratos
 			Stress = ZeroVector(msElementSize);
 			Stress = prod(LeftHandSideMatrix, NodalDeformation);
 			bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = ZeroMatrix(msElementSize);
-			TransformationMatrix = this->mRotationMatrix;
+			TransformationMatrix = this->mRotationMatrix0;
 			Stress = prod(Matrix(trans(TransformationMatrix)), Stress);
 		}
 
@@ -1374,7 +1364,7 @@ namespace Kratos
 
 
 	void CrBeamElement3D2N::BuildSingleMassMatrix(MatrixType& rMassMatrix,
-		double Phi, double CT, double CR, double L)
+		double Phi, double CT, double CR, double L, double dir)
 	{
 		KRATOS_TRY;
 		const SizeType MatSize = msNumberOfNodes * 2;
@@ -1390,16 +1380,16 @@ namespace Kratos
 
 		TempMassMatrix(0, 0) = (13.00 / 35.00) + (7.00 / 10.00)*Phi
 			+ (1.00 / 3.00)*Phi2;
-		TempMassMatrix(0, 1) = ((11.00 / 210.00) + (11.00 / 210.00)*Phi
+		TempMassMatrix(0, 1) = dir*((11.00 / 210.00) + (11.00 / 210.00)*Phi
 			+ (1.00 / 24.00)*Phi2)*L;
 		TempMassMatrix(0, 2) = (9.00 / 70.00) + (3.00 / 10.00)*Phi
 			+ (1.00 / 6.00)*Phi2;
 		TempMassMatrix(0, 3) = -((13.00 / 420.00) + (3.00 / 40.00)*Phi
-			+ (1.00 / 24.00)*Phi2)*L;
+			+ (1.00 / 24.00)*Phi2)*L*dir;
 		TempMassMatrix(1, 0) = TempMassMatrix(0, 1);
 		TempMassMatrix(1, 1) = ((1.00 / 105.00) + (1.00 / 60.00)*Phi
 			+ (1.00 / 120.00)*Phi2)*L2;
-		TempMassMatrix(1, 2) = ((13.00 / 420.00) + (3.00 / 40.00)*Phi
+		TempMassMatrix(1, 2) = dir*((13.00 / 420.00) + (3.00 / 40.00)*Phi
 			+ (1.00 / 24.00)*Phi2)*L;
 		TempMassMatrix(1, 3) = -((1.00 / 140.00) + (1.00 / 60.00)*Phi
 			+ (1.00 / 120.00)*Phi2)*L2;
@@ -1408,7 +1398,7 @@ namespace Kratos
 		TempMassMatrix(2, 2) = (13.00 / 35.00) + (7.00 / 10.00)*Phi
 			+ (1.00 / 3.00)*Phi2;
 		TempMassMatrix(2, 3) = -((11.00 / 210.00) + (11.00 / 210.00)*Phi
-			+ (1.00 / 24.00)*Phi2)*L;
+			+ (1.00 / 24.00)*Phi2)*L*dir;
 		TempMassMatrix(3, 0) = TempMassMatrix(0, 3);
 		TempMassMatrix(3, 1) = TempMassMatrix(1, 3);
 		TempMassMatrix(3, 2) = TempMassMatrix(2, 3);
@@ -1422,19 +1412,19 @@ namespace Kratos
 		TempMassMatrix = ZeroMatrix(MatSize, MatSize);
 
 		TempMassMatrix(0, 0) = 6.00 / 5.00;
-		TempMassMatrix(0, 1) = ((1.00 / 10.00) - (1.00 / 2.00)*Phi)*L;
+		TempMassMatrix(0, 1) = dir*((1.00 / 10.00) - (1.00 / 2.00)*Phi)*L;
 		TempMassMatrix(0, 2) = -6.00 / 5.00;
-		TempMassMatrix(0, 3) = ((1.00 / 10.00) - (1.00 / 2.00)*Phi)*L;
+		TempMassMatrix(0, 3) = dir*((1.00 / 10.00) - (1.00 / 2.00)*Phi)*L;
 		TempMassMatrix(1, 0) = TempMassMatrix(0, 1);
 		TempMassMatrix(1, 1) = ((2.00 / 15.00) + (1.00 / 6.00)*Phi
 			+ (1.00 / 3.00)*Phi2)*L2;
-		TempMassMatrix(1, 2) = ((-1.00 / 10.00) + (1.00 / 2.00)*Phi)*L;
+		TempMassMatrix(1, 2) = dir*((-1.00 / 10.00) + (1.00 / 2.00)*Phi)*L;
 		TempMassMatrix(1, 3) = -((1.00 / 30.00) + (1.00 / 6.00)*Phi
 			- (1.00 / 6.00)*Phi2)*L2;
 		TempMassMatrix(2, 0) = TempMassMatrix(0, 2);
 		TempMassMatrix(2, 1) = TempMassMatrix(1, 2);
 		TempMassMatrix(2, 2) = 6.00 / 5.00;
-		TempMassMatrix(2, 3) = ((-1.00 / 10.00) + (1.00 / 2.00)*Phi)*L;
+		TempMassMatrix(2, 3) = dir*((-1.00 / 10.00) + (1.00 / 2.00)*Phi)*L;
 		TempMassMatrix(3, 0) = TempMassMatrix(0, 3);
 		TempMassMatrix(3, 1) = TempMassMatrix(1, 3);
 		TempMassMatrix(3, 2) = TempMassMatrix(2, 3);
@@ -1514,7 +1504,7 @@ namespace Kratos
 		rMassMatrix(9, 9) = M33;
 
 		Matrix TempBendingMassMatrix = ZeroMatrix(smallMatSize, smallMatSize);
-		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiz, CTz, CRz, L);
+		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiz, CTz, CRz, L, +1);
 
 		rMassMatrix(1, 1) = TempBendingMassMatrix(0, 0);
 		rMassMatrix(1, 5) = TempBendingMassMatrix(0, 1);
@@ -1528,7 +1518,7 @@ namespace Kratos
 		rMassMatrix(11, 11) = TempBendingMassMatrix(3, 3);
 
 		TempBendingMassMatrix = ZeroMatrix(smallMatSize, smallMatSize);
-		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiy, CTy, CRy, L);
+		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiy, CTy, CRy, L, -1);
 
 		rMassMatrix(2, 2) = TempBendingMassMatrix(0, 0);
 		rMassMatrix(2, 4) = TempBendingMassMatrix(0, 1);

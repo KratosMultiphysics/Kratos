@@ -50,7 +50,7 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         
         if (self.settings["rotation_dofs"].GetBool()):
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_INERTIA)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
 
         print("::[ExplicitMechanicalSolver]:: Variables ADDED")

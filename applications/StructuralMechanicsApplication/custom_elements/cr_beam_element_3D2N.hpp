@@ -118,7 +118,7 @@ namespace Kratos
 
 		void BuildSingleMassMatrix(
 			MatrixType& rMassMatrix,
-			const double Phi, const double CT, const double CR, const double L);
+			const double Phi, const double CT, const double CR, const double L, const double dir);
 
 		void CalculateDampingMatrix(
 			MatrixType& rDampingMatrix,

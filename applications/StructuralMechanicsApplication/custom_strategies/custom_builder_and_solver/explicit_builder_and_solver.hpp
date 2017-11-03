@@ -157,8 +157,8 @@ public:
 
                     if (i->HasDofFor(ROTATION_X))
                     {
-                        double& nodal_inertia = i->FastGetSolutionStepValue(NODAL_INERTIA);
-                        nodal_inertia = 0.00;
+                        array_1d<double,3>& nodal_inertia = i->FastGetSolutionStepValue(NODAL_INERTIA);
+                        noalias(nodal_inertia) = ZeroVector(3);
                     }
 
                  }
@@ -191,10 +191,7 @@ public:
 
 
                  const unsigned int dimension   = geometry.WorkingSpaceDimension();
-
-                 ////////////////////////////////////////////
-                 ////// TODO:: CALCULATE NODAL INERTIA //////
-                 ////////////////////////////////////////////
+                 const int MatSize = MassMatrix.size1();
 
                  index = 0;
                  for (unsigned int i = 0; i <geometry.size(); i++)
@@ -203,11 +200,23 @@ public:
                      if (MassMatrix.size1() == (dimension*geometry.size()*2)) index *= 2;
 
                      double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_MASS);
+                     array_1d<double,3>& nodal_inertia = geometry(i)->FastGetSolutionStepValue(NODAL_INERTIA);                     
 
                      geometry(i)->SetLock();
-		     
-                     mass += MassMatrix(index,index);
+
+                     for (int j = 0;j<MatSize;++j)
+                     {
+                        // claculate consistent mass matrix
+                        // and condense it down to one diag entry
+                        mass += MassMatrix(index,j);  
+                        nodal_inertia[0] += MassMatrix(index+dimension,j);   
+                        nodal_inertia[1] += MassMatrix(index+dimension+1,j);   
+                        nodal_inertia[2] += MassMatrix(index+dimension+2,j); 
+                     }
+                     for (int j =0;j<3;++j) nodal_inertia[j] = std::abs(nodal_inertia[j]);
                      KRATOS_WATCH(mass);
+                     KRATOS_WATCH(nodal_inertia);
+
                      geometry(i)->UnSetLock();
                  }
              }
