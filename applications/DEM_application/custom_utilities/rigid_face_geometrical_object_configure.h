@@ -299,9 +299,9 @@ public:
         const array_1d<double, 3>& center_of_particle1 = rObj_1->GetGeometry()[0];
         const array_1d<double, 3>& center_of_particle2 = rObj_2->GetGeometry()[0];
 
-        distance = sqrt((center_of_particle1[0] - center_of_particle2[0]) * (center_of_particle1[0] - center_of_particle2[0]) +
-                        (center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
-                        (center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
+        distance = std::sqrt((center_of_particle1[0] - center_of_particle2[0]) * (center_of_particle1[0] - center_of_particle2[0]) +
+                             (center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
+                             (center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
     }
 
 
@@ -342,11 +342,11 @@ public:
            double New_projected_distance = New_projected_on_old * New_Dist;
            double Old_projected_distance = New_projected_on_old * Old_dist;
            
-           if ( ( (New_projected_distance - Old_dist) / std::abs(Old_dist) ) > -1.0e-15 ) {//old has hierarchy over new  //DO NOT SAVE NEW NEIGH
+           if (New_projected_distance - Old_dist > -1.0e-15 * std::abs(Old_dist)) {//old has hierarchy over new  //DO NOT SAVE NEW NEIGH
              return false;
            }
 
-           if ( ( (Old_projected_distance-New_Dist )  / std::abs(New_Dist) ) > -1.0e-15 ) { //new has hierarchy over old
+           if (Old_projected_distance - New_Dist > -1.0e-15 * std::abs(New_Dist)) { //new has hierarchy over old
 
              int old_ID = Id_Array[i_old_neigh];
              if (new_ID == old_ID) {//SUBSTITUTE
