@@ -169,6 +169,26 @@ public:
         return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
     }
 
+    IteratorType begin()
+    {
+        return mData.begin();
+    }
+    
+    ConstantIteratorType begin() const
+    {
+        return mData.begin();
+    }
+    
+    IteratorType end()
+    {
+        return mData.end();
+    }
+
+    ConstantIteratorType end() const
+    {
+        return mData.end();
+    }
+
     /// Assignment operator.
     DataValueContainer& operator=(const DataValueContainer& rOther)
     {
