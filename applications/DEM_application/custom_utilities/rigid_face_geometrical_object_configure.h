@@ -441,18 +441,10 @@ public:
 
        double local_coord_system[3][3]  = { {0.0},{0.0},{0.0} };
        std::vector<double> Weight(4,0.0);
-       std::vector< array_1d<double,3> > Coord;
-       Coord.resize(FE_size, array_1d<double,3>(3,0.0) );
-
-       for (unsigned int i = 0; i<FE_size; i++) {
-         for (unsigned int j = 0; j<3; j++) {
-             Coord[i][j] = FE_Geom[i].Coordinates()[j];
-         }
-       }
 
        double distance_point_to_plane   = 0.0;
        unsigned int current_edge_index  = 0;
-       ContactExists = GeometryFunctions::FacetCheck(Coord, DE_Geom[0].Coordinates(), Radius, local_coord_system,
+       ContactExists = GeometryFunctions::FacetCheck(FE_Geom, DE_Geom[0].Coordinates(), Radius, local_coord_system,
                                                      distance_point_to_plane, Weight, current_edge_index);
        if (ContactExists == true) {
          ContactType = 1;
@@ -472,7 +464,7 @@ public:
             double eta = 0.5; // dummy initialize
             double distance_point_to_edge = 2.0 * Radius; //dummy big initialization
 
-            local_contact_exists = GeometryFunctions::EdgeCheck( Coord[e], Coord[(e+1)%FE_size],  DE_Geom[0].Coordinates(), Radius, local_coord_system,
+            local_contact_exists = GeometryFunctions::EdgeCheck( FE_Geom[e], FE_Geom[(e+1)%FE_size],  DE_Geom[0].Coordinates(), Radius, local_coord_system,
                                                           distance_point_to_edge, eta);
             if (local_contact_exists) {
                 //save data
@@ -489,7 +481,7 @@ public:
               else if(eta>1.0){ vertex_to_check = (e+1)%FE_size;}
               else {continue;}
               double distance_point_to_vertex = 0.0;
-              local_contact_exists = GeometryFunctions::VertexCheck(Coord[vertex_to_check], DE_Geom[0].Coordinates(), Radius, local_coord_system, distance_point_to_vertex);
+              local_contact_exists = GeometryFunctions::VertexCheck(FE_Geom[vertex_to_check], DE_Geom[0].Coordinates(), Radius, local_coord_system, distance_point_to_vertex);
               
               if(local_contact_exists) {
                 ContactType             = 3;
