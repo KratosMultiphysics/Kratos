@@ -854,11 +854,6 @@ public:
       ModelPart::ConditionsContainerType::iterator condition_begin = rModelPart.ConditionsBegin();
       const unsigned int dimension = condition_begin->GetGeometry().WorkingSpaceDimension();
 
-      unsigned int start=0;
-      unsigned int NumberOfMeshes=rModelPart.NumberOfMeshes();
-      if(NumberOfMeshes>1) 
-	start=1;
-
       std::vector<PointType > Holes;
       PointType Point(dimension);
       for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin(); in!=rModelPart.NodesEnd(); in++)
