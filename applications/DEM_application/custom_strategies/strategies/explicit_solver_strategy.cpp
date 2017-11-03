@@ -369,14 +369,13 @@ namespace Kratos {
         int time_step = r_process_info[TIME_STEPS];
         const bool is_time_to_search_neighbours = (time_step + 1) % mNStepSearch == 0 && (time_step > 0); //Neighboring search. Every N times.
 
-        if (is_time_to_search_neighbours || true) { // for the moment it is always true, until all issues have been solved
+        if (is_time_to_search_neighbours) { // for the moment it is always true, until all issues have been solved
             SearchRigidFaceNeighbours();
             ComputeNewRigidFaceNeighboursHistoricalData();
             mSearchControl = 2; // Search is active and has been performed during this time step
         }
 
         else {
-<<<<<<< HEAD
             ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();
             const int number_of_conditions = (int) pTConditions.size();
 
@@ -409,11 +408,6 @@ namespace Kratos {
                 ComputeNewRigidFaceNeighboursHistoricalData();
                 mSearchControl = 1; // Search is active but no search has been done this time step;
             }
-=======
-            CheckHierarchyWithCurrentNeighbours();
-           // ComputeNewRigidFaceNeighboursHistoricalData();
-            mSearchControl = 1; // Search is active but no search has been done this time step;
->>>>>>> parent of 332f23e... it runs but the result still changes when NeighbourSearchFrequency > 1
         }
         KRATOS_CATCH("")
     }//SearchFEMOperations
@@ -1163,9 +1157,10 @@ namespace Kratos {
             
         #pragma omp for
         for (int i = 0; i < number_of_particles; i++) {
-
-            mListOfSphericParticles[i]->mNeighbourRigidFaces.resize(0);
-            mListOfSphericParticles[i]->mContactConditionWeights.resize(0);
+            SphericParticle* p_sphere_i = mListOfSphericParticles[i];
+            p_sphere_i->mNeighbourRigidFaces.resize(0);
+            p_sphere_i->mNeighbourPotentialRigidFaces.resize(0);
+            p_sphere_i->mContactConditionWeights.resize(0);
 
             Distance_Array.clear(); 
             Normal_Array.clear();
@@ -1173,11 +1168,13 @@ namespace Kratos {
             Id_Array.clear();
             ContactType_Array.clear();
 
+            std::vector<DEMWall*>& potential_neighbour_rigid_faces = p_sphere_i->mNeighbourPotentialRigidFaces;
+
             for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it) {
 
                 Condition* p_neighbour_condition = (*neighbour_it).get();
                 DEMWall* p_wall = dynamic_cast<DEMWall*> (p_neighbour_condition);
-                RigidFaceGeometricalConfigureType::DoubleHierarchyMethod(mListOfSphericParticles[i],
+                RigidFaceGeometricalConfigureType::DoubleHierarchyMethod(p_sphere_i,
                         p_wall,
                         Distance_Array,
                         Normal_Array,
@@ -1185,12 +1182,13 @@ namespace Kratos {
                         Id_Array,
                         ContactType_Array
                         );
+                potential_neighbour_rigid_faces.push_back(p_wall);
 
             }//for results iterator
 
-            std::vector<DEMWall*>& neighbour_rigid_faces = mListOfSphericParticles[i]->mNeighbourRigidFaces;
-            std::vector< array_1d<double, 4> >& neighbour_weights = mListOfSphericParticles[i]->mContactConditionWeights;
-            std::vector< int >& neighbor_contact_types = mListOfSphericParticles[i]->mContactConditionContactTypes;
+            std::vector<DEMWall*>& neighbour_rigid_faces = p_sphere_i->mNeighbourRigidFaces;
+            std::vector< array_1d<double, 4> >& neighbour_weights = p_sphere_i->mContactConditionWeights;
+            std::vector< int >& neighbor_contact_types = p_sphere_i->mContactConditionContactTypes;
 
             size_t neigh_size = neighbour_rigid_faces.size();
 
@@ -1224,55 +1222,79 @@ namespace Kratos {
     }//DoubleHierarchyMethod
 
     void ExplicitSolverStrategy::CheckHierarchyWithCurrentNeighbours()
-    {
+        {
         KRATOS_TRY
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_particles; i++) {
+        #pragma omp parallel
+        {
             std::vector< double > Distance_Array; //MACELI: reserve.. or take it out of the loop and have one for every thread
             std::vector< array_1d<double, 3> > Normal_Array;
             std::vector< array_1d<double, 4> > Weight_Array;
             std::vector< int > Id_Array;
             std::vector< int > ContactType_Array;
 
-            std::vector<DEMWall*>& neighbour_rigid_faces = mListOfSphericParticles[i]->mNeighbourRigidFaces;
-            std::vector< array_1d<double, 4> >& neighbour_weights = mListOfSphericParticles[i]->mContactConditionWeights;
-            std::vector< int >& neighbor_contact_types = mListOfSphericParticles[i]->mContactConditionContactTypes;
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+                SphericParticle* p_sphere_i = mListOfSphericParticles[i];
+                p_sphere_i->mNeighbourRigidFaces.resize(0);
+                p_sphere_i->mContactConditionWeights.resize(0);
 
-            size_t neigh_size = neighbour_rigid_faces.size();
-            std::vector<DEMWall*> temporal_neigh(0);
-            std::vector< array_1d<double, 4> > temporal_contact_weights;
-            std::vector< int > temporal_contact_types;
+                Distance_Array.clear();
+                Normal_Array.clear();
+                Weight_Array.clear();
+                Id_Array.clear();
+                ContactType_Array.clear();
+                std::vector<DEMWall*>& potential_neighbour_rigid_faces = p_sphere_i->mNeighbourPotentialRigidFaces;
 
-            for (unsigned int n = 0; n < neigh_size; n++) {
-                Condition* p_neighbour_condition = neighbour_rigid_faces[n];
-                DEMWall* p_wall = dynamic_cast<DEMWall*> (p_neighbour_condition);
-                RigidFaceGeometricalConfigureType::DoubleHierarchyMethod(mListOfSphericParticles[i],
-                        p_wall,
-                        Distance_Array,
-                        Normal_Array,
-                        Weight_Array,
-                        Id_Array,
-                        ContactType_Array
-                        );
+                for (unsigned int n = 0; n < potential_neighbour_rigid_faces.size(); ++n) {
+                    Condition* p_neighbour_condition = potential_neighbour_rigid_faces[n];
+                    DEMWall* p_wall = dynamic_cast<DEMWall*> (p_neighbour_condition);
+                    RigidFaceGeometricalConfigureType::DoubleHierarchyMethod(p_sphere_i,
+                            p_wall,
+                            Distance_Array,
+                            Normal_Array,
+                            Weight_Array,
+                            Id_Array,
+                            ContactType_Array
+                            );
 
+                }//loop over temporal neighbours
 
-                if (ContactType_Array[n] != -1) //if(it is not a -1 contact neighbour, we update it, otherwise, we don't bother)
-                {
-                    temporal_neigh.push_back(neighbour_rigid_faces[n]);
-                    temporal_contact_weights.push_back(Weight_Array[n]);
-                    temporal_contact_types.push_back(ContactType_Array[n]);
-                }
+                std::vector<DEMWall*>& neighbour_rigid_faces = p_sphere_i->mNeighbourRigidFaces;
+                std::vector< array_1d<double, 4> >& neighbour_weights = p_sphere_i->mContactConditionWeights;
+                std::vector< int >& neighbor_contact_types = p_sphere_i->mContactConditionContactTypes;
+
+                size_t neigh_size = neighbour_rigid_faces.size();
+
+                std::vector<DEMWall*> temporal_neigh(0);
+                std::vector< array_1d<double, 4> > temporal_contact_weights;
+                std::vector< int > temporal_contact_types;
+
+                for (unsigned int n = 0; n < neigh_size; n++) {
+
+                    if (ContactType_Array[n] != -1) //if(it is not a -1 contact neighbour, we copy it)
+                    {
+                        temporal_neigh.push_back(neighbour_rigid_faces[n]);
+                        temporal_contact_weights.push_back(Weight_Array[n]);
+                        temporal_contact_types.push_back(ContactType_Array[n]);
+
+                    }//if(it is not a -1 contact neighbour, we copy it)
+
+                }//loop over temporal neighbours
+
+                //swap
 
                 temporal_neigh.swap(neighbour_rigid_faces);
                 temporal_contact_weights.swap(neighbour_weights);
                 temporal_contact_types.swap(neighbor_contact_types);
 
-            }//loop over temporal neighbours
-        }//for particles
+
+            }//for particles
+        }
+
         KRATOS_CATCH("")
-    }//CheckHierarchyWithCurrentNeighbours
+        }//CheckHierarchyWithCurrentNeighbours
 
     void ExplicitSolverStrategy::CalculateInitialMaxIndentations(ProcessInfo& r_process_info) {
         KRATOS_TRY

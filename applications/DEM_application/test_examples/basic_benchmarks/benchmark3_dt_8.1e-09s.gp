@@ -1,0 +1,1 @@
+set grid; plot 'benchmark3_dt_8.1e-09_restitution_numbers_vector_list_data.dat' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, 'benchmark3_dt_8.1e-09_restitution_numbers_vector_list_data.dat' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6
