@@ -68,7 +68,7 @@ public:
         unsigned i;
         bool found = false;
         for (i = 0; i < mBinKeys.size(); ++i)
-            if (typeid(mBinKeys[i]) == typeid(key))
+            if (IsMatch(key, mBinKeys[i]))
             {
                 found = true;
                 break;
@@ -100,6 +100,8 @@ private:
 
     template <class TOtherContainerType>
     void CreateMultipleBins(TOtherContainerType& rData);
+
+    inline bool IsMatch(KeyType lhs, KeyType rhs);
     ///@}
 }; // class PointerBinsUtility
 
@@ -135,8 +137,8 @@ void PointerBinsUtility<DataType>::CreateSingleBin(TOtherContainerType& rData)
         for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
         {
             ConstPointerType p_item = &(*it);
-            if (typeid(p_item) == typeid(mBinKeys[0]))
-                mBins[0][i] = p_item;
+            if (IsMatch(p_item, mBinKeys[0]))
+            mBins[0][i] = p_item;
             else
                 KRATOS_ERROR << "Did not find bin for element #" << p_item->Id() << std::endl;
             ++it;
@@ -153,7 +155,7 @@ void PointerBinsUtility<DataType>::CreateMultipleBins(TOtherContainerType& rData
     KRATOS_TRY;
 
     for (auto& r_bin : mBins)
-        r_bin.reserve(rData.size());
+    r_bin.reserve(rData.size());
 
     const int num_threads = OpenMPUtils::GetNumThreads();
 #ifdef _OPENMP
@@ -171,16 +173,16 @@ void PointerBinsUtility<DataType>::CreateMultipleBins(TOtherContainerType& rData
         {
             bool found = false;
             ConstPointerType p_item = &(*it);
-            for (unsigned i = 0; i < mBinKeys.size(); ++i)
+            for (unsigned j = 0; j < mBinKeys.size(); ++j)
             {
-                if (typeid(p_item) == typeid(mBinKeys[i]))
+                if (IsMatch(p_item, mBinKeys[j]))
                 {
 #ifdef _OPENMP
-                    omp_set_lock(&bin_locks[i]);
+                    omp_set_lock(&bin_locks[j]);
 #endif
-                    mBins[i].push_back(p_item);
+                    mBins[j].push_back(p_item);
 #ifdef _OPENMP
-                    omp_unset_lock(&bin_locks[i]);
+                    omp_unset_lock(&bin_locks[j]);
 #endif
                     found = true;
                     break;
@@ -193,6 +195,14 @@ void PointerBinsUtility<DataType>::CreateMultipleBins(TOtherContainerType& rData
     }
 
     KRATOS_CATCH("");
+}
+
+template <class DataType>
+bool PointerBinsUtility<DataType>::IsMatch(KeyType lhs, KeyType rhs)
+{
+    return (typeid(lhs) == typeid(rhs) &&
+            lhs->GetGeometry().size() == rhs->GetGeometry().size() &&
+            lhs->GetGeometry().WorkingSpaceDimension() == rhs->GetGeometry().WorkingSpaceDimension());
 }
 
 ///@} addtogroup

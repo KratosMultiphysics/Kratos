@@ -19,6 +19,7 @@ set( KRATOS_HDF5_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_file.cpp  
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_points_data.cpp  
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_connectivities_data.cpp  
+	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_model_part_io.cpp  
 )
 
 set(HDF5_USE_STATIC_LIBRARIES OFF)

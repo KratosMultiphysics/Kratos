@@ -21,7 +21,6 @@
 #include "includes/node.h"
 #include "geometries/triangle_2d_3.h"
 
-
 // Application includes
 #include "custom_io/hdf5_file_serial.h"
 #include "custom_utilities/hdf5_connectivities_data.h"
