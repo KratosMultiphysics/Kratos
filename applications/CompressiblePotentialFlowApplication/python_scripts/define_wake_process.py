@@ -108,10 +108,10 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             d =  xn[0]*self.n[0] + xn[1]*self.n[1]
                             if(abs(d) < self.epsilon):
                                 d = self.epsilon
-                            if(xn[0] < 0 and xn[1] > 0 and xn[1] < 0.0001):#for high angles of attack
-                                d = -self.epsilon
-                                print(elnode)
-                                print(elnode.X - x0)
+                            #if(xn[0] < 0 and xn[1] > 0 and xn[1] < 0.0001):#for high angles of attack
+                            #    d = -self.epsilon
+                            #    print(elnode)
+                            #    print(elnode.X - x0)
                             distances[counter] = d
                             counter += 1
 

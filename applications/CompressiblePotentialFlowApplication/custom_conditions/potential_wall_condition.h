@@ -408,6 +408,14 @@ public:
 
         }
 
+        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+        {
+            std::vector<double> rValues;
+            ElementPointerType pElem = pGetElement();
+            pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
+            this->SetValue(PRESSURE,rValues[0]);
+        }
+
 
 
 
