@@ -1,0 +1,26 @@
+MESH "Kratos Mesh" dimension 3 ElemType Sphere Nnode 1
+Coordinates
+6 0.0049574 0.0043574 -0.136013
+7 -0.0049574 -0.0043574 -0.635838
+End Coordinates
+Elements
+6 6 1 1
+7 7 1 1
+End Elements
+MESH "Kratos_Quadrilateral3D4_Mesh_0" dimension 3 ElemType Quadrilateral Nnode 4
+Coordinates
+1 -1 -1 100
+2 -1 1 100
+3 1 1 100
+4 1 -1 100
+End Coordinates
+Elements
+1 1 2 3 4 1
+End Elements
+MESH "Kratos Mesh" dimension 3 ElemType Point Nnode 1
+Coordinates
+5 0 0 -0.385925
+End Coordinates
+Elements
+5 5 1
+End Elements
