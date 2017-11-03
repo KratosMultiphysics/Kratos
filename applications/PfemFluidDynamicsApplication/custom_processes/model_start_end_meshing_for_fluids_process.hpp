@@ -173,8 +173,17 @@ namespace Kratos
      
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{
-	  // if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
-	  if(  (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(FLUID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
+
+	  bool add_to_main_model_part = false;
+	  
+	  if( i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) ){ //only the domains (no computing, no boundary)
+
+	    if( i_mp->Is(SOLID) || i_mp->Is(FLUID) || i_mp->Is(RIGID) || i_mp->IsNot(CONTACT) )
+	      add_to_main_model_part = true;
+	  }
+	  
+	  
+	  if( add_to_main_model_part  ){ 
 
 
 	    if( EchoLevel > 1 )
@@ -388,8 +397,7 @@ namespace Kratos
       std::string ComputingModelPartName;
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{
-	  // if( (i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) ){ //solid_computing_domain
-	  if(  (i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) || (i_mp->Is(ACTIVE) && i_mp->Is(FLUID)) ){ // solid_computing_domain and fluid_computing_domain
+	  if( i_mp->Is(ACTIVE) ){ //computing_domain
 	    ComputingModelPartName = i_mp->Name();
 	  }
 	}
@@ -403,38 +411,63 @@ namespace Kratos
 
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{
-	  // if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ 
-	  if( ((i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID))) || (i_mp->Is(FLUID) && i_mp->IsNot(ACTIVE)) ){ 
+	  
+	  if( (i_mp->IsNot(BOUNDARY) && i_mp->IsNot(ACTIVE)) ){ 
 
+	    if( i_mp->IsNot(CONTACT)  ){
 
-	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
-	      {
-		rComputingModelPart.Nodes().push_back(*(i_node.base()));
-		// rComputingModelPart.AddNode(*(i_node.base())); // very slow!
-	      }
+	      for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
+		{
+		  rComputingModelPart.Nodes().push_back(*(i_node.base()));
+		}
 
-	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
-	      {
-		rComputingModelPart.AddCondition(*(i_cond.base()));
-	      }
+	      for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+		{
+		  rComputingModelPart.AddCondition(*(i_cond.base()));
+		}
 
 	    
-	    for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
-	      {
-		rComputingModelPart.AddElement(*(i_elem.base()));
-	      }
+	      for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
+		{
+		  rComputingModelPart.AddElement(*(i_elem.base()));
+		}
+	    }
+	  }
+
+	  if( (i_mp->Is(RIGID)) ){ 
+ 
+
+	    if( i_mp->IsNot(CONTACT)  ){
+
+	      for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
+		{
+		  if(i_node->IsNot(FLUID))
+		     rComputingModelPart.Nodes().push_back(*(i_node.base()));
+		}
+
+	      for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+		{
+		  rComputingModelPart.AddCondition(*(i_cond.base()));
+		}
+
+	    
+	      for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
+		{
+		  rComputingModelPart.AddElement(*(i_elem.base()));
+		}
+	    }
 	  }
 	}
 
       //Sort
-      rComputingModelPart.Nodes().Sort();
-      rComputingModelPart.Elements().Sort();
-      rComputingModelPart.Conditions().Sort();     
+      // rComputingModelPart.Nodes().Sort();
+      // rComputingModelPart.Elements().Sort();
+      // rComputingModelPart.Conditions().Sort();     
       
       //Unique
-      rComputingModelPart.Nodes().Unique();
-      rComputingModelPart.Elements().Unique();
-      rComputingModelPart.Conditions().Unique();
+      // rComputingModelPart.Nodes().Unique();
+      // rComputingModelPart.Elements().Unique();
+      // rComputingModelPart.Conditions().Unique();
       
       if( EchoLevel > 1 )
 	std::cout<<"    [ SUBMODEL PART ["<<rComputingModelPart.Name()<<"] [Elems="<<rComputingModelPart.NumberOfElements()<<"|Nodes="<<rComputingModelPart.NumberOfNodes()<<"|Conds="<<rComputingModelPart.NumberOfConditions()<<"] ] "<<std::endl;

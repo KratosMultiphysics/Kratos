@@ -68,8 +68,6 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-    
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -135,12 +133,12 @@ public:
 	  unsigned int nds = 3;
 	  unsigned int dimension = 2;
 	  if( mrModelPart.NumberOfElements() ){
-	    ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+	    ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
 	    nds = element_begin->GetGeometry().size();
 	    dimension = element_begin->GetGeometry().WorkingSpaceDimension();
 	  }
 	  else if ( mrModelPart.NumberOfConditions() ){
-	    ModelPart::ConditionsContainerType::iterator condition_begin = mrModelPart.ConditionsBegin(mMeshId);
+	    ModelPart::ConditionsContainerType::iterator condition_begin = mrModelPart.ConditionsBegin();
 	    dimension = condition_begin->GetGeometry().WorkingSpaceDimension();
 	    if( dimension == 3 ) //number of nodes of a tetrahedron
 	      nds = 4;
@@ -150,7 +148,7 @@ public:
 	    
 	  int* OutElementList = mrRemesh.OutMesh.GetElementList();
 	 
-	  ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
+	  ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	  int el = 0;
 	  int number = 0;
@@ -404,11 +402,11 @@ public:
 
 	unsigned int nds = 3;
 	if( mrModelPart.NumberOfElements() ){
-	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
 	  nds = element_begin->GetGeometry().size();
 	}
 	else if ( mrModelPart.NumberOfConditions() ){
-	  ModelPart::ConditionsContainerType::iterator condition_begin = mrModelPart.ConditionsBegin(mMeshId);
+	  ModelPart::ConditionsContainerType::iterator condition_begin = mrModelPart.ConditionsBegin();
 	  unsigned int dimension = condition_begin->GetGeometry().WorkingSpaceDimension();
 	  if( dimension == 3 ) //number of nodes of a tetrahedron
 	    nds = 4;
@@ -418,7 +416,7 @@ public:
 
 	int* OutElementList = mrRemesh.OutMesh.GetElementList();
       
-	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
+	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	//check engaged nodes
 	for(int el=0; el<OutNumberOfElements; el++)
@@ -456,7 +454,7 @@ public:
       }
       else{
 	
-	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
+	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
 	  { 
@@ -568,8 +566,6 @@ private:
     ModelerUtilities::MeshingParameters& mrRemesh;
 
     ModelerUtilities mModelerUtilities;  
-
-    ModelPart::IndexType mMeshId; 
 
     int mEchoLevel;
 

@@ -22,7 +22,6 @@ class AssignVectorComponentsToNodesProcess(KratosMultiphysics.Process):
         {
              "help": "This process assigns a vector value to a vector variable component by component",
              "model_part_name": "MODEL_PART_NAME",
-             "mesh_id": 0,
              "variable_name": "VARIABLE_NAME",           
              "value": [0.0, 0.0, 0.0],
              "constrained":true,
@@ -85,7 +84,6 @@ class AssignVectorComponentsToNodesProcess(KratosMultiphysics.Process):
             if( imposed ):
                 params = KratosMultiphysics.Parameters("{}")           
                 params.AddValue("model_part_name", self.settings["model_part_name"])
-                params.AddValue("mesh_id", self.settings["mesh_id"])
                
                 if( counter == 0 ):
                     params.AddEmptyValue("variable_name").SetString(self.variable_name+"_X")

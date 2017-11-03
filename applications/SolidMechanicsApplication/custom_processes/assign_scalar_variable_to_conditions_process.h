@@ -43,15 +43,13 @@ public:
     ///@name Life Cycle
     ///@{
     AssignScalarVariableToConditionsProcess(ModelPart& model_part,
-						 Parameters rParameters
-						 ) : Process(Flags()) , mr_model_part(model_part)
+					    Parameters rParameters) : Process(Flags()) , mr_model_part(model_part)
     {
         KRATOS_TRY
 			 
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "VARIABLE_NAME",
                 "value" : 1.0
             }  )" );
@@ -60,7 +58,6 @@ public:
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mmesh_id       = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
 
 	if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
@@ -84,9 +81,7 @@ public:
 
     AssignScalarVariableToConditionsProcess(ModelPart& model_part,
 					    const Variable<double>& rVariable,
-					    const double double_value,
-					    std::size_t mesh_id
-					    ) : Process() , mr_model_part(model_part), mdouble_value(double_value), mint_value(0), mbool_value(false),mmesh_id(mesh_id)
+					    const double double_value) : Process() , mr_model_part(model_part), mdouble_value(double_value), mint_value(0), mbool_value(false)
     {
         KRATOS_TRY;
 
@@ -101,9 +96,7 @@ public:
 
     AssignScalarVariableToConditionsProcess(ModelPart& model_part,
 					    const Variable< int >& rVariable,
-					    const int int_value,
-					    std::size_t mesh_id
-					    ) : Process() , mr_model_part(model_part), mdouble_value(0.0), mint_value(int_value), mbool_value(false),mmesh_id(mesh_id)
+					    const int int_value) : Process() , mr_model_part(model_part), mdouble_value(0.0), mint_value(int_value), mbool_value(false)
     {
         KRATOS_TRY;
 
@@ -119,9 +112,7 @@ public:
 
     AssignScalarVariableToConditionsProcess(ModelPart& model_part,
 					    const Variable< bool >& rVariable,
-					    const bool bool_value,
-					    std::size_t mesh_id
-					    ) : Process() , mr_model_part(model_part), mdouble_value(0.0), mint_value(0), mbool_value(bool_value),mmesh_id(mesh_id)
+					    const bool bool_value) : Process() , mr_model_part(model_part), mdouble_value(0.0), mint_value(0), mbool_value(bool_value)
     {
         KRATOS_TRY;
 
@@ -302,7 +293,6 @@ private:
     double mdouble_value;
     int mint_value;
     bool mbool_value;
-    std::size_t mmesh_id;
 
     ///@}
     ///@name Private Operators
@@ -311,11 +301,11 @@ private:
     template< class TVarType, class TDataType >
     void InternalAssignValue(TVarType& rVar, const TDataType value)
     {
-        const int nconditions = mr_model_part.GetMesh(mmesh_id).Conditions().size();
+      const int nconditions = mr_model_part.GetMesh().Conditions().size();
 
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
 
              #pragma omp parallel for
             for(int i = 0; i<nconditions; i++)

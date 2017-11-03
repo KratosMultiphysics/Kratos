@@ -261,7 +261,7 @@ void RigidBodyPointRigidContactCondition::InitializeSystemMatrices(MatrixType& r
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
 
-void RigidBodyPointRigidContactCondition::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const double& rPointNumber)
+void RigidBodyPointRigidContactCondition::CalculateKinematics(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const double& rPointNumber)
   {
     KRATOS_TRY
 
@@ -291,7 +291,7 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(GeneralVariables& 
   //************************************************************************************
 
 
-  void RigidBodyPointRigidContactCondition::CalculateContactFactors(GeneralVariables &rVariables)
+  void RigidBodyPointRigidContactCondition::CalculateContactFactors(ConditionVariables &rVariables)
   {
 
     KRATOS_TRY
@@ -383,7 +383,7 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(GeneralVariables& 
 
 
 void RigidBodyPointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-							      GeneralVariables& rVariables,
+							      ConditionVariables& rVariables,
 							      double& rIntegrationWeight)
 
 {
@@ -450,7 +450,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftH
 //************* Tangent Contact Force constitutive matrix      **********************
 //***********************************************************************************
 
-void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix, ConditionVariables& rVariables, double& rIntegrationWeight)
 {
 
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -530,7 +530,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType&
 //***********************************************************************************
 
 void RigidBodyPointRigidContactCondition::CalculateAndAddContactForces(VectorType& rRightHandSideVector,
-							      GeneralVariables& rVariables,
+							      ConditionVariables& rVariables,
 							      double& rIntegrationWeight)
 
 {
@@ -558,7 +558,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddContactForces(VectorTyp
 //***********************************************************************************
 
 void RigidBodyPointRigidContactCondition::CalculateAndAddNormalContactForce(VectorType& rRightHandSideVector,
-									    GeneralVariables& rVariables,
+									    ConditionVariables& rVariables,
 									    double& rIntegrationWeight)
 {
       
@@ -616,7 +616,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddNormalContactForce(Vect
 //***********************************************************************************
 
 void RigidBodyPointRigidContactCondition::CalculateAndAddTangentContactForce(VectorType& rRightHandSideVector,
-									     GeneralVariables& rVariables,
+									     ConditionVariables& rVariables,
 									     double& rIntegrationWeight)
 {
 
@@ -670,7 +670,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddTangentContactForce(Vec
 //**************************** Calculate Normal Force Modulus ***********************
 //***********************************************************************************
 
-double& RigidBodyPointRigidContactCondition::CalculateNormalForceModulus ( double& rNormalForceModulus, GeneralVariables& rVariables )
+double& RigidBodyPointRigidContactCondition::CalculateNormalForceModulus ( double& rNormalForceModulus, ConditionVariables& rVariables )
 {
 
   rNormalForceModulus = (rVariables.Penalty.Normal * rVariables.Gap.Normal); 
@@ -683,7 +683,7 @@ double& RigidBodyPointRigidContactCondition::CalculateNormalForceModulus ( doubl
 //**************************** Check Coulomb law for Tangent Contact Force **********
 //***********************************************************************************
 
-double RigidBodyPointRigidContactCondition::CalculateCoulombsFrictionLaw(double & rTangentRelativeMovement, double & rNormalForceModulus , GeneralVariables& rVariables)
+double RigidBodyPointRigidContactCondition::CalculateCoulombsFrictionLaw(double & rTangentRelativeMovement, double & rNormalForceModulus , ConditionVariables& rVariables)
 {
   rVariables.FrictionCoefficient = this->CalculateFrictionCoefficient(rTangentRelativeMovement,rVariables.DeltaTime);
 

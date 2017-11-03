@@ -89,11 +89,9 @@ namespace Kratos
     ElementalNeighboursSearchProcess(ModelPart& rModelPart,
 				     int Dimension,
 				     int EchoLevel = 0,
-				     int AverageElements = 10,
-				     int MeshId = 0)
+				     int AverageElements = 10)
       : mrModelPart(rModelPart)
     {
-      mMeshId = MeshId;
       mAverageElements = AverageElements;
       mDimension       = Dimension;
       mEchoLevel       = EchoLevel;
@@ -129,11 +127,13 @@ namespace Kratos
 
       if(method==0)
         {
-	  success=KratosSearch(mMeshId);
+	  //std::cout<<" Kratos Search "<<std::endl;
+	  success=KratosSearch();
         }
       else
         {
-	  success=LohnerSearch(mMeshId); //seems to be worse (needs to be optimized)
+	  //std::cout<<" Lohner Search "<<std::endl;
+	  success=LohnerSearch(); //seems to be worse (needs to be optimized)
         }
 
       if(!success)
@@ -145,21 +145,22 @@ namespace Kratos
 	  //print out the mesh generation time
 	  if( mEchoLevel > 1 )
             std::cout<<"  Neighbour Elements Search time = "<<auxiliary.elapsed()<<std::endl;
-	  //PrintElementNeighbours();
+	  //PrintElementNeighbours();	       
         }
 
+      
     };
 
 
-    void ClearNeighbours(int rMeshId = 0)
+    void ClearNeighbours()
     {
-      NodesContainerType& rNodes = mrModelPart.Nodes(rMeshId);
+      NodesContainerType& rNodes = mrModelPart.Nodes();
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
 	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
 	  rE.erase(rE.begin(),rE.end());
         }
-      ElementsContainerType& rElems = mrModelPart.Elements(rMeshId);
+      ElementsContainerType& rElems = mrModelPart.Elements();
       for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
         {
 	  WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
@@ -254,7 +255,6 @@ namespace Kratos
     ModelPart& mrModelPart;
     int mAverageElements;
     int mDimension;
-    int mMeshId;
     int mEchoLevel;
 
     ///@}
@@ -360,13 +360,13 @@ namespace Kratos
     }
 
 
-    void CleanElementNeighbours(int MeshId = 0)
+    void CleanElementNeighbours()
     {
 
       KRATOS_TRY
 	
-      NodesContainerType&    rNodes = mrModelPart.Nodes(MeshId);
-      ElementsContainerType& rElems = mrModelPart.Elements(MeshId);
+      NodesContainerType&    rNodes = mrModelPart.Nodes();
+      ElementsContainerType& rElems = mrModelPart.Elements();
 
       //first of all the neighbour nodes and neighbour elements arrays are initialized to the guessed size
       //this cleans the old entries:
@@ -374,10 +374,11 @@ namespace Kratos
       //*************  Erase old node neighbours  *************//
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
-	  (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(mAverageElements);
 	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
 	  rE.erase(rE.begin(),rE.end() );
-
+	  
+	  (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(mAverageElements);
+	  
 	  ResetFlagOptions(*in);
         }
 
@@ -386,14 +387,12 @@ namespace Kratos
         {
 	  Element::GeometryType& pGeom = ie->GetGeometry();
 	  int size= pGeom.FacesNumber();
-
-	  //(ie->GetValue(NEIGHBOUR_ELEMENTS)).reserve(size);
-
+  
 	  WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
 	  rE.erase(rE.begin(),rE.end() );
 
 	  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(size);
-
+	  
 	  ResetFlagOptions(*ie);
         }
 
@@ -401,12 +400,12 @@ namespace Kratos
     }
 
 
-    void PrintElementNeighbours(int MeshId = 0)
+    void PrintElementNeighbours()
     {
       KRATOS_TRY
       
-      NodesContainerType& rNodes = mrModelPart.Nodes(MeshId);
-      ElementsContainerType& rElems = mrModelPart.Elements(MeshId);
+      NodesContainerType& rNodes = mrModelPart.Nodes();
+      ElementsContainerType& rElems = mrModelPart.Elements();
 
       std::cout<<" NODES: neighbour elems: "<<std::endl;
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
@@ -445,18 +444,18 @@ namespace Kratos
 
 
 
-    bool KratosSearch(int MeshId = 0)
+    bool KratosSearch()
     {
 
       KRATOS_TRY
 	
-      ElementsContainerType& rElems = mrModelPart.Elements(MeshId);
+      ElementsContainerType& rElems = mrModelPart.Elements();
 
       //first of all the neighbour nodes and neighbour elements arrays are initialized to the guessed size
       //this cleans the old entries:
 
       //*****  Erase old node and element neighbours  *********//
-      CleanElementNeighbours(MeshId);
+      CleanElementNeighbours();
 
 
       //*************  Neigbours of nodes  ************//
@@ -470,9 +469,7 @@ namespace Kratos
             }
         }
 
-      //std::cout<<" Search NEIGHBOURS "<<std::endl;
-
-      NodesContainerType& rNodes = mrModelPart.Nodes(MeshId);
+      NodesContainerType& rNodes = mrModelPart.Nodes();
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
 	  if( in->Is(BOUNDARY) )
@@ -481,6 +478,9 @@ namespace Kratos
       
       //*************  Neigbours of elements  *********//
       //add the neighbour elements to all the elements in the mesh
+
+      unsigned int search_performed = false;
+      
       //loop over faces
       if (mDimension==2)
         {
@@ -492,7 +492,8 @@ namespace Kratos
 	      if( rGeometry.FacesNumber() == 3 ){
 
 		//vector of the 3 faces around the given face
-		(ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
+		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 3 )
+		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
 		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
 		//neighb_face is the vector containing pointers to the three faces around ic:
@@ -530,7 +531,9 @@ namespace Kratos
 	      else if( rGeometry.FacesNumber() == 2 ){
 
 		//vector of the 3 faces around the given face
-		(ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(2);
+		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 2 )
+		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(2);
+		
 		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
 		//neighb_face is the vector containing pointers to the three faces around ic:
@@ -561,10 +564,12 @@ namespace Kratos
 		    
 		    counter++;
 		  }
-
 	      }
             }
-        }
+	  
+  	  search_performed = true;
+       }
+      
       if (mDimension==3)
         {
 	  for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
@@ -575,7 +580,9 @@ namespace Kratos
 	      if( rGeometry.FacesNumber() == 4 ){
 			
 		//vector of the 4 faces around the given element (3D tetrahedron)
-		(ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
+		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 4 )
+		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
+		
 		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
 		//neighb_face is the vector containing pointers to the three faces around ic:
@@ -589,6 +596,7 @@ namespace Kratos
 		// neighbour element over face 0-1-2 of element ic;
 		neighb_elems(3) = CheckForNeighbourElems3D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
 
+		
 		unsigned int counter=0;
 		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
 		  {
@@ -612,12 +620,13 @@ namespace Kratos
 		    counter++;
 		  }
 
-
 	      }
 	      else if( rGeometry.FacesNumber() == 3 ){
 
 		//vector of the 3 faces around the given element (3D triangle)
-		(ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
+		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 3 )
+		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
+		
 		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
 		//neighb_face is the vector containing pointers to the three faces around ic:
@@ -653,26 +662,32 @@ namespace Kratos
 		    counter++;
 		  }
 
-	      }
+
+	      }	  
 	      
 	    }
+	  
+	  search_performed = true;
         }
+      
 
-
-      return true;
+      if( mrModelPart.NumberOfElements()>0 && search_performed )
+	return true;
+      else
+	return false;
 
 
       KRATOS_CATCH( "" )
     }
 
 
-    bool LohnerSearch(int MeshId = 0)
+    bool LohnerSearch()
     {
 
       KRATOS_TRY
 
-      NodesContainerType&    rNodes = mrModelPart.Nodes(MeshId);
-      ElementsContainerType& rElems = mrModelPart.Elements(MeshId);
+      NodesContainerType&    rNodes = mrModelPart.Nodes();
+      ElementsContainerType& rElems = mrModelPart.Elements();
 
 
       unsigned int Ne=rElems.size();
