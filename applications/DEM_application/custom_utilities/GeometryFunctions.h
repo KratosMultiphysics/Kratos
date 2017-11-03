@@ -731,9 +731,10 @@ namespace Kratos {
         }
         else
         {
-        TargetPoint[0] = ((a*(v*v+w*w)-u*(b*v+c*w-u*x-v*y-w*z))*(1-cos(O))+L*x*cos(O)+sqrt(L)*(-c*w+b*w-w*y+v*z)*sin(O))*(1/L);
-        TargetPoint[1] = ((b*(u*u+w*w)-v*(a*u+c*w-u*x-v*y-w*z))*(1-cos(O))+L*y*cos(O)+sqrt(L)*(c*u-a*w+w*x-u*z)*sin(O))*(1/L);
-        TargetPoint[2] = ((c*(u*u+v*v)-w*(a*u+b*v-u*x-v*y-w*z))*(1-cos(O))+L*z*cos(O)+sqrt(L)*(-b*u+a*v-v*x+u*y)*sin(O))*(1/L);
+            const double inv_L = 1.0 / L;
+        TargetPoint[0] = ((a*(v*v+w*w)-u*(b*v+c*w-u*x-v*y-w*z))*(1-cos(O))+L*x*cos(O)+sqrt(L)*(-c*w+b*w-w*y+v*z)*sin(O))* inv_L;
+        TargetPoint[1] = ((b*(u*u+w*w)-v*(a*u+c*w-u*x-v*y-w*z))*(1-cos(O))+L*y*cos(O)+sqrt(L)*(c*u-a*w+w*x-u*z)*sin(O))* inv_L;
+        TargetPoint[2] = ((c*(u*u+v*v)-w*(a*u+b*v-u*x-v*y-w*z))*(1-cos(O))+L*z*cos(O)+sqrt(L)*(-b*u+a*v-v*x+u*y)*sin(O))* inv_L;
         }
     }
 
@@ -838,7 +839,7 @@ namespace Kratos {
                   
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
-            DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag * 0.5), theta[0]*aux, theta[1]*aux, theta[2]*aux);
         }
         else {
             double aux = sin(thetaMag)/thetaMag;
@@ -859,7 +860,7 @@ namespace Kratos {
                   
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
-            DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag * 0.5), theta[0]*aux, theta[1]*aux, theta[2]*aux);
         }
         else {
             double aux = sin(thetaMag)/thetaMag;
@@ -949,18 +950,20 @@ namespace Kratos {
         unsigned int facet_size = Area.size();
         if (facet_size == 3)
         {
-            double total_area = Area[0]+Area[1]+Area[2];
+            const double total_area = Area[0]+Area[1]+Area[2];
+            const double inv_total_area = 1.0 / total_area;
             for (unsigned int i = 0; i< 3; i++)
             {
-                Weight[i] = Area[(i+1)%facet_size]/total_area;
+                Weight[i] = Area[(i+1)%facet_size] * inv_total_area;
             }
         }
         else if (facet_size == 4)
         {
-            double total_discriminant = Area[0]*Area[1]+Area[1]*Area[2]+Area[2]*Area[3]+Area[3]*Area[0]; //(Zhong et al 1993)
+            const double total_discriminant = Area[0]*Area[1]+Area[1]*Area[2]+Area[2]*Area[3]+Area[3]*Area[0]; //(Zhong et al 1993)
+            const double inv_total_discriminant = 1.0 / total_discriminant;
             for (unsigned int i = 0; i< 4; i++)
             {
-                Weight[i] = (Area[(i+1)%facet_size]*Area[(i+2)%facet_size])/total_discriminant;
+                Weight[i] = (Area[(i+1)%facet_size]*Area[(i+2)%facet_size]) * inv_total_discriminant;
             }
         }
         else {
