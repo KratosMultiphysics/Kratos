@@ -182,7 +182,7 @@ class ParametricWall(object):
     # 
     def GetUpperPoint(self, model_part):
         
-        dimension = model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
+        dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         max_x = sys.float_info.min
         max_y = sys.float_info.min
@@ -204,7 +204,7 @@ class ParametricWall(object):
     # 
     def GetLowerPoint(self, model_part):
 
-        dimension = model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
+        dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         min_x = sys.float_info.max
         min_y = sys.float_info.max

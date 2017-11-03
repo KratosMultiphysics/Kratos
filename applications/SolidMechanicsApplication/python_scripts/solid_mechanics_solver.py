@@ -348,7 +348,7 @@ class MechanicalSolver(object):
             # Constitutive law import
             import constitutive_law_python_utility as constitutive_law_utils
             constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
-                                                                             self.main_model_part.ProcessInfo[KratosMultiphysics.DIMENSION]);
+                                                                             self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]);
             constitutive_law.Initialize();
             
             return True

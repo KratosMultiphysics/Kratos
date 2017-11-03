@@ -168,7 +168,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const unsigned int dimension = rModelPart.GetProcessInfo()[DIMENSION];
+    const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
     double ModelPartVolume = 0;
     if( dimension ==2 ){
       

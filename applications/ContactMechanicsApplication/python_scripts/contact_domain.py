@@ -78,7 +78,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
 
         print("::[Meshing Contact Domain]:: -START-")
         
-        self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
+        self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         # Set MeshingParameters
         self.SetMeshingParameters()
