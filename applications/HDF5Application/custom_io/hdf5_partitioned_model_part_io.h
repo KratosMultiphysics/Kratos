@@ -14,6 +14,7 @@
 #define KRATOS_HDF5_PARTITIONED_MODEL_PART_IO_H_INCLUDED
 
 // System includes
+#include <vector>
 #include <string>
 #include <tuple>
 
@@ -50,7 +51,7 @@ public:
     ///@{
 
     /// Constructor.
-    PartitionedModelPartIO(Parameters& rParams, HDF5::File::Pointer pFile);
+    PartitionedModelPartIO(Parameters& rParams, File::Pointer pFile);
 
     ///@}
     ///@name Operations
@@ -72,6 +73,8 @@ public:
     void ReadConditions(NodesContainerType& rNodes,
                         PropertiesContainerType& rProperties,
                         ConditionsContainerType& rConditions) override;
+
+    void WriteConditions(ConditionsContainerType const& rConditions) override;
 
     std::size_t ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
@@ -100,7 +103,14 @@ protected:
 private:
     ///@name Member Variables
     ///@{
-    HDF5::File::Pointer mpFile;
+
+    File::Pointer mpFile;
+    std::string mPrefix;
+    std::vector<std::string> mElementNames;
+    std::vector<const Element*> mElementPointers;
+    std::vector<std::string> mConditionNames;
+    std::vector<const Condition*> mConditionPointers;
+
     ///@}
 
     ///@name Private Operations

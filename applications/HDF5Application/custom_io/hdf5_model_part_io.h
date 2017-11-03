@@ -89,7 +89,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    HDF5::File& GetFile() const;
+    File& GetFile() const;
 
     virtual void Check();
 
@@ -99,7 +99,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    HDF5::File::Pointer mpFile;
+    File::Pointer mpFile;
+    std::string mPrefix;
     std::vector<std::string> mElementNames;
     std::vector<const Element*> mElementPointers;
     std::vector<std::string> mConditionNames;

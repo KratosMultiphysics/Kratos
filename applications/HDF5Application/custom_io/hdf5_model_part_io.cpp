@@ -1,5 +1,6 @@
 #include "custom_io/hdf5_model_part_io.h"
 
+#include "includes/kratos_components.h"
 #include "custom_utilities/hdf5_points_data.h"
 #include "custom_utilities/hdf5_connectivities_data.h"
 #include "custom_utilities/hdf5_pointer_bins_utility.h"
@@ -15,11 +16,14 @@ ModelPartIO::ModelPartIO(Parameters& rParams, File::Pointer pFile)
 
     Parameters default_params(R"(
         {
+            "prefix": "",
             "list_of_elements": [],
             "list_of_conditions": []
         })");
 
     rParams.ValidateAndAssignDefaults(default_params);
+
+    mPrefix = rParams["prefix"].GetString();
 
     mElementNames.resize(rParams["list_of_elements"].size());
     for (unsigned i = 0; i < mElementNames.size(); ++i)
@@ -34,14 +38,14 @@ ModelPartIO::ModelPartIO(Parameters& rParams, File::Pointer pFile)
     mElementPointers.resize(mElementNames.size());
     for (unsigned i = 0; i < mElementNames.size(); ++i)
     {
-        const Element& r_elem = KratosComponents<Element>::Get(mElementNames[i]);
+        const ElementType& r_elem = KratosComponents<Element>::Get(mElementNames[i]);
         mElementPointers[i] = &r_elem;
     }
 
     mConditionPointers.resize(mConditionNames.size());
     for (unsigned i = 0; i < mConditionNames.size(); ++i)
     {
-        const Condition& r_cond = KratosComponents<Condition>::Get(mConditionNames[i]);
+        const ConditionType& r_cond = KratosComponents<Condition>::Get(mConditionNames[i]);
         mConditionPointers[i] = &r_cond;
     }
 
@@ -58,7 +62,7 @@ bool ModelPartIO::ReadNodes(NodesContainerType& rNodes)
     File& r_file = GetFile();
     Detail::PointsData points;
 
-    points.ReadData(r_file, "/Nodes/Local", 0, num_nodes);
+    points.ReadData(r_file, mPrefix + "/Nodes/Local", 0, num_nodes);
     points.CreateNodes(rNodes);
 
     return true;
@@ -67,7 +71,7 @@ bool ModelPartIO::ReadNodes(NodesContainerType& rNodes)
 
 std::size_t ModelPartIO::ReadNodesNumber()
 {
-    const std::vector<unsigned> dims = GetFile().GetDataDimensions("/Nodes/Local/Ids");
+    const std::vector<unsigned> dims = GetFile().GetDataDimensions(mPrefix + "/Nodes/Local/Ids");
     return dims[0];
 }
 
@@ -78,7 +82,7 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     Detail::PointsData points;
     points.SetData(rNodes);
     File& r_file = GetFile();
-    points.WriteData(r_file, "/Nodes/Local");
+    points.WriteData(r_file, mPrefix + "/Nodes/Local");
     
     KRATOS_CATCH("");
 }
@@ -95,11 +99,11 @@ void ModelPartIO::ReadElements(NodesContainerType& rNodes,
 
     for (unsigned i = 0; i < mElementNames.size(); ++i)
     {
-        const std::string elem_path = "/Elements/" + mElementNames[i];
+        const std::string elem_path = mPrefix + "/Elements/" + mElementNames[i];
         const unsigned num_elems = r_file.GetDataDimensions(elem_path + "/Ids")[0];
         Detail::ConnectivitiesData connectivities;
         connectivities.ReadData(r_file, elem_path, 0, num_elems);
-        const Element& r_elem = *mElementPointers[i];
+        const ElementType& r_elem = *mElementPointers[i];
         connectivities.CreateElements(r_elem, rNodes, rProperties, rElements);
     }
 
@@ -121,7 +125,7 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rElements)
         ConstElementsContainerType& r_elems = elem_bins.GetBin(elem_key);
         Detail::ConnectivitiesData connectivities;
         connectivities.SetData(r_elems);
-        connectivities.WriteData(r_file, "/Elements/" + r_elem_name);
+        connectivities.WriteData(r_file, mPrefix + "/Elements/" + r_elem_name);
     }
 
     KRATOS_CATCH("");
@@ -139,11 +143,11 @@ void ModelPartIO::ReadConditions(NodesContainerType& rNodes,
 
     for (unsigned i = 0; i < mConditionNames.size(); ++i)
     {
-        const std::string cond_path = "/Conditions/" + mConditionNames[i];
+        const std::string cond_path = mPrefix + "/Conditions/" + mConditionNames[i];
         const unsigned num_conds = r_file.GetDataDimensions(cond_path + "/Ids")[0];
         Detail::ConnectivitiesData connectivities;
         connectivities.ReadData(r_file, cond_path, 0, num_conds);
-        const Condition& r_cond = *mConditionPointers[i];
+        const ConditionType& r_cond = *mConditionPointers[i];
         connectivities.CreateConditions(r_cond, rNodes, rProperties, rConditions);
     }
 
@@ -165,7 +169,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
         ConstConditionsContainerType& r_conds = cond_bins.GetBin(cond_key);
         Detail::ConnectivitiesData connectivities;
         connectivities.SetData(r_conds);
-        connectivities.WriteData(r_file, "/Conditions/" + r_cond_name);
+        connectivities.WriteData(r_file, mPrefix + "/Conditions/" + r_cond_name);
     }
 
     KRATOS_CATCH("");
