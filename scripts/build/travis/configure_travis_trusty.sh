@@ -114,7 +114,7 @@ CMAKE_APPLICATION=(
   -DSTRUCTURAL_MECHANICS_APPLICATION=ON
   -DFLUID_DYNAMICS_APPLICATION=ON
   -DDEM_APPLICATION=ON
-  -DSWIMMING_DEM_APPLICATION=OFF
+  -DSWIMMING_DEM_APPLICATION=ON
 )
 
 ########################################################################################################################
@@ -149,6 +149,9 @@ CMAKE_BUILD=(
 
   # Custom python suffix for liboost-python
   -DBOOST_PYTHON_SUFFIX="-py34"
+
+  # Unity build
+  -DKRATOS_BUILD_UNITY=ON
 )
 
 ########################################################################################################################

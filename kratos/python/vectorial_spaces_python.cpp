@@ -33,76 +33,76 @@ namespace Python
 
 using namespace boost::python;
 
-template<class TContainerType>
-struct UblasVectorModifier
-{
-    typedef typename TContainerType::size_type index_type;
-    static void Resize(TContainerType& ThisContainer, typename TContainerType::size_type NewSize)
-    {
-        ThisContainer.resize(NewSize, true);
-    }
-    static void MoveSlice(TContainerType& ThisContainer, index_type Index, index_type From, index_type To)
-    {
-        if(Index > From)
-        {
-            ThisContainer.resize(ThisContainer.size() + Index - From, true);
-            std::copy_backward(ThisContainer.begin() + From, ThisContainer.begin() + To, ThisContainer.begin() + Index + To - From);
-        }
-        else
-        {
-            std::copy(ThisContainer.begin() + From, ThisContainer.begin() + To, ThisContainer.begin() + Index);
-            ThisContainer.resize(ThisContainer.size() + Index - From, true);
-        }
-    }
-};
+// template<class TContainerType>
+// struct UblasVectorModifier
+// {
+//     typedef typename TContainerType::size_type index_type;
+//     static void Resize(TContainerType& ThisContainer, typename TContainerType::size_type NewSize)
+//     {
+//         ThisContainer.resize(NewSize, true);
+//     }
+//     static void MoveSlice(TContainerType& ThisContainer, index_type Index, index_type From, index_type To)
+//     {
+//         if(Index > From)
+//         {
+//             ThisContainer.resize(ThisContainer.size() + Index - From, true);
+//             std::copy_backward(ThisContainer.begin() + From, ThisContainer.begin() + To, ThisContainer.begin() + Index + To - From);
+//         }
+//         else
+//         {
+//             std::copy(ThisContainer.begin() + From, ThisContainer.begin() + To, ThisContainer.begin() + Index);
+//             ThisContainer.resize(ThisContainer.size() + Index - From, true);
+//         }
+//     }
+// };
 
-template<class TContainerType>
-struct UblasSparseVectorModifier
-{
-    typedef typename TContainerType::size_type index_type;
-    typedef typename TContainerType::value_type data_type;
+// template<class TContainerType>
+// struct UblasSparseVectorModifier
+// {
+//     typedef typename TContainerType::size_type index_type;
+//     typedef typename TContainerType::value_type data_type;
 
-    static void Resize(TContainerType& ThisContainer, typename TContainerType::size_type NewSize)
-    {
-        index_type size = std::min(ThisContainer.size(), NewSize);
-        std::vector<std::pair<index_type, data_type> > temp;
-        data_type value;
+//     static void Resize(TContainerType& ThisContainer, typename TContainerType::size_type NewSize)
+//     {
+//         index_type size = std::min(ThisContainer.size(), NewSize);
+//         std::vector<std::pair<index_type, data_type> > temp;
+//         data_type value;
 
-        for(index_type i = 0 ; i < size ; i++)
-            if((value = ThisContainer(i)) != data_type())
-                temp.push_back(std::pair<index_type, data_type>(i,value));
+//         for(index_type i = 0 ; i < size ; i++)
+//             if((value = ThisContainer(i)) != data_type())
+//                 temp.push_back(std::pair<index_type, data_type>(i,value));
 
-        ThisContainer.clear(); // There is no way to know which resize hold the data and which not. So better to make it certain! :-)
-        ThisContainer.resize(NewSize, false);
+//         ThisContainer.clear(); // There is no way to know which resize hold the data and which not. So better to make it certain! :-)
+//         ThisContainer.resize(NewSize, false);
 
-        for(typename std::vector<std::pair<index_type, data_type> >::iterator j = temp.begin() ; j != temp.end() ; j++)
-            ThisContainer.insert_element(j->first, j->second);
+//         for(typename std::vector<std::pair<index_type, data_type> >::iterator j = temp.begin() ; j != temp.end() ; j++)
+//             ThisContainer.insert_element(j->first, j->second);
 
-    }
+//     }
 
-    static void MoveSlice(TContainerType& ThisContainer, index_type Index, index_type From, index_type To)
-    {
-        index_type i;
-        index_type size = std::min(Index, From);
-        index_type new_size = ThisContainer.size() + Index - From;
-        std::vector<std::pair<index_type, data_type> > temp;
-        data_type value;
+//     static void MoveSlice(TContainerType& ThisContainer, index_type Index, index_type From, index_type To)
+//     {
+//         index_type i;
+//         index_type size = std::min(Index, From);
+//         index_type new_size = ThisContainer.size() + Index - From;
+//         std::vector<std::pair<index_type, data_type> > temp;
+//         data_type value;
 
-        for(i = 0 ; i < size ; i++)
-            if((value = ThisContainer(i)) != data_type())
-                temp.push_back(std::pair<index_type, data_type>(i,value));
+//         for(i = 0 ; i < size ; i++)
+//             if((value = ThisContainer(i)) != data_type())
+//                 temp.push_back(std::pair<index_type, data_type>(i,value));
 
-        for(i = From ; i < To ; i++)
-            if((value = ThisContainer(i)) != data_type())
-                temp.push_back(std::pair<index_type, data_type>(i + Index - From,value));
+//         for(i = From ; i < To ; i++)
+//             if((value = ThisContainer(i)) != data_type())
+//                 temp.push_back(std::pair<index_type, data_type>(i + Index - From,value));
 
-        ThisContainer.clear(); // There is no way to know which resize hold the data and which not. So better to make it certain! :-)
-        ThisContainer.resize(new_size, false);
+//         ThisContainer.clear(); // There is no way to know which resize hold the data and which not. So better to make it certain! :-)
+//         ThisContainer.resize(new_size, false);
 
-        for(typename std::vector<std::pair<index_type, data_type> >::iterator j = temp.begin() ; j != temp.end() ; j++)
-            ThisContainer.insert_element(j->first, j->second);
-    }
-};
+//         for(typename std::vector<std::pair<index_type, data_type> >::iterator j = temp.begin() ; j != temp.end() ; j++)
+//             ThisContainer.insert_element(j->first, j->second);
+//     }
+// };
 
 
 void  AddVectorialSpacesToPython()

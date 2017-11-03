@@ -7,6 +7,14 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplica
 include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
 
 ## generate variables with the sources
+
+set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_NO_MERGEABLE_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D4N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D3N.cpp
+)
+
 set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ## MAIN FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application.cpp
@@ -43,10 +51,6 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   # Adding shells and membranes elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/isotropic_shell_element.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D4N.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D3N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/prestress_membrane_element.cpp
 
   # Solid elements
@@ -78,9 +82,19 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition_3d.cpp
 )
 
+## If unity build is enable, pack all the sources
+if(${KRATOS_BUILD_UNITY} MATCHES ON)
+message("Using unity build mode in StructuralMechanics")
+  enable_unity_build(UB_KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES)
+endif(${KRATOS_BUILD_UNITY} MATCHES ON)
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosStructuralMechanicsApplication SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES})
+add_library(KratosStructuralMechanicsApplication SHARED 
+  ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_NO_MERGEABLE_SOURCES}
+  ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES}  ${UB_KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES}
+)
+
 target_link_libraries(KratosStructuralMechanicsApplication KratosCore) # KratosSolidMechanicsApplication)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")

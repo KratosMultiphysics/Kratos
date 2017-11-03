@@ -5,7 +5,7 @@ message("**** configuring KratosDEMApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## generate variables with the sources
-set(KRATOS_DEM_APPLICATION_SOURCES
+SET(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/DEM_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/explicit_solver_strategy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/explicit_solver_continuum.cpp
@@ -43,12 +43,22 @@ set(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ellipsoidcluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/singlespherecluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/newmark_beta_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/dem_integration_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/verlet_velocity_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/taylor_scheme.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlet.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/force_based_inlet.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/create_and_destroy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/properties_proxies.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/dem_fem_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/excavator_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AuxiliaryUtilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_model_part_filler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_particle_watcher.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_face_watcher.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/bins_dynamic_objects_periodic.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack_2D_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack_torque_CL.cpp
@@ -87,9 +97,18 @@ set(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/bins_dynamic_objects_periodic.cpp
 )
 
+## If unity build is enable, pack all the sources
+if(${KRATOS_BUILD_UNITY} MATCHES ON)
+    message("Using unity build mode in DEM")
+    enable_unity_build(UB_KRATOS_DEM_APPLICATION_SOURCES KRATOS_DEM_APPLICATION_SOURCES)
+endif(${KRATOS_BUILD_UNITY} MATCHES ON)
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosDEMApplication SHARED ${KRATOS_DEM_APPLICATION_SOURCES})
+add_library(KratosDEMApplication SHARED 
+    ${KRATOS_DEM_APPLICATION_SOURCES} ${UB_KRATOS_DEM_APPLICATION_SOURCES}
+)
+
 #if(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
 #GENERATE_EXPORT_HEADER( KratosDEMApplication
 #             BASE_NAME KratosDEMApplication

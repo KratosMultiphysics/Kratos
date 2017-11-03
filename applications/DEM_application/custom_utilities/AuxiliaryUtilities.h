@@ -1,5 +1,8 @@
 // Author: Miguel Angel Celigueta maceli@cimne.upc.edu
 
+#if !defined(KRATOS_AUXILIAR_UTILITIES_H_INCLUDED)
+#define  KRATOS_AUXILIAR_UTILITIES_H_INCLUDED
+
 #include "includes/define.h"
 #include <boost/python.hpp>
 #include "includes/model_part.h"
@@ -20,3 +23,5 @@ namespace Kratos {
         
     };
 }
+
+#endif // KRATOS_AUXILIAR_UTILITIES_H_INCLUDED  defined
