@@ -65,11 +65,11 @@ public:
 
     void WriteNodes(NodesContainerType const& rNodes) override;
 
-    void ReadProperties(PropertiesContainerType& rThisProperties) override;
+    void ReadProperties(PropertiesContainerType& rProperties) override;
     
-    void WriteProperties(Properties const& rThisProperties) override;
+    void WriteProperties(Properties const& rProperties) override;
     
-    void WriteProperties(PropertiesContainerType const& rThisProperties) override;
+    void WriteProperties(PropertiesContainerType const& rProperties) override;
 
     void ReadElements(NodesContainerType& rNodes,
                       PropertiesContainerType& rProperties,

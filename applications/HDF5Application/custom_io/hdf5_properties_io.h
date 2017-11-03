@@ -55,11 +55,11 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    void ReadProperties(PropertiesContainerType& rThisProperties) override;
+    void ReadProperties(PropertiesContainerType& rProperties) override;
 
-    void WriteProperties(Properties const& rThisProperties) override;
+    void WriteProperties(Properties const& rProperties) override;
 
-    void WriteProperties(PropertiesContainerType const& rThisProperties) override;
+    void WriteProperties(PropertiesContainerType const& rProperties) override;
     ///@}
 
 protected:

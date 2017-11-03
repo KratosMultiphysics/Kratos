@@ -4,6 +4,7 @@
 #include "custom_utilities/hdf5_points_data.h"
 #include "custom_utilities/hdf5_connectivities_data.h"
 #include "custom_utilities/hdf5_pointer_bins_utility.h"
+#include "custom_io/hdf5_properties_io.h"
 
 namespace Kratos
 {
@@ -87,16 +88,22 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     KRATOS_CATCH("");
 }
 
-void ModelPartIO::ReadProperties(PropertiesContainerType& rThisProperties)
+void ModelPartIO::ReadProperties(PropertiesContainerType& rProperties)
 {
+    PropertiesIO prop_io(mPrefix, mpFile);
+    prop_io.ReadProperties(rProperties);
 }
 
-void ModelPartIO::WriteProperties(Properties const& rThisProperties)
+void ModelPartIO::WriteProperties(Properties const& rProperties)
 {
+    PropertiesIO prop_io(mPrefix, mpFile);
+    prop_io.WriteProperties(rProperties);
 }
 
-void ModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties)
+void ModelPartIO::WriteProperties(PropertiesContainerType const& rProperties)
 {
+    PropertiesIO prop_io(mPrefix, mpFile);
+    prop_io.WriteProperties(rProperties);
 }
 
 void ModelPartIO::ReadElements(NodesContainerType& rNodes,
