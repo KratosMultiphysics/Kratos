@@ -27,6 +27,7 @@
 #include "custom_utilities/reorder_consecutive_from_given_ids_model_part_io.h"
 #include "custom_utilities/AuxiliaryUtilities.h"
 #include "custom_utilities/excavator_utility.h"
+#include "custom_utilities/analytic_tools/particles_history_watcher.h"
 
 #include "boost/python/list.hpp"
 #include "boost/python/extract.hpp"
@@ -146,8 +147,9 @@ void AddCustomUtilitiesToPython() {
     
     using namespace boost::python;
         
-    class_<ParticleCreatorDestructor, boost::noncopyable >
-        ("ParticleCreatorDestructor", init<>())
+    class_<ParticleCreatorDestructor, boost::noncopyable >("ParticleCreatorDestructor")
+        .def(init<>())
+        .def(init<AnalyticWatcher::Pointer>())
         .def("CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)
         .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox)
         .def("MarkParticlesForErasingGivenScalarVariableValue", &ParticleCreatorDestructor::MarkParticlesForErasingGivenScalarVariableValue)
@@ -310,7 +312,18 @@ void AddCustomUtilitiesToPython() {
         init<ModelPart&, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double>())
         .def("ExecuteInitializeSolutionStep", &ExcavatorUtility::ExecuteInitializeSolutionStep)   
         ;
+
+    class_<AnalyticWatcher, AnalyticWatcher::Pointer >
+        ("AnalyticWatcher", init<>())
+        .def("GetNewParticlesData", &ParticlesHistoryWatcher::GetNewParticlesData)
+        ;
+
+    class_<ParticlesHistoryWatcher, ParticlesHistoryWatcher::Pointer, bases<AnalyticWatcher> >
+        ("ParticlesHistoryWatcher", init<>())
+        ;
     }
+
+
 
 /*ModelPart::NodesContainerType::Pointer ModelPartGetNodes1(ModelPart& rModelPart)
 {

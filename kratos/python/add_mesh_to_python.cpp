@@ -65,14 +65,14 @@ array_1d<double,3> GetNormalFromCondition(
     CoordinatesArrayType& LocalCoords
     )
 {
-    return( dummy.GetGeometry().Normal(LocalCoords) );
+    return( dummy.GetGeometry().UnitNormal(LocalCoords) );
 }
 
 array_1d<double,3> FastGetNormalFromCondition(Condition& dummy)
 {
     CoordinatesArrayType LocalCoords;
     LocalCoords.clear();
-    return( dummy.GetGeometry().Normal(LocalCoords) );
+    return( dummy.GetGeometry().UnitNormal(LocalCoords) );
 }
 
 double GetAreaFromCondition( Condition& dummy )
