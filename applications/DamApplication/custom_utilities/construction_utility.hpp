@@ -54,16 +54,17 @@ public:
             mHeight = rParameters["height_dam"].GetDouble();
             mPhases = rParameters["number_of_phases"].GetInt();
             mSourceType = rParameters["source_type"].GetString();
+            mAging = rParameters["aging"].GetBool();
             mH0 = rParameters["h_0"].GetDouble();
             mTimeUnitConverter = mrMechanicalModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
             mMechanicalSoilPart = rParameters["mechanical_soil_part"].GetString();   
             mThermalSoilPart = rParameters["thermal_soil_part"].GetString();   
             
-            mAlphaInitial = 0.0;
-            if (mSourceType == "NonAdiabatic")
-            {            
-                mAlphaInitial = rParameters["alpha_initial"].GetDouble();            
-            }
+            if (mSourceType == "NonAdiabatic")     
+                mAlphaInitial = rParameters["alpha_initial"].GetDouble();
+                
+            if (mAging == true)     
+                mYoungInf = rParameters["young_inf"].GetDouble();       
 
             KRATOS_CATCH("");
         }
@@ -146,12 +147,26 @@ void Initialize()
     // Assign Alpha Initial in case of using Azenha Formulation
     if (mSourceType == "NonAdiabatic")
     {
-        ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();        
-        #pragma omp parallel for
-        for(unsigned int i = 0; i<nnodes; ++i)
+        if (mAging == false)
         {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
-            it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = mAlphaInitial;
+            ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();        
+            #pragma omp parallel for
+            for(unsigned int i = 0; i<nnodes; ++i)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = mAlphaInitial;
+            }
+        }
+        else
+        {
+            ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();        
+            #pragma omp parallel for
+            for(unsigned int i = 0; i<nnodes; ++i)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = mAlphaInitial;
+                it->FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = sqrt(mAlphaInitial)*mYoungInf;
+            }
         }
     }
 
@@ -495,6 +510,68 @@ void ActiveHeatFluxAzenha(Parameters& AzenhaParameters)
 {
     KRATOS_TRY;
     
+    if (mAging == false)
+    {    
+        const unsigned int nnodes = mrThermalModelPart.Nodes().size();
+
+        // Getting Azenha Values
+        double activation_energy = AzenhaParameters["activation_energy"].GetDouble();
+        double gas_constant = AzenhaParameters["gas_constant"].GetDouble();
+        double constant_rate = AzenhaParameters["constant_rate"].GetDouble();
+        double q_total = AzenhaParameters["q_total"].GetDouble();
+        double a_coef = AzenhaParameters["A"].GetDouble();
+        double b_coef = AzenhaParameters["B"].GetDouble();
+        double c_coef = AzenhaParameters["C"].GetDouble();
+        double d_coef = AzenhaParameters["D"].GetDouble();
+
+        // Tempotal variables
+        double time = mrThermalModelPart.GetProcessInfo()[TIME];    
+        double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
+
+        ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();        
+        #pragma omp parallel for
+        for(unsigned int i = 0; i<nnodes; ++i)
+        {         
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+            double current_activation_time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION)); 
+            if (current_activation_time >= 0.0 && (it->Is(SOLID)==false))
+            {
+                // Computing the current alpha according las step.
+                double current_alpha = ( (it->FastGetSolutionStepValue(HEAT_FLUX,1))/q_total)*delta_time + (it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE));
+                double f_alpha = a_coef*(pow(current_alpha,2))*exp(-b_coef*pow(current_alpha,3)) + c_coef*current_alpha*exp(-d_coef*current_alpha); 
+
+                // This is neccesary for stopping the addition to the system once the process finish.
+                if (current_alpha>= 1.0)
+                {
+                    f_alpha = 0.0;
+                    current_alpha = 1.0;
+                }
+                   
+                // Transformation degress to Kelvins, it is necessary since gas constant is in Kelvins.
+                const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE) + 273.0;
+                const double heat_flux = constant_rate*f_alpha*exp((-activation_energy)/(gas_constant*temp_current));         
+
+                // Updating values according the computations
+                it->FastGetSolutionStepValue(HEAT_FLUX) = heat_flux;
+                it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = current_alpha;                    
+
+            }                   
+        }
+    }
+    else
+    {
+        this->ActiveHeatFluxAzenhaAging(AzenhaParameters);
+    }
+
+    KRATOS_CATCH("");
+}
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void ActiveHeatFluxAzenhaAging(Parameters& AzenhaParameters)
+{
+    KRATOS_TRY;
+    
     const unsigned int nnodes = mrThermalModelPart.Nodes().size();
     
     // Getting Azenha Values
@@ -525,7 +602,10 @@ void ActiveHeatFluxAzenha(Parameters& AzenhaParameters)
 
             // This is neccesary for stopping the addition to the system once the process finish.
             if (current_alpha>= 1.0)
+            {
                 f_alpha = 0.0;
+                current_alpha = 1.0;
+            }
 
             // Transformation degress to Kelvins, it is necessary since gas constant is in Kelvins.
             const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE) + 273.0;
@@ -533,13 +613,15 @@ void ActiveHeatFluxAzenha(Parameters& AzenhaParameters)
 
             // Updating values according the computations
             it->FastGetSolutionStepValue(HEAT_FLUX) = heat_flux;
-            it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = current_alpha;                    
+            it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = current_alpha;
+            it->FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = sqrt(current_alpha)*mYoungInf;                    
 
         }                   
     }
 
     KRATOS_CATCH("");
 }
+
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -626,6 +708,8 @@ protected:
     double mH0;
     double mTimeUnitConverter;    
     double mAlphaInitial;
+    bool mAging;
+    double mYoungInf;
     unsigned int mMechanicalLastCondition;
     unsigned int mThermalLastCondition;
     TableType& mrTableAmbientTemp;
