@@ -218,8 +218,6 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         
         for process in self.list_of_processes:
             process.ExecuteFinalizeSolutionStep()
-        
-        self.gid_output.ExecuteFinalizeSolutionStep()
 
         # processes to be executed at the end of the solution step
         for process in self.list_of_processes:
@@ -233,6 +231,8 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         if(self.gid_output.IsOutputStep()):
             self.gid_output.PrintOutput()
                         
+        self.gid_output.ExecuteFinalizeSolutionStep()
+
         # processes to be executed after witting the output
         for process in self.list_of_processes:
             process.ExecuteAfterOutputStep()            
