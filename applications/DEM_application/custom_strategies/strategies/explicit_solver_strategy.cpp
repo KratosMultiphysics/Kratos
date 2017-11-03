@@ -381,30 +381,6 @@ namespace Kratos {
 
             if (number_of_conditions > 0) {
                 CheckHierarchyWithCurrentNeighbours();
-                const int number_of_conditions = (int) pTConditions.size();
-                const int number_of_particles = (int) mListOfSphericParticles.size();
-
-                #pragma omp parallel
-                {
-                    #pragma omp for
-                    for (int i = 0; i < number_of_conditions; i++) {
-                        ConditionsArrayType::iterator ic = pTConditions.begin() + i;
-                        DEMWall* wall = dynamic_cast<Kratos::DEMWall*> (&(*ic));
-                        wall->mNeighbourSphericParticles.resize(0);
-                    }
-
-                    #pragma omp for
-                    for (int i = 0; i < number_of_particles; i++) {
-                        for (unsigned int j = 0; j < mListOfSphericParticles[i]->mNeighbourRigidFaces.size(); j++) {
-                            DEMWall* p_wall = mListOfSphericParticles[i]->mNeighbourRigidFaces[j];
-                            #pragma omp critical
-                            {
-                                p_wall->mNeighbourSphericParticles.push_back(mListOfSphericParticles[i]);
-                            }
-                        }
-                    }
-                }//#pragma omp parallel
-
                 ComputeNewRigidFaceNeighboursHistoricalData();
                 mSearchControl = 1; // Search is active but no search has been done this time step;
             }
