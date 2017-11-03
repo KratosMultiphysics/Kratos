@@ -92,11 +92,62 @@ private:
     const std::vector<KeyType> mBinKeys;
     std::vector<BinType> mBins;
     ///@}
+    ///@name Private Operations
+    ///@{
+    template <class TOtherContainerType>
+    void CreateSingleBin(TOtherContainerType& rData);
+
+    template <class TOtherContainerType>
+    void CreateMultipleBins(TOtherContainerType& rData);
+    ///@}
 }; // class PointerBinsUtility
 
 template <class DataType>
 template <class TOtherContainerType>
 void PointerBinsUtility<DataType>::CreateBins(TOtherContainerType& rData)
+{
+    KRATOS_TRY;
+
+    if (mBinKeys.size() == 1)
+        CreateSingleBin(rData);
+    else
+        CreateMultipleBins(rData);
+
+    KRATOS_CATCH("");
+}
+
+template <class DataType>
+template <class TOtherContainerType>
+void PointerBinsUtility<DataType>::CreateSingleBin(TOtherContainerType& rData)
+{
+    KRATOS_TRY;
+
+    mBins[0].resize(rData.size());
+
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    OpenMPUtils::PartitionVector partition;
+    OpenMPUtils::DivideInPartitions(rData.size(), num_threads, partition);
+#pragma omp parallel
+    {
+        const int thread_id = OpenMPUtils::ThisThread();
+        typename TOtherContainerType::const_iterator it = rData.begin() + partition[thread_id];
+        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
+        {
+            ConstPointerType p_item = &(*it);
+            if (typeid(p_item) == typeid(mBinKeys[0]))
+                mBins[0][i] = p_item;
+            else
+                KRATOS_ERROR << "Did not find bin for element #" << p_item->Id() << std::endl;
+            ++it;
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <class DataType>
+template <class TOtherContainerType>
+void PointerBinsUtility<DataType>::CreateMultipleBins(TOtherContainerType& rData)
 {
     KRATOS_TRY;
 
