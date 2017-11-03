@@ -48,18 +48,18 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Tetrahedra3D4ModifiedShapeFunctions);
 
     // General type definitions
-    typedef ModifiedShapeFunctions                                      BaseType;
-    typedef typename BaseType::GeometryType                             GeometryType;
-    typedef typename BaseType::GeometryPointerType                      GeometryPointerType;
-    typedef typename BaseType::IntegrationMethodType                    IntegrationMethodType;
-    typedef typename BaseType::ShapeFunctionsGradientsType              ShapeFunctionsGradientsType;
+    typedef ModifiedShapeFunctions                             BaseType;
+    typedef BaseType::GeometryType                             GeometryType;
+    typedef BaseType::GeometryPointerType                      GeometryPointerType;
+    typedef BaseType::IntegrationMethodType                    IntegrationMethodType;
+    typedef BaseType::ShapeFunctionsGradientsType              ShapeFunctionsGradientsType;
 
-    typedef typename BaseType::IndexedPointGeometryType                 IndexedPointGeometryType;
-    typedef typename BaseType::IndexedPointGeometryPointerType          IndexedPointGeometryPointerType;
+    typedef BaseType::IndexedPointGeometryType                 IndexedPointGeometryType;
+    typedef BaseType::IndexedPointGeometryPointerType          IndexedPointGeometryPointerType;
 
-    typedef typename BaseType::IntegrationPointType                     IntegrationPointType;
-    typedef typename BaseType::IntegrationPointsArrayType               IntegrationPointsArrayType;
-    typedef typename BaseType::IntegrationPointsContainerType           IntegrationPointsContainerType;
+    typedef BaseType::IntegrationPointType                     IntegrationPointType;
+    typedef BaseType::IntegrationPointsArrayType               IntegrationPointsArrayType;
+    typedef BaseType::IntegrationPointsContainerType           IntegrationPointsContainerType;
 
     ///@}
     ///@name Life Cycle
