@@ -120,10 +120,9 @@ namespace Kratos
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double L = this->CalculateReferenceLength();
 
-		bounded_vector<double,msDimension> inertia = this->GetProperties()[LOCAL_INERTIA_VECTOR];
-		const double J = inertia[0];
-		const double Iy = inertia[1];
-		const double Iz = inertia[2];
+		const double J = this->GetProperties()[TORSIONAL_INERTIA];
+		const double Iy = this->GetProperties()[I22];
+		const double Iz = this->GetProperties()[I33];
 
 		double Ay = 0.00;
 		if (this->GetProperties().Has(AREA_EFFECTIVE_Y)) {
@@ -347,10 +346,9 @@ namespace Kratos
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double L = this->CalculateReferenceLength();
 		
-		bounded_vector<double,msDimension> inertia = this->GetProperties()[LOCAL_INERTIA_VECTOR];
-		const double J = inertia[0];
-		const double Iy = inertia[1];
-		const double Iz = inertia[2];
+		const double J = this->GetProperties()[TORSIONAL_INERTIA];
+		const double Iy = this->GetProperties()[I22];
+		const double Iz = this->GetProperties()[I33];
 
 		double Ay = 0.00;
 		if (this->GetProperties().Has(AREA_EFFECTIVE_Y)) {
@@ -484,9 +482,6 @@ namespace Kratos
 		CrBeamElement3D2N::msElementSize,CrBeamElement3D2N::msElementSize>& rRotationMatrix) {
 
 		KRATOS_TRY
-		//initialize local CS
-		if (this->mIterationCount == 0) this->CalculateInitialLocalCS();
-
 		//update local CS
 		Matrix AuxRotationMatrix = ZeroMatrix(msDimension);
 		AuxRotationMatrix = this->UpdateRotationMatrixLocal();
@@ -804,7 +799,7 @@ namespace Kratos
 		if (this->GetProperties().Has(LUMPED_MASS_MATRIX)) {
 			this->mIsLumpedMassMatrix = GetProperties()[LUMPED_MASS_MATRIX];
 		}
-		else this->mIsLumpedMassMatrix = false;
+		else this->mIsLumpedMassMatrix = true;
 
 
 
@@ -1461,10 +1456,10 @@ namespace Kratos
 		const double rho = this->GetProperties()[DENSITY];
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double E = this->GetProperties()[YOUNG_MODULUS];
-		Vector inertia = this->GetProperties()[LOCAL_INERTIA_VECTOR];
-		const double J = inertia[0];
-		const double Iy = inertia[1];
-		const double Iz = inertia[2];
+
+		const double J = this->GetProperties()[TORSIONAL_INERTIA];
+		const double Iy = this->GetProperties()[I22];
+		const double Iz = this->GetProperties()[I33];
 		const double G = this->CalculateShearModulus();
 
 		double Ay = 0.00;
@@ -1483,7 +1478,7 @@ namespace Kratos
 		}
 
 		double IRz = Iz;
-		if (this->GetProperties().Has(INERTIA_ROT_Y)) {
+		if (this->GetProperties().Has(INERTIA_ROT_Z)) {
 			IRz = GetProperties()[INERTIA_ROT_Z];
 		}
 
@@ -1728,21 +1723,21 @@ namespace Kratos
 				<< std::endl;
 		}
 
-		if (this->GetProperties().Has(LOCAL_INERTIA_VECTOR) == false)
+		if (this->GetProperties().Has(TORSIONAL_INERTIA) == false)
 		{
-			KRATOS_ERROR << "LOCAL_INERTIA_VECTOR not provided for this element" << this->Id()
+			KRATOS_ERROR << "TORSIONAL_INERTIA not provided for this element" << this->Id()
 				<< std::endl;
 		}
-		else
+		if (this->GetProperties().Has(I22) == false)
 		{
-			Vector inertia = this->GetProperties()[LOCAL_INERTIA_VECTOR];
-			if (inertia.size() != 3)
-			{
-				KRATOS_ERROR << "LOCAL_INERTIA_VECTOR must be of size 3 in element:" << this->Id()
+			KRATOS_ERROR << "I22 not provided for this element" << this->Id()
 				<< std::endl;
-			}
 		}
-
+		if (this->GetProperties().Has(I33) == false)
+		{
+			KRATOS_ERROR << "I33 not provided for this element" << this->Id()
+				<< std::endl;
+		}
 		return 0;
 
 		KRATOS_CATCH("")
