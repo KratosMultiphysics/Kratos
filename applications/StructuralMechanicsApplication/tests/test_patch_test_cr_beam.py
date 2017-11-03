@@ -39,13 +39,9 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,7850)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.CROSS_AREA,0.01)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.30)
-
-        local_inertia_vector = KratosMultiphysics.Vector(3)
-        local_inertia_vector[0] = 0.00001
-        local_inertia_vector[1] = 0.00001
-        local_inertia_vector[2] = 0.00001
-
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.LOCAL_INERTIA_VECTOR,local_inertia_vector)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TORSIONAL_INERTIA,0.00001)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I22,0.00001)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I33,0.00001)
 
         g = [0,0,0]  
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
