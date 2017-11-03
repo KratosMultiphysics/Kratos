@@ -55,7 +55,8 @@ class DamConstructionUtility:
     def Initialize(self):
         self.Construction.Initialize()
 
-        # The function recieves the mame of submodel Part, the number of phase and the activation time 
+        # The function recieves the mame of submodel Part, the number of phase and the activation time
+        print("Assigning time activation for each node") 
         with open(self.construction_input_file_name,'r') as file_name2:
             for j, line in enumerate(file_name2):
                 file_2 = line.split(" ")
@@ -73,18 +74,21 @@ class DamConstructionUtility:
             for j, line in enumerate(file_name3):
                 file_3 = line.split(" ")
                 if ((len(file_3)) > 1 and (float(file_3[0]) == time)):
-                    print("New phase has been Activated")
+                    print("New phase has been activated...")
                     self.Construction.InitializeSolutionStep(file_3[1],file_3[2],int(file_3[3]))
 
         # Detection of fluxes (it must be done each step)
+        print("Searching free surfaces...")
         self.Construction.SearchingFluxes()
 
         # Contribution of heat source
+        print("Assigning heat source...")
         if (self.heat_source_type == 'Noorzai'):
             self.Construction.ActiveHeatFluxNoorzai(self.heat_source_parameters)
 
         elif (self.heat_source_type == 'Azenha'):
             self.Construction.ActiveHeatFluxAzenha(self.heat_source_parameters)
+
 
     def AfterOutputStep(self):
         self.Construction.AfterOutputStep()
