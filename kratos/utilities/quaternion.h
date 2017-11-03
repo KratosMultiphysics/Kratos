@@ -609,7 +609,7 @@ namespace Kratos
 		);
 	}    
         
-	
+        
         template<class T>
         inline std::istream& operator >> (std::istream& rIStream, Quaternion<T>& rThis);
 
