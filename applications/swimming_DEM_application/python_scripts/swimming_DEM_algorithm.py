@@ -547,7 +547,7 @@ class Algorithm(object):
                 self.disperse_phase_algorithm.spheres_model_part.ProcessInfo[TIME_STEPS]    = self.DEM_step
                 self.disperse_phase_algorithm.rigid_face_model_part.ProcessInfo[TIME_STEPS] = self.DEM_step
                 self.disperse_phase_algorithm.cluster_model_part.ProcessInfo[TIME_STEPS]    = self.DEM_step
-                
+
                 self.PerformInitialDEMStepOperations(self.time_dem)
 
                 if self.time >= interaction_start_time and coupling_level_type and (project_at_every_substep_option or first_dem_iter):
