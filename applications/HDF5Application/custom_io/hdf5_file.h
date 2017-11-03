@@ -52,6 +52,9 @@ hid_t GetScalarDataType();
 
 } // namespace Detail.
 
+///@name Kratos Classes
+///@{
+
 /// A base class for accessing an HDF5 file.
 /**
  * Provides the interface to HDF5 files in Kratos. All functions reading or 
@@ -275,6 +278,7 @@ private:
     ///@}
 
 };
+///@} // Kratos Classes
 
 template <class TScalar>
 void File::WriteAttribute(std::string ObjectPath, std::string Name, TScalar Value)

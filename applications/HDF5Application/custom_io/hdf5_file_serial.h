@@ -28,6 +28,8 @@ namespace HDF5
 {
 ///@addtogroup HDF5Application
 ///@{
+///@name Kratos Classes
+///@{
 
 /// A class for accessing an HDF5 file from a single process.
 class FileSerial : public File
@@ -388,6 +390,7 @@ private:
 
 };
 
+///@} // Kratos Classes
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.

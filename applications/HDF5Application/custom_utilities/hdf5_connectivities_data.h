@@ -33,7 +33,8 @@ namespace Detail
 {
 ///@addtogroup HDF5Application
 ///@{
-
+///@name Kratos Classes
+///@{
 class ConnectivitiesData
 {
 public:
@@ -99,6 +100,7 @@ private:
     ///@}
 }; // class ConnectivitiesData
 
+///@} // Kratos Classes
 ///@} addtogroup
 } // namespace Detail.
 } // namespace HDF5.

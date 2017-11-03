@@ -36,6 +36,8 @@ namespace HDF5
 {
 ///@addtogroup HDF5Application
 ///@{
+///@name Kratos Classes
+///@{
 
 /// A class for partitioned IO of a model part in HDF5.
 class PartitionedModelPartIO : public IO
@@ -126,6 +128,7 @@ private:
     ///@}
 };
 
+///@} // Kratos Classes
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.

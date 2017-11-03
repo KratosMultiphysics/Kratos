@@ -35,6 +35,8 @@ namespace HDF5
 {
 ///@addtogroup HDF5Application
 ///@{
+///@name Kratos Classes
+///@{
 
 /// A class for serial IO of a model part in HDF5.
 class ModelPartIO : public IO
@@ -121,6 +123,7 @@ private:
     ///@}
 };
 
+///@} // Kratos Classes
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.

@@ -34,6 +34,8 @@ namespace Detail
 {
 ///@addtogroup HDF5Application
 ///@{
+///@name Kratos Classes
+///@{
 
 // A class for sorting pointers into bins according to their dynamic types.
 template <class DataType>
@@ -104,6 +106,7 @@ private:
     inline bool IsMatch(KeyType lhs, KeyType rhs);
     ///@}
 }; // class PointerBinsUtility
+///@} // Kratos Classes
 
 template <class DataType>
 template <class TOtherContainerType>

@@ -28,6 +28,8 @@ namespace HDF5
 {
 ///@addtogroup HDF5Application
 ///@{
+///@name Kratos Classes
+///@{
 
 /// A class for accessing a single shared HDF5 file across MPI processes.
 class FileParallel : public File
@@ -529,6 +531,7 @@ private:
     ///@}
 };
 
+///@} // Kratos Classes
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.

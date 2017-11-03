@@ -34,6 +34,8 @@ namespace Detail
 {
 ///@addtogroup HDF5Application
 ///@{
+///@name Kratos Classes
+///@{
 
 class PointsData
 {
@@ -83,6 +85,7 @@ private:
     ///@}
 }; // class PointsData
 
+///@} // Kratos Classes
 ///@} addtogroup
 } // namespace Detail.
 } // namespace HDF5.
