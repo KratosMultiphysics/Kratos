@@ -18,6 +18,7 @@ from SmallTests import NavierStokesWallConditionTest as TNavierStokesWallConditi
 
 from buoyancy_test import BuoyancyTest
 from volume_source_test import VolumeSourceTest
+from darcy_channel_test import DarcyChannelTest
 
 ## NIGTHLY TESTS
 
@@ -49,6 +50,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TNavierStokesWallConditionTest('test_execution'))
     smallSuite.addTest(BuoyancyTest('testEulerian'))
     smallSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))
+    smallSuite.addTest(DarcyChannelTest('testDarcyDensity'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
@@ -63,6 +65,8 @@ def AssambleTestSuites():
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
+    allSuite.addTest(DarcyChannelTest('testDarcyLinear'))
+    allSuite.addTest(DarcyChannelTest('testDarcyNonLinear'))
 
     return suites
 
