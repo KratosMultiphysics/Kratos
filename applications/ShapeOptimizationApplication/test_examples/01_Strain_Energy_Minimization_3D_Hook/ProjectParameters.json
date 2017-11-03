@@ -165,7 +165,7 @@
         },
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
-            "max_iterations"     : 100,
+            "max_iterations"     : 50,
             "relative_tolerance" : 1e-0
         },
         "line_search" : {
@@ -177,7 +177,7 @@
             "output_directory"                        : "Optimization_Results",
             "response_log_filename"                   : "response_log",
             "design_history_filename"                 : "design_history",
-            "output_complete_optimization_model_part" : true,
+            "output_complete_optimization_model_part" : false,
             "nodal_results" : [ "NORMALIZED_SURFACE_NORMAL",
                                 "OBJECTIVE_SENSITIVITY",
                                 "MAPPED_OBJECTIVE_SENSITIVITY",
@@ -187,15 +187,7 @@
                                 "SHAPE_CHANGE",
                                 "MESH_CHANGE" ],
             "output_format" : {
-                "name"              : "gid",
-                "gid_configuration" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary"
-                        },
-                        "output_frequency"    : 1.0
-                    }
-                }
+                "name" : "vtk"
             }
         }
     }

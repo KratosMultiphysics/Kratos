@@ -74,7 +74,7 @@ public:
     /// Default constructor.
     VTKFileIO( ModelPart& OutputModelPart, std::string OutputFilenamePrefix, std::string WriteConditionsFlag, Parameters NodalResults )
         : mrOutputModelPart( OutputModelPart ),
-          mOutputFilenamePrefix( OutputFilenamePrefix ),
+          mOutputFilenameWithoutExtension( OutputFilenamePrefix ),
           mrNodalResults( NodalResults )
     {
         mDefaultPrecision = 15;
@@ -159,15 +159,15 @@ public:
     // --------------------------------------------------------------------------
     void UpdateOutputFilename( const int optimizationIteration )
     {
-        std::string outputFilename = mOutputFilenamePrefix + "_" + std::to_string(optimizationIteration) + ".vtk";
-        mOutputFilename = outputFilename;
+        std::string outputFilename = mOutputFilenameWithoutExtension + "_" + std::to_string(optimizationIteration) + ".vtk";
+        mOutputFilenameWithExtension = outputFilename;
     }
 
     // --------------------------------------------------------------------------
     void WriteHeader()
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::trunc );
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::trunc );
         outputFile << "# vtk DataFile Version 4.0" << "\n";
         outputFile << "vtk output" << "\n";
         outputFile << "ASCII" << "\n";
@@ -194,7 +194,7 @@ public:
     void WriteNodes()
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );
         outputFile << std::scientific;
         outputFile << std::setprecision(mDefaultPrecision);
 
@@ -216,16 +216,16 @@ public:
     void WriteElements()
     {
         if(mWriteConditionsFlag.compare("WriteElementsOnly")==0)
-            WriteElementsOnly();
+            WriteAllElementsButNoConditions();
         else if(mWriteConditionsFlag.compare("WriteConditionsOnly")==0)
             WriteConditionsAsElements();
     }
 
     // --------------------------------------------------------------------------
-    void WriteElementsOnly()
+    void WriteAllElementsButNoConditions()
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );
 
         outputFile << "CELLS " << mrOutputModelPart.NumberOfElements() << " " << mVtkCellListSize << "\n";
         for (auto & element_i : mrOutputModelPart.Elements())
@@ -246,7 +246,7 @@ public:
     void WriteConditionsAsElements()
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );
 
         outputFile << "CELLS " << mrOutputModelPart.NumberOfConditions() << " " << mVtkCellListSize << "\n";
         for (auto & condition_i : mrOutputModelPart.Conditions())
@@ -276,7 +276,7 @@ public:
     void WriteElementTypesOfElementsOnly()
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );
 
         outputFile << "CELL_TYPES " << mrOutputModelPart.NumberOfElements() << "\n";
         for (auto & element_i : mrOutputModelPart.Elements())
@@ -306,7 +306,7 @@ public:
     void WriteElementTypesOfConditionsOnly()
     { 
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );
 
         outputFile << "CELL_TYPES " << mrOutputModelPart.NumberOfConditions() << "\n";
         for (auto & condition_i : mrOutputModelPart.Conditions())
@@ -332,7 +332,7 @@ public:
     void WriteFirstNodalResultsAsPointData()
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );
 
         // Write nodal results header
         outputFile << "POINT_DATA " << mrOutputModelPart.NumberOfNodes() << "\n";
@@ -379,7 +379,7 @@ public:
     void WriteOtherNodalResultsAsFieldData()
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );
 
         // Write nodal results header
         outputFile << "FIELD FieldData " << mrNodalResults.size()-1 << "\n";
@@ -516,13 +516,13 @@ private:
     // Initialized by class constructor
     // ==============================================================================
     ModelPart& mrOutputModelPart;    
-    std::string mOutputFilenamePrefix;
+    std::string mOutputFilenameWithoutExtension;
     Parameters mrNodalResults; 
     unsigned int mDefaultPrecision;
     std::string mWriteConditionsFlag;   
     std::map<int,int> mKratosIdToVtkId;
     unsigned int mVtkCellListSize;
-    std::string mOutputFilename;
+    std::string mOutputFilenameWithExtension;
 
     ///@}
     ///@name Private Operators

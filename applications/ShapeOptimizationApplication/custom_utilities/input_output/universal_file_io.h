@@ -75,12 +75,15 @@ public:
     ///@{
 
     /// Default constructor.
-    UniversalFileIO( ModelPart& OutputModelPart, Parameters OptimizationSettings )
+    UniversalFileIO( ModelPart& OutputModelPart, std::string OutputFilenameWithoutExtension, std::string WriteConditionsFlag, Parameters NodalResults )
         : mrOutputModelPart( OutputModelPart ),
-          mrOptimizationSettings( OptimizationSettings )
+          mOutputFilenameWithExtension( OutputFilenameWithoutExtension + ".unv" ),
+          mrNodalResults( NodalResults )
     {
-        mOutputFilename = CreateCompleteOutputFilenameWithPath( OptimizationSettings );
-        mOutputCompleteOptimizationModelPart = mrOptimizationSettings["output"]["output_complete_optimization_model_part"].GetBool();
+        if(WriteConditionsFlag.compare("WriteElementsOnly")==0 || WriteConditionsFlag.compare("WriteConditionsOnly")==0 )
+            mWriteConditionsFlag = WriteConditionsFlag;        
+        else
+            KRATOS_THROW_ERROR(std::runtime_error,"Wrong value specified for \"WriteConditionsFlag\" in UniversalFileIO. Options are: \"WriteElementsOnly\" or \"WriteConditionsOnly\"","" )
     }
 
     /// Destructor.
@@ -99,14 +102,6 @@ public:
     ///@{
 
     // ==============================================================================
-    std::string CreateCompleteOutputFilenameWithPath( Parameters& OptimizationSettings  )
-    {
-        std::string outputDirectory = OptimizationSettings["output"]["output_directory"].GetString();
-        std::string outputFilename = outputDirectory + "/" + OptimizationSettings["output"]["design_history_filename"].GetString() + ".unv";
-        return outputFilename;
-    }
-
-    // --------------------------------------------------------------------------
     void InitializeLogging()
     {
         WriteMeshToResultFile();
@@ -125,14 +120,14 @@ public:
     void InitializeOutputFile()
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::trunc );
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::trunc );
         outputFile.close();     
     }    
     // --------------------------------------------------------------------------
     void WriteUnits()
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );
         outputFile << std::scientific;
         outputFile << std::setprecision(15);
 
@@ -158,7 +153,7 @@ public:
     void WriteNodes()
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );
         outputFile << std::scientific;
         outputFile << std::setprecision(15);
 
@@ -186,9 +181,9 @@ public:
     // --------------------------------------------------------------------------
     void WriteElements()
     {
-        if( mOutputCompleteOptimizationModelPart )
+        if(mWriteConditionsFlag.compare("WriteElementsOnly")==0)
             WriteAllElementsButNoConditions();
-        else
+        else if(mWriteConditionsFlag.compare("WriteConditionsOnly")==0)
             WriteConditionsAsDummyElements();
     }
 
@@ -196,7 +191,7 @@ public:
     void WriteAllElementsButNoConditions()
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );        
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );        
         
         const int dataSetNumberForElements = 2412;
         const int physicalPropertyTableNumber = 1;
@@ -270,7 +265,7 @@ public:
     void WriteConditionsAsDummyElements()
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );
 
         const int dataSetNumberForElements = 2412;
         const int physicalPropertyTableNumber = 1;
@@ -326,7 +321,7 @@ public:
     void LogNodalResults( const int optimizationIteration )
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilename, std::ios::out | std::ios::app );
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );
         outputFile << std::scientific;
         outputFile << std::setprecision(5);
 
@@ -370,10 +365,9 @@ public:
         const double imaginaryPartOfMass = 0.0;   
 
         // Loop over all nodal result variables
-        Parameters nodalResults = mrOptimizationSettings["output"]["nodal_results"];
-        for(unsigned int entry = 0; entry<nodalResults.size(); entry++)
+        for(unsigned int entry = 0; entry<mrNodalResults.size(); entry++)
         {
-            std::string nodalResultName = nodalResults[entry].GetString();
+            std::string nodalResultName = mrNodalResults[entry].GetString();
 
             unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
             if( KratosComponents<Variable<double>>::Has(nodalResultName))
@@ -543,10 +537,10 @@ private:
     // ==============================================================================
     // Initialized by class constructor
     // ==============================================================================
-    ModelPart& mrOutputModelPart;
-    Parameters& mrOptimizationSettings;
-    std::string mOutputFilename;
-    bool mOutputCompleteOptimizationModelPart;
+    ModelPart& mrOutputModelPart;    
+    std::string mOutputFilenameWithExtension;
+    Parameters mrNodalResults; 
+    std::string mWriteConditionsFlag;  
 
     ///@}
     ///@name Private Operators

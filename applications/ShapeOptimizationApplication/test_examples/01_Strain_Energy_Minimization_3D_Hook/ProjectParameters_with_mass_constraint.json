@@ -174,7 +174,7 @@
             "name"                    : "penalized_projection",
             "correction_scaling"      : 0.1,
             "use_adaptive_correction" : true,
-            "max_iterations"          : 4,
+            "max_iterations"          : 50,
             "relative_tolerance"      : 1e-0
         },
         "line_search" : {

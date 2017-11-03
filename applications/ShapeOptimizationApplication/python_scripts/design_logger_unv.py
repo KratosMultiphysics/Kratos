@@ -27,12 +27,26 @@ class DesignLoggerUNV( DesignLogger ):
 
     # --------------------------------------------------------------------------
     def __init__( self, OptimizationModelPart, DesignSurface, OptimizationSettings ):
+        self.OptimizationModelPart = OptimizationModelPart
+        self.DesignSurface = DesignSurface
+        self.OutputSettings = OptimizationSettings["output"]
+        
+        self.__CreateUNVIO()
+
+    # --------------------------------------------------------------------------
+    def __CreateUNVIO( self ):
+        ResultsDirectory = self.OutputSettings["output_directory"].GetString()
+        DesignHistoryFilename = self.OutputSettings["design_history_filename"].GetString()
+        DesignHistoryFilenameWithPath =  ResultsDirectory+"/"+DesignHistoryFilename
+
+        NodalResults = self.OutputSettings["nodal_results"]
         WriteCompleteOptimizationModelPart = self.OutputSettings["output_complete_optimization_model_part"].GetBool()
+       
         if WriteCompleteOptimizationModelPart:
-            self.UNVIO = UniversalFileIO( OptimizationModelPart, OptimizationSettings )
+            self.UNVIO = UniversalFileIO( self.OptimizationModelPart, DesignHistoryFilenameWithPath, "WriteElementsOnly", NodalResults )                
         else:
-            self.UNVIO = UniversalFileIO( DesignSurface, OptimizationSettings )
-            
+            self.UNVIO = UniversalFileIO( self.DesignSurface, DesignHistoryFilenameWithPath, "WriteConditionsOnly", NodalResults )  
+
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
         self.UNVIO.InitializeLogging()

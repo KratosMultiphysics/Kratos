@@ -128,7 +128,7 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     // For input / output
     // ========================================================================
-    class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters>())
+    class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, std::string, std::string, Parameters>())
         .def("InitializeLogging", &UniversalFileIO::InitializeLogging)
         .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
         ;
