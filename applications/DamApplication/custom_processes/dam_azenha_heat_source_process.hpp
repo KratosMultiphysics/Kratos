@@ -54,6 +54,8 @@ public:
                 "constant_rate"                       : 0.0,
                 "alpha_initial"                       : 0.0,
                 "q_total"                             : 0.0,
+                "aging"                               : false,
+                "young_inf"                           : 2e8,
                 "A"                                   : 0.0,
                 "B"                                   : 0.0,
                 "C"                                   : 0.0,
@@ -76,12 +78,13 @@ public:
         mAlphaInitial  = rParameters["alpha_initial"].GetDouble();
         mQTotal = rParameters["q_total"].GetDouble();
         mAging = rParameters["aging"].GetBool();        
-        mYoungInf = rParameters["young_inf"].GetDouble();
         mA = rParameters["A"].GetDouble();
         mB = rParameters["B"].GetDouble();
         mC = rParameters["C"].GetDouble();
         mD = rParameters["D"].GetDouble();
         
+        if (mAging == true)     
+            mYoungInf = rParameters["young_inf"].GetDouble();     
 
         KRATOS_CATCH("");
     }
@@ -157,8 +160,10 @@ void ExecuteInitializeSolutionStep()
 
                 // This is neccesary for stopping the addition to the system once the process finish.
                 if (current_alpha>= 1.0)
+                {
                     f_alpha = 0.0;
                     current_alpha = 1.0;
+                }
 
                 // Transformation degress to Kelvins, it is necessary since gas constant is in Kelvins.
                 const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE,1) + 273.0;
@@ -169,7 +174,7 @@ void ExecuteInitializeSolutionStep()
         }
     }
     else
-    {
+    {        
         this->ExecuteInitializeSolutionStepAging();
     }
 
@@ -215,7 +220,7 @@ void ExecuteInitializeAging()
 void ExecuteInitializeSolutionStepAging()
 {
     KRATOS_TRY;    
-
+  
     const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
     Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
     double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
@@ -235,9 +240,11 @@ void ExecuteInitializeSolutionStepAging()
 
             // This is neccesary for stopping the addition to the system once the process finish.
             if (current_alpha>= 1.0)
+            {
                 f_alpha = 0.0;
                 current_alpha = 1.0;
-                
+            }
+    
             // Transformation degress to Kelvins, it is necessary since gas constant is in Kelvins.
             const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE,1) + 273.0;
             const double heat_flux = mConstantRate*f_alpha*exp((-mActivationEnergy)/(mGasConstant*temp_current));              
