@@ -1,5 +1,4 @@
 #include "hdf5_partitioned_model_part_io.h"
-#include <vector>
 
 namespace Kratos
 {

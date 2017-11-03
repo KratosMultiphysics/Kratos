@@ -1,6 +1,5 @@
 #include "custom_io/hdf5_model_part_io.h"
 
-#include "custom_utilities/hdf5_utils.h"
 #include "custom_utilities/hdf5_points_data.h"
 #include "custom_utilities/hdf5_connectivities_data.h"
 #include "custom_utilities/hdf5_pointer_bins_utility.h"

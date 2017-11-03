@@ -14,17 +14,18 @@
 #define KRATOS_HDF5_PARTITIONED_MODEL_PART_IO_H_INCLUDED
 
 // System includes
-#include <iostream>
+#include <string>
 #include <tuple>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "includes/kratos_parameters.h"
 #include "includes/io.h"
+#include "includes/kratos_parameters.h"
 
 // Application includes
+#include "hdf5_application_define.h"
 #include "custom_io/hdf5_file.h"
 
 namespace Kratos

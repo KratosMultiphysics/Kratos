@@ -14,7 +14,6 @@
 #define KRATOS_HDF5_FILE_SERIAL_H_INCLUDED
 
 // System includes
-#include <type_traits>
 
 // External includes
 

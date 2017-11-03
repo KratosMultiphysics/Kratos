@@ -15,16 +15,15 @@
 
 // System includes
 #include <string>
-#include <vector>
 
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
+#include "includes/define.h"
 
 // Application includes
+#include "hdf5_application_define.h"
 #include "custom_io/hdf5_file.h"
-#include "custom_utilities/hdf5_utils.h"
 
 namespace Kratos
 {

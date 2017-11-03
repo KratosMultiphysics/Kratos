@@ -24,6 +24,7 @@
 #include "utilities/openmp_utils.h"
 
 // Application includes
+#include "hdf5_application_define.h"
 
 namespace Kratos
 {

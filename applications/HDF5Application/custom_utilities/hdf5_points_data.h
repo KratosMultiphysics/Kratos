@@ -21,11 +21,10 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/array_1d.h"
-#include "includes/model_part.h"
 
 // Application includes
+#include "hdf5_application_define.h"
 #include "custom_io/hdf5_file.h"
-#include "custom_utilities/hdf5_utils.h"
 
 namespace Kratos
 {

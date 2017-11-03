@@ -25,7 +25,6 @@
 // Application includes
 #include "custom_io/hdf5_file_serial.h"
 #include "custom_utilities/hdf5_connectivities_data.h"
-#include "custom_utilities/hdf5_utils.h"
 #include "custom_utilities/hdf5_pointer_bins_utility.h"
 
 namespace Kratos

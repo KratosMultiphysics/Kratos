@@ -14,11 +14,9 @@
 #define KRATOS_HDF5_FILE_H_INCLUDED
 
 // System includes
-#include <iostream>
 #include <vector>
 #include <string>
-#include <sstream>
-#include <regex>
+#include <type_traits>
 
 // External includes
 
@@ -28,7 +26,7 @@
 #include "includes/kratos_parameters.h"
 
 // Application includes
-#include "custom_utilities/hdf5_utils.h"
+#include "hdf5_application_define.h"
 
 namespace Kratos
 {
@@ -36,6 +34,23 @@ namespace HDF5
 {
 ///@addtogroup HDF5Application
 ///@{
+
+namespace Detail
+{
+/// Check if string is a valid path.
+/**
+ * Valid paths are similar to linux file system with alphanumeric names
+ * and possible underscores separated by '/'. All paths are absolute.
+ */
+bool IsPath(std::string Path);
+
+// Return vector of non-empty substrings separated by a delimiter.
+std::vector<std::string> Split(std::string Path, char Delimiter);
+
+template <class TScalar>
+hid_t GetScalarDataType();
+
+} // namespace Detail.
 
 /// A base class for accessing an HDF5 file.
 /**
@@ -427,6 +442,26 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TScala
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     KRATOS_CATCH("");
 }
+
+namespace Detail
+{
+template <class TScalar>
+hid_t GetScalarDataType()
+{
+    hid_t type_id;
+    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
+    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
+    if (is_int_type)
+        type_id = H5T_NATIVE_INT;
+    else if (is_double_type)
+        type_id = H5T_NATIVE_DOUBLE;
+    else
+        static_assert(is_int_type || is_double_type,
+                      "Unsupported scalar data type.");
+
+    return type_id;
+}
+} // namespace Detail.
 
 ///@} addtogroup
 } // namespace HDF5.
