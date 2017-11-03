@@ -24,7 +24,6 @@
 #include "includes/io.h"
 
 // Application includes
-#include "custom_io/hdf5_io.h"
 #include "custom_io/hdf5_file.h"
 #include "custom_io/hdf5_file_serial.h"
 #include "custom_io/hdf5_model_part_io.h"
@@ -42,10 +41,6 @@ namespace Python
 void AddCustomIOToPython()
 {
     using namespace boost::python;
-
-    class_<HDF5IO, HDF5IO::Pointer, bases<IO>, boost::noncopyable >("HDF5IO", init<std::string, Flags>())
-        .def("WriteModelPart",&HDF5IO::WriteModelPart)
-    ;
 
     class_<HDF5::File, HDF5::File::Pointer, boost::noncopyable >("HDF5File", init<Parameters&>())
     .def("HasPath",&HDF5::File::HasPath)

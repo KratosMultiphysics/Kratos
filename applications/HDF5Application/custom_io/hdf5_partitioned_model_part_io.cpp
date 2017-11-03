@@ -131,6 +131,18 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     KRATOS_CATCH("");
 }
 
+void PartitionedModelPartIO::ReadProperties(PropertiesContainerType& rThisProperties)
+{
+}
+
+void PartitionedModelPartIO::WriteProperties(Properties const& rThisProperties)
+{
+}
+
+void PartitionedModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties)
+{
+}
+
 void PartitionedModelPartIO::ReadElements(NodesContainerType& rNodes,
                                           PropertiesContainerType& rProperties,
                                           ElementsContainerType& rElements)
@@ -253,14 +265,14 @@ void PartitionedModelPartIO::WriteModelPart(ModelPart& rModelPart)
 {
 }
 
-HDF5::File& PartitionedModelPartIO::GetFile() const
+File& PartitionedModelPartIO::GetFile() const
 {
     return *mpFile;
 }
 
 void PartitionedModelPartIO::Check()
 {
-    if (mpFile->GetTotalProcesses() == 1)
+    if (GetFile().GetTotalProcesses() == 1)
         std::cout << "Warning: using PartitionedModelPartIO with single process file access." << std::endl;
 }
 

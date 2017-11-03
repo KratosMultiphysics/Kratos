@@ -63,6 +63,12 @@ public:
 
     void WriteNodes(NodesContainerType const& rNodes) override;
 
+    void ReadProperties(PropertiesContainerType& rThisProperties) override;
+    
+    void WriteProperties(Properties const& rThisProperties) override;
+    
+    void WriteProperties(PropertiesContainerType const& rThisProperties) override;
+
     void ReadElements(NodesContainerType& rNodes,
                       PropertiesContainerType& rProperties,
                       ElementsContainerType& rElements) override;
@@ -95,7 +101,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    HDF5::File& GetFile() const;
+    File& GetFile() const;
 
     virtual void Check();
 

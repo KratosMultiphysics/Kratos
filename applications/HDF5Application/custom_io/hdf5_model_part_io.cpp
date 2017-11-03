@@ -87,6 +87,18 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     KRATOS_CATCH("");
 }
 
+void ModelPartIO::ReadProperties(PropertiesContainerType& rThisProperties)
+{
+}
+
+void ModelPartIO::WriteProperties(Properties const& rThisProperties)
+{
+}
+
+void ModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties)
+{
+}
+
 void ModelPartIO::ReadElements(NodesContainerType& rNodes,
                                PropertiesContainerType& rProperties,
                                ElementsContainerType& rElements)
@@ -187,10 +199,16 @@ void ModelPartIO::ReadInitialValues(NodesContainerType& rNodes,
 
 void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
 {
+    ReadNodes(rModelPart.Nodes());
+    ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
+    ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
 }
 
 void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
 {
+    WriteNodes(rModelPart.Nodes());
+    WriteElements(rModelPart.Elements());
+    WriteConditions(rModelPart.Conditions());
 }
 
 HDF5::File& ModelPartIO::GetFile() const
@@ -202,7 +220,7 @@ void ModelPartIO::Check()
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF(mpFile->GetTotalProcesses() != 1)
+    KRATOS_ERROR_IF(GetFile().GetTotalProcesses() != 1)
         << "Serial IO expects file access by a single process only." << std::endl;
 
     for (const std::string& r_elem_name : mElementNames)
