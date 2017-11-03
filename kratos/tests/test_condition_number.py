@@ -20,15 +20,13 @@ class TestConditionNumber(KratosUnittest.TestCase):
         import eigen_solver_factory
         settings_max = KratosMultiphysics.Parameters("""
         {
-            "eigen_solver_settings"      : {
-            "solver_type"                 : "PowerIterationHighestEigenvalueSolver",
-                "max_iteration"           : 10000,
-                "tolerance"               : 1e-9,
-                "required_eigen_number"   : 1,
-                "verbosity"               : 0
-            },
-            "linear_solver_settings"      : {
-            "solver_type"             : "SuperLUSolver",
+            "solver_type"             : "power_iteration_highest_eigenvalue_solver",
+            "max_iteration"           : 10000,
+            "tolerance"               : 1e-9,
+            "required_eigen_number"   : 1,
+            "verbosity"               : 0,
+            "linear_solver_settings"  : {
+                "solver_type"             : "SuperLUSolver",
                 "max_iteration"           : 500,
                 "tolerance"               : 1e-9,
                 "scaling"                 : false,
@@ -39,15 +37,13 @@ class TestConditionNumber(KratosUnittest.TestCase):
         eigen_solver_max = eigen_solver_factory.ConstructSolver(settings_max)
         settings_min = KratosMultiphysics.Parameters("""
         {
-            "eigen_solver_settings"      : {
-                "solver_type"             : "PowerIterationEigenvalueSolver",
-                "max_iteration"           : 10000,
-                "tolerance"               : 1e-9,
-                "required_eigen_number"   : 1,
-                "verbosity"               : 0
-            },
-            "linear_solver_settings"      : {
-            "solver_type"             : "SuperLUSolver",
+            "solver_type"             : "power_iteration_eigenvalue_solver",
+            "max_iteration"           : 10000,
+            "tolerance"               : 1e-9,
+            "required_eigen_number"   : 1,
+            "verbosity"               : 0,
+            "linear_solver_settings"  : {
+                "solver_type"             : "SuperLUSolver",
                 "max_iteration"           : 500,
                 "tolerance"               : 1e-9,
                 "scaling"                 : false,
@@ -61,7 +57,7 @@ class TestConditionNumber(KratosUnittest.TestCase):
         condition_number_utility = KratosMultiphysics.ConditionNumberUtility()
         condition_number = condition_number_utility.GetConditionNumber(K, eigen_solver_max, eigen_solver_min)
 
-        self.assertAlmostEqual(condition_number, 194.5739, 3)
+        self.assertLessEqual(abs(condition_number-194.5739)/194.5739, 1e-3)
   
 if __name__ == '__main__':
     KratosUnittest.main()

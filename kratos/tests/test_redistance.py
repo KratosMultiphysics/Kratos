@@ -44,8 +44,8 @@ class TestRedistance(KratosUnittest.TestCase):
             max_distance = max(max_distance, d)
             min_distance = min(min_distance, d)
 
-        self.assertAlmostEqual(max_distance, 0.46121597491907795)
-        self.assertAlmostEqual(min_distance,-0.5072739105922954)
+        self.assertAlmostEqual(max_distance, 0.4473365725705744)
+        self.assertAlmostEqual(min_distance,-0.5049982310145651)
         
         
 if __name__ == '__main__':

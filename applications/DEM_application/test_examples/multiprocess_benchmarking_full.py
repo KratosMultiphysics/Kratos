@@ -1,7 +1,10 @@
 from __future__ import print_function
 import os,subprocess,sys
 import multiprocessing as mp
-import queue
+if sys.version_info >= (3, 0):
+    import queue
+else:
+    import Queue as queue
 from threading import Thread
 import threading
 from glob import glob
@@ -51,8 +54,12 @@ Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two iden
 def run(benchmark): 
     f = open('{0}.info'.format(benchmark), 'wb')
     path_py = os.getcwd()
-    path_py += '/../../python_scripts'                   
-    subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+    path_py += '/../../python_scripts'                  
+    if sys.version_info >= (3, 0):       
+        subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)        
+    else:                                                                                                 
+        subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+    
     f.close()
 
 def worker(queue):
@@ -93,7 +100,7 @@ def main():
     q = queue.Queue()
 
     #Discontinuum Tests. From 1 to 17
-    D_DEM_Benchmarks_list = list(range(1,12))
+    D_DEM_Benchmarks_list = list(range(1,18))
         
     #Continuum Tests
     C_DEM_Benchmarks_list = list(range(20,26))

@@ -12,7 +12,11 @@
 
 namespace Kratos {
     
-    ParticleCreatorDestructor::ParticleCreatorDestructor() : mGreatestParticleId(0) {
+    ParticleCreatorDestructor::ParticleCreatorDestructor() : mGreatestParticleId(0){
+        mpAnalyticWatcher = boost::make_shared<AnalyticWatcher>(); // do-nothing watcher by default
+    }
+
+    ParticleCreatorDestructor::ParticleCreatorDestructor(AnalyticWatcher::Pointer p_watcher) : mGreatestParticleId(0) {
         mScaleFactor = 1.0;
         mHighPoint[0] = 10e18;
         mHighPoint[1] = 10e18;
@@ -20,6 +24,7 @@ namespace Kratos {
         mLowPoint[0] = -10e18;
         mLowPoint[1] = -10e18;
         mLowPoint[2] = -10e18;
+        mpAnalyticWatcher = p_watcher;
     }
 
     //Particle_Creator_Destructor() {};
@@ -428,6 +433,9 @@ namespace Kratos {
         #pragma omp critical
         {
             r_modelpart.Elements().push_back(p_particle);
+            if (spheric_p_particle->IsNot(BLOCKED)){
+                mpAnalyticWatcher->Record(spheric_p_particle, r_modelpart);
+            }
         }
         
         return spheric_p_particle;
@@ -731,7 +739,8 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         return spheric_p_particle;
         
     }
-    
+    // TO-DO: This function is not well designed: Its input is a generic element but it is built with only
+    // one node. We must discuss this.
     Element::Pointer ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
                                               int r_Elem_Id,
                                               const array_1d<double, 3 >& coordinates, 
@@ -790,6 +799,10 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         {
             r_modelpart.Nodes().push_back(pnew_node);
             r_modelpart.Elements().push_back(p_particle);
+
+            if (spheric_p_particle->IsNot(BLOCKED)){
+                mpAnalyticWatcher->Record(spheric_p_particle, r_modelpart);
+            }
         }
         
         
