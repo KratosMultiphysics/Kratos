@@ -102,7 +102,7 @@ public:
     ///@{
 
     /// Default constructor.
-    DampingUtilities( ModelPart& modelPartToDamp, boost::python::dict subModelPartsForDamping, Parameters& optimizationSettings )
+    DampingUtilities( ModelPart& modelPartToDamp, boost::python::dict subModelPartsForDamping, Parameters optimizationSettings )
         : mrModelPartToDamp( modelPartToDamp ),
           mrDampingRegions( subModelPartsForDamping ),
           mDampingSettings( optimizationSettings["design_variables"]["damping"]["damping_regions"] )

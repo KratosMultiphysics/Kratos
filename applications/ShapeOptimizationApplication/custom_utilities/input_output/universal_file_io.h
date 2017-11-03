@@ -75,7 +75,7 @@ public:
     ///@{
 
     /// Default constructor.
-    UniversalFileIO( ModelPart& OutputModelPart, Parameters& OptimizationSettings )
+    UniversalFileIO( ModelPart& OutputModelPart, Parameters OptimizationSettings )
         : mrOutputModelPart( OutputModelPart ),
           mrOptimizationSettings( OptimizationSettings )
     {

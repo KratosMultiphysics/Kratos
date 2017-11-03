@@ -52,17 +52,17 @@ void  AddCustomUtilitiesToPython()
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, Parameters&>())
+    class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, Parameters>())
         .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
         ;
 
-    class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, Parameters&>())
+    class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, Parameters>())
         .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
         ;
 
-    class_<MapperVertexMorphingImprovedIntegration, bases<Process> >("MapperVertexMorphingImprovedIntegration", init<ModelPart&, Parameters&>())
+    class_<MapperVertexMorphingImprovedIntegration, bases<Process> >("MapperVertexMorphingImprovedIntegration", init<ModelPart&, Parameters>())
         .def("MapToDesignSpace", &MapperVertexMorphingImprovedIntegration::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingImprovedIntegration::MapToGeometrySpace)
         ;
@@ -71,14 +71,14 @@ void  AddCustomUtilitiesToPython()
     // ================================================================
     // For a possible damping of nodal variables
     // ================================================================
-    class_<DampingUtilities, bases<Process> >("DampingUtilities", init<ModelPart&, boost::python::dict, Parameters&>())
+    class_<DampingUtilities, bases<Process> >("DampingUtilities", init<ModelPart&, boost::python::dict, Parameters>())
         .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)
         ;
 
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
-    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters::Pointer>())
+    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
@@ -108,7 +108,7 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     // For calculations related to response functions
     // ========================================================================
-    class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, Parameters&>())
+    class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, Parameters>())
         .def("initialize", &StrainEnergyResponseFunction::initialize)
         .def("calculate_value", &StrainEnergyResponseFunction::calculate_value)
         .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient)
@@ -116,7 +116,7 @@ void  AddCustomUtilitiesToPython()
         .def("get_initial_value", &StrainEnergyResponseFunction::get_initial_value)
         .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)
         ;
-    class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, Parameters&>())
+    class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, Parameters>())
         .def("initialize", &MassResponseFunction::initialize)
         .def("calculate_value", &MassResponseFunction::calculate_value)
         .def("calculate_gradient", &MassResponseFunction::calculate_gradient)
@@ -128,12 +128,12 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     // For input / output
     // ========================================================================
-    class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters&>())
+    class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters>())
         .def("InitializeLogging", &UniversalFileIO::InitializeLogging)
         .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
         ;
 
-    class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart*, ModelPart*, Parameters&>())
+    class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart&, std::string, std::string, Parameters>())
         .def("InitializeLogging", &VTKFileIO::InitializeLogging)
         .def("LogNodalResults", &VTKFileIO::LogNodalResults)
         ;

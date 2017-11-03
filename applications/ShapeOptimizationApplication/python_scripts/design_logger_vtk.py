@@ -28,7 +28,25 @@ class DesignLoggerVTK( DesignLogger ):
 
     # --------------------------------------------------------------------------
     def __init__( self, OptimizationModelPart, DesignSurface, OptimizationSettings ):
-        self.VtkIO = VTKFileIO( OptimizationModelPart, DesignSurface, OptimizationSettings )                
+        self.OptimizationModelPart = OptimizationModelPart
+        self.DesignSurface = DesignSurface
+        self.OutputSettings = OptimizationSettings["output"]
+        
+        self.__CreateVTKIO()
+
+    # --------------------------------------------------------------------------
+    def __CreateVTKIO( self ):
+        ResultsDirectory = self.OutputSettings["output_directory"].GetString()
+        DesignHistoryFilename = self.OutputSettings["design_history_filename"].GetString()
+        DesignHistoryFilenameWithPath =  ResultsDirectory+"/"+DesignHistoryFilename
+
+        NodalResults = self.OutputSettings["nodal_results"]
+        WriteCompleteOptimizationModelPart = self.OutputSettings["output_complete_optimization_model_part"].GetBool()
+       
+        if WriteCompleteOptimizationModelPart:
+            self.VtkIO = VTKFileIO( self.OptimizationModelPart, DesignHistoryFilenameWithPath, "WriteElementsOnly", NodalResults )                
+        else:
+            self.VtkIO = VTKFileIO( self.DesignSurface, DesignHistoryFilenameWithPath, "WriteConditionsOnly", NodalResults )                
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):

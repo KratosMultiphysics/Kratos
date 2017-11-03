@@ -85,9 +85,9 @@ public:
     ///@{
 
     /// Default constructor.
-    OptimizationUtilities( ModelPart& designSurface, Parameters::Pointer optimizationSettings )
+    OptimizationUtilities( ModelPart& designSurface, Parameters optimizationSettings )
         : mrDesignSurface( designSurface ),
-          mpOptimizationSettings( optimizationSettings )
+          mOptimizationSettings( optimizationSettings )
     {
         // Initialize constraint value
         mConstraintValue = 0.0;
@@ -116,8 +116,8 @@ public:
     {
         KRATOS_TRY;
 
-        double step_size = (*mpOptimizationSettings)["line_search"]["step_size"].GetDouble();
-        bool normalize_search_direction = (*mpOptimizationSettings)["line_search"]["normalize_search_direction"].GetBool();
+        double step_size = mOptimizationSettings["line_search"]["step_size"].GetDouble();
+        bool normalize_search_direction = mOptimizationSettings["line_search"]["normalize_search_direction"].GetBool();
 
 
         // Computation of update of design variable. Normalization is applied if specified.
@@ -267,11 +267,11 @@ public:
     // --------------------------------------------------------------------------
     double GetCorrectionScaling()
     {
-        double correction_scaling = (*mpOptimizationSettings)["optimization_algorithm"]["correction_scaling"].GetDouble(); 
-        if((*mpOptimizationSettings)["optimization_algorithm"]["use_adaptive_correction"].GetBool())
+        double correction_scaling = mOptimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble(); 
+        if(mOptimizationSettings["optimization_algorithm"]["use_adaptive_correction"].GetBool())
         {
             correction_scaling = AdaptCorrectionScaling( correction_scaling );
-            (*mpOptimizationSettings)["optimization_algorithm"]["correction_scaling"].SetDouble(correction_scaling);
+            mOptimizationSettings["optimization_algorithm"]["correction_scaling"].SetDouble(correction_scaling);
         }
         return correction_scaling;
     }
@@ -388,7 +388,7 @@ private:
     // Initialized by class constructor
     // ==============================================================================
     ModelPart& mrDesignSurface;
-    Parameters::Pointer mpOptimizationSettings;
+    Parameters mOptimizationSettings;
     double mConstraintValue;
     double mPreviousConstraintValue;
 

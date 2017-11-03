@@ -100,7 +100,7 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingMatrixFree( ModelPart& designSurface, Parameters& optimizationSettings )
+    MapperVertexMorphingMatrixFree( ModelPart& designSurface, Parameters optimizationSettings )
         : mrDesignSurface( designSurface ),
           mNumberOfDesignVariables( designSurface.Nodes().size() ),
           mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),

@@ -30,7 +30,6 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def __init__( self, communicator, optimizationSettings, timer ):
-
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
         self.timer = timer

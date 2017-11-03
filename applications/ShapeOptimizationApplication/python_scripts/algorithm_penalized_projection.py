@@ -55,7 +55,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def execute( self ):
         self.__initializeOptimizationLoop()
-        self.__startOptimizationLoop()
+        self.__runOptimizationLoop()
         self.__finalizeOptimizationLoop()
 
     # --------------------------------------------------------------------------
@@ -64,7 +64,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.DataLogger.InitializeDataLogging()
 
     # --------------------------------------------------------------------------
-    def __startOptimizationLoop( self ):
+    def __runOptimizationLoop( self ):
 
         for optimizationIteration in range(1,self.maxIterations):
             print("\n>===================================================================")

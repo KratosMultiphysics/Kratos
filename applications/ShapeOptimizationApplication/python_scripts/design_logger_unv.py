@@ -27,8 +27,8 @@ class DesignLoggerUNV( DesignLogger ):
 
     # --------------------------------------------------------------------------
     def __init__( self, OptimizationModelPart, DesignSurface, OptimizationSettings ):
-        OutputCompleteOptimizationModelPart = OptimizationSettings["output"]["output_complete_optimization_model_part"].GetBool()
-        if OutputCompleteOptimizationModelPart:
+        WriteCompleteOptimizationModelPart = self.OutputSettings["output_complete_optimization_model_part"].GetBool()
+        if WriteCompleteOptimizationModelPart:
             self.UNVIO = UniversalFileIO( OptimizationModelPart, OptimizationSettings )
         else:
             self.UNVIO = UniversalFileIO( DesignSurface, OptimizationSettings )
