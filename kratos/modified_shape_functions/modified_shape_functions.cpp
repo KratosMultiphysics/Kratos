@@ -73,7 +73,7 @@ namespace Kratos
         const unsigned int nnodes = mpInputGeometry->PointsNumber();
             
         // Initialize intersection points condensation matrix
-        rIntPointCondMatrix = ZeroMatrix(rSplitEdges.size(), nnodes);
+        rIntPointCondMatrix = ZeroMatrix(nnodes + nedges, nnodes);
 
         // Fill the original geometry points main diagonal
         for (unsigned int i = 0; i < nnodes; ++i) {
@@ -240,7 +240,7 @@ namespace Kratos
 
             // Store the Gauss points weights
             for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
-                rInterfaceWeightsValues(i_gauss) = intersection_jacobians(i_gauss) * interface_gauss_pts[i_gauss].Weight();
+                rInterfaceWeightsValues(i_interface*n_int_pts + i_gauss) = intersection_jacobians(i_gauss) * interface_gauss_pts[i_gauss].Weight();
             }
 
             // Compute the global coordinates of the intersection Gauss pts.
@@ -266,7 +266,7 @@ namespace Kratos
 
                 // Store the computed shape function values
                 for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                    rInterfaceShapeFunctionsValues(i_gauss, i_node) = aux_sh_func(i_node);
+                    rInterfaceShapeFunctionsValues(i_interface*n_int_pts + i_gauss, i_node) = aux_sh_func(i_node);
                 }
 
                 // Store the computed gradient values
