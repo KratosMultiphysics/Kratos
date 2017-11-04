@@ -19,7 +19,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/node.h"
-#include "geometries/triangle_2d_3.h"
+#include "includes/kratos_components.h"
 
 // Application includes
 #include "custom_io/hdf5_file_serial.h"
@@ -47,9 +47,7 @@ void CreateTestMesh(HDF5::NodesContainerType& rNodes,
     rPropertiesIds.resize(num_elems, false);
     rConnectivities.resize(num_elems, 3, false);
 
-    auto p_geom = Element::GeometryType::Pointer(
-        new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)));
-    Element Element2D3N(0, p_geom);
+    const HDF5::ElementType& Element2D3N = KratosComponents<HDF5::ElementType>::Get("Element2D3N");
     // Create nodes.
     for (unsigned i = 0; i < num_nodes; ++i)
     {
@@ -57,8 +55,6 @@ void CreateTestMesh(HDF5::NodesContainerType& rNodes,
             i + 1, 1.0, 2.0, 3.0);
         rNodes.push_back(p_node);
     }
-    // Create properties.
-    rProperties.push_back(boost::make_shared<HDF5::PropertiesType>(1));
     // Create elements.
     Element::NodesArrayType geom_nodes(3);
     for (unsigned i = 0; i < num_elems; ++i)
@@ -92,9 +88,7 @@ void CreateTestMesh(HDF5::NodesContainerType& rNodes,
     rPropertiesIds.resize(num_conds, false);
     rConnectivities.resize(num_conds, 3, false);
 
-    auto p_geom = Condition::GeometryType::Pointer(
-        new Triangle2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)));
-    Condition Condition2D3N(0, p_geom);
+    const HDF5::ConditionType& SurfaceCondition3D3N = KratosComponents<HDF5::ConditionType>::Get("SurfaceCondition3D3N");
     // Create nodes.
     for (unsigned i = 0; i < num_nodes; ++i)
     {
@@ -102,8 +96,6 @@ void CreateTestMesh(HDF5::NodesContainerType& rNodes,
             i + 1, 1.0, 2.0, 3.0);
         rNodes.push_back(p_node);
     }
-    // Create properties.
-    rProperties.push_back(boost::make_shared<HDF5::PropertiesType>(1));
     // Create conditions.
     Condition::NodesArrayType geom_nodes(3);
     for (unsigned i = 0; i < num_conds; ++i)
@@ -115,7 +107,7 @@ void CreateTestMesh(HDF5::NodesContainerType& rNodes,
             rConnectivities(i, j) = i + j + 1;
             geom_nodes(j) = rNodes(i + j + 1);
         }
-        auto p_cond = Condition2D3N.Create(i + 1, geom_nodes, rProperties(1));
+        auto p_cond = SurfaceCondition3D3N.Create(i + 1, geom_nodes, rProperties(1));
         rConditions.push_back(p_cond);
     }
 }
@@ -175,9 +167,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateElements, KratosHDF5TestS
     test_file.WriteDataSet("/Elements/PropertiesIds", pids);
     test_file.WriteDataSet("/Elements/Connectivities", connectivities);
 
-    auto p_geom = Element::GeometryType::Pointer(
-        new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)));
-    Element Element2D3N(0, p_geom);
+   const HDF5::ElementType& Element2D3N = KratosComponents<HDF5::ElementType>::Get("Element2D3N");
 
     HDF5::Detail::ConnectivitiesData data;
     data.ReadData(test_file, "/Elements", 0, ids.size());
@@ -216,14 +206,12 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateConditions, KratosHDF5Tes
     test_file.WriteDataSet("/Conditions/PropertiesIds", pids);
     test_file.WriteDataSet("/Conditions/Connectivities", connectivities);
 
-    auto p_geom = Condition::GeometryType::Pointer(
-        new Triangle2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)));
-    Condition Condition3D3N(0, p_geom);
+   const HDF5::ConditionType& SurfaceCondition3D3N = KratosComponents<HDF5::ConditionType>::Get("SurfaceCondition3D3N");
 
     HDF5::Detail::ConnectivitiesData data;
     data.ReadData(test_file, "/Conditions", 0, ids.size());
     HDF5::ConditionsContainerType new_conditions;
-    data.CreateConditions(Condition3D3N, nodes, properties, new_conditions);
+    data.CreateConditions(SurfaceCondition3D3N, nodes, properties, new_conditions);
 
     KRATOS_CHECK(new_conditions.size() == conditions.size());
     for (Condition& r_new_cond : new_conditions)
