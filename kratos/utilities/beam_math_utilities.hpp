@@ -236,8 +236,6 @@ public:
     if( rSkewSymmetricTensor.size1() != 3 )
       rSkewSymmetricTensor.resize(3, 3, false);
     
-    rSkewSymmetricTensor = ZeroMatrix(3,3);
-
     rSkewSymmetricTensor( 0, 1 ) = -rVector[2];
     rSkewSymmetricTensor( 0, 2 ) =  rVector[1];
     rSkewSymmetricTensor( 1, 2 ) = -rVector[0];
@@ -380,9 +378,9 @@ public:
 
     KRATOS_TRY
 
-    MatrixType LocalToGlobalMatrix = ZeroMatrix(2,2);
+    MatrixType LocalToGlobalMatrix;
     rLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
-  
+
     MapLocalToGlobal2D(LocalToGlobalMatrix,rMatrix);
 
     KRATOS_CATCH( "" )
@@ -403,7 +401,7 @@ public:
 
     KRATOS_TRY
 
-    MatrixType LocalToGlobalMatrix = ZeroMatrix(2,2);
+    MatrixType LocalToGlobalMatrix;
     rLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
   
     MapLocalToGlobal2D(LocalToGlobalMatrix,rVector);
@@ -430,7 +428,8 @@ public:
 
     unsigned int MatSize = rMatrix.size1();
 
-    Matrix AuxiliarRotationMatrix = ZeroMatrix(MatSize,MatSize);
+    Matrix AuxiliarRotationMatrix(MatSize,MatSize);
+    noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
  
     //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < MatSize; kk += 2)
@@ -445,11 +444,10 @@ public:
     }
 
     //Rotate Local Stiffness Matrix
-    Matrix aux_matrix   = ZeroMatrix(MatSize,MatSize);
+    Matrix aux_matrix(MatSize,MatSize);
     noalias(aux_matrix) = prod(AuxiliarRotationMatrix, rMatrix);
 
     //Stiffness Matrix
-    rMatrix = ZeroMatrix(MatSize,MatSize);
     noalias(rMatrix) = prod(aux_matrix,trans(AuxiliarRotationMatrix));
          
 
@@ -473,7 +471,8 @@ public:
 
     unsigned int MatSize = rVector.size();
 
-    Matrix AuxiliarRotationMatrix = ZeroMatrix(MatSize,MatSize);
+    Matrix AuxiliarRotationMatrix(MatSize,MatSize);
+    noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
  
     //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < MatSize; kk += 2)
@@ -508,7 +507,7 @@ public:
 
     KRATOS_TRY
 
-    MatrixType LocalToGlobalMatrix = ZeroMatrix(3,3);
+    MatrixType LocalToGlobalMatrix(3,3);
     rLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
   
     MapLocalToGlobal3D(LocalToGlobalMatrix,rMatrix);
@@ -531,7 +530,7 @@ public:
 
     KRATOS_TRY
 
-    MatrixType LocalToGlobalMatrix = ZeroMatrix(3,3);
+    MatrixType LocalToGlobalMatrix(3,3);
     rLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
   
     MapLocalToGlobal3D(LocalToGlobalMatrix,rVector);
@@ -557,8 +556,9 @@ public:
 
     unsigned int MatSize = rMatrix.size1();
 
-    Matrix AuxiliarRotationMatrix = ZeroMatrix(MatSize,MatSize);
- 
+    Matrix AuxiliarRotationMatrix(MatSize,MatSize);
+    noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
+
     //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < MatSize; kk += 3)
     {
@@ -572,11 +572,10 @@ public:
     }
 
     //Rotate Local Stiffness Matrix
-    Matrix aux_matrix   = ZeroMatrix(MatSize,MatSize);
+    Matrix aux_matrix(MatSize,MatSize);
     noalias(aux_matrix) = prod(AuxiliarRotationMatrix, rMatrix);
 
     //Stiffness Matrix
-    rMatrix = ZeroMatrix(MatSize,MatSize);
     noalias(rMatrix) = prod(aux_matrix,trans(AuxiliarRotationMatrix));
          
 
@@ -600,8 +599,9 @@ public:
 
     unsigned int MatSize = rVector.size();
 
-    Matrix AuxiliarRotationMatrix = ZeroMatrix(MatSize,MatSize);
- 
+    Matrix AuxiliarRotationMatrix(MatSize,MatSize);
+    noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
+
     //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < MatSize; kk += 3)
     {
