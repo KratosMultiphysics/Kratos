@@ -21,6 +21,7 @@
 
 /* Project includes */
 #include "utilities/math_utils.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
