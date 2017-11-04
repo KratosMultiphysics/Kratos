@@ -80,6 +80,7 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 {
     KRATOS_TRY;
 
+    rNodes.Sort(); // Avoid inadvertently reordering partway through the writing process.
     Detail::PointsData points;
     points.SetData(rNodes);
     File& r_file = GetFile();

@@ -104,6 +104,7 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     ghost_nodes.reserve(0.1 * num_nodes);
 
     File& r_file = GetFile();
+    rNodes.Sort(); // Avoid inadvertently reordering partway through the writing process.
 
     // Divide nodes into local and global containers.
     int my_pid = r_file.GetPID();
