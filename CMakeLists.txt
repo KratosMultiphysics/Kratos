@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 2.8.6)
 
+
+
 if(POLICY CMP0054)
   cmake_policy(SET CMP0054 OLD)
 endif(POLICY CMP0054)
@@ -160,6 +162,10 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
+
+if(USE_COTIRE MATCHES ON)
+    include(cotire)
+endif(USE_COTIRE MATCHES ON)
 
 ######################################################################################
 ######################################################################################
