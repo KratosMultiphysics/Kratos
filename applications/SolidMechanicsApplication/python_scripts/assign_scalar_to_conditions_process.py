@@ -23,9 +23,7 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
         params = KratosMultiphysics.Parameters("{}")           
         params.AddValue("model_part_name", self.settings["model_part_name"])
         
-        if( self.value_is_numeric ):
-            print(" numeric value ",self.value)
-            
+        if( self.value_is_numeric ):          
             params.AddValue("variable_name", self.settings["variable_name"])
             params.AddValue("value", self.settings["value"])
            
