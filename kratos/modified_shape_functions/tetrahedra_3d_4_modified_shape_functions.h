@@ -10,8 +10,8 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_TRIANGLE_2D_3_MODIFIED_SHAPE_FUNCTIONS)
-#define KRATOS_TRIANGLE_2D_3_MODIFIED_SHAPE_FUNCTIONS
+#if !defined(KRATOS_TETRAHEDRA_3D_4_MODIFIED_SHAPE_FUNCTIONS)
+#define KRATOS_TETRAHEDRA_3D_4_MODIFIED_SHAPE_FUNCTIONS
 
 // System includes
 
@@ -37,15 +37,15 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-class KRATOS_API(KRATOS_CORE) Triangle2D3ModifiedShapeFunctions : public ModifiedShapeFunctions
+class KRATOS_API(KRATOS_CORE) Tetrahedra3D4ModifiedShapeFunctions : public ModifiedShapeFunctions
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of Triangle2D3ModifiedShapeFunctions
-    KRATOS_CLASS_POINTER_DEFINITION(Triangle2D3ModifiedShapeFunctions);
+    /// Pointer definition of Tetrahedra3D4ModifiedShapeFunctions
+    KRATOS_CLASS_POINTER_DEFINITION(Tetrahedra3D4ModifiedShapeFunctions);
 
     // General type definitions
     typedef ModifiedShapeFunctions                             BaseType;
@@ -66,10 +66,10 @@ public:
     ///@{
 
     /// Default constructor
-    Triangle2D3ModifiedShapeFunctions(const GeometryPointerType rpInputGeometry, const Vector& rNodalDistances);
+    Tetrahedra3D4ModifiedShapeFunctions(const GeometryPointerType rpInputGeometry, const Vector& rNodalDistances);
 
     /// Destructor
-    ~Triangle2D3ModifiedShapeFunctions();
+    ~Tetrahedra3D4ModifiedShapeFunctions();
 
     ///@}
     ///@name Access
@@ -217,7 +217,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    DivideTriangle2D3::Pointer mpTriangleSplitter;
+    DivideTetrahedra3D4::Pointer mpTetrahedraSplitter;
 
     ///@}
     ///@name Serialization
@@ -244,21 +244,21 @@ private:
     ///@{
 
     /// Assignment operator.
-    Triangle2D3ModifiedShapeFunctions& operator=(Triangle2D3ModifiedShapeFunctions const& rOther);
+    Tetrahedra3D4ModifiedShapeFunctions& operator=(Tetrahedra3D4ModifiedShapeFunctions const& rOther);
 
     /// Copy constructor.
-    Triangle2D3ModifiedShapeFunctions(Triangle2D3ModifiedShapeFunctions const& rOther) :
+    Tetrahedra3D4ModifiedShapeFunctions(Tetrahedra3D4ModifiedShapeFunctions const& rOther) :
         ModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()),
-        mpTriangleSplitter(new DivideTriangle2D3(*rOther.GetInputGeometry(), rOther.GetNodalDistances())) {
+        mpTetrahedraSplitter(new DivideTetrahedra3D4(*rOther.GetInputGeometry(), rOther.GetNodalDistances())) {
 
         // Perform the element splitting
-        mpTriangleSplitter->GenerateDivision();
-        mpTriangleSplitter->GenerateIntersectionsSkin();
+        mpTetrahedraSplitter->GenerateDivision();
+        mpTetrahedraSplitter->GenerateIntersectionsSkin();
     };
 
     ///@}
 
-};// class Triangle2D3ModifiedShapeFunctions
+};// class Tetrahedra3D4ModifiedShapeFunctions
 
 }
-#endif /* KRATOS_TRIANGLE_2D_3_MODIFIED_SHAPE_FUNCTIONS defined */
+#endif /* KRATOS_TETRAHEDRA_3D_4_MODIFIED_SHAPE_FUNCTIONS defined */
