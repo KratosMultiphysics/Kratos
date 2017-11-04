@@ -20,7 +20,6 @@
 #include <unordered_set>
 #include <algorithm>
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 #include "utilities/timer.h"
 
