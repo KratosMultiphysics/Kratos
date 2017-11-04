@@ -206,6 +206,7 @@ void ModelPartIO::ReadInitialValues(NodesContainerType& rNodes,
 
 void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
 {
+    ReadProperties(rModelPart.rProperties());
     ReadNodes(rModelPart.Nodes());
     ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
@@ -213,6 +214,7 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
 
 void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
 {
+    WriteProperties(rModelPart.rProperties());
     WriteNodes(rModelPart.Nodes());
     WriteElements(rModelPart.Elements());
     WriteConditions(rModelPart.Conditions());

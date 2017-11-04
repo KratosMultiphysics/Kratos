@@ -517,7 +517,7 @@ namespace Detail
 {
 bool IsPath(std::string Path)
 {
-    return regex_match(Path, std::regex("(/\\w+)+"));
+    return regex_match(Path, std::regex("(/[\\w\\(\\)]+)+"));
 }
 
 std::vector<std::string> Split(std::string Path, char Delimiter)

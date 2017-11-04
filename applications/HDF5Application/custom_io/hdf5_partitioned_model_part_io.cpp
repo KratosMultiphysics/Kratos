@@ -266,10 +266,18 @@ void PartitionedModelPartIO::ReadInitialValues(NodesContainerType& rNodes,
 
 void PartitionedModelPartIO::ReadModelPart(ModelPart& rModelPart)
 {
+    ReadProperties(rModelPart.rProperties());
+    ReadNodes(rModelPart.Nodes());
+    ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
+    ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
 }
 
 void PartitionedModelPartIO::WriteModelPart(ModelPart& rModelPart)
 {
+    WriteProperties(rModelPart.rProperties());
+    WriteNodes(rModelPart.Nodes());
+    WriteElements(rModelPart.Elements());
+    WriteConditions(rModelPart.Conditions());
 }
 
 File& PartitionedModelPartIO::GetFile() const

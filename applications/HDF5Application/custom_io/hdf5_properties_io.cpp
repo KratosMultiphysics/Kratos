@@ -23,10 +23,10 @@ void PropertiesIO::ReadProperties(PropertiesContainerType& rProperties)
     for (unsigned i = 0; i < prop_ids.size(); ++i)
     {
         std::stringstream pstream;
-        pstream << mPrefix << "/Properties(" << prop_ids[i] << ")";
+        pstream << mPrefix << "/Properties/(" << prop_ids[i] << ")";
         std::string path = pstream.str();
         mpFile->GetAttributeNames(path, attr_names);
-        PropertiesType r_properties = rProperties[i];
+        PropertiesType& r_properties = rProperties[prop_ids[i]];
 
         for (const auto& r_name : attr_names)
         {
@@ -77,7 +77,7 @@ void PropertiesIO::WriteProperties(Properties const& rProperties)
     KRATOS_TRY;
 
     std::stringstream pstream;
-    pstream << mPrefix << "/Properties(" << rProperties.Id() << ")";
+    pstream << mPrefix << "/Properties/(" << rProperties.Id() << ")";
     std::string path = pstream.str();
     mpFile->AddPath(path);
 
@@ -125,6 +125,7 @@ void PropertiesIO::WriteProperties(PropertiesContainerType const& rProperties)
         prop_ids[i++] = r_properties.Id();
         WriteProperties(r_properties);
     }
+    mpFile->AddPath(mPrefix + "/Properties");
     mpFile->WriteAttribute(mPrefix + "/Properties", "Ids", prop_ids);
 
     KRATOS_CATCH("");
