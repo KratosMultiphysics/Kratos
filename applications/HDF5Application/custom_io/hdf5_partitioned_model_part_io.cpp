@@ -5,6 +5,7 @@
 #include "custom_utilities/hdf5_connectivities_data.h"
 #include "custom_utilities/hdf5_pointer_bins_utility.h"
 #include "custom_io/hdf5_properties_io.h"
+#include "custom_io/hdf5_nodal_solution_step_variables_io.h"
 
 namespace Kratos
 {
@@ -104,7 +105,6 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     ghost_nodes.reserve(0.1 * num_nodes);
 
     File& r_file = GetFile();
-    rNodes.Sort(); // Avoid inadvertently reordering partway through the writing process.
 
     // Divide nodes into local and global containers.
     int my_pid = r_file.GetPID();
@@ -135,19 +135,19 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 
 void PartitionedModelPartIO::ReadProperties(PropertiesContainerType& rProperties)
 {
-    PropertiesIO prop_io(mPrefix, mpFile);
+    Detail::PropertiesIO prop_io(mPrefix, mpFile);
     prop_io.ReadProperties(rProperties);
 }
 
 void PartitionedModelPartIO::WriteProperties(Properties const& rProperties)
 {
-    PropertiesIO prop_io(mPrefix, mpFile);
+    Detail::PropertiesIO prop_io(mPrefix, mpFile);
     prop_io.WriteProperties(rProperties);
 }
 
 void PartitionedModelPartIO::WriteProperties(PropertiesContainerType const& rProperties)
 {
-    PropertiesIO prop_io(mPrefix, mpFile);
+    Detail::PropertiesIO prop_io(mPrefix, mpFile);
     prop_io.WriteProperties(rProperties);
 }
 
@@ -267,18 +267,34 @@ void PartitionedModelPartIO::ReadInitialValues(NodesContainerType& rNodes,
 
 void PartitionedModelPartIO::ReadModelPart(ModelPart& rModelPart)
 {
+    KRATOS_TRY;
+
+    Detail::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
+    nodal_variables_io.ReadVariablesList(rModelPart.GetNodalSolutionStepVariablesList());
+    int buffer_size = nodal_variables_io.ReadBufferSize();
     ReadProperties(rModelPart.rProperties());
     ReadNodes(rModelPart.Nodes());
     ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
+    rModelPart.SetBufferSize(buffer_size);
+
+    KRATOS_CATCH("");
 }
 
 void PartitionedModelPartIO::WriteModelPart(ModelPart& rModelPart)
 {
+    KRATOS_TRY;
+
+    Detail::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
+    nodal_variables_io.WriteVariablesList(rModelPart.GetNodalSolutionStepVariablesList());
+    nodal_variables_io.WriteBufferSize(rModelPart.GetBufferSize());
     WriteProperties(rModelPart.rProperties());
+    rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through the writing process.    
     WriteNodes(rModelPart.Nodes());
     WriteElements(rModelPart.Elements());
     WriteConditions(rModelPart.Conditions());
+
+    KRATOS_CATCH("");
 }
 
 File& PartitionedModelPartIO::GetFile() const

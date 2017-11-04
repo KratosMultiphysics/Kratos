@@ -10,8 +10,8 @@
 //  Main author:    Michael Andre, https://github.com/msandre
 //
 
-#if !defined(KRATOS_HDF5_PROPERTIES_IO_H_INCLUDED)
-#define KRATOS_HDF5_PROPERTIES_IO_H_INCLUDED
+#if !defined(KRATOS_HDF5_NODAL_SOLUTION_STEP_VARIABLES_IO_H_INCLUDED)
+#define KRATOS_HDF5_NODAL_SOLUTION_STEP_VARIABLES_IO_H_INCLUDED
 
 // System includes
 #include <string>
@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/io.h"
+#include "containers/variables_list.h"
 
 // Application includes
 #include "hdf5_application_define.h"
@@ -37,36 +37,34 @@ namespace Detail
 ///@name Kratos Classes
 ///@{
 
-/// A class for properties IO of a model part in HDF5.
-class PropertiesIO : public IO
+/// A class for IO of nodal solution step variables in HDF5.
+class NodalSolutionStepVariablesIO
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(PropertiesIO);
+    KRATOS_CLASS_POINTER_DEFINITION(NodalSolutionStepVariablesIO);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    PropertiesIO(std::string Prefix, File::Pointer pFile);
+    NodalSolutionStepVariablesIO(std::string Prefix, File::Pointer pFile);
 
     ///@}
     ///@name Operations
     ///@{
-    void ReadProperties(PropertiesContainerType& rProperties) override;
 
-    void WriteProperties(Properties const& rProperties) override;
+    void WriteVariablesList(VariablesList const& rVariablesList);
 
-    void WriteProperties(PropertiesContainerType const& rProperties) override;
-    ///@}
+    void ReadVariablesList(VariablesList& rVariablesList) const;
 
-protected:
-    ///@name Protected Operations
-    ///@{
+    void WriteBufferSize(int BufferSize);
+
+    int ReadBufferSize() const;
 
     ///@}
 
@@ -77,7 +75,7 @@ private:
     File::Pointer mpFile;
     ///@}
 
-};
+}; // class NodalSolutionStepVariablesIO.
 
 ///@} // Kratos Classes
 ///@} addtogroup
@@ -85,4 +83,4 @@ private:
 } // namespace HDF5.
 } // namespace Kratos.
 
-#endif // KRATOS_HDF5_PROPERTIES_IO_H_INCLUDED defined
+#endif // KRATOS_HDF5_NODAL_SOLUTION_STEP_VARIABLES_IO_H_INCLUDED defined
