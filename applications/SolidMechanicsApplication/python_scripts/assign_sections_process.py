@@ -131,6 +131,9 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
             import os
             csv_file = os.path.dirname(__file__) + '/beam_profiles.csv'
 
+            if( ( (section_type == "HEB") or (section_type == "HEA") or (section_type == "HEM") ) and ( int(self._GetScalarVariableValue("SECTION_SIZE")) < 100 ) ):
+                raise Exception(" HEB, HEA, HEM profiles range is [100, 600] ")
+           
             section_properties = self._SearchCSVProperties(csv_file, section_type, size)
 
             area = float(section_properties["A(m2)"])
@@ -294,13 +297,15 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
         
     def _SearchCSVProperties(self,file_name,shape,size):
         separator = ";"
+
+        print(" shape", shape, "size", size)
         
         with open(file_name, "rU") as f:
             header = f.readline()
             header = header.rstrip("\n")
             header = header.split(separator)
             line = f.readline()
-
+           
             while line != "":
                 line = line.rstrip("\n")
                 line = line.split(separator)
@@ -308,9 +313,9 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
                     result = dict(list(zip(header, line)))
                     break
                 line = f.readline()
+                print(" line",line)
 
         if line == "":
-            msg = "Error: section {0} {1} not found in section definition file {2}".format(profile, size, file_name)
-            raise KeyError(msg)
+            raise Exception(" Section",shape," size", size," not found in section definition files" )
 
         return result
