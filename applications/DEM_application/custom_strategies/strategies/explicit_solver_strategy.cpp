@@ -1089,7 +1089,21 @@ namespace Kratos {
             SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
             mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
 
-            DoubleHierarchyMethod();
+            
+            #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
+            for (int i = 0; i < number_of_particles; i++) {
+                mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces.clear();
+                for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it) {
+                    Condition* p_neighbour_condition = (*neighbour_it).get();
+                    DEMWall* p_wall = dynamic_cast<DEMWall*> (p_neighbour_condition);               
+                    mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces.push_back(p_wall);
+                }//for results iterator
+                this->GetRigidFaceResults()[i].clear();
+                this->GetRigidFaceResultsDistances()[i].clear();
+            }
+                 
+            CheckHierarchyWithCurrentNeighbours();
+            //DoubleHierarchyMethod();
 
             //typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
             const int number_of_conditions = (int) pTConditions.size();
@@ -1210,7 +1224,7 @@ namespace Kratos {
             std::vector< int > Id_Array;
             std::vector< int > ContactType_Array;
 
-            #pragma omp for
+            #pragma omp for schedule(dynamic, 100)
             for (int i = 0; i < number_of_particles; i++) {
                 SphericParticle* p_sphere_i = mListOfSphericParticles[i];
                 p_sphere_i->mNeighbourRigidFaces.resize(0);
