@@ -648,38 +648,35 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
     const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
     const array_1d<double, 3>& ang_velocity = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
-    double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
-    double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
-    double DeltDisp[3]                       = {0.0};
-    double LocalDeltDisp[3]                  = {0.0};
-    double RelVel[3]                         = {0.0};
-    double LocalContactForce[3]              = {0.0};
-    double GlobalContactForce[3]             = {0.0};
-    double LocalElasticContactForce[3]       = {0.0};
-    double LocalElasticExtraContactForce[3]  = {0.0};
-    double GlobalElasticContactForce[3]      = {0.0};
-    double GlobalElasticExtraContactForce[3] = {0.0};
-    double TotalGlobalElasticContactForce[3] = {0.0};
-    double ViscoDampingLocalContactForce[3]  = {0.0};
-    double cohesive_force                    =  0.0;
-    bool sliding = false;
+    
 
+    NodeType& this_node = this->GetGeometry()[0];
+    DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mMyCoors, this_node)
+            
     //LOOP OVER NEIGHBORS:
     for (int i = 0; data_buffer.SetNextNeighbourOrExit(i); ++i){
+        
+        double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
+        double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
+        double DeltDisp[3]                       = {0.0};
+        double LocalDeltDisp[3]                  = {0.0};
+        double RelVel[3]                         = {0.0};
+        double LocalContactForce[3]              = {0.0};
+        double GlobalContactForce[3]             = {0.0};
+        double LocalElasticContactForce[3]       = {0.0};
+        double LocalElasticExtraContactForce[3]  = {0.0};
+        double GlobalElasticContactForce[3]      = {0.0};
+        double GlobalElasticExtraContactForce[3] = {0.0};
+        double TotalGlobalElasticContactForce[3] = {0.0};
+        double ViscoDampingLocalContactForce[3]  = {0.0};
+        double cohesive_force                    =  0.0;
+        bool sliding = false;  
+        
         if (this->Is(NEW_ENTITY) && data_buffer.mpOtherParticle->Is(BLOCKED)) continue;
         if (this->Is(BLOCKED) && data_buffer.mpOtherParticle->Is(NEW_ENTITY)) continue;
         if (data_buffer.mMultiStageRHS  &&  this->Id() > data_buffer.mpOtherParticle->Id()) continue;
 
         CalculateRelativePositions(data_buffer);
-//        KRATOS_WATCH(this->GetGeometry()[0].Id());
-
-//        for (unsigned int i = 0; i < 3; ++i){
-//            KRATOS_WATCH(i);
-//            KRATOS_WATCH(data_buffer.mMyCoors[i]);
-//            KRATOS_WATCH(data_buffer.mOtherCoors[i]);
-//        }
-//        KRATOS_WATCH(data_buffer.mOtherToMeVector);
-//        KRATOS_WATCH(data_buffer.mOtherToMeVector);
         
         if(data_buffer.mDistance < std::numeric_limits<double>::epsilon()) continue;
 
@@ -1562,9 +1559,7 @@ void SphericParticle::RotateOldContactForces(const double OldLocalCoordSystem[3]
 }
 
 void SphericParticle::CalculateRelativePositions(ParticleDataBuffer & data_buffer)
-{
-    NodeType& this_node = this->GetGeometry()[0];
-    DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mMyCoors, this_node)
+{    
     NodeType& other_node = data_buffer.mpOtherParticle->GetGeometry()[0];
     DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mOtherCoors, other_node)
 
