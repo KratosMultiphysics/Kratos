@@ -379,12 +379,41 @@ public:
         KRATOS_CATCH("")
     }
 
+/**
+     * @brief Returns the gradient matrix of the velocity.
+     *
+     * The row index corresponds to the velocity component and the column index to
+     * the derivative.
+     *
+     * @param rGradVel velocity gradient matrix
+     * @param rDN_DX shape functions' gradients
+     */
+    void CalculateVelocityGradient(
+        boost::numeric::ublas::bounded_matrix< double, TDim, TDim >& rGradVel,
+        const ShapeFunctionDerivativesType& rDN_DX)
+    {
+        GeometryType& rGeom = this->GetGeometry();
+        // node 0
+        const array_1d< double, 3 >& rVel = rGeom[0].FastGetSolutionStepValue(VELOCITY,0);
+        for (IndexType m = 0; m < TDim; m++)
+            for (IndexType n = 0; n < TDim; n++)
+                rGradVel(m,n) = rDN_DX(0,n) * rVel[m];
+        // node 1,2,...
+        for (IndexType iNode = 1; iNode < TNumNodes; iNode++)
+        {
+            const array_1d< double, 3 >& rVel = rGeom[iNode].FastGetSolutionStepValue(VELOCITY,0);
+            for (IndexType m = 0; m < TDim; m++)
+                for (IndexType n = 0; n < TDim; n++)
+                    rGradVel(m,n) += rDN_DX(iNode,n) * rVel[m];
+        }
+    }
+
     void GetDofList(DofsVectorType& rElementalDofList,
             ProcessInfo& /*rCurrentProcessInfo*/) override;
 
     void EquationIdVector(EquationIdVectorType& rResult,
             ProcessInfo& /*rCurrentProcessInfo*/) override;
-
+        
     ///@}
     ///@name Input and output
     ///@{
@@ -1305,35 +1334,6 @@ protected:
         }
 
         KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Returns the gradient matrix of the velocity.
-     *
-     * The row index corresponds to the velocity component and the column index to
-     * the derivative.
-     *
-     * @param rGradVel velocity gradient matrix
-     * @param rDN_DX shape functions' gradients
-     */
-    void CalculateVelocityGradient(
-            boost::numeric::ublas::bounded_matrix< double, TDim, TDim >& rGradVel,
-            const ShapeFunctionDerivativesType& rDN_DX)
-    {
-        GeometryType& rGeom = this->GetGeometry();
-        // node 0
-        const array_1d< double, 3 >& rVel = rGeom[0].FastGetSolutionStepValue(VELOCITY,0);
-        for (IndexType m = 0; m < TDim; m++)
-            for (IndexType n = 0; n < TDim; n++)
-                rGradVel(m,n) = rDN_DX(0,n) * rVel[m];
-        // node 1,2,...
-        for (IndexType iNode = 1; iNode < TNumNodes; iNode++)
-        {
-            const array_1d< double, 3 >& rVel = rGeom[iNode].FastGetSolutionStepValue(VELOCITY,0);
-            for (IndexType m = 0; m < TDim; m++)
-                for (IndexType n = 0; n < TDim; n++)
-                    rGradVel(m,n) += rDN_DX(iNode,n) * rVel[m];
-        }
     }
 
     /**

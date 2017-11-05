@@ -12,16 +12,26 @@ set( KRATOS_ADJOINT_FLUID_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_response_functions_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/adjoint_fluid_python_application.cpp 
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms_adjoint_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms_adjoint_element.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/numerical_diffusion.cpp 
     )
 
 find_package(HDF5 REQUIRED COMPONENTS CXX)
 include_directories( ${HDF5_INCLUDE_DIRS} )
 
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/external_includes )
+
+find_package(BLAS)
+find_package(LAPACK)
+
+if(LAPACK_FOUND AND BLAS_FOUND)
+   set(lapackblas_libraries ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+endif()
+
 ###############################################################
 ## define library which defines the basic python interface
 add_library(KratosAdjointFluidApplication SHARED ${KRATOS_ADJOINT_FLUID_APPLICATION_SOURCES})
-target_link_libraries(KratosAdjointFluidApplication KratosCore KratosFluidDynamicsApplication ${HDF5_CXX_LIBRARIES})
+target_link_libraries(KratosAdjointFluidApplication KratosCore KratosFluidDynamicsApplication ${HDF5_CXX_LIBRARIES} ${lapackblas_libraries})
 set_target_properties(KratosAdjointFluidApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd 
