@@ -92,6 +92,10 @@ void  AddCustomUtilitiesToPython()
         // General optimization operations
         // ----------------------------------------------------------------
         .def("compute_design_update", &OptimizationUtilities::compute_design_update)
+        // ----------------------------------------------------------------
+        // Adjoint extract design surface shape sensitivities
+        // ----------------------------------------------------------------
+        .def("get_adjoint_design_surface_sensitivities", &OptimizationUtilities::GetAdjointDesignSurfaceShapeSensitivities)
         ;
 
     // ========================================================================
