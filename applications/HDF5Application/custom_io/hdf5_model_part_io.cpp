@@ -237,7 +237,7 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     KRATOS_CATCH("");
 }
 
-HDF5::File& ModelPartIO::GetFile() const
+File& ModelPartIO::GetFile() const
 {
     return *mpFile;
 }
