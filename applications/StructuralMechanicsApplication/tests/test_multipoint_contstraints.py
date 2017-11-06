@@ -16,6 +16,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
 
+    def _add_dofs(self, mp):
         KratosMultiphysics.VariableUtils().AddDof(
             KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,
             mp)
@@ -245,9 +246,10 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
     def test_MPC_Constraints(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
-        self._apply_material_properties(mp, dim)
-        self._setup_model_part(mp)
         self._add_variables(mp)
+        self._setup_model_part(mp)
+        self._add_dofs(mp)
+        self._apply_material_properties(mp, dim)
 
         #time integration parameters
         dt = 0.005
