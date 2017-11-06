@@ -655,40 +655,41 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             
     //LOOP OVER NEIGHBORS:
     for (int i = 0; data_buffer.SetNextNeighbourOrExit(i); ++i){
-        
-        double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
-        double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
-        double DeltDisp[3]                       = {0.0};
-        double LocalDeltDisp[3]                  = {0.0};
-        double RelVel[3]                         = {0.0};
-        double LocalContactForce[3]              = {0.0};
-        double GlobalContactForce[3]             = {0.0};
-        double LocalElasticContactForce[3]       = {0.0};
-        double LocalElasticExtraContactForce[3]  = {0.0};
-        double GlobalElasticContactForce[3]      = {0.0};
-        double GlobalElasticExtraContactForce[3] = {0.0};
-        double TotalGlobalElasticContactForce[3] = {0.0};
-        double ViscoDampingLocalContactForce[3]  = {0.0};
-        double cohesive_force                    =  0.0;
-        bool sliding = false;  
-        
+
         if (this->Is(NEW_ENTITY) && data_buffer.mpOtherParticle->Is(BLOCKED)) continue;
         if (this->Is(BLOCKED) && data_buffer.mpOtherParticle->Is(NEW_ENTITY)) continue;
         if (data_buffer.mMultiStageRHS  &&  this->Id() > data_buffer.mpOtherParticle->Id()) continue;
 
         CalculateRelativePositions(data_buffer);
         
-        if(data_buffer.mDistance < std::numeric_limits<double>::epsilon()) continue;
-
-        EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, velocity, delta_displ);
-
-        if (this->Is(DEMFlags::HAS_ROTATION)) {
-            RelativeDisplacementAndVelocityOfContactPointDueToRotation(data_buffer.mIndentation, DeltDisp, RelVel, LocalCoordSystem, data_buffer.mOtherRadius, data_buffer.mDt, ang_velocity, data_buffer.mpOtherParticle);
-        }
-
-        RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, data_buffer.mpOtherParticle);
-
         if (data_buffer.mIndentation > 0.0) {
+            double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
+            double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
+            double DeltDisp[3]                       = {0.0};
+            double LocalDeltDisp[3]                  = {0.0};
+            double RelVel[3]                         = {0.0};
+            double LocalContactForce[3]              = {0.0};
+            double GlobalContactForce[3]             = {0.0};
+            double LocalElasticContactForce[3]       = {0.0};
+            double LocalElasticExtraContactForce[3]  = {0.0};
+            double GlobalElasticContactForce[3]      = {0.0};
+            double GlobalElasticExtraContactForce[3] = {0.0};
+            double TotalGlobalElasticContactForce[3] = {0.0};
+            double ViscoDampingLocalContactForce[3]  = {0.0};
+            double cohesive_force                    =  0.0;
+            bool sliding = false; 
+
+            if(data_buffer.mDistance < std::numeric_limits<double>::epsilon()) continue;
+
+            EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, velocity, delta_displ);
+
+            if (this->Is(DEMFlags::HAS_ROTATION)) {
+                RelativeDisplacementAndVelocityOfContactPointDueToRotation(data_buffer.mIndentation, DeltDisp, RelVel, LocalCoordSystem, data_buffer.mOtherRadius, data_buffer.mDt, ang_velocity, data_buffer.mpOtherParticle);
+            }
+
+            RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, data_buffer.mpOtherParticle);
+
+        
             EvaluateBallToBallForcesForPositiveIndentiations(data_buffer,
                                                              r_process_info,
                                                              LocalElasticContactForce,
@@ -703,30 +704,31 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
                                                              LocalCoordSystem,
                                                              OldLocalCoordSystem,
                                                              mNeighbourElasticContactForces[i]);
-        }
-
-        array_1d<double, 3> other_ball_to_ball_forces(3, 0.0);
-        ComputeOtherBallToBallForces(other_ball_to_ball_forces); //These forces can exist even with no indentation.
-
-        // Transforming to global forces and adding up
-        AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
-                              GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, other_ball_to_ball_forces, r_elastic_force, r_contact_force, i, r_process_info);
-        //TODO: make different AddUpForces for continuum and discontinuum (different arguments, different operations!)
         
-        // ROTATION FORCES
-        if (this->Is(DEMFlags::HAS_ROTATION) && !data_buffer.mMultiStageRHS) {
-            ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, LocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation);
-        }
 
-        if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-            AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
-        }
+            array_1d<double, 3> other_ball_to_ball_forces(3, 0.0);
+            ComputeOtherBallToBallForces(other_ball_to_ball_forces); //These forces can exist even with no indentation.
 
-        DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
-        DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
-        DEM_SET_COMPONENTS_TO_ZERO_3(RelVel)
-        DEM_SET_COMPONENTS_TO_ZERO_3x3(LocalCoordSystem)
-        DEM_SET_COMPONENTS_TO_ZERO_3x3(OldLocalCoordSystem)
+            // Transforming to global forces and adding up
+            AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
+                                  GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, other_ball_to_ball_forces, r_elastic_force, r_contact_force, i, r_process_info);
+            //TODO: make different AddUpForces for continuum and discontinuum (different arguments, different operations!)
+
+            // ROTATION FORCES
+            if (this->Is(DEMFlags::HAS_ROTATION) && !data_buffer.mMultiStageRHS) {
+                ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, LocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation);
+            }
+
+            if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
+                AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
+            }
+
+            DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
+            DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
+            DEM_SET_COMPONENTS_TO_ZERO_3(RelVel)
+            DEM_SET_COMPONENTS_TO_ZERO_3x3(LocalCoordSystem)
+            DEM_SET_COMPONENTS_TO_ZERO_3x3(OldLocalCoordSystem)
+        }
 
     }// for each neighbor
     
