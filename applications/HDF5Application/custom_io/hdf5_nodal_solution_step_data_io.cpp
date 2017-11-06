@@ -1,7 +1,6 @@
 #include "custom_io/hdf5_nodal_solution_step_data_io.h"
 
 #include "includes/kratos_components.h"
-#include "custom_utilities/hdf5_utils.h"
 
 namespace Kratos
 {
@@ -14,18 +13,22 @@ NodalSolutionStepDataIO::NodalSolutionStepDataIO(Parameters& rParams, File::Poin
 
     Parameters default_params(R"(
         {
+            "partitioned": false,
             "prefix": "",
             "list_of_variables": []
         })");
 
     rParams.ValidateAndAssignDefaults(default_params);
 
+    mDoPartitionedIO = rParams["partitioned"].GetBool();
     mPrefix = rParams["prefix"].GetString();
 
     mVariableNames.resize(rParams["list_of_variables"].size());
     for (unsigned i = 0; i < mVariableNames.size(); ++i)
         mVariableNames[i] = rParams["list_of_variables"].GetArrayItem(i).GetString();
 
+    KRATOS_ERROR_IF(mDoPartitionedIO && mpFile->GetTotalProcesses() == 1)
+        << "Attempting partitioned IO with a single process." << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -44,7 +47,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
     KRATOS_TRY;
 
     std::vector<NodeType*> local_nodes;
-    Detail::GetLocalNodes(rNodes, local_nodes, IsPartitionedSimulation());
+    GetLocalNodes(rNodes, local_nodes);
 
     // Write each variable.
     for (const std::string& r_variable_name : mVariableNames)
@@ -101,7 +104,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
     KRATOS_TRY;
 
     std::vector<NodeType*> local_nodes;
-    Detail::GetLocalNodes(rNodes, local_nodes, IsPartitionedSimulation());
+    GetLocalNodes(rNodes, local_nodes);
     unsigned start_index, block_size;
     std::tie(start_index, block_size) = GetStartIndexAndBlockSize();
 
@@ -158,11 +161,6 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
     KRATOS_CATCH("");
 }
 
-bool NodalSolutionStepDataIO::IsPartitionedSimulation() const
-{
-    return (mpFile->GetTotalProcesses() > 1);
-}
-
 std::tuple<unsigned, unsigned> NodalSolutionStepDataIO::GetStartIndexAndBlockSize() const
 {
     KRATOS_TRY;
@@ -173,7 +171,7 @@ std::tuple<unsigned, unsigned> NodalSolutionStepDataIO::GetStartIndexAndBlockSiz
     const unsigned file_partition_size = dims[0] - 1; // Number of procs that wrote the data block.
     unsigned start_index;
     unsigned block_size;
-    if (IsPartitionedSimulation() == false)
+    if (mDoPartitionedIO == false)
     {
         start_index = 0;
         // Read the global size of the data block.
@@ -197,6 +195,58 @@ std::tuple<unsigned, unsigned> NodalSolutionStepDataIO::GetStartIndexAndBlockSiz
     }
 
     return std::make_tuple(start_index, block_size);
+
+    KRATOS_CATCH("");
+}
+
+void NodalSolutionStepDataIO::DivideNodes(NodesContainerType const& rNodes,
+                                          std::vector<NodeType*>& rLocalNodes,
+                                          std::vector<NodeType*>& rGhostNodes)
+{
+    KRATOS_TRY;
+
+    if (mDoPartitionedIO)
+    {
+        const int my_pid = mpFile->GetPID();
+        rLocalNodes.reserve(rNodes.size());
+        rGhostNodes.reserve(0.1*rNodes.size());
+        for (auto it = rNodes.begin(); it != rNodes.end(); ++it)
+        {
+            if (it->FastGetSolutionStepValue(PARTITION_INDEX) == my_pid)
+                rLocalNodes.push_back(&(*it));
+            else
+                rGhostNodes.push_back(&(*it));
+        }
+    }
+    else
+    {
+        rLocalNodes.resize(rNodes.size());
+        rGhostNodes.resize(0);
+        const int num_threads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector partition;
+        OpenMPUtils::DivideInPartitions(rNodes.size(), num_threads, partition);
+#pragma omp parallel
+        {
+            const int thread_id = OpenMPUtils::ThisThread();
+            NodesContainerType::const_iterator it = rNodes.begin() + partition[thread_id];
+            for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
+            {
+                rLocalNodes[i] = &(*it);
+                ++it;
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+void NodalSolutionStepDataIO::GetLocalNodes(NodesContainerType const& rNodes,
+                                            std::vector<NodeType*>& rLocalNodes)
+{
+    KRATOS_TRY;
+
+    std::vector<NodeType*> ghost_nodes;
+    DivideNodes(rNodes, rLocalNodes, ghost_nodes);
 
     KRATOS_CATCH("");
 }

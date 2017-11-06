@@ -75,13 +75,12 @@ private:
     ///@name Member Variables
     ///@{
     File::Pointer mpFile;
+    bool mDoPartitionedIO;
     std::string mPrefix;
     std::vector<std::string> mVariableNames;
     ///@}
     ///@name Private Operations
     ///@{
-    bool IsPartitionedSimulation() const;
-    
     std::tuple<unsigned, unsigned> GetStartIndexAndBlockSize() const;
 
     template <class TVariableType, class TFileDataType>
@@ -95,6 +94,14 @@ private:
                                   Vector<TFileDataType> const& rData,
                                   std::vector<NodeType*>& rNodes,
                                   unsigned Step);
+
+    /// Divide nodes into local and ghost.
+    void DivideNodes(NodesContainerType const& rNodes,
+                     std::vector<NodeType*>& rLocalNodes,
+                     std::vector<NodeType*>& rGhostNodes);
+
+    void GetLocalNodes(NodesContainerType const& rNodes,
+                       std::vector<NodeType*>& rLocalNodes);
     ///@}
 
 }; // class NodalSolutionStepDataIO.
