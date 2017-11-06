@@ -246,13 +246,13 @@ class kratosAdjointFluidAnalyzer( (__import__("analyzer_base")).analyzerBaseClas
         startTime = timer.time()
         self.primal.SetCurrentPath( "%s/primal" % current_path )
         self.primal.SetIterationPostFix( "%d_primal" % optimizationIteration )
-        for node in self.main__optimization_model_part.Nodes:
-            print("Objective sensitivity: ", node.SolutionStepsDataHas(OBJECTIVE_SENSITIVITY))
-            break
+        # for node in self.main__optimization_model_part.Nodes:
+        #     print("Objective sensitivity: ", node.SolutionStepsDataHas(OBJECTIVE_SENSITIVITY))
+        #     break
         self.primal.Execute()
-        for node in self.main__optimization_model_part.Nodes:
-            print("Objective sensitivity: ", node.SolutionStepsDataHas(OBJECTIVE_SENSITIVITY))
-            break
+        # for node in self.main__optimization_model_part.Nodes:
+        #     print("Objective sensitivity: ", node.SolutionStepsDataHas(OBJECTIVE_SENSITIVITY))
+        #     break
         print("> Time needed for solving the primal problem = ",round(timer.time() - startTime,2),"s")
 
         print("\n> Starting adjoint problem solver")
@@ -260,13 +260,13 @@ class kratosAdjointFluidAnalyzer( (__import__("analyzer_base")).analyzerBaseClas
         self.adjoint.SetCurrentPath( "%s/adjoint" % current_path )
         self.adjoint.SetIterationPostFix( "%d_adjoint" % optimizationIteration )
         # self.optimizer.AddVariables()
-        for node in self.main__optimization_model_part.Nodes:
-            print("Objective sensitivity: ", node.SolutionStepsDataHas(OBJECTIVE_SENSITIVITY))
-            break
+        # for node in self.main__optimization_model_part.Nodes:
+        #     print("Objective sensitivity: ", node.SolutionStepsDataHas(OBJECTIVE_SENSITIVITY))
+        #     break
         self.adjoint.Execute()
-        for node in self.main__optimization_model_part.Nodes:
-            print("Objective sensitivity: ", node.SolutionStepsDataHas(OBJECTIVE_SENSITIVITY))
-            break
+        # for node in self.main__optimization_model_part.Nodes:
+        #     print("Objective sensitivity: ", node.SolutionStepsDataHas(OBJECTIVE_SENSITIVITY))
+        #     break
         print("> Time needed for solving the adjoint problem = ",round(timer.time() - startTime,2),"s")
 
         print("\n> Starting calculation of response value")
