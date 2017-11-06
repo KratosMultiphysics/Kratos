@@ -311,7 +311,7 @@ void PartitionedModelPartIO::Check()
 std::tuple<unsigned, unsigned> PartitionedModelPartIO::GetPartitionStartIndexAndBlockSize(std::string Path) const
 {
     unsigned my_pid = GetFile().GetPID();
-    HDF5::File::Vector<int> my_partition;
+    Vector<int> my_partition;
     GetFile().ReadDataSet(Path, my_partition, my_pid, 2);
     unsigned start_index = my_partition[0];
     unsigned block_size = my_partition[1] - my_partition[0];
