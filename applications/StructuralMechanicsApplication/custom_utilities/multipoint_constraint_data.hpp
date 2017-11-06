@@ -269,19 +269,52 @@ class MpcData
 
     ///@name Serialization
     ///@{
-    /*friend class Serializer;
+    friend class Serializer;
 
     virtual void save(Serializer &rSerializer) const
     {
-        //rSerializer.save("DofConstraints", mDofConstraints);
-        //rSerializer.save("SlaveEquationIdConstantsMap", mSlaveEquationIdConstantsMap);
+        rSerializer.save("MpcDataName", mName);
+        rSerializer.save("NumConstraints", mDofConstraints.size());
+        for (auto& slaveMasterrelation : mDofConstraints){
+
+            rSerializer.save("slaveID", (slaveMasterrelation.first).first); // saving the vector of the slave id 
+            rSerializer.save("slaveKey", (slaveMasterrelation.first).second); // saving the vector of the slave key
+
+            rSerializer.save("numMasters", (slaveMasterrelation.second).size()); // Writint number of masters for this slave
+            for ( auto masterIdKeyConstant: (slaveMasterrelation.second) ){
+                rSerializer.save("masterID", std::get<0>(masterIdKeyConstant.first)); // saving the id of the master
+                rSerializer.save("masterKey", std::get<1>(masterIdKeyConstant.first)); // saving the id of the master
+                rSerializer.save("constant", std::get<2>(masterIdKeyConstant.first)); // saving the id of the master
+
+                rSerializer.save("weight", masterIdKeyConstant.second); // saving the id of the master 
+            }
+        }
     }
 
     virtual void load(Serializer &rSerializer)
     {
-        //rSerializer.load("DofConstraints", mDofConstraints);
-        //rSerializer.load("SlaveEquationIdConstantsMap", mSlaveEquationIdConstantsMap);
-    } */
+        rSerializer.load("MpcDataName", mName);
+        int numConstraints = 0;
+        rSerializer.load("NumConstraints", numConstraints);
+        for (int i=0; i<numConstraints; i++){
+            int slaveID(0),slaveKey(0), numMasters(0);
+            rSerializer.load("slaveID", slaveID);
+            rSerializer.load("slaveKey", slaveKey);
+            rSerializer.load("numMasters", numMasters); 
+            for(int j=0; j<numMasters; j++){
+                int masterID(0), masterKey(0);
+                double constant(0), weight(0);
+                
+                rSerializer.load("masterID", masterID);
+                rSerializer.load("masterKey", masterKey);
+                rSerializer.load("constant", constant);
+                rSerializer.load("weight", weight);
+
+                mDofConstraints[std::make_pair(slaveID, slaveKey)][std::tie(masterID, masterKey, constant)] += weight;
+            }
+
+        }
+    } 
 
     ///@}
 };
@@ -293,7 +326,7 @@ inline std::istream &operator>>(std::istream &rIStream, MpcData &rThis);
 
 inline std::ostream &operator<<(std::ostream &rOStream, const MpcData &rThis)
 {
-    rThis->PrintInfo(rOStream)
+    rThis.PrintInfo(rOStream);
     return rOStream;
 }
 
