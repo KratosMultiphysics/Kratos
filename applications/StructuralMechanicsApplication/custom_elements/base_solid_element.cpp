@@ -390,8 +390,12 @@ namespace Kratos
         IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( integration_method );
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
-        
-        const double density = GetProperties()[DENSITY];
+
+        double density = 1.0;
+        if ( GetProperties().Has( DENSITY )) 
+        {
+            density = GetProperties()[DENSITY];
+        }
         double thickness = 1.0;
         if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
         {
@@ -563,23 +567,12 @@ namespace Kratos
                 
                 // Compute material reponse
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
-                
-                double integration_weight = GetIntegrationWeight(integration_points,
-                                                                 point_number,
-                                                                 this_kinematic_variables.detJ0);
-                
-                if (dimension == 2 && this->GetProperties().Has(THICKNESS))
-                {
-                    integration_weight *= this->GetProperties()[THICKNESS];
-                }
-                
+
                 double StrainEnergy = 0.0;
                     
-                // Compute stresses and constitutive parameters
-                mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, GetStressMeasure());
                 mConstitutiveLawVector[point_number]->CalculateValue(Values, STRAIN_ENERGY, StrainEnergy);
 
-                rOutput[point_number] = integration_weight * StrainEnergy;  // 1/2 * sigma * epsilon
+                rOutput[point_number] = StrainEnergy;  // 1/2 * sigma * epsilon
             } 
         }
         else if (rVariable == VON_MISES_STRESS)

@@ -22,50 +22,58 @@ class TestLoader(TestLoader):
 
 class TestCase(TestCase):
 
-    def failUnlessEqualWithTolerance(self, first, second, tolerance):
+    def failUnlessEqualWithTolerance(self, first, second, tolerance, msg=None):
         ''' fails if first and second have a difference greater than
         tolerance '''
 
-        if first < second + tolerance and first > second - tolerance:
-            return True
-        return False
+        if first < (second - tolerance) or first > (second + tolerance):
+            raise self.failureException(msg or '%r != %r within %r places' % (first, second, tolerance))
 
     assertEqualTolerance = failUnlessEqualWithTolerance
 
 
-def CaptureStdout(bufferFile=None):
-    ''' Captures stdout and redirects it to bufferFile. If no bufferFile
+def CaptureStdout(newBuffer=None):
+    ''' Captures stdout and redirects it to newBuffer. If no newBuffer
     is provided stdout is redirected to os.devnull by default '''
 
     sys.stdout.flush()
     newstdout = os.dup(1)
 
-    if bufferFile is None:
+    if newBuffer is None:
         devnull = os.open(os.devnull, os.O_WRONLY)
         os.dup2(devnull, 1)
         os.close(devnull)
     else:
-        os.dup2(bufferFile, 1)
+        os.dup2(newBuffer, 1)
 
-    sys.stdout = os.fdopen(newstdout, 'w')
+    return newstdout
 
+def ReleaseStdout(newBuffer):
+    ''' Releases the stdout '''
 
-def CaptureStderr(bufferFile=None):
-    ''' Captures stderr and redirects it to bufferFile. If no bufferFile
+    os.dup2(newBuffer, 1)
+
+def CaptureStderr(newBuffer=None):
+    ''' Captures stderr and redirects it to newBuffer. If no newBuffer
     is provided stderr is redirected to os.devnull by default '''
 
     sys.stderr.flush()
-    newstderr = os.dup(2)
+    newsterr = os.dup(1)
 
-    if bufferFile is None:
+    if newBuffer is None:
         devnull = os.open(os.devnull, os.O_WRONLY)
         os.dup2(devnull, 2)
         os.close(devnull)
     else:
-        os.dup2(bufferFile, 2)
+        os.dup2(newBuffer, 2)
 
-    sys.stderr = os.fdopen(newstderr, 'w')
+    return newsterr
 
+
+def ReleaseStderr(newBuffer):
+    ''' Releases the stderr '''
+
+    os.dup2(newBuffer, 2)
 
 def Usage():
     ''' Prints the usage of the script '''

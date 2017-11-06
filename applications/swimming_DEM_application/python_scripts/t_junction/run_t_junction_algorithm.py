@@ -11,11 +11,13 @@ varying_parameters = dict()
 combinations_that_failed = []
 errors = []
 varying_parameters["fluid_already_calculated"] = False
-
+varying_parameters["do_search_neighbours"] = False
+varying_parameters["full_particle_history_watcher"] = 'ParticlesHistoryWatcher'
+varying_parameters["stationary_problem_option"] = True
 parameters = Parameters(json.dumps(varying_parameters))
 
-import pre_calculated_fluid_algorithm
-with pre_calculated_fluid_algorithm.Algorithm(parameters) as algorithm:
+import t_junction_algorithm
+with t_junction_algorithm.Algorithm(parameters) as algorithm:
     try:
         test = script.Solution(algorithm, parameters)
         test.alg.Run()

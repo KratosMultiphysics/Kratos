@@ -795,7 +795,7 @@ public:
      * It computes the unit normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) override
+    array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const override
     {
         // We define the normal
         array_1d<double,3> normal;
@@ -810,8 +810,9 @@ public:
         normal[2] = 0.0;
         
         // We normalize
-        const double norm = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
-        normal /= norm;
+        const double norm_normal = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
+        if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
+	    else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
         
         return normal;
     }

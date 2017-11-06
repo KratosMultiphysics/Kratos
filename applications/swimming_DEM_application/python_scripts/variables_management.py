@@ -459,10 +459,8 @@ def ChangeInputDataForConsistency(pp):
 
     pp.CFD_DEM.time_steps_per_stationarity_step = max( 1, int(pp.CFD_DEM["time_steps_per_stationarity_step"].GetInt()) ) # it should never be smaller than 1!
 
-    if pp.CFD_DEM["coupling_level_type"].GetInt() :
+    if pp.CFD_DEM["coupling_level_type"].GetInt() > 1:
         pp.CFD_DEM["stationary_problem_option"].SetBool(False)
-        pp.CFD_DEM.stationary_problem_option = False
-
 
 def EliminateRepeatedValuesFromList(redundant_list):
     clean_list = []

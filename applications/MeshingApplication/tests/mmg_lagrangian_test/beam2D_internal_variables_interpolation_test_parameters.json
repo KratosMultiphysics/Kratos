@@ -14,9 +14,8 @@
     "solver_settings"          : {
         "solver_type"                        : "structural_mechanics_implicit_dynamic_solver",
         "echo_level"                         : 0,
-        "solution_type"                      : "Dynamic",
-        "time_integration_method"            : "Implicit",
-        "scheme_type"                        : "Newmark",
+        "time_integration_method"            : "implicit",
+        "scheme_type"                        : "newmark",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "mmg_lagrangian_test/beam2D_internal_variables_interpolation_test",
@@ -26,7 +25,7 @@
             "materials_filename": "mmg_lagrangian_test/materials_plastic_2D.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "Residual_criterion",
+        "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
@@ -43,7 +42,7 @@
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
@@ -57,7 +56,7 @@
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes all the components of a given vector variable",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignVectorProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "SelfWeight2D_Self_weight_Auto1",
@@ -112,9 +111,9 @@
             "framework"                            : "Lagrangian",
             "internal_variables_parameters"        :
             {
-                "allocation_size"                      : 1000, 
-                "bucket_size"                          : 4, 
-                "search_factor"                        : 10, 
+                "allocation_size"                      : 1000,
+                "bucket_size"                          : 4,
+                "search_factor"                        : 10,
                 "interpolation_type"                   : "LST",
                 "internal_variable_interpolation_list" :["PLASTIC_STRAIN"]
             },

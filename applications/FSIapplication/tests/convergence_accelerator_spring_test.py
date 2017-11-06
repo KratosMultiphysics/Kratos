@@ -97,8 +97,8 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
 
     def setUp(self):
         self.print_gid_output = False
-        self.aitken_tolelance = 1e-10
-        self.aitken_iterations = 50
+        self.accelerator_tolerance = 1e-10
+        self.accelerator_iterations = 50
         self.assert_delta = 1e-7
 
         self.model_part = self.ReadModelPart(GetFilePath("box_fluid"))
@@ -131,20 +131,13 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
         for f in glob.glob(GetFilePath('*.time')):
             os.remove(f)
 
-    # Aitken accelerator test
-    def test_aitken_accelerator(self,force1,force2,solution):
-
-        aitken_settings = KratosMultiphysics.Parameters("""{
-                                                            "solver_type"        : "Relaxation",
-                                                            "acceleration_type"  : "Aitken",
-                                                            "w_0"                : 0.825
-                                                           }""")
+    def test_accelerator(self,force1,force2,solution,accelerator_settings):
 
         print("")
-        print("Testing accelerator: ",aitken_settings["solver_type"].GetString())
+        print("Testing accelerator: ",accelerator_settings["solver_type"].GetString())
 
         # Construct the accelerator strategy
-        coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(aitken_settings)
+        coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(accelerator_settings)
 
         top_part = self.model_part.GetSubModelPart("Top")
 
@@ -159,9 +152,9 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
         residual = self.ComputeResidual(top_part,x_guess,force1,force2)
         res_norm = self.ComputeResidualNorm(residual)
 
-        while (nl_it <= self.aitken_iterations):
+        while (nl_it <= self.accelerator_iterations):
 
-            if res_norm > self.aitken_tolelance:
+            if res_norm > self.accelerator_tolerance:
                 coupling_utility.InitializeNonLinearIteration()
                 coupling_utility.UpdateSolution(residual, x_guess)
                 coupling_utility.FinalizeNonLinearIteration()
@@ -182,6 +175,89 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
 
         for i in range(len(expected_x)):
             self.assertAlmostEqual(expected_x[i],x_guess[i],delta=self.assert_delta)
+
+    # MVQN recursive accelerator test
+    def test_mvqn_recursive_accelerator(self,force1,force2,solution):
+
+        mvqn_recursive_settings = KratosMultiphysics.Parameters("""{
+                                                                     "solver_type"        : "MVQN_recursive",
+                                                                     "w_0"                : 0.825,
+                                                                     "buffer_size"        : 5
+                                                                    }""")
+
+        self.test_accelerator(force1,force2,solution,mvqn_recursive_settings)
+
+    def test_mvqn_recursive_accelerator_constant_forces(self):
+
+        k1 = 100
+        k2 = 500
+        z_equilibrium_1 = 0.5
+        z_equilibrium_2 = 1.5
+
+        def force1(model_part,guess):
+            return self.constant_force(model_part,guess,k1,z_equilibrium_1)
+
+        def force2(model_part,guess):
+            return self.constant_force(model_part,guess,k2,z_equilibrium_2)
+
+        def analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2):
+            s = KratosMultiphysics.Vector(3*len(model_part.Nodes))
+            dtot = z_equilibrium_2 - z_equilibrium_1
+            z_solution = dtot * k2 / (k1+k2) + z_equilibrium_1
+            for i,node in enumerate(model_part.Nodes):
+                j = 3*i
+                s[j]   = 0.0
+                s[j+1] = 0.0
+                s[j+2] = z_solution - node.Z
+
+            return s
+
+        def solution(model_part):
+            return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
+
+        self.test_mvqn_recursive_accelerator(force1,force2,solution)
+
+    def test_mvqn_recursive_accelerator_variable_stiffness(self):
+
+        k1 = 100
+        k2 = 500
+        z_equilibrium_1 = 0.5
+        z_equilibrium_2 = 1.5
+
+        def forceA(model_part,guess):
+            return self.constant_force(model_part,guess,k1,z_equilibrium_1)
+
+        def forceB(model_part,guess):
+            return self.variable_stiffness(model_part,guess,k2,z_equilibrium_2)
+
+        def analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2):
+            s = KratosMultiphysics.Vector(3*len(model_part.Nodes))
+            dtot = z_equilibrium_2 - z_equilibrium_1
+            for i,node in enumerate(model_part.Nodes):
+                k2_variable = k2 * ( 1 + node.X*node.Y )
+                z_solution = dtot * k2_variable / (k1+k2_variable) + z_equilibrium_1
+                j = 3*i
+                s[j]   = 0.0
+                s[j+1] = 0.0
+                s[j+2] = z_solution - node.Z
+
+            return s
+
+        def solution(model_part):
+            return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
+
+        self.test_mvqn_recursive_accelerator(forceA,forceB,solution)
+
+    # Aitken accelerator test
+    def test_aitken_accelerator(self,force1,force2,solution):
+
+        aitken_settings = KratosMultiphysics.Parameters("""{
+                                                            "solver_type"        : "Relaxation",
+                                                            "acceleration_type"  : "Aitken",
+                                                            "w_0"                : 0.825
+                                                           }""")
+
+        self.test_accelerator(force1,force2,solution,aitken_settings)
 
     def test_aitken_accelerator_constant_forces(self):
 

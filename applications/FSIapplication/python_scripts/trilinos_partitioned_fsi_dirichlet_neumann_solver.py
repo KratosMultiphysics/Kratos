@@ -18,8 +18,9 @@ import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-## Import base class file
-import trilinos_partitioned_fsi_base_solver
+## Python files import 
+import convergence_accelerator_factory          # Convergence accelerator factory
+import trilinos_partitioned_fsi_base_solver     # Base class file
 
 
 def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
@@ -43,6 +44,12 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
 
         # Set the Epetra communicator
         self.epetra_communicator = KratosTrilinos.CreateCommunicator()
+
+        # Construct the coupling partitioned strategy
+        coupling_utility_parameters = self.settings["coupling_solver_settings"]["coupling_strategy"]
+        self.coupling_utility = convergence_accelerator_factory.CreateTrilinosConvergenceAccelerator(self._GetFluidInterfaceSubmodelPart(),
+                                                                                                     self.epetra_communicator, 
+                                                                                                     coupling_utility_parameters)
 
         # Get the domain size
         self.domain_size = self._GetDomainSize()
@@ -144,7 +151,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
                 if ((nl_it == self.max_nl_it) and (KratosMPI.mpi.rank == 0)):
                     print("***********************************************************")
                     print("***********************************************************")
-                    print("         NON-LINEAR ITERATION CONVERGENCE ACHIEVED         ")
+                    print("       NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED       ")
                     print("***********************************************************")
                     print("***********************************************************")
 
@@ -221,13 +228,13 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         if (self.solve_mesh_at_each_iteration == True):
             self.mesh_solver.Solve()
         else:
-            self.mesh_solver.MoveNodes()
+            self.mesh_solver.MoveMesh()
 
         # Update MESH_VELOCITY and MESH_ACCELERATION with Newmark formulas
         self.nodal_update_utilities.UpdateMeshTimeDerivatives(self.fluid_main_model_part, self.time_step)
 
         # Impose the structure MESH_VELOCITY and MESH_ACCELERATION in the fluid interface VELOCITY and ACCELERATION
-        self.nodal_update_utilities.UpdateTimeDerivativesOnInterface(self._GetFluidInterfaceSubmodelPart())
+        self.nodal_update_utilities.SetMeshTimeDerivativesOnInterface(self._GetFluidInterfaceSubmodelPart())
 
         # Solve fluid problem
         self.fluid_solver.SolveSolutionStep()
