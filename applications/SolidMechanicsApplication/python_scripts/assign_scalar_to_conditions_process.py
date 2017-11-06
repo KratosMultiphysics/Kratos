@@ -42,7 +42,6 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
             
         if( self.IsInsideInterval() and self.interval_string == "initial" ):
             self.AssignValueProcess.Execute()
-            print(" Execute VARIABLE ")
             
     def ExecuteInitializeSolutionStep(self):
 
