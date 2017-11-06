@@ -26,8 +26,8 @@
 
 namespace Kratos
 {
-/** \brief Quaternion
-	* A simple class that implements the main features of quaternion algebra
+/** \brief MpcData
+	* A class that implements the data structure needed for applying Multipoint constraints.
 	*/
 class MpcData
 {
@@ -269,7 +269,7 @@ class MpcData
 
     ///@name Serialization
     ///@{
-    friend class Serializer;
+    /*friend class Serializer;
 
     virtual void save(Serializer &rSerializer) const
     {
@@ -281,7 +281,7 @@ class MpcData
     {
         //rSerializer.load("DofConstraints", mDofConstraints);
         //rSerializer.load("SlaveEquationIdConstantsMap", mSlaveEquationIdConstantsMap);
-    }
+    } */
 
     ///@}
 };
@@ -289,15 +289,11 @@ class MpcData
 ///@name Input/Output funcitons
 ///@{
 
-/*bool operator== (MpcData &obj1, MpcData &obj2) 
-{
-        return obj1.GetName() == obj2.GetName();
-}    */
-
 inline std::istream &operator>>(std::istream &rIStream, MpcData &rThis);
 
 inline std::ostream &operator<<(std::ostream &rOStream, const MpcData &rThis)
 {
+    rThis->PrintInfo(rOStream)
     return rOStream;
 }
 
