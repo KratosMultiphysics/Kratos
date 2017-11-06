@@ -10,8 +10,8 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_DIVIDE_TRIANGLE_2D_3_UTILS)
-#define KRATOS_DIVIDE_TRIANGLE_2D_3_UTILS
+#if !defined(KRATOS_DIVIDE_TETRAHEDRA_3D_4_UTILS)
+#define KRATOS_DIVIDE_TETRAHEDRA_3D_4_UTILS
 
 // System includes
 
@@ -19,8 +19,8 @@
 
 // Project includes
 
-#include "geometries/line_2d_2.h"
-#include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_3d_3.h"
+#include "geometries/tetrahedra_3d_4.h"
 #include "utilities/divide_geometry.h"
 
 namespace Kratos
@@ -40,34 +40,35 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-class KRATOS_API(KRATOS_CORE) DivideTriangle2D3 : public DivideGeometry
+class KRATOS_API(KRATOS_CORE) DivideTetrahedra3D4 : public DivideGeometry
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef DivideGeometry                          BaseType;
-    typedef BaseType::GeometryType                  GeometryType;
-    typedef BaseType::IndexedPointType              IndexedPointType;
-    typedef Line2D2 < IndexedPointType >            IndexedPointLineType;
-    typedef Triangle2D3 < IndexedPointType >        IndexedPointTriangleType;
+    typedef DivideGeometry                                              BaseType;
+    typedef BaseType::GeometryType                                      GeometryType;
+    typedef BaseType::IndexedPointType                                  IndexedPointType;
+    typedef BaseType::IndexedPointGeometryType::GeometriesArrayType     GeometriesArrayType;
+    typedef Triangle3D3 < IndexedPointType >                            IndexedPointTriangleType;
+    typedef Tetrahedra3D4 < IndexedPointType >                          IndexedPointTetrahedraType;
 
-    /// Pointer definition of DivideTriangle2D3
-    KRATOS_CLASS_POINTER_DEFINITION(DivideTriangle2D3);
+    /// Pointer definition of DivideTetrahedra3D4
+    KRATOS_CLASS_POINTER_DEFINITION(DivideTetrahedra3D4);
 
-    const std::vector<int> mEdgeNodeI = {0, 1, 2};
-    const std::vector<int> mEdgeNodeJ = {1, 2, 0};
-    std::vector<int> mSplitEdges = {0, 1, 2, -1, -1, -1};
+    const std::vector<int> mEdgeNodeI = {0, 0, 0, 1, 1, 2};
+    const std::vector<int> mEdgeNodeJ = {1, 2, 3, 2, 3, 3};
+    std::vector<int> mSplitEdges = {0, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1};
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor
-    DivideTriangle2D3(const GeometryType& rInputGeometry, const Vector& rNodalDistances);
+    DivideTetrahedra3D4(const GeometryType& rInputGeometry, const Vector& rNodalDistances);
 
     /// Destructor
-    ~DivideTriangle2D3();
+    ~DivideTetrahedra3D4();
 
     ///@}
     ///@name Access
@@ -143,15 +144,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    // DivideTriangle2D3& operator=(DivideTriangle2D3 const& rOther);
+    // DivideTetrahedra3D4& operator=(DivideTetrahedra3D4 const& rOther);
     //
     // /// Copy constructor.
-    // DivideTriangle2D3(DivideTriangle2D3 const& rOther)
+    // DivideTetrahedra3D4(DivideTetrahedra3D4 const& rOther)
     //     : DivideGeometry(rOther.mrInputGeometry, rOther.mrNodalDistances) {};
 
     ///@}
 
-};// class DivideTriangle2D3
+};// class DivideTetrahedra3D4
 
 }
-#endif /* KRATOS_DIVIDE_TRIANGLE_2D_3_UTILS defined */
+#endif /* KRATOS_DIVIDE_TETRAHEDRA_3D_4_UTILS defined */

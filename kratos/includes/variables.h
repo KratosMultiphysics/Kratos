@@ -47,6 +47,7 @@ namespace Kratos
 
     //ints
     KRATOS_DEFINE_VARIABLE( int, DOMAIN_SIZE )
+    KRATOS_DEFINE_VARIABLE( int, SPACE_DIMENSION )
 
     //for General kratos application:
     KRATOS_DEFINE_VARIABLE( int, LOAD_RESTART )

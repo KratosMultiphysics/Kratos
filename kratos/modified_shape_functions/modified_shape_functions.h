@@ -52,17 +52,17 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ModifiedShapeFunctions);
 
     // General type definitions
-    typedef Geometry < Node<3> >                                                                                      GeometryType;
-    typedef typename GeometryType::Pointer                                                                     GeometryPointerType;
-    typedef typename GeometryType::CoordinatesArrayType                                                       CoordinatesArrayType;
-    typedef GeometryData::IntegrationMethod                                                                  IntegrationMethodType;
-    typedef typename GeometryData::ShapeFunctionsGradientsType                                         ShapeFunctionsGradientsType;
+    typedef Geometry < Node<3> >                                                                    GeometryType;
+    typedef GeometryType::Pointer                                                                   GeometryPointerType;
+    typedef GeometryType::CoordinatesArrayType                                                      CoordinatesArrayType;
+    typedef GeometryData::IntegrationMethod                                                         IntegrationMethodType;
+    typedef GeometryData::ShapeFunctionsGradientsType                                               ShapeFunctionsGradientsType;
 
-    typedef typename DivideGeometry::IndexedPointGeometryType                                             IndexedPointGeometryType;
-    typedef typename DivideGeometry::IndexedPointGeometryPointerType                               IndexedPointGeometryPointerType;
+    typedef DivideGeometry::IndexedPointGeometryType                                                IndexedPointGeometryType;
+    typedef DivideGeometry::IndexedPointGeometryPointerType                                         IndexedPointGeometryPointerType;
 
-    typedef IntegrationPoint<3>                                                                               IntegrationPointType;
-    typedef std::vector<IntegrationPointType>                                                           IntegrationPointsArrayType;
+    typedef IntegrationPoint<3>                                                                     IntegrationPointType;
+    typedef std::vector<IntegrationPointType>                                                       IntegrationPointsArrayType;
     typedef boost::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods>      IntegrationPointsContainerType;
 
     ///@}
