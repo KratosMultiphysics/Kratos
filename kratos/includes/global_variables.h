@@ -35,6 +35,7 @@ namespace Kratos
 {
 namespace Globals
 {
+	constexpr double Pi = 3.14159265359;
 
 /*		class VariableData;
 		class Element;
