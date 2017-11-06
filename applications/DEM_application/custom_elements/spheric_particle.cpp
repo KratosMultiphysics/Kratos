@@ -644,25 +644,13 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 {
     KRATOS_TRY
 
-    const array_1d<double, 3>& velocity     = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-    const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-    const array_1d<double, 3>& ang_velocity = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-
-    
-
     NodeType& this_node = this->GetGeometry()[0];
     DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mMyCoors, this_node)
             
     //LOOP OVER NEIGHBORS:
     for (int i = 0; data_buffer.SetNextNeighbourOrExit(i); ++i){
 
-        if (this->Is(NEW_ENTITY) && data_buffer.mpOtherParticle->Is(BLOCKED)) continue;
-        if (this->Is(BLOCKED) && data_buffer.mpOtherParticle->Is(NEW_ENTITY)) continue;
-        if (data_buffer.mMultiStageRHS  &&  this->Id() > data_buffer.mpOtherParticle->Id()) continue;
-
-        CalculateRelativePositions(data_buffer);
-        
-        if (data_buffer.mIndentation > 0.0) {
+        if (CalculateRelativePositionsOrSkipContact(data_buffer)) {
             double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
             double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
             double DeltDisp[3]                       = {0.0};
@@ -679,7 +667,9 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             double cohesive_force                    =  0.0;
             bool sliding = false; 
 
-            if(data_buffer.mDistance < std::numeric_limits<double>::epsilon()) continue;
+            const array_1d<double, 3>& velocity     = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+            const array_1d<double, 3>& ang_velocity = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
             EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, velocity, delta_displ);
 
@@ -1560,8 +1550,18 @@ void SphericParticle::RotateOldContactForces(const double OldLocalCoordSystem[3]
     DEM_COPY_SECOND_TO_FIRST_3(mNeighbourElasticContactForces, mNeighbourElasticContactForcesFinal)
 }
 
-void SphericParticle::CalculateRelativePositions(ParticleDataBuffer & data_buffer)
-{    
+bool SphericParticle::CalculateRelativePositionsOrSkipContact(ParticleDataBuffer & data_buffer)
+{
+    const bool other_is_injecting_me = this->Is(NEW_ENTITY) && data_buffer.mpOtherParticle->Is(BLOCKED);
+    const bool i_am_injecting_other = this->Is(BLOCKED) && data_buffer.mpOtherParticle->Is(NEW_ENTITY);
+    const bool multistage_condition = data_buffer.mMultiStageRHS  &&  this->Id() > data_buffer.mpOtherParticle->Id();
+
+    bool must_skip_contact_calculation = other_is_injecting_me || i_am_injecting_other || multistage_condition;
+
+    if (must_skip_contact_calculation){
+        return false;
+    }
+
     NodeType& other_node = data_buffer.mpOtherParticle->GetGeometry()[0];
     DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mOtherCoors, other_node)
 
@@ -1574,9 +1574,18 @@ void SphericParticle::CalculateRelativePositions(ParticleDataBuffer & data_buffe
     data_buffer.mOtherToMeVector[2] = data_buffer.mMyCoors[2] - data_buffer.mOtherCoors[2];
 
     data_buffer.mDistance    = DEM_MODULUS_3(data_buffer.mOtherToMeVector);
+
+    must_skip_contact_calculation = data_buffer.mDistance < std::numeric_limits<double>::epsilon();
+
+    if (must_skip_contact_calculation){
+        return false;
+    }
+
     data_buffer.mOtherRadius = data_buffer.mpOtherParticle->GetInteractionRadius();
     data_buffer.mRadiusSum   = this->GetInteractionRadius() + data_buffer.mOtherRadius;
     data_buffer.mIndentation = data_buffer.mRadiusSum - data_buffer.mDistance;
+
+    return data_buffer.mIndentation > 0.0;
 }
 
 void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
