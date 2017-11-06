@@ -621,14 +621,14 @@ namespace Kratos
 		d.GfI = props[FRACTURE_ENERGY_MODE_I];
 		// shear data (mode II)
 		d.c = props[INITIAL_COHESION];
-		d.tanphi0 = std::tan( Gobals::Pi/180.0 * props[INITIAL_FRICTION_ANGLE] );
+		d.tanphi0 = std::tan( Globals::Pi/180.0 * props[INITIAL_FRICTION_ANGLE] );
 		d.tanphiu = d.tanphi0;
 		if(props.Has(RESIDUAL_FRICTION_ANGLE))
-			d.tanphiu = std::tan( Gobals::Pi/180.0 * props[RESIDUAL_FRICTION_ANGLE] );
-		d.tanpsi0 = std::tan( Gobals::Pi/180.0 * props[INITIAL_DILATANCY_ANGLE] );
+			d.tanphiu = std::tan( Globals::Pi/180.0 * props[RESIDUAL_FRICTION_ANGLE] );
+		d.tanpsi0 = std::tan( Globals::Pi/180.0 * props[INITIAL_DILATANCY_ANGLE] );
 		d.tanpsiu = d.tanpsi0;
 		if(props.Has(RESIDUAL_DILATANCY_ANGLE))
-			d.tanpsiu = std::tan( Gobals::Pi/180.0 * props[RESIDUAL_DILATANCY_ANGLE] );
+			d.tanpsiu = std::tan( Globals::Pi/180.0 * props[RESIDUAL_DILATANCY_ANGLE] );
 		d.GfII = props[FRACTURE_ENERGY_MODE_II];
 		// cap data (mode III)
 		d.fc0 = props[INTERFACE_COMPRESSIVE_LAW_S0];

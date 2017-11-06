@@ -459,7 +459,7 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
             else
             {
                 // get the angle in radians of this ply w.r.t the parent section
-                double alpha = Gobals::Pi / 180.0 * iPlyAngle;
+                double alpha = Globals::Pi / 180.0 * iPlyAngle;
 
                 // make a copy of the generalized strain vector in section coordinate system
                 // and then rotate the (working) generalized strain vector in this ply coordinate system

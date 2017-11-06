@@ -394,7 +394,7 @@ namespace Kratos
 				// //Calculate phi & number of division
 				// double m = 10.0; // m = max of tag
 				// //std::cout << "m: " << m << std::endl;
-				// double phi = Gobals::Pi / m;
+				// double phi = Globals::Pi / m;
 				// //std::cout << "phi: " << phi << " rad" << std::endl;
 				// 
 				// Vector Theta(2, 0.0);

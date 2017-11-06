@@ -420,7 +420,7 @@ namespace Kratos
 		//Calculate phi & number of division
 		const size_t m = mpRveMaterialDatabase->NumberOfDivision();
 		//std::cout << "m: " << m << std::endl;
-		double phi = Gobals::Pi / m;
+		double phi = Globals::Pi / m;
 		//std::cout << "phi: " << phi << " rad" << std::endl;
 
 		//1. Calculate the normalized Strain
@@ -1096,13 +1096,13 @@ namespace Kratos
 		{
 			theta_1 = acos(StrainVector[0] / denom_theta_1);
 		}
-		if (abs(theta_1) > Gobals::Pi)
+		if (abs(theta_1) > Globals::Pi)
 		{
-			double mult_1 = abs(floor(theta_1 / Gobals::Pi));
-			if (theta_1 > Gobals::Pi)
-				theta_1 = theta_1 - 2.0 * Gobals::Pi*mult_1;
+			double mult_1 = abs(floor(theta_1 / Globals::Pi));
+			if (theta_1 > Globals::Pi)
+				theta_1 = theta_1 - 2.0 * Globals::Pi*mult_1;
 			else
-				theta_1 = theta_1 + 2.0 * Gobals::Pi*mult_1;
+				theta_1 = theta_1 + 2.0 * Globals::Pi*mult_1;
 		}
 
 		//Calculate Theta2
@@ -1119,10 +1119,10 @@ namespace Kratos
 			if (StrainVector[2] < 0.0)
 			{
 				//std::cout << "PredictStress2D -> StrainVector[2] < 0.0" << std::endl;
-				//std::cout << "PredictStress2D -> 2.0 * Gobals::Pi" << 2.0 * Gobals::Pi << std::endl;
+				//std::cout << "PredictStress2D -> 2.0 * Globals::Pi" << 2.0 * Globals::Pi << std::endl;
 				//std::cout << "PredictStress2D -> StrainVector[1] / denom_theta_2" << StrainVector[1] / denom_theta_2 << std::endl;
 				//std::cout << "PredictStress2D -> acos(StrainVector[1] / denom_theta_2)" << acos(StrainVector[1] / denom_theta_2) << std::endl;
-				theta_2 = 2.0 * Gobals::Pi - acos(StrainVector[1] / denom_theta_2);
+				theta_2 = 2.0 * Globals::Pi - acos(StrainVector[1] / denom_theta_2);
 			}
 			else
 			{
@@ -1130,13 +1130,13 @@ namespace Kratos
 				theta_2 = acos(StrainVector[1] / denom_theta_2);
 			}
 		}
-		if (abs(theta_2) > Gobals::Pi)
+		if (abs(theta_2) > Globals::Pi)
 		{
-			double mult_1 = abs(floor(theta_2 / Gobals::Pi));
-			if (theta_2 > Gobals::Pi)
-				theta_2 = theta_2 - 2.0 * Gobals::Pi*mult_1;
+			double mult_1 = abs(floor(theta_2 / Globals::Pi));
+			if (theta_2 > Globals::Pi)
+				theta_2 = theta_2 - 2.0 * Globals::Pi*mult_1;
 			else
-				theta_2 = theta_2 + 2.0 * Gobals::Pi*mult_1;
+				theta_2 = theta_2 + 2.0 * Globals::Pi*mult_1;
 		}
 
 		//Assemble Theta

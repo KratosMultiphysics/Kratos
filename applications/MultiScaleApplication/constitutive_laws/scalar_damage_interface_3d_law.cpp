@@ -133,7 +133,7 @@ namespace Kratos
 			int ijob = rThisVariable == YIELD_SURFACE_DATA_3D_X ? 1 : 2;
 			double Ft = 1.0;
 			double C0 = 2.0;
-			double Fs = std::tan(Gobals::Pi / 180 * 30.0);
+			double Fs = std::tan(Globals::Pi / 180 * 30.0);
 
 			SizeType nn = 10;
 			if(rValue.size() != nn)
@@ -482,7 +482,7 @@ namespace Kratos
 		data.Ft  = props[YIELD_STRESS_T];
 
 		data.C0 = props[INITIAL_COHESION];
-		data.Fs = std::tan( props[INTERNAL_FRICTION_ANGLE] * Gobals::Pi / 180.0 );
+		data.Fs = std::tan( props[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0 );
 
 		data.GI  = props[FRACTURE_ENERGY_MODE_I];
 		data.GII = props[FRACTURE_ENERGY_MODE_II];
