@@ -24,7 +24,6 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/communicator.h"
-#include "utilities/openmp_utils.h"
 
 // Application includes
 #include "hdf5_application_define.h"
@@ -83,18 +82,6 @@ private:
     ///@{
     std::tuple<unsigned, unsigned> GetStartIndexAndBlockSize() const;
 
-    template <class TVariableType, class TFileDataType>
-    void SetDataBuffer(TVariableType const& rVariable,
-                       std::vector<NodeType*> const& rNodes,
-                       Vector<TFileDataType>& rData,
-                       unsigned Step);
-
-    template <class TVariableType, class TFileDataType>
-    void SetNodalSolutionStepData(TVariableType const& rVariable,
-                                  Vector<TFileDataType> const& rData,
-                                  std::vector<NodeType*>& rNodes,
-                                  unsigned Step);
-
     /// Divide nodes into local and ghost.
     void DivideNodes(NodesContainerType const& rNodes,
                      std::vector<NodeType*>& rLocalNodes,
@@ -105,53 +92,6 @@ private:
     ///@}
 
 }; // class NodalSolutionStepDataIO.
-
-template <class TVariableType, class TFileDataType>
-void NodalSolutionStepDataIO::SetDataBuffer(TVariableType const& rVariable,
-                                            std::vector<NodeType*> const& rNodes,
-                                            Vector<TFileDataType>& rData,
-                                            unsigned Step)
-{
-    KRATOS_TRY;
-
-    rData.resize(rNodes.size(), false);
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector partition;
-    OpenMPUtils::DivideInPartitions(rNodes.size(), num_threads, partition);
-#pragma omp parallel
-    {
-        const int thread_id = OpenMPUtils::ThisThread();
-        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
-            rData[i] = rNodes[i]->FastGetSolutionStepValue(rVariable, Step);
-    }
-
-    KRATOS_CATCH("");
-}
-
-template <class TVariableType, class TFileDataType>
-void NodalSolutionStepDataIO::SetNodalSolutionStepData(TVariableType const& rVariable,
-                                                       Vector<TFileDataType> const& rData,
-                                                       std::vector<NodeType*>& rNodes,
-                                                       unsigned Step)
-{
-    KRATOS_TRY;
-
-    KRATOS_ERROR_IF(rData.size() != rNodes.size())
-        << "File data block size (" << rData.size()
-        << ") is not equal to number of nodes (" << rNodes.size() << ")." << std::endl;
-
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector partition;
-    OpenMPUtils::DivideInPartitions(rNodes.size(), num_threads, partition);
-#pragma omp parallel
-    {
-        const int thread_id = OpenMPUtils::ThisThread();
-        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
-            rNodes[i]->FastGetSolutionStepValue(rVariable, Step) = rData[i];
-    }
-
-    KRATOS_CATCH("");
-}
 
 ///@} // Kratos Classes
 ///@} addtogroup

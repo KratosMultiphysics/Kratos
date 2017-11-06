@@ -1,11 +1,27 @@
 #include "custom_io/hdf5_nodal_solution_step_data_io.h"
 
 #include "includes/kratos_components.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
+namespace Detail
+{
+template <class TVariableType, class TFileDataType>
+void SetDataBuffer(TVariableType const& rVariable,
+                   std::vector<NodeType*> const& rNodes,
+                   Vector<TFileDataType>& rData,
+                   unsigned Step);
+
+template <class TVariableType, class TFileDataType>
+void SetNodalSolutionStepData(TVariableType const& rVariable,
+                              Vector<TFileDataType> const& rData,
+                              std::vector<NodeType*>& rNodes,
+                              unsigned Step);
+} // namespace Detail.
+
 NodalSolutionStepDataIO::NodalSolutionStepDataIO(Parameters& rParams, File::Pointer pFile)
 : mpFile(pFile)
 {
@@ -57,7 +73,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
             const Variable<array_1d<double, 3>>& rVARIABLE =
                 KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
             Vector<array_1d<double, 3>> data;
-            SetDataBuffer(rVARIABLE, local_nodes, data, Step);
+            Detail::SetDataBuffer(rVARIABLE, local_nodes, data, Step);
             mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data);
         }
         else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
@@ -67,7 +83,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
                 KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
                     r_variable_name);
             Vector<double> data;
-            SetDataBuffer(rVARIABLE, local_nodes, data, Step);
+            Detail::SetDataBuffer(rVARIABLE, local_nodes, data, Step);
             mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data);
         }
         else if (KratosComponents<Variable<double>>::Has(r_variable_name))
@@ -75,7 +91,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
             const Variable<double>& rVARIABLE =
                 KratosComponents<Variable<double>>::Get(r_variable_name);
             Vector<double> data;
-            SetDataBuffer(rVARIABLE, local_nodes, data, Step);
+            Detail::SetDataBuffer(rVARIABLE, local_nodes, data, Step);
             mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data);
         }
         else if (KratosComponents<Variable<int>>::Has(r_variable_name))
@@ -83,7 +99,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
             const Variable<int>& rVARIABLE =
                 KratosComponents<Variable<int>>::Get(r_variable_name);
             Vector<int> data;
-            SetDataBuffer(rVARIABLE, local_nodes, data, Step);
+            Detail::SetDataBuffer(rVARIABLE, local_nodes, data, Step);
             mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data);
         }
         else
@@ -118,7 +134,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
                                 data, start_index, block_size);
             const Variable<array_1d<double, 3>>& rVARIABLE =
                 KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
-            SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
+            Detail::SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
         }
         else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
                      r_variable_name))
@@ -129,7 +145,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
             const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& rVARIABLE =
                 KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
                     r_variable_name);
-            SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
+            Detail::SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
         }
         else if (KratosComponents<Variable<double>>::Has(r_variable_name))
         {
@@ -138,7 +154,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
                                 data, start_index, block_size);
             const Variable<double>& rVARIABLE =
                 KratosComponents<Variable<double>>::Get(r_variable_name);
-            SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
+            Detail::SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
         }
         else if (KratosComponents<Variable<int>>::Has(r_variable_name))
         {
@@ -147,7 +163,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
                                 data, start_index, block_size);
             const Variable<int>& rVARIABLE =
                 KratosComponents<Variable<int>>::Get(r_variable_name);
-            SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
+            Detail::SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
         }
         else
         {
@@ -251,5 +267,54 @@ void NodalSolutionStepDataIO::GetLocalNodes(NodesContainerType const& rNodes,
     KRATOS_CATCH("");
 }
 
+namespace Detail
+{
+template <class TVariableType, class TFileDataType>
+void SetDataBuffer(TVariableType const& rVariable,
+                   std::vector<NodeType*> const& rNodes,
+                   Vector<TFileDataType>& rData,
+                   unsigned Step)
+{
+    KRATOS_TRY;
+
+    rData.resize(rNodes.size(), false);
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    OpenMPUtils::PartitionVector partition;
+    OpenMPUtils::DivideInPartitions(rNodes.size(), num_threads, partition);
+#pragma omp parallel
+    {
+        const int thread_id = OpenMPUtils::ThisThread();
+        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
+            rData[i] = rNodes[i]->FastGetSolutionStepValue(rVariable, Step);
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <class TVariableType, class TFileDataType>
+void SetNodalSolutionStepData(TVariableType const& rVariable,
+                              Vector<TFileDataType> const& rData,
+                              std::vector<NodeType*>& rNodes,
+                              unsigned Step)
+{
+    KRATOS_TRY;
+
+    KRATOS_ERROR_IF(rData.size() != rNodes.size())
+        << "File data block size (" << rData.size()
+        << ") is not equal to number of nodes (" << rNodes.size() << ")." << std::endl;
+
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    OpenMPUtils::PartitionVector partition;
+    OpenMPUtils::DivideInPartitions(rNodes.size(), num_threads, partition);
+#pragma omp parallel
+    {
+        const int thread_id = OpenMPUtils::ThisThread();
+        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
+            rNodes[i]->FastGetSolutionStepValue(rVariable, Step) = rData[i];
+    }
+
+    KRATOS_CATCH("");
+}
+} // namespace Detail.
 } // namespace HDF5.
 } // namespace Kratos.
