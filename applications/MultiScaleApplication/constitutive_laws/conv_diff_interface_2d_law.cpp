@@ -480,7 +480,7 @@ namespace Kratos
 			data.K_2 = props[CONDUCT_MAT2];
 			data.nu_2 = props[POISSON_MAT2];
 
-			// Modifico Proporzionalmente le propriet� per degradare allo stesso modo del meccanico
+			// Modifico Proporzionalmente le proprieta per degradare allo stesso modo del meccanico
 			data.Ks = props[CONDUCTIVITY];
 			data.Kg = props[AIR_CONDUCTIVITY];
 
