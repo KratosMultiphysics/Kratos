@@ -80,6 +80,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    bool IsPartitionedSimulation() const;
+    
     std::tuple<unsigned, unsigned> GetStartIndexAndBlockSize() const;
 
     template <class TVariableType, class TFileDataType>

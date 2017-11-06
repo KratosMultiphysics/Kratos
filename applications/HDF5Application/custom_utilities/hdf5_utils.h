@@ -33,9 +33,12 @@ namespace Detail
 /// Divide nodes into local and ghost.
 void DivideNodes(NodesContainerType const& rNodes,
                  std::vector<NodeType*>& rLocalNodes,
-                 std::vector<NodeType*>& rGhostNodes);
+                 std::vector<NodeType*>& rGhostNodes,
+                 bool IsPartitioned);
 
-void GetLocalNodes(NodesContainerType const& rNodes, std::vector<NodeType*>& rLocalNodes);
+void GetLocalNodes(NodesContainerType const& rNodes,
+                   std::vector<NodeType*>& rLocalNodes,
+                   bool IsPartitioned);
 
 } // namespace Detail.
 } // namespace HDF5.

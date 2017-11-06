@@ -13,36 +13,16 @@ namespace Detail
 {
 void DivideNodes(NodesContainerType const& rNodes,
                  std::vector<NodeType*>& rLocalNodes,
-                 std::vector<NodeType*>& rGhostNodes)
+                 std::vector<NodeType*>& rGhostNodes,
+                 bool IsPartitioned)
 {
     KRATOS_TRY;
 
-    bool is_partitioned = false;
-    // Check if we are simulating a partitioned problem.
-#ifdef KRATOS_USING_MPI
-    int mpi_is_initialized, num_proc, my_pid, ierr;
-    ierr = MPI_Initialized(&mpi_is_initialized);
-    KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Initialized failed." << std::endl;
-    if (mpi_is_initialized)
+    if (IsPartitioned)
     {
-        ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
-        KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_size failed." << std::endl;
-        is_partitioned = (num_proc > 1);
-    }
-    else
-        num_proc = 1;
-
-    if (is_partitioned)
-    {
+        int ierr, my_pid;
         ierr = MPI_Comm_rank(MPI_COMM_WORLD, &my_pid);
         KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_rank failed." << std::endl;
-    }
-    else
-        my_pid = 0;
-#endif
-
-    if (is_partitioned)
-    {
         rLocalNodes.reserve(rNodes.size());
         rGhostNodes.reserve(0.1*rNodes.size());
         for (auto it = rNodes.begin(); it != rNodes.end(); ++it)
@@ -75,12 +55,14 @@ void DivideNodes(NodesContainerType const& rNodes,
     KRATOS_CATCH("");
 }
 
-void GetLocalNodes(NodesContainerType const& rNodes, std::vector<NodeType*>& rLocalNodes)
+void GetLocalNodes(NodesContainerType const& rNodes,
+                   std::vector<NodeType*>& rLocalNodes,
+                   bool IsPartitioned)
 {
     KRATOS_TRY;
 
     std::vector<NodeType*> ghost_nodes;
-    DivideNodes(rNodes, rLocalNodes, ghost_nodes);
+    DivideNodes(rNodes, rLocalNodes, ghost_nodes, IsPartitioned);
 
     KRATOS_CATCH("");
 }

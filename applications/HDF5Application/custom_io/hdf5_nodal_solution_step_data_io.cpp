@@ -44,7 +44,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
     KRATOS_TRY;
 
     std::vector<NodeType*> local_nodes;
-    Detail::GetLocalNodes(rNodes, local_nodes);
+    Detail::GetLocalNodes(rNodes, local_nodes, IsPartitionedSimulation());
 
     // Write each variable.
     for (const std::string& r_variable_name : mVariableNames)
@@ -101,7 +101,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
     KRATOS_TRY;
 
     std::vector<NodeType*> local_nodes;
-    Detail::GetLocalNodes(rNodes, local_nodes);
+    Detail::GetLocalNodes(rNodes, local_nodes, IsPartitionedSimulation());
     unsigned start_index, block_size;
     std::tie(start_index, block_size) = GetStartIndexAndBlockSize();
 
@@ -158,6 +158,11 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
     KRATOS_CATCH("");
 }
 
+bool NodalSolutionStepDataIO::IsPartitionedSimulation() const
+{
+    return (mpFile->GetTotalProcesses() > 1);
+}
+
 std::tuple<unsigned, unsigned> NodalSolutionStepDataIO::GetStartIndexAndBlockSize() const
 {
     KRATOS_TRY;
@@ -166,10 +171,9 @@ std::tuple<unsigned, unsigned> NodalSolutionStepDataIO::GetStartIndexAndBlockSiz
         mpFile->GetDataDimensions(mPrefix + "/NodalResults/Partition");
     KRATOS_ERROR_IF(dims.size() != 1) << "Invalid partition dimension." << std::endl;
     const unsigned file_partition_size = dims[0] - 1; // Number of procs that wrote the data block.
-    const unsigned num_proc = mpFile->GetTotalProcesses();
     unsigned start_index;
     unsigned block_size;
-    if (num_proc == 1)
+    if (IsPartitionedSimulation() == false)
     {
         start_index = 0;
         // Read the global size of the data block.
@@ -177,7 +181,7 @@ std::tuple<unsigned, unsigned> NodalSolutionStepDataIO::GetStartIndexAndBlockSiz
         mpFile->ReadDataSet(mPrefix + "/NodalResults/Partition", last_partition_index, file_partition_size, 1);
         block_size = last_partition_index[0];
     }
-    else if (num_proc == file_partition_size)
+    else if (mpFile->GetTotalProcesses() == file_partition_size)
     {
         Vector<int> my_partition;
         unsigned my_pid = mpFile->GetPID();
