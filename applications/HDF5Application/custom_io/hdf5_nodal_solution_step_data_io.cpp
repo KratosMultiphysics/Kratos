@@ -196,7 +196,7 @@ std::tuple<unsigned, unsigned> NodalSolutionStepDataIO::GetStartIndexAndBlockSiz
                      << std::endl;
     }
 
-    return std::tuple<unsigned, unsigned>(start_index, block_size);
+    return std::make_tuple(start_index, block_size);
 
     KRATOS_CATCH("");
 }
