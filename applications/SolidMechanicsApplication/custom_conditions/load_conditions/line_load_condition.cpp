@@ -199,7 +199,25 @@ namespace Kratos
 	rVariables.ExternalScalarValue -= rVariables.N[i] * PositiveFacePressure;
     }
 
+
     //defined on condition nodes
+    if( this->Has( NEGATIVE_FACE_PRESSURE_VECTOR ) ){
+      Vector& Pressures = this->GetValue( NEGATIVE_FACE_PRESSURE_VECTOR );
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{	  
+	  rVariables.ExternalScalarValue += rVariables.N[i] * Pressures[i]; 
+	}
+    }
+    
+    if( this->Has( POSITIVE_FACE_PRESSURE_VECTOR ) ){
+      Vector& Pressures = this->GetValue( POSITIVE_FACE_PRESSURE_VECTOR );
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{	  
+	  rVariables.ExternalScalarValue -= rVariables.N[i] * Pressures[i]; 
+	}
+    }
+    
+    //defined on geometry nodes
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) ) 
@@ -228,10 +246,10 @@ namespace Kratos
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
-	  counter = i*3;
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    {
-	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoads[counter+k];
+	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoads[counter];
+	      counter++;
 	    }
 	  
 	}

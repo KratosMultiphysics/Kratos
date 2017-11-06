@@ -28,9 +28,7 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
             params.AddValue("value", self.settings["value"])
            
             self.AssignValueProcess = KratosSolid.AssignScalarToConditionsProcess(self.model_part, params)
-        else:
-            print(" function value ", self.function_expression)
-            
+        else:           
             #function values are assigned to a vector variable :: transformation is needed
             if(type(self.var) == KratosMultiphysics.DoubleVariable):
                 variable_name = self.settings["variable_name"].GetString() + "_VECTOR"
@@ -44,14 +42,28 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
             
         if( self.IsInsideInterval() and self.interval_string == "initial" ):
             self.AssignValueProcess.Execute()
-                    
+            print(" Execute VARIABLE ")
+            
     def ExecuteInitializeSolutionStep(self):
 
         if self.IsInsideInterval():
             self.AssignValueProcess.Execute()
-
+ 
+ 
     def ExecuteFinalizeSolutionStep(self):
-        pass
-            
+
+        if not self.interval_ended:
+            current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+            delta_time   = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        
+            #arithmetic floating point tolerance
+            tolerance = delta_time * 0.001
+ 
+            if( (current_time + delta_time) > (self.interval[1] + tolerance) ):
+                self.interval_ended = True
+                if not self.finalized :
+                    self.AssignValueProcess.ExecuteFinalize()
+                    self.finalized = True
+                    
 
     

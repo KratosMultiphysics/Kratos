@@ -58,6 +58,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         self.variable_name = self.settings["variable_name"].GetString()
 
         ## set the interval
+        self.finalized = False;
         self.interval  = []
         self.interval.append(self.settings["interval"][0].GetDouble());
         if( self.settings["interval"][1].IsString() ):
@@ -160,18 +161,30 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
             self.AssignValueProcess = KratosSolid.AssignVectorFieldToConditionsProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
                 
 
-
         if( self.IsInsideInterval() and self.interval_string == "initial" ):
             self.AssignValueProcess.Execute()            
-                    
+
+            
     def ExecuteInitializeSolutionStep(self):
 
         if self.IsInsideInterval():
             self.AssignValueProcess.Execute()
 
     def ExecuteFinalizeSolutionStep(self):
-        pass
 
+        if not self.interval_ended:
+            current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+            delta_time   = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        
+            #arithmetic floating point tolerance
+            tolerance = delta_time * 0.001
+ 
+            if( (current_time + delta_time) > (self.interval[1] + tolerance) ):
+                self.interval_ended = True
+                if not self.finalized :
+                    self.AssignValueProcess.ExecuteFinalize()
+                    self.finalized = Truecurrent_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+ 
     
     #
     def IsInsideInterval(self):

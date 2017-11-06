@@ -62,6 +62,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         self.AngularDynamicVariables = ["ANGULAR_ACCELERATION","ANGULAR_VELOCITY"]
         
         ## set the interval
+        self.finalized = False
         self.interval_started = False
         self.interval_ended   = False
         
@@ -123,7 +124,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                    
         if ( self.IsInsideInterval() and self.interval_string == "initial" ):
             self.AssignValueProcess.Execute()
-            
+
             
     def ExecuteInitializeSolutionStep(self):
 

@@ -76,21 +76,21 @@ public:
 	  KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name); 
 	}
 	
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     AssignScalarVariableToConditionsProcess(ModelPart& model_part,
 					    const Variable<double>& rVariable,
 					    const double double_value) : Process() , mr_model_part(model_part), mdouble_value(double_value), mint_value(0), mbool_value(false)
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
 	mvariable_name = rVariable.Name();
 
 	if( KratosComponents< Variable<double> >::Has( mvariable_name ) == false ) //case of array_1d variable
 	  KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
 
@@ -98,7 +98,7 @@ public:
 					    const Variable< int >& rVariable,
 					    const int int_value) : Process() , mr_model_part(model_part), mdouble_value(0.0), mint_value(int_value), mbool_value(false)
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
 
 	mvariable_name = rVariable.Name();
@@ -107,21 +107,21 @@ public:
 	  KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
 
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     AssignScalarVariableToConditionsProcess(ModelPart& model_part,
 					    const Variable< bool >& rVariable,
 					    const bool bool_value) : Process() , mr_model_part(model_part), mdouble_value(0.0), mint_value(0), mbool_value(bool_value)
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
 	mvariable_name = rVariable.Name();
 
 	if( KratosComponents< Variable<bool> >::Has( mvariable_name ) == false ) //case of double variable
 	  KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
 
@@ -149,7 +149,7 @@ public:
     virtual void Execute() 
     {
 
-        KRATOS_TRY;
+        KRATOS_TRY
  
 	if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
@@ -212,6 +212,30 @@ public:
     /// right after reading the model and the groups
     virtual void ExecuteFinalize()
     {
+
+        KRATOS_TRY
+ 
+	if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
+        {
+	  double double_value = 0;
+	  InternalAssignValue<>(KratosComponents< Variable<double> >::Get(mvariable_name), double_value);
+        }
+        else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
+        {
+	  int int_value = 0;
+	  InternalAssignValue<>(KratosComponents< Variable<int> >::Get(mvariable_name), int_value);
+        }
+        else if( KratosComponents< Variable<bool> >::Has( mvariable_name ) ) //case of bool variable
+        {
+	  bool bool_value = !mbool_value;
+	  InternalAssignValue<>(KratosComponents< Variable<bool> >::Get(mvariable_name), bool_value);
+        }
+        else
+	{
+	  KRATOS_THROW_ERROR(std::logic_error, "Not able to set the variable. Attempting to set variable:",mvariable_name);
+        }
+
+        KRATOS_CATCH("")
     }
 
 
