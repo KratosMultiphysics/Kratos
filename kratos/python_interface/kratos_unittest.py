@@ -22,13 +22,12 @@ class TestLoader(TestLoader):
 
 class TestCase(TestCase):
 
-    def failUnlessEqualWithTolerance(self, first, second, tolerance):
+    def failUnlessEqualWithTolerance(self, first, second, tolerance, msg=None):
         ''' fails if first and second have a difference greater than
         tolerance '''
 
-        if first < second + tolerance and first > second - tolerance:
-            return True
-        return False
+        if first < (second - tolerance) or first > (second + tolerance):
+            raise self.failureException(msg or '%r != %r within %r places' % (first, second, tolerance))
 
     assertEqualTolerance = failUnlessEqualWithTolerance
 
