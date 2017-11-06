@@ -204,6 +204,13 @@ public:
     {
         KRATOS_TRY
 
+        double current_time = mrModelPart.GetProcessInfo()[TIME];
+        
+        if (min_time_stamp == -1.0 || current_time < min_time_stamp)
+            min_time_stamp = current_time;
+        if (max_time_stamp == -1.0 || current_time > max_time_stamp)
+            max_time_stamp = current_time;        
+
         // open file to append data
         H5::H5File File(mFilename.c_str(), H5F_ACC_RDWR);
 
@@ -316,6 +323,18 @@ public:
 
     void ExecuteFinalize() override
     {
+        // open file to append data
+        H5::H5File File(mFilename.c_str(), H5F_ACC_RDWR);
+        
+        // write node ids to file
+        hsize_t Dims[1];
+        Dims[0] = 1;
+        H5::DataSpace TimeSpace(1, Dims);
+
+        H5::DataSet StartTime(File.createDataSet("/NodalData/StartTime", H5::PredType::NATIVE_DOUBLE, TimeSpace));        
+        StartTime.write(&min_time_stamp, H5::PredType::NATIVE_DOUBLE);
+        H5::DataSet EndTime(File.createDataSet("/NodalData/EndTime", H5::PredType::NATIVE_DOUBLE, TimeSpace));        
+        EndTime.write(&max_time_stamp, H5::PredType::NATIVE_DOUBLE);        
     }
 
     ///@}
@@ -392,7 +411,8 @@ private:
     SizeType mNumNodes;
     std::vector<std::string> mVariables;
     double mAlphaBossak;
-
+    double max_time_stamp = -1.0;
+    double min_time_stamp = -1.0;
     ///@}
     ///@name Private Operators
     ///@{
