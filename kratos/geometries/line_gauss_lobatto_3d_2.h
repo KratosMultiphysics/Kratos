@@ -922,5 +922,5 @@ const GeometryData LineGaussLobatto3D2<TPointType>::msGeometryData( 3,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_GL_3D_2_H_INCLUDED  defined 
+#endif // KRATOS_LINE_GAUSS_LOBATTO_3D_2_H_INCLUDED  defined 
 

@@ -161,7 +161,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         return mp
         
    
-    def _test_undamped_mdof_system_dynamic(self):
+    def test_undamped_mdof_system_dynamic(self):
         mp = self._set_up_mdof_system()
 
         #set parameters
@@ -208,7 +208,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
                 + phi22 * (K21*cos(omega_E_2*time) + K22*sin(omega_E_2*time))
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0),current_analytical_displacement_y_2,delta=1e-2)
 
-    def _test_undamped_sdof_system_harmonic(self):
+    def test_undamped_sdof_system_harmonic(self):
         mp = self._set_up_sdof_system()
 
         #set parameters
@@ -248,7 +248,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
                 current_analytical_displacement_y,delta=5e-3)
             
         
-    def _test_damped_mdof_system_dynamic(self):
+    def test_damped_mdof_system_dynamic(self):
         mp = self._set_up_mdof_system()
 
         #set parameters
@@ -286,11 +286,11 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), \
                 current_analytical_displacement_y_2,delta=5e-2)
 
-    def _test_undamped_mdof_system_eigen(self):
+    def test_undamped_mdof_system_eigen(self):
         import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-        if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver") \
-            or not hasattr(KratosMultiphysics.ExternalSolversApplication, "PastixSolver"):
-            self.skipTest("Pastix or FEAST are not available")
+        # FEAST is available otherwise this test is not being called
+        if not hasattr(KratosMultiphysics.ExternalSolversApplication, "PastixSolver"):
+            self.skipTest("Pastix Solver is not available")
 
         mp = self._set_up_mdof_system()
 
@@ -332,12 +332,6 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         analytical_eigenvalues = [5,20]
         for ev in range(len(analytical_eigenvalues)):
             self.assertAlmostEqual(current_eigenvalues[ev], analytical_eigenvalues[ev])
-
-    def test_execution(self):
-        self._test_undamped_mdof_system_dynamic()
-        self._test_undamped_sdof_system_harmonic()
-        self._test_damped_mdof_system_dynamic()
-        self._test_undamped_mdof_system_eigen()
 
 if __name__ == '__main__':
     KratosUnittest.main()

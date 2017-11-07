@@ -15,11 +15,11 @@
 // System includes
 
 // External includes
-#include <omp.h>
 
 // Project includes
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/openmp_utils.h"
 
 /* Custom includes*/
 #include "custom_includes/point_item.h"
@@ -110,53 +110,7 @@ public:
     TreeContactSearch(
         ModelPart & rMainModelPart,
         Parameters ThisParameters =  Parameters(R"({})")
-        )
-    :mrMainModelPart(rMainModelPart.GetSubModelPart("Contact")),
-     mDimension(rMainModelPart.GetProcessInfo()[DOMAIN_SIZE])
-    {        
-        Parameters DefaultParameters = Parameters(R"(
-        {
-            "allocation_size"                      : 1000, 
-            "bucket_size"                          : 4, 
-            "search_factor"                        : 2.0, 
-            "type_search"                          : "InRadius", 
-            "dual_search_check"                    : false,
-            "strict_search_check"                  : true,
-            "use_exact_integration"                : true
-        })" );
-        
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-
-        mAllocationSize = ThisParameters["allocation_size"].GetInt();
-        mSearchFactor = ThisParameters["search_factor"].GetDouble();
-        mDualSearchCheck = ThisParameters["dual_search_check"].GetBool();
-        mStrictSearchCheck = ThisParameters["strict_search_check"].GetBool();
-        mUseExactIntegration = ThisParameters["use_exact_integration"].GetBool();
-        mSearchTreeType = ConvertSearchTree(ThisParameters["type_search"].GetString());
-        mBucketSize = ThisParameters["bucket_size"].GetInt();
-        
-        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
-        
-        #pragma omp parallel for 
-        for(int i = 0; i < num_nodes; i++) 
-        {
-            auto it_node = nodes_array.begin() + i;
-            it_node->Set(ACTIVE, false);
-        }
-        
-        // Iterate in the conditions
-        ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
-        const int num_conditions = static_cast<int>(conditions_array.size());
-
-        #pragma omp parallel for 
-        for(int i = 0; i < num_conditions; i++) 
-        {
-            auto it_cond = conditions_array.begin() + i;
-            
-            it_cond->Set(ACTIVE, false);
-        }
-    }
+        );
     
     virtual ~TreeContactSearch()= default;;
 
@@ -243,6 +197,24 @@ public:
     
     void CheckMortarConditions();
     
+    /**
+     * It sets if the search is inverted
+     */
+    
+    void InvertSearch();
+    
+    /**
+     * This resets the contact operators
+     */
+        
+    void ResetContactOperators();
+    
+    /**
+     * This resets all the contact operators
+     */
+        
+    void TotalResetContactOperators();
+    
     ///@}
     ///@name Access
     ///@{
@@ -301,7 +273,8 @@ protected:
     static inline CheckResult CheckCondition(
         ConditionMap::Pointer& ConditionPointers1,
         const Condition::Pointer& pCond1,
-        const Condition::Pointer& pCond2
+        const Condition::Pointer& pCond2,
+        const bool InvertedSearch = false
         );
     
     /**  
@@ -310,12 +283,6 @@ protected:
      */ 
     
     static inline double Radius(GeometryType& ThisGeometry);
-
-    /**
-     * This resets the contact operators
-     */
-        
-    void ResetContactOperators();
     
     /**
      * This converts the framework string to an enum
@@ -358,6 +325,7 @@ private:
     bool mDualSearchCheck;                    // The search is done reciprocally
     bool mStrictSearchCheck;                  // The search is done requiring IsInside as true
     bool mUseExactIntegration;                // The search filter the results with the exact integration
+    bool mInvertedSearch;                     // The search will be done inverting the way master and slave/master is assigned
     SearchTreeType mSearchTreeType;           // The search tree considered
     unsigned int mBucketSize;                 // Bucket size for kd-tree
     PointVector mPointListDestination;        // A list that contents the all the points (from nodes) from the modelpart 

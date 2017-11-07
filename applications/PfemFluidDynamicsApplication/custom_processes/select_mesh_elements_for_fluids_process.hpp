@@ -71,8 +71,6 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-    
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -144,13 +142,13 @@ public:
 	  if( mEchoLevel > 1 )
 	    std::cout<<"   Start Element Selection "<<OutNumberOfElements<<std::endl;
 
-	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
 	  const unsigned int nds = element_begin->GetGeometry().size();
 	  const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
 
 	  int* OutElementList = mrRemesh.OutMesh.GetElementList();
 	 
-	  ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
+	  ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	  int el = 0;
 	  int number = 0;
@@ -423,12 +421,12 @@ public:
       if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::KEEP_ISOLATED_NODES)){
 
 
-	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
 	const unsigned int nds = (*element_begin).GetGeometry().size();
       
 	int* OutElementList = mrRemesh.OutMesh.GetElementList();
       
-	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
+	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	//check engaged nodes
 	for(int el=0; el<OutNumberOfElements; el++)
@@ -471,7 +469,7 @@ public:
       }
       else{
 	
-	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
+	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
 	  { 
@@ -482,7 +480,7 @@ public:
 
 
       mrRemesh.InputInitializedFlag = false;
-      // mModelerUtilities.SetNodes(mrModelPart,mrRemesh,mMeshId);
+      // mModelerUtilities.SetNodes(mrModelPart,mrRemesh);
       mModelerUtilities.SetNodes(mrModelPart,mrRemesh);
       mrRemesh.InputInitializedFlag = true;
 
@@ -587,8 +585,6 @@ private:
     ModelerUtilities::MeshingParameters& mrRemesh;
 
     ModelerUtilities mModelerUtilities;  
-
-    ModelPart::IndexType mMeshId; 
 
     int mEchoLevel;
 

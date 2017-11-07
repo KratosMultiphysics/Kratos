@@ -169,7 +169,7 @@ namespace Kratos
             array_1d<double, 3> normal;
             if(GetGeometry().WorkingSpaceDimension() == 2 )
             {
-                noalias(normal) = GetGeometry().Normal( integration_points[point_number] );
+                noalias(normal) = GetGeometry().UnitNormal( integration_points[point_number] );
             }
             else{
                 if(!Has(LOCAL_AXIS_2))
@@ -285,7 +285,6 @@ namespace Kratos
         )
     {
         const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int block_size = this->GetBlockSize();
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )

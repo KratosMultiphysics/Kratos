@@ -86,7 +86,7 @@ namespace Kratos
 
       if( mEchoLevel > 0 ){
 	std::cout<<" [ PRINT OUTPUT FROM MESHER: "<<std::endl;
-	//std::cout<<"   Nodes before erasing : "<<mrModelPart.Nodes(mMeshId).size()<<std::endl;
+	//std::cout<<"   Nodes before erasing : "<<mrModelPart.Nodes().size()<<std::endl;
       }
 
       PrintPointsXYZ();
@@ -202,7 +202,7 @@ namespace Kratos
 
       const int& step = mrModelPart.GetProcessInfo()[STEP];
       
-      const int& dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+      const int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
       
       std::string FileName;
       FileName += mrModelPart.Name();
@@ -256,7 +256,7 @@ namespace Kratos
 
       File.open(FileName);
 	
-      const int& dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+      const int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
       
       if( dimension == 3 ) //number of nodes of a tetrahedron
 	File <<  "mesh dimension 3 elemtype tetrahedra nnode 4 \n";
@@ -287,7 +287,7 @@ namespace Kratos
       double* OutPointList   = mrRemesh.OutMesh.GetPointList();
       int& OutNumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
 
-      const int& dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+      const int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
       
       unsigned int base = 0;
       for(unsigned int pn=0; pn<OutNumberOfPoints; pn++)
@@ -326,7 +326,7 @@ namespace Kratos
       int* OutElementList = mrRemesh.OutMesh.GetElementList();
       int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
 
-      const int& dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+      const int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
 
       int nds = 3; //number of nodes of a triangle
       if( dimension == 3 ) //number of nodes of a tetrahedron
