@@ -248,6 +248,14 @@ class MpcData
     virtual void PrintInfo(std::ostream &rOStream) const
     {
         rOStream << " MpcData object " << std::endl;
+        rOStream << "===============================================================" << std::endl;
+        rOStream << "Number of Slave DOFs :: " << mDofConstraints.size() << std::endl;
+        for (const auto& i : mDofConstraints)
+        {
+            rOStream << "Number of Master DOFs :: " << i.second.size() << std::endl;
+        }
+
+        rOStream << "===============================================================" << std::endl;  
     }
 
     ///@name Member Variables 
@@ -275,13 +283,13 @@ class MpcData
     {
         rSerializer.save("MpcDataName", mName);
         rSerializer.save("NumConstraints", mDofConstraints.size());
-        for (auto& slaveMasterrelation : mDofConstraints){
+        for (const auto& slaveMasterrelation : mDofConstraints){
 
             rSerializer.save("slaveID", (slaveMasterrelation.first).first); // saving the vector of the slave id 
             rSerializer.save("slaveKey", (slaveMasterrelation.first).second); // saving the vector of the slave key
 
             rSerializer.save("numMasters", (slaveMasterrelation.second).size()); // Writint number of masters for this slave
-            for ( auto masterIdKeyConstant: (slaveMasterrelation.second) ){
+            for (const auto& masterIdKeyConstant: (slaveMasterrelation.second) ){
                 rSerializer.save("masterID", std::get<0>(masterIdKeyConstant.first)); // saving the id of the master
                 rSerializer.save("masterKey", std::get<1>(masterIdKeyConstant.first)); // saving the id of the master
                 rSerializer.save("constant", std::get<2>(masterIdKeyConstant.first)); // saving the id of the master
