@@ -3,7 +3,8 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya, https://github.com/sunethwarna
+//  Main authors:    Altug Emiroglu, 
+//                   Suneth Warnakulasuriya, https://github.com/sunethwarna
 //
 
 #if !defined(KRATOS_MAPPER_EMPIRE_NUBS)
@@ -40,6 +41,7 @@
 #include <TopTools_ListOfShape.hxx>
 #include <TopTools_MapOfShape.hxx>
 #include <TopTools_ListIteratorOfListOfShape.hxx>
+#include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
 #include <TopExp_Explorer.hxx>
 
 #include <TopOpeBRepBuild_HBuilder.hxx>
@@ -132,8 +134,16 @@ public:
 
 
         //initiating the sequence to create the mapping between IGA mesh and FE mesh
-        rExternalModel->Execute();
+        mrExternalModel.Execute();
         this->MakeIGAMeshFromNURBSSHape();
+        this->MakeFEMesh();
+
+        AssignMappingIds();
+        GenerateMapper(mMapperFEToIGA);
+        GenerateMapper(mMapperIGAToFe);
+
+        for (TopoDS_Shape& current_NURB : mrExternalModel.GetCompoundNURBSList())
+            this->DefinePatchContinuityConditionsOnNurbsShape( mIGAMeshName, current_NURB);
 
         KRATOS_CATCH("");
 
@@ -670,7 +680,7 @@ public:
         }
     }
 
-    void GenerateMapper(const std::string& rrMapperName.c_str())
+    void GenerateMapper(const std::string& rrMapperName
     {
         std::string mapper_name;
         std::string mesh_name_a;
@@ -697,17 +707,17 @@ public:
         Empire::buildCouplingMatrices(mapper_name.c_str());  
         
         
-        IGAName, FEMName, rMapperName.c_str(), \
-        enforceConsistency, tolConsistency, \
-        isIGA2FEM, \
-        maxProjectionDistance, noInitialGuess, maxProjectionDistanceOnDifferentPatches, \
-        NRmaxNumOfIterations, NRtolerance, \
-        NRBmaxNumOfIterations, NRBtolerance, \
-        BSmaxNumOfIterations, BStolerance, \
-        gpTria, gpQuad, \
-        isWeakDirichletCurve, isWeakDirichletSurface, WDCisAutoPenalty, WDCalphaPrim, WDCalphaSecBending, WDCalphaSecTwisting, \
-        isWeakPatchContCond, isAutoPenalty, alphaPrim, alphaSecBending, alphaSecTwisting, \
-        isErrorComputation, domainError, interfaceError, curveError = getIGAMortarMapperParameters()
+        // IGAName, FEMName, rMapperName.c_str(), \
+        // enforceConsistency, tolConsistency, \
+        // isIGA2FEM, \
+        // maxProjectionDistance, noInitialGuess, maxProjectionDistanceOnDifferentPatches, \
+        // NRmaxNumOfIterations, NRtolerance, \
+        // NRBmaxNumOfIterations, NRBtolerance, \
+        // BSmaxNumOfIterations, BStolerance, \
+        // gpTria, gpQuad, \
+        // isWeakDirichletCurve, isWeakDirichletSurface, WDCisAutoPenalty, WDCalphaPrim, WDCalphaSecBending, WDCalphaSecTwisting, \
+        // isWeakPatchContCond, isAutoPenalty, alphaPrim, alphaSecBending, alphaSecTwisting, \
+        // isErrorComputation, domainError, interfaceError, curveError = getIGAMortarMapperParameters()
           
     }
 
@@ -751,6 +761,310 @@ public:
         Empire::setParametersWeakPatchContinuityConditions(rMapperName.c_str(), isWeakPatchContCond, isAutoPenalty, alphaPrim, alphaSecBending, alphaSecTwisting);
         Empire::setParametersErrorComputation(rMapperName.c_str(), isErrorComputation, domainError, interfaceError, curveError);
     }
+
+    void DefinePatchContinuityConditionsOnNurbsShape(const std::string& rMeshName, TopoDS_Shape& rNURBSShape)
+    {
+        // Create a topology explorer
+        TopExpExplorer topo_explorer();
+        // Create an empty IndexedDataMapOfShapeListOfShape
+        TopTools_IndexedDataMapOfShapeListOfShape map_of_edges_to_faces();
+
+        // Make a map containing the ancestor faces of each edge #4Face #6Edge and fill it into mapfOfShapes
+        // TopTools_IndexedMapOfShapeListOfShape uses TopoDS_Shape as a key and TopTools_ListOfShape as a value
+        topo_explorer.MapShapesAndAncestors(rNURBSShape, TopAbs_EDGE, TopAbs_FACE, map_of_edges_to_faces);
+    
+        // Create a faceExplorer to find out the index of each face
+        TopExpExplorer face_explorer (rNURBSShape, TopAbs_FACE);
+    
+        std::map<unsigned int, std::vector<TopoDS_Shape&> > coupled_faces_on_edge();
+        std::map<unsigned int, std::vector<unsigned int> > coupled_faces_on_edge_indices();
+        unsigned int iConnection = 0;
+        
+        // Loop over all edges
+        for (unsigned int iEdge=1, iEdge < map_of_edges_to_faces.Extent()+1; iEdge++)
+        {
+
+        
+            // If the edge has more than one ancestors (faces) then it is a coupling edge
+            if ( map_of_edges_to_faces.FindFromIndex(iEdge).Extent() > 1)
+            {
+                std::vector<TopoDS_Shape&> vec_topods_shape();
+                std::vector<unsigned int> vec_uint();
+
+                // Loop over the ancestor faces of each edge
+                for (unsigned int iCoupledFace = 1; iCoupledFace < map_of_edges_to_faces.FindFromIndex(iEdge).Extent()+1; iCoupledFace++)
+                {
+                    // Create a faceExplorer to find out the index of each face
+                    face_explorer.ReInit();
+                    unsigned int faceCtr = 0;
+                    // Loop over all faces of the model
+                    while (face_explorer.More())
+                    {
+                        TopoDS_Shape& current_face = face_explorer.Current();
+                        face_explorer.Next();
+                        // If the considered face matches with the ancestor face then add it to the coupled face list of the edge
+                        if current_face.IsEqual(map_of_edges_to_faces.FindFromIndex(iEdge).First())
+                        {
+                            vec_topods_shape.push_back(map_of_edges_to_faces.FindFromIndex(iEdge).First());
+                            vec_uint.push_back(faceCtr);
+                            
+                            // Remove the first ancestor from the list
+                            map_of_edges_to_faces.FindFromIndex(iEdge).RemoveFirst();
+                            break;
+                        }
+                        
+                        // Increment the face counter
+                        faceCtr += 1;
+                    }
+                }
+
+                coupled_faces_on_edge.insert(std::pair(iEdge, vec_topods_shape));
+                coupled_faces_on_edge_indices.insert(std::pair(iEdge, coupled_faces_on_edge_indices));
+            }
+        }
+        
+        // Loop over the coupling edges and faces to get their definitions on the corresponding patches
+        for(auto const &it : coupled_faces_on_edge) 
+        {
+            unsigned int iEdge = it.first; 
+            std::vector<TopoDS_Shape&> coupled_faces = it.second;
+
+            // Get the coupling edge
+            TopoDS_Shape coupling_edge = map_of_edges_to_faces.FindKey(iEdge);
+            
+            // Define the first patch found to be the master patch containing the master curve
+            unsigned int masterFaceIndex = coupled_faces_on_edge_indices[iEdge][0];
+            TopoDS_Shape& master_face = coupled_faces[0];
+            
+            // Find the master wire index
+            unsigned int master_face_wire_ctr = 0;
+            bool found_master_wire = false;
+            TopExp_Explorer master_face_wire_explorer(master_face, TopAbs_WIRE);
+            while (master_face_wire_explorer.More())
+            {
+                TopoDS_Shape master_wire = master_face_wire_explorer.Current();
+                master_face_wire_explorer.Next();
+                unsigned int master_face_wire_edge_ctr = 0;
+                TopExp_Explorer master_face_wire_edge_explorer(master_wire, TopAbs_EDGE);
+                while (master_face_wire_edge_explorer.More())
+                {
+                    TopoDS_Shape master_edge = master_face_wire_edge_explorer.Current();
+                    master_face_wire_edge_explorer.Next();
+                    if master_edge.IsSame(coupling_edge)
+                    {
+                        found_master_wire = True;
+                        break;
+                    }
+                    else
+                        master_face_wire_edge_ctr += 1;
+                }
+                
+                if (foundMasterWire)
+                    break;
+                else
+                    master_face_wire_ctr += 1;
+            }
+            for (unsigned int iSlaveFace; iSlaveFace < coupled_faces.size(); iSlaveFace++)     
+            {
+                unsigned int slave_face_index = coupled_faces_on_edge_indices[iEdge][iSlaveFace];
+                TopoDS_Shape slave_face = coupled_faces[iSlaveFace];
+                
+                // Find the slave wire index
+                unsigned int slave_face_wire_ctr = 0;
+                bool found_slave_wire = false;
+                TopExp_Explorer slave_face_wire_explorer(slave_face, TopAbs_WIRE);
+                while (slave_face_wire_explorer.More())
+                {
+                    TopoDS_Shape slave_wire = slave_face_wire_explorer.Current();
+                    slave_face_wire_explorer.Next();
+                    unsigned int slave_face_wire_edge_ctr = 0;
+                    TopExp_Explorer slave_face_wire_edge_explorer(slave_wire, TopAbs_EDGE);
+                    while (slave_face_wire_edge_explorer.More())
+                    {
+                        TopoDS_Shape slave_edge = slave_face_wire_edge_explorer.Current();
+                        slave_face_wire_edge_explorer.Next();
+                        if (slave_edge.IsSame(coupling_edge))
+                        {
+                            found_slave_wire = false;
+                            break;
+                        }
+                        else 
+                            slave_face_wire_edge_ctr += 1;
+                    }
+                
+                    if (found_slave_wire)
+                        break;
+                    else
+                        slave_face_wire_ctr += 1;
+                }
+                // print "Defining patch continuity condition: ", iConnection
+                // print " Master Patch index: ", masterFaceIndex, " BL index: ", masterFaceWireCtr, " curve index: ", masterFaceWireEdgeCtr
+                // print " Slave Patch index: ", slaveFaceIndex, " BL index: ", slaveFaceWireCtr, " curve index: ", slaveFaceWireEdgeCtr
+                
+                Empire::addPatchContinuityConditionToIGAMesh(
+                    rMeshName.c_str(), 
+                    iConnection,
+                    master_face_index, 
+                    master_face_wire_ctr, 
+                    master_face_wire_edge_ctr,
+                    slave_face_index, 
+                    slave_face_wire_ctr, 
+                    slave_face_wire_edge_ctr
+                );
+                iConnection += 1;
+            }
+        }
+    }
+
+    void GetAllControlPoints(TopoDS_Shape& rNURBSShape, std::vector<double>& rControlPoints )
+    {
+
+        // Face explorer to gather the CPs
+        TopExp_Explorer face_explorer(rNURBSShape, TopAbs_FACE);
+        while (face_explorer.More())
+        {
+            TopoDS_Shape currentFace = face_explorer.Current();
+            face_explorer.Next();
+            std::vector<gp_Pnt> face_control_points;
+            GetFaceControlPoints(currentFace, face_control_points);
+
+            for (gp_Pnt& control_point : face_control_points)
+            {
+                rControlPoints.push_back(control_point.X());
+                rControlPoints.push_back(control_point.Y());
+                rControlPoints.push_back(control_point.Z());
+            }
+        }
+    }
+
+    void GetFaceControlPoints(TopoDS_Shape& face, std::vector<gp_Pnt>& rFaceControlPoints)
+    {
+        // Convert a topological TopoDS_FACE into Geom_BSplineSurface
+        Geom_BSplineSurface bspline_surface = GeomConvert::SurfaceToBSplineSurface(BRep_Tool::Surface(TopoDSface(face))).GetObject();
+
+        // Get the number of CPs in each direction
+        int UnoCP = bspline_surface.NbUPoles();
+        int VnoCP = bspline_surface.NbVPoles();
+        
+        // Get the CPs of the Geom_BSplineSurface
+        TColgp_Array2OfPnt patch_cp_net(1, UnoCP,1, VnoCP);
+        bspline_surface.Poles(patch_cp_net)
+        
+        // Add all the CPs into a list
+        rFaceControlPoints.clear();
+        for (int j=1; j < VnoCP+1 ; j++)
+        {
+            for (int i=1; i < UnoCP+1; i++):
+            {
+                rFaceControlPoints.push_back(patch_cp_net.Value(i,j));
+            }
+        }   
+    }
+    // --------------------------------------------------------------------------
+    void AssignMappingIds()
+    {
+        unsigned int i = 0;
+        for(auto& node_i : mrDesignSurface.Nodes())
+            node_i.SetValue(MAPPING_ID,i++);
+    }
+
+  // ==============================================================================
+    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace ) override
+    {
+        boost::timer mapping_time;
+        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
+
+        std::vector<double> variables_in_geometry_space;
+        std::vector<double> variables_in_design_space;
+
+        variables_in_geometry_space.resize(mrDesignSurface.Nodes().size()*3);
+
+        for(auto& node_i : mrDesignSurface.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+            array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rNodalVariable);
+            variables_in_geometry_space[3*i](nodal_variable[0]);
+            variables_in_geometry_space[3*i+1](nodal_variable[1]);
+            variables_in_geometry_space[3*i+2](nodal_variable[2]);
+        }
+
+        std::vector<TopoDS_Shape> compound_nurbs_list = mrExternalModel.GetCompoundNURBSList();
+
+        GetAllControlPoints(compound_nurbs_list[0], variables_in_design_space);
+
+        Empire::doConsistentMapping(
+            mMapperFEToIGA.c_str(),
+            3, 
+            variables_in_geometry_space.size(), 
+            variables_in_geometry_space.data(), 
+            variables_in_design_space.size(), 
+            variables_in_design_space.data()
+        );
+
+        Empire::doConsistentMapping(
+            mMapperIGAToFe.c_str(),
+            3, 
+            variables_in_design_space.size(), 
+            variables_in_design_space.data(),
+            variables_in_geometry_space.size(), 
+            variables_in_geometry_space.data()
+        );
+
+
+        for(auto& node_i : mrDesignSurface.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+
+            Vector node_vector = ZeroVector(3);
+            node_vector(0) = variables_in_geometry_space[3*i];
+            node_vector(1) = variables_in_geometry_space[3*i+1];
+            node_vector(2) = variables_in_geometry_space[3*i+2];
+            node_i.FastGetSolutionStepValue(rNodalVariableInDesignSpace) = node_vector;
+        }
+
+        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+    }
+  
+    // --------------------------------------------------------------------------
+    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace ) override
+    {
+        boost::timer mapping_time;
+        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
+
+        std::vector<double> variables_in_geometry_space;
+        std::vector<double> variables_in_design_space;
+
+        variables_in_geometry_space.resize(mrDesignSurface.Nodes().size()*3);
+
+        std::vector<TopoDS_Shape> compound_nurbs_list = mrExternalModel.GetCompoundNURBSList();
+
+        GetAllControlPoints(compound_nurbs_list[0], variables_in_design_space);
+
+        Empire::doConsistentMapping(
+            mMapperIGAToFe.c_str(),
+            3, 
+            variables_in_design_space.size(), 
+            variables_in_design_space.data(),
+            variables_in_geometry_space.size(), 
+            variables_in_geometry_space.data()
+        );
+
+
+        for(auto& node_i : mrDesignSurface.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+
+            Vector node_vector = ZeroVector(3);
+            node_vector(0) = variables_in_geometry_space[3*i];
+            node_vector(1) = variables_in_geometry_space[3*i+1];
+            node_vector(2) = variables_in_geometry_space[3*i+2];
+            node_i.FastGetSolutionStepValue(rNodalVariableInDesignSpace) = node_vector;
+        }
+
+        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+    }
+  
+    // ==============================================================================    
 
     ///@}
 
