@@ -104,13 +104,13 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    Vector GetVolumeAcceleration(ModelPart& rModelPart,unsigned int MeshId)
+    Vector GetVolumeAcceleration(ModelPart& rModelPart)
     {
       KRATOS_TRY
 
       Vector VolumeAcceleration = ZeroVector(3);
 
-      ModelPart::NodeType& rNode = rModelPart.Nodes(MeshId).front();
+      ModelPart::NodeType& rNode = rModelPart.Nodes().front();
 
       if( rNode.SolutionStepsDataHas(VOLUME_ACCELERATION) ){
 	array_1d<double,3>& rVolumeAcceleration = rNode.FastGetSolutionStepValue(VOLUME_ACCELERATION);
@@ -122,7 +122,7 @@ namespace Kratos
 
       // double num_nodes = 0;
 
-      // for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
+      // for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
       // 	{
 
       // 	  if( in->SolutionStepsDataHas(VOLUME_ACCELERATION) ){ //temporary, will be checked once at the beginning only
@@ -146,13 +146,13 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    double GetElasticModulus(ModelPart& rModelPart,unsigned int MeshId)
+    double GetElasticModulus(ModelPart& rModelPart)
     {
       KRATOS_TRY
 
       double ElasticModulus = 0;
 
-      ModelPart::ElementType& rElement = rModelPart.Elements(MeshId).front();
+      ModelPart::ElementType& rElement = rModelPart.Elements().front();
 
       ElasticModulus = rElement.GetProperties()[YOUNG_MODULUS];
 
@@ -165,7 +165,7 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    double VolumeCalculation(ModelPart& rModelPart,unsigned int MeshId)
+    double VolumeCalculation(ModelPart& rModelPart)
     {
       KRATOS_TRY
 
@@ -182,7 +182,7 @@ namespace Kratos
 
 
 	//Search and calculation in parallel
-	ModelPart::ElementsContainerType& pElements = rModelPart.Elements(MeshId);
+	ModelPart::ElementsContainerType& pElements = rModelPart.Elements();
 
         #ifdef _OPENMP
                 int number_of_threads = omp_get_max_threads();
@@ -234,7 +234,7 @@ namespace Kratos
 
 
 	//Search and calculation in parallel
-	ModelPart::ElementsContainerType& pElements = rModelPart.Elements(MeshId);
+	ModelPart::ElementsContainerType& pElements = rModelPart.Elements();
 
         #ifdef _OPENMP
                 int number_of_threads = omp_get_max_threads();
@@ -290,7 +290,7 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    double MassCalculation(ModelPart& rModelPart,unsigned int MeshId)
+    double MassCalculation(ModelPart& rModelPart)
     {
       KRATOS_TRY
 
@@ -306,7 +306,7 @@ namespace Kratos
 	double two_pi = 6.28318530717958647693;
 
 	//Search and calculation in parallel
-	ModelPart::ElementsContainerType& pElements = rModelPart.Elements(MeshId);
+	ModelPart::ElementsContainerType& pElements = rModelPart.Elements();
 
         #ifdef _OPENMP
                 int number_of_threads = omp_get_max_threads();
@@ -357,7 +357,7 @@ namespace Kratos
 
 
 	//Search and calculation in parallel
-	ModelPart::ElementsContainerType& pElements = rModelPart.Elements(MeshId);
+	ModelPart::ElementsContainerType& pElements = rModelPart.Elements();
 
         #ifdef _OPENMP
                 int number_of_threads = omp_get_max_threads();
@@ -412,12 +412,12 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    Vector CalculateCenterOfMass(ModelPart& rModelPart,unsigned int MeshId)
+    Vector CalculateCenterOfMass(ModelPart& rModelPart)
     {
       KRATOS_TRY
 
 
-      ModelPart::MeshType& rMesh = rModelPart.GetMesh(MeshId);
+      ModelPart::MeshType& rMesh = rModelPart.GetMesh();
 
       return this->CenterOfMassCalculation(rMesh);
 
@@ -607,11 +607,11 @@ namespace Kratos
     //**************************************************************************
 
 
-    Matrix CalculateInertiaTensor(ModelPart& rModelPart,unsigned int MeshId)
+    Matrix CalculateInertiaTensor(ModelPart& rModelPart)
     {
       KRATOS_TRY
 
-      ModelPart::MeshType& rMesh = rModelPart.GetMesh(MeshId);
+      ModelPart::MeshType& rMesh = rModelPart.GetMesh();
 
       return this->InertiaTensorCalculation(rMesh);
 
@@ -820,12 +820,12 @@ namespace Kratos
     //**************************************************************************
 
 
-    Matrix InertiaTensorMainAxesCalculation(ModelPart& rModelPart,Matrix& MainAxes, unsigned int MeshId)
+    Matrix InertiaTensorMainAxesCalculation(ModelPart& rModelPart,Matrix& MainAxes)
     {
       KRATOS_TRY
 
       Matrix InertiaTensor = ZeroMatrix(3,3);
-      InertiaTensor = this->CalculateInertiaTensor(rModelPart,MeshId);
+      InertiaTensor = this->CalculateInertiaTensor(rModelPart);
 
       this->InertiaTensorToMainAxes(InertiaTensor, MainAxes);
 
