@@ -90,6 +90,9 @@ set(KRATOS_DEM_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosDEMApplication SHARED ${KRATOS_DEM_APPLICATION_SOURCES})
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosDEMApplication)
+endif(USE_COTIRE MATCHES ON)
 #if(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
 #GENERATE_EXPORT_HEADER( KratosDEMApplication
 #             BASE_NAME KratosDEMApplication
