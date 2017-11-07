@@ -158,6 +158,12 @@ class TestCase(KratosUnittest.TestCase):
                 self.assertEqual(len(read_cond.GetNodes()), len(write_cond.GetNodes()))
                 for read_cond_node, write_cond_node in zip(read_cond.GetNodes(), write_cond.GetNodes()):
                     self.assertEqual(read_cond_node.Id, write_cond_node.Id)
+            # Check process info
+            #self.assertEqual(read_model_part.ProcessInfo[DOMAIN_SIZE], write_model_part.ProcessInfo[DOMAIN_SIZE])
+            #self.assertEqual(read_model_part.ProcessInfo[TIME], write_model_part.ProcessInfo[TIME])
+            #read_initial_strain = read_model_part.ProcessInfo[INITIAL_STRAIN]
+            #write_initial_strain = write_model_part.ProcessInfo[INITIAL_STRAIN]
+            #self.assertEqual(read_initial_strain, write_initial_strain)
     
     def test_HDF5NodalSolutionStepDataIO(self):
         write_model_part = ModelPart("write")
