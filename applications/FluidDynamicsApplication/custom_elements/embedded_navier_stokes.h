@@ -75,52 +75,23 @@ public:
 
     typedef typename BaseType::PropertiesType::Pointer    PropertiesPointerType;
 
-    struct EmbeddedElementDataStruct : public ElementDataType
-    {
-
+    struct EmbeddedElementDataStruct : public ElementDataType {
         // Element geometry data
-        MatrixType                  N_pos_side;
-        // MatrixType                  N_neg_side;
-        std::vector<MatrixType>     DN_DX_pos_side;
-        // std::vector<MatrixType>     DN_DX_neg_side;
-        VectorType                  w_gauss_pos_side;
-        // VectorType                  w_gauss_neg_side;
+        MatrixType                  N_pos_side;             // Positive distance element side shape functions values
+        std::vector<MatrixType>     DN_DX_pos_side;         // Positive distance element side shape functions gradients values
+        VectorType                  w_gauss_pos_side;       // Positive distance element side Gauss pts. weights
 
         // Intersection geometry data
-        MatrixType                  N_pos_int;
-        // MatrixType                  N_neg_int;
-        std::vector<MatrixType>     DN_DX_pos_int;
-        // std::vector<MatrixType>     DN_DX_neg_int;
-        VectorType                  w_gauss_pos_int;
-        // VectorType                  w_gauss_neg_int;
-        std::vector<VectorType>     pos_int_unit_normals;    // Positive interface unit normal vector in each Gauss pt
-        // std::vector<VectorType>     neg_int_unit_normals;    // Negative interface unit normal vector in each Gauss pt
-
-
-
-
-
-        MatrixType      N_container;                        // Container with the shape functions values in each partition Gauss points
-        MatrixType      N_container_cut;                    // Container with the shape functions values evaluated at the intersection (interface) Gauss points
-        MatrixType      N_container_int;                    // Containter with the interior (structure) shape functions values in each intersection (interface) Gauss point
-        MatrixType      N_container_out;                    // Containter with the outside (fluid) shape functions values in each intersection (interface) Gauss point
-
-        VectorType      gauss_volumes;                      // Container with the Gauss points volumes in each partition
-        VectorType      partition_signs;                    // Indicates if the edge is cut or not
-        VectorType      edge_areas;                         // Vector containing the edge intersection surface area associated to each intersection point in the cut edges
-        VectorType      cut_edge_areas;                     // Similar to edge_areas but only containing the intersected edges areas
+        MatrixType                  N_pos_int;              // Positive interface Gauss pts. shape functions values
+        std::vector<MatrixType>     DN_DX_pos_int;          // Positive interface Gauss pts. shape functions gradients values
+        VectorType                  w_gauss_pos_int;        // Positive interface Gauss pts. weights
+        std::vector<VectorType>     pos_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
 
         std::vector<unsigned int>   int_vec_identifiers;    // Interior (structure) nodes identifiers
         std::vector<unsigned int>   out_vec_identifiers;    // Outside (fluid) nodes identifiers
 
-        array_1d<double, TDim>      intersection_normal;    // Intersection plane unit normal vector
-        double          intersection_area;                  // Intersection plane area
-
-        unsigned int    ndivisions;                         // Number of element subdivisions
-        unsigned int    ncutpoints;                         // Number of intersected edges
         unsigned int    n_pos = 0;                          // Number of postivie distance nodes
         unsigned int    n_neg = 0;                          // Number of negative distance nodes
-
     };
 
     ///@}
@@ -149,16 +120,14 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, Element::PropertiesType::Pointer pProperties) const override
-    {
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, Element::PropertiesType::Pointer pProperties) const override {
         KRATOS_TRY
         return boost::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
 
-    Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override
-    {
+    Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override {
         return boost::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
     }
 
@@ -169,8 +138,7 @@ public:
      * @param rThisNodes: the nodes of the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
-    {
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override {
         Element::Pointer pNewElement = Create(NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
 
         pNewElement->SetData(this->GetData());
@@ -179,9 +147,14 @@ public:
         return pNewElement;
     }
 
-
+    /**
+     * Fill the element data structure. If the element is split, 
+     * calls the modified shape functions calculator.
+     * @param rData: reference to the element data structure
+     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     */
     void FillEmbeddedElementData(EmbeddedElementDataStruct& rData,
-                                 ProcessInfo& rCurrentProcessInfo) {
+                                 const ProcessInfo& rCurrentProcessInfo) {
 
         // Fill the basic element data (base class call)
         BaseType::FillElementData(rData, rCurrentProcessInfo);
@@ -210,7 +183,6 @@ public:
         if ((rData.n_pos != 0) && (rData.n_neg != 0)) {
 
             GeometryPointerType p_geom = this->pGetGeometry();
-            //TODO: FILTER MODIFIED SHAPEFUNCTIONS BY GEOMETRY TYPES
 
             // Construct the modified shape fucntions utility
             ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
@@ -239,7 +211,6 @@ public:
                 rData.pos_int_unit_normals,
                 GeometryData::GI_GAUSS_2);
         }
-
     };
 
     /**
@@ -250,20 +221,21 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override
-    {
+                              ProcessInfo& rCurrentProcessInfo) override {
         KRATOS_TRY;
 
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
         // Initialize LHS and RHS
-        if (rLeftHandSideMatrix.size1() != MatrixSize)
+        if (rLeftHandSideMatrix.size1() != MatrixSize) {
             rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); // false says to not preserve existing storage!!
-        else if (rLeftHandSideMatrix.size2() != MatrixSize)
+        } else if (rLeftHandSideMatrix.size2() != MatrixSize) {
             rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); // false says to not preserve existing storage!!
+        }
 
-        if (rRightHandSideVector.size() != MatrixSize)
+        if (rRightHandSideVector.size() != MatrixSize) {
             rRightHandSideVector.resize(MatrixSize, false);            // false says to not preserve existing storage!!
+        }
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize, MatrixSize);   // LHS initialization
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);              // RHS initialization
@@ -273,10 +245,11 @@ public:
         this->FillEmbeddedElementData(data, rCurrentProcessInfo);
 
         // Element LHS and RHS contributions computation
-        if(data.n_pos == TNumNodes)
+        if(data.n_pos == TNumNodes) {
             ComputeElementAsFluid<MatrixSize>(rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo);
-        else if ((data.n_pos != 0) && (data.n_neg != 0))
+        } else if ((data.n_pos != 0) && (data.n_neg != 0)) {
             ComputeElementAsMixed<MatrixSize>(rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo);
+        }
 
         KRATOS_CATCH("Error in embedded Navier-Stokes element CalculateLocalSystem method.");
     }
@@ -291,8 +264,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
-    {
+    int Check(const ProcessInfo& rCurrentProcessInfo) override {
         KRATOS_TRY;
 
         // Base element check
@@ -303,8 +275,7 @@ public:
         if(DISTANCE.Key() == 0)
             KRATOS_THROW_ERROR(std::invalid_argument, "DISTANCE Key is 0. Check if the application was correctly registered.","");
 
-        for(unsigned int i=0; i<(this->GetGeometry()).size(); ++i)
-        {
+        for(unsigned int i=0; i<(this->GetGeometry()).size(); ++i) {
             if(this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
         }
@@ -318,8 +289,6 @@ public:
     /**
      * Calculates both LHS and RHS elemental contributions for those cases in where
      * all the nodes belong to the fluid domain.
-     * @param lhs_local: reference to the Gauss pt. LHS matrix
-     * @param rhs_local: reference to the Gauss pt. RHS vector
      * @param rLeftHandSideMatrix: reference to the LHS matrix
      * @param rRightHandSideVector: reference to the RHS vector
      * @param rData: reference to element data structure
@@ -329,8 +298,7 @@ public:
     void ComputeElementAsFluid(MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
                                EmbeddedElementDataStruct& rData,
-                               ProcessInfo& rCurrentProcessInfo)
-    {
+                               const ProcessInfo& rCurrentProcessInfo) {
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_local;
         bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
@@ -341,8 +309,7 @@ public:
         BaseType::GetShapeFunctionsOnGauss(Ncontainer);
 
         // Loop on gauss point
-        for(unsigned int igauss = 0; igauss<Ncontainer.size1(); igauss++)
-        {
+        for(unsigned int igauss = 0; igauss<Ncontainer.size1(); igauss++) {
             noalias(rData.N) = row(Ncontainer, igauss);
 
             BaseType::ComputeConstitutiveResponse(rData, rCurrentProcessInfo);
@@ -363,20 +330,16 @@ public:
     /**
     * Calculates both LHS and RHS elemental contributions for those cases in where
     * the element has both fluid and structure nodes.
-    * @param lhs_local: reference to the Gauss pt. LHS matrix
-    * @param rhs_local: reference to the Gauss pt. RHS vector
     * @param rLeftHandSideMatrix: reference to the LHS matrix
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     * @param rCurrentProcessInfo: reference to the ProcessInfo
-    * @param distances: reference to an array containing the nodal distance
     */
     template<unsigned int MatrixSize>
     void ComputeElementAsMixed(MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
                                EmbeddedElementDataStruct& rData,
-                               ProcessInfo& rCurrentProcessInfo)
-    {
+                               const ProcessInfo& rCurrentProcessInfo) {
 
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_local;
@@ -417,8 +380,7 @@ public:
 
     /// Turn back information as a string.
 
-    std::string Info() const override
-    {
+    std::string Info() const override {
         return "EmbeddedNavierStokes3D #";
     }
 
@@ -454,12 +416,10 @@ protected:
     * @param rLeftHandSideMatrix: reference to the LHS matrix
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
     */
     void AddIntersectionBoundaryTermsContribution(MatrixType& rLeftHandSideMatrix,
                                                   VectorType& rRightHandSideVector,
                                                   const EmbeddedElementDataStruct& rData) {
-
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -522,7 +482,6 @@ protected:
 
         // RHS assembly
         rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol);
-
     }
 
 
@@ -532,8 +491,7 @@ protected:
     * @param rData: reference to element data structure
     */
     double ComputePenaltyCoefficient(MatrixType& rLeftHandSideMatrix,
-                                     const EmbeddedElementDataStruct& rData)
-    {
+                                     const EmbeddedElementDataStruct& rData) {
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -569,7 +527,6 @@ protected:
     void AddBoundaryConditionPenaltyContribution(MatrixType& rLeftHandSideMatrix,
                                                  VectorType& rRightHandSideVector,
                                                  const EmbeddedElementDataStruct& rData) {
-
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -628,7 +585,6 @@ protected:
         }
 
         rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol); // Residual contribution assembly
-
     }
 
 
@@ -641,7 +597,6 @@ protected:
     void AddBoundaryConditionModifiedNitcheContribution(MatrixType& rLeftHandSideMatrix,
                                                         VectorType& rRightHandSideVector,
                                                         const EmbeddedElementDataStruct& rData) {
-
         constexpr unsigned int BlockSize = TDim+1;                 // Block size
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
 
@@ -743,7 +698,6 @@ protected:
             }
 
             rRightHandSideVector += prod(auxLeftHandSideMatrix, aux_embedded_vel);
-
         }
     }
 
@@ -775,7 +729,6 @@ protected:
                 rRightHandSideVector(out_node_row_id*BlockSize+j) = 0.0;
             }
         }
-
     }
 
 
@@ -812,8 +765,7 @@ protected:
 
         // Compute the element average density
         double avg_rho = 0.0;
-        for (unsigned int j=0; j<TNumNodes; ++j)
-        {
+        for (unsigned int j=0; j<TNumNodes; ++j) {
             avg_rho += rData.rho(j);
         }
         avg_rho /= TNumNodes;
@@ -836,10 +788,8 @@ protected:
 
             // Set the shape functions auxiliar matrices
             bounded_matrix<double, TDim, MatrixSize> N_aux = ZeroMatrix(TDim, MatrixSize);
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
+            for (unsigned int i=0; i<TNumNodes; ++i) {
+                for (unsigned int comp=0; comp<TDim; ++comp) {
                     N_aux(comp,i*BlockSize+comp) = aux_N(i);
                 }
             }
@@ -856,15 +806,12 @@ protected:
         }
 
         // If level set velocity is not 0, add its contribution to the RHS
-        if (this->Has(EMBEDDED_VELOCITY))
-        {
+        if (this->Has(EMBEDDED_VELOCITY)) {
             const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
             array_1d<double, MatrixSize> embedded_vel_exp = ZeroVector(MatrixSize);
 
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
+            for (unsigned int i=0; i<TNumNodes; ++i) {
+                for (unsigned int comp=0; comp<TDim; ++comp) {
                     embedded_vel_exp(i*BlockSize+comp) = embedded_vel(comp);
                 }
             }
@@ -879,7 +826,6 @@ protected:
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
         rRightHandSideVector += auxRightHandSideVector;
         rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
-
     }
 
 
@@ -891,8 +837,7 @@ protected:
     */
     void AddSlipWinterNormalSymmetricCounterpartContribution(MatrixType& rLeftHandSideMatrix,
                                                              VectorType& rRightHandSideVector,
-                                                             const EmbeddedElementDataStruct& rData)
-    {
+                                                             const EmbeddedElementDataStruct& rData) {
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -963,15 +908,12 @@ protected:
 
         // RHS outside Nitche contribution assembly
         // If level set velocity is not 0, add its contribution to the RHS
-        if (this->Has(EMBEDDED_VELOCITY))
-        {
+        if (this->Has(EMBEDDED_VELOCITY)) {
             const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
             array_1d<double, MatrixSize> embedded_vel_exp = ZeroVector(MatrixSize);
 
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
+            for (unsigned int i=0; i<TNumNodes; ++i) {
+                for (unsigned int comp=0; comp<TDim; ++comp) {
                     embedded_vel_exp(i*BlockSize+comp) = embedded_vel(comp);
                 }
             }
@@ -982,7 +924,6 @@ protected:
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
         rRightHandSideVector -= auxRightHandSideVector;
         rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol);
-
     }
 
 
@@ -994,8 +935,7 @@ protected:
     */
     void AddSlipWinterTangentialPenaltyContribution(MatrixType& rLeftHandSideMatrix,
                                                     VectorType& rRightHandSideVector,
-                                                    const EmbeddedElementDataStruct& rData)
-    {
+                                                    const EmbeddedElementDataStruct& rData) {
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -1055,7 +995,6 @@ protected:
             // Contribution coming from the shear force generated by the velocity jump
             const bounded_matrix<double, MatrixSize, TDim> aux_matrix_N_trans_tang = prod(N_aux_trans, tangential_projection_matrix);
             auxLeftHandSideMatrix_2 += coeff_2*weight*prod(aux_matrix_N_trans_tang, trans(N_aux_trans));
-
         }
 
         // LHS outside Nitche contribution assembly
@@ -1064,15 +1003,12 @@ protected:
 
         // RHS outside Nitche contribution assembly
         // If level set velocity is not 0, add its contribution to the RHS
-        if (this->Has(EMBEDDED_VELOCITY))
-        {
+        if (this->Has(EMBEDDED_VELOCITY)) {
             const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
             array_1d<double, MatrixSize> embedded_vel_exp = ZeroVector(MatrixSize);
 
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
+            for (unsigned int i=0; i<TNumNodes; ++i) {
+                for (unsigned int comp=0; comp<TDim; ++comp) {
                     embedded_vel_exp(i*BlockSize+comp) = embedded_vel(comp);
                 }
             }
@@ -1084,7 +1020,6 @@ protected:
         rRightHandSideVector += auxRightHandSideVector;
         rRightHandSideVector -= prod(auxLeftHandSideMatrix_1, prev_sol);
         rRightHandSideVector -= prod(auxLeftHandSideMatrix_2, prev_sol);
-
     }
 
 
@@ -1096,8 +1031,7 @@ protected:
     */
     void AddSlipWinterTangentialSymmetricCounterpartContribution(MatrixType& rLeftHandSideMatrix,
                                                                  VectorType& rRightHandSideVector,
-                                                                 const EmbeddedElementDataStruct& rData)
-    {
+                                                                 const EmbeddedElementDataStruct& rData) {
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -1170,15 +1104,12 @@ protected:
 
         // RHS outside Nitche contribution assembly
         // If level set velocity is not 0, add its contribution to the RHS
-        if (this->Has(EMBEDDED_VELOCITY))
-        {
+        if (this->Has(EMBEDDED_VELOCITY)) {
             const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
             array_1d<double, MatrixSize> embedded_vel_exp = ZeroVector(MatrixSize);
 
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
+            for (unsigned int i=0; i<TNumNodes; ++i) {
+                for (unsigned int comp=0; comp<TDim; ++comp) {
                     embedded_vel_exp(i*BlockSize+comp) = embedded_vel(comp);
                 }
             }
@@ -1190,7 +1121,6 @@ protected:
         noalias(rRightHandSideVector) -= auxRightHandSideVector;
         noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix_1, prev_sol);
         noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix_2, prev_sol);
-
     }
 
 
@@ -1199,14 +1129,11 @@ protected:
     * @param rLeftHandSideMatrix: reference to the LHS matrix
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
     */
     void AddBoundaryConditionElementContribution(MatrixType& rLeftHandSideMatrix,
                                                  VectorType& rRightHandSideVector,
                                                  const EmbeddedElementDataStruct& rData) {
         // TODO: CREATE A METHOD TO COMPUTE THE PREVIOUS SOLUTION ONCE
-
-        // Add all the boundary intersection terms in those elements that are split
 
         // Compute and assemble the boundary terms comping from the integration by parts
         AddIntersectionBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
@@ -1225,66 +1152,7 @@ protected:
             AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
             DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
             AddBoundaryConditionModifiedNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
-
-            // TODO: Add slip version
-            // TODO: This has been commented since long time ago. Check if it is still needed.
-            // Add a penalty contribution to enforce the BC imposition at the level set when the distance value is close to 0
-            // Note that this is an excepcional case in where there are both positive and negative distance value but the intersection
-            // utility determines that there are no intersections (this might happen if the level set is too close to a node).
-            // else if (rSplittingData.ndivisions == 1)
-            // {
-            //     constexpr unsigned int BlockSize = TDim+1;                 // Block size
-            //     constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
-            //
-            //     double diag_max = 0.0;
-            //
-            //     for (unsigned int i=0; i<MatrixSize; i++)
-            //     {
-            //         if ((fabs(rLeftHandSideMatrix(i,i)) > diag_max) && ((i+1)%BlockSize != 0))
-            //         {
-            //             diag_max = fabs(rLeftHandSideMatrix(i,i));
-            //         }
-            //     }
-            //
-            //     double tol_d;
-            //
-            //     if (TDim == 2)
-            //     {
-            //         tol_d = 1e-2*sqrt(rData.h);
-            //     }
-            //     else
-            //     {     //         tol_d = 1e-2*pow(rData.h, 1.0/3.0);
-            //     }
-            // //     double pen_coef = std::max((diag_max/(0.1*rData.h*rData.h)),(1000*rData.h*rData.h));
-            //
-            //     for (unsigned int i=0; i<TNumNodes; i++)
-            //     {
-            //         if (fabs(rDistances[i])<tol_d) //         {
-            //             // LHS penalty contribution assembly            for (unsigned int comp=0; comp<TDim; comp++)
-            //             {
-            //                 rLeftHandSideMatrix(i*BlockSize+comp,i*BlockSize+comp) += pen_coef;
-            //             }
-            //
-            //             // RHS penalty contribution assembly
-            //             if (this->Has(EMBEDDED_VELOCITY))
-            //             {
-            //                 const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            //                 for (unsigned int comp = 0; comp<TDim; comp++)
-            //                 {
-            //                     rRightHandSideVector(i*BlockSize+comp) += pen_coef*embedded_vel(comp);
-            //                 }
-            //             }
-            //
-            //             // RHS residual contribution assembly
-            //             for (unsigned int comp = 0; comp<TDim; comp++)
-            //             {
-            //                 rRightHandSideVector(i*BlockSize+comp) -= pen_coef*rData.v(i,comp);
-            //             }
-            //         }
-            //     }
-            // }
         }
-
     }
 
 
@@ -1295,9 +1163,7 @@ protected:
     */
     void SetInterfaceStrainMatrix(const bounded_matrix<double, TNumNodes, TDim>& rDN_DX,
                                   bounded_matrix<double, (TDim-1)*3, TNumNodes*(TDim+1)>& rB_matrix) {
-
         constexpr unsigned int BlockSize = TDim+1;
-
         rB_matrix.clear();
 
         if (TDim == 3) {
@@ -1329,18 +1195,13 @@ protected:
     * @param rNormProjMatrix: reference to the computed normal projection matrix
     */
     void SetNormalProjectionMatrix(const array_1d<double, 3>& rUnitNormal,
-                                   bounded_matrix<double, TDim, TDim>& rNormProjMatrix)
-    {
+                                   bounded_matrix<double, TDim, TDim>& rNormProjMatrix) {
         rNormProjMatrix.clear();
 
-        if (TDim == 3)
-        {
-            // Fill the normal projection matrix (nxn)
+        // Fill the normal projection matrix (nxn)
+        if (TDim == 3) {
             noalias(rNormProjMatrix) = outer_prod(rUnitNormal, rUnitNormal);
-        }
-        else
-        {
-            // Fill the normal projection matrix (nxn)
+        } else {
             rNormProjMatrix(0,0) = rUnitNormal(0)*rUnitNormal(0);
             rNormProjMatrix(0,1) = rUnitNormal(0)*rUnitNormal(1);
             rNormProjMatrix(1,0) = rUnitNormal(1)*rUnitNormal(0);
@@ -1355,19 +1216,14 @@ protected:
     * @param rTangProjMatrix: reference to the computed tangential projection matrix
     */
     void SetTangentialProjectionMatrix(const array_1d<double, 3>& rUnitNormal,
-                                       bounded_matrix<double, TDim, TDim>& rTangProjMatrix)
-    {
+                                       bounded_matrix<double, TDim, TDim>& rTangProjMatrix) {
         rTangProjMatrix.clear();
 
-        if (TDim == 3)
-        {
-            // Fill the normal projection matrix (nxn)
+        // Fill the tangential projection matrix (I - nxn)
+        if (TDim == 3) {
             identity_matrix<double> id_matrix(TDim);
             noalias(rTangProjMatrix) = id_matrix - outer_prod(rUnitNormal, rUnitNormal);
-        }
-        else
-        {
-            // Fill the normal projection matrix (nxn)
+        } else {
             rTangProjMatrix(0,0) = 1.0 - rUnitNormal(0)*rUnitNormal(0);
             rTangProjMatrix(0,1) = - rUnitNormal(0)*rUnitNormal(1);
             rTangProjMatrix(1,0) = - rUnitNormal(1)*rUnitNormal(0);
@@ -1378,12 +1234,11 @@ protected:
 
     /**
     * This functions sets the auxiliar matrix to compute the normal projection in Voigt notation
-    * @param rSplittingData: reference to the current intersection Gauss pt. unit normal vector
+    * @param rUnitNormal: reference to Gauss pt. unit normal vector
     * @param rVoigtNormProjMatrix: reference to the computed normal projection auxiliar matrix
     */
     void SetVoigtNormalProjectionMatrix(const array_1d<double, 3>& rUnitNormal,
-                                        bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtNormProjMatrix)
-    {
+                                        bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtNormProjMatrix) {
         rVoigtNormProjMatrix.clear();
 
         if (TDim == 3) {
@@ -1401,30 +1256,25 @@ protected:
             rVoigtNormProjMatrix(0,2) = rUnitNormal(1);
             rVoigtNormProjMatrix(1,1) = rUnitNormal(1);
             rVoigtNormProjMatrix(1,2) = rUnitNormal(0);
-
         }
     }
 
 
     /**
-    * This functions sets the auxiliar matrix to compute the tangential projection in Voigt notation
+    * This functions sets a vector containing the element previous solution
     * @param rData: reference to the element data structure
     * @param rPrevSolVector: reference to the previous solution vector
     */
     void GetPreviousSolutionVector(const ElementDataType& rData,
-                                   array_1d<double, TNumNodes*(TDim+1)>& rPrevSolVector)
-    {
+                                   array_1d<double, TNumNodes*(TDim+1)>& rPrevSolVector) {
         rPrevSolVector.clear();
 
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
+        for (unsigned int i=0; i<TNumNodes; i++) {
+            for (unsigned int comp=0; comp<TDim; comp++) {
                 rPrevSolVector(i*(TDim+1)+comp) = rData.v(i,comp);
             }
             rPrevSolVector(i*(TDim+1)+TDim) = rData.p(i);
         }
-
     }
 
 
@@ -1454,14 +1304,12 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+    void save(Serializer& rSerializer) const override {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, NavierStokes<TDim>);
     }
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+    void load(Serializer& rSerializer) override {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, NavierStokes<TDim>);
     }
 
     ///@}
