@@ -235,7 +235,7 @@ class MpcData
         std::cout << std::endl;
         std::cout << "===============================================================" << std::endl;
         std::cout << "Number of Slave DOFs :: " << mDofConstraints.size() << std::endl;
-        for (auto i : mDofConstraints)
+        for (auto& i : mDofConstraints)
         {
             std::cout << "Number of Master DOFs :: " << i.second.size() << std::endl;
         }
