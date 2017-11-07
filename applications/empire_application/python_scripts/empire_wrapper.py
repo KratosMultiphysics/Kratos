@@ -392,7 +392,7 @@ class EmpireWrapper:
                     if (isinstance(value, float) or isinstance(value, int)): # Variable is a scalar
                         size_of_variable = 1
                     else:
-                        size_of_variable = len(first_node.GetSolutionStepValue(variable))
+                        size_of_variable = len(value)
                     sizes_of_variables.append(size_of_variable)
                 except StopIteration:
                     raise TypeError("Size of Variable \"" + variable + "\" could not be determined")
