@@ -477,6 +477,11 @@ public:
         return *mpVariablesList;
     }
 
+    VariablesList const& GetNodalSolutionStepVariablesList() const
+    {
+        return *mpVariablesList;
+    }
+
     void SetNodalSolutionStepVariablesList();
 
     SizeType GetNodalSolutionStepDataSize()
