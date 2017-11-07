@@ -107,6 +107,9 @@ namespace Kratos
 		bounded_matrix<double,msLocalSize,msLocalSize> Delta_StiffnessMatrix();
 		bounded_matrix<double,msElementSize,msElementSize> StiffnessMatrix();
 		bounded_matrix<double,msDimension,msDimension> RotationMatrix(bounded_vector<double,msDimension> Psi_k);
+		bounded_matrix<double,msDimension,msDimension> RotationMatrix0();
+		void AssembleTransformationMatrix(Matrix RotationMatrix, bounded_matrix<double,
+			msElementSize,msElementSize>& TransformationMatrix);
 		double CalculateReferenceLength();
 
 	private:

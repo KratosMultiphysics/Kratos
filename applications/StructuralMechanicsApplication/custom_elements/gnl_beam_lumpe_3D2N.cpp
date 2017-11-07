@@ -186,13 +186,13 @@ namespace Kratos
             this->CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
             this->CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
 
+            bounded_matrix<double,msDimension,msDimension> RotationMatrix0 = this->RotationMatrix0();
+            KRATOS_WATCH(RotationMatrix0);
 
-            //testing
-            bounded_vector<double,msDimension> Psi_k = ZeroVector(msDimension);
-            Psi_k[1] = 100.00;
-            bounded_matrix<double,msDimension,msDimension> RR = this->RotationMatrix(Psi_k);
-            
-            KRATOS_WATCH(RR);
+            bounded_vector<double,3> psi_k = ZeroVector(3);
+            psi_k[1] = -0.5235987756;
+            bounded_matrix<double,msDimension,msDimension> RR = this->RotationMatrix(psi_k);
+            KRATOS_WATCH(RR);            
 
         }
 
@@ -205,7 +205,8 @@ namespace Kratos
             this->GetValuesVector(Nodal_Deformation);
 
             Matrix LeftHandSide = ZeroMatrix(msElementSize,msElementSize);
-            LeftHandSide = this->StiffnessMatrix();
+            this->CalculateLeftHandSide(LeftHandSide,rCurrentProcessInfo);
+
 
             rRightHandSideVector = ZeroVector(msElementSize);
             rRightHandSideVector -= prod(LeftHandSide,Nodal_Deformation);
@@ -218,6 +219,14 @@ namespace Kratos
         {
             rLeftHandSideMatrix = ZeroMatrix(msElementSize,msElementSize);
             rLeftHandSideMatrix = this->StiffnessMatrix();
+
+            bounded_matrix<double,msDimension,msDimension> RotationMatrix = this->RotationMatrix0();
+            bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = ZeroMatrix(msElementSize,msElementSize);
+            this->AssembleTransformationMatrix(RotationMatrix,TransformationMatrix);
+
+            rLeftHandSideMatrix = prod(rLeftHandSideMatrix,TransformationMatrix);
+            rLeftHandSideMatrix = prod(Matrix(trans(TransformationMatrix)),rLeftHandSideMatrix);
+            
         }
   
     //////////////////// custom functions ////////////////////
@@ -316,13 +325,93 @@ namespace Kratos
             bounded_matrix<double,msDimension,msDimension> RotationMatrix =
             ZeroMatrix(msDimension,msDimension);
 
+            bounded_matrix<double, msDimension,msDimension> S =
+             ZeroMatrix(msDimension,msDimension);
 
+            S(0,1) = Psi_k[2];
+            S(0,2) = -Psi_k[1];
+            S(1,0) = -Psi_k[2];
+            S(1,2) = Psi_k[0];
+            S(2,0) = Psi_k[1];
+            S(2,1) = -Psi_k[0];
 
+            bounded_matrix<double, msDimension,msDimension> S2 = prod(S,S);
 
+            RotationMatrix = Eye_Matrix;
+            RotationMatrix += S * (std::sin(Norm_Psi)/Norm_Psi);            
+            RotationMatrix += S2 * ((1.00 - std::cos(Norm_Psi)) / (Norm_Psi*Norm_Psi));           
             return RotationMatrix;
         }    
 
     }
+
+    bounded_matrix<double,GnlBeamLumpe3D2N::msDimension,GnlBeamLumpe3D2N::msDimension>
+    GnlBeamLumpe3D2N::RotationMatrix0()
+    {
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
+        bounded_matrix<double,msDimension,msDimension> RotationMatrix =
+        ZeroMatrix(msDimension,msDimension);   
+
+		array_1d<double, msDimension> DirectionVectorG3 = ZeroVector(msDimension);
+		array_1d<double, msDimension> DirectionVectorG2 = ZeroVector(msDimension);
+		array_1d<double, msDimension> DirectionVectorG1 = ZeroVector(msDimension);
+		array_1d<double, msLocalSize> ReferenceCoordinates = ZeroVector(msLocalSize);
+
+		ReferenceCoordinates[0] = this->GetGeometry()[0].Y0();
+		ReferenceCoordinates[1] = this->GetGeometry()[0].Z0();
+		ReferenceCoordinates[2] = this->GetGeometry()[0].X0();
+		ReferenceCoordinates[3] = this->GetGeometry()[1].Y0();
+		ReferenceCoordinates[4] = this->GetGeometry()[1].Z0();
+        ReferenceCoordinates[5] = this->GetGeometry()[1].X0();
+
+
+        for (unsigned int i = 0; i < msDimension; ++i)
+		{
+			DirectionVectorG3[i] = (ReferenceCoordinates[i + msDimension]
+				- ReferenceCoordinates[i]);
+		}
+        
+        // take user defined local axis 2 from GID input
+        if (this->Has(LOCAL_AXIS_2)) 
+        {
+            double VectorNorm = MathUtils<double>::Norm(DirectionVectorG3);
+            if (VectorNorm > numerical_limit) DirectionVectorG3 /= VectorNorm;
+
+            DirectionVectorG1 = this->GetValue(LOCAL_AXIS_2);
+            DirectionVectorG2[0] = DirectionVectorG3[1]*DirectionVectorG1[2]-DirectionVectorG3[2]*DirectionVectorG1[1];
+            DirectionVectorG2[1] = DirectionVectorG3[2]*DirectionVectorG1[0]-DirectionVectorG3[0]*DirectionVectorG1[2];
+            DirectionVectorG2[2] = DirectionVectorG3[0]*DirectionVectorG1[1]-DirectionVectorG3[1]*DirectionVectorG1[0];
+
+            VectorNorm = MathUtils<double>::Norm(DirectionVectorG2);
+            if (VectorNorm > numerical_limit) DirectionVectorG2 /= VectorNorm;
+            else KRATOS_ERROR << "LOCAL_AXIS_3 has length 0 for element " << this->Id() << std::endl;
+
+            for (int i = 0; i < msDimension; ++i)
+            {
+                RotationMatrix(0, i) = DirectionVectorG3[i];
+                RotationMatrix(1, i) = DirectionVectorG1[i];
+                RotationMatrix(2, i) = DirectionVectorG2[i];
+            }
+        }
+        else KRATOS_ERROR << "Local Coordinate System not defined !!" << this->Id() << std::endl;
+        return RotationMatrix;
+    }
+
+    void GnlBeamLumpe3D2N::AssembleTransformationMatrix(Matrix RotationMatrix, bounded_matrix<double,
+        GnlBeamLumpe3D2N::msElementSize,GnlBeamLumpe3D2N::msElementSize>& TransformationMatrix)
+        {
+        for (unsigned int kk = 0; kk < msElementSize; kk += msDimension)
+        {
+            for (int i = 0; i<msDimension; ++i)
+            {
+                for (int j = 0; j<msDimension; ++j)
+                {
+                    TransformationMatrix(i + kk, j + kk) = RotationMatrix(i, j);
+                }
+            }
+        }
+        }
+
 } // namespace Kratos.
 
 
