@@ -51,7 +51,7 @@ empire.Connect("kratos_client_1.xml")
 empire.SendMesh("myMesh1", model_part)
 
 for i in range(10):
-    empire.SendDataField("myMesh1", "displacement", DISPLACEMENT)
+    empire.SendDataField("myMesh1", "displacement", [DISPLACEMENT, DISPLACEMENT]) # sending an (Empire) "doubleVector"
     empire.ReceiveDataField("myMesh1", "temperature", TEMPERATURE)
 
     SetNodalValues(i)

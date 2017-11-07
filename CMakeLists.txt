@@ -24,6 +24,10 @@ SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
 SET( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
 SET( CMAKE_SHARED_LINKER_FLAGS_FULLDEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" )
 SET( CMAKE_EXE_LINKER_FLAGS_FULLDEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG}" )
+SET( CMAKE_C_FLAGS_CUSTOM "" )
+SET( CMAKE_CXX_FLAGS_CUSTOM "" )
+SET( CMAKE_SHARED_LINKER_FLAGS_CUSTOM "" )
+SET( CMAKE_EXE_LINKER_FLAGS_CUSTOM "" )
 
 # If build mode is not defined, assume Release
 if(NOT CMAKE_BUILD_TYPE)
@@ -236,6 +240,10 @@ if(${TRILINOS_APPLICATION} MATCHES ON )
   set(BLAS_INCLUDE_NEEDED ON)
 endif(${TRILINOS_APPLICATION} MATCHES ON )
 
+if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+  find_package(Tetgen REQUIRED)
+endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+
 # BLAS and LAPACK
 if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
@@ -331,6 +339,10 @@ add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 add_subdirectory(applications)
 
+#compiling the triangle library
+add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)
+
+
 # Embedded python - compiles "krun and packages the python lib needed"
 if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
   add_subdirectory(embedded_python)
@@ -350,8 +362,6 @@ else(DEFINED KRATOS_INSTALL_PREFIX)
   message("--------------------------------  standard install dir ${CMAKE_INSTALL_PREFIX}")
 endif(DEFINED KRATOS_INSTALL_PREFIX)
 
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("inc_dirs = ${inc_dirs}")
 
 ################################################################################
 # install core files for the KratosMultiphysics python module
