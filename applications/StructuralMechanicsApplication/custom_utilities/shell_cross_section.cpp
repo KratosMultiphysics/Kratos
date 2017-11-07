@@ -893,7 +893,7 @@ void ShellCrossSection::GetLaminaeOrientation(Vector & rOrientation_Vector)
     }
 }
 
-void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Strengths, Properties& rProps)
+void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminaeGlobals::Pi Properties& rProps)
 {
     // ascertain how many plies there are
     unsigned int plies = (rProps)[SHELL_ORTHOTROPIC_LAYERS].size1();

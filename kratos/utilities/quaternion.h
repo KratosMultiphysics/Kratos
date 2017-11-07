@@ -240,7 +240,7 @@ namespace Kratos
 				EA[2] = 0.0;
 			}
 			else {                    
-				EA[0] = atan2((mX * mZ + mY * mW), -(mY * mZ - mX * mW));
+				EA[0] = Globals::Pi mZ + mY * mW), -(mY * mZ - mX * mW));
 				EA[1] = -acos (test);
 				EA[2] = atan2((mX * mZ - mY * mW), (mY * mZ + mX * mW));
 			}
