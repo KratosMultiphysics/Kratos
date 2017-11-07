@@ -6,6 +6,7 @@
 #include "custom_utilities/hdf5_pointer_bins_utility.h"
 #include "custom_io/hdf5_properties_io.h"
 #include "custom_io/hdf5_nodal_solution_step_variables_io.h"
+#include "custom_io/hdf5_data_value_container_io.h"
 
 namespace Kratos
 {
@@ -176,11 +177,6 @@ void PartitionedModelPartIO::ReadElements(NodesContainerType& rNodes,
     KRATOS_CATCH("");
 }
 
-std::size_t PartitionedModelPartIO::ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities)
-{
-    return 0;
-}
-
 void PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElements)
 {
     KRATOS_TRY;
@@ -250,26 +246,13 @@ void PartitionedModelPartIO::WriteConditions(ConditionsContainerType const& rCon
     KRATOS_CATCH("");
 }
 
-std::size_t PartitionedModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
-{
-    return 0;
-}
-
-void PartitionedModelPartIO::ReadInitialValues(ModelPart& rModelPart)
-{
-}
-
-void PartitionedModelPartIO::ReadInitialValues(NodesContainerType& rNodes,
-                                               ElementsContainerType& rElements,
-                                               ConditionsContainerType& rConditions)
-{
-}
-
 void PartitionedModelPartIO::ReadModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
     ReadProperties(rModelPart.rProperties());
+    Detail::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
+    process_info_io.ReadDataValueContainer(rModelPart.GetProcessInfo());
     ReadNodes(rModelPart.Nodes());
     ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
@@ -288,7 +271,10 @@ void PartitionedModelPartIO::WriteModelPart(ModelPart& rModelPart)
     nodal_variables_io.WriteVariablesList(rModelPart);
     nodal_variables_io.WriteBufferSize(rModelPart.GetBufferSize());
     WriteProperties(rModelPart.rProperties());
-    rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through the writing process.    
+    Detail::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
+    process_info_io.WriteDataValueContainer(rModelPart.GetProcessInfo());
+    rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through
+                               // the writing process.
     WriteNodes(rModelPart.Nodes());
     WriteElements(rModelPart.Elements());
     WriteConditions(rModelPart.Conditions());
@@ -304,7 +290,7 @@ File& PartitionedModelPartIO::GetFile() const
 void PartitionedModelPartIO::Check()
 {
     if (GetFile().GetTotalProcesses() == 1)
-        std::cout << "Warning: using PartitionedModelPartIO with single process file access." << std::endl;
+        KRATOS_ERROR << "Using PartitionedModelPartIO with single process file access." << std::endl;
 }
 
 std::tuple<unsigned, unsigned> PartitionedModelPartIO::GetPartitionStartIndexAndBlockSize(std::string Path) const
