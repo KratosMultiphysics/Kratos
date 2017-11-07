@@ -23,8 +23,7 @@ namespace Kratos
     /// ModifiedShapeFunctions implementation
     /// Default constructor
     ModifiedShapeFunctions::ModifiedShapeFunctions(const GeometryPointerType pInputGeometry, const Vector& rNodalDistances) :
-        mpInputGeometry(pInputGeometry), mrNodalDistances(rNodalDistances) {
-    };
+        mpInputGeometry(pInputGeometry), mNodalDistances(rNodalDistances) {};
 
     /// Destructor
     ModifiedShapeFunctions::~ModifiedShapeFunctions() {};
@@ -59,7 +58,7 @@ namespace Kratos
 
     // Returns the nodal distances vector.
     const Vector& ModifiedShapeFunctions::GetNodalDistances() const {
-        return mrNodalDistances;
+        return mNodalDistances;
     };
 
     // Sets the condensation matrix to transform the subdivsion values to entire element ones.
@@ -90,7 +89,7 @@ namespace Kratos
                 const unsigned int edge_node_j = rEdgeNodeJ[idedge];
 
                 // Compute the relative coordinate of the intersection point over the edge
-                const double aux_node_rel_location = std::abs (mrNodalDistances(edge_node_i)/(mrNodalDistances(edge_node_j)-mrNodalDistances(edge_node_i)));
+                const double aux_node_rel_location = std::abs (mNodalDistances(edge_node_i)/(mNodalDistances(edge_node_j)-mNodalDistances(edge_node_i)));
 
                 // Store the relative coordinate values as the original geometry nodes sh. function value in the intersections
                 rIntPointCondMatrix(row, edge_node_i) = aux_node_rel_location;

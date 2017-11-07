@@ -288,7 +288,7 @@ protected:
     ///@{
 
     const GeometryPointerType mpInputGeometry;
-    const Vector& mrNodalDistances;
+    const Vector mNodalDistances;
 
     ///@}
     ///@name Serialization
@@ -319,7 +319,7 @@ protected:
 
     /// Copy constructor.
     ModifiedShapeFunctions(ModifiedShapeFunctions const& rOther)
-        : mpInputGeometry(rOther.mpInputGeometry) , mrNodalDistances(rOther.mrNodalDistances) {};
+        : mpInputGeometry(rOther.mpInputGeometry) , mNodalDistances(rOther.mNodalDistances) {};
 
     ///@}
 
