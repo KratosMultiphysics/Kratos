@@ -53,7 +53,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
                     "lambda_max": 25.0,
                     "search_dimension": 7,
                     "linear_solver_settings": {
-                        "solver_type": "pastix"
+                        "solver_type": "complex_skyline_lu_solver"
                     }
                 
             }

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//   License:        BSD License
-//   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
 //
 //   Project Name:        $StructuralMechanicsApplication $
 //   Last modified by:    $Author: quirin.aumann@tum.de   $
@@ -74,6 +74,8 @@ public:
 
     typedef typename BaseType::TBuilderAndSolverType::Pointer BuilderAndSolverPointerType;
 
+    typedef TDenseSpace DenseSpaceType;
+
     typedef typename TDenseSpace::VectorType DenseVectorType;
 
     typedef typename TDenseSpace::MatrixType DenseMatrixType;
@@ -100,12 +102,12 @@ public:
 
     /// Constructor.
     HarmonicAnalysisStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         SchemePointerType pScheme,
         BuilderAndSolverPointerType pBuilderAndSolver,
         bool UseMaterialDampingFlag = false
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
     {
         KRATOS_TRY
 
@@ -118,11 +120,8 @@ public:
 
         mInitializeWasPerformed = false;
 
-        SparseVectorType* AuxForceVector = new SparseVectorType;
-        mpForceVector = boost::shared_ptr<SparseVectorType>(AuxForceVector);
-
-        DenseMatrixType* AuxModalMatrix = new DenseMatrixType;
-        mpModalMatrix = boost::shared_ptr<DenseMatrixType>(AuxModalMatrix);
+        mpForceVector = SparseSpaceType::CreateEmptyVectorPointer();
+        mpModalMatrix = DenseSpaceType::CreateEmptyMatrixPointer();
 
         mRayleighAlpha = 0.0;
         mRayleighBeta = 0.0;
@@ -142,12 +141,8 @@ public:
     HarmonicAnalysisStrategy(const HarmonicAnalysisStrategy& Other) = delete;
 
     /// Destructor.
-    virtual ~HarmonicAnalysisStrategy()
+    ~HarmonicAnalysisStrategy() override
     {
-        // Clear() controls order of deallocation to avoid invalid memory access
-        // in some special cases.
-        // warning: BaseType::GetModelPart() may be invalid here.
-        this->Clear();
     }
 
     ///@}
@@ -166,26 +161,6 @@ public:
     bool GetIsInitialized() const
     {
         return mInitializeWasPerformed;
-    }
-
-    SparseVectorType& GetForceVector()
-    {
-        return *mpForceVector;
-    }
-
-    SparseVectorPointerType& pGetForceVector()
-    {
-        return mpForceVector;
-    }
-
-    DenseMatrixType& GetModalMatrix()
-    {
-        return *mpModalMatrix;
-    }
-
-    DenseMatrixPointerType& pGetModalMatrix()
-    {
-        return mpModalMatrix;
     }
 
     void SetScheme(SchemePointerType pScheme)
@@ -246,37 +221,37 @@ public:
     {
         KRATOS_TRY
 
-        auto& rModelPart = BaseType::GetModelPart();
-        auto& rProcessInfo = rModelPart.GetProcessInfo();
-        const auto rank = rModelPart.GetCommunicator().MyPID();
+        auto& r_model_part = BaseType::GetModelPart();
+        auto& r_process_info = r_model_part.GetProcessInfo();
+        const auto rank = r_model_part.GetCommunicator().MyPID();
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
             std::cout << "Entering Initialize() of HarmonicAnalysisStrategy." << std::endl;
 
         this->Check();
 
-        auto& pScheme = this->pGetScheme();
+        auto& p_scheme = this->pGetScheme();
 
-        if (pScheme->SchemeIsInitialized() == false)
-            pScheme->Initialize(rModelPart);
+        if (p_scheme->SchemeIsInitialized() == false)
+            p_scheme->Initialize(r_model_part);
 
-        if (pScheme->ElementsAreInitialized() == false)
-            pScheme->InitializeElements(rModelPart);
+        if (p_scheme->ElementsAreInitialized() == false)
+            p_scheme->InitializeElements(r_model_part);
 
-        if (pScheme->ConditionsAreInitialized() == false)
-            pScheme->InitializeConditions(rModelPart);
+        if (p_scheme->ConditionsAreInitialized() == false)
+            p_scheme->InitializeConditions(r_model_part);
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
             std::cout << "Exiting Initialize() of HarmonicAnalysisStrategy." << std::endl;
 
         // set up the system
-        auto& pBuilderAndSolver = this->pGetBuilderAndSolver();
+        auto& p_builder_and_solver = this->pGetBuilderAndSolver();
 
         // Reset solution dofs
         boost::timer system_construction_time;
         // Set up list of dofs
         boost::timer setup_dofs_time;
-        pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
+        p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
         if (BaseType::GetEchoLevel() > 0 && rank == 0)
         {
             std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
@@ -284,22 +259,21 @@ public:
 
         // Set global equation ids
         boost::timer setup_system_time;
-        pBuilderAndSolver->SetUpSystem(rModelPart);
+        p_builder_and_solver->SetUpSystem(r_model_part);
         if (BaseType::GetEchoLevel() > 0 && rank == 0)
         {
             std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
         }
 
         // initialize the force vector; this does not change during the computation
-        auto& pForceVector = this->pGetForceVector();
-        auto& rForceVector = *pForceVector;
-        const unsigned int system_size = pBuilderAndSolver->GetEquationSystemSize();
+        auto& r_force_vector = *mpForceVector;
+        const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize();
         
         boost::timer force_vector_build_time;
-        if (rForceVector.size() != system_size)
-            rForceVector.resize(system_size, false);
-        rForceVector = ZeroVector( system_size );
-        pBuilderAndSolver->BuildRHS(pScheme,rModelPart,rForceVector);
+        if (r_force_vector.size() != system_size)
+            r_force_vector.resize(system_size, false);
+        r_force_vector = ZeroVector( system_size );
+        p_builder_and_solver->BuildRHS(p_scheme,r_model_part,r_force_vector);
         
         if (BaseType::GetEchoLevel() > 0 && rank == 0)
         {
@@ -307,21 +281,20 @@ public:
         }
 
         // initialize the modal matrix
-        auto& pModalMatrix = this->pGetModalMatrix();
-        auto& rModalMatrix = *pModalMatrix;
-        const std::size_t n_modes = rProcessInfo[EIGENVALUE_VECTOR].size();
-        if( rModalMatrix.size1() != system_size || rModalMatrix.size2() != n_modes )
-            rModalMatrix.resize( system_size, n_modes, false );
-        rModalMatrix = ZeroMatrix( system_size, n_modes );
+        auto& r_modal_matrix = *mpModalMatrix;
+        const std::size_t n_modes = r_process_info[EIGENVALUE_VECTOR].size();
+        if( r_modal_matrix.size1() != system_size || r_modal_matrix.size2() != n_modes )
+            r_modal_matrix.resize( system_size, n_modes, false );
+        r_modal_matrix = ZeroMatrix( system_size, n_modes );
 
         boost::timer modal_matrix_build_time;
         for( std::size_t i = 0; i < n_modes; ++i )
         {
-            for( ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++ )
+            for( auto& node : r_model_part.Nodes() )
             {
-                ModelPart::NodeType::DofsContainerType& node_dofs = itNode->GetDofs();
+                ModelPart::NodeType::DofsContainerType node_dofs = node.GetDofs();
                 const std::size_t n_node_dofs = node_dofs.size();
-                Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
+                const Matrix& r_node_eigenvectors = node.GetValue(EIGENVECTOR_MATRIX);
 
                 if( node_dofs.IsSorted() == false )
                 {
@@ -330,8 +303,8 @@ public:
 
                 for( std::size_t j = 0; j < n_node_dofs; ++j )
                 {
-                    auto itDof = std::begin(node_dofs) + j;
-                    rModalMatrix(itDof->EquationId(), i) = rNodeEigenvectors(i, j);
+                    const auto it_dof = std::begin(node_dofs) + j;
+                    r_modal_matrix(it_dof->EquationId(), i) = r_node_eigenvectors(i, j);
                 }
             }
         }
@@ -342,17 +315,17 @@ public:
         }
 
         // get the damping coefficients if they exist
-        for( ModelPart::PropertiesIterator itProperty = rModelPart.PropertiesBegin(); itProperty != rModelPart.PropertiesEnd(); itProperty++ )
+        for( auto& property : r_model_part.PropertiesArray() )
         {
-            if( itProperty->Has(SYSTEM_DAMPING_RATIO) )
+            if( property->Has(SYSTEM_DAMPING_RATIO) )
             {
-                mSystemDamping = itProperty->GetValue(SYSTEM_DAMPING_RATIO);
+                mSystemDamping = property->GetValue(SYSTEM_DAMPING_RATIO);
             }
             
-            if( itProperty->Has(RAYLEIGH_ALPHA) && itProperty->Has(RAYLEIGH_BETA) )
+            if( property->Has(RAYLEIGH_ALPHA) && property->Has(RAYLEIGH_BETA) )
             {
-                mRayleighAlpha = itProperty->GetValue(RAYLEIGH_ALPHA);
-                mRayleighBeta = itProperty->GetValue(RAYLEIGH_BETA);
+                mRayleighAlpha = property->GetValue(RAYLEIGH_ALPHA);
+                mRayleighBeta = property->GetValue(RAYLEIGH_BETA);
             }
         }
 
@@ -360,13 +333,11 @@ public:
         if( mUseMaterialDamping )
         {
             // throw an error, if no submodelparts are present
-            if( rModelPart.NumberOfSubModelParts() < 1 )
+            if( r_model_part.NumberOfSubModelParts() < 1 )
                 KRATOS_ERROR << "No submodelparts detected!" << std::endl;
             
             //initialize all required variables
-            rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
-            SparseMatrixType* AuxStiffnessMatrix;
-            SparseMatrixPointerType temp_stiffness_matrix;
+            r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
             mMaterialDampingRatios = ZeroVector( n_modes );
             
             //initialize dummy vectors
@@ -386,38 +357,37 @@ public:
             {
                 double up = 0.0;
                 double down = 0.0;
-                Vector modal_vector = column( rModalMatrix, i );
-                for( ModelPart::SubModelPartIterator itSubModelPart = rModelPart.SubModelPartsBegin(); itSubModelPart!= rModelPart.SubModelPartsEnd(); itSubModelPart++ )
+                auto modal_vector = column( r_modal_matrix, i );
+                for( auto& sub_model_part : r_model_part.SubModelParts() )
                 {
                     double damping_coefficient = 0.0;
-                    for( ModelPart::PropertiesIterator itProperty = itSubModelPart->PropertiesBegin(); itProperty != itSubModelPart->PropertiesEnd(); itProperty++ )
+                    for( auto& property : sub_model_part.PropertiesArray() )
                     {
-                        if( itProperty->Has(SYSTEM_DAMPING_RATIO) )
+                        if( property->Has(SYSTEM_DAMPING_RATIO) )
                         {
-                            damping_coefficient = itProperty->GetValue(SYSTEM_DAMPING_RATIO);
+                            damping_coefficient = property->GetValue(SYSTEM_DAMPING_RATIO);
                         }
                     }
                     
                     //initialize the submodelpart stiffness matrix
-                    AuxStiffnessMatrix = new SparseMatrixType;
-                    temp_stiffness_matrix = boost::shared_ptr<SparseMatrixType>(AuxStiffnessMatrix);
-                    pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, 
+                    auto temp_stiffness_matrix = SparseSpaceType::CreateEmptyMatrixPointer();
+                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, 
                         temp_stiffness_matrix,
                         pDx,
                         pb,
-                        rModelPart.Elements(),
-                        rModelPart.Conditions(),
-                        rModelPart.GetProcessInfo());
+                        r_model_part.Elements(),
+                        r_model_part.Conditions(),
+                        r_model_part.GetProcessInfo());
 
                     //build stiffness matrix for submodelpart material
-                    pBuilderAndSolver->BuildLHS(pScheme,*itSubModelPart,*temp_stiffness_matrix);
+                    p_builder_and_solver->BuildLHS(p_scheme, sub_model_part, *temp_stiffness_matrix);
 
                     //compute strain energy of the submodelpart and the effective damping ratio
                     double strain_energy = 0.5 * inner_prod( prod(modal_vector, *temp_stiffness_matrix), modal_vector );
                     down += strain_energy;
                     up += damping_coefficient * strain_energy;
                 }
-                if( down == 0 )
+                if( down < std::numeric_limits<double>::epsilon() )
                     KRATOS_ERROR << "No valid effective material damping ratio could be computed. Are all elements to be damped available in the submodelparts? Are the modal vectors available? " << std::endl;
                 
                 mMaterialDampingRatios(i) = up / down;
@@ -437,7 +407,7 @@ public:
     {
         KRATOS_TRY
 
-        auto& rModelPart = BaseType::GetModelPart();
+        auto& r_model_part = BaseType::GetModelPart();
 
         // operations to be done once
         if (this->GetIsInitialized() == false)
@@ -448,17 +418,17 @@ public:
 
         this->InitializeSolutionStep();
 
-        auto& rProcessInfo = rModelPart.GetProcessInfo();
-        double excitation_frequency = rProcessInfo[TIME];
+        auto& r_process_info = r_model_part.GetProcessInfo();
+        double excitation_frequency = r_process_info[TIME];
 
         // get eigenvalues
-        DenseVectorType eigenvalues = rProcessInfo[EIGENVALUE_VECTOR];
+        DenseVectorType eigenvalues = r_process_info[EIGENVALUE_VECTOR];
         const std::size_t n_modes = eigenvalues.size();
 
         // DenseMatrixType eigenvectors;
         const std::size_t n_dofs = this->pGetBuilderAndSolver()->GetEquationSystemSize();
         
-        auto f = this->GetForceVector();
+        auto& f = *mpForceVector;
 
         ComplexType mode_weight;
         ComplexVectorType modal_displacement;
@@ -469,34 +439,28 @@ public:
 
         for( std::size_t i = 0; i < n_modes; ++i )
         {
+
+            modal_damping = mSystemDamping + mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
+            
             if( mUseMaterialDamping )
             {
-                modal_damping = mMaterialDampingRatios[i];
-            }
-            else if( mSystemDamping != 0.0 )
-            {
-                modal_damping = mSystemDamping;
-            }
-            else
-            {
-                modal_damping = mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
+                modal_damping += mMaterialDampingRatios[i];
             }
 
-            auto& pModalMatrix = this->pGetModalMatrix();
-            auto& rModalMatrix = *pModalMatrix;
+            auto& r_modal_matrix = *mpModalMatrix;
 
             DenseVectorType modal_vector(n_dofs);
-            TDenseSpace::GetColumn(i, rModalMatrix, modal_vector);
+            TDenseSpace::GetColumn(i, r_modal_matrix, modal_vector);
 
             ComplexType factor( eigenvalues[i] - pow( excitation_frequency, 2.0 ), 2 * modal_damping * std::sqrt(eigenvalues[i]) * excitation_frequency );
             mode_weight = inner_prod( modal_vector, f ) / factor;
 
             // compute the modal displacement as a superposition of modal_weight * eigenvector
-            for( ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++ )
+            for( auto& node : r_model_part.Nodes() )
             {
-                ModelPart::NodeType::DofsContainerType& node_dofs = itNode->GetDofs();
+                auto& node_dofs = node.GetDofs();
                 const std::size_t n_node_dofs = node_dofs.size();
-                Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
+                const Matrix& r_node_eigenvectors = node.GetValue(EIGENVECTOR_MATRIX);
 
                 if (node_dofs.IsSorted() == false)
                 {
@@ -505,8 +469,8 @@ public:
 
                 for (std::size_t j = 0; j < n_node_dofs; j++)
                 {
-                    auto itDof = std::begin(node_dofs) + j;
-                    modal_displacement[itDof->EquationId()] = modal_displacement[itDof->EquationId()] + mode_weight * rNodeEigenvectors(i,j);
+                    auto it_dof = std::begin(node_dofs) + j;
+                    modal_displacement[it_dof->EquationId()] = modal_displacement[it_dof->EquationId()] + mode_weight * r_node_eigenvectors(i,j);
                 }
             }
         }
@@ -525,16 +489,16 @@ public:
         KRATOS_TRY
 
         // if the preconditioner is saved between solves, it should be cleared here
-        auto& pBuilderAndSolver = this->pGetBuilderAndSolver();
-        pBuilderAndSolver->GetLinearSystemSolver()->Clear();
+        auto& p_builder_and_solver = this->pGetBuilderAndSolver();
+        p_builder_and_solver->GetLinearSystemSolver()->Clear();
 
-        if (this->pGetForceVector() != nullptr)
-            this->pGetForceVector() = nullptr;
+        SparseSpaceType::Clear(mpForceVector);
+        DenseSpaceType::Clear(mpModalMatrix);
 
         // re-setting internal flag to ensure that the dof sets are recalculated
-        pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+        p_builder_and_solver->SetDofSetIsInitializedFlag(false);
 
-        pBuilderAndSolver->Clear();
+        p_builder_and_solver->Clear();
 
         this->pGetScheme()->Clear();
 
@@ -552,16 +516,15 @@ public:
     {
         KRATOS_TRY
 
-        auto& rModelPart = BaseType::GetModelPart();
-        const auto rank = rModelPart.GetCommunicator().MyPID();
+        auto& r_model_part = BaseType::GetModelPart();
+        const auto rank = r_model_part.GetCommunicator().MyPID();
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
             std::cout << "Entering InitializeSolutionStep() of HarmonicAnalysisStrategy" << std::endl;
 
-        BuilderAndSolverPointerType& pBuilderAndSolver = this->pGetBuilderAndSolver();
-        SchemePointerType& pScheme = this->pGetScheme();
-        auto& pForceVector = this->pGetForceVector();
-        auto& rForceVector = *pForceVector;
+        BuilderAndSolverPointerType& p_builder_and_solver = this->pGetBuilderAndSolver();
+        SchemePointerType& p_scheme = this->pGetScheme();
+        auto& r_force_vector = *mpForceVector;
 
         // // initialize dummy vectors
         auto pA = SparseSpaceType::CreateEmptyMatrixPointer();
@@ -569,16 +532,16 @@ public:
         auto& rA = *pA;
         auto& rDx = *pDx;
 
-        SparseSpaceType::Resize(rA,SparseSpaceType::Size(rForceVector),SparseSpaceType::Size(rForceVector));
+        SparseSpaceType::Resize(rA,SparseSpaceType::Size(r_force_vector),SparseSpaceType::Size(r_force_vector));
         SparseSpaceType::SetToZero(rA);
-        SparseSpaceType::Resize(rDx,SparseSpaceType::Size(rForceVector));
+        SparseSpaceType::Resize(rDx,SparseSpaceType::Size(r_force_vector));
         SparseSpaceType::Set(rDx,0.0);
 
         // initial operations ... things that are constant over the solution step
-        pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,rForceVector);
+        p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,r_force_vector);
 
         // initial operations ... things that are constant over the solution step
-        pScheme->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,rForceVector);
+        p_scheme->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,r_force_vector);
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
             std::cout << "Exiting InitializeSolutionStep() of HarmonicAnalysisStrategy" << std::endl;
@@ -591,8 +554,8 @@ public:
     {
         KRATOS_TRY
 
-        auto& rModelPart = BaseType::GetModelPart();
-        const auto rank = rModelPart.GetCommunicator().MyPID();
+        auto& r_model_part = BaseType::GetModelPart();
+        const auto rank = r_model_part.GetCommunicator().MyPID();
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
             std::cout << "Entering Check() of HarmonicAnalysisStrategy" << std::endl;
@@ -601,10 +564,10 @@ public:
         BaseType::Check();
 
         // check the scheme
-        this->pGetScheme()->Check(rModelPart);
+        this->pGetScheme()->Check(r_model_part);
 
         // check the builder and solver
-        this->pGetBuilderAndSolver()->Check(rModelPart);
+        this->pGetBuilderAndSolver()->Check(r_model_part);
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
             std::cout << "Exiting Check() of HarmonicAnalysisStrategy" << std::endl;
@@ -697,21 +660,23 @@ private:
     /// Assign the modal displacement to the dofs and the phase angle to the reaction
     void AssignVariables(ComplexVectorType& rModalDisplacement, int step=0)
     {
-        auto& rModelPart = BaseType::GetModelPart();
-        for( auto itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++ )
+        auto& r_model_part = BaseType::GetModelPart();
+        for( auto& node : r_model_part.Nodes() )
         {
-            ModelPart::NodeType::DofsContainerType& rNodeDofs = itNode->GetDofs();
+            ModelPart::NodeType::DofsContainerType& rNodeDofs = node.GetDofs();
             
-            for( auto itDof = std::begin(rNodeDofs); itDof != std::end(rNodeDofs); itDof++ )
+            for( auto it_dof = std::begin(rNodeDofs); it_dof != std::end(rNodeDofs); it_dof++ )
             {
-                if( !itDof->IsFixed() )
+                if( !it_dof->IsFixed() )
                 {
-                    itDof->GetSolutionStepValue(step) = std::abs(rModalDisplacement(itDof->EquationId()));
-                    itDof->GetSolutionStepReactionValue(step) = std::abs(std::arg(rModalDisplacement(itDof->EquationId())));
+                    //absolute displacement
+                    it_dof->GetSolutionStepValue(step) = std::abs(rModalDisplacement(it_dof->EquationId()));
+                    //phase angle
+                    it_dof->GetSolutionStepReactionValue(step) = std::abs(std::arg(rModalDisplacement(it_dof->EquationId())));
                 }
                 else
                 {
-                    itDof->GetSolutionStepValue(step) = 0.0;
+                    it_dof->GetSolutionStepValue(step) = 0.0;
                 }
             }
         }

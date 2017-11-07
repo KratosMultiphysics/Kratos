@@ -100,24 +100,24 @@ public:
         mFilename = FilenameStream.str();
 
         // nodal variable names to input
-        mVariables.resize(rParameters["variable_list"].size());
-        for (unsigned int i = 0; i < mVariables.size(); i++)
+        mVariableNames.resize(rParameters["variable_list"].size());
+        for (unsigned int i = 0; i < mVariableNames.size(); i++)
         {
-            mVariables[i] = rParameters["variable_list"].GetArrayItem(i).GetString();
+            mVariableNames[i] = rParameters["variable_list"].GetArrayItem(i).GetString();
         }
 
         // nodal value names to intput
-        mNodalValues.resize(rParameters["nodal_value_list"].size());
-        for( unsigned int i=0; i < mNodalValues.size(); ++i )
+        mNodalValueNames.resize(rParameters["nodal_value_list"].size());
+        for( unsigned int i=0; i < mNodalValueNames.size(); ++i )
         {
-            mNodalValues[i] = rParameters["nodal_value_list"].GetArrayItem(i).GetString();
+            mNodalValueNames[i] = rParameters["nodal_value_list"].GetArrayItem(i).GetString();
         }
 
         // nodal value names to intput
-        mProcessInfoValues.resize(rParameters["processinfo_value_list"].size());
-        for( unsigned int i=0; i < mProcessInfoValues.size(); ++i )
+        mProcessInfoValueNames.resize(rParameters["processinfo_value_list"].size());
+        for( unsigned int i=0; i < mProcessInfoValueNames.size(); ++i )
         {
-            mProcessInfoValues[i] = rParameters["processinfo_value_list"].GetArrayItem(i).GetString();
+            mProcessInfoValueNames[i] = rParameters["processinfo_value_list"].GetArrayItem(i).GetString();
         }
 
         mNumNodes = 0;
@@ -149,25 +149,25 @@ public:
         KRATOS_TRY
 
         // test for valid input parameters / model part
-        for (unsigned int i = 0; i < mVariables.size(); i++)
+        for (unsigned int i = 0; i < mVariableNames.size(); i++)
         {
-            if (KratosComponents< Variable<double> >::Has(mVariables[i]))
+            if (KratosComponents< Variable<double> >::Has(mVariableNames[i]))
             {
-                if (mrModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents< Variable<double> >::Get(mVariables[i])) == false)
+                if (mrModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents< Variable<double> >::Get(mVariableNames[i])) == false)
                 {
-                    KRATOS_THROW_ERROR(std::runtime_error, "variable is not found in nodal solution steps variable list: ", mVariables[i])
+                    KRATOS_THROW_ERROR(std::runtime_error, "variable is not found in nodal solution steps variable list: ", mVariableNames[i])
                 }
             }
-            else if (KratosComponents< Variable<array_1d<double,3> > >::Has(mVariables[i]))
+            else if (KratosComponents< Variable<array_1d<double,3> > >::Has(mVariableNames[i]))
             {
-                if (mrModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents< Variable<array_1d<double,3> > >::Get(mVariables[i])) == false)
+                if (mrModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents< Variable<array_1d<double,3> > >::Get(mVariableNames[i])) == false)
                 {
-                    KRATOS_THROW_ERROR(std::runtime_error,"variable is not found in nodal solution steps variable list: ", mVariables[i])
+                    KRATOS_THROW_ERROR(std::runtime_error,"variable is not found in nodal solution steps variable list: ", mVariableNames[i])
                 }
             }
             else
             {
-                KRATOS_THROW_ERROR(std::invalid_argument, "variable type not supported: ", mVariables[i])
+                KRATOS_THROW_ERROR(std::invalid_argument, "variable type not supported: ", mVariableNames[i])
             }
         }
 
@@ -199,7 +199,8 @@ public:
         if (mNumNodes != dims[0])
             KRATOS_THROW_ERROR(std::runtime_error, "inconsistent dimension in file: ", mFilename)
 
-        if (mNumNodes != static_cast<SizeType>(mrModelPart.Nodes().size()))
+        // if (mNumNodes != static_cast<SizeType>(mrModelPart.Nodes().size()))
+        if (mNumNodes != mrModelPart.Nodes().size())
             KRATOS_THROW_ERROR(std::runtime_error, "detected change in number of nodes.", "")
 
         std::vector<unsigned int> NodeIdBuffer(mrModelPart.Nodes().size());
@@ -207,35 +208,33 @@ public:
 
         // check that the node ordering is consistent between the model part and file
         int Delta = 0;
-        auto itNode = std::begin(NodeIdBuffer);
-        std::for_each(std::begin(mrModelPart.Nodes()), std::end(mrModelPart.Nodes()),
-            [&](NodeType& rNode)
-            {
-                Delta += std::abs(static_cast<int>(rNode.Id()) - static_cast<int>(*itNode));
-                itNode++;
-            });
+        int itNode = 0;
+        for (const auto& rNode : mrModelPart.Nodes())
+        {
+            Delta += std::abs(rNode.Id() - NodeIdBuffer[itNode]);
+            itNode++;
+        }
 
         if (Delta != 0)
-            KRATOS_THROW_ERROR(std::runtime_error, "detected mismatch of node ids in file: ", mFilename);
+            KRATOS_ERROR_IF(Delta != 0) << "detected mismatch of node ids in file: " << mFilename << std::endl;
 
         std::string values_group_name = "/NodalData/Values";
 
-        for( std::size_t i = 0; i < mNodalValues.size(); ++i)
+        for( std::size_t i = 0; i < mNodalValueNames.size(); ++i)
         {
-            std::string dataset_name = values_group_name + "/" + mNodalValues[i];
+            std::string dataset_name = values_group_name + "/" + mNodalValueNames[i];
 
             // File.getObjinfo(dataset_name.c_str(),&status);
             H5::DataSet value_dataset = File.openDataSet(dataset_name.c_str());
             value_dataset.getSpace().getSimpleExtentDims(dims);
 
-            if (KratosComponents< Variable<Vector> >::Has(mNodalValues[i]))
+            if (KratosComponents< Variable<Vector> >::Has(mNodalValueNames[i]))
             {
                 std::vector<double> value_data_buffer(dims[0] * dims[1]);
                 value_dataset.read(value_data_buffer.data(), H5::PredType::NATIVE_DOUBLE);
                 auto it_value = std::begin(value_data_buffer);
 
-                std::for_each(std::begin(mrModelPart.Nodes()), std::end(mrModelPart.Nodes()),
-                   [&](NodeType& rNode)
+                for( auto& rNode : mrModelPart.Nodes() )
                 {
                     Vector temp_vector( dims[1] );
                     for( size_t j = 0; j < dims[1]; ++j)
@@ -243,11 +242,11 @@ public:
                         temp_vector[j] = *it_value;
                         it_value++;
                     }
-                    rNode.GetValue(KratosComponents< Variable<Vector> >::Get(mNodalValues[i])) = temp_vector;
-                });
+                    rNode.GetValue(KratosComponents< Variable<Vector> >::Get(mNodalValueNames[i])) = temp_vector;
+                }
             }
 
-            else if( KratosComponents< Variable<Matrix> >::Has(mNodalValues[i]) )
+            else if( KratosComponents< Variable<Matrix> >::Has(mNodalValueNames[i]) )
             {
                 std::vector<double> value_data_buffer(dims[0] * dims[1] * dims[2]);
                 value_dataset.read(value_data_buffer.data(), H5::PredType::NATIVE_DOUBLE);
@@ -265,28 +264,28 @@ public:
                             it_value++;
                         }
                     }
-                    rNode.GetValue(KratosComponents< Variable<Matrix> >::Get(mNodalValues[i])) = temp_matrix;
+                    rNode.GetValue(KratosComponents< Variable<Matrix> >::Get(mNodalValueNames[i])) = temp_matrix;
                 });
             }
 
             else
             {
-                KRATOS_ERROR << "Reading from value " << mNodalValues[i] << " is not implemented right now" << std::endl;
+                KRATOS_ERROR << "Reading from value " << mNodalValueNames[i] << " is not implemented right now" << std::endl;
             }
         } //nodal values
         
-        std::string procinfo_group_name = "/ProcessInfo";
+        std::string procinfo_group_name("/ProcessInfo");
         hsize_t procinfo_dims[1];
-        for( std::size_t i = 0; i < mProcessInfoValues.size(); ++i)
+        for( std::size_t i = 0; i < mProcessInfoValueNames.size(); ++i)
         {
-            std::string dataset_name = procinfo_group_name + "/" + mProcessInfoValues[i];
+            std::string dataset_name = procinfo_group_name + "/" + mProcessInfoValueNames[i];
             
             H5::DataSet procinfo_dataset = File.openDataSet(dataset_name.c_str());
             procinfo_dataset.getSpace().getSimpleExtentDims(procinfo_dims);
 
-            if (KratosComponents< Variable<Vector> >::Has(mProcessInfoValues[i]))
+            if (KratosComponents< Variable<Vector> >::Has(mProcessInfoValueNames[i]))
             {
-                const Variable< Vector >& rVariable = KratosComponents< Variable<Vector> >::Get(mProcessInfoValues[i]);
+                const Variable< Vector >& rVariable = KratosComponents< Variable<Vector> >::Get(mProcessInfoValueNames[i]);
                 
                 std::vector<double> procinfo_data_buffer(procinfo_dims[0]); 
                 procinfo_dataset.read(procinfo_data_buffer.data(), H5::PredType::NATIVE_DOUBLE);
@@ -318,7 +317,7 @@ public:
         if (mNumNodes != Dims[0])
             KRATOS_THROW_ERROR(std::runtime_error, "inconsistent dimension in file: ", mFilename)
 
-        if (mNumNodes != static_cast<SizeType>(mrModelPart.Nodes().size()))
+        if (mNumNodes != mrModelPart.Nodes().size())
             KRATOS_THROW_ERROR(std::runtime_error, "detected change in number of nodes.", "")
 
         std::vector<unsigned int> NodeIdBuffer(mrModelPart.Nodes().size());
@@ -326,27 +325,26 @@ public:
 
         // check that the node ordering is consistent between the model part and file
         int Delta = 0;
-        auto itNode = std::begin(NodeIdBuffer);
-        std::for_each(std::begin(mrModelPart.Nodes()), std::end(mrModelPart.Nodes()),
-           [&](NodeType& rNode)
-           {
-                Delta += std::abs(static_cast<int>(rNode.Id()) - static_cast<int>(*itNode));
-                itNode++;
-           });
+        int itNode = 0;
+        for (const auto& rNode : mrModelPart.Nodes())
+        {
+            Delta += std::abs(rNode.Id() - NodeIdBuffer[itNode]);
+            itNode++;
+        }
 
         if (Delta != 0)
-            KRATOS_THROW_ERROR(std::runtime_error, "detected mismatch of node ids in file: ", mFilename);
+            KRATOS_ERROR_IF(Delta != 0) << "detected mismatch of node ids in file: " << mFilename << std::endl;
 
         // input time step data
         std::stringstream TimeStepPathStream;
         TimeStepPathStream << "/NodalData/" << std::fixed << std::setprecision(10) << mrModelPart.GetProcessInfo()[TIME];
         std::string TimeStepGroupName = TimeStepPathStream.str();
 
-        for (unsigned int i = 0; i < mVariables.size(); i++)
+        for (unsigned int i = 0; i < mVariableNames.size(); i++)
         {
-            std::string DatasetName = TimeStepGroupName + "/" + mVariables[i];
+            std::string DatasetName = TimeStepGroupName + "/" + mVariableNames[i];
             H5::DataSet VariableDataset = File.openDataSet(DatasetName.c_str());
-            if (KratosComponents< Variable<double> >::Has(mVariables[i]))
+            if (KratosComponents< Variable<double> >::Has(mVariableNames[i]))
             {
                 std::vector<double> VariableDataBuffer(mrModelPart.Nodes().size());
                 VariableDataset.read(VariableDataBuffer.data(), H5::PredType::NATIVE_DOUBLE);
@@ -354,18 +352,18 @@ public:
                 std::for_each(std::begin(mrModelPart.Nodes()), std::end(mrModelPart.Nodes()),
                    [&](NodeType& rNode)
                    {
-                        rNode.FastGetSolutionStepValue(KratosComponents< Variable<double> >::Get(mVariables[i])) = *itNode;
+                        rNode.FastGetSolutionStepValue(KratosComponents< Variable<double> >::Get(mVariableNames[i])) = *itNode;
                         itNode++;
                    });
             }
-            else if (KratosComponents< Variable<array_1d<double,3> > >::Has(mVariables[i]))
+            else if (KratosComponents< Variable<array_1d<double,3> > >::Has(mVariableNames[i]))
             {
                 std::vector<double> VariableDataBuffer(3 * mrModelPart.Nodes().size());
                 VariableDataset.read(VariableDataBuffer.data(), H5::PredType::NATIVE_DOUBLE);
                 unsigned int BlockBegin = 0;
                 for (auto it = std::begin(mrModelPart.Nodes()); it != std::end(mrModelPart.Nodes()); it++)
                 {
-                    array_1d<double,3>& rData = it->FastGetSolutionStepValue(KratosComponents< Variable<array_1d<double,3> > >::Get(mVariables[i]));
+                    array_1d<double,3>& rData = it->FastGetSolutionStepValue(KratosComponents< Variable<array_1d<double,3> > >::Get(mVariableNames[i]));
                     for (unsigned int k = 0; k < 3; k++)
                         rData[k] = VariableDataBuffer[BlockBegin + k];
                     BlockBegin += 3;
@@ -464,9 +462,9 @@ private:
     ModelPart& mrModelPart;
     std::string mFilename;
     SizeType mNumNodes;
-    std::vector<std::string> mVariables;
-    std::vector<std::string> mNodalValues;
-    std::vector<std::string> mProcessInfoValues;
+    std::vector<std::string> mVariableNames;
+    std::vector<std::string> mNodalValueNames;
+    std::vector<std::string> mProcessInfoValueNames;
 
     ///@}
     ///@name Private Operators
