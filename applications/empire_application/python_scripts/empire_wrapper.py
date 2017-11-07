@@ -180,6 +180,7 @@ class EmpireWrapper:
 
             # Determine Sizes of Variables
             sizes_of_variables = self._sizes_of_variables(model_part, kratos_variables)
+            self._check_size_of_variables(sizes_of_variables)
 
             # initialize vector storing the values
             size_data_field = model_part.NumberOfNodes() * sum(sizes_of_variables)
@@ -316,6 +317,7 @@ class EmpireWrapper:
         # -------------------------------------------------------------------------------------------------
         def _get_data_field(self, model_part, kratos_variables):
             sizes_of_variables = self._sizes_of_variables(model_part, kratos_variables)
+            self._check_size_of_variables(sizes_of_variables)            
 
             num_nodes = model_part.NumberOfNodes()
             sum_sizes = sum(sizes_of_variables)
@@ -347,7 +349,7 @@ class EmpireWrapper:
         def _set_data_field(self, model_part, kratos_variables, data_field, size_of_variables):
             # check if size of data field is correct
             if len(data_field) != model_part.NumberOfNodes() * sum(size_of_variables):
-                raise("ERROR: received data field has wrong size!")
+                raise Exception("received data field has wrong size!")
 
             # Preallocate values
             values = []
@@ -417,4 +419,18 @@ class EmpireWrapper:
                 converted_list[i] = c_signal[i]
             
             return converted_list
+        # -------------------------------------------------------------------------------------------------
+
+        # -------------------------------------------------------------------------------------------------
+        def _check_size_of_variables(self, size_of_variables):
+            sum_sizes = sum(size_of_variables)
+
+            possible_sizes = [ 1,  # Scalar
+                               3,  # Vector
+                               6 ] # doubleVector
+
+            if sum_sizes not in possible_sizes:
+                err_msg =  "Wrong size of variables: " + str(sum_sizes) + " !\n"
+                err_msg += "Curently only Scalar, Vector and doubleVector are supported by Empire!"
+                raise Exception(err_msg)
         # -------------------------------------------------------------------------------------------------
