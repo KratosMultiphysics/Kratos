@@ -6,6 +6,7 @@
 #include "custom_utilities/hdf5_pointer_bins_utility.h"
 #include "custom_io/hdf5_properties_io.h"
 #include "custom_io/hdf5_nodal_solution_step_variables_io.h"
+#include "custom_io/hdf5_data_value_container_io.h"
 
 namespace Kratos
 {
@@ -210,6 +211,8 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
     KRATOS_TRY;
 
     ReadProperties(rModelPart.rProperties());
+    Detail::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
+    process_info_io.ReadDataValueContainer(rModelPart.GetProcessInfo());
     ReadNodes(rModelPart.Nodes());
     ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
@@ -228,7 +231,10 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     nodal_variables_io.WriteVariablesList(rModelPart);
     nodal_variables_io.WriteBufferSize(rModelPart.GetBufferSize());
     WriteProperties(rModelPart.rProperties());
-    rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through the writing process.    
+    Detail::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
+    process_info_io.WriteDataValueContainer(rModelPart.GetProcessInfo());
+    rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through
+                               // the writing process.
     WriteNodes(rModelPart.Nodes());
     WriteElements(rModelPart.Elements());
     WriteConditions(rModelPart.Conditions());

@@ -159,11 +159,20 @@ class TestCase(KratosUnittest.TestCase):
                 for read_cond_node, write_cond_node in zip(read_cond.GetNodes(), write_cond.GetNodes()):
                     self.assertEqual(read_cond_node.Id, write_cond_node.Id)
             # Check process info
-            #self.assertEqual(read_model_part.ProcessInfo[DOMAIN_SIZE], write_model_part.ProcessInfo[DOMAIN_SIZE])
-            #self.assertEqual(read_model_part.ProcessInfo[TIME], write_model_part.ProcessInfo[TIME])
-            #read_initial_strain = read_model_part.ProcessInfo[INITIAL_STRAIN]
-            #write_initial_strain = write_model_part.ProcessInfo[INITIAL_STRAIN]
-            #self.assertEqual(read_initial_strain, write_initial_strain)
+            self.assertEqual(read_model_part.ProcessInfo[DOMAIN_SIZE], write_model_part.ProcessInfo[DOMAIN_SIZE])
+            self.assertEqual(read_model_part.ProcessInfo[TIME], write_model_part.ProcessInfo[TIME])
+            read_vector = read_model_part.ProcessInfo[INITIAL_STRAIN]
+            write_vector = write_model_part.ProcessInfo[INITIAL_STRAIN]
+            self.assertEqual(read_vector.Size(), write_vector.Size())
+            for i in range(len(read_vector)):
+                self.assertEqual(read_vector[i], write_vector[i])
+            read_matrix = read_model_part.ProcessInfo[GREEN_LAGRANGE_STRAIN_TENSOR]
+            write_matrix = write_model_part.ProcessInfo[GREEN_LAGRANGE_STRAIN_TENSOR]
+            self.assertEqual(read_matrix.Size1(), write_matrix.Size1())
+            self.assertEqual(read_matrix.Size2(), write_matrix.Size2())
+            for i in range(read_matrix.Size1()):
+                for j in range(read_matrix.Size2()):
+                    self.assertEqual(read_matrix[i,j], write_matrix[i,j])
     
     def test_HDF5NodalSolutionStepDataIO(self):
         write_model_part = ModelPart("write")

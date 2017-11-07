@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include "includes/kratos_components.h"
+#include "custom_io/hdf5_data_value_container_io.h"
 
 namespace Kratos
 {
@@ -21,61 +22,22 @@ void PropertiesIO::ReadProperties(PropertiesContainerType& rProperties)
 
     Vector<int> prop_ids;
     mpFile->ReadAttribute(mPrefix + "/Properties", "Ids", prop_ids);
-    std::vector<std::string> attr_names;
 
     for (unsigned i = 0; i < prop_ids.size(); ++i)
     {
         std::stringstream pstream;
         pstream << mPrefix << "/Properties/(" << prop_ids[i] << ")";
         std::string path = pstream.str();
-        mpFile->GetAttributeNames(path, attr_names);
-        PropertiesType& r_properties = rProperties[prop_ids[i]];
 
-        for (const auto& r_name : attr_names)
-        {
-            if (KratosComponents<Variable<int>>::Has(r_name))
-            {
-                int value;
-                mpFile->ReadAttribute(path, r_name, value);
-                const Variable<int>& rVARIABLE =
-                    KratosComponents<Variable<int>>::Get(r_name);
-                r_properties[rVARIABLE] = value;
-            }
-            else if (KratosComponents<Variable<double>>::Has(r_name))
-            {
-                double value;
-                mpFile->ReadAttribute(path, r_name, value);
-                const Variable<double>& rVARIABLE =
-                    KratosComponents<Variable<double>>::Get(r_name);
-                r_properties[rVARIABLE] = value;
-            }
-            else if (KratosComponents<Variable<Vector<double>>>::Has(r_name))
-            {
-                Vector<double> value;
-                mpFile->ReadAttribute(path, r_name, value);
-                const Variable<Vector<double>>& rVARIABLE =
-                    KratosComponents<Variable<Vector<double>>>::Get(r_name);
-                r_properties[rVARIABLE] = value;
-            }
-            else if (KratosComponents<Variable<Matrix<double>>>::Has(r_name))
-            {
-                Matrix<double> value;
-                mpFile->ReadAttribute(path, r_name, value);
-                const Variable<Matrix<double>>& rVARIABLE =
-                    KratosComponents<Variable<Matrix<double>>>::Get(r_name);
-                r_properties[rVARIABLE] = value;
-            }
-            else
-            {
-                KRATOS_ERROR << "Unsupported variable type: " << r_name << std::endl;
-            }
-        }
+        DataValueContainerIO data_io(path, mpFile);
+        PropertiesType::ContainerType& r_data = rProperties[prop_ids[i]].Data();
+        data_io.ReadDataValueContainer(r_data);
     }
 
     KRATOS_CATCH("");
 }
 
-void PropertiesIO::WriteProperties(Properties const& rProperties)
+void PropertiesIO::WriteProperties(PropertiesType const& rProperties)
 {
     KRATOS_TRY;
 
@@ -84,35 +46,9 @@ void PropertiesIO::WriteProperties(Properties const& rProperties)
     std::string path = pstream.str();
     mpFile->AddPath(path);
 
+    DataValueContainerIO data_io(path, mpFile);
     const PropertiesType::ContainerType& r_data = rProperties.Data();
-    for (auto it = r_data.begin(); it != r_data.end(); ++it)
-    {
-        const std::string& r_name = it->first->Name();
-        if (KratosComponents<Variable<int>>::Has(r_name))
-        {
-            const Variable<int>& rVARIABLE = KratosComponents<Variable<int>>::Get(r_name);
-            mpFile->WriteAttribute(path, r_name, r_data[rVARIABLE]);
-        }
-        else if (KratosComponents<Variable<double>>::Has(r_name))
-        {
-            const Variable<double>& rVARIABLE = KratosComponents<Variable<double>>::Get(r_name);
-            mpFile->WriteAttribute(path, r_name, r_data[rVARIABLE]);
-        }
-        else if (KratosComponents<Variable<Vector<double>>>::Has(r_name))
-        {
-            const Variable<Vector<double>>& rVARIABLE = KratosComponents<Variable<Vector<double>>>::Get(r_name);
-            mpFile->WriteAttribute(path, r_name, r_data[rVARIABLE]);
-        }
-        else if (KratosComponents<Variable<Matrix<double>>>::Has(r_name))
-        {
-            const Variable<Matrix<double>>& rVARIABLE = KratosComponents<Variable<Matrix<double>>>::Get(r_name);
-            mpFile->WriteAttribute(path, r_name, r_data[rVARIABLE]);
-        }
-        else
-        {
-            KRATOS_ERROR << "Unsupported variable type: " << r_name << std::endl;
-        }
-    }
+    data_io.WriteDataValueContainer(r_data);
 
     KRATOS_CATCH("");
 }
