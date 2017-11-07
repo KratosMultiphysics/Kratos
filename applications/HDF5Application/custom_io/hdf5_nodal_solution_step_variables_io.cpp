@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "includes/kratos_components.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -14,25 +15,29 @@ NodalSolutionStepVariablesIO::NodalSolutionStepVariablesIO(std::string Prefix, F
 {
 }
 
-void NodalSolutionStepVariablesIO::WriteVariablesList(VariablesList const& rVariablesList)
+void NodalSolutionStepVariablesIO::WriteVariablesList(ModelPart const& rModelPart)
 {
     KRATOS_TRY;
 
+    const VariablesList& r_variables_list = rModelPart.GetNodalSolutionStepVariablesList();
     int pos = 0;
     mpFile->AddPath(mPrefix + "/NodalVariablesList");
-    for (auto it = rVariablesList.begin(); it != rVariablesList.end(); ++it)
+    for (auto it = r_variables_list.begin(); it != r_variables_list.end(); ++it)
         mpFile->WriteAttribute(mPrefix + "/NodalVariablesList", it->Name(), pos++);
 
     KRATOS_CATCH("");
 }
 
-void NodalSolutionStepVariablesIO::ReadVariablesList(VariablesList& rVariablesList) const
+void NodalSolutionStepVariablesIO::ReadAndAssignVariablesList(ModelPart& rModelPart) const
 {
     KRATOS_TRY;
 
-    rVariablesList.clear();
+    VariablesList& r_variables_list = rModelPart.GetNodalSolutionStepVariablesList();
+    r_variables_list.clear();
     std::vector<std::string> variable_names;
     mpFile->GetAttributeNames(mPrefix + "/NodalVariablesList", variable_names);
+
+    // Ensure the variables order is the same as in the original model part.
     std::vector<std::string> ordered_variable_names(variable_names.size());
     for (const auto& r_name : variable_names)
     {
@@ -41,17 +46,27 @@ void NodalSolutionStepVariablesIO::ReadVariablesList(VariablesList& rVariablesLi
         ordered_variable_names[pos] = r_name;
     }
 
+    // Add the variables to the variables list.
     for (const auto& r_name : ordered_variable_names)
     {
         if (KratosComponents<VariableData>::Has(r_name))
         {
             const VariableData& rVARIABLE = KratosComponents<VariableData>::Get(r_name);
-            rVariablesList.Add(rVARIABLE);
+            r_variables_list.Add(rVARIABLE);
         }
         else
         {
             KRATOS_ERROR << "Unsupported variable type: " << r_name << std::endl;
         }
+    }
+
+    // Assign variables list to nodes.
+#pragma omp parallel
+    {
+        NodesContainerType::iterator nodes_begin, nodes_end;
+        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
+        for (auto it = nodes_begin; it != nodes_end; ++it)
+            it->SetSolutionStepVariablesList(&r_variables_list);
     }
 
     KRATOS_CATCH("");
@@ -67,13 +82,13 @@ void NodalSolutionStepVariablesIO::WriteBufferSize(int BufferSize)
     KRATOS_CATCH("");
 }
 
-int NodalSolutionStepVariablesIO::ReadBufferSize() const
+void NodalSolutionStepVariablesIO::ReadAndAssignBufferSize(ModelPart& rModelPart) const
 {
     KRATOS_TRY;
 
     int buffer_size;
     mpFile->ReadAttribute(mPrefix, "BufferSize", buffer_size);
-    return buffer_size;
+    rModelPart.SetBufferSize(buffer_size);
 
     KRATOS_CATCH("");
 }

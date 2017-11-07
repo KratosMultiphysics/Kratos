@@ -57,7 +57,7 @@ void AddCustomIOToPython()
     ;
 
     class_<HDF5::FileSerial, HDF5::FileSerial::Pointer, bases<HDF5::File>, boost::noncopyable>(
-        "HDF5::FileSerial", init<Parameters&>())
+        "HDF5FileSerial", init<Parameters&>())
     ;
     
     class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, bases<IO>, boost::noncopyable>(
@@ -66,7 +66,7 @@ void AddCustomIOToPython()
 
 #ifdef KRATOS_USING_MPI
     class_<HDF5::FileParallel, HDF5::FileParallel::Pointer, bases<HDF5::File>, boost::noncopyable>(
-        "HDF5::FileParallel", init<Parameters&>())
+        "HDF5FileParallel", init<Parameters&>())
     ;
 
     class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, bases<IO>, boost::noncopyable>(

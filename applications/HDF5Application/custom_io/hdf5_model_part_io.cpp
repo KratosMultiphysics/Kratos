@@ -209,14 +209,13 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
-    Detail::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
-    nodal_variables_io.ReadVariablesList(rModelPart.GetNodalSolutionStepVariablesList());
-    int buffer_size = nodal_variables_io.ReadBufferSize();
     ReadProperties(rModelPart.rProperties());
     ReadNodes(rModelPart.Nodes());
     ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
-    rModelPart.SetBufferSize(buffer_size);
+    Detail::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
+    nodal_variables_io.ReadAndAssignVariablesList(rModelPart);
+    nodal_variables_io.ReadAndAssignBufferSize(rModelPart);
 
     KRATOS_CATCH("");
 }
@@ -226,7 +225,7 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     KRATOS_TRY;
 
     Detail::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
-    nodal_variables_io.WriteVariablesList(rModelPart.GetNodalSolutionStepVariablesList());
+    nodal_variables_io.WriteVariablesList(rModelPart);
     nodal_variables_io.WriteBufferSize(rModelPart.GetBufferSize());
     WriteProperties(rModelPart.rProperties());
     rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through the writing process.    

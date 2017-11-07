@@ -20,6 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "containers/variables_list.h"
 
 // Application includes
@@ -58,13 +59,13 @@ public:
     ///@name Operations
     ///@{
 
-    void WriteVariablesList(VariablesList const& rVariablesList);
+    void WriteVariablesList(ModelPart const& rModelPart);
 
-    void ReadVariablesList(VariablesList& rVariablesList) const;
+    void ReadAndAssignVariablesList(ModelPart& rModelPart) const;
 
     void WriteBufferSize(int BufferSize);
 
-    int ReadBufferSize() const;
+    void ReadAndAssignBufferSize(ModelPart& rModelPart) const;
 
     ///@}
 
