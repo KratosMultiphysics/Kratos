@@ -1,5 +1,8 @@
 // Author: Miguel Angel Celigueta maceli@cimne.upc.edu
 
+#ifndef _DEM_AUXILIARY_UTILITIES_H
+#define	_DEM_AUXILIARY_UTILITIES_H
+
 #include "includes/define.h"
 #include <boost/python.hpp>
 #include "includes/model_part.h"
@@ -20,3 +23,5 @@ namespace Kratos {
         
     };
 }
+
+#endif // _DEM_AUXILIARY_UTILITIES_H

@@ -43,7 +43,6 @@ set(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ellipsoidcluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/singlespherecluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/newmark_beta_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/dem_integration_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/verlet_velocity_scheme.cpp
@@ -90,9 +89,6 @@ set(KRATOS_DEM_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosDEMApplication SHARED ${KRATOS_DEM_APPLICATION_SOURCES})
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosDEMApplication)
-endif(USE_COTIRE MATCHES ON)
 #if(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
 #GENERATE_EXPORT_HEADER( KratosDEMApplication
 #             BASE_NAME KratosDEMApplication
@@ -105,6 +101,9 @@ ADD_COMPILER_EXPORT_FLAGS()
 target_link_libraries(KratosDEMApplication KratosCore )
 set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
 set_target_properties(KratosDEMApplication PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")
+if(USE_COTIRE MATCHES ON)
+  cotire(KratosDEMApplication)
+endif(USE_COTIRE MATCHES ON)
 install(TARGETS KratosDEMApplication DESTINATION libs )
 
 if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
