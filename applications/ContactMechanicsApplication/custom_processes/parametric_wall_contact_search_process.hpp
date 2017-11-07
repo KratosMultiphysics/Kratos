@@ -380,7 +380,7 @@ namespace Kratos
       KRATOS_TRY
 
       ProcessInfo& rCurrentProcessInfo= mrMainModelPart.GetProcessInfo();
-      double Dimension = rCurrentProcessInfo[DOMAIN_SIZE];
+      double Dimension = rCurrentProcessInfo[SPACE_DIMENSION];
 
       //create properties prototype for the contact conditions
       unsigned int NumberOfProperties = mrMainModelPart.NumberOfProperties();
@@ -566,7 +566,7 @@ namespace Kratos
       KRATOS_TRY
 
       ProcessInfo& rCurrentProcessInfo= mrMainModelPart.GetProcessInfo();
-      double Dimension = rCurrentProcessInfo[DOMAIN_SIZE];
+      double Dimension = rCurrentProcessInfo[SPACE_DIMENSION];
 
       ModelPart::ConditionsContainerType ContactConditions;
       

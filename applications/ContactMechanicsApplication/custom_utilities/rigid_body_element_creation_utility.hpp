@@ -79,16 +79,16 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    void CalculateRigidBodyParameters(ModelPart& rModelPart, Vector& rCenterOfGravity, Matrix& rInertiaTensor, Matrix& rLocalAxesMatrix, double& rMass, unsigned int& MeshId)
+    void CalculateRigidBodyParameters(ModelPart& rModelPart, Vector& rCenterOfGravity, Matrix& rInertiaTensor, Matrix& rLocalAxesMatrix, double& rMass)
     {
 
       KRATOS_TRY
 	
       RigidBodyUtilities RigidBodyUtils;
 
-      rMass             =  RigidBodyUtils.MassCalculation(rModelPart,MeshId);
-      rCenterOfGravity  =  RigidBodyUtils.CalculateCenterOfMass(rModelPart,MeshId);
-      rInertiaTensor    =  RigidBodyUtils.CalculateInertiaTensor(rModelPart,MeshId);
+      rMass             =  RigidBodyUtils.MassCalculation(rModelPart);
+      rCenterOfGravity  =  RigidBodyUtils.CalculateCenterOfMass(rModelPart);
+      rInertiaTensor    =  RigidBodyUtils.CalculateInertiaTensor(rModelPart);
 
 
       //set inertia tensor in main axes (local inertia tensor means main axes)
@@ -123,8 +123,8 @@ private:
 
       rInertiaTensor = MainInertia;
       
-      // rVolumeAcceleration = RigidBodyUtils.GetVolumeAcceleration(rModelPart,MeshId);
-      // rElasticModulus     = RigidBodyUtils.GetElasticModulus(rModelPart,MeshId);
+      // rVolumeAcceleration = RigidBodyUtils.GetVolumeAcceleration(rModelPart);
+      // rElasticModulus     = RigidBodyUtils.GetElasticModulus(rModelPart);
 
       std::cout<<"  [ Mass "<<rMass<<" ]"<<std::endl;
       std::cout<<"  [ CenterOfGravity "<<rCenterOfGravity<<" ]"<<std::endl;
@@ -138,13 +138,13 @@ private:
     // //************************************************************************************
     // //************************************************************************************
 
-    void CreateNode (NodeType::Pointer& Node, ModelPart& rModelPart, const Vector& rPoint, unsigned int& MeshId, unsigned int& nodeId, bool& rBodyIsFixed)
+    void CreateNode (NodeType::Pointer& Node, ModelPart& rModelPart, const Vector& rPoint, unsigned int& nodeId, bool& rBodyIsFixed)
     {
       KRATOS_TRY
 
       Node = rModelPart.CreateNewNode( nodeId, rPoint[0], rPoint[1], rPoint[2]);  
 	  
-      rModelPart.AddNode( Node, MeshId );
+      rModelPart.AddNode( Node );
 
       //generating the dofs
       NodeType::DofsContainerType& reference_dofs = (rModelPart.NodesBegin())->GetDofs();
@@ -234,8 +234,6 @@ private:
       //validate against defaults -- this also ensures no type mismatch
       CustomParameters.ValidateAndAssignDefaults(DefaultParameters);
       
-      unsigned int MeshId = 0;
-
       bool BodyIsFixed = CustomParameters["fixed_body"].GetBool();
 
       //create properties for the rigid body
@@ -253,7 +251,7 @@ private:
 
       if( ComputeBodyParameters ){
 	
-    	this->CalculateRigidBodyParameters( rRigidBodyModelPart, CenterOfGravity, InertiaTensor, LocalAxesMatrix, Mass, MeshId );
+    	this->CalculateRigidBodyParameters( rRigidBodyModelPart, CenterOfGravity, InertiaTensor, LocalAxesMatrix, Mass );
       }
       else{
 	
@@ -293,7 +291,7 @@ private:
       unsigned int LastNodeId  = rMainModelPart.Nodes().back().Id() + 1;
 
       NodeType::Pointer NodeCenterOfGravity;
-      this->CreateNode( NodeCenterOfGravity, rMainModelPart, CenterOfGravity, MeshId, LastNodeId, BodyIsFixed);
+      this->CreateNode( NodeCenterOfGravity, rMainModelPart, CenterOfGravity, LastNodeId, BodyIsFixed);
 
       //Set this node to the boundary model_part where it belongs to
       unsigned int RigidBodyNodeId = rRigidBodyModelPart.Nodes().back().Id();
@@ -307,8 +305,8 @@ private:
 	      {
 		if( i_node->Id() == RigidBodyNodeId ){
 		  i_mp->AddNode(NodeCenterOfGravity);
-		  break;
 		  std::cout<<" node set "<<std::endl;
+		  break;
 		}
 	      }
 	  }

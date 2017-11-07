@@ -84,14 +84,14 @@ namespace Kratos
       
       class_<NodalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "NodalNeighboursSearch", init<ModelPart&, int, int, int, int>()
+	 "NodalNeighboursSearch", init<ModelPart&, int, int, int>()
 	 )
 	.def("CleanNeighbours", &NodalNeighboursSearchProcess::ClearNeighbours)
 	;
       
       class_<ElementalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "ElementalNeighboursSearch", init<ModelPart&, int, int, int, int>()
+	 "ElementalNeighboursSearch", init<ModelPart&, int, int, int>()
 	 )
 	.def("CleanNeighbours", &ElementalNeighboursSearchProcess::ClearNeighbours)
 	;
@@ -103,6 +103,7 @@ namespace Kratos
 	(
 	 "BuildModelPartBoundary", init<ModelPart&, std::string, int>()
 	 )
+	.def("SearchConditionMasters", &BuildModelPartBoundaryProcess::SearchConditionMasters)
 	;
 
 
@@ -183,7 +184,7 @@ namespace Kratos
 
       class_<ModelVolumeCalculationProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "ModelVolumeCalculation", init<ModelPart&, int, int>()
+	 "ModelVolumeCalculation", init<ModelPart&, bool, int>()
 	 )
 	 .def("ExecuteInitializeSolutionStep", &ModelVolumeCalculationProcess::ExecuteInitializeSolutionStep)
 	 .def("ExecuteFinalizeSolutionStep", &ModelVolumeCalculationProcess::ExecuteFinalizeSolutionStep)
