@@ -100,7 +100,7 @@ protected:
 
     File& GetFile() const;
 
-    virtual void Check();
+    void Check();
 
     ///@}
 
