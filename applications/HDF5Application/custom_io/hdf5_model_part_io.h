@@ -82,12 +82,6 @@ public:
 
     void WriteConditions(ConditionsContainerType const& rConditions) override;
 
-    void ReadInitialValues(ModelPart& rModelPart) override;
-
-    void ReadInitialValues(NodesContainerType& rNodes,
-                           ElementsContainerType& rElements,
-                           ConditionsContainerType& rConditions) override;
-
     void ReadModelPart(ModelPart& rModelPart) override;
 
     void WriteModelPart(ModelPart& rModelPart) override;

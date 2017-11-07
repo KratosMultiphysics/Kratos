@@ -196,16 +196,6 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
     KRATOS_CATCH("");
 }
 
-void ModelPartIO::ReadInitialValues(ModelPart& rModelPart)
-{
-}
-
-void ModelPartIO::ReadInitialValues(NodesContainerType& rNodes,
-                                    ElementsContainerType& rElements,
-                                    ConditionsContainerType& rConditions)
-{
-}
-
 void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
