@@ -149,6 +149,7 @@ CMAKE_BUILD=(
 
   # Custom python suffix for liboost-python
   -DBOOST_PYTHON_SUFFIX="-py34"
+  -DUSE_COTIRE=ON
 )
 
 ########################################################################################################################
