@@ -106,21 +106,30 @@ class TestCase(KratosUnittest.TestCase):
         }""")
         return HDF5FileSerial(params)
 
-    def _get_model_part_io(self):
+    def _get_model_part_io(self, hdf5_file):
         params = Parameters("""
         {
             "prefix" : "/some_prefix_for_testing",
             "list_of_elements" : ["Element2D3N", "Element2D4N"],
             "list_of_conditions" : ["SurfaceCondition3D3N", "SurfaceCondition3D4N"]
         }""")
-        hdf5_file = self._get_file()
         return HDF5ModelPartIO(params, hdf5_file)
+
+    def _get_nodal_solution_step_data_io(self, hdf5_file):
+        params = Parameters("""
+        {
+            "partitioned" : false,
+            "prefix" : "/some_prefix_for_testing",
+            "list_of_variables" : ["DISPLACEMENT", "VELOCITY", "ACCELERATION", "PRESSURE", "VISCOSITY", "DENSITY", "ACTIVATION_LEVEL"]
+        }""")
+        return HDF5NodalSolutionStepDataIO(params, hdf5_file)
 
     def test_HDF5ModelPartIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             write_model_part = ModelPart("write")
             self._initialize_model_part(write_model_part)
-            hdf5_model_part_io = self._get_model_part_io()
+            hdf5_file = self._get_file()
+            hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
             read_model_part = ModelPart("read")
             hdf5_model_part_io.ReadModelPart(read_model_part)
@@ -149,6 +158,34 @@ class TestCase(KratosUnittest.TestCase):
                 self.assertEqual(len(read_cond.GetNodes()), len(write_cond.GetNodes()))
                 for read_cond_node, write_cond_node in zip(read_cond.GetNodes(), write_cond.GetNodes()):
                     self.assertEqual(read_cond_node.Id, write_cond_node.Id)
+    
+    def test_HDF5NodalSolutionStepDataIO(self):
+        write_model_part = ModelPart("write")
+        self._initialize_model_part(write_model_part)
+        hdf5_file = self._get_file()
+        hdf5_model_part_io = self._get_model_part_io(hdf5_file)
+        hdf5_nodal_solution_step_data_io = self._get_nodal_solution_step_data_io(hdf5_file)
+        hdf5_model_part_io.WriteModelPart(write_model_part)
+        hdf5_nodal_solution_step_data_io.WriteNodalResults(write_model_part.Nodes, 0)
+        read_model_part = ModelPart("read")
+        hdf5_model_part_io.ReadModelPart(read_model_part)
+        hdf5_nodal_solution_step_data_io.ReadNodalResults(read_model_part.Nodes, read_model_part.GetCommunicator(), 0)
+        # Check data.
+        for read_node, write_node in zip(read_model_part.Nodes, write_model_part.Nodes):
+            self.assertEqual(read_node.GetSolutionStepValue(DISPLACEMENT_X), write_node.GetSolutionStepValue(DISPLACEMENT_X))
+            self.assertEqual(read_node.GetSolutionStepValue(DISPLACEMENT_Y), write_node.GetSolutionStepValue(DISPLACEMENT_Y))
+            self.assertEqual(read_node.GetSolutionStepValue(DISPLACEMENT_Z), write_node.GetSolutionStepValue(DISPLACEMENT_Z))
+            self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_X), write_node.GetSolutionStepValue(VELOCITY_X))
+            self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_Y), write_node.GetSolutionStepValue(VELOCITY_Y))
+            self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_Z), write_node.GetSolutionStepValue(VELOCITY_Z))
+            self.assertEqual(read_node.GetSolutionStepValue(ACCELERATION_X), write_node.GetSolutionStepValue(ACCELERATION_X))
+            self.assertEqual(read_node.GetSolutionStepValue(ACCELERATION_Y), write_node.GetSolutionStepValue(ACCELERATION_Y))
+            self.assertEqual(read_node.GetSolutionStepValue(ACCELERATION_Z), write_node.GetSolutionStepValue(ACCELERATION_Z))
+            self.assertEqual(read_node.GetSolutionStepValue(PRESSURE), write_node.GetSolutionStepValue(PRESSURE))
+            self.assertEqual(read_node.GetSolutionStepValue(VISCOSITY), write_node.GetSolutionStepValue(VISCOSITY))
+            self.assertEqual(read_node.GetSolutionStepValue(DENSITY), write_node.GetSolutionStepValue(DENSITY))
+            self.assertEqual(read_node.GetSolutionStepValue(ACTIVATION_LEVEL), write_node.GetSolutionStepValue(ACTIVATION_LEVEL))
+
     def tearDown(self):
         pass
 
