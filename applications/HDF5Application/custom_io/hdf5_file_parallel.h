@@ -162,7 +162,7 @@ private:
     {
         // Expects a valid free path.
         KRATOS_ERROR_IF(HasPath(Path)) << "Path already exists: " << Path << std::endl;
-        
+
         // Create any missing subpaths.
         auto pos = Path.find_last_of('/');
         if (pos != 0) // Skip if last '/' is root.
@@ -235,10 +235,10 @@ private:
             H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_start, nullptr,
                                 local_dims, nullptr);
             hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
-            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id,
-                                     dxpl_id, &rData[0]) < 0)
-                << "H5Dwrite failed." << std::endl;
-                KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
+            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, &rData[0]) < 0)
+                << "H5Dwrite failed for path \"" << Path
+                << "\". Please ensure data set is non-empty." << std::endl;
+            KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
             KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
         }
         KRATOS_ERROR_IF(H5Sclose(fspace_id) < 0) << "H5Sclose failed." << std::endl;
@@ -308,8 +308,9 @@ private:
                                 local_dims, nullptr);
             hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
             KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id,
-                                     dxpl_id, &rData(0,0)) < 0)
-                << "H5Dwrite failed." << std::endl;
+                                     dxpl_id, &rData(0, 0)) < 0)
+                << "H5Dwrite failed for path \"" << Path
+                << "\". Please ensure data set is non-empty." << std::endl;
             KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
             KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
         }

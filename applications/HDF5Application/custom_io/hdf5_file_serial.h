@@ -198,9 +198,8 @@ private:
         hid_t dset_id = H5Dcreate(file_id, Path.c_str(), dtype_id, dspace_id,
                                   H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
-        KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL,
-                                 H5P_DEFAULT, &rData[0]) < 0)
-            << "H5Dwrite failed." << std::endl;
+        KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, &rData[0]) < 0)
+            << "H5Dwrite failed for path \"" << Path << "\"." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
     }
@@ -234,9 +233,8 @@ private:
         hid_t dset_id = H5Dcreate(file_id, Path.c_str(), dtype_id, dspace_id,
                                   H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
-        KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL,
-                                 H5P_DEFAULT, &rData(0,0)) < 0)
-            << "H5Dwrite failed." << std::endl;
+        KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, &rData(0, 0)) < 0)
+            << "H5Dwrite failed for path \"" << Path << "\"." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
     }
