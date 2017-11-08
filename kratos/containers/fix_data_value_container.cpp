@@ -20,7 +20,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/fix_data_value_container.h"
 
 namespace Kratos
 {
