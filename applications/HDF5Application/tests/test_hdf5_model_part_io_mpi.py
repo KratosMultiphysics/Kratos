@@ -98,6 +98,7 @@ class TestCase(KratosUnittest.TestCase):
             node.SetSolutionStepValue(VISCOSITY, random.random())
             node.SetSolutionStepValue(DENSITY, random.random())
             node.SetSolutionStepValue(ACTIVATION_LEVEL, random.randint(-100, 100))
+        KratosTrilinos.ParallelFillCommunicator(model_part.GetRootModelPart()).Execute()
         model_part.GetCommunicator().SynchronizeNodalSolutionStepsData()
         # Set some process info variables.
         model_part.ProcessInfo[DOMAIN_SIZE] = 3 # int
@@ -144,7 +145,6 @@ class TestCase(KratosUnittest.TestCase):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             write_model_part = ModelPart("write")
             KratosMetis.SetMPICommunicatorProcess(write_model_part).Execute()
-            KratosTrilinos.ParallelFillCommunicator(write_model_part.GetRootModelPart()).Execute()
             self._initialize_model_part(write_model_part)
             hdf5_file = self._get_file()
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
@@ -201,7 +201,38 @@ class TestCase(KratosUnittest.TestCase):
     
     def test_HDF5NodalSolutionStepDataIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            pass
+            write_model_part = ModelPart("write")
+            KratosMetis.SetMPICommunicatorProcess(write_model_part).Execute()
+            self._initialize_model_part(write_model_part)
+            hdf5_file = self._get_file()
+            hdf5_model_part_io = self._get_model_part_io(hdf5_file)
+            hdf5_model_part_io.WriteModelPart(write_model_part)
+            read_model_part = ModelPart("read")
+            KratosMetis.SetMPICommunicatorProcess(read_model_part).Execute()
+            hdf5_model_part_io.ReadModelPart(read_model_part)
+            KratosTrilinos.ParallelFillCommunicator(read_model_part.GetRootModelPart()).Execute()
+            hdf5_nodal_solution_step_data_io = self._get_nodal_solution_step_data_io(hdf5_file)
+            hdf5_nodal_solution_step_data_io.WriteNodalResults(write_model_part.Nodes, 0)
+            hdf5_nodal_solution_step_data_io.ReadNodalResults(read_model_part.Nodes, read_model_part.GetCommunicator(), 0)
+            read_model_part.GetCommunicator().SynchronizeNodalSolutionStepsData()
+            # Check data.
+            for read_node, write_node in zip(read_model_part.Nodes, write_model_part.Nodes):
+                self.assertEqual(read_node.GetSolutionStepValue(DISPLACEMENT_X), write_node.GetSolutionStepValue(DISPLACEMENT_X))
+                self.assertEqual(read_node.GetSolutionStepValue(DISPLACEMENT_Y), write_node.GetSolutionStepValue(DISPLACEMENT_Y))
+                self.assertEqual(read_node.GetSolutionStepValue(DISPLACEMENT_Z), write_node.GetSolutionStepValue(DISPLACEMENT_Z))
+                self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_X), write_node.GetSolutionStepValue(VELOCITY_X))
+                self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_Y), write_node.GetSolutionStepValue(VELOCITY_Y))
+                self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_Z), write_node.GetSolutionStepValue(VELOCITY_Z))
+                self.assertEqual(read_node.GetSolutionStepValue(ACCELERATION_X), write_node.GetSolutionStepValue(ACCELERATION_X))
+                self.assertEqual(read_node.GetSolutionStepValue(ACCELERATION_Y), write_node.GetSolutionStepValue(ACCELERATION_Y))
+                self.assertEqual(read_node.GetSolutionStepValue(ACCELERATION_Z), write_node.GetSolutionStepValue(ACCELERATION_Z))
+                self.assertEqual(read_node.GetSolutionStepValue(PRESSURE), write_node.GetSolutionStepValue(PRESSURE))
+                self.assertEqual(read_node.GetSolutionStepValue(VISCOSITY), write_node.GetSolutionStepValue(VISCOSITY))
+                self.assertEqual(read_node.GetSolutionStepValue(DENSITY), write_node.GetSolutionStepValue(DENSITY))
+                self.assertEqual(read_node.GetSolutionStepValue(ACTIVATION_LEVEL), write_node.GetSolutionStepValue(ACTIVATION_LEVEL))
+                self.assertEqual(read_node.GetSolutionStepValue(PARTITION_INDEX), write_node.GetSolutionStepValue(PARTITION_INDEX))
+            if KratosMPI.mpi.rank == 0:
+                self._remove_file("test_hdf5_model_part_io_mpi.h5")
 
     def tearDown(self):
         pass
