@@ -19,6 +19,7 @@
 #include <type_traits>
 
 // External includes
+#include "boost/timer.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -284,6 +285,7 @@ template <class TScalar>
 void File::WriteAttribute(std::string ObjectPath, std::string Name, TScalar Value)
 {
     KRATOS_TRY;
+    boost::timer timer;
     hid_t type_id, space_id, attr_id;
 
     type_id = Detail::GetScalarDataType<TScalar>();
@@ -295,6 +297,8 @@ void File::WriteAttribute(std::string ObjectPath, std::string Name, TScalar Valu
     KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &Value) < 0) << "H5Awrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    if (GetEchoLevel() == 1)
+        std::cout << "Write time \"" << ObjectPath << "\": " << timer.elapsed() << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -302,6 +306,7 @@ template <class TScalar>
 void File::WriteAttribute(std::string ObjectPath, std::string Name, const Vector<TScalar>& rValue)
 {
     KRATOS_TRY;
+    boost::timer timer;
     hid_t type_id, space_id, attr_id;
 
     type_id = Detail::GetScalarDataType<TScalar>();
@@ -314,6 +319,8 @@ void File::WriteAttribute(std::string ObjectPath, std::string Name, const Vector
     KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue[0]) < 0) << "H5Awrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    if (GetEchoLevel() == 1)
+        std::cout << "Write time \"" << ObjectPath << "\": " << timer.elapsed() << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -321,6 +328,7 @@ template <class TScalar>
 void File::WriteAttribute(std::string ObjectPath, std::string Name, const Matrix<TScalar>& rValue)
 {
     KRATOS_TRY;
+    boost::timer timer;
     hid_t type_id, space_id, attr_id;
 
     type_id = Detail::GetScalarDataType<TScalar>();
@@ -336,6 +344,8 @@ void File::WriteAttribute(std::string ObjectPath, std::string Name, const Matrix
     KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue(0,0)) < 0) << "H5Awrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    if (GetEchoLevel() == 1)
+        std::cout << "Write time \"" << ObjectPath << "\": " << timer.elapsed() << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -343,6 +353,7 @@ template <class TScalar>
 void File::ReadAttribute(std::string ObjectPath, std::string Name, TScalar& rValue)
 {
     KRATOS_TRY;
+    boost::timer timer;
     hid_t mem_type_id, attr_type_id, space_id, attr_id;
     int ndims;
 
@@ -370,6 +381,8 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, TScalar& rVal
     // Read attribute.
     KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue) < 0) << "H5Aread failed." << std::endl; 
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    if (GetEchoLevel() == 1)
+        std::cout << "Read time \"" << ObjectPath << "\": " << timer.elapsed() << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -377,6 +390,7 @@ template <class TScalar>
 void File::ReadAttribute(std::string ObjectPath, std::string Name, Vector<TScalar>& rValue)
 {
     KRATOS_TRY;
+    boost::timer timer;
     hid_t mem_type_id, attr_type_id, space_id, attr_id;
     int ndims;
     hsize_t dims[1];
@@ -407,6 +421,8 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, Vector<TScala
     // Read attribute.
     KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue[0]) < 0) << "H5Aread failed." << std::endl; 
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    if (GetEchoLevel() == 1)
+        std::cout << "Read time \"" << ObjectPath << "\": " << timer.elapsed() << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -414,6 +430,7 @@ template <class TScalar>
 void File::ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TScalar>& rValue)
 {
     KRATOS_TRY;
+    boost::timer timer;
     hid_t mem_type_id, attr_type_id, space_id, attr_id;
     int ndims;
     hsize_t dims[2];
@@ -444,6 +461,8 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TScala
     // Read attribute.
     KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue(0,0)) < 0) << "H5Aread failed." << std::endl; 
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    if (GetEchoLevel() == 1)
+        std::cout << "Read time \"" << ObjectPath << "\": " << timer.elapsed() << std::endl;
     KRATOS_CATCH("");
 }
 

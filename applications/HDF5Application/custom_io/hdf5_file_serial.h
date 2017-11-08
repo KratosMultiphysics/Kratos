@@ -159,6 +159,8 @@ private:
     template <class T>
     void WriteDataSetVectorImpl(std::string Path, const Vector<T>& rData)
     {
+        KRATOS_TRY;
+        boost::timer timer;
         // Expects a valid free path.
         KRATOS_ERROR_IF(HasPath(Path)) << "Path already exists: " << Path << std::endl;
 
@@ -202,11 +204,17 @@ private:
             << "H5Dwrite failed for path \"" << Path << "\"." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
+
+        if (GetEchoLevel() == 1)
+            std::cout << "Write time \"" << Path << "\": " << timer.elapsed() << std::endl;
+        KRATOS_CATCH("");
     }
 
     template <class T>
     void WriteDataSetMatrixImpl(std::string Path, const Matrix<T>& rData)
     {
+        KRATOS_TRY;
+        boost::timer timer;
         // Check that full path does not exist before trying to write data.
         KRATOS_ERROR_IF(HasPath(Path)) << "Path already exists: " << Path << std::endl;
 
@@ -237,6 +245,10 @@ private:
             << "H5Dwrite failed for path \"" << Path << "\"." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
+
+        if (GetEchoLevel() == 1)
+            std::cout << "Write time \"" << Path << "\": " << timer.elapsed() << std::endl;
+        KRATOS_CATCH("");
     }
 
     template <class T>
@@ -262,6 +274,8 @@ private:
     template <class T>
     void ReadDataSetVectorImpl(std::string Path, Vector<T>& rData, unsigned StartIndex, unsigned BlockSize)
     {
+        KRATOS_TRY;
+        boost::timer timer;
         // Check that full path exists.
         KRATOS_ERROR_IF_NOT(IsDataSet(Path))
             << "Path is not a data set: " << Path << std::endl;
@@ -329,11 +343,17 @@ private:
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
+
+        if (GetEchoLevel() == 1)
+            std::cout << "Read time \"" << Path << "\": " << timer.elapsed() << std::endl;
+        KRATOS_CATCH("");
     }
 
     template <class T>
     void ReadDataSetMatrixImpl(std::string Path, Matrix<T>& rData, unsigned StartIndex, unsigned BlockSize)
     {
+        KRATOS_TRY;
+        boost::timer timer;
         // Check that full path exists.
         KRATOS_ERROR_IF_NOT(IsDataSet(Path))
             << "Path is not a data set: " << Path << std::endl;
@@ -383,6 +403,10 @@ private:
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
+
+        if (GetEchoLevel() == 1)
+            std::cout << "Read time \"" << Path << "\": " << timer.elapsed() << std::endl;
+        KRATOS_CATCH("");
     }
     ///@}
 
