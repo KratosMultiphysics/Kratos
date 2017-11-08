@@ -87,10 +87,10 @@ namespace Kratos
 
             double epsi = 1.0e-9;
             if ( fabs( Lode ) > 1.0-epsi) {
-               Lode = -30.0*KRATOS_M_PI / 180.0 * Lode / fabs(Lode);
+               Lode = -30.0*Globals::Pi / 180.0 * Lode / fabs(Lode);
             }
             else if ( J2 < 10.0*epsi) {
-               Lode = 30.0*KRATOS_M_PI / 180.0;
+               Lode = 30.0*Globals::Pi / 180.0;
             } 
             else {
                Lode = std::asin( -Lode) / 3.0;
