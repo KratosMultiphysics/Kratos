@@ -115,6 +115,10 @@ private:
     ///@name Private Operations
     ///@{
     std::tuple<unsigned, unsigned> GetPartitionStartIndexAndBlockSize(std::string Path) const;
+
+    void WritePartitionIndex(std::string Path, NodesContainerType const& rGhostNodes);
+
+    void ReadAndAssignPartitionIndex(std::string Path, ModelPart& rModelPart) const;
     ///@}
 };
 
