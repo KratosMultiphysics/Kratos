@@ -236,11 +236,11 @@ namespace Kratos
 			}
 			else if (test < (-1.0 +  1.0e-6)) { // singularity at south pole
 				EA[0] = atan2 (2 * mZ * mW, (mW * mW - mZ * mZ));
-				EA[1] = KRATOS_M_PI;
+				EA[1] = Globals::Pi;
 				EA[2] = 0.0;
 			}
 			else {                    
-				EA[0] = Globals::Pi mZ + mY * mW), -(mY * mZ - mX * mW));
+				EA[0] = atan2((mX * mZ + mY * mW), -(mY * mZ - mX * mW));
 				EA[1] = -acos (test);
 				EA[2] = atan2((mX * mZ - mY * mW), (mY * mZ + mX * mW));
 			}
