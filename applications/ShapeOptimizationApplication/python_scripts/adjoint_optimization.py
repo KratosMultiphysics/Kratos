@@ -30,6 +30,11 @@ class kratosAdjointFluidAnalyzer( (__import__("analyzer_base")).analyzerBaseClas
 
         if not os.path.isdir(self.history_path):
             os.mkdir(self.history_path)
+            
+        setup_factory = __import__("setup_factory")
+
+        self.primal = setup_factory.OptimizationSetup(self.main__optimization_model_part, self.analyzer_settings["adjoint_fluid_analyzer"]["primal_setup"])
+        self.adjoint = setup_factory.OptimizationSetup(self.main__optimization_model_part, self.analyzer_settings["adjoint_fluid_analyzer"]["adjoint_setup"])            
 
     def Initialize( self, Model ):
         self.Model = Model
@@ -128,11 +133,6 @@ class kratosAdjointFluidAnalyzer( (__import__("analyzer_base")).analyzerBaseClas
 
     # --------------------------------------------------------------------------
     def initializeSolutionLoop( self ):
-
-        setup_factory = __import__("setup_factory")
-
-        self.primal = setup_factory.OptimizationSetup(self.main__optimization_model_part, self.analyzer_settings["adjoint_fluid_analyzer"]["primal_setup"])
-        self.adjoint = setup_factory.OptimizationSetup(self.main__optimization_model_part, self.analyzer_settings["adjoint_fluid_analyzer"]["adjoint_setup"])
 
         # print(self.adjoint.setup_parameters)
 

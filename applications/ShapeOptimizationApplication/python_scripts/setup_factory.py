@@ -40,10 +40,64 @@ class OptimizationSetup:
         self.parameters = setupSettings
         # overwrite the default settings with user-provided parameters
         # self.parameters["design_variables"].RecursivelyValidateAndAssignDefaults(default_settings)
+        
+        self.python_module = "%s_%s" % (self.parameters["path"].GetString(), self.parameters["python_module"].GetString())
+        print(self.python_module)
+        shutil.copy('%s/%s.py' %  (self.parameters["path"].GetString(), self.parameters["python_module"].GetString()), '%s.py' % self.python_module)
+
+        self.ChangePythonModule()
+
+        self.module = __import__(self.python_module)
 
         with open("%s/%s" % (self.parameters["path"].GetString(),  setupSettings["parameters_file"].GetString()), "r") as file_input:
             self.setup_parameters = json.load(file_input)
         file_input.close()
+
+    def ChangePythonModule( self ):
+        with open('%s.py' % self.python_module, 'r') as file_input:
+            lines = file_input.readlines()
+        file_input.close()
+
+        python_nesting_system = ''
+        found_while = False
+        found_nesting = False
+        for line in lines:
+            if (line[0:5]=='while' or line[0:3]=='for'):
+                found_while = True
+                continue
+            python_nesting_system = ''
+            if found_while:
+                for character in line:
+                    if (character == ' ' or character == '\t'):
+                        python_nesting_system = '%s%s' % (python_nesting_system, character)
+                    elif (character != '\n'):
+                        found_nesting = True
+                        break
+            
+            if found_nesting:
+                break
+
+        new_headers = []
+        new_lines = []
+        found_headers = False
+
+        for line in lines:
+            if (line[0:4] == 'from'):
+                new_headers.append(line)
+
+        for line in lines:
+            if (line[0:4] != 'from'):
+                if not found_headers:
+                    new_lines.append('def main():\n')
+                    found_headers = True
+                new_lines.append('%s%s' % (python_nesting_system, line))
+        
+        file_output = open('%s.py' % self.python_module, 'w')
+        for line in new_headers:
+            file_output.write(line)        
+        for line in new_lines:
+            file_output.write(line)
+        file_output.close()                
 
     def AddCustomProcess( self, customProcess, overwrite = False, existingProcessPythonModuleName=""):
         if self.setup_parameters.get("list_other_processes") is not None:
@@ -90,8 +144,9 @@ class OptimizationSetup:
             _temp = os.getcwd()
             os.chdir(self.path)
             self.WriteModelPart()
-            python_module = self.parameters["python_module"].GetString()
-            _ = os.popen("runkratos %s.py 2>&1 > log.kratos" % python_module).read()
+            # python_module = self.parameters["python_module"].GetString()
+            # _ = os.popen("runkratos %s.py 2>&1 > log.kratos" % python_module).read()
+            self.module.main()
             os.chdir(_temp)
 
     def WriteModelPart( self ):
