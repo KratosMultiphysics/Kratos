@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosIncompressibleFluidApplication 
+KratosPFEMApplication 
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -16,7 +16,7 @@ Gran Capita' s/n, 08034 Barcelona, Spain
 
 Permission is hereby granted, free  of charge, to any person obtaining
 a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
+"Software"), to  deal in  the Software without  restriction, including 
 without limitation  the rights to  use, copy, modify,  merge, publish,
 distribute,  sublicense and/or  sell copies  of the  Software,  and to
 permit persons to whom the Software  is furnished to do so, subject to
@@ -41,31 +41,30 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: kazem $
-//   Date:                $Date: 2009-01-21 14:14:49 $
-//   Revision:            $Revision: 1.4 $
+//   Last Modified by:    $Author: rrossi $
+//   Date:                $Date: 2007-08-28 08:42:05 $
+//   Revision:            $Revision: 1.1 $
 //
 //
 
+ 
+#if !defined(KRATOS_POINT_NEUMANN_AXISYM_CONDITION_H_INCLUDED )
+#define  KRATOS_POINT_NEUMANN_AXISYM_CONDITION_H_INCLUDED 
 
-#if !defined(KRATOS_SUPG_CONV_3D_INCLUDED )
-#define  KRATOS_SUPG_CONV_3D_INCLUDED
 
 
-// System includes  
+// System includes 
 
 
 // External includes 
 #include "boost/smart_ptr.hpp"
- 
+
 
 // Project includes
 #include "includes/define.h"
-#include "includes/element.h"
+#include "includes/condition.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-#include "includes/serializer.h"
-#include "custom_elements/SUPG_conv_diff_3d.h"
 
 
 namespace Kratos
@@ -90,38 +89,30 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   
-  /// ASGS, Incompressible fluid, Variational multi scale method, Quasi-static subscales, Implicit method.
-  /** 
-  ASGS is an abriviation for Algebraic Sub-Grid Scale element. It is implemented to solve
-  Implicitly the NS equations in a variotionally consistant sub-grid scale methid. It also has the OSS swith
-  to use Orthogonal Sub Scales to use impose explicity the orthogonality condition on subscales´ estimation.
-  The "Dynamic_Tau" swith allows the use of "Dt", time step, in calculation of Tau.
-  This element just work with Monolithic schemes like "monolithic_solver_eulerian" or "monolithic_solver_lagranigan".
-  The detailed description of the formulation could be fined in
-     "Stabilized finite element approximation of transient incompressible flows using orthogonal subscales, Comput. Methods Appl. Mech. Engrg. 191 (2002) 4295?4321"
-  
+  /// Short class definition.
+  /** Detail class definition.
   */
-  class SUPGConv3D
-	  : public SUPGConvDiff3D
+  class PointNeumannAxisym
+	  : public Condition
     {
     public:
       ///@name Type Definitions
       ///@{
       
-      /// Counted pointer of Fluid2DASGS
-      KRATOS_CLASS_POINTER_DEFINITION(SUPGConv3D);
+      /// Counted pointer of PointNeumannAxisym
+      KRATOS_CLASS_POINTER_DEFINITION(PointNeumannAxisym);
  
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-
-	  SUPGConv3D(IndexType NewId, GeometryType::Pointer pGeometry);
-      SUPGConv3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+      PointNeumannAxisym(){};
+	  PointNeumannAxisym(IndexType NewId, GeometryType::Pointer pGeometry);
+      PointNeumannAxisym(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
       /// Destructor.
-      virtual ~SUPGConv3D();
+      virtual ~PointNeumannAxisym();
       
 
       ///@}
@@ -133,23 +124,19 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+      Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
       void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
       
       void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
       //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
       
-//       void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-      	        /// The DOF´s are VELOCITY_X, VELOCITY_Y and PRESSURE
-	        /**
-	         * @param ElementalDofList: the list of DOFs
-	         * @param rCurrentProcessInfo: the current process info instance
-		 */
-// 	         void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
-	  
-
+	  void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo);
+       //void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
+       void GetFirstDerivativesVector(Vector& values, int Step = 0);
+       void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
       ///@}
       ///@name Access
@@ -165,17 +152,11 @@ namespace Kratos
       ///@name Input and output
       ///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "SUPGConv3D #" ;
-		}
-
+      /// Turn back information as a string.
+//      virtual String Info() const;
+      
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << Info() << Id();
-	}
+//      virtual void PrintInfo(std::ostream& rOStream) const;
 
       /// Print object's data.
 //      virtual void PrintData(std::ostream& rOStream) const;
@@ -194,13 +175,14 @@ namespace Kratos
         
         
       ///@} 
-      ///@name Protected member Variables  
+      ///@name Protected member Variables 
       ///@{ 
- 		 
-      ///@}
+        
+        
+      ///@} 
       ///@name Protected Operators
       ///@{ 
-       SUPGConv3D() : SUPGConvDiff3D(){}
+        
         
       ///@} 
       ///@name Protected Operations
@@ -224,43 +206,27 @@ namespace Kratos
             
       ///@}
       
-   // private:
-       	         
- 	         /// To Calculate tau
-	        /**
-	         * @return tau: multiplied by Residual of the momentum equation		    
-		 */		 
-	         virtual void CalculateConvTau(array_1d<double, 3 >& ms_adv_vel, double& tau, const double time, const double area, const ProcessInfo& rCurrentProcessInfo);
-                              
-	    private:
+    private:
       ///@name Static Member Variables 
       ///@{ 
+        
         
       ///@} 
       ///@name Member Variables 
       ///@{ 
-      
-     ///@}
-     ///@name Serialization
-     ///@{	
-        friend class Serializer;
-//         ASGS2D() : Element()
-//         {
-//         }
+		
         
-        virtual void save(Serializer& rSerializer) const
-        {
-            rSerializer.save("Name", "SUPGConv3D");
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-        }
-
-        virtual void load(Serializer& rSerializer)
-        {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-        }
         
       ///@} 
-
+      ///@name Private Operators
+      ///@{ 
+		void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
+										ProcessInfo& rCurrentProcessInfo,
+										bool CalculateStiffnessMatrixFlag,
+										bool CalculateResidualVectorFlag);
+        
+      
+      ///@} 
       ///@name Private Operations
       ///@{ 
         
@@ -279,17 +245,16 @@ namespace Kratos
       ///@name Un accessible methods 
       ///@{ 
       
-	
       /// Assignment operator.
-      //Fluid2DASGS& operator=(const Fluid2DASGS& rOther);
+      //PointNeumannAxisym& operator=(const PointNeumannAxisym& rOther);
 
       /// Copy constructor.
-      //Fluid2DASGS(const Fluid2DASGS& rOther);
+      //PointNeumannAxisym(const PointNeumannAxisym& rOther);
 
         
       ///@}    
         
-    }; // Class Fluid2DASGS 
+    }; // Class PointNeumannAxisym 
 
   ///@} 
   
@@ -304,11 +269,11 @@ namespace Kratos
  
   /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream, 
-				    Fluid2DASGS& rThis);
+				    PointNeumannAxisym& rThis);
 */
   /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const Fluid2DASGS& rThis)
+				    const PointNeumannAxisym& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -320,6 +285,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ASGS_2D_H_INCLUDED  defined 
+#endif // KRATOS_POINT_NEUMANN_AXISYM_CONDITION_H_INCLUDED   defined 
 
 
