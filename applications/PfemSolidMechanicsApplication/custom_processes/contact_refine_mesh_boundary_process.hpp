@@ -23,7 +23,6 @@
 
 #include "pfem_solid_mechanics_application_variables.h"
 ///VARIABLES used:
-//Data:     DOMAIN_LABEL(nodes)(set)g
 //StepData: NODAL_H, NORMAL, CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked) BOUNDARY, TO_SPLIT
 //          (set)     BOUNDARY(nodes), TO_ERASE(conditions), NEW_ENTITY(conditions,nodes)(set), TO_SPLIT(conditions)->locally
@@ -148,11 +147,11 @@ public:
 
       if( this->mEchoLevel > 0 ){
         std::cout<<" [ REFINE BOUNDARY : "<<std::endl;
-	//std::cout<<"   Nodes and Conditions : "<<mrModelPart.Nodes(mMeshId).size()<<", "<<mrModelPart.Conditions(mMeshId).size()<<std::endl;
+	//std::cout<<"   Nodes and Conditions : "<<mrModelPart.Nodes().size()<<", "<<mrModelPart.Conditions().size()<<std::endl;
       }
       
-      mrRemesh.Info->InsertedBoundaryConditions    = mrModelPart.NumberOfConditions(mMeshId);
-      mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes(mMeshId);
+      mrRemesh.Info->InsertedBoundaryConditions    = mrModelPart.NumberOfConditions();
+      mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes();
 
       RefineCounters LocalRefineInfo;
       LocalRefineInfo.Initialize();
@@ -165,7 +164,7 @@ public:
 	  std::vector<Point > list_of_points;
 	  std::vector<ConditionType::Pointer> list_of_conditions;
 
-	  unsigned int conditions_size = mrModelPart.Conditions(mMeshId).size();
+	  unsigned int conditions_size = mrModelPart.Conditions().size();
 	    
 	  if( mrModelPart.Name() == mrRemesh.SubModelPartName ){
 
@@ -185,7 +184,7 @@ public:
 	    
 	    ModelPart& rModelPart = mrModelPart.GetSubModelPart(mrRemesh.SubModelPartName);
 	    
-	    conditions_size = rModelPart.Conditions(mMeshId).size();
+	    conditions_size = rModelPart.Conditions().size();
 	    list_of_points.reserve(conditions_size);
 	    list_of_conditions.reserve(conditions_size);
 	    
@@ -204,8 +203,8 @@ public:
 
 
 
-     mrRemesh.Info->InsertedBoundaryConditions    = mrModelPart.NumberOfConditions(mMeshId)-mrRemesh.Info->InsertedBoundaryConditions;
-     mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes(mMeshId)-mrRemesh.Info->InsertedBoundaryNodes;
+     mrRemesh.Info->InsertedBoundaryConditions    = mrModelPart.NumberOfConditions()-mrRemesh.Info->InsertedBoundaryConditions;
+     mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes()-mrRemesh.Info->InsertedBoundaryNodes;
 
      if( this->mEchoLevel > 0 ){
         std::cout<<"   [ CONDITIONS ( inserted : "<<mrRemesh.Info->InsertedBoundaryConditions<<" ) ]"<<std::endl;
@@ -323,8 +322,8 @@ private:
 
       //swap conditions for a temporary use
       ModelPart::ConditionsContainerType TemporaryConditions;
-      TemporaryConditions.reserve(rModelPart.Conditions(mMeshId).size());
-      TemporaryConditions.swap(rModelPart.Conditions(mMeshId));
+      TemporaryConditions.reserve(rModelPart.Conditions().size());
+      TemporaryConditions.swap(rModelPart.Conditions());
 
       for(ModelPart::ConditionsContainerType::iterator ic = TemporaryConditions.begin(); ic!= TemporaryConditions.end(); ic++)
 	{
@@ -335,7 +334,7 @@ private:
 	    }
 	  
            if(ic->IsNot(TO_ERASE)){
-	     rModelPart.AddCondition(*(ic.base()), mMeshId);
+	     rModelPart.AddCondition(*(ic.base()));
            }
            // else{
            //   std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
@@ -357,7 +356,7 @@ private:
       KRATOS_TRY
 	    
       //node to get the DOFs from
-      Node<3>::DofsContainerType& reference_dofs = (rModelPart.NodesBegin(mMeshId))->GetDofs();
+      Node<3>::DofsContainerType& reference_dofs = (rModelPart.NodesBegin())->GetDofs();
       //unsigned int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
       double z = 0.0;
 
@@ -377,13 +376,7 @@ private:
 
 	  Node<3>::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
 
-	  //set to the main mesh (Mesh 0) to avoid problems in the NodalPreIds (number of nodes: change) in other methods
-	  if(mMeshId!=0)
-	    rModelPart.AddNode(pnode, mMeshId);
-	  //(rModelPart.Nodes(mMeshId)).push_back(pnode);
-
-
-	  pnode->SetBufferSize(rModelPart.NodesBegin(mMeshId)->GetBufferSize() );
+	  pnode->SetBufferSize(rModelPart.NodesBegin()->GetBufferSize() );
 
 
 	  //assign data to dofs
@@ -421,7 +414,7 @@ private:
 	  DataTransferUtilities.Interpolate2Nodes( geom, N, variables_list, *pnode);
 
 	  // //int cond_id = list_of_points[i].Id();
-	  // //Geometry< Node<3> >& rConditionGeometry = (*(rModelPart.Conditions(mMeshId).find(cond_id).base()))->GetGeometry();
+	  // //Geometry< Node<3> >& rConditionGeometry = (*(rModelPart.Conditions().find(cond_id).base()))->GetGeometry();
 
 	  // unsigned int buffer_size = pnode->GetBufferSize();
 
@@ -446,7 +439,6 @@ private:
 	  pnode->Set(NEW_ENTITY);  //if boundary is rebuild, the flag INSERTED must be set to new conditions too
 	  //std::cout<<"   Node ["<<pnode->Id()<<"] is a NEW_ENTITY "<<std::endl;
 
-	  pnode->SetValue(DOMAIN_LABEL,mMeshId);
 	  double& nodal_h = pnode->FastGetSolutionStepValue(NODAL_H);
 	  //nodal_h = 0.5*(nodal_h+mrRemesh.Refine->CriticalSide); //modify nodal_h for security
 	  nodal_h = mrRemesh.Refine->CriticalSide; //modify nodal_h for security
@@ -502,15 +494,15 @@ private:
 	  pcond2->SetValue(DEFORMATION_GRADIENT,list_of_conditions[i]->GetValue(DEFORMATION_GRADIENT));
 
 
-	  //std::cout<<" pcond0 "<<rModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedBoundaryConditions<<std::endl;
+	  //std::cout<<" pcond0 "<<rModelPart.NumberOfConditions()<<" "<<mrRemesh.Info->InsertedBoundaryConditions<<std::endl;
 
-	  rModelPart.AddCondition(pcond1,mMeshId);
+	  rModelPart.AddCondition(pcond1);
 	  
-	  //std::cout<<" pcond1 "<<rModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedBoundaryConditions<<std::endl;
+	  //std::cout<<" pcond1 "<<rModelPart.NumberOfConditions()<<" "<<mrRemesh.Info->InsertedBoundaryConditions<<std::endl;
 
-	  rModelPart.AddCondition(pcond2,mMeshId);
+	  rModelPart.AddCondition(pcond2);
 
-	  //std::cout<<" pcond2 "<<rModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedBoundaryConditions<<std::endl;
+	  //std::cout<<" pcond2 "<<rModelPart.NumberOfConditions()<<" "<<mrRemesh.Info->InsertedBoundaryConditions<<std::endl;
         }
 
 
@@ -610,7 +602,7 @@ private:
 
               Node<3>  MasterNode;
               bool condition_found = false;
-              ConditionType::Pointer MasterCondition  = mModelerUtilities.FindMasterCondition(*(ic.base()),MasterNode,rModelPart.Conditions(mMeshId),condition_found);
+              ConditionType::Pointer MasterCondition  = mModelerUtilities.FindMasterCondition(*(ic.base()),MasterNode,rModelPart.Conditions(),condition_found);
 
 
               if(condition_found){
@@ -861,7 +853,7 @@ private:
 
       //LOOP TO CONSIDER ALL SUBDOMAIN CONDITIONS
       double cond_counter=0;
-      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(mMeshId); ic!= rModelPart.ConditionsEnd(mMeshId); ic++)
+      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
 	{
 	  cond_counter ++;
 	  bool refine_candidate = false;

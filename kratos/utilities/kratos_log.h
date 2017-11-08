@@ -30,6 +30,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "utilities/stl_io.h"
 
 // Filters
 #define KRATOS_LOG_ADD_CUSTOM_FILTER(STRING) KratosLogUtils::GetInstance().AddCustomFilter(STRING);

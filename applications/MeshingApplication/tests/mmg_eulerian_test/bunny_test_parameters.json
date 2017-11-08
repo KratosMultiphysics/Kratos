@@ -73,11 +73,9 @@
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "impose_vector_value_by_direction_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes all the components of a given vector variable",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "ImposeVectorValueByDirectionProcess",
+        "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Inlet3D_Inlet",
@@ -86,9 +84,9 @@
             "direction"       : [1.0,0.0,0.0]
         }
     },{
-        "python_module" : "impose_scalar_value_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyOutletProcess",
+        "python_module" : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignScalarVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet3D_Outlet",
@@ -113,15 +111,16 @@
             "check_at_each_time_step" : false
         }
     }],
-    "gravity"                          : [{
-        "python_module" : "process_factory",
+    "gravity" : [{
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ApplyConstantVectorValueProcess",
+        "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Parts_Fluid",
             "variable_name"   : "BODY_FORCE",
             "modulus"         : 0.0,
+            "constrained"     : false,
             "direction"       : [0.0,-1.0,0.0]
         }
     }],
@@ -129,23 +128,22 @@
     {
         "python_module"   : "mmg_process",
         "kratos_module"   : "KratosMultiphysics.MeshingApplication",
-        "help"                  : "This process automatically remesh using MMG library",
-        "process_name"          : "MmgProcess",
-        "Parameters"            : {
-            "filename"                          : "mmg_eulerian_test/bunny_test",
-            "step_frequency"                    : 0,
-            "minimal_size"                      : 3.0,
-            "anisotropy_remeshing"              : true,
-            "anisotropy_parameters"             :{
-                "hmin_over_hmax_anisotropic_ratio"  : 0.15,
-                "boundary_layer_max_distance"       : 10,
-                "interpolation"                     : "Linear"
+        "help"            : "This process automatically remesh using MMG library",
+        "process_name"    : "MmgProcess",
+        "Parameters"      : {
+            "filename"              : "mmg_eulerian_test/bunny_test",
+            "step_frequency"        : 0,
+            "minimal_size"          : 3.0,
+            "anisotropy_remeshing"  : true,
+            "anisotropy_parameters" :{
+                "hmin_over_hmax_anisotropic_ratio" : 0.15,
+                "boundary_layer_max_distance"      : 10,
+                "interpolation"                    : "Linear"
             },
-            "save_external_files"               : true,
-            "echo_level"                        : 0
+            "save_external_files"   : true,
+            "echo_level"            : 0
         }
-    }
-    ],
+    }],
     "_compare_two_files_check_process" :[
     {
         "python_module"   : "compare_two_files_check_process",
@@ -157,6 +155,5 @@
             "file_name_2"       : "mmg_eulerian_test/bunny_test_result.mesh",
             "deterministic"     : false
         }
-    }
-    ]
+    }]
 }

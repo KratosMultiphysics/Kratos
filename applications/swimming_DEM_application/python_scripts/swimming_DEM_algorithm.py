@@ -8,6 +8,7 @@ import math
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
+from DEM_procedures import KratosPrint as Say
 import CFD_DEM_coupling
 import swimming_DEM_procedures as SDP
 import swimming_DEM_gid_output
@@ -31,12 +32,12 @@ if "OMPI_COMM_WORLD_SIZE" in os.environ:
     # DEM Application MPI
     import DEM_procedures_mpi as DEM_procedures
     import DEM_material_test_script_mpi as DEM_material_test_script
-    print("Running under MPI...........")
+    Say('Running under MPI...........\n')
 else:
     # DEM Application
     import DEM_procedures
     import DEM_material_test_script
-    print("Running under OpenMP........")
+    Say('Running under OpenMP........\n')
 
 sys.path.insert(0,'')
 
@@ -82,7 +83,6 @@ class Algorithm(object):
         self.disperse_phase_algorithm.coupling_algorithm = self
 
         self.procedures = self.disperse_phase_algorithm.procedures
-        self.KRATOSprint = self.disperse_phase_algorithm.KRATOSprint
         self.report = DEM_procedures.Report()
 
         # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
@@ -98,7 +98,7 @@ class Algorithm(object):
         self.disperse_phase_algorithm = DEM_algorithm.Solution(self.pp)
 
     def SetCouplingParameters(self, varying_parameters):
-        parameters_file = open("ProjectParametersDEM.json",'r')
+        parameters_file = open('ProjectParametersDEM.json', 'r')
         self.pp.CFD_DEM = Parameters(parameters_file.read())
         self.SetDoSolveDEMVariable()
         self.SetBetaParameters()
@@ -172,6 +172,8 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("filter_velocity_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_PARTICLE_VEL_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("apply_time_filter_to_fluid_fraction_option").SetBool(False)
+        self.pp.CFD_DEM.AddEmptyValue("full_particle_history_watcher").SetString("Empty")
+        self.pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").SetString("")
         self.pp.CFD_DEM.print_DISPERSE_FRACTION_option = False
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
         self.pp.CFD_DEM.PostCationConcentration = False
@@ -227,8 +229,7 @@ class Algorithm(object):
 
     def Initialize(self):
 
-        print("\nInitializing Problem...")
-        sys.stdout.flush()
+        Say('\nInitializing Problem...\n')
 
         self.run_code = self.GetRunCode()
 
@@ -314,8 +315,7 @@ class Algorithm(object):
 
         #self.SetEmbeddedTools()
 
-        self.KRATOSprint("Initialization Complete" + "\n")
-        sys.stdout.flush()
+        Say('Initialization Complete\n')
 
         self.step           = 0
         self.time           = self.pp.Start_time
@@ -332,10 +332,10 @@ class Algorithm(object):
             os.chdir(data_and_results)
             if self.pp.CFD_DEM.ContactMeshOption == "ON":
                 (coordination_number) = self.procedures.ModelData(self.disperse_phase_algorithm.spheres_model_part, self.solver) # Calculates the mean number of neighbours the mean radius, etc..
-                self.KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
+                Say('Coordination Number: ' + str(coordination_number) + '\n')
                 os.chdir(self.main_path)
             else:
-                self.KRATOSprint("Activate Contact Mesh for ModelData information")
+                Say('Activate Contact Mesh for ModelData information\n')
 
         if self.pp.CFD_DEM["flow_in_porous_medium_option"].GetBool():
             fluid_frac_util = SDP.FluidFractionFieldUtility(self.fluid_model_part, self.pp.CFD_DEM.min_fluid_fraction )
@@ -388,7 +388,7 @@ class Algorithm(object):
 
         self.report.total_steps_expected = int(self.pp.CFD_DEM["FinalTime"].GetDouble() / self.Dt_DEM)
 
-        self.KRATOSprint(self.report.BeginReport(self.timer))
+        Say(self.report.BeginReport(self.timer))
 
         # creating a Post Utils object that executes several post-related tasks
         self.post_utils_DEM = DEM_procedures.PostUtils(self.pp.CFD_DEM, self.disperse_phase_algorithm.spheres_model_part)
@@ -408,13 +408,13 @@ class Algorithm(object):
             point_coors = [0.0, 0.0, 0.01]
             target_node = SDP.FindClosestNode(self.fluid_model_part, point_coors)
             target_id = target_node.Id
-            print(target_node.X, target_node.Y, target_node.Z)
-            print(target_id)
+            Say(target_node.X, target_node.Y, target_node.Z)
+            Say(target_id)
             def condition(node):
                 return node.Id == target_id
 
             gauge.ConstructArrayOfNodes(condition)
-            print(gauge.variables)
+            Say(gauge.variables)
             #print_analytics_counter = SDP.Counter( 5 * steps_between_measurements, 1, 1) # MA: not used anywhere?
         # ANALYTICS END
 
@@ -495,20 +495,15 @@ class Algorithm(object):
 
             # solving the fluid part
 
-            if self.step >= self.GetFirstStepForFluidComputation() and not self.stationarity:
-                print("Solving Fluid... (", self.fluid_model_part.NumberOfElements(0), "elements )")
-                sys.stdout.flush()
-
-                if self.fluid_solve_counter.Tick():
-                    self.FluidSolve(self.time)
+            if self.step >= self.GetFirstStepForFluidComputation():
+                self.FluidSolve(self.time, solve_system = self.fluid_solve_counter.Tick() and not self.stationarity)
 
             # assessing stationarity
 
                 if self.stationarity_counter.Tick():
-                    print("Assessing Stationarity...")
-                    sys.stdout.flush()
+                    Say("Assessing Stationarity...\n")
                     self.stationarity = self.stationarity_tool.Assess(self.fluid_model_part)
-                    sys.stdout.flush()
+                    self.stationarity_counter.Deactivate(self.stationarity)
 
             # printing if required
 
@@ -531,13 +526,12 @@ class Algorithm(object):
                 self.out = 0
 
             # solving the DEM part
-            self.derivative_recovery_counter.Switch(self.time > self.pp.CFD_DEM["interaction_start_time"].GetDouble())
+            self.derivative_recovery_counter.Activate(self.time > self.pp.CFD_DEM["interaction_start_time"].GetDouble())
 
             if self.derivative_recovery_counter.Tick():
                 self.recovery.Recover()
 
-            print("Solving DEM... (", self.disperse_phase_algorithm.spheres_model_part.NumberOfElements(0), "elements )")
-            sys.stdout.flush()
+            Say('Solving DEM... (', self.disperse_phase_algorithm.spheres_model_part.NumberOfElements(0), 'elements )')
             first_dem_iter = True
 
             interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
@@ -641,8 +635,13 @@ class Algorithm(object):
     def DEMSolve(self, time = 'None'): # time is passed in case it is needed
         self.disperse_phase_algorithm.solver.Solve()
 
-    def FluidSolve(self, time = 'None'):
-        self.fluid_algorithm.fluid_solver.Solve()
+    def FluidSolve(self, time = 'None', solve_system = True):
+        Say('Solving Fluid... (', self.fluid_model_part.NumberOfElements(0), 'elements )\n')
+
+        if solve_system:
+            self.fluid_algorithm.fluid_solver.Solve()
+        else:
+            Say("Skipping solving system...\n")
 
     def PerformZeroStepInitializations(self):
         pass
@@ -684,23 +683,17 @@ class Algorithm(object):
         self.watcher_analyser.SetInlet(self.DEM_inlet)
 
     def TellTime(self, time):
-        print("\n", "TIME = ", time)
-        print('ELAPSED TIME = ', self.timer.time() - self.simulation_start_time)
-        print()
-        sys.stdout.flush()
+        Say('\nTIME = ', time)
+        Say('ELAPSED TIME = ', self.timer.time() - self.simulation_start_time, '\n')
 
     def TellFinalSummary(self, time, step, DEM_step):
-        print()
-        print()
-        print('*************************************************************')
-        print("CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
+        Say('*************************************************************')
+        Say('CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.')
         simulation_elapsed_time = self.timer.time() - self.simulation_start_time
-        print("Elapsed time: " + "%.5f"%(simulation_elapsed_time) + " s ")
-        print("per fluid time step: " + "%.5f"%(simulation_elapsed_time / step) + " s ")
-        print("per DEM time step: " + "%.5f"%(simulation_elapsed_time / DEM_step) + " s")
-        print('*************************************************************')
-        print()
-        sys.stdout.flush()
+        Say('Elapsed time: ' + '%.5f'%(simulation_elapsed_time) + ' s ')
+        Say('per fluid time step: ' + '%.5f'%(simulation_elapsed_time / step) + ' s ')
+        Say('per DEM time step: ' + '%.5f'%(simulation_elapsed_time / DEM_step) + ' s ')
+        Say('*************************************************************\n')
 
     def GetFluidSolveCounter(self):
         return SDP.Counter(is_dead = (self.pp.CFD_DEM["drag_force_type"].GetInt() == 9))
@@ -715,7 +708,9 @@ class Algorithm(object):
         return SDP.Counter(1, 1, self.pp.CFD_DEM["coupling_level_type"].GetInt() or self.pp.CFD_DEM["print_PRESSURE_GRADIENT_option"].GetBool())
 
     def GetStationarityCounter(self):
-        return SDP.Counter(self.pp.CFD_DEM.time_steps_per_stationarity_step, 1, self.pp.CFD_DEM["stationary_problem_option"].GetBool())
+        return SDP.Counter(steps_in_cycle = self.pp.CFD_DEM["time_steps_per_stationarity_step"].GetInt(),
+                           beginning_step = 1,
+                           is_active = self.pp.CFD_DEM["stationary_problem_option"].GetBool())
 
     def GetPrintCounter(self):
         return SDP.Counter(1, 1, 10) # still unused
@@ -804,8 +799,7 @@ class Algorithm(object):
             f.write(tmp)
             f.flush()
 
-        print(self.drag_file_output_list)
-        sys.stdout.flush()
+        Say(self.drag_file_output_list)
 
     def SetPointGraphPrinter(self):
         pass
@@ -842,7 +836,6 @@ class Algorithm(object):
     def PrintDrag(self, drag_list, drag_file_output_list, fluid_model_part, time):
         i = 0
         for it in drag_list:
-            print(it[0])
             nodes = self.fluid_model_part.GetNodes(it[0])
             drag = Vector(3)
             drag[0] = 0.0

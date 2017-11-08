@@ -12,12 +12,9 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.hpp"
-#include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
 #include "pfem_solid_mechanics_application_variables.h"
-
+#include "custom_utilities/axisym_water_pressure_utilities.hpp"
 namespace Kratos
 {
 
@@ -65,6 +62,8 @@ namespace Kratos
    AxisymUpdatedLagrangianUwPStabElement&  AxisymUpdatedLagrangianUwPStabElement::operator=(AxisymUpdatedLagrangianUwPStabElement const& rOther)
    {
       AxisymUpdatedLagrangianUwPElement::operator=(rOther);
+
+      mTimeStep = rOther.mTimeStep;
 
       return *this;
    }
@@ -116,6 +115,7 @@ namespace Kratos
       }
 
       NewElement.mDeterminantF0 = mDeterminantF0;
+      NewElement.mTimeStep = mTimeStep; 
 
       NewElement.SetData(this->GetData());
       NewElement.SetFlags(this->GetFlags());
@@ -134,199 +134,137 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUwPStabElement::InitializeGeneralVariables (GeneralVariables & rVariables, 
-									   const ProcessInfo& rCurrentProcessInfo)
-   {
-     KRATOS_TRY
-
-     AxisymUpdatedLagrangianUwPElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
-
-     //stabilization factor
-     double StabilizationFactor = 1.0;
-     if( GetProperties().Has(STABILIZATION_FACTOR) ){
-       StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
-     }
-     else if( rCurrentProcessInfo.Has(STABILIZATION_FACTOR) ){
-       StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR];
-     }
-     GetProperties().SetValue(STABILIZATION_FACTOR, StabilizationFactor);
-
-     KRATOS_CATCH( "" )
-   }
-
-   //************************************************************************************
-   //************************************************************************************
-
-   void AxisymUpdatedLagrangianUwPStabElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-         GeneralVariables & rVariables,
-         double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUwPStabElement::InitializeElementVariables (ElementVariables & rVariables, 
+         const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
-      double ScalingConstant ; 
-      double Permeability; double WaterBulk; double DeltaTime;
-      GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
+      AxisymUpdatedLagrangianUwPElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
 
-      double StabilizationAlpha, Caux, StabilizationFactor; 
-
-      ProcessInfo CurrentProcessInfo;
-      std::vector<double> Mmodulus;
-      GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
-      Caux = 1.0/Mmodulus[0];
-
-      double he;
-      he = GetElementSize( rVariables.DN_DX);
-      StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
-
-
-      StabilizationAlpha = pow(he, 2) * Caux / (6.0) - DeltaTime * Permeability / 2.0;
-
-      if (StabilizationAlpha < 0.0)
-      {
-         return;
+      //stabilization factor
+      double StabilizationFactor = 1.0;
+      if( GetProperties().Has(STABILIZATION_FACTOR_WP) ){
+         StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_WP];
       }
-   
-      StabilizationAlpha *= 0.5  + 0.5 * tanh( pow(he, 2) * Caux / (Permeability* DeltaTime)  );
-      StabilizationAlpha *= StabilizationFactor;
-
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-      unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-      unsigned int indexp = dimension;
-
-      VectorType Fh=rRightHandSideVector;
-
-
-      Matrix K = ZeroMatrix(dimension,dimension);
-      for (unsigned int i = 0; i < dimension; ++i)
-         K(i,i) = 1.0;
-
-
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-         for ( unsigned int j = 0; j < number_of_nodes; j++ )
-         {
-
-
-            const double& CurrentPressure   = GetGeometry()[j].FastGetSolutionStepValue( WATER_PRESSURE );
-            const double& PreviousPressure = GetGeometry()[j].FastGetSolutionStepValue( WATER_PRESSURE , 1);
-            double DeltaPressure = CurrentPressure - PreviousPressure;
-
-            for ( unsigned int p = 0; p < dimension; ++p )
-            {
-
-               for ( unsigned int q = 0; q < dimension; ++q )
-               {
-
-                  rRightHandSideVector[indexp] += StabilizationAlpha * rVariables.DN_DX(i, p) * K( p, q) * rVariables.DN_DX(j,q)* DeltaPressure *rIntegrationWeight * ScalingConstant / rVariables.detF0;
-
-               }
-
-
-            }
-
-         }
-
-         indexp += (dimension + 1);
-
+      else if( rCurrentProcessInfo.Has(STABILIZATION_FACTOR_WP) ){
+         StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR_WP];
       }
-
-
-      // std::cout<<std::endl;
-      // std::cout<<" auxiliar " <<auxiliar<<" F0 "<<rVariables.detF0<<std::endl;
-      // std::cout<<" Fpres "<<rRightHandSideVector-Fh<<std::endl;
+      GetProperties().SetValue(STABILIZATION_FACTOR_WP, StabilizationFactor);
 
       KRATOS_CATCH( "" )
-
-
-
-
    }
 
-
-
-
-
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUwPStabElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables & rVariables,
-         double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUwPStabElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
    {
+
       KRATOS_TRY
 
-
-      const unsigned int number_of_nodes = GetGeometry().size();
+      // define some variables
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-      double ScalingConstant;
-      double Permeability; double WaterBulk; double DeltaTime;
-      GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
-
-      double StabilizationAlpha, Caux, StabilizationFactor; 
-
-      ProcessInfo CurrentProcessInfo;
-      std::vector<double> Mmodulus;
-      GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
-      Caux = 1.0/Mmodulus[0];
-
-      double he;
-      he = GetElementSize( rVariables.DN_DX);
-      StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+      rVariables.detF0 *= rVariables.detF;
+      double DeterminantF = rVariables.detF;
+      rVariables.detF = 1.0;
 
 
-      // nova Manera
-      StabilizationAlpha = pow(he, 2) * Caux / (6.0) - DeltaTime * Permeability / 2.0;
+      // ComputeBaseClass LHS
+      double IntegrationWeight = rIntegrationWeight; 
+      AxisymUpdatedLagrangianUwPElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight);
 
-      if ( StabilizationAlpha < 0.0)
-         return;
-   
-      StabilizationAlpha *= 0.5  + 0.5 * tanh( pow(he, 2) * Caux / (Permeability* DeltaTime)  );
-      StabilizationAlpha *= StabilizationFactor;
+      IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
-      if (StabilizationAlpha < 0.0)
+      // Add stabilization
+      MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+      AxisymWaterPressureUtilities WaterUtility; 
+      int number_of_variables = dimension + 1; 
+      ProcessInfo SomeProcessInfo; 
+      std::vector< double> Mmodulus;
+      GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
+      double ConstrainedModulus = Mmodulus[0];
+      if ( ConstrainedModulus < 1e-5)
       {
-         return;
+         const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
+         const double& nu    = GetProperties()[POISSON_RATIO];
+         ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
+      // 1. Create (make pointers) variables
+      WaterPressureUtilities::HydroMechanicalVariables HMVariables(GetGeometry(), GetProperties() );
 
-      Matrix K = ZeroMatrix(dimension,dimension);
-      for (unsigned int i = 0; i < dimension; ++i)
-         K(i,i) = 1.0;
+      HMVariables.SetBMatrix( rVariables.B);
+      HMVariables.SetShapeFunctionsDerivatives( rVariables.DN_DX);
+      HMVariables.SetShapeFunctions( rVariables.N);
 
-      MatrixType Kh=rLeftHandSideMatrix;
+      HMVariables.DeltaTime = mTimeStep;
+      HMVariables.detF0 = rVariables.detF0;
+      HMVariables.CurrentRadius = rVariables.CurrentRadius;
+      HMVariables.ConstrainedModulus = ConstrainedModulus;
+      HMVariables.number_of_variables = number_of_variables;
 
-      //contributions to stiffness matrix calculated on the reference configuration
-      unsigned int indexpi = dimension;
+      rLeftHandSideMatrix = WaterUtility.CalculateAndAddStabilizationLHS( HMVariables, rLeftHandSideMatrix, IntegrationWeight);
 
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-         unsigned int indexpj = dimension;
-         for ( unsigned int j = 0; j < number_of_nodes; j++ )
-         {
+      rVariables.detF = DeterminantF; 
+      rVariables.detF0 /= rVariables.detF; 
 
-            for ( unsigned int p = 0; p < dimension; ++p ) {
-               for ( unsigned int q = 0; q < dimension; ++q ) {
-                  rLeftHandSideMatrix(indexpi, indexpj) -= StabilizationAlpha * rVariables.DN_DX(i, p) * K( p, q) * rVariables.DN_DX(j,q) * rIntegrationWeight* ScalingConstant / rVariables.detF0;
-               }
-            }
-
-            indexpj += (dimension + 1);
-         }
-
-         indexpi += (dimension + 1);
-      }
-
-      // std::cout<<std::endl;
-      //std::cout<<" Kpp "<< (rLeftHandSideMatrix-Kh) <<std::endl;
-      //std::cout<<" Kpp "<< (rLeftHandSideMatrix-Kh) / ScalingConstant / rIntegrationWeight* rVariables.detF0  * WaterBulk <<std::endl;
-
-
-      KRATOS_CATCH( "" )
-
-
-
+      KRATOS_CATCH("")
    }
+
+   //************************************************************************************
+   //************************************************************************************
+
+   void AxisymUpdatedLagrangianUwPStabElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   {
+      KRATOS_TRY
+
+      // define some variables
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      rVariables.detF0 *= rVariables.detF;
+      double DeterminantF = rVariables.detF;
+      rVariables.detF = 1.0;
+
+      // Compute Base Class RHS
+      double IntegrationWeight = rIntegrationWeight; 
+      AxisymUpdatedLagrangianUwPElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, rIntegrationWeight);
+
+      // Add stabilization
+      Vector& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+      AxisymWaterPressureUtilities WaterUtility; 
+      int number_of_variables = dimension + 1; 
+      IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
+      ProcessInfo SomeProcessInfo; 
+      std::vector< double> Mmodulus;
+      GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
+      double ConstrainedModulus = Mmodulus[0];
+      if ( ConstrainedModulus < 1e-5)
+      {
+         const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
+         const double& nu    = GetProperties()[POISSON_RATIO];
+         ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
+      }
+
+      // 1. Create (make pointers) variables
+      WaterPressureUtilities::HydroMechanicalVariables HMVariables(GetGeometry(), GetProperties() );
+
+      HMVariables.SetBMatrix( rVariables.B);
+      HMVariables.SetShapeFunctionsDerivatives( rVariables.DN_DX);
+      HMVariables.SetShapeFunctions( rVariables.N);
+
+      HMVariables.DeltaTime = mTimeStep;
+      HMVariables.detF0 = rVariables.detF0;
+      HMVariables.CurrentRadius = rVariables.CurrentRadius;
+      HMVariables.ConstrainedModulus = ConstrainedModulus;
+      HMVariables.number_of_variables = number_of_variables;
+
+      rRightHandSideVector = WaterUtility.CalculateAndAddStabilization( HMVariables, rRightHandSideVector, IntegrationWeight);
+
+
+      rVariables.detF = DeterminantF;
+      rVariables.detF0 /= rVariables.detF;
+
+      KRATOS_CATCH("")
+   }
+
 
 
    //************************************************************************************
@@ -334,16 +272,12 @@ namespace Kratos
 
    void AxisymUpdatedLagrangianUwPStabElement::save( Serializer& rSerializer ) const
    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
-         rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.save("DeterminantF0",mDeterminantF0);
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, AxisymUpdatedLagrangianUwPElement )
    }
 
    void AxisymUpdatedLagrangianUwPStabElement::load( Serializer& rSerializer )
    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
-         rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.load("DeterminantF0",mDeterminantF0);
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, AxisymUpdatedLagrangianUwPElement )
    }
 
 }  // END KRATOS NAMESPACE

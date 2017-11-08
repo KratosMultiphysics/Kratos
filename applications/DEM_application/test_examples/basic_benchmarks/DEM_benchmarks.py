@@ -12,6 +12,7 @@ import plot_variables                # Related to benchmarks in Chung, Ooi
 import DEM_benchmarks_class as DBC   # Related to benchmarks in Chung, Ooi
 
 sys.path.insert(0,'')
+start = timer.time()
 benchmark_number = int(sys.argv[1])
 benchmark = getattr(DBC, 'Benchmark' + str(benchmark_number))()
 
@@ -33,7 +34,7 @@ class Solution(main_script.Solution):
             parameters_file = open("ProjectParametersROLLFR.json",'r')
         elif benchmark_number in listDEMFEM:
             parameters_file = open("ProjectParametersDEMFEM.json",'r')
-        elif benchmark_number in listCONT:           
+        elif benchmark_number in listCONT:
             parameters_file = open("ProjectParametersDEMCONT.json",'r')
         elif benchmark_number == 27:
             parameters_file = open("ProjectParametersUCS.json",'r')
@@ -52,7 +53,7 @@ class Solution(main_script.Solution):
 
     def __init__(self):
         super(Solution, self).__init__()
-        os.chdir('..')            
+        os.chdir('..')
         self.nodeplotter = False
         self.LoadParametersFile()
         self.main_path = os.getcwd()
@@ -60,7 +61,7 @@ class Solution(main_script.Solution):
     def GetProblemTypeFilename(self):
         return benchmark
 
-    def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):      
+    def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ModelPartIO(modelpart)
 
     def SetSolverStrategy(self):
@@ -81,81 +82,80 @@ class Solution(main_script.Solution):
         else:
             self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
 
-        return SolverStrategy    
-         
+        return SolverStrategy
+
     def SetSolver(self):
         return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.DEM_parameters, self.procedures)
 
-    def SetFinalTime(self):        
-        self.final_time = final_time  
+    def SetFinalTime(self):
+        self.final_time = final_time
 
-    def Setdt(self):       
+    def Setdt(self):
         self.dt = dt
-        #return self.dt
 
     def Initialize(self):
         self.DEM_parameters["problem_name"].SetString('benchmark' + str(benchmark_number))
-        #self.final_time = slt.final_time  
+        #self.final_time = slt.final_time
         #self.dt = slt.dt
         #self.graph_print_interval = slt.graph_print_interval
-        super().Initialize()           
+        super(Solution, self).Initialize()
 
         print("Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
-        list_of_nodes_ids = [benchmark_number]
+        list_of_nodes_ids = [1]
         if self.nodeplotter:
             os.chdir(self.main_path)
-            self.plotter = plot_variables.variable_plotter(self.spheres_model_part, list_of_nodes_ids)
+            self.plotter = plot_variables.variable_plotter(self.spheres_model_part, list_of_nodes_ids, benchmark_number)
             self.tang_plotter = plot_variables.tangential_force_plotter(self.spheres_model_part, list_of_nodes_ids, self.iteration)
 
     def ReadModelParts(self):
-        super().ReadModelParts()
-        benchmark.set_initial_data(self.spheres_model_part, self.rigid_face_model_part, self.iteration, self.number_of_points_in_the_graphic, coeff_of_restitution_iteration)       
+        super(Solution, self).ReadModelParts()
+        benchmark.set_initial_data(self.spheres_model_part, self.rigid_face_model_part, self.iteration, self.number_of_points_in_the_graphic, coeff_of_restitution_iteration)
 
     def GetMpFilename(self):
         return 'benchmark' + str(benchmark_number) + "DEM"
-    
+
     def GetInletFilename(self):
         return 'benchmarkDEM_Inlet'
         #return 'benchmark' + str(benchmark_number) + "DEM_Inlet"
 
     def GetFemFilename(self):
-        return 'benchmark' + str(benchmark_number) + "DEM_FEM_boundary"   
+        return 'benchmark' + str(benchmark_number) + "DEM_FEM_boundary"
 
     def GetClusterFilename(self):
-        return 'benchmark' + str(benchmark_number) + "DEM_Clusters"   
-      
+        return 'benchmark' + str(benchmark_number) + "DEM_Clusters"
+
     def GetProblemTypeFilename(self):
         return 'benchmark' + str(benchmark_number)
 
-    def BeforeSolveOperations(self, time): 
-        super().BeforeSolveOperations()     
+    def BeforeSolveOperations(self, time):
+        super(Solution, self).BeforeSolveOperations(time)
         benchmark.ApplyNodalRotation(time, self.dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):
-        super().BeforePrintingOperations(time)
+        super(Solution, self).BeforePrintingOperations(time)
         self.Setdt()
-        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self.dt)        
-    
-    def Finalize(self):      
+        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self.dt)
+
+    def Finalize(self):
         benchmark.get_final_data(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part)
-        super().Finalize()
+        super(Solution, self).Finalize()
         if self.nodeplotter:
             os.chdir(self.main_path)
             self.plotter.close_files()
             self.tang_plotter.close_files()
 
     def FinalizeTimeStep(self, time):
-        super().FinalizeTimeStep(time)
+        super(Solution, self).FinalizeTimeStep(time)
         if self.nodeplotter:
             os.chdir(self.main_path)
             self.plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi
-            self.tang_plotter.plot_tangential_force(time)   
-        
+            self.tang_plotter.plot_tangential_force(time)
+
     def CleanUpOperations(self):
-        print("running CleanUpOperations") 
-        #DBC.delete_archives() #.......Removing some unuseful files 
-        super().CleanUpOperations() 
-                  
+        print("running CleanUpOperations")
+        #DBC.delete_archives() #.......Removing some unuseful files
+        super(Solution, self).CleanUpOperations()
+
 
 final_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
 for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution + 1):
@@ -163,10 +163,11 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         slt = Solution()
         slt.iteration = iteration
         slt.dt = dt
-        slt.final_time = final_time    
-        slt.graph_print_interval = graph_print_interval     
+        slt.final_time = final_time
+        slt.graph_print_interval = graph_print_interval
         slt.number_of_points_in_the_graphic = number_of_points_in_the_graphic
-        slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution        
+        slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution
         slt.Run()
-    benchmark.print_results(number_of_points_in_the_graphic, dt)
-#DBC.delete_archives() #.......Removing some unuseful files     
+    end = timer.time()
+    benchmark.print_results(number_of_points_in_the_graphic, dt, elapsed_time = end - start)
+#DBC.delete_archives() #.......Removing some unuseful files

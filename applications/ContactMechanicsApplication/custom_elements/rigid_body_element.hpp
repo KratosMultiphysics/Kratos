@@ -102,7 +102,7 @@ protected:
      * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
      */
 
-    struct GeneralVariables
+    struct ElementVariables
     {
         //section properties
         RigidBodyProperties RigidBody;
@@ -472,7 +472,7 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -486,7 +486,7 @@ protected:
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-					       GeneralVariables& rVariables,
+					       ElementVariables& rVariables,
 					       Vector& rVolumeForce);
 
 
@@ -494,14 +494,14 @@ protected:
       * Calculation of the Tangent Intertia Matrix
       */
     virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-					   GeneralVariables& rVariables,
+					   ElementVariables& rVariables,
 					   ProcessInfo& rCurrentProcessInfo);
 
     /**
       * Calculation of the Inertial Forces Vector
       */
     virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-					   GeneralVariables& rVariables,
+					   ElementVariables& rVariables,
 					   ProcessInfo& rCurrentProcessInfo);
 
 

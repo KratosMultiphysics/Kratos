@@ -47,8 +47,11 @@ void  AddCustomUtilitiesToPython()
     .def("CreatePointListMortar",&TreeContactSearch::CreatePointListMortar)
     .def("UpdatePointListMortar",&TreeContactSearch::UpdatePointListMortar)
     .def("UpdateMortarConditions",&TreeContactSearch::UpdateMortarConditions)
+    .def("ResetContactOperators",&TreeContactSearch::ResetContactOperators)
+    .def("TotalResetContactOperators",&TreeContactSearch::TotalResetContactOperators)
     .def("CleanMortarConditions",&TreeContactSearch::CleanMortarConditions)
     .def("CheckMortarConditions",&TreeContactSearch::CheckMortarConditions)
+    .def("InvertSearch",&TreeContactSearch::InvertSearch)
     ;
   
     // Process Factory utility

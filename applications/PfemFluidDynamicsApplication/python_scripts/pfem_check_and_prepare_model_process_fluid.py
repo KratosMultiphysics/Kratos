@@ -1,11 +1,6 @@
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics 
-from KratosMultiphysics.ExternalSolversApplication import *
-#from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.PfemApplication import *
-import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-#from KratosMultiphysics.PfemFluidDynamicsApplication import *
-from KratosMultiphysics.PfemSolidMechanicsApplication import *
 
 import time as timer
 
@@ -194,11 +189,21 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             transfer_process.Execute()
 
         for part in processes_parts:
+            part.Set(KratosMultiphysics.BOUNDARY)
+            entity_type = "Conditions"
+            #condition flags as BOUNDARY or CONTACT are reserved to composite or contact conditions (do not set it here)
+            transfer_process = KratosSolid.TransferEntitiesProcess(fluid_computing_model_part,part,entity_type)
+            transfer_process.Execute()
+
+        '''    
+        for part in processes_parts:
             entity_type = "Conditions"
             assign_flags = KratosSolid.FlagsContainer()
             assign_flags.PushBack(KratosMultiphysics.BOUNDARY)
             transfer_process = KratosSolid.TransferEntitiesProcess(fluid_computing_model_part,part,entity_type,void_flags,assign_flags)
             transfer_process.Execute()
+        '''
+
 
         '''
         for node in self.main_model_part.Nodes:
