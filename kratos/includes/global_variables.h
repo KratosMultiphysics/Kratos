@@ -27,8 +27,6 @@
 
 
 // Project includes
-#include "includes/define.h"
-#include "containers/variables_list.h"
 
 
 namespace Kratos
@@ -47,7 +45,6 @@ namespace Globals
 ///@{
 //
 // This variable is NOT synchronized between different applications threads
-extern KRATOS_API(KRATOS_CORE) VariablesList DefaultVariablesList;
 /*
 		extern KratosComponents<VariableData> VariableDataComponents;
 		extern KratosComponents<Condition> ConditionComponents;
