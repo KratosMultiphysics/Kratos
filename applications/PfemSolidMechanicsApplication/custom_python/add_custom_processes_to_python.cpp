@@ -48,13 +48,13 @@ namespace Kratos
 	;
 
       
-      // **** SET INITIAL MECHANICAL STATE **** //
-      class_<SetMechanicalInitialStateProcess, bases<ProcessBaseType>, boost::noncopyable >
-         (
-          "SetMechanicalInitialStateProcess", init<ModelPart&, bool, double, double>()
-         )
-         .def("ExecuteInitialize",           &SetMechanicalInitialStateProcess::ExecuteInitialize)
-         .def("ExecuteFinalizeSolutionStep", &SetMechanicalInitialStateProcess::ExecuteFinalizeSolutionStep)
+         // **** SET INITIAL MECHANICAL STATE **** //
+         class_<SetMechanicalInitialStateProcess, bases<ProcessBaseType>, boost::noncopyable >
+            (
+             "SetMechanicalInitialStateProcess", init<ModelPart&, Parameters>()
+            )
+            .def(init< ModelPart&, Parameters >())
+            .def("Execute", &SetMechanicalInitialStateProcess::Execute)
          ;
 
 

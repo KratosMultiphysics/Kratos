@@ -10,12 +10,12 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
-import KratosMultiphysics.ExternalSolversApplication    as KratosSolvers
-import KratosMultiphysics.PfemApplication           as KratosPfem
-import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
-import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
-import KratosMultiphysics.PfemFluidDynamicsApplication  as KratosPfemFluid
+import KratosMultiphysics.ExternalSolversApplication
+import KratosMultiphysics.PfemApplication
+import KratosMultiphysics.PfemFluidDynamicsApplication     
+import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.PfemSolidMechanicsApplication   
+import KratosMultiphysics.ContactMechanicsApplication
 
 class Solution(object):
 
@@ -58,7 +58,8 @@ class Solution(object):
         # Defining the model_part
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
 
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, self.ProjectParameters["problem_data"]["dimension"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["dimension"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, self.ProjectParameters["problem_data"]["time_step"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.ProjectParameters["problem_data"]["start_time"].GetDouble())
         if( self.ProjectParameters["problem_data"].Has("gravity_vector") ):
@@ -302,8 +303,8 @@ class Solution(object):
         from gid_output_process import GiDOutputProcess
         self.output_settings = self.ProjectParameters["output_configuration"]
         self.graphical_output = GiDOutputProcess(self.computing_model_part,
-                                      self.problem_name,
-                                      self.output_settings)        
+                                                 self.problem_name,
+                                                 self.output_settings)
 
     def GraphicalOutputExecuteInitialize(self):
         self.graphical_output.ExecuteInitialize() 

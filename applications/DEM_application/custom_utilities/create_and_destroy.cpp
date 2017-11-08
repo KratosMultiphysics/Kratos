@@ -516,7 +516,6 @@ namespace Kratos {
         spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());        
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
-        spheric_p_particle->SetSearchRadiusWithFem(radius);        
         spheric_p_particle->SetMass(cluster_mass);        
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
@@ -556,7 +555,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
-        spheric_p_particle->SetSearchRadiusWithFem(radius);        
         spheric_p_particle->SetMass(spheric_p_particle->GetDensity() * spheric_p_particle->CalculateVolume());
         if (spheric_p_particle->Is(DEMFlags::HAS_ROTATION)) {
             spheric_p_particle->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = spheric_p_particle->CalculateMomentOfInertia();
@@ -658,8 +656,8 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         else { 
             p_cluster->GetGeometry()[0].Set(TO_ERASE); //We do not add the cluster to the modelpart (will be erased at the end of this function) and we mark the central node for erasing (none are needed)
             p_cluster->SetContinuumGroupToBreakableClusterSpheres(r_Elem_Id);
-            double search_tolerance = 0.02 * radius;
-            p_cluster->SetInitialNeighbours(search_tolerance);
+            double search_increment = 0.02 * radius;
+            p_cluster->SetInitialNeighbours(search_increment);
             p_cluster->CreateContinuumConstitutiveLaws();
             p_cluster->SetInitialConditionsToSpheres(r_sub_model_part_with_parameters[VELOCITY]);            
         }

@@ -23,14 +23,14 @@ class ContactModeler(mesh_modeler.MeshModeler):
         print("::[Contact_Mesh_Modeler]:: -BUILT-")
   
     #
-    def Initialize(self, domain_size):
+    def Initialize(self, dimension):
         
-        self.domain_size   =  domain_size
+        self.dimension   =  dimension
 
         # set mesh modeler
-        if(self.domain_size == 2):
+        if(self.dimension == 2):
             self.mesher = KratosContact.ContactDomain2DModeler()
-        elif(self.domain_size == 3):
+        elif(self.dimension == 3):
             self.mesher = KratosContact.ContactDomain3DModeler()
 
         self.mesher.SetEchoLevel(self.echo_level)
@@ -70,7 +70,7 @@ class ContactModeler(mesh_modeler.MeshModeler):
             
         modeler_flags = ""
         modeler_info  = "Reconnect a cloud of points"
-        if( self.domain_size == 2 ):
+        if( self.dimension == 2 ):
            
             if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
                 modeler_flags = "pBYYQ"  
@@ -78,11 +78,12 @@ class ContactModeler(mesh_modeler.MeshModeler):
                 modeler_flags = "QNP"
 
             
-        elif( self.domain_size == 3 ):
+        elif( self.dimension == 3 ):
 
             if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
-                #modeler_flags = "pMYYCJFu0"
-                modeler_flags = "pJFBMYYCCQu0"
+                #modeler_flags = "pMYYCJFu0"     #tetgen 1.5.0
+                modeler_flags = "pJFBMYYCCQu0"  #tetgen 1.4.3
+                #modeler_flags = "pJFBMYYCCQ"  #tetgen 1.5.0
             else:
                 modeler_flags = "JFMQO4/4"
 

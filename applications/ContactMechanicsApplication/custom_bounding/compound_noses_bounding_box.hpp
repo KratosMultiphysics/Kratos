@@ -696,7 +696,7 @@ public:
        
 
       //std::cout<<" Nodes Added "<<NodeId-InitialNodeId<<std::endl;
-      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[DOMAIN_SIZE]==2 ){
+      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[SPACE_DIMENSION]==2 ){
       
 	//create modelpart nodes
 	for(unsigned int i=0; i<FacePoints.size(); i++)

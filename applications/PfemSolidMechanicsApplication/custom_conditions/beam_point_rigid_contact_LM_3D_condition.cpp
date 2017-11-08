@@ -250,12 +250,12 @@ namespace Kratos
       KRATOS_TRY
 
        
-       GeneralVariables ContactVariables;
+       ConditionVariables ContactVariables;
 
        SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactVariables.RelativeDisplacement);           
 
        //to perform contact with a tube radius must be set
-       BoxParameters.SetRadius(GetGeometry()[0].GetValue(MEAN_RADIUS));
+       BoxParameters.SetRadius(GetGeometry()[0].GetValue(CROSS_SECTION_AREA));
        
        if ( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ) {
        
@@ -343,7 +343,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamPointRigidContactLM3DCondition::InitializeGeneralVariables (GeneralVariables& rVariables, 
+  void BeamPointRigidContactLM3DCondition::InitializeConditionVariables (ConditionVariables& rVariables, 
 									const ProcessInfo& rCurrentProcessInfo)
   {
 
@@ -354,7 +354,7 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
   
-  void BeamPointRigidContactLM3DCondition::CalculateKinematics(GeneralVariables& rVariables,
+  void BeamPointRigidContactLM3DCondition::CalculateKinematics(ConditionVariables& rVariables,
 							       const ProcessInfo& rCurrentProcessInfo,
 							       const double& rPointNumber)
   {
@@ -363,7 +363,7 @@ namespace Kratos
     SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, rVariables.RelativeDisplacement);
 
     //to perform contact with a tube radius must be set
-    BoxParameters.SetRadius(GetGeometry()[0].GetValue(MEAN_RADIUS));
+    BoxParameters.SetRadius(GetGeometry()[0].GetValue(CROSS_SECTION_AREA));
 
     if( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ){
 
@@ -394,7 +394,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void BeamPointRigidContactLM3DCondition::CalculateContactFactors(GeneralVariables &rVariables)
+  void BeamPointRigidContactLM3DCondition::CalculateContactFactors(ConditionVariables &rVariables)
   {
 
     KRATOS_TRY
@@ -456,7 +456,7 @@ namespace Kratos
   //***********************************************************************************
 
   void BeamPointRigidContactLM3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-								GeneralVariables& rVariables,
+								ConditionVariables& rVariables,
 								double& rIntegrationWeight)
 
   {
@@ -518,7 +518,7 @@ namespace Kratos
   //************* Tangent Contact Force constitutive matrix      **********************
   //***********************************************************************************
 
-   void BeamPointRigidContactLM3DCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+   void BeamPointRigidContactLM3DCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix, ConditionVariables& rVariables, double& rIntegrationWeight)
    {
        KRATOS_TRY
 
@@ -531,7 +531,7 @@ namespace Kratos
   //***********************************************************************************
 
   void BeamPointRigidContactLM3DCondition::CalculateAndAddContactForces(VectorType& rRightHandSideVector,
-									 GeneralVariables& rVariables,
+									 ConditionVariables& rVariables,
 									 double& rIntegrationWeight)
 
   {
@@ -560,7 +560,7 @@ namespace Kratos
   //***********************************************************************************
 
   void BeamPointRigidContactLM3DCondition::CalculateAndAddNormalContactForce(VectorType& rRightHandSideVector,
-									      GeneralVariables& rVariables,
+									      ConditionVariables& rVariables,
 									      double& rIntegrationWeight)
   {
       
@@ -600,7 +600,7 @@ namespace Kratos
   //***********************************************************************************
 
   void BeamPointRigidContactLM3DCondition::CalculateAndAddTangentContactForce(VectorType& rRightHandSideVector,
-									       GeneralVariables& rVariables,
+									       ConditionVariables& rVariables,
 									       double& rIntegrationWeight)
   {
 
@@ -615,7 +615,7 @@ namespace Kratos
   //**************************** Calculate Tangent Force Modulus **********************
   //***********************************************************************************
 
-  double& BeamPointRigidContactLM3DCondition::CalculateTangentRelativeMovement( double& rTangentRelativeMovement, GeneralVariables& rVariables )
+  double& BeamPointRigidContactLM3DCondition::CalculateTangentRelativeMovement( double& rTangentRelativeMovement, ConditionVariables& rVariables )
   {
        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -630,7 +630,7 @@ namespace Kratos
        array_1d<double, 3 > DeltaRotation               =  CurrentRotation-PreviousRotation;
 
 
-       double SectionMeanRadius = GetProperties()[MEAN_RADIUS];
+       double SectionMeanRadius = GetProperties()[CROSS_SECTION_AREA];
        array_1d<double, 3 > RadiusVector;
        for(unsigned int i = 0; i < 3; i++)
 	 {
@@ -695,7 +695,7 @@ namespace Kratos
   //**************************** Check Coulomb law for Tangent Contact Force **********
   //***********************************************************************************
 
-  double BeamPointRigidContactLM3DCondition::CalculateCoulombsFrictionLaw(double & rTangentRelativeMovement, double & rNormalForceModulus , GeneralVariables& rVariables)
+  double BeamPointRigidContactLM3DCondition::CalculateCoulombsFrictionLaw(double & rTangentRelativeMovement, double & rNormalForceModulus , ConditionVariables& rVariables)
   {
        mTangentialVariables.FrictionCoefficient = this->CalculateFrictionCoefficient(rTangentRelativeMovement);
 

@@ -292,7 +292,7 @@ void TranslatoryRigidBodyElement::InitializeSystemMatrices(MatrixType& rLeftHand
 //************************************************************************************
 
 //Inertia in the SPATIAL configuration 
-void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -356,7 +356,7 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
 //************************************************************************************
 
 //Inertia in the SPATIAL configuration 
-void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

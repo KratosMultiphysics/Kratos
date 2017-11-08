@@ -338,7 +338,7 @@ namespace Kratos
 	{
 		// parameters initialization
 		ConstitutiveLaw::Parameters materialValues;
-		GeneralVariables variables;
+		ElementVariables variables;
 		InitializeParameters(rValues, materialValues, variables);
 
 		Flags& Options = rValues.GetOptions();
@@ -673,7 +673,7 @@ namespace Kratos
 	void ShellCrossSection::FinalizeSectionResponse(Parameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure)
 	{
 		ConstitutiveLaw::Parameters materialValues;
-		GeneralVariables variables;
+		ElementVariables variables;
 		InitializeParameters(rValues, materialValues, variables);
 
 		for(PlyCollection::iterator ply_it = mStack.begin(); ply_it != mStack.end(); ++ply_it)
@@ -789,7 +789,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 	
-	void ShellCrossSection::InitializeParameters(Parameters& rValues, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables)
+	void ShellCrossSection::InitializeParameters(Parameters& rValues, ConstitutiveLaw::Parameters& rMaterialValues, ElementVariables& rVariables)
 	{
 		// share common data between section and materials
 		
@@ -840,7 +840,7 @@ namespace Kratos
 		rVariables.LT = ZeroMatrix(condensed_strain_size, strain_size);
 	}
 	
-	void ShellCrossSection::UpdateIntegrationPointParameters(IntegrationPoint& rPoint, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables)
+	void ShellCrossSection::UpdateIntegrationPointParameters(IntegrationPoint& rPoint, ConstitutiveLaw::Parameters& rMaterialValues, ElementVariables& rVariables)
 	{
 		if(rPoint.GetConstitutiveLaw()->GetStrainSize() == 3)
 		{
@@ -888,7 +888,7 @@ namespace Kratos
 	void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoint, 
 															  ConstitutiveLaw::Parameters& rMaterialValues,
 															  Parameters& rValues, 
-															  GeneralVariables& rVariables,
+															  ElementVariables& rVariables,
 															  const ConstitutiveLaw::StressMeasure& rStressMeasure)
 	{
 		// get some data/references...

@@ -275,7 +275,7 @@ namespace Kratos
 					eta = 1.0 / 12.0 + 1.0 / 270.0 * angle2 + 1.0 / 30240.0 * angle4 + 1.0 / 1209600.0 * angle6;
 				}
 				else {
-					eta = ( 1.0 - 0.5 * angle * std::tan( 0.5 * Globals::Pi - 0.5 * angle ) ) / (angle * angle);
+					eta = ( 1.0 - 0.5 * angle * std::tan( Globals::Pi2 - 0.5 * angle ) ) / (angle * angle);
 				}
 
 				Spin( rv, Omega );
@@ -338,7 +338,7 @@ namespace Kratos
 					mu  = 1.0 / 360.0 + angle2 / 7560.0 + angle4 / 201600.0 + angle6 / 5987520.0;
 				}
 				else {
-					eta = ( 1.0 - 0.5 * angle * std::tan( 0.5 * Globals::Pi - 0.5 * angle ) ) / (angle * angle);
+					eta = ( 1.0 - 0.5 * angle * std::tan( Globals::Pi2 - 0.5 * angle ) ) / (angle * angle);
 					double sin_h_angle = std::sin(0.5 * angle);
 					mu  = ( angle2 + 4.0 * std::cos(angle) + angle * std::sin(angle) - 4.0 ) / ( 4.0 * angle4 * sin_h_angle * sin_h_angle );
 				}
