@@ -117,7 +117,8 @@ class TestCase(KratosUnittest.TestCase):
         {
             "file_name" : "test_hdf5_model_part_io_mpi.h5",
             "file_access_mode" : "truncate",
-            "file_driver" : "mpio"
+            "file_driver" : "mpio",
+            "echo_level" : 0
         }""")
         return HDF5FileParallel(params)
 

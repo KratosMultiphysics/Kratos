@@ -245,7 +245,7 @@ private:
         }
         KRATOS_ERROR_IF(H5Sclose(fspace_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
-        if (GetEchoLevel() == 1)
+        if (GetEchoLevel() == 1 && GetPID() == 0)
             std::cout << "Write time \"" << Path << "\": " << timer.elapsed() << std::endl;
         KRATOS_CATCH("");
     }
@@ -323,7 +323,7 @@ private:
         }
         KRATOS_ERROR_IF(H5Sclose(fspace_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
-        if (GetEchoLevel() == 1)
+        if (GetEchoLevel() == 1 && GetPID() == 0)
             std::cout << "Write time \"" << Path << "\": " << timer.elapsed() << std::endl;
         KRATOS_CATCH("");
     }
@@ -478,7 +478,7 @@ private:
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
-        if (GetEchoLevel() == 1)
+        if (GetEchoLevel() == 1 && GetPID() == 0)
             std::cout << "Read time \"" << Path << "\": " << timer.elapsed() << std::endl;
         KRATOS_CATCH("");
     }
@@ -549,7 +549,7 @@ private:
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
-        if (GetEchoLevel() == 1)
+        if (GetEchoLevel() == 1 && GetPID() == 0)
             std::cout << "Read time \"" << Path << "\": " << timer.elapsed() << std::endl;
         KRATOS_CATCH("");
     }

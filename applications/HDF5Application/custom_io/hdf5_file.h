@@ -297,8 +297,8 @@ void File::WriteAttribute(std::string ObjectPath, std::string Name, TScalar Valu
     KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &Value) < 0) << "H5Awrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    if (GetEchoLevel() == 1)
-        std::cout << "Write time \"" << ObjectPath << "\": " << timer.elapsed() << std::endl;
+    if (GetEchoLevel() == 1 && GetPID() == 0)
+        std::cout << "Write time \"" << ObjectPath << '/' << Name << "\": " << timer.elapsed() << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -319,8 +319,8 @@ void File::WriteAttribute(std::string ObjectPath, std::string Name, const Vector
     KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue[0]) < 0) << "H5Awrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    if (GetEchoLevel() == 1)
-        std::cout << "Write time \"" << ObjectPath << "\": " << timer.elapsed() << std::endl;
+    if (GetEchoLevel() == 1 && GetPID() == 0)
+        std::cout << "Write time \"" << ObjectPath << '/' << Name << "\": " << timer.elapsed() << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -344,8 +344,8 @@ void File::WriteAttribute(std::string ObjectPath, std::string Name, const Matrix
     KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue(0,0)) < 0) << "H5Awrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    if (GetEchoLevel() == 1)
-        std::cout << "Write time \"" << ObjectPath << "\": " << timer.elapsed() << std::endl;
+    if (GetEchoLevel() == 1 && GetPID() == 0)
+        std::cout << "Write time \"" << ObjectPath << '/' << Name << "\": " << timer.elapsed() << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -381,8 +381,8 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, TScalar& rVal
     // Read attribute.
     KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue) < 0) << "H5Aread failed." << std::endl; 
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    if (GetEchoLevel() == 1)
-        std::cout << "Read time \"" << ObjectPath << "\": " << timer.elapsed() << std::endl;
+    if (GetEchoLevel() == 1 && GetPID() == 0)
+        std::cout << "Read time \"" << ObjectPath << '/' << Name << "\": " << timer.elapsed() << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -421,8 +421,8 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, Vector<TScala
     // Read attribute.
     KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue[0]) < 0) << "H5Aread failed." << std::endl; 
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    if (GetEchoLevel() == 1)
-        std::cout << "Read time \"" << ObjectPath << "\": " << timer.elapsed() << std::endl;
+    if (GetEchoLevel() == 1 && GetPID() == 0)
+        std::cout << "Read time \"" << ObjectPath << '/' << Name << "\": " << timer.elapsed() << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -461,8 +461,8 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TScala
     // Read attribute.
     KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue(0,0)) < 0) << "H5Aread failed." << std::endl; 
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    if (GetEchoLevel() == 1)
-        std::cout << "Read time \"" << ObjectPath << "\": " << timer.elapsed() << std::endl;
+    if (GetEchoLevel() == 1 && GetPID() == 0)
+        std::cout << "Read time \"" << ObjectPath << '/' << Name << "\": " << timer.elapsed() << std::endl;
     KRATOS_CATCH("");
 }
 
