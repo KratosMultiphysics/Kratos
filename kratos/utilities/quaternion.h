@@ -14,6 +14,7 @@
 #if !defined(QUATERNION_H_INCLUDED)
 #define QUATERNION_H_INCLUDED
 
+#include "includes/global_variables.h"
 #include "includes/serializer.h"
 
 namespace Kratos
