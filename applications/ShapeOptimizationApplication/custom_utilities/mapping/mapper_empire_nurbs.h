@@ -142,9 +142,9 @@ public:
         mMapperFEToIGA.push_back('\0');
 
         str = "IGA_TO_FE";
-        mMapperIGAToFe.clear();
-        mMapperIGAToFe.insert(mFEMeshName.end(), str.begin(), str.end());
-        mMapperIGAToFe.push_back('\0');
+        mMapperIGAToFE.clear();
+        mMapperIGAToFE.insert(mFEMeshName.end(), str.begin(), str.end());
+        mMapperIGAToFE.push_back('\0');
 
         Parameters default_params(R"(
             {
@@ -264,7 +264,7 @@ public:
         AssignMappingIds();
 
         GenerateMapper(mMapperFEToIGA);
-        GenerateMapper(mMapperIGAToFe);
+        GenerateMapper(mMapperIGAToFE);
 
         for (TopoDS_Shape& current_NURB : mpExternalModel->GetCompoundNURBSList())
             this->DefinePatchContinuityConditionsOnNurbsShape( mIGAMeshName, current_NURB);
@@ -316,7 +316,7 @@ public:
       );
 
       Empire::doConsistentMapping(
-          mMapperIGAToFe.data(),
+          mMapperIGAToFE.data(),
           3, 
           variables_in_design_space.size(), 
           variables_in_design_space.data(),
@@ -349,7 +349,6 @@ public:
       std::vector<double> variables_in_design_space;
 
       variables_in_geometry_space.resize(mrDesignSurface.Nodes().size()*3);
-      variables_in_design_space.resize(mrDesignSurface.Nodes().size()*3);
 
       for(auto& node_i : mrDesignSurface.Nodes())
       {
@@ -360,8 +359,12 @@ public:
           variables_in_geometry_space[3*i+2] = nodal_variable[2];
       }      
 
+      std::vector<TopoDS_Shape> compound_nurbs_list = mpExternalModel->GetCompoundNURBSList();
+      
+      GetAllControlPoints(compound_nurbs_list[0], variables_in_design_space);
+
       Empire::doConsistentMapping(
-          mMapperIGAToFe.data(),
+          mMapperFEToIGA.data(),
           3, 
           variables_in_geometry_space.size(), 
           variables_in_geometry_space.data(),
@@ -369,10 +372,14 @@ public:
           variables_in_design_space.data()
       );
 
-      std::vector<TopoDS_Shape> compound_nurbs_list = mpExternalModel->GetCompoundNURBSList();
-      
-    GetAllControlPoints(compound_nurbs_list[0], variables_in_design_space);
-
+      Empire::doConsistentMapping(
+          mMapperIGAToFE.data(),
+          3, 
+          variables_in_design_space.size(), 
+          variables_in_design_space.data(),
+          variables_in_geometry_space.size(), 
+          variables_in_geometry_space.data()
+      );
 
       for(auto& node_i : mrDesignSurface.Nodes())
       {
@@ -419,7 +426,7 @@ private:
     std::vector<char> mFEMeshName;
     std::vector<char> mIGAMeshName;
     std::vector<char> mMapperFEToIGA;
-    std::vector<char> mMapperIGAToFe;
+    std::vector<char> mMapperIGAToFE;
 
     
 
@@ -913,9 +920,9 @@ private:
         char* mesh_name_b=NULL;
         std::string settings;
         
-        if (input_mapper_name.compare(mMapperIGAToFe.data())==0) 
+        if (input_mapper_name.compare(mMapperIGAToFE.data())==0) 
         {
-            mapper_name = mMapperIGAToFe.data();
+            mapper_name = mMapperIGAToFE.data();
             mesh_name_a = mIGAMeshName.data();
             mesh_name_b = mFEMeshName.data();
             settings = "nurbs_mapping_iga_to_fe";
