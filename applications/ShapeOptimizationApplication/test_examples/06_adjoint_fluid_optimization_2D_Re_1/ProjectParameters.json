@@ -127,7 +127,7 @@
         },
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
-            "max_iterations"     : 30,
+            "max_iterations"     : 5,
             "relative_tolerance" : 1e-5
         },
         "line_search" : {
