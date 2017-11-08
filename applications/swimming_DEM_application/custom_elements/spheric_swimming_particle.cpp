@@ -1326,7 +1326,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeBeetstraDragCoefficient()
 
         double A = 180 + 18 * std::pow(eps, 4) / eps_s * (1 + 1.5 * std::sqrt(eps_s));
         double B = 0.31 * (1.0 / eps + 3 * eps_s * eps + 8.4 * std::pow(particle_reynolds, - 0.343)) / (1.0 + std::pow(10.0, 3 * eps_s) * std::pow(particle_reynolds, 2 * eps - 2.5));
-        drag_coeff = Globals::Pi_3 * mKinematicViscosity * mFluidDensity * mRadius * (A * eps_s / eps + B * particle_reynolds);
+        drag_coeff = Globals::Pi / 3.0 * mKinematicViscosity * mFluidDensity * mRadius * (A * eps_s / eps + B * particle_reynolds);
     }
 
     return drag_coeff;

@@ -1664,7 +1664,7 @@ void SphericParticle::ApplyGlobalDampingToContactForces() {
 int    SphericParticle::GetClusterId()                                                           { return mClusterId;      }
 void   SphericParticle::SetClusterId(int givenId)                                                { mClusterId = givenId;   }
 double SphericParticle::GetRadius()                                                              { return mRadius;         }
-double SphericParticle::CalculateVolume()                                                        { return 4.0 * Globals::Pi_3 * mRadius * mRadius * mRadius;     }
+double SphericParticle::CalculateVolume()                                                        { return 4.0 * Globals::Pi / 3.0 * mRadius * mRadius * mRadius;     }
 void   SphericParticle::SetRadius(double radius)                                                 { mRadius = radius;       }
 void   SphericParticle::SetRadius()                                                              { mRadius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);       }
 double SphericParticle::GetInteractionRadius(const int radius_index)                             { return mRadius;         }
