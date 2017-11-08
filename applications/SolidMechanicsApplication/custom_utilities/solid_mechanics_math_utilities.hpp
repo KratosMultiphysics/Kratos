@@ -109,13 +109,13 @@ public:
         if(p < 0) return false; //in this case the square roots below will be negative. This substitutes with better efficiency lines 107-110
         
         solution(0)=
-            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))+KRATOS_M_PI/3.0)
+            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))+ Globals::Pi / 3.0)
             -b/(3*a);
         solution(1)=
             sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p))))-b/(3*a)
             ;
         solution(2)=
-            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))-KRATOS_M_PI/3.0)
+            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))- Globals::Pi / 3.0)
             -b/(3*a);
 
 //        if(std::isnan<double>(solution(0)) || std::isnan<double>(solution(1))|| std::isnan<double>(solution(2)))
@@ -914,7 +914,7 @@ public:
                         {
                             theta = 0.5*atan(2*A(i,j)/(A(i,i)-A(j,j)));
                         }
-                        else theta = 0.25*KRATOS_M_PI;
+                        else theta = 0.25 * Globals::Pi;
                     }
                     MatrixType T(n,n);
 		    noalias(T) = IdentityMatrix( n );

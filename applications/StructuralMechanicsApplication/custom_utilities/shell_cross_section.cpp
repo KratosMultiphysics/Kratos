@@ -888,7 +888,7 @@ void ShellCrossSection::GetLaminaeOrientation(Vector & rOrientation_Vector)
     for(PlyCollection::iterator ply_it = mStack.begin(); ply_it != mStack.end(); ++ply_it)
     {
         Ply& iPly = *ply_it;
-        rOrientation_Vector[counter] = iPly.GetOrientationAngle() / 180.0*KRATOS_M_PI;
+        rOrientation_Vector[counter] = iPly.GetOrientationAngle() / 180.0 * Globals::Pi;
         counter++;
     }
 }
