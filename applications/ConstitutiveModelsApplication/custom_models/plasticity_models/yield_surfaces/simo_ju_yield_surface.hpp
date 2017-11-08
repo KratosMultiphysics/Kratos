@@ -82,7 +82,7 @@ namespace Kratos
     }
     
     /// Clone.
-    virtual BaseTypePointer Clone() const override
+    virtual BaseTypePointer Clone() const
     {
       return ( SimoJuYieldSurface::Pointer(new SimoJuYieldSurface(*this)) );
     }
