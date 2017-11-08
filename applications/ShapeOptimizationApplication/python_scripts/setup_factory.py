@@ -133,7 +133,7 @@ class OptimizationSetup:
                 lines = file_input.readlines()
             file_input.close()
             if len(lines)>0:
-                if lines[-1].strip() == "KRATOS TERMINATED CORRECTLY":
+                if lines[-1].strip() == "Simulation terminated successfully.":
                     has_executed_simulation = True
                     print(">- --- Simulation already completed.")
         
@@ -141,12 +141,21 @@ class OptimizationSetup:
             file_out = open("%s/%s" % (self.path, self.parameters["parameters_file"].GetString()), "w")
             file_out.write(json.dumps(self.setup_parameters, indent=4))
             file_out.close()            
+            
             _temp = os.getcwd()
             os.chdir(self.path)
-            self.WriteModelPart()
-            # python_module = self.parameters["python_module"].GetString()
-            # _ = os.popen("runkratos %s.py 2>&1 > log.kratos" % python_module).read()
-            self.module.main()
+
+            libc = ctypes.CDLL(None)
+            c_stdout = ctypes.c_void_p.in_dll(libc, 'stdout')
+            std_io_out = io.StringIO()
+            with stdout_redirector( std_io_out, c_stdout, libc ):
+                self.WriteModelPart()
+                self.module.main()
+                print("Simulation terminated successfully.")
+            std_file_out = open("log.kratos", "w")
+            std_file_out.write(std_io_out.getvalue()[2:-2])
+            std_file_out.close()
+            
             os.chdir(_temp)
 
     def WriteModelPart( self ):
@@ -181,3 +190,36 @@ class OptimizationSetup:
         with open(model_part_file_name + '.mdpa', 'w') as model_part_file:
             model_part_file.writelines(lines)
         model_part_file.close()
+
+@contextmanager
+def stdout_redirector( stream, c_stdout, libc ):
+    # The original fd stdout points to. Usually 1 on POSIX systems.
+    original_stdout_fd = sys.stdout.fileno()
+
+    def _redirect_stdout(to_fd):
+        """Redirect stdout to the given file descriptor."""
+        # Flush the C-level buffer stdout
+        libc.fflush(c_stdout)
+        # Flush and close sys.stdout - also closes the file descriptor (fd)
+        sys.stdout.close()
+        # Make original_stdout_fd point to the same file as to_fd
+        os.dup2(to_fd, original_stdout_fd)
+        # Create a new sys.stdout that points to the redirected fd
+        sys.stdout = io.TextIOWrapper(os.fdopen(original_stdout_fd, 'wb'))
+
+    # Save a copy of the original stdout fd in saved_stdout_fd
+    saved_stdout_fd = os.dup(original_stdout_fd)
+    try:
+        # Create a temporary file and redirect stdout to it
+        tfile = tempfile.TemporaryFile(mode='w+b')
+        _redirect_stdout(tfile.fileno())
+        # Yield to caller, then redirect stdout back to the saved fd
+        yield
+        _redirect_stdout(saved_stdout_fd)
+        # Copy contents of temporary file to the given stream
+        tfile.flush()
+        tfile.seek(0, io.SEEK_SET)
+        stream.write(str(tfile.read()).replace('\\n', '\n' ))
+    finally:
+        tfile.close()
+        os.close(saved_stdout_fd)        
