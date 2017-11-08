@@ -170,19 +170,19 @@ void AddConstitutiveLawsToPython()
 		init<>())
 		;
 
-	// typedef ShellFrom3DConstitutiveLawAdapter<ConstitutiveLaw> ShellFrom3DConstitutiveLawAdapterType;
-	// class_< ShellFrom3DConstitutiveLawAdapterType, ShellFrom3DConstitutiveLawAdapterType::Pointer,
-	// 	    bases< ConstitutiveLaw >, boost::noncopyable >(
-	// 		"ShellFrom3DConstitutiveLawAdapter",
-	// 		init<const ConstitutiveLaw::Pointer&>())
-	// 		;
+	typedef ShellFrom3DConstitutiveLawAdapter<ConstitutiveLaw> ShellFrom3DConstitutiveLawAdapterType;
+	class_< ShellFrom3DConstitutiveLawAdapterType, ShellFrom3DConstitutiveLawAdapterType::Pointer,
+		    bases< ConstitutiveLaw >, boost::noncopyable >(
+			"ShellFrom3DConstitutiveLawAdapter",
+			init<const ConstitutiveLaw::Pointer&>())
+			;
 
-	// typedef PlaneStressFrom3DConstitutiveLawAdapter<ConstitutiveLaw> PlaneStressFrom3DConstitutiveLawAdapterType;
-	// class_< PlaneStressFrom3DConstitutiveLawAdapterType, PlaneStressFrom3DConstitutiveLawAdapterType::Pointer,
-	// 	    bases< ConstitutiveLaw >, boost::noncopyable >(
-	// 		"PlaneStressFrom3DConstitutiveLawAdapter",
-	// 		init<const ConstitutiveLaw::Pointer&>())
-	// 		;
+	typedef PlaneStressFrom3DConstitutiveLawAdapter<ConstitutiveLaw> PlaneStressFrom3DConstitutiveLawAdapterType;
+	class_< PlaneStressFrom3DConstitutiveLawAdapterType, PlaneStressFrom3DConstitutiveLawAdapterType::Pointer,
+		    bases< ConstitutiveLaw >, boost::noncopyable >(
+			"PlaneStressFrom3DConstitutiveLawAdapter",
+			init<const ConstitutiveLaw::Pointer&>())
+			;
 
 	typedef PlaneStrainFrom3DConstitutiveLawAdapter<ConstitutiveLaw> PlaneStrainFrom3DConstitutiveLawAdapterType;
 	class_< PlaneStrainFrom3DConstitutiveLawAdapterType, PlaneStrainFrom3DConstitutiveLawAdapterType::Pointer,
