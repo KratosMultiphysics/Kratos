@@ -280,11 +280,5 @@ class TestLoadingConditions(KratosUnittest.TestCase):
         for i in range(len(rhs)):
             self.assertAlmostEqual(rhs[i],reference_res[i])     
         
-    def test_execution(self):
-        self.test_LineLoadCondition2D2N()
-        self.test_LineLoadCondition2D2NAngle()
-        self.test_SurfaceLoadCondition3D4N()
-        #self.test_LineLoadCondition3D2NRotDof()
-        
 if __name__ == '__main__':
     KratosUnittest.main()

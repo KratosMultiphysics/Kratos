@@ -14,11 +14,10 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/axisym_updated_lagrangian_U_wP_element.hpp"
-#include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
+#include "custom_utilities/axisym_water_pressure_utilities.hpp"
 #include "pfem_solid_mechanics_application_variables.h"
+
 
 namespace Kratos
 {
@@ -28,7 +27,7 @@ namespace Kratos
    //************************************************************************************
    // Aquest a l'altre no hi és....
    AxisymUpdatedLagrangianUwPElement::AxisymUpdatedLagrangianUwPElement()
-      : UpdatedLagrangianUwPElement()
+      : AxisymmetricUpdatedLagrangianElement()
    {
       //DO NOT CALL IT: only needed for Register and Serialization!!!
    }
@@ -38,7 +37,7 @@ namespace Kratos
    //************************************************************************************
 
    AxisymUpdatedLagrangianUwPElement::AxisymUpdatedLagrangianUwPElement( IndexType NewId, GeometryType::Pointer pGeometry )
-      : UpdatedLagrangianUwPElement( NewId, pGeometry )
+      : AxisymmetricUpdatedLagrangianElement( NewId, pGeometry )
    {
       //DO NOT ADD DOFS HERE!!!
    }
@@ -48,7 +47,7 @@ namespace Kratos
    //************************************************************************************
 
    AxisymUpdatedLagrangianUwPElement::AxisymUpdatedLagrangianUwPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-      : UpdatedLagrangianUwPElement( NewId, pGeometry, pProperties )
+      : AxisymmetricUpdatedLagrangianElement( NewId, pGeometry, pProperties )
    {
    }
 
@@ -57,7 +56,8 @@ namespace Kratos
    //************************************************************************************
 
    AxisymUpdatedLagrangianUwPElement::AxisymUpdatedLagrangianUwPElement( AxisymUpdatedLagrangianUwPElement const& rOther)
-      :UpdatedLagrangianUwPElement(rOther)
+      :AxisymmetricUpdatedLagrangianElement(rOther)
+       ,mTimeStep( rOther.mTimeStep)
    {
    }
 
@@ -67,7 +67,9 @@ namespace Kratos
 
    AxisymUpdatedLagrangianUwPElement&  AxisymUpdatedLagrangianUwPElement::operator=(AxisymUpdatedLagrangianUwPElement const& rOther)
    {
-      UpdatedLagrangianUwPElement::operator=(rOther);
+      AxisymmetricUpdatedLagrangianElement::operator=(rOther);
+
+      mTimeStep = rOther.mTimeStep; 
 
       return *this;
    }
@@ -133,183 +135,465 @@ namespace Kratos
    AxisymUpdatedLagrangianUwPElement::~AxisymUpdatedLagrangianUwPElement()
    {
    }
-
-
-
+   //************* GETTING METHODS
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUwPElement::Initialize()
+   void AxisymUpdatedLagrangianUwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
    {
-      KRATOS_TRY
+      rElementalDofList.resize( 0 );
 
-      UpdatedLagrangianUwPElement::Initialize();
-
-      SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-
-      //Resize historic deformation gradient
-      if ( mDeformationGradientF0.size() != integration_points_number )
-         mDeformationGradientF0.resize( integration_points_number );
-
-      if ( mDeterminantF0.size() != integration_points_number )
-         mDeterminantF0.resize( integration_points_number, false );
-
-      for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+      for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
       {
-         mDeterminantF0[PointNumber] = 1;
-         mDeformationGradientF0[PointNumber] = identity_matrix<double> (3);
+         rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
+         rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
+         rElementalDofList.push_back( GetGeometry()[i].pGetDof( WATER_PRESSURE ));
+      }
+   }
+
+
+   //************************************************************************************
+   //************************************************************************************
+
+   void AxisymUpdatedLagrangianUwPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+   {
+      const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+      unsigned int element_size          = number_of_nodes * dimension + number_of_nodes;
+
+      if ( rResult.size() != element_size )
+         rResult.resize( element_size, false );
+
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+         int index = i * dimension + i;
+         rResult[index]     = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
+         rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
+         rResult[index + 2] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
       }
 
+   }
 
-      KRATOS_CATCH( "" )
+   //*********************************DISPLACEMENT***************************************
+   //************************************************************************************
+
+   void AxisymUpdatedLagrangianUwPElement::GetValuesVector( Vector& rValues, int Step )
+   {
+      const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+      unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
+
+      if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+
+
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+         unsigned int index = i * dimension + i;
+         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
+         rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
+         rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE, Step );
+
+      }
+   }
+
+
+   //************************************VELOCITY****************************************
+   //************************************************************************************
+
+   void AxisymUpdatedLagrangianUwPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+   {
+      const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+      unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
+
+      if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+         unsigned int index = i * dimension + i;
+         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
+         rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+         rValues[index + 2] = 0;
+      }
+   }
+
+   //*********************************ACCELERATION***************************************
+   //************************************************************************************
+
+   void AxisymUpdatedLagrangianUwPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+   {
+      const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+      unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
+
+      if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+
+
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+         unsigned int index = i * dimension + i;
+         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
+         rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
+         rValues[index + 2] = 0;
+      }
+
+   }
+
+   //************************************************************************************
+   //************************************************************************************
+
+   //**********************************GET DOUBLE VALUE**********************************
+   //************************************************************************************
+
+   void AxisymUpdatedLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+         std::vector<double>& rValues,
+         const ProcessInfo& rCurrentProcessInfo )
+   {
+
+      /*const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+        if ( rValues.size() != integration_points_number )
+        rValues.resize( integration_points_number );*/
+
+      if ( rVariable == POROSITY ||  rVariable == DENSITY )
+      {
+         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+      }
+      else if ( rVariable == VOID_RATIO )
+      {
+         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+      }
+      else if ( rVariable == PERMEABILITY )
+      {
+         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+      }
+      else if ( rVariable == DETERMINANT_F)
+      {
+         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+      }
+      else{
+
+         AxisymmetricUpdatedLagrangianElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+
+      }
+
+   }
+
+   //**********************************GET VECTOR VALUE**********************************
+   //************************************************************************************
+
+   void AxisymUpdatedLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<Vector> & rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
+   {
+      if ( rVariable == DARCY_FLOW ) {
+
+         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
+
+      }
+      else{
+
+         LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+
+      }
 
 
    }
 
-   void AxisymUpdatedLagrangianUwPElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   //**********************************GET TENSOR VALUE**********************************
+   //************************************************************************************
+
+   void AxisymUpdatedLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo)
+   {
+      if ( rVariable == TOTAL_CAUCHY_STRESS) 
+      {
+         CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
+      }
+      else {
+
+         LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
+
+      }
+
+   }
+
+
+   // *********************** Calculate double On Integration Points *************************
+   // ****************************************************************************************
+   void AxisymUpdatedLagrangianUwPElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
    {
 
-      const unsigned int number_of_nodes = GetGeometry().size();
 
-      rVariables.detF  = 1;
+      if ( rVariable == POROSITY ) {
 
-      rVariables.detF0 = 1;
+         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+         const double InitialPorosity  = GetProperties()[INITIAL_POROSITY];
 
-      rVariables.detFT = 1;
+         if ( rOutput.size() != mConstitutiveLawVector.size() )
+            rOutput.resize( mConstitutiveLawVector.size() );
 
-      rVariables.B.resize( 4 , number_of_nodes * 2 );
+         std::vector<double>  DetF0; 
+         GetValueOnIntegrationPoints( DETERMINANT_F, DetF0, rCurrentProcessInfo);
 
-      rVariables.F.resize( 3, 3 );
+         if (rOutput.size() != integration_points_number)
+            rOutput.resize( integration_points_number) ;
 
-      rVariables.F0.resize( 3, 3 );
+         for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+         {
+            rOutput[PointNumber] = 1.0 - (1.0 - InitialPorosity) / DetF0[PointNumber] ;
+         }
+      }
+      else if ( rVariable == VOID_RATIO) {
 
-      rVariables.FT.resize( 3, 3 );
+         GetValueOnIntegrationPoints( POROSITY, rOutput, rCurrentProcessInfo);
 
-      rVariables.ConstitutiveMatrix.resize( 4, 4 );
+         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
 
-      rVariables.StrainVector.resize( 4 );
+         for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+         {
+            rOutput[PointNumber] = rOutput[PointNumber] / (1.0 - rOutput[PointNumber]) ;
+         }
 
-      rVariables.StressVector.resize( 4 );
+      }
+      else if ( rVariable == DENSITY )
+      {
+         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
 
-      rVariables.DN_DX.resize( number_of_nodes, 2 );
+         if ( rOutput.size() != mConstitutiveLawVector.size() )
+            rOutput.resize( mConstitutiveLawVector.size() );
 
-      //set variables including all integration points values
+         double DensityRigid, DensityWater, DensityMixtureInitial, DensityMixtureFinal, PorosityInitial, Porosity, Jacobian;
 
-      //reading shape functions
-      rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
+         DensityMixtureInitial = GetProperties()[DENSITY];
+         DensityWater = GetProperties()[DENSITY_WATER];
+         PorosityInitial = GetProperties()[INITIAL_POROSITY];
 
-      //reading shape functions local gradients
-      rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+         DensityRigid = (DensityMixtureInitial-PorosityInitial*DensityWater) / (1.0 - PorosityInitial);
 
-      //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
-      rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
+         Jacobian = mDeterminantF0[0];
+         Porosity = 1.0 - ( 1.0 - PorosityInitial) / Jacobian; 
+
+         DensityMixtureFinal = (1.0 - Porosity) * DensityRigid + Porosity * DensityWater;
+
+         for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
+         {
+            rOutput[PointNumber] = DensityMixtureFinal;
+         }
+
+      }
+      else if ( rVariable == PERMEABILITY)
+      {
+         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+
+         if ( rOutput.size() != mConstitutiveLawVector.size() )
+            rOutput.resize( mConstitutiveLawVector.size() );
+
+         double Permeability    = GetProperties()[PERMEABILITY];
+         bool Kozeny = GetProperties()[KOZENY_CARMAN];
+         if ( Kozeny == false)
+         {
+            for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+            {
+               rOutput[PointNumber] = Permeability ;
+            }
+            return; 
+         }
+
+         std::vector<double>  Porosity; 
+         GetValueOnIntegrationPoints( POROSITY, Porosity, rCurrentProcessInfo);
+         double PorosityInitial = GetProperties()[INITIAL_POROSITY];
+         double initialVoidRatio = PorosityInitial / (1.0 - PorosityInitial);
+
+         double Constant = Permeability * ( 1.0 + initialVoidRatio) / pow( initialVoidRatio, 3.0);
+
+         for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+         {
+            double voidRatio = Porosity[PointNumber] / ( 1.0 - Porosity[PointNumber]);
+            rOutput[PointNumber] = Constant * pow( voidRatio, 3.0) / (1.0 + voidRatio); 
+            if ( rOutput[PointNumber] < Permeability / 1000.0) {
+               rOutput[PointNumber] = Permeability /1000.0;
+            }
+         }
 
 
-      //Calculate Delta Position
-      rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+      }
+      if (rVariable == DETERMINANT_F){
 
-      //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
-      rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+
+         if ( rOutput.size() != integration_points_number )
+            rOutput.resize( integration_points_number );
+
+         for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
+         {
+            rOutput[PointNumber] = mDeterminantF0[PointNumber];
+         }
+
+      }
+      else {
+         AxisymmetricUpdatedLagrangianElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
+      }
+
+   }
+
+   // *********************** Calculate Vector On Integration Points *************************
+   // ****************************************************************************************
+   void AxisymUpdatedLagrangianUwPElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+   {
+      if ( rVariable ==  DARCY_FLOW )
+      {
+         if ( rOutput.size() != mConstitutiveLawVector.size() ) {
+            rOutput.resize( mConstitutiveLawVector.size() );
+         }
+
+         // CONSTITUTIVE PARAMETERS
+         double Permeability = GetProperties()[PERMEABILITY];
+         double WaterDensity = GetProperties()[DENSITY_WATER];
+
+         // GEOMETRY PARAMETERS
+         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+         const unsigned int& dimension       = GetGeometry().WorkingSpaceDimension();
+         const unsigned int& number_of_nodes = GetGeometry().size(); 
+
+         // Get DN_DX
+         ElementVariables Variables; 
+         this->InitializeElementVariables( Variables, rCurrentProcessInfo);
+
+         Matrix K = ZeroMatrix( dimension, dimension);
+         for (unsigned int i = 0; i < dimension; i++)
+            K(i,i) = Permeability;  // this is only one of the two cases. 
+
+         for (unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++)
+         {
+            this->CalculateKinematics(Variables, PointNumber);
+
+            Vector GradP = ZeroVector( dimension );
+
+            for (unsigned int i = 0; i < number_of_nodes; i++) {
+               const double & rWaterPressure = GetGeometry()[i].FastGetSolutionStepValue( WATER_PRESSURE );
+               for (unsigned int iDim = 0; iDim < dimension; iDim++) {
+                  GradP(iDim) += Variables.DN_DX(i, iDim) * rWaterPressure; 
+               }
+            }
+
+            // BTerm
+            GradP(dimension-1) -= 10.0 * WaterDensity;
+
+            // finally
+            GradP  = prod( K, GradP); 
+            // Manual resize
+            Vector ResizedVector = ZeroVector(3);
+            for (unsigned int i = 0; i < dimension; i++)
+               ResizedVector(i) = GradP(i);
+            rOutput[PointNumber] = ResizedVector;
+         }
+
+      }
+      else
+      {
+         LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
+      }
+   }
+
+   // *********************** Calculate Matrix On Integration Points *************************
+   // ****************************************************************************************
+   void AxisymUpdatedLagrangianUwPElement::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+   {
+      if ( rVariable == TOTAL_CAUCHY_STRESS)
+      {
+         if ( rOutput.size() != mConstitutiveLawVector.size() ) {
+            rOutput.resize( mConstitutiveLawVector.size() );
+         }
+         // only for one gauss point element
+         GetValueOnIntegrationPoints( CAUCHY_STRESS_TENSOR, rOutput, rCurrentProcessInfo);
+
+         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+         const unsigned int number_of_nodes = GetGeometry().size();
+
+         double GaussPointPressure = 0.0;
+         unsigned int ThisDimension = rOutput[0].size1(); 
+         Matrix Eye = ZeroMatrix(ThisDimension, ThisDimension);
+
+         for (unsigned int i = 0; i < ThisDimension; ++i)
+            Eye(i,i) = 1.0;
+
+         for (unsigned int i = 0; i < number_of_nodes ; ++i)
+            GaussPointPressure += GetGeometry()[i].GetSolutionStepValue(WATER_PRESSURE) ;
+
+         GaussPointPressure /= double(number_of_nodes);
+
+         for ( unsigned int PointNumber = 0; PointNumber <  integration_points_number; PointNumber++) {
+            rOutput[PointNumber] = rOutput[PointNumber] + GaussPointPressure * Eye;
+         }
+
+
+      }
+      else
+      {
+         LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
+      }
+   }
+
+
+
+   // ******************** INITIALIZE GENERAL VARIABLES ****************************
+   // ******************************************************************************
+   void AxisymUpdatedLagrangianUwPElement::InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   {
+
+      AxisymmetricUpdatedLagrangianElement::InitializeElementVariables( rVariables, rCurrentProcessInfo);
 
       // SAVE THE TIME STEP, THAT WILL BE USED; BUT IS A BAD IDEA TO DO IT THIS WAY.
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
 
-      //mCompressibleWater = false;
-
-   }
-
-   //************************************************************************************
-   //************************************************************************************
-
-
-   void AxisymUpdatedLagrangianUwPElement::CalculateDeformationGradient(const Matrix& rDN_DX,
-         Matrix&  rF,
-         Matrix&  rDeltaPosition,
-         double & rCurrentRadius,
-         double & rReferenceRadius)
-   {
-      KRATOS_TRY
-
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-      rF = identity_matrix<double> ( 3 );
-
-      if( dimension == 2 )
-      {
-
-         for ( unsigned int i = 0; i < number_of_nodes; i++ )
-         {
-            rF ( 0 , 0 ) += rDeltaPosition(i,0)*rDN_DX ( i , 0 );
-            rF ( 0 , 1 ) += rDeltaPosition(i,0)*rDN_DX ( i , 1 );
-            rF ( 1 , 0 ) += rDeltaPosition(i,1)*rDN_DX ( i , 0 );
-            rF ( 1 , 1 ) += rDeltaPosition(i,1)*rDN_DX ( i , 1 );
-         }
-
-         rF ( 2 , 2 ) = rCurrentRadius/rReferenceRadius;
+      // KC permeability constitutive equation
+      bool KozenyCarman = false; 
+      if( GetProperties().Has(KOZENY_CARMAN) ){
+         KozenyCarman = GetProperties()[KOZENY_CARMAN];
       }
-      else if( dimension == 3)
-      {
-
-         std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
+      else if( rCurrentProcessInfo.Has(KOZENY_CARMAN) ){
+         KozenyCarman = rCurrentProcessInfo[KOZENY_CARMAN];
       }
-      else
-      {
+      GetProperties().SetValue(KOZENY_CARMAN, KozenyCarman);
 
-         KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
-
+      double initial_porosity  = 0.3; 
+      if( GetProperties().Has(INITIAL_POROSITY) ){
+         initial_porosity = GetProperties()[INITIAL_POROSITY];
       }
-
-
-      KRATOS_CATCH( "" )
+      else if( rCurrentProcessInfo.Has(INITIAL_POROSITY) ){
+         KozenyCarman = rCurrentProcessInfo[INITIAL_POROSITY];
+      }
+      GetProperties().SetValue(INITIAL_POROSITY, initial_porosity);
    }
 
 
 
-   //*************************COMPUTE DEFORMATION GRADIENT*******************************
-   //************************************************************************************
-   void AxisymUpdatedLagrangianUwPElement::CalculateDeformationMatrix(Matrix& rB,
-         Matrix& rDN_DX,
-         Vector& rN,
-         double & rCurrentRadius)
-   {
-      KRATOS_TRY
+   void AxisymUpdatedLagrangianUwPElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+         VectorType& rRightHandSideVector,
+         Flags& rCalculationFlags)
 
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+   {
+
+      const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-      rB.clear(); //set all components to zero
+      //resizing as needed the LHS
+      unsigned int MatSize = number_of_nodes * dimension + number_of_nodes;
 
-      if( dimension == 2 )
+      if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
       {
+         if ( rLeftHandSideMatrix.size1() != MatSize )
+            rLeftHandSideMatrix.resize( MatSize, MatSize, false );
 
-         for ( unsigned int i = 0; i < number_of_nodes; i++ )
-         {
-            unsigned int index = 2 * i;
-
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 0 ) = rN[i]/rCurrentRadius;
-            rB( 3, index + 0 ) = rDN_DX( i, 1 );
-            rB( 3, index + 1 ) = rDN_DX( i, 0 );
-
-         }
-
-      }
-      else if( dimension == 3 )
-      {
-
-         std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
-
-      }
-      else
-      {
-
-         KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
-
+         noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
       }
 
-      KRATOS_CATCH( "" )
+
+      //resizing as needed the RHS
+      if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
+      {
+         if ( rRightHandSideVector.size() != MatSize )
+            rRightHandSideVector.resize( MatSize, false );
+
+         rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+      }
    }
 
 
@@ -318,610 +602,157 @@ namespace Kratos
    //************************************************************************************
 
 
-   //*********************************COMPUTE KINEMATICS*********************************
    //************************************************************************************
-   void AxisymUpdatedLagrangianUwPElement::CalculateKinematics(GeneralVariables& rVariables,
-         const double& rPointNumber)
+   //************************************************************************************
 
+   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
    {
+
       KRATOS_TRY
 
-      //Get the parent coodinates derivative [dN/d£]
-      const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+      // define some variables
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      rVariables.detF0 *= rVariables.detF;
+      double DeterminantF = rVariables.detF;
+      rVariables.detF = 1.0;
 
-      //Get the shape functions for the order of the integration method [N]
-      const Matrix& Ncontainer = rVariables.GetShapeFunctions();
+      //contributions of the stiffness matrix calculated on the reference configuration
+      MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
-      //Parent to reference configuration
-      rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+      // ComputeBaseClass LHS
+      LocalSystemComponents BaseClassLocalSystem;
+      Matrix BaseClassLeftHandSideMatrix = ZeroMatrix( dimension*number_of_nodes, dimension*number_of_nodes);
+      BaseClassLocalSystem.SetLeftHandSideMatrix( BaseClassLeftHandSideMatrix );
 
-      //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
-      Matrix InvJ;
-      MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+      AxisymmetricUpdatedLagrangianElement::CalculateAndAddLHS( BaseClassLocalSystem, rVariables, rIntegrationWeight);
 
-      //Compute cartesian derivatives [dN/dx_n]
-      noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
-
-      //Set Shape Functions Values for this integration point
-      rVariables.N=row( Ncontainer, rPointNumber);
-
-      //Calculate IntegrationPoint radius
-      CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N);
-
-      //Current Deformation Gradient [dx_n+1/dx_n]
-      CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition, rVariables.CurrentRadius, rVariables.ReferenceRadius);
-
-      //Determinant of the deformation gradient F
-      rVariables.detF  = MathUtils<double>::Det(rVariables.F);
-
-      //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
-      Matrix Invj;
-      MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
-
-      //Compute cartesian derivatives [dN/dx_n+1]
-      rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
-
-      //Determinant of the Deformation Gradient F0
-      rVariables.detF0 = mDeterminantF0[rPointNumber];
-      rVariables.F0    = mDeformationGradientF0[rPointNumber];
-
-      //Compute the deformation matrix B
-      CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX, rVariables.N, rVariables.CurrentRadius);
-
-
-      KRATOS_CATCH( "" )
-   }
-
-
-   //************************************************************************************
-   //************************************************************************************
-
-   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
-   {
-
-
-      /* std::cout << " I HAVE IT ALL WRONG: detF0 " << 1.0 - rVariables.detF0 << " detF " << 1.0 - rVariables.detF << std::endl;
-         std::cout << " PART 2 F  " << rVariables.F << std::endl;
-         std::cout << " PART 3 F0 " << rVariables.F0 << std::endl;
-         std::cout << std::endl;
-       */
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
-      // SOMETHING OF DET
-      UpdatedLagrangianUwPElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
+      // Reshape the BaseClass LHS and Add the Hydro Part
+      AxisymWaterPressureUtilities WaterUtility; 
+      Matrix TotalF = prod ( rVariables.F, rVariables.F0);
+      int number_of_variables = dimension + 1; 
+      Vector VolumeForce;
+      VolumeForce= this->CalculateVolumeForce( VolumeForce, rVariables);
 
-      //KRATOS_WATCH( rLeftHandSideMatrix )
+      // 1. Create (make pointers) variables
+      WaterPressureUtilities::HydroMechanicalVariables HMVariables(GetGeometry(), GetProperties() );
+
+      HMVariables.SetBMatrix( rVariables.B);
+      HMVariables.SetShapeFunctionsDerivatives( rVariables.DN_DX);
+      HMVariables.SetDeformationGradient( TotalF);
+      HMVariables.SetVolumeForce( VolumeForce);
+      HMVariables.SetShapeFunctions( rVariables.N);
+
+      HMVariables.DeltaTime = mTimeStep;
+      HMVariables.detF0 = rVariables.detF0;
+      HMVariables.CurrentRadius = rVariables.CurrentRadius;
+      //HMVariables.ConstrainedModulus
+      HMVariables.number_of_variables = number_of_variables;
+
+      rLeftHandSideMatrix = WaterUtility.CalculateAndAddHydromechanicalLHS( HMVariables, rLeftHandSideMatrix, BaseClassLeftHandSideMatrix, IntegrationWeight);
+
+      rVariables.detF = DeterminantF; 
+      rVariables.detF0 /= rVariables.detF; 
+
+      KRATOS_CATCH("")
    }
 
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
+      KRATOS_TRY
+
+      // define some variables
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      rVariables.detF0 *= rVariables.detF;
+      double DeterminantF = rVariables.detF;
+      rVariables.detF = 1.0;
+
+
+      //contribution of the internal and external forces
+      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+
+      // Compute Base Class RHS
+      LocalSystemComponents BaseClassLocalSystem;
+      Vector BaseClassRightHandSideVector = ZeroVector ( dimension * number_of_nodes );
+      BaseClassLocalSystem.SetRightHandSideVector(BaseClassRightHandSideVector );
+      Vector VolumeForce = rVolumeForce; 
+      VolumeForce *= 0.0;
+      AxisymmetricUpdatedLagrangianElement::CalculateAndAddRHS( BaseClassLocalSystem, rVariables, VolumeForce, rIntegrationWeight);
+
+
+      // Reshape the BaseClass RHS and Add the Hydro Part
+      AxisymWaterPressureUtilities WaterUtility;
+      Matrix TotalF = prod( rVariables.F, rVariables.F0);
+      int number_of_variables = dimension+1; 
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
-      // SOMETHING OF DET
-      UpdatedLagrangianUwPElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
-      //KRATOS_WATCH( rRightHandSideVector )
+      // 1. Create (make pointers) variables
+      WaterPressureUtilities::HydroMechanicalVariables HMVariables(GetGeometry(), GetProperties() );
+
+      HMVariables.SetBMatrix( rVariables.B);
+      HMVariables.SetShapeFunctionsDerivatives( rVariables.DN_DX);
+      HMVariables.SetDeformationGradient( TotalF);
+      HMVariables.SetVolumeForce( rVolumeForce);
+      HMVariables.SetShapeFunctions( rVariables.N);
+
+      HMVariables.DeltaTime = mTimeStep;
+      HMVariables.detF0 = rVariables.detF0;
+      HMVariables.CurrentRadius = rVariables.CurrentRadius;
+      //HMVariables.ConstrainedModulus
+      HMVariables.number_of_variables = number_of_variables;
+
+      rRightHandSideVector = WaterUtility.CalculateAndAddHydromechanicalRHS( HMVariables, rRightHandSideVector, BaseClassRightHandSideVector, IntegrationWeight);
+
+
+      rVariables.detF = DeterminantF;
+      rVariables.detF0 /= rVariables.detF;
+
+      KRATOS_CATCH("")
+
    }
 
 
-   //************************************************************************************
-   //************************************************************************************
-
-   //*************************COMPUTE AXYSIMMETRIC RADIUS********************************
-   //************************************************************************************
-
-   void AxisymUpdatedLagrangianUwPElement::CalculateRadius(double & rCurrentRadius,
-         double & rReferenceRadius,
-         const Vector& rN)
-
-
+   int AxisymUpdatedLagrangianUwPElement::Check( const ProcessInfo & rCurrentProcessInfo )
    {
+	KRATOS_TRY
+	int correct = 0;
 
-      KRATOS_TRY
-
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-
-      unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-      rCurrentRadius=0;
-      rReferenceRadius=0;
-
-      if ( dimension == 2 )
-      {
-         for ( unsigned int i = 0; i < number_of_nodes; i++ )
-         {
-            //Displacement from the reference to the current configuration
-            array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-            array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
-            array_1d<double, 3 > & CurrentPosition      = GetGeometry()[i].Coordinates();
-            array_1d<double, 3 > ReferencePosition      = CurrentPosition - DeltaDisplacement;
-
-            rCurrentRadius   += CurrentPosition[0]*rN[i];
-            rReferenceRadius += ReferencePosition[0]*rN[i];
-            //std::cout<<" node "<<i<<" -> DeltaDisplacement : "<<DeltaDisplacement<<std::endl;
-         }
-      }
+	correct = AxisymmetricUpdatedLagrangianElement::Check( rCurrentProcessInfo );
 
 
-      if ( dimension == 3 )
-      {
-         std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
-      }
+      if ( this->GetProperties().Has(THICKNESS) ) {
+	      double thickness = this->GetProperties()[THICKNESS];
+	      if ( thickness <= 0.0) {
+		      this->GetProperties()[THICKNESS] = 1.0;
+	      }
+      } else {
+	     this->GetProperties()[THICKNESS] = 1.0;
+      } 
 
-      KRATOS_CATCH( "" )
-   }
-
-   //********** INTERNAL FORCES**************************************************************************
-   //********************** with the total stress tensor ************************************************
-
-   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-         GeneralVariables & rVariables,
-         double& rIntegrationWeight
-         )
-   {
-      KRATOS_TRY
-
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-      unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-      // VectorType Fh=rRightHandSideVector;
-
-      Vector TotalStressVector = rVariables.StressVector;
-
-      double Pressure = 0.0;
-      for (unsigned int i = 0; i < number_of_nodes; ++i)
-         Pressure += GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE ) * rVariables.N[i];
-
-
-      for (unsigned int i = 0; i < 3; ++i) 
-         TotalStressVector(i) += Pressure;
-
-      Vector InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), TotalStressVector );
-
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-         unsigned int indexup = dimension * i + i;
-         unsigned int indexu  = dimension * i;
-
-         for ( unsigned int j = 0; j < dimension; j++ )
-         {
-            rRightHandSideVector[indexup + j] -= InternalForces[indexu + j];
-         }
-      }
-
-
-      KRATOS_CATCH( "" )
-   }
-
-
-   //*************** PRESSURE FORCES *********************************************************************
-   //************************* aka: mass balance equation ************************************************
-
-   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-         GeneralVariables & rVariables,
-         double& rIntegrationWeight)
-   {
-      KRATOS_TRY
-
-      double ScalingConstant;
-      double Permeability; double WaterBulk; double DeltaTime;
-
-      GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
-
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-      unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-      unsigned int indexp = dimension;
-
-      VectorType Fh=rRightHandSideVector;
-
-
-      Matrix K = ZeroMatrix(dimension,dimension);
-      Vector b = ZeroVector(dimension);
-      double WaterDensity = 0.0;
-      b(dimension-1) = -WaterDensity;
-      for (unsigned int i = 0; i < dimension; ++i)
-         K(i,i) = Permeability;
-
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-         for ( unsigned int j = 0; j < number_of_nodes; j++ )
-         {
-
-            const double& CurrentPressure   = GetGeometry()[j].FastGetSolutionStepValue( WATER_PRESSURE );
-            const double& PreviousPressure = GetGeometry()[j].FastGetSolutionStepValue( WATER_PRESSURE , 1);
-            double DeltaPressure = CurrentPressure - PreviousPressure;
-
-            const array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[j].FastGetSolutionStepValue( DISPLACEMENT );
-            const array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[j].FastGetSolutionStepValue( DISPLACEMENT , 1 );
-            array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
-
-            rRightHandSideVector[indexp] += (1.0/WaterBulk) * rVariables.N[i] * rVariables.N[j] * DeltaPressure * rIntegrationWeight * ScalingConstant / rVariables.detF0;
-
-            for ( unsigned int p = 0; p < dimension; ++p )
-            {
-
-               rRightHandSideVector[indexp] -= rVariables.N[i]*DeltaDisplacement[p] * rVariables.DN_DX(j,p) * rIntegrationWeight * ScalingConstant / rVariables.detF0;
-               if (p == 0)
-                  rRightHandSideVector[indexp] -= rVariables.N[i]*DeltaDisplacement[p] * rVariables.N[j]*(1.0/ rVariables.CurrentRadius) * rIntegrationWeight * ScalingConstant/ rVariables.detF0;
-
-               for ( unsigned int q = 0; q < dimension; ++q )
-               {
-
-                  rRightHandSideVector[indexp] += DeltaTime * rVariables.DN_DX(i, p) * K( p, q) * rVariables.DN_DX(j,q)* CurrentPressure *rIntegrationWeight * ScalingConstant / rVariables.detF0;
-
-                  if (j == 0) {
-                     // Gravity term of the DARCY FLOW.
-                     rRightHandSideVector[indexp] += DeltaTime * rVariables.DN_DX(i,p) * K(p,q)*b(q)*rIntegrationWeight* ScalingConstant / rVariables.detF0;
-                  }
-
-               }
-
-
-            }
-
-         }
-
-         indexp += (dimension + 1);
-
-      }
-
-
-      KRATOS_CATCH( "" )
+	return correct;
+	KRATOS_CATCH("");
 
    }
-
-
-
-   //*********** STABILIZATION *************************************************************************
-   //****************** in the Stab element ************************************************************
-   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-         GeneralVariables & rVariables,
-         double& rIntegrationWeight)
-   {
-   }
-
-
-
-
-   //******************* Geometric Stiffness matrix *************************************
-   //************************************************************************************
-
-   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddKuug(MatrixType& rK,
-         GeneralVariables& rVariables,
-         double& rIntegrationWeight)
-
-   {
-      KRATOS_TRY
-      return;
-      const unsigned int number_of_nodes = GetGeometry().size();
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-      int size = number_of_nodes * dimension;
-
-      Matrix Kuu = zero_matrix<double>(size,size);
-
-      // axisymmetric geometric matrix
-
-      double alpha1 = 0;
-      double alpha2 = 0;
-      double alpha3 = 0;
-
-      unsigned int indexi = 0;
-      unsigned int indexj = 0;
-
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-         indexj =0;
-         for ( unsigned int j = 0; j < number_of_nodes; j++ )
-         {
-            alpha1 = rVariables.DN_DX(j,0) * ( rVariables.DN_DX(i,0) * rVariables.StressVector[0] + rVariables.DN_DX(i,1) * rVariables.StressVector[3] );
-            alpha2 = rVariables.DN_DX(j,1) * ( rVariables.DN_DX(i,0) * rVariables.StressVector[3] + rVariables.DN_DX(i,1) * rVariables.StressVector[1] );
-            alpha3 = rVariables.N[i] * rVariables.N[j] * rVariables.StressVector[2] * (1.0/rVariables.CurrentRadius*rVariables.CurrentRadius);
-
-            Kuu(indexi,indexj)     = alpha1 + alpha2 + alpha3 ;
-            Kuu(indexi+1,indexj+1) = alpha1 + alpha2 ;
-
-            indexj+=2;
-         }
-
-         indexi+=2;
-
-      }
-
-      Kuu *= rIntegrationWeight;
-
-
-
-      MatrixType Kh=rK;
-
-      //assemble into rk the geometric uu contribution:
-      indexi = 0;
-      indexj = 0;
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-         for ( unsigned int idim = 0; idim < dimension ; idim ++)
-         {
-            indexj=0;
-            for ( unsigned int j = 0; j < number_of_nodes; j++ )
-            {
-               for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
-               {
-                  rK(indexi+i,indexj+j)+=Kuu(indexi,indexj);
-                  indexj++;
-               }
-            }
-            indexi++;
-         }
-      }
-
-      //std::cout<<std::endl;
-      //std::cout<<" Kgeo "<<rK-Kh<<std::endl;
-
-
-      KRATOS_CATCH( "" )
-   }
-
-
-   //********** MATERIAL STIFFNESS MATRIX ***********************************************
-   //*********************** has de Pw term *********************************************
-   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         double& rIntegrationWeight)
-   {
-      KRATOS_TRY
-
-      //assemble into rk the material uu contribution:
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-      unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-      // FIRST: Ctotal = Cmaterial + pJ(1*1 - 2I4)
-      Matrix ConstitutiveMatrix = rVariables.ConstitutiveMatrix;
-
-      double Pressure = 0.0;
-      for (unsigned int i = 0; i < number_of_nodes; ++i)
-         Pressure += GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE ) * rVariables.N[i];
-
-
-      Matrix FourthOrderIdentity = ZeroMatrix(4,4);
-      Matrix MatrixProduct = ZeroMatrix(4,4);
-      for (unsigned int i = 0; i < 3 ; ++i) {
-         FourthOrderIdentity(i,i) = 1.0;
-         for (unsigned int j = 0; j < 3; ++j) {
-            MatrixProduct(i,j) = 1.0;
-         }
-      }
-      for (unsigned int i = 3; i < 4; ++i)
-         FourthOrderIdentity(i,i) = 0.5;
-
-
-      ConstitutiveMatrix += Pressure * rVariables.detF0 * (MatrixProduct - 2.0*FourthOrderIdentity); 
-
-      Matrix Kuu = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( ConstitutiveMatrix, rVariables.B ) ) ); 
-
-      // MatrixType Kh=rLeftHandSideMatrix;
-
-      unsigned int indexi = 0;
-      unsigned int indexj  = 0;
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-         for ( unsigned int idim = 0; idim < dimension ; idim ++)
-         {
-            indexj=0;
-            for ( unsigned int j = 0; j < number_of_nodes; j++ )
-            {
-               for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
-               {
-                  rLeftHandSideMatrix(indexi+i,indexj+j)+=Kuu(indexi,indexj);
-                  indexj++;
-               }
-            }
-            indexi++;
-         }
-      }
-
-      // std::cout<<std::endl;
-      // std::cout<<" Kmat "<<rLeftHandSideMatrix-Kh<<std::endl;
-
-      KRATOS_CATCH( "" )
-   }
-
-
-
-   //************************************************************************************
-   //************************************************************************************
-
-   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         double& rIntegrationWeight)
-   {
-      KRATOS_TRY
-
-      const unsigned int number_of_nodes = GetGeometry().size();
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-      //MatrixType Kh=rLeftHandSideMatrix;
-      //contributions to stiffness matrix calculated on the reference configuration
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-         unsigned int indexp  = dimension;
-         unsigned int indexup = dimension * i + i;
-         for ( unsigned int j = 0; j < number_of_nodes; j++ )
-         {
-
-            for ( unsigned int k = 0; k < dimension; k++ )
-            {
-               rLeftHandSideMatrix(indexup+k,indexp) +=  rVariables.DN_DX ( i , k ) *  rVariables.N[j] * rIntegrationWeight * rVariables.detF;
-
-               if (k==0)
-                  rLeftHandSideMatrix(indexup+k, indexp) +=rVariables.N(i) * rVariables.N[j] * (1.0/ rVariables.CurrentRadius)* rIntegrationWeight* rVariables.detF;
-            }
-            indexp += (dimension + 1);
-         }
-      }
-
-      // std::cout<<std::endl;
-      // std::cout<<" Kup "<<rLeftHandSideMatrix-Kh<<std::endl;
-
-      KRATOS_CATCH( "" )
-   }
-
-   //************************************************************************************
-   //************************************************************************************
-
-   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         double& rIntegrationWeight)
-
-   {
-      KRATOS_TRY
-      double ScalingConstant;
-      double Permeability; double WaterBulk; double DeltaTime;
-
-      GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
-
-      const unsigned int number_of_nodes = GetGeometry().size();
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-      Matrix K = ZeroMatrix(dimension,dimension);
-      for (unsigned int i = 0; i < dimension; ++i)
-         K(i,i) = Permeability;
-
-      MatrixType Kh=rLeftHandSideMatrix;
-
-      unsigned int indexp = dimension;
-
-      for ( unsigned int i = 0; i < number_of_nodes; ++i )
-      {
-         for ( unsigned int j = 0; j < number_of_nodes; ++j )
-         {
-            int indexup = dimension*j + j;
-            for ( unsigned int k = 0; k < dimension; k++ )
-            {
-               rLeftHandSideMatrix(indexp, indexup+k) += rVariables.N[i] * rVariables.DN_DX( j , k ) * rIntegrationWeight * ScalingConstant / rVariables.detF0;
-               if (k==0)
-                  rLeftHandSideMatrix(indexp, indexup+k) +=rVariables.N[i]*rVariables.N[j] * rIntegrationWeight*ScalingConstant* (1.0/ rVariables.CurrentRadius) / rVariables.detF0;
-
-               // TRY TO PROGRAM LD TERMS...
-               for (unsigned int m = 0; m < number_of_nodes; ++m ) 
-               {
-                  const array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[m].FastGetSolutionStepValue( DISPLACEMENT );
-                  const array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[m].FastGetSolutionStepValue( DISPLACEMENT , 1 );
-                  array_1d<double, 3 > DeltaDisplacement            = CurrentDisplacement-PreviousDisplacement;
-                  const double & WaterPressure = GetGeometry()[m].FastGetSolutionStepValue( WATER_PRESSURE );
-                  for (unsigned n = 0; n < dimension; n++) {
-
-                     rLeftHandSideMatrix(indexp, indexup+k) -= rVariables.N[i] * DeltaDisplacement[n] * rVariables.DN_DX(m,k) * rVariables.DN_DX(j,n) * rIntegrationWeight * ScalingConstant / rVariables.detF0;
-
-                     for (unsigned t = 0; t < dimension; ++t) {
-                        rLeftHandSideMatrix(indexp, indexup+k) += (rVariables.DN_DX(i,k)*rVariables.DN_DX(m,n) + rVariables.DN_DX(i,n)*rVariables.DN_DX(m,k) ) * K(t,n) * rVariables.DN_DX(j,t) * WaterPressure * DeltaTime * rIntegrationWeight * ScalingConstant / rVariables.detF0;
-                     }
-                  }
-               }
-
-            }
-         }
-         indexp += (dimension + 1);
-      }
-
-
-
-      // std::cout<<std::endl;
-      // std::cout<<" Kpu "<<rLeftHandSideMatrix-Kh<<std::endl;
-
-
-      KRATOS_CATCH( "" )
-   }
-
-
-   //************************************************************************************
-   //************************************************************************************
-
-   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
-         double& rIntegrationWeight)
-   {
-      KRATOS_TRY
-
-      const unsigned int number_of_nodes = GetGeometry().size();
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-      double ScalingConstant;
-      double Permeability; double WaterBulk; double DeltaTime;
-
-      GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
-      Matrix K = ZeroMatrix(dimension,dimension);
-      for (unsigned int i = 0; i < dimension; ++i)
-         K(i,i) = Permeability;
-
-      MatrixType Kh=rLeftHandSideMatrix;
-
-      //contributions to stiffness matrix calculated on the reference configuration
-      unsigned int indexpi = dimension;
-
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-         unsigned int indexpj = dimension;
-         for ( unsigned int j = 0; j < number_of_nodes; j++ )
-         {
-
-            rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(WaterBulk)) * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight * ScalingConstant / rVariables.detF0;
-            for ( unsigned int p = 0; p < dimension; ++p ) {
-               for ( unsigned int q = 0; q < dimension; ++q ) {
-                  rLeftHandSideMatrix(indexpi, indexpj) -= DeltaTime * rVariables.DN_DX(i, p) * K( p, q) * rVariables.DN_DX(j,q) * rIntegrationWeight* ScalingConstant / rVariables.detF0;
-               }
-            }
-
-            indexpj += (dimension + 1);
-         }
-
-         indexpi += (dimension + 1);
-      }
-
-      // std::cout<<std::endl;
-      // std::cout<<" Kpp "<< (rLeftHandSideMatrix-Kh) <<std::endl;
-      // std::cout<<" Kpp "<< (rLeftHandSideMatrix-Kh) / ScalingConstant / rIntegrationWeight* rVariables.detF0  * WaterBulk <<std::endl;
-
-
-      KRATOS_CATCH( "" )
-   }
-
-
-
-   //************ STABILIZATION TANGENT MATRIX *******************************************
-   //****************************** defined in the Stab element **************************
-
-   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
-         GeneralVariables & rVariables,
-         double& rIntegrationWeight)
-   {
-   }
-
-
    //************************************************************************************
    //************************************************************************************
 
    void AxisymUpdatedLagrangianUwPElement::save( Serializer& rSerializer ) const
    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
-         rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.save("DeterminantF0",mDeterminantF0);
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, AxisymmetricUpdatedLagrangianElement )
    }
 
    void AxisymUpdatedLagrangianUwPElement::load( Serializer& rSerializer )
    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
-         rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.load("DeterminantF0",mDeterminantF0);
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, AxisymmetricUpdatedLagrangianElement )
    }
 
 
 
-
-
-
-
 }  // END KRATOS NAMESPACE
+

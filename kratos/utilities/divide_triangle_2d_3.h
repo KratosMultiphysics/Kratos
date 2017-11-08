@@ -46,15 +46,15 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef DivideGeometry                                                    BaseType;
-    typedef typename BaseType::GeometryType                               GeometryType;
-    typedef typename BaseType::IndexedPointType                       IndexedPointType;
-    typedef Line2D2 < IndexedPointType >                          IndexedPointLineType;
-    typedef Triangle2D3 < IndexedPointType >                  IndexedPointTriangleType;
+    typedef DivideGeometry                          BaseType;
+    typedef BaseType::GeometryType                  GeometryType;
+    typedef BaseType::IndexedPointType              IndexedPointType;
+    typedef Line2D2 < IndexedPointType >            IndexedPointLineType;
+    typedef Triangle2D3 < IndexedPointType >        IndexedPointTriangleType;
 
     /// Pointer definition of DivideTriangle2D3
     KRATOS_CLASS_POINTER_DEFINITION(DivideTriangle2D3);
-    
+
     const std::vector<int> mEdgeNodeI = {0, 1, 2};
     const std::vector<int> mEdgeNodeJ = {1, 2, 0};
     std::vector<int> mSplitEdges = {0, 1, 2, -1, -1, -1};

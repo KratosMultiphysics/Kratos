@@ -82,7 +82,7 @@ class ConvectionDiffusionSolver:
         # assignation of parameters to be used
         self.time_order = 1;
         self.prediction_order = 1;
-        self.ReformDofAtEachIteration = False;
+        self.ReformDofAtEachIteration = True;
         self.max_iter = 15;
         self.toll = 1e-5;
 
