@@ -248,8 +248,8 @@ namespace Kratos
         bounded_matrix<double,msLocalSize,msElementSize>
          A = ZeroMatrix(msLocalSize, msElementSize);
 
-        //const double length_k_inv = 1.00 / this->GetGeometry().Length();
-        const double length_k_inv = 1.00 / this->CalculateReferenceLength();
+        const double length_k_inv = 1.00 / this->GetGeometry().Length();
+        // LINEAR: const double length_k_inv = 1.00 / this->CalculateReferenceLength
 
         A(0,1) = -length_k_inv;
         A(0,3) = 1.00;
@@ -378,7 +378,14 @@ namespace Kratos
             double VectorNorm = MathUtils<double>::Norm(DirectionVectorG3);
             if (VectorNorm > numerical_limit) DirectionVectorG3 /= VectorNorm;
 
-            DirectionVectorG1 = this->GetValue(LOCAL_AXIS_2);
+            array_1d<double, msLocalSize> TempLocalAxis2  = this->GetValue(LOCAL_AXIS_2);
+            DirectionVectorG1[0] = TempLocalAxis2[1];
+            DirectionVectorG1[1] = TempLocalAxis2[2];
+            DirectionVectorG1[2] = TempLocalAxis2[0];
+
+            VectorNorm = MathUtils<double>::Norm(DirectionVectorG1);
+            if (VectorNorm > numerical_limit) DirectionVectorG1 /= VectorNorm;
+
             DirectionVectorG2[0] = DirectionVectorG3[1]*DirectionVectorG1[2]-DirectionVectorG3[2]*DirectionVectorG1[1];
             DirectionVectorG2[1] = DirectionVectorG3[2]*DirectionVectorG1[0]-DirectionVectorG3[0]*DirectionVectorG1[2];
             DirectionVectorG2[2] = DirectionVectorG3[0]*DirectionVectorG1[1]-DirectionVectorG3[1]*DirectionVectorG1[0];
