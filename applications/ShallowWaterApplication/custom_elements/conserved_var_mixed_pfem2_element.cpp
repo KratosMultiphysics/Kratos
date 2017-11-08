@@ -293,14 +293,6 @@ namespace Kratos
         rVariables.scalar_grad = ZeroVector(2);
         rVariables.vector_grad = ZeroMatrix(2,2);
 
-        // Near dry node flag
-        bool near_dry = false;
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-            if (rVariables.unknown[2 + 3*i] < 1e-1)
-                near_dry = true;
-        }
-
         // integrate over the element
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
@@ -309,28 +301,16 @@ namespace Kratos
             rVariables.scalar += rVariables.unknown[2 + 3*i];
             rVariables.scalar_grad[0] += rDN_DX(i,0) * rVariables.unknown[2 + 3*i];
             rVariables.scalar_grad[1] += rDN_DX(i,1) * rVariables.unknown[2 + 3*i];
-            if (near_dry)
-            {
-                rVariables.vector_grad(0,0)  += rDN_DX(i,0) * rVariables.unknown[  + 3*i];
-                rVariables.vector_grad(0,1)  += rDN_DX(i,0) * rVariables.unknown[1 + 3*i];
-                rVariables.vector_grad(1,0)  += rDN_DX(i,1) * rVariables.unknown[  + 3*i];
-                rVariables.vector_grad(1,1)  += rDN_DX(i,1) * rVariables.unknown[1 + 3*i];
-            }
-            else
-            {
-                rVariables.vector_grad(0,0)  += rDN_DX(i,0) * rVariables.unknown[  + 3*i] / rVariables.unknown[2 + 3*i];
-                rVariables.vector_grad(0,1)  += rDN_DX(i,0) * rVariables.unknown[1 + 3*i] / rVariables.unknown[2 + 3*i];
-                rVariables.vector_grad(1,1)  += rDN_DX(i,1) * rVariables.unknown[  + 3*i] / rVariables.unknown[2 + 3*i];
-                rVariables.vector_grad(1,1)  += rDN_DX(i,1) * rVariables.unknown[1 + 3*i] / rVariables.unknown[2 + 3*i];
-            }
+            rVariables.vector_grad(0,0)  += rDN_DX(i,0) * rVariables.unknown[  + 3*i];
+            rVariables.vector_grad(0,1)  += rDN_DX(i,0) * rVariables.unknown[1 + 3*i];
+            rVariables.vector_grad(1,0)  += rDN_DX(i,1) * rVariables.unknown[  + 3*i];
+            rVariables.vector_grad(1,1)  += rDN_DX(i,1) * rVariables.unknown[1 + 3*i];
         }
-        if (near_dry)
-            rVariables.vector_grad /= rVariables.scalar;
 
         rVariables.vector *= rVariables.lumping_factor;
         rVariables.scalar *= rVariables.lumping_factor * rVariables.height_units;
         rVariables.scalar_grad *= rVariables.height_units;
-        rVariables.vector_grad /= rVariables.height_units;
+        rVariables.vector_grad /= rVariables.scalar;
     }
 
 //----------------------------------------------------------------------
