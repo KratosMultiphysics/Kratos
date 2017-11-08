@@ -379,33 +379,33 @@ public:
         KRATOS_CATCH("")
     }
 
-/**
-     * @brief Returns the gradient matrix of the velocity.
-     *
-     * The row index corresponds to the velocity component and the column index to
-     * the derivative.
-     *
-     * @param rGradVel velocity gradient matrix
-     * @param rDN_DX shape functions' gradients
-     */
-    void CalculateVelocityGradient(
-        boost::numeric::ublas::bounded_matrix< double, TDim, TDim >& rGradVel,
-        const ShapeFunctionDerivativesType& rDN_DX)
+    void Calculate(
+        const Variable<Matrix>& rVariable,
+        Matrix& Output,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
-        GeometryType& rGeom = this->GetGeometry();
-        // node 0
-        const array_1d< double, 3 >& rVel = rGeom[0].FastGetSolutionStepValue(VELOCITY,0);
-        for (IndexType m = 0; m < TDim; m++)
-            for (IndexType n = 0; n < TDim; n++)
-                rGradVel(m,n) = rDN_DX(0,n) * rVel[m];
-        // node 1,2,...
-        for (IndexType iNode = 1; iNode < TNumNodes; iNode++)
+        KRATOS_TRY;
+
+        if (rVariable == VELOCITY_GRADIENT_TENSOR)
         {
-            const array_1d< double, 3 >& rVel = rGeom[iNode].FastGetSolutionStepValue(VELOCITY,0);
-            for (IndexType m = 0; m < TDim; m++)
-                for (IndexType n = 0; n < TDim; n++)
-                    rGradVel(m,n) += rDN_DX(iNode,n) * rVel[m];
+            ShapeFunctionDerivativesType DN_DX;
+            array_1d< double, TNumNodes > N;
+            double Volume;
+
+            boost::numeric::ublas::bounded_matrix< double, TDim, TDim > rGradVel;
+    
+            GeometryUtils::CalculateGeometryData(this->GetGeometry(),DN_DX,N,Volume);
+
+            this->CalculateVelocityGradient(rGradVel, DN_DX);
+
+            for (int i=0; i < TDim; i++)
+                for (int j=0; j < TDim; j++)
+                    Output(i,j) = rGradVel(i,j);
         }
+        else
+            KRATOS_ERROR << "Calculate variable " << rVariable << " not supported." << std::endl;
+
+        KRATOS_CATCH("");
     }
 
     void GetDofList(DofsVectorType& rElementalDofList,
@@ -448,6 +448,35 @@ protected:
 
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief Returns the gradient matrix of the velocity.
+     *
+     * The row index corresponds to the velocity component and the column index to
+     * the derivative.
+     *
+     * @param rGradVel velocity gradient matrix
+     * @param rDN_DX shape functions' gradients
+     */
+    void CalculateVelocityGradient(
+        boost::numeric::ublas::bounded_matrix< double, TDim, TDim >& rGradVel,
+        const ShapeFunctionDerivativesType& rDN_DX)
+    {
+        GeometryType& rGeom = this->GetGeometry();
+        // node 0
+        const array_1d< double, 3 >& rVel = rGeom[0].FastGetSolutionStepValue(VELOCITY,0);
+        for (IndexType m = 0; m < TDim; m++)
+            for (IndexType n = 0; n < TDim; n++)
+                rGradVel(m,n) = rDN_DX(0,n) * rVel[m];
+        // node 1,2,...
+        for (IndexType iNode = 1; iNode < TNumNodes; iNode++)
+        {
+            const array_1d< double, 3 >& rVel = rGeom[iNode].FastGetSolutionStepValue(VELOCITY,0);
+            for (IndexType m = 0; m < TDim; m++)
+                for (IndexType n = 0; n < TDim; n++)
+                    rGradVel(m,n) += rDN_DX(iNode,n) * rVel[m];
+        }
+    }        
 
     /// Calculate VMS-stabilized (lumped) mass matrix.
     void CalculateVMSMassMatrix(

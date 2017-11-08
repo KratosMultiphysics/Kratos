@@ -120,7 +120,7 @@ public:
 
         Parameters numerical_diffusion_parameters(rParameters["numerical_diffusion"]);
 
-        NumericalDiffusion::SetNumericalDiffusionParamters(numerical_diffusion_parameters);
+        mNumeicalDiffusion.SetNumericalDiffusionParamters(numerical_diffusion_parameters);
 
         mAlphaBossak = rParameters["alpha_bossak"].GetDouble();
         mGammaNewmark = 0.5 - mAlphaBossak;
@@ -611,7 +611,7 @@ public:
         pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
-        NumericalDiffusion::CalculateNumericalDiffusion(
+        mNumeicalDiffusion.CalculateNumericalDiffusion(
             pCurrentElement,
             mAdjointMassMatrix[thread_id],
             rCurrentProcessInfo
@@ -766,6 +766,8 @@ private:
     std::vector<LocalSystemVectorType> mAdjointAcceleration;
     std::vector<LocalSystemVectorType> mResponseGradient;
     std::vector<LocalSystemMatrixType> mAdjointMassMatrix;
+
+    NumericalDiffusion mNumeicalDiffusion;
 
     ///@}
     ///@name Private Operators
