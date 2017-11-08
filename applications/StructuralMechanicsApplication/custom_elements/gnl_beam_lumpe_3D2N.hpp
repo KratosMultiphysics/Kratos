@@ -114,12 +114,12 @@ namespace Kratos
 
 	private:
 		
-		double Iy = 0.0001;
-		double Iz = 0.0002;
-		double It = 0.0003;
+		double Iy = 0.00001;
+		double Iz = 0.00001;
+		double It = 0.00001;
 		double A = 0.01;
-		double E = 210000000000;
-		double G = 80800000000;
+		double E = 210000000000.0;
+		double G = this->E / (2.0 * (1.0 + 0.300));;
 		double alphay = 1.00;
 		double alphaz = 1.00;
 		double mu = 1.00;

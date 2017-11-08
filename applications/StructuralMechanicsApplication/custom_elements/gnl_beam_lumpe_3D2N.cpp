@@ -200,7 +200,7 @@ namespace Kratos
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) 
         {
-            // testing (this is linear analysis) and not rotated and already new K(k+1)!
+            // testing (this is linear analysis) and already new K(k+1)!
             Vector Nodal_Deformation = ZeroVector(msElementSize);
             this->GetValuesVector(Nodal_Deformation);
 
@@ -248,7 +248,8 @@ namespace Kratos
         bounded_matrix<double,msLocalSize,msElementSize>
          A = ZeroMatrix(msLocalSize, msElementSize);
 
-        const double length_k_inv = 1.00 / this->GetGeometry().Length();
+        //const double length_k_inv = 1.00 / this->GetGeometry().Length();
+        const double length_k_inv = 1.00 / this->CalculateReferenceLength();
 
         A(0,1) = -length_k_inv;
         A(0,3) = 1.00;
@@ -388,9 +389,9 @@ namespace Kratos
 
             for (int i = 0; i < msDimension; ++i)
             {
-                RotationMatrix(0, i) = DirectionVectorG3[i];
-                RotationMatrix(1, i) = DirectionVectorG1[i];
-                RotationMatrix(2, i) = DirectionVectorG2[i];
+                RotationMatrix(0, i) = DirectionVectorG1[i];
+                RotationMatrix(1, i) = DirectionVectorG2[i];
+                RotationMatrix(2, i) = DirectionVectorG3[i];
             }
         }
         else KRATOS_ERROR << "Local Coordinate System not defined !!" << this->Id() << std::endl;
