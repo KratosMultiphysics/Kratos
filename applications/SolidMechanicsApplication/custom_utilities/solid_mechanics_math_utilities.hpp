@@ -279,13 +279,13 @@ public:
         // In exact arithmetic for a symmetric matrix  -1 <= r <= 1
         // but computation error can leave it slightly outside this range.
         double phi = 0.0;
-        if (r <= -1) { phi = Globals::Pi3; }
+        if (r <= -1) { phi = Globals::Pi / 3.0; }
         else if (r >= 1) { phi = 0.0; }
         else { phi = acos(r) / 3.0;}
             
         // the eigenvalues satisfy eig3 <= eig2 <= eig1
         Result[0] = q + 2.0 * p * cos(phi);
-        Result[2] = q + 2.0 * p * cos(phi + (2.0 * Globals::Pi3));
+        Result[2] = q + 2.0 * p * cos(phi + (2.0 * Globals::Pi / 3.0));
         Result[1] = 3.0 * q - Result[0] - Result[2];     //% since trace(A) = eig1 + eig2 + eig3   
 
         return Result;
