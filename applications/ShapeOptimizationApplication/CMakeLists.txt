@@ -7,6 +7,9 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 #dependecies on other applications
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
+#empire header files
+include_directories( $ENV{EMPIRE_MAPPER_LIB_INC_ON_MACHINE} )
+
 ## generate variables with the sources
 set( KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES     
 	${CMAKE_CURRENT_SOURCE_DIR}/shape_optimization_application.cpp 
@@ -22,12 +25,10 @@ include_directories( ${OCE_INCLUDE_DIRS} )
 find_package(HDF5 REQUIRED COMPONENTS CXX)
 include_directories( ${HDF5_INCLUDE_DIRS} )
 
-include_directories( ${EMPIRE_MAPPER_LIB_INC_ON_MACHINE} )
-
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosShapeOptimizationApplication SHARED ${KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES})
-target_link_libraries(KratosShapeOptimizationApplication KratosCore KratosStructuralMechanicsApplication ${HDF5_CXX_LIBRARIES} ${OCE_LIBRARIES} ${EMPIRE_MAPPER_LIB_ON_MACHINE} )
+target_link_libraries(KratosShapeOptimizationApplication KratosCore KratosStructuralMechanicsApplication ${HDF5_CXX_LIBRARIES} ${OCE_LIBRARIES} $ENV{EMPIRE_MAPPER_LIBSO_ON_MACHINE} )
 set_target_properties(KratosShapeOptimizationApplication PROPERTIES PREFIX "")
 install(TARGETS KratosShapeOptimizationApplication DESTINATION libs )
 

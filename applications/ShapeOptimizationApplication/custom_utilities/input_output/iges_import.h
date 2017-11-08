@@ -25,7 +25,7 @@
 #include "utilities/openmp_utils.h"
 
 // Application includes
-#include "custom_utilities/external_model_import.h"
+#include "custom_utilities/input_output/external_model_import.h"
 
 #include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
@@ -35,6 +35,7 @@
 #include <TopTools_ListIteratorOfListOfShape.hxx>
 #include <TopExp_Explorer.hxx>
 #include <IGESControl_Reader.hxx>
+#include <IGESControl_Writer.hxx>
 
 namespace Kratos
 {
@@ -45,7 +46,6 @@ namespace Kratos
 ///@{
 
 /// A response function for drag.
-template <unsigned int TDim>
 class IGESExternalModelImport : public ExternalModelImport
 {
 public:
@@ -61,8 +61,8 @@ public:
     ///@{
 
     /// Constructor.
-    IGESExternalModelImport(Parameters& rParameters)
-      : ExternalModelImport(rParameters, "iges,igs")
+    IGESExternalModelImport(Parameters rParameters)
+      : ExternalModelImport(rParameters)
     {
     }
 
@@ -83,13 +83,13 @@ public:
     {
         KRATOS_TRY;
 
-        IGESControl_Reader reader();
-        reader.ReadFile(mFilename);
+        IGESControl_Reader reader;
+        reader.ReadFile(mFilename.c_str());
         reader.TransferRoots();
         
-        for (IndexType i=0; i<reader.NbShapes(); i++)
+        for (int i=0; i<reader.NbShapes(); i++)
         {
-            this->mCompoundsList.push(reader.Shape(i+1));
+            this->GetCompoundsList().push_back(reader.Shape(i+1));
         }
 
         std::cout<<" Successfully read "<<reader.NbShapes()<<" shapes."<<std::endl;

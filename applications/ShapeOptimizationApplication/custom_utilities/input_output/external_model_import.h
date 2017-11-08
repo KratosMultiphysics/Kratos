@@ -79,6 +79,7 @@ class ExternalModelImport
 public:
     ///@name Type Definitions
     ///@{
+    typedef Element::IndexType IndexType;
 
     KRATOS_CLASS_POINTER_DEFINITION(ExternalModelImport);
 
@@ -87,9 +88,9 @@ public:
     ///@{
 
     /// Constructor.
-    ExternalModelImport( Parameters& rParameters,  std::string FileTypes)
+    ExternalModelImport( Parameters rParameters )
     {
-        KRATOS_TRY();
+        KRATOS_TRY;
 
         Parameters default_params(R"(
             {
@@ -100,26 +101,26 @@ public:
         
         rParameters.ValidateAndAssignDefaults(default_params);
 
-        std::vector<std::string> file_types;
-        boost::split(file_types, FileTypes, ",");
+        // std::vector<std::string> file_types;
+        // boost::split(file_types, rFileTypes, ",");
 
-        bool valid_file_type = false;
-        for (std::string file_type : file_types)
-            if (file_type.compare(rParameters["input_type"].GetString()) == 0)
-            {
-                valid_file_type = true;
-                break;
-            }
+        // bool valid_file_type = false;
+        // for (std::string file_type : file_types)
+        //     if (file_type.compare(rParameters["input_type"].GetString()) == 0)
+        //     {
+        //         valid_file_type = true;
+        //         break;
+        //     }
         
-        if (!valid_file_type)
-        {
-            std::stringstream msg;                
-            msg << "this module only supports "<<rFileTypes<<", provided input_type = "<<rParameters["input_type"].GetString()<<std::endl;
-            KRATOS_THROW_ERROR(std::invalid_argument," invalid input_type: ",msg.str());
-        }
+        // if (!valid_file_type)
+        // {
+        //     std::stringstream msg;                
+        //     msg << "this module only supports "<<rFileTypes<<", provided input_type = "<<rParameters["input_type"].GetString()<<std::endl;
+        //     KRATOS_THROW_ERROR(std::invalid_argument," invalid input_type: ",msg.str());
+        // }
 
         mFilename = rParameters["input_filename"].GetString();
-        mEchoLevel = rParameters["echo_level"].GetInteger();
+        mEchoLevel = rParameters["echo_level"].GetInt();
         mFileType = rParameters["input_type"].GetString();
 
         KRATOS_CATCH("");
@@ -171,15 +172,15 @@ public:
     {
         KRATOS_TRY;
 
-        BRepBuilderAPI_NurbsConvert shape_converter();
+        BRepBuilderAPI_NurbsConvert shape_converter;
 
         for (IndexType i=0; i< this->mCompoundsList.size(); i++)
         {
-            if (echo_level > 0)
-                std::cout<<"Converting shape: "<<mCompoundsList[i]<<" to NURBS"<<std::endl;
+            // if (mEchoLevel > 0)
+                // std::cout<<"Converting shape: "<<mCompoundsList[i]<<" to NURBS"<<std::endl;
             
             shape_converter.Perform(mCompoundsList[i]);
-            mCompoundNurbsList.push(shape_converter.Shape());
+            mCompoundNurbsList.push_back(shape_converter.Shape());
         }
 
         std::cout<<"Converted "<<mCompoundNurbsList.size()<<" shapes to NURBS."<<std::endl;
@@ -196,7 +197,7 @@ public:
             mSewedCompound.Add(mCompoundNurbsList[i]);
         }
 
-        if (echo_level > 0)
+        if (mEchoLevel > 0)
         {
             std::cout<<"> --- Shape Summary Before Sewing ---"<<std::endl;
             mSewedCompound.Dump();
@@ -204,7 +205,7 @@ public:
 
         mSewedCompound.Perform();
 
-        if (echo_level > 0)
+        if (mEchoLevel > 0)
         {
             std::cout<<"> --- Shape Summary After Sewing ---"<<std::endl;
             mSewedCompound.Dump();
@@ -215,17 +216,17 @@ public:
         KRATOS_CATCH("");        
     }
 
-    const std::vector<TopoDS_Shape>& GetCompoundsList() const
+    std::vector<TopoDS_Shape>& GetCompoundsList()
     {
       return mCompoundsList;
     }
 
-    const std::vector<TopoDS_Shape>& GetCompoundNURBSList() const
+    std::vector<TopoDS_Shape>& GetCompoundNURBSList()
     {
       return mCompoundNurbsList;
     }
 
-    const BRepBuilderAPI_Sewing& GetSewedShape() const
+    BRepBuilderAPI_Sewing& GetSewedShape()
     {
       return mSewedCompound;
     }
@@ -250,7 +251,7 @@ private:
     ///@{
     std::vector<TopoDS_Shape> mCompoundsList;
     std::vector<TopoDS_Shape> mCompoundNurbsList;
-    BRepBuilderAPI_Sewing mSewedCompound();
+    BRepBuilderAPI_Sewing mSewedCompound;
     ///@}
     ///@name Private Operators
     ///@{

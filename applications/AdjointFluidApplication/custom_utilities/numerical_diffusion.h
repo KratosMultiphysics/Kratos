@@ -110,7 +110,7 @@ public:
         if (method_name.compare("singular_value_pressure_coupled")==0)
             mNumericalDiffusionMethod = NUMERICAL_DIFFUSION_METHOD::SINGULAR_VALUE_PRESSURE_COUPLED;
         else if (method_name.compare("singular_value_pressure_decoupled")==0)
-            mNumericalDiffusionMethod = NUMERICAL_DIFFUSION_METHOD::SINGULAR_VALUE_PRESSURE_DECOUPLED;
+            mNumericalDiffusionMethod = NUMERICAL_DIFFUSION_METHOD::SINGULAR_VALUE_PRESSURE_DECOUPLED; //type: camel case, values: camel case or lower case 
         else if (method_name.compare("eigen_values")==0)
             mNumericalDiffusionMethod = NUMERICAL_DIFFUSION_METHOD::EIGEN_VALUE;
         else
@@ -135,7 +135,7 @@ public:
 
         if (domain_size == 2)
         {
-            VMSAdjointElement<2> *pVMSAdjointElement = static_cast<VMSAdjointElement<2>*>(pCurrentElement.get());
+            VMSAdjointElement<2> *pVMSAdjointElement = dynamic_cast<VMSAdjointElement<2>*>(pCurrentElement.get());
 
             InitializeMatrix<2>(rAdjointMatrix);
 
