@@ -55,7 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/cfd_variables.h"
-#include "custom_elements/primitive_var_element.hpp"
+#include "custom_elements/conserved_var_mixed_pfem2_element.hpp"
 #include "shallow_water_application.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
@@ -66,285 +66,217 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    int PrimitiveVarElement<TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
+    int ConservedVarMixedPfem2Element<TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
-        
+
         const GeometryType& rGeom = this->GetGeometry();
         const PropertiesType& rProp = this->GetProperties();
-        
+
         // verify nodal variables and dofs
         for ( unsigned int i = 0; i < TNumNodes; i++ )
         {
             // Verify basic variables
             if (rGeom[i].SolutionStepsDataHas( HEIGHT ) == false)
                 KRATOS_THROW_ERROR( std::invalid_argument, "missing variable HEIGHT on node ", rGeom[i].Id() )
-            
-            if ( rGeom[i].SolutionStepsDataHas( VELOCITY ) == false )
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable VELOCITY on node ", rGeom[i].Id() )
-            
+
+            if ( rGeom[i].SolutionStepsDataHas( MOMENTUM ) == false )
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable MOMENTUM on node ", rGeom[i].Id() )
+
             // Verify auxiliar variables
             if (rGeom[i].SolutionStepsDataHas( BATHYMETRY ) == false)
                 KRATOS_THROW_ERROR( std::invalid_argument, "missing variable BATHYMETRY on node ", rGeom[i].Id() )
-            
+
             if (rGeom[i].SolutionStepsDataHas( RAIN ) == false)
                 KRATOS_THROW_ERROR( std::invalid_argument, "missing variable RAIN on node ", rGeom[i].Id() )
-            
+
             // Verify degrees of freedom
             if (rGeom[i].HasDofFor( HEIGHT ) == false )
                 KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable HEIGHT on node ", rGeom[i].Id() )
-            
-            if (rGeom[i].HasDofFor( VELOCITY_X ) == false ||
-                rGeom[i].HasDofFor( VELOCITY_Y ) == false )
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable VELOCITY on node ", rGeom[i].Id() )
+
+            if (rGeom[i].HasDofFor( MOMENTUM_X ) == false ||
+                rGeom[i].HasDofFor( MOMENTUM_Y ) == false )
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable MOMENTUM on node ", rGeom[i].Id() )
         }
-        
+
         // Verify properties
         if (MANNING.Key() == 0 ||
             rProp.Has( MANNING ) == false ||
             rProp[MANNING] < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,"MANNING has Key zero, is not defined or has an invalid value at element", this->Id() )
-        
+
         return 0;
-        
+
         KRATOS_CATCH("")
     }
 
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+    void ConservedVarMixedPfem2Element<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-        
+
         unsigned int element_size = TNumNodes*3;
         if(rResult.size() != element_size)
             rResult.resize(element_size,false);                         // False says not to preserve existing storage!!
-        
-        GeometryType& rGeom = GetGeometry();
+
+        GeometryType& rGeom = this-> GetGeometry();
         int counter=0;
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            rResult[counter++] = rGeom[i].GetDof(VELOCITY_X).EquationId();
-            rResult[counter++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
+            rResult[counter++] = rGeom[i].GetDof(MOMENTUM_X).EquationId();
+            rResult[counter++] = rGeom[i].GetDof(MOMENTUM_Y).EquationId();
             rResult[counter++] = rGeom[i].GetDof(HEIGHT).EquationId();
         }
-        
+
         KRATOS_CATCH("")
     }
 
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
+    void ConservedVarMixedPfem2Element<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-        
+
         const unsigned int element_size = TNumNodes*3;
         if(rElementalDofList.size() != element_size)
             rElementalDofList.resize(element_size);
-        
-        GeometryType& rGeom = GetGeometry();
+
+        GeometryType& rGeom = this-> GetGeometry();
         int counter=0;
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            rElementalDofList[counter++] = rGeom[i].pGetDof(VELOCITY_X);
-            rElementalDofList[counter++] = rGeom[i].pGetDof(VELOCITY_Y);
+            rElementalDofList[counter++] = rGeom[i].pGetDof(MOMENTUM_X);
+            rElementalDofList[counter++] = rGeom[i].pGetDof(MOMENTUM_Y);
             rElementalDofList[counter++] = rGeom[i].pGetDof(HEIGHT);
         }
-        
+
         KRATOS_CATCH("")
     }
 
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void ConservedVarMixedPfem2Element<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-        
+
         // Resize of the Left and Right Hand side
         unsigned int element_size = TNumNodes*3;
         if(rLeftHandSideMatrix.size1() != element_size)
             rLeftHandSideMatrix.resize(element_size,element_size,false); // False says not to preserve existing storage!!
-        
+
         if(rRightHandSideVector.size() != element_size)
             rRightHandSideVector.resize(element_size,false);             // False says not to preserve existing storage!!
-        
+
         // Initialize element variables
         ElementVariables variables;
         this-> InitializeElement(variables, rCurrentProcessInfo);
-        
+
         // Compute the geometry
         boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2> DN_DX;
         array_1d<double,TNumNodes> N;
         double Area;
-        this-> CalculateGeometry(DN_DX,Area);
+        this-> CalculateGeometry(DN_DX, Area);
         double elem_length = this->ComputeElemSize(DN_DX);
-        
+
         // Getting the values of shape functions on Integration Points
         boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;  // In this case, number of Gauss points and number of nodes coincides
         const GeometryType& rGeom = this->GetGeometry();
         Ncontainer = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
-        
+
         // Get nodal values for current step and projected variables (this function inlcudes the units conversion)
         this-> GetNodalValues(variables);
-        
+
         // Get element values (this function inlcudes the units conversion)
         this-> GetElementValues(DN_DX, variables );
-        double abs_vel = norm_2(variables.vector );
-        double height43 = pow(variables.scalar, 1.33333 );
-        
+        double abs_mom = norm_2(variables.vector );
+        double height73 = pow(variables.scalar, 2.33333 );
+
         // Compute stabilization and discontinuity capturing parameters
         double tau_u;
         double tau_h;
         double k_dc;
         this-> ComputeStabilizationParameters(variables, elem_length, tau_u, tau_h, k_dc);
-        
+
         // Some auxilary definitions
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_q= ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_w= ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_q_div_u  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_w_grad_h = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_u_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_h_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        
-        this-> ComputeAuxMatrices(Ncontainer, DN_DX, variables, mass_matrix_q, mass_matrix_w, aux_w_grad_h, aux_q_div_u, aux_h_diffus, aux_u_diffus);
-        
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_q;
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_w;
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix;
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_q_div_u;
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_w_grad_h;
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_non_linear;
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_u_diffus;
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_h_diffus;
+
+        this-> ComputeAuxMatrices(Ncontainer, DN_DX, variables, mass_matrix_q, mass_matrix_w, aux_w_grad_h, aux_q_div_u, aux_non_linear, aux_h_diffus, aux_u_diffus);
+
         noalias(mass_matrix) = mass_matrix_w + mass_matrix_q;
-        
+
         // Build LHS
         // Cross terms
-        noalias(rLeftHandSideMatrix)  = variables.scalar * aux_q_div_u;      // Add <q*h*div(u)> to Mass Eq.
-        noalias(rLeftHandSideMatrix) += variables.gravity * aux_w_grad_h;    // Add <w*g*grad(h)> to Momentum Eq.
-        
+        noalias(rLeftHandSideMatrix)  = aux_q_div_u;                                            // Add <q*div(hu)> to Mass Eq.
+        noalias(rLeftHandSideMatrix) += variables.gravity * variables.scalar * aux_w_grad_h;    // Add <w*g*h*grad(h)> to Momentum Eq.
+
         // Inertia terms
-        noalias(rLeftHandSideMatrix) += variables.dt_inv * mass_matrix;      // Add <N,N> to both Eq's
-        
+        noalias(rLeftHandSideMatrix) += variables.dt_inv * mass_matrix;    // Add <N,N> to both Eq's
+
+        // Non linear terms 
+        noalias(rLeftHandSideMatrix) += aux_non_linear;                    // Add  and <w,hu*grad(u)> to Momentum Eq. 
+
         // Stabilization terms
-        noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;    // Add art. diff. to Mass Eq.
-        noalias(rLeftHandSideMatrix) +=         tau_u  * aux_u_diffus;    // Add art. diff. to Momentum Eq.
-        
+        noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;     // Add art. diff. to Mass Eq.
+        noalias(rLeftHandSideMatrix) +=         tau_u  * aux_u_diffus;     // Add art. diff. to Momentum Eq.
+
         // Friction term
-        noalias(rLeftHandSideMatrix) += variables.gravity * variables.manning2 * abs_vel / height43 * mass_matrix_w;
-        
-        // Build RHS
-        // Source term (bathymetry contribution)
-        noalias(rRightHandSideVector)  = -variables.gravity * prod(aux_w_grad_h, variables.depth);
-        
+        noalias(rLeftHandSideMatrix) += variables.gravity * variables.manning2 * abs_mom / height73 * mass_matrix_w;
+
+        // Build RHS 
+        // Source terms (bathymetry contribution) 
+        noalias(rRightHandSideVector)  = -variables.gravity * variables.scalar * prod(aux_w_grad_h, variables.depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.) 
+
         // Source term (rain contribution)
         noalias(rRightHandSideVector) += prod(mass_matrix, variables.rain);
-        
+
         // Inertia terms
         noalias(rRightHandSideVector) += variables.dt_inv * prod(mass_matrix, variables.proj_unk);
-        
+
         // Substracting the Dirichlet term (since we use a residualbased approach)
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, variables.unknown);
-        
+
         rRightHandSideVector *= Area * variables.lumping_factor;
         rLeftHandSideMatrix  *= Area * variables.lumping_factor;
-        
+
         KRATOS_CATCH("")
     }
 
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void ConservedVarMixedPfem2Element<TNumNodes>::GetNodalValues(ElementVariables& rVariables)
     {
-        KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
-    }
-
-//----------------------------------------------------------------------
-
-    template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rVariable == VEL_ART_VISC || rVariable == PR_ART_VISC || rVariable == RESIDUAL_NORM || rVariable == MIU)
-        {
-            for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
-                rValues[PointNumber] = double(this->GetValue(rVariable));
-        }
-    }
-
-//----------------------------------------------------------------------
-
-    template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::InitializeElement(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
-    {
-        const double delta_t = rCurrentProcessInfo[DELTA_TIME];
-        rVariables.dt_inv = 1.0 / delta_t;
-        rVariables.lumping_factor = 1.0 / static_cast<double>(TNumNodes);
-        rVariables.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];
-        rVariables.gravity = rCurrentProcessInfo[GRAVITY_Z];
-        rVariables.manning2 = pow( GetProperties()[MANNING], 2 );
-        rVariables.height_units = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
-    }
-
-//----------------------------------------------------------------------
-
-    template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::CalculateGeometry(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea)
-    {
-        const GeometryType& rGeom = this->GetGeometry();
-
-        // We select GI_GAUSS_1 due to we are computing at the barycenter.
-        const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_1);
-        const unsigned int NumGPoints = integration_points.size();
-        rArea = rGeom.Area();
-        GeometryType::ShapeFunctionsGradientsType DN_DXContainer( NumGPoints );
-        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, GeometryData::GI_GAUSS_1);
-
-        noalias( rDN_DX ) = DN_DXContainer[0];
-
-    }
-
-//----------------------------------------------------------------------
-
-    template< unsigned int TNumNodes >
-    double PrimitiveVarElement<TNumNodes>::ComputeElemSize(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX)
-    {
-        double l = 0.0;
-
-        for(unsigned int i = 0; i < TNumNodes; i++)
-        {
-            double l_inv = 0.0;
-            for(unsigned int k = 0; k < 2; k++)
-            {
-                l_inv += rDN_DX(i,k) * rDN_DX(i,k);
-            }
-            l += 1.0 / l_inv;
-        }
-        l = sqrt(l) / static_cast<double>(TNumNodes);
-        return l;
-    }
-
-//----------------------------------------------------------------------
-
-    template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::GetNodalValues(ElementVariables& rVariables)
-    {
-        GeometryType& rGeom = GetGeometry();
+        GeometryType& rGeom = this-> GetGeometry();
         unsigned int counter = 0;
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
             rVariables.depth[counter] = 0;
             rVariables.rain[counter]  = 0;
-            rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(VELOCITY_X);
+            rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_X);
             rVariables.proj_unk[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X);
             counter++;
 
             rVariables.depth[counter] = 0;
             rVariables.rain[counter]  = 0;
-            rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y);
+            rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y);
             rVariables.proj_unk[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y);
             counter++;
 
             rVariables.depth[counter] = rGeom[i].FastGetSolutionStepValue(BATHYMETRY) / rVariables.height_units;
             rVariables.rain[counter]  = rGeom[i].FastGetSolutionStepValue(RAIN);
             rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT);
-            rVariables.proj_unk[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1);
+            rVariables.proj_unk[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT, 1);
             counter++;
         }
     }
@@ -352,13 +284,22 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::GetElementValues(const boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX,
-                                                          ElementVariables& rVariables)
+    void ConservedVarMixedPfem2Element<TNumNodes>::GetElementValues(const boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX,
+                                                                    ElementVariables& rVariables)
     {
         // Initialize outputs
         rVariables.scalar = 0;
         rVariables.vector = ZeroVector(2);
         rVariables.scalar_grad = ZeroVector(2);
+        rVariables.vector_grad = ZeroMatrix(2,2);
+
+        // Near dry node flag
+        bool near_dry = false;
+        for (unsigned int i = 0; i < TNumNodes; i++)
+        {
+            if (rVariables.unknown[2 + 3*i] < 1e-1)
+                near_dry = true;
+        }
 
         // integrate over the element
         for (unsigned int i = 0; i < TNumNodes; i++)
@@ -368,54 +309,34 @@ namespace Kratos
             rVariables.scalar += rVariables.unknown[2 + 3*i];
             rVariables.scalar_grad[0] += rDN_DX(i,0) * rVariables.unknown[2 + 3*i];
             rVariables.scalar_grad[1] += rDN_DX(i,1) * rVariables.unknown[2 + 3*i];
+            if (near_dry)
+            {
+                rVariables.vector_grad(0,0)  += rDN_DX(i,0) * rVariables.unknown[  + 3*i];
+                rVariables.vector_grad(0,1)  += rDN_DX(i,0) * rVariables.unknown[1 + 3*i];
+                rVariables.vector_grad(1,0)  += rDN_DX(i,1) * rVariables.unknown[  + 3*i];
+                rVariables.vector_grad(1,1)  += rDN_DX(i,1) * rVariables.unknown[1 + 3*i];
+            }
+            else
+            {
+                rVariables.vector_grad(0,0)  += rDN_DX(i,0) * rVariables.unknown[  + 3*i] / rVariables.unknown[2 + 3*i];
+                rVariables.vector_grad(0,1)  += rDN_DX(i,0) * rVariables.unknown[1 + 3*i] / rVariables.unknown[2 + 3*i];
+                rVariables.vector_grad(1,1)  += rDN_DX(i,1) * rVariables.unknown[  + 3*i] / rVariables.unknown[2 + 3*i];
+                rVariables.vector_grad(1,1)  += rDN_DX(i,1) * rVariables.unknown[1 + 3*i] / rVariables.unknown[2 + 3*i];
+            }
         }
+        if (near_dry)
+            rVariables.vector_grad /= rVariables.scalar;
 
         rVariables.vector *= rVariables.lumping_factor;
         rVariables.scalar *= rVariables.lumping_factor * rVariables.height_units;
         rVariables.scalar_grad *= rVariables.height_units;
+        rVariables.vector_grad /= rVariables.height_units;
     }
 
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::ComputeStabilizationParameters(const ElementVariables& rVariables,
-                                                                        const double& rElemSize,
-                                                                        double& rTauU,
-                                                                        double& rTauH,
-                                                                        double& rKdc)
-    {
-        // Initialize outputs
-        rTauU = 0;
-        rTauH = 0;
-        rKdc  = 0;
-        
-        // Get element values
-        double height_grad_norm = norm_2(rVariables.scalar_grad);
-        
-        // Compute stabilization parameters
-        bool stabilization = true;
-        double Ctau = rVariables.dyn_tau;  // 0.005 ~ 0.002  // 0.002; //
-        double fheight = fabs(rVariables.scalar);
-        if (stabilization && fheight > 1e-6)
-        {
-            rTauU = Ctau/rElemSize*pow(rVariables.gravity/fheight,0.5);
-            rTauH = Ctau/rElemSize*pow(fheight/rVariables.gravity,0.5);
-        }
-        
-        // Compute discontinuity capturing parameters
-        bool discontinuity_capturing = true;
-        double gradient_threshold = 1e-6;
-        //~ double residual;
-        if (discontinuity_capturing && height_grad_norm > gradient_threshold)
-        {
-            rKdc = 0.5*0.4*rElemSize*height_grad_norm;  // Residual formulation
-        }
-    }
-
-//----------------------------------------------------------------------
-
-    template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::ComputeAuxMatrices(
+    void ConservedVarMixedPfem2Element<TNumNodes>::ComputeAuxMatrices(
             const boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes>& rNcontainer,
             const boost::numeric::ublas::bounded_matrix<double,TNumNodes,2>& rDN_DX,
             const ElementVariables& rVariables,
@@ -423,10 +344,11 @@ namespace Kratos
             boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixVector,
             boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarGrad,
             boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiv,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rNonLinearTerm,
             boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarDiff,
             boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiff )
     {
-        // Initialize solution
+        // Initialize output
         noalias(rMassMatrixVector) = ZeroMatrix(TNumNodes*3, TNumNodes*3);
         noalias(rMassMatrixScalar) = ZeroMatrix(TNumNodes*3, TNumNodes*3);
         
@@ -466,6 +388,8 @@ namespace Kratos
             noalias(rVectorDiv)  += prod(trans(N_height),DN_DX_vel);       // q * div_u
             noalias(rScalarGrad) += prod(trans(N_vel),DN_DX_height);       // w * grad_h
             
+            noalias(rNonLinearTerm) += prod(trans(N_vel),Matrix(prod(rVariables.vector_grad,N_vel)));  // w * grad(hu) * u
+            
             noalias(rVectorDiff) += prod(trans(DN_DX_vel),DN_DX_vel);       // div_w * div_u
             noalias(rScalarDiff) += prod(trans(DN_DX_height),DN_DX_height); // grad_q * grad_h
         }
@@ -474,7 +398,7 @@ namespace Kratos
 
 //----------------------------------------------------------------------
 
-template class PrimitiveVarElement<3>;
-template class PrimitiveVarElement<4>;
+template class ConservedVarMixedPfem2Element<3>;
+template class ConservedVarMixedPfem2Element<4>;
 
 } // namespace Kratos

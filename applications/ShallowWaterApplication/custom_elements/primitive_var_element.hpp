@@ -87,9 +87,13 @@ namespace Kratos
         double manning2;
         double height_units;
 
-        double height;
-        array_1d<double,2> velocity;
-        array_1d<double,2> height_grad;
+        //~ double height;
+        //~ array_1d<double,2> velocity;
+        //~ array_1d<double,2> height_grad;
+        double scalar;
+        array_1d<double,2> vector;
+        array_1d<double,2> scalar_grad;
+        boost::numeric::ublas::bounded_matrix<double,2,2> vector_grad;
         
         array_1d<double, TNumNodes*3> depth;
         array_1d<double, TNumNodes*3> rain;
