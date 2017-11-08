@@ -205,6 +205,8 @@ namespace Kratos
             KRATOS_TRY
 
             //std::cout << " Prediction " << std::endl;
+            const double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
+
             array_1d<double, 3 > DeltaDisplacement;
 
 
@@ -214,50 +216,58 @@ namespace Kratos
                //predicting displacement = PreviousDisplacement + PreviousVelocity * DeltaTime;
                //ATTENTION::: the prediction is performed only on free nodes
 
-               array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
-               array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+               const array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
+               const array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY,     1);
+               const array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+               array_1d<double, 3 > & CurrentAcceleration        = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
+               array_1d<double, 3 > & CurrentVelocity            = (i)->FastGetSolutionStepValue(VELOCITY,     0);
                array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-               //array_1d<double, 3 > & ImposedDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_DISPLACEMENT);
 
 
-               if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
+               if (i->pGetDof(ACCELERATION_X)->IsFixed() )
                {
-                  CurrentDisplacement[0] = PreviousDisplacement[0];// + DeltaTime * PreviousVelocity[0];
+                  CurrentDisplacement[0] = PreviousDisplacement[0] + DeltaTime * PreviousVelocity[0] + std::pow(DeltaTime, 2) * ( 0.5 * (1.0 -  2.0 * this->mNewmark.beta) * PreviousAcceleration[0] + this->mNewmark.beta * CurrentAcceleration[0]);
                }
-               else
+               else if (i->pGetDof(VELOCITY_X)->IsFixed() )
                {
-                  //CurrentDisplacement[0]  = PreviousDisplacement[0]; // LMV + ImposedDisplacement[0];//to impose fixed displacements;
-                  //PreviousDisplacement[0] = 0;
+                  CurrentDisplacement[0] = PreviousDisplacement[0] + 0.5 * DeltaTime * (PreviousVelocity[0] + CurrentVelocity[0]) + 0.5 * std::pow(DeltaTime, 2) * PreviousAcceleration[0];
                }
-
-               if (i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false)
+               else if (i->pGetDof(DISPLACEMENT_X)->IsFixed() == false)
                {
-                  CurrentDisplacement[1] = PreviousDisplacement[1]; //+ DeltaTime * PreviousVelocity[1];
-               }
-               else
-               {
-                  //CurrentDisplacement[1]  = 0.01;
-                     //PreviousDisplacement[1]; // LMV + ImposedDisplacement[1];//to impose fixed displacements;
-                  //PreviousDisplacement[1] = 0;
+                  CurrentDisplacement[0] = PreviousDisplacement[0] + DeltaTime * PreviousVelocity[0] + 0.5 * std::pow(DeltaTime, 2) * PreviousAcceleration[0];
                }
 
 
+               if (i->pGetDof(ACCELERATION_Y)->IsFixed() )
+               {
+                  CurrentDisplacement[1] = PreviousDisplacement[1] + DeltaTime * PreviousVelocity[1] + std::pow(DeltaTime, 2) * ( 0.5 * (1.0 -  2.0 * this->mNewmark.beta) * PreviousAcceleration[1] + this->mNewmark.beta * CurrentAcceleration[1]);
+               }
+               else if (i->pGetDof(VELOCITY_Y)->IsFixed() )
+               {
+                  CurrentDisplacement[1] = PreviousDisplacement[1] + 0.5 * DeltaTime * (PreviousVelocity[1] + CurrentVelocity[1]) + 0.5 * std::pow(DeltaTime, 2) * PreviousAcceleration[1] ;
+               }
+               else if (i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false )
+               {
+                  CurrentDisplacement[1] = PreviousDisplacement[1] + DeltaTime * PreviousVelocity[1] + 0.5 * std::pow(DeltaTime, 2) * PreviousAcceleration[1];
+               }
+
+               // For 3D cases
                if (i->HasDofFor(DISPLACEMENT_Z))
                {
-                  if (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false)
+                  if (i->pGetDof(ACCELERATION_Z)->IsFixed() )
                   {
-                     CurrentDisplacement[2] = PreviousDisplacement[2]; // + DeltaTime * PreviousVelocity[2];
+                     CurrentDisplacement[2] = PreviousDisplacement[2] + DeltaTime * PreviousVelocity[2] + std::pow(DeltaTime, 2) * ( 0.5 * (1.0 -  2.0 * this->mNewmark.beta) * PreviousAcceleration[2] + this->mNewmark.beta * CurrentAcceleration[2]);
                   }
-                  else
+                  else if (i->pGetDof(VELOCITY_Z)->IsFixed() )
                   {
-                     //CurrentDisplacement[2]  = PreviousDisplacement[2]; // LMV + ImposedDisplacement[2];//to impose fixed displacements;
-                     //PreviousDisplacement[2] = 0;
+                     CurrentDisplacement[2] = PreviousDisplacement[2] + 0.5 * DeltaTime * (PreviousVelocity[2] + CurrentVelocity[2]) + 0.5 * std::pow(DeltaTime, 2) * PreviousAcceleration[2] ;
+                  }
+                  else if (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false)
+                  {
+                     CurrentDisplacement[2] = PreviousDisplacement[2] + DeltaTime * PreviousVelocity[2] + 0.5 * std::pow(DeltaTime, 2) * PreviousAcceleration[2];
                   }
                }
 
-
-               // std::cout<<" DispPre "<<PreviousDisplacement<<" ID "<<i->Id()<<std::endl;
-               // std::cout<<" DispCur "<<CurrentDisplacement<<" ID "<<i->Id()<<std::endl;
 
                if (i->HasDofFor(PRESSURE))
                {
@@ -276,10 +286,6 @@ namespace Kratos
                //can not be consistently fixed separately
 
                noalias(DeltaDisplacement) = CurrentDisplacement - PreviousDisplacement;
-
-               array_1d<double, 3 > & PreviousAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
-               array_1d<double, 3 > & CurrentVelocity       = (i)->FastGetSolutionStepValue(VELOCITY);
-               array_1d<double, 3 > & CurrentAcceleration   = (i)->FastGetSolutionStepValue(ACCELERATION);
 
                this->UpdateVelocity     (CurrentVelocity, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
 
@@ -300,52 +306,70 @@ namespace Kratos
                array_1d<double, 3 > & PreviousWaterVelocity     = (i)->FastGetSolutionStepValue(WATER_VELOCITY, 1);
                array_1d<double, 3 > & PreviousWaterDisplacement = (i)->FastGetSolutionStepValue(WATER_DISPLACEMENT, 1);
                array_1d<double, 3 > & CurrentWaterDisplacement  = (i)->FastGetSolutionStepValue(WATER_DISPLACEMENT);
-               //array_1d<double, 3 > & ImposedWaterDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_WATER_DISPLACEMENT);
 
-
-               if ((i->pGetDof(WATER_DISPLACEMENT_X))->IsFixed() == false)
-               {
-                  CurrentWaterDisplacement[0] = PreviousWaterDisplacement[0];// + DeltaTime * PreviousVelocity[0];
-               }
-               else
-               {
-                  //CurrentWaterDisplacement[0]  = PreviousWaterDisplacement[0]; //LMV + ImposedWaterDisplacement[0];//to impose fixed displacements;
-                  //PreviousDisplacement[0] = 0;
-               }
-
-               if (i->pGetDof(WATER_DISPLACEMENT_Y)->IsFixed() == false)
-               {
-                  CurrentWaterDisplacement[1] = PreviousWaterDisplacement[1]; //+ DeltaTime * PreviousVelocity[1];
-               }
-               else
-               {
-                  //CurrentWaterDisplacement[1]  = PreviousWaterDisplacement[1]; //LMV + ImposedWaterDisplacement[1];//to impose fixed displacements;
-                  //PreviousDisplacement[1] = 0;
-               }
-
-
-               if (i->HasDofFor(WATER_DISPLACEMENT_Z))
-               {
-                  if (i->pGetDof(WATER_DISPLACEMENT_Z)->IsFixed() == false)
-                  {
-                     CurrentWaterDisplacement[2] = PreviousWaterDisplacement[2]; // + DeltaTime * PreviousVelocity[2];
-                  }
-                  else
-                  {
-                     //CurrentWaterDisplacement[2]  = PreviousWaterDisplacement[2]; //LMV + ImposedWaterDisplacement[2];//to impose fixed displacements;
-                     //PreviousDisplacement[2] = 0;
-                  }
-               }
-
-
-               //updating time derivatives ::: please note that displacements and its time derivatives
-               //can not be consistently fixed separately
-
-               noalias(DeltaWaterDisplacement) = CurrentWaterDisplacement - PreviousWaterDisplacement;
 
                array_1d<double, 3 > & PreviousWaterAcceleration  = (i)->FastGetSolutionStepValue(WATER_ACCELERATION, 1);
                array_1d<double, 3 > & CurrentWaterVelocity       = (i)->FastGetSolutionStepValue(WATER_VELOCITY);
                array_1d<double, 3 > & CurrentWaterAcceleration   = (i)->FastGetSolutionStepValue(WATER_ACCELERATION);
+
+               if (i->pGetDof(WATER_ACCELERATION_X)->IsFixed() )
+               {               noalias(DeltaWaterDisplacement) = CurrentWaterDisplacement - PreviousWaterDisplacement;
+                  CurrentWaterDisplacement[0] = PreviousWaterDisplacement[0] + DeltaTime * PreviousWaterVelocity[0] + std::pow(DeltaTime, 2) * ( 0.5 * (1.0 -  2.0 * this->mNewmark.beta) * PreviousWaterAcceleration[0] + this->mNewmark.beta * CurrentWaterAcceleration[0]);
+               }
+               else if (i->pGetDof(WATER_VELOCITY_X)->IsFixed() )
+               {
+                  CurrentWaterDisplacement[0] = PreviousWaterDisplacement[0] + 0.5 * DeltaTime * (PreviousWaterVelocity[0] + CurrentWaterVelocity[0]) + 0.5 * std::pow(DeltaTime, 2) * PreviousWaterAcceleration[0];
+               }
+               else if (i->pGetDof(WATER_DISPLACEMENT_X)->IsFixed() == false)
+               {
+                  CurrentWaterDisplacement[0] = PreviousWaterDisplacement[0] + DeltaTime * PreviousWaterVelocity[0] + 0.5 * std::pow(DeltaTime, 2) * PreviousWaterAcceleration[0];
+               }
+
+
+               if (i->pGetDof(WATER_ACCELERATION_Y)->IsFixed() )
+               {
+                  CurrentWaterDisplacement[1] = PreviousWaterDisplacement[1] + DeltaTime * PreviousWaterVelocity[1] + std::pow(DeltaTime, 2) * ( 0.5 * (1.0 -  2.0 * this->mNewmark.beta) * PreviousWaterAcceleration[1] + this->mNewmark.beta * CurrentWaterAcceleration[1]);
+               }
+               else if (i->pGetDof(WATER_VELOCITY_Y)->IsFixed() )
+               {
+                  CurrentWaterDisplacement[1] = PreviousWaterDisplacement[1] + 0.5 * DeltaTime * (PreviousWaterVelocity[1] + CurrentWaterVelocity[1]) + 0.5 * std::pow(DeltaTime, 2) * PreviousWaterAcceleration[1] ;
+               }
+               else if (i->pGetDof(WATER_DISPLACEMENT_Y)->IsFixed() == false)
+               {
+                  CurrentWaterDisplacement[1] = PreviousWaterDisplacement[1] + DeltaTime * PreviousWaterVelocity[1] + 0.5 * std::pow(DeltaTime, 2) * PreviousWaterAcceleration[1];
+               }
+
+               // For 3D cases
+               if (i->HasDofFor(WATER_DISPLACEMENT_Z))
+               {
+                  if (i->pGetDof(WATER_ACCELERATION_Z)->IsFixed() )
+                  {
+                     CurrentWaterDisplacement[2] = PreviousWaterDisplacement[2] + DeltaTime * PreviousWaterVelocity[2] + std::pow(DeltaTime, 2) * ( 0.5 * (1.0 -  2.0 * this->mNewmark.beta) * PreviousWaterAcceleration[2] + this->mNewmark.beta * CurrentWaterAcceleration[2]);
+                  }
+                  else if (i->pGetDof(WATER_VELOCITY_Z)->IsFixed() )
+                  {
+                     CurrentWaterDisplacement[2] = PreviousWaterDisplacement[2] + 0.5 * DeltaTime * (PreviousWaterVelocity[2] + CurrentWaterVelocity[2]) + 0.5 * std::pow(DeltaTime, 2) * PreviousWaterAcceleration[2] ;
+                  }
+                  else if (i->pGetDof(WATER_DISPLACEMENT_Z)->IsFixed() == false)
+                  {
+                     CurrentWaterDisplacement[2] = PreviousWaterDisplacement[2] + DeltaTime * PreviousWaterVelocity[2] + 0.5 * std::pow(DeltaTime, 2) * PreviousWaterAcceleration[2];
+                  }
+               }
+
+               if (i->HasDofFor(WATER_PRESSURE))
+               {
+                  double& PreviousWaterPressure    = (i)->FastGetSolutionStepValue(WATER_PRESSURE, 1);
+                  double& CurrentWaterPressure     = (i)->FastGetSolutionStepValue(WATER_PRESSURE);
+
+                  if ((i->pGetDof(WATER_PRESSURE))->IsFixed() == false)
+                     CurrentWaterPressure = PreviousWaterPressure;
+
+               }
+
+               //updating time derivatives ::: please note that WaterDisplacements and its time derivatives
+               //can not be consistently fixed separately
+
+               noalias(DeltaWaterDisplacement) = CurrentWaterDisplacement - PreviousWaterDisplacement;
 
                this->UpdateVelocity     (CurrentWaterVelocity, DeltaWaterDisplacement, PreviousWaterVelocity, PreviousWaterAcceleration);
 
