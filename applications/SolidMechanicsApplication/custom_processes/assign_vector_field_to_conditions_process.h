@@ -130,7 +130,7 @@ public:
     virtual void Execute() 
     {
 
-        KRATOS_TRY;
+        KRATOS_TRY
 
 	ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
 
@@ -202,6 +202,32 @@ public:
     /// right after reading the model and the groups
     virtual void ExecuteFinalize()
     {
+
+        KRATOS_TRY
+
+	if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) ) //case of vector variable
+        {
+
+	  Vector Value;
+	  noalias(Value) = ZeroVector(3);
+	  InternalAssignValue<>(KratosComponents< Variable<Vector> >::Get(mvariable_name), Value);
+
+        }
+	else if( KratosComponents< Variable<array_1d<double,3> > >::Has( mvariable_name ) ) //case of array_1d variable
+        {
+
+	  array_1d<double,3> Value;
+	  Value.clear();
+	  InternalAssignValue<>(KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name), Value);
+
+        }
+	else
+	{
+	  KRATOS_THROW_ERROR(std::logic_error, "Not able to set the variable. Attempting to set variable:",mvariable_name);
+        }
+	
+
+        KRATOS_CATCH("");
     }
 
 
@@ -395,7 +421,26 @@ private:
         }
 
     }
-    
+
+
+    template< class TVarType, class TDataType >
+    void InternalAssignValue(TVarType& rVar, const TDataType value)
+    {
+      const int nconditions = mr_model_part.GetMesh().Conditions().size();
+
+        if(nconditions != 0)
+        {
+            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
+
+             #pragma omp parallel for
+            for(int i = 0; i<nconditions; i++)
+            {
+                ModelPart::ConditionsContainerType::iterator it = it_begin + i;
+
+                it->SetValue(rVar, value);
+            }
+        }
+    }
 			     
     ///@}
     ///@name Private Operations

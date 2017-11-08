@@ -1655,11 +1655,11 @@ namespace Kratos
 	// Nodal dofs
 	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);
 	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rNode);
-	if( rCurrentProcessInfo[DIMENSION] == 3)
+	if( rCurrentProcessInfo[SPACE_DIMENSION] == 3)
 	  KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rNode);
 
 	KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z,rNode);
-	if( rCurrentProcessInfo[DIMENSION] == 3){
+	if( rCurrentProcessInfo[SPACE_DIMENSION] == 3){
 	  KRATOS_CHECK_DOF_IN_NODE(ROTATION_X,rNode);
 	  KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y,rNode);
 	}

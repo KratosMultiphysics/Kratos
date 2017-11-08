@@ -25,6 +25,7 @@
 #include "includes/kratos_application.h"
 
 #include "includes/variables.h"
+#include "includes/deprecated_variables.h"
 #include "includes/condition.h"
 #include "custom_elements/updated_lagrangian_fluid.h"
 #include "custom_elements/updated_lagrangian_fluid3D.h"
@@ -32,9 +33,12 @@
 #include "custom_elements/updated_lagrangian_fluid3D_inc.h"
 #include "custom_elements/ulf_frac2d.h"
 #include "custom_elements/ulf_frac3d.h"
-#include "custom_elements/ulf_frac2d_swimming.h"
-#include "custom_elements/ulf_frac3d_swimming.h"
+#include "custom_elements/ulf_axisym.h"
+//#include "custom_elements/ulf_frac2d_swimming.h"
+//#include "custom_elements/ulf_frac3d_swimming.h"
 #include "custom_conditions/Point_Neumann3D.h"
+#include "custom_conditions/Point_Neumann2D.h"
+#include "custom_conditions/Point_Neumann_Axisym.h"
 namespace Kratos
 {
 
@@ -55,8 +59,9 @@ namespace Kratos
 //	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
 
 
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
+//KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
+//KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
+KRATOS_DEFINE_VARIABLE(double, PRESSURE_OLD_IT)
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
 ///@}
@@ -214,10 +219,10 @@ private:
     //
     const UlfFrac2D mUlfFrac2D;
     const UlfFrac3D mUlfFrac3D;
-    const UlfFrac2DSwimming mUlfFrac2DSwimming;
-    const UlfFrac3DSwimming mUlfFrac3DSwimming;
+    const UlfAxisym mUlfAxisym;    
     const PointNeumann3D  mPointNeumann3D;
-
+    const PointNeumann2D  mPointNeumann2D;
+    const PointNeumannAxisym  mPointNeumannAxisym;
 
     ///@}
     ///@name Private Operators

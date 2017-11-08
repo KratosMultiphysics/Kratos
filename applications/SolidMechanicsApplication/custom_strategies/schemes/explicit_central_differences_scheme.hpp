@@ -562,7 +562,7 @@ namespace Kratos
       double stable_delta_time = 0.00;
       Vector delta_times(NumThreads);
      
-      for(int i = 0; i < NumThreads; i++)
+      for(unsigned int i = 0; i < NumThreads; i++)
 	delta_times[i] = mDeltaTime.Maximum/safety_factor;
       
       OpenMPUtils::PartitionVector ElementPartition;
@@ -672,7 +672,7 @@ namespace Kratos
       const int nnodes = static_cast<int>(rModelPart.Nodes().size());
       NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 
-      #pragma omp parallel for firstprivate(NodeBegin, mTime)
+      #pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i < nnodes; i++)
         {
 	  NodesArrayType::iterator itNode = NodeBegin + i;

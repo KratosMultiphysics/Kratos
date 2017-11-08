@@ -37,7 +37,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = self.settings["echo_level"].GetInt()
-        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
+        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
         self.meshing_control_is_time = False

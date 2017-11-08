@@ -67,7 +67,7 @@ class DomainUtilities(object):
     #
     def SearchElementNeighbours(self, model_part, echo_level):
         
-        dimension = model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
+        dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         # set search options:
         number_of_avg_elems = 10
          

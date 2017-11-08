@@ -84,7 +84,7 @@ public:
 	if( KratosComponents< Variable<array_1d<double,3> > >::Has( mvariable_name ) == false ) //case of array_1d variable
 	  KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
 
@@ -112,11 +112,11 @@ public:
     virtual void Execute() 
     {
 
-        KRATOS_TRY;
+        KRATOS_TRY
  
 	InternalAssignValue(KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name), mvector_value);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
 
     }
 
@@ -160,6 +160,13 @@ public:
     /// right after reading the model and the groups
     virtual void ExecuteFinalize()
     {
+        KRATOS_TRY
+
+	array_1d<double,3> vector_value;
+	vector_value.clear();
+	InternalAssignValue(KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name), vector_value);
+
+        KRATOS_CATCH("")
     }
 
 

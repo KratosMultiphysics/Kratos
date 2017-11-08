@@ -98,7 +98,7 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
     def _AssignMaterialProperties(self):
 
         # Check dimension
-        self.dimension = self.model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
+        self.dimension = self.model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         
         if(self.material_law.WorkingSpaceDimension() != self.dimension):
             raise Exception( "mismatch between the ConstitutiveLaw dimension and the dimension of the space")

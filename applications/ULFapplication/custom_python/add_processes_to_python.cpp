@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #include "custom_processes/pressure_calculate_process.h"
+#include "custom_processes/pressure_calculate_process_axisym.h"
 #include "custom_processes/mass_calculate_process.h"
 #include "custom_processes/ulf_apply_bc_process.h"
 #include "custom_processes/ulf_time_step_dec_process.h"
@@ -73,6 +74,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/merge_model_parts_process.h"
 #include "custom_processes/save_fluid_only_process.h"
 #include "custom_processes/lagrangian_inlet_process.h"
+#include "custom_processes/remove_and_save_wall_process.h"
+#include "custom_processes/add_wall_process.h"
 
 #include "includes/node.h"
 
@@ -115,6 +118,10 @@ void  AddProcessesToPython()
     class_<PressureCalculateProcess, bases<Process> >("PressureCalculateProcess",
             init<ModelPart&, unsigned int>())
     ;
+    class_<PressureCalculateProcessAxisym, bases<Process> >("PressureCalculateProcessAxisym",
+            init<ModelPart&, unsigned int>())
+    ;
+
     class_<MassCalculateProcess, bases<Process> >("MassCalculateProcess",
             init<ModelPart&>())
     ;
@@ -149,6 +156,12 @@ void  AddProcessesToPython()
     class_<LagrangianInletProcess, bases<Process> >("LagrangianInletProcess",
             init<ModelPart&, double,  array_1d<double,3> >())
     ;
+    class_<RemoveAndSaveWallNodesProcess, bases<Process> >("RemoveAndSaveWallNodesProcess", init<> ())
+    .def("RemoveAndSave", &RemoveAndSaveWallNodesProcess::RemoveAndSave)
+    ;     
+    class_<AddWallProcess, bases<Process> >("AddWallProcess", init<> ())
+    .def("AddWall", &AddWallProcess::AddWall)
+    ;  
 }
 
 }  // namespace Python.

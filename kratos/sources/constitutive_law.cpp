@@ -378,6 +378,20 @@ array_1d<double, 6 > & ConstitutiveLaw::CalculateValue(Parameters& rParameterVal
 }
 
 /**
+ * Is called to check whether the provided material parameters in the Properties
+ * match the requirements of current constitutive model.
+ * @param rMaterialProperties the current Properties to be validated against.
+ * @return true, if parameters are correct; false, if parameters are insufficient / faulty
+ * NOTE: this has to implemented by each constitutive model. Returns false in base class since
+ * no valid implementation is contained here.
+ */
+bool ConstitutiveLaw::ValidateInput(const Properties& rMaterialProperties)
+{
+  return false;
+}
+
+
+/**
  * returns the expected strain measure of this constitutive law (by default linear strains)
  * @return the expected strain measure
  */
@@ -1646,3 +1660,4 @@ void ConstitutiveLaw::CalculateCauchyStresses(Vector& Cauchy_StressVector,
 
 
 } /* namespace Kratos.*/
+
