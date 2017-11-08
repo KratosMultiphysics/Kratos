@@ -67,6 +67,10 @@ class OptimizationSetup:
                 continue
             python_nesting_system = ''
             if found_while:
+                if line.strip()[0] == '#':
+                    continue
+                if line.strip() == '':
+                    continue
                 for character in line:
                     if (character == ' ' or character == '\t'):
                         python_nesting_system = '%s%s' % (python_nesting_system, character)
@@ -78,18 +82,18 @@ class OptimizationSetup:
                 break
 
         new_headers = []
-        new_lines = []
-        found_headers = False
-
         for line in lines:
             if (line[0:4] == 'from'):
                 new_headers.append(line)
 
+        new_lines = []
+        is_def_main_added = False
         for line in lines:
             if (line[0:4] != 'from'):
-                if not found_headers:
+                if not is_def_main_added:
                     new_lines.append('def main():\n')
-                    found_headers = True
+                    is_def_main_added = True
+                
                 new_lines.append('%s%s' % (python_nesting_system, line))
         
         file_output = open('%s.py' % self.python_module, 'w')
