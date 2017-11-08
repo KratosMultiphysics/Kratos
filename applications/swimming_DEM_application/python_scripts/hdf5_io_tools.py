@@ -22,9 +22,12 @@ def CreateDataset(file_or_group, name, data):
 
     file_or_group.create_dataset(dtype = dtype, name = name, data = data)
 
-def CreateGroup(file_or_group, name):
+def CreateGroup(file_or_group, name, overwrite_previous = True):
     if name in file_or_group:
-        file_or_group['/'].__delitem__(name)
+        if overwrite_previous:
+            file_or_group['/'].__delitem__(name)
+        else:
+            return file_or_group['/' + name]
 
     return file_or_group.create_group(name)
 
@@ -47,6 +50,7 @@ class FluidHDF5Loader:
         self.shape = (self.n_nodes,)
         self.store_pressure = pp.CFD_DEM["store_fluid_pressure_option"].GetBool()
         self.store_gradient = pp.CFD_DEM["store_full_gradient_option"].GetBool()
+        self.load_derivatives = pp.CFD_DEM["load_derivatives"].GetBool()
         self.there_are_more_steps_to_load = True
         self.main_path = main_path
         self.pp = pp
@@ -57,7 +61,7 @@ class FluidHDF5Loader:
 
         if pp.CFD_DEM["store_fluid_pressure_option"].GetBool():
             number_of_variables += 1
-        if pp.CFD_DEM["load_derivatives"].GetBool():
+        if self.load_derivatives:
             number_of_variables += 9
 
         self.extended_shape = self.shape + (number_of_variables, )
@@ -207,7 +211,7 @@ class FluidHDF5Loader:
         if self.store_pressure:
             self.UpdateFluidVariable(future_step_dataset_name + '/p', PRESSURE, next(indices), must_load_from_database, alpha_old, alpha_future)
 
-        if self.store_gradient:
+        if self.load_derivatives:
             self.UpdateFluidVariable(future_step_dataset_name + '/dvxx', VELOCITY_X_GRADIENT_X, next(indices), must_load_from_database, alpha_old, alpha_future)
             self.UpdateFluidVariable(future_step_dataset_name + '/dvxy', VELOCITY_X_GRADIENT_Y, next(indices), must_load_from_database, alpha_old, alpha_future)
             self.UpdateFluidVariable(future_step_dataset_name + '/dvxz', VELOCITY_X_GRADIENT_Z, next(indices), must_load_from_database, alpha_old, alpha_future)
@@ -283,17 +287,19 @@ class ParticleHistoryLoader:
         else:
             mean_radius = 1.0
 
-        with h5py.File('particles_snapshot.hdf5') as f:
+        with h5py.File('particles_snapshots.hdf5') as f:
             prerun_fluid_file_name = self.prerun_fluid_file_name.split('/')[- 1]
-            current_fluid = CreateGroup(f, prerun_fluid_file_name)
+            current_fluid = CreateGroup(f, prerun_fluid_file_name, overwrite_previous = False)
+
+            # snapshot_name = 't=' + str(round(time, 3)) + '_RADIUS=' + str(round(mean_radius, 4)) + '_in_box'
+            snapshot_name = str(len(current_fluid.items()) + 1)
+            snapshot = CreateGroup(current_fluid, snapshot_name)
+            snapshot.attrs['time'] = time
+            snapshot.attrs['particles_nondimensional_radius'] = mean_radius
             # storing the input parameters for this run, the one corresponding
             # to the current pre-calculated fluid
             for k, v in ((k, v) for k, v in json.loads(self.pp.CFD_DEM.WriteJsonString()).items() if 'comment' not in k):
-                current_fluid.attrs[k] = v
-
-            snapshot_name = 't=' + str(round(time, 3)) + '_RADIUS=' + str(round(mean_radius, 4)) + '_in_box'
-            snapshot = CreateGroup(current_fluid, snapshot_name)
-            snapshot.attrs['time'] = time
+                snapshot.attrs[k] = v
 
             names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS']
             data = [Ids_inside, X0s_inside, Y0s_inside, Z0s_inside, radii_inside]

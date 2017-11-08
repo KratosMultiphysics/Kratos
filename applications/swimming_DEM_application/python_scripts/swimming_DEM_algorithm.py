@@ -766,6 +766,10 @@ class Algorithm(object):
     def PerformFinalOperations(self, time = None):
         os.chdir(self.main_path)
         del self.post_utils
+        self.ModifyResultsFolderName(time)
+
+    def ModifyResultsFolderName(self, time):
+        pass
 
     def Finalize(self):
 

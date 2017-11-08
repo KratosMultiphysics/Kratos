@@ -7,9 +7,11 @@ import matplotlib.pyplot as plt
 L = 0.0048
 z_plane_of_symmetry = -0.0024
 n_intervals = 30
-max_creation_time = 1.5
+max_creation_time = 1.0
 fluid_run_name = 'mesh_38288_nodes'
 fluid_run_name = 'mesh_66576_nodes'
+fluid_run_name = 'mesh_126189_nodes'
+fluid_run_name = 'mesh_242242_nodes'
 snapshot_name = 't=0.2900000000000001_in_box'
 snapshot_name = 't=1.0000000000000007_in_box'
 snapshot_name = 't=2.0000000000000013_RADIUS=0.00024_in_box'
@@ -54,7 +56,7 @@ def CalculateProbabilityOfGettingTrapped():
             d = abs(z - z_plane_of_symmetry) / L
             histogram[IntervalIndex(d, 0., 0.5, n_intervals)] += 1
 
-    with h5py.File('particles_snapshot.hdf5', 'r') as f:
+    with h5py.File('particles_snapshots.hdf5', 'r') as f:
         Ids_trapped = f['/' + fluid_run_name + '.hdf5/' + snapshot_name + '/Id'][:]
         Z0s_trapped = f['/' + fluid_run_name + '.hdf5/' + snapshot_name + '/Z0'][:]
 

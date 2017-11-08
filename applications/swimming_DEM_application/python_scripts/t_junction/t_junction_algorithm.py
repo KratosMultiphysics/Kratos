@@ -28,3 +28,11 @@ class Algorithm(BaseAlgorithm):
     def FluidSolve(self, time = 'None', solve_system = True):
         BaseAlgorithm.FluidSolve(self, time, solve_system)
         self.particles_loader.UpdateListOfAllParticles()
+
+    def ModifyResultsFolderName(self, time):
+        import os
+        n_nodes = len(self.fluid_model_part.Nodes)
+        for node in self.disperse_phase_algorithm.spheres_model_part.Nodes:
+            radius = node.GetSolutionStepValue(RADIUS)
+            break
+        os.rename(self.post_path, self.post_path + '_' + str(n_nodes) + 'nodes_radius=' + str(radius))
