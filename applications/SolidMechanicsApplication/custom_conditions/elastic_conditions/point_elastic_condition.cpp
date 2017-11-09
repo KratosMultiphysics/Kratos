@@ -120,7 +120,7 @@ namespace Kratos
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointStiffness[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(PointStiffness[k]);
 	}
     }
     
@@ -133,7 +133,7 @@ namespace Kratos
 	  counter = i*3;
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    {
-	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointStiffnesss[counter+k];
+	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(PointStiffnesss[counter+k]);
 	    }
 	  
 	}
@@ -145,7 +145,7 @@ namespace Kratos
 	if( GetGeometry()[i].SolutionStepsDataHas( POINT_STIFFNESS ) ){
 	  array_1d<double, 3 > & PointStiffness = GetGeometry()[i].FastGetSolutionStepValue( POINT_STIFFNESS );
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointStiffness[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(PointStiffness[k]);
  
 	}
       }

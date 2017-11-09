@@ -762,11 +762,11 @@ namespace Kratos
 
       if( rDomainGeometry.WorkingSpaceDimension() == 2)
 	//rCharacteristicSize is the diameter of a circle with the same area as the element
-	rCharacteristicSize = sqrt(4.0*rDomainGeometry.Area()/KRATOS_M_PI);
+	rCharacteristicSize = sqrt(4.0*rDomainGeometry.Area()/Globals::Pi);
 
       if( rDomainGeometry.WorkingSpaceDimension() == 3)
 	//rCharacteristicSize is the diameter of a sphere with the same volume as the element
-	rCharacteristicSize = pow((6.0*rDomainGeometry.Volume()/KRATOS_M_PI),0.33333333333333);
+	rCharacteristicSize = pow((6.0*rDomainGeometry.Volume()/Globals::Pi),0.33333333333333);
 
       return rCharacteristicSize;
       
@@ -879,13 +879,13 @@ namespace Kratos
         // In exact arithmetic for a symmetric matrix  -1 <= r <= 1
         // but computation error can leave it slightly outside this range.
         double phi = 0.0;
-        if (r <= -1) { phi = KRATOS_M_PI / 3.0; }
+        if (r <= -1) { phi = Globals::Pi / 3.0; }
         else if (r >= 1) { phi = 0.0; }
         else { phi = acos(r) / 3.0;}
             
         // the eigenvalues satisfy eig3 <= eig2 <= eig1
         Result[0] = q + 2.0 * p * cos(phi);
-        Result[2] = q + 2.0 * p * cos(phi + (2.0*KRATOS_M_PI/3.0));
+        Result[2] = q + 2.0 * p * cos(phi + (2.0*Globals::Pi/3.0));
         Result[1] = 3.0 * q - Result[0] - Result[2];     //% since trace(A) = eig1 + eig2 + eig3   
 
         return Result;

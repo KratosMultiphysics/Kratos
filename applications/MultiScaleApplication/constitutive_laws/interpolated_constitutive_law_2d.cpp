@@ -53,10 +53,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "interpolated_constitutive_law_2d.h"
 #include "multiscale_application_variables.h"
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif // !M_PI
-
 #define SIGMA_SIGN(X) (X == 0.0 ? 1.0 : ( X > 0.0 ? 1.0 : -1.0 ))
 
 namespace Kratos
@@ -424,7 +420,7 @@ namespace Kratos
 		//Calculate phi & number of division
 		const size_t m = mpRveMaterialDatabase->NumberOfDivision();
 		//std::cout << "m: " << m << std::endl;
-		double phi = M_PI / m;
+		double phi = Globals::Pi / m;
 		//std::cout << "phi: " << phi << " rad" << std::endl;
 
 		//1. Calculate the normalized Strain
@@ -1100,13 +1096,13 @@ namespace Kratos
 		{
 			theta_1 = acos(StrainVector[0] / denom_theta_1);
 		}
-		if (abs(theta_1) > M_PI)
+		if (abs(theta_1) > Globals::Pi)
 		{
-			double mult_1 = abs(floor(theta_1 / M_PI));
-			if (theta_1 > M_PI)
-				theta_1 = theta_1 - 2.0 * M_PI*mult_1;
+			double mult_1 = abs(floor(theta_1 / Globals::Pi));
+			if (theta_1 > Globals::Pi)
+				theta_1 = theta_1 - 2.0 * Globals::Pi*mult_1;
 			else
-				theta_1 = theta_1 + 2.0 * M_PI*mult_1;
+				theta_1 = theta_1 + 2.0 * Globals::Pi*mult_1;
 		}
 
 		//Calculate Theta2
@@ -1123,10 +1119,10 @@ namespace Kratos
 			if (StrainVector[2] < 0.0)
 			{
 				//std::cout << "PredictStress2D -> StrainVector[2] < 0.0" << std::endl;
-				//std::cout << "PredictStress2D -> 2.0 * M_PI" << 2.0 * M_PI << std::endl;
+				//std::cout << "PredictStress2D -> 2.0 * Globals::Pi" << 2.0 * Globals::Pi << std::endl;
 				//std::cout << "PredictStress2D -> StrainVector[1] / denom_theta_2" << StrainVector[1] / denom_theta_2 << std::endl;
 				//std::cout << "PredictStress2D -> acos(StrainVector[1] / denom_theta_2)" << acos(StrainVector[1] / denom_theta_2) << std::endl;
-				theta_2 = 2.0 * M_PI - acos(StrainVector[1] / denom_theta_2);
+				theta_2 = 2.0 * Globals::Pi - acos(StrainVector[1] / denom_theta_2);
 			}
 			else
 			{
@@ -1134,13 +1130,13 @@ namespace Kratos
 				theta_2 = acos(StrainVector[1] / denom_theta_2);
 			}
 		}
-		if (abs(theta_2) > M_PI)
+		if (abs(theta_2) > Globals::Pi)
 		{
-			double mult_1 = abs(floor(theta_2 / M_PI));
-			if (theta_2 > M_PI)
-				theta_2 = theta_2 - 2.0 * M_PI*mult_1;
+			double mult_1 = abs(floor(theta_2 / Globals::Pi));
+			if (theta_2 > Globals::Pi)
+				theta_2 = theta_2 - 2.0 * Globals::Pi*mult_1;
 			else
-				theta_2 = theta_2 + 2.0 * M_PI*mult_1;
+				theta_2 = theta_2 + 2.0 * Globals::Pi*mult_1;
 		}
 
 		//Assemble Theta
