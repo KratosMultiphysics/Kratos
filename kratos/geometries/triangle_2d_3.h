@@ -721,6 +721,8 @@ public:
 
         rResult = ZeroVector(3);
 
+        const double tolerance = 1e-14;
+
         // Compute the Jacobian matrix and its determinant
         bounded_matrix<double, 2, 2> J;
         J(0,0) = this->GetPoint(1).X() - this->GetPoint(0).X();
@@ -732,7 +734,7 @@ public:
         // Compute eta and xi
         const double eta = (J(1,0)*(this->GetPoint(0).X()-rPoint(0)) +
                             J(0,0)*(rPoint(1)-this->GetPoint(0).Y())) / det_J;
-        const double xi  = (rPoint(0) - this->GetPoint(0).X() - eta*J(0,1)) / J(0,0);
+        const double xi  = (rPoint(0) - this->GetPoint(0).X() - eta*J(0,1)) / (J(0,0) + tolerance);
 
         rResult(0) = xi;
         rResult(1) = eta;
