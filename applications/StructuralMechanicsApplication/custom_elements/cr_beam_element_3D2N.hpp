@@ -81,6 +81,7 @@ namespace Kratos
 		bounded_matrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry();
 		bounded_matrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness();
 		bounded_matrix<double,msElementSize,msLocalSize> CalculateTransformationS();
+		bounded_vector<double,msLocalSize> GetCurrentNodalPosition();
 
 		bounded_vector<double,msLocalSize> CalculateElementForces();
 
@@ -192,7 +193,7 @@ namespace Kratos
 
 	private:
 		Vector mNX, mNY, mNZ;
-		Vector mTotalNodalDeformation, mTotalNodalPosistion;
+		Vector mTotalNodalDeformation;
 		Vector mIncrementDeformation;
 		Matrix mLHS, mRotationMatrix;
 		bounded_matrix<double,msElementSize,msElementSize> mRotationMatrix0;
