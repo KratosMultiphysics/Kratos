@@ -520,5 +520,75 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(negative_side_unit_normals[1](2),  0.707107, 1e-6);
 		}
 
+
+		KRATOS_TEST_CASE_IN_SUITE(ModifiedShapeFunctionsTetrahedra3D4Volumes, KratosCoreFastSuite)
+		{
+			// Generate a model part with the previous
+			ModelPart base_model_part("Tetrahedra");
+			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
+
+			// Fill the model part geometry data
+			base_model_part.CreateNewNode(1, 0.0, 2.0, 0.0);
+			base_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+			base_model_part.CreateNewNode(3, 1.0, 2.0, 0.0);
+			base_model_part.CreateNewNode(4, 1.0, 2.0, 2.0);
+			Properties::Pointer p_properties(new Properties(0));
+			base_model_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties);
+			
+			// Set the DISTANCE field
+			base_model_part.Nodes()[1].FastGetSolutionStepValue(DISTANCE) = -0.5;
+			base_model_part.Nodes()[2].FastGetSolutionStepValue(DISTANCE) =  1.0;
+			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) = -0.5;
+			base_model_part.Nodes()[4].FastGetSolutionStepValue(DISTANCE) =  1.0;
+			
+			// Set the elemental distances vector
+			Geometry<Node<3>>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
+
+			array_1d<double, 4> distances_vector;
+			for (unsigned int i = 0; i < p_geometry->size(); ++i) {
+				distances_vector(i) = (*p_geometry)[i].FastGetSolutionStepValue(DISTANCE);
+			}
+
+			base_model_part.Elements()[1].SetValue(ELEMENTAL_DISTANCES, distances_vector);
+
+			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
+
+			// Call the modified shape functions calculator
+			Tetrahedra3D4ModifiedShapeFunctions tetrahedra_shape_functions(p_geometry, r_elemental_distances);
+			Matrix positive_side_sh_func, negative_side_sh_func;
+			std::vector<Matrix> positive_side_sh_func_gradients, negative_side_sh_func_gradients;
+			Vector positive_side_weights, negative_side_weights;
+
+			tetrahedra_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
+				positive_side_sh_func,
+				positive_side_sh_func_gradients,
+				positive_side_weights,
+				GeometryData::GI_GAUSS_2);
+
+			tetrahedra_shape_functions.ComputeNegativeSideShapeFunctionsAndGradientsValues(
+				negative_side_sh_func,
+				negative_side_sh_func_gradients,
+				negative_side_weights,
+				GeometryData::GI_GAUSS_2);
+																							
+            const double tolerance = 1e-10;
+
+            // Check Gauss pts. weights
+            const unsigned int n_gauss_pos = positive_side_weights.size();
+            const unsigned int n_gauss_neg = negative_side_weights.size();
+
+            double pos_vol = 0.0;
+            for (unsigned int i=0; i<n_gauss_pos; ++i) {
+                pos_vol += positive_side_weights(i);
+            }
+
+            double neg_vol = 0.0;
+            for (unsigned int i=0; i<n_gauss_neg; ++i) {
+                neg_vol += negative_side_weights(i);
+            }
+
+            const double tot_vol = 2.0*1.0*2.0/6.0;
+            KRATOS_CHECK_NEAR(pos_vol+neg_vol, tot_vol, tolerance);
+		}
 	}   // namespace Testing.
 }  // namespace Kratos.
