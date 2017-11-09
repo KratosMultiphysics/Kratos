@@ -299,7 +299,7 @@ void File::WriteAttribute(std::string ObjectPath, std::string Name, TScalar Valu
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     if (GetEchoLevel() == 1 && GetPID() == 0)
         std::cout << "Write time \"" << ObjectPath << '/' << Name << "\": " << timer.elapsed() << std::endl;
-    KRATOS_CATCH("");
+    KRATOS_CATCH("Path: \"" + ObjectPath + '/' + Name + "\".");
 }
 
 template <class TScalar>
@@ -321,7 +321,7 @@ void File::WriteAttribute(std::string ObjectPath, std::string Name, const Vector
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     if (GetEchoLevel() == 1 && GetPID() == 0)
         std::cout << "Write time \"" << ObjectPath << '/' << Name << "\": " << timer.elapsed() << std::endl;
-    KRATOS_CATCH("");
+    KRATOS_CATCH("Path: \"" + ObjectPath + '/' + Name + "\".");
 }
 
 template <class TScalar>
@@ -346,7 +346,7 @@ void File::WriteAttribute(std::string ObjectPath, std::string Name, const Matrix
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     if (GetEchoLevel() == 1 && GetPID() == 0)
         std::cout << "Write time \"" << ObjectPath << '/' << Name << "\": " << timer.elapsed() << std::endl;
-    KRATOS_CATCH("");
+    KRATOS_CATCH("Path: \"" + ObjectPath + '/' + Name + "\".");
 }
 
 template <class TScalar>
@@ -383,7 +383,7 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, TScalar& rVal
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     if (GetEchoLevel() == 1 && GetPID() == 0)
         std::cout << "Read time \"" << ObjectPath << '/' << Name << "\": " << timer.elapsed() << std::endl;
-    KRATOS_CATCH("");
+    KRATOS_CATCH("Path: \"" + ObjectPath + '/' + Name + "\".");
 }
 
 template <class TScalar>
@@ -423,7 +423,7 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, Vector<TScala
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     if (GetEchoLevel() == 1 && GetPID() == 0)
         std::cout << "Read time \"" << ObjectPath << '/' << Name << "\": " << timer.elapsed() << std::endl;
-    KRATOS_CATCH("");
+    KRATOS_CATCH("Path: \"" + ObjectPath + '/' + Name + "\".");
 }
 
 template <class TScalar>
@@ -463,7 +463,7 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TScala
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     if (GetEchoLevel() == 1 && GetPID() == 0)
         std::cout << "Read time \"" << ObjectPath << '/' << Name << "\": " << timer.elapsed() << std::endl;
-    KRATOS_CATCH("");
+    KRATOS_CATCH("Path: \"" + ObjectPath + '/' + Name + "\".");
 }
 
 namespace Detail

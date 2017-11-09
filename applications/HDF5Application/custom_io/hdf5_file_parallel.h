@@ -238,8 +238,7 @@ private:
                                 local_dims, nullptr);
             hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
             KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, &rData[0]) < 0)
-                << "H5Dwrite failed for path \"" << Path
-                << "\". Please ensure data set is non-empty." << std::endl;
+                << "H5Dwrite failed. Please ensure global data set is non-empty." << std::endl;
             KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
             KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
         }
@@ -247,7 +246,7 @@ private:
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         if (GetEchoLevel() == 1 && GetPID() == 0)
             std::cout << "Write time \"" << Path << "\": " << timer.elapsed() << std::endl;
-        KRATOS_CATCH("");
+        KRATOS_CATCH("Path: \"" + Path + "\".");
     }
 
     template <class T>
@@ -316,8 +315,7 @@ private:
             hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
             KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id,
                                      dxpl_id, &rData(0, 0)) < 0)
-                << "H5Dwrite failed for path \"" << Path
-                << "\". Please ensure data set is non-empty." << std::endl;
+                << "H5Dwrite failed. Please ensure global data set is non-empty." << std::endl;
             KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
             KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
         }
@@ -325,7 +323,7 @@ private:
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         if (GetEchoLevel() == 1 && GetPID() == 0)
             std::cout << "Write time \"" << Path << "\": " << timer.elapsed() << std::endl;
-        KRATOS_CATCH("");
+        KRATOS_CATCH("Path: \"" + Path + "\".");
     }
 
     template <class T>
@@ -480,7 +478,7 @@ private:
         KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
         if (GetEchoLevel() == 1 && GetPID() == 0)
             std::cout << "Read time \"" << Path << "\": " << timer.elapsed() << std::endl;
-        KRATOS_CATCH("");
+        KRATOS_CATCH("Path: \"" + Path + "\".");
     }
 
     template <class T>
@@ -551,7 +549,7 @@ private:
         KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
         if (GetEchoLevel() == 1 && GetPID() == 0)
             std::cout << "Read time \"" << Path << "\": " << timer.elapsed() << std::endl;
-        KRATOS_CATCH("");
+        KRATOS_CATCH("Path: \"" + Path + "\".");
     }
     ///@}
 };

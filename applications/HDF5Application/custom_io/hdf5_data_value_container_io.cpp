@@ -59,7 +59,7 @@ void DataValueContainerIO::ReadDataValueContainer(DataValueContainer& rData)
         }
     }
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("Path: \"" + mPrefix + "/DataValues\".");
 }
 
 void DataValueContainerIO::WriteDataValueContainer(DataValueContainer const& rData)
@@ -97,7 +97,7 @@ void DataValueContainerIO::WriteDataValueContainer(DataValueContainer const& rDa
         }
     }
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("Path: \"" + mPrefix + "/DataValues\".");
 }
 
 } // namespace Detail.
