@@ -551,8 +551,8 @@ namespace Kratos
 		drA_sca = 1.00 - drA_sca;
 		drB_sca = 1.00 - drB_sca;
 
-		drA_sca = sqrt(drA_sca);
-		drB_sca = sqrt(drB_sca);
+		drA_sca = std::sqrt(drA_sca);
+		drB_sca = std::sqrt(drB_sca);
 
 
 		//1st solution step
@@ -601,7 +601,7 @@ namespace Kratos
 		scalar_diff += MathUtils<double>::Norm(tempVec) *
 			MathUtils<double>::Norm(tempVec);
 
-		scalar_diff = 0.50 * sqrt(scalar_diff);
+		scalar_diff = 0.50 * std::sqrt(scalar_diff);
 
 		//mean rotation quaternion
 		double meanRotationScalar;
@@ -647,9 +647,8 @@ namespace Kratos
 		Vector deltaX = ZeroVector(msDimension);
 		double VectorNorm;
 
-		deltaX[0] = this->mTotalNodalPosistion[3] - this->mTotalNodalPosistion[0];
-		deltaX[1] = this->mTotalNodalPosistion[4] - this->mTotalNodalPosistion[1];
-		deltaX[2] = this->mTotalNodalPosistion[5] - this->mTotalNodalPosistion[2];
+		Vector CurrentNodalPosition = this->GetCurrentNodalPosition();
+		for (unsigned int i = 0; i<msDimension; ++i) deltaX[i] = CurrentNodalPosition[msDimension+i] - CurrentNodalPosition[i];
 
 
 		VectorNorm = MathUtils<double>::Norm(deltaX);
@@ -956,7 +955,7 @@ namespace Kratos
 			cosAngle += LineLoadDir[i] * GeometricOrientation[i];
 		}
 
-		const double sinAngle = sqrt(1.00 - (cosAngle*cosAngle));
+		const double sinAngle = std::sqrt(1.00 - (cosAngle*cosAngle));
 		const double NormForceVectorOrth = sinAngle * VectorNormB;
 
 
@@ -1154,7 +1153,7 @@ namespace Kratos
 		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
 		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
 		const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-		const double l = sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy) +
+		const double l = std::sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy) +
 			(dw + dz)*(dw + dz));
 		return l;
 		KRATOS_CATCH("")
@@ -1184,11 +1183,26 @@ namespace Kratos
 		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
 		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
 		const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-		const double L = sqrt(dx*dx + dy*dy + dz*dz);
+		const double L = std::sqrt(dx*dx + dy*dy + dz*dz);
 		return L;
 		KRATOS_CATCH("")
 	}
 
+	bounded_vector<double,CrBeamElement3D2N::msLocalSize>
+	CrBeamElement3D2N::GetCurrentNodalPosition()
+	{
+		bounded_vector<double,msLocalSize> CurrentNodalPosition = ZeroVector(msLocalSize);
+		for (unsigned int i=0;i<msNumberOfNodes;++i)
+		{
+			int index = i*msDimension;
+			CurrentNodalPosition[index] = this->GetGeometry()[i].X(); 
+			CurrentNodalPosition[index+1] = this->GetGeometry()[i].Y(); 
+			CurrentNodalPosition[index+2] = this->GetGeometry()[i].Z(); 
+		}
+
+		return CurrentNodalPosition;
+	}
+	
 	void CrBeamElement3D2N::UpdateIncrementDeformation() {
 
 		KRATOS_TRY
@@ -1199,25 +1213,11 @@ namespace Kratos
 		this->GetValuesVector(actualDeformation, 0);
 
 		this->mIncrementDeformation = actualDeformation
-			- this->mTotalNodalDeformation;
+			- this->mTotalNodalDeformation;		
 
 		this->mTotalNodalDeformation = ZeroVector(msElementSize);
 		this->mTotalNodalDeformation = actualDeformation;
 
-		this->mTotalNodalPosistion = ZeroVector(msLocalSize);
-		this->mTotalNodalPosistion[0] = this->GetGeometry()[0].X0()
-			+ actualDeformation[0];
-		this->mTotalNodalPosistion[1] = this->GetGeometry()[0].Y0()
-			+ actualDeformation[1];
-		this->mTotalNodalPosistion[2] = this->GetGeometry()[0].Z0()
-			+ actualDeformation[2];
-
-		this->mTotalNodalPosistion[3] = this->GetGeometry()[1].X0()
-			+ actualDeformation[6];
-		this->mTotalNodalPosistion[4] = this->GetGeometry()[1].Y0()
-			+ actualDeformation[7];
-		this->mTotalNodalPosistion[5] = this->GetGeometry()[1].Z0()
-			+ actualDeformation[8];
 		KRATOS_CATCH("")
 	}
 
@@ -1784,8 +1784,8 @@ namespace Kratos
 		if (theta != 0) {
 			const Vector nz_temp = v3;
 			const Vector ny_temp = v2;
-			const double CosTheta = cos(theta);
-			const double SinTheta = sin(theta);
+			const double CosTheta = std::cos(theta);
+			const double SinTheta = std::sin(theta);
 
 			v2 = ny_temp * CosTheta + nz_temp * SinTheta;
 			VectorNorm = MathUtils<double>::Norm(v2);
@@ -1892,8 +1892,6 @@ namespace Kratos
 	void CrBeamElement3D2N::save(Serializer& rSerializer) const
 	{
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-		rSerializer.save("DeformationModes", this->mDeformationModes);
-		rSerializer.save("NodalPosition", this->mTotalNodalPosistion);
 		rSerializer.save("NodalDeformation", this->mTotalNodalDeformation);
 		rSerializer.save("IterationCounter", this->mIterationCount);
 		rSerializer.save("NodalForces", this->mNodalForces);
@@ -1915,8 +1913,6 @@ namespace Kratos
 	void CrBeamElement3D2N::load(Serializer& rSerializer)
 	{
 		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-		rSerializer.load("DeformationModes", this->mDeformationModes);
-		rSerializer.load("NodalPosition", this->mTotalNodalPosistion);
 		rSerializer.load("NodalDeformation", this->mTotalNodalDeformation);
 		rSerializer.load("IterationCounter", this->mIterationCount);
 		rSerializer.load("NodalForces", this->mNodalForces);
