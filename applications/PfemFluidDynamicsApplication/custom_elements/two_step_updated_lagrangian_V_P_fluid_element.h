@@ -333,6 +333,8 @@ namespace Kratos
 						   double& bulkCoefficient,
 						   double timeStep);
       
+      double ComputeNonLinearViscosity(double & equivalentStrainRate);
+
      void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
 					      const double Weight);
 	

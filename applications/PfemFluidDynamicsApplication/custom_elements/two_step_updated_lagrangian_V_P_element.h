@@ -337,10 +337,12 @@ namespace Kratos
       ///@name Friends
       ///@{
 
-
       ///@}
     protected:
 
+      double mMaterialDeviatoricCoefficient=0;
+      double mMaterialVolumetricCoefficient=0;
+      double mMaterialDensity=0;
 
       ///@name Protected static Member Variables
       ///@{

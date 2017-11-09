@@ -68,43 +68,59 @@ namespace Kratos {
 									       ElementalVariables &rElementalVariables)
   {
     double FluidBulkModulus=0;
-    double FluidViscosity=0;
-    double FluidFlowIndex=0;
     double FluidYieldShear=0;
-    double FluidAdaptiveExponent=0;
-
     this->EvaluatePropertyFromANotRigidNode(Density,DENSITY);
-    this->EvaluatePropertyFromANotRigidNode(FluidViscosity,VISCOSITY);
     this->EvaluatePropertyFromANotRigidNode(FluidBulkModulus,BULK_MODULUS);
-    this->EvaluatePropertyFromANotRigidNode(FluidFlowIndex,FLOW_INDEX);
     this->EvaluatePropertyFromANotRigidNode(FluidYieldShear,YIELD_SHEAR);
-    this->EvaluatePropertyFromANotRigidNode(FluidAdaptiveExponent,ADAPTIVE_EXPONENT);
 
-    // double shearThreshold=100;
-    // double rateSensitiveExponent=1000;
-
-    double exponent=-FluidAdaptiveExponent*rElementalVariables.EquivalentStrainRate;
-    if(rElementalVariables.EquivalentStrainRate!=1 && rElementalVariables.EquivalentStrainRate!=0){
-      FluidViscosity+=FluidYieldShear/rElementalVariables.EquivalentStrainRate*(1-exp(exponent));
-    }
-
-    // else{
-    //   FluidViscosity=0.1;
-    // }
-    // std::cout<<"FluidViscosity "<<FluidViscosity<<std::endl;
     if(FluidBulkModulus==0){
-      // std::cout<<"FluidBulkModulus was 0 !!!!!!!!"<<std::endl;
       FluidBulkModulus = 1000000000.0;
     }
-    DeviatoricCoeff = FluidViscosity;
     VolumetricCoeff = FluidBulkModulus*timeStep;
 
+    if(FluidYieldShear!=0){
+      DeviatoricCoeff=this->ComputeNonLinearViscosity(rElementalVariables.EquivalentStrainRate);
+    }else{
+      this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);
+    }
+
+    this->mMaterialDeviatoricCoefficient=DeviatoricCoeff;
+    this->mMaterialVolumetricCoefficient=VolumetricCoeff;
+    this->mMaterialDensity=Density;
+
+    // const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    // for (SizeType i = 0; i < NumNodes; ++i)
+    //   {
+    // 	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=mMaterialDeviatoricCoefficient;
+    //   }
 
   }
 
 
-
-
+  template< unsigned int TDim>
+  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeNonLinearViscosity(double & equivalentStrainRate)
+  {
+    double FluidViscosity=0;
+    double FluidFlowIndex=0;
+    double FluidYieldShear=0;
+    double FluidAdaptiveExponent=0;
+    this->EvaluatePropertyFromANotRigidNode(FluidViscosity,VISCOSITY);
+    this->EvaluatePropertyFromANotRigidNode(FluidFlowIndex,FLOW_INDEX);
+    this->EvaluatePropertyFromANotRigidNode(FluidYieldShear,YIELD_SHEAR);
+    this->EvaluatePropertyFromANotRigidNode(FluidAdaptiveExponent,ADAPTIVE_EXPONENT);
+    double exponent=-FluidAdaptiveExponent*equivalentStrainRate;
+    // if(equivalentStrainRate!=1 && equivalentStrainRate!=0){
+    if(equivalentStrainRate!=0){
+      FluidViscosity+=(FluidYieldShear/equivalentStrainRate)*(1-exp(exponent));
+      //Cremonesi's Way
+      // FluidViscosity+=0.5*(FluidYieldShear/equivalentStrainRate)*(1-exp(exponent));
+    }
+    if(equivalentStrainRate<0.00001 && FluidYieldShear!=0 && FluidAdaptiveExponent!=0){
+      // for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
+      FluidViscosity=FluidAdaptiveExponent*FluidYieldShear;
+    }
+    return FluidViscosity;
+  }
 
 
 
@@ -1174,14 +1190,10 @@ namespace Kratos {
   void TwoStepUpdatedLagrangianVPFluidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g)
   {
 
-    double Density  = 0;
-    double CurrSecondLame  = 0;
-    double CurrBulkModulus = 0;
-
-    this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep,rElementalVariables);
+    double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
+    double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
  
-    double CurrFirstLame  = 0;
-    CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
+    double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
 
     double DefX=rElementalVariables.SpatialDefRate[0];
     double DefY=rElementalVariables.SpatialDefRate[1];
@@ -1228,15 +1240,10 @@ namespace Kratos {
   void TwoStepUpdatedLagrangianVPFluidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
   {
 
-    double Density  = 0;
-    double CurrSecondLame  = 0;
-    double CurrBulkModulus = 0;
+    double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
+    double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
 
-    this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep,rElementalVariables);
- 
-    double CurrFirstLame  = 0;
-    CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
-
+    double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
    
     double DefX=rElementalVariables.SpatialDefRate[0];
     double DefY=rElementalVariables.SpatialDefRate[1];
@@ -1344,11 +1351,13 @@ namespace Kratos {
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
 
-    double Density = 0;
+    double Density = this->mMaterialDensity;
+    double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
     double DeviatoricCoeff = 0;
-    double VolumetricCoeff = 0;
-    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep,rElementalVariables);
-    
+    this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);   
+    // if(DeviatoricCoeff>10)
+    //   DeviatoricCoeff=10;
+
     double Tau=0;
     this->CalculateTauFIC(Tau,ElemSize,Density,DeviatoricCoeff,rCurrentProcessInfo);
 
