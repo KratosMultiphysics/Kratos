@@ -1892,7 +1892,6 @@ namespace Kratos
 	void CrBeamElement3D2N::save(Serializer& rSerializer) const
 	{
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-		rSerializer.save("DeformationModes", this->mDeformationModes);
 		rSerializer.save("NodalPosition", this->mTotalNodalPosistion);
 		rSerializer.save("NodalDeformation", this->mTotalNodalDeformation);
 		rSerializer.save("IterationCounter", this->mIterationCount);
@@ -1915,7 +1914,6 @@ namespace Kratos
 	void CrBeamElement3D2N::load(Serializer& rSerializer)
 	{
 		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-		rSerializer.load("DeformationModes", this->mDeformationModes);
 		rSerializer.load("NodalPosition", this->mTotalNodalPosistion);
 		rSerializer.load("NodalDeformation", this->mTotalNodalDeformation);
 		rSerializer.load("IterationCounter", this->mIterationCount);

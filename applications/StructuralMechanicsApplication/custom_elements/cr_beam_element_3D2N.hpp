@@ -191,10 +191,9 @@ namespace Kratos
 			ProcessInfo& rCurrentProcessInfo);
 
 	private:
-		double mdPhi_x_a, mRotInertiaY, mRotInertiaZ;
-		Vector mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;
-		Vector mTotalNodalDeformation, mTotalNodalPosistion, mBodyForces;
-		Vector mDeformationModes, mIncrementDeformation;
+		Vector mNX, mNY, mNZ;
+		Vector mTotalNodalDeformation, mTotalNodalPosistion;
+		Vector mIncrementDeformation;
 		Matrix mLHS, mRotationMatrix;
 		bounded_matrix<double,msElementSize,msElementSize> mRotationMatrix0;
 		Vector mNX0, mNY0, mNZ0;
