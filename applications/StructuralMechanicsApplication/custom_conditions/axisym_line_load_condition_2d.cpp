@@ -89,7 +89,7 @@ namespace Kratos
         N = GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
         const double Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, GetGeometry());
         const double Thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
-        const double AxiSymCoefficient = 2.0 * M_PI * Radius/Thickness;
+        const double AxiSymCoefficient = 2.0 * Globals::Pi * Radius/Thickness;
         
         return AxiSymCoefficient * IntegrationPoints[PointNumber].Weight() * detJ;
     }

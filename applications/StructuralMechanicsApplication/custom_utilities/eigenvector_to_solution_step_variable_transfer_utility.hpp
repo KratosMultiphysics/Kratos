@@ -92,7 +92,7 @@ public:
             // in case ComputingModelPart != MainModelPart:
             if (rNodeDofs.size() != rNodeEigenvectors.size2())
             continue;
-            if (iEigenMode >= rNodeEigenvectors.size1())
+            if (iEigenMode >= static_cast<int>(rNodeEigenvectors.size1()))
                 KRATOS_ERROR << "invalid iEigenMode = " << iEigenMode << std::endl;
 
             std::size_t j=0;

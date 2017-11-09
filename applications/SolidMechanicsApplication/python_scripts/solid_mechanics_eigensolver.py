@@ -37,7 +37,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
                 "lambda_max": 1.0,
                 "search_dimension": 10,
                 "linear_solver_settings": {
-                    "solver_type": "skyline_lu"
+                    "solver_type": "complex_skyline_lu_solver"
                 }
             }
         }
@@ -54,7 +54,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, custom_settings)
-        print("::[EigenSolver]:: Construction finished")
+        print("::[Eigen_Solver]:: Construction finished")
 
     #### Private functions ####
 
@@ -78,7 +78,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         """        
         if self.eigensolver_settings["solver_type"].GetString() == "FEAST":
             feast_system_solver_settings = self.eigensolver_settings["linear_solver_settings"]
-            if feast_system_solver_settings["solver_type"].GetString() == "skyline_lu":
+            if feast_system_solver_settings["solver_type"].GetString() == "complex_skyline_lu_solver":
                 # default built-in feast system solver
                 linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings)
             elif feast_system_solver_settings["solver_type"].GetString() == "pastix":

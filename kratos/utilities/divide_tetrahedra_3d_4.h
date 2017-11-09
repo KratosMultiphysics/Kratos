@@ -46,12 +46,12 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef DivideGeometry                                                                        BaseType;
-    typedef typename BaseType::GeometryType                                                   GeometryType;
-    typedef typename BaseType::IndexedPointType                                           IndexedPointType;
-    typedef typename BaseType::IndexedPointGeometryType::GeometriesArrayType           GeometriesArrayType;
-    typedef Triangle3D3 < IndexedPointType >                                      IndexedPointTriangleType;
-    typedef Tetrahedra3D4 < IndexedPointType >                                  IndexedPointTetrahedraType;
+    typedef DivideGeometry                                              BaseType;
+    typedef BaseType::GeometryType                                      GeometryType;
+    typedef BaseType::IndexedPointType                                  IndexedPointType;
+    typedef BaseType::IndexedPointGeometryType::GeometriesArrayType     GeometriesArrayType;
+    typedef Triangle3D3 < IndexedPointType >                            IndexedPointTriangleType;
+    typedef Tetrahedra3D4 < IndexedPointType >                          IndexedPointTetrahedraType;
 
     /// Pointer definition of DivideTetrahedra3D4
     KRATOS_CLASS_POINTER_DEFINITION(DivideTetrahedra3D4);

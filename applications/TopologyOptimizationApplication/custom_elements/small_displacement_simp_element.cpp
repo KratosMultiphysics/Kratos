@@ -217,8 +217,8 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 
 	if (rVariable == VON_MISES_STRESS) {
 		//create and initialize element variables:
-		GeneralVariables Variables;
-		this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+		ElementVariables Variables;
+		this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
 		//create constitutive law parameters:
 		ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(),
@@ -235,7 +235,7 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 			this->CalculateKinematics(Variables, PointNumber);
 
 			//set general variables to constitutivelaw parameters
-			this->SetGeneralVariables(Variables, Values, PointNumber);
+			this->SetElementVariables(Variables, Values, PointNumber);
 
 			//call the constitutive law to update material variables
 			mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(
