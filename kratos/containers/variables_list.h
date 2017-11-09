@@ -236,10 +236,10 @@ namespace Kratos
 		{
 			mDataSize = 0;
 			mHashFunctionIndex = 0;
-			mVariables.clear();
-			mKeys.clear();
-			mPositions.clear();
-		}
+            mVariables.clear();
+            mKeys = {static_cast<IndexType>(-1)};
+            mPositions = {static_cast<IndexType>(-1)};
+        }
 
 
 		void Add(VariableData const& ThisVariable)
