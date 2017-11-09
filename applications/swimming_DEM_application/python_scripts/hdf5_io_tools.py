@@ -231,7 +231,9 @@ class ParticleHistoryLoader:
         self.main_path = main_path
         self.particles_list_file_name = self.main_path + '/all_particles.hdf5'
         self.prerun_fluid_file_name = pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").GetString()
+
         self.CreateAllParticlesFileIfNecessary()
+        self.run_code = None
 
     def CreateAllParticlesFileIfNecessary(self):
         if not self.pp.CFD_DEM["full_particle_history_watcher"].GetString() == 'Empty':
@@ -243,7 +245,7 @@ class ParticleHistoryLoader:
             radii = np.array([node.GetSolutionStepValue(RADIUS) for node in nodes])
             times = np.array([0.0 for node in nodes])
 
-            with h5py.File(self.particles_list_file_name) as f:
+            with h5py.File(self.particles_list_file_name, 'w') as f:
                 WriteDataToFile(file_or_group = f,
                                 names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS', 'TIME'],
                                 data = [Ids, X0s, Y0s, Z0s, radii, times])
@@ -287,12 +289,14 @@ class ParticleHistoryLoader:
         else:
             mean_radius = 1.0
 
-        with h5py.File('particles_snapshots.hdf5') as f:
+        with h5py.File(self.main_path + '/particles_snapshots.hdf5') as f:
             prerun_fluid_file_name = self.prerun_fluid_file_name.split('/')[- 1]
             current_fluid = CreateGroup(f, prerun_fluid_file_name, overwrite_previous = False)
 
             # snapshot_name = 't=' + str(round(time, 3)) + '_RADIUS=' + str(round(mean_radius, 4)) + '_in_box'
             snapshot_name = str(len(current_fluid.items()) + 1)
+            self.run_code = prerun_fluid_file_name.strip('.hdf5') + '_' + snapshot_name
+
             snapshot = CreateGroup(current_fluid, snapshot_name)
             snapshot.attrs['time'] = time
             snapshot.attrs['particles_nondimensional_radius'] = mean_radius
@@ -306,3 +310,9 @@ class ParticleHistoryLoader:
 
             for dset_name, datum in zip(names, data):
                 CreateDataset(snapshot, dset_name, datum)
+
+    def GetRunCode(self):
+        if self.run_code == None:
+            raise RuntimeError('No run code has been generated so far, because no snapshot has been performed yet')
+        else:
+            return self.run_code

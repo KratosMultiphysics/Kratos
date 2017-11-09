@@ -17,8 +17,8 @@ class Algorithm(BaseAlgorithm):
                                             -0.005, 0.001)
 
     def PerformFinalOperations(self, time = None):
-        BaseAlgorithm.PerformFinalOperations(self, time)
         self.particles_loader.RecordParticlesInBox(self.bbox_watcher)
+        BaseAlgorithm.PerformFinalOperations(self, time)
 
     def PerformZeroStepInitializations(self):
         BaseAlgorithm.PerformZeroStepInitializations(self)
@@ -31,8 +31,11 @@ class Algorithm(BaseAlgorithm):
 
     def ModifyResultsFolderName(self, time):
         import os
-        n_nodes = len(self.fluid_model_part.Nodes)
-        for node in self.disperse_phase_algorithm.spheres_model_part.Nodes:
-            radius = node.GetSolutionStepValue(RADIUS)
-            break
-        os.rename(self.post_path, self.post_path + '_' + str(n_nodes) + 'nodes_radius=' + str(radius))
+        new_path = self.post_path + '_' + self.particles_loader.GetRunCode()
+        if os.path.exists(new_path):
+            import shutil
+            shutil.rmtree(new_path)
+        os.rename(self.post_path, new_path)
+
+    def GetRunCode(self):
+        return ''
