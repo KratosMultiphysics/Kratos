@@ -61,7 +61,7 @@ namespace Kratos
     typedef THardeningRule                                       HardeningRuleType;
     typedef typename THardeningRule::PlasticDataType               PlasticDataType;   
     typedef typename THardeningRule::InternalVariablesType   InternalVariablesType;
-    
+	
     /// Pointer definition of YieldSurface
     KRATOS_CLASS_POINTER_DEFINITION( YieldSurface );
 
@@ -83,7 +83,7 @@ namespace Kratos
     }
     
     /// Clone.
-    virtual YieldSurface::Pointer Clone() const
+    virtual typename YieldSurface::Pointer Clone() const
     {
       return (YieldSurface<THardeningRule>::Pointer(new YieldSurface(*this)));
     }
