@@ -115,7 +115,7 @@ proc BeforeMeshGeneration {elementsize} {
     
     # Set the domain_size variable
     if { [GiD_AccessValue get gendata Let_GiD_determine_domain_size] == 1 } {
-	GiD_AccessValue set gendata DOMAIN_SIZE [domainsize]
+	GiD_AccessValue set gendata DIMENSION [domainsize]
     }
     # Assign Materials
     if { [GiD_AccessValue get gendata Transfer_materials_to_lower_entities] == 1 } {
@@ -230,10 +230,10 @@ proc BeforeWriteCalcFileGIDProject { file } {
 	# Before Write Calc File
 	# Set the domain_size variable again (in case was General Data changed after meshing)
 	if { [GiD_AccessValue get gendata Let_GiD_determine_domain_size] == 1 } {
-		GiD_AccessValue set gendata DOMAIN_SIZE [domainsize]
+		GiD_AccessValue set gendata DIMENSION [domainsize]
 	}
-	#set D [GiD_AccessValue get gendata DOMAIN_SIZE]
-	#WarnWinText "ProblemData's DOMAIN_SIZE is $D"
+	#set D [GiD_AccessValue get gendata DIMENSION]
+	#WarnWinText "ProblemData's DIMENSION is $D"
 	return 0 
 }
 
@@ -951,29 +951,29 @@ proc Print3DFaceElement { element_id face_index } {
 
   if { $face_index == 1 } {
       set element_connectivities [lindex $element_data 1]
-      lappend element_connectivities [lindex $element_data 2]
       lappend element_connectivities [lindex $element_data 3]
+      lappend element_connectivities [lindex $element_data 2]
       set material_id [lindex $element_data end]
       set material_id 1
       return "$condition_id $material_id $element_connectivities"
   } elseif { $face_index == 2 } {
       set element_connectivities [lindex $element_data 2]
-      lappend element_connectivities [lindex $element_data 4]
       lappend element_connectivities [lindex $element_data 3]
+      lappend element_connectivities [lindex $element_data 4]
       set material_id [lindex $element_data end]
       set material_id 1
       return "$condition_id $material_id $element_connectivities"
   } elseif { $face_index == 3 } {
       set element_connectivities [lindex $element_data 3]
-      lappend element_connectivities [lindex $element_data 4]
       lappend element_connectivities [lindex $element_data 1]
+      lappend element_connectivities [lindex $element_data 4]
       set material_id [lindex $element_data end]
       set material_id 1
       return "$condition_id $material_id $element_connectivities"
   } else {
-      set element_connectivities [lindex $element_data 4]
+      set element_connectivities [lindex $element_data 1]
       lappend element_connectivities [lindex $element_data 2]
-      lappend element_connectivities [lindex $element_data 1]
+      lappend element_connectivities [lindex $element_data 4]
       set material_id [lindex $element_data end]
       set material_id 1
       return "$condition_id $material_id $element_connectivities"

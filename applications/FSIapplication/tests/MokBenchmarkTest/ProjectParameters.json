@@ -10,12 +10,12 @@
             "end_time"        : 25.0,
             "echo_level"      : 0
         },
-        "solver_settings"          : {
-            "solver_type"                        : "Implicit",
-            "echo_level"                         : 0,
-            "solution_type"                      : "Dynamic",
-            "scheme_type"                        : "Bossak",
-            "model_import_settings"              : {
+        "solver_settings" : {
+            "solver_type"             : "Dynamic",
+            "echo_level"              : 0,
+            "time_integration_method" : "implicit",
+            "scheme_type"             : "bossak",
+            "model_import_settings"   : {
                 "input_type"     : "mdpa",
                 "input_filename" : "mok_benchmark_Structural"
             },
@@ -23,7 +23,7 @@
                 "materials_filename": "materials_Mok.json"
             },
             "line_search"                        : false,
-            "convergence_criterion"              : "Residual_criterion",
+            "convergence_criterion"              : "residual_criterion",
             "displacement_relative_tolerance"    : 1e-5,
             "displacement_absolute_tolerance"    : 1e-7,
             "residual_relative_tolerance"        : 1e-5,
@@ -57,14 +57,12 @@
             }
         }],
         "loads_process_list"       : [{
-            "python_module"         : "set_interface_process",
-            "kratos_module"         : "KratosMultiphysics.FSIApplication",
-            "help"                  : [],
-            "process_name"          : "SetInterfaceProcess",
+            "python_module"         : "python_process",
+            "kratos_module"         : "KratosMultiphysics",
+            "process_name"          : "PythonProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Interface2D_Structure_interface",
-                "variable_name"   : "STRUCTURE_INTERFACE"
+                "model_part_name" : "Interface2D_Structure_interface"
             }
         }],
         "output_configuration"     : {
@@ -139,6 +137,7 @@
                 "input_type"     : "mdpa",
                 "input_filename" : "mok_benchmark_Fluid"
             },
+            "alpha"                         : -0.3,
             "maximum_iterations"            : 10,
             "dynamic_tau"                   : 0.001,
             "oss_switch"                    : 0,
@@ -238,13 +237,12 @@
                 "constrained"     : [true,true,true]
             }
         },{
-            "python_module"         : "set_interface_process",
-            "kratos_module"         : "KratosMultiphysics.FSIApplication",
-            "process_name"          : "SetInterfaceProcess",
+            "python_module"         : "python_process",
+            "kratos_module"         : "KratosMultiphysics",
+            "process_name"          : "PythonProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "FluidNoSlipInterface2D_Interface",
-                "variable_name"   : "FLUID_INTERFACE"
+                "model_part_name" : "FluidNoSlipInterface2D_Interface"
             }
         },{
             "python_module"         : "from_json_check_result_process",

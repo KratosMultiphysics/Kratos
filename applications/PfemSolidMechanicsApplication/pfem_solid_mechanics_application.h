@@ -38,11 +38,29 @@
 //elements
 #include "custom_elements/total_updated_lagrangian_element.hpp"
 #include "custom_elements/total_updated_lagrangian_U_P_element.hpp"
+
 #include "custom_elements/updated_lagrangian_U_wP_element.hpp"
 #include "custom_elements/updated_lagrangian_U_wP_Stab_element.hpp"
-#include "custom_elements/updated_lagrangian_U_wP_FIC_element.hpp"
+
+
 #include "custom_elements/axisym_updated_lagrangian_U_wP_element.hpp"
 #include "custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.hpp"
+
+#include "custom_elements/updated_lagrangian_U_W_element.hpp"
+
+
+#include "custom_elements/updated_lagrangian_U_J_element.hpp"
+#include "custom_elements/updated_lagrangian_U_J_P_element.hpp"
+#include "custom_elements/updated_lagrangian_U_Pressure_element.hpp"
+
+#include "custom_elements/updated_lagrangian_U_P_wP_element.hpp"
+#include "custom_elements/updated_lagrangian_U_J_wP_element.hpp"
+
+#include "custom_elements/axisym_updated_lagrangian_U_J_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_J_wP_element.hpp"
+
+#include "custom_elements/axisym_updated_lagrangian_U_Pressure_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_P_wP_element.hpp"
 
 //constitutive laws
 #include "containers/flags.h"
@@ -53,38 +71,31 @@
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/tresca_yield_criterion.hpp"
-#include "custom_constitutive/custom_yield_criteria/mohr_coulomb_yield_criterion.hpp"
 
 //flow rule
 #include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
-//#include "custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.hpp"
-//#include "custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.hpp"
-#include "custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.hpp"
 
 //hardening laws
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 
 //constitutive laws
-//#include "custom_constitutive/hencky_cam_clay_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/hencky_cam_clay_axisym_2D_law.hpp"
-//#include "custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/linear_hencky_cam_clay_axisym_2D_law.hpp"
+#include "custom_constitutive/borja_hencky_cam_clay_3D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_J2_axisym_2D_law.hpp"
+#include "custom_constitutive/hencky_tresca_3D_law.hpp"
 #include "custom_constitutive/hencky_tresca_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_axisym_2D_law.hpp"
-#include "custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.hpp"
-#include "custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.hpp"
+//#include "custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.hpp"
+//#include "custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_J2_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.hpp"
-
 #include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
@@ -262,24 +273,42 @@ namespace Kratos
 
     //updated lagrangian
     const UpdatedLagrangianUwPElement                      mUpdatedLagrangianUwPElement2D3N;
+    const UpdatedLagrangianUwPElement                      mUpdatedLagrangianUwPElement3D4N;
     const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement2D3N;
-    const UpdatedLagrangianUwPFICElement                mUpdatedLagrangianUwPFICElement2D3N;
+    const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement3D4N;
+
+    const UpdatedLagrangianUWElement                      mUpdatedLagrangianUWElement2D3N;
+
     const AxisymUpdatedLagrangianUwPElement          mAxisymUpdatedLagrangianUwPElement2D3N;
     const AxisymUpdatedLagrangianUwPStabElement  mAxisymUpdatedLagrangianUwPStabElement2D3N;
 
+    const UpdatedLagrangianUJElement         mUpdatedLagrangianUJElement2D3N;
+    const UpdatedLagrangianUJElement         mUpdatedLagrangianUJElement3D4N;
+    const UpdatedLagrangianUJPElement        mUpdatedLagrangianUJPElement2D3N;
+    const UpdatedLagrangianUPressureElement mUpdatedLagrangianUPressureElement2D3N;
 
-    //const NonLinearHenckyCamClayPlasticPlaneStrain2DLaw      mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw;
-    //const NonLinearHenckyCamClayPlasticAxisym2DLaw                mNonLinearHenckyCamClayPlasticAxisym2DLaw;
-    //const LinearHenckyCamClayPlasticPlaneStrain2DLaw            mLinearHenckyCamClayPlasticPlaneStrain2DLaw;
-    //const LinearHenckyCamClayPlasticAxisym2DLaw                      mLinearHenckyCamClayPlasticAxisym2DLaw;
+
+    const UpdatedLagrangianUJwPElement   mUpdatedLagrangianUJwPElement2D3N;
+    const UpdatedLagrangianUJwPElement   mUpdatedLagrangianUJwPElement3D4N;
+    const UpdatedLagrangianUPwPElement mUpdatedLagrangianUPwPElement2D3N;
+
+    const AxisymUpdatedLagrangianUJElement      mAxisymUpdatedLagrangianUJElement2D3N; 
+    const AxisymUpdatedLagrangianUJwPElement    mAxisymUpdatedLagrangianUJwPElement2D3N; 
+
+    const AxisymUpdatedLagrangianUPressureElement mAxisymUpdatedLagrangianUPressureElement2D3N; 
+    const AxisymUpdatedLagrangianUPwPElement mAxisymUpdatedLagrangianUPwPElement2D3N; 
+
+
+    const BorjaHenckyCamClayPlastic3DLaw                        mBorjaHenckyCamClayPlastic3DLaw;
     const BorjaHenckyCamClayPlasticAxisym2DLaw                        mBorjaHenckyCamClayPlasticAxisym2DLaw;
     const BorjaHenckyCamClayPlasticPlaneStrain2DLaw              mBorjaHenckyCamClayPlasticPlaneStrain2DLaw;
     const HenckyJ2PlasticPlaneStrain2DLaw                                  mHenckyJ2PlasticPlaneStrain2DLaw;
     const HenckyJ2PlasticAxisym2DLaw                                            mHenckyJ2PlasticAxisym2DLaw;
     const HenckyTrescaPlasticAxisym2DLaw                                    mHenckyTrescaPlasticAxisym2DLaw;
     const HenckyTrescaPlasticPlaneStrain2DLaw                          mHenckyTrescaPlasticPlaneStrain2DLaw;
-    const HenckyMohrCoulombPlasticAxisym2DLaw                          mHenckyMohrCoulombPlasticAxisym2DLaw;
-    const HenckyMohrCoulombPlasticPlaneStrain2DLaw                mHenckyMohrCoulombPlasticPlaneStrain2DLaw;
+    const HenckyTresca3DLaw                                                              mHenckyTresca3DLaw;
+    //const HenckyMohrCoulombPlasticAxisym2DLaw                          mHenckyMohrCoulombPlasticAxisym2DLaw;
+    //const HenckyMohrCoulombPlasticPlaneStrain2DLaw                mHenckyMohrCoulombPlasticPlaneStrain2DLaw;
 
     const HenckyPlasticUPJ2Axisym2DLaw                        mHenckyPlasticUPJ2Axisym2DLaw;
     const HenckyPlasticUPJ2PlaneStrain2DLaw                   mHenckyPlasticUPJ2PlaneStrain2DLaw;
@@ -289,16 +318,14 @@ namespace Kratos
 
     const J2ExplicitFlowRule                 mJ2ExplicitFlowRule; 
     const TrescaExplicitFlowRule             mTrescaExplicitFlowRule; 
-    const MohrCoulombExplicitFlowRule        mMohrCoulombExplicitFlowRule; 
-    //const CamClayExplicitFlowRule            mCamClayExplicitFlowRule;
-    //const LinearCamClayExplicitFlowRule      mLinearCamClayExplicitFlowRule;
+    //const MohrCoulombExplicitFlowRule        mMohrCoulombExplicitFlowRule; 
     const BorjaCamClayExplicitFlowRule       mBorjaCamClayExplicitFlowRule;
 
 
 
     const J2YieldCriterion                   mJ2YieldCriterion;
     const TrescaYieldCriterion               mTrescaYieldCriterion;
-    const MohrCoulombYieldCriterion          mMohrCoulombYieldCriterion;
+    //const MohrCoulombYieldCriterion          mMohrCoulombYieldCriterion;
     const CamClayYieldCriterion              mCamClayYieldCriterion;
 
     const CamClayKinematicHardeningLaw       mCamClayKinematicHardeningLaw;

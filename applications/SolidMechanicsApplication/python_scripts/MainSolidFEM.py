@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 # Import system python modules
 import time as timer
+import sys
 import os
 
 # Import kratos core and applications
@@ -49,8 +50,8 @@ class Solution(object):
         # Defining the model_part
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
 
-        #self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DIMENSION, self.ProjectParameters["problem_data"]["dimension"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, self.ProjectParameters["problem_data"]["dimension"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["dimension"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, self.ProjectParameters["problem_data"]["time_step"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.ProjectParameters["problem_data"]["start_time"].GetDouble())
         
@@ -78,6 +79,8 @@ class Solution(object):
             MaterialParameters = KratosMultiphysics.Parameters(materials_file.read())
     
             if(MaterialParameters.Has("material_models_list")):
+
+                import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterials
                 
                 ## Get the list of the model_part's in the object Model
                 for i in range(self.ProjectParameters["solver_settings"]["problem_domain_sub_model_part_list"].size()):
@@ -88,8 +91,9 @@ class Solution(object):
         
                 assign_materials_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( MaterialParameters["material_models_list"] )
 
-            for process in assign_materials_processes:
-                process.Execute()
+                for process in assign_materials_processes:
+                    process.Execute()
+                                
         else:
             print(" No Materials.json found ")
             
@@ -121,7 +125,7 @@ class Solution(object):
     def Run(self):
 
         self.Initialize()
-
+        
         self.RunMainTemporalLoop()
 
         self.Finalize()
@@ -169,7 +173,6 @@ class Solution(object):
         
         ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self.solver.Initialize()
-        #self.solver.InitializeStrategy()
         self.solver.SetEchoLevel(self.echo_level)
 
         
@@ -193,6 +196,7 @@ class Solution(object):
         self.end_time   = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
         self.delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
 
+        sys.stdout.flush()
 
     def RunMainTemporalLoop(self):
         
@@ -202,6 +206,8 @@ class Solution(object):
             self.InitializeSolutionStep()
             self.SolveSolutionStep()
             self.FinalizeSolutionStep()
+
+            sys.stdout.flush()
       
             
     def InitializeSolutionStep(self):
@@ -284,7 +290,6 @@ class Solution(object):
 
         print(timer.ctime())
 
-
         
     def SetGraphicalOutput(self):
         from gid_output_process import GiDOutputProcess
@@ -315,8 +320,7 @@ class Solution(object):
     def GraphicalOutputExecuteFinalize(self):
         self.graphical_output.ExecuteFinalize()
                 
-  
-    
+     
     def SetParallelSize(self, num_threads):
         parallel = KratosMultiphysics.OpenMPUtils()
         parallel.SetNumThreads(int(num_threads))

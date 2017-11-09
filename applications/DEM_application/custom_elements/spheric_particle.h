@@ -99,6 +99,9 @@ array_1d<double, 3> mDomainMin;
 array_1d<double, 3> mDomainMax;
 SphericParticle* mpThisParticle;
 SphericParticle* mpOtherParticle;
+
+std::vector<DEMWall*> mNeighbourRigidFaces;
+
 };
 
 typedef std::unique_ptr<ParticleDataBuffer> BufferPointerType;
@@ -117,7 +120,7 @@ void TransformNeighbourCoorsToClosestInPeriodicDomain(const ProcessInfo& r_proce
                                                       const double coors[3],
                                                       double neighbour_coors[3]);
 
-virtual void CalculateRelativePositions(ParticleDataBuffer & data_buffer);
+virtual bool CalculateRelativePositionsOrSkipContact(ParticleDataBuffer & data_buffer);
 
 using DiscreteElement::Initialize; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
 virtual void Initialize(const ProcessInfo& r_process_info);
@@ -175,11 +178,9 @@ virtual double CalculateVolume();
 virtual double GetInteractionRadius(const int radius_index = 0);
 virtual void SetInteractionRadius(const double radius, const int radius_index = 0);
 virtual double GetSearchRadius();
-virtual double GetSearchRadiusWithFem();
 DEMDiscontinuumConstitutiveLaw::Pointer GetConstitutiveLawPointer();
 virtual void SetDefaultRadiiHierarchy(const double radius);
 virtual void SetSearchRadius(const double radius);
-virtual void SetSearchRadiusWithFem(const double radius);
 virtual double GetMass();
 virtual void   SetMass(double real_mass);
 virtual double   CalculateMomentOfInertia();
@@ -256,6 +257,7 @@ double mInelasticFrictionalEnergy;
 double mInelasticViscodampingEnergy;
 std::vector<SphericParticle*>     mNeighbourElements;
 std::vector<int>                  mContactingNeighbourIds;
+std::vector<int>                  mContactingFaceNeighbourIds;
 std::vector<DEMWall*>             mNeighbourRigidFaces;
 std::vector<DEMWall*>             mNeighbourPotentialRigidFaces;
 
@@ -285,13 +287,13 @@ protected:
 
 SphericParticle();
 
-virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticForce,
+virtual void ComputeBallToRigidFaceContactForce(ParticleDataBuffer & data_buffer,
+                                                array_1d<double, 3>& rElasticForce,
                                                 array_1d<double, 3>& rContactForce,
                                                 double& RollingResistance,
                                                 array_1d<double, 3>& rigid_element_force,
-                                                ProcessInfo& r_process_info,
-                                                double mTimeStep,
-                                                int search_control) final;
+                                                ProcessInfo& r_process_info,                                                
+                                                int search_control) ;
 
 virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override;
 
@@ -423,7 +425,6 @@ virtual void ApplyGlobalDampingToContactForces();
 DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 double mRadius;
 double mSearchRadius;
-double mSearchRadiusWithFem;
 double mRealMass;
 PropertiesProxy* mFastProperties;
 int mClusterId;
@@ -440,7 +441,6 @@ virtual void save(Serializer& rSerializer) const override
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
     rSerializer.save("mRadius",mRadius);
     rSerializer.save("mSearchRadius", mSearchRadius);
-    rSerializer.save("mSearchRadiusWithFem", mSearchRadiusWithFem);
     rSerializer.save("mRealMass",mRealMass);
     rSerializer.save("mClusterId",mClusterId);
     rSerializer.save("mBoundDeltaDispSq",mBoundDeltaDispSq);
@@ -455,7 +455,6 @@ virtual void load(Serializer& rSerializer) override
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
     rSerializer.load("mRadius",mRadius);
     rSerializer.load("mSearchRadius", mSearchRadius);
-    rSerializer.load("mSearchRadiusWithFem", mSearchRadiusWithFem);
     rSerializer.load("mRealMass",mRealMass);
     rSerializer.load("mClusterId",mClusterId);
     rSerializer.load("mBoundDeltaDispSq",mBoundDeltaDispSq); 

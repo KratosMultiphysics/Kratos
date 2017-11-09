@@ -43,6 +43,8 @@ def AssembleTestSuites():
     smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithMVQNRecursive'))
     smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_aitken_accelerator_constant_forces'))
     smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_aitken_accelerator_variable_stiffness'))
+    smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_mvqn_recursive_accelerator_constant_forces'))
+    smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_mvqn_recursive_accelerator_variable_stiffness'))
     smallSuite.addTest(NonConformantOneSideMapTest('test2D_1'))
     smallSuite.addTest(NonConformantOneSideMapTest('test2D_2'))
     smallSuite.addTest(NonConformantOneSideMapTest('test3D_1'))

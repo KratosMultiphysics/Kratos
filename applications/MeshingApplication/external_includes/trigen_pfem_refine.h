@@ -31,6 +31,7 @@
 #include "meshing_application.h"
 #include "processes/node_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
+#include "includes/deprecated_variables.h"
 
 
 

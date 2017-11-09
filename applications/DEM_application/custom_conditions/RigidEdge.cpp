@@ -33,8 +33,8 @@ RigidEdge3D::RigidEdge3D( IndexType NewId, GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         Condition::Pointer Master,
         Condition::Pointer Slave,
-        Point<3>& MasterContactLocalPoint,
-        Point<3>& SlaveContactLocalPoint,
+        Point& MasterContactLocalPoint,
+        Point& SlaveContactLocalPoint,
         int SlaveIntegrationPointIndex
                                             )
     : DEMWall( NewId, pGeometry, pProperties )

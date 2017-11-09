@@ -32,7 +32,7 @@
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 
 /* Utilities */
-#include "custom_utilities/contact_utilities.h"
+#include "utilities/mortar_utilities.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos 
@@ -40,7 +40,7 @@ namespace Kratos
     namespace Testing 
     {
 
-        typedef Point<3>                                             PointType;
+        typedef Point                                             PointType;
         typedef Node<3>                                               NodeType;
         typedef Geometry<NodeType>                            GeometryNodeType;
         typedef Geometry<PointType>                          GeometryPointType;
@@ -561,7 +561,7 @@ namespace Kratos
             const array_1d<double, 3> slave_tangent_xi  = (triangle_0[1].Coordinates() - triangle_0[0].Coordinates())/norm_2(triangle_0[1].Coordinates() - triangle_0[0].Coordinates());
             array_1d<double, 3> aux_coords;
             triangle_0.PointLocalCoordinates(aux_coords, triangle_0.Center());
-            const array_1d<double, 3> normal = triangle_0.Normal(aux_coords);
+            const array_1d<double, 3> normal = triangle_0.UnitNormal(aux_coords);
             array_1d<double, 3> slave_tangent_eta;
             MathUtils<double>::CrossProduct(slave_tangent_eta, normal, slave_tangent_xi);
             
@@ -580,8 +580,8 @@ namespace Kratos
             // Before clipping we rotate to a XY plane
             for (unsigned int i_node = 0; i_node < 3; i_node++)
             {
-                ContactUtilities::RotatePoint( aux_geometry[i_node], center, slave_tangent_xi, slave_tangent_eta, false);
-                ContactUtilities::RotatePoint( aux_geometry[i_node], center, slave_tangent_xi, slave_tangent_eta, true);
+                MortarUtilities::RotatePoint( aux_geometry[i_node], center, slave_tangent_xi, slave_tangent_eta, false);
+                MortarUtilities::RotatePoint( aux_geometry[i_node], center, slave_tangent_xi, slave_tangent_eta, true);
             }
             
             const double tolerance = 1.0e-6;

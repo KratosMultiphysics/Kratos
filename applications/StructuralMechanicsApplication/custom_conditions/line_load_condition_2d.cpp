@@ -87,9 +87,10 @@ namespace Kratos
         
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int block_size = this->GetBlockSize();
 
         // Resizing as needed the LHS
-        const unsigned int mat_size = number_of_nodes * dimension;
+        unsigned int mat_size = number_of_nodes * block_size;
 
         if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
         {
@@ -165,7 +166,22 @@ namespace Kratos
 
             const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j); 
             
-            const array_1d<double, 3> normal = GetGeometry().Normal( integration_points[point_number] );
+            array_1d<double, 3> normal;
+            if(GetGeometry().WorkingSpaceDimension() == 2 )
+            {
+                noalias(normal) = GetGeometry().UnitNormal( integration_points[point_number] );
+            }
+            else{
+                if(!Has(LOCAL_AXIS_2))
+                    KRATOS_ERROR << "the variable LOCAL_AXES_2 is needed to compute the normal";
+                const auto& v2 = GetValue(LOCAL_AXIS_2);
+                
+                array_1d<double,3> v1 = GetGeometry()[1].Coordinates() - GetGeometry()[0].Coordinates();
+                
+                MathUtils<double>::CrossProduct(normal,v1,v2 );
+                normal /= norm_2(normal);
+            }
+                
             
             // Calculating the pressure on the gauss point
             double gauss_pressure = 0.0;
@@ -200,13 +216,16 @@ namespace Kratos
             }
             for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
-                const unsigned int base = ii * dimension;
+                unsigned int base = ii * block_size;
+                
                 for(unsigned int k = 0; k < dimension; ++k)
                 {
                     rRightHandSideVector[base + k] += integration_weight * Ncontainer( point_number, ii ) * gauss_load[k];
                 }
             }
         }
+
+        //if (this->HasRotDof()) this->CalculateAndAddWorkEquivalentNodalForcesLineLoad(gauss_load,rRightHandSideVector);
 
         KRATOS_CATCH( "" )
     }
@@ -266,11 +285,13 @@ namespace Kratos
         )
     {
         const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dimension = 2;
+        const unsigned int block_size = this->GetBlockSize();
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            const int index = dimension * i;
+            unsigned int index = block_size * i;
+            
+
             const double coeff = Pressure * N[i] * IntegrationWeight;
             
             rRightHandSideVector[index   ]  -= coeff * Normal[0];

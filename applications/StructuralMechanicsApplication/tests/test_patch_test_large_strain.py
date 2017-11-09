@@ -14,7 +14,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)        
         
-    def _apply_material_properties(self,mp,dim):
+    def _apply_material_properties(self, mp, dim, small_strain = True):
         #define properties
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,210e9)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
@@ -24,9 +24,15 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
         
         if(dim == 2):
-            cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
+            if (small_strain == True):
+                cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
+            else:
+                cl = StructuralMechanicsApplication.HyperElasticPlaneStrain2DLaw()
         else:
-            cl = StructuralMechanicsApplication.LinearElastic3DLaw()
+            if (small_strain == True):
+                cl = StructuralMechanicsApplication.LinearElastic3DLaw()
+            else:
+                cl = StructuralMechanicsApplication.HyperElastic3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
 
     def _set_buffer(self,mp):
@@ -70,9 +76,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             #define the applied motion - the idea is that the displacement is defined as u = A*xnode + b
             #so that the displcement is linear and the exact F = I + A
             A = KratosMultiphysics.Matrix(3,3)
-            A[0,0] = 0.1;     A[0,1] = 0.2;    A[0,2] = 0.0
-            A[1,0] = 0.05;    A[1,1] = 0.07;   A[1,2] = 0.0
-            A[2,1] = 0.0;     A[2,1] = 0.0;    A[2,2] = 0.0
+            A[0,0] =   0.10;  A[0,1] = 0.12; A[0,2] = 0.0
+            A[1,0] = - 0.05;  A[1,1] = 0.07; A[1,2] = 0.0
+            A[2,1] =   0.00;  A[2,1] = 0.0;  A[2,2] = 0.0
                     
             b = KratosMultiphysics.Vector(3)
             b[0] =  0.05
@@ -83,9 +89,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             #define the applied motion - the idea is that the displacement is defined as u = A*xnode + b
             #so that the displcement is linear and the exact F = I + A
             A = KratosMultiphysics.Matrix(3,3)
-            A[0,0] = 0.1;     A[0,1] = 0.2;    A[0,2] = 0.0
-            A[1,0] = 0.05;    A[1,1] = 0.07;   A[1,2] = 0.1
-            A[2,1] = -0.02;   A[2,1] = 0.0;    A[2,2] = -0.3
+            A[0,0] =   0.10; A[0,1] = 0.12; A[0,2] = 0.0
+            A[1,0] = - 0.05; A[1,1] = 0.07; A[1,2] = 0.1
+            A[2,1] = - 0.02; A[2,1] = 0.0;  A[2,2] = -0.3
                     
             b = KratosMultiphysics.Vector(3)
             b[0] =  0.05
@@ -121,6 +127,40 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         strategy.Check()
         strategy.Solve()
         
+    def _create_strategy(self, mp):
+        #define a minimal newton raphson solver
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
+        convergence_criterion.SetEchoLevel(0)
+        
+        #max_iters = 1
+        max_iters = 20
+        compute_reactions = True
+        reform_step_dofs = True
+        move_mesh_flag = True
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
+                                                                        scheme, 
+                                                                        linear_solver, 
+                                                                        convergence_criterion, 
+                                                                        builder_and_solver, 
+                                                                        max_iters, 
+                                                                        compute_reactions, 
+                                                                        reform_step_dofs, 
+                                                                        move_mesh_flag)
+        strategy.SetEchoLevel(0)
+        
+        return strategy
+        
+    def _solve_with_strategy(self, strategy, lhs, step):        
+        strategy.Check()
+        strategy.Initialize()
+        strategy.InitializeSolutionStep()
+        strategy.Predict()
+        strategy.SolveSolutionStep()
+        lhs = strategy.GetSystemMatrix()
+        strategy.FinalizeSolutionStep()
     
     def _check_results(self,mp,A,b):
         
@@ -218,6 +258,136 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             for stress in out:
                 for i in range(len(reference_stress)):
                     self.assertTrue((abs((reference_stress[i] - stress[i])/stress[i]) < 1.0e-4))
+        
+    def test_compare_TL_UL_2D_triangle(self):
+        dim = 2
+        
+        bc_nodes = [1, 2]
+        load_nodes = [3, 4]
+                
+        tl_mp = KratosMultiphysics.ModelPart("tl_solid_part")
+        self._add_variables(tl_mp)
+        self._apply_material_properties(tl_mp, dim, False)
+        
+        # Create nodes
+        tl_mp.CreateNewNode(1, 0.0, 0.0, 0.0)
+        tl_mp.CreateNewNode(2, 1.0, 0.0, 0.0)
+        tl_mp.CreateNewNode(3, 1.0, 1.0, 0.0)
+        tl_mp.CreateNewNode(4, 0.0, 1.0, 0.0)
+        
+        for node in tl_mp.Nodes:
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+            
+        # Create a submodelpart for boundary conditions
+        tl_bcs = tl_mp.CreateSubModelPart("BoundaryCondtions")
+        tl_bcs.AddNodes(bc_nodes)
+        for node in tl_bcs.Nodes:
+            node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0.0)
+            node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0.0)
+        
+        # Create Element and condition
+        tl_elem = tl_mp.CreateNewElement("TotalLagrangianElement2D4N", 1, [1,2,3,4], tl_mp.GetProperties()[1])
+        tl_load = tl_mp.CreateSubModelPart("LoadCondtions")
+        tl_load.AddNodes(load_nodes)
+        tl_cond = tl_mp.CreateNewCondition("LineLoadCondition2D2N", 1, load_nodes, tl_mp.GetProperties()[1])
+        
+        self._set_buffer(tl_mp)
+        tl_lhs = KratosMultiphysics.CompressedMatrix()
+        
+        ul_mp = KratosMultiphysics.ModelPart("ul_solid_part")
+        self._add_variables(ul_mp)
+        self._apply_material_properties(ul_mp, dim, False)
+        
+        # Create nodes
+        ul_mp.CreateNewNode(1, 0.0, 0.0, 0.0)
+        ul_mp.CreateNewNode(2, 1.0, 0.0, 0.0)
+        ul_mp.CreateNewNode(3, 1.0, 1.0, 0.0)
+        ul_mp.CreateNewNode(4, 0.0, 1.0, 0.0)
+        
+        for node in ul_mp.Nodes:
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+            
+        # Create a submodelpart for boundary conditions
+        ul_bcs = ul_mp.CreateSubModelPart("BoundaryCondtions")
+        ul_bcs.AddNodes(bc_nodes)
+        for node in ul_bcs.Nodes:
+            node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0.0)
+            node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0.0)
+        
+        # Create Element
+        ul_elem = ul_mp.CreateNewElement("UpdatedLagrangianElement2D4N", 1, [1,2,3,4], ul_mp.GetProperties()[1])
+        ul_load = ul_mp.CreateSubModelPart("LoadCondtions")
+        ul_load.AddNodes(load_nodes)
+        ul_cond = ul_mp.CreateNewCondition("LineLoadCondition2D2N", 1, load_nodes, tl_mp.GetProperties()[1])
+        
+        self._set_buffer(ul_mp)
+        ul_lhs = KratosMultiphysics.CompressedMatrix()
+        
+        # Now we solve
+        load = KratosMultiphysics.Vector(3)
+        load[0] = 0.0
+        load[1] = 0.0
+        load[2] = 0.0
+        
+        delta_time = ul_mp.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        time = ul_mp.ProcessInfo[KratosMultiphysics.TIME]
+        
+        tl_strategy = self._create_strategy(tl_mp)
+        ul_strategy = self._create_strategy(ul_mp)
+        
+        for iter in range(1, 4):
+                        
+            time += iter * delta_time
+            tl_mp.CloneTimeStep(time)
+            ul_mp.CloneTimeStep(time)
+            
+            #load[1] = iter * 1.0e10
+            #tl_cond.SetValue(StructuralMechanicsApplication.LINE_LOAD, load)
+            #ul_cond.SetValue(StructuralMechanicsApplication.LINE_LOAD, load)
+            
+            for node in tl_load.Nodes:
+                node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, iter * 5.0e-1)
+            for node in ul_load.Nodes:
+                node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, iter * 5.0e-1)
+            #for node in tl_load.Nodes:
+                #node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+                #node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, iter * 5.0e-1)
+            #for node in ul_load.Nodes:
+                #node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+                #node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, iter * 5.0e-1)
+                
+            self._solve_with_strategy(tl_strategy, tl_lhs, iter)
+            self._solve_with_strategy(ul_strategy, ul_lhs, iter)
+            
+            # Check displacement
+            for i in range(2, 4):
+                tl_dx = tl_mp.Nodes[i].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                tl_dy = tl_mp.Nodes[i].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+                ul_dx = ul_mp.Nodes[i].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                ul_dy = ul_mp.Nodes[i].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+                
+                if (ul_dx > 0.0):
+                    self.assertLess((tl_dx - ul_dx) / ul_dx, 1.0e-3)
+                if (ul_dy > 0.0):
+                    self.assertLess((tl_dy - ul_dy) / ul_dy, 1.0e-3)
+            
+            # Compare matrices
+            for i in range(ul_lhs.Size1()):
+                for j in range(ul_lhs.Size2()):
+                    self.assertLess((ul_lhs[i, j] - tl_lhs[i, j]) / tl_lhs[i, j], 1.0e-3)
+        
+        #self.__post_process(tl_mp)
+        #self.__post_process(ul_mp)
         
     def test_TL_2D_triangle(self):
         dim = 2
@@ -382,7 +552,6 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._set_buffer(mp)
         self._apply_BCs(bcs,A,b)
         self._solve(mp)
-        self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
         
@@ -424,7 +593,6 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         
         self._set_buffer(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
@@ -478,7 +646,6 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         
         self._set_buffer(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)

@@ -22,42 +22,6 @@
 #include "includes/c2c_variables.h"
 #include "includes/kernel.h"
 #include "includes/node.h"
-// #include "includes/element.h"
-// #include "includes/condition.h"
-// #include "includes/constitutive_law.h"
-// #include "includes/geometrical_object.h"
-
-// #include "geometries/line_2d.h"
-// #include "geometries/line_2d_2.h"
-// #include "geometries/line_2d_3.h"
-// #include "geometries/line_3d_2.h"
-// #include "geometries/line_3d_3.h"
-// #include "geometries/point.h"
-// #include "geometries/point_2d.h"
-// #include "geometries/point_3d.h"
-// #include "geometries/sphere_3d_1.h"
-// #include "geometries/triangle_2d_3.h"
-// #include "geometries/triangle_2d_6.h"
-// #include "geometries/triangle_3d_3.h"
-// #include "geometries/triangle_3d_6.h"
-// #include "geometries/quadrilateral_2d_4.h"
-// #include "geometries/quadrilateral_2d_8.h"
-// #include "geometries/quadrilateral_2d_9.h"
-// #include "geometries/quadrilateral_3d_4.h"
-// #include "geometries/quadrilateral_3d_8.h"
-// #include "geometries/quadrilateral_3d_9.h"
-// #include "geometries/tetrahedra_3d_4.h"
-// #include "geometries/tetrahedra_3d_10.h"
-// #include "geometries/prism_3d_6.h"
-// #include "geometries/prism_3d_15.h"
-// #include "geometries/hexahedra_3d_8.h"
-// #include "geometries/hexahedra_3d_20.h"
-// #include "geometries/hexahedra_3d_27.h"
-
-// #include "python/add_c2c_variables_to_python.h"
-
-// #include "includes/convection_diffusion_settings.h"
-// #include "includes/radiation_settings.h"
 
 #include "includes/kratos_flags.h"
 
@@ -110,7 +74,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double, NAGATIVE_DISTANCE)
     KRATOS_CREATE_VARIABLE(bool, IS_ESCAPED)
     KRATOS_CREATE_VARIABLE(int, IS_SOLIDIFIED)
-    Kratos::Variable<double> SOLIDFRACTION( "SOLID_FRACTION" );
+    KRATOS_CREATE_VARIABLE(double, SOLIDFRACTION);
 	KRATOS_CREATE_VARIABLE(double, SOLIDFRACTION_RATE)
     Kratos::Variable<double> SOLIDIF_TIME( "SOLIDIF TIME" );
     Kratos::Variable<double> SOLIDIF_MODULUS( "SOLIDIF MODULUS" );
@@ -132,8 +96,6 @@ namespace Kratos
 	Kratos::Variable<double>  FLOW_LENGTH2("FLOW LENGTH ESTIMATION 2" );
 	Kratos::Variable<double> COOLING_RATE("COOLING RATE");
 	Kratos::Variable<double> LIQUID_TO_SOLID_TIME("TIME TO COMPLETE SOLIDIF.");
-	//KRATOS_CREATE_VARIABLE(double, SOLID_FRACTION)
-	//KRATOS_CREATE_VARIABLE(double, SOLID_FRACTION_RATE)
 	KRATOS_CREATE_VARIABLE( double, TIME_CRT )
 	KRATOS_CREATE_VARIABLE(double, SINKMARK)
 	KRATOS_CREATE_VARIABLE(double, COLD_SHUTS)
