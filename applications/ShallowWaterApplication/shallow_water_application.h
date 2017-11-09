@@ -34,7 +34,6 @@
 #include "custom_elements/conserved_var_mixed_pfem2_element.hpp"
 #include "custom_elements/euler_prim_var_element.hpp"
 #include "custom_elements/euler_cons_var_element.hpp"
-#include "custom_conditions/rain_condition.hpp"
 #include "custom_conditions/nothing_condition.hpp"
 
 
@@ -204,10 +203,7 @@ namespace Kratos
         const EulerPrimVarElement<4> mEulerPrimVarElement2D4N;
         const EulerConsVarElement<3> mEulerConsVarElement2D3N;
         const EulerConsVarElement<4> mEulerConsVarElement2D4N;
-        // Conditions
-        const RainCondition<3> mRainCondition2D3N;
-        const RainCondition<4> mRainCondition2D4N;
-        //
+        // Condition
         const NothingCondition<2> mNothingCondition2D2N;
 
 
