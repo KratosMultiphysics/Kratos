@@ -56,25 +56,25 @@ namespace Kratos
 
          //elasticity model
          typedef BorjaModel                                     ElasticityModelType;
-         typedef typename ElasticityModelType::Pointer       ElasticityModelPointer;
+         typedef ElasticityModelType::Pointer                ElasticityModelPointer;
 
          //yield surface
          typedef CamClayHardeningRule                             HardeningRuleType;
          typedef ModifiedCamClayYieldSurface<HardeningRuleType>    YieldSurfaceType;
-         typedef typename YieldSurfaceType::Pointer             YieldSurfacePointer;
+         typedef YieldSurfaceType::Pointer                      YieldSurfacePointer;
 
          //base type
          typedef NonAssociativePlasticityModel<ElasticityModelType,YieldSurfaceType>  BaseType;
 
          //common types
-         typedef typename BaseType::Pointer                         BaseTypePointer;
-         typedef typename BaseType::SizeType                               SizeType;
-         typedef typename BaseType::VoigtIndexType                   VoigtIndexType;
-         typedef typename BaseType::MatrixType                           MatrixType;
-         typedef typename BaseType::ModelDataType                     ModelDataType;
-         typedef typename BaseType::MaterialDataType               MaterialDataType;
-         typedef typename BaseType::PlasticDataType                 PlasticDataType;
-         typedef typename BaseType::InternalVariablesType     InternalVariablesType;
+         typedef BaseType::Pointer                         BaseTypePointer;
+         typedef BaseType::SizeType                               SizeType;
+         typedef BaseType::VoigtIndexType                   VoigtIndexType;
+         typedef BaseType::MatrixType                           MatrixType;
+         typedef BaseType::ModelDataType                     ModelDataType;
+         typedef BaseType::MaterialDataType               MaterialDataType;
+         typedef BaseType::PlasticDataType                 PlasticDataType;
+         typedef BaseType::InternalVariablesType     InternalVariablesType;
 
 
          /// Pointer definition of CamClayModel
