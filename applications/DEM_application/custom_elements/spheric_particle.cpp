@@ -872,7 +872,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
             //WEAR
             if (wall->GetProperties()[COMPUTE_WEAR]) {
-                const double area              = KRATOS_M_PI * GetInteractionRadius() * GetInteractionRadius();
+                const double area              = Globals::Pi * GetInteractionRadius() * GetInteractionRadius();
                 const double density           = GetDensity();
                 const double inverse_of_volume = 1.0 / (4.0 * 0.333333333333333 * area * GetInteractionRadius());
                 ComputeWear(LocalCoordSystem, vel, DeltVel, data_buffer.mDt, density, sliding, inverse_of_volume, LocalElasticContactForce[2], wall);
@@ -1457,7 +1457,7 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
 
             mDiscontinuumConstitutiveLaw->GetContactStiffness(this, this, ini_delta, kn, kt);
 
-            //double K = KRATOS_M_PI * GetYoung() * GetRadius(); //M. Error, should be the same that the local definition.
+            //double K = Globals::Pi * GetYoung() * GetRadius(); //M. Error, should be the same that the local definition.
 
             Output = 0.34 * sqrt(eq_mass / kn);
 
@@ -1664,7 +1664,7 @@ void SphericParticle::ApplyGlobalDampingToContactForces() {
 int    SphericParticle::GetClusterId()                                                           { return mClusterId;      }
 void   SphericParticle::SetClusterId(int givenId)                                                { mClusterId = givenId;   }
 double SphericParticle::GetRadius()                                                              { return mRadius;         }
-double SphericParticle::CalculateVolume()                                                        { return 4.0 * KRATOS_M_PI_3 * mRadius * mRadius * mRadius;     }
+double SphericParticle::CalculateVolume()                                                        { return 4.0 * Globals::Pi / 3.0 * mRadius * mRadius * mRadius;     }
 void   SphericParticle::SetRadius(double radius)                                                 { mRadius = radius;       }
 void   SphericParticle::SetRadius()                                                              { mRadius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);       }
 double SphericParticle::GetInteractionRadius(const int radius_index)                             { return mRadius;         }
