@@ -106,10 +106,21 @@ namespace Kratos
 		bounded_matrix<double,msLocalSize,msElementSize> Mode_TransformationMatrix();
 		bounded_matrix<double,msLocalSize,msLocalSize> Delta_StiffnessMatrix();
 		bounded_matrix<double,msElementSize,msElementSize> StiffnessMatrix();
-		bounded_matrix<double,msDimension,msDimension> RotationMatrix(bounded_vector<double,msDimension> Psi_k);
-		bounded_matrix<double,msDimension,msDimension> RotationMatrix0();
+		bounded_matrix<double,msDimension,msDimension> RotationMatrix(
+			bounded_vector<double,msDimension> Psi_k);
+		bounded_matrix<double,msDimension,msDimension> RotationMatrixR();
+		bounded_matrix<double,msDimension,msDimension> RotationMatrix0(
+			bounded_vector<double,msDimension> G_3_0,
+			bounded_vector<double,msDimension> G_1_0);
+		bounded_vector<double,msLocalSize> UpdateIncrementDeformation();
+		bounded_vector<double,msDimension> UpdateIncrementRotation_i(
+			bounded_vector<double,msDimension> Psi_i,
+			bounded_vector<double,msDimension> G_1_0,
+			bounded_vector<double,msDimension> G_2_0,
+			bounded_vector<double,msDimension> G_3_0);
 		void AssembleTransformationMatrix(Matrix RotationMatrix, bounded_matrix<double,
 			msElementSize,msElementSize>& TransformationMatrix);
+		bounded_vector<double,msDimension> CurrentBaseVector3();	
 		double CalculateReferenceLength();
 
 	private:

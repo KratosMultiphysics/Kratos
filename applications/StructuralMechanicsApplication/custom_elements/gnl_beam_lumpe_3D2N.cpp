@@ -19,7 +19,8 @@
 #include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
 
-
+//TODO::    - find G1 for R_0(psi) --> RotationMatrix0()
+//          - do eigenwert analysis with eigenwert +1 --> UpdateIncrementRotation_i()
 
 namespace Kratos
 {
@@ -186,13 +187,19 @@ namespace Kratos
             this->CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
             this->CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
 
-            bounded_matrix<double,msDimension,msDimension> RotationMatrix0 = this->RotationMatrix0();
-            KRATOS_WATCH(RotationMatrix0);
 
-            bounded_vector<double,3> psi_k = ZeroVector(3);
-            psi_k[1] = -0.5235987756;
-            bounded_matrix<double,msDimension,msDimension> RR = this->RotationMatrix(psi_k);
-            KRATOS_WATCH(RR);            
+            // testing !!
+            bounded_vector<double,3> psi_1 = ZeroVector(3);
+            bounded_vector<double,3> psi_2 = ZeroVector(3);
+            psi_1[0]=1;
+            psi_1[1]=2;
+            psi_1[2]=3;
+            psi_2[0]=5;
+            psi_2[1]=7;
+            psi_2[2]=8;
+ 
+            double innerprod = inner_prod(psi_1,psi_2);
+            KRATOS_WATCH(innerprod);
 
         }
 
@@ -220,7 +227,7 @@ namespace Kratos
             rLeftHandSideMatrix = ZeroMatrix(msElementSize,msElementSize);
             rLeftHandSideMatrix = this->StiffnessMatrix();
 
-            bounded_matrix<double,msDimension,msDimension> RotationMatrix = this->RotationMatrix0();
+            bounded_matrix<double,msDimension,msDimension> RotationMatrix = this->RotationMatrixR();
             bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = ZeroMatrix(msElementSize,msElementSize);
             this->AssembleTransformationMatrix(RotationMatrix,TransformationMatrix);
 
@@ -347,7 +354,65 @@ namespace Kratos
     }
 
     bounded_matrix<double,GnlBeamLumpe3D2N::msDimension,GnlBeamLumpe3D2N::msDimension>
-    GnlBeamLumpe3D2N::RotationMatrix0()
+    GnlBeamLumpe3D2N::RotationMatrix0(
+        bounded_vector<double,msDimension> G_3_0,
+        bounded_vector<double,msDimension> G_1_0)
+    {
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
+        /////// Calculate euler angles (see Lumpe beam p.19 ff.)
+        // Get current nodal basevector G3
+        bounded_vector<double,msDimension> G_3_i_k = this->CurrentBaseVector3();
+        bounded_vector<double,msDimension> G_1_head = MathUtils<double>::CrossProduct(G_3_0,G_3_i_k);
+
+        double VectorNorm = MathUtils<double>::Norm(G_1_head);
+        if (VectorNorm > numerical_limit) G_1_head /= VectorNorm;
+
+        //get euler angles
+        const double cos_psi_P = inner_prod(G_1_head,G_1_0);
+        const double sin_psi_P = sqrt(1.00 - (cos_psi_P*cos_psi_P));
+
+        const double cos_psi_N = inner_prod(G_3_i_k,G_3_0);
+        const double sin_psi_N = sqrt(1.00 - (cos_psi_N*cos_psi_N));     
+        
+        
+        ///// get G1 or G2 ???? HOW ???
+        const double cos_psi_E = 0.00; 
+        const double sin_psi_E = sqrt(1.00 - (cos_psi_E*cos_psi_E));  
+
+
+        //calculate R0
+        bounded_matrix<double,msDimension,msDimension> R_psi_p = ZeroMatrix(msDimension,msDimension);
+        bounded_matrix<double,msDimension,msDimension> R_psi_n = ZeroMatrix(msDimension,msDimension);
+        bounded_matrix<double,msDimension,msDimension> R_psi_e = ZeroMatrix(msDimension,msDimension);
+        bounded_matrix<double,msDimension,msDimension> R_0 = ZeroMatrix(msDimension,msDimension);
+
+        R_psi_p(0,0) = cos_psi_P;
+        R_psi_p(0,1) = sin_psi_P;
+        R_psi_p(1,0) = -sin_psi_P;
+        R_psi_p(1,1) = cos_psi_P;
+        R_psi_p(2,2) = 1.00;
+
+        R_psi_n(0,0) = 1.00;
+        R_psi_n(1,1) = cos_psi_N;
+        R_psi_n(1,2) = sin_psi_N;
+        R_psi_n(2,1) = -sin_psi_N;
+        R_psi_n(2,2) = cos_psi_N;
+
+        R_psi_e(0,0) = cos_psi_E;
+        R_psi_e(0,1) = sin_psi_E;
+        R_psi_e(1,0) = -sin_psi_E;
+        R_psi_e(1,1) = cos_psi_E;
+        R_psi_e(2,2) = 1.00;     
+
+        R_0 = prod(R_psi_n,R_psi_p);
+        R_0 = prod(R_psi_n,R_psi_e);
+
+        return R_0;
+
+    }
+    //RotationMatrixR :: G_0 = R_R * G_R
+    bounded_matrix<double,GnlBeamLumpe3D2N::msDimension,GnlBeamLumpe3D2N::msDimension>
+    GnlBeamLumpe3D2N::RotationMatrixR()
     {
         const double numerical_limit = std::numeric_limits<double>::epsilon();
         bounded_matrix<double,msDimension,msDimension> RotationMatrix =
@@ -406,8 +471,8 @@ namespace Kratos
     }
 
     void GnlBeamLumpe3D2N::AssembleTransformationMatrix(Matrix RotationMatrix, bounded_matrix<double,
-        GnlBeamLumpe3D2N::msElementSize,GnlBeamLumpe3D2N::msElementSize>& TransformationMatrix)
-        {
+    GnlBeamLumpe3D2N::msElementSize,GnlBeamLumpe3D2N::msElementSize>&TransformationMatrix)
+    {
         for (unsigned int kk = 0; kk < msElementSize; kk += msDimension)
         {
             for (int i = 0; i<msDimension; ++i)
@@ -418,8 +483,114 @@ namespace Kratos
                 }
             }
         }
+    }
+
+    bounded_vector<double,GnlBeamLumpe3D2N::msLocalSize> 
+    GnlBeamLumpe3D2N::UpdateIncrementDeformation()
+    {
+        // Get v_0
+        Vector Nodal_Deformation = ZeroVector(msElementSize);
+        this->GetValuesVector(Nodal_Deformation);
+
+        bounded_matrix<double,msDimension,msDimension> R_R = this->RotationMatrixR();
+        bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix_R = ZeroMatrix(msElementSize,msElementSize);
+        this->AssembleTransformationMatrix(R_R,TransformationMatrix_R);    
+        Vector Nodal_Deformation_0 = prod(TransformationMatrix_R,Nodal_Deformation); /// ????
+
+
+        // Get G_0
+        bounded_vector<double,msDimension> G_1_0 = ZeroVector(msDimension);
+        bounded_vector<double,msDimension> G_2_0 = ZeroVector(msDimension);
+        bounded_vector<double,msDimension> G_3_0 = ZeroVector(msDimension);
+
+        for (int i = 0;i < msDimension;++i)
+        {
+            G_1_0[i] = R_R(0, i);
+            G_2_0[i] = R_R(1, i);
+            G_3_0[i] = R_R(2, i);
         }
 
+
+        // UpdateIncrementDef
+        bounded_vector<double,msLocalSize> IncrementDeformation = ZeroVector(msLocalSize);
+        // dv = [d_phi_1_a,d_phi_2_a,d_u_3_b,d_phi_1_b,d_phi_2_b,d_phi_3_b]
+        bounded_vector<double,msDimension> Phi_i = ZeroVector(msDimension);
+        bounded_vector<double,msDimension> d_Phi_i = ZeroVector(msDimension);
+        IncrementDeformation[2] = this->GetGeometry().Length() - this->CalculateReferenceLength();
+
+        for (int i = 0; i < msNumberOfNodes; ++i)
+        {
+            int index = i*msLocalSize;
+            
+            for (int j = 0;j< msDimension;++j)
+            {
+                Phi_i[j] = Nodal_Deformation_0[index+msDimension+j];
+            }
+            d_Phi_i = this->UpdateIncrementRotation_i(Phi_i,G_1_0,G_2_0,G_3_0);
+
+            if (i == 0) for (int k=0;k<2;++k) IncrementDeformation[k] = d_Phi_i[k];
+            if (i == 1) for (int k=0;k<3;++k) IncrementDeformation[3+k] = d_Phi_i[k];
+        }
+
+        return IncrementDeformation;
+    }
+
+
+    bounded_vector<double,GnlBeamLumpe3D2N::msDimension>
+    GnlBeamLumpe3D2N::UpdateIncrementRotation_i(bounded_vector<double,
+        GnlBeamLumpe3D2N::msDimension> Psi_i,
+        bounded_vector<double,msDimension> G_1_0,
+        bounded_vector<double,msDimension> G_2_0,
+        bounded_vector<double,msDimension> G_3_0)
+    {
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
+        bounded_matrix<double,msDimension,msDimension> R_i = this->RotationMatrix(Psi_i);
+        bounded_matrix<double,msDimension,msDimension> R_0 = this->RotationMatrix0(G_3_0,G_1_0);
+
+        bounded_matrix<double,msDimension,msDimension> R_d = prod(R_i,Matrix(trans(R_0)));
+        
+        
+        ///EIGENWERT ANALYIS OF R_Dwith eigenwert = 1.00
+        bounded_vector<double,msDimension> Phi_d = ZeroVector(msDimension);
+        const double VectorNorm = MathUtils<double>::Norm(Phi_d);
+        if (VectorNorm > numerical_limit) Phi_d /= VectorNorm;
+        
+        //NORM OF PHI_D
+        double norm_phi = 0.00;
+        for (int i=0;i<msDimension;++i) norm_phi += R_i(i,i);
+        norm_phi = (0.50 * norm_phi) - 1.00;
+        norm_phi = std::acos(norm_phi);
+
+        Phi_d *= norm_phi;
+
+        return Phi_d;
+    }
+
+    bounded_vector<double,GnlBeamLumpe3D2N::msDimension> GnlBeamLumpe3D2N::CurrentBaseVector3()
+    {
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
+		array_1d<double, msDimension> DirectionVectorG3 = ZeroVector(msDimension);
+		array_1d<double, msLocalSize> CurrentCoordinates = ZeroVector(msLocalSize);
+
+		CurrentCoordinates[0] = this->GetGeometry()[0].Y();
+		CurrentCoordinates[1] = this->GetGeometry()[0].Z();
+		CurrentCoordinates[2] = this->GetGeometry()[0].X();
+		CurrentCoordinates[3] = this->GetGeometry()[1].Y();
+		CurrentCoordinates[4] = this->GetGeometry()[1].Z();
+        CurrentCoordinates[5] = this->GetGeometry()[1].X();
+
+
+        for (unsigned int i = 0; i < msDimension; ++i)
+		{
+			DirectionVectorG3[i] = (CurrentCoordinates[i + msDimension]
+				- CurrentCoordinates[i]);
+        }
+        
+        const double VectorNorm = MathUtils<double>::Norm(DirectionVectorG3);
+        if (VectorNorm > numerical_limit) DirectionVectorG3 /= VectorNorm;
+
+        return DirectionVectorG3;
+    }
 } // namespace Kratos.
 
 
