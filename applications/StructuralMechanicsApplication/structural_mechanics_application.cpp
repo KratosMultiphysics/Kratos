@@ -56,6 +56,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     // Adding the beam element
     mCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), false),
     mCrLinearBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
+    mGnlBeamLumpe3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     // Adding the shells elements
     mIsotropicShellElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), false ),
@@ -299,6 +300,7 @@ void KratosStructuralMechanicsApplication::Register()
     // Register the beam element
     KRATOS_REGISTER_ELEMENT( "CrBeamElement3D2N", mCrBeamElement3D2N)
     KRATOS_REGISTER_ELEMENT( "CrLinearBeamElement3D2N", mCrLinearBeamElement3D2N)
+    KRATOS_REGISTER_ELEMENT( "GnlBeamLumpe3D2N", mGnlBeamLumpe3D2N)
 
     //Register the shells elements
     KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N", mIsotropicShellElement3D3N )
