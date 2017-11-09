@@ -173,11 +173,11 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(DivideGeometry);
 
     // General type definitions
-    typedef Geometry < Node<3> >                                                  GeometryType;
-    typedef IndexedPoint                                                      IndexedPointType;
-    typedef typename IndexedPoint::Pointer                             IndexedPointPointerType;
-    typedef Geometry < IndexedPoint >                                 IndexedPointGeometryType;
-    typedef Geometry < IndexedPoint >::Pointer                 IndexedPointGeometryPointerType;
+    typedef Geometry < Node<3> >                                    GeometryType;
+    typedef IndexedPoint                                            IndexedPointType;
+    typedef IndexedPoint::Pointer                                   IndexedPointPointerType;
+    typedef Geometry < IndexedPoint >                               IndexedPointGeometryType;
+    typedef Geometry < IndexedPoint >::Pointer                      IndexedPointGeometryPointerType;
     typedef PointerVectorSet<IndexedPointType, IndexedObject>       IndexedPointsContainerType;
 
     bool mIsSplit;          // True if the element is split.
@@ -185,7 +185,7 @@ public:
     int mSplitEdgesNumber;  // Number of split edges.
     int mDivisionsNumber;   // Number of generated subdivisions.
 
-    IndexedPointsContainerType mAuxPointsContainer;                         // Indexed points container to store the original plus the intersection points.                              
+    IndexedPointsContainerType mAuxPointsContainer;                         // Indexed points container to store the original plus the intersection points.
     std::vector < IndexedPointGeometryPointerType > mPositiveSubdivisions;  // Array to store the generated positive subdivisions geometries.
     std::vector < IndexedPointGeometryPointerType > mNegativeSubdivisions;  // Array to store the generated negative subdivisions geometries.
     std::vector < IndexedPointGeometryPointerType > mPositiveInterfaces;    // Array to store the generated positive interfaces geometries.

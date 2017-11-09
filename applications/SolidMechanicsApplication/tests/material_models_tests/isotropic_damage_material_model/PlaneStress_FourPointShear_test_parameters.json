@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "PlaneStress_FourPointShear_test",
         "model_part_name" : "Structure",
-        "domain_size"     : 2,
+        "dimension"       : 2,
         "time_step"       : 2.0,
         "start_time"      : 0.0,
         "end_time"        : 200.0,
@@ -12,7 +12,7 @@
         "solver_type"                        : "solid_mechanics_static_solver",
         "echo_level"                         : 0,
         "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+	"scheme_type"                        : "Non-Linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "material_models_tests/isotropic_damage_material_model/PlaneStress_FourPointShear_test",
@@ -38,7 +38,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0]
@@ -49,7 +48,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [null,0.0,0.0]
@@ -62,7 +60,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignModulusAndDirectionToNodesProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
             "variable_name"   : "LINE_LOAD",
             "modulus"         : "15000.0*t",
@@ -75,7 +72,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignModulusAndDirectionToNodesProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto2",
             "variable_name"   : "LINE_LOAD",
             "modulus"         : "1500.0*t",

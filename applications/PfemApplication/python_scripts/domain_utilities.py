@@ -51,14 +51,13 @@ class DomainUtilities(object):
     #
     def SearchNodeNeighbours(self, model_part, echo_level):
 
-        mesh_id = 0
 
         # set search options:
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
 
         # define search utility
-        nodal_neighbour_search = KratosPfem.NodalNeighboursSearch(model_part, echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
+        nodal_neighbour_search = KratosPfem.NodalNeighboursSearch(model_part, echo_level, number_of_avg_elems, number_of_avg_nodes)
 
         # execute search:
         nodal_neighbour_search.Execute()
@@ -67,15 +66,13 @@ class DomainUtilities(object):
 
     #
     def SearchElementNeighbours(self, model_part, echo_level):
-
-        mesh_id = 0
         
-        domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         # set search options:
         number_of_avg_elems = 10
          
         # define search utility
-        elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(model_part, domain_size, echo_level, number_of_avg_elems, mesh_id)
+        elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(model_part, dimension, echo_level, number_of_avg_elems)
 
         # execute search:
         elemental_neighbour_search.Execute()
@@ -87,7 +84,6 @@ class DomainUtilities(object):
     #
     def BuildModelPartBoundary(self, model_part, echo_level):
 
-        mesh_id = 0
 
         print("::[Domain_Utilities]:: Build Mesh Boundary ")
         # set building options:
@@ -99,6 +95,9 @@ class DomainUtilities(object):
         # execute building:
         skin_build.Execute()
 
+        # search condition masters: (check)
+        # skin_build.SearchConditionMasters()
+        
         if( echo_level > 0 ):
             print("::[Domain_Utilities]:: Mesh Boundary Build executed ")
 

@@ -30,10 +30,8 @@ namespace Kratos
   {
 
     KRATOS_TRY
-
-    unsigned int& MeshId = rMeshingVariables.MeshId;
- 
-    this->StartEcho(rModelPart,"PFEM Remesh",MeshId);
+     
+    this->StartEcho(rModelPart,"PFEM Remesh");
     
     //*********************************************************************
 
@@ -103,7 +101,7 @@ namespace Kratos
       DeleteOutContainer(rMeshingVariables.OutMesh,out);
     
     
-    this->EndEcho(rModelPart,"PFEM Remesh",MeshId);
+    this->EndEcho(rModelPart,"PFEM Remesh");
 
     KRATOS_CATCH( "" )
 

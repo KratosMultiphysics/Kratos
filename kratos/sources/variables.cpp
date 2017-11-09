@@ -77,6 +77,7 @@ namespace Kratos
 
   //ints
   KRATOS_CREATE_VARIABLE( int,  DOMAIN_SIZE )
+  KRATOS_CREATE_VARIABLE( int,  SPACE_DIMENSION )
 
   //for General kratos application:
   KRATOS_CREATE_VARIABLE( int, LOAD_RESTART )
@@ -608,7 +609,8 @@ namespace Kratos
       //--------------- GENERAL VARIABLES FOR MULTIPLE APPLICATIONS -------------------//
 
       KRATOS_REGISTER_VARIABLE( DOMAIN_SIZE )
-
+      KRATOS_REGISTER_VARIABLE( SPACE_DIMENSION )
+	
       //STRATEGIES
       KRATOS_REGISTER_VARIABLE( LOAD_RESTART )
 

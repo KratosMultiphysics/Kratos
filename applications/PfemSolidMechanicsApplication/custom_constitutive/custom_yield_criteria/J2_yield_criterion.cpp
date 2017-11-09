@@ -15,6 +15,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "custom_utilities/stress_invariants_utilities.hpp"
 #include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
 
 #include "pfem_solid_mechanics_application_variables.h"
@@ -73,31 +74,18 @@ J2YieldCriterion::~J2YieldCriterion()
 
 double& J2YieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha)
 {
+   // es la J2 = sqrt( 1/2 s_ij s_ij) multiplicat per sqrt(3);
 
-   double YieldStress = this->GetHardeningLaw().GetProperties()[YIELD_STRESS];
- 
    rStateFunction = 0.0;
+   double YieldStress = this->GetHardeningLaw().GetProperties()[YIELD_STRESS];
 
-   double MeanStress = 0.0;
-  
-   for (unsigned int i = 0; i<3; ++i)
-       MeanStress += rStressVector(i);
+   double MeanStress, J2;
 
-   MeanStress /= 3.0;
+   StressInvariantsUtilities::CalculateStressInvariants( rStressVector, MeanStress, J2);
 
-   for (unsigned int i = 0; i<3; ++i)
-       rStateFunction += pow(rStressVector(i) - MeanStress, 2);
-
-   for (unsigned int i = 3; i<6; ++i)
-       rStateFunction += 2.0*pow(rStressVector(i), 2);
+   rStateFunction = sqrt(3.0) * J2 - 2.0 * YieldStress; 
 
 
-   rStateFunction = pow(3.0/2.0, 0.5)*pow( rStateFunction , 0.5);
-
-   // ASSUMING THAT YIELD STRESS IS EQUAL TO S_u
-
-   rStateFunction -= 2.0*YieldStress;;
-//   rStateFunction = -1.0;
    return rStateFunction; 
 }
 
@@ -109,34 +97,13 @@ double& J2YieldCriterion::CalculateYieldCondition(double& rStateFunction, const 
 void J2YieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rYieldFunctionD, const double& rAlpha)
 {
 
+     double MeanStress, J2;
+     Vector V1, V2; 
 
-     double MeanStress = 0.0;
- 
-     for (unsigned int i = 0; i<3; ++i)
-         MeanStress += rStressVector(i);
+     StressInvariantsUtilities::CalculateStressInvariants( rStressVector, MeanStress, J2);
+     StressInvariantsUtilities::CalculateDerivativeVectors( rStressVector, V1, V2);
 
-     MeanStress /= 3.0;
-
-     double denominador = 0.0;
-     Vector ShearVector = ZeroVector(6);
-
-     for (unsigned int i = 0; i<3; ++i)  {
-         ShearVector(i) = rStressVector(i) - MeanStress; 
-         denominador += pow( ShearVector(i), 2);
-     }
-
-    for (unsigned int i = 3; i<6; ++i) {
-         ShearVector(i) = 2.0*rStressVector(i);
-         denominador += 2.0*pow( ShearVector(i), 2);
-     }
-
-     denominador = pow(3.0/2.0, 0.5)*pow(denominador, 0.5);
-
-     rYieldFunctionD = ShearVector;
- 
-     rYieldFunctionD *= 3.0/2.0/denominador; 
-
-
+     rYieldFunctionD = sqrt(3.0)*V2;
 
 }
 void J2YieldCriterion::save( Serializer& rSerializer ) const

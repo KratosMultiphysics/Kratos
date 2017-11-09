@@ -339,7 +339,7 @@ int main() {
     
     double diameter = 2 * Radius;
     
-    double characteristic_size = 2 * std::pow(3 * total_volume / (4 * M_PI), 0.33333333333333333);
+    double characteristic_size = 2 * std::pow(3 * total_volume / (4 * Globals::Pi), 0.33333333333333333);
     
     std::cout << "\nThe diameter is: " << diameter << "\n\n";
     
