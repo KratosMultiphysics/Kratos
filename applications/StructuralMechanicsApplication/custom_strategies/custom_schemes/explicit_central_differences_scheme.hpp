@@ -658,14 +658,16 @@ virtual void Update(ModelPart& r_model_part,
     if(mRayleighDamping)
     {
       (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],rCurrentProcessInfo);
-
       AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], rCurrentProcessInfo);
 
     }
-
     //add explicit contribution of the Element Residual (RHS) to nodal Force Residual (nodal RHS)
     (rCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
-    (rCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
+    if (rCurrentElement->GetGeometry()[0].HasDofFor(ROTATION_X))
+    {
+      (rCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
+    }
+    
     KRATOS_CATCH( "" )
   }
 
@@ -839,8 +841,10 @@ virtual void Update(ModelPart& r_model_part,
     //add explicit contribution of the Condition Residual (RHS) to nodal Force Residual (nodal RHS)
 
     (rCurrentCondition) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+    if (rCurrentCondition->GetGeometry()[0].HasDofFor(ROTATION_X))
+    {
     (rCurrentCondition) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
-
+    }
     KRATOS_CATCH( "" )
   }
 

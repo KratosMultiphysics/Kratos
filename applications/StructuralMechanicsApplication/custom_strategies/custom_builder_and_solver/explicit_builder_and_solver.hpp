@@ -189,7 +189,7 @@ public:
 		 
                  (itElem)->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo); 
 
-
+                 const bool check_rot = itElem->GetGeometry()[0].HasDofFor(ROTATION_X);
                  const unsigned int dimension   = geometry.WorkingSpaceDimension();
                  const int MatSize = MassMatrix.size1();
 
@@ -209,13 +209,14 @@ public:
                         // claculate consistent mass matrix
                         // and condense it down to one diag entry
                         mass += MassMatrix(index,j);  
+                        if(check_rot)
+                        {
                         nodal_inertia[0] += MassMatrix(index+dimension,j);   
                         nodal_inertia[1] += MassMatrix(index+dimension+1,j);   
                         nodal_inertia[2] += MassMatrix(index+dimension+2,j); 
+                        }
                      }
-                     for (int j =0;j<3;++j) nodal_inertia[j] = std::abs(nodal_inertia[j]);
-                     KRATOS_WATCH(mass);
-                     KRATOS_WATCH(nodal_inertia);
+                     if (check_rot) for (int j =0;j<3;++j) nodal_inertia[j] = std::abs(nodal_inertia[j]);
 
                      geometry(i)->UnSetLock();
                  }
