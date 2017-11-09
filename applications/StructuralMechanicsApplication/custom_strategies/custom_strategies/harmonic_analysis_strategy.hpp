@@ -315,7 +315,7 @@ public:
         }
 
         // get the damping coefficients if they exist
-        for( const auto& property : r_model_part.PropertiesArray() )
+        for( auto& property : r_model_part.PropertiesArray() )
         {
             if( property->Has(SYSTEM_DAMPING_RATIO) )
             {
@@ -361,7 +361,7 @@ public:
                 for( auto& sub_model_part : r_model_part.SubModelParts() )
                 {
                     double damping_coefficient = 0.0;
-                    for( const auto& property : sub_model_part.PropertiesArray() )
+                    for( auto& property : sub_model_part.PropertiesArray() )
                     {
                         if( property->Has(SYSTEM_DAMPING_RATIO) )
                         {
@@ -387,9 +387,8 @@ public:
                     down += strain_energy;
                     up += damping_coefficient * strain_energy;
                 }
-                
-                KRATOS_ERROR_IF( down < std::numeric_limits<double>::epsilon() ) << 
-                    "No valid effective material damping ratio could be computed. Are all elements to be damped available in the submodelparts? Are the modal vectors available? " << std::endl;
+                if( down < std::numeric_limits<double>::epsilon() )
+                    KRATOS_ERROR << "No valid effective material damping ratio could be computed. Are all elements to be damped available in the submodelparts? Are the modal vectors available? " << std::endl;
                 
                 mMaterialDampingRatios(i) = up / down;
             }

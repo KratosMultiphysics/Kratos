@@ -155,19 +155,19 @@ public:
             {
                 if (mrModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents< Variable<double> >::Get(mVariableNames[i])) == false)
                 {
-                    KRATOS_ERROR << "variable is not found in nodal solution steps variable list: " << mVariableNames[i] << std::endl;
+                    KRATOS_THROW_ERROR(std::runtime_error, "variable is not found in nodal solution steps variable list: ", mVariableNames[i])
                 }
             }
             else if (KratosComponents< Variable<array_1d<double,3> > >::Has(mVariableNames[i]))
             {
                 if (mrModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents< Variable<array_1d<double,3> > >::Get(mVariableNames[i])) == false)
                 {
-                    KRATOS_ERROR << "variable is not found in nodal solution steps variable list: " << mVariableNames[i] << std::endl;
+                    KRATOS_THROW_ERROR(std::runtime_error,"variable is not found in nodal solution steps variable list: ", mVariableNames[i])
                 }
             }
             else
             {
-                KRATOS_ERROR << "variable type not supported: " << mVariableNames[i] << std::endl;
+                KRATOS_THROW_ERROR(std::invalid_argument, "variable type not supported: ", mVariableNames[i])
             }
         }
 
@@ -344,9 +344,11 @@ public:
             hsize_t dims[3];
             NodeIdDataset.getSpace().getSimpleExtentDims(dims);
             
-            KRATOS_ERROR_IF_NOT(mNumNodes == dims[0]) << "inconsistent dimension in file: " << mFilename << std::endl;
-            
-            KRATOS_ERROR_IF_NOT(mNumNodes == mrModelPart.Nodes().size()) << "detected change in number of nodes." << std::endl;
+            if (mNumNodes != dims[0])
+                KRATOS_THROW_ERROR(std::runtime_error, "inconsistent dimension in file: ", mFilename)
+
+            if (mNumNodes != mrModelPart.Nodes().size())
+                KRATOS_THROW_ERROR(std::runtime_error, "detected change in number of nodes.", "")
 
             std::vector<unsigned int> NodeIdBuffer(mrModelPart.Nodes().size());
             NodeIdDataset.read(NodeIdBuffer.data(), H5::PredType::NATIVE_UINT);
@@ -360,9 +362,13 @@ public:
                 itNode++;
             }
     
-            KRATOS_ERROR_IF_NOT(Delta == 0) << "detected mismatch of node ids in file: " << mFilename << std::endl;
+            if (Delta != 0)
+                KRATOS_ERROR_IF(Delta != 0) << "detected mismatch of node ids in file: " << mFilename << std::endl;
             
             // output of the nodal values
+            // std::stringstream nodal_value_stream;
+            // nodal_value_stream << "/NodalData/Values";
+            // std::string values_group_name = nodal_value_stream.str();
             std::string values_group_name = "/NodalData/Values";
             file.createGroup(values_group_name.c_str());
 
@@ -389,10 +395,11 @@ public:
                     std::vector<double> value_data_buffer(vector_size * mrModelPart.Nodes().size());
                     
                     unsigned int block_begin = 0;
-                    for( const auto& rNode : mrModelPart.Nodes() )
+                    for( auto it = std::begin(mrModelPart.Nodes()); it != std::end(mrModelPart.Nodes()); ++it )
                     {
-                        auto& rData = rNode.GetValue(rVariable);
-                        KRATOS_ERROR_IF_NOT(rData.size() == vector_size) << "value vector " << mNodalValueNames[i] << " on node " << rNode.Id() << " has an unexpected length" << std::endl;
+                        auto& rData = it->GetValue(rVariable);
+                        if( rData.size() != vector_size )
+                            KRATOS_ERROR << "value vector " << mNodalValueNames[i] << " on node " << it->Id() << " has an unexpected length" << std::endl;
 
                         for( std::size_t j = 0; j < vector_size; ++j)
                             value_data_buffer[block_begin + j] = rData[j];
@@ -419,10 +426,11 @@ public:
                     std::vector<double> value_data_buffer(size_1 * size_2 * mrModelPart.Nodes().size());
 
                     unsigned int block_begin = 0;
-                    for( const auto& rNode : mrModelPart.Nodes() )
+                    for( auto it = std::begin(mrModelPart.Nodes()); it != std::end(mrModelPart.Nodes()); ++it )
                     {
-                        auto& rData = rNode.GetValue(rVariable);
-                        KRATOS_ERROR_IF_NOT(rData.size1() == size_1 && rData.size2() == size_2) << "value matrix " << mNodalValueNames[i] << " on node " << rNode.Id() << " has an unexpected length" << std::endl;
+                        auto& rData = it->GetValue(rVariable);
+                        if( rData.size1() != size_1 || rData.size2() != size_2 )
+                            KRATOS_ERROR << "value matrix " << mNodalValueNames[i] << " on node " << it->Id() << " has an unexpected length" << std::endl;
 
                         for( std::size_t j = 0; j < size_2; ++j )
                         {
@@ -439,7 +447,7 @@ public:
 
                 else
                 {
-                    KRATOS_ERROR << "output_primal_solution_process.h: output of value type " << mNodalValueNames[i] << " has not yet been implemented!" << std::endl;
+                    std::cout << "output_primal_solution_process.h: output of this value type has not yet been implemented!" << std::endl;
                 }
             } //nodal values
 
