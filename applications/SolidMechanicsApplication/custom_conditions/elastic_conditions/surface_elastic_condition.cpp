@@ -199,7 +199,7 @@ namespace Kratos
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceStiffness[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(SurfaceStiffness[k]);
 	}
     }
 
@@ -211,7 +211,7 @@ namespace Kratos
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    {
-	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceStiffnesss[counter];
+	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(SurfaceStiffnesss[counter]);
 	      counter++;
 	    }
 	}
@@ -223,7 +223,7 @@ namespace Kratos
 	if( GetGeometry()[i].SolutionStepsDataHas( SURFACE_STIFFNESS ) ){
 	  array_1d<double, 3 > & SurfaceStiffness = GetGeometry()[i].FastGetSolutionStepValue( SURFACE_STIFFNESS );
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceStiffness[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(SurfaceStiffness[k]);
 	}
       }
 
@@ -242,7 +242,8 @@ namespace Kratos
 
       if( rVariables.ExternalScalarValue == 0 )
 	{
-	  ElasticCondition::CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);        }
+	  ElasticCondition::CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+	}
       else
 	{
 	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Kij;
