@@ -38,6 +38,8 @@ set( KRATOS_UMAT_APPLICATION_SOURCES
 add_library(KratosUmatApplication SHARED ${KRATOS_UMAT_APPLICATION_SOURCES})
 target_link_libraries(KratosUmatApplication KratosCore KratosConstitutiveModelsApplication)
 set_target_properties(KratosUmatApplication PROPERTIES PREFIX "")
+set_target_properties(KratosUmatApplication PROPERTIES COMPILE_DEFINITIONS "UMAT_APPLICATION=EXPORT,API")
+
 install(TARGETS KratosUmatApplication DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)
