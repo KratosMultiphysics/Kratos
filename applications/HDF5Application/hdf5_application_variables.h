@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//					 Kratos default license: HDF5Application/license.txt
 //
 //  Main authors:    Jordi Cotela
 //
