@@ -1646,7 +1646,7 @@ namespace Kratos
 	int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
-
+		const double numerical_limit = std::numeric_limits<double>::epsilon();
 			if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
 			{
 				KRATOS_ERROR <<
@@ -1699,14 +1699,14 @@ namespace Kratos
 
 
 		if (this->GetProperties().Has(CROSS_AREA) == false ||
-			this->GetProperties()[CROSS_AREA] == 0)
+			this->GetProperties()[CROSS_AREA] <= numerical_limit)
 		{
 			KRATOS_ERROR << "CROSS_AREA not provided for this element" << this->Id()
 				<< std::endl;
 		}
 
 		if (this->GetProperties().Has(YOUNG_MODULUS) == false ||
-			this->GetProperties()[YOUNG_MODULUS] == 0)
+			this->GetProperties()[YOUNG_MODULUS] <= numerical_limit)
 		{
 			KRATOS_ERROR << "YOUNG_MODULUS not provided for this element" << this->Id()
 				<< std::endl;
