@@ -322,5 +322,73 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(negative_side_unit_normals[0](2),  0.0, tolerance);
 		}
 
+
+		KRATOS_TEST_CASE_IN_SUITE(ModifiedShapeFunctionsTriangle2D3Areas, KratosCoreFastSuite)
+		{
+			// Generate a model part with the previous
+			ModelPart base_model_part("Triangle");
+			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
+
+			// Fill the model part geometry data
+			base_model_part.CreateNewNode(1, 0.0, 2.0, 0.0);
+			base_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+			base_model_part.CreateNewNode(3, 1.0, 2.0, 0.0);
+			Properties::Pointer p_properties(new Properties(0));
+			base_model_part.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties);
+
+			// Set the DISTANCE field
+			base_model_part.Nodes()[1].FastGetSolutionStepValue(DISTANCE) = -0.5;
+			base_model_part.Nodes()[2].FastGetSolutionStepValue(DISTANCE) =  1.0;
+			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) = -0.5;
+
+			// Set the elemental distances vector
+			Geometry<Node<3>>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
+
+			array_1d<double, 3> distances_vector;
+			for (unsigned int i = 0; i < p_geometry->size(); ++i) {
+				distances_vector(i) = (*p_geometry)[i].FastGetSolutionStepValue(DISTANCE);
+			}
+
+			base_model_part.Elements()[1].SetValue(ELEMENTAL_DISTANCES, distances_vector);
+
+			const Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
+
+			// Call the modified shape functions calculator
+			Triangle2D3ModifiedShapeFunctions triangle_shape_functions(p_geometry, r_elemental_distances);
+			Matrix positive_side_sh_func, negative_side_sh_func;
+			std::vector<Matrix> positive_side_sh_func_gradients, negative_side_sh_func_gradients;
+			Vector positive_side_weights, negative_side_weights;
+
+			triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
+				positive_side_sh_func,
+				positive_side_sh_func_gradients,
+				positive_side_weights,
+				GeometryData::GI_GAUSS_2);
+
+			triangle_shape_functions.ComputeNegativeSideShapeFunctionsAndGradientsValues(
+				negative_side_sh_func,
+				negative_side_sh_func_gradients,
+				negative_side_weights,
+				GeometryData::GI_GAUSS_2);
+
+			const double tolerance = 1e-10;
+
+            // Check Gauss pts. weights
+            const unsigned int n_gauss_pos = positive_side_weights.size();
+            const unsigned int n_gauss_neg = negative_side_weights.size();
+
+            double pos_area = 0.0;
+            for (unsigned int i=0; i<n_gauss_pos; ++i) {
+                pos_area += positive_side_weights(i);
+            }
+
+            double neg_area = 0.0;
+            for (unsigned int i=0; i<n_gauss_neg; ++i) {
+                neg_area += negative_side_weights(i);
+			}
+
+            const double tot_area = 2.0*1.0/2.0;
+            KRATOS_CHECK_NEAR(pos_area+neg_area, tot_area, tolerance);
+		}
 	}   // namespace Testing.
 }  // namespace Kratos.

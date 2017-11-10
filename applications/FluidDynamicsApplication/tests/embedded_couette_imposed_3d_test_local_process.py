@@ -12,9 +12,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return EmbeddedCouetteImposedTestLocalProcess(Model, settings["Parameters"])
+    return EmbeddedCouetteImposed3DTestLocalProcess(Model, settings["Parameters"])
 
-class EmbeddedCouetteImposedTestLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
+class EmbeddedCouetteImposed3DTestLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
 
     def __init__(self,model_part,params):
 
@@ -49,14 +49,15 @@ class EmbeddedCouetteImposedTestLocalProcess(KratosMultiphysics.Process, KratosU
 
         # Set the inlet
         for node in self.fluid_model_part.GetSubModelPart("Inlet3D").Nodes:
-            velocity = KratosMultiphysics.Vector(3)
-            velocity[0] = (self.level_set_velocity/self.distance)*node.Z
-            velocity[1] = 0.0
-            velocity[2] = 0.0
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, velocity)
-            node.Fix(KratosMultiphysics.VELOCITY_X)
-            node.Fix(KratosMultiphysics.VELOCITY_Y)
-            node.Fix(KratosMultiphysics.VELOCITY_Z)
+            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0:
+                velocity = KratosMultiphysics.Vector(3)
+                velocity[0] = (self.level_set_velocity/self.distance)*node.Z
+                velocity[1] = 0.0
+                velocity[2] = 0.0
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, velocity)
+                node.Fix(KratosMultiphysics.VELOCITY_X)
+                node.Fix(KratosMultiphysics.VELOCITY_Y)
+                node.Fix(KratosMultiphysics.VELOCITY_Z)
 
 
     def ExecuteBeforeSolutionLoop(self):
