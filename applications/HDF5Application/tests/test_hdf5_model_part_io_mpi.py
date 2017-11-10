@@ -58,9 +58,10 @@ class TestCase(KratosUnittest.TestCase):
         node_ids = local_node_ids + ghost_node_ids
         # Create nodes.
         for i in node_ids:
+            radius = 0.5 + 0.5 * ((i - 1) % 3) / 2.0
             phase = 2.0 * math.pi * ((i - 1) // 3) / float(my_num_quad * num_proc)
-            x = math.cos(phase)
-            y = math.sin(phase)
+            x = radius * math.cos(phase)
+            y = radius * math.sin(phase)
             model_part.CreateNewNode(i, x, y, 0.0)
         # Create elements and conditions.
         for i in range(0, num_local_nodes, 3):
