@@ -206,9 +206,6 @@ namespace Kratos {
                 BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT] + r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION], 1.0);
                 
                 SearchNeighbours(); //the amplification factor has been modified after the first search.
-                
-                        
-
 
                 RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary because the elements in this partition might have changed.
                 RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
@@ -240,9 +237,6 @@ namespace Kratos {
         }
         //Synch this var.
         r_model_part.GetCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
-        
-        
-
     }
 
     void ContinuumExplicitSolverStrategy::MarkNewSkinParticles() {
