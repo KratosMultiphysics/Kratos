@@ -91,7 +91,6 @@ public:
 
     void Execute()
     {
-        
         KRATOS_TRY;
         
         Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
@@ -99,11 +98,7 @@ public:
 
         // This model works in years so it is necessary to convert time in this unit       
         double time = mrModelPart.GetProcessInfo()[TIME]/31536000.0;
-        //if (time < 1.0)
-        //{
-        //    time = 1.0;
-        //}
-
+ 
         // Computing young modulus
         double sound_concrete = mInitialElasticModulus*sqrt(1.0 + 0.0805*log(time));
         double chemical_porosity = mMaxChemicalPorosity*(1.0 - exp(-time/mChemicalTime));
@@ -129,7 +124,6 @@ public:
 
     void ExecuteInitializeSolutionStep()
     {
-        
         KRATOS_TRY;
         
         Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
@@ -137,10 +131,6 @@ public:
 
         // This model works in years so it is necessary to convert time in this unit       
         double time = mrModelPart.GetProcessInfo()[TIME]/31536000.0;
-        //if (time < 1.0)
-        //{
-        //    time = 1.0;
-        //}
 
         // Computing young modulus
         double sound_concrete = mInitialElasticModulus*sqrt(1.0 + 0.0805*log(time));
@@ -148,7 +138,6 @@ public:
         double damage_mechanical = mMaxMechaDamage*(1.0 - exp(-time/mDamageTime));
         double young = ((1.0 - mInitialPorosity - chemical_porosity)*(1.0 - damage_mechanical)*sound_concrete)/(1.0 - mInitialPorosity);
  
-                
         if(nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
