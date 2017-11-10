@@ -1,6 +1,6 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "couette",
+        "problem_name"    : "couette_3d",
         "model_part_name" : "MainModelPart",
         "parallel_type"   : "OpenMP",
         "domain_size"     : 3,
@@ -37,7 +37,7 @@
         "solver_type"                  : "Embedded",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "EmbeddedCouetteTest/couette"
+            "input_filename" : "EmbeddedCouette3DTest/couette_3D"
         },
         "maximum_iterations"           : 10,
         "dynamic_tau"                  : 0.001,
@@ -51,15 +51,7 @@
         "relative_pressure_tolerance"  : 1e-5,
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
-            "solver_type"         : "AMGCL",
-            "max_iteration"       : 500,
-            "tolerance"           : 1e-8,
-            "provide_coordinates" : false,
-            "smoother_type"       : "ilu0",
-            "krylov_type"         : "gmres",
-            "coarsening_type"     : "aggregation",
-            "scaling"             : true,
-            "verbosity"           : 0
+            "solver_type"         : "SuperLUSolver"
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet3D","Outlet3D","Top3D","Sides3D"],
@@ -71,7 +63,7 @@
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "embedded_couette_test_local_process",
+        "python_module" : "embedded_couette_3d_test_local_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "process_name"  : "EmbeddedCouetteTestLocalProcess",
         "Parameters"    : {
