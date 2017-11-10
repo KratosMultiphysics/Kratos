@@ -176,7 +176,7 @@ namespace Kratos
       rConstitutiveMatrix = ConstitutiveModelUtilities::ConstitutiveTensorToMatrix(ConstitutiveTensor,rConstitutiveMatrix);
 
       // if StressMeasure_Kirchhoff, a push forward of the ConstitutiveMatrix must be done, but it is avoided
-      // it is computationally expensive but not relevant for the convegence of the method
+      // it is computationally expensive but not relevant for the convergence of the method
 	            
       KRATOS_CATCH(" ")
     }
@@ -304,7 +304,7 @@ namespace Kratos
       const MatrixType& rTotalDeformationMatrix  = rValues.GetTotalDeformationMatrix();
 
       const StressMeasureType& rStressMeasure  = rValues.GetStressMeasure();
-    
+      
       if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = GreenLagrangeTensor
 
 	//set working strain measure
@@ -323,7 +323,7 @@ namespace Kratos
 	
       }
       else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = GreenLagrangeTensor
-
+	
 	//set working strain measure
 	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Left);
 	
@@ -338,7 +338,7 @@ namespace Kratos
 	
 	//rVariables.Strain.InverseMatrix used as an auxiliar matrix (covariant pull back)
 	noalias( rVariables.Strain.InverseMatrix ) = prod( trans(rTotalDeformationMatrix), rVariables.Strain.Matrix );
-	noalias( rVariables.Strain.Matrix)  = prod( rVariables.Strain.InverseMatrix, rTotalDeformationMatrix );
+	noalias( rVariables.Strain.Matrix )  = prod( rVariables.Strain.InverseMatrix, rTotalDeformationMatrix );
 
 	//set as the current strain
 	rValues.State.Set(ConstitutiveModelData::STRAIN_COMPUTED);
