@@ -1059,7 +1059,6 @@ namespace Kratos
 			this->GetValuesVector(NodalDeformation);
 			rRightHandSideVector = ZeroVector(msElementSize);
 			rRightHandSideVector -= prod(LeftHandSideMatrix, NodalDeformation);
-			KRATOS_WATCH(rRightHandSideVector);
 		}
 
 		//add bodyforces 
@@ -1516,7 +1515,7 @@ namespace Kratos
 		rMassMatrix(11, 11) = TempBendingMassMatrix(3, 3);
 
 		TempBendingMassMatrix = ZeroMatrix(smallMatSize, smallMatSize);
-		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiy, CTy, CRy, L, -1);
+		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiy, CTy, CRy, L, +1);
 
 		rMassMatrix(2, 2) = TempBendingMassMatrix(0, 0);
 		rMassMatrix(2, 4) = TempBendingMassMatrix(0, 1);
@@ -1598,7 +1597,6 @@ namespace Kratos
 				{
 					ForceResidual[j] += rRHSVector[index + j];
 				}
-				KRATOS_WATCH(ForceResidual);
 				GetGeometry()[i].UnSetLock();
 			}
 		}
@@ -1619,9 +1617,7 @@ namespace Kratos
 				for (int j = 0; j<msDimension; ++j)
 				{
 					MomentResidual[j] += rRHSVector[index + j];
-				}
-
-				KRATOS_WATCH(MomentResidual);				
+				}			
 				GetGeometry()[i].UnSetLock();
 			}
 		}
