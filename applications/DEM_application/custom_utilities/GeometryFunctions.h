@@ -41,7 +41,7 @@ namespace Kratos {
             linear_velocity_changed = ZeroVector(3);
         } else {
             if (linear_period > 0.0) {
-                double linear_omega = 2.0 * KRATOS_M_PI / linear_period;
+                double linear_omega = 2.0 * Globals::Pi / linear_period;
                 double inv_linear_omega = 1.0 / linear_omega;
                 noalias(center_position) = initial_center + linear_velocity * sin(linear_omega * time) * inv_linear_omega;
                 noalias(linear_velocity_changed) = linear_velocity * cos(linear_omega * time);
@@ -375,7 +375,7 @@ namespace Kratos {
         else if (((time - angular_velocity_start_time) > 0.0) && ((time - angular_velocity_stop_time) < 0.0)) {
 
             if (angular_period > 0.0) {
-                double angular_omega = 2.0 * KRATOS_M_PI / angular_period;
+                double angular_omega = 2.0 * Globals::Pi / angular_period;
                 double inv_angular_omega = 1.0 / angular_omega;
                 noalias(angle) = angular_velocity * sin(angular_omega * (time - angular_velocity_start_time)) * inv_angular_omega;
                 sign_angle = sin(angular_omega * (time - angular_velocity_start_time)) / fabs(sin(angular_omega * (time - angular_velocity_start_time)));
@@ -389,7 +389,7 @@ namespace Kratos {
             noalias(angular_velocity_changed) = ZeroVector(3);
 
             if (angular_period > 0.0) {
-                double angular_omega = 2.0 * KRATOS_M_PI / angular_period;
+                double angular_omega = 2.0 * Globals::Pi / angular_period;
                 double inv_angular_omega = 1.0 / angular_omega;
                 noalias(angle) = angular_velocity * sin(angular_omega * (angular_velocity_stop_time - angular_velocity_start_time)) * inv_angular_omega;
             } else {
@@ -1485,7 +1485,7 @@ namespace Kratos {
             {
                 // Not a unique solution: thetaZ1 - thetaZ0 = atan2(-r01,r00)
                 EulerAngles[0] = -atan2(-rotation_matrix[0][1], rotation_matrix[0][0]);
-                EulerAngles[1] = KRATOS_M_PI;
+                EulerAngles[1] = Globals::Pi;
                 EulerAngles[2] = 0;
             }
         }
