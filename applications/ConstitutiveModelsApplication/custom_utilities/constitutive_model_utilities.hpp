@@ -411,7 +411,7 @@ namespace Kratos
 		}
 	    }
 	  
-	  rMatrix(2,2) = rTensor(2,2);
+	  rMatrix(2,2) = rTensor(3,3);
 
 	}
 	else{
