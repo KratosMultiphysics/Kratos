@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_DAM_CHEMO_MECHANICAL_AGING_YOUNG_PROCESS )
-#define  KRATOS_DAM_CHEMO_MECHANICAL_AGING_YOUNG_PROCESS
+#if !defined(KRATOS_DAM_CHEMO_MECHANICAL_AGING_YOUNG_PROCESS)
+#define KRATOS_DAM_CHEMO_MECHANICAL_AGING_YOUNG_PROCESS
 
 #include <cmath>
 
@@ -29,22 +29,20 @@ namespace Kratos
 
 class DamChemoMechanicalAgingYoungProcess : public Process
 {
-    
-public:
 
+  public:
     KRATOS_CLASS_POINTER_DEFINITION(DamChemoMechanicalAgingYoungProcess);
-    
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamChemoMechanicalAgingYoungProcess(ModelPart& rmodel_part,
-                                Parameters& rParameters
-                                ) : Process(Flags()) , mrModelPart(rmodel_part)
+    DamChemoMechanicalAgingYoungProcess(ModelPart &rModelPart,
+                                        Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart)
     {
         KRATOS_TRY
-			 
+
         //only include validation with c++11 since raw_literals do not exist in c++03
-        Parameters default_parameters( R"(
+        Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
@@ -55,8 +53,8 @@ public:
                 "chemical_characteristic_aging_time"               : 100.0,
                 "max_mechanical_damage"                            : 0.32,
                 "damage_characteristic_aging_time"                 : 100.0
-            }  )" );
-        
+            }  )");
+
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
         rParameters["initial_elastic_modulus"];
@@ -74,87 +72,86 @@ public:
         mChemicalTime = rParameters["chemical_characteristic_aging_time"].GetDouble();
         mMaxMechaDamage = rParameters["max_mechanical_damage"].GetDouble();
         mDamageTime = rParameters["damage_characteristic_aging_time"].GetDouble();
-        
 
         KRATOS_CATCH("");
     }
 
     ///------------------------------------------------------------------------------------
-    
+
     /// Destructor
     virtual ~DamChemoMechanicalAgingYoungProcess() {}
 
-    // This is a chemo-mechanical degradation law of concrete usually used in the upstream wall when 
+    // This is a chemo-mechanical degradation law of concrete usually used in the upstream wall when
     // it is necessary to consider the aging/degradation problem.
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void ExecuteInitialize()
     {
         KRATOS_TRY;
-        
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+
+        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
 
-        // This model works in years so it is necessary to convert time in this unit       
-        double time = mrModelPart.GetProcessInfo()[TIME]/31536000.0;
- 
-        // Computing young modulus
-        double sound_concrete = mInitialElasticModulus*sqrt(1.0 + 0.0805*log(time));
-        double chemical_porosity = mMaxChemicalPorosity*(1.0 - exp(-time/mChemicalTime));
-        double damage_mechanical = mMaxMechaDamage*(1.0 - exp(-time/mDamageTime));
-        double young = ((1.0 - mInitialPorosity - chemical_porosity)*(1.0 - damage_mechanical)*sound_concrete)/(1.0 - mInitialPorosity);
+        // This model works in years so it is necessary to convert time in this unit
+        double time = mrModelPart.GetProcessInfo()[TIME] / 31536000.0;
 
-        if(nnodes != 0)
+        // Computing young modulus
+        double sound_concrete = mInitialElasticModulus * sqrt(1.0 + 0.0805 * log(time));
+        double chemical_porosity = mMaxChemicalPorosity * (1.0 - exp(-time / mChemicalTime));
+        double damage_mechanical = mMaxMechaDamage * (1.0 - exp(-time / mDamageTime));
+        double young = ((1.0 - mInitialPorosity - chemical_porosity) * (1.0 - damage_mechanical) * sound_concrete) / (1.0 - mInitialPorosity);
+
+        if (nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
-        
-            #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
+
+#pragma omp parallel for
+            for (int i = 0; i < nnodes; i++)
             {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;                
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->FastGetSolutionStepValue(var) = young;
             }
         }
-        
+
         KRATOS_CATCH("");
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void ExecuteInitializeSolutionStep()
     {
         KRATOS_TRY;
-        
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+
+        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
 
-        // This model works in years so it is necessary to convert time in this unit       
-        double time = mrModelPart.GetProcessInfo()[TIME]/31536000.0;
+        // This model works in years so it is necessary to convert time in this unit
+        double time = mrModelPart.GetProcessInfo()[TIME] / 31536000.0;
 
         // Computing young modulus
-        double sound_concrete = mInitialElasticModulus*sqrt(1.0 + 0.0805*log(time));
-        double chemical_porosity = mMaxChemicalPorosity*(1.0 - exp(-time/mChemicalTime));
-        double damage_mechanical = mMaxMechaDamage*(1.0 - exp(-time/mDamageTime));
-        double young = ((1.0 - mInitialPorosity - chemical_porosity)*(1.0 - damage_mechanical)*sound_concrete)/(1.0 - mInitialPorosity);
- 
-        if(nnodes != 0)
+        double sound_concrete = mInitialElasticModulus * sqrt(1.0 + 0.0805 * log(time));
+        double chemical_porosity = mMaxChemicalPorosity * (1.0 - exp(-time / mChemicalTime));
+        double damage_mechanical = mMaxMechaDamage * (1.0 - exp(-time / mDamageTime));
+        double young = ((1.0 - mInitialPorosity - chemical_porosity) * (1.0 - damage_mechanical) * sound_concrete) / (1.0 - mInitialPorosity);
+
+        if (nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
-        
-            #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
+
+#pragma omp parallel for
+            for (int i = 0; i < nnodes; i++)
             {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;                
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->FastGetSolutionStepValue(var) = young;
             }
         }
-        
+
         KRATOS_CATCH("");
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     /// Turn back information as a string.
     std::string Info() const
     {
@@ -162,22 +159,21 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream &rOStream) const
     {
         rOStream << "DamChemoMechanicalAgingYoungProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream &rOStream) const
     {
     }
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-protected:
-
+  protected:
     /// Member Variables
-    ModelPart& mrModelPart;
+    ModelPart &mrModelPart;
     std::size_t mMeshId;
     std::string mVariableName;
     double mInitialElasticModulus;
@@ -187,23 +183,21 @@ protected:
     double mMaxMechaDamage;
     double mDamageTime;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private:
-
+  private:
     /// Assignment operator.
-    DamChemoMechanicalAgingYoungProcess& operator=(DamChemoMechanicalAgingYoungProcess const& rOther);
+    DamChemoMechanicalAgingYoungProcess &operator=(DamChemoMechanicalAgingYoungProcess const &rOther);
 
-};//Class
-
+}; //Class
 
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-    DamChemoMechanicalAgingYoungProcess& rThis);
+inline std::istream &operator>>(std::istream &rIStream,
+                                DamChemoMechanicalAgingYoungProcess &rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const DamChemoMechanicalAgingYoungProcess& rThis)
+inline std::ostream &operator<<(std::ostream &rOStream,
+                                const DamChemoMechanicalAgingYoungProcess &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -215,4 +209,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_DAM_CHEMO_MECHANICAL_AGING_YOUNG_PROCESS defined */
-
