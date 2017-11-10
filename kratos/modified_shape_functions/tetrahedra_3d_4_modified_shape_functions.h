@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "utilities/divide_tetrahedra_3d_4.h"
 #include "modified_shape_functions/modified_shape_functions.h"
 
 namespace Kratos

@@ -15,7 +15,6 @@
 // External includes
 
 // Project includes
-#include "utilities/divide_triangle_2d_3.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
 namespace Kratos

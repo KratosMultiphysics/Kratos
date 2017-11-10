@@ -12,9 +12,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return EmbeddedCouetteTestLocalProcess(Model, settings["Parameters"])
+    return EmbeddedCouette2DTestLocalProcess(Model, settings["Parameters"])
 
-class EmbeddedCouetteTestLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
+class EmbeddedCouette2DTestLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
 
     def __init__(self,model_part,params):
 
@@ -27,8 +27,12 @@ class EmbeddedCouetteTestLocalProcess(KratosMultiphysics.Process, KratosUnittest
 
         # Set the distance function
         for node in self.fluid_model_part.Nodes:
-            distance = node.Z-self.distance
+            distance = node.Y-self.distance
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
+            # node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0, (node.Y-self.distance)/(2-self.distance))
+            # node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0, 0.0)
+            # node.Fix(KratosMultiphysics.VELOCITY_X)
+            # node.Fix(KratosMultiphysics.VELOCITY_Y)
 
         # Deactivate the elements that have negative distance value
         for elem in self.fluid_model_part.Elements:
@@ -36,20 +40,19 @@ class EmbeddedCouetteTestLocalProcess(KratosMultiphysics.Process, KratosUnittest
             for node in elem.GetNodes():
                 if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
                     interior += 1
-            if interior == 4:
+            if interior == 3:
                 elem.Set(KratosMultiphysics.ACTIVE,False)
 
         # Set the inlet
-        for node in self.fluid_model_part.GetSubModelPart("Inlet3D").Nodes:
+        for node in self.fluid_model_part.GetSubModelPart("Inlet2D").Nodes:
             if (node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0):
                 vel = KratosMultiphysics.Vector(3)
-                vel[0] = (node.Z-self.distance)/(2-self.distance)
+                vel[0] = (node.Y-self.distance)/(2-self.distance)
                 vel[1] = 0.0
                 vel[2] = 0.0
 
                 node.Fix(KratosMultiphysics.VELOCITY_X)
                 node.Fix(KratosMultiphysics.VELOCITY_Y)
-                node.Fix(KratosMultiphysics.VELOCITY_Z)
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, vel)
 
 
@@ -78,12 +81,9 @@ class EmbeddedCouetteTestLocalProcess(KratosMultiphysics.Process, KratosUnittest
         for node in self.fluid_model_part.Nodes:
             if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0:
 
-                expected_solution = (node.Z-self.distance)/(2-self.distance)
+                expected_solution = (node.Y-self.distance)/(2-self.distance)
                 obtained_solution = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0)
                 self.assertAlmostEqual(obtained_solution,expected_solution,4)
 
                 obtained_solution = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0)
-                self.assertAlmostEqual(obtained_solution,0.0,4)
-
-                obtained_solution = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0)
                 self.assertAlmostEqual(obtained_solution,0.0,4)
