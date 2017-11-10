@@ -20,7 +20,6 @@
 namespace Kratos
 {
 
-
 /**this function manages intervals. It aims at being used within processes
 *
 */
