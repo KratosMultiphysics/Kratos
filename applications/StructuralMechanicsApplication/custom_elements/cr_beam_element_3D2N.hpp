@@ -147,8 +147,6 @@ namespace Kratos
 
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-
-		double CalculateCurrentLength();
 		double CalculatePsi(const double I, const double A_eff);
 		double CalculateShearModulus();
 		double CalculateReferenceLength();

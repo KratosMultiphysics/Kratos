@@ -224,7 +224,7 @@ namespace Kratos
 		const double my_B = nodalForcesLocal_qe[10];
 		const double mz_B = nodalForcesLocal_qe[11];
 
-		const double L = this->CalculateCurrentLength();
+		const double L = this->GetGeometry().Length();
 		const double Qy = -1.00 * (mz_A + mz_B) / L;
 		const double Qz = (my_A + my_B) / L;
 
@@ -373,7 +373,7 @@ namespace Kratos
 		//add geometric stiffness part
 		if (this->mIsLinearElement == false)
 		{
-			const double l = this->CalculateCurrentLength();
+			const double l = this->GetGeometry().Length();
 			const double N = this->mNodalForces[6];
 
 			const double Qy = -1.00 * (this->mNodalForces[5] +
@@ -496,7 +496,7 @@ namespace Kratos
 	CrBeamElement3D2N::CalculateTransformationS() {
 
 		KRATOS_TRY
-		const double L = this->CalculateCurrentLength();
+		const double L = this->GetGeometry().Length();
 		bounded_matrix<double,msElementSize,msLocalSize> S = ZeroMatrix(msElementSize, msLocalSize);
 		S(0, 3) = -1.00;
 		S(1, 5) = 2.00 / L;
@@ -885,7 +885,7 @@ namespace Kratos
 		bounded_vector<double,msElementSize> BodyForcesGlobal = ZeroVector(msElementSize);
 
 		const double A = this->GetProperties()[CROSS_AREA];
-		const double l = this->CalculateCurrentLength();
+		const double l = this->GetGeometry().Length();
 		const double rho = this->GetProperties()[DENSITY];
 
 		//calculating equivalent line load
@@ -1124,7 +1124,7 @@ namespace Kratos
 		KRATOS_TRY;
 		bounded_vector<double,msLocalSize> deformation_modes_total_V = ZeroVector(msLocalSize);
 		const double L = this->CalculateReferenceLength();
-		const double l = this->CalculateCurrentLength();
+		const double l = this->GetGeometry().Length();
 
 		deformation_modes_total_V[3] = l - L;
 		for (int i = 0; i < 3; ++i) deformation_modes_total_V[i] = this->mPhiS[i];
@@ -1141,30 +1141,11 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	double CrBeamElement3D2N::CalculateCurrentLength() {
-
-		KRATOS_TRY;
-		const double du = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X)
-			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-		const double dv = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y)
-			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-		const double dw = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z)
-			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
-		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-		const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-		const double l = std::sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy) +
-			(dw + dz)*(dw + dz));
-		return l;
-		KRATOS_CATCH("")
-
-	}
-
 	double CrBeamElement3D2N::CalculatePsi(const double I, const double A_eff) {
 
 		KRATOS_TRY;
 		const double E = this->GetProperties()[YOUNG_MODULUS];
-		const double L = this->CalculateCurrentLength();
+		const double L = this->GetGeometry().Length();
 		const double G = this->CalculateShearModulus();
 
 		const double phi = (12.0 * E * I) / (L*L * G*A_eff);
