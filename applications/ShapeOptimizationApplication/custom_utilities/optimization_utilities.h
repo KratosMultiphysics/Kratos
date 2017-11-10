@@ -156,7 +156,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void update_control_point_position_by_input_variable( const Variable<array_3d> &rNodalVariable )
+    void update_control_point_change_by_input_variable( const Variable<array_3d> &rNodalVariable )
     {
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             noalias(node_i->FastGetSolutionStepValue(CONTROL_POINT_CHANGE)) += node_i->FastGetSolutionStepValue(rNodalVariable);

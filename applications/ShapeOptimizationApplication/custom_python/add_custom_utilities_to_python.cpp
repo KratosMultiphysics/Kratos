@@ -92,7 +92,7 @@ void  AddCustomUtilitiesToPython()
         // General optimization operations
         // ----------------------------------------------------------------
         .def("compute_control_point_update", &OptimizationUtilities::compute_control_point_update)
-        .def("update_control_point_position_by_input_variable", &OptimizationUtilities::update_control_point_position_by_input_variable)        
+        .def("update_control_point_change_by_input_variable", &OptimizationUtilities::update_control_point_change_by_input_variable)        
         ;
 
     // ========================================================================
@@ -101,7 +101,7 @@ void  AddCustomUtilitiesToPython()
     class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&>())
         .def("compute_unit_surface_normals", &GeometryUtilities::compute_unit_surface_normals)
         .def("project_nodal_variable_on_unit_surface_normals", &GeometryUtilities::project_nodal_variable_on_unit_surface_normals)
-        .def("update_shape_by_input_variable", &GeometryUtilities::update_shape_by_input_variable)
+        .def("update_shape_change_by_input_variable", &GeometryUtilities::update_shape_change_by_input_variable)
         .def("extract_surface_nodes", &GeometryUtilities::extract_surface_nodes)
         ;
 

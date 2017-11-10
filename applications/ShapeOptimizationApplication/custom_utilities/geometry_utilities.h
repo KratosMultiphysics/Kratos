@@ -171,7 +171,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void update_shape_by_input_variable( const Variable<array_3d> &rNodalVariable )
+    void update_shape_change_by_input_variable( const Variable<array_3d> &rNodalVariable )
     {
         for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
         {

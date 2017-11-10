@@ -210,7 +210,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __updateShape( self ):
-        self.optimizationTools.update_control_point_position_by_input_variable( CONTROL_POINT_UPDATE )
-        self.geometryTools.update_shape_by_input_variable( SHAPE_UPDATE )
+        self.optimizationTools.update_control_point_change_by_input_variable( CONTROL_POINT_UPDATE )
+        self.geometryTools.update_shape_change_by_input_variable( SHAPE_UPDATE )
 
 # ==============================================================================
