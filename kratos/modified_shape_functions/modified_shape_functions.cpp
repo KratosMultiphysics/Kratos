@@ -92,8 +92,8 @@ namespace Kratos
                 const double aux_node_rel_location = std::abs (mNodalDistances(edge_node_i)/(mNodalDistances(edge_node_j)-mNodalDistances(edge_node_i)));
 
                 // Store the relative coordinate values as the original geometry nodes sh. function value in the intersections
-                rIntPointCondMatrix(row, edge_node_i) = aux_node_rel_location;
-                rIntPointCondMatrix(row, edge_node_j) = 1.0 - aux_node_rel_location;
+                rIntPointCondMatrix(row, edge_node_i) = 1.0 - aux_node_rel_location;
+                rIntPointCondMatrix(row, edge_node_j) = aux_node_rel_location;
             }
             row++;
         }
@@ -258,17 +258,22 @@ namespace Kratos
 
             // Get the original geometry shape function and gradients values over the intersection
             for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
+                double det_jac;
                 Vector aux_sh_func;
-                Matrix aux_grad_sh_func;
-                aux_sh_func = p_input_geometry->ShapeFunctionsValues(aux_sh_func, interface_gauss_pts_loc_coords[i_gauss]);
-                aux_grad_sh_func = p_input_geometry->ShapeFunctionsLocalGradients(aux_grad_sh_func, interface_gauss_pts_loc_coords[i_gauss]);
+                Matrix aux_grad_sh_func, aux_grad_sh_func_local, jac_mat, inv_jac_mat;
+                const CoordinatesArrayType loc_coords = interface_gauss_pts_loc_coords[i_gauss];
 
-                // Store the computed shape function values
+                // Compute shape function values
+                aux_sh_func = p_input_geometry->ShapeFunctionsValues(aux_sh_func, loc_coords);
                 for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
                     rInterfaceShapeFunctionsValues(i_interface*n_int_pts + i_gauss, i_node) = aux_sh_func(i_node);
                 }
 
-                // Store the computed gradient values
+                // Compute gradient values
+                jac_mat = p_input_geometry->Jacobian(jac_mat, loc_coords);
+                MathUtils<double>::InvertMatrix( jac_mat, inv_jac_mat, det_jac );
+                aux_grad_sh_func_local = p_input_geometry->ShapeFunctionsLocalGradients(aux_grad_sh_func_local, loc_coords);
+                aux_grad_sh_func = prod(aux_grad_sh_func_local, inv_jac_mat);  
                 rInterfaceShapeFunctionsGradientsValues.push_back(aux_grad_sh_func);
             }
         }
