@@ -23,8 +23,6 @@ def CreateSolver(main_model_part, custom_settings):
             solver_module_name = "ale_navier_stokes_solver_fractionalstep"
 
         else:
-            raise Exception("the requested solver type is not in the python solvers wrapper")
-
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"ale_monolithic\", \"ale_fractional_step\""
             raise Exception(err_msg)
@@ -44,7 +42,6 @@ def CreateSolver(main_model_part, custom_settings):
             raise Exception(err_msg)
 
     else:
-        
         err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
