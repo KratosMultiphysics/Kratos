@@ -150,6 +150,7 @@ namespace Kratos
 		double CalculatePsi(const double I, const double A_eff);
 		double CalculateShearModulus();
 		double CalculateReferenceLength();
+		double CalculateCurrentLength();
 		void UpdateIncrementDeformation();
 
 		bounded_vector<double,msElementSize> CalculateBodyForces();  

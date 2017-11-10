@@ -493,7 +493,7 @@ namespace Kratos
 	double TrussElement3D2N::CalculateGreenLagrangeStrain(){
 
 		KRATOS_TRY
-		const double l = this->GetGeometry().Length();
+		const double l = this->CalculateCurrentLength();
 		const double L = this->CalculateReferenceLength();
 		const double e = ((l * l - L * L) / (2.00 * L * L));
 		return e;
@@ -510,7 +510,24 @@ namespace Kratos
 		return L;
 		KRATOS_CATCH("")
 	}
+	double TrussElement3D2N::CalculateCurrentLength() {
 
+		KRATOS_TRY;
+		const double du = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X)
+			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+		const double dv = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y)
+			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+		const double dw = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z)
+			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
+		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
+		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
+		const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
+		const double l = sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy) +
+			(dw + dz)*(dw + dz));
+		return l;
+		KRATOS_CATCH("")
+
+	}
 	void TrussElement3D2N::UpdateInternalForces(bounded_vector<double,
 		TrussElement3D2N::msLocalSize>& rinternalForces){
 
@@ -520,7 +537,7 @@ namespace Kratos
 
 		this->CreateTransformationMatrix(TransformationMatrix);
 		const double InternalStrainGL = this->CalculateGreenLagrangeStrain();
-		const double l = this->GetGeometry().Length();
+		const double l = this->CalculateCurrentLength();
 		const double L0 = this->CalculateReferenceLength();
 		const double E = this->GetProperties()[YOUNG_MODULUS];
 		const double A = this->GetProperties()[CROSS_AREA];
@@ -684,7 +701,7 @@ namespace Kratos
 		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
 		const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
 		const double L = this->CalculateReferenceLength();
-		const double l = this->GetGeometry().Length();
+		const double l = this->CalculateCurrentLength();
 		double e_gL = (l*l - L*L) / (2.00 * L*L);
 		const double L3 = L * L * L;
 

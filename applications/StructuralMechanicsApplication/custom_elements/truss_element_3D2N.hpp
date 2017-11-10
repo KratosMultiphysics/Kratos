@@ -147,6 +147,7 @@ namespace Kratos
 
 		double CalculateGreenLagrangeStrain();
 		double CalculateReferenceLength();
+		double CalculateCurrentLength();
 
 		bounded_vector<double,msLocalSize> CalculateBodyForces();  
 
