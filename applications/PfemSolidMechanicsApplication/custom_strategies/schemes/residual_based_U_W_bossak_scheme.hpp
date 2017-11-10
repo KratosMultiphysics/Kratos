@@ -140,15 +140,15 @@ namespace Kratos
          {
             KRATOS_TRY
 
-            //std::cout << " Update " << std::endl;
-            //update of displacement (by DOF)
-            for (typename DofsArrayType::iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof)
-            {
-               if (i_dof->IsFree() )
-               {
-                  i_dof->GetSolutionStepValue() += Dx[i_dof->EquationId()];
-               }
-             }
+      //std::cout << " Update " << std::endl;
+      //update of displacement (by DOF)
+      for (typename DofsArrayType::iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof)
+      {
+         if (i_dof->IsFree() )
+         {
+            i_dof->GetSolutionStepValue() += Dx[i_dof->EquationId()];
+         }
+      }
 
             //updating time derivatives (nodally for efficiency)
             array_1d<double, 3 > DeltaDisplacement;
@@ -181,6 +181,19 @@ namespace Kratos
                this->UpdateVelocity     (CurrentWaterVelocity, DeltaWaterDisplacement, PreviousWaterVelocity, PreviousWaterAcceleration);
 
                this->UpdateAcceleration (CurrentWaterAcceleration, DeltaWaterDisplacement, PreviousWaterVelocity, PreviousWaterAcceleration);
+
+               if ( i->HasDofFor(WATER_PRESSURE) ) {
+                  const double& PreviousWaterPressure    = (i)->FastGetSolutionStepValue(WATER_PRESSURE, 1);
+                  const double& PreviousWaterPressureVelocity    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_VELOCITY, 1);
+                  const double& PreviousWaterPressureAcceleration    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATION, 1);
+                  double& CurrentWaterPressure     = (i)->FastGetSolutionStepValue(WATER_PRESSURE);
+                  double& CurrentWaterPressureVelocity     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_VELOCITY);
+                  double& CurrentWaterPressureAcceleration     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATION);
+
+                  double DeltaWaterPressure = CurrentWaterPressure - PreviousWaterPressure;
+                  UpdateVelocityScalar     ( CurrentWaterPressureVelocity, DeltaWaterPressure, PreviousWaterPressureVelocity, PreviousWaterPressureAcceleration);
+                  UpdateAccelerationScalar ( CurrentWaterPressureAcceleration, DeltaWaterPressure, PreviousWaterPressureVelocity, PreviousWaterPressureAcceleration);
+               }
             }
 
             KRATOS_CATCH( "" )
@@ -204,8 +217,8 @@ namespace Kratos
 
             KRATOS_TRY
 
-            //std::cout << " Prediction " << std::endl;
-            const double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
+      //std::cout << " Prediction " << std::endl;
+      const double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
 
             array_1d<double, 3 > DeltaDisplacement;
 
@@ -292,7 +305,7 @@ namespace Kratos
                this->UpdateAcceleration (CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
 
             }
-            
+
             // the same but now with the water relative displacement to the soil
             array_1d<double, 3 > DeltaWaterDisplacement;
 
@@ -358,11 +371,21 @@ namespace Kratos
 
                if (i->HasDofFor(WATER_PRESSURE))
                {
-                  double& PreviousWaterPressure    = (i)->FastGetSolutionStepValue(WATER_PRESSURE, 1);
+                  const double& PreviousWaterPressure    = (i)->FastGetSolutionStepValue(WATER_PRESSURE, 1);
+                  const double& PreviousWaterPressureVelocity    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_VELOCITY, 1);
+                  const double& PreviousWaterPressureAcceleration    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATION, 1);
                   double& CurrentWaterPressure     = (i)->FastGetSolutionStepValue(WATER_PRESSURE);
+                  double& CurrentWaterPressureVelocity     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_VELOCITY);
+                  double& CurrentWaterPressureAcceleration     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATION);
+
+                  double DeltaWaterPressure = CurrentWaterPressure - PreviousWaterPressure;
 
                   if ((i->pGetDof(WATER_PRESSURE))->IsFixed() == false)
                      CurrentWaterPressure = PreviousWaterPressure;
+
+                  UpdateVelocityScalar     ( CurrentWaterPressureVelocity, DeltaWaterPressure, PreviousWaterPressureVelocity, PreviousWaterPressureAcceleration);
+                  UpdateAccelerationScalar ( CurrentWaterPressureAcceleration, DeltaWaterPressure, PreviousWaterPressureVelocity, PreviousWaterPressureAcceleration);
+
 
                }
 
@@ -395,55 +418,7 @@ namespace Kratos
          {
             KRATOS_TRY
 
-            return 0;
-/*      int err = Scheme<TSparseSpace, TDenseSpace>::Check(r_model_part);
-            if(err!=0) return err;
-
-            //check for variables keys
-            //verify that the variables are correctly initialized
-            if(DISPLACEMENT.Key() == 0)
-               KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
-                  if(VELOCITY.Key() == 0)
-                     KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
-                        if(ACCELERATION.Key() == 0)
-                           KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-
-                              //check that variables are correctly allocated
-                              for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin();
-                                    it!=r_model_part.NodesEnd(); it++)
-                              {
-                                 if (it->SolutionStepsDataHas(DISPLACEMENT) == false)
-                                    KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
-                                       if (it->SolutionStepsDataHas(VELOCITY) == false)
-                                          KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
-                                             if (it->SolutionStepsDataHas(ACCELERATION) == false)
-                                                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
-                              }
-
-            //check that dofs exist
-            for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin();
-                  it!=r_model_part.NodesEnd(); it++)
-            {
-               if(it->HasDofFor(DISPLACEMENT_X) == false)
-                  KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_X dof on node ",it->Id() )
-                     if(it->HasDofFor(DISPLACEMENT_Y) == false)
-                        KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_Y dof on node ",it->Id() )
-                           if(it->HasDofFor(DISPLACEMENT_Z) == false)
-                              KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_Z dof on node ",it->Id() )
-            }
-
-
-            //check for admissible value of the AlphaBossak
-            if(mAlpha.m > 0.0 || mAlpha.m < -0.3)
-               KRATOS_THROW_ERROR( std::logic_error,"Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is ", mAlpha.m )
-
-                  //check for minimum value of the buffer index
-                  //verify buffer size
-                  if (r_model_part.GetBufferSize() < 2)
-                     KRATOS_THROW_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
-
-
-                        return 0; */
+      return 0;
             KRATOS_CATCH( "" )
          }
 
@@ -470,6 +445,37 @@ namespace Kratos
          /*@} */
          /**@name Protected Operators*/
          /*@{ */
+         //*********************************************************************************
+         //Updating first time Derivative. For scalar variables.
+         //*********************************************************************************
+
+         inline void UpdateVelocityScalar(double  & CurrentVelocity,
+               const double & DeltaDisplacement,
+               const double & PreviousVelocity,
+               const double & PreviousAcceleration)
+         {
+
+            CurrentVelocity =  (this->mNewmark.c1 * DeltaDisplacement - this->mNewmark.c4 * PreviousVelocity
+                  - this->mNewmark.c5 * PreviousAcceleration) * this->mNewmark.static_dynamic;
+
+         }
+
+
+         //*********************************************************************************
+         //Updating second time Derivative. For scalar variables.
+         //*********************************************************************************
+
+         inline void UpdateAccelerationScalar(double & CurrentAcceleration,
+               const double & DeltaDisplacement,
+               const double & PreviousVelocity,
+               const double & PreviousAcceleration)
+         {
+
+            CurrentAcceleration =  (this->mNewmark.c0 * DeltaDisplacement - this->mNewmark.c2 * PreviousVelocity
+                  -  this->mNewmark.c3 * PreviousAcceleration) * this->mNewmark.static_dynamic;
+
+
+         }
          /*@} */
          /**@name Protected Operations*/
          /*@{ */

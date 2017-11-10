@@ -47,6 +47,7 @@
 #include "custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.hpp"
 
 #include "custom_elements/updated_lagrangian_U_W_element.hpp"
+#include "custom_elements/updated_lagrangian_U_W_wP_element.hpp"
 
 
 #include "custom_elements/updated_lagrangian_U_J_element.hpp"
@@ -277,7 +278,8 @@ namespace Kratos
     const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement2D3N;
     const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement3D4N;
 
-    const UpdatedLagrangianUWElement                      mUpdatedLagrangianUWElement2D3N;
+    const UpdatedLagrangianUWElement                        mUpdatedLagrangianUWElement2D3N;
+    const UpdatedLagrangianUWwPElement                    mUpdatedLagrangianUWwPElement2D3N;
 
     const AxisymUpdatedLagrangianUwPElement          mAxisymUpdatedLagrangianUwPElement2D3N;
     const AxisymUpdatedLagrangianUwPStabElement  mAxisymUpdatedLagrangianUwPStabElement2D3N;
