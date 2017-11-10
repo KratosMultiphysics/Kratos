@@ -39,13 +39,7 @@
             "input_type"     : "mdpa",
             "input_filename" : "EmbeddedCouetteImposed2DTest/couette_imposed_2D"
         },
-        "maximum_iterations"           : 10,
         "dynamic_tau"                  : 0.001,
-        "echo_level"                   : 0,
-        "time_order"                   : 2,
-        "compute_reactions"            : false,
-        "divergence_clearance_steps"   : 0,
-        "reform_dofs_at_each_step"     : false,
         "relative_velocity_tolerance"  : 1e-5,
         "absolute_velocity_tolerance"  : 1e-7,
         "relative_pressure_tolerance"  : 1e-5,
@@ -67,7 +61,6 @@
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "process_name"  : "ApplyOutletProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Outlet2D",
             "value"           : 0
         }
@@ -76,7 +69,6 @@
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "process_name"  : "ApplyNoSlipProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Bottom2D"
         }
     },{
@@ -84,7 +76,6 @@
         "kratos_module" : "KratosMultiphysics",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Outlet2D",
             "variable_name"   : "VELOCITY",
             "value"           : [null, 0.0, null],
@@ -95,7 +86,6 @@
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "process_name"  : "EmbeddedCouetteImposed2DTestLocalProcess",
         "Parameters"    : {
-            "mesh_id"                : 0,
             "distance"               : 1.65,
             "embedded_velocity"      : 2.56,
             "fluid_model_part_name"  : "Parts_Fluid"
@@ -105,7 +95,6 @@
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "process_name"  : "ApplyDistanceModificationProcess",
         "Parameters"    : {
-            "mesh_id"                   : 0,
             "model_part_name"           : "Parts_Fluid",
             "check_at_each_time_step"   : false
         }
@@ -115,7 +104,6 @@
         "kratos_module" : "KratosMultiphysics",
         "process_name"  : "ApplyConstantVectorValueProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Parts_Fluid",
             "variable_name"   : "BODY_FORCE",
             "modulus"         : 0.0,

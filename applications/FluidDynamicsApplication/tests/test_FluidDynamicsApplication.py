@@ -44,9 +44,7 @@ def AssambleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTest(TEmbeddedArtificialCompressibilityTest('test_execution'))
     smallSuite.addTest(TEmbeddedCouette2DTest('test_execution'))
-    smallSuite.addTest(TEmbeddedCouette3DTest('test_execution'))
     smallSuite.addTest(TEmbeddedCouette2DImposedTest('test_execution'))
-    smallSuite.addTest(TEmbeddedCouette3DImposedTest('test_execution'))
     smallSuite.addTest(TEmbeddedReservoirTest('test_execution'))
     smallSuite.addTest(TEmbeddedSlipBoundaryConditionTest('test_execution'))
     smallSuite.addTest(TEmbeddedSlipReservoirTest('test_execution'))
@@ -71,6 +69,8 @@ def AssambleTestSuites():
     allSuite.addTests(nightSuite)
     allSuite.addTest(DarcyChannelTest('testDarcyLinear'))
     allSuite.addTest(DarcyChannelTest('testDarcyNonLinear'))
+    allSuite.addTest(TEmbeddedCouette3DTest('test_execution'))
+    allSuite.addTest(TEmbeddedCouette3DImposedTest('test_execution'))
 
     return suites
 
