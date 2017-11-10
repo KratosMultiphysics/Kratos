@@ -125,8 +125,18 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
         previousObjectiveValue = self.objectiveValueHistory[self.previousOptimizationIteration]
         initialObjectiveValue = self.objectiveValueHistory[self.initialOptimizationIteration]
-        self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 100*(objectiveValue-initialObjectiveValue) / initialObjectiveValue
-        self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 100*(objectiveValue-previousObjectiveValue) / initialObjectiveValue
+
+        objectiveReferenceValue = self.communicator.getReportedFunctionReferenceValueOf ( self.onlyObjective )
+        if not objectiveReferenceValue:
+            objectiveReferenceValue = initialObjectiveValue
+        if abs(objectiveReferenceValue)<1e-12:
+            print("\n> WARNING: Objective reference value < 1e-12!!:")
+            print("> WARNING: I.e. either initial objective value is zero and no reference value is specified in the analyzer or specified reference value is zero.")
+            print("> WARNING: Standard reference value of 1 is assumed.")
+            objectiveReferenceValue = 1.0 
+
+        self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 100*(objectiveValue-initialObjectiveValue) / objectiveReferenceValue
+        self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 100*(objectiveValue-previousObjectiveValue) / objectiveReferenceValue
 
     # --------------------------------------------------------------------------
     def __PrintInfoAboutResponseFunctionValues( self ):

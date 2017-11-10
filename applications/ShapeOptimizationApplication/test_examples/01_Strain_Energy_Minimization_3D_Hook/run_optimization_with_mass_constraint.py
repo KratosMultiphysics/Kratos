@@ -159,7 +159,8 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             print("> Time needed for calculation of value of mass constraint = ",round(timer.time() - startTime,2),"s")
 
             communicator.reportFunctionValue("mass", constraintFunctionValue)
-            communicator.reportFunctionReferenceValue("mass", listOfResponseFunctions["mass"].get_initial_value())
+            if(optimizationIteration==1):
+                communicator.reportFunctionReferenceValue("mass", listOfResponseFunctions["mass"].get_initial_value())
 
         # Calculation of gradients of objective function
         if communicator.isRequestingGradientOf("strain_energy"): 
