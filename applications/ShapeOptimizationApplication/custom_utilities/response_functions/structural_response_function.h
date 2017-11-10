@@ -912,7 +912,7 @@ protected:
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
-  
+        std::cout << "Long: Updating ElementSensitivities" << std::endl;
         //std::cout << ("I compute now element sensitivities") << std::endl;
 	#pragma omp parallel
         {
@@ -923,6 +923,8 @@ protected:
             int k = OpenMPUtils::ThisThread();
 
             std::cout << ("Inertia sensitivities:")  << std::endl;
+            KRATOS_WATCH(rSensitivityVariable);
+            //KRATOS_WATCH(this);
 
             for (auto it = elements_begin; it != elements_end; ++it)
             {
@@ -953,7 +955,7 @@ protected:
                     this->AssembleElementSensitivityContribution(
                   	        rOutputVariable, sensitivity_vector[k], *it);		//----> check for correct output
 
-                    std::cout <<  sensitivity_vector[k][0] << std::endl;              
+                    //std::cout <<  sensitivity_vector[k][0] << std::endl;              
                 }
             }
         }

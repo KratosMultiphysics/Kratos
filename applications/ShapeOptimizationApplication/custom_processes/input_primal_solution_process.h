@@ -134,11 +134,15 @@ public:
 
         // test for valid input parameters / model part
         for (unsigned int i = 0; i < mVariables.size(); i++)
-        {
+        {         
+            std::cout << "LCHEN:" << std::endl;
+            
+            KRATOS_WATCH(mrModelPart.GetNodalSolutionStepVariablesList());
             if (KratosComponents< Variable<double> >::Has(mVariables[i]))
             {
                 if (mrModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents< Variable<double> >::Get(mVariables[i])) == false)
                 {
+
                     KRATOS_THROW_ERROR(std::runtime_error, "variable is not found in nodal solution steps variable list: ", mVariables[i])
                 }
             }
@@ -146,6 +150,7 @@ public:
             {
                 if (mrModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents< Variable<array_1d<double,3> > >::Get(mVariables[i])) == false)
                 {
+                    KRATOS_WATCH(mrModelPart.GetNodalSolutionStepVariablesList());
                     KRATOS_THROW_ERROR(std::runtime_error,"variable is not found in nodal solution steps variable list: ", mVariables[i])
                 }
             }

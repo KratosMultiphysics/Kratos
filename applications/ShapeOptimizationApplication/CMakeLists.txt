@@ -24,7 +24,8 @@ include_directories( ${HDF5_INCLUDE_DIRS} )
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosShapeOptimizationApplication SHARED ${KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES})
-target_link_libraries(KratosShapeOptimizationApplication KratosCore KratosStructuralMechanicsApplication ${HDF5_CXX_LIBRARIES})
+##target_link_libraries(KratosShapeOptimizationApplication KratosCore KratosStructuralMechanicsApplication ${HDF5_CXX_LIBRARIES})
+target_link_libraries(KratosShapeOptimizationApplication KratosCore KratosStructuralMechanicsApplication "C:/Program Files/HDF_Group/HDF5/1.10.1/lib/libhdf5_cpp.lib;C:/Program Files/HDF_Group/HDF5/1.10.1/lib/libhdf5.lib;C:/Program Files/HDF_Group/HDF5/1.10.1/lib/libszip.lib")
 set_target_properties(KratosShapeOptimizationApplication PROPERTIES PREFIX "")
 install(TARGETS KratosShapeOptimizationApplication DESTINATION libs )
 
