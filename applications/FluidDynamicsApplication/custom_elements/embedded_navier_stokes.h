@@ -87,8 +87,8 @@ public:
         VectorType                  w_gauss_pos_int;        // Positive interface Gauss pts. weights
         std::vector<VectorType>     pos_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
 
-        std::vector<unsigned int>   int_vec_identifiers;    // Interior (structure) nodes identifiers
-        std::vector<unsigned int>   out_vec_identifiers;    // Outside (fluid) nodes identifiers
+        std::vector<unsigned int>   int_vec_identifiers;    // Interior (fluid) nodes identifiers
+        std::vector<unsigned int>   out_vec_identifiers;    // Outside (stucture) nodes identifiers
 
         unsigned int    n_pos = 0;                          // Number of postivie distance nodes
         unsigned int    n_neg = 0;                          // Number of negative distance nodes
@@ -153,8 +153,9 @@ public:
      * @param rData: reference to the element data structure
      * @param rCurrentProcessInfo: reference to the ProcessInfo
      */
-    void FillEmbeddedElementData(EmbeddedElementDataStruct& rData,
-                                 const ProcessInfo& rCurrentProcessInfo) {
+    void FillEmbeddedElementData(
+        EmbeddedElementDataStruct& rData,
+        const ProcessInfo& rCurrentProcessInfo) {
 
         // Fill the basic element data (base class call)
         BaseType::FillElementData(rData, rCurrentProcessInfo);
@@ -205,7 +206,7 @@ public:
                 rData.DN_DX_pos_int,
                 rData.w_gauss_pos_int,
                 GeometryData::GI_GAUSS_2);
-
+            
             // Call the fluid side Gauss pts. unit normal calculator
             p_modified_sh_func->ComputePositiveSideInterfaceUnitNormals(
                 rData.pos_int_unit_normals,
@@ -219,9 +220,11 @@ public:
      * @param rRightHandSideVector: reference to the RHS vector
      * @param rCurrentProcessInfo: reference to the ProcessInfo
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override {
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) override {
+
         KRATOS_TRY;
 
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
@@ -295,10 +298,12 @@ public:
      * @param rCurrentProcessInfo: reference to the ProcessInfo
      */
     template<unsigned int MatrixSize>
-    void ComputeElementAsFluid(MatrixType& rLeftHandSideMatrix,
-                               VectorType& rRightHandSideVector,
-                               EmbeddedElementDataStruct& rData,
-                               const ProcessInfo& rCurrentProcessInfo) {
+    void ComputeElementAsFluid(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        EmbeddedElementDataStruct& rData,
+        const ProcessInfo& rCurrentProcessInfo) {
+        
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_local;
         bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
@@ -323,7 +328,7 @@ public:
         }
 
         rLeftHandSideMatrix *= rData.volume/static_cast<double>(TNumNodes);
-        rRightHandSideVector *= rData.volume/static_cast<double>(TNumNodes);;
+        rRightHandSideVector *= rData.volume/static_cast<double>(TNumNodes);
     }
 
 
@@ -336,20 +341,23 @@ public:
     * @param rCurrentProcessInfo: reference to the ProcessInfo
     */
     template<unsigned int MatrixSize>
-    void ComputeElementAsMixed(MatrixType& rLeftHandSideMatrix,
-                               VectorType& rRightHandSideVector,
-                               EmbeddedElementDataStruct& rData,
-                               const ProcessInfo& rCurrentProcessInfo) {
+    void ComputeElementAsMixed(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        EmbeddedElementDataStruct& rData,
+        const ProcessInfo& rCurrentProcessInfo) {
 
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_local;
         bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
 
         // Gauss points loop
-        for(unsigned int i_gauss = 0; i_gauss < (rData.w_gauss_pos_side).size(); i_gauss++) {
+        const unsigned int n_gauss_pts = (rData.w_gauss_pos_side).size();
+
+        for(unsigned int i_gauss = 0; i_gauss < n_gauss_pts; i_gauss++) {
             noalias(rData.N) = row(rData.N_pos_side, i_gauss);          // Take the new Gauss pts. shape functions values
             noalias(rData.DN_DX) = rData.DN_DX_pos_side[i_gauss];       // Take the new Gauss pts. shape functions gradients values
-            const double weight = rData.w_gauss_pos_side(i_gauss);      // Intersection Gauss pt. weight
+            const double weight = rData.w_gauss_pos_side(i_gauss);      // Subvolume Gauss pt. weights
 
             BaseType::ComputeConstitutiveResponse(rData, rCurrentProcessInfo);
 
@@ -417,9 +425,11 @@ protected:
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     */
-    void AddIntersectionBoundaryTermsContribution(MatrixType& rLeftHandSideMatrix,
-                                                  VectorType& rRightHandSideVector,
-                                                  const EmbeddedElementDataStruct& rData) {
+    void AddIntersectionBoundaryTermsContribution(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const EmbeddedElementDataStruct& rData) {
+
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -467,31 +477,34 @@ protected:
                     N_aux_trans(i*BlockSize+comp, comp) = aux_N(i);
                 }
             }
-
+            
             // Contribution coming fron the shear stress operator
             auxLeftHandSideMatrix += weight*prod(N_aux_trans, aux_matrix_ACB);
-
+            
+            
             // Contribution coming from the pressure terms
             const bounded_matrix<double, MatrixSize, (TDim-1)*3> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
             auxLeftHandSideMatrix -= weight*prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
-
+            
         }
-
+        
         // LHS assembly
         rLeftHandSideMatrix -= auxLeftHandSideMatrix;
-
+        
         // RHS assembly
         rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol);
     }
-
-
+    
+    
     /**
-    * This function computes the penalty coefficient for the level set BC imposition
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rData: reference to element data structure
-    */
-    double ComputePenaltyCoefficient(MatrixType& rLeftHandSideMatrix,
-                                     const EmbeddedElementDataStruct& rData) {
+     * This function computes the penalty coefficient for the level set BC imposition
+     * @param rLeftHandSideMatrix: reference to the LHS matrix
+     * @param rData: reference to element data structure
+     */
+    double ComputePenaltyCoefficient(
+        MatrixType& rLeftHandSideMatrix,
+        const EmbeddedElementDataStruct& rData) {
+
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -524,9 +537,11 @@ protected:
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     */
-    void AddBoundaryConditionPenaltyContribution(MatrixType& rLeftHandSideMatrix,
-                                                 VectorType& rRightHandSideVector,
-                                                 const EmbeddedElementDataStruct& rData) {
+    void AddBoundaryConditionPenaltyContribution(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const EmbeddedElementDataStruct& rData) {
+
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -594,9 +609,11 @@ protected:
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     */
-    void AddBoundaryConditionModifiedNitcheContribution(MatrixType& rLeftHandSideMatrix,
-                                                        VectorType& rRightHandSideVector,
-                                                        const EmbeddedElementDataStruct& rData) {
+    void AddBoundaryConditionModifiedNitcheContribution(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const EmbeddedElementDataStruct& rData) {
+                                                            
         constexpr unsigned int BlockSize = TDim+1;                 // Block size
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
 
@@ -708,9 +725,10 @@ protected:
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     */
-    void DropOuterNodesVelocityContribution(MatrixType& rLeftHandSideMatrix,
-                                            VectorType& rRightHandSideVector,
-                                            const EmbeddedElementDataStruct& rData) {
+    void DropOuterNodesVelocityContribution(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const EmbeddedElementDataStruct& rData) {
 
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
@@ -738,9 +756,11 @@ protected:
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     */
-    void AddSlipWinterNormalPenaltyContribution(MatrixType& rLeftHandSideMatrix,
-                                                VectorType& rRightHandSideVector,
-                                                const EmbeddedElementDataStruct& rData) {
+    void AddSlipWinterNormalPenaltyContribution(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const EmbeddedElementDataStruct& rData) {
+        
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -835,9 +855,11 @@ protected:
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     */
-    void AddSlipWinterNormalSymmetricCounterpartContribution(MatrixType& rLeftHandSideMatrix,
-                                                             VectorType& rRightHandSideVector,
-                                                             const EmbeddedElementDataStruct& rData) {
+    void AddSlipWinterNormalSymmetricCounterpartContribution(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const EmbeddedElementDataStruct& rData) {
+
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -933,9 +955,11 @@ protected:
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     */
-    void AddSlipWinterTangentialPenaltyContribution(MatrixType& rLeftHandSideMatrix,
-                                                    VectorType& rRightHandSideVector,
-                                                    const EmbeddedElementDataStruct& rData) {
+    void AddSlipWinterTangentialPenaltyContribution(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const EmbeddedElementDataStruct& rData) {
+        
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -1029,9 +1053,11 @@ protected:
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     */
-    void AddSlipWinterTangentialSymmetricCounterpartContribution(MatrixType& rLeftHandSideMatrix,
-                                                                 VectorType& rRightHandSideVector,
-                                                                 const EmbeddedElementDataStruct& rData) {
+    void AddSlipWinterTangentialSymmetricCounterpartContribution(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const EmbeddedElementDataStruct& rData) {
+        
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -1130,10 +1156,10 @@ protected:
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     */
-    void AddBoundaryConditionElementContribution(MatrixType& rLeftHandSideMatrix,
-                                                 VectorType& rRightHandSideVector,
-                                                 const EmbeddedElementDataStruct& rData) {
-        // TODO: CREATE A METHOD TO COMPUTE THE PREVIOUS SOLUTION ONCE
+    void AddBoundaryConditionElementContribution(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const EmbeddedElementDataStruct& rData) {
 
         // Compute and assemble the boundary terms comping from the integration by parts
         AddIntersectionBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
@@ -1161,8 +1187,10 @@ protected:
     * @param rDN_DX: reference to the current Gauss pt. shape function gradients
     * @param rB_matrix: reference to the computed B strain matrix
     */
-    void SetInterfaceStrainMatrix(const bounded_matrix<double, TNumNodes, TDim>& rDN_DX,
-                                  bounded_matrix<double, (TDim-1)*3, TNumNodes*(TDim+1)>& rB_matrix) {
+    void SetInterfaceStrainMatrix(
+        const bounded_matrix<double, TNumNodes, TDim>& rDN_DX,
+        bounded_matrix<double, (TDim-1)*3, TNumNodes*(TDim+1)>& rB_matrix) {
+
         constexpr unsigned int BlockSize = TDim+1;
         rB_matrix.clear();
 
@@ -1194,8 +1222,10 @@ protected:
     * @param rUnitNormal: reference to Gauss pt. unit normal vector
     * @param rNormProjMatrix: reference to the computed normal projection matrix
     */
-    void SetNormalProjectionMatrix(const array_1d<double, 3>& rUnitNormal,
-                                   bounded_matrix<double, TDim, TDim>& rNormProjMatrix) {
+    void SetNormalProjectionMatrix(
+        const array_1d<double, 3>& rUnitNormal,
+        bounded_matrix<double, TDim, TDim>& rNormProjMatrix) {
+        
         rNormProjMatrix.clear();
 
         // Fill the normal projection matrix (nxn)
@@ -1215,8 +1245,10 @@ protected:
     * @param rUnitNormal: reference to Gauss pt. unit normal vector
     * @param rTangProjMatrix: reference to the computed tangential projection matrix
     */
-    void SetTangentialProjectionMatrix(const array_1d<double, 3>& rUnitNormal,
-                                       bounded_matrix<double, TDim, TDim>& rTangProjMatrix) {
+    void SetTangentialProjectionMatrix(
+        const array_1d<double, 3>& rUnitNormal,
+        bounded_matrix<double, TDim, TDim>& rTangProjMatrix) {
+        
         rTangProjMatrix.clear();
 
         // Fill the tangential projection matrix (I - nxn)
@@ -1237,8 +1269,10 @@ protected:
     * @param rUnitNormal: reference to Gauss pt. unit normal vector
     * @param rVoigtNormProjMatrix: reference to the computed normal projection auxiliar matrix
     */
-    void SetVoigtNormalProjectionMatrix(const array_1d<double, 3>& rUnitNormal,
-                                        bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtNormProjMatrix) {
+    void SetVoigtNormalProjectionMatrix(
+        const array_1d<double, 3>& rUnitNormal,
+        bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtNormProjMatrix) {
+        
         rVoigtNormProjMatrix.clear();
 
         if (TDim == 3) {
@@ -1265,8 +1299,10 @@ protected:
     * @param rData: reference to the element data structure
     * @param rPrevSolVector: reference to the previous solution vector
     */
-    void GetPreviousSolutionVector(const ElementDataType& rData,
-                                   array_1d<double, TNumNodes*(TDim+1)>& rPrevSolVector) {
+    void GetPreviousSolutionVector(
+        const ElementDataType& rData,
+        array_1d<double, TNumNodes*(TDim+1)>& rPrevSolVector) {
+        
         rPrevSolVector.clear();
 
         for (unsigned int i=0; i<TNumNodes; i++) {
