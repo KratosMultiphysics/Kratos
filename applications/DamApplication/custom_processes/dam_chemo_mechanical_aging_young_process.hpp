@@ -89,7 +89,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Execute()
+    void ExecuteInitialize()
     {
         KRATOS_TRY;
         
@@ -177,7 +177,6 @@ public:
 protected:
 
     /// Member Variables
-
     ModelPart& mrModelPart;
     std::size_t mMeshId;
     std::string mVariableName;
