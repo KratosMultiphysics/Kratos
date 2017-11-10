@@ -1400,14 +1400,14 @@ class DEMIo(object):
 
         # Ice
         if "PostVirtualSeaSurfaceX1" in self.DEM_parameters.keys():
-            self.SeaSurfaceX1 = self.DEM_parameters["PostVirtualSeaSurfaceX1"]
-            self.SeaSurfaceY1 = self.DEM_parameters["PostVirtualSeaSurfaceY1"]
-            self.SeaSurfaceX2 = self.DEM_parameters["PostVirtualSeaSurfaceX2"]
-            self.SeaSurfaceY2 = self.DEM_parameters["PostVirtualSeaSurfaceY2"]
-            self.SeaSurfaceX3 = self.DEM_parameters["PostVirtualSeaSurfaceX3"]
-            self.SeaSurfaceY3 = self.DEM_parameters["PostVirtualSeaSurfaceY3"]
-            self.SeaSurfaceX4 = self.DEM_parameters["PostVirtualSeaSurfaceX4"]
-            self.SeaSurfaceY4 = self.DEM_parameters["PostVirtualSeaSurfaceY4"]
+            self.SeaSurfaceX1 = self.DEM_parameters["PostVirtualSeaSurfaceX1"].GetDouble()
+            self.SeaSurfaceY1 = self.DEM_parameters["PostVirtualSeaSurfaceY1"].GetDouble()
+            self.SeaSurfaceX2 = self.DEM_parameters["PostVirtualSeaSurfaceX2"].GetDouble()
+            self.SeaSurfaceY2 = self.DEM_parameters["PostVirtualSeaSurfaceY2"].GetDouble()
+            self.SeaSurfaceX3 = self.DEM_parameters["PostVirtualSeaSurfaceX3"].GetDouble()
+            self.SeaSurfaceY3 = self.DEM_parameters["PostVirtualSeaSurfaceY3"].GetDouble()
+            self.SeaSurfaceX4 = self.DEM_parameters["PostVirtualSeaSurfaceX4"].GetDouble()
+            self.SeaSurfaceY4 = self.DEM_parameters["PostVirtualSeaSurfaceY4"].GetDouble()
 
     def KRATOSprint(self,message):
         print(message)
