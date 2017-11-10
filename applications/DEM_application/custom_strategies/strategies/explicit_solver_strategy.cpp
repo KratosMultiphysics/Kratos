@@ -215,7 +215,7 @@ namespace Kratos {
 
         double critical_period = sqrt(max_across_threads);
         double beta = 0.03;
-        double critical_timestep = beta * KRATOS_M_PI / critical_period;
+        double critical_timestep = beta * Globals::Pi / critical_period;
 
         double t = CalculateMaxInletTimeStep();
         if (t<critical_timestep && t>0.0){critical_timestep = t;}
@@ -244,7 +244,7 @@ namespace Kratos {
                     if (smp_prop_id == inlet_prop_id) {
                         double radius = (*sub_model_part)[RADIUS];
                         double shear_modulus = young/(2.0*(1.0+poisson));
-                        double t = (KRATOS_M_PI*radius*sqrt(density/shear_modulus))/(0.1630*poisson+0.8766);
+                        double t = (Globals::Pi*radius*sqrt(density/shear_modulus))/(0.1630*poisson+0.8766);
                         return t;
                     }
                 }

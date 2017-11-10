@@ -84,7 +84,7 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual BaseTypePointer Clone() const override
+    virtual BaseTypePointer Clone() const //do no override -> windows compilation error
     {
       return (ModifiedCamClayYieldSurface::Pointer(new ModifiedCamClayYieldSurface(*this)));
     }

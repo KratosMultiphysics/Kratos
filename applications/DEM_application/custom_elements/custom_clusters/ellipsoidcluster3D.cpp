@@ -61,7 +61,7 @@ namespace Kratos {
         
         double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
                 
-        //double sinusoidal_factor_1 = KRATOS_M_PI *
+        //double sinusoidal_factor_1 = Globals::Pi *
         //PROPERLY CALCULATE THE DIVISIONS
         
         for (int j = 0; j < number_of_passes; j++) {
@@ -72,32 +72,32 @@ namespace Kratos {
             
                 mListOfCoordinates[i + number_of_spheres_per_pass * j][0] = 
                         
-                    cl * 0.5 * cos(-0.5 * KRATOS_M_PI + j * KRATOS_M_PI / (number_of_passes - 1))
-                        * cos(-KRATOS_M_PI + KRATOS_M_PI * i * 0.5 / (number_of_spheres_in_first_sector - 1)); 
+                    cl * 0.5 * cos(-0.5 * Globals::Pi + j * Globals::Pi / (number_of_passes - 1))
+                        * cos(-Globals::Pi + Globals::Pi * i * 0.5 / (number_of_spheres_in_first_sector - 1)); 
                 
                 mListOfCoordinates[i + number_of_spheres_per_pass * j][1] = 
                         
-                    cl * 0.375 * cos(-0.5 * KRATOS_M_PI + j * KRATOS_M_PI / (number_of_passes - 1))
-                        * sin(-KRATOS_M_PI + KRATOS_M_PI * i * 0.5 / (number_of_spheres_in_first_sector - 1)); 
+                    cl * 0.375 * cos(-0.5 * Globals::Pi + j * Globals::Pi / (number_of_passes - 1))
+                        * sin(-Globals::Pi + Globals::Pi * i * 0.5 / (number_of_spheres_in_first_sector - 1)); 
                 
                 mListOfCoordinates[i + number_of_spheres_per_pass * j][2] = 
                         
-                    cl * 0.25 * sin(-0.5 * KRATOS_M_PI + j * KRATOS_M_PI / (number_of_passes - 1));
+                    cl * 0.25 * sin(-0.5 * Globals::Pi + j * Globals::Pi / (number_of_passes - 1));
                 
-                //u = -0.5 * KRATOS_M_PI + j * KRATOS_M_PI / (number_of_passes - 1)
+                //u = -0.5 * Globals::Pi + j * Globals::Pi / (number_of_passes - 1)
                         
-                //v = -KRATOS_M_PI + KRATOS_M_PI * i * 0.5 / (number_of_spheres_in_first_sector - 1)
+                //v = -Globals::Pi + Globals::Pi * i * 0.5 / (number_of_spheres_in_first_sector - 1)
             
             }
         }
         
         //double particle_density = this->SlowGetDensity(); /////////////////////////////USE FAST
          
-        double cluster_volume = 0.3333333333 * 4.0 * KRATOS_M_PI * 0.5 * 0.375 * 0.25 * cl * cl * cl; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
+        double cluster_volume = 0.3333333333 * 4.0 * Globals::Pi * 0.5 * 0.375 * 0.25 * cl * cl * cl; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
         
         //double cluster_mass = particle_density * cluster_volume;
         
-        double cluster_mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = (this->SlowGetDensity()) * 0.3333333333 * 4.0 * KRATOS_M_PI * 0.5 * 0.375 * 0.25 * cl * cl * cl;
+        double cluster_mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = (this->SlowGetDensity()) * 0.3333333333 * 4.0 * Globals::Pi * 0.5 * 0.375 * 0.25 * cl * cl * cl;
         
         array_1d<double,3>& base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA); 
         

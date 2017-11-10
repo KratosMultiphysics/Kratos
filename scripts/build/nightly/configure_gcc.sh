@@ -25,10 +25,10 @@ cmake .. \
 -DMESHING_APPLICATION=ON                                                                        \
 -DMULTISCALE_APPLICATION=OFF                                                                    \
 -DPARTICLE_MECHANICS_APPLICATION=ON                                                             \
--DPFEM_APPLICATION=ON                                                                           \
--DCONTACT_MECHANICS_APPLICATION=ON                                                              \
--DPFEM_FLUID_DYNAMICS_APPLICATION=ON                                                            \
--DPFEM_SOLID_MECHANICS_APPLICATION=ON                                                           \
+-DPFEM_APPLICATION=OFF                                                                           \
+-DCONTACT_MECHANICS_APPLICATION=OFF                                                              \
+-DPFEM_FLUID_DYNAMICS_APPLICATION=OFF                                                            \
+-DPFEM_SOLID_MECHANICS_APPLICATION=OFF                                                           \
 -DPOROMECHANICS_APPLICATION=ON                                                                  \
 -DSHAPE_OPTIMIZATION_APPLICATION=ON                                                             \
 -DSOLID_MECHANICS_APPLICATION=ON                                                                \

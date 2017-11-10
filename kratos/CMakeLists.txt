@@ -14,7 +14,6 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list_data_value_container.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/timer.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/serializer.cpp;
