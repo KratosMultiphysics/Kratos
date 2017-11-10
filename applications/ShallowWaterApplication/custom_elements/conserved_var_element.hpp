@@ -1,8 +1,8 @@
 //   
 //   Project Name:        Kratos       
 //   Last modified by:    Miguel Masó Sotomayor
-//   Date:                July 3rd 2017
-//   Revision:            1.2
+//   Date:                June 28th 2017
+//   Revision:            1.3
 //
 //
 
@@ -21,75 +21,110 @@
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h" 
+#include "includes/serializer.h"
+#include "custom_elements/primitive_var_element.hpp"
 
 namespace Kratos
 {
 
   template< unsigned int TNumNodes >
-  class ConservedVarElement : public Element
+  class ConservedVarElement : public PrimitiveVarElement<TNumNodes>
   {
   public:
      
     /// Counted pointer of ConservedVarElement
     KRATOS_CLASS_POINTER_DEFINITION( ConservedVarElement );
 
+    typedef PrimitiveVarElement<TNumNodes>                             BaseType;
+
+    typedef typename BaseType::IndexType                              IndexType;
+
+    typedef typename BaseType::ElementVariables                ElementVariables;
+
+    typedef typename BaseType::EquationIdVectorType        EquationIdVectorType;
+
+    typedef typename BaseType::DofsVectorType                    DofsVectorType;
+
+    typedef typename BaseType::VectorType                            VectorType;
+
+    typedef typename BaseType::MatrixType                            MatrixType;
+
+    typedef typename BaseType::GeometryType                        GeometryType;
+
+    typedef typename BaseType::GeometryType::Pointer        GeometryPointerType;
+
+    typedef typename BaseType::NodesArrayType                    NodesArrayType;
+
+    typedef typename BaseType::PropertiesType                    PropertiesType;
+
+    typedef typename BaseType::PropertiesType::Pointer    PropertiesPointerType;
+
 //----------------------------------------------------------------------
 
     /// Default constructor.
     ConservedVarElement() :
-        Element()
+        BaseType()
     {}
     
-    ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry) :
-        Element(NewId, pGeometry)
+    ConservedVarElement(IndexType NewId, GeometryPointerType pGeometry) :
+        BaseType(NewId, pGeometry)
     {}
-    
-    ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
-        Element(NewId, pGeometry, pProperties)
+
+    ConservedVarElement(IndexType NewId, GeometryPointerType pGeometry, PropertiesPointerType pProperties) :
+        BaseType(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
-    virtual ~ ConservedVarElement() {};
+    virtual ~ ConservedVarElement() override {};
 
 //----------------------------------------------------------------------
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesPointerType pProperties) const override
     {
         KRATOS_TRY
-        return Element::Pointer(new ConservedVarElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return boost::make_shared< ConservedVarElement < TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("")
     }
 
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    Element::Pointer Create(IndexType NewId, GeometryPointerType pGeom, PropertiesPointerType pProperties) const override
+    {
+        KRATOS_TRY
+        return boost::make_shared< ConservedVarElement < TNumNodes > >(NewId, pGeom, pProperties);
+        KRATOS_CATCH("")
+    }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+//----------------------------------------------------------------------
 
-    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo);
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
 //----------------------------------------------------------------------
 
   protected:
 
-    void CalculateGeometry(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea);
+    void GetNodalValues(ElementVariables& rVariables);
 
-    double ComputeElemSize(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX);
+    void GetElementValues(const boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
+    
+    void ComputeAuxMatrices(
+            const boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes>& rNcontainer,
+            const boost::numeric::ublas::bounded_matrix<double,TNumNodes,2>& rDN_DX,
+            const ElementVariables& rVariables,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixScalar,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixVector,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarGrad,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiv,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rNonLinearTerm,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarDiff,
+            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiff );
 
-    void GetNodalValues(array_1d<double,TNumNodes*3>& rDepth, array_1d<double,TNumNodes*3>& rRain, array_1d<double,TNumNodes*3>& rUnkn, array_1d<double,TNumNodes*3>& rProj);
 
-    void GetElementValues(const boost::numeric::ublas::bounded_matrix<double,TNumNodes,2>& rDN_DX, const array_1d<double,TNumNodes*3>& rNodalVar, array_1d<double,2>& rMomentum, double& rDivU, double& rHeight, array_1d<double,2>& rHeightGrad);
-
-    void ComputeStabilizationParameters(const double& rHeight, const array_1d<double,2>& rHeightGrad, const double& rElemSize, double& rTauU, double& rTauH, double& rKdc, const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double, TNumNodes*3, TNumNodes*3>& rMassMatrix);
-
-    double mGravity;
-    double mHeightUnitConvert;
+//----------------------------------------------------------------------
 
   private:
 
