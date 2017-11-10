@@ -522,7 +522,7 @@ namespace Kratos
 		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
 		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
 		const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-		const double l = sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy) +
+		const double l = std::sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy) +
 			(dw + dz)*(dw + dz));
 		return l;
 		KRATOS_CATCH("")
