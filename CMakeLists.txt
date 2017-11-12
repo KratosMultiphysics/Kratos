@@ -317,6 +317,7 @@ find_package(ZLIB)
 if( ZLIB_FOUND )
   include_directories( ${ZLIB_INCLUDE_DIRS} )
 else( ZLIB_FOUND )
+  message( "-- Preparing local ZLIB compilation.")
   # Compile our own
   add_subdirectory(external_libraries/zlib)
   include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
