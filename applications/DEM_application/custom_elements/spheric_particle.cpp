@@ -775,6 +775,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
     std::vector<DEMWall*>& rNeighbours   = this->mNeighbourRigidFaces;
     array_1d<double, 3> vel              = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double,3>& AngularVel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    array_1d<double, 3> RelVel = ZeroVector(3);
 
     for (unsigned int i = 0; i < rNeighbours.size(); i++) {
         DEMWall* wall = rNeighbours[i];
@@ -810,6 +811,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             DeltVel[0] = vel[0] - wall_velocity_at_contact_point[0];
             DeltVel[1] = vel[1] - wall_velocity_at_contact_point[1];
             DeltVel[2] = vel[2] - wall_velocity_at_contact_point[2];
+            RelVel[0] = DeltVel[0];
+            RelVel[1] = DeltVel[1];
+            RelVel[2] = DeltVel[2];
 
             // For translation movement delta displacement
             const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -847,9 +851,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourRigidFacesElasticContactForce[i], OldLocalElasticContactForce);
             const double previous_indentation = indentation + LocalDeltDisp[2];
-
+            double LocalRelVel[3] = {0.0};
+            
             if (indentation > 0.0) {
-                double LocalRelVel[3]            = {0.0};
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
 
                 mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(r_process_info,OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation,
@@ -873,9 +877,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             //WEAR
             if (wall->GetProperties()[COMPUTE_WEAR]) {
                 const double area              = Globals::Pi * GetInteractionRadius() * GetInteractionRadius();
-                const double density           = GetDensity();
                 const double inverse_of_volume = 1.0 / (4.0 * 0.333333333333333 * area * GetInteractionRadius());
-                ComputeWear(LocalCoordSystem, vel, DeltVel, data_buffer.mDt, density, sliding, inverse_of_volume, LocalElasticContactForce[2], wall);
+                ComputeWear(LocalCoordSystem, RelVel, LocalRelVel, data_buffer.mDt, sliding, inverse_of_volume, LocalElasticContactForce[2], wall);
             } //wall->GetProperties()[COMPUTE_WEAR] if
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
@@ -975,30 +978,22 @@ void SphericParticle::ComputeConditionRelativeData(int rigid_neighbour_index,   
     }
 }//ComputeConditionRelativeData
 
-void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& vel, double tangential_vel[3],
-                                  double mTimeStep, double density, bool sliding, double inverse_of_volume,
+void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& relative_velocity, double tangential_vel[3],
+                                  double mTimeStep, bool sliding, double inverse_of_volume,
                                   double LocalElasticContactForce, DEMWall* wall) {
 
     array_1d<double, 3>& node_coor_array = this->GetGeometry()[0].Coordinates();
-    array_1d<double, 3> local_vel;
-    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, vel, local_vel);
-    double non_dim_volume_wear;
+    array_1d<double, 3> local_rel_vel;
+    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, relative_velocity, local_rel_vel);
+    double non_dim_volume_wear = 0.0;
     double WallSeverityOfWear           = wall->GetProperties()[SEVERITY_OF_WEAR];
     double WallImpactSeverityOfWear     = wall->GetProperties()[IMPACT_WEAR_SEVERITY];
     double InverseOfWallBrinellHardness = 1.0 / (wall->GetProperties()[BRINELL_HARDNESS]);
-    double vel_module = DEM_MODULUS_3(vel);
-    double quotient_of_vels = fabs(local_vel[2]) / vel_module;
     double Sliding_0 = tangential_vel[0] * mTimeStep;
     double Sliding_1 = tangential_vel[1] * mTimeStep;
-    double non_dim_impact_wear = 0.5 * WallImpactSeverityOfWear * InverseOfWallBrinellHardness * density * quotient_of_vels * quotient_of_vels
-                                 * pow(1.0 - 4.0 * (1.0 - quotient_of_vels), 2) * vel_module * vel_module;
+    double non_dim_impact_wear = WallImpactSeverityOfWear * InverseOfWallBrinellHardness * GetDensity() * mRadius * std::abs(local_rel_vel[2]);
 
-    if (sliding) {
-        non_dim_volume_wear = WallSeverityOfWear * InverseOfWallBrinellHardness * inverse_of_volume * LocalElasticContactForce
-                        * sqrt(Sliding_0 * Sliding_0 + Sliding_1 * Sliding_1);
-    } else {
-        non_dim_volume_wear = 0.0;
-    }
+    if (sliding) non_dim_volume_wear = WallSeverityOfWear * InverseOfWallBrinellHardness * std::abs(LocalElasticContactForce) * sqrt(Sliding_0 * Sliding_0 + Sliding_1 * Sliding_1);
 
     //COMPUTING THE PROJECTED POINT
 
@@ -1024,9 +1019,9 @@ void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double
     double distance_2 = DEM_MODULUS_3(relative_vector_2);
     double inverse_of_total_distance = 1.0 / (distance_0 + distance_1 + distance_2);
 
-    double weight_0 = 1.0 - (distance_1 + distance_2) * inverse_of_total_distance;
-    double weight_1 = 1.0 - (distance_2 + distance_0) * inverse_of_total_distance;
-    double weight_2 = 1.0 - (distance_0 + distance_1) * inverse_of_total_distance; // It could be also: weight_2 = 1.0 - weight_0 - weight_1;
+    double weight_0 = (distance_1 + distance_2) * inverse_of_total_distance;
+    double weight_1 = (distance_2 + distance_0) * inverse_of_total_distance;
+    double weight_2 = (distance_0 + distance_1) * inverse_of_total_distance;
 
     wall->GetGeometry()[0].SetLock();
     wall->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += weight_0 * non_dim_volume_wear;
@@ -1223,24 +1218,25 @@ void SphericParticle::SymmetrizeStressTensor(){
     }*/
 }
 
-void SphericParticle::ComputeReactions(){
+void SphericParticle::ComputeReactions() {
+    
     KRATOS_TRY
-    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-        Node<3>& node = GetGeometry()[0];
-        array_1d<double, 3>& reaction_force=node.FastGetSolutionStepValue(FORCE_REACTION);
-        array_1d<double, 3>& r_total_forces = node.FastGetSolutionStepValue(TOTAL_FORCES);
-        reaction_force[0] = node.Is(DEMFlags::FIXED_VEL_X) * (-r_total_forces[0]);
-        reaction_force[1] = node.Is(DEMFlags::FIXED_VEL_Y) * (-r_total_forces[1]);
-        reaction_force[2] = node.Is(DEMFlags::FIXED_VEL_Z) * (-r_total_forces[2]);
+    
+    Node<3>& node = GetGeometry()[0];
+    array_1d<double, 3>& reaction_force = node.FastGetSolutionStepValue(FORCE_REACTION);
+    array_1d<double, 3>& r_total_forces = node.FastGetSolutionStepValue(TOTAL_FORCES);
+    reaction_force[0] = node.Is(DEMFlags::FIXED_VEL_X) * (-r_total_forces[0]);
+    reaction_force[1] = node.Is(DEMFlags::FIXED_VEL_Y) * (-r_total_forces[1]);
+    reaction_force[2] = node.Is(DEMFlags::FIXED_VEL_Z) * (-r_total_forces[2]);
 
-        if( this->Is(DEMFlags::HAS_ROTATION) ) {
-            array_1d<double, 3>& reaction_moment=this->GetGeometry()[0].FastGetSolutionStepValue(MOMENT_REACTION);
-            array_1d<double, 3>& r_total_moment = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
-            reaction_moment[0] = node.Is(DEMFlags::FIXED_ANG_VEL_X) * (-r_total_moment[0]);
-            reaction_moment[1] = node.Is(DEMFlags::FIXED_ANG_VEL_Y) * (-r_total_moment[1]);
-            reaction_moment[2] = node.Is(DEMFlags::FIXED_ANG_VEL_Z) * (-r_total_moment[2]);
-        }
+    if (this->Is(DEMFlags::HAS_ROTATION)) {
+        array_1d<double, 3>& reaction_moment = this->GetGeometry()[0].FastGetSolutionStepValue(MOMENT_REACTION);
+        array_1d<double, 3>& r_total_moment = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
+        reaction_moment[0] = node.Is(DEMFlags::FIXED_ANG_VEL_X) * (-r_total_moment[0]);
+        reaction_moment[1] = node.Is(DEMFlags::FIXED_ANG_VEL_Y) * (-r_total_moment[1]);
+        reaction_moment[2] = node.Is(DEMFlags::FIXED_ANG_VEL_Z) * (-r_total_moment[2]);
     }
+    
     KRATOS_CATCH("")
 }
 
