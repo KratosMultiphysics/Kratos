@@ -488,7 +488,7 @@ void ActiveHeatFluxNoorzai(Parameters& NoorzaiParameters)
 
     ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();        
     
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for(unsigned int i = 0; i<nnodes; ++i)
     {
         ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -568,6 +568,32 @@ void ActiveHeatFluxAzenha(Parameters& AzenhaParameters)
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+protected:
+
+    /// Member Variables
+
+    ModelPart& mrMechanicalModelPart;
+    ModelPart& mrThermalModelPart;
+    int mNumNode;
+    std::size_t mMeshId;
+    std::string mGravityDirection;
+    std::string mMechanicalSoilPart;
+    std::string mThermalSoilPart;
+    std::string mSourceType;    
+    double mReferenceCoordinate;
+    double mHeight;
+    int mPhases;
+    double mH0;
+    double mTimeUnitConverter;    
+    double mAlphaInitial;
+    bool mAging;
+    double mYoungInf;
+    unsigned int mMechanicalLastCondition;
+    unsigned int mThermalLastCondition;
+    TableType& mrTableAmbientTemp;
+    
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 void ActiveHeatFluxAzenhaAging(Parameters& AzenhaParameters)
 {
     KRATOS_TRY;
@@ -621,7 +647,6 @@ void ActiveHeatFluxAzenhaAging(Parameters& AzenhaParameters)
 
     KRATOS_CATCH("");
 }
-
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -688,32 +713,6 @@ void DeactiveFaceHeatFluxStep(std::vector<IndexType> ConditionNodeIds)
     KRATOS_CATCH("");
 }
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-protected:
-
-    /// Member Variables
-
-    ModelPart& mrMechanicalModelPart;
-    ModelPart& mrThermalModelPart;
-    int mNumNode;
-    std::size_t mMeshId;
-    std::string mGravityDirection;
-    std::string mMechanicalSoilPart;
-    std::string mThermalSoilPart;
-    std::string mSourceType;    
-    double mReferenceCoordinate;
-    double mHeight;
-    int mPhases;
-    double mH0;
-    double mTimeUnitConverter;    
-    double mAlphaInitial;
-    bool mAging;
-    double mYoungInf;
-    unsigned int mMechanicalLastCondition;
-    unsigned int mThermalLastCondition;
-    TableType& mrTableAmbientTemp;
-    
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 };//Class

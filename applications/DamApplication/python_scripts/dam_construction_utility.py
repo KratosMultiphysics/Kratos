@@ -66,14 +66,12 @@ class DamConstructionUtility:
     def InitializeSolutionStep(self):
 
         time = self.mechanical_model_part.ProcessInfo[TIME]
-        delta_time = self.mechanical_model_part.ProcessInfo[DELTA_TIME]
-        step = int(time/delta_time)-1
-
+        tol = 1e-10
         # Activation according the input file
         with open(self.construction_input_file_name,'r') as file_name3:
             for j, line in enumerate(file_name3):
                 file_3 = line.split(" ")
-                if ((len(file_3)) > 1 and (float(file_3[0]) == time)):
+                if ((len(file_3)) > 1 and ((time <=(float(file_3[0])+tol)) and (time >=(float(file_3[0])-tol)))):
                     print("New phase has been activated...")
                     self.Construction.InitializeSolutionStep(file_3[1],file_3[2],int(file_3[3]))
 

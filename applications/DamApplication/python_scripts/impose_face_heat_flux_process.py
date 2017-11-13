@@ -6,9 +6,9 @@ from KratosMultiphysics.DamApplication import *
 def Factory(settings, Model):
     if(type(settings) != Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ImposeHeatFluxProcess(Model, settings["Parameters"])
+    return ImposeFaceHeatFluxProcess(Model, settings["Parameters"])
 
-class ImposeHeatFluxProcess(Process):
+class ImposeFaceHeatFluxProcess(Process):
     
     def __init__(self, Model, settings ):
 
