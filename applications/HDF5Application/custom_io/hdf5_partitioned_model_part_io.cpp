@@ -28,6 +28,8 @@ PartitionedModelPartIO::PartitionedModelPartIO(Parameters& rParams, File::Pointe
     rParams.ValidateAndAssignDefaults(default_params);
 
     mPrefix = rParams["prefix"].GetString();
+    if (mPrefix == "/")
+        mPrefix = "";
 
     mElementNames.resize(rParams["list_of_elements"].size());
     for (unsigned i = 0; i < mElementNames.size(); ++i)
