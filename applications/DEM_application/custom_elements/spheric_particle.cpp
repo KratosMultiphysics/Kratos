@@ -876,7 +876,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
             //WEAR
             if (wall->GetProperties()[COMPUTE_WEAR]) {
-                const double area              = KRATOS_M_PI * GetInteractionRadius() * GetInteractionRadius();
+                const double area              = Globals::Pi * GetInteractionRadius() * GetInteractionRadius();
                 const double inverse_of_volume = 1.0 / (4.0 * 0.333333333333333 * area * GetInteractionRadius());
                 ComputeWear(LocalCoordSystem, RelVel, LocalRelVel, data_buffer.mDt, sliding, inverse_of_volume, LocalElasticContactForce[2], wall);
             } //wall->GetProperties()[COMPUTE_WEAR] if
