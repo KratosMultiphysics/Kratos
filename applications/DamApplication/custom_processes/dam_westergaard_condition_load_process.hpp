@@ -10,8 +10,8 @@
 //  Main authors:    Lorenzo Gracia
 //
 //
-#if !defined(KRATOS_DAM_WESTERGAARD_CONDITION_LOAD_PROCESS )
-#define  KRATOS_DAM_WESTERGAARD_CONDITION_LOAD_PROCESS
+#if !defined(KRATOS_DAM_WESTERGAARD_CONDITION_LOAD_PROCESS)
+#define KRATOS_DAM_WESTERGAARD_CONDITION_LOAD_PROCESS
 
 #include <cmath>
 
@@ -28,24 +28,22 @@ namespace Kratos
 
 class DamWestergaardConditionLoadProcess : public Process
 {
-    
-public:
 
+  public:
     KRATOS_CLASS_POINTER_DEFINITION(DamWestergaardConditionLoadProcess);
-    
-    typedef Table<double,double> TableType;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    typedef Table<double, double> TableType;
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamWestergaardConditionLoadProcess(ModelPart& rModelPart,
-                                Parameters& rParameters
-                                ) : Process(Flags()) , mrModelPart(rModelPart)
+    DamWestergaardConditionLoadProcess(ModelPart &rModelPart,
+                                       Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart)
     {
         KRATOS_TRY
-			 
+
         //only include validation with c++11 since raw_literals do not exist in c++03
-        Parameters default_parameters( R"(
+        Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
@@ -58,9 +56,8 @@ public:
                 "Water_Table"                                           : 0, 
                 "Aceleration"                                           : 0.0,
                 "Aceleration_Table"                                     : 0  
-            }  )" );
-            
-        
+            }  )");
+
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
         rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"];
@@ -69,7 +66,7 @@ public:
 
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
-        
+
         mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
         mGravityDirection = rParameters["Gravity_Direction"].GetString();
@@ -77,158 +74,154 @@ public:
         mSpecific = rParameters["Spe_weight"].GetDouble();
         mWaterLevel = rParameters["Water_level"].GetDouble();
         mAcceleration = rParameters["Aceleration"].GetDouble();
-        
+
         mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
         mTableIdWater = rParameters["Water_Table"].GetInt();
         mTableIdAcceleration = rParameters["Aceleration_Table"].GetInt();
-          
-       if(mTableIdWater != 0)
-            mpTableWater = mrModelPart.pGetTable(mTableIdWater);
-            
-        if(mTableIdAcceleration != 0)
-            mpTableAcceleration = mrModelPart.pGetTable(mTableIdAcceleration);
-        
 
-        
+        if (mTableIdWater != 0)
+            mpTableWater = mrModelPart.pGetTable(mTableIdWater);
+
+        if (mTableIdAcceleration != 0)
+            mpTableAcceleration = mrModelPart.pGetTable(mTableIdAcceleration);
+
         KRATOS_CATCH("");
     }
 
     ///------------------------------------------------------------------------------------
-    
+
     /// Destructor
     virtual ~DamWestergaardConditionLoadProcess() {}
 
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void Execute()
     {
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void ExecuteInitialize()
     {
         KRATOS_TRY;
-        
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+
+        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         int direction;
         double pressure;
-        
-        if( mGravityDirection == "X")
+
+        if (mGravityDirection == "X")
             direction = 1;
-        else if( mGravityDirection == "Y")
+        else if (mGravityDirection == "Y")
             direction = 2;
         else
             direction = 3;
-        
-		double ref_coord = mReferenceCoordinate + mWaterLevel;
-		double unit_acceleration = mAcceleration/9.81;
-                  
-        if(nnodes != 0)
+
+        double ref_coord = mReferenceCoordinate + mWaterLevel;
+        double unit_acceleration = mAcceleration / 9.81;
+
+        if (nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
 
-            #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
+#pragma omp parallel for
+            for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double y_water =  ref_coord- (it->Coordinate(direction));
-                
-                if (y_water<0.0)
-                {
-                    y_water=0.0;
-                }
-                
-                pressure = (mSpecific*(y_water)) + 0.875*(unit_acceleration)*mSpecific*sqrt(y_water*mWaterLevel);
-                it->FastGetSolutionStepValue(var) = pressure;
+                double y_water = ref_coord - (it->Coordinate(direction));
 
-            }            
+                if (y_water < 0.0)
+                {
+                    y_water = 0.0;
+                }
+
+                pressure = (mSpecific * (y_water)) + 0.875 * (unit_acceleration)*mSpecific * sqrt(y_water * mWaterLevel);
+                it->FastGetSolutionStepValue(var) = pressure;
+            }
         }
-        
+
         KRATOS_CATCH("");
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void ExecuteInitializeSolutionStep()
     {
-        
+
         KRATOS_TRY;
-        
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
-        
-        // Getting the values of table in case that it exist        
-        if(mTableIdWater != 0)
-        { 
+
+        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+
+        // Getting the values of table in case that it exist
+        if (mTableIdWater != 0)
+        {
             double time = mrModelPart.GetProcessInfo()[TIME];
-            time = time/mTimeUnitConverter;
+            time = time / mTimeUnitConverter;
             mWaterLevel = mpTableWater->GetValue(time);
         }
-        
-        if(mTableIdAcceleration != 0)
-        { 
+
+        if (mTableIdAcceleration != 0)
+        {
             double time = mrModelPart.GetProcessInfo()[TIME];
-            time = time/mTimeUnitConverter;
+            time = time / mTimeUnitConverter;
             mAcceleration = mpTableAcceleration->GetValue(time);
         }
-        
+
         const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         int direction;
         double pressure;
-                
-        if( mGravityDirection == "X")
+
+        if (mGravityDirection == "X")
             direction = 1;
-        else if( mGravityDirection == "Y")
+        else if (mGravityDirection == "Y")
             direction = 2;
         else
             direction = 3;
-        
+
         double ref_coord = mReferenceCoordinate + mWaterLevel;
-        double unit_acceleration = mAcceleration/9.81;
-                          
-        if(nnodes != 0)
+        double unit_acceleration = mAcceleration / 9.81;
+
+        if (nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
 
-            #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
+#pragma omp parallel for
+            for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-                   
-                double y_water =  ref_coord- (it->Coordinate(direction));
-                
-                if (y_water<0.0)
+
+                double y_water = ref_coord - (it->Coordinate(direction));
+
+                if (y_water < 0.0)
                 {
-                    y_water=0.0;
+                    y_water = 0.0;
                 }
-                
-                // Hydrodynamics Westergaard effects just contribute when the acceleration goes in the upstream direction                
-                if(unit_acceleration<0.0)
+
+                // Hydrodynamics Westergaard effects just contribute when the acceleration goes in the upstream direction
+                if (unit_acceleration < 0.0)
                 {
-                    pressure = (mSpecific*(y_water)) + 0.875*(-1.0*unit_acceleration)*mSpecific*sqrt(y_water*mWaterLevel);
+                    pressure = (mSpecific * (y_water)) + 0.875 * (-1.0 * unit_acceleration) * mSpecific * sqrt(y_water * mWaterLevel);
                 }
                 else
                 {
-                    pressure = (mSpecific*(y_water));
+                    pressure = (mSpecific * (y_water));
                 }
-                
-                if(pressure>0.0)
+
+                if (pressure > 0.0)
                 {
                     it->FastGetSolutionStepValue(var) = pressure;
                 }
                 else
                 {
-                    it->FastGetSolutionStepValue(var)=0.0;
+                    it->FastGetSolutionStepValue(var) = 0.0;
                 }
-            }            
+            }
         }
-        
+
         KRATOS_CATCH("");
     }
-    
+
     /// Turn back information as a string.
     std::string Info() const
     {
@@ -236,23 +229,22 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream &rOStream) const
     {
         rOStream << "DamWestergaardConditionLoadProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream &rOStream) const
     {
     }
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-protected:
-
+  protected:
     /// Member Variables
 
-    ModelPart& mrModelPart;
+    ModelPart &mrModelPart;
     std::size_t mMeshId;
     std::string mVariableName;
     std::string mGravityDirection;
@@ -264,25 +256,23 @@ protected:
     TableType::Pointer mpTableWater;
     TableType::Pointer mpTableAcceleration;
     int mTableIdWater;
-	int mTableIdAcceleration;
+    int mTableIdAcceleration;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private:
-
+  private:
     /// Assignment operator.
-    DamWestergaardConditionLoadProcess& operator=(DamWestergaardConditionLoadProcess const& rOther);
+    DamWestergaardConditionLoadProcess &operator=(DamWestergaardConditionLoadProcess const &rOther);
 
-};//Class
-
+}; //Class
 
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  DamWestergaardConditionLoadProcess& rThis);
+inline std::istream &operator>>(std::istream &rIStream,
+                                DamWestergaardConditionLoadProcess &rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const DamWestergaardConditionLoadProcess& rThis)
+inline std::ostream &operator<<(std::ostream &rOStream,
+                                const DamWestergaardConditionLoadProcess &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
