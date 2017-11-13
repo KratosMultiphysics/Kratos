@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "patch_test_2D3N_shear",
         "model_part_name" : "Structure",
-        "domain_size"     : 2,
+        "dimension"       : 2,
         "parallel_type"   : "OpenMP",
         "time_step"       : 1.1,
         "start_time"      : 0.0,
@@ -13,7 +13,7 @@
         "solver_type"                        : "solid_mechanics_static_solver",
         "echo_level"                         : 0,
         "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+	"scheme_type"                        : "Non-Linear",		
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "element_tests/updated_lagrangian_elements/patch_test_2D3N_shear",
@@ -39,7 +39,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
@@ -51,7 +50,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,null,0.0],
@@ -65,7 +63,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto2",
             "variable_name"   : "LINE_LOAD",
             "modulus"         : 1.0,
@@ -79,7 +76,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto3",
             "variable_name"   : "LINE_LOAD",
             "modulus"         : 1.0,
@@ -93,7 +89,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto4",
             "variable_name"   : "LINE_LOAD",
             "modulus"         : 1.0,
@@ -107,7 +102,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto5",
             "variable_name"   : "LINE_LOAD",
             "modulus"         : 1.0,

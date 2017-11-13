@@ -29,7 +29,6 @@ class ContactDomain(meshing_domain.MeshingDomain):
         default_settings = KratosMultiphysics.Parameters("""
         {
 	    "python_module": "contact_domain",
-            "mesh_id": 0,
             "model_part_name": "model_part_name",
             "alpha_shape": 1.4,
             "offset_factor": 0.0,
@@ -79,8 +78,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
 
         print("::[Meshing Contact Domain]:: -START-")
         
-        self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        self.mesh_id     = 0
+        self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         # Set MeshingParameters
         self.SetMeshingParameters()
@@ -100,7 +98,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
 
 
         # Meshing Stratety
-        self.MeshingStrategy.Initialize(self.MeshingParameters, self.domain_size)
+        self.MeshingStrategy.Initialize(self.MeshingParameters, self.dimension)
         
         print("::[Meshing Contact Domain]:: -END- ")
 

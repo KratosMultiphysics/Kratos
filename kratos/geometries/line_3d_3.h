@@ -204,12 +204,12 @@ public:
     /// Destructor. Do nothing!!!
     ~Line3D3() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() override
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Linear;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType() override
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Line3D3;
     }
@@ -259,21 +259,21 @@ public:
       return typename BaseType::Pointer( new Line3D3( ThisPoints ) );
     }
 
-    Geometry< Point<3> >::Pointer Clone() const override
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    // Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
-        }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //     }
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Line3D3< Point<3> >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Line3D3< Point<3> >( NewPoints ) );
 
-        return p_clone;
-    }
+    //     return p_clone;
+    // }
 
     //lumping factors for the calculation of the lumped mass matrix
     Vector& LumpingFactors( Vector& rResult ) const override
@@ -1042,30 +1042,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 ///@}
 
-//   template<class TPointType>
-//   const typename Line3D3<TPointType>::IntegrationPointsContainerType Line3D3<TPointType>::msIntegrationPoints = {
-//    Quadrature<LineGaussLegendreIntegrationPoints<1>, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//    Quadrature<LineGaussLegendreIntegrationPoints<2>, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//    Quadrature<LineGaussLegendreIntegrationPoints<3>, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
-//   };
-
-
-//   template<class TPointType>
-//   const typename Line3D3<TPointType>::ShapeFunctionsValuesContainerType
-//   Line3D3<TPointType>::msShapeFunctionsValues = {
-//    Line3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_1),
-//    Line3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_2),
-//    Line3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_3)
-//   };
-
-
-//template<class TPointType>
-//const typename GeometryData::ShapeFunctionsLocalGradientsContainerType
-//Line3D3<TPointType>::msShapeFunctionsLocalGradients = {
-// Line3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_1),
-// Line3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_2),
-// Line3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_3)
-//};
 
 template<class TPointType>
 const GeometryData Line3D3<TPointType>::msGeometryData( 3,

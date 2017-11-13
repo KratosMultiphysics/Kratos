@@ -82,7 +82,26 @@ public:
         std::vector< ConstitutiveLaw::StrainMeasure > mStrainMeasures;
     };
 
-    class Parameters
+
+	/** \brief SectionParameters
+	*
+	* SectionParameters is an accessibility class for shells using the 
+	* ShellCrossSection class. It allows one to set and get vectors and matrices
+	* associated with the shell cross section, such as strains, stresses and the
+	* constitutive matrix.
+	*
+	* An example application is taken from shell_thick_3D4N.cpp, before it's 
+	* stiffness matrix gauss loop is entered:
+	*
+	* ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
+	* parameters.SetGeneralizedStrainVector( generalizedStrains );
+	* parameters.SetGeneralizedStressVector( generalizedStresses );
+	* parameters.SetConstitutiveMatrix( D );
+	* Flags& options = parameters.GetOptions();
+	* options.Set(ConstitutiveLaw::COMPUTE_STRESS, RHSrequired);
+	* options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, LHSrequired);
+	*/
+    class SectionParameters
     {
 
     private:
@@ -101,7 +120,7 @@ public:
 
     public:
 
-        Parameters()
+        SectionParameters()
             : mpGeneralizedStrainVector(NULL)
             , mpGeneralizedStressVector(NULL)
             , mpConstitutiveMatrix(NULL)
@@ -112,7 +131,7 @@ public:
             , mpElementGeometry(NULL)
         {}
 
-        Parameters (const GeometryType& rElementGeometry,
+        SectionParameters (const GeometryType& rElementGeometry,
                     const Properties& rMaterialProperties,
                     const ProcessInfo& rCurrentProcessInfo)
             : mpGeneralizedStrainVector(NULL)
@@ -125,7 +144,7 @@ public:
             , mpElementGeometry(&rElementGeometry)
         {}
 
-        Parameters (const Parameters & rNewParameters)
+        SectionParameters (const SectionParameters & rNewParameters)
             : mOptions(rNewParameters.mOptions)
             , mpGeneralizedStrainVector(rNewParameters.mpGeneralizedStrainVector)
             , mpGeneralizedStressVector(rNewParameters.mpGeneralizedStressVector)
@@ -466,6 +485,8 @@ public:
             if(mOrientationAngle < 0.0)
                 mOrientationAngle += 360.0;
         }
+
+		void RecoverOrthotropicProperties(const unsigned int currentPly);
 
         inline const IntegrationPointCollection& GetIntegrationPoints()const
         {
@@ -891,7 +912,7 @@ public:
     * @param rStressMeasure the required stress measure
     * @see Parameters
     */
-    virtual void CalculateSectionResponse(Parameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure);
+    virtual void CalculateSectionResponse(SectionParameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure);
 
     /**
     * Updates the section response, called by the element in FinalizeSolutionStep.
@@ -899,7 +920,7 @@ public:
     * @param rStressMeasure the required stress measure
     * @see Parameters
     */
-    virtual void FinalizeSectionResponse(Parameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure);
+    virtual void FinalizeSectionResponse(SectionParameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure);
 
     /**
     * This can be used in order to reset all internal variables of the
@@ -1094,12 +1115,58 @@ public:
     */
     inline void SetOffset(double offset)
     {
-        if((mOffset != offset) && (!mEditingStack))
-        {
-            for(PlyCollection::iterator it = mStack.begin(); it != mStack.end(); ++it)
-                (*it).SetLocation((*it).GetLocation() + offset - mOffset);
-            mOffset = offset;
-        }
+    	if ((mOffset != offset) && (!mEditingStack))
+    	{
+    		for (PlyCollection::iterator it = mStack.begin(); it != mStack.end(); ++it)
+    			(*it).SetLocation((*it).GetLocation() + offset - mOffset);
+    		mOffset = offset;
+    	}
+    }
+    
+    /**
+    * Stores the thicknesses of plies of this cross section.
+    */
+    void GetPlyThicknesses(Vector& rply_thicknesses)
+    {
+    	int counter = 0;
+    	for (PlyCollection::const_iterator it = mStack.begin(); it != mStack.end(); ++it)
+    	{
+    		const Ply& iPly = *it;
+    		rply_thicknesses[counter] = iPly.GetThickness();
+    		++counter;
+    	}
+    }
+    
+    /**
+    * Setup to get the integrated constitutive matrices for each ply
+    */
+    void SetupGetPlyConstitutiveMatrices(const double shear_stabilization = 1.0)
+    {
+    	mStorePlyConstitutiveMatrices = true;
+    	mPlyConstitutiveMatrices = std::vector<Matrix>(this->NumberOfPlies());
+    
+    	for (unsigned int ply = 0; ply < this->NumberOfPlies(); ++ply)
+    	{
+    		if (mBehavior == Thick)
+    		{
+    			mPlyConstitutiveMatrices[ply].resize(8, 8, false);
+    		}
+    		else
+    		{
+    			mPlyConstitutiveMatrices[ply].resize(6, 6, false);
+    		}
+    
+    		mPlyConstitutiveMatrices[ply].clear();
+    	}
+    	mDSG_shear_stabilization = shear_stabilization;
+    }
+    
+    /**
+    * Get the integrated constitutive matrices for each ply
+    */
+    Matrix GetPlyConstitutiveMatrix(const unsigned int ply_number)
+    {
+    	return mPlyConstitutiveMatrices[ply_number];
     }
 
     /**
@@ -1221,7 +1288,27 @@ public:
     {
         return mDrillingPenalty;
     }
-
+    
+    /**
+    * Checks if the shell is an orthotropic material
+    * @return the true/false
+    */
+    bool CheckIsOrthotropic(const Properties& rProps);
+    
+    /**
+    * Parses the shell orthotropic material data from properties
+    */
+    void ParseOrthotropicPropertyMatrix(Properties& rProps, Element* myElement);
+    
+    /**
+    * Get orientation of laminae
+    */
+    void GetLaminaeOrientation(Vector& rOrientation_Vector);
+    
+    /**
+    * Get strengths of laminae
+    */
+    void GetLaminaeStrengths(std::vector<Matrix>& rLamina_Strengths, Properties& rProps);
     ///@}
 
 private:
@@ -1229,16 +1316,17 @@ private:
     ///@name Private Methods
     ///@{
 
-    void InitializeParameters(Parameters& rValues, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables);
+    void InitializeParameters(SectionParameters& rValues, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables);
 
     void UpdateIntegrationPointParameters(IntegrationPoint& rPoint, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables);
 
     void CalculateIntegrationPointResponse(IntegrationPoint& rPoint,
-                                           ConstitutiveLaw::Parameters& rMaterialValues,
-                                           Parameters& rValues,
-                                           GeneralVariables& rVariables,
-                                           const ConstitutiveLaw::StressMeasure& rStressMeasure);
-
+    	ConstitutiveLaw::Parameters& rMaterialValues,
+    	SectionParameters& rValues,
+    	GeneralVariables& rVariables,
+    	const ConstitutiveLaw::StressMeasure& rStressMeasure,
+    	const unsigned int& plyNumber);
+    
     /**
     * Creates a deep copy of this cross section.
     * Note: all constitutive laws are properly cloned.
@@ -1272,7 +1360,10 @@ private:
     bool mNeedsOOPCondensation;
     Vector mOOP_CondensedStrains;
     Vector mOOP_CondensedStrains_converged;
-
+    bool mStorePlyConstitutiveMatrices = false;
+    std::vector<Matrix> mPlyConstitutiveMatrices;
+    double mDSG_shear_stabilization;
+    
     ///@}
 
     ///@name Serialization

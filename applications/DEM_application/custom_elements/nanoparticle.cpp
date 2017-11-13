@@ -58,13 +58,12 @@ void NanoParticle::SetDefaultRadiiHierarchy(const double radius)
     SetRadius(radius);
     SetInteractionRadius(2.5 * radius);
     SetSearchRadius(3 * radius); // overwriting that established by the strategy
-    SetSearchRadiusWithFem(3 * radius);
 }
 
 double NanoParticle::CalculateVolume()
 {
     const double radius = this->GetRadius();
-    return KRATOS_M_PI * radius * radius * radius * mThicknessOverRadius;
+    return Globals::Pi * radius * radius * radius * mThicknessOverRadius;
 }
 
     

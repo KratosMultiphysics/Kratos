@@ -236,7 +236,7 @@ public:
     static void CalculateTetrahedraDistances(Element::GeometryType& ThisGeometry, array_1d<double, TSize>& Distances)
     {
         // Calculating the intersection points
-        array_1d<Point<3>, 4> intersection_points;
+        array_1d<Point, 4> intersection_points;
         int number_of_intersection_points = CalculateTetrahedraIntersectionPoints(ThisGeometry, Distances, intersection_points);
 
 //        for(int i = 0 ; i < number_of_intersection_points ; i++)
@@ -338,7 +338,7 @@ public:
     static void CalculateTriangleDistances(Element::GeometryType& ThisGeometry, array_1d<double, TSize>& Distances)
     {
         // Calculating the intersection points
-        array_1d<Point<3>, 4> intersection_points;
+        array_1d<Point, 4> intersection_points;
         int number_of_intersection_points = CalculateTetrahedraIntersectionPoints(ThisGeometry, Distances, intersection_points);
 
 //        for(int i = 0 ; i < number_of_intersection_points ; i++)
@@ -413,7 +413,7 @@ public:
      * @return Number of intersection points.
      */
     template<std::size_t TSize1, std::size_t TSize2>
-    static int CalculateTetrahedraIntersectionPoints(Element::GeometryType& ThisGeometry, array_1d<double, TSize1>& Distances, array_1d<Point<3>, TSize2>& IntersectionPoints)
+    static int CalculateTetrahedraIntersectionPoints(Element::GeometryType& ThisGeometry, array_1d<double, TSize1>& Distances, array_1d<Point, TSize2>& IntersectionPoints)
     {
         const double epsilon = 1e-15; //1.00e-9;
 
@@ -459,9 +459,9 @@ public:
      * @param ToPoint The point which distance is required
      * @return The distance between the point and the line
      */
-    static double PointDistanceToLineSegment3D(Point<3> const& LinePoint1,
-                                 Point<3> const& LinePoint2,
-                                  Point<3> const& ToPoint)
+    static double PointDistanceToLineSegment3D(Point const& LinePoint1,
+                                 Point const& LinePoint2,
+                                  Point const& ToPoint)
     {
         const double epsilon = 1e-15; //1.00e-9;
 
@@ -516,10 +516,10 @@ public:
      * @param ToPoint The point which distance is required
      * @return The distance between the point and the triangle
      */
-    static double PointDistanceToTriangle3D(Point<3> const& TrianglePoint1,
-                                 Point<3> const& TrianglePoint2,
-                                 Point<3> const& TrianglePoint3,
-                                 Point<3> const& ToPoint)
+    static double PointDistanceToTriangle3D(Point const& TrianglePoint1,
+                                 Point const& TrianglePoint2,
+                                 Point const& TrianglePoint3,
+                                 Point const& ToPoint)
     {
 		// The implementation is done using following reference:
 		// http://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf

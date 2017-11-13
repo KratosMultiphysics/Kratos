@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 
 #include "custom_elements/updated_lagrangian.hpp"
 #include "custom_elements/updated_lagrangian_UP.hpp"
@@ -139,6 +140,7 @@ BOOST_PYTHON_MODULE(KratosParticleMechanicsApplication)
     AddCustomStrategiesToPython();
     AddCustomUtilitiesToPython();
     AddCustomConstitutiveLawsToPython();
+    AddCustomProcessesToPython();
 
     def("CreateUpdatedLagragian2D3N", &CreateUpdatedLagragian2D3N);
     def("CreateUpdatedLagragianUP2D3N", &CreateUpdatedLagragianUP2D3N);

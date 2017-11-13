@@ -31,7 +31,6 @@
 #include "custom_elements/truss_element_3D2N.hpp"
 
 /* Adding beam element */
-#include "custom_elements/small_displacement_beam_element_3D2N.hpp"
 #include "custom_elements/cr_beam_element_3D2N.hpp"
 
 
@@ -40,7 +39,9 @@
 #include "custom_elements/membrane_element.hpp"
 #include "custom_elements/prestress_membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
+#include "custom_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
+#include "custom_elements/shell_thick_element_3D3N.hpp"
 #include "custom_elements/nodal_concentrated_element.hpp"
 
 /* Adding the spring damper element */
@@ -68,14 +69,20 @@
 #include "custom_conditions/surface_load_condition_3d.h"
 
 /* CONSTITUTIVE LAWS */
+#include "custom_constitutive/truss_constitutive_law.h"
+#include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
+#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
 
 /* UTILITIES */
 // Cross sections
 #include "custom_utilities/shell_cross_section.hpp"
+#include "custom_utilities/multipoint_constraint_data.hpp"
 
 namespace Kratos
 {
@@ -235,12 +242,11 @@ private:
 
     /* ELEMENTS */
 
-	// Adding the truss element
-	const TrussElement3D2N mTrussElement3D2N; 
-	const TrussElement3D2N mTrussLinearElement3D2N;
+    // Adding the truss element
+    const TrussElement3D2N mTrussElement3D2N; 
+    const TrussElement3D2N mTrussLinearElement3D2N;
 
     // Adding the beam element 
-    const SmallDisplacementBeamElement3D2N mSmallDisplacementBeamElement3D2N;
     const CrBeamElement3D2N mCrBeamElement3D2N;
     const CrBeamElement3D2N mCrLinearBeamElement3D2N;
 
@@ -249,8 +255,10 @@ private:
     const IsotropicShellElement mIsotropicShellElement3D3N;
     const ShellThickElement3D4N mShellThickElement3D4N;
     const ShellThickElement3D4N mShellThickCorotationalElement3D4N;
+    const ShellThinElement3D4N   mShellThinCorotationalElement3D4N;
     const ShellThinElement3D3N mShellThinElement3D3N;
     const ShellThinElement3D3N mShellThinCorotationalElement3D3N;
+	const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
 
     // Adding the membrane element 
     const MembraneElement mMembraneElement3D3N;
@@ -358,10 +366,15 @@ private:
     
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
+    const TrussConstitutiveLaw mTrussConstitutiveLaw;
+    const BeamConstitutiveLaw mBeamConstitutiveLaw;
     const ElasticIsotropic3D mElasticIsotropic3D;
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
+    const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
+    const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
+	  const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
 
     ///@}
     ///@name Private Operators

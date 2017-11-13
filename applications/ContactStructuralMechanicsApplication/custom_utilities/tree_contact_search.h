@@ -4,32 +4,32 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 // 
 
 #if !defined(KRATOS_TREE_CONTACT_SEARCH_H_INCLUDED )
 #define  KRATOS_TREE_CONTACT_SEARCH_H_INCLUDED
 
 // System includes
-#include <iostream>
-#include <vector>
-#include "boost/smart_ptr.hpp"
 
 // External includes
 
 // Project includes
-#include "contact_structural_mechanics_application_variables.h"
-#include "contact_structural_mechanics_application.h"
 #include "includes/model_part.h"
-#include "containers/array_1d.h"
+#include "includes/kratos_parameters.h"
+#include "utilities/openmp_utils.h"
+
+/* Custom includes*/
+#include "custom_includes/point_item.h"
+
+/* Custom utilities*/
+#include "custom_utilities/search_utilities.h"
+
+/* Tree structures */
 // #include "spatial_containers/bounding_volume_tree.h" // k-DOP
 #include "spatial_containers/spatial_containers.h" // kd-tree 
-#include "utilities/math_utils.h"                  // Cross Product
-#include "custom_utilities/contact_utilities.h"
-
-// TODO: Add parallelization
 
 namespace Kratos
 {
@@ -39,11 +39,15 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
+    
 ///@}
 ///@name  Enum's
 ///@{
-
+    
+    enum SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, Kdop = 2};
+    
+    enum CheckResult {Fail = 0, AlreadyInTheMap = 1, OK = 2};
+    
 ///@}
 ///@name  Functions
 ///@{
@@ -51,277 +55,64 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-/** @brief Custom Point container to be used by the mapper
- */
-class PointItem: public Point<3>
-{
-public:
-
-    ///@name Type Definitions
-    ///@{
-    /// Counted pointer of PointItem
-    KRATOS_CLASS_POINTER_DEFINITION( PointItem );
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructors
-    PointItem():
-        Point<3>()
-    {
-    }
-
-    PointItem(array_1d<double, 3> Coords):
-        Point<3>(Coords)
-    {}
-    
-    PointItem(
-        array_1d<double, 3> Coords,
-        Condition::Pointer Cond,
-        double Radius
-    ):
-        Point<3>(Coords),
-        mpOriginCond(Cond),
-        mRadius(Radius)
-    {}
-    
-    PointItem(
-        array_1d<double, 3> Coords,
-        Node<3>::Pointer Node
-    ):
-        Point<3>(Coords),
-        mpOriginNode(Node)
-    {}
-
-    ///Copy constructor  (not really required)
-    PointItem(const PointItem& rhs):
-        Point<3>(rhs),
-        mpOriginCond(rhs.mpOriginCond),
-        mpOriginNode(rhs.mpOriginNode),
-        mRadius(rhs.mRadius)
-    {
-    }
-
-    /// Destructor.
-    // ~PointItem();
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /**
-     * Returns the point
-     * @return The point
-     */
-    Point<3> GetPoint()
-    {
-        Point<3> Point(this->Coordinates());
-        
-        return Point;
-    }
-    
-    /**
-     * Set the point
-     * @param The point
-     */
-    void SetPoint(Point<3> Point)
-    {
-        this->Coordinates() = Point.Coordinates();
-    }
-    
-    /**
-     * Returns the radius of the condition
-     * @return mRadius: The radius of the condition
-     */
-    double GetRadius()
-    {
-        return mRadius;
-    }
-    
-    /**
-     * Sets the radius of the condition
-     * @param Radius: The radius of the condition
-     */
-    void SetRadius(const double& Radius)
-    {
-        mRadius = Radius;
-    }
-
-    /**
-     * Sets the condition associated to the point
-     * @param Cond: The pointer to the condition
-     */
-
-    void SetCondition(Condition::Pointer Cond)
-    {
-        mpOriginCond = Cond;
-    }
-    
-    /**
-     * Returns the condition associated to the point
-     * @return mpOriginCond: The pointer to the condition associated to the point
-     */
-
-    Condition::Pointer GetCondition()
-    {
-        return mpOriginCond;
-    }
-    
-    /**
-     * Sets the node associated to the point
-     * @param Node: The pointer to the node associated to the point
-     */
-
-    void SetNode(Node<3>::Pointer Node)
-    {
-        mpOriginNode = Node;
-    }
-    
-    /**
-     * Returns the condition associated to the point
-     * @return mpOriginNode: The pointer to the node associated to the point
-     */
-
-    Node<3>::Pointer GetNode()
-    {
-        return mpOriginNode;
-    }
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    Condition::Pointer mpOriginCond; // Condition pointer
-    Node<3>::Pointer   mpOriginNode; // Node pointer
-    double                  mRadius; // Radius         
-    array_1d<double, 3>     mNormal; // Normal vector      
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
-}; // Class PointItem
     
 /** \brief TreeContactSearch
- * This utilitiy has as objective to create the contact conditions. The conditions that can be created are:
- * * TODO: NTN conditions: The created conditions will be between two nodes 
- * * TODO: NTS conditions: The created conditions will be between a node and a segment (or face)
- * * Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments (En principio)
- * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree (En principio no)
- * To consider autocontact use the same model_part as origin and destination (En principio, preguntar a Riccardo)
+ * This utilitiy has as objective to create the contact conditions.
+ * The conditions that can be created are Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments
+ * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree 
  */
 
 class TreeContactSearch
 {
-
 public:
     ///@name Type Definitions
     ///@{
     
     // General type definitions
-    typedef ModelPart::NodesContainerType               NodesArrayType;
+    typedef ModelPart::NodesContainerType                    NodesArrayType;
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
-    typedef GeometryData::IntegrationMethod             IntegrationMethod;
-    typedef Node<3>                                     NodeType;
-    typedef Geometry<NodeType>                          GeometryType;
+    typedef Node<3>                                                NodeType;
+    typedef Geometry<NodeType>                                 GeometryType;
     
     // Type definitions for the tree
-    typedef PointItem                                    PointType;
-    typedef PointItem::Pointer                           PointTypePointer;
-    typedef std::vector<PointType::Pointer>              PointVector;
-    typedef std::vector<PointType::Pointer>::iterator    PointIterator;
-    typedef std::vector<double>                          DistanceVector;
-    typedef std::vector<double>::iterator                DistanceIterator;
+    typedef PointItem                                             PointType;
+    typedef PointType::Pointer                             PointTypePointer;
+    typedef std::vector<PointTypePointer>                       PointVector;
+    typedef PointVector::iterator                             PointIterator;
+    typedef std::vector<double>                              DistanceVector;
+    typedef DistanceVector::iterator                       DistanceIterator;
     
     // KDtree definitions
     typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > tree;
+    typedef Tree< KDTreePartition<BucketType> > KDTree;
 
     /// Pointer definition of TreeContactSearch
-    // KRATOS_CLASS_POINTER_DEFINITION( TreeContactSearch );
+    KRATOS_CLASS_POINTER_DEFINITION( TreeContactSearch );
       
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     // Class Constructor
-    // WARNING: Input ModelParts are expected to contain interface nodes and conditions ONLY
-    // Use an InterfacePreprocess object to create such a model part from a regular one:
-    // InterfaceMapper = InterfacePreprocess()
-    // InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
+    
+    /**
+     * The constructor of the search utility uses the following inputs:
+     * @param rMainModelPart: The model part to be considered
+     * @param AllocationSize: The allocation considered in the search
+     * @param ActiveCheckFactor: The factor considered to check if active or not
+     * @param IntegrationOrder: The integration order considered
+     * @param BucketSize: The size of the bucket
+     * NOTE: Use an InterfacePreprocess object to create such a model part from a regular one:
+     * InterfaceMapper = InterfacePreprocess()
+     * InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
+     */
+    
     TreeContactSearch(
-        ModelPart & rOriginModelPart,
-        ModelPart & rDestinationModelPart,
-        const unsigned int allocation_size
+        ModelPart & rMainModelPart,
+        Parameters ThisParameters =  Parameters(R"({})")
         );
     
-    void ModelPartSetter(
-        ModelPart & rModelPart,
-        const bool rActive,
-        const bool rSlave,
-        const bool rMaster
-        ); 
-    
-    virtual ~TreeContactSearch();
+    virtual ~TreeContactSearch()= default;;
 
     ///@}
     ///@name Operators
@@ -332,273 +123,97 @@ public:
     ///@{
 
     /**
-     * This function initializes the NTN conditions already created 
-     */
-        
-    void InitializeNTNConditions();
-    
-    /**
-     * This function initializes the NTS conditions already created 
+     * This function initializes the ALM frictionless mortar conditions already created 
      */
     
-    void InitializeNTSConditions();
-    
-    /**
-     * This function initializes the mortar conditions already created 
-     */
-    
-    void InitializeMortarConditions(
-        const double rActiveCheckFactor,
-        const double rAugmentationNormal,
-        const double rAugmentationTangent,
-        const int rIntegrationOrder
-        );
-    
-    /**
-     * This function initializes the mortar conditions already created (with double LM)
-     */
-    
-    void InitializeMortarConditionsDLM(
-        const double rActiveCheckFactor,
-        const double rEpsilon,
-        const int rIntegrationOrder
-        );
-
-    /**
-     * This function initializes nodes 
-     */
-    
-    void InitializeNodes(ModelPart & rModelPart);
-
-    /**
-     * This function initializes conditions
-     */
-    
-    void InitializeConditions(
-        ModelPart & rModelPart, 
-        const double rActiveCheckFactor,
-        const double rAugmentationNormal,
-        const double rAugmentationTangent,
-        const int rIntegrationOrder
-        );
-    
-    /**
-     * This function initializes conditions (with double LM)
-     */
-    
-    void InitializeConditionsDLM(
-        ModelPart & rModelPart, 
-        const double rActiveCheckFactor,
-        const double rEpsilon,
-        const int rIntegrationOrder
-        );
-
-    /**
-     * This function clears the NTN conditions already created 
-     */
-        
-    void TotalClearNTNConditions();
-    
-    /**
-     * This function clears the NTN conditions already created 
-     */
-        
-    void PartialClearNTNConditions();
-    
-    /**
-     * This function clears the NTS conditions already created 
-     */
-    
-    void TotalClearNTSConditions();
-    
-    /**
-     * This function clears the NTS conditions already created 
-     */
-    
-    void PartialClearNTSConditions();
+    void InitializeMortarConditions();
     
     /**
      * This function clears the mortar conditions already created 
      */
     
-    void TotalClearMortarConditions();
+    void TotalClearScalarMortarConditions();
     
     /**
      * This function clears the mortar conditions already created 
      */
     
-    void PartialClearMortarConditions();
+    void TotalClearComponentsMortarConditions();
     
     /**
-     * This function clears conditions already created 
+     * This function clears the ALM frictionless mortar conditions already created 
      */
     
-    void TotalClearConditions(ModelPart & rModelPart);
+    void TotalClearALMFrictionlessMortarConditions();
     
     /**
-     * This function clears partially the conditions already created 
+     * This function clears the mortar conditions already created (scalar version)
      */
     
-    void PartialClearConditions(ModelPart & rModelPart);
+    void PartialClearScalarMortarConditions();
     
     /**
-     * This function creates a lists  points ready for the NTN method
+     * This function clears the mortar conditions already created (components version)
      */
-    
-    void CreatePointListNTN();
+        
+    void PartialClearComponentsMortarConditions();
     
     /**
-     * This function creates a lists  points ready for the NTS method
+     * This function clears the ALM frictionless mortar conditions already created 
      */
     
-    void CreatePointListNTS();
+    void PartialClearALMFrictionlessMortarConditions();
       
     /**
      * This function creates a lists  points ready for the Mortar method
      */
     
     void CreatePointListMortar();
-    
-    /**
-     * This function creates a node list
-     */
-    
-    void CreatePointListNodes(
-        ModelPart & rModelPart, 
-        PointVector & PoinList
-        );
 
-    /**
-     * This function creates a condition list
-     */
-    
-    void CreatePointListConditions(
-        ModelPart & rModelPart, 
-        PointVector & PoinList
-        );
-    
     /**
      * This function updates a lists  points ready for the Mortar method
      */
     
-    void UpdatePointListMortar(); // TODO: Add the other updates
-    
+    void UpdatePointListMortar();
 
-    /**
-     * This function updates a node list
-     */
-    
-    void UpdatePointListNodes(
-        ModelPart & rModelPart, 
-        PointVector & PoinList
-        );
-
-    /**
-     * This function updates a condition list
-     */
-    
-    void UpdatePointListConditions(
-        ModelPart & rModelPart, 
-        PointVector & PoinList
-        );
-    
-    /**
-     * This function 
-     * @param 
-     * @return 
-     */
-        
-    void CreateNTNConditions(
-        const double SearchFactor,
-        const int type_search
-    );
-    
-    void UpdateNTNConditions(
-        const double SearchFactor,
-        const int type_search
-    );
-    
-    /**
-     * This function 
-     * @param 
-     * @return 
-     */
-        
-    void CreateNTSConditions(
-        const double SearchFactor,
-        const int type_search
-    );
-    
-    void UpdateNTSConditions(
-        const double SearchFactor,
-        const int type_search
-    );
-    
     /**
      * This function has as pourpose to find potential contact conditions and fill the mortar conditions with the necessary pointers
      * @param Searchfactor: The proportion increased of the Radius/Bounding-box volume for the search
-     * @param type_search: 0 means search in radius, 1 means search in box // TODO: Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
+     * @param TypeSearch: 0 means search in radius, 1 means search in box // TODO: Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
      * @return The mortar conditions alreay created
      */
-        
-    void CreateMortarConditions(
-        const double SearchFactor,
-        const int type_search
-    );
     
-    void UpdateMortarConditions(
-        const double SearchFactor,
-        const int type_search
-    );
+    void UpdateMortarConditions();
     
     /**
-     * 
-     * @param 
-     * @return 
+     * This function has as pourpose to clean the existing pairs
+     */
+    
+    void CleanMortarConditions();
+    
+    /**
+     * It checks the current mortar conditions
      */
     
     void CheckMortarConditions();
     
     /**
-     * 
-     * @param 
-     * @return 
+     * It sets if the search is inverted
      */
     
-    void ClearAllInactivePairs(ModelPart & rModelPart);
+    void InvertSearch();
     
     /**
-     * 
-     * @param 
-     * @param 
-     * @return 
+     * This resets the contact operators
      */
-    
-    bool CheckCondition(
-        std::vector<contact_container> *& ConditionPointers,
-        const Condition::Pointer & pCondDestination,
-        const Condition::Pointer & pCondOrigin
-        );
+        
+    void ResetContactOperators();
     
     /**
-     * Fills
-     * @param 
-     * @param ActiveCheckFactor: The proportion of the length of the geometry that is going to be taking into account to chechk if the node is active or inactive
-     * @return 
+     * This resets all the contact operators
      */
-    
-    void MortarContainerFiller(
-        Condition::Pointer & pCond_1,
-        const Condition::Pointer & pCond_2,
-        std::vector<contact_container> *& ConditionPointers,
-        const double ActiveCheckFactor
-        );
-    
-    /**
-     * It computes the mean of the normal in the condition in all the nodes
-     */
-    
-    void ComputeNodesMeanNormal();
+        
+    void TotalResetContactOperators();
     
     ///@}
     ///@name Access
@@ -647,7 +262,36 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-
+            
+    /**
+     * It check the conditions if they are correctly detected
+     * @return ConditionPointers1: A vector containing the pointers to the conditions 
+     * @param pCond1: The pointer to the condition in the destination model part
+     * @param pCond2: The pointer to the condition in the destination model part  
+     */
+    
+    static inline CheckResult CheckCondition(
+        ConditionMap::Pointer& ConditionPointers1,
+        const Condition::Pointer& pCond1,
+        const Condition::Pointer& pCond2,
+        const bool InvertedSearch = false
+        );
+    
+    /**  
+     * Calculates the minimal distance between one node and its center 
+     * @return The radius of the geometry 
+     */ 
+    
+    static inline double Radius(GeometryType& ThisGeometry);
+    
+    /**
+     * This converts the framework string to an enum
+     * @param str: The string
+     * @return SearchTreeType: The equivalent enum
+     */
+    
+    SearchTreeType ConvertSearchTree(const std::string& str);
+    
     ///@}
     ///@name Protected Operations
     ///@{
@@ -674,13 +318,18 @@ private:
     ///@name Member Variables
     ///@{
   
-    ModelPart& mrOriginModelPart;             // The original model part
-    ModelPart& mrDestinationModelPart;        // The destination model part
+    ModelPart& mrMainModelPart;               // The main model part
+    unsigned int mDimension;                  // Dimension size of the space
+    unsigned int mAllocationSize;             // Allocation size for the vectors and max number of potential results
+    double mSearchFactor;                     // The search factor to be considered
+    bool mDualSearchCheck;                    // The search is done reciprocally
+    bool mStrictSearchCheck;                  // The search is done requiring IsInside as true
+    bool mUseExactIntegration;                // The search filter the results with the exact integration
+    bool mInvertedSearch;                     // The search will be done inverting the way master and slave/master is assigned
+    SearchTreeType mSearchTreeType;           // The search tree considered
     unsigned int mBucketSize;                 // Bucket size for kd-tree
     PointVector mPointListDestination;        // A list that contents the all the points (from nodes) from the modelpart 
-    const unsigned int mdimension;            // Dimension size of the space
-    const unsigned int mallocation;           // Allocation size for the vectors and max number of potential results
-    
+
     ///@}
     ///@name Private Operators
     ///@{

@@ -39,9 +39,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamUpliftCircularConditionLoadProcess(ModelPart& model_part,
-                                Parameters rParameters
-                                ) : Process(Flags()) , mr_model_part(model_part)
+    DamUpliftCircularConditionLoadProcess(ModelPart& rModelPart,
+                                Parameters& rParameters
+                                ) : Process(Flags()) , mrModelPart(rModelPart)
     {
         KRATOS_TRY
 			 
@@ -51,7 +51,6 @@ public:
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed"                                              : false,
                 "Modify"                                                : true,
                 "Gravity_Direction"                                     : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
@@ -76,42 +75,41 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
         
-        mmesh_id = rParameters["mesh_id"].GetInt();
-        mvariable_name = rParameters["variable_name"].GetString();
-        mis_fixed = rParameters["is_fixed"].GetBool();
-        mgravity_direction = rParameters["Gravity_Direction"].GetString();
-        mreference_coordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
-        mspecific = rParameters["Spe_weight"].GetDouble();
+        mMeshId = rParameters["mesh_id"].GetInt();
+        mVariableName = rParameters["variable_name"].GetString();
+        mGravityDirection = rParameters["Gravity_Direction"].GetString();
+        mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
+        mSpecific = rParameters["Spe_weight"].GetDouble();
         
         // Getting the values of the coordinates at first bracket (reference value)
-        mupstream.resize(3,false);
-        mupstream[0] = rParameters["Upstream_Coordinate_first_bracket"][0].GetDouble();
-        mupstream[1] = rParameters["Upstream_Coordinate_first_bracket"][1].GetDouble();
-        mupstream[2] = rParameters["Upstream_Coordinate_first_bracket"][2].GetDouble();
+        mUpstream.resize(3,false);
+        mUpstream[0] = rParameters["Upstream_Coordinate_first_bracket"][0].GetDouble();
+        mUpstream[1] = rParameters["Upstream_Coordinate_first_bracket"][1].GetDouble();
+        mUpstream[2] = rParameters["Upstream_Coordinate_first_bracket"][2].GetDouble();
         
-        mdownstream.resize(3,false);
-        mdownstream[0] = rParameters["Downstream_Coordinate_first_bracket"][0].GetDouble();
-        mdownstream[1] = rParameters["Downstream_Coordinate_first_bracket"][1].GetDouble();
-        mdownstream[2] = rParameters["Downstream_Coordinate_first_bracket"][2].GetDouble();
+        mDownstream.resize(3,false);
+        mDownstream[0] = rParameters["Downstream_Coordinate_first_bracket"][0].GetDouble();
+        mDownstream[1] = rParameters["Downstream_Coordinate_first_bracket"][1].GetDouble();
+        mDownstream[2] = rParameters["Downstream_Coordinate_first_bracket"][2].GetDouble();
         
         // Getting the coordinates of the focus (reference value)
-        mfocus.resize(3,false);
-        mfocus[0] = rParameters["Focus"][0].GetDouble();
-        mfocus[1] = rParameters["Focus"][1].GetDouble();
-        mfocus[2] = rParameters["Focus"][2].GetDouble();        
+        mFocus.resize(3,false);
+        mFocus[0] = rParameters["Focus"][0].GetDouble();
+        mFocus[1] = rParameters["Focus"][1].GetDouble();
+        mFocus[2] = rParameters["Focus"][2].GetDouble();        
         
         // Drains
-        mdrain = rParameters["Drains"].GetBool();
-        mheight_drain = rParameters["Height_drain"].GetDouble();
-        mdistance_drain = rParameters["Distance"].GetDouble();
-        meffectiveness_drain = rParameters["Effectiveness"].GetDouble();
-        mwater_level = rParameters["Water_level"].GetInt();
+        mDrain = rParameters["Drains"].GetBool();
+        mHeightDrain = rParameters["Height_drain"].GetDouble();
+        mDistanceDrain = rParameters["Distance"].GetDouble();
+        mEffectivenessDrain = rParameters["Effectiveness"].GetDouble();
+        mWaterLevel = rParameters["Water_level"].GetInt();
 
-        mtime_unit_converter = mr_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
+        mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
         mTableId = rParameters["table"].GetInt();
         
         if(mTableId != 0)
-            mpTable = model_part.pGetTable(mTableId);
+            mpTable = mrModelPart.pGetTable(mTableId);
 
         KRATOS_CATCH("");
     }
@@ -124,20 +122,14 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Execute()
-    {
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void ExecuteInitialize()
     {
         
         KRATOS_TRY;
         
         //Defining necessary variables
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         array_1d<double,3> auxiliar_vector;
         
         // Gravity direction for computing the hydrostatic pressure
@@ -145,13 +137,13 @@ public:
         int radius_comp_1;
         int radius_comp_2;
         
-        if( mgravity_direction == "X")
+        if( mGravityDirection == "X")
         {
             direction = 1;
             radius_comp_1 = 1;
             radius_comp_2 = 2;
         }
-        else if( mgravity_direction == "Y")
+        else if( mGravityDirection == "Y")
         {
             direction = 2;
             radius_comp_1 = 0;
@@ -168,20 +160,20 @@ public:
         //double tetha = (mangle*2*pi)/(mnum_brackets*360);
         
         // Computation of radius for Upstream and Downstream
-        double up_radius = norm_2(mfocus - mupstream);
-        double down_radius = norm_2(mfocus - mdownstream);
+        double up_radius = norm_2(mFocus - mUpstream);
+        double down_radius = norm_2(mFocus - mDownstream);
         double width_dam = up_radius - down_radius;
                 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
             
-            double ref_coord = mreference_coordinate + mwater_level;
+            double ref_coord = mReferenceCoordinate + mWaterLevel;
             
-            if( mdrain == true)
+            if( mDrain == true)
             {
-				double coefficient_effectiveness = 1.0 - meffectiveness_drain;
-				double aux_drain = coefficient_effectiveness *(mwater_level - mheight_drain)* ((width_dam-mdistance_drain)/width_dam) + mheight_drain;
+				double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
+				double aux_drain = coefficient_effectiveness *(mWaterLevel - mHeightDrain)* ((width_dam-mDistanceDrain)/width_dam) + mHeightDrain;
 
 				#pragma omp parallel for
 				for(int i = 0; i<nnodes; i++)
@@ -189,34 +181,29 @@ public:
 					ModelPart::NodesContainerType::iterator it = it_begin + i;
                     
                     auxiliar_vector.resize(3,false);                    
-                    auxiliar_vector[0] = mfocus[0] - (it->Coordinate(1));
-                    auxiliar_vector[1] = mfocus[1] - (it->Coordinate(2));
-                    auxiliar_vector[2] = mfocus[2] - (it->Coordinate(3));
+                    auxiliar_vector[0] = mFocus[0] - (it->Coordinate(1));
+                    auxiliar_vector[1] = mFocus[1] - (it->Coordinate(2));
+                    auxiliar_vector[2] = mFocus[2] - (it->Coordinate(3));
                     
                     //// Computing the new coordinates                                        
                     double current_radius = sqrt(auxiliar_vector[radius_comp_1]*auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2]*auxiliar_vector[radius_comp_2]);
-
-					if(mis_fixed)
-					{
-						it->Fix(var);
-					}
-		
+	
                     //// We compute the first part of the uplift law 
-                    muplift_pressure = mspecific*((ref_coord -aux_drain) - (it->Coordinate(direction)))*(1.0 - ((1.0/mdistance_drain)*(fabs(current_radius-up_radius)))) + (mspecific * aux_drain); 
+                    mUpliftPressure = mSpecific*((ref_coord -aux_drain) - (it->Coordinate(direction)))*(1.0 - ((1.0/mDistanceDrain)*(fabs(current_radius-up_radius)))) + (mSpecific * aux_drain); 
                                        
                     //// If uplift pressure is greater than the limit we compute the second part and we update the value
-                    if(muplift_pressure <= mspecific*aux_drain)
+                    if(mUpliftPressure <= mSpecific*aux_drain)
                     {
-                        muplift_pressure = (mspecific*((mreference_coordinate + aux_drain)-(it->Coordinate(direction))))*(1.0 - ((1.0/(width_dam - mdistance_drain))*(fabs(current_radius-(up_radius-mdistance_drain)))));
+                        mUpliftPressure = (mSpecific*((mReferenceCoordinate + aux_drain)-(it->Coordinate(direction))))*(1.0 - ((1.0/(width_dam - mDistanceDrain))*(fabs(current_radius-(up_radius-mDistanceDrain)))));
                     }
                         
-					if(muplift_pressure<0.0)
+					if(mUpliftPressure<0.0)
 					{
 						it->FastGetSolutionStepValue(var)=0.0;
 					}
 					else
 					{
-						it->FastGetSolutionStepValue(var) = muplift_pressure;
+						it->FastGetSolutionStepValue(var) = mUpliftPressure;
 					}
 				}
 					
@@ -229,27 +216,22 @@ public:
 					ModelPart::NodesContainerType::iterator it = it_begin + i;
                     
                     auxiliar_vector.resize(3,false);                    
-                    auxiliar_vector[0] = mfocus[0] - (it->Coordinate(1));
-                    auxiliar_vector[1] = mfocus[1] - (it->Coordinate(2));
-                    auxiliar_vector[2] = mfocus[2] - (it->Coordinate(3));
+                    auxiliar_vector[0] = mFocus[0] - (it->Coordinate(1));
+                    auxiliar_vector[1] = mFocus[1] - (it->Coordinate(2));
+                    auxiliar_vector[2] = mFocus[2] - (it->Coordinate(3));
                     
                     // Computing the current distance to the focus.                    
                     double current_radius = sqrt(auxiliar_vector[radius_comp_1]*auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2]*auxiliar_vector[radius_comp_2]);
+			
+					mUpliftPressure = mSpecific*(ref_coord - (it->Coordinate(direction)))*(1.0 - (1.0/width_dam)*(fabs(current_radius-up_radius)));
                     
-					if(mis_fixed)
-					{
-						it->Fix(var);
-					}
-				
-					muplift_pressure = mspecific*(ref_coord - (it->Coordinate(direction)))*(1.0 - (1.0/width_dam)*(fabs(current_radius-up_radius)));
-                    
-					if(muplift_pressure<0.0)
+					if(mUpliftPressure<0.0)
 					{
 						it->FastGetSolutionStepValue(var)=0.0;
 					}
 					else
 					{
-						it->FastGetSolutionStepValue(var) = muplift_pressure;
+						it->FastGetSolutionStepValue(var) = mUpliftPressure;
 					}
 				}
 			}            
@@ -266,16 +248,16 @@ public:
         KRATOS_TRY;
         
         //Defining necessary variables
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         array_1d<double,3> auxiliar_vector;
         
         // Getting the values of table in case that it exist        
         if(mTableId != 0 )
         { 
-            double time = mr_model_part.GetProcessInfo()[TIME];
-            time = time/mtime_unit_converter;
-            mwater_level = mpTable->GetValue(time);
+            double time = mrModelPart.GetProcessInfo()[TIME];
+            time = time/mTimeUnitConverter;
+            mWaterLevel = mpTable->GetValue(time);
         }
 
 
@@ -284,13 +266,13 @@ public:
         int radius_comp_1;
         int radius_comp_2;
         
-        if( mgravity_direction == "X")
+        if( mGravityDirection == "X")
         {
             direction = 1;
             radius_comp_1 = 1;
             radius_comp_2 = 2;
         }
-        else if( mgravity_direction == "Y")
+        else if( mGravityDirection == "Y")
         {
             direction = 2;
             radius_comp_1 = 0;
@@ -307,20 +289,20 @@ public:
         //double tetha = (mangle*2*pi)/(mnum_brackets*360);
         
         // Computation of radius for Upstream and Downstream
-        double up_radius = norm_2(mfocus - mupstream);
-        double down_radius = norm_2(mfocus - mdownstream);
+        double up_radius = norm_2(mFocus - mUpstream);
+        double down_radius = norm_2(mFocus - mDownstream);
         double width_dam = up_radius - down_radius;
                 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
             
-            double ref_coord = mreference_coordinate + mwater_level;
+            double ref_coord = mReferenceCoordinate + mWaterLevel;
             
-            if( mdrain == true)
+            if( mDrain == true)
             {
-				double coefficient_effectiveness = 1.0 - meffectiveness_drain;
-				double aux_drain = coefficient_effectiveness *(mwater_level - mheight_drain)* ((width_dam-mdistance_drain)/width_dam) + mheight_drain;
+				double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
+				double aux_drain = coefficient_effectiveness *(mWaterLevel - mHeightDrain)* ((width_dam-mDistanceDrain)/width_dam) + mHeightDrain;
 
 				#pragma omp parallel for
 				for(int i = 0; i<nnodes; i++)
@@ -328,34 +310,29 @@ public:
 					ModelPart::NodesContainerType::iterator it = it_begin + i;
                     
                     auxiliar_vector.resize(3,false);                    
-                    auxiliar_vector[0] = mfocus[0] - (it->Coordinate(1));
-                    auxiliar_vector[1] = mfocus[1] - (it->Coordinate(2));
-                    auxiliar_vector[2] = mfocus[2] - (it->Coordinate(3));
+                    auxiliar_vector[0] = mFocus[0] - (it->Coordinate(1));
+                    auxiliar_vector[1] = mFocus[1] - (it->Coordinate(2));
+                    auxiliar_vector[2] = mFocus[2] - (it->Coordinate(3));
                     
                     //// Computing the new coordinates                                        
                     double current_radius = sqrt(auxiliar_vector[radius_comp_1]*auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2]*auxiliar_vector[radius_comp_2]);
-
-					if(mis_fixed)
-					{
-						it->Fix(var);
-					}
 		
                     //// We compute the first part of the uplift law 
-                    muplift_pressure = mspecific*((ref_coord -aux_drain) - (it->Coordinate(direction)))*(1.0 - ((1.0/mdistance_drain)*(fabs(current_radius-up_radius)))) + (mspecific * aux_drain); 
+                    mUpliftPressure = mSpecific*((ref_coord -aux_drain) - (it->Coordinate(direction)))*(1.0 - ((1.0/mDistanceDrain)*(fabs(current_radius-up_radius)))) + (mSpecific * aux_drain); 
                                        
                     //// If uplift pressure is greater than the limit we compute the second part and we update the value
-                    if(muplift_pressure <= mspecific*aux_drain)
+                    if(mUpliftPressure <= mSpecific*aux_drain)
                     {
-                        muplift_pressure = (mspecific*((mreference_coordinate + aux_drain)-(it->Coordinate(direction))))*(1.0 - ((1.0/(width_dam - mdistance_drain))*(fabs(current_radius-(up_radius-mdistance_drain)))));
+                        mUpliftPressure = (mSpecific*((mReferenceCoordinate + aux_drain)-(it->Coordinate(direction))))*(1.0 - ((1.0/(width_dam - mDistanceDrain))*(fabs(current_radius-(up_radius-mDistanceDrain)))));
                     }
                         
-					if(muplift_pressure<0.0)
+					if(mUpliftPressure<0.0)
 					{
 						it->FastGetSolutionStepValue(var)=0.0;
 					}
 					else
 					{
-						it->FastGetSolutionStepValue(var) = muplift_pressure;
+						it->FastGetSolutionStepValue(var) = mUpliftPressure;
 					}
 				}
 					
@@ -368,27 +345,22 @@ public:
 					ModelPart::NodesContainerType::iterator it = it_begin + i;
                     
                     auxiliar_vector.resize(3,false);                    
-                    auxiliar_vector[0] = mfocus[0] - (it->Coordinate(1));
-                    auxiliar_vector[1] = mfocus[1] - (it->Coordinate(2));
-                    auxiliar_vector[2] = mfocus[2] - (it->Coordinate(3));
+                    auxiliar_vector[0] = mFocus[0] - (it->Coordinate(1));
+                    auxiliar_vector[1] = mFocus[1] - (it->Coordinate(2));
+                    auxiliar_vector[2] = mFocus[2] - (it->Coordinate(3));
                     
                     // Computing the current distance to the focus.                    
                     double current_radius = sqrt(auxiliar_vector[radius_comp_1]*auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2]*auxiliar_vector[radius_comp_2]);
+                				
+					mUpliftPressure = mSpecific*(ref_coord - (it->Coordinate(direction)))*(1.0 - (1.0/width_dam)*(fabs(current_radius-up_radius)));
                     
-					if(mis_fixed)
-					{
-						it->Fix(var);
-					}
-				
-					muplift_pressure = mspecific*(ref_coord - (it->Coordinate(direction)))*(1.0 - (1.0/width_dam)*(fabs(current_radius-up_radius)));
-                    
-					if(muplift_pressure<0.0)
+					if(mUpliftPressure<0.0)
 					{
 						it->FastGetSolutionStepValue(var)=0.0;
 					}
 					else
 					{
-						it->FastGetSolutionStepValue(var) = muplift_pressure;
+						it->FastGetSolutionStepValue(var) = mUpliftPressure;
 					}
 				}
 			}            
@@ -420,24 +392,22 @@ protected:
 
     /// Member Variables
 
-    ModelPart& mr_model_part;
-    std::size_t mmesh_id;
-    std::string mvariable_name;
-    std::string mgravity_direction;
-    bool mis_fixed;
-    double mreference_coordinate;
-    double mspecific;
-    double mbase_dam;
-    double mwater_level;
-    bool mdrain;
-    double mheight_drain;
-    double mdistance_drain;
-    double meffectiveness_drain;
-    double muplift_pressure;
-    Vector mupstream;
-    Vector mdownstream;
-    Vector mfocus;
-    double mtime_unit_converter;
+    ModelPart& mrModelPart;
+    std::size_t mMeshId;
+    std::string mVariableName;
+    std::string mGravityDirection;
+    double mReferenceCoordinate;
+    double mSpecific;
+    double mWaterLevel;
+    bool mDrain;
+    double mHeightDrain;
+    double mDistanceDrain;
+    double mEffectivenessDrain;
+    double mUpliftPressure;
+    Vector mUpstream;
+    Vector mDownstream;
+    Vector mFocus;
+    double mTimeUnitConverter;
     TableType::Pointer mpTable;
     int mTableId;  
     

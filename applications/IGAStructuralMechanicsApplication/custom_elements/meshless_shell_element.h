@@ -128,7 +128,7 @@ private:
 
 
 	ConstitutiveLaw::Pointer mConstitutiveLawVector;
-	Geometry< Point<3, double> >::Pointer  mpReferenceGeometry;
+	Geometry< Point >::Pointer  mpReferenceGeometry;
 
 	double mDetJ0;
 

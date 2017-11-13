@@ -107,6 +107,8 @@ class NavierStokesBaseSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)          # PATCH_INDEX belongs to FluidDynamicsApp.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)          # Q_VALUE belongs to FluidDynamicsApp.
+
 
         print("Base class fluid solver variables added correctly")
 

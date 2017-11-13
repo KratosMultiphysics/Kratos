@@ -1,10 +1,45 @@
 cmake_minimum_required (VERSION 2.8.6)
+
+if(POLICY CMP0054)
+  cmake_policy(SET CMP0054 OLD)
+endif(POLICY CMP0054)
+
 project (KratosMultiphysics)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 5)
 set (KratosMultiphysics_MINOR_VERSION 1)
 set (KratosMultiphysics_PATCH_VERSION 0)
+
+# Define custom compiler build types
+SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
+SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
+#SET( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" )
+#SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
+SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
+SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
+#SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
+
+# Define internal CMake flags needed
+SET( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
+SET( CMAKE_SHARED_LINKER_FLAGS_FULLDEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" )
+SET( CMAKE_EXE_LINKER_FLAGS_FULLDEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG}" )
+SET( CMAKE_C_FLAGS_CUSTOM "" )
+SET( CMAKE_CXX_FLAGS_CUSTOM "" )
+SET( CMAKE_SHARED_LINKER_FLAGS_CUSTOM "" )
+SET( CMAKE_EXE_LINKER_FLAGS_CUSTOM "" )
+
+# If build mode is not defined, assume Release
+if(NOT CMAKE_BUILD_TYPE)
+  message("Undefined CMAKE_BUILD_TYPE, building in 'Release' mode.")
+  set(CMAKE_BUILD_TYPE Release)
+else(NOT CMAKE_BUILD_TYPE)
+  list(FIND CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} FOUND_MODE)
+  if(FOUND_MODE EQUAL -1)
+    message("Unknown CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}', using 'Release'.")
+    set(CMAKE_BUILD_TYPE Release)
+  endif(FOUND_MODE EQUAL -1)
+endif(NOT CMAKE_BUILD_TYPE)
 
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
@@ -22,6 +57,12 @@ else(GIT_FOUND)
   set (KratosMultiphysics_SHA1_NUMBER 0)
 endif(GIT_FOUND)
 
+set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+if( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
+  set (KratosMultiphysics_BUILD_SUFFIX "")
+else( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
+  set (KratosMultiphysics_BUILD_SUFFIX "-${CMAKE_BUILD_TYPE}" )
+endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
@@ -30,18 +71,14 @@ configure_file(
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -ffast-math -Wall -std=c++11")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -ffast-math -Wall")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
-
-#   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
-#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
-#   endif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
-
   message("additional default options were set for gcc")
   message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
   message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 endif(${CMAKE_COMPILER_IS_GNUCXX})
+
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
@@ -109,8 +146,17 @@ if(${MSVC14})
   # Nothing needed right now
 endif(${MSVC14})
 
-# Tell the linker to give an error if undefined functions are found
-# set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+# If no test policy enable by default
+if(NOT DEFINED KRATOS_BUILD_TESTING)
+	message("KRATOS_BUILD_TESTING not defined. Setting to ON")
+	SET (KRATOS_BUILD_TESTING ON)
+endif(NOT DEFINED KRATOS_BUILD_TESTING)
+
+# If install prefix is set, install all the files.
+if(DEFINED KRATOS_INSTALL_PREFIX)
+	SET(INSTALL_TESTING_FILES ON)
+	SET(INSTALL_PYTHON_FILES ON)
+endif(DEFINED KRATOS_INSTALL_PREFIX)
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
@@ -118,11 +164,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 ######################################################################################
 ######################################################################################
 ######################################################################################
-
-# if(DEFINED KRATOS_EXTRA_LINK_LIBRARIES)
-#     link_directories(${KRATOS_EXTRA_LINK_PATH})
-#     find_library(EXTRA_LINK_LIBS ${KRATOS_EXTRA_LINK_LIBRARIES} PATH ${KRATOS_EXTRA_LINK_PATH} )
-# endif(DEFINED KRATOS_EXTRA_LINK_LIBRARIES)
 
 ## Find all dependencies
 
@@ -198,6 +239,10 @@ endif(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON )
 if(${TRILINOS_APPLICATION} MATCHES ON )
   set(BLAS_INCLUDE_NEEDED ON)
 endif(${TRILINOS_APPLICATION} MATCHES ON )
+
+if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+  find_package(Tetgen REQUIRED)
+endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
 
 # BLAS and LAPACK
 if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
@@ -284,17 +329,6 @@ include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
 
-if(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
-    message("*************** ATTENTION AVOIDING DEFINING NDEBUG --- EXTREMELY SLOW!! ***************************")
-else(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
-    add_definitions( -DNDEBUG )
-endif(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
-
-if(${KRATOS_DEBUG} MATCHES ON )
-    message("*************** DEFINING KRATOS_DEBUG --- VERY SLOW!! ***************************")
-    add_definitions( -DKRATOS_DEBUG )
-endif(${KRATOS_DEBUG} MATCHES ON )
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -304,6 +338,10 @@ add_subdirectory(external_libraries/zlib)
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 add_subdirectory(applications)
+
+#compiling the triangle library
+add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)
+
 
 # Embedded python - compiles "krun and packages the python lib needed"
 if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
@@ -324,8 +362,6 @@ else(DEFINED KRATOS_INSTALL_PREFIX)
   message("--------------------------------  standard install dir ${CMAKE_INSTALL_PREFIX}")
 endif(DEFINED KRATOS_INSTALL_PREFIX)
 
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("inc_dirs = ${inc_dirs}")
 
 ################################################################################
 # install core files for the KratosMultiphysics python module

@@ -23,6 +23,7 @@
 #include "../custom_elements/discrete_element.h"
 #include "../custom_elements/spheric_particle.h"
 #include "../custom_utilities/discrete_particle_configure.h"
+#include "analytic_tools/analytic_watcher.h"
 
 
 namespace Kratos {
@@ -45,6 +46,8 @@ public:
 
     /// Default constructor 
     ParticleCreatorDestructor();
+
+    ParticleCreatorDestructor(AnalyticWatcher::Pointer p_watcher);
 
     /// Destructor
     virtual ~ParticleCreatorDestructor();
@@ -278,6 +281,7 @@ private:
     double mScaleFactor;
     int mGreatestParticleId;
     bool mDoSearchNeighbourElements;
+    AnalyticWatcher::Pointer mpAnalyticWatcher;
     void Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size);
     inline void ClearVariables(ModelPart::NodesContainerType::iterator node_it, Variable<array_1d<double, 3 > >& rVariable);
     inline void ClearVariables(ParticleIterator particle_it, Variable<double>& rVariable);

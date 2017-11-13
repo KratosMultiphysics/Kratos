@@ -1245,8 +1245,8 @@ namespace Kratos {
 
        inline bool  IsIntersected(typename cell_type::pointer_type rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
     {
-        Point<3,double> low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
-        Point<3,double> high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
+        Point low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
+        Point high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
 
 
         return HasIntersection(rObject->GetGeometry(), low_point, high_point);
@@ -1256,12 +1256,12 @@ namespace Kratos {
 
 
     /// detect if  triangle and box are intersected
-    virtual bool HasIntersection(Element::GeometryType& geom_1, const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint )
+    virtual bool HasIntersection(Element::GeometryType& geom_1, const Point& rLowPoint, const Point& rHighPoint )
     {
 //        const BaseType& geom_1 = rGeometry;
 
-        Point<3, double> boxcenter;
-        Point<3, double> boxhalfsize;
+        Point boxcenter;
+        Point boxhalfsize;
 
         boxcenter[0]   = 0.50 * ( rLowPoint[0] + rHighPoint[0] );
         boxcenter[1]   = 0.50 * ( rLowPoint[1] + rHighPoint[1] );
@@ -1274,7 +1274,7 @@ namespace Kratos {
 
         std::size_t size = geom_1.size();
 
-        std::vector<Point<3, double> > triverts;
+        std::vector<Point> triverts;
 
         triverts.resize( size );
 
@@ -1326,7 +1326,7 @@ namespace Kratos {
             return false;
     }
 
-        inline bool TriBoxOverlap( Point<3, double>& boxcenter, Point<3, double>& boxhalfsize, std::vector< Point<3, double> >& triverts )
+        inline bool TriBoxOverlap( Point& boxcenter, Point& boxhalfsize, std::vector< Point >& triverts )
     {
 
         /*    use separating axis theorem to test overlap between triangle and box */
@@ -1486,7 +1486,7 @@ namespace Kratos {
                                        double& min, double& max, double& rad,
                                        array_1d<double, 3 >& v0,
                                        array_1d<double, 3 >& v2,
-                                       Point<3, double>& boxhalfsize
+                                       Point& boxhalfsize
                                      )
     {
         p0 = a * v0[1] - b * v0[2];
@@ -1515,7 +1515,7 @@ namespace Kratos {
                                       double& min, double& max, double& rad,
                                       array_1d<double, 3 >& v0,
                                       array_1d<double, 3 >& v1,
-                                      Point<3, double>& boxhalfsize
+                                      Point& boxhalfsize
                                     )
     {
         p0 = a * v0[1] - b * v0[2];
@@ -1545,7 +1545,7 @@ namespace Kratos {
                                        double& min, double& max, double& rad,
                                        array_1d<double, 3 >& v0,
                                        array_1d<double, 3 >& v2,
-                                       Point<3, double>& boxhalfsize
+                                       Point& boxhalfsize
                                      )
     {
 
@@ -1575,7 +1575,7 @@ namespace Kratos {
                                       double& min, double& max, double& rad,
                                       array_1d<double, 3 >& v0,
                                       array_1d<double, 3 >& v1,
-                                      Point<3, double>& boxhalfsize
+                                      Point& boxhalfsize
                                     )
 
     {
@@ -1607,7 +1607,7 @@ namespace Kratos {
                                        double& min, double& max, double& rad,
                                        array_1d<double, 3 >& v1,
                                        array_1d<double, 3 >& v2,
-                                       Point<3, double>& boxhalfsize
+                                       Point boxhalfsize
                                      )
     {
         p1 = a * v1[0] - b * v1[1];
@@ -1636,7 +1636,7 @@ namespace Kratos {
                                       double& min, double& max, double& rad,
                                       array_1d<double, 3 >& v0,
                                       array_1d<double, 3 >& v1,
-                                      Point<3, double>& boxhalfsize
+                                      Point& boxhalfsize
                                     )
     {
         p0 = a * v0[0] - b * v0[1];

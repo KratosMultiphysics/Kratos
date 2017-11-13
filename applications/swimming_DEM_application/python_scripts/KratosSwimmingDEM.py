@@ -16,7 +16,7 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
 class Solution:
-    def __init__(self, algorithm = None, varying_parameters = dict()):
+    def __init__(self, algorithm = None, varying_parameters = Parameters("{}")):
         self.alg = algorithm
 
         if self.alg == None:

@@ -1,44 +1,18 @@
-//verification
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-==============================================================================
- */
+//    |  /           | 
+//    ' /   __| _` | __|  _ \   __| 
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/ 
+//                   Multi-Physics  
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: jcotela $
-//   Date:                $Date: 2010-10-09 10:34:00 $
-//   Revision:            $Revision: 0.1 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                   Jordi Cotela
 //
-#if !defined(KRATOS_TWO_FLUID_TwoFluidVMS2_H_INCLUDED )
-#define  KRATOS_TWO_FLUID_TwoFluidVMS2_H_INCLUDED
+
+#if !defined(KRATOS_TWO_FLUID_VMS_H_INCLUDED )
+#define  KRATOS_TWO_FLUID_VMS_H_INCLUDED
 // System includes
 #include <string>
 #include <iostream>
@@ -49,12 +23,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/vms.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/math_utils.h"
 #include "utilities/split_tetrahedra.h"
 // #include "utilities/enrichment_utilities.h"
 #include "utilities/enrichment_utilities_duplicate_dofs.h"
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "vms.h"
+
 namespace Kratos
 {
     
@@ -240,6 +216,8 @@ public:
                                           ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
+
+        const ProcessInfo& rConstProcessInfo = rCurrentProcessInfo; // Taking const reference for thread safety
     
         //****************************************************
         // Resize and set to zero the RHS
@@ -256,7 +234,7 @@ public:
 
        //****************************************************
         //Get Vector of BDF coefficients
-        const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
+        const Vector& BDFVector = rConstProcessInfo[BDF_COEFFICIENTS];
 
        //****************************************************
         // Get this element's geometric properties
@@ -370,10 +348,10 @@ KRATOS_WATCH(Ngauss);  */
 //             }
 //         }
 
-
-
-
-
+        // Porous media losses
+        const Properties& r_properties = this->GetProperties();
+        const double A = r_properties[LIN_DARCY_COEF];
+        const double B = r_properties[NONLIN_DARCY_COEF];
 
 
         //****************************************************
@@ -405,14 +383,15 @@ KRATOS_WATCH(Ngauss);  */
             // Get Advective velocity
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
+            const double VelNorm = MathUtils<double>::Norm3(AdvVel);
+            const double DarcyTerm = A + B*VelNorm;
             // Calculate stabilization parameters
             double TauOne, TauTwo;
 
             //compute stabilization parameters
-            this->CalculateTau(TauOne, TauTwo, AdvVel, ElemSize, Density, Viscosity, rCurrentProcessInfo);
-//              TauOne = rCurrentProcessInfo[DELTA_TIME]/Density;
+            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
 
-            this->AddIntegrationPointVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, wGauss);
+            this->AddIntegrationPointVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, DarcyTerm, TauOne, TauTwo, N, DN_DX, wGauss);
             
             //compute mass matrix - terms related to real mass
             this->AddConsistentMassMatrixContribution(MassMatrix, N, Density, wGauss);
@@ -518,12 +497,14 @@ KRATOS_WATCH(Ngauss);  */
             // Get Advective velocity
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
+            const double VelNorm = MathUtils<double>::Norm3(AdvVel);
+            const double DarcyTerm = A + B*VelNorm;
 
             double TauOne,TauTwo;
-            this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
+            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
 
             // Add dynamic stabilization terms ( all terms involving a delta(u) )
-            this->AddMassStabTerms(MassMatrix, Density, AdvVel, TauOne, N, DN_DX, wGauss);
+            this->AddMassStabTerms(MassMatrix, Density, AdvVel, DarcyTerm, TauOne, N, DN_DX, wGauss);
 
         }
         
@@ -999,6 +980,7 @@ protected:
             const double Density,
             const double Viscosity,
             const array_1d< double, 3 > & rAdvVel,
+            const double ReactionTerm,
             const double TauOne,
             const double TauTwo,
             const array_1d< double, TNumNodes >& rShapeFunc,
@@ -1013,21 +995,25 @@ protected:
 
         // Build the local matrix and RHS
         unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
-        double K, G, PDivV, L, qF; // Temporary results
+        double K, PDivV, L, qF; // Temporary results
 
         array_1d<double,3> BodyForce(3,0.0);
         this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
         BodyForce *= Density;
+        
+        array_1d<double, TNumNodes> StabilizationOperator = Density*AGradN;
+        noalias(StabilizationOperator) -= ReactionTerm * rShapeFunc;
+        StabilizationOperator *= TauOne;
 
         for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
         {
             for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over columns
             {
-                // Calculate the part of the contributions that is constant for each node combination
-
-                // Velocity block
-                K = Density * rShapeFunc[i] * AGradN[j]; // Convective term: v * ( a * Grad(u) )
-                K += TauOne * Density * AGradN[i] * Density * AGradN[j]; // Stabilization: (a * Grad(v)) * TauOne * (a * Grad(u))
+                // Convection + Reaction: v *( a*Grad(u) + sigma*u )
+                // For Darcy: sigma = A + B|u|
+                K = rShapeFunc[i] * ( Density*AGradN[j] + ReactionTerm*rShapeFunc[j] );
+                // Stabilization: (a * Grad(v) - sigma * N) * TauOne *( a*Grad(u) + sigma*u )
+                K += StabilizationOperator[i] * ( Density*AGradN[j] + ReactionTerm*rShapeFunc[j] );
                 K *= Weight;
 
                 // q-p stabilization block (reset result)
@@ -1037,18 +1023,17 @@ protected:
                 
                 for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
                 {
-                    // Velocity block
-//                        K += Weight * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
+                    // v-p block (pressure gradient)
+                    double div_v_p = rShapeDeriv(i, m) * rShapeFunc[j];
+                    double stab_grad_p = StabilizationOperator[i] * rShapeDeriv(j,m);
+                    rDampingMatrix(FirstRow + m, FirstCol + TDim) += Weight * (stab_grad_p - div_v_p);
 
-                    // v * Grad(p) block
-                    G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
+                    // q-u block (velocity divergence)
+                    double q_div_u = rShapeFunc[i] * rShapeDeriv(j,m);
+                    double stab_div_u = TauOne*rShapeDeriv(i,m)* ( Density*AGradN[j] + ReactionTerm * rShapeFunc[j] );
+                    rDampingMatrix(FirstRow + TDim, FirstCol + m) += Weight * ( q_div_u + stab_div_u );
+
                     PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
-
-                    // Write v * Grad(p) component
-                    rDampingMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
-                    // Use symmetry to write the q * Div(u) component
-                    rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
-                    
                     rDampRHS[FirstCol + TDim] -=  Weight * PDivV*OldVel[m];
 
                     // q-p stabilization block
@@ -1059,7 +1044,6 @@ protected:
                         // Velocity block
                         rDampingMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
                     }
-
                 }
 
                 // Write remaining terms to velocity block
@@ -1069,7 +1053,6 @@ protected:
                 // Write q-p stabilization block
                 rDampingMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
 
-
                 // Update reference column index for next iteration
                 FirstCol += BlockSize;
             }
@@ -1078,7 +1061,7 @@ protected:
             qF = 0.0;
             for (unsigned int d = 0; d < TDim; ++d)
             {
-                rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+                rDampRHS[FirstRow + d] += Weight * StabilizationOperator[i] * BodyForce[d]; // (a * Grad(v) - sigma * N) * TauOne * (Density * BodyForce)
                 qF += rShapeDeriv(i, d) * BodyForce[d];
             }
             rDampRHS[FirstRow + TDim] += Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
@@ -1088,9 +1071,72 @@ protected:
             FirstCol = 0;
         }
 
-//            this->AddBTransCB(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
         this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
     }
+
+    void AddMassStabTerms(MatrixType& rLHSMatrix,
+                          const double Density,
+                          const array_1d<double, 3 > & rAdvVel,
+                          const double ReactionTerm,
+                          const double TauOne,
+                          const array_1d<double, TNumNodes>& rShapeFunc,
+                          const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                          const double Weight)
+    {
+        const unsigned int BlockSize = TDim + 1;
+
+        unsigned int FirstRow(0), FirstCol(0);
+        double K; // Temporary results
+
+        // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
+        array_1d<double, TNumNodes> AGradN;
+        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
+
+        array_1d<double, TNumNodes> StabilizationOperator = Density*AGradN;
+        noalias(StabilizationOperator) -= ReactionTerm * rShapeFunc;
+        StabilizationOperator *= TauOne;
+
+        // Note: Dof order is (vx,vy,[vz,]p) for each node
+        for (unsigned int i = 0; i < TNumNodes; ++i)
+        {
+            // Loop over columns
+            for (unsigned int j = 0; j < TNumNodes; ++j)
+            {
+                // Delta(u) * TauOne * [ AdvVel * Grad(v) - sigma * N ] in velocity block
+                K = Weight * StabilizationOperator[i] * Density * rShapeFunc[j];
+
+                for (unsigned int d = 0; d < TDim; ++d) // iterate over dimensions for velocity Dofs in this node combination
+                {
+                    rLHSMatrix(FirstRow + d, FirstCol + d) += K;
+                    // Delta(u) * TauOne * Grad(q) in q * Div(u) block
+                    rLHSMatrix(FirstRow + TDim, FirstCol + d) += Weight * TauOne * rShapeDeriv(i, d) * Density * rShapeFunc[j];
+                }
+                // Update column index
+                FirstCol += BlockSize;
+            }
+            // Update matrix indices
+            FirstRow += BlockSize;
+            FirstCol = 0;
+        }
+    }
+
+    void CalculateTau(
+        double& TauOne,
+        double& TauTwo,
+        const double VelNorm,
+        const double ElemSize,
+        const double Density,
+        const double DynamicViscosity,
+        const double ReactionTerm,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        const double DynamicTerm = rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME];
+        double InvTau = Density * ( DynamicTerm + 2.0*VelNorm / ElemSize ) + 4.0*DynamicViscosity/ (ElemSize * ElemSize) + ReactionTerm;
+        TauOne = 1.0 / InvTau;
+        
+        TauTwo = DynamicViscosity + 0.5 * Density * ElemSize * VelNorm;
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1168,4 +1214,4 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 ///@}
 ///@} // Fluid Dynamics Application group
 } // namespace Kratos.
-#endif // KRATOS_TWO_FLUID_TwoFluidVMS2_H_INCLUDED  defined
+#endif // KRATOS_TWO_FLUID_VMS_H_INCLUDED  defined

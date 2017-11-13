@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -131,7 +131,7 @@ namespace Kratos
             
             double det = MathUtils<double>::GeneralizedDet(mat23);
             
-            KRATOS_CHECK_NEAR(det, 0.0, tolerance);
+            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
             
             Matrix mat55 = ZeroMatrix(5, 5);
             mat55(0,0) =   1.0;
@@ -548,7 +548,6 @@ namespace Kratos
             }
             
             KRATOS_CHECK_EQUAL(converged, true);
-            
         }
         
         /** Checks if it calculates the dot product 

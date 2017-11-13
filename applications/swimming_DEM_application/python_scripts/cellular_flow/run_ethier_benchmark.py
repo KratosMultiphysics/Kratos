@@ -4,10 +4,11 @@ import ProjectParameters as pp
 import DEM_explicit_solver_var as DEM_parameters
 varying_parameters = dict()
 
-irregular_mesh_sizes = {0.2}
-regular_mesh_n_points = set()
-derivatives_types = range(1, 3)
+irregular_mesh_sizes = set() #{0.1, 0.2, 0.4}
+regular_mesh_n_points = [10, 20, 40]
+derivatives_types = [6]
 combinations_that_failed = []
+errors = []
 for size in irregular_mesh_sizes.union(regular_mesh_n_points):
     varying_parameters['size_parameter'] = size
     for derivatives_type in derivatives_types:
@@ -20,6 +21,7 @@ for size in irregular_mesh_sizes.union(regular_mesh_n_points):
                 test.alg.Run()
             except:
                 error = sys.exc_info()
+                errors.append(error)
                 combinations_that_failed.append({'size':size, 'type':derivatives_type})
 
 print()
@@ -28,8 +30,9 @@ print('****************************************')
 if len(combinations_that_failed):
     print('The following combinations produced an error:')
     print()
-    for combination in combinations_that_failed:
+    for combination, error in zip(combinations_that_failed, errors):
         print(combination)
+        print(error)
 else:
     print('All combinations run without errors')
 print('****************************************')
