@@ -44,7 +44,6 @@ def CreateSolver(main_model_part, custom_settings):
             raise Exception(err_msg)
 
     else:
-        
         err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
