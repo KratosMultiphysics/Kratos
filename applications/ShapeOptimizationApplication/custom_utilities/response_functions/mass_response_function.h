@@ -99,7 +99,7 @@ public:
 		}
 		// Throw error message in case of wrong specification
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: finite_differencing ", gradientMode);
+			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: finite_differencing. Specified gradient_mode: " << gradientMode << std::endl;
 
 		mConsiderDiscretization =  responseSettings["discretization_weighting"].GetBool();
 
@@ -286,7 +286,7 @@ public:
 		KRATOS_TRY;
 
 		if(!m_initial_value_defined)
-			KRATOS_THROW_ERROR(std::logi:error, "Initial value not yet defined! First compute it by calling \"calculate_value()\"", m_initial_value_defined);
+			KRATOS_ERROR << "Initial value not yet defined! First compute it by calling \"calculate_value()\"!" << std::endl;
 
 		return m_initial_value;
 

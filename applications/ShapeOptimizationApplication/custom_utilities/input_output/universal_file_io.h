@@ -83,7 +83,7 @@ public:
         if(WriteConditionsFlag.compare("WriteElementsOnly")==0 || WriteConditionsFlag.compare("WriteConditionsOnly")==0 )
             mWriteConditionsFlag = WriteConditionsFlag;        
         else
-            KRATOS_THROW_ERROR(std::runtime_error,"Wrong value specified for \"WriteConditionsFlag\" in UniversalFileIO. Options are: \"WriteElementsOnly\" or \"WriteConditionsOnly\"","" )
+            KRATOS_ERROR << "Wrong value specified for \"WriteConditionsFlag\" in UniversalFileIO. Options are: \"WriteElementsOnly\" or \"WriteConditionsOnly\"" << std::endl;
     }
 
     /// Destructor.
@@ -254,7 +254,7 @@ public:
                 outputFile << std::setw(10) << element_geometry[3].Id() << "\n";                     
             }             
             else 
-                KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains elements with geometries for which no UNV-output is implemented!","" )
+                KRATOS_ERROR << "Design surface contains elements with geometries for which no UNV-output is implemented!" << std::endl;
         }
 
         outputFile << std::setw(6) << "-1" << "\n";
@@ -310,7 +310,7 @@ public:
                 outputFile << std::setw(10) << condition_geometry[3].Id() << "\n";                     
             } 
             else 
-                KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains conditions with geometries for which no UNV-output is implemented!","" )
+                KRATOS_ERROR << "Design surface contains conditions with geometries for which no UNV-output is implemented!" << std::endl;
         }
 
         outputFile << std::setw(6) << "-1" << "\n";

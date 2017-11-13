@@ -81,7 +81,7 @@ public:
         if(WriteConditionsFlag.compare("WriteElementsOnly")==0 || WriteConditionsFlag.compare("WriteConditionsOnly")==0 )
             mWriteConditionsFlag = WriteConditionsFlag;        
         else
-            KRATOS_THROW_ERROR(std::runtime_error,"Wrong value specified for \"WriteConditionsFlag\" in VTKFileIO. Options are: \"WriteElementsOnly\" or \"WriteConditionsOnly\"","" )
+            KRATOS_ERROR << "Wrong value specified for \"WriteConditionsFlag\" in VTKFileIO. Options are: \"WriteElementsOnly\" or \"WriteConditionsOnly\"" << std::endl;
     }
 
     /// Destructor.
@@ -294,7 +294,7 @@ public:
             else if( numberOfNodes == 8 && dimension == 3) // hex
                 vtk_cell_type = 12;                                        
             else
-                KRATOS_THROW_ERROR(std::runtime_error,"Optimization model part contains elements with geometries for which no VTK-output is implemented!","" )
+                KRATOS_ERROR << "Optimization model part contains elements with geometries for which no VTK-output is implemented!" << std::endl;
 
             outputFile << vtk_cell_type << "\n";
         }
@@ -320,7 +320,7 @@ public:
             else if( numberOfNodes == 4  && dimension == 2) // quad
                 vtk_cell_type = 9;
             else
-                KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains conditions with geometries for which no VTK-output is implemented!","" )
+                KRATOS_ERROR << "Design surface contains conditions with geometries for which no VTK-output is implemented!" << std::endl;
 
             outputFile << vtk_cell_type << "\n";
         }

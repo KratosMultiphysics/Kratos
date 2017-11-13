@@ -102,7 +102,7 @@ public:
 
 		// Throw error message in case of wrong specification
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: analytic , semi_analytic. Specified gradient_mode: ", gradientMode);
+			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: analytic , semi_analytic. Specified gradient_mode: " << gradientMode << std::endl;
 
 		mConsiderDiscretization =  responseSettings["discretization_weighting"].GetBool();
 
@@ -151,7 +151,7 @@ public:
 			}
 
 			if (!sensitivity_analysis_implemented)
-				KRATOS_THROW_ERROR(std::logic_error, "Analytic sensitivity analysis for given element type not implemented. Please choose for complete model part elements that support an analytic sensitivity analysis", "");
+				KRATOS_ERROR << "Analytic sensitivity analysis for given element type not implemented. Please choose for complete model part elements that support an analytic sensitivity analysis" << std::endl;
 		}
 	}
 
@@ -249,8 +249,8 @@ public:
 		KRATOS_TRY;
 
 		if(!m_initial_value_defined)
-			KRATOS_THROW_ERROR(std::logi:error, "Initial value not yet defined! First compute it by calling \"calculate_value()\"", m_initial_value_defined);
-
+		KRATOS_ERROR << "Initial value not yet defined! First compute it by calling \"calculate_value()\"!" << std::endl;
+		
 		return m_initial_value;
 
 		KRATOS_CATCH("");
