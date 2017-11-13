@@ -20,6 +20,7 @@
 
 #include "includes/cfd_variables.h"
 #include "custom_utilities/fluid_element_data_container.h"
+#include "custom_utilities/fluid_element_data.h"
 #include "fluid_dynamics_application_variables.h"
 
 
@@ -47,6 +48,39 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+template< size_t TDim, size_t TNumNodes >
+class DSSData : public FluidElementData<TDim,TNumNodes>
+{
+public:
+
+using NodalScalarData = typename FluidElementData<TDim,TNumNodes>::NodalScalarData;
+using NodalVectorData = typename FluidElementData<TDim,TNumNodes>::NodalVectorData;
+
+NodalVectorData Velocity;
+NodalVectorData MeshVelocity;
+NodalVectorData BodyForce;
+NodalVectorData MomentumProjection;
+
+NodalScalarData Pressure;
+NodalScalarData Density;
+NodalScalarData Viscosity;
+NodalScalarData MassProjection;
+
+void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
+{
+    const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
+    this->FillFromNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
+    this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
+    this->FillFromNodalData(MomentumProjection,ADVPROJ,r_geometry);
+    this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
+    this->FillFromNodalData(Density,DENSITY,r_geometry);
+    this->FillFromNodalData(Viscosity,VISCOSITY,r_geometry);
+    this->FillFromNodalData(MassProjection,DIVPROJ,r_geometry);
+}
+
+};
 
 #define ELEMENT_VARIABLES(APPLY_MACRO)      \
     APPLY_MACRO(VELOCITY, NodalVector)      \
