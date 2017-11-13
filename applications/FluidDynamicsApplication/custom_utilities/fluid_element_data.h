@@ -63,7 +63,7 @@ public:
     ///@name Public Operations
     ///@{
 
-    virtual void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo);
+    virtual void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) = 0;
 
     virtual void UpdateGeometryValues(double NewWeight,
         boost::numeric::ublas::matrix_row<Kratos::Matrix>& rN,
@@ -75,7 +75,7 @@ public:
     
     double Weight;
 
-    boost::numeric::ublas::matrix_row< Kratos::Matrix > N;
+    array_1d<double,TNumNodes> N;
 
     boost::numeric::ublas::bounded_matrix< double, TNumNodes, TDim > DN_DX;
     

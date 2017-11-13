@@ -19,7 +19,7 @@ void FluidElementData<TDim, TNumNodes>::UpdateGeometryValues(double NewWeight,
     boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX)
 {
     this->Weight = NewWeight;
-    this->N = rN;
+    noalias(this->N) = rN;
     noalias(this->DN_DX) = rDN_DX;
 }
 
@@ -80,7 +80,7 @@ void FluidElementData<TDim, TNumNodes>::FillFromProcessInfo(double& rData,
     rData = rProcessInfo.GetValue(rVariable);
 }
 
-template<> class FluidElementData<2,3>;
-template<> class FluidElementData<3,4>;
+template class FluidElementData<2,3>;
+template class FluidElementData<3,4>;
 
 }
