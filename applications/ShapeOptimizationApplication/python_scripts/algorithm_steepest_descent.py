@@ -119,8 +119,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __alignSensitivitiesToLocalSurfaceNormal( self ):
-            self.geometryTools.compute_unit_surface_normals()
-            self.geometryTools.project_nodal_variable_on_unit_surface_normals( OBJECTIVE_SENSITIVITY )
+            self.geometryTools.ComputeUnitSurfaceNormals()
+            self.geometryTools.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __dampSensitivities( self ):
@@ -129,8 +129,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __computeShapeUpdate( self ):
         self.__mapSensitivitiesToDesignSpace()
-        self.optimizationTools.compute_search_direction_steepest_descent()
-        self.optimizationTools.compute_control_point_update()
+        self.optimizationTools.ComputeSearchDirectionSteepestDescent()
+        self.optimizationTools.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
 
     # --------------------------------------------------------------------------
@@ -179,7 +179,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __updateShape( self ):
-        self.optimizationTools.update_control_point_change_by_input_variable( CONTROL_POINT_UPDATE )
-        self.geometryTools.update_shape_change_by_input_variable( SHAPE_UPDATE )
+        self.optimizationTools.UpdateControlPointChangeByInputVariable( CONTROL_POINT_UPDATE )
+        self.geometryTools.UpdateShapeChangeByInputVariable( SHAPE_UPDATE )
 
 # ==============================================================================

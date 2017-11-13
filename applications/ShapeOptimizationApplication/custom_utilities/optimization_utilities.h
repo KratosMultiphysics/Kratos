@@ -112,7 +112,7 @@ public:
     // ==============================================================================
     // General optimization operations
     // ==============================================================================
-    void compute_control_point_update()
+    void ComputeControlPointUpdate()
     {
         KRATOS_TRY;
 
@@ -135,28 +135,28 @@ public:
             }
             max_norm_search_dir = sqrt(max_norm_search_dir);
 
-            // Compute update
-            for (auto & node_i : mrDesignSurface.Nodes())
+            // Normalize by max norm
+            if(max_norm_search_dir>1e-10)
             {
-                array_3d design_update = step_size * ( node_i.FastGetSolutionStepValue(SEARCH_DIRECTION)/max_norm_search_dir );
-                noalias(node_i.FastGetSolutionStepValue(CONTROL_POINT_UPDATE)) = design_update;
+                for (auto & node_i : mrDesignSurface.Nodes())
+                {
+                    array_3d normalized_search_direction = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION)/max_norm_search_dir;
+                    noalias(node_i.FastGetSolutionStepValue(SEARCH_DIRECTION)) = normalized_search_direction;
+                }
             }
+            else
+                std::cout << "> WARNING: Normalization of search direction by max norm activated but max norm is < 1e-10. Hence normalization is ommited!" << std::endl;
         }
-        else
-        {
-            // Compute update
-            for (auto & node_i : mrDesignSurface.Nodes())
-            {
-                array_3d design_update = step_size * ( node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) );
-                noalias(node_i.FastGetSolutionStepValue(CONTROL_POINT_UPDATE)) = design_update;
-            }
-        }
+
+        // Compute update
+        for (auto & node_i : mrDesignSurface.Nodes())
+            noalias(node_i.FastGetSolutionStepValue(CONTROL_POINT_UPDATE)) = step_size * node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
 
         KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
-    void update_control_point_change_by_input_variable( const Variable<array_3d> &rNodalVariable )
+    void UpdateControlPointChangeByInputVariable( const Variable<array_3d> &rNodalVariable )
     {
         for (auto & node_i : mrDesignSurface.Nodes())
             noalias(node_i.FastGetSolutionStepValue(CONTROL_POINT_CHANGE)) += node_i.FastGetSolutionStepValue(rNodalVariable);
@@ -165,7 +165,7 @@ public:
     // ==============================================================================
     // For running unconstrained descent methods
     // ==============================================================================
-    void compute_search_direction_steepest_descent()
+    void ComputeSearchDirectionSteepestDescent()
     {
         KRATOS_TRY;
 
@@ -184,7 +184,7 @@ public:
     // ==============================================================================
     // For running penalized projection method
     // ==============================================================================
-    void compute_projected_search_direction()
+    void ComputeProjectedSearchDirection()
     {
         KRATOS_TRY;
 
@@ -224,7 +224,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void correct_projected_search_direction( double constraint_value )
+    void CorrectProjectedSearchDirection( double constraint_value )
     {
         mConstraintValue = constraint_value;
 

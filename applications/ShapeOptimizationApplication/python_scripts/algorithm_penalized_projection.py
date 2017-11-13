@@ -130,9 +130,9 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __alignSensitivitiesToLocalSurfaceNormal( self ):
-            self.geometryTools.compute_unit_surface_normals()
-            self.geometryTools.project_nodal_variable_on_unit_surface_normals( OBJECTIVE_SENSITIVITY )
-            self.geometryTools.project_nodal_variable_on_unit_surface_normals( CONSTRAINT_SENSITIVITY )
+            self.geometryTools.ComputeUnitSurfaceNormals()
+            self.geometryTools.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
+            self.geometryTools.ProjectNodalVariableOnUnitSurfaceNormals( CONSTRAINT_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __dampSensitivities( self ):
@@ -146,12 +146,12 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         constraintValue = self.Communicator.getReportedFunctionValueOf( self.onlyConstraint )
 
         if self.__isConstraintActive( constraintValue ):
-            self.optimizationTools.compute_projected_search_direction()
-            self.optimizationTools.correct_projected_search_direction( constraintValue )
+            self.optimizationTools.ComputeProjectedSearchDirection()
+            self.optimizationTools.CorrectProjectedSearchDirection( constraintValue )
         else:
-            self.optimizationTools.compute_search_direction_steepest_descent()
+            self.optimizationTools.ComputeSearchDirectionSteepestDescent()
 
-        self.optimizationTools.compute_control_point_update()
+        self.optimizationTools.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
 
     # --------------------------------------------------------------------------
@@ -210,7 +210,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __updateShape( self ):
-        self.optimizationTools.update_control_point_change_by_input_variable( CONTROL_POINT_UPDATE )
-        self.geometryTools.update_shape_change_by_input_variable( SHAPE_UPDATE )
+        self.optimizationTools.UpdateControlPointChangeByInputVariable( CONTROL_POINT_UPDATE )
+        self.geometryTools.UpdateShapeChangeByInputVariable( SHAPE_UPDATE )
 
 # ==============================================================================

@@ -82,47 +82,47 @@ void  AddCustomUtilitiesToPython()
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
-        .def("compute_search_direction_steepest_descent", &OptimizationUtilities::compute_search_direction_steepest_descent)
+        .def("ComputeSearchDirectionSteepestDescent", &OptimizationUtilities::ComputeSearchDirectionSteepestDescent)
         // ----------------------------------------------------------------
         // For running penalized projection method
         // ----------------------------------------------------------------
-        .def("compute_projected_search_direction", &OptimizationUtilities::compute_projected_search_direction)
-        .def("correct_projected_search_direction", &OptimizationUtilities::correct_projected_search_direction)
+        .def("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
+        .def("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------
-        .def("compute_control_point_update", &OptimizationUtilities::compute_control_point_update)
-        .def("update_control_point_change_by_input_variable", &OptimizationUtilities::update_control_point_change_by_input_variable)        
+        .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
+        .def("UpdateControlPointChangeByInputVariable", &OptimizationUtilities::UpdateControlPointChangeByInputVariable)        
         ;
 
     // ========================================================================
     // For pre- and post-processing of geometry data
     // ========================================================================
     class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&>())
-        .def("compute_unit_surface_normals", &GeometryUtilities::compute_unit_surface_normals)
-        .def("project_nodal_variable_on_unit_surface_normals", &GeometryUtilities::project_nodal_variable_on_unit_surface_normals)
-        .def("update_shape_change_by_input_variable", &GeometryUtilities::update_shape_change_by_input_variable)
-        .def("extract_surface_nodes", &GeometryUtilities::extract_surface_nodes)
+        .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
+        .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
+        .def("UpdateShapeChangeByInputVariable", &GeometryUtilities::UpdateShapeChangeByInputVariable)
+        .def("ExtractSurfaceNodes", &GeometryUtilities::ExtractSurfaceNodes)
         ;
 
     // ========================================================================
     // For calculations related to response functions
     // ========================================================================
     class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, Parameters>())
-        .def("initialize", &StrainEnergyResponseFunction::initialize)
-        .def("calculate_value", &StrainEnergyResponseFunction::calculate_value)
-        .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient)
-        .def("get_value", &StrainEnergyResponseFunction::get_value)
-        .def("get_initial_value", &StrainEnergyResponseFunction::get_initial_value)
-        .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)
+        .def("Initialize", &StrainEnergyResponseFunction::Initialize)
+        .def("CalculateValue", &StrainEnergyResponseFunction::CalculateValue)
+        .def("CalculateGradient", &StrainEnergyResponseFunction::CalculateGradient)
+        .def("GetValue", &StrainEnergyResponseFunction::GetValue)
+        .def("GetInitialValue", &StrainEnergyResponseFunction::GetInitialValue)
+        .def("GetGradient", &StrainEnergyResponseFunction::GetGradient)
         ;
     class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, Parameters>())
-        .def("initialize", &MassResponseFunction::initialize)
-        .def("calculate_value", &MassResponseFunction::calculate_value)
-        .def("calculate_gradient", &MassResponseFunction::calculate_gradient)
-        .def("get_value", &MassResponseFunction::get_value)
-        .def("get_initial_value", &MassResponseFunction::get_initial_value)
-        .def("get_gradient", &MassResponseFunction::get_gradient)
+        .def("Initialize", &MassResponseFunction::Initialize)
+        .def("CalculateValue", &MassResponseFunction::CalculateValue)
+        .def("CalculateGradient", &MassResponseFunction::CalculateGradient)
+        .def("GetValue", &MassResponseFunction::GetValue)
+        .def("GetInitialValue", &MassResponseFunction::GetInitialValue)
+        .def("GetGradient", &MassResponseFunction::GetGradient)
         ;
 
     // ========================================================================

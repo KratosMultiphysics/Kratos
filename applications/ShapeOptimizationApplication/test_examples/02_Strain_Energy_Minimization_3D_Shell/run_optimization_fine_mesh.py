@@ -106,7 +106,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         CSM_solver.SetEchoLevel(echo_level)
 
         for responseFunctionId in listOfResponseFunctions:
-            listOfResponseFunctions[responseFunctionId].initialize()
+            listOfResponseFunctions[responseFunctionId].Initialize()
 
         # Start process
         for process in self.list_of_processes:
@@ -135,20 +135,20 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
             print("\n> Starting calculation of response value")
             startTime = timer.time()                    
-            listOfResponseFunctions["strain_energy"].calculate_value()
+            listOfResponseFunctions["strain_energy"].CalculateValue()
             print("> Time needed for calculation of response value = ",round(timer.time() - startTime,2),"s")
 
-            communicator.reportFunctionValue("strain_energy", listOfResponseFunctions["strain_energy"].get_value())    
+            communicator.reportFunctionValue("strain_energy", listOfResponseFunctions["strain_energy"].GetValue())    
 
         # Calculation of gradient of objective function
         if communicator.isRequestingGradientOf("strain_energy"): 
 
             print("\n> Starting calculation of gradients")
             startTime = timer.time()               
-            listOfResponseFunctions["strain_energy"].calculate_gradient()
+            listOfResponseFunctions["strain_energy"].CalculateGradient()
             print("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
             
-            gradientForCompleteModelPart = listOfResponseFunctions["strain_energy"].get_gradient()
+            gradientForCompleteModelPart = listOfResponseFunctions["strain_energy"].GetGradient()
             gradientOnDesignSurface = {}
             for node in currentDesign.Nodes:
                 gradientOnDesignSurface[node.Id] = gradientForCompleteModelPart[node.Id]
