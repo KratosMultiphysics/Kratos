@@ -43,6 +43,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/boussinesq_force_process.cpp
 
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/nodal_data_handler.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_element_data.cpp
 )
 
 ## fluid dynamics testing sources
