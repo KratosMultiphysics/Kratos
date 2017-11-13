@@ -38,8 +38,7 @@ endif()
 
 find_package(HDF5 REQUIRED COMPONENTS C)
 
-string(REGEX MATCH "1\\.[0-9]+" HDF5_MAJOR_MINOR_VERSION ${HDF5_VERSION})
-if(NOT HDF5_MAJOR_MINOR_VERSION EQUAL "1.8")
+if(HDF5_VERSION VERSION_LESS "1.8" )
   message(FATAL_ERROR "HDF5 1.8 is required.")
 endif()
 
