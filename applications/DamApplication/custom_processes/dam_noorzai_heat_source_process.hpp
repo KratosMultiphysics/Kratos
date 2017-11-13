@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_DAM_NOORZAI_HEAT_SOURCE_PROCESS )
-#define  KRATOS_DAM_NOORZAI_HEAT_SOURCE_PROCESS
+#if !defined(KRATOS_DAM_NOORZAI_HEAT_SOURCE_PROCESS)
+#define KRATOS_DAM_NOORZAI_HEAT_SOURCE_PROCESS
 
 #include <cmath>
 
@@ -29,22 +29,20 @@ namespace Kratos
 
 class DamNoorzaiHeatFluxProcess : public Process
 {
-    
-public:
 
+  public:
     KRATOS_CLASS_POINTER_DEFINITION(DamNoorzaiHeatFluxProcess);
-    
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamNoorzaiHeatFluxProcess(ModelPart& rModelPart,
-                                Parameters& rParameters
-                                ) : Process(Flags()) , mrModelPart(rModelPart)
+    DamNoorzaiHeatFluxProcess(ModelPart &rModelPart,
+                              Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart)
     {
         KRATOS_TRY
-			 
+
         //only include validation with c++11 since raw_literals do not exist in c++03
-        Parameters default_parameters( R"(
+        Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
@@ -53,8 +51,8 @@ public:
                 "specific_heat"                        : 0.0,
                 "t_max"                               : 0.0,
                 "alpha"                               : 0.0            
-            }  )" );
-        
+            }  )");
+
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
         rParameters["t_max"];
@@ -75,48 +73,48 @@ public:
     }
 
     ///------------------------------------------------------------------------------------
-    
+
     /// Destructor
     virtual ~DamNoorzaiHeatFluxProcess() {}
-  
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void ExecuteInitialize()
-{ 
-    KRATOS_TRY;
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
-    Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
-
-    double time = mrModelPart.GetProcessInfo()[TIME];
-    double value = mDensity*mSpecificHeat*mAlpha*mTMax*(exp(-mAlpha*time));
-
-    if(nnodes != 0)
+    void ExecuteInitialize()
     {
-        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+        KRATOS_TRY;
 
-        #pragma omp parallel for
-        for(int i = 0; i<nnodes; i++)
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+
+        double time = mrModelPart.GetProcessInfo()[TIME];
+        double value = mDensity * mSpecificHeat * mAlpha * mTMax * (exp(-mAlpha * time));
+
+        if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;             
-            it->FastGetSolutionStepValue(var) = value;
-        }            
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+
+#pragma omp parallel for
+            for (int i = 0; i < nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->FastGetSolutionStepValue(var) = value;
+            }
+        }
+        KRATOS_CATCH("");
     }
-    KRATOS_CATCH("");
-}
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void ExecuteInitializeSolutionStep()
-{
-    KRATOS_TRY;
+    void ExecuteInitializeSolutionStep()
+    {
+        KRATOS_TRY;
 
-    this->ExecuteInitialize();
+        this->ExecuteInitialize();
 
-    KRATOS_CATCH("");
-}
+        KRATOS_CATCH("");
+    }
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Turn back information as a string.
     std::string Info() const
@@ -125,45 +123,43 @@ void ExecuteInitializeSolutionStep()
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream &rOStream) const
     {
         rOStream << "DamNoorzaiHeatFluxProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream &rOStream) const
     {
     }
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-protected:
-
+  protected:
     /// Member Variables
-    ModelPart& mrModelPart;
+    ModelPart &mrModelPart;
     std::size_t mMeshId;
     std::string mVariableName;
     double mDensity;
     double mSpecificHeat;
     double mAlpha;
-    double mTMax;    
+    double mTMax;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private:
-
+  private:
     /// Assignment operator.
-    DamNoorzaiHeatFluxProcess& operator=(DamNoorzaiHeatFluxProcess const& rOther);
+    DamNoorzaiHeatFluxProcess &operator=(DamNoorzaiHeatFluxProcess const &rOther);
 
-};//Class
+}; //Class
 
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-    DamNoorzaiHeatFluxProcess& rThis);
+inline std::istream &operator>>(std::istream &rIStream,
+                                DamNoorzaiHeatFluxProcess &rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const DamNoorzaiHeatFluxProcess& rThis)
+inline std::ostream &operator<<(std::ostream &rOStream,
+                                const DamNoorzaiHeatFluxProcess &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -175,4 +171,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_DAM_NOORZAI_HEAT_SOURCE_PROCESS defined */
-
