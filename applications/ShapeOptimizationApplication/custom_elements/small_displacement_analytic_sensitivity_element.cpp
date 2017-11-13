@@ -73,7 +73,7 @@ Element::Pointer SmallDisplacementAnalyticSensitivityElement::Clone( IndexType N
 		NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 
 		if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-			KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+			KRATOS_ERROR << "Constitutive law not has the correct size. Size is: " << NewElement.mConstitutiveLawVector.size() << std::endl;
 	}
 
 
@@ -234,7 +234,7 @@ void SmallDisplacementAnalyticSensitivityElement::CalculateDerivedDeformationMat
         }
     }
     else
-        KRATOS_THROW_ERROR( std::invalid_argument, "Wrong dimension specified.", "" )
+        KRATOS_ERROR << "Wrong dimension specified." << std::endl;
 		
     KRATOS_CATCH( "" )
 }

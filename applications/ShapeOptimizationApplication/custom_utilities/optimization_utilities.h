@@ -85,9 +85,9 @@ public:
     ///@{
 
     /// Default constructor.
-    OptimizationUtilities( ModelPart& designSurface, Parameters::Pointer optimizationSettings )
+    OptimizationUtilities( ModelPart& designSurface, Parameters optimizationSettings )
         : mrDesignSurface( designSurface ),
-          mpOptimizationSettings( optimizationSettings )
+          mOptimizationSettings( optimizationSettings )
     {
         // Initialize constraint value
         mConstraintValue = 0.0;
@@ -112,12 +112,12 @@ public:
     // ==============================================================================
     // General optimization operations
     // ==============================================================================
-    void compute_design_update()
+    void ComputeControlPointUpdate()
     {
         KRATOS_TRY;
 
-        double step_size = (*mpOptimizationSettings)["line_search"]["step_size"].GetDouble();
-        bool normalize_search_direction = (*mpOptimizationSettings)["line_search"]["normalize_search_direction"].GetBool();
+        double step_size = mOptimizationSettings["line_search"]["step_size"].GetDouble();
+        bool normalize_search_direction = mOptimizationSettings["line_search"]["normalize_search_direction"].GetBool();
 
 
         // Computation of update of design variable. Normalization is applied if specified.
@@ -125,9 +125,9 @@ public:
         {
             // Compute max norm of search direction
             double max_norm_search_dir = 0.0;
-            for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+            for (auto & node_i : mrDesignSurface.Nodes())
             {
-                array_3d& search_dir = node_i->FastGetSolutionStepValue(SEARCH_DIRECTION);
+                array_3d& search_dir = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
                 double squared_length = inner_prod(search_dir,search_dir);
                 
                 if(squared_length>max_norm_search_dir)
@@ -135,36 +135,37 @@ public:
             }
             max_norm_search_dir = sqrt(max_norm_search_dir);
 
-            // Compute update
-            for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+            // Normalize by max norm
+            if(max_norm_search_dir>1e-10)
             {
-                array_3d design_update = step_size * ( node_i->FastGetSolutionStepValue(SEARCH_DIRECTION)/max_norm_search_dir );
-                noalias(node_i->FastGetSolutionStepValue(DESIGN_UPDATE)) = design_update;
-
-                // Sum design updates to obtain control point position
-                noalias(node_i->FastGetSolutionStepValue(DESIGN_CHANGE_ABSOLUTE)) += design_update;
+                for (auto & node_i : mrDesignSurface.Nodes())
+                {
+                    array_3d normalized_search_direction = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION)/max_norm_search_dir;
+                    noalias(node_i.FastGetSolutionStepValue(SEARCH_DIRECTION)) = normalized_search_direction;
+                }
             }
+            else
+                std::cout << "> WARNING: Normalization of search direction by max norm activated but max norm is < 1e-10. Hence normalization is ommited!" << std::endl;
         }
-        else
-        {
-            // Compute update
-            for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
-            {
-                array_3d design_update = step_size * ( node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) );
-                noalias(node_i->FastGetSolutionStepValue(DESIGN_UPDATE)) = design_update;
 
-                // Sum design updates to obtain control point position
-                noalias(node_i->FastGetSolutionStepValue(DESIGN_CHANGE_ABSOLUTE)) += design_update;
-            }
-        }
+        // Compute update
+        for (auto & node_i : mrDesignSurface.Nodes())
+            noalias(node_i.FastGetSolutionStepValue(CONTROL_POINT_UPDATE)) = step_size * node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
 
         KRATOS_CATCH("");
+    }
+
+    // --------------------------------------------------------------------------
+    void UpdateControlPointChangeByInputVariable( const Variable<array_3d> &rNodalVariable )
+    {
+        for (auto & node_i : mrDesignSurface.Nodes())
+            noalias(node_i.FastGetSolutionStepValue(CONTROL_POINT_CHANGE)) += node_i.FastGetSolutionStepValue(rNodalVariable);
     }
 
     // ==============================================================================
     // For running unconstrained descent methods
     // ==============================================================================
-    void compute_search_direction_steepest_descent()
+    void ComputeSearchDirectionSteepestDescent()
     {
         KRATOS_TRY;
 
@@ -172,9 +173,9 @@ public:
         std::cout << "\n> No constraints given or active. The negative objective gradient is chosen as search direction..." << std::endl;
 
         // search direction is negative of filtered gradient
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        for (auto & node_i : mrDesignSurface.Nodes())
         {
-            node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) = -1.0 * node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
+            node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) = -1.0 * node_i.FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
         }
 
         KRATOS_CATCH("");
@@ -183,7 +184,7 @@ public:
     // ==============================================================================
     // For running penalized projection method
     // ==============================================================================
-    void compute_projected_search_direction()
+    void ComputeProjectedSearchDirection()
     {
         KRATOS_TRY;
 
@@ -192,38 +193,38 @@ public:
 
         // Compute norm of constraint gradient
         double norm_2_dCds_i = 0.0;
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        for (auto & node_i : mrDesignSurface.Nodes())
         {
-        	array_3d& dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+        	array_3d& dCds_i = node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
             norm_2_dCds_i += inner_prod(dCds_i,dCds_i);
         }
        norm_2_dCds_i = sqrt(norm_2_dCds_i);
 
         // Compute dot product of objective gradient and normalized constraint gradient
         double dot_dFds_dCds = 0.0;
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        for (auto & node_i : mrDesignSurface.Nodes())
         {
-        	array_3d dFds_i = node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
-        	array_3d dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+        	array_3d dFds_i = node_i.FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
+        	array_3d dCds_i = node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
             dot_dFds_dCds += inner_prod(dFds_i,(dCds_i / norm_2_dCds_i));
         }
 
         // Compute and assign projected search direction
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        for (auto & node_i : mrDesignSurface.Nodes())
         {
-        	array_3d& dFds_i = node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
-        	array_3d& dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+        	array_3d& dFds_i = node_i.FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
+        	array_3d& dCds_i = node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
 
         	array_3d projection_term = dot_dFds_dCds * (dCds_i / norm_2_dCds_i);
 
-            node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) = -1 * (dFds_i - projection_term);
+            node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) = -1 * (dFds_i - projection_term);
         }
 
         KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
-    void correct_projected_search_direction( double constraint_value )
+    void CorrectProjectedSearchDirection( double constraint_value )
     {
         mConstraintValue = constraint_value;
 
@@ -233,10 +234,10 @@ public:
 
         // Perform correction
         double correction_factor = ComputeCorrectionFactor();
-    	for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+    	for (auto & node_i : mrDesignSurface.Nodes())
     	{
-    		array_3d correction_term = correction_factor * mConstraintValue * node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
-    		node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) -= correction_term;
+    		array_3d correction_term = correction_factor * mConstraintValue * node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+    		node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) -= correction_term;
     	}
 
         // Store constraint value for next correction step
@@ -248,12 +249,12 @@ public:
     {
     	double norm_correction_term = 0.0;
     	double norm_search_direction = 0.0;
-    	for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+    	for (auto & node_i : mrDesignSurface.Nodes())
     	{
-    		array_3d correction_term = mConstraintValue * node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+    		array_3d correction_term = mConstraintValue * node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
     		norm_correction_term += inner_prod(correction_term,correction_term);
 
-    		array_3d ds = node_i->FastGetSolutionStepValue(SEARCH_DIRECTION);
+    		array_3d ds = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
     		norm_search_direction += inner_prod(ds,ds);
     	}
     	norm_correction_term = sqrt(norm_correction_term);
@@ -266,11 +267,11 @@ public:
     // --------------------------------------------------------------------------
     double GetCorrectionScaling()
     {
-        double correction_scaling = (*mpOptimizationSettings)["optimization_algorithm"]["correction_scaling"].GetDouble(); 
-        if((*mpOptimizationSettings)["optimization_algorithm"]["use_adaptive_correction"].GetBool())
+        double correction_scaling = mOptimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble(); 
+        if(mOptimizationSettings["optimization_algorithm"]["use_adaptive_correction"].GetBool())
         {
             correction_scaling = AdaptCorrectionScaling( correction_scaling );
-            (*mpOptimizationSettings)["optimization_algorithm"]["correction_scaling"].SetDouble(correction_scaling);
+            mOptimizationSettings["optimization_algorithm"]["correction_scaling"].SetDouble(correction_scaling);
         }
         return correction_scaling;
     }
@@ -387,7 +388,7 @@ private:
     // Initialized by class constructor
     // ==============================================================================
     ModelPart& mrDesignSurface;
-    Parameters::Pointer mpOptimizationSettings;
+    Parameters mOptimizationSettings;
     double mConstraintValue;
     double mPreviousConstraintValue;
 

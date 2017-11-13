@@ -26,94 +26,112 @@ from design_logger_gid import DesignLoggerGID
 from design_logger_unv import DesignLoggerUNV
 from design_logger_vtk import DesignLoggerVTK
 
+import timer_factory as timer_factory
+
 from response_logger_steepest_descent import ResponseLoggerSteepestDescent
 from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
 
 # ==============================================================================
-def CreateDataLogger( designSurface, communicator, optimizationSettings, timer ):
-    responseLogger = createResponseLogger( communicator,  optimizationSettings, timer )
-    designLogger = createDesignLogger( designSurface, optimizationSettings )
-    return optimizationDataLogger( responseLogger, designLogger, optimizationSettings )
-
-# -----------------------------------------------------------------------------
-def createResponseLogger( communicator, optimizationSettings, timer ):
-
-    optimizationAlgorithm = optimizationSettings["optimization_algorithm"]["name"].GetString()
-
-    if optimizationAlgorithm == "steepest_descent":
-        return ResponseLoggerSteepestDescent( communicator, optimizationSettings, timer )
-    elif optimizationAlgorithm == "penalized_projection":
-        return ResponseLoggerPenalizedProjection( communicator, optimizationSettings, timer )   
-    else:
-        raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + optimizationAlgorithm)
-
-# -----------------------------------------------------------------------------
-def createDesignLogger( designSurface, optimizationSettings):
-    
-    outputFormatName = optimizationSettings["output"]["output_format"]["name"].GetString()
-
-    if outputFormatName == "gid":
-        return DesignLoggerGID( designSurface, optimizationSettings )
-    if outputFormatName == "unv":
-        return DesignLoggerUNV( designSurface, optimizationSettings )  
-    if outputFormatName == "vtk":
-        return DesignLoggerVTK( designSurface, optimizationSettings )                
-    else:
-        raise NameError("The following output format is not supported by the design logger (name may be misspelled): " + outputFormatName)
+def CreateDataLogger( OptimizationModelPart, DesignSurface, Communicator, OptimizationSettings ):
+    return OptimizationDataLogger( OptimizationModelPart, DesignSurface, Communicator, OptimizationSettings )
 
 # ==============================================================================
-class optimizationDataLogger():
+class OptimizationDataLogger():
 
     # --------------------------------------------------------------------------
-    def __init__( self, responseLogger, designLogger, optimizationSettings ):
-        self.responseLogger = responseLogger
-        self.designLogger = designLogger
-        self.optimizationSettings = optimizationSettings
-        self.__createFolderToStoreOptimizationResults()     
-        self.__outputInformationAboutResponseFunctions()   
+    def __init__( self, OptimizationModelPart, DesignSurface, Communicator, OptimizationSettings ):
+        self.OptimizationModelPart = OptimizationModelPart
+        self.DesignSurface = DesignSurface
+        self.Communicator = Communicator
+        self.OptimizationSettings = OptimizationSettings
+
+        self.Timer = timer_factory.CreateTimer()
+        self.ResponseLogger = self.__CreateResponseLogger()
+        self.DesignLogger = self.__CreateDesignLogger()
+
+        self.__CreateFolderToStoreOptimizationResults()     
+        self.__OutputInformationAboutResponseFunctions()   
+
+    # -----------------------------------------------------------------------------
+    def __CreateResponseLogger( self ):
+        AlgorithmName = self.OptimizationSettings["optimization_algorithm"]["name"].GetString()
+        if AlgorithmName == "steepest_descent":
+            return ResponseLoggerSteepestDescent( self.Communicator, self.OptimizationSettings, self.Timer )
+        elif AlgorithmName == "penalized_projection":
+            return ResponseLoggerPenalizedProjection( self.Communicator, self.OptimizationSettings, self.Timer )   
+        else:
+            raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + AlgorithmName)
+
+    # -----------------------------------------------------------------------------
+    def __CreateDesignLogger( self ):
+        outputFormatName = self.OptimizationSettings["output"]["output_format"]["name"].GetString()
+        if outputFormatName == "gid":
+            return DesignLoggerGID( self.OptimizationModelPart, self.DesignSurface, self.OptimizationSettings )
+        if outputFormatName == "unv":
+            return DesignLoggerUNV( self.OptimizationModelPart, self.DesignSurface, self.OptimizationSettings )  
+        if outputFormatName == "vtk":
+            return DesignLoggerVTK( self.OptimizationModelPart, self.DesignSurface, self.OptimizationSettings )                
+        else:
+            raise NameError("The following output format is not supported by the design logger (name may be misspelled): " + outputFormatName)
 
     # --------------------------------------------------------------------------
-    def __createFolderToStoreOptimizationResults ( self ):
-        resultsDirectory = self.optimizationSettings["output"]["output_directory"].GetString()
+    def __CreateFolderToStoreOptimizationResults ( self ):
+        resultsDirectory = self.OptimizationSettings["output"]["output_directory"].GetString()
         if os.path.exists(resultsDirectory):
             shutil.rmtree(resultsDirectory)
         os.makedirs(resultsDirectory)
 
     # --------------------------------------------------------------------------
-    def __outputInformationAboutResponseFunctions( self ):
-
-        numberOfObjectives = self.optimizationSettings["objectives"].size()
-        numberOfConstraints = self.optimizationSettings["constraints"].size()
+    def __OutputInformationAboutResponseFunctions( self ):
+        numberOfObjectives = self.OptimizationSettings["objectives"].size()
+        numberOfConstraints = self.OptimizationSettings["constraints"].size()
 
         print("\n> The following objectives are defined:\n")
         for objectiveNumber in range(numberOfObjectives):
-            print(self.optimizationSettings["objectives"][objectiveNumber])
+            print(self.OptimizationSettings["objectives"][objectiveNumber])
 
         if numberOfConstraints != 0:
             print("> The following constraints are defined:\n")
             for constraintNumber in range(numberOfConstraints):
-                print(self.optimizationSettings["constraints"][constraintNumber],"\n")
+                print(self.OptimizationSettings["constraints"][constraintNumber],"\n")
         else:
             print("> No constraints defined.\n")              
 
     # --------------------------------------------------------------------------
-    def initializeDataLogging( self ):
-        self.designLogger.initializeLogging()  
-        self.responseLogger.initializeLogging()
+    def InitializeDataLogging( self ):
+        self.DesignLogger.InitializeLogging()  
+        self.ResponseLogger.InitializeLogging()
 
     # --------------------------------------------------------------------------
-    def logCurrentData( self, optimizationIteration ):    
-        self.designLogger.logCurrentDesign( optimizationIteration )   
-        self.responseLogger.logCurrentResponses( optimizationIteration )
+    def LogCurrentData( self, optimizationIteration ):        
+        self.DesignLogger.LogCurrentDesign( optimizationIteration )   
+        self.ResponseLogger.LogCurrentResponses( optimizationIteration )
 
     # --------------------------------------------------------------------------
-    def finalizeDataLogging( self ):
-        self.designLogger.finalizeLogging()  
-        self.responseLogger.finalizeLogging()
+    def FinalizeDataLogging( self ):
+        self.DesignLogger.FinalizeLogging()  
+        self.ResponseLogger.FinalizeLogging()
 
     # --------------------------------------------------------------------------
-    def getValue( self, variableKey ):
-        return self.responseLogger.getValue( variableKey )
-        
+    def GetValue( self, variableKey ):
+        return self.ResponseLogger.GetValue( variableKey )
+
+    # --------------------------------------------------------------------------
+    def StartTimer( self ):
+        return self.Timer.StartTimer()
+
+    # --------------------------------------------------------------------------
+    def GetTimeStamp( self ):
+        return self.Timer.GetTimeStamp()
+
+    # --------------------------------------------------------------------------
+    def GetLapTime( self ):
+        lap_time = self.Timer.GetLapTime()
+        self.Timer.StartNewLap()
+        return lap_time   
+
+    # --------------------------------------------------------------------------
+    def GetTotalTime( self ):
+        return self.Timer.GetTotalTime()
 
 # ==============================================================================
