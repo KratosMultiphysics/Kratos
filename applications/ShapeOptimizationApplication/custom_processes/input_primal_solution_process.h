@@ -246,7 +246,10 @@ public:
             }
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
+
+        std::cout << "LC: input_primal_solution_process finished!" << std::endl;
+
     }
 
     void ExecuteFinalizeSolutionStep() override

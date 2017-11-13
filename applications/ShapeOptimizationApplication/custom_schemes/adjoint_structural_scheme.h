@@ -112,6 +112,8 @@ public:
 
         mpResponseFunction->Initialize();
 
+
+
         KRATOS_CATCH("");
     }
 

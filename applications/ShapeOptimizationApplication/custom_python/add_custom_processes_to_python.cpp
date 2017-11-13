@@ -55,7 +55,6 @@ void AddCustomProcessesToPython()
         ("SVDSensitivityProcess", init<ModelPart&, Parameters&>())
         ;
 
-
     class_<ReplaceElementsAndConditionsForAdjointProblemProcess , bases<Process>, boost::noncopyable >("ReplaceElementsAndConditionsForAdjointProblemProcess",
             init<ModelPart&, Parameters>())
     ;

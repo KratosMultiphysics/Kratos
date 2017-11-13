@@ -90,6 +90,9 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( Vector, STRESS_ON_NODE ); //fusseder
     KRATOS_CREATE_VARIABLE( std::string, DESIGN_VARIABLE_NAME ); //fusseder
 
+    //--------------- Extended Adjoint Sensitivity Analysis for Structural Mechanics -------------------// lchen
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_DISPLACEMENT_1);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_DISPLACEMENT_2);
 
 
     
@@ -167,6 +170,9 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( STRESS_ON_NODE  ) //fusseder
         KRATOS_REGISTER_VARIABLE( DESIGN_VARIABLE_NAME ) //fusseder
         
+        //--------------- Extended Adjoint Sensitivity Analysis for Structural Mechanics -------------------// lchen
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_DISPLACEMENT_1);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_DISPLACEMENT_2);
 
         
 

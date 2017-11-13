@@ -92,7 +92,9 @@ namespace Kratos
 	KRATOS_DEFINE_VARIABLE(Vector, STRESS_ON_NODE ); //fusseder
 	KRATOS_DEFINE_VARIABLE(std::string, DESIGN_VARIABLE_NAME); //fusseder
 	
-
+    //--------------- Extended Adjoint Sensitivity Analysis for Structural Mechanics -------------------// lchen
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_DISPLACEMENT_1);
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_DISPLACEMENT_2);
 
 	///@} 
 	///@name Type Definitions
