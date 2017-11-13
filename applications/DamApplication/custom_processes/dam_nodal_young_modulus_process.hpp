@@ -37,9 +37,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamNodalYoungModulusProcess(ModelPart& rmodel_part,
+    DamNodalYoungModulusProcess(ModelPart& rModelPart,
                                 Parameters& rParameters
-                                ) : Process(Flags()) , mrModelPart(rmodel_part)
+                                ) : Process(Flags()) , mrModelPart(rModelPart)
     {
         KRATOS_TRY
 			 
