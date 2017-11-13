@@ -76,6 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/lagrangian_inlet_process.h"
 #include "custom_processes/remove_and_save_wall_process.h"
 #include "custom_processes/add_wall_process.h"
+#include "custom_processes/calculate_curvature.h"
 
 #include "includes/node.h"
 
@@ -162,6 +163,12 @@ void  AddProcessesToPython()
     class_<AddWallProcess, bases<Process> >("AddWallProcess", init<> ())
     .def("AddWall", &AddWallProcess::AddWall)
     ;  
+    class_<CalculateCurvature > ("CalculateCurvature", init<>())
+    .def("CalculateCurvature2D", &CalculateCurvature::CalculateCurvature2D)
+    .def("CalculateCurvature3D", &CalculateCurvature::CalculateCurvature3D)
+    .def("CalculateCurvatureContactLine", &CalculateCurvature::CalculateCurvatureContactLine)
+    .def("CalculatePrincipalDirections3D", &CalculateCurvature::CalculatePrincipalDirections3D)
+    ;
 }
 
 }  // namespace Python.
