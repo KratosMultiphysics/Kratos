@@ -156,10 +156,13 @@ namespace Kratos
      */ 
     static inline void RightCauchyToGreenLagrangeStrain( const MatrixType& rRightCauchyGreen, 
 							 MatrixType& rStrainMatrix ) 
-    { 
-      rStrainMatrix(0,0) -= 1; 
-      rStrainMatrix(1,1) -= 1; 
-      rStrainMatrix(2,2) -= 1; 
+    {
+
+      rStrainMatrix = rRightCauchyGreen;
+      
+      rStrainMatrix(0,0) -= 1.0; 
+      rStrainMatrix(1,1) -= 1.0; 
+      rStrainMatrix(2,2) -= 1.0; 
  
       rStrainMatrix *= 0.5; 
     } 
@@ -411,7 +414,7 @@ namespace Kratos
 		}
 	    }
 	  
-	  rMatrix(2,2) = rTensor(2,2);
+	  rMatrix(2,2) = rTensor(3,3);
 
 	}
 	else{
@@ -899,18 +902,13 @@ namespace Kratos
      * @return InputMatrixDet: Is the determinant of the input matrix
      */
     
-    static void InvertMatrix3(
-        const MatrixType& InputMatrix,
-        MatrixType& InvertedMatrix,
-        double& InputMatrixDet
-        ) 
+    static void InvertMatrix3(const MatrixType& InputMatrix,
+			      MatrixType& InvertedMatrix,
+			      double& InputMatrixDet
+			      ) 
     {
         KRATOS_TRY;
         
-        if(InvertedMatrix.size1() != 3 || InvertedMatrix.size2() != 3)
-        {
-            InvertedMatrix.resize(3,3,false);
-        }
 
         // Filling the inverted matrix with the algebraic complements
         // First column
@@ -932,7 +930,7 @@ namespace Kratos
         InputMatrixDet = InputMatrix(0,0)*InvertedMatrix(0,0) + InputMatrix(0,1)*InvertedMatrix(1,0) + InputMatrix(0,2)*InvertedMatrix(2,0);
 
         // Finalizing the calculation of the inverted matrix
-        InvertedMatrix /= InputMatrixDet;
+        InvertedMatrix *= ( 1.0 / InputMatrixDet );
         
         KRATOS_CATCH("")
     }
