@@ -215,9 +215,6 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             
         # Actual solution
         CSM_solver.Solve()
-        
-        for process in self.list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
 
         # processes to be executed at the end of the solution step
         for process in self.list_of_processes:
