@@ -66,7 +66,8 @@ class DamConstructionUtility:
     def InitializeSolutionStep(self):
 
         time = self.mechanical_model_part.ProcessInfo[TIME]
-        tol = 1e-10
+        tol = self.mechanical_model_part.ProcessInfo[DELTA_TIME]*1e-10
+        
         # Activation according the input file
         with open(self.construction_input_file_name,'r') as file_name3:
             for j, line in enumerate(file_name3):
