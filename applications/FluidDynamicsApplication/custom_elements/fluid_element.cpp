@@ -74,8 +74,8 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
     if( rRightHandSideVector.size() != LocalSize )
         rRightHandSideVector.resize(LocalSize,false);
 
-    rLeftHandSideMatrix = ZeroMatrix(LocalSize,LocalSize);
-    rRightHandSideVector = ZeroVector(LocalSize);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 }
 
 template <class TElementData>
@@ -86,7 +86,7 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
     if( rLeftHandSideMatrix.size1() != LocalSize )
         rLeftHandSideMatrix.resize(LocalSize,LocalSize,false);
 
-    rLeftHandSideMatrix = ZeroMatrix(LocalSize,LocalSize);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
 }
 
 template <class TElementData>
@@ -96,7 +96,7 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSi
     if( rRightHandSideVector.size() != LocalSize )
         rRightHandSideVector.resize(LocalSize,false);
 
-    rRightHandSideVector = ZeroVector(LocalSize);
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 }
 
 template <class TElementData>
@@ -110,8 +110,8 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
     if( rRightHandSideVector.size() != LocalSize )
         rRightHandSideVector.resize(LocalSize,false);
 
-    rDampMatrix = ZeroMatrix(LocalSize,LocalSize);
-    rRightHandSideVector = ZeroVector(LocalSize);
+    noalias(rDampMatrix) = ZeroMatrix(LocalSize,LocalSize);
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
     // Get Shape function data
     Vector gauss_weights;
@@ -156,7 +156,7 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
     if( rMassMatrix.size1() != LocalSize )
         rMassMatrix.resize(LocalSize,LocalSize,false);
 
-    rMassMatrix = ZeroMatrix(LocalSize,LocalSize);
+    noalias(rMassMatrix) = ZeroMatrix(LocalSize,LocalSize);
 
     // Get Shape function data
     Vector gauss_weights;
