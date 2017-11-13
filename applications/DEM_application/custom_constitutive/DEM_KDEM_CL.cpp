@@ -31,7 +31,7 @@ namespace Kratos {
         double radius_sum = radius + other_radius;
 //         double equiv_radius = radius * other_radius / radius_sum;
         double equiv_radius = 0.5 * radius_sum;
-        calculation_area = KRATOS_M_PI * equiv_radius * equiv_radius;
+        calculation_area = Globals::Pi * equiv_radius * equiv_radius;
         KRATOS_CATCH("")  
     }
     
