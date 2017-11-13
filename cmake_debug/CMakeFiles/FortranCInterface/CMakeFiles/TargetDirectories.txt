@@ -1,0 +1,5 @@
+/home/inigo/software/KratosMaster/Kratos/cmake_debug/CMakeFiles/FortranCInterface/CMakeFiles/edit_cache.dir
+/home/inigo/software/KratosMaster/Kratos/cmake_debug/CMakeFiles/FortranCInterface/CMakeFiles/symbols.dir
+/home/inigo/software/KratosMaster/Kratos/cmake_debug/CMakeFiles/FortranCInterface/CMakeFiles/FortranCInterface.dir
+/home/inigo/software/KratosMaster/Kratos/cmake_debug/CMakeFiles/FortranCInterface/CMakeFiles/myfort.dir
+/home/inigo/software/KratosMaster/Kratos/cmake_debug/CMakeFiles/FortranCInterface/CMakeFiles/rebuild_cache.dir

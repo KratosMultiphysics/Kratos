@@ -163,7 +163,8 @@ public:
     PotentialWallCondition & operator=(PotentialWallCondition const& rOther)
     {
         Condition::operator=(rOther);
-
+        mInitializeWasPerformed = rOther.mInitializeWasPerformed;
+		mpElement = rOther.mpElement;
         return *this;
     }
 
@@ -209,7 +210,15 @@ public:
     /// Find the condition's parent element.
 	void Initialize() override
 	{
-		KRATOS_TRY;
+        KRATOS_TRY;
+
+        if(this->Id()==1)
+        {
+            std::cout << "Condition = " << this->Id()  << std::endl;
+            std::cout << "mInitializeWasPerformed = " << mInitializeWasPerformed  << std::endl;
+        }
+        
+        //std::cout << "Condition = " << this->Id()  << std::endl;
 
 		const array_1d<double,3>& rNormal = this->GetValue(NORMAL);
 		if (norm_2(rNormal) == 0.0)
@@ -220,6 +229,8 @@ public:
 
 		if (mInitializeWasPerformed)
 		{
+            std::cout << "Returning early"  << std::endl;
+            std::cout << "Condition = " << this->Id()  << std::endl;
 			return;
 		}
 
@@ -245,7 +256,13 @@ public:
 			NodeIds[i] = rGeom[i].Id();
 		}
 
-		std::sort(NodeIds.begin(), NodeIds.end());
+        std::sort(NodeIds.begin(), NodeIds.end());
+        
+        if(this->Id()==1)
+        {
+            std::cout << "Condition = " << this->Id()  << std::endl;
+            std::cout << "ElementCandidates.size() = " << ElementCandidates.size()  << std::endl;
+        }
 
 		for (SizeType i=0; i < ElementCandidates.size(); i++)
 		{
@@ -261,7 +278,20 @@ public:
 
 			if ( std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()) )
 			{
-				mpElement = ElementCandidates(i);
+                mpElement = ElementCandidates(i);
+                // if(mpElement.lock() == 0)
+                // {
+                //     std::cout << "Condition = " << this->Id()  << std::endl;
+                //     std::cout << mpElement.lock() << std::endl;
+                // }
+                // std::cout << "Condition = " << this->Id()  << std::endl;
+                // std::cout << mpElement.lock() << std::endl;
+                if(this->Id()==1)
+                {
+                    std::cout << "Condition = " << this->Id()  << std::endl;
+                    std::cout << mpElement.lock() << std::endl;
+                }
+                
 
 				Edge = rElemGeom[1].Coordinates() - rElemGeom[0].Coordinates();
 				mMinEdgeLength = Edge[0]*Edge[0];
@@ -410,8 +440,25 @@ public:
 
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
         {
+            //std::cout << "Condition = " << this->Id()  << std::endl;
             std::vector<double> rValues;
             ElementPointerType pElem = pGetElement();
+            //std::cout << pElem->Id()  << std::endl;
+            // if(pElem == 0)
+            // {
+            //     std::cout << "Condition = " << this->Id()  << std::endl;
+            //     std::cout << pElem << std::endl;
+            // }
+            // else
+            // {
+            //     std::cout << pElem->Id() << std::endl;
+            // }
+            if(this->Id()==1)
+            {
+                std::cout << "Condition = " << this->Id()  << std::endl;
+                std::cout << mpElement.lock() << std::endl;
+            }
+            //std::cout << pElem  << "HALLO" << std::endl;
             pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
             this->SetValue(PRESSURE,rValues[0]);
         }
@@ -481,8 +528,11 @@ protected:
         ///@name Protected Operations
         ///@{
 
-        ElementPointerType pGetElement()
-        {
+        inline ElementPointerType pGetElement()
+        {         
+            // KRATOS_ERROR_IF_NOT( mpElement.lock() == 0) <<
+            // "No element found for condition #" << this->Id() << std::endl;
+
             return mpElement.lock();
         }
 
@@ -512,7 +562,7 @@ private:
         ///@name Member Variables
         ///@{
 
-        bool mInitializeWasPerformed;
+        bool mInitializeWasPerformed = false;
         double mMinEdgeLength;
         ElementWeakPointerType mpElement;
 

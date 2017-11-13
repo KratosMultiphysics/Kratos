@@ -86,6 +86,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          
          cp_file.write("  pressure              cp               x               y               nx              ny              nz           length  \n")
          
+         counter = 0
          for cond in self.model_part.Conditions:
            n = cond.GetValue(NORMAL)           
            norm = linalg.norm(n)
@@ -102,7 +103,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
            
            
            #pressure = 1
+           counter +=1
            pressure = cond.GetValue(PRESSURE)
+           
            
            cp = pressure# 2*(pressure - self.pressure_infinity)/(self.density_infinity*self.velocity_infinity[0]*self.velocity_infinity[0])
            CP.append(cp)
@@ -146,6 +149,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
            rx += n[0]*pressure*length
            ry += n[1]*pressure*length
            rz += n[2]*pressure*length
+           #print(ry)
+           print("  counter =", counter,"   X =", cond.GetNodes()[0].X0 ,"  An =", n*length ,"  pressure =", pressure ,"    lift =", ry)
            
            cp_file.write('{0:13f} {1:15f} {2:15f} {3:15f} {4:15f} {5:15f} {6:15f} {7:15f}\n'.format(pressure, cp, x, y, n[0], n[1], n[2], length))
            

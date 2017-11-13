@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtetgen.a  CMakeFiles/tetgen.dir/tetgen.cxx.o CMakeFiles/tetgen.dir/predicates.cxx.o
+/usr/bin/ranlib libtetgen.a

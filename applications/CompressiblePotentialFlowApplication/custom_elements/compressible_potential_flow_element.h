@@ -555,14 +555,13 @@ public:
                 //negative part - sign is opposite to the previous case
                 for (unsigned int i = 0; i < NumNodes; i++)
                 {
-                    if(distances[i] < 0)
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-                    else
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                    if(distances[i] < 0)                    
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);                    
+                    else                    
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);                    
                 }
 
-                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
-                
+                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);                
                 
                 p =  (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
             }
