@@ -1368,7 +1368,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    Vector BaseSolidElement::GetBodyForce()
+    Vector BaseSolidElement::GetBodyForce(const array_1d<double, 3>& rGaussPoint)
     {
         Vector body_force = ZeroVector(3);
         
@@ -1383,7 +1383,12 @@ namespace Kratos
         }
         if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
         {
-            body_force += density * GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            Vector N;
+            N = GetGeometry().ShapeFunctionsValues(N, rGaussPoint);
+            for (unsigned int i_node = 0; i_node < this->GetGeometry().size(); ++i_node)
+            {
+                body_force += N[i_node] * density * GetGeometry()[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            }
         }
         
         return body_force;
