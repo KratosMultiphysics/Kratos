@@ -14,6 +14,8 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
+#include "custom_utilities/qsvms_data.h"
+
 namespace Kratos
 {
 
@@ -710,7 +712,7 @@ void FluidElement<TElementData>::load(Serializer& rSerializer)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-template class FluidElement< DSSData<2,3> >;
-template class FluidElement< DSSData<3,4> >;
+template class FluidElement< QSVMSData<2,3> >;
+template class FluidElement< QSVMSData<3,4> >;
 
 }

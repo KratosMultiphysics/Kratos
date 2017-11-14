@@ -63,6 +63,8 @@
 #include "custom_conditions/navier_stokes_wall_condition.h"
 #include "custom_elements/embedded_navier_stokes.h"
 
+#include "custom_utilities/qsvms_data.h"
+
 
 namespace Kratos
 {
@@ -227,8 +229,8 @@ private:
     /// 3D instance of the VMS element
     const VMS<3> mVMS3D;
     /// Expermiental fluid element
-    const DSS< DSSData<2,3> > mDSS2D;
-    const DSS< DSSData<3,4> > mDSS3D;
+    const DSS< QSVMSData<2,3> > mDSS2D;
+    const DSS< QSVMSData<3,4> > mDSS3D;
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;
 

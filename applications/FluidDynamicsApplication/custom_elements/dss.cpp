@@ -15,14 +15,16 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
+#include "custom_utilities/qsvms_data.h"
+
 namespace Kratos
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class DSS< DSSData<2,3> >;
-template class DSS< DSSData<3,4> >;
+template class DSS< QSVMSData<2,3> >;
+template class DSS< QSVMSData<3,4> >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle

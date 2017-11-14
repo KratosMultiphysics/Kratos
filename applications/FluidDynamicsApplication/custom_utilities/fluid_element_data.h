@@ -19,8 +19,8 @@
 #include "geometries/geometry.h"
 #include "includes/define.h"
 #include "includes/node.h"
-
-#include "fluid_dynamics_application_variables.h"
+#include "includes/element.h"
+#include "includes/process_info.h"
 
 namespace Kratos
 {
