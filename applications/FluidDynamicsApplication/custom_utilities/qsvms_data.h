@@ -18,13 +18,26 @@
 
 namespace Kratos {
 
+///@addtogroup FluidDynamicsApplication
+///@{
+
+///@name Kratos classes
+///@{
+
 template< size_t TDim, size_t TNumNodes >
 class QSVMSData : public FluidElementData<TDim,TNumNodes, false>
 {
 public:
 
+///@name Type Definitions
+///@{
+
 using NodalScalarData = typename FluidElementData<TDim,TNumNodes, false>::NodalScalarData;
 using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalVectorData;
+
+///@}
+///@name Public Members
+///@{
 
 NodalVectorData Velocity;
 NodalVectorData MeshVelocity;
@@ -40,6 +53,10 @@ double CSmagorinsky;
 double DeltaTime;
 double DynamicTau;
 int UseOSS;
+
+///@}
+///@name Public Operations
+///@{
 
 void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
 {
@@ -91,10 +108,16 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
     return 0;
 }
 
+///@}
+
 };
 
 template class QSVMSData<2,3>;
 template class QSVMSData<3,4>;
+
+///@}
+
+///@}
 
 }
 
