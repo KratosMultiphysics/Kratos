@@ -36,8 +36,8 @@ namespace Kratos {
                                     double& calculation_area) override;
                 
                 void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double &equiv_young,
-                                             double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2,
-                double indentation) override;
+                                               double equiv_poisson, double calculation_area, SphericContinuumParticle* element1,
+                                               SphericContinuumParticle* element2, double indentation) override;
 
 		void CalculateSinteringForces(const ProcessInfo& r_process_info,
 			const double OldLocalElasticContactForce[3],

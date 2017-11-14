@@ -46,14 +46,14 @@ namespace Kratos {
         virtual void CalculateContactArea(double radius, double other_radius, double &calculation_area);
 
         virtual void CalculateElasticConstants(double &kn_el,
-                double &kt_el,
-                double initial_dist,
-                double &equiv_young,
-                double equiv_poisson,
-                double calculation_area,
-                SphericParticle* element1,
-                SphericParticle* element2,
-                double indentation);
+                                               double &kt_el,
+                                               double initial_dist,
+                                               double &equiv_young,
+                                               double equiv_poisson,
+                                               double calculation_area,
+                                               SphericParticle* element1,
+                                               SphericParticle* element2,
+                                               double indentation);
 
         
         virtual void CalculateElasticEnergy(double& normal_elastic_energy,

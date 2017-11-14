@@ -52,14 +52,14 @@ namespace Kratos {
     }
 
     void DEMDiscontinuumConstitutiveLaw::CalculateElasticConstants(double &kn_el,
-            double &kt_el,
-            double initial_dist,
-            double &equiv_young,
-            double equiv_poisson,
-            double calculation_area,
-            SphericParticle* element1,
-            SphericParticle* element2,
-                double indentation) {
+                                                                   double &kt_el,
+                                                                   double initial_dist,
+                                                                   double &equiv_young,
+                                                                   double equiv_poisson,
+                                                                   double calculation_area,
+                                                                   SphericParticle* element1,
+                                                                   SphericParticle* element2,
+                                                                   double indentation) {
         
         KRATOS_TRY 
         double equiv_shear = equiv_young / (2.0 * (1.0 + equiv_poisson));
@@ -132,17 +132,17 @@ namespace Kratos {
     }
     
     void DEMDiscontinuumConstitutiveLaw::CalculateForces(const ProcessInfo& r_process_info,
-                                                        const double OldLocalContactForce[3],
-                                                        double LocalElasticContactForce[3],
-                                                        double LocalDeltDisp[3],
-                                                        double LocalRelVel[3],            
-                                                        double indentation,
-                                                        double previous_indentation,
-                                                        double ViscoDampingLocalContactForce[3],
-                                                        double& cohesive_force,
-                                                        SphericParticle* element1,
-                                                        SphericParticle* element2,
-                                                        bool& sliding, double LocalCoordSystem[3][3]) {
+                                                         const double OldLocalContactForce[3],
+                                                         double LocalElasticContactForce[3],
+                                                         double LocalDeltDisp[3],
+                                                         double LocalRelVel[3],            
+                                                         double indentation,
+                                                         double previous_indentation,
+                                                         double ViscoDampingLocalContactForce[3],
+                                                         double& cohesive_force,
+                                                         SphericParticle* element1,
+                                                         SphericParticle* element2,
+                                                         bool& sliding, double LocalCoordSystem[3][3]) {
 
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateForces) should not be called.","")
     }

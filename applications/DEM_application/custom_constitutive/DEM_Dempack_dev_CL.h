@@ -44,7 +44,7 @@ namespace Kratos {
                                        double calculation_area,
                                        SphericContinuumParticle* element1,
                                        SphericContinuumParticle* element2,
-                double indentation) override;
+                                       double indentation) override;
 
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],

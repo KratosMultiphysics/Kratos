@@ -55,7 +55,7 @@ namespace Kratos {
                                                double calculation_area,
                                                SphericContinuumParticle* element1,
                                                SphericContinuumParticle* element2,
-                double indentation) override;
+                                               double indentation) override;
 
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                 double &equiv_visco_damp_coeff_tangential,
