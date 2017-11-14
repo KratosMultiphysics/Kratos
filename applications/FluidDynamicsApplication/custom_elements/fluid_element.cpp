@@ -600,7 +600,7 @@ void FluidElement<TElementData>::CalculateStaticTau(
         VelNorm += Velocity[d]*Velocity[d];
     VelNorm = std::sqrt(VelNorm);
 
-    double InvTau = Density * ( c1 * KinematicVisc / (ElemSize*ElemSize) + c2 * VelNorm / ElemSize );
+    double InvTau = Density * ( rData.DynamicTau/rData.DeltaTime + c1 * KinematicVisc / (ElemSize*ElemSize) + c2 * VelNorm / ElemSize );
     TauOne = 1.0/InvTau;
     TauTwo = Density * (KinematicVisc + c2 * VelNorm * ElemSize / c1);
 }
@@ -613,7 +613,6 @@ double FluidElement<TElementData>::EffectiveViscosity(
     TElementData& rData,
     double ElementSize)
 {
-    const FluidElement* const_this = static_cast<const FluidElement*>(this);
     double c_s = rData.CSmagorinsky;
 
     double kinematic_viscosity = this->Interpolate(rData.Viscosity,rData.N);
