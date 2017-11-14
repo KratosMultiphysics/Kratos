@@ -80,6 +80,13 @@ void FluidElementData<TDim, TNumNodes>::FillFromProcessInfo(double& rData,
     rData = rProcessInfo.GetValue(rVariable);
 }
 
+template <size_t TDim, size_t TNumNodes>
+void FluidElementData<TDim, TNumNodes>::FillFromElementData(double& rData,
+    const Variable<double>& rVariable, const Element& rElement)
+{
+    rData = rElement.GetValue(rVariable);
+}
+
 template class FluidElementData<2,3>;
 template class FluidElementData<3,4>;
 

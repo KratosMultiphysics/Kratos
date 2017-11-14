@@ -101,6 +101,8 @@ protected:
 
     void FillFromProcessInfo(double& rData, const Variable<double>& rVariable, const ProcessInfo& rProcessInfo);
 
+    void FillFromElementData(double& rData, const Variable<double>& rVariable, const Element& rElement);
+
     ///@}
 };
 
