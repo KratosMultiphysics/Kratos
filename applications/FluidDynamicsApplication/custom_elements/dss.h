@@ -237,13 +237,12 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void AddSystemTerms(
+    void AddVelocitySystem(
         TElementData& rData,
         MatrixType& rLHS,
         VectorType& rRHS) override;
 
-
-    void AddMassTerms(
+    void AddMassLHS(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 

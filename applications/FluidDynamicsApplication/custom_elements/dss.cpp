@@ -371,7 +371,7 @@ void DSS<TElementData>::MassProjTerm(
 // Evaluation of system terms on Gauss Points
 
 template< class TElementData >
-void DSS<TElementData>::AddSystemTerms(
+void DSS<TElementData>::AddVelocitySystem(
     TElementData& rData,
     MatrixType &rLHS,
     VectorType &rRHS)
@@ -476,7 +476,7 @@ void DSS<TElementData>::AddSystemTerms(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void DSS<TElementData>::AddMassTerms(
+void DSS<TElementData>::AddMassLHS(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {

@@ -20,7 +20,6 @@
 #include "geometries/geometry.h"
 
 #include "includes/cfd_variables.h"
-#include "custom_utilities/fluid_element_data_container.h"
 #include "custom_utilities/fluid_element_data.h"
 #include "fluid_dynamics_application_variables.h"
 
@@ -370,14 +369,25 @@ protected:
                             const array_1d<double,3>& rConvVel,
                             const ShapeFunctionDerivativesType& DN_DX);
 
-
-    virtual void AddSystemTerms(
+    virtual void AddTimeIntegratedSystem(
         TElementData& rData,
         MatrixType& rLHS,
         VectorType& rRHS) = 0;
 
+    virtual void AddTimeIntegratedLHS(
+        TElementData& rData,
+        MatrixType& rLHS) = 0;
 
-    virtual void AddMassTerms(
+    virtual void AddTimeIntegratedRHS(
+        TElementData& rData,
+        VectorType& rRHS) = 0;
+
+    virtual void AddVelocitySystem(
+        TElementData& rData,
+        MatrixType& rLHS,
+        VectorType& rRHS) = 0;
+
+    virtual void AddMassLHS(
         TElementData& rData,
         MatrixType& rMassMatrix) = 0;
 
