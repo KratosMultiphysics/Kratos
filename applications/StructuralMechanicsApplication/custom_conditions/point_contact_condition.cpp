@@ -107,35 +107,85 @@ namespace Kratos
         const array_1d<double,3>& grad_d = GetGeometry()[0].GetValue(DISTANCE_GRADIENT);
         const array_1d<double,3>& n = GetGeometry()[0].FastGetSolutionStepValue(NORMAL); //this normal is proportional to the area
         const array_1d<double,3>& reference_disp = GetGeometry()[0].GetValue(DISPLACEMENT); //this is the displacement measured at the moment in which the d_reference was computed
-        
+//    KRATOS_WATCH(grad_d)
+//    KRATOS_WATCH(n)
+//    KRATOS_WATCH(reference_disp)
         const array_1d<double,3> ddisp = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) - reference_disp;
-        const double d_current = d_reference + inner_prod(grad_d,ddisp);
-        
-        if(d_current > 0)
-        {
-            const double E = GetProperties()[YOUNG_MODULUS];
-            const double characteristic_lenght = 1.0; //should get this from a variable
+        const double d_current = d_reference; // + inner_prod(grad_d,ddisp);
+//    KRATOS_WATCH(ddisp)
+//    KRATOS_WATCH(d_current)        
+//        if(d_reference > 0) //
+            const double E = GetProperties()[YOUNG_MODULUS]/10000.0;
+            const double characteristic_lenght = 1.0e-2; //should get this from a variable
             const double spring_stiffness = E/characteristic_lenght;
             const double contact_pressure = d_current*spring_stiffness;
+            
+        if(d_current > 0)
+        {
 
+// KRATOS_WATCH(Dimension)
             // Vector with a loading applied to the condition
             array_1d<double, 3 > PointLoad = contact_pressure*n;
-
+// KRATOS_WATCH(PointLoad)
 
             for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
             {
                 const unsigned int base = ii*Dimension;
                 
                 for(unsigned int k = 0; k < Dimension; ++k)
-                {
-                    rRightHandSideVector[base + k] += PointLoad[k];
+                    rRightHandSideVector[base + k] = /*-*/PointLoad[k];
+                
+                noalias(GetGeometry()[0].FastGetSolutionStepValue(FORCE)) = -PointLoad; //TODO: remove
+                GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE) = d_current;
+                GetGeometry()[0].FastGetSolutionStepValue(NODAL_PAUX) = d_reference;
+                
                     
-                    for(unsigned int l = 0; l < Dimension; ++l)
-                        rLeftHandSideMatrix(base+k,base+l) = spring_stiffness*(n[k]*grad_d[l]);
-                }
+//                 if ( CalculateStiffnessMatrixFlag == true )
+//                 {
+//                     for(unsigned int k = 0; k < Dimension; ++k)
+//                     {
+// //                 KRATOS_WATCH(rRightHandSideVector)     
+// //                 KRATOS_WATCH(rLeftHandSideMatrix)
+//                         for(unsigned int l = 0; l < Dimension; ++l)
+//                         {
+// //                             rLeftHandSideMatrix(base+k,base+l) = spring_stiffness*(n[k]*n[l])/norm_2(n);
+//                              rLeftHandSideMatrix(base+k,base+l) = spring_stiffness*(n[k]*grad_d[l]); //this would be the proper tangent
+//                         }
+//                     }
+//                 }
             }
         }
-
+        else
+        {
+                GetGeometry()[0].FastGetSolutionStepValue(FORCE).clear(); //TODO: remove
+                GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE) = 0.0;
+                GetGeometry()[0].FastGetSolutionStepValue(NODAL_PAUX) = d_reference;
+        }
+//             KRATOS_WATCH(n)
+//             KRATOS_WATCH(grad_d)
+//             KRATOS_WATCH(rLeftHandSideMatrix)
+        
+        if(d_reference > 0)
+        {
+            for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
+            {
+                const unsigned int base = ii*Dimension;
+                    
+                if ( CalculateStiffnessMatrixFlag == true )
+                {
+                    for(unsigned int k = 0; k < Dimension; ++k)
+                    {
+//                 KRATOS_WATCH(rRightHandSideVector)     
+//                 KRATOS_WATCH(rLeftHandSideMatrix)
+                        for(unsigned int l = 0; l < Dimension; ++l)
+                        {
+//                             rLeftHandSideMatrix(base+k,base+l) = spring_stiffness*(n[k]*n[l])/norm_2(n);
+                             rLeftHandSideMatrix(base+k,base+l) = - spring_stiffness*(n[k]*grad_d[l]); //this would be the proper tangent
+                        }
+                    }
+                }
+            }
+        }   
         KRATOS_CATCH( "" )
     }
     
