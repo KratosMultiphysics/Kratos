@@ -94,6 +94,7 @@ namespace Kratos
         array_1d<double,2> vector;
         array_1d<double,2> scalar_grad;
         boost::numeric::ublas::bounded_matrix<double,2,2> vector_grad;
+        double vector_div;
         
         array_1d<double, TNumNodes*3> depth;
         array_1d<double, TNumNodes*3> rain;

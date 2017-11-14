@@ -429,6 +429,10 @@ namespace Kratos
         // Initialize solution
         noalias(rMassMatrixVector) = ZeroMatrix(TNumNodes*3, TNumNodes*3);
         noalias(rMassMatrixScalar) = ZeroMatrix(TNumNodes*3, TNumNodes*3);
+        noalias(rScalarGrad) = ZeroMatrix(TNumNodes*3, TNumNodes*3);
+        noalias(rVectorDiv) = ZeroMatrix(TNumNodes*3, TNumNodes*3);
+        noalias(rScalarDiff) = ZeroMatrix(TNumNodes*3, TNumNodes*3);
+        noalias(rVectorDiff) = ZeroMatrix(TNumNodes*3, TNumNodes*3);
         
         // Some auxilary definitions
         array_1d<double,TNumNodes> N;

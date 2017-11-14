@@ -31,7 +31,6 @@
 #include "shallow_water_application_variables.h"
 #include "custom_elements/primitive_var_element.hpp"
 #include "custom_elements/conserved_var_element.hpp"
-#include "custom_elements/conserved_var_mixed_pfem2_element.hpp"
 #include "custom_elements/euler_prim_var_element.hpp"
 #include "custom_elements/euler_cons_var_element.hpp"
 #include "custom_conditions/nothing_condition.hpp"
@@ -196,8 +195,6 @@ namespace Kratos
         const PrimitiveVarElement<4> mPrimitiveVarElement2D4N;
         const ConservedVarElement<3> mConservedVarElement2D3N;
         const ConservedVarElement<4> mConservedVarElement2D4N;
-        const ConservedVarElement<3> mConservedVarMixedPfem2Element2D3N;
-        const ConservedVarElement<4> mConservedVarMixedPfem2Element2D4N;
         // Eulerian elements
         const EulerPrimVarElement<3> mEulerPrimVarElement2D3N;
         const EulerPrimVarElement<4> mEulerPrimVarElement2D4N;
