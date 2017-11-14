@@ -111,34 +111,6 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 
 };
 
-#define ELEMENT_VARIABLES(APPLY_MACRO)      \
-    APPLY_MACRO(VELOCITY, NodalVector)      \
-    APPLY_MACRO(MESH_VELOCITY, NodalVector) \
-    APPLY_MACRO(BODY_FORCE, NodalVector)    \
-    APPLY_MACRO(ADVPROJ, NodalVector)       \
-    APPLY_MACRO(PRESSURE, NodalScalar)      \
-    APPLY_MACRO(DENSITY, NodalScalar)       \
-    APPLY_MACRO(VISCOSITY, NodalScalar)     \
-    APPLY_MACRO(DIVPROJ, NodalScalar)
-
-MAKE_FLUID_ELEMENT_DATA_CONTAINER(DSSData2D3N, 2, 3, ELEMENT_VARIABLES)
-MAKE_FLUID_ELEMENT_DATA_CONTAINER(DSSData3D4N, 3, 4, ELEMENT_VARIABLES)
-#undef FLUID_ELEMENT_VARIABLES
-
-struct IntegrationPointGeometryData
-{
-    double Weight;
-    boost::numeric::ublas::matrix_row<Matrix> N;
-    Kratos::Matrix& DN_DX;
-
-    IntegrationPointGeometryData(double ThisWeight,
-                                 boost::numeric::ublas::matrix_row<Matrix> ThisN,
-                                 Kratos::Matrix & ThisDN_DX)
-        : Weight(ThisWeight), N(ThisN), DN_DX(ThisDN_DX)
-    {
-    }
-};
-
 template <class TElementData>
 class FluidElement : public Element
 {
