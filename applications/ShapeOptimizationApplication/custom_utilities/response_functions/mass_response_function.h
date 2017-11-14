@@ -82,7 +82,7 @@ public:
 	///@{
 
 	/// Default constructor.
-	MassResponseFunction(ModelPart& model_part, Parameters& responseSettings)
+	MassResponseFunction(ModelPart& model_part, Parameters responseSettings)
 	: mr_model_part(model_part)
 	{
 		// Set gradient mode
@@ -99,7 +99,7 @@ public:
 		}
 		// Throw error message in case of wrong specification
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: finite_differencing ", gradientMode);
+			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: finite_differencing. Specified gradient_mode: " << gradientMode << std::endl;
 
 		mConsiderDiscretization =  responseSettings["discretization_weighting"].GetBool();
 
@@ -123,11 +123,11 @@ public:
 	///@{
 
 	// ==============================================================================
-	void initialize()
+	void Initialize()
 	{}
 
 	// --------------------------------------------------------------------------
-	void calculate_value()
+	void CalculateValue()
 	{
 		KRATOS_TRY;
 
@@ -142,7 +142,7 @@ public:
 
 			// Compute mass according to element dimension
 			double elem_volume = 0.0;
-			if( isElementOfTypeShell(element_geometry) )
+			if( IsElementOfTypeShell(element_geometry) )
 				elem_volume = element_geometry.Area()*elem_i->GetProperties()[THICKNESS];
 			else
 				elem_volume = element_geometry.Volume();
@@ -160,7 +160,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_gradient()
+	void CalculateGradient()
 	{
 		KRATOS_TRY;
 
@@ -196,7 +196,7 @@ public:
 
 					// Compute mass according to element dimension
 					double elem_volume = 0.0;
-					if( isElementOfTypeShell(element_geometry) )
+					if( IsElementOfTypeShell(element_geometry) )
 						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
 					else
 						elem_volume = element_geometry.Volume();
@@ -217,7 +217,7 @@ public:
 
 					// Compute mass according to element dimension
 					double elem_volume = 0.0;
-					if( isElementOfTypeShell(element_geometry) )
+					if( IsElementOfTypeShell(element_geometry) )
 						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
 					else
 						elem_volume = element_geometry.Volume();
@@ -237,7 +237,7 @@ public:
 
 					// Compute mass according to element dimension
 					double elem_volume = 0.0;
-					if( isElementOfTypeShell(element_geometry) )
+					if( IsElementOfTypeShell(element_geometry) )
 						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
 					else
 						elem_volume = element_geometry.Volume();
@@ -257,7 +257,7 @@ public:
 
 					// Compute mass according to element dimension
 					double elem_volume = 0.0;
-					if( isElementOfTypeShell(element_geometry) )
+					if( IsElementOfTypeShell(element_geometry) )
 						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
 					else
 						elem_volume = element_geometry.Volume();
@@ -271,7 +271,7 @@ public:
 			}
 
 			if (mConsiderDiscretization)
-				this->consider_discretization();
+				this->ConsiderDiscretization();
 		}
 
 		}
@@ -281,12 +281,12 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	double get_initial_value()
+	double GetInitialValue()
 	{
 		KRATOS_TRY;
 
 		if(!m_initial_value_defined)
-			KRATOS_THROW_ERROR(std::logi:error, "Initial value not yet defined! First compute it by calling \"calculate_value()\"", m_initial_value_defined);
+			KRATOS_ERROR << "Initial value not yet defined! First compute it by calling \"calculate_value()\"!" << std::endl;
 
 		return m_initial_value;
 
@@ -294,7 +294,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	double get_value()
+	double GetValue()
 	{
 		KRATOS_TRY;
 
@@ -304,7 +304,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	boost::python::dict get_gradient()
+	boost::python::dict GetGradient()
 	{
 		KRATOS_TRY;
 
@@ -321,7 +321,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-  	virtual void consider_discretization(){
+  	virtual void ConsiderDiscretization(){
 
 		std::cout<< "> Considering discretization size!" << std::endl;
 		for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
@@ -337,7 +337,7 @@ public:
 				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
 
 				// Compute mass according to element dimension
-				if( isElementOfTypeShell(element_geometry) )
+				if( IsElementOfTypeShell(element_geometry) )
 					scaling_factor += element_geometry.Area();
 				else
 					scaling_factor += element_geometry.Volume();
@@ -349,7 +349,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	bool isElementOfTypeShell( Element::GeometryType& given_element_geometry )
+	bool IsElementOfTypeShell( Element::GeometryType& given_element_geometry )
 	{
 		if(given_element_geometry.WorkingSpaceDimension() != given_element_geometry.LocalSpaceDimension())
 			return true;

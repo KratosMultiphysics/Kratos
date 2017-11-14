@@ -142,17 +142,17 @@ double m0;
 
 double fm6(double r)
 {
-    return  315 / (32 * KRATOS_M_PI * pow(r, 9)) - 3 / pow(r, 5);
+    return  315 / (32 * Globals::Pi * pow(r, 9)) - 3 / pow(r, 5);
 }
 
 double fm4(double r)
 {
-    return  7 / pow(r, 3) - 315 / (16 * KRATOS_M_PI * pow(r, 7));
+    return  7 / pow(r, 3) - 315 / (16 * Globals::Pi * pow(r, 7));
 }
 
 double fm2(double r)
 {
-    return  315 / (32 * KRATOS_M_PI * pow(r, 5)) - 5 / r;
+    return  315 / (32 * Globals::Pi * pow(r, 5)) - 5 / r;
 }
 
 

@@ -720,6 +720,8 @@ public:
         ) override {
 
         rResult = ZeroVector(3);
+        
+        const TPointType& point_0 = this->GetPoint(0);
 
         // Compute the Jacobian matrix and its determinant
         bounded_matrix<double, 2, 2> J;
@@ -730,9 +732,10 @@ public:
         const double det_J = J(0,0)*J(1,1) - J(0,1)*J(1,0);
 
         // Compute eta and xi
-        const double eta = (J(1,0)*(this->GetPoint(0).X()-rPoint(0)) +
-                            J(0,0)*(rPoint(1)-this->GetPoint(0).Y())) / det_J;
-        const double xi  = (rPoint(0) - this->GetPoint(0).X() - eta*J(0,1)) / J(0,0);
+        const double eta = (J(1,0)*(point_0.X() - rPoint(0)) +
+                            J(0,0)*(rPoint(1) - point_0.Y())) / det_J;
+        const double xi  = (J(1,1)*(rPoint(0) - point_0.X()) + 
+                            J(0,1)*(point_0.Y() - rPoint(1))) / det_J;
 
         rResult(0) = xi;
         rResult(1) = eta;
