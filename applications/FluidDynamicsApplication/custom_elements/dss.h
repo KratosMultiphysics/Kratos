@@ -131,7 +131,7 @@ public:
     DSS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
-    virtual ~DSS();
+    ~DSS() override;
 
     ///@}
     ///@name Operators
@@ -196,18 +196,18 @@ public:
     ///@name Inquiry
     ///@{
 
-    virtual int Check(const ProcessInfo &rCurrentProcessInfo);
+    int Check(const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const override;
 
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override;
 
 
     ///@}
@@ -322,9 +322,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Operators
