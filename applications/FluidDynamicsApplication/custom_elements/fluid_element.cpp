@@ -126,18 +126,18 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
     // Iterate over integration points to evaluate local contribution
     for (unsigned int g = 0; g < number_of_gauss_points; g++)
     {
-        IntegrationPointGeometryData integration_point(
-            gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+        const auto& r_dndx = shape_derivatives[g];
+        data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g), r_dndx);
 
-        this->AddSystemTerms(data,integration_point,rCurrentProcessInfo,rDampMatrix,rRightHandSideVector);
+        this->AddSystemTerms(data,rCurrentProcessInfo,rDampMatrix,rRightHandSideVector);
     }
 
     // Rewrite local contribution into residual form (A*dx = b - A*x)
     VectorType values = ZeroVector(LocalSize);
     int LocalIndex = 0;
 
-    const auto& r_velocities = data.GetVELOCITY().Data();
-    const auto& r_pressures = data.GetPRESSURE().Data();
+    const auto& r_velocities = data.Velocity;
+    const auto& r_pressures = data.Pressure;
 
     for (unsigned int i = 0; i < NumNodes; ++i) {
         for (unsigned int d = 0; d < Dim; ++d) // Velocity Dofs
@@ -171,10 +171,9 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
     // Iterate over integration points to evaluate local contribution
     for (unsigned int g = 0; g < number_of_gauss_points; g++)
     {
-        IntegrationPointGeometryData integration_point(
-            gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+        data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
 
-        this->AddMassTerms(data,integration_point, rCurrentProcessInfo, rMassMatrix);
+        this->AddMassTerms(data, rCurrentProcessInfo, rMassMatrix);
     }
 }
 
@@ -303,8 +302,7 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     int out = Element::Check(rCurrentProcessInfo);
 
     // Check variables used by TElementData
-    TElementData data;
-    out = data.Check(*this);
+    out = TElementData::Check(*this,rCurrentProcessInfo);
 
     // Extra variables used in computing projections
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
@@ -362,14 +360,13 @@ void FluidElement<TElementData>::PrintInfo(std::ostream& rOStream) const
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class TElementData>
-double FluidElement<TElementData>::Interpolate(typename TElementData::NodalScalar& rHandler,
-                                               const boost::numeric::ublas::matrix_row<Matrix>& rN)
+double FluidElement<TElementData>::Interpolate(typename TElementData::NodalScalarData& rValues,
+                                               const typename TElementData::ShapeFunctionsType& rN)
 {
-    auto& r_values = rHandler.Data();
     double result = 0.0;
 
     for (size_t i = 0; i < NumNodes; i++) {
-        result += rN[i] * r_values[i];
+        result += rN[i] * rValues[i];
     }
 
     return result;
@@ -377,15 +374,14 @@ double FluidElement<TElementData>::Interpolate(typename TElementData::NodalScala
 
 template <class TElementData>
 array_1d<double, 3> FluidElement<TElementData>::Interpolate(
-    typename TElementData::NodalVector& rHandler,
-    const boost::numeric::ublas::matrix_row<Matrix>& rN)
+    typename TElementData::NodalVectorData& rValues,
+    const typename TElementData::ShapeFunctionsType& rN)
 {
-    auto& r_values = rHandler.Data();
     array_1d<double, 3> result(3, 0.0);
 
     for (size_t i = 0; i < NumNodes; i++) {
         for (size_t j = 0; j < Dim; j++) {
-            result[j] += rN[i] * r_values(i, j);
+            result[j] += rN[i] * rValues(i, j);
         }
     }
 
@@ -617,15 +613,14 @@ void FluidElement<TElementData>::CalculateStaticTau(double Density,
 template< class TElementData >
 double FluidElement<TElementData>::EffectiveViscosity(
     TElementData& rData,
-    const IntegrationPointGeometryData& rIntegrationPoint,
     double ElementSize,
     const ProcessInfo &rCurrentProcessInfo)
 {
     const FluidElement* const_this = static_cast<const FluidElement*>(this);
     double c_s = const_this->GetValue(C_SMAGORINSKY);
 
-    double kinematic_viscosity = this->Interpolate(rData.GetVISCOSITY(),rIntegrationPoint.N);
-    const auto& r_velocities = rData.GetVELOCITY().Data();
+    double kinematic_viscosity = this->Interpolate(rData.Viscosity,rData.N);
+    const auto& r_velocities = rData.Velocity;
 
     if (c_s != 0.0 )
     {
@@ -635,7 +630,7 @@ double FluidElement<TElementData>::EffectiveViscosity(
         {
             for (unsigned int i = 0; i < Dim; ++i)
                 for (unsigned int j = 0; j < Dim; ++j)
-                    strain_rate(i,j) += 0.5 * ( rIntegrationPoint.DN_DX(n,j) * r_velocities(n,i) + rIntegrationPoint.DN_DX(n,i) * r_velocities(n,j) );
+                    strain_rate(i,j) += 0.5 * ( rData.DN_DX(n,j) * r_velocities(n,i) + rData.DN_DX(n,i) * r_velocities(n,j) );
         }
 
         // Norm of symetric gradient
@@ -719,7 +714,7 @@ void FluidElement<TElementData>::load(Serializer& rSerializer)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-template class FluidElement< DSSData2D3N >;
-template class FluidElement< DSSData3D4N >;
+template class FluidElement< DSSData<2,3> >;
+template class FluidElement< DSSData<3,4> >;
 
 }

@@ -13,6 +13,7 @@
 #ifndef KRATOS_FLUID_ELEMENT_H
 #define KRATOS_FLUID_ELEMENT_H
 
+#include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
@@ -78,6 +79,34 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(Density,DENSITY,r_geometry);
     this->FillFromNodalData(Viscosity,VISCOSITY,r_geometry);
     this->FillFromNodalData(MassProjection,DIVPROJ,r_geometry);
+}
+
+static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
+{
+    const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);
+    KRATOS_CHECK_VARIABLE_KEY(ADVPROJ);
+    KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_CHECK_VARIABLE_KEY(VISCOSITY);
+    KRATOS_CHECK_VARIABLE_KEY(DIVPROJ);
+
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADVPROJ,r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY,r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VISCOSITY,r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DIVPROJ,r_geometry[i]);
+    }
+
+    return 0;
 }
 
 };
@@ -384,11 +413,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual double Interpolate(typename TElementData::NodalScalar& rHandler,
-                               const boost::numeric::ublas::matrix_row<Matrix>& rN);
+    virtual double Interpolate(typename TElementData::NodalScalarData& rHandler,
+                               const typename TElementData::ShapeFunctionsType& rN);
 
-    virtual array_1d<double, 3> Interpolate(typename TElementData::NodalVector& rHandler,
-                                            const boost::numeric::ublas::matrix_row<Matrix>& rN);
+    virtual array_1d<double, 3> Interpolate(typename TElementData::NodalVectorData& rHandler,
+                                            const typename TElementData::ShapeFunctionsType& rN);
 
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
     virtual void CalculateGeometryData(Vector& rGaussWeights,
@@ -419,7 +448,6 @@ protected:
      */
     virtual double EffectiveViscosity(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         double ElementSize,
         const ProcessInfo &rCurrentProcessInfo);
 
@@ -437,7 +465,6 @@ protected:
 
     virtual void AddSystemTerms(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         MatrixType& rLHS,
         VectorType& rRHS) = 0;
@@ -445,7 +472,6 @@ protected:
 
     virtual void AddMassTerms(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix) = 0;
 

@@ -39,6 +39,10 @@ public:
 
     using NodalVectorData = boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>;
 
+    using ShapeFunctionsType = array_1d<double,TNumNodes>;
+
+    using ShapeDerivativesType = boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>;
+
     constexpr static unsigned int Dim = TDim;
 
     constexpr static unsigned int NumNodes = TNumNodes;
@@ -65,9 +69,11 @@ public:
 
     virtual void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) = 0;
 
+    static void Check(const Element& rElement, const ProcessInfo& rProcessInfo);
+
     virtual void UpdateGeometryValues(double NewWeight,
-        boost::numeric::ublas::matrix_row<Kratos::Matrix>& rN,
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX);
+        boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
+        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX);
 
     ///@}
     ///@name Public Members
@@ -75,9 +81,9 @@ public:
     
     double Weight;
 
-    array_1d<double,TNumNodes> N;
+    ShapeFunctionsType N;
 
-    boost::numeric::ublas::bounded_matrix< double, TNumNodes, TDim > DN_DX;
+    ShapeDerivativesType DN_DX;
     
     ///@}
 protected:

@@ -239,7 +239,6 @@ protected:
 
     void AddSystemTerms(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         MatrixType& rLHS,
         VectorType& rRHS) override;
@@ -247,14 +246,12 @@ protected:
 
     void AddMassTerms(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix) override;
 
 
     void AddMassStabilization(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix);
 
@@ -262,47 +259,39 @@ protected:
 
     virtual void MomentumProjTerm(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         array_1d<double,3>& rMomentumRHS);
 
 
     virtual void MassProjTerm(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         double& rMassRHS);
 
 
     virtual void SubscaleVelocity(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         array_1d<double,3>& rVelocitySubscale);
 
     virtual void SubscalePressure(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         const ProcessInfo& rProcessInfo,
         double &rPressureSubscale);
 
         virtual void ASGSMomentumResidual(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         array_1d<double,3>& rMomentumRes);
 
 
     virtual void ASGSMassResidual(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         double& rMomentumRes);
 
     virtual void OSSMomentumResidual(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         array_1d<double,3>& rMomentumRes);
 
     virtual void OSSMassResidual(
         TElementData& rData,
-        const IntegrationPointGeometryData& rIntegrationPoint,
         double& rMassRes);
 
     ///@}

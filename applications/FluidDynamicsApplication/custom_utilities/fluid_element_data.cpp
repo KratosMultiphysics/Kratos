@@ -15,8 +15,8 @@ FluidElementData<TDim,TNumNodes>::~FluidElementData()
 
 template <size_t TDim, size_t TNumNodes>
 void FluidElementData<TDim, TNumNodes>::UpdateGeometryValues(double NewWeight,
-    boost::numeric::ublas::matrix_row<Kratos::Matrix>& rN,
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX)
+    boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
+    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX)
 {
     this->Weight = NewWeight;
     noalias(this->N) = rN;
