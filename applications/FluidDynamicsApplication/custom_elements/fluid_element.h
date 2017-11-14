@@ -71,6 +71,7 @@ NodalScalarData MassProjection;
 double CSmagorinsky;
 double DeltaTime;
 double DynamicTau;
+double UseOSS;
 
 void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
 {
@@ -86,6 +87,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromElementData(CSmagorinsky,C_SMAGORINSKY,rElement);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
+    this->FillFromProcessInfo(UseOSS,OSS_SWITCH,rProcessInfo);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
@@ -116,6 +118,7 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY);
     KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
     KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU);
+    KRATOS_CHECK_VARIABLE_KEY(OSS_SWITCH);
 
     return 0;
 }
@@ -445,14 +448,12 @@ protected:
 
     virtual void AddSystemTerms(
         TElementData& rData,
-        const ProcessInfo& rProcessInfo,
         MatrixType& rLHS,
         VectorType& rRHS) = 0;
 
 
     virtual void AddMassTerms(
         TElementData& rData,
-        const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix) = 0;
 
     virtual void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) = 0;

@@ -129,7 +129,7 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
         const auto& r_dndx = shape_derivatives[g];
         data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g), r_dndx);
 
-        this->AddSystemTerms(data,rCurrentProcessInfo,rDampMatrix,rRightHandSideVector);
+        this->AddSystemTerms(data,rDampMatrix,rRightHandSideVector);
     }
 
     // Rewrite local contribution into residual form (A*dx = b - A*x)
@@ -173,7 +173,7 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
     {
         data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
 
-        this->AddMassTerms(data, rCurrentProcessInfo, rMassMatrix);
+        this->AddMassTerms(data, rMassMatrix);
     }
 }
 

@@ -371,7 +371,6 @@ void DSS<TElementData>::MassProjTerm(
 template< class TElementData >
 void DSS<TElementData>::AddSystemTerms(
     TElementData& rData,
-    const ProcessInfo &rProcessInfo,
     MatrixType &rLHS,
     VectorType &rRHS)
 {
@@ -477,7 +476,6 @@ void DSS<TElementData>::AddSystemTerms(
 template< class TElementData >
 void DSS<TElementData>::AddMassTerms(
     TElementData& rData,
-    const ProcessInfo &rProcessInfo,
     MatrixType &rMassMatrix)
 {
     unsigned int Row = 0;
@@ -505,8 +503,8 @@ void DSS<TElementData>::AddMassTerms(
      * think that we solve F - (1-alpha)*M*u^(n+1) - alpha*M*u^(n) - K(u^(n+1)) = 0
      * so the projection of the dynamic terms should be Pi( (1-alpha)*u^(n+1) - alpha*u^(n) )
      */
-    if ( rProcessInfo[OSS_SWITCH] != 1.0 )
-        this->AddMassStabilization(rData,rProcessInfo,rMassMatrix);
+    if ( rData.UseOSS != 1.0 )
+        this->AddMassStabilization(rData,rMassMatrix);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -514,7 +512,6 @@ void DSS<TElementData>::AddMassTerms(
 template< class TElementData >
 void DSS<TElementData>::AddMassStabilization(
     TElementData& rData,
-    const ProcessInfo &rProcessInfo,
     MatrixType &rMassMatrix)
 {
     double ElemSize = this->ElementSize();
@@ -631,7 +628,7 @@ void DSS<TElementData>::SubscaleVelocity(
 
     array_1d<double,3> Residual(3,0.0);
 
-    if (rProcessInfo[OSS_SWITCH] != 1.0)
+    if (rData.UseOSS != 1.0)
         this->ASGSMomentumResidual(rData,Residual);
     else
         this->OSSMomentumResidual(rData,Residual);

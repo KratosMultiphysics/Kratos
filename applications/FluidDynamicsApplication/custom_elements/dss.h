@@ -239,20 +239,17 @@ protected:
 
     void AddSystemTerms(
         TElementData& rData,
-        const ProcessInfo& rProcessInfo,
         MatrixType& rLHS,
         VectorType& rRHS) override;
 
 
     void AddMassTerms(
         TElementData& rData,
-        const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix) override;
 
 
     void AddMassStabilization(
         TElementData& rData,
-        const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix);
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
