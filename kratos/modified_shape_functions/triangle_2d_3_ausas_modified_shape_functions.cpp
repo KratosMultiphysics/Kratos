@@ -72,10 +72,10 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAn
     if (this->IsSplit()) {
         // Get the intersection points condensation matrix
         Matrix p_matrix_pos_side;
-        SetPositiveSideCondensationMatrix(p_matrix_pos_side,
-                                          mpTriangleSplitter->mEdgeNodeI,
-                                          mpTriangleSplitter->mEdgeNodeJ,
-                                          mpTriangleSplitter->mSplitEdges);
+        this->SetPositiveSideCondensationMatrix(p_matrix_pos_side,
+                                                mpTriangleSplitter->mEdgeNodeI,
+                                                mpTriangleSplitter->mEdgeNodeJ,
+                                                mpTriangleSplitter->mSplitEdges);
 
         // Compute the positive side values
         this->ComputeValuesOnOneSide(rPositiveSideShapeFunctionsValues,
@@ -99,10 +99,10 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAn
     if (this->IsSplit()) {
         // Get the intersection points condensation matrix
         Matrix p_matrix_neg_side;
-        SetNegativeSideCondensationMatrix(p_matrix_neg_side,
-                                          mpTriangleSplitter->mEdgeNodeI,
-                                          mpTriangleSplitter->mEdgeNodeJ,
-                                          mpTriangleSplitter->mSplitEdges);
+        this->SetNegativeSideCondensationMatrix(p_matrix_neg_side,
+                                                mpTriangleSplitter->mEdgeNodeJ,
+                                                mpTriangleSplitter->mEdgeNodeI,
+                                                mpTriangleSplitter->mSplitEdges);
 
         // Compute the negative side values
         this->ComputeValuesOnOneSide(rNegativeSideShapeFunctionsValues,
