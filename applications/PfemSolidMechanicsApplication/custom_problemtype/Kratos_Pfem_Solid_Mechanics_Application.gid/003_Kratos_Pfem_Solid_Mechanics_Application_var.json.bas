@@ -23,6 +23,10 @@
         "solver_type"                        : "pfem_solid_mechanics_implicit_dynamic_solver",
         "time_integration_method"            : "Implicit",
         "scheme_type"                        : "Bossak",
+*elseif(strcmp(GenData(DOFS),"U-W-wP")==0)
+        "solver_type"                        : "pfem_solid_mechanics_implicit_dynamic_solver",
+        "time_integration_method"            : "Implicit",
+        "scheme_type"                        : "Bossak",
 *else
         "solver_type"                        : "solid_mechanics_implicit_dynamic_solver",
         "time_integration_method"            : "Implicit",
@@ -72,6 +76,10 @@
 *endif
 *if(strcmp(GenData(DOFS),"U-W")==0)
 						"WATER_DISPLACEMENT"
+*endif
+*if(strcmp(GenData(DOFS),"U-W-wP")==0)
+						"WATER_DISPLACEMENT",
+                                                "WATER_PRESSURE"
 *endif
 					       ],
         "reform_dofs_at_each_step"           : true,
@@ -818,6 +826,14 @@
                                       "WATER_DISPLACEMENT",
                                       "WATER_VELOCITY",
 				      "WATER_ACCELERATION",
+*elseif(strcmp(GenData(DOFS),"U-W-wP")==0)
+                                      "WATER_DISPLACEMENT",
+                                      "WATER_VELOCITY",
+				      "WATER_ACCELERATION",
+				      "WATER_PRESSURE",
+				      "WATER_PRESSURE_VELOCITY",
+				      "WATER_PRESSURE_ACCELERATIONN",
+*endif
 *endif
 *endif
 *if(strcmp(GenData(Write_Reactions),"True")==0)
