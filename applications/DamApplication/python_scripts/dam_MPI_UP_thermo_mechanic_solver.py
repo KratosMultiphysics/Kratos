@@ -96,6 +96,7 @@ class DamMPIUPThermoMechanicSolver(dam_MPI_thermo_mechanic_solver.DamMPIThermoMe
                 },
                 "problem_domain_sub_model_part_list": [""],
                 "body_domain_sub_model_part_list": [],
+                "mechanical_loads_sub_model_part_list": [],
                 "loads_sub_model_part_list": [],
                 "loads_variable_list": []
             }

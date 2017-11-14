@@ -96,25 +96,25 @@ public:
   ///@{
 
   // ==============================================================================
-  virtual void initialize() = 0;
+  virtual void Initialize() = 0;
 
   // --------------------------------------------------------------------------
-  virtual void calculate_value() = 0;
+  virtual void CalculateValue() = 0;
 
   // --------------------------------------------------------------------------
-  virtual void calculate_gradient() = 0;
+  virtual void CalculateGradient() = 0;
 
   // --------------------------------------------------------------------------
-  virtual double get_value() = 0;
+  virtual double GetValue() = 0;
 
   // --------------------------------------------------------------------------
-  virtual double get_initial_value() = 0;
+  virtual double GetInitialValue() = 0;
 
   // --------------------------------------------------------------------------
-  virtual boost::python::dict get_gradient() = 0;
+  virtual boost::python::dict GetGradient() = 0;
 
   // --------------------------------------------------------------------------
-  virtual void consider_discretization() = 0;
+  virtual void ConsiderDiscretization() = 0;
 
   // ==============================================================================
 
