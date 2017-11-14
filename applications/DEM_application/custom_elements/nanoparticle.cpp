@@ -63,7 +63,7 @@ void NanoParticle::SetDefaultRadiiHierarchy(const double radius)
 double NanoParticle::CalculateVolume()
 {
     const double radius = this->GetRadius();
-    return KRATOS_M_PI * radius * radius * radius * mThicknessOverRadius;
+    return Globals::Pi * radius * radius * radius * mThicknessOverRadius;
 }
 
     

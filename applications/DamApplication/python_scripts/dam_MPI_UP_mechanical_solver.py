@@ -75,6 +75,7 @@ class DamMPIUPMechanicalSolver(dam_MPI_mechanical_solver.DamMPIMechanicalSolver)
                 },
                 "problem_domain_sub_model_part_list": [""],
                 "body_domain_sub_model_part_list": [],
+                "mechanical_loads_sub_model_part_list": [],
                 "loads_sub_model_part_list": [],
                 "loads_variable_list": []
             }

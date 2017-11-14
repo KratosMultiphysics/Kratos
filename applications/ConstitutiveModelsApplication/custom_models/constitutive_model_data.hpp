@@ -151,8 +151,8 @@ namespace Kratos
     struct VariableValueData
     {
     private:
-
-      enum VarType { INTEGER, DOUBLE, VECTOR, MATRIX, ARRAY3, ARRAY6 };
+ 
+      enum VarType { INTEGER, DOUBLE, VECTOR, MATRIX, ARRAY3, ARRAY6, NONE };
 
       VarType                                        mType;      
       VariableValue<int>                    *mpIntVariable;
@@ -167,6 +167,7 @@ namespace Kratos
       //Constructor
       VariableValueData()
       {
+	mType            = NONE;
 	mpIntVariable    = NULL;
 	mpDoubleVariable = NULL;
 	mpVectorVariable = NULL;
@@ -182,16 +183,26 @@ namespace Kratos
 	  {
 	  case INTEGER:
 	    delete mpIntVariable;
+	    break;
 	  case DOUBLE:
 	    delete mpDoubleVariable;
+	    break;
 	  case VECTOR:
 	    delete mpVectorVariable;
+	    break;
 	  case MATRIX:
 	    delete mpMatrixVariable;
+	    break;
 	  case ARRAY3:
 	    delete mpArray3Variable;
+	    break;
 	  case ARRAY6:
 	    delete mpArray6Variable;
+	    break;
+	  case NONE:
+	    break;
+	  default:
+	    break;
 	  }
       }
       

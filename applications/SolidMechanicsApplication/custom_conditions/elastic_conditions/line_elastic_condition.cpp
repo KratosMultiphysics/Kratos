@@ -190,7 +190,7 @@ namespace Kratos
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineStiffness[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(LineStiffness[k]);
 	}
     }
 
@@ -203,7 +203,7 @@ namespace Kratos
 	  counter = i*3;
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    {
-	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineStiffness[counter+k];
+	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(LineStiffness[counter+k]);
 	    }
 	  
 	}
@@ -215,7 +215,7 @@ namespace Kratos
 	if( GetGeometry()[i].SolutionStepsDataHas( LINE_STIFFNESS ) ){
 	  array_1d<double, 3 > & LineStiffness = GetGeometry()[i].FastGetSolutionStepValue( LINE_STIFFNESS );
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineStiffness[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(LineStiffness[k]);
 	}
       }
 

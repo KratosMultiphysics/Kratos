@@ -873,7 +873,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalBodyForce( Vector& rLocalFo
         }
         if( norm_2(NormalPlaneProjection)==0 || norm_2(LocalBeamAxis)==0  )
         {
-            alpha = sign * KRATOS_M_PI_2;
+            alpha = sign * 0.5 * Globals::Pi;
         }
         else
         {
@@ -923,7 +923,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalBodyForce( Vector& rLocalFo
         }
         if( norm_2(NormalPlaneProjection)==0 || norm_2(LocalBeamAxis)==0  )
         {
-            alpha = sign * KRATOS_M_PI_2;
+            alpha = sign * 0.5 * Globals::Pi;
         }
         else
         {
@@ -974,7 +974,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalBodyForce( Vector& rLocalFo
         }
         if( norm_2(NormalPlaneProjection)==0 || norm_2(LocalBeamAxis)==0  )
         {
-            alpha = sign * KRATOS_M_PI_2;
+            alpha = sign * 0.5 * Globals::Pi;
         }
         else
         {
@@ -1157,7 +1157,7 @@ void SmallDisplacementBeamElement3D2N::CalculateDistributedBodyForce(const int D
 	  }
 	if( norm_2(NormalPlaneProjection)==0 || norm_2(LocalBeamAxis)==0  )
 	  {
-	    alpha = sign * KRATOS_M_PI_2;
+	    alpha = sign * 0.5 * Globals::Pi;
 	  }
 	else
 	  {
@@ -1189,7 +1189,7 @@ void SmallDisplacementBeamElement3D2N::CalculateDistributedBodyForce(const int D
         }
         if( norm_2(NormalPlaneProjection)==0 || norm_2(LocalBeamAxis)==0  )
         {
-            alpha = sign * KRATOS_M_PI_2;
+            alpha = sign * 0.5 * Globals::Pi;
         }
         else
         {
@@ -1221,7 +1221,7 @@ void SmallDisplacementBeamElement3D2N::CalculateDistributedBodyForce(const int D
         }
         if( norm_2(NormalPlaneProjection)==0 || norm_2(LocalBeamAxis)==0  )
         {
-            alpha = sign * KRATOS_M_PI_2;
+            alpha = sign * 0.5 * Globals::Pi;
         }
         else
         {

@@ -32,7 +32,7 @@ namespace Kratos
       CylinderParticle::~CylinderParticle() {}      
 
       double CylinderParticle::CalculateVolume(){
-          return KRATOS_M_PI * GetRadius() * GetRadius();
+          return Globals::Pi * GetRadius() * GetRadius();
       }
       
       double CylinderParticle::CalculateMomentOfInertia() {
