@@ -223,7 +223,7 @@ class Solution(object):
         self.main_model_part.CloneTimeStep(self.time) 
 
 
-        print(" [STEP:",self.step," TIME:",self.time,"]")
+        print(" [STEP:",self.step," TIME:",round(self.time,7),"]")
 
         # processes to be executed at the begining of the solution step
         self.model_processes.ExecuteInitializeSolutionStep()
