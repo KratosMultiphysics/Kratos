@@ -193,6 +193,7 @@ class Solution(object):
         #self.analytic_model_part.AddElements(analytic_particle_ids)
 
     def Initialize(self):
+        
         self.AddVariables()
 
         self.ReadModelParts()

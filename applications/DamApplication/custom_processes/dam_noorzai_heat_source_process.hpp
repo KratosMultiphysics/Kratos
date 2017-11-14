@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_DAM_NODAL_YOUNG_MODULUS_PROCESS)
-#define KRATOS_DAM_NODAL_YOUNG_MODULUS_PROCESS
+#if !defined(KRATOS_DAM_NOORZAI_HEAT_SOURCE_PROCESS)
+#define KRATOS_DAM_NOORZAI_HEAT_SOURCE_PROCESS
 
 #include <cmath>
 
@@ -27,17 +27,17 @@
 namespace Kratos
 {
 
-class DamNodalYoungModulusProcess : public Process
+class DamNoorzaiHeatFluxProcess : public Process
 {
 
   public:
-    KRATOS_CLASS_POINTER_DEFINITION(DamNodalYoungModulusProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(DamNoorzaiHeatFluxProcess);
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamNodalYoungModulusProcess(ModelPart &rModelPart,
-                                Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart)
+    DamNoorzaiHeatFluxProcess(ModelPart &rModelPart,
+                              Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart)
     {
         KRATOS_TRY
 
@@ -47,29 +47,27 @@ class DamNodalYoungModulusProcess : public Process
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed"                                         : false,
-                "Young_Modulus_1"                                  : 10.0,
-                "Young_Modulus_2"                                  : 60.0,
-                "Young_Modulus_3"                                  : 50.0,
-                "Young_Modulus_4"                                  : 70.0
+                "density"                             : 0.0,
+                "specific_heat"                        : 0.0,
+                "t_max"                               : 0.0,
+                "alpha"                               : 0.0            
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
-        rParameters["Young_Modulus_1"];
-        rParameters["variable_name"];
-        rParameters["model_part_name"];
+        rParameters["t_max"];
+        rParameters["alpha"];
+        rParameters["specific_heat"];
 
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
-        mIsFixed = rParameters["is_fixed"].GetBool();
-        mYoung1 = rParameters["Young_Modulus_1"].GetDouble();
-        mYoung2 = rParameters["Young_Modulus_2"].GetDouble();
-        mYoung3 = rParameters["Young_Modulus_3"].GetDouble();
-        mYoung4 = rParameters["Young_Modulus_4"].GetDouble();
+        mDensity = rParameters["density"].GetDouble();
+        mSpecificHeat = rParameters["specific_heat"].GetDouble();
+        mTMax = rParameters["t_max"].GetDouble();
+        mAlpha = rParameters["alpha"].GetDouble();
 
         KRATOS_CATCH("");
     }
@@ -77,17 +75,19 @@ class DamNodalYoungModulusProcess : public Process
     ///------------------------------------------------------------------------------------
 
     /// Destructor
-    virtual ~DamNodalYoungModulusProcess() {}
+    virtual ~DamNoorzaiHeatFluxProcess() {}
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Execute()
+    void ExecuteInitialize()
     {
-
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+
+        double time = mrModelPart.GetProcessInfo()[TIME];
+        double value = mDensity * mSpecificHeat * mAlpha * mTMax * (exp(-mAlpha * time));
 
         if (nnodes != 0)
         {
@@ -97,23 +97,9 @@ class DamNodalYoungModulusProcess : public Process
             for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
-
-                double Young = mYoung1 + (mYoung2 * it->Coordinate(1)) + (mYoung3 * it->Coordinate(2)) + (mYoung4 * it->Coordinate(3));
-
-                if (Young <= 0.0)
-                {
-                    it->FastGetSolutionStepValue(var) = 0.0;
-                }
-                else
-                    it->FastGetSolutionStepValue(var) = Young;
+                it->FastGetSolutionStepValue(var) = value;
             }
         }
-
         KRATOS_CATCH("");
     }
 
@@ -121,50 +107,25 @@ class DamNodalYoungModulusProcess : public Process
 
     void ExecuteInitializeSolutionStep()
     {
-
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
-
-        if (nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
-
-#pragma omp parallel for
-            for (int i = 0; i < nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
-
-                double Young = mYoung1 + (mYoung2 * it->Coordinate(1)) + (mYoung3 * it->Coordinate(2)) + (mYoung4 * it->Coordinate(3));
-
-                if (Young <= 0.0)
-                {
-                    it->FastGetSolutionStepValue(var) = 0.0;
-                }
-                else
-                    it->FastGetSolutionStepValue(var) = Young;
-            }
-        }
+        this->ExecuteInitialize();
 
         KRATOS_CATCH("");
     }
 
+    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     /// Turn back information as a string.
     std::string Info() const
     {
-        return "DamNodalYoungModulusProcess";
+        return "DamNoorzaiHeatFluxProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream &rOStream) const
     {
-        rOStream << "DamNodalYoungModulusProcess";
+        rOStream << "DamNoorzaiHeatFluxProcess";
     }
 
     /// Print object's data.
@@ -176,31 +137,29 @@ class DamNodalYoungModulusProcess : public Process
 
   protected:
     /// Member Variables
-
     ModelPart &mrModelPart;
     std::size_t mMeshId;
     std::string mVariableName;
-    bool mIsFixed;
-    double mYoung1;
-    double mYoung2;
-    double mYoung3;
-    double mYoung4;
+    double mDensity;
+    double mSpecificHeat;
+    double mAlpha;
+    double mTMax;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   private:
     /// Assignment operator.
-    DamNodalYoungModulusProcess &operator=(DamNodalYoungModulusProcess const &rOther);
+    DamNoorzaiHeatFluxProcess &operator=(DamNoorzaiHeatFluxProcess const &rOther);
 
 }; //Class
 
 /// input stream function
 inline std::istream &operator>>(std::istream &rIStream,
-                                DamNodalYoungModulusProcess &rThis);
+                                DamNoorzaiHeatFluxProcess &rThis);
 
 /// output stream function
 inline std::ostream &operator<<(std::ostream &rOStream,
-                                const DamNodalYoungModulusProcess &rThis)
+                                const DamNoorzaiHeatFluxProcess &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -211,4 +170,4 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_DAM_NODAL_YOUNG_MODULUS_PROCESS defined */
+#endif /* KRATOS_DAM_NOORZAI_HEAT_SOURCE_PROCESS defined */
