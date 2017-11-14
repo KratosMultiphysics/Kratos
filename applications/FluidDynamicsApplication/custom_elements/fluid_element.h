@@ -71,7 +71,7 @@ NodalScalarData MassProjection;
 double CSmagorinsky;
 double DeltaTime;
 double DynamicTau;
-double UseOSS;
+int UseOSS;
 
 void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
 {
