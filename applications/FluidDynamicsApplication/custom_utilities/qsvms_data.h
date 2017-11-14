@@ -10,8 +10,8 @@
 //  Main authors:    Jordi Cotela
 //
 
-#if !defined(KRATOS_QSVMS_DATA_DATA_H)
-#define KRATOS_QSVMS_DATA_DATA_H
+#if !defined(KRATOS_QSVMS_DATA_H)
+#define KRATOS_QSVMS_DATA_H
 
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
@@ -111,9 +111,6 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 ///@}
 
 };
-
-template class QSVMSData<2,3>;
-template class QSVMSData<3,4>;
 
 ///@}
 
