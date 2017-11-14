@@ -14,7 +14,6 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list_data_value_container.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/timer.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/serializer.cpp;
@@ -25,6 +24,7 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
 	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_signed_distance_to_3d_skin_process.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp;
@@ -43,6 +43,7 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_discontinuous_distance_to_skin_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_distance_to_skin_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -50,8 +51,14 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/prime_numbers.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_geometry.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_triangle_2d_3.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_tetrahedra_3d_4.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/triangle_2d_3_modified_shape_functions.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.cpp;
 )
 
 ## Kratos python interface code

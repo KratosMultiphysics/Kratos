@@ -25,7 +25,6 @@ class AssignModulusAndDirectionToNodesProcess(BaseProcess.AssignVectorComponents
         {
              "help" : "This process assigns a modulus and direction value to a vector variable",
              "model_part_name": "MODEL_PART_NAME",
-             "mesh_id": 0,
              "variable_name": "VARIABLE_NAME",
              "modulus" : 0.0,
              "direction": [0.0, 0.0, 0.0],
@@ -88,7 +87,6 @@ class AssignModulusAndDirectionToNodesProcess(BaseProcess.AssignVectorComponents
         ###set vector components process
         params = KratosMultiphysics.Parameters("{}")           
         params.AddValue("model_part_name", self.settings["model_part_name"])
-        params.AddValue("mesh_id", self.settings["mesh_id"])
         params.AddValue("variable_name", self.settings["variable_name"])
 
         params.AddEmptyValue("value")

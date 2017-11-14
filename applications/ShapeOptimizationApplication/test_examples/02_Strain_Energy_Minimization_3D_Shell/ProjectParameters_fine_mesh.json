@@ -11,8 +11,7 @@
     "solver_settings"          : {
         "solver_type"                        : "structural_mechanics_static_solver",
         "echo_level"                         : 0,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Linear",
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "3D_Shell_fine"
@@ -21,7 +20,7 @@
             "materials_filename": "materials_2D.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "Residual_criterion",
+        "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
@@ -37,45 +36,39 @@
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_disp_fix",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_disp_slide",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"     : [false,true,true],
             "value"           : [0.0,0.0,0.0]
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "process_factory",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "check"                 : "DirectorVectorNonZero direction",
-        "help"                  : "This process ",
-        "process_name"          : "ApplyConstantVectorValueProcess",
-        "Parameters"            : {
+        "process_name"  : "AssignVectorByDirectionProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "PointLoad3D_load",
             "variable_name"   : "POINT_LOAD",
-            "modulus"          : 100000.0,
+            "modulus"         : 100000.0,
+            "constrained"     : false,
             "direction"       : [0.0,-1,0.0]
         }
     }],
@@ -119,10 +112,10 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "design_variables_type"     : "vertex_morphing",
-            "input_model_part_name"     : "3D_Shell_fine",
-            "design_submodel_part_name" : "design_surface",
-            "domain_size"               : 3,
+            "design_variables_type"              : "vertex_morphing",
+            "optimization_model_part_name"       : "3D_Shell_fine",
+            "design_surface_sub_model_part_name" : "design_surface",
+            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 3.0,
@@ -162,20 +155,24 @@
             "output_directory"        : "Optimization_Results_Fine",
             "design_history_filename" : "design_history",
             "response_log_filename"   : "response_log",
+            "design_output_mode"      : "WriteDesignSurface",            
             "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
                                           "OBJECTIVE_SENSITIVITY",
                                           "MAPPED_OBJECTIVE_SENSITIVITY",
-                                          "DESIGN_UPDATE",
-                                          "DESIGN_CHANGE_ABSOLUTE",
+                                          "CONTROL_POINT_UPDATE",
+                                          "CONTROL_POINT_CHANGE",
                                           "SHAPE_UPDATE",
-                                          "SHAPE_CHANGE_ABSOLUTE" ],
+                                          "SHAPE_CHANGE" ],
             "output_format" : {
-                "name"                   : "gid",
-                "VolumeOutput"           : true,
-                "GiDPostMode"            : "Binary",
-                "GiDWriteMeshFlag"       : true,
-                "GiDWriteConditionsFlag" : true,
-                "GiDMultiFileFlag"       : "Single"
+                "name"              : "gid",
+                "gid_configuration" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary"
+                        },
+                        "output_frequency"    : 1.0
+                    }
+                }
             }
         }
     }

@@ -130,7 +130,7 @@ public:
     ///@{
 
     // ==============================================================================
-    void compute_unit_surface_normals()
+    void ComputeUnitSurfaceNormals()
     {
         KRATOS_TRY;
 
@@ -152,7 +152,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void project_nodal_variable_on_unit_surface_normals( const Variable<array_3d> &rNodalVariable )
+    void ProjectNodalVariableOnUnitSurfaceNormals( const Variable<array_3d> &rNodalVariable )
     {
         KRATOS_TRY;
 
@@ -171,21 +171,21 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void update_coordinates_according_to_input_variable( const Variable<array_3d> &rNodalVariable )
+    void UpdateShapeChangeByInputVariable( const Variable<array_3d> &rNodalVariable )
     {
         for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
         {
-            array_3d& shape_update = node_i->FastGetSolutionStepValue(rNodalVariable);                
+            array_3d& variable_update = node_i->FastGetSolutionStepValue(rNodalVariable);                
            
-            node_i->X() += shape_update[0];
-            node_i->Y() += shape_update[1];
-            node_i->Z() += shape_update[2];
-            noalias(node_i->FastGetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)) += shape_update;
+            node_i->X() += variable_update[0];
+            node_i->Y() += variable_update[1];
+            node_i->Z() += variable_update[2];
+            noalias(node_i->FastGetSolutionStepValue(SHAPE_CHANGE)) += variable_update;
         }
     }
 
     // --------------------------------------------------------------------------
-    void extract_surface_nodes( std::string const& NewSubModelPartName )
+    void ExtractSurfaceNodes( std::string const& NewSubModelPartName )
     {
     	KRATOS_TRY;
 

@@ -65,8 +65,11 @@ def SetModelPartSolutionStepValue(model_part, var, value):
         node.SetSolutionStepValue(var, 0, value)
 
 def InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part, pp):
-    if pp.CFD_DEM["coupling_level_type"].GetInt():
+    checker = VariableChecker()
+
+    if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, FLUID_FRACTION):
         SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION, 1.0)
+    if checker.ModelPartHasNodalVariableOrNot(balls_model_part, FLUID_FRACTION_PROJECTED):
         SetModelPartSolutionStepValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
 
 def FixModelPart(model_part):
@@ -82,12 +85,12 @@ def GetWordWithSpaces(word, total_length):
         word += ' '
 
     return word
-    
+
 def TransferFacePressuresToPressure(model_part):
-    
+
     for node in model_part.Nodes:
         total_pressure = node.GetSolutionStepValue(POSITIVE_FACE_PRESSURE) + node.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE)
-        node.SetSolutionStepValue(PRESSURE, total_pressure)         
+        node.SetSolutionStepValue(PRESSURE, total_pressure)
 
 def Norm(my_list):
     return math.sqrt(sum([value ** 2 for value in my_list]))
@@ -204,7 +207,7 @@ def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_ov
 
 def FindMaxNodeId(fluid_model_part):
     return max((node.Id for node in fluid_model_part.Nodes))
-    
+
 def FindMaxElementId(fluid_model_part):
     return max((element.Id for element in fluid_model_part.Elements))
 
@@ -245,9 +248,9 @@ class IOTools:
         for name in dir_names:
             dir_abs_path = main_path + '/' + name
             directories[name] = dir_abs_path
-        
+
             shutil.rmtree(main_path + '/' + name, ignore_errors = True)
-        
+
             if not os.path.isdir(dir_abs_path):
                 os.makedirs(str(dir_abs_path))
 
@@ -338,7 +341,11 @@ class ProjectionDebugUtils:
 
 class Counter:
 
-    def __init__(self, steps_in_cycle = 1, beginning_step = 1, is_active = True, is_dead = False):
+    def __init__(self,
+                 steps_in_cycle = 1,
+                 beginning_step = 1,
+                 is_active = True,
+                 is_dead = False):
 
         if steps_in_cycle <= 0 or not isinstance(steps_in_cycle , int):
             raise ValueError("Error: The input steps_in_cycle must be a strictly positive integer")
@@ -352,7 +359,7 @@ class Counter:
         self.accumulated_ticks = 0
 
     def Tick(self):
-        
+
         if self.is_dead:
             return False
 
@@ -381,11 +388,11 @@ class Counter:
     def SetActivation(self, is_active):
         self.is_active = is_active
 
-    def Activate(self, activate = True):
-        self.is_active = self.is_active or activate
+    def Activate(self, condition = True):
+        self.is_active |= condition
 
-    def Deactivate(self, deactivate = True):
-        self.is_active = self.is_active and not deactivate
+    def Deactivate(self, condition = True):
+        self.is_active &= not condition
 
     def Switch(self, condition = None):
         if condition == None:
@@ -398,7 +405,7 @@ class Counter:
 
     def GetStepInCycle(self):
         return self.step_in_cycle
-    
+
     def Kill(self):
         self.is_dead = True
 

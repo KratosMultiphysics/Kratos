@@ -52,17 +52,17 @@ void  AddCustomUtilitiesToPython()
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, Parameters&>())
+    class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, Parameters>())
         .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
         ;
 
-    class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, Parameters&>())
+    class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, Parameters>())
         .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
         ;
 
-    class_<MapperVertexMorphingImprovedIntegration, bases<Process> >("MapperVertexMorphingImprovedIntegration", init<ModelPart&, Parameters&>())
+    class_<MapperVertexMorphingImprovedIntegration, bases<Process> >("MapperVertexMorphingImprovedIntegration", init<ModelPart&, Parameters>())
         .def("MapToDesignSpace", &MapperVertexMorphingImprovedIntegration::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingImprovedIntegration::MapToGeometrySpace)
         ;
@@ -71,70 +71,71 @@ void  AddCustomUtilitiesToPython()
     // ================================================================
     // For a possible damping of nodal variables
     // ================================================================
-    class_<DampingUtilities, bases<Process> >("DampingUtilities", init<ModelPart&, boost::python::dict, Parameters&>())
+    class_<DampingUtilities, bases<Process> >("DampingUtilities", init<ModelPart&, boost::python::dict, Parameters>())
         .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)
         ;
 
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
-    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters::Pointer>())
+    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
-        .def("compute_search_direction_steepest_descent", &OptimizationUtilities::compute_search_direction_steepest_descent)
+        .def("ComputeSearchDirectionSteepestDescent", &OptimizationUtilities::ComputeSearchDirectionSteepestDescent)
         // ----------------------------------------------------------------
         // For running penalized projection method
         // ----------------------------------------------------------------
-        .def("compute_projected_search_direction", &OptimizationUtilities::compute_projected_search_direction)
-        .def("correct_projected_search_direction", &OptimizationUtilities::correct_projected_search_direction)
+        .def("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
+        .def("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------
-        .def("compute_design_update", &OptimizationUtilities::compute_design_update)
+        .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
+        .def("UpdateControlPointChangeByInputVariable", &OptimizationUtilities::UpdateControlPointChangeByInputVariable)        
         ;
 
     // ========================================================================
     // For pre- and post-processing of geometry data
     // ========================================================================
     class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&>())
-        .def("compute_unit_surface_normals", &GeometryUtilities::compute_unit_surface_normals)
-        .def("project_nodal_variable_on_unit_surface_normals", &GeometryUtilities::project_nodal_variable_on_unit_surface_normals)
-        .def("update_coordinates_according_to_input_variable", &GeometryUtilities::update_coordinates_according_to_input_variable)
-        .def("extract_surface_nodes", &GeometryUtilities::extract_surface_nodes)
+        .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
+        .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
+        .def("UpdateShapeChangeByInputVariable", &GeometryUtilities::UpdateShapeChangeByInputVariable)
+        .def("ExtractSurfaceNodes", &GeometryUtilities::ExtractSurfaceNodes)
         ;
 
     // ========================================================================
     // For calculations related to response functions
     // ========================================================================
-    class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, Parameters&>())
-        .def("initialize", &StrainEnergyResponseFunction::initialize)
-        .def("calculate_value", &StrainEnergyResponseFunction::calculate_value)
-        .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient)
-        .def("get_value", &StrainEnergyResponseFunction::get_value)
-        .def("get_initial_value", &StrainEnergyResponseFunction::get_initial_value)
-        .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)
+    class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, Parameters>())
+        .def("Initialize", &StrainEnergyResponseFunction::Initialize)
+        .def("CalculateValue", &StrainEnergyResponseFunction::CalculateValue)
+        .def("CalculateGradient", &StrainEnergyResponseFunction::CalculateGradient)
+        .def("GetValue", &StrainEnergyResponseFunction::GetValue)
+        .def("GetInitialValue", &StrainEnergyResponseFunction::GetInitialValue)
+        .def("GetGradient", &StrainEnergyResponseFunction::GetGradient)
         ;
-    class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, Parameters&>())
-        .def("initialize", &MassResponseFunction::initialize)
-        .def("calculate_value", &MassResponseFunction::calculate_value)
-        .def("calculate_gradient", &MassResponseFunction::calculate_gradient)
-        .def("get_value", &MassResponseFunction::get_value)
-        .def("get_initial_value", &MassResponseFunction::get_initial_value)
-        .def("get_gradient", &MassResponseFunction::get_gradient)
+    class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, Parameters>())
+        .def("Initialize", &MassResponseFunction::Initialize)
+        .def("CalculateValue", &MassResponseFunction::CalculateValue)
+        .def("CalculateGradient", &MassResponseFunction::CalculateGradient)
+        .def("GetValue", &MassResponseFunction::GetValue)
+        .def("GetInitialValue", &MassResponseFunction::GetInitialValue)
+        .def("GetGradient", &MassResponseFunction::GetGradient)
         ;
 
     // ========================================================================
     // For input / output
     // ========================================================================
-    class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters&>())
-        .def("initializeLogging", &UniversalFileIO::initializeLogging)
-        .def("logNodalResults", &UniversalFileIO::logNodalResults)
+    class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, std::string, std::string, Parameters>())
+        .def("InitializeLogging", &UniversalFileIO::InitializeLogging)
+        .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
         ;
 
-    class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart&, Parameters&>())
-        .def("initializeLogging", &VTKFileIO::initializeLogging)
-        .def("logNodalResults", &VTKFileIO::logNodalResults)
+    class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart&, std::string, std::string, Parameters>())
+        .def("InitializeLogging", &VTKFileIO::InitializeLogging)
+        .def("LogNodalResults", &VTKFileIO::LogNodalResults)
         ;
 }
 

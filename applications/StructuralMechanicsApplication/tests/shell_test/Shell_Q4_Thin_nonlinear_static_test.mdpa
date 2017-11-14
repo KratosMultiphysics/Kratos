@@ -1,0 +1,336 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0000000000   2.5400000000  -0.2540000000
+    2   0.0362844801   2.5397408207  -0.2540000000
+    3   0.0000000000   2.5400000000  -0.2177142857
+    4   0.0362844801   2.5397408207  -0.2177142857
+    5   0.0725615553   2.5389633358  -0.2540000000
+    6   0.0000000000   2.5400000000  -0.1814285714
+    7   0.0725615553   2.5389633358  -0.2177142857
+    8   0.0362844801   2.5397408207  -0.1814285714
+    9   0.0725615553   2.5389633358  -0.1814285714
+   10   0.1088238223   2.5376677040  -0.2540000000
+   11   0.0000000000   2.5400000000  -0.1451428571
+   12   0.1088238223   2.5376677040  -0.2177142857
+   13   0.0362844801   2.5397408207  -0.1451428571
+   14   0.1088238223   2.5376677040  -0.1814285714
+   15   0.0725615553   2.5389633358  -0.1451428571
+   16   0.1450638807   2.5358541895  -0.2540000000
+   17   0.0000000000   2.5400000000  -0.1088571429
+   18   0.1450638807   2.5358541895  -0.2177142857
+   19   0.0362844801   2.5397408207  -0.1088571429
+   20   0.1088238223   2.5376677040  -0.1451428571
+   21   0.1450638807   2.5358541895  -0.1814285714
+   22   0.0725615553   2.5389633358  -0.1088571429
+   23   0.1812743348   2.5335231626  -0.2540000000
+   24   0.1450638807   2.5358541895  -0.1451428571
+   25   0.1088238223   2.5376677040  -0.1088571429
+   26   0.0000000000   2.5400000000  -0.0725714286
+   27   0.1812743348   2.5335231626  -0.2177142857
+   28   0.0362844801   2.5397408207  -0.0725714286
+   29   0.1812743348   2.5335231626  -0.1814285714
+   30   0.0725615553   2.5389633358  -0.0725714286
+   31   0.1450638807   2.5358541895  -0.1088571429
+   32   0.1812743348   2.5335231626  -0.1451428571
+   33   0.1088238223   2.5376677040  -0.0725714286
+   34   0.2174477947   2.5306750990  -0.2540000000
+   35   0.0000000000   2.5400000000  -0.0362857143
+   36   0.2174477947   2.5306750990  -0.2177142857
+   37   0.0362844801   2.5397408207  -0.0362857143
+   38   0.2174477947   2.5306750990  -0.1814285714
+   39   0.0725615553   2.5389633358  -0.0362857143
+   40   0.1812743348   2.5335231626  -0.1088571429
+   41   0.1450638807   2.5358541895  -0.0725714286
+   42   0.2174477947   2.5306750990  -0.1451428571
+   43   0.1088238223   2.5376677040  -0.0362857143
+   44   0.2535768783   2.5273105798  -0.2540000000
+   45   0.0000000000   2.5400000000   0.0000000000
+   46   0.2535768783   2.5273105798  -0.2177142857
+   47   0.1812743348   2.5335231626  -0.0725714286
+   48   0.0362844801   2.5397408207   0.0000000000
+   49   0.2174477947   2.5306750990  -0.1088571429
+   50   0.1450638807   2.5358541895  -0.0362857143
+   51   0.2535768783   2.5273105798  -0.1814285714
+   52   0.0725615553   2.5389633358   0.0000000000
+   53   0.2535768783   2.5273105798  -0.1451428571
+   54   0.1088238223   2.5376677040   0.0000000000
+   55   0.2174477947   2.5306750990  -0.0725714286
+   56   0.1812743348   2.5335231626  -0.0362857143
+   57   0.2535768783   2.5273105798  -0.1088571429
+   58   0.1450638807   2.5358541895   0.0000000000
+   59   0.2174477947   2.5306750990  -0.0362857143
+   60   0.2535768783   2.5273105798  -0.0725714286
+   61   0.1812743348   2.5335231626   0.0000000000
+   62   0.2535768783   2.5273105798  -0.0362857143
+   63   0.2174477947   2.5306750990   0.0000000000
+   64   0.2535768783   2.5273105798   0.0000000000
+End Nodes
+
+
+Begin Elements ShellThinElementCorotational3D4N// GUI group identifier: surface
+         1          0         63         59         62         64 
+         2          0         61         56         59         63 
+         3          0         58         50         56         61 
+         4          0         54         43         50         58 
+         5          0         52         39         43         54 
+         6          0         48         37         39         52 
+         7          0         45         35         37         48 
+         8          0         59         55         60         62 
+         9          0         56         47         55         59 
+        10          0         50         41         47         56 
+        11          0         43         33         41         50 
+        12          0         39         30         33         43 
+        13          0         37         28         30         39 
+        14          0         35         26         28         37 
+        15          0         55         49         57         60 
+        16          0         47         40         49         55 
+        17          0         41         31         40         47 
+        18          0         33         25         31         41 
+        19          0         30         22         25         33 
+        20          0         28         19         22         30 
+        21          0         26         17         19         28 
+        22          0         49         42         53         57 
+        23          0         40         32         42         49 
+        24          0         31         24         32         40 
+        25          0         25         20         24         31 
+        26          0         22         15         20         25 
+        27          0         19         13         15         22 
+        28          0         17         11         13         19 
+        29          0         42         38         51         53 
+        30          0         32         29         38         42 
+        31          0         24         21         29         32 
+        32          0         20         14         21         24 
+        33          0         15          9         14         20 
+        34          0         13          8          9         15 
+        35          0         11          6          8         13 
+        36          0         38         36         46         51 
+        37          0         29         27         36         38 
+        38          0         21         18         27         29 
+        39          0         14         12         18         21 
+        40          0          9          7         12         14 
+        41          0          8          4          7          9 
+        42          0          6          3          4          8 
+        43          0         36         34         44         46 
+        44          0         27         23         34         36 
+        45          0         18         16         23         27 
+        46          0         12         10         16         18 
+        47          0          7          5         10         12 
+        48          0          4          2          5          7 
+        49          0          3          1          2          4 
+End Elements
+
+Begin SubModelPart Parts_surface // Group surface // Subtree Parts
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+        17
+        18
+        19
+        20
+        21
+        22
+        23
+        24
+        25
+        26
+        27
+        28
+        29
+        30
+        31
+        32
+        33
+        34
+        35
+        36
+        37
+        38
+        39
+        40
+        41
+        42
+        43
+        44
+        45
+        46
+        47
+        48
+        49
+        50
+        51
+        52
+        53
+        54
+        55
+        56
+        57
+        58
+        59
+        60
+        61
+        62
+        63
+        64
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+        17
+        18
+        19
+        20
+        21
+        22
+        23
+        24
+        25
+        26
+        27
+        28
+        29
+        30
+        31
+        32
+        33
+        34
+        35
+        36
+        37
+        38
+        39
+        40
+        41
+        42
+        43
+        44
+        45
+        46
+        47
+        48
+        49
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_hinged_edges // Group hinged_edges // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+        44
+        46
+        51
+        53
+        57
+        60
+        62
+        64
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_XY_sym // Group XY sym // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         1
+         2
+         5
+        10
+        16
+        23
+        34
+        44
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_YZ_sym // Group YZ sym // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         1
+         3
+         6
+        11
+        17
+        26
+        35
+        45
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_point_load // Group point_load // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart ROTATION_XY_sym // Group XY sym // Subtree ROTATION
+    Begin SubModelPartNodes
+         1
+         2
+         5
+        10
+        16
+        23
+        34
+        44
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart ROTATION_YZ_sym // Group YZ sym // Subtree ROTATION
+    Begin SubModelPartNodes
+         1
+         3
+         6
+        11
+        17
+        26
+        35
+        45
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

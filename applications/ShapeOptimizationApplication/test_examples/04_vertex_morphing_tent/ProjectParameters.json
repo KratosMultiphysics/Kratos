@@ -6,9 +6,9 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "design_variables_type"     : "vertex_morphing",
-            "input_model_part_name"     : "vertex_morphing_tent",
-            "design_submodel_part_name" : "design_surface",
+            "design_variables_type"              : "vertex_morphing",
+            "optimization_model_part_name"       : "vertex_morphing_tent",
+            "design_surface_sub_model_part_name" : "design_surface",
             "domain_size"               : 3,
             "filter" : {
                 "filter_function_type"       : "gaussian",
@@ -35,17 +35,23 @@
             "output_directory"        : "Optimization_Results",
             "design_history_filename" : "design_history",
             "response_log_filename"   : "response_log",
+            "design_output_mode"      : "WriteDesignSurface",            
             "nodal_results"           : [ "OBJECTIVE_SENSITIVITY",
                                           "MAPPED_OBJECTIVE_SENSITIVITY",
-                                          "DESIGN_UPDATE",
-                                          "SHAPE_UPDATE" ],
+                                          "CONTROL_POINT_UPDATE",
+                                          "CONTROL_POINT_CHANGE", 
+                                          "SHAPE_UPDATE",
+                                          "SHAPE_CHANGE" ], 
             "output_format" : {
-                "name"                   : "gid",
-                "VolumeOutput"           : true,
-                "GiDPostMode"            : "Binary",
-                "GiDWriteMeshFlag"       : true,
-                "GiDWriteConditionsFlag" : true,
-                "GiDMultiFileFlag"       : "Single"
+                "name"              : "gid",
+                "gid_configuration" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary"
+                        },
+                        "output_frequency"    : 1.0
+                    }
+                }
             }
         }
     }

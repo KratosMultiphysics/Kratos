@@ -553,6 +553,11 @@ private:
         );
     
     /**
+     * This sets the output mesh in a .mdpa format
+     */
+    void OutputMdpa();
+
+    /**
      * This sets the output sol
      * @param PostOutput: If the ouput file is the solution after take into account the metric or not
      * @param step: The step to postprocess

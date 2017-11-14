@@ -11,9 +11,8 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+        "echo_level"                         : 0,        
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "ALM_frictionless_contact_test_3D/3D_contact_patch_nonmatching_test"
@@ -25,18 +24,18 @@
         {
             "mortar_type"                    : "ALMContactFrictionless"
         },
-        "block_builder"                      : true,
+        "block_builder"                      : false,
         "line_search"                        : false,
         "clear_storage"                      : true,
-        "reform_dofs_at_each_step"	         : true,
-        "convergence_criterion"              : "Contact_Residual_criterion",
+        "reform_dofs_at_each_step"	     : true,
+        "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type" : "SkylineLUFactorizationSolver"
+            "solver_type" : "SuperLUSolver"
         },
         "problem_domain_sub_model_part_list" : ["Parts_Part_foundation","Parts_Part_punch"],
         "processes_sub_model_part_list"      : ["Contact_Part","Parts_Part_foundation_Nodes",
@@ -137,7 +136,7 @@
         }
     }
     ],
-    "contact_processes" :[
+    "contact_process_list" :[
     {
         "python_module"   : "alm_contact_process",
         "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
@@ -146,14 +145,14 @@
         "Parameters"            : {
             "model_part_name"             : "Structure",
             "contact_model_part"          : "Contact_Part",
-            "assume_master_slave"         : "Parts_Part_punch_Nodes",
+            "assume_master_slave"         : "Parts_Part_foundation",
             "contact_type"                : "Frictionless",
             "search_factor"               : 2.0,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "integration_order"           : 2,
-            "manual_ALM"                  : true,
-            "penalty"                     : 1.0e0,
+            "integration_order"           : 3,
+            "manual_ALM"                  : false,
+            "penalty"                     : 1.0e-6,
             "scale_factor"                : 1.0e0
         }
     }

@@ -12,7 +12,11 @@
 
 namespace Kratos {
     
-    ParticleCreatorDestructor::ParticleCreatorDestructor() : mGreatestParticleId(0) {
+    ParticleCreatorDestructor::ParticleCreatorDestructor() : mGreatestParticleId(0){
+        mpAnalyticWatcher = boost::make_shared<AnalyticWatcher>(); // do-nothing watcher by default
+    }
+
+    ParticleCreatorDestructor::ParticleCreatorDestructor(AnalyticWatcher::Pointer p_watcher) : mGreatestParticleId(0) {
         mScaleFactor = 1.0;
         mHighPoint[0] = 10e18;
         mHighPoint[1] = 10e18;
@@ -20,6 +24,7 @@ namespace Kratos {
         mLowPoint[0] = -10e18;
         mLowPoint[1] = -10e18;
         mLowPoint[2] = -10e18;
+        mpAnalyticWatcher = p_watcher;
     }
 
     //Particle_Creator_Destructor() {};
@@ -176,7 +181,7 @@ namespace Kratos {
         normal_2[1] = unitary_vector[2]*normal_1[0] - unitary_vector[0]*normal_1[2];
         normal_2[2] = unitary_vector[0]*normal_1[1] - unitary_vector[1]*normal_1[0];
         
-        const double angle_in_radians = angle_in_degrees * KRATOS_M_PI / 180;
+        const double angle_in_radians = angle_in_degrees * Globals::Pi / 180;
         const double radius = tan(angle_in_radians) * vector_modulus;
         const double radius_square = radius * radius;
         double local_added_vector_modulus_square = radius_square + 1.0; //just greater than the radius, to get at least one iteration of the while
@@ -417,7 +422,7 @@ namespace Kratos {
 
         const double density = spheric_p_particle->GetDensity();
         spheric_p_particle->SetDefaultRadiiHierarchy(radius);
-        const double mass = 4.0 / 3.0 * KRATOS_M_PI * density * radius * radius * radius;
+        const double mass = 4.0 / 3.0 * Globals::Pi * density * radius * radius * radius;
         spheric_p_particle->SetMass(mass);
 
         if (has_rotation) spheric_p_particle->Set(DEMFlags::HAS_ROTATION, true);
@@ -428,6 +433,9 @@ namespace Kratos {
         #pragma omp critical
         {
             r_modelpart.Elements().push_back(p_particle);
+            if (spheric_p_particle->IsNot(BLOCKED)){
+                mpAnalyticWatcher->Record(spheric_p_particle, r_modelpart);
+            }
         }
         
         return spheric_p_particle;
@@ -508,7 +516,6 @@ namespace Kratos {
         spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());        
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
-        spheric_p_particle->SetSearchRadiusWithFem(radius);        
         spheric_p_particle->SetMass(cluster_mass);        
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
@@ -548,7 +555,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
-        spheric_p_particle->SetSearchRadiusWithFem(radius);        
         spheric_p_particle->SetMass(spheric_p_particle->GetDensity() * spheric_p_particle->CalculateVolume());
         if (spheric_p_particle->Is(DEMFlags::HAS_ROTATION)) {
             spheric_p_particle->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = spheric_p_particle->CalculateMomentOfInertia();
@@ -650,8 +656,8 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         else { 
             p_cluster->GetGeometry()[0].Set(TO_ERASE); //We do not add the cluster to the modelpart (will be erased at the end of this function) and we mark the central node for erasing (none are needed)
             p_cluster->SetContinuumGroupToBreakableClusterSpheres(r_Elem_Id);
-            double search_tolerance = 0.02 * radius;
-            p_cluster->SetInitialNeighbours(search_tolerance);
+            double search_increment = 0.02 * radius;
+            p_cluster->SetInitialNeighbours(search_increment);
             p_cluster->CreateContinuumConstitutiveLaws();
             p_cluster->SetInitialConditionsToSpheres(r_sub_model_part_with_parameters[VELOCITY]);            
         }
@@ -721,7 +727,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         const double density = spheric_p_particle->GetDensity();
         spheric_p_particle->SetDefaultRadiiHierarchy(radius);
-        const double mass = 4.0 / 3.0 * KRATOS_M_PI * density * radius * radius * radius;
+        const double mass = 4.0 / 3.0 * Globals::Pi * density * radius * radius * radius;
         spheric_p_particle->SetMass(mass);
 
         spheric_p_particle->Set(DEMFlags::HAS_ROTATION, true);
@@ -731,7 +737,8 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         return spheric_p_particle;
         
     }
-    
+    // TO-DO: This function is not well designed: Its input is a generic element but it is built with only
+    // one node. We must discuss this.
     Element::Pointer ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
                                               int r_Elem_Id,
                                               const array_1d<double, 3 >& coordinates, 
@@ -790,6 +797,10 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         {
             r_modelpart.Nodes().push_back(pnew_node);
             r_modelpart.Elements().push_back(p_particle);
+
+            if (spheric_p_particle->IsNot(BLOCKED)){
+                mpAnalyticWatcher->Record(spheric_p_particle, r_modelpart);
+            }
         }
         
         

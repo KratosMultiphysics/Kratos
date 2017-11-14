@@ -23,7 +23,6 @@
 #include "containers/data_value_container.h"
 //#include "containers/hash_data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
-#include "containers/fix_data_value_container.h"
 #include "containers/vector_component_adaptor.h"
 #include "containers/flags.h"
 //#include "containers/all_variables_data_value_container.h"
@@ -140,9 +139,6 @@ void  AddDeprecatedVariablesToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(   IS_DIVIDED )
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( xi_c )
-
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLID_FRACTION )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLID_FRACTION_RATE )
 
 }
 } // namespace Python.

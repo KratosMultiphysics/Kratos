@@ -61,7 +61,7 @@ namespace Kratos {
         
         double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
         
-        //double sinusoidal_factor_1 = KRATOS_M_PI *
+        //double sinusoidal_factor_1 = Globals::Pi *
         //PROPERLY CALCULATE THE DIVISIONS
         
         double u, v;
@@ -71,10 +71,10 @@ namespace Kratos {
         
             for (int i = 0; i < number_of_spheres_per_pass; i++) {
                 
-//                u = j * 2.0 * KRATOS_M_PI / (number_of_passes - 1);
-//                v = KRATOS_M_PI * i * 0.25 / (number_of_spheres_in_first_sector - 1);
-                u = -KRATOS_M_PI + KRATOS_M_PI * i * 0.5 / (number_of_spheres_in_first_sector - 1);
-                v = -0.5 * KRATOS_M_PI + j * KRATOS_M_PI / (number_of_passes - 1);
+//                u = j * 2.0 * Globals::Pi / (number_of_passes - 1);
+//                v = Globals::Pi * i * 0.25 / (number_of_spheres_in_first_sector - 1);
+                u = -Globals::Pi + Globals::Pi * i * 0.5 / (number_of_spheres_in_first_sector - 1);
+                v = -0.5 * Globals::Pi + j * Globals::Pi / (number_of_passes - 1);
             
                 mListOfRadii[i + number_of_spheres_per_pass * j]= 0.1 * cl;
                 
@@ -100,16 +100,16 @@ namespace Kratos {
 //                    pow(pow(sin(u), 6) * (pow(sin(v), 6) + pow(cos(v), 6)) + pow(cos(u), 6), 0.166666667);
 
                 //double y = pow(8, 0.33333333333333);
-                //u = -0.5 * KRATOS_M_PI + j * KRATOS_M_PI / (number_of_passes - 1)
+                //u = -0.5 * Globals::Pi + j * Globals::Pi / (number_of_passes - 1)
                         
-                //v = -KRATOS_M_PI + KRATOS_M_PI * i * 0.5 / (number_of_spheres_in_first_sector - 1)
+                //v = -Globals::Pi + Globals::Pi * i * 0.5 / (number_of_spheres_in_first_sector - 1)
             
             }
         }
         
         double particle_density = this->SlowGetDensity(); /////////////////////////////USE FAST
          
-        double cluster_volume = 0.3333333333 * 4.0 * KRATOS_M_PI * 0.5 * 0.375 * 0.25 * cl * cl * cl; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
+        double cluster_volume = 0.3333333333 * 4.0 * Globals::Pi * 0.5 * 0.375 * 0.25 * cl * cl * cl; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
         
         double cluster_mass = particle_density * cluster_volume;
         

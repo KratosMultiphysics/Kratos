@@ -48,10 +48,11 @@
                 "preconditioner_type" : "ILU0Preconditioner",
                 "scaling"             : false
             },
-            "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
-            "body_domain_sub_model_part_list"    : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
-            "loads_sub_model_part_list"          : [],
-            "loads_variable_list"                : []
+            "problem_domain_sub_model_part_list" 	: ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+            "body_domain_sub_model_part_list"    	: ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+            "mechanical_loads_sub_model_part_list"	: ["SelfWeight2D_Body_Acceleration_Auto1"],
+            "loads_sub_model_part_list"          	: [],
+            "loads_variable_list"                	: []
         }
     },
     "output_configuration"     : {
@@ -78,7 +79,7 @@
         "python_module" : "apply_constraint_vector_dam_table_process",
         "kratos_module" : "KratosMultiphysics.DamApplication",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "process_name"  : "ApplyConstraintVectorDamTableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",

@@ -27,9 +27,14 @@
 #include "custom_utilities/local_refine_prism_mesh.hpp"
 #include "custom_utilities/local_refine_sprism_mesh.hpp"
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
+
+#ifdef  USE_TETGEN_NONFREE_TPL
 #include "custom_utilities/tetgen_volume_mesher.h"
-#include "custom_utilities/cutting_iso_app.h"
 #include "custom_utilities/tetrahedra_reconnect_utility.h"
+#endif 
+
+#include "custom_utilities/cutting_iso_app.h"
+
 #include "utilities/split_tetrahedra.h"
 
 #ifdef PRAGMATIC_ACTIVATED
@@ -123,11 +128,24 @@ void AddCustomUtilitiesToPython()
     .def("LocalRefineMesh", &LocalRefineTetrahedraMesh::LocalRefineMesh)
     ;
 
+#ifdef USE_TETGEN_NONFREE_TPL
     class_<TetgenVolumeMesher, boost::noncopyable >
     ("TetgenVolumeMesher", init<ModelPart&>())
     .def("AddHole", &TetgenVolumeMesher::AddHole)
     .def("GenerateMesh", &TetgenVolumeMesher::GenerateMesh)
     ;
+    
+    class_<TetrahedraReconnectUtility, boost::noncopyable >("TetrahedraReconnectUtility", init<ModelPart&>())
+    .def("EvaluateQuality", &TetrahedraReconnectUtility::EvaluateQuality)
+    .def("TestRemovingElements", &TetrahedraReconnectUtility::TestRemovingElements)
+    .def("OptimizeQuality", &TetrahedraReconnectUtility::OptimizeQuality)
+    .def("FinalizeOptimization", &TetrahedraReconnectUtility::FinalizeOptimization)
+    .def("updateNodesPositions", &TetrahedraReconnectUtility::updateNodesPositions)
+    .def("setMaxNumThreads", &TetrahedraReconnectUtility::setMaxNumThreads)
+    .def("setBlockSize", &TetrahedraReconnectUtility::setBlockSize)
+    .def("isaValidMesh", &TetrahedraReconnectUtility::isaValidMesh)
+    ;
+#endif
     
 #ifdef PRAGMATIC_ACTIVATED
     class_<PragmaticAdaptor >("PragmaticAdaptor", init< >())
@@ -145,16 +163,7 @@ void AddCustomUtilitiesToPython()
     .def("DeleteCutData", &Cutting_Isosurface_Application::DeleteCutData)
     ;
 
-    class_<TetrahedraReconnectUtility, boost::noncopyable >("TetrahedraReconnectUtility", init<ModelPart&>())
-    .def("EvaluateQuality", &TetrahedraReconnectUtility::EvaluateQuality)
-    .def("TestRemovingElements", &TetrahedraReconnectUtility::TestRemovingElements)
-    .def("OptimizeQuality", &TetrahedraReconnectUtility::OptimizeQuality)
-    .def("FinalizeOptimization", &TetrahedraReconnectUtility::FinalizeOptimization)
-    .def("updateNodesPositions", &TetrahedraReconnectUtility::updateNodesPositions)
-    .def("setMaxNumThreads", &TetrahedraReconnectUtility::setMaxNumThreads)
-    .def("setBlockSize", &TetrahedraReconnectUtility::setBlockSize)
-    .def("isaValidMesh", &TetrahedraReconnectUtility::isaValidMesh)
-    ;
+
 }
 } // namespace Python.
 

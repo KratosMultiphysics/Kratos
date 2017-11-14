@@ -115,7 +115,7 @@ public:
     */
     typedef Modeler BaseType;
 
-    typedef Point<3> PointType;
+    typedef Point PointType;
 
     /** Defining 3D Node class as nodes of the mesh
     */

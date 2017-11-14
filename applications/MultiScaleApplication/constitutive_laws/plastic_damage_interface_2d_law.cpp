@@ -48,10 +48,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "multiscale_application_variables.h"
 #include "custom_utilities/math_helpers.h"
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif // !M_PI
-
 //#define PDINTERF_2D_TEST_ELASTIC
 
 namespace Kratos
@@ -625,14 +621,14 @@ namespace Kratos
 		d.GfI = props[FRACTURE_ENERGY_MODE_I];
 		// shear data (mode II)
 		d.c = props[INITIAL_COHESION];
-		d.tanphi0 = std::tan( M_PI/180.0 * props[INITIAL_FRICTION_ANGLE] );
+		d.tanphi0 = std::tan( Globals::Pi/180.0 * props[INITIAL_FRICTION_ANGLE] );
 		d.tanphiu = d.tanphi0;
 		if(props.Has(RESIDUAL_FRICTION_ANGLE))
-			d.tanphiu = std::tan( M_PI/180.0 * props[RESIDUAL_FRICTION_ANGLE] );
-		d.tanpsi0 = std::tan( M_PI/180.0 * props[INITIAL_DILATANCY_ANGLE] );
+			d.tanphiu = std::tan( Globals::Pi/180.0 * props[RESIDUAL_FRICTION_ANGLE] );
+		d.tanpsi0 = std::tan( Globals::Pi/180.0 * props[INITIAL_DILATANCY_ANGLE] );
 		d.tanpsiu = d.tanpsi0;
 		if(props.Has(RESIDUAL_DILATANCY_ANGLE))
-			d.tanpsiu = std::tan( M_PI/180.0 * props[RESIDUAL_DILATANCY_ANGLE] );
+			d.tanpsiu = std::tan( Globals::Pi/180.0 * props[RESIDUAL_DILATANCY_ANGLE] );
 		d.GfII = props[FRACTURE_ENERGY_MODE_II];
 		// cap data (mode III)
 		d.fc0 = props[INTERFACE_COMPRESSIVE_LAW_S0];

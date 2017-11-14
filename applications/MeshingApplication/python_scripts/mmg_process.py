@@ -68,6 +68,7 @@ class MmgProcess(KratosMultiphysics.Process):
             },
             "save_external_files"              : false,
             "max_number_of_searchs"            : 1000,
+            "debug_mode"                  : false,
             "echo_level"                       : 3
         }
         """)
@@ -277,6 +278,13 @@ class MmgProcess(KratosMultiphysics.Process):
         print("Remeshing")
         self.MmgProcess.Execute()
 
+        if (self.params["debug_mode"].GetBool() == True):
+            self.gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
+            self.singlefile = KratosMultiphysics.MultiFileFlag.SingleFile
+            self.deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
+            self.write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteConditions
+            self._debug_output(self.step, "")
+
         if (self.strategy == "LevelSet"):
             self.local_gradient.Execute() # Recalculate gradient after remeshing
 
@@ -318,6 +326,22 @@ class MmgProcess(KratosMultiphysics.Process):
                 variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Z" ))
 
       return variable_list
+
+    def _debug_output(self, label, name):
+
+        gid_io = KratosMultiphysics.GidIO("REMESHING_"+name+"_STEP_"+str(label), self.gid_mode, self.singlefile, self.deformed_mesh_flag, self.write_conditions)
+        
+        gid_io.InitializeMesh(label)
+        gid_io.WriteMesh(self.Model[self.model_part_name].GetMesh())
+        gid_io.FinalizeMesh()
+        gid_io.InitializeResults(label, self.Model[self.model_part_name].GetMesh())
+        if (self.params["framework"].GetString() ==  "Lagrangian"):
+            gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.Model[self.model_part_name].Nodes, label, 0)
+        else:
+            gid_io.WriteNodalResults(KratosMultiphysics.VELOCITY, self.Model[self.model_part_name].Nodes, label, 0)
+        gid_io.FinalizeResults()
+        
+        #raise NameError("DEBUG")
 
 def _linear_interpolation(x, x_list, y_list):
     tb = KratosMultiphysics.PiecewiseLinearTable()
