@@ -228,6 +228,71 @@ public:
     
     double TestGetExactAreaIntegration(Condition::Pointer& SlaveCond);
     
+    /**
+    * This method is used for debugging purposes
+    * @param IndexSlave: The index of the slave geometry
+    * @param SlaveGeometry: The slave geometry
+    * @param IndexMaster: The index of the master geometry
+    * @param MasterGeometry: The master geometry
+    * @param ConditionsPointSlave: The triangular decomposition
+    */
+    
+    static inline void MathematicaDebug(
+        const unsigned int IndexSlave,
+        GeometryType& SlaveGeometry,
+        const unsigned int IndexMaster,
+        GeometryType& MasterGeometry,
+        std::vector<array_1d<PointBelong<TNumNodes>, 3>>& ConditionsPointSlave
+        )
+    {
+        typedef Triangle3D3<PointType> TriangleType;
+        
+        std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{";
+
+        for (unsigned int i = 0; i < TNumNodes; ++i)
+        {
+            std::cout << SlaveGeometry[i].X() << "," << SlaveGeometry[i].Y() << "," << SlaveGeometry[i].Z();
+            
+            if (i < TNumNodes - 1) std::cout << "},{";
+        }
+        std::cout << "}}],Text[Style["<< IndexSlave <<", Tiny],{"<< SlaveGeometry.Center().X() << "," << SlaveGeometry.Center().Y() << ","<< SlaveGeometry.Center().Z() << "}]}],";// << std::endl;
+        
+        std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{";
+
+        for (unsigned int i = 0; i < TNumNodes; ++i)
+        {
+            std::cout << MasterGeometry[i].X() << "," << MasterGeometry[i].Y() << "," << MasterGeometry[i].Z();
+            
+            if (i < TNumNodes - 1) std::cout << "},{";
+        }
+        
+        std::cout << "}}],Text[Style["<< IndexMaster <<", Tiny],{"<< MasterGeometry.Center().X() << "," << MasterGeometry.Center().Y() << ","<< MasterGeometry.Center().Z() << "}]}],";// << std::endl;
+        
+        for (unsigned int i_geom = 0; i_geom < ConditionsPointSlave.size(); ++i_geom)
+        {
+            std::vector<PointType::Pointer> points_array (3); // The points are stored as local coordinates, we calculate the global coordinates of this points
+            for (unsigned int i_node = 0; i_node < 3; ++i_node)
+            {
+                PointType global_point;
+                SlaveGeometry.GlobalCoordinates(global_point, ConditionsPointSlave[i_geom][i_node]);
+                points_array[i_node] = boost::make_shared<PointType>(global_point);
+            }
+            
+            TriangleType decomp_geom( points_array );
+            
+            std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{"; 
+            for (unsigned int i = 0; i < 3; ++i)
+            {
+                std::cout << std::setprecision(16) << decomp_geom[i].X() << "," << decomp_geom[i].Y() << "," << decomp_geom[i].Z();
+                
+                if (i < 2) std::cout << "},{";
+            }
+            std::cout << "}}]}],";// << std::endl;
+        }
+        
+        std::cout << std::endl;
+    }
+    
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -328,6 +393,20 @@ protected:
             aux_new_triangle[2] = point3;
             ConditionsPointsSlave.push_back(aux_new_triangle);
         }
+    }
+    
+    /**
+     * This method checks if the whole array is true
+     * @param AllInside: The nodes that are inside or not the geometry
+     * @return True if all the nodes are inside, false otherwise
+     */
+    
+    static inline bool CheckAllInside(const array_1d<bool, TNumNodes>& AllInside)
+    {        
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+            if (!AllInside[i_node]) return false;
+        
+        return true;
     }
     
     /**
@@ -509,7 +588,7 @@ protected:
         array_1d<bool, TNumNodes>& AllInside,
         GeometryPointType& Geometry1,
         GeometryPointType& Geometry2,
-        const double& Tolerance
+        const double Tolerance
         );
     
     /**

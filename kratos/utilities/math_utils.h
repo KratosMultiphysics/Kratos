@@ -322,25 +322,36 @@ public:
         TDataType& InputMatrixDet
         )
     {
-        if (InputMatrix.size1() == InputMatrix.size2())
+        const unsigned int size_1 = InputMatrix.size1();
+        const unsigned int size_2 = InputMatrix.size2();
+        
+        if (size_1 == size_2)
         {
             InvertMatrix(InputMatrix, InvertedMatrix, InputMatrixDet);
         }
-        else if (InputMatrix.size1() < InputMatrix.size2()) // Right inverse
+        else if (size_1 < size_2) // Right inverse
         {
+            if (InvertedMatrix.size1() != size_2 || InvertedMatrix.size2() != size_1)
+            {
+                InvertedMatrix.resize(size_2, size_1, false);
+            }
             const Matrix aux = prod(InputMatrix, trans(InputMatrix));
             Matrix auxInv;
             InvertMatrix(aux, auxInv, InputMatrixDet);
 	    InputMatrixDet = std::sqrt(InputMatrixDet);
-            InvertedMatrix = prod(trans(InputMatrix), auxInv);
+            noalias(InvertedMatrix) = prod(trans(InputMatrix), auxInv);
         }
         else // Left inverse
         {
+            if (InvertedMatrix.size1() != size_2 || InvertedMatrix.size2() != size_1)
+            {
+                InvertedMatrix.resize(size_2, size_1, false);
+            }
             const Matrix aux = prod(trans(InputMatrix), InputMatrix);
             Matrix auxInv;
             InvertMatrix(aux, auxInv, InputMatrixDet);
 	    InputMatrixDet = std::sqrt(InputMatrixDet);
-            InvertedMatrix = prod(auxInv, trans(InputMatrix));
+            noalias(InvertedMatrix) = prod(auxInv, trans(InputMatrix));
         }
     }
     

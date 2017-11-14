@@ -53,7 +53,7 @@ public:
     
     // General type definitions
     typedef Node<3>                                              NodeType;
-    typedef Point                                            PointType;
+    typedef Point                                               PointType;
     typedef PointType::CoordinatesArrayType          CoordinatesArrayType;
     typedef Geometry<NodeType>                               GeometryType;
     typedef Geometry<PointType>                         GeometryPointType;
@@ -411,7 +411,7 @@ public:
 
         return idx;
     }
-    
+
     /**
      * It calculates the matrix of coordinates of a geometry
      * @param nodes: The geometry to calculate
