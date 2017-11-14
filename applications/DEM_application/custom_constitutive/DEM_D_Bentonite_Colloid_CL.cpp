@@ -27,10 +27,10 @@ namespace Kratos {
     DEM_D_Bentonite_Colloid::DEM_D_Bentonite_Colloid(){
         mA_H = 10e-19;
         mD_p = 2.0e-7; // particle diameter; it whould be equal for both particles or the third law of Newton will be violated
-        mA_p = 0.25 * KRATOS_M_PI * mD_p * mD_p;
+        mA_p = 0.25 * Globals::Pi * mD_p * mD_p;
         mThickness = 1.0e-9;
         mDDLCoefficient = 1.5e5;
-        mEquivRadius = mD_p / KRATOS_M_PI; // this is the "coin" equivalent radius
+        mEquivRadius = mD_p / Globals::Pi; // this is the "coin" equivalent radius
     }
 
     void DEM_D_Bentonite_Colloid::Initialize(const ProcessInfo& r_process_info) {}
@@ -229,7 +229,7 @@ namespace Kratos {
 
     double DEM_D_Bentonite_Colloid::CalculateVanDerWaalsForce(const double distance)
     {
-        return - mA_p * mA_H / (6.0 * KRATOS_M_PI) * (1.0 / ToThePower(distance, 3) - 2.0 / ToThePower(distance + mThickness, 3) + 1.0 / ToThePower(distance + 2 * mThickness, 3));
+        return - mA_p * mA_H / (6.0 * Globals::Pi) * (1.0 / ToThePower(distance, 3) - 2.0 / ToThePower(distance + mThickness, 3) + 1.0 / ToThePower(distance + 2 * mThickness, 3));
     }
 
     double DEM_D_Bentonite_Colloid::CalculateDiffuseDoubleLayerForce(const double distance, const double cation_concentration)

@@ -403,6 +403,7 @@ namespace Kratos
     
     //deformation gradient
     const MatrixType& rDeltaDeformationMatrix = rValues.GetDeltaDeformationMatrix();
+    const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
     
     const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
     
@@ -414,11 +415,17 @@ namespace Kratos
       //historical strain matrix
       rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
 
-      //current strain matrix
-      noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,rDeltaDeformationMatrix);
-      noalias(rValues.StrainMatrix) = prod(trans(rDeltaDeformationMatrix), rVariables.Strain.Matrix);
+      //current strain matrix b
+      noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rDeltaDeformationMatrix));
+      noalias(rValues.StrainMatrix) = prod(rDeltaDeformationMatrix, rVariables.Strain.Matrix);
 
-      noalias(rVariables.Strain.Matrix) = rValues.StrainMatrix;     
+      //inverted total deformation gradient
+      ConstitutiveModelUtilities::InvertMatrix3( rTotalDeformationMatrix, rVariables.Strain.InverseMatrix, rVariables.Strain.Invariants.I3 ); //InverseMatrix and I3 is used as wildcard here (InverseMatrix = InverseTotalDeformationGradient)
+
+      //strain measure C
+      noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rVariables.Strain.InverseMatrix));
+      rVariables.Strain.Matrix = prod(trans(rTotalDeformationMatrix), rVariables.Strain.Matrix);
+
       
       //inverted strain measure
       ConstitutiveModelUtilities::InvertMatrix3( rVariables.Strain.Matrix, rVariables.Strain.InverseMatrix, rVariables.Strain.Invariants.I3 );
@@ -435,10 +442,11 @@ namespace Kratos
       //historical strain matrix
       rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
 
-      //current strain matrix
+      //current strain matrix b
       noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rDeltaDeformationMatrix));
       noalias(rValues.StrainMatrix) = prod(rDeltaDeformationMatrix, rVariables.Strain.Matrix);
 
+      
       noalias(rVariables.Strain.Matrix) = rValues.StrainMatrix;
 
       //inverted strain measure

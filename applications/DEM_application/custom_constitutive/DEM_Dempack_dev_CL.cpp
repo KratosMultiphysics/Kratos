@@ -24,7 +24,7 @@ namespace Kratos {
 
         double rmin = radius;
         if (other_radius < radius) rmin = other_radius;
-        calculation_area = KRATOS_M_PI * rmin*rmin;
+        calculation_area = Globals::Pi * rmin*rmin;
     }
     double DEM_Dempack_dev::CalculateContactArea(double radius, double other_radius, Vector& v) {
         double a = 0.0;
@@ -60,7 +60,7 @@ namespace Kratos {
 //        double rmin = element1->GetRadius();    // test rebalance solo resistencia
 //        const double other_radius = element2->GetRadius();
 //        if (other_radius < rmin) rmin = other_radius;
-//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+//        double effective_calculation_area = Globals::Pi * rmin*rmin;
 
         double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
         kn_el = equiv_young * calculation_area / initial_dist;
@@ -107,7 +107,7 @@ namespace Kratos {
 //        double rmin = element1->GetRadius();
 //        const double other_radius = element2->GetRadius();
 //        if (other_radius < rmin) rmin = other_radius;
-//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+//        double effective_calculation_area = Globals::Pi * rmin*rmin;
           double effective_calculation_area = calculation_area;
 
         if (&element1_props == &element2_props) {
@@ -267,7 +267,7 @@ namespace Kratos {
 //        double rmin = element1->GetRadius();
 //        const double other_radius = element2->GetRadius();
 //        if (other_radius < rmin) rmin = other_radius;
-//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+//        double effective_calculation_area = Globals::Pi * rmin*rmin;
         double effective_calculation_area = calculation_area;
 
         Properties& element1_props = element1->GetProperties();
@@ -408,7 +408,7 @@ namespace Kratos {
 //        double rmin = element1->GetRadius();  // test de rebalance de areas solo en resistencia
 //        const double other_radius = element2->GetRadius();
 //        if (other_radius < rmin) rmin = other_radius;
-//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+//        double effective_calculation_area = Globals::Pi * rmin*rmin;
         double effective_calculation_area = calculation_area;
 
 
@@ -476,8 +476,8 @@ namespace Kratos {
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalDeltaAngularVelocity, LocalDeltaAngularVelocity);
         //GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mContactMoment, LocalRotationalMoment);
 
-        const double equivalent_radius = sqrt(calculation_area / KRATOS_M_PI);
-        const double Inertia_I = 0.25 * KRATOS_M_PI * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
+        const double equivalent_radius = sqrt(calculation_area / Globals::Pi);
+        const double Inertia_I = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J = 2.0 * Inertia_I; // This is the polar inertia
         const double debugging_rotational_factor = 5.0; //1.0; // Hardcoded only for testing purposes. Obviously, this parameter should be always 1.0
 

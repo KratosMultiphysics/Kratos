@@ -67,7 +67,7 @@ class SphericElementGlobalPhysicsCalculator
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
                       SphericParticle& r_spheric_particle = dynamic_cast<Kratos::SphericParticle&> (*it);
                       const double particle_radius = r_spheric_particle.GetRadius();
-                      added_volume += 4.0 / 3.0 * KRATOS_M_PI * particle_radius * particle_radius * particle_radius;
+                      added_volume += 4.0 / 3.0 * Globals::Pi * particle_radius * particle_radius * particle_radius;
                   }
             }
         }

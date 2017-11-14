@@ -59,7 +59,7 @@ namespace Kratos {
         double particle_density = this->SlowGetDensity();
         
         //TODO: Approximating the bead by the cylinder containing it
-        double cluster_volume = KRATOS_M_PI * 0.1 * 0.1 * cl * cl;
+        double cluster_volume = Globals::Pi * 0.1 * 0.1 * cl * cl;
         
         double cluster_mass = particle_density * cluster_volume;
               
