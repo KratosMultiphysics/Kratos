@@ -174,8 +174,8 @@ private:
      */
 
     void PrintNodesAndConditions(
-            const int& NodesCounter,
-            const int& CondCounter
+            const int NodesCounter,
+            const int CondCounter
             );
     
     /**
@@ -203,7 +203,7 @@ private:
         GeometryType& EdgeGeometry,
         const std::string& ConditionName,
         const std::string& FinalString,
-        const bool& SimplestGeometry,
+        const bool SimplestGeometry,
         unsigned int& CondCounter,
         unsigned int& CondId,
         const bool IsMortar
@@ -227,7 +227,7 @@ private:
         GeometryType& FaceGeometry,
         const std::string& ConditionName,
         const std::string& FinalString,
-        const bool& SimplestGeometry,
+        const bool SimplestGeometry,
         unsigned int& CondCounter,
         unsigned int& CondId,
         const bool IsMortar

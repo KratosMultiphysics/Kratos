@@ -541,7 +541,7 @@ public:
     static inline Matrix GetVariableMatrix( 
         const GeometryType& Nodes, 
         const Variable<array_1d<double,3> >& rVarName, 
-        const unsigned int& Step 
+        const unsigned int Step 
         ) 
     { 
         /* DEFINITIONS */         
