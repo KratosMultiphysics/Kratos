@@ -308,9 +308,6 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
     KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
 
-    // Elemental data
-    KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY);
-
     for(unsigned int i=0; i<NumNodes; ++i)
     {
         Node<3>& rNode = this->GetGeometry()[i];
@@ -586,13 +583,14 @@ double FluidElement<TElementData>::ElementSize()
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::CalculateStaticTau(double Density,
-                                   double KinematicVisc,
-                                   const array_1d<double,3> &Velocity,
-                                   double ElemSize,
-                                   const ProcessInfo& rProcessInfo,
-                                   double &TauOne,
-                                   double &TauTwo)
+void FluidElement<TElementData>::CalculateStaticTau(
+    const TElementData& rData,
+    double Density,
+    double KinematicVisc,
+    const array_1d<double,3> &Velocity,
+    double ElemSize,
+    double &TauOne,
+    double &TauTwo)
 {
     constexpr double c1 = 8.0;
     constexpr double c2 = 2.0;
@@ -613,11 +611,10 @@ void FluidElement<TElementData>::CalculateStaticTau(double Density,
 template< class TElementData >
 double FluidElement<TElementData>::EffectiveViscosity(
     TElementData& rData,
-    double ElementSize,
-    const ProcessInfo &rCurrentProcessInfo)
+    double ElementSize)
 {
     const FluidElement* const_this = static_cast<const FluidElement*>(this);
-    double c_s = const_this->GetValue(C_SMAGORINSKY);
+    double c_s = rData.CSmagorinsky;
 
     double kinematic_viscosity = this->Interpolate(rData.Viscosity,rData.N);
     const auto& r_velocities = rData.Velocity;

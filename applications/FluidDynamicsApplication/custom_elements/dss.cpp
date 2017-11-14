@@ -379,7 +379,7 @@ void DSS<TElementData>::AddSystemTerms(
     double ElemSize = this->ElementSize();
 
     double density = this->Interpolate(rData.Density,rData.N);
-    double viscosity = this->EffectiveViscosity(rData,ElemSize,rProcessInfo);
+    double viscosity = this->EffectiveViscosity(rData,ElemSize);
     array_1d<double,3> body_force = this->Interpolate(rData.BodyForce,rData.N);
     array_1d<double,3> momentum_projection = this->Interpolate(rData.MomentumProjection,rData.N);
     double mass_projection = this->Interpolate(rData.MassProjection,rData.N);
@@ -390,7 +390,7 @@ void DSS<TElementData>::AddSystemTerms(
         this->Interpolate(rData.Velocity, rData.N) -
         this->Interpolate(rData.MeshVelocity, rData.N);
         
-    this->CalculateStaticTau(density,viscosity,convective_velocity,ElemSize,rProcessInfo,TauOne,TauTwo);
+    this->CalculateStaticTau(rData,density,viscosity,convective_velocity,ElemSize,TauOne,TauTwo);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
@@ -520,12 +520,12 @@ void DSS<TElementData>::AddMassStabilization(
     double ElemSize = this->ElementSize();
 
     double density = this->Interpolate(rData.Density,rData.N);
-    double viscosity = this->EffectiveViscosity(rData,ElemSize,rProcessInfo);
+    double viscosity = this->EffectiveViscosity(rData,ElemSize);
 
     double TauOne;
     double TauTwo;
     array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
-    this->CalculateStaticTau(density,viscosity,convective_velocity,ElemSize,rProcessInfo,TauOne,TauTwo);
+    this->CalculateStaticTau(rData,density,viscosity,convective_velocity,ElemSize,TauOne,TauTwo);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
@@ -621,13 +621,13 @@ void DSS<TElementData>::SubscaleVelocity(
     array_1d<double,3> &rVelocitySubscale)
 {
     double ElemSize = this->ElementSize();
-    double Viscosity = this->EffectiveViscosity(rData,ElemSize,rProcessInfo);
+    double viscosity = this->EffectiveViscosity(rData,ElemSize);
 
     double TauOne;
     double TauTwo;
     double density = this->Interpolate(rData.Density,rData.N);
     array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
-    this->CalculateStaticTau(density,Viscosity,convective_velocity,ElemSize,rProcessInfo,TauOne,TauTwo);
+    this->CalculateStaticTau(rData,density,viscosity,convective_velocity,ElemSize,TauOne,TauTwo);
 
     array_1d<double,3> Residual(3,0.0);
 
@@ -647,7 +647,7 @@ void DSS<TElementData>::SubscalePressure(
 {
     //double ElemSize = this->ElementSize(ConvVel,rDN_DX);
     double ElemSize = this->ElementSize();
-    double Viscosity = this->EffectiveViscosity(rData,ElemSize,rProcessInfo);
+    double viscosity = this->EffectiveViscosity(rData,ElemSize);
 
     double TauOne;
     double TauTwo;
@@ -655,8 +655,8 @@ void DSS<TElementData>::SubscalePressure(
     array_1d<double, 3> convective_velocity =
         this->Interpolate(rData.Velocity, rData.N) -
         this->Interpolate(rData.MeshVelocity, rData.N);
-    this->CalculateStaticTau(density, Viscosity, convective_velocity, ElemSize,
-                             rProcessInfo, TauOne, TauTwo);
+    this->CalculateStaticTau(rData, density, viscosity, convective_velocity, ElemSize,
+                             TauOne, TauTwo);
 
     double Residual = 0.0;
 

@@ -68,6 +68,10 @@ NodalScalarData Density;
 NodalScalarData Viscosity;
 NodalScalarData MassProjection;
 
+double CSmagorinsky;
+double DeltaTime;
+double DynamicTau;
+
 void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
 {
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
@@ -79,6 +83,9 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(Density,DENSITY,r_geometry);
     this->FillFromNodalData(Viscosity,VISCOSITY,r_geometry);
     this->FillFromNodalData(MassProjection,DIVPROJ,r_geometry);
+    this->FillFromElementData(CSmagorinsky,C_SMAGORINSKY,rElement);
+    this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
+    this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
@@ -105,6 +112,10 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VISCOSITY,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DIVPROJ,r_geometry[i]);
     }
+
+    KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY);
+    KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
+    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU);
 
     return 0;
 }
@@ -400,35 +411,32 @@ protected:
     /// Characteristic element size h to be used in stabilization parameters.
     virtual double ElementSize();
 
-    virtual void CalculateStaticTau(double Density,
-                                    double KinematicVisc,
-                                    const array_1d<double,3> &Velocity,
-                                    double ElemSize,
-                                    const ProcessInfo& rProcessInfo,
-                                    double &TauOne,
-                                    double &TauTwo);
+    virtual void CalculateStaticTau(
+        const TElementData& rData,
+        double Density,
+        double KinematicVisc,
+        const array_1d<double,3> &Velocity,
+        double ElemSize,
+        double &TauOne,
+        double &TauTwo);
 
     /**
      * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
      * This function is used to implement Smagorinsky type LES or non-Newtonian dynamics in derived classes.
      * @param rData TElementData instance with information about nodal values
-     * @param rN Shape function values at integration point
-     * @param rDN_DX Shape function derivatives at integration point
      * @param ElemSize Characteristic length representing the element (for Smagorinsky, this is the filter width)
-     * @param rCurrentProcessInfo
      * @return Kinematic viscosity at the integration point.
      */
     virtual double EffectiveViscosity(
         TElementData& rData,
-        double ElementSize,
-        const ProcessInfo &rCurrentProcessInfo);
+        double ElementSize);
 
     /**
      * @brief Write the convective operator evaluated at this point (for each nodal funciton) to an array
      * Evaluate the convective operator for each node's shape function at an arbitrary point
      * @param rResult: Output vector
-     * @param rVelocity: Velocity evaluated at the integration point
-     * @param rShapeDeriv: Derivatives of shape functions evaluated at the integration point
+     * @param rConvVel: Convective velocity evaluated at the integration point
+     * @param DN_DX: Derivatives of shape functions evaluated at the integration point
      */
     void ConvectionOperator(Vector& rResult,
                             const array_1d<double,3>& rConvVel,
