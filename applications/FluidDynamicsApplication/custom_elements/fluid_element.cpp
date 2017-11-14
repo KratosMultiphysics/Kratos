@@ -733,6 +733,71 @@ void FluidElement<TElementData>::ConvectionOperator(Vector &rResult,
 }
 
 template <class TElementData>
+void FluidElement<TElementData>::AddTimeIntegratedSystem(
+    TElementData& rData, MatrixType& rLHS, VectorType& rRHS) {
+    KRATOS_TRY;
+
+    KRATOS_ERROR << "Calling base FluidElement::AddTimeIntegratedSystem "
+                    "implementation. This method is not supported by your "
+                    "element."
+                 << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::AddTimeIntegratedLHS(
+    TElementData& rData, MatrixType& rLHS) {
+    KRATOS_TRY;
+
+    KRATOS_ERROR << "Calling base FluidElement::AddTimeIntegratedLHS "
+                    "implementation. This method is not supported by your "
+                    "element."
+                 << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::AddTimeIntegratedRHS(
+    TElementData& rData, VectorType& rRHS) {
+    KRATOS_TRY;
+
+    KRATOS_ERROR << "Calling base FluidElement::AddTimeIntegratedRHS "
+                    "implementation. This method is not supported by your "
+                    "element."
+                 << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::AddVelocitySystem(
+    TElementData& rData, MatrixType& rLHS, VectorType& rRHS) {
+    KRATOS_TRY;
+
+    KRATOS_ERROR << "Calling base FluidElement::AddVelocitySystem "
+                    "implementation. This method is not supported by your "
+                    "element."
+                 << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::AddMassLHS(
+    TElementData& rData, MatrixType& rMassMatrix) {
+    KRATOS_TRY;
+
+    KRATOS_ERROR << "Calling base FluidElement::AddMassLHS "
+                    "implementation. This method is not supported by your "
+                    "element."
+                 << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+template <class TElementData>
 void FluidElement<TElementData>::IntegrationPointVorticity(
     const ShapeFunctionDerivativesType& rDN_DX, array_1d<double, 3>& rVorticity) const
 {

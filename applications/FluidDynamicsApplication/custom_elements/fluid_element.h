@@ -372,24 +372,24 @@ protected:
     virtual void AddTimeIntegratedSystem(
         TElementData& rData,
         MatrixType& rLHS,
-        VectorType& rRHS) = 0;
+        VectorType& rRHS);
 
     virtual void AddTimeIntegratedLHS(
         TElementData& rData,
-        MatrixType& rLHS) = 0;
+        MatrixType& rLHS);
 
     virtual void AddTimeIntegratedRHS(
         TElementData& rData,
-        VectorType& rRHS) = 0;
+        VectorType& rRHS);
 
     virtual void AddVelocitySystem(
         TElementData& rData,
         MatrixType& rLHS,
-        VectorType& rRHS) = 0;
+        VectorType& rRHS);
 
     virtual void AddMassLHS(
         TElementData& rData,
-        MatrixType& rMassMatrix) = 0;
+        MatrixType& rMassMatrix);
 
     virtual void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) = 0;
 
