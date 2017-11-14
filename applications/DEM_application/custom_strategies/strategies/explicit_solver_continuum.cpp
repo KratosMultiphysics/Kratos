@@ -60,7 +60,7 @@ namespace Kratos {
         }
 
         // 3. Search Neighbors with tolerance (after first repartition process)
-        BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE], 1.0);
+        BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT], 1.0);
         SearchNeighbours();
         MeshRepairOperations();
         SearchNeighbours();
@@ -190,7 +190,7 @@ namespace Kratos {
 
             if (is_time_to_search_neighbours) {
 
-                CalculateMaxSearchDistance(); //Modifies r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] // Must be called before the bounding box or it uses unexistent elements
+                CalculateMaxSearchDistance(); //Modifies r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] // Must be called before the bounding box or it uses non-existent elements
 
 	        if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
 
@@ -203,12 +203,9 @@ namespace Kratos {
                 RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary for the loop in SearchNeighbours
                 RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
 
-                BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE] + r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION], 1.0);
+                BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT] + r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION], 1.0);
                 
                 SearchNeighbours(); //the amplification factor has been modified after the first search.
-                
-                        
-
 
                 RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary because the elements in this partition might have changed.
                 RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
@@ -240,9 +237,6 @@ namespace Kratos {
         }
         //Synch this var.
         r_model_part.GetCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
-        
-        
-
     }
 
     void ContinuumExplicitSolverStrategy::MarkNewSkinParticles() {
@@ -484,7 +478,7 @@ namespace Kratos {
         double out_coordination_number = ComputeCoordinationNumber(standard_dev);
         int iteration = 0;
         int maxiteration = 100;
-        double& added_search_distance = r_process_info[SEARCH_TOLERANCE];
+        double& added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
 
         if(r_model_part.GetCommunicator().MyPID() == 0) {
             std::cout << "Setting up Coordination Number by increasing or decreasing the search radius... " << std::endl;
@@ -505,7 +499,7 @@ namespace Kratos {
             }
             added_search_distance *= in_coordination_number / out_coordination_number;
             BaseType::SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, 1.0);
-            SearchNeighbours(); //r_process_info[SEARCH_TOLERANCE] will be used inside this function, and it's the variable we are updating in this while
+            SearchNeighbours(); //r_process_info[SEARCH_RADIUS_INCREMENT] will be used inside this function, and it's the variable we are updating in this while
             out_coordination_number = ComputeCoordinationNumber(standard_dev);
         }//while
 
@@ -623,7 +617,7 @@ namespace Kratos {
 
         r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] = maximum_across_threads;
         
-        const double ratio = r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]/r_process_info[SEARCH_TOLERANCE];
+        const double ratio = r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] / r_process_info[SEARCH_RADIUS_INCREMENT];
         const double max_ratio = r_process_info[MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS];
         
         static unsigned int counter = 0;

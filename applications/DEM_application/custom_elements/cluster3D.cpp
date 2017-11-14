@@ -441,7 +441,7 @@ namespace Kratos {
     
     int Cluster3D::SlowGetParticleMaterial() { return GetProperties()[PARTICLE_MATERIAL];}
     
-    void Cluster3D::SetInitialNeighbours(const double search_tolerance) {
+    void Cluster3D::SetInitialNeighbours(const double search_increment) {
         if(!mListOfSphericParticles.size() ) return;
         /*for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
             SphericContinuumParticle* p_continuum_particle_i = dynamic_cast<SphericContinuumParticle*> (mListOfSphericParticles[i]);
@@ -464,7 +464,7 @@ namespace Kratos {
                 double distance = DEM_MODULUS_3(other_to_me_vect);
                 double radius_sum = p_continuum_particle_i->GetRadius() + p_continuum_particle_j->GetRadius();
                 
-                if(distance < radius_sum + search_tolerance) {                                                        
+                if(distance < radius_sum + search_increment) {
                     double initial_delta = radius_sum - distance;
                     
                     p_continuum_particle_i->mNeighbourElements.push_back(p_continuum_particle_j);

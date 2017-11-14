@@ -181,7 +181,7 @@ namespace Kratos {
         normal_2[1] = unitary_vector[2]*normal_1[0] - unitary_vector[0]*normal_1[2];
         normal_2[2] = unitary_vector[0]*normal_1[1] - unitary_vector[1]*normal_1[0];
         
-        const double angle_in_radians = angle_in_degrees * KRATOS_M_PI / 180;
+        const double angle_in_radians = angle_in_degrees * Globals::Pi / 180;
         const double radius = tan(angle_in_radians) * vector_modulus;
         const double radius_square = radius * radius;
         double local_added_vector_modulus_square = radius_square + 1.0; //just greater than the radius, to get at least one iteration of the while
@@ -422,7 +422,7 @@ namespace Kratos {
 
         const double density = spheric_p_particle->GetDensity();
         spheric_p_particle->SetDefaultRadiiHierarchy(radius);
-        const double mass = 4.0 / 3.0 * KRATOS_M_PI * density * radius * radius * radius;
+        const double mass = 4.0 / 3.0 * Globals::Pi * density * radius * radius * radius;
         spheric_p_particle->SetMass(mass);
 
         if (has_rotation) spheric_p_particle->Set(DEMFlags::HAS_ROTATION, true);
@@ -516,7 +516,6 @@ namespace Kratos {
         spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());        
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
-        spheric_p_particle->SetSearchRadiusWithFem(radius);        
         spheric_p_particle->SetMass(cluster_mass);        
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
@@ -556,7 +555,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
-        spheric_p_particle->SetSearchRadiusWithFem(radius);        
         spheric_p_particle->SetMass(spheric_p_particle->GetDensity() * spheric_p_particle->CalculateVolume());
         if (spheric_p_particle->Is(DEMFlags::HAS_ROTATION)) {
             spheric_p_particle->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = spheric_p_particle->CalculateMomentOfInertia();
@@ -658,8 +656,8 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         else { 
             p_cluster->GetGeometry()[0].Set(TO_ERASE); //We do not add the cluster to the modelpart (will be erased at the end of this function) and we mark the central node for erasing (none are needed)
             p_cluster->SetContinuumGroupToBreakableClusterSpheres(r_Elem_Id);
-            double search_tolerance = 0.02 * radius;
-            p_cluster->SetInitialNeighbours(search_tolerance);
+            double search_increment = 0.02 * radius;
+            p_cluster->SetInitialNeighbours(search_increment);
             p_cluster->CreateContinuumConstitutiveLaws();
             p_cluster->SetInitialConditionsToSpheres(r_sub_model_part_with_parameters[VELOCITY]);            
         }
@@ -729,7 +727,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         const double density = spheric_p_particle->GetDensity();
         spheric_p_particle->SetDefaultRadiiHierarchy(radius);
-        const double mass = 4.0 / 3.0 * KRATOS_M_PI * density * radius * radius * radius;
+        const double mass = 4.0 / 3.0 * Globals::Pi * density * radius * radius * radius;
         spheric_p_particle->SetMass(mass);
 
         spheric_p_particle->Set(DEMFlags::HAS_ROTATION, true);

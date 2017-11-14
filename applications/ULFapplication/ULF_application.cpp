@@ -1,7 +1,7 @@
 //
 //   Project Name:        Kratos
 
-//   Last Modified by:    $Author: virginia $
+//   Last Modified by:    $Author: pryzhakov $
 //   Date:                $Date: 2008-11-26 15:05:54 $
 //   Revision:            $Revision: 1.11 $
 //
@@ -12,17 +12,18 @@
 // System includes
 
 
-// External includes
+// External includes 
 
 
 // Project includes
 #include "includes/define.h"
 
 #include "ULF_application.h"
-#include "includes/variables.h"
+//#include "includes/variables.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/point_3d.h"
+#include "geometries/point_2d.h"
 
 namespace Kratos
 {
@@ -39,21 +40,26 @@ namespace Kratos
 //KRATOS_CREATE_VARIABLE(double, IS_LAGRANGIAN_INLET)
 
 
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
+//KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
+//KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
+KRATOS_CREATE_VARIABLE(double, PRESSURE_OLD_IT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
 KratosULFApplication::KratosULFApplication():
-    mUpdatedLagrangianFluid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mUpdatedLagrangianFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mUpdatedLagrangianFluid2Dinc(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mUpdatedLagrangianFluid3Dinc(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+
+    mUpdatedLagrangianFluid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mUpdatedLagrangianFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mUpdatedLagrangianFluid2Dinc(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mUpdatedLagrangianFluid3Dinc(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mUlfAxisym(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     //new one - mix of frac step and ulf_inc
-    mUlfFrac2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mUlfFrac3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mUlfFrac2DSwimming(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mUlfFrac3DSwimming(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mPointNeumann3D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>()))))
+    mUlfFrac2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mUlfFrac3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mPointNeumann3D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mPointNeumann2D(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mPointNeumannAxisym(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1))))
+    
+
 {}
 
 
@@ -74,20 +80,23 @@ void KratosULFApplication::Register()
     */
     //	KRATOS_REGISTER_VARIABLE(IS_LAGRANGIAN_INLET)
 
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
+    //KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
+    //KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
+    KRATOS_REGISTER_VARIABLE(PRESSURE_OLD_IT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid2D", mUpdatedLagrangianFluid2D);
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid3D", mUpdatedLagrangianFluid3D);
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid2Dinc", mUpdatedLagrangianFluid2Dinc);
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid3Dinc", mUpdatedLagrangianFluid3Dinc);
+    KRATOS_REGISTER_ELEMENT("UlfAxisym", mUlfAxisym);
     //
     KRATOS_REGISTER_ELEMENT("UlfFrac2D", mUlfFrac2D);
     KRATOS_REGISTER_ELEMENT("UlfFrac3D", mUlfFrac3D);
-    KRATOS_REGISTER_ELEMENT("UlfFrac2DSwimming", mUlfFrac2DSwimming);
-    KRATOS_REGISTER_ELEMENT("UlfFrac3DSwimming", mUlfFrac3DSwimming);
     KRATOS_REGISTER_CONDITION("PointNeumann3D", mPointNeumann3D);
+    KRATOS_REGISTER_CONDITION("PointNeumann2D", mPointNeumann2D);
+    KRATOS_REGISTER_CONDITION("PointNeumannAxisym", mPointNeumannAxisym);
+
 }
 
 

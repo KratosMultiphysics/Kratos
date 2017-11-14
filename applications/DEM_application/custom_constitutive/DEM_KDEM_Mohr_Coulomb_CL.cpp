@@ -67,7 +67,7 @@ namespace Kratos {
             
             const double mohr_coulomb_c = 1e6 * 0.5*(element1_props[INTERNAL_COHESION] + element2_props[INTERNAL_COHESION]);
             const double mohr_coulomb_phi = 0.5 * (element1_props[INTERNAL_FRICTION_ANGLE] + element2_props[INTERNAL_FRICTION_ANGLE]);
-            const double mohr_coulomb_phi_in_radians = mohr_coulomb_phi * KRATOS_M_PI / 180.0; 
+            const double mohr_coulomb_phi_in_radians = mohr_coulomb_phi * Globals::Pi / 180.0; 
             const double sinphi = sin(mohr_coulomb_phi_in_radians);
             const double cosphi = cos(mohr_coulomb_phi_in_radians);
             

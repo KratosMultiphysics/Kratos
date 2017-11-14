@@ -8,14 +8,14 @@ xsi:schemaLocation="EmperorInput http://empire.st.bv.tum.de/projects/empire/repo
 	<!-- ================ define clientCode ======================================== -->
 	<clientCode name="KratosClient1">
 		<mesh name="myMesh1">
-			<dataField name="displacement" location="atNode" dimension="vector" typeOfQuantity="field" />
+			<dataField name="displacement" location="atNode" dimension="doubleVector" typeOfQuantity="field" />
 			<dataField name="temperature" location="atNode" dimension="scalar" typeOfQuantity="field" />
 		</mesh>
 	</clientCode>
   
 	<clientCode name="KratosClient2">
 		<mesh name="myMesh2" type="copyFEMesh" fromClient="KratosClient1" fromMesh="myMesh1" sendMeshToClient="true">
-			<dataField name="velocity" location="atNode" dimension="vector" typeOfQuantity="field" />
+			<dataField name="velocity" location="atNode" dimension="doubleVector" typeOfQuantity="field" />
 			<dataField name="pressure" location="atNode" dimension="scalar" typeOfQuantity="field" />
 		</mesh>
 	</clientCode>

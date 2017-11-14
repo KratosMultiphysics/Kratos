@@ -43,7 +43,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         # Construct the base solver.
         super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
-        print("::[Implicit Dynamics Solver]:: Constructed")
+        print("::[Implicit_Dynamic_Solver]:: Constructed")
 
     #### Solver internal methods ####
     

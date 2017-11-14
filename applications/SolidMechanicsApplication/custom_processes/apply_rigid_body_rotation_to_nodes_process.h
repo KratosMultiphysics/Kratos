@@ -58,7 +58,6 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "VARIABLE_NAME",
                 "modulus" : 1.0,
                 "direction" : [],
@@ -69,7 +68,6 @@ public:
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mmesh_id       = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
 
 
@@ -221,7 +219,6 @@ protected:
     double mprevious_value;
     array_1d<double,3> mdirection;
     array_1d<double,3> mcenter;
-    std::size_t mmesh_id;
     
     ///@}
     ///@name Protected Operators
@@ -262,13 +259,13 @@ private:
     {
       KRATOS_TRY
    
-      const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+      const int nnodes = mr_model_part.GetMesh().Nodes().size();
 
       //std::cout<<" Apply rigid body rotation "<<std::endl;
 
       if(nnodes != 0)
         {
-	  ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+	  ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh().NodesBegin();
 
 	  Matrix rotation_matrix;
 	  array_1d<double,3> radius;

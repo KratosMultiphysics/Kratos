@@ -22,7 +22,7 @@ namespace Kratos
 {
 
    // constructor 1
-   SetMechanicalInitialStateProcess::SetMechanicalInitialStateProcess(ModelPart& rModelPart)
+/*   SetMechanicalInitialStateProcess::SetMechanicalInitialStateProcess(ModelPart& rModelPart)
       : mrModelPart(rModelPart)
    {
 
@@ -37,14 +37,50 @@ namespace Kratos
       mInitialStress.push_back(rSV);
       mInitialStress.push_back(rSH);
    }
+*/
+   SetMechanicalInitialStateProcess::SetMechanicalInitialStateProcess( ModelPart & rModelPart, Parameters rParameters)
+      : Process(Flags()), mrModelPart( rModelPart)
+   {
+      KRATOS_TRY
 
+      std::cout << " FINALLY CONSTRUCTED " << std::endl;
+      Parameters default_parameters( R"(
+      {
+         "model_part_name":"MODEL_PART_NAME",
+         "gravity_active": false, 
+         "constant_vertical_stress": -10.0,
+         "constant_horizontal_stress": -5.0,
+         "constant_water_pressure" : -10.0,
+         "top_surface_load_bool": false,
+         "top_surface_load": 0.0,
+         "top_water_pressure": 0.0
+      } )" );
+
+      mGravity = rParameters["gravity_active"].GetBool();
+
+      mInitialStress.resize(0);
+      double sv = rParameters["constant_vertical_stress"].GetDouble();
+      mInitialStress.push_back( sv);
+      double sh = rParameters["constant_horizontal_stress"].GetDouble();
+      mInitialStress.push_back( sh);
+
+      mInitialWaterPressure = rParameters["constant_water_pressure"].GetDouble();
+      mSurfaceLoadBool = rParameters["top_surface_load_bool"].GetBool();
+      mSurfaceLoad = rParameters["top_surface_load"].GetDouble();
+      mWaterLoad = rParameters["top_water_pressure"].GetDouble();
+
+      std::cout << " FINALLY CONSTRUCTED " << std::endl;
+      std::cout << " WRITTING THE MODEL PART OR SOMETHING " << rModelPart << std::endl;
+      KRATOS_CATCH("")
+   }
+   
    // destructor 
    SetMechanicalInitialStateProcess::~SetMechanicalInitialStateProcess()
    {
 
    }
 
-   void SetMechanicalInitialStateProcess::ExecuteInitialize()
+   void SetMechanicalInitialStateProcess::Execute()
    {
 
       if ( mGravity ) {
@@ -52,7 +88,7 @@ namespace Kratos
       }
       else {
          // set the same stress state to all the elements of the domain (i.e. gravity == 0)
-         SetInitialMechanicalStateConstant( mrModelPart, mInitialStress[0], mInitialStress[1], 1);
+         SetInitialMechanicalStateConstant( mrModelPart, mInitialStress[0], mInitialStress[1], mInitialWaterPressure,  1);
       }
 
 
@@ -73,64 +109,57 @@ namespace Kratos
          return;
       }
 
-      unsigned int start = 1, arranged = 0, allPossible = 0;
+      unsigned int arranged = 0, allPossible = 0;
       array_1d<double, 3 > ContactForce, NeigContactForce;
       double CFModul, CFModulNeig;
       int ContactNeig;
-      for (unsigned int MeshId = start; MeshId < NumberOfMeshes; MeshId++)
-      {
-         for ( ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(start); in != mrModelPart.NodesEnd(start); ++in)
-         {
+      for ( ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); ++in)
+	{
 
-            ContactForce = in->GetSolutionStepValue(CONTACT_FORCE);
-            CFModul = fabs( ContactForce[0] ) + fabs( ContactForce[1] );
-            if ( CFModul > 1e-5)
+	  ContactForce = in->GetSolutionStepValue(CONTACT_FORCE);
+	  CFModul = fabs( ContactForce[0] ) + fabs( ContactForce[1] );
+	  if ( CFModul > 1e-5)
             {
-               ContactNeig = 0;
-               WeakPointerVector<Node<3 > >  & rN = in->GetValue( NEIGHBOUR_NODES );
-               for ( unsigned int neig = 0; neig < rN.size(); neig++)
-               {
+	      ContactNeig = 0;
+	      WeakPointerVector<Node<3 > >  & rN = in->GetValue( NEIGHBOUR_NODES );
+	      for ( unsigned int neig = 0; neig < rN.size(); neig++)
+		{
                   NeigContactForce = rN[neig].GetSolutionStepValue( CONTACT_FORCE);
                   CFModulNeig = fabs( NeigContactForce[0]) + fabs( NeigContactForce[1]);
                   if ( CFModulNeig > 1e-5)
-                     ContactNeig += 1;
-               }
+		    ContactNeig += 1;
+		}
 
-               if (ContactNeig == 2)
-               {
+	      if (ContactNeig == 2)
+		{
                   if ( in->SolutionStepsDataHas(LINE_LOAD) )
-                  {
-                     array_1d<double, 3 > & rLineLoad = in->GetSolutionStepValue( LINE_LOAD);
-                     if ( fabs( rLineLoad[0]) + fabs( rLineLoad[1]) > 1e-5)
-                     {
-                        rLineLoad *= 0.0;
-                        //in->SetSolutionStepValue( LINE_LOAD, LineLoad); // ja està, no facis coses rares....
-                     }
-                  }
+		    {
+		      array_1d<double, 3 > & rLineLoad = in->GetSolutionStepValue( LINE_LOAD);
+		      if ( fabs( rLineLoad[0]) + fabs( rLineLoad[1]) > 1e-5)
+			{
+			  rLineLoad *= 0.0;
+			  //in->SetSolutionStepValue( LINE_LOAD, LineLoad); // ja està, no facis coses rares....
+			}
+		    }
                   else
-                  {
-                     std::cout << " ES RARO PQ no HAY LINE LOAD " << std::endl;
-                  }
+		    {
+		      std::cout << " ES RARO PQ no HAY LINE LOAD " << std::endl;
+		    }
 
                   if ( in->SolutionStepsDataHas( WATER_PRESSURE ) )
-                  {
-                     if ( in->IsFixed( WATER_PRESSURE ) )
-                     {
-                        in->Free( WATER_PRESSURE);
-                        arranged++;
-                     }
-
-
-                  }
+		    {
+		      if ( in->IsFixed( WATER_PRESSURE ) )
+			{
+			  in->Free( WATER_PRESSURE);
+			  arranged++;
+			}
+		    }
 
                   allPossible += 1;
-               }
+		}
             }
-
-
-         }
-
-      }
+	}
+      
 
       std::cout << " We have Done " << arranged << " from a possible bicontacting "<< allPossible << " in the BCCorrection ]"<< std::endl;
 
@@ -147,25 +176,17 @@ namespace Kratos
       if( EchoLevel > 0 )
          std::cout << "    number of meshes: " << NumberOfMeshes << " meshes" << std::endl;
 
-      unsigned int start = 0;
-      if (NumberOfMeshes>1)
-         start = 1;
-
 
       //SEARCH for Ymax
-      double Ymax = rModelPart.NodesBegin(start)->Y(); 
-      for (ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(start); in != rModelPart.NodesEnd(start); ++in)
+      double Ymax = rModelPart.NodesBegin()->Y(); 
+      for (ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
       {
          if ( Ymax < in->Y() ) {
             Ymax = in->Y();
          }
       } 
 
-      for (unsigned int MeshId = start; MeshId < NumberOfMeshes; MeshId++) {
-
-         this->SetMechanicalState( rModelPart, MeshId, EchoLevel, Ymax);
-
-      }
+      this->SetMechanicalState( rModelPart, EchoLevel, Ymax);
 
       if( EchoLevel > 0 )
          std::cout << "    End InitialState, gravity ]" << std::endl;
@@ -173,7 +194,7 @@ namespace Kratos
    }
 
 
-   void SetMechanicalInitialStateProcess::SetInitialMechanicalStateConstant(ModelPart& rModelPart, double S1, double S2, int EchoLevel)
+   void SetMechanicalInitialStateProcess::SetInitialMechanicalStateConstant(ModelPart& rModelPart, double S1, double S2, double WaterPressure,  int EchoLevel)
    {
       if( EchoLevel > 0 )
          std::cout << "  [ InitialState, constant-state " << std::endl;
@@ -182,36 +203,28 @@ namespace Kratos
       if( EchoLevel > 0 )
          std::cout << "    number of meshes: " << NumberOfMeshes << " meshes" << std::endl;
 
-      unsigned int start = 0;
-      if (NumberOfMeshes > 1)
-         start = 1;
 
-      for ( unsigned int MeshId = start; MeshId < NumberOfMeshes; MeshId++)  {
-         std::cout << "    working on mesh: " << MeshId << " of the total " << NumberOfMeshes << " number of elements: " <<  rModelPart.NumberOfElements(MeshId) << std::endl;
+      if ( rModelPart.NumberOfElements() ) {
+	ModelPart::ElementsContainerType::const_iterator FirstElement = rModelPart.ElementsBegin();
 
-         if ( rModelPart.NumberOfElements(MeshId) ) {
-            ModelPart::ElementsContainerType::const_iterator FirstElement = rModelPart.ElementsBegin(MeshId);
+	ConstitutiveLaw::Features LawFeatures;
+	FirstElement->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
-            ConstitutiveLaw::Features LawFeatures;
-            FirstElement->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
-
-            if (LawFeatures.mOptions.Is(ConstitutiveLaw::U_P_LAW) ) {
-               std::cout << "    begin of setting UP constant state " << std::endl;
-               this->SetMechanicalStateConstantUP( rModelPart, MeshId, S1, S2, EchoLevel);
-            }
-            else {
-               std::cout << "    begin of setting U or UwP constant state " << std::endl;
-               this->SetMechanicalStateConstant( rModelPart, MeshId, S1, S2, EchoLevel);
-            }
-         }
-         std::cout << "   end with this mesh " << std::endl;
+	if (LawFeatures.mOptions.Is(ConstitutiveLaw::U_P_LAW) ) {
+	  std::cout << "    begin of setting UP constant state " << std::endl;
+	  this->SetMechanicalStateConstantUP( rModelPart, S1, S2, EchoLevel);
+	}
+	else {
+	  std::cout << "    begin of setting U or UwP constant state " << std::endl;
+	  this->SetMechanicalStateConstant( rModelPart, S1, S2, WaterPressure, EchoLevel);
+	}
       }
 
       if( EchoLevel > 0 )
          std::cout << "    End InitialState, constant-state ]" << std::endl;
    }
 
-   void SetMechanicalInitialStateProcess::SetMechanicalStateConstant(ModelPart& rModelPart, const unsigned int& MeshId, const double& rS1, const double& rS2, int& EchoLevel)
+   void SetMechanicalInitialStateProcess::SetMechanicalStateConstant(ModelPart& rModelPart, const double& rS1, const double& rS2, const double& rWaterPressure, int& EchoLevel)
    {
       std::vector<Vector> StressVector;
       Vector ThisVector = ZeroVector(6);
@@ -221,52 +234,68 @@ namespace Kratos
 
       ProcessInfo SomeProcessInfo;
 
-      for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(MeshId); pElement != rModelPart.ElementsEnd(MeshId) ; pElement++)
+      for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement != rModelPart.ElementsEnd() ; pElement++)
       {
          pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo); 
       }
+      // AND NOW SET THE WATER PRESSURE
+
+      for (ModelPart::NodesContainerType::const_iterator pNode = rModelPart.NodesBegin(); pNode != rModelPart.NodesEnd(); pNode++)
+      {
+         if ( pNode->SolutionStepsDataHas( WATER_PRESSURE)  ) 
+         {
+            double & rNodeWaterPressure = pNode->FastGetSolutionStepValue( WATER_PRESSURE );
+            rNodeWaterPressure = rWaterPressure;
+         }
+
+      }
+
    }
 
 
-   void SetMechanicalInitialStateProcess::SetMechanicalState(ModelPart& rModelPart, const unsigned int& MeshId, int& EchoLevel, const double& rYmax)
+   void SetMechanicalInitialStateProcess::SetMechanicalState(ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
-      if( EchoLevel > 0 )
-         std::cout << "    working on mesh: " << MeshId << " of the total " << rModelPart.NumberOfElements(MeshId)  << " elements " << std::endl;
 
-      if ( !rModelPart.NumberOfElements(MeshId)) {
+      if ( !rModelPart.NumberOfElements()) {
          if( EchoLevel > 0 )
             std::cout << "    end; no elements." << std::endl;
          return;
       }
 
-      ModelPart::ElementsContainerType::const_iterator FirstElement = rModelPart.ElementsBegin(MeshId);
+      ModelPart::ElementsContainerType::const_iterator FirstElement = rModelPart.ElementsBegin();
       ConstitutiveLaw::Features LawFeatures;
 
       FirstElement->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
-      if ( LawFeatures.mOptions.Is(ConstitutiveLaw::U_P_LAW) ) {
-         if( EchoLevel > 0 )
-            std::cout << "    begin of setting UP gravity state " << std::endl;
-         this->SetMechanicalStateUP( rModelPart, MeshId, EchoLevel, rYmax);
-      }
-      else 
-      {
-         // MIRAR SI ES HIDRODINAMICO
-         bool WaterPressureDofs = false;
-         for ( unsigned int i = 0; i < FirstElement->GetGeometry().size(); ++i) {
-            if ( FirstElement->GetGeometry()[i].SolutionStepsDataHas( WATER_PRESSURE ) == true ) {
+
+
+      // Look if any element has water pressure degree of freedom
+      bool WaterPressureDofs = false;
+      for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement != rModelPart.ElementsEnd(); pElement++) {
+         for ( unsigned int i = 0; i < pElement->GetGeometry().size(); ++i) {
+            if ( pElement->GetGeometry()[i].SolutionStepsDataHas( WATER_PRESSURE ) == true ) {
                WaterPressureDofs = true;
             }
          }
+      }
+
+
+      if ( LawFeatures.mOptions.Is(ConstitutiveLaw::U_P_LAW) ) {
+         if( EchoLevel > 0 )
+            std::cout << "    begin of setting UP gravity state " << std::endl;
+         this->SetMechanicalStateUP( rModelPart, EchoLevel, rYmax);
+      }
+      else 
+      {
          if ( WaterPressureDofs ) {
             if( EchoLevel > 0 )
                std::cout << "    begin of setting UwP gravity state " << std::endl;
-            this->SetMechanicalStateUwP(rModelPart, MeshId, EchoLevel, rYmax);
+            this->SetMechanicalStateUwP(rModelPart, EchoLevel, rYmax);
          }
          else 
          {
             if( EchoLevel > 0 )
                std::cout << "    begin of setting U gravity state " << std::endl;
-            this->SetMechanicalStateU( rModelPart, MeshId, EchoLevel, rYmax);
+            this->SetMechanicalStateU( rModelPart, EchoLevel, rYmax);
 
          }
          if( EchoLevel > 0 )
@@ -276,7 +305,7 @@ namespace Kratos
    }
 
 
-   void SetMechanicalInitialStateProcess::SetMechanicalStateConstantUP(ModelPart& rModelPart, const unsigned int& MeshId, const double& rS1, const double& rS2, int& EchoLevel)
+   void SetMechanicalInitialStateProcess::SetMechanicalStateConstantUP(ModelPart& rModelPart, const double& rS1, const double& rS2, int& EchoLevel)
    {
       double Pressure, VerticalStress, HorizontalStress;
       Pressure = (rS1 + 2.0*rS2) / 3.0;
@@ -294,7 +323,7 @@ namespace Kratos
       double BulkModulus = Young;
       BulkModulus /= 3.0 * ( 1.0 - 2.0*Poisson);
 
-      for (ModelPart::NodesContainerType::const_iterator pNode = rModelPart.NodesBegin(MeshId); pNode != rModelPart.NodesEnd(MeshId); pNode++)
+      for (ModelPart::NodesContainerType::const_iterator pNode = rModelPart.NodesBegin(); pNode != rModelPart.NodesEnd(); pNode++)
       {
          double & rPressure = pNode->FastGetSolutionStepValue( PRESSURE );
          rPressure = Pressure;
@@ -311,7 +340,7 @@ namespace Kratos
 
       ProcessInfo SomeProcessInfo;
 
-      for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(MeshId); pElement != rModelPart.ElementsEnd(MeshId); pElement++)
+      for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement != rModelPart.ElementsEnd(); pElement++)
       {
          //pElement->SetInitialMechanicalState( StressVector );  // to be ...
          pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
@@ -321,7 +350,7 @@ namespace Kratos
 
 
 
-   void SetMechanicalInitialStateProcess::SetMechanicalStateUP(ModelPart& rModelPart, const unsigned int& MeshId, int& EchoLevel, const double& rYmax)
+   void SetMechanicalInitialStateProcess::SetMechanicalStateUP(ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
 
       unsigned int Properties = rModelPart.NumberOfProperties();
@@ -338,11 +367,19 @@ namespace Kratos
       double BulkModulus = Young;
       BulkModulus /= 3.0 * ( 1.0 - 2.0*Poisson);
 
+      double OverLoad = 0;
+      if ( mSurfaceLoadBool == true)
+      {
+         OverLoad = mSurfaceLoad; 
+      }
+
       double Pressure, VerticalStress, HorizontalStress;
-      for (ModelPart::NodesContainerType::const_iterator pNode = rModelPart.NodesBegin(MeshId); pNode != rModelPart.NodesEnd(MeshId) ; pNode++)
+      for (ModelPart::NodesContainerType::const_iterator pNode = rModelPart.NodesBegin(); pNode != rModelPart.NodesEnd() ; pNode++)
       {
 
-         VerticalStress = 10.0 * Density * (pNode->Y() - rYmax);
+         VerticalStress = 10.0 * Density * (pNode->Y() - rYmax) + OverLoad;
+         if ( VerticalStress > 0.0)
+            VerticalStress = 0.0;
          HorizontalStress = Knot * VerticalStress;
 
          if ( fabs(VerticalStress - HorizontalStress) > 2.0*Su ) {
@@ -359,7 +396,7 @@ namespace Kratos
       double MeanStress;
       ProcessInfo SomeProcessInfo;
 
-      for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(MeshId); pElement!=rModelPart.ElementsEnd(MeshId) ; ++pElement)
+      for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement!=rModelPart.ElementsEnd() ; ++pElement)
       {
          Geometry<Node <3> >&  rGeom = (pElement)->GetGeometry();
          double Y = 0;
@@ -368,7 +405,9 @@ namespace Kratos
          }
          Y /= double( rGeom.size() );
 
-         VerticalStress = 10.0*Density*( Y - rYmax) ; 
+         VerticalStress = 10.0*Density*( Y - rYmax) + OverLoad; 
+         if ( VerticalStress > 0.0)
+            VerticalStress = 0.0;
          HorizontalStress = Knot * VerticalStress;
 
          if ( fabs(VerticalStress - HorizontalStress) > 2.0*Su) {
@@ -396,7 +435,7 @@ namespace Kratos
 
    }
 
-   void SetMechanicalInitialStateProcess::SetMechanicalStateU( ModelPart& rModelPart, const unsigned int& MeshId, int& EchoLevel, const double& rYmax)
+   void SetMechanicalInitialStateProcess::SetMechanicalStateU( ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
       unsigned int Properties = rModelPart.NumberOfProperties();
       Properties -= 1;
@@ -406,7 +445,13 @@ namespace Kratos
       double VerticalStress, HorizontalStress;
       ProcessInfo SomeProcessInfo;
 
-      for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(MeshId); pElement!=rModelPart.ElementsEnd(MeshId) ; ++pElement)
+      double OverLoad = 0;
+      if ( mSurfaceLoadBool == true)
+      {
+         OverLoad = mSurfaceLoad; 
+      }
+
+      for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement!=rModelPart.ElementsEnd() ; ++pElement)
       {
          Geometry<Node <3> >&  rGeom = (pElement)->GetGeometry();
          double Y = 0;
@@ -414,7 +459,9 @@ namespace Kratos
             Y += rGeom[i].Y();
          Y /= double( rGeom.size() );
 
-         VerticalStress = 10.0*MixtureDensity*( Y - rYmax) ; 
+         VerticalStress = 10.0*MixtureDensity*( Y - rYmax) + OverLoad; 
+         if ( VerticalStress > 0.0)
+            VerticalStress = 0.0;
          HorizontalStress = Knot * VerticalStress;
 
          std::vector<Vector> StressVector;
@@ -430,10 +477,30 @@ namespace Kratos
          pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
       }
 
+      // THE PART TO PUT THE PRESSURE FOR THE NEW ELEMENTS.
+      double Pressure; 
+      for (ModelPart::NodesContainerType::const_iterator pNode = rModelPart.NodesBegin(); pNode != rModelPart.NodesEnd(); pNode++)
+      {
+         if ( pNode->SolutionStepsDataHas( PRESSURE ) ) 
+         {
+            VerticalStress = 10.0 * MixtureDensity * (pNode->Y() - rYmax);
+            HorizontalStress = Knot * VerticalStress;
+
+
+            Pressure = ( VerticalStress + 2.0*HorizontalStress) / 3.0;
+
+            double& rPressure = pNode->FastGetSolutionStepValue( PRESSURE );
+            rPressure = Pressure;
+
+         }
+      }
+
+
+
    }
 
 
-   void SetMechanicalInitialStateProcess::SetMechanicalStateUwP(ModelPart& rModelPart, const unsigned int& MeshId, int& EchoLevel, const double& rYmax)
+   void SetMechanicalInitialStateProcess::SetMechanicalStateUwP(ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
 
       unsigned int Properties = rModelPart.NumberOfProperties();
@@ -447,9 +514,31 @@ namespace Kratos
       if( EchoLevel > 0 )
          std::cout << " WaterDensity: " << WaterDensity<< " MixtureDensity " << MixtureDensity+WaterDensity << " K0 " << Knot << std::endl;
 
-      for (ModelPart::NodesContainerType::const_iterator pNode = rModelPart.NodesBegin(MeshId); pNode != rModelPart.NodesEnd(MeshId) ; pNode++) {
+      double OverLoad = 0;
+      double WaterOverLoad = 0;
+      if ( mSurfaceLoadBool == true)
+      {
+         OverLoad = mSurfaceLoad; 
+         WaterOverLoad = mWaterLoad;
+      }
 
-         WaterPressure = 10.0*WaterDensity * ( pNode->Y() -rYmax );
+
+      // try to put zero water pressure below 0 stress.
+      /*double Ymax2 = rYmax - OverLoad/10.0/(MixtureDensity + WaterDensity) ;
+      std::cout << " YMax2 " << Ymax2 << std::endl;
+      std::cout << " rYmax " << rYmax << std::endl;
+      std::cout << " number " << OverLoad / 10.0 / (MixtureDensity +WaterDensity) << std::endl;
+      std::cout << " olverLoad " << OverLoad << std::endl; */
+
+      for (ModelPart::NodesContainerType::const_iterator pNode = rModelPart.NodesBegin(); pNode != rModelPart.NodesEnd() ; pNode++) {
+
+         WaterPressure = 10.0*WaterDensity * ( pNode->Y() -rYmax ) + WaterOverLoad;
+
+         if ( WaterPressure > 0.0)
+            WaterPressure = 0.0;
+
+         if ( pNode->Y() > rYmax)
+            WaterPressure = 0.0;
 
          double& rWaterPressure = pNode->FastGetSolutionStepValue( WATER_PRESSURE );
          rWaterPressure = WaterPressure ;
@@ -458,7 +547,7 @@ namespace Kratos
       double VerticalStress, HorizontalStress;
       ProcessInfo SomeProcessInfo;
 
-      for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(MeshId); pElement!=rModelPart.ElementsEnd(MeshId) ; ++pElement)
+      for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement!=rModelPart.ElementsEnd() ; ++pElement)
       {
          Geometry<Node <3> >&  rGeom = (pElement)->GetGeometry();
          double Y = 0;
@@ -466,7 +555,9 @@ namespace Kratos
             Y += rGeom[i].Y();
          Y /= double( rGeom.size() );
 
-         VerticalStress = 10.0*MixtureDensity*( Y - rYmax) ; 
+         VerticalStress = 10.0*MixtureDensity*( Y - rYmax) + OverLoad; 
+         if ( VerticalStress > 0.0)
+            VerticalStress = 0.0;
          HorizontalStress = Knot * VerticalStress;
 
          std::vector<Vector> StressVector;

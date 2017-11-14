@@ -39,13 +39,9 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,7850)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.CROSS_AREA,0.01)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.30)
-
-        local_inertia_vector = KratosMultiphysics.Vector(3)
-        local_inertia_vector[0] = 0.00001
-        local_inertia_vector[1] = 0.00001
-        local_inertia_vector[2] = 0.00001
-
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.LOCAL_INERTIA_VECTOR,local_inertia_vector)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TORSIONAL_INERTIA,0.00001)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I22,0.00001)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I33,0.00001)
 
         g = [0,0,0]  
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
@@ -53,40 +49,23 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         cl = StructuralMechanicsApplication.LinearElastic3DLaw()
         mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
-        
     def _apply_BCs(self,mp,which_dof):
-        
         if (which_dof == 'xyz'):
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
-            # for node in mp.Nodes:
-            #     node.Fix(KratosMultiphysics.DISPLACEMENT_X)
-            #     node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-            #     node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
         if (which_dof == 'xz'):            
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
-            # for node in mp.Nodes:
-            #     node.Fix(KratosMultiphysics.DISPLACEMENT_X)
-            #     node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
         if (which_dof == 'yz'):
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
-            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)            
-            # for node in mp.Nodes:
-            #     node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-            #     node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)       
         if (which_dof == 'rotXYZ'):
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_X, True, mp.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Y, True, mp.Nodes)
-            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Z, True, mp.Nodes)
-            # for node in mp.Nodes:
-            #     node.Fix(KratosMultiphysics.ROTATION_X)
-            #     node.Fix(KratosMultiphysics.ROTATION_Y)
-            #     node.Fix(KratosMultiphysics.ROTATION_Z)                
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Z, True, mp.Nodes)             
 
     def _apply_Neumann_BCs(self,mp,which_dof,load_size_dir):
-
         if(which_dof == 'y'):
             KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
                 POINT_LOAD_Y, load_size_dir, mp.Nodes)
@@ -100,9 +79,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             #     node.SetSolutionStepValue(StructuralMechanicsApplication.
             #     POINT_LOAD_X,0,load_size_dir)  
 
-        
     def _solve_linear(self,mp):
-        
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
@@ -148,15 +125,14 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         
         strategy.Check()
         strategy.Solve()
+
     def _solve_dynamic(self,mp):
-        
         #define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(0.00)
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-8,1e-8)
         convergence_criterion.SetEchoLevel(0)
-
 
         max_iters = 1000
         compute_reactions = True
@@ -176,10 +152,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         strategy.Check()
         strategy.Solve()
         
-           
-    
     def _check_results_linear(self,mp,endNode):
-        
         #check displacement result
         displacement_cantilever_tip = mp.Nodes[endNode].GetSolutionStepValue(
             KratosMultiphysics.DISPLACEMENT)
@@ -210,16 +183,13 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacement_y, 0.00,5)
 
     def _check_results_dynamic(self,mp,time_i,nr_nodes):
-        
         #check free vibration of cantilever tip
         disp_y_analytical = ((1.541*(10**(-2)))*(1-cos(575.076*time_i)) 
             -(3.193*(10**(-4)))*(1-cos(3603.800*time_i)))*(-1)
         disp_y_simulated = mp.Nodes[nr_nodes].GetSolutionStepValue(
             KratosMultiphysics.DISPLACEMENT_Y)
 
-
         self.assertAlmostEqual(disp_y_analytical, disp_y_simulated,2)
-
 
     def _set_and_fill_buffer(self,mp,buffer_size,delta_time):
         # Set buffer size
@@ -274,11 +244,11 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         self._apply_BCs(bcs_rot,'rotXYZ')
 
         self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
-
         
         #solve + compare
         self._solve_linear(mp)    
         self._check_results_linear(mp,nr_nodes)
+
     def test_cr_beam_nonlinear(self):
         dim = 3
         nr_nodes = 21
@@ -309,7 +279,6 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         self._apply_BCs(bcs_xyz,'xyz')
         self._apply_BCs(bcs_rot,'rotXYZ')
 
-
         #incrementally increase load -> nonlinear case
         Moment_Z = 25000.00
         time_start = 0.00
@@ -327,6 +296,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             self._solve_nonlinear(mp)
             self._check_results_nonlinear(mp,time_step,Moment_i,nr_nodes)
             time_step += 1
+
     def test_cr_beam_dynamic_lumped_mass_matrix(self):
         dim = 3
         nr_nodes = 11
@@ -335,7 +305,6 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.LUMPED_MASS_MATRIX,1)
-
 
         #create nodes
         dx = 1.00 / nr_elements
@@ -385,6 +354,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             self._solve_dynamic(mp)  
             self._check_results_dynamic(mp,time_i,nr_nodes)
             time_step += 1        
+
     def test_cr_beam_dynamic_consistent_mass_matrix(self):
         dim = 3
         nr_nodes = 11
@@ -394,7 +364,6 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         self._apply_material_properties(mp,dim)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.LUMPED_MASS_MATRIX,0)
 
-        
         #create nodes
         dx = 1.00 / nr_elements
         for i in range(nr_nodes):
