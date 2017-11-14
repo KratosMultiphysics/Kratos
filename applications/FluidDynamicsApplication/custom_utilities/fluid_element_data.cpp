@@ -3,18 +3,18 @@
 namespace Kratos
 {
 
-template< size_t TDim, size_t TNumNodes >
-FluidElementData<TDim,TNumNodes>::FluidElementData()
+template< size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime >
+FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>::FluidElementData()
 {
 }
 
-template< size_t TDim, size_t TNumNodes >
-FluidElementData<TDim,TNumNodes>::~FluidElementData()
+template< size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime >
+FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>::~FluidElementData()
 {
 }
 
-template <size_t TDim, size_t TNumNodes>
-void FluidElementData<TDim, TNumNodes>::UpdateGeometryValues(double NewWeight,
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::UpdateGeometryValues(double NewWeight,
     boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX)
 {
@@ -23,8 +23,8 @@ void FluidElementData<TDim, TNumNodes>::UpdateGeometryValues(double NewWeight,
     noalias(this->DN_DX) = rDN_DX;
 }
 
-template <size_t TDim, size_t TNumNodes>
-void FluidElementData<TDim, TNumNodes>::FillFromNodalData(
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNodalData(
     NodalScalarData& rData, const Variable<double>& rVariable,
     const Geometry<Node<3>>& rGeometry)
 {
@@ -34,8 +34,8 @@ void FluidElementData<TDim, TNumNodes>::FillFromNodalData(
     }
 }
 
-template <size_t TDim, size_t TNumNodes>
-void FluidElementData<TDim, TNumNodes>::FillFromNodalData(NodalVectorData& rData,
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNodalData(NodalVectorData& rData,
     const Variable<array_1d<double, 3>>& rVariable,
     const Geometry<Node<3>>& rGeometry) 
 {
@@ -48,8 +48,8 @@ void FluidElementData<TDim, TNumNodes>::FillFromNodalData(NodalVectorData& rData
     }
 }
 
-template <size_t TDim, size_t TNumNodes>
-void FluidElementData<TDim, TNumNodes>::FillFromHistoricalNodalData(
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(
     NodalScalarData& rData, const Variable<double>& rVariable,
     const Geometry<Node<3>>& rGeometry, const unsigned int Step)
 {
@@ -59,8 +59,8 @@ void FluidElementData<TDim, TNumNodes>::FillFromHistoricalNodalData(
     }
 }
 
-template <size_t TDim, size_t TNumNodes>
-void FluidElementData<TDim, TNumNodes>::FillFromHistoricalNodalData(
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(
     NodalVectorData& rData, const Variable<array_1d<double, 3>>& rVariable,
     const Geometry<Node<3>>& rGeometry, const unsigned int Step)
 {
@@ -73,28 +73,30 @@ void FluidElementData<TDim, TNumNodes>::FillFromHistoricalNodalData(
     }
 }
 
-template <size_t TDim, size_t TNumNodes>
-void FluidElementData<TDim, TNumNodes>::FillFromProcessInfo(double& rData,
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromProcessInfo(double& rData,
     const Variable<double>& rVariable, const ProcessInfo& rProcessInfo)
 {
     rData = rProcessInfo.GetValue(rVariable);
 }
 
-template <size_t TDim, size_t TNumNodes>
-void FluidElementData<TDim, TNumNodes>::FillFromProcessInfo(int& rData,
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromProcessInfo(int& rData,
     const Variable<int>& rVariable, const ProcessInfo& rProcessInfo)
 {
     rData = rProcessInfo.GetValue(rVariable);
 }
 
-template <size_t TDim, size_t TNumNodes>
-void FluidElementData<TDim, TNumNodes>::FillFromElementData(double& rData,
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromElementData(double& rData,
     const Variable<double>& rVariable, const Element& rElement)
 {
     rData = rElement.GetValue(rVariable);
 }
 
-template class FluidElementData<2,3>;
-template class FluidElementData<3,4>;
+template class FluidElementData<2,3,false>;
+template class FluidElementData<2,3,true>;
+template class FluidElementData<3,4,false>;
+template class FluidElementData<3,4,true>;
 
 }

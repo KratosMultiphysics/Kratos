@@ -28,7 +28,7 @@ namespace Kratos
 ///@{
 
 ///@brief Base class for data containers used within FluidElement and derived types.
-template< size_t TDim, size_t TNumNodes >
+template< size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime >
 class FluidElementData
 {
 public:
@@ -46,6 +46,8 @@ public:
     constexpr static unsigned int Dim = TDim;
 
     constexpr static unsigned int NumNodes = TNumNodes;
+
+    constexpr static bool ElementManagesTimeIntegration = TElementIntegratesInTime;
 
     ///@}
     ///@name Life Cycle

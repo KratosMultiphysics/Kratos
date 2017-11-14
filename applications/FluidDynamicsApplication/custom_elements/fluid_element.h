@@ -51,12 +51,12 @@ namespace Kratos
 ///@{
 
 template< size_t TDim, size_t TNumNodes >
-class DSSData : public FluidElementData<TDim,TNumNodes>
+class DSSData : public FluidElementData<TDim,TNumNodes, false>
 {
 public:
 
-using NodalScalarData = typename FluidElementData<TDim,TNumNodes>::NodalScalarData;
-using NodalVectorData = typename FluidElementData<TDim,TNumNodes>::NodalVectorData;
+using NodalScalarData = typename FluidElementData<TDim,TNumNodes, false>::NodalScalarData;
+using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalVectorData;
 
 NodalVectorData Velocity;
 NodalVectorData MeshVelocity;
