@@ -290,8 +290,10 @@ protected:
                                   Flags& rCalculationFlags) override;
 
 
-
-    double & CalculateGaussPointWaterPressure( ElementVariables & rVariables, double & rWaterPressure);
+    /**
+      * Calculate an estimate of the stabilization factor
+      */
+    double & CalculateStabilizationFactor( ElementVariables & rVariables, double & rStabilizationFactor);
 
     ///@}
     ///@name Protected  Access

@@ -513,8 +513,8 @@ namespace Kratos
 
 
 
-      
-      
+
+
       KRATOS_CATCH("")
    }
 
@@ -574,7 +574,7 @@ namespace Kratos
       for (unsigned int i = 0; i < number_of_nodes; i++) {
          for (unsigned int j = 0; j < number_of_nodes; j++) {
             for (unsigned int iDim = 0; iDim < dimension; iDim++) {
-                  rLeftHandSide( i*dofs_per_node + dimension+iDim, (j+1)*dofs_per_node-1) += SmallMatrix( i*dimension+iDim, j);
+               rLeftHandSide( i*dofs_per_node + dimension+iDim, (j+1)*dofs_per_node-1) += SmallMatrix( i*dimension+iDim, j);
             }
          }
       }
@@ -907,11 +907,87 @@ namespace Kratos
          }
 
 
+
+         // Stabilization of the mass balance equation
+         const double & rStabilizationFactor = GetProperties()[STABILIZATION_FACTOR_WP];
+         if ( ( fabs(rStabilizationFactor) > 1.0e-6) && dimension==2)  {
+
+            double StabFactor = CalculateStabilizationFactor( Variables, StabFactor);
+
+
+            Matrix SmallMatrix = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+            double consistent;
+            for (unsigned int i = 0; i < number_of_nodes; i++) {
+               for (unsigned int j = 0; j < number_of_nodes; j++) {
+                  consistent = -1.0 * StabFactor / 18.0;
+                  if ( i == j)
+                     consistent = 2.0 * StabFactor / 18.0;
+                  SmallMatrix(i,j) += consistent * IntegrationWeight ;
+               }
+            }
+
+            for (unsigned int i = 0; i < number_of_nodes; i++) {
+               for (unsigned int j = 0; j < number_of_nodes; j++) {
+                  rDampingMatrix( (i+1)*dofs_per_node-1, (j+1)*dofs_per_node-1) += SmallMatrix(i,j);
+               }
+            }
+
+
+         }
+
+
+
+
       } // end point
       KRATOS_CATCH("")
    }
    //************************************************************************************
    //************************************************************************************
+
+   double & UpdatedLagrangianUWwPElement::CalculateStabilizationFactor( ElementVariables & rVariables, double & rStabFactor)
+   {
+      KRATOS_TRY
+
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      const double & rPermeability = GetProperties()[PERMEABILITY];
+
+      double ElementSize = 0;
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         double aux = 0;
+         for (unsigned int iDim = 0; iDim < dimension; iDim++) {
+            aux += rVariables.DN_DX(i, iDim);
+         }
+         ElementSize += fabs( aux); 
+      }
+      ElementSize *= sqrt( double(dimension) );
+      ElementSize = 4.0/ ElementSize; 
+
+      ProcessInfo SomeProcessInfo; 
+      std::vector< double> Mmodulus;
+      GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
+      double ConstrainedModulus = Mmodulus[0];
+      if ( ConstrainedModulus < 1e-5)
+      {
+         const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
+         const double& nu    = GetProperties()[POISSON_RATIO];
+         ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
+      }
+
+
+      double StabilizationFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
+
+      rStabFactor = 2.0 / ConstrainedModulus - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
+
+      if ( rStabFactor < 0.0)
+         rStabFactor = 0.0; 
+      rStabFactor *=  StabilizationFactor;
+
+      return rStabFactor; 
+
+      KRATOS_CATCH("")
+   }
 
    void UpdatedLagrangianUWwPElement::save( Serializer& rSerializer ) const
    {
