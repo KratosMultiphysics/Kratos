@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class KRATOS_API(DEM_APPLICATION) NewmarkBetaScheme : public DEMIntegrationScheme {
+    class NewmarkBetaScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
@@ -49,7 +49,7 @@ namespace Kratos {
         
         /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption) override;
         void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption) override;*/
-
+               
         void UpdateTranslationalVariables(
             int StepFlag,
             Node < 3 > & i,
@@ -63,7 +63,7 @@ namespace Kratos {
             const double mass,
             const double delta_t,
             const bool Fix_vel[3]) override;
-
+        
         void UpdateRotationalVariables(
                 int StepFlag,
                 const Node < 3 > & i,
@@ -73,7 +73,7 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_acceleration,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
-
+        
         void UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
@@ -83,7 +83,7 @@ namespace Kratos {
                 const array_1d<double, 3 >& angular_momentum,
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
-                const bool Fix_Ang_vel[3]) override;
+                const bool Fix_Ang_vel[3]) override; 
 
         void UpdateRotationalVariables(
                 const Node < 3 > & i,
@@ -91,7 +91,7 @@ namespace Kratos {
                 array_1d<double, 3 >& delta_rotation,
                 const array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
-                const bool Fix_Ang_vel[3]) override;
+                const bool Fix_Ang_vel[3])  override;
 
         void QuaternionCalculateMidAngularVelocities(
                 const Quaternion<double>& Orientation,
@@ -106,22 +106,22 @@ namespace Kratos {
                 const double LocalTensorInv[3][3],
                 const array_1d<double, 3>& angular_momentum,
                 array_1d<double, 3>& angular_velocity)  override;
-
-        void CalculateLocalAngularAcceleration(
-                const Node < 3 > & i,
-                const double moment_of_inertia,
-                const array_1d<double, 3 >& torque,
-                const double moment_reduction_factor,
-                array_1d<double, 3 >& angular_acceleration) override;
-
-        void CalculateLocalAngularAccelerationByEulerEquations(
-                const Node < 3 > & i,
-                const array_1d<double, 3 >& local_angular_velocity,
-                const array_1d<double, 3 >& moments_of_inertia,
-                const array_1d<double, 3 >& local_torque,
-                const double moment_reduction_factor,
-                array_1d<double, 3 >& local_angular_acceleration) override;
         
+        void CalculateLocalAngularAcceleration(
+                                const Node < 3 > & i,
+                                const double moment_of_inertia,
+                                const array_1d<double, 3 >& torque, 
+                                const double moment_reduction_factor,
+                                array_1d<double, 3 >& angular_acceleration) override;
+        
+        void CalculateLocalAngularAccelerationByEulerEquations(
+                                    const Node < 3 > & i,
+                                    const array_1d<double, 3 >& local_angular_velocity,
+                                    const array_1d<double, 3 >& moments_of_inertia,
+                                    const array_1d<double, 3 >& local_torque, 
+                                    const double moment_reduction_factor,
+                                    array_1d<double, 3 >& local_angular_acceleration) override;
+                                    
         void CalculateAngularVelocityRK(
                                     const Quaternion<double  >& Orientation,
                                     const array_1d<double, 3 >& moments_of_inertia,

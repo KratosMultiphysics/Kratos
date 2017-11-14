@@ -232,7 +232,7 @@ namespace Kratos {
             double critical_force = 0.16666666666666667 * pow((Globals::Pi * element1->GetParticleMaxStress()), 3) * pow((equiv_radius / equiv_young), 2);
 //           double critical_force = 0.6666666666666667 * Globals::Pi * equiv_radius * indentation * element1->GetParticleMaxStress();
             
-          if (normal_contact_force > critical_force) {
+            if (normal_contact_force > critical_force) {
                 double critical_force_inv = 1.0  / critical_force;
                 equiv_tg_of_fri_ang *= pow((normal_contact_force * critical_force_inv), element1->GetParticleGamma());
             }

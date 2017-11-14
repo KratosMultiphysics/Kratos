@@ -497,11 +497,13 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
     GeometryFunctions::CrossProduct(my_delta_rotation,    my_arm_vector,    my_delta_disp_at_contact_point_due_to_rotation);
     GeometryFunctions::CrossProduct(other_delta_rotation, other_arm_vector, other_delta_disp_at_contact_point_due_to_rotation);
 
+
     // Contribution of the rotation
     RelDeltDisp[0] += my_delta_disp_at_contact_point_due_to_rotation[0] - other_delta_disp_at_contact_point_due_to_rotation[0];
     RelDeltDisp[1] += my_delta_disp_at_contact_point_due_to_rotation[1] - other_delta_disp_at_contact_point_due_to_rotation[1];
     RelDeltDisp[2] += my_delta_disp_at_contact_point_due_to_rotation[2] - other_delta_disp_at_contact_point_due_to_rotation[2];
 }
+
 
 void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(double DeltDisp[3],
                                                 double RelVel[3],
@@ -587,6 +589,7 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
         RelVel[2] += vel[2] - other_vel[2];
 
         // Contribution of the rotation velocity
+
 
         DeltDisp[0] += (new_axes1[0] - new_axes2[0]) + (e2[0] - e1[0]);
         DeltDisp[1] += (new_axes1[1] - new_axes2[1]) + (e2[1] - e1[1]);
@@ -881,11 +884,11 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             continue;
         }
 
-        double LocalElasticContactForce[3]      = {0.0};
-        double GlobalElasticContactForce[3]     = {0.0};
-        double ViscoDampingLocalContactForce[3] = {0.0};
-        double cohesive_force                   =  0.0;
-        double LocalCoordSystem[3][3]           = {{0.0}, {0.0}, {0.0}};
+        double LocalElasticContactForce[3]       = {0.0};
+        double GlobalElasticContactForce[3]      = {0.0};
+        double ViscoDampingLocalContactForce[3]  = {0.0};
+        double cohesive_force                    =  0.0;
+        double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
         array_1d<double, 3> wall_delta_disp_at_contact_point = ZeroVector(3);
         array_1d<double, 3> wall_velocity_at_contact_point = ZeroVector(3);
         bool sliding = false;

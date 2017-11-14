@@ -9,11 +9,17 @@ namespace Kratos {
     }
     
     /*void SymplecticEulerScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
-        DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);}
+        
+        DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);
+        
+    }
     
     void SymplecticEulerScheme::AddClustersVariables(ModelPart & r_model_part, bool TRotationOption){
-        DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);}*/
-
+        
+        DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);
+                              
+    }*/
+    
     void SymplecticEulerScheme::UpdateTranslationalVariables(
             int StepFlag,
             Node < 3 > & i,
@@ -28,10 +34,9 @@ namespace Kratos {
             const double delta_t,
             const bool Fix_vel[3]) {
 
-        double mass_inv = 1.0 / mass;
         for (int k = 0; k < 3; k++) {
             if (Fix_vel[k] == false) {
-                vel[k] += delta_t * force_reduction_factor * force[k] * mass_inv;
+                vel[k] += delta_t * force_reduction_factor * force[k] / mass;
                 delta_displ[k] = delta_t * vel[k];
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
@@ -40,7 +45,7 @@ namespace Kratos {
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
             }
-        } // dimensions
+        } // dimensions         
     }
 
     void SymplecticEulerScheme::UpdateRotationalVariables(
@@ -63,8 +68,8 @@ namespace Kratos {
                 rotated_angle[k] += delta_rotation[k];
             }
         }
-    }
-
+    }            
+    
     void SymplecticEulerScheme::UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
@@ -91,7 +96,7 @@ namespace Kratos {
             if (Fix_Ang_vel[j] == false){
                 angular_velocity[j] = angular_velocity_aux[j];
             }
-        }
+        }           
     }
     
     void SymplecticEulerScheme::UpdateRotationalVariables(
@@ -144,7 +149,7 @@ namespace Kratos {
         GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensorInv, GlobalTensorInv);
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensorInv, angular_momentum, angular_velocity);
     }
-
+    
     void SymplecticEulerScheme::CalculateLocalAngularAcceleration(
                                 const Node < 3 > & i,
                                 const double moment_of_inertia,
@@ -152,24 +157,24 @@ namespace Kratos {
                                 const double moment_reduction_factor,
                                 array_1d<double, 3 >& angular_acceleration){
         
-        double moment_of_inertia_inv = 1.0 / moment_of_inertia;
         for (int j = 0; j < 3; j++) {
-            angular_acceleration[j] = moment_reduction_factor * torque[j] * moment_of_inertia_inv;
+            angular_acceleration[j] = moment_reduction_factor * torque[j] / moment_of_inertia;           
         }
     }
-
+    
+    
     void SymplecticEulerScheme::CalculateLocalAngularAccelerationByEulerEquations(
                                 const Node < 3 > & i,
                                 const array_1d<double, 3 >& local_angular_velocity,
                                 const array_1d<double, 3 >& moments_of_inertia,
-                                const array_1d<double, 3 >& local_torque,
+                                const array_1d<double, 3 >& local_torque, 
                                 const double moment_reduction_factor,
                                 array_1d<double, 3 >& local_angular_acceleration){
-
+        
         for (int j = 0; j < 3; j++) {
             //Euler equations in Explicit (Symplectic Euler) scheme:
             local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
-            local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;
+            local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;            
         }
     }
     
