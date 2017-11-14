@@ -173,13 +173,14 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
       unsigned int element_size          = number_of_nodes * ( 2  * dimension + 1 );
+      unsigned int dofs_per_node = 2 * dimension + 1;
 
       if ( rResult.size() != element_size )
          rResult.resize( element_size, false );
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-         int index =  i * (2 * dimension + 1);
+         int index =  i  * dofs_per_node;
          rResult[index]     = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
          rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
 
@@ -295,11 +296,11 @@ namespace Kratos
             rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_X, Step );
             rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_Y, Step );
             rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_Z, Step );
-            rValues[index + 6] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE_ACCELERATION, Step );
+            rValues[index + 6] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE_ACCELERATIONN, Step );
          } else {
             rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_X, Step );
             rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_Y, Step );
-            rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE_ACCELERATION, Step );
+            rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE_ACCELERATIONN, Step );
          }
 
       }
@@ -467,9 +468,53 @@ namespace Kratos
 
       this->CalculateAndAddKWwP( rLeftHandSideMatrix, rVariables, rIntegrationWeight);
 
+      this->CalculateAndAddKUwP( rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+
       rVariables.detF = DeterminantF;
       rVariables.detF0 /= rVariables.detF;
 
+      KRATOS_CATCH("")
+   }
+
+   //************************************************************************************
+   //         Matrix due to the the water pressure contribution to the internal forces   
+   void UpdatedLagrangianUWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementVariables & rVariables, double & rIntegrationWeight)
+   {
+      KRATOS_TRY
+
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+      unsigned int dofs_per_node = 2*dimension + 1;
+
+      Matrix Q = ZeroMatrix(number_of_nodes*dimension, number_of_nodes);
+      unsigned int voigtSize = 3;
+      if ( dimension == 3) voigtSize = 6;
+
+      Matrix m = ZeroMatrix( voigtSize, 1);
+      for ( unsigned int i = 0; i < dimension; i++)
+         m(i,0) = 1.0;
+      Matrix partial =  prod( trans( rVariables.B), m );
+
+      for (unsigned int i = 0; i < dimension*number_of_nodes; i++) {
+         for (unsigned int j = 0; j < number_of_nodes; j++ ) {
+            Q(i,j) = partial(i,0) * rVariables.N[j] * rIntegrationWeight;
+         }
+      }
+
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int iDim = 0; iDim < dimension; iDim++) {
+            for (unsigned int j = 0; j < number_of_nodes; j++) {
+               rLeftHandSide( i*dofs_per_node + iDim, (j+1)*dofs_per_node-1) -= Q( i*dimension+iDim, j);
+            }
+         }
+      }
+
+
+
+
+      
+      
       KRATOS_CATCH("")
    }
 
@@ -516,14 +561,14 @@ namespace Kratos
 
       Matrix SmallMatrix = ZeroMatrix(number_of_nodes*dimension, number_of_nodes);
 
+      MatrixType Begg = rLeftHandSide;
       for (unsigned int i = 0; i < number_of_nodes; i++) {
-         for (unsigned int iDim = 0; i < dimension; iDim++) {
+         for (unsigned int iDim = 0; iDim < dimension; iDim++) {
             for (unsigned int j = 0; j < number_of_nodes; j++) {
-               SmallMatrix( i*dimension+iDim, j ) = rVariables.N[i] * rVariables.DN_DX(j,iDim);
+               SmallMatrix( i*dimension+iDim, j ) = rVariables.N[i] * rVariables.DN_DX(j,iDim) * rIntegrationWeight;
             }
          }
       }
-
 
 
       for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -597,11 +642,10 @@ namespace Kratos
 
 
       Vector GradP = ZeroVector(dimension);
-      double WaterPressure;
       for (unsigned int i = 0; i < number_of_nodes; i++) {
-         WaterPressure = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
+         const double & WaterPressure = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
          for (unsigned int iDim = 0; iDim < dimension; iDim++) {
-            GradP(iDim ) = rVariables.DN_DX(i,iDim) * WaterPressure;
+            GradP(iDim ) += rVariables.DN_DX(i,iDim) * WaterPressure;
          }
       }
 
@@ -615,7 +659,7 @@ namespace Kratos
 
       for (unsigned int i = 0; i < number_of_nodes; i++) {
          for (unsigned int iDim = 0; iDim < dimension; iDim++) {
-            rRightHandSideVector(i*dofs_per_node + dimension+iDim ) += SmallRHS(i*dimension+iDim);
+            rRightHandSideVector(i*dofs_per_node + dimension+iDim ) -= SmallRHS(i*dimension+iDim);
          }
       }
 
@@ -765,7 +809,6 @@ namespace Kratos
 
       }
 
-
       KRATOS_CATCH("")
    }
 
@@ -823,27 +866,27 @@ namespace Kratos
             }
          }
 
-         // Q Matrix  // LMV: this should be done more carefully;
-         Matrix Q = ZeroMatrix( dimension*number_of_nodes, number_of_nodes);
+
+         // Q Matrix //
+
+         Matrix Q = ZeroMatrix( number_of_nodes, dimension*number_of_nodes);
          unsigned int voigtSize = 3;
          if ( dimension == 3) voigtSize = 6;
-         Matrix m = ZeroMatrix( voigtSize, 1);
+         Matrix m = ZeroMatrix( 1, voigtSize);
          for ( unsigned int i = 0; i < dimension; i++)
-            m(i,0) = 1.0;
-         Matrix partial =  prod( trans(Variables.B), m );
-         for (unsigned int i = 0; i < dimension*number_of_nodes; i++) {
-            for (unsigned int j = 0; j < number_of_nodes; j++ ) {
-               Q(i,j) = partial(i,0)*Variables.N[j];
+            m(0,i) = 1.0;
+         Matrix partial =  prod( m, Variables.B );
+         for (unsigned int i = 0; i < number_of_nodes; i++) {
+            for (unsigned int j = 0; j < dimension*number_of_nodes; j++ ) {
+               Q(i,j) = Variables.N[i] * partial(0,j) * IntegrationWeight;
             }
          }
 
-         Q *= IntegrationWeight;
-
          for (unsigned int i = 0; i < number_of_nodes; i++) {
-            for (unsigned int iDim = 0; iDim < dimension; iDim++) {
-               for (unsigned int j = 0; j < number_of_nodes; j++) {
-                  rDampingMatrix( dofs_per_node*i + 2 * dimension + iDim, i*dofs_per_node) += Q(i*dimension+iDim, j);
-                  rDampingMatrix( dofs_per_node*i + 2 * dimension + iDim, i*dofs_per_node + dimension) += Q(i*dimension+iDim, j);
+            for (unsigned int j = 0; j < number_of_nodes; j++) {
+               for (unsigned int jDim = 0; jDim < dimension; jDim++) {
+                  rDampingMatrix( (i+1)*dofs_per_node -1, j*dofs_per_node + jDim ) += Q(i, j*dimension+jDim);
+                  rDampingMatrix( (i+1)*dofs_per_node -1, j*dofs_per_node + jDim + dimension ) += Q(i, j*dimension+jDim);
                }
             }
          }
@@ -851,10 +894,10 @@ namespace Kratos
          Matrix Mass = ZeroMatrix( number_of_nodes, number_of_nodes);
          for (unsigned int i = 0; i < number_of_nodes; i++) {
             for (unsigned int j = 0; j < number_of_nodes; j++) {
-               Mass(i,j) += Variables.N(i)*Variables.N(j) * IntegrationWeight;
+               Mass(i,j) += Variables.N[i]*Variables.N[j] * IntegrationWeight;
             }
          }
-         const double & rWaterBulk = GetProperties()[WATER_BULK_MODULUS];
+         const double  rWaterBulk = GetProperties()[WATER_BULK_MODULUS];
          Mass /= rWaterBulk;
 
          for (unsigned int i = 0; i < number_of_nodes; i++) {

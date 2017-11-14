@@ -227,6 +227,13 @@ protected:
                                     );
 
     /**
+     * Calculation of the water pressure contrib to the internal forces 
+     */
+    virtual void CalculateAndAddKUwP(MatrixType& rK,
+                                     ElementVariables & rVariables,
+                                     double& rIntegrationWeight
+                                    );
+    /**
      * Calculation and addition of the vectors of the RHS
      */
 
