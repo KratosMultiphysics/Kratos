@@ -329,32 +329,32 @@ public:
             /*
             if(step == 2)
             {*/
-                //****************************************************************
-                //here impose (more weakly) that exact distance are mantained
-                //****************************************************************
-                array_1d<double,TDim+1> dexact;
-                
-                //compute normal
-                array_1d<double,TDim> n = prod(trans(DN_DX),distances);
-                n /= (norm_2(n) + 1e-30);
-                
-                //find exact distances
-                for(unsigned int i=0; i<TDim; i++)
-                {
-                    array_1d<double,3> dx = GetGeometry()[i].Coordinates() - x0;
-                    dexact[i] = inner_prod(n, dx);
-                }
-                
-                //impose constraint
-                penalty *= 0.1;
-                for(unsigned int i=0; i<TDim; i++)
-                {
-                    rLeftHandSideMatrix(i,i) += penalty;
-                    rRightHandSideVector(i) += penalty*(dexact[i] - distances[i]);
-                }
-//             }
-            
-             ImposeBCs(rLeftHandSideMatrix, rRightHandSideVector, distances);
+//                 //****************************************************************
+//                 //here impose (more weakly) that exact distance are mantained
+//                 //****************************************************************
+//                 array_1d<double,TDim+1> dexact;
+//                 
+//                 //compute normal
+//                 array_1d<double,TDim> n = prod(trans(DN_DX),distances);
+//                 n /= (norm_2(n) + 1e-30);
+//                 
+//                 //find exact distances
+//                 for(unsigned int i=0; i<TDim; i++)
+//                 {
+//                     array_1d<double,3> dx = GetGeometry()[i].Coordinates() - x0;
+//                     dexact[i] = inner_prod(n, dx);
+//                 }
+//                 
+//                 //impose constraint
+//                 penalty *= 0.1;
+//                 for(unsigned int i=0; i<TDim; i++)
+//                 {
+//                     rLeftHandSideMatrix(i,i) += penalty;
+//                     rRightHandSideVector(i) += penalty*(dexact[i] - distances[i]);
+//                 }
+// //             }
+//             
+//              ImposeBCs(rLeftHandSideMatrix, rRightHandSideVector, distances);
         }
         
         
