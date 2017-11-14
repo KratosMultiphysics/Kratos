@@ -549,8 +549,8 @@ public:
     
     /**
      * Initializer method 
-     * @param SlaveGeometry: The geometry of the slave 
-     * @param rCurrentProcessInfo: The process info from the system
+     * @param SlaveGeometry The geometry of the slave 
+     * @param rCurrentProcessInfo The process info from the system
      */
     
     virtual void Initialize(
@@ -626,7 +626,7 @@ public:
 
     /**
      * Updating the Master pair
-     * @param  pCond: The pointer of the current master
+     * @param pCond The pointer of the current master
      */
     
     virtual void UpdateMasterPair(const Condition::Pointer& pCond)
@@ -766,8 +766,8 @@ public:
     
     /**
      * Initializer method 
-     * @param SlaveGeometry: The geometry of the slave 
-     * @param rCurrentProcessInfo: The process info from the system
+     * @param SlaveGeometry The geometry of the slave 
+     * @param rCurrentProcessInfo The process info from the system
      */
     
     void Initialize(
@@ -784,7 +784,7 @@ public:
     
     /**
      * Updating the Master pair
-     * @param  pCond: The pointer of the current master
+     * @param pCond The pointer of the current master
      */
     
     void UpdateMasterPair(const Condition::Pointer& pCond) override
@@ -927,8 +927,8 @@ public:
     
     /**
      * It calculates the mortar operators. Popp thesis page 56, equation 3.31 and 3.32
-     * @param rKinematicVariables: Corresponds with the kinematic variables
-     * @param rIntegrationWeight: The corresponding integration weight
+     * @param rKinematicVariables Corresponds with the kinematic variables
+     * @param rIntegrationWeight The corresponding integration weight
      */
     void CalculateMortarOperators(
         KinematicVariables& rKinematicVariables,
@@ -1124,8 +1124,8 @@ public:
     /**
      * It calculates the mortar operators
      * Popp thesis page 102 equation equation 4.32 and 4.33 / 4.37 and 4.38
-     * @param rKinematicVariables: Corresponds with the kinematic variables
-     * @param rIntegrationWeight: The corresponding integration weight
+     * @param rKinematicVariables Corresponds with the kinematic variables
+     * @param rIntegrationWeight The corresponding integration weight
      */
     void CalculateDeltaMortarOperators(
         KinematicVariables& rKinematicVariables,
@@ -1335,8 +1335,8 @@ public:
     
     /**
      * Calculates the Ae components necessary to compute the Phi_LagrangeMultipliers shape functions. For that it integrates De and Me. Popp thesis page 70 eq. 3.65
-     * @param rKinematicVariables: The kinematic variables
-     * @param rIntegrationWeight: The integration weight considered
+     * @param rKinematicVariables The kinematic variables
+     * @param rIntegrationWeight The integration weight considered
      */
     void CalculateAeComponents(
         KinematicVariables& rKinematicVariables,
@@ -1386,8 +1386,8 @@ public:
     
     /**
      * Calculates the matrix De
-     * @param N1: The shape function 
-     * @param detJ: The jacobian of the geometry 
+     * @param N1 The shape function 
+     * @param detJ The jacobian of the geometry 
      */
     boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
         const Vector& N1, 
@@ -1570,8 +1570,8 @@ public:
     
     /**
      * Calculates the Ae components and its derivatives necessary to compute the Phi_LagrangeMultipliers shape functions. Popp thesis page 112 eq. 4.59
-     * @param rKinematicVariables: The kinematic variables
-     * @param rIntegrationWeight: The integration weight considered
+     * @param rKinematicVariables The kinematic variables
+     * @param rIntegrationWeight The integration weight considered
      */
     void CalculateDeltaAeComponents(
         KinematicVariablesType& rKinematicVariables,

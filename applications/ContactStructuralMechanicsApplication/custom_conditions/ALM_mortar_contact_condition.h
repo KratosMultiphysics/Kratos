@@ -228,7 +228,7 @@ public:
     /**
      * Creates a new element pointer from an arry of nodes
      * @param NewId the ID of the new element
-     * @param ThisNodes the nodes of the new element
+     * @param rThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
@@ -271,7 +271,7 @@ public:
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
-     * @return rResult The result vector with the ID's of the DOF
+     * @param rResult The result vector with the ID's of the DOF
      * @param rCurrentProcessInfo the current process info instance
      */
     
@@ -282,7 +282,7 @@ public:
 
     /**
      * Sets on ConditionalDofList the degrees of freedom of the considered element geometry
-     * @return rConditionalDofList
+     * @param rConditionalDofList The list of DoF
      * @param rCurrentProcessInfo the current process info instance
      */
     
@@ -295,7 +295,7 @@ public:
      * Get on rVariable a double Value
      * @param rVariable Internal values
      * @param rCurrentProcessInfo The current process information
-     * @return rValues The values of interest (doubles)
+     * @param rValues The values of interest (doubles)
      */
     
     void GetValueOnIntegrationPoints( 
@@ -308,7 +308,7 @@ public:
      * Get on rVariable a array_1d Value
      * @param rVariable Internal values
      * @param rCurrentProcessInfo The current process information
-     * @return rValues The values of interest (array_1d)
+     * @param rValues The values of interest (array_1d)
      */
     
     void GetValueOnIntegrationPoints( 
@@ -321,7 +321,7 @@ public:
      * Get on rVariable a Vector Value
      * @param rVariable Internal values
      * @param rCurrentProcessInfo The current process information
-     * @return rValues The values of interest (vector)
+     * @param rValues The values of interest (vector)
      */
     
     void GetValueOnIntegrationPoints( 
@@ -334,7 +334,7 @@ public:
      * Calculate a double Variable
      * @param rVariable Internal values
      * @param rCurrentProcessInfo The current process information
-     * @return rOutput The values of interest (doubles)
+     * @param rOutput The values of interest (doubles)
      */
     
     void CalculateOnIntegrationPoints( 
@@ -347,7 +347,7 @@ public:
      * Calculate a array_1d Variable
      * @param rVariable Internal values
      * @param rCurrentProcessInfo The current process information
-     * @return rOutput: The values of interest (array_1d)
+     * @param rOutput The values of interest (array_1d)
      */
     
     void CalculateOnIntegrationPoints( 
@@ -360,7 +360,7 @@ public:
      * Calculate a Vector Variable
      * @param rVariable Internal values
      * @param rCurrentProcessInfo The current process information
-     * @return rOutput The values of interest (vector)
+     * @param rOutput The values of interest (vector)
      */
     
     void CalculateOnIntegrationPoints( 
@@ -539,8 +539,8 @@ protected:
      * This function provides a more general interface to the condition.
      * it is designed so that rRHSvariables are passed TO the condition
      * thus telling what is the desired output
-     * @param rRightHandSideVectors container for the desired LHS output
-     * @param rRHSVariables parameter describing the expected LHSs
+     * @param rLeftHandSideMatrices container for the desired LHS output
+     * @param rLHSVariables parameter describing the expected LHSs
      */
     
     void CalculateLeftHandSide( 
@@ -709,7 +709,7 @@ protected:
     
     /**
      * This functions computes the integration weight to consider
-     * @param rVariables: The kinematic variables
+     * @param rVariables The kinematic variables
      */
     
     virtual double GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const;

@@ -708,7 +708,7 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactIntegratio
             
             const double det_J = decomp_geom.DeterminantOfJacobian( local_point_decomp ) * (TDim == 2 ? 2.0 : 1.0);
             
-            IntegrationPointsSlave.push_back( IntegrationPointType( local_point_parent.Coordinate(1), local_point_parent.Coordinate(2), weight * det_J )); // TODO: Change push_back for a fic opoeration
+            IntegrationPointsSlave.push_back( IntegrationPointType( local_point_parent.Coordinate(1), local_point_parent.Coordinate(2), weight * det_J )); // TODO: Change push_back for a fix opoeration
         }
     }
     

@@ -148,7 +148,7 @@ public:
             MathUtils<double>::CrossProduct(aux_cross_product, x21cell, x31cell);
             aux_cross_product /= norm_2(aux_cross_product);
             
-            for ( unsigned int i_node = 0; i_node < 2 * TNumNodes; ++i_node ) // TODO: Consider the master too
+            for ( unsigned int i_node = 0; i_node < 2 * TNumNodes; ++i_node )
             {
                 for (unsigned i_dof = 0; i_dof < TDim; ++i_dof) 
                 {
@@ -161,34 +161,6 @@ public:
                     rDerivativeData.DeltaDetjSlave[i_node * TDim + i_dof] = inner_prod(aux_cross_product, aux_delta_cross_product1) + inner_prod(aux_cross_product, aux_delta_cross_product2);
                 }
             }
-        
-            // NOTE: Legacy way (just linear convergence)
-//             const array_1d<double,TNumNodes>& DNDxi  = column( rVariables.DNDeSlave, 0 );
-//             const array_1d<double,TNumNodes>& DNDeta = column( rVariables.DNDeSlave, 1 );
-//             
-//             const array_1d<double,TDim>& Jxi  = column( rVariables.jSlave, 0 );
-//             const array_1d<double,TDim>& Jeta = column( rVariables.jSlave, 1 );
-//             
-//             const array_1d<double,TDim>& normal = prod(trans(rDerivativeData.NormalMaster), rVariables.NSlave);
-//             
-//             bounded_matrix<double, TDim, TDim> DeltaJxixJeta;
-//             
-//             for ( unsigned int i_slave = 0, i = 0; i_slave < TNumNodes; ++i_slave, i += TDim )
-//             {
-//                 DeltaJxixJeta(0,0) = 0.0;
-//                 DeltaJxixJeta(0,1) =  Jeta(2) * DNDxi(i_slave) - Jxi(2) * DNDeta(i_slave); 
-//                 DeltaJxixJeta(0,2) = -Jeta(1) * DNDxi(i_slave) + Jxi(1) * DNDeta(i_slave); 
-//                 DeltaJxixJeta(1,0) = -Jeta(2) * DNDxi(i_slave) + Jxi(2) * DNDeta(i_slave); 
-//                 DeltaJxixJeta(1,1) = 0.0;
-//                 DeltaJxixJeta(1,2) =  Jeta(0) * DNDxi(i_slave) - Jxi(0) * DNDeta(i_slave);
-//                 DeltaJxixJeta(2,0) =  Jeta(1) * DNDxi(i_slave) - Jxi(1) * DNDeta(i_slave); 
-//                 DeltaJxixJeta(2,1) = -Jeta(0) * DNDxi(i_slave) + Jxi(0) * DNDeta(i_slave); 
-//                 DeltaJxixJeta(2,2) = 0.0;
-//                 
-//                 rDerivativeData.DeltaDetjSlave[i    ] = inner_prod( normal, column( DeltaJxixJeta, 0 ) );
-//                 rDerivativeData.DeltaDetjSlave[i + 1] = inner_prod( normal, column( DeltaJxixJeta, 1 ) );
-//                 rDerivativeData.DeltaDetjSlave[i + 2] = inner_prod( normal, column( DeltaJxixJeta, 2 ) );
-//             }
         }
     }
     
@@ -918,8 +890,6 @@ private:
      * This method is used to compute the directional derivatives of the cell vertex (locally)
      * @param Normal The normal of the slave surface
      * @param DeltaNormal The derivative of the normal vector
-     * @param N1 The shape function of the slave side
-     * @param N2 The shape function of the master side
      * @param iDoF The DoF computed index
      * @param iBelong The belong (intersection, node, etc..) index
      * @param ConsiderNormalVariation If the normal variation is considered
@@ -973,8 +943,6 @@ private:
      * @param DeltaVertexMatrix The whole delta vertex matrix
      * @param Normal The normal of the slave surface
      * @param DeltaNormal The derivative of the normal vector
-     * @param N1 The shape function of the slave side
-     * @param N2 The shape function of the master side
      * @param iDoF The DoF computed index
      * @param iTriangle The triangle point index
      * @param iBelong The belong (intersection, node, etc..) index
