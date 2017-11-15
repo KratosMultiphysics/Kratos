@@ -35,7 +35,6 @@ NodalConcentratedElement::NodalConcentratedElement(
     //DO NOT ADD DOFS HERE!!!
 }
 
-
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
@@ -300,35 +299,35 @@ void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSide
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the RHS
-    const unsigned int SystemSize = dimension;
+    const unsigned int system_size = dimension;
 
-    if ( rRightHandSideVector.size() != SystemSize )
+    if ( rRightHandSideVector.size() != system_size )
     {
-        rRightHandSideVector.resize( SystemSize, false );
+        rRightHandSideVector.resize( system_size, false );
     }
 
-    rRightHandSideVector = ZeroVector( SystemSize ); //resetting RHS
+    rRightHandSideVector = ZeroVector( system_size ); //resetting RHS
 
-    const array_1d<double, 3 > Current_Displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
-    array_1d<double, 3 > Volume_Acceleration = ZeroVector(3);
+    const array_1d<double, 3 >& current_displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+    array_1d<double, 3 > volume_acceleration = ZeroVector(3);
 
     if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
     {
-        Volume_Acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        volume_acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     }
 
     // Compute and add external forces
-    const double Nodal_Mass = Element::GetValue(NODAL_MASS);
+    const double nodal_mass = Element::GetValue(NODAL_MASS);
     for ( unsigned int j = 0; j < dimension; j++ )
     {
-        rRightHandSideVector[j]  += Volume_Acceleration[j] * Nodal_Mass;
+        rRightHandSideVector[j]  += volume_acceleration[j] * nodal_mass;
     }
 
     // Compute and add internal forces
-    const array_1d<double, 3 > Nodal_Stiffness = Element::GetValue(NODAL_STIFFNESS);
+    const array_1d<double, 3 >& nodal_stiffness = Element::GetValue(NODAL_STIFFNESS);
     for ( unsigned int j = 0; j < dimension; j++ )
     {
-        rRightHandSideVector[j]  -= Nodal_Stiffness[j] * Current_Displacement[j];
+        rRightHandSideVector[j]  -= nodal_stiffness[j] * current_displacement[j];
     }
 
 }
@@ -341,19 +340,19 @@ void NodalConcentratedElement::CalculateLeftHandSide( MatrixType& rLeftHandSideM
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the LHS
-    const unsigned int SystemSize = dimension;
+    const unsigned int system_size = dimension;
 
-    if ( rLeftHandSideMatrix.size1() != SystemSize )
+    if ( rLeftHandSideMatrix.size1() != system_size )
     {
-        rLeftHandSideMatrix.resize( SystemSize, SystemSize, false );
+        rLeftHandSideMatrix.resize( system_size, system_size, false );
     }
 
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix( SystemSize, SystemSize ); //resetting LHS
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( system_size, system_size ); //resetting LHS
 
-    const array_1d<double, 3 > Nodal_Stiffness = Element::GetValue(NODAL_STIFFNESS);
+    const array_1d<double, 3 >& nodal_stiffness = Element::GetValue(NODAL_STIFFNESS);
     for ( unsigned int j = 0; j < dimension; j++ )
     {
-        rLeftHandSideMatrix(j, j) += Nodal_Stiffness[j];
+        rLeftHandSideMatrix(j, j) += nodal_stiffness[j];
     }
     
 }
@@ -393,20 +392,20 @@ void NodalConcentratedElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
 
     //lumped
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int SystemSize = dimension;
+    unsigned int system_size = dimension;
 
-    if ( rMassMatrix.size1() != SystemSize )
+    if ( rMassMatrix.size1() != system_size )
     {
-        rMassMatrix.resize( SystemSize, SystemSize, false );
+        rMassMatrix.resize( system_size, system_size, false );
     }
 
-    rMassMatrix = ZeroMatrix( SystemSize, SystemSize );
+    rMassMatrix = ZeroMatrix( system_size, system_size );
 
-    double &Nodal_Mass = Element::GetValue(NODAL_MASS);
+    double &nodal_mass = Element::GetValue(NODAL_MASS);
 
     for ( unsigned int j = 0; j < dimension; j++ )
     {
-        rMassMatrix( j, j ) = Nodal_Mass;
+        rMassMatrix( j, j ) = nodal_mass;
     }
 
     KRATOS_CATCH( "" );
@@ -426,25 +425,25 @@ void NodalConcentratedElement::CalculateDampingMatrix(
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the LHS
-    const unsigned int SystemSize = dimension;
+    const unsigned int system_size = dimension;
 
-    rDampingMatrix = ZeroMatrix( SystemSize, SystemSize );
+    rDampingMatrix = ZeroMatrix( system_size, system_size );
 
     //Check, if Rayleigh damping is available; use nodal damping, if not
     if( mUseRayleighDamping )
     {
         //1.-Calculate StiffnessMatrix:
 
-        MatrixType StiffnessMatrix     = ZeroMatrix( SystemSize, SystemSize );
-        VectorType RightHandSideVector = ZeroVector( SystemSize ); 
+        MatrixType stiffness_matrix     = ZeroMatrix( system_size, system_size );
+        VectorType right_hand_side_vector = ZeroVector( system_size ); 
 
-        this->CalculateLocalSystem( StiffnessMatrix, RightHandSideVector, rCurrentProcessInfo );
+        this->CalculateLocalSystem( stiffness_matrix, right_hand_side_vector, rCurrentProcessInfo );
 
-        //2.-Calculate MassMatrix:
+        //2.-Calculate mass_matrix:
 
-        MatrixType MassMatrix  = ZeroMatrix( SystemSize, SystemSize );
+        MatrixType mass_matrix  = ZeroMatrix( system_size, system_size );
 
-        this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+        this->CalculateMassMatrix ( mass_matrix, rCurrentProcessInfo );
         
         //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
         double alpha = 0.0;
@@ -470,18 +469,18 @@ void NodalConcentratedElement::CalculateDampingMatrix(
         //4.-Compose the Damping Matrix:
     
         //Rayleigh Damping Matrix: alpha*M + beta*K
-        MassMatrix      *= alpha;
-        StiffnessMatrix *= beta;
+        mass_matrix      *= alpha;
+        stiffness_matrix *= beta;
 
-        rDampingMatrix  = MassMatrix;
-        rDampingMatrix += StiffnessMatrix;
+        rDampingMatrix  = mass_matrix;
+        rDampingMatrix += stiffness_matrix;
     }
     else
     {
-        const array_1d<double, 3 > Nodal_Damping_Ratio = Element::GetValue(NODAL_DAMPING_RATIO);
+        const array_1d<double, 3 >& nodal_damping_ratio = Element::GetValue(NODAL_DAMPING_RATIO);
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            rDampingMatrix(j, j) += Nodal_Damping_Ratio[j];
+            rDampingMatrix(j, j) += nodal_damping_ratio[j];
         }
     }
 
