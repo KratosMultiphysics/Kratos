@@ -100,6 +100,7 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
     /// Overwritten function to calculate sensitivities
+    using SmallDisplacement::Calculate;    
     void Calculate(const Variable<Vector> &rVariable, Vector &rOutput, const ProcessInfo &rCurrentProcessInfo);
 
     ///@}

@@ -151,7 +151,7 @@ namespace Kratos
    
       if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
 	
-	const MatrixType& rTotalDeformationMatrix = rValues.GetDeltaDeformationMatrix();
+	const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
 
 	//Variables.Strain.InverseMatrix used as an auxiliar matrix (contravariant push forward)
 	noalias( Variables.Strain.InverseMatrix ) = prod( trans(rTotalDeformationMatrix), rStressMatrix );
@@ -176,7 +176,7 @@ namespace Kratos
       rConstitutiveMatrix = ConstitutiveModelUtilities::ConstitutiveTensorToMatrix(ConstitutiveTensor,rConstitutiveMatrix);
 
       // if StressMeasure_Kirchhoff, a push forward of the ConstitutiveMatrix must be done, but it is avoided
-      // it is computationally expensive but not relevant for the convegence of the method
+      // it is computationally expensive but not relevant for the convergence of the method
 	            
       KRATOS_CATCH(" ")
     }
@@ -192,13 +192,27 @@ namespace Kratos
       bounded_matrix<double,6,6> ConstitutiveTensor;
       this->CalculateAndAddConstitutiveMatrix(Variables,ConstitutiveTensor);
 
-      VectorType StrainVector;
-      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.Strain.Matrix,StrainVector);
-    
-      VectorType StressVector;
-      this->CalculateAndAddStressTensor(Variables,ConstitutiveTensor,StrainVector,StressVector);
+      // VectorType StrainVector;
+      // StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.Strain.Matrix,StrainVector);
+      
+      // VectorType StressVector;
+      // this->CalculateAndAddStressTensor(Variables,ConstitutiveTensor,StrainVector,StressVector);
+      // rStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);
 
-      rStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);
+      this->CalculateAndAddStressTensor(Variables,rStressMatrix);
+      
+      const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
+      
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
+	
+	const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
+	
+	//Variables.Strain.InverseMatrix used as an auxiliar matrix (contravariant push forward)
+	noalias( Variables.Strain.InverseMatrix ) = prod( trans(rTotalDeformationMatrix), rStressMatrix );
+	noalias( rStressMatrix )  = prod( Variables.Strain.InverseMatrix, rTotalDeformationMatrix );
+	
+      }     
+
       rConstitutiveMatrix = ConstitutiveModelUtilities::ConstitutiveTensorToMatrix(ConstitutiveTensor,rConstitutiveMatrix);
 
       KRATOS_CATCH(" ")
@@ -304,41 +318,50 @@ namespace Kratos
       const MatrixType& rTotalDeformationMatrix  = rValues.GetTotalDeformationMatrix();
 
       const StressMeasureType& rStressMeasure  = rValues.GetStressMeasure();
-    
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = GreenLagrangeTensor
+      
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Strain.Matrix = GreenLagrangeTensor
 
 	//set working strain measure
 	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Right);
 	
 	//historical strain matrix
 	rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
+
+	//current strain matrix b
+	noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rDeltaDeformationMatrix));
+	noalias(rValues.StrainMatrix) = prod(rDeltaDeformationMatrix, rVariables.Strain.Matrix);
 	
-	//current strain matrix
-	noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,rDeltaDeformationMatrix);
-	noalias(rValues.StrainMatrix) = prod(trans(rDeltaDeformationMatrix), rVariables.Strain.Matrix);
+	//inverted total deformation gradient
+	double detF = 0;
+	ConstitutiveModelUtilities::InvertMatrix3( rTotalDeformationMatrix, rVariables.Strain.InverseMatrix, detF ); //InverseMatrix used as wildcard here (InverseMatrix = InverseTotalDeformationGradient)
 
-	ConstitutiveModelUtilities::RightCauchyToGreenLagrangeStrain( rValues.StrainMatrix, rVariables.Strain.Matrix);  
+	//strain measure C
+	noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rVariables.Strain.InverseMatrix));
+	rVariables.Strain.InverseMatrix = prod(trans(rTotalDeformationMatrix), rVariables.Strain.Matrix); //InverseMatrix used as a wildcard here (InverseMatrix = RightCauchyGreenMatrix )
+      
 
+	ConstitutiveModelUtilities::RightCauchyToGreenLagrangeStrain( rVariables.Strain.InverseMatrix, rVariables.Strain.Matrix);  
+	
 	rValues.State.Set(ConstitutiveModelData::STRAIN_COMPUTED);       
 	
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = GreenLagrangeTensor
-
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Strain.Matrix = GreenLagrangeTensor
+	
 	//set working strain measure
 	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Left);
 	
 	//historical strain matrix
 	rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
-	
-	//current strain matrix
+
+	//current strain matrix b
 	noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rDeltaDeformationMatrix));
 	noalias(rValues.StrainMatrix) = prod(rDeltaDeformationMatrix, rVariables.Strain.Matrix);
 	
-	ConstitutiveModelUtilities::LeftCauchyToAlmansiStrain( rValues.StrainMatrix , rVariables.Strain.Matrix);
+	ConstitutiveModelUtilities::LeftCauchyToAlmansiStrain( rValues.StrainMatrix, rVariables.Strain.Matrix);
 	
-	//rVariables.Strain.InverseMatrix used as an auxiliar matrix (covariant pull back)
+	//rVariables.Strain.InverseMatrix used as an auxiliar matrix (covariant pull back)  to GreenLagrangeStrain
 	noalias( rVariables.Strain.InverseMatrix ) = prod( trans(rTotalDeformationMatrix), rVariables.Strain.Matrix );
-	noalias( rVariables.Strain.Matrix)  = prod( rVariables.Strain.InverseMatrix, rTotalDeformationMatrix );
+	noalias( rVariables.Strain.Matrix )  = prod( rVariables.Strain.InverseMatrix, rTotalDeformationMatrix );
 
 	//set as the current strain
 	rValues.State.Set(ConstitutiveModelData::STRAIN_COMPUTED);

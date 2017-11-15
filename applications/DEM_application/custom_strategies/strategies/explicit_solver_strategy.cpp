@@ -163,10 +163,11 @@ namespace Kratos {
         ApplyInitialConditions();
 
         // Search Neighbours and related operations
+        SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
         SearchNeighbours();
-
         ComputeNewNeighboursHistoricalData();
-
+        
+        SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
         SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
         ComputeNewRigidFaceNeighboursHistoricalData();
 
@@ -1021,7 +1022,7 @@ namespace Kratos {
         GetResults().resize(number_of_elements);
         GetResultsDistances().resize(number_of_elements);
 
-        SetSearchRadiiOnAllParticles(r_model_part, r_model_part.GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
+        //SetSearchRadiiOnAllParticles(r_model_part, r_model_part.GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetArrayOfAmplifiedRadii(), this->GetResults(), this->GetResultsDistances());
 
         const int number_of_particles = (int) mListOfSphericParticles.size();
@@ -1086,7 +1087,7 @@ namespace Kratos {
             this->GetRigidFaceResultsDistances().resize(number_of_particles);
 
             //Fast Bins Search
-            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
+            //SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
             mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
 
             

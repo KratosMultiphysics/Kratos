@@ -16,6 +16,7 @@ class ALENavierStokesSolverVMSMonolithic(navier_stokes_solver_vmsmonolithic.Navi
         # remove the ale_settings so we can use the navier stokes constructor
         navier_stokes_settings = custom_settings.Clone()
         navier_stokes_settings.RemoveValue("ale_settings")
+        navier_stokes_settings["solver_type"].SetString("Monolithic")
         super(ALENavierStokesSolverVMSMonolithic, self).__init__(model_part, navier_stokes_settings)
         # create ale solver
         ale_solver_type = custom_settings["ale_settings"]["solver_type"].GetString()

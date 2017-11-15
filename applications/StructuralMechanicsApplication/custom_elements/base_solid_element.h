@@ -552,8 +552,12 @@ protected:
     
     /**
      * This function computes the body force
+     * @param rGaussPoint: The gauss point considered
      */ 
-    Vector GetBodyForce();
+    Vector GetBodyForce(
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber
+        ) const;
     
     /**
      * Calculation of the Material Stiffness Matrix. Km = B^T * D *B
