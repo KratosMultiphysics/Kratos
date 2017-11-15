@@ -134,6 +134,8 @@ public:
         }
 		// TODO: Check if initialization is also necessary for conditions!
 
+        std::cout << "LCHEN: ReworkStrainEnergyResponseFunction.initialized()!" << std::endl;
+
 		KRATOS_CATCH("");
 	}
 
