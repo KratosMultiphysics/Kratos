@@ -121,22 +121,22 @@ template <class TElementData>
 void SymbolicNavierStokes<TElementData>::AddTimeIntegratedSystem(
     TElementData& rData, MatrixType& rLHS, VectorType& rRHS) {
     this->ComputeConstitutiveResponse(rData);
-    this->AddTimeIntegratedLHS(rData, rLHS);
-    this->AddTimeIntegratedRHS(rData, rRHS);
+    this->ComputeGaussPointLHSContribution(rData, rLHS);
+    this->ComputeGaussPointRHSContribution(rData, rRHS);
 }
 
 template <class TElementData>
 void SymbolicNavierStokes<TElementData>::AddTimeIntegratedLHS(
     TElementData& rData, MatrixType& rLHS) {
     this->ComputeConstitutiveResponse(rData);
-    this->AddTimeIntegratedLHS(rData, rLHS);
+    this->ComputeGaussPointLHSContribution(rData, rLHS);
 }
 
 template <class TElementData>
 void SymbolicNavierStokes<TElementData>::AddTimeIntegratedRHS(
     TElementData& rData, VectorType& rRHS) {
     this->ComputeConstitutiveResponse(rData);
-    this->AddTimeIntegratedRHS(rData, rRHS);
+    this->ComputeGaussPointRHSContribution(rData, rRHS);
 }
 
 template <>
