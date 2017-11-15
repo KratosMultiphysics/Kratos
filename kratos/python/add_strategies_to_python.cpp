@@ -301,7 +301,6 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
 
-            typedef ResidualBasedImplicitTimeScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedImplicitTimeSchemeType;
             typedef ResidualBasedBDF2DisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDF2DisplacementSchemeType;
             typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
             typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
@@ -340,7 +339,7 @@ namespace Kratos
 
             // Residual Based BDF2 Scheme Type
             class_< ResidualBasedBDF2DisplacementSchemeType,
-            bases< ResidualBasedImplicitTimeSchemeType >,  boost::noncopyable >
+            bases< BaseSchemeType >,  boost::noncopyable >
             (
                 "ResidualBasedBDF2DisplacementScheme", init< >() )
             .def("Initialize", &ResidualBasedBDF2DisplacementSchemeType::Initialize)
@@ -348,7 +347,7 @@ namespace Kratos
             
             // Residual Based Bossak Scheme Type
             class_< ResidualBasedBossakDisplacementSchemeType,
-            bases< ResidualBasedImplicitTimeSchemeType >,  boost::noncopyable >
+            bases< BaseSchemeType >,  boost::noncopyable >
             (
                 "ResidualBasedBossakDisplacementScheme", init< double >() )
             .def("Initialize", &ResidualBasedBossakDisplacementSchemeType::Initialize)
@@ -356,7 +355,7 @@ namespace Kratos
 
             // Residual Based Newmark Scheme Type
             class_< ResidualBasedNewmarkDisplacementSchemeType,
-            bases< ResidualBasedBossakDisplacementSchemeType >,  boost::noncopyable >
+            bases< BaseSchemeType >,  boost::noncopyable >
             (
                 "ResidualBasedNewmarkDisplacementScheme", init< >() )
             .def("Initialize", &ResidualBasedNewmarkDisplacementSchemeType::Initialize)
