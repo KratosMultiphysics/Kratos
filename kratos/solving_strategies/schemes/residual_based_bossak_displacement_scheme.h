@@ -5,10 +5,8 @@
 //                   Multi-Physics
 //
 //  License:          BSD License
-//  Original author:  Josep Maria Carbonell
-//  coming from       SolidMechanicsApplication
-//
-//  Co-author:        Vicente Mataix Ferrandiz
+//  Main authors:  Josep Maria Carbonell
+//                 Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME )
@@ -178,7 +176,7 @@ public:
                 it_dof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx,it_dof->EquationId());
             }
         }
-
+        
         // Updating time derivatives (nodally for efficiency)
         const int num_nodes = static_cast<int>(rModelPart.Nodes().size());
 
@@ -291,7 +289,6 @@ public:
             const array_1d<double, 3 > delta_displacement = current_displacement - previous_displacement;
 
             UpdateVelocity(current_velocity, delta_displacement, previous_velocity, previous_acceleration);
-
             UpdateAcceleration(current_acceleration, delta_displacement, previous_velocity, previous_acceleration);
         }
 
@@ -315,7 +312,7 @@ public:
     {
         KRATOS_TRY;
 
-        ProcessInfo current_process_info= rModelPart.GetProcessInfo();
+        ProcessInfo& current_process_info= rModelPart.GetProcessInfo();
 
         ImplicitBaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
 
@@ -335,7 +332,7 @@ public:
         CalculateNewmarkCoefficients(beta, gamma);
 
         // Initializing Newmark constants
-        mNewmark.c0 = ( 1.0 / (mNewmark.beta * delta_time * delta_time) );
+        mNewmark.c0 = ( 1.0 / (mNewmark.beta * std::pow(delta_time, 2)) );
         mNewmark.c1 = ( mNewmark.gamma / (mNewmark.beta * delta_time) );
         mNewmark.c2 = ( 1.0 / (mNewmark.beta * delta_time) );
         mNewmark.c3 = ( 0.5 / (mNewmark.beta) - 1.0 );
@@ -461,17 +458,11 @@ protected:
 
     struct NewmarkMethod
     {
-        double beta;
-        double gamma;
+        // Newmark constants
+        double beta, gamma;
 
         // System constants
-        double c0;
-        double c1;
-        double c2;
-        double c3;
-        double c4;
-        double c5;
-        double c6;
+        double c0, c1, c2, c3, c4, c5, c6;
     };
 
     GeneralAlphaMethod  mAlpha;
@@ -498,7 +489,7 @@ protected:
         const array_1d<double, 3>& DeltaDisplacement,
         const array_1d<double, 3>& PreviousVelocity,
         const array_1d<double, 3>& PreviousAcceleration
-    )
+        )
     {
         noalias(CurrentVelocity) = (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
                                      - mNewmark.c5 * PreviousAcceleration);
@@ -517,7 +508,7 @@ protected:
         const array_1d<double, 3>& DeltaDisplacement,
         const array_1d<double, 3>& PreviousVelocity,
         const array_1d<double, 3>& PreviousAcceleration
-    )
+        )
     {
         noalias(CurrentAcceleration) = (mNewmark.c0 * DeltaDisplacement - mNewmark.c2 * PreviousVelocity
                                          -  mNewmark.c3 * PreviousAcceleration);
@@ -542,8 +533,6 @@ protected:
         if (M.size1() != 0) // if M matrix declared
         {
             noalias(LHS_Contribution) += M * (1.0 - mAlpha.m) * mNewmark.c0;
-
-            // std::cout<<" Mass Matrix "<<M<<" coeficient "<<(1-mAlpha.m)*mNewmark.c0<<std::endl;
         }
 
         // Adding  damping contribution
@@ -580,9 +569,7 @@ protected:
             pElement->GetSecondDerivativesVector(ap, 1);
             noalias(a) += mAlpha.m * ap;
             
-            noalias(RHS_Contribution)  -= prod(M, a);
-            //KRATOS_WATCH( prod(M, a ) )
-
+            noalias(RHS_Contribution) -= prod(M, a);
         }
 
         // Adding damping contribution
@@ -622,7 +609,7 @@ protected:
             pCondition->GetSecondDerivativesVector(ap, 1);
             noalias(a) += mAlpha.m * ap;
 
-            noalias(RHS_Contribution)  -= prod(M, a);
+            noalias(RHS_Contribution) -= prod(M, a);
         }
 
         // Adding damping contribution

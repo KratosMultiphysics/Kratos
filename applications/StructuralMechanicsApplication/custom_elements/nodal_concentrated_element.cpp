@@ -391,8 +391,8 @@ void NodalConcentratedElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
     KRATOS_TRY
 
     //lumped
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int system_size = dimension;
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int system_size = dimension;
 
     if ( rMassMatrix.size1() != system_size )
     {
@@ -401,7 +401,7 @@ void NodalConcentratedElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
 
     rMassMatrix = ZeroMatrix( system_size, system_size );
 
-    double &nodal_mass = Element::GetValue(NODAL_MASS);
+    const double nodal_mass = Element::GetValue(NODAL_MASS);
 
     for ( unsigned int j = 0; j < dimension; j++ )
     {
