@@ -123,9 +123,6 @@ void SmallDisplacementAnalyticSensitivityElement::Calculate(const Variable<Vecto
         // Displacements vector
         Vector displacements;
         GetValuesVector(displacements);
-
-        // Contribution to external forces
-        const Vector body_force = this->GetBodyForce();
         
 		//ask for node for which DKDXU shall be computed
 		int active_node_index = this->GetValue(ACTIVE_NODE_INDEX);
