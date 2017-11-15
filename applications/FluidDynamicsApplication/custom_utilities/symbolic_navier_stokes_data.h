@@ -14,6 +14,8 @@
 #if !defined(KRATOS_SYMBOLIC_NAVIER_STOKES_DATA_H)
 #define KRATOS_SYMBOLIC_NAVIER_STOKES_DATA_H
 
+#include "includes/constitutive_law.h"
+
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
 
@@ -69,6 +71,8 @@ Matrix C;
 Vector Stress;
 Vector Strain;
 
+ConstitutiveLaw::Parameters ConstitutiveLawValues;
+
 ///@}
 ///@name Public Operations
 ///@{
@@ -97,6 +101,8 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
+
+    ConstitutiveLawValues = ConstitutiveLaw::Parameters(rElement.GetGeometry(),rElement.GetProperties(),rProcessInfo);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
