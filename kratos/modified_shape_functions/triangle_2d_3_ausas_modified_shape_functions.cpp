@@ -23,7 +23,7 @@ namespace Kratos
 /// Triangle2D3AusasModifiedShapeFunctions implementation
 /// Default constructor
 Triangle2D3AusasModifiedShapeFunctions::Triangle2D3AusasModifiedShapeFunctions(const GeometryPointerType pInputGeometry, const Vector& rNodalDistances) :
-    ModifiedShapeFunctions(pInputGeometry, rNodalDistances),
+    AusasModifiedShapeFunctions(pInputGeometry, rNodalDistances),
     mpTriangleSplitter(boost::make_shared<DivideTriangle2D3>(*pInputGeometry, rNodalDistances)) {
 
     // Perform the element splitting
@@ -36,19 +36,19 @@ Triangle2D3AusasModifiedShapeFunctions::~Triangle2D3AusasModifiedShapeFunctions(
 
 /// Turn back information as a string.
 std::string Triangle2D3AusasModifiedShapeFunctions::Info() const {
-    return "Triangle2D3N modified shape functions computation class.";
+    return "Triangle2D3N Ausas modified shape functions computation class.";
 };
 
 /// Print information about this object.
 void Triangle2D3AusasModifiedShapeFunctions::PrintInfo(std::ostream& rOStream) const {
-    rOStream << "Triangle2D3N modified shape functions computation class.";
+    rOStream << "Triangle2D3N Ausas modified shape functions computation class.";
 };
 
 /// Print object's data.
 void Triangle2D3AusasModifiedShapeFunctions::PrintData(std::ostream& rOStream) const {
     const GeometryPointerType p_geometry = this->GetInputGeometry();
     const Vector nodal_distances = this->GetNodalDistances();
-    rOStream << "Triangle2D3N modified shape functions computation class:\n";
+    rOStream << "Triangle2D3N Ausas modified shape functions computation class:\n";
     rOStream << "\tGeometry type: " << (*p_geometry).Info() << "\n";
     std::stringstream distances_buffer;
     for (unsigned int i = 0; i < nodal_distances.size(); ++i) {
@@ -203,81 +203,5 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeNegativeSideInterfaceUnitNor
         KRATOS_ERROR << "Using the ComputeNegativeSideInterfaceUnitNormals method for a non divided geometry.";
     }
 };
-
-// Sets the condensation matrix to transform the subdivsion positive side values to entire element ones.
-void Triangle2D3AusasModifiedShapeFunctions::SetPositiveSideCondensationMatrix(
-    Matrix& rPosSideCondMatrix,
-    const std::vector<int>& rEdgeNodeI,
-    const std::vector<int>& rEdgeNodeJ,
-    const std::vector<int>& rSplitEdges) {
-
-    const unsigned int nedges = (this->GetInputGeometry())->EdgesNumber();
-    const unsigned int nnodes = (this->GetInputGeometry())->PointsNumber();
-        
-    // Initialize intersection points condensation matrix
-    rPosSideCondMatrix = ZeroMatrix(nnodes + nedges, nnodes);
-
-    // Get the nodal distances vector
-    const array_1d<double, 3> nodal_distances = this->GetNodalDistances();
-
-    // Fill the original geometry points main diagonal
-    for (unsigned int i = 0; i < nnodes; ++i) {
-        rPosSideCondMatrix(i,i) = (nodal_distances(i) > 0.0) ? 1.0 : 0.0;
-    }
-
-    // Compute the intersection points contributions
-    unsigned int row = nnodes;
-    for (unsigned int idedge = 0; idedge < nedges; ++idedge) {
-        // Check if the edge has an intersection point
-        if (rSplitEdges[nnodes+idedge] != -1) {
-            // Get the nodes that compose the edge
-            const unsigned int edge_node_i = rEdgeNodeI[idedge];
-            const unsigned int edge_node_j = rEdgeNodeJ[idedge];
-
-            // Set to one the shape function value along the positive side of the edge.
-            rPosSideCondMatrix(row, edge_node_i) = (nodal_distances(edge_node_i) > 0.0) ? 1.0 : 0.0;
-            rPosSideCondMatrix(row, edge_node_j) = (nodal_distances(edge_node_j) > 0.0) ? 1.0 : 0.0;
-        }
-        row++;
-    }
-}
-
-// Sets the condensation matrix to transform the subdivsion negative side values to entire element ones.
-void Triangle2D3AusasModifiedShapeFunctions::SetNegativeSideCondensationMatrix(
-    Matrix& rNegSideCondMatrix,
-    const std::vector<int>& rEdgeNodeI,
-    const std::vector<int>& rEdgeNodeJ,
-    const std::vector<int>& rSplitEdges) {
-
-    const unsigned int nedges = (this->GetInputGeometry())->EdgesNumber();
-    const unsigned int nnodes = (this->GetInputGeometry())->PointsNumber();
-        
-    // Initialize intersection points condensation matrix
-    rNegSideCondMatrix = ZeroMatrix(nnodes + nedges, nnodes);
-
-    // Get the nodal distances vector
-    const array_1d<double, 3> nodal_distances = this->GetNodalDistances();
-
-    // Fill the original geometry points main diagonal
-    for (unsigned int i = 0; i < nnodes; ++i) {
-        rNegSideCondMatrix(i,i) = (nodal_distances(i) < 0.0) ? 1.0 : 0.0;
-    }
-
-    // Compute the intersection points contributions
-    unsigned int row = nnodes;
-    for (unsigned int idedge = 0; idedge < nedges; ++idedge) {
-        // Check if the edge has an intersection point
-        if (rSplitEdges[nnodes+idedge] != -1) {
-            // Get the nodes that compose the edge
-            const unsigned int edge_node_i = rEdgeNodeI[idedge];
-            const unsigned int edge_node_j = rEdgeNodeJ[idedge];
-
-            // Set to one the shape function value along the negative side of the edge.
-            rNegSideCondMatrix(row, edge_node_i) = (nodal_distances(edge_node_i) < 0.0) ? 1.0 : 0.0;
-            rNegSideCondMatrix(row, edge_node_j) = (nodal_distances(edge_node_j) < 0.0) ? 1.0 : 0.0;
-        }
-        row++;
-    }   
-}
 
 }; //namespace Kratos

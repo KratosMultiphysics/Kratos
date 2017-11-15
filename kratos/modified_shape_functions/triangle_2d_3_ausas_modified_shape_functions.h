@@ -19,7 +19,7 @@
 
 // Project includes
 #include "utilities/divide_triangle_2d_3.h"
-#include "modified_shape_functions/modified_shape_functions.h"
+#include "modified_shape_functions/ausas_modified_shape_functions.h"
 
 namespace Kratos
 {
@@ -38,7 +38,7 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-class KRATOS_API(KRATOS_CORE) Triangle2D3AusasModifiedShapeFunctions : public ModifiedShapeFunctions
+class KRATOS_API(KRATOS_CORE) Triangle2D3AusasModifiedShapeFunctions : public AusasModifiedShapeFunctions
 {
 public:
 
@@ -49,7 +49,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Triangle2D3AusasModifiedShapeFunctions);
 
     // General type definitions
-    typedef ModifiedShapeFunctions                             BaseType;
+    typedef AusasModifiedShapeFunctions                        BaseType;
     typedef BaseType::GeometryType                             GeometryType;
     typedef BaseType::GeometryPointerType                      GeometryPointerType;
     typedef BaseType::IntegrationMethodType                    IntegrationMethodType;
@@ -196,36 +196,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-    * Returns the intersection points condensation matrix for positive side Ausas sh functions.
-    * This matrix is used to extrapolate the subdivisions shape funtion values to the
-    * original geometry ones. It has size (nnodes+nedges)x(nnodes).
-    * @return rPosSideCondMatrix: Reference to the intersection points condensation matrix.
-    * @param rEdgeNodeI: Integers array containing the nodes "I" that conform the edges.
-    * @param rEdgeNodeJ: Integers array containing the nodes "J" that conform the edges.
-    * @param rSplitEdges: Integers array containing the original nodes ids and the intersected edges nodes ones.
-    */
-    void SetPositiveSideCondensationMatrix(
-        Matrix& rPosSideCondMatrix,
-        const std::vector<int>& rEdgeNodeI,
-        const std::vector<int>& rEdgeNodeJ,
-        const std::vector<int>& rSplitEdges);
-
-    /**
-    * Returns the intersection points condensation matrix for negative side Ausas sh functions.
-    * This matrix is used to extrapolate the subdivisions shape funtion values to the
-    * original geometry ones. It has size (nnodes+nedges)x(nnodes).
-    * @return rNegSideCondMatrix: Reference to the intersection points condensation matrix.
-    * @param rEdgeNodeI: Integers array containing the nodes "I" that conform the edges.
-    * @param rEdgeNodeJ: Integers array containing the nodes "J" that conform the edges.
-    * @param rSplitEdges: Integers array containing the original nodes ids and the intersected edges nodes ones.
-    */
-    void SetNegativeSideCondensationMatrix(
-        Matrix& rNegSideCondMatrix,
-        const std::vector<int>& rEdgeNodeI,
-        const std::vector<int>& rEdgeNodeJ,
-        const std::vector<int>& rSplitEdges);
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -279,7 +249,7 @@ private:
 
     /// Copy constructor.
     Triangle2D3AusasModifiedShapeFunctions(Triangle2D3AusasModifiedShapeFunctions const& rOther) :
-        ModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()),
+        AusasModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()),
         mpTriangleSplitter(new DivideTriangle2D3(*rOther.GetInputGeometry(), rOther.GetNodalDistances())) {
 
         // Perform the element splitting
