@@ -257,7 +257,6 @@ namespace Kratos
     KRATOS_TRY
 
     MatrixType StressMatrix;
-    StressMatrix.clear();
     
     if(rModelValues.GetOptions().Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)){
       mpModel->CalculateIsochoricStressTensor(rModelValues, StressMatrix);
@@ -269,7 +268,6 @@ namespace Kratos
       mpModel->CalculateStressTensor(rModelValues, StressMatrix);
     }
 
-    rStressVector.clear();
     rStressVector = ConstitutiveModelUtilities::StressTensorToVector(StressMatrix, rStressVector);
         
     KRATOS_CATCH(" ")
@@ -281,9 +279,7 @@ namespace Kratos
   void SmallStrain3DLaw::CalculateConstitutiveMatrix(ModelDataType& rModelValues, Matrix& rConstitutiveMatrix)
   {
     KRATOS_TRY
-      
-    rConstitutiveMatrix.clear();
-    
+          
     //Calculate ConstitutiveMatrix   
     if(rModelValues.GetOptions().Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)){
 
@@ -310,9 +306,6 @@ namespace Kratos
       
     MatrixType StressMatrix;
 
-    StressMatrix.clear();
-    rConstitutiveMatrix.clear();
-    
     //Calculate Stress and ConstitutiveMatrix   
     if(rModelValues.GetOptions().Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)){
 
@@ -343,10 +336,7 @@ namespace Kratos
   {
     KRATOS_TRY
           
-    //1.-2nd Piola Kirchhoff StressVector or Cauchy StressVector
-    if( rStressVector.size() != rStrainVector.size() )
-      rStressVector.resize(rStrainVector.size(),false);
-
+    // Cauchy StressVector
     noalias(rStressVector) = prod(rConstitutiveMatrix,rStrainVector);
 
     KRATOS_CATCH(" ")
@@ -364,8 +354,6 @@ namespace Kratos
   {
     KRATOS_TRY
           
-    rConstitutiveMatrix.clear();
-
     // Lame constants
     const double& rYoungModulus          = rMaterialProperties[YOUNG_MODULUS];
     const double& rPoissonCoefficient    = rMaterialProperties[POISSON_RATIO];

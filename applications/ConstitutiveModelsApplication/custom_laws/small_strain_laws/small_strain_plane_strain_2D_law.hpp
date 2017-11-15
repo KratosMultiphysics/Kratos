@@ -186,8 +186,6 @@ namespace Kratos
 					const Properties& rMaterialProperties) override
       {
 	KRATOS_TRY
-
-	rConstitutiveMatrix.clear();
 		
 	// Lame constants
 	const double& rYoungModulus          = rMaterialProperties[YOUNG_MODULUS];

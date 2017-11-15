@@ -337,7 +337,7 @@ namespace Kratos
 
 	//strain measure C
 	noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rVariables.Strain.InverseMatrix));
-	rVariables.Strain.InverseMatrix = prod(trans(rTotalDeformationMatrix), rVariables.Strain.Matrix); //InverseMatrix used as a wildcard here (InverseMatrix = RightCauchyGreenMatrix )
+	noalias(rVariables.Strain.InverseMatrix) = prod(trans(rTotalDeformationMatrix), rVariables.Strain.Matrix); //InverseMatrix used as a wildcard here (InverseMatrix = RightCauchyGreenMatrix )
       
 
 	ConstitutiveModelUtilities::RightCauchyToGreenLagrangeStrain( rVariables.Strain.InverseMatrix, rVariables.Strain.Matrix);  
@@ -431,8 +431,6 @@ namespace Kratos
       // Lame constants
       const double& rYoungModulus       = rMaterial.GetYoungModulus();
       const double& rPoissonCoefficient = rMaterial.GetPoissonCoefficient();
-
-      rConstitutiveTensor.clear();
 
       double coefficient = (rYoungModulus)/((1.0+rPoissonCoefficient)*(1.0-2.0*rPoissonCoefficient));
       double component_0 = coefficient*(1.0-rPoissonCoefficient);
