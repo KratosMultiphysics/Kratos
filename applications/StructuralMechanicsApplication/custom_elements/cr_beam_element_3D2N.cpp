@@ -1034,6 +1034,7 @@ namespace Kratos
 			this->UpdateIncrementDeformation();
 			bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = ZeroMatrix(msElementSize);
 			this->CalculateTransformationMatrix(TransformationMatrix);
+			
 			bounded_vector<double,msLocalSize> elementForces_t = ZeroVector(msLocalSize);
 			elementForces_t = this->CalculateElementForces();
 			bounded_vector<double,msElementSize> nodalForcesLocal_qe = ZeroVector(msElementSize);
@@ -1515,7 +1516,7 @@ namespace Kratos
 		rMassMatrix(11, 11) = TempBendingMassMatrix(3, 3);
 
 		TempBendingMassMatrix = ZeroMatrix(smallMatSize, smallMatSize);
-		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiy, CTy, CRy, L, +1);
+		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiy, CTy, CRy, L, -1);
 
 		rMassMatrix(2, 2) = TempBendingMassMatrix(0, 0);
 		rMassMatrix(2, 4) = TempBendingMassMatrix(0, 1);

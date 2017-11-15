@@ -282,7 +282,7 @@ public:
     //**********************************************************************
 
 
-    double Solve()
+    double Solve() override
     {
         KRATOS_TRY
         

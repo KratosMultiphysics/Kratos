@@ -98,6 +98,6 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                             self.settings["reform_dofs_at_each_step"].GetBool(), 
                                             self.settings["move_mesh_flag"].GetBool())
 
-        mechanical_solver.SetRebuildLevel(0) # 1 to recompute the mass matrix in each explicit step   
+        mechanical_solver.SetRebuildLevel(0)   
         return mechanical_solver
    
