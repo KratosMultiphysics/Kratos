@@ -314,9 +314,9 @@ endif(${MPI_NEEDED} MATCHES ON )
 # Find zlib (for gidpost)
 find_package(ZLIB)
 
-if( ZLIB_FOUND MATCHES "Libreria Z" )
+if( ZLIB_FOUND )
   include_directories( ${ZLIB_INCLUDE_DIRS} )
-else( ZLIB_FOUND MATCHES "Libreria Z" )
+else( ZLIB_FOUND )
   message( "-- Preparing local ZLIB compilation.")
   include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
   # Compile our own
@@ -324,7 +324,7 @@ else( ZLIB_FOUND MATCHES "Libreria Z" )
   # we have to add this for zconf
   include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
   set( ZLIB_LIBRARIES zlib )
-endif( ZLIB_FOUND MATCHES "Libreria Z" )
+endif( ZLIB_FOUND )
   
 
 ##echo user options
