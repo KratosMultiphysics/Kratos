@@ -243,8 +243,6 @@ def AssambleTestSuites():
     nightSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
     # nightSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution')) # FIXME: Needs get up to date
     nightSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
-    nightSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
-    nightSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
 
     nightSuite.addTest(TShellT3ThickLinearStaticTests('test_execution'))
     nightSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution'))
@@ -264,6 +262,8 @@ def AssambleTestSuites():
     ####validationSuite.addTest(TSprismPanTests('test_execution'))
     validationSuite.addTest(TPendulusTLTest('test_execution'))
     validationSuite.addTest(TPendulusULTest('test_execution'))
+    validationSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
+    validationSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
     
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
