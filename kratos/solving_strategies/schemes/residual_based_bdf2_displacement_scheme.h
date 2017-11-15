@@ -167,12 +167,8 @@ public:
     {
         KRATOS_TRY;
 
-        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
-
         // Update of displacement (by DOF)
         const int num_dof = static_cast<int>(rDofSet.size());
-        OpenMPUtils::PartitionVector dof_partition;
-        OpenMPUtils::DivideInPartitions(num_dof, num_threads, dof_partition);
 
         #pragma omp parallel for
         for(int i = 0;  i < num_dof; ++i)
@@ -187,23 +183,21 @@ public:
 
         // Updating time derivatives (nodally for efficiency)
         const int num_nodes = static_cast<int>(rModelPart.Nodes().size());
-        OpenMPUtils::PartitionVector node_partition;
-        OpenMPUtils::DivideInPartitions(num_nodes, num_threads, node_partition);
 
         #pragma omp parallel for
         for(int i = 0;  i < num_nodes; ++i)
         {
             auto it_node = rModelPart.Nodes().begin() + i;
                         
-            const array_1d<double, 3 > & un0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double, 3 > & un1 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            const array_1d<double, 3 > & un2 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 2);
+            const array_1d<double, 3>& un0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3>& un1 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            const array_1d<double, 3>& un2 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 2);
             
-            array_1d<double, 3 > & vn0 = it_node->FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double, 3 > & vn1 = it_node->FastGetSolutionStepValue(VELOCITY, 1);
-            const array_1d<double, 3 > & vn2 = it_node->FastGetSolutionStepValue(VELOCITY, 2);
+            array_1d<double, 3>& vn0 = it_node->FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& vn1 = it_node->FastGetSolutionStepValue(VELOCITY, 1);
+            const array_1d<double, 3>& vn2 = it_node->FastGetSolutionStepValue(VELOCITY, 2);
 
-            array_1d<double, 3 > & an0 = it_node->FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3>& an0 = it_node->FastGetSolutionStepValue(ACCELERATION);
 
             UpdateVelocity(vn0, un0, un1, un2);
             UpdateAcceleration(an0, vn0, vn1, vn2);
@@ -235,11 +229,7 @@ public:
         const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
-        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
-        
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
-        OpenMPUtils::PartitionVector node_partition;
-        OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), num_threads, node_partition);
 
         #pragma omp parallel for
         for(int i = 0;  i< num_nodes; ++i)
@@ -249,14 +239,14 @@ public:
             //Predicting: NewDisplacement = previous_displacement + previous_velocity * delta_time;
             //ATTENTION::: the prediction is performed only on free nodes
 
-            const array_1d<double, 3 > & vn2 = it_node->FastGetSolutionStepValue(VELOCITY,     2);
-            const array_1d<double, 3 > & un2 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 2);
-            const array_1d<double, 3 > & an1 = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-            const array_1d<double, 3 > & vn1 = it_node->FastGetSolutionStepValue(VELOCITY,     1);
-            const array_1d<double, 3 > & un1 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            array_1d<double, 3 > & an0 = it_node->FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double, 3 > & vn0 = it_node->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3 > & un0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3>& vn2 = it_node->FastGetSolutionStepValue(VELOCITY,     2);
+            const array_1d<double, 3>& un2 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 2);
+            const array_1d<double, 3>& an1 = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+            const array_1d<double, 3>& vn1 = it_node->FastGetSolutionStepValue(VELOCITY,     1);
+            const array_1d<double, 3>& un1 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3>& an0 = it_node->FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3>& vn0 = it_node->FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3>& un0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
             if (it_node -> IsFixed(ACCELERATION_X))
             {
@@ -528,7 +518,7 @@ protected:
 
     /**
      * It adds the dynamic RHS contribution of the elements b - M*a - D*v
-     * @param rCurrentElement The element to compute
+     * @param pElement The element to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
@@ -536,7 +526,7 @@ protected:
      */
 
     void AddDynamicsToRHS(
-        Element::Pointer rCurrentElement,
+        Element::Pointer pElement,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
@@ -547,7 +537,7 @@ protected:
         if (M.size1() != 0)
         {
             Vector a;
-            rCurrentElement->GetSecondDerivativesVector(a, 0);
+            pElement->GetSecondDerivativesVector(a, 0);
             noalias(RHS_Contribution) -= prod(M, a);
         }
 
@@ -555,14 +545,14 @@ protected:
         if (D.size1() != 0)
         {
             Vector v;
-            rCurrentElement->GetFirstDerivativesVector(v, 0);
+            pElement->GetFirstDerivativesVector(v, 0);
             noalias(RHS_Contribution) -= prod(D, v);
         }
     }
 
     /**
      * It adds the dynamic RHS contribution of the condition RHS = fext - M*an0 - D*vn0 - K*dn0
-     * @param rCurrentCondition The condition to compute
+     * @param pCondition The condition to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
@@ -570,7 +560,7 @@ protected:
      */
 
     void AddDynamicsToRHS(
-        Condition::Pointer rCurrentCondition,
+        Condition::Pointer pCondition,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
@@ -581,7 +571,7 @@ protected:
         if (M.size1() != 0)
         {
             Vector a;
-            rCurrentCondition->GetSecondDerivativesVector(a, 0);
+            pCondition->GetSecondDerivativesVector(a, 0);
             noalias(RHS_Contribution)  -= prod(M, a);
         }
 
@@ -590,7 +580,7 @@ protected:
         if (D.size1() != 0)
         {
             Vector v;
-            rCurrentCondition->GetFirstDerivativesVector(v, 0);
+            pCondition->GetFirstDerivativesVector(v, 0);
             noalias(RHS_Contribution) -= prod(D, v);
         }
     }

@@ -19,7 +19,6 @@
 /* External includes */
 
 /* Project includes */
-#include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 

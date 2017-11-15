@@ -132,8 +132,8 @@ public:
 
     /**
      * Recalculates the Newmark coefficients, taking into account the alpha parameters
-     * @param beta: The Newmark beta coefficient
-     * @param gamma: The Newmark gamma coefficient
+     * @param beta The Newmark beta coefficient
+     * @param gamma The Newmark gamma coefficient
      */
 
     void CalculateNewmarkCoefficients(
@@ -147,12 +147,12 @@ public:
 
     /**
      * Performing the update of the solution
-     * Incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
-     * @param rModelPart: The model of the problem to solve
-     * @param rDofSet: Set of all primary variables
-     * @param A: LHS matrix
-     * @param Dx: incremental update of primary variables
-     * @param b: RHS Vector
+     * Incremental update within newton iteration. It updates the state variables at the end of the time step u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
+     * @param rModelPart The model of the problem to solve
+     * @param rDofSet Set of all primary variables
+     * @param A LHS matrix
+     * @param Dx incremental update of primary variables
+     * @param b RHS Vector
      */
 
     void Update(
@@ -165,12 +165,8 @@ public:
     {
         KRATOS_TRY;
 
-        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
-
         // Update of displacement (by DOF)
         const int num_dof = static_cast<int>(rDofSet.size());
-        OpenMPUtils::PartitionVector dof_partition;
-        OpenMPUtils::DivideInPartitions(num_dof, num_threads, dof_partition);
 
         #pragma omp parallel for
         for(int i = 0;  i < num_dof; ++i)
@@ -185,8 +181,6 @@ public:
 
         // Updating time derivatives (nodally for efficiency)
         const int num_nodes = static_cast<int>(rModelPart.Nodes().size());
-        OpenMPUtils::PartitionVector node_partition;
-        OpenMPUtils::DivideInPartitions(num_nodes, num_threads, node_partition);
 
         #pragma omp parallel for
         for(int i = 0;  i < num_nodes; ++i)
@@ -212,12 +206,12 @@ public:
 
     /**
      * Performing the prediction of the solution
-     * It predicts the solution for the current step: x = xold + vold * Dt
-     * @param rModelPart: The model of the problem to solve
+     * It predicts the solution for the current step x = xold + vold * Dt
+     * @param rModelPart The model of the problem to solve
      * @param rDofSet set of all primary variables
-     * @param A: LHS matrix
-     * @param Dx: Incremental update of primary variables
-     * @param b: RHS Vector
+     * @param A LHS matrix
+     * @param Dx Incremental update of primary variables
+     * @param b RHS Vector
      */
 
     void Predict(
@@ -233,11 +227,7 @@ public:
         const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
-        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
-        
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
-        OpenMPUtils::PartitionVector node_partition;
-        OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), num_threads, node_partition);
 
         #pragma omp parallel for
         for(int i = 0;  i< num_nodes; ++i)
@@ -310,11 +300,10 @@ public:
 
     /**
      * It initializes time step solution. Only for reasons if the time step solution is restarted
-     * @param rModelPart: The model of the problem to solve
-     * @param A: LHS matrix
-     * @param Dx: Incremental update of primary variables
-     * @param b: RHS Vector
-     *
+     * @param rModelPart The model of the problem to solve
+     * @param A LHS matrix
+     * @param Dx Incremental update of primary variables
+     * @param b RHS Vector
      */
     
     void InitializeSolutionStep(
@@ -517,7 +506,7 @@ protected:
 
     /**
      * Updating second time Derivative
-     * @param CurrentVelocity The current velocity
+     * @param CurrentAcceleration The current velocity
      * @param DeltaDisplacement The increment of displacement
      * @param PreviousVelocity The previous velocity
      * @param PreviousAcceleration The previous acceleration
