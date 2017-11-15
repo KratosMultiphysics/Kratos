@@ -718,15 +718,14 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             DEM_SET_COMPONENTS_TO_ZERO_3(RelVel)
             DEM_SET_COMPONENTS_TO_ZERO_3x3(LocalCoordSystem)
             DEM_SET_COMPONENTS_TO_ZERO_3x3(OldLocalCoordSystem)
+                
+            #ifdef KRATOS_DEBUG
+                DemDebugFunctions::CheckIfNan(GlobalContactForce, "NAN in Force in Ball to Ball contact"); 
+                DemDebugFunctions::CheckIfNan(mContactMoment, "NAN in Torque in Ball to Ball contact"); 
+            #endif
         }
-
     }// for each neighbor
     
-    #ifdef KRATOS_DEBUG
-    DemDebugFunctions::CheckIfNan(GlobalContactForce, "NAN in Force in Ball to Ball contact"); 
-    DemDebugFunctions::CheckIfNan(mContactMoment, "NAN in Torque in Ball to Ball contact"); 
-    #endif
-
     KRATOS_CATCH("")
 }// ComputeBallToBallContactForce
 
