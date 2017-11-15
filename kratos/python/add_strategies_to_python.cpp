@@ -38,9 +38,10 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
+#include "solving_strategies/schemes/residual_implicit_time_scheme.h"
 #include "solving_strategies/schemes/residual_based_bdf2_displacement_scheme.h"
-#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
-#include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.hpp"
+#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.h"
+#include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -300,6 +301,7 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
 
+            typedef ResidualBasedImplicitTimeScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedImplicitTimeSchemeType;
             typedef ResidualBasedBDF2DisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDF2DisplacementSchemeType;
             typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
             typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
@@ -338,26 +340,26 @@ namespace Kratos
 
             // Residual Based BDF2 Scheme Type
             class_< ResidualBasedBDF2DisplacementSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
+            bases< ResidualBasedImplicitTimeSchemeType >,  boost::noncopyable >
             (
                 "ResidualBasedBDF2DisplacementScheme", init< >() )
-            .def("Initialize", &ResidualBasedBDF2DisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            .def("Initialize", &ResidualBasedBDF2DisplacementSchemeType::Initialize)
             ;
             
             // Residual Based Bossak Scheme Type
             class_< ResidualBasedBossakDisplacementSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
+            bases< ResidualBasedImplicitTimeSchemeType >,  boost::noncopyable >
             (
                 "ResidualBasedBossakDisplacementScheme", init< double >() )
-            .def("Initialize", &ResidualBasedBossakDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            .def("Initialize", &ResidualBasedBossakDisplacementSchemeType::Initialize)
             ;
 
             // Residual Based Newmark Scheme Type
             class_< ResidualBasedNewmarkDisplacementSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
+            bases< ResidualBasedBossakDisplacementSchemeType >,  boost::noncopyable >
             (
                 "ResidualBasedNewmarkDisplacementScheme", init< >() )
-            .def("Initialize", &ResidualBasedNewmarkDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            .def("Initialize", &ResidualBasedNewmarkDisplacementSchemeType::Initialize)
             ;
 
             //********************************************************************

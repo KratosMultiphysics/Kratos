@@ -9,7 +9,7 @@
 #define  KRATOS_BOSSAK_DISPLACEMENT_SMOOTHING_SCHEME
 
 // Application includes
-#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
+#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.h"
 #include "dam_application_variables.h"
 
 namespace Kratos

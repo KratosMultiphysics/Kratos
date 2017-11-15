@@ -22,7 +22,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
+#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.h"
 #include "includes/variables.h"
 
 namespace Kratos
