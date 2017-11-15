@@ -71,7 +71,7 @@ namespace Kratos {
         
         double particle_density = this->SlowGetDensity();
          
-        double cluster_volume = 4.0 * KRATOS_M_PI_3 * radius * radius * radius;
+        double cluster_volume = 4.0 * Globals::Pi / 3.0 * radius * radius * radius;
         
         double cluster_mass = particle_density * cluster_volume;
         

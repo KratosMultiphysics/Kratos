@@ -58,21 +58,21 @@ typedef MeshType::NodeType NodeType;
 typedef MeshType::NodesContainerType NodesContainerType;
 typedef Geometry<Node<3> >::PointsArrayType NodesArrayType;
 typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
-typedef Point<3>::CoordinatesArrayType CoordinatesArrayType;
+typedef Point::CoordinatesArrayType CoordinatesArrayType;
 
 array_1d<double,3> GetNormalFromCondition( 
     Condition& dummy, 
     CoordinatesArrayType& LocalCoords
     )
 {
-    return( dummy.GetGeometry().Normal(LocalCoords) );
+    return( dummy.GetGeometry().UnitNormal(LocalCoords) );
 }
 
 array_1d<double,3> FastGetNormalFromCondition(Condition& dummy)
 {
     CoordinatesArrayType LocalCoords;
     LocalCoords.clear();
-    return( dummy.GetGeometry().Normal(LocalCoords) );
+    return( dummy.GetGeometry().UnitNormal(LocalCoords) );
 }
 
 double GetAreaFromCondition( Condition& dummy )
@@ -150,10 +150,10 @@ boost::python::list GetIntegrationPointsFromElement( Element& dummy )
     for( unsigned int i=0; i< integration_points.size(); i++ )
     {
         boost::python::list item;
-        Point<3> pnt;
-        dummy.GetGeometry().GlobalCoordinates(pnt, integration_points[i]);
+        Point point;
+        dummy.GetGeometry().GlobalCoordinates(point, integration_points[i]);
         for( unsigned int j=0; j<3; j++ )
-            item.append( pnt[j] );
+            item.append( point[j] );
         integration_points_list.append( item );
     }
     return( integration_points_list );
@@ -440,7 +440,6 @@ void  AddMeshToPython()
     ;
 
     class_<Element, Element::Pointer, bases<Element::BaseType, Flags > >("Element", init<int>())
-    //.def(init<int, const Point<3>& >())
     .add_property("Properties", GetPropertiesFromElement, SetPropertiesFromElement)
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
@@ -544,7 +543,6 @@ void  AddMeshToPython()
     ;
 
     class_<Condition, Condition::Pointer, bases<Condition::BaseType, Flags > >("Condition", init<int>())
-    //.def(init<int, const Point<3>& >())
     .add_property("Properties", GetPropertiesFromCondition, SetPropertiesFromCondition)
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)

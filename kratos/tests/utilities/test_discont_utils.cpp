@@ -141,7 +141,7 @@ namespace Kratos
 			// Check edge areas
 			KRATOS_CHECK_NEAR(edge_areas(0),  0.0, 1e-6);
 			KRATOS_CHECK_NEAR(edge_areas(1), 0.25, 1e-6);
-			KRATOS_CHECK_NEAR(edge_areas(1), 0.25, 1e-6);
+			KRATOS_CHECK_NEAR(edge_areas(2), 0.25, 1e-6);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(TriangleVercitalDiscontUtils, KratosCoreFastSuite)

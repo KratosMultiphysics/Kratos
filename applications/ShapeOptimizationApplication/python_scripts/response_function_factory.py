@@ -20,9 +20,9 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # ==============================================================================
-def CreateListOfResponseFunctions( inputModelPart, optimizationSettings ):
+def CreateListOfResponseFunctions( OptimizationModelPart, OptimizationSettings ):
     listOfResponseFunctions = {}
-    responseCreator = ResponseFunctionCreator( inputModelPart, optimizationSettings )
+    responseCreator = ResponseFunctionCreator( OptimizationModelPart, OptimizationSettings )
     responseCreator.AddSpecifiedKratosResponseFunctionsToList( listOfResponseFunctions )
     return listOfResponseFunctions
 
@@ -30,9 +30,9 @@ def CreateListOfResponseFunctions( inputModelPart, optimizationSettings ):
 class ResponseFunctionCreator: 
 
     # --------------------------------------------------------------------------
-    def __init__( self, inputModelPart, optimizationSettings ):
-        self.inputModelPart = inputModelPart
-        self.optimizationSettings = optimizationSettings
+    def __init__( self, OptimizationModelPart, OptimizationSettings ):
+        self.OptimizationModelPart = OptimizationModelPart
+        self.OptimizationSettings = OptimizationSettings
 
      # --------------------------------------------------------------------------
     def AddSpecifiedKratosResponseFunctionsToList( self, listOfResponseFunctions ):        
@@ -43,16 +43,16 @@ class ResponseFunctionCreator:
     # --------------------------------------------------------------------------
     def __addObjectivesToListOfResponseFunctions( self ):
 
-        numberOfObjectives = self.optimizationSettings["objectives"].size()
+        numberOfObjectives = self.OptimizationSettings["objectives"].size()
 
         for objectiveNumber in range(numberOfObjectives):
 
-            objectiveId = self.optimizationSettings["objectives"][objectiveNumber]["identifier"].GetString()
-            useKratos = self.optimizationSettings["objectives"][objectiveNumber]["use_kratos"].GetBool()
+            objectiveId = self.OptimizationSettings["objectives"][objectiveNumber]["identifier"].GetString()
+            useKratos = self.OptimizationSettings["objectives"][objectiveNumber]["use_kratos"].GetBool()
 
             if useKratos:
                 self.__checkIfGivenResponseFunctionIsAlreadyDefined( objectiveId )
-                self.__createAndAddGivenResponse( objectiveId, self.optimizationSettings["objectives"][objectiveNumber] )
+                self.__createAndAddGivenResponse( objectiveId, self.OptimizationSettings["objectives"][objectiveNumber] )
 
         if not self.listOfResponseFunctions:
             raise ValueError("No objective function specified!")
@@ -60,16 +60,16 @@ class ResponseFunctionCreator:
     # --------------------------------------------------------------------------
     def __addConstraintsToListOfResponseFunctions( self ):
 
-        numberOfConstraints = self.optimizationSettings["constraints"].size()
+        numberOfConstraints = self.OptimizationSettings["constraints"].size()
 
         for constraintNumber in range(numberOfConstraints):
 
-            constraintId = self.optimizationSettings["constraints"][constraintNumber]["identifier"].GetString()
-            useKratos = self.optimizationSettings["constraints"][constraintNumber]["use_kratos"].GetBool()
+            constraintId = self.OptimizationSettings["constraints"][constraintNumber]["identifier"].GetString()
+            useKratos = self.OptimizationSettings["constraints"][constraintNumber]["use_kratos"].GetBool()
 
             if useKratos:
                 self.__checkIfGivenResponseFunctionIsAlreadyDefined( constraintId )
-                self.__createAndAddGivenResponse( constraintId, self.optimizationSettings["constraints"][constraintNumber] )         
+                self.__createAndAddGivenResponse( constraintId, self.OptimizationSettings["constraints"][constraintNumber] )         
 
     # --------------------------------------------------------------------------
     def __checkIfGivenResponseFunctionIsAlreadyDefined( self, responseId ):
@@ -81,12 +81,12 @@ class ResponseFunctionCreator:
 
         if responseId == "strain_energy":
             responseFunctionSolverIsNotImplemented = False
-            self.inputModelPart.AddNodalSolutionStepVariable(STRAIN_ENERGY_SHAPE_GRADIENT)
-            self.listOfResponseFunctions["strain_energy"] = StrainEnergyResponseFunction( self.inputModelPart, solverSettings )
+            self.OptimizationModelPart.AddNodalSolutionStepVariable(STRAIN_ENERGY_SHAPE_GRADIENT)
+            self.listOfResponseFunctions["strain_energy"] = StrainEnergyResponseFunction( self.OptimizationModelPart, solverSettings )
         elif responseId == "mass":
             responseFunctionSolverIsNotImplemented = False
-            self.inputModelPart.AddNodalSolutionStepVariable(MASS_SHAPE_GRADIENT)
-            self.listOfResponseFunctions["mass"] = MassResponseFunction( self.inputModelPart, solverSettings )   
+            self.OptimizationModelPart.AddNodalSolutionStepVariable(MASS_SHAPE_GRADIENT)
+            self.listOfResponseFunctions["mass"] = MassResponseFunction( self.OptimizationModelPart, solverSettings )   
         else:
             raise NameError("The following response function is not specified: " + responseId)
 

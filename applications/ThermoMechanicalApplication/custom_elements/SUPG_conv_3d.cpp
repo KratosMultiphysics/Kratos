@@ -86,6 +86,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
 {
     KRATOS_TRY
 
+    const ProcessInfo& rConstProcessInfo = rCurrentProcessInfo;
     unsigned int nodes_number = GetGeometry().size();
     unsigned int dim = 3;
     unsigned int matsize = nodes_number;
@@ -101,7 +102,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     noalias(rLeftHandSideMatrix) = ZeroMatrix(matsize, matsize);
     noalias(rRightHandSideVector) = ZeroVector(matsize);
 
-    double delta_t = rCurrentProcessInfo[DELTA_TIME];
+    double delta_t = rConstProcessInfo[DELTA_TIME];
 
     boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
@@ -113,7 +114,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
 
 
     //calculating viscosity
-    ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+    ConvectionDiffusionSettings::Pointer my_settings = rConstProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
              //const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
     //        const Variable<double>& rSourceVar = my_settings->GetVolumeSourceVariable();
@@ -128,10 +129,10 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(rConvVar); //VELOCITY
     const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
 
-	double density = rCurrentProcessInfo[DENSITY];
+	double density = rConstProcessInfo[DENSITY];
     //double air_density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
 	double node_distance = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
-	int gravity_switch = 	rCurrentProcessInfo[IS_GRAVITY_FILLING];
+	int gravity_switch = 	rConstProcessInfo[IS_GRAVITY_FILLING];
 	double vel_fac = 1.0;
 	if (node_distance > 0.0 && gravity_switch == 1)
 		vel_fac = 1.0/density;
@@ -145,7 +146,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
         //             specific_heat += GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
         //             heat_source += GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
 
-		density =  rCurrentProcessInfo[DENSITY];
+		density =  rConstProcessInfo[DENSITY];
 		node_distance = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
         //air_density = GetGeometry()[i].FastGetSolutionStepValue(rDensityVar);
 		vel_fac = 1.0;
@@ -168,7 +169,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     // 	heat_source /= (specific_heat);
 
     double tau;
-    CalculateConvTau(ms_vel_gauss, tau, delta_t, Volume, rCurrentProcessInfo);
+    CalculateConvTau(ms_vel_gauss, tau, delta_t, Volume, rConstProcessInfo);
 
     //Crank-Nicholson factor
     double cr_nk = 0.5;

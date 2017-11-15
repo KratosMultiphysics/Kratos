@@ -8,9 +8,9 @@ import DEM_explicit_solver_var as DEM_parameters
 
 def WriteClusterMdpa():
 
-  ClusterPropertiesInfo = open(DEM_parameters.problem_name + "_cluster_properties.info" , 'r')
-  ClusterMeshInfo       = open(DEM_parameters.problem_name + "_cluster_mesh.dempack", 'r')
-  ClusterMdpa           = open(DEM_parameters.problem_name + "DEM_Clusters.mdpa", 'w')
+  ClusterPropertiesInfo = open(DEM_parameters["problem_name"].GetString() + "_cluster_properties.info" , 'r')
+  ClusterMeshInfo       = open(DEM_parameters["problem_name"].GetString() + "_cluster_mesh.dempack", 'r')
+  ClusterMdpa           = open(DEM_parameters["problem_name"].GetString() + "DEM_Clusters.mdpa", 'w')
 
   ClusterAvailableTypes  = []
 

@@ -104,7 +104,9 @@ void CalculatePressureGradient(ModelPart& r_model_part)
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-
+// This function assesses the stationarity based on the pressure field varaition.
+// Its tolerance applies to the adimensinalised pressure variation between consecutive
+// measurements.
 bool AssessStationarity(ModelPart& r_model_part, const double& tol)
 {
     if (!mPressuresFilled){
@@ -122,33 +124,32 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
         unsigned int i = 0;
 
         for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-            array_1d<double, 3> velocity = inode->FastGetSolutionStepValue(VELOCITY);
-            mean_celerity += sqrt(velocity[0] * velocity[0] + velocity[1] * velocity[1] + velocity[2] * velocity[2]);
+            const array_1d<double, 3>& velocity = inode->FastGetSolutionStepValue(VELOCITY);
+            mean_celerity += SWIMMING_MODULUS_3(velocity);
 
-            double aux    = mPressures[i];
-            mPressures[i] = inode->FastGetSolutionStepValue(PRESSURE);
-            aux           = fabs(aux - mPressures[i]);
-
-            if (aux > max_pressure_change_rate){
-                max_pressure_change_rate = aux;
-            }
+            const double new_pressure = inode->FastGetSolutionStepValue(PRESSURE);
+            double& old_pressure = mPressures[i];
+            const double delta_p = std::abs(new_pressure - old_pressure);
+            max_pressure_change_rate = std::max(delta_p, max_pressure_change_rate);
+            old_pressure = new_pressure;
 
             ++i;
         }
 
         mean_celerity /= i;
-        double delta_t = r_model_part.GetProcessInfo()[TIME] - mLastMeasurementTime;
+        const double delta_t = r_model_part.GetProcessInfo()[TIME] - mLastMeasurementTime;
 
         if (delta_t > 0.0){
-            // calculating coefficients for adimensionalization of the pressure change rate
-            double pressure_variation;
-            CalculateVariationWithingVector(mPressures, pressure_variation);
-            double char_length         = pow(mTotalVolume, 1/3); // characteristic length of the model. Should be improved: a hydraulic radius or such
-            double time_adim_coeff     = mean_celerity / char_length;
-            double pressure_adim_coeff = 0.5 * (pressure_variation + mLastPressureVariation);
-            mLastPressureVariation     = pressure_variation;
+            max_pressure_change_rate /= delta_t;
 
-            if (pressure_adim_coeff == 0.0 || time_adim_coeff == 0.0){ // unlikely
+            // calculating coefficients for adimensionalization of the pressure change rate
+            const double characteristic_length             = std::pow(mTotalDomainVolume, 1.0 / 3); // characteristic length of the model. Should be improved: a hydraulic radius or such
+            const double reciprocal_of_characteristic_time = mean_celerity / characteristic_length;
+            const double pressure_spatial_variation = GetRangeWithinVector(mPressures);
+            mLastPressureVariation = pressure_spatial_variation;
+            const double characteristic_pressure_variation = 0.5 * (pressure_spatial_variation + mLastPressureVariation);
+
+            if (characteristic_pressure_variation == 0.0 || reciprocal_of_characteristic_time == 0.0){ // unlikely
                 std::cout << "Uniform problem: stationarity check being performed with dimensional values...! " << "\n";
 
                 if (max_pressure_change_rate <= tol){ // go with the absolute value
@@ -156,11 +157,11 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
                 }
             }
 
-            max_pressure_change_rate /= time_adim_coeff * delta_t * pressure_adim_coeff ;
+            max_pressure_change_rate /= reciprocal_of_characteristic_time * characteristic_pressure_variation ;
         }
 
         else {
-            KRATOS_THROW_ERROR(std::runtime_error,"Trying to calculate pressure variations between two coincident time steps! (null time variation since last recorded time)","");
+            KRATOS_THROW_ERROR(std::runtime_error, "Trying to calculate pressure variations between two coincident time steps! (null time variation since last recorded time)","");
         }
 
         std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
@@ -170,13 +171,7 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
         KRATOS_WATCH(max_pressure_change_rate)
         std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
 
-        if (max_pressure_change_rate <= tol){
-            return true;
-        }
-
-        else {
-            return false;
-        }
+        return max_pressure_change_rate <= tol;
     }
 }
 
@@ -564,7 +559,7 @@ bool mCalculatingTheLaplacian;
 bool mFirstTimeAppending;
 double mLastMeasurementTime;
 double mLastPressureVariation;
-double mTotalVolume;
+double mTotalDomainVolume;
 std::vector<double> mPressures;
 std::vector<vector<double> > mFirstRowsOfB;
 
@@ -786,7 +781,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMas
 
 void PerformFirstStepComputations(ModelPart& r_model_part)
 {
-    mTotalVolume = CalculateDomainVolume(r_model_part);
+    mTotalDomainVolume = CalculateDomainVolume(r_model_part);
     mPressures.resize(r_model_part.Nodes().size());
     mLastMeasurementTime = r_model_part.GetProcessInfo()[TIME];
 
@@ -798,7 +793,7 @@ void PerformFirstStepComputations(ModelPart& r_model_part)
     }
 
     mPressuresFilled = true;
-    CalculateVariationWithingVector(mPressures, mLastPressureVariation);
+    mLastPressureVariation = GetRangeWithinVector(mPressures);
 }
 
 //**************************************************************************************************************************************************
@@ -1010,7 +1005,7 @@ vector<unsigned int> mElementsPartition;
 ///@name Un accessible methods
 ///@{
 
-inline void CalculateVariationWithingVector(const std::vector<double>& vector, double& variation)
+double GetRangeWithinVector(const std::vector<double>& vector)
 {
     double min = vector[0];
     double max = vector[0];
@@ -1020,7 +1015,7 @@ inline void CalculateVariationWithingVector(const std::vector<double>& vector, d
         max = std::max(max, mPressures[i]);
     }
 
-    variation = max - min;
+    return (max - min);
 }
 
 vector<unsigned int>& GetElementPartition()

@@ -361,14 +361,14 @@ namespace Kratos
      }
 
 
-    void ResetBodyNormals(ModelPart& rModelPart, ModelPart::IndexType MeshId=0)
+    void ResetBodyNormals(ModelPart& rModelPart)
 				      
     {
       KRATOS_TRY
 		  
 	//resetting the normals
-	for(NodesArrayType::iterator in =  rModelPart.NodesBegin(MeshId);
-	    in !=rModelPart.NodesEnd(MeshId); in++)
+	for(NodesArrayType::iterator in =  rModelPart.NodesBegin();
+	    in !=rModelPart.NodesEnd(); in++)
 	  {
 	    (in->GetSolutionStepValue(NORMAL)).clear();
 	  }
@@ -376,14 +376,14 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    void CheckBodyNormals(ModelPart& rModelPart, ModelPart::IndexType MeshId=0)
+    void CheckBodyNormals(ModelPart& rModelPart)
 				      
     {
       KRATOS_TRY
 		  
 	//resetting the normals
-	for(NodesArrayType::iterator in =  rModelPart.NodesBegin(MeshId);
-	    in !=rModelPart.NodesEnd(MeshId); in++)
+	for(NodesArrayType::iterator in =  rModelPart.NodesBegin();
+	    in !=rModelPart.NodesEnd(); in++)
 	  {
 	    std::cout<<" ID: "<<in->Id()<<" normal: "<<(in->GetSolutionStepValue(NORMAL))<<std::endl;
 	  }
@@ -590,7 +590,7 @@ namespace Kratos
     }
     
   
-    /// Calculates the normals of the BOUNDARY nodes of a given MeshId
+    /// Calculates the normals of the BOUNDARY nodes given a mesh
     //  using a consistent way: SOTO & CODINA
     //  fails in sharp edges angle<90
     void CalculateBoundaryNormals(MeshType& rMesh)

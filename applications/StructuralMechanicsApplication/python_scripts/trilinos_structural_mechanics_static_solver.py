@@ -27,3 +27,6 @@ class TrilinosStaticMechanicalSolver(trilinos_structural_mechanics_solver.Trilin
         # Construct the base solver.
         super(TrilinosStaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
         print("::[TrilinosStaticMechanicalSolver]:: Construction finished")
+
+    def _create_solution_scheme(self):
+        return TrilinosApplication.TrilinosResidualBasedIncrementalUpdateStaticScheme()

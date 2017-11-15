@@ -115,8 +115,8 @@ public:
     /**
      *
      */
-    void AdjustToCylinder( ModelPart& model_part, Point<3> center, Point<3> e1,
-                           Point<3> e2, Point<3> e3)
+    void AdjustToCylinder( ModelPart& model_part,Point center,Point e1,
+                          Point e2,Point e3)
     {
 
     }//AdjustToCylinder
@@ -129,7 +129,7 @@ public:
      * @param e2 point on the circle above the midpoint and orthogonal to e2
      * @param e3 point on the direction vector of the cylinder
      */
-    void AdjustToClosedCylinder( ModelPart& model_part, Point<3> center, Point<3> e1, Point<3> e2, Point<3> e3)
+    void AdjustToClosedCylinder( ModelPart& model_part,Point center,Point e1,Point e2,Point e3)
     {
         std::cout<<"####################### AdjustToClosedCylinder - START"<<std::endl;
 
@@ -197,7 +197,7 @@ public:
     {
         for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin(); it!=model_part.Elements().ptr_end(); ++it)
         {
-            Point<3> center = (*it)->GetGeometry().Center();
+           Point center = (*it)->GetGeometry().Center();
             if (cylinder.IsInBigger(center)) vicinityelements.push_back((*it)->Id());
         }
 
@@ -219,17 +219,17 @@ public:
      * @param cylinder closed cylinder
      * @return intersection
      */
-    Point<3> Intersection(Point<3> k0, Point<3> k1, ClosedCylinder3D cylinder)
+   Point Intersection(Point k0,Point k1, ClosedCylinder3D cylinder)
     {
-        Point<3> b(0,0,0);
-        Point<3> m = cylinder.GetCenter();
-        Point<3> e1 = cylinder.GetR1();
-        Point<3> e2 = cylinder.GetR2();
-        Point<3> e3 = cylinder.GetR3();
+       Point b(0,0,0);
+       Point m = cylinder.GetCenter();
+       Point e1 = cylinder.GetR1();
+       Point e2 = cylinder.GetR2();
+       Point e3 = cylinder.GetR3();
         Matrix A = ZeroMatrix(3,3);
         Matrix invA = ZeroMatrix(3,3);
         double detA = 0;
-        Point<3> solution(0,0,0);
+       Point solution(0,0,0);
         b = k0 - m - e3;
         for (int i=0; i<3; ++i)
         {
@@ -249,9 +249,9 @@ public:
      * @param b vector
      * @return x
      */
-    Point<3> InvAb(Matrix &invA, Point<3> &b)
+   Point InvAb(Matrix &invA,Point &b)
     {
-        Point<3> x(0,0,0);
+       Point x(0,0,0);
 
         for( unsigned int i=0; i<invA.size1(); ++i )
         {
@@ -264,11 +264,11 @@ public:
         return x;
     }
 
-    void AdjustToCircle( ModelPart& model_part, Point<3> center, Point<3> e1, Point<3> e2 )
+    void AdjustToCircle( ModelPart& model_part,Point center,Point e1,Point e2 )
     {
     }
 
-    void AdjustNodes( ModelPart& model_part, Point<3>& newPosition )
+    void AdjustNodes( ModelPart& model_part,Point& newPosition )
     {
     }
 
@@ -284,7 +284,7 @@ public:
         //loop over all elements
         for( std::vector<int>::iterator it=vicinityelements.begin(); it != vicinityelements.end(); ++it)
         {
-            Point<3> center = model_part.GetElement(*it).GetGeometry().Center();
+           Point center = model_part.GetElement(*it).GetGeometry().Center();
             if( cylinder.IsInorOn( center ) )
             {
 //                         bool allnodesinside = true;
@@ -310,7 +310,7 @@ public:
      * @retval true if an element could be found which contains the point
      */
     bool FindElement( WeakPointerVector<Element>& elements_set, CoordinatesArrayType& point,
-                      int& elem_id, Point<3>&  rResult )
+                      int& elem_id,Point&  rResult )
     {
         for( WeakPointerVector<Element>::iterator it = elements_set.begin(); it != elements_set.end(); ++it )
         {
@@ -340,9 +340,9 @@ public:
                 //loop over all nodes of the current surface
                 for (unsigned int inode=0; inode < (*it)->GetGeometry().size(); ++inode)
                 {
-                    Point<3> old_position = (*it)->GetGeometry()[inode].GetInitialPosition();
-                    Point<3> new_position = cylinder.ClosestPointOnWall(old_position);
-                    Point<3> distance = new_position - old_position;
+                   Point old_position = (*it)->GetGeometry()[inode].GetInitialPosition();
+                   Point new_position = cylinder.ClosestPointOnWall(old_position);
+                   Point distance = new_position - old_position;
                     double dist = pow(distance[0],2.0)+pow(distance[1],2.0)+pow(distance[2],2.0);
                     if ( dist > 0.000001)
                     {
@@ -376,21 +376,21 @@ public:
         //loop over all nodes
         for (std::vector<int>::iterator it=cap_nodes.begin(); it != cap_nodes.end(); ++it)
         {
-            Point<3> old_position = model_part.GetNode(*it).GetInitialPosition();
-            Point<3> new_position = cylinder.ClosestPointOnCap(old_position);
-            Point<3> distance = new_position - old_position;
+           Point old_position = model_part.GetNode(*it).GetInitialPosition();
+           Point new_position = cylinder.ClosestPointOnCap(old_position);
+           Point distance = new_position - old_position;
             double dist = pow(distance[0],2.0)+pow(distance[1],2.0)+pow(distance[2],2.0);
             if ( dist > 0.000001)
             {
                 //the new node position is different from the old one
-                Point<3> step = (new_position - old_position) / 10;
+               Point step = (new_position - old_position) / 10;
 
                 //neighbour elements of the node
                 WeakPointerVector<Element>& rneigh_el = model_part.GetNode(*it).GetValue(NEIGHBOUR_ELEMENTS);
 
                 for (int i=0; i<10; ++i)
                 {
-                    Point<3> spstep = old_position + step*(i+1);
+                   Point spstep = old_position + step*(i+1);
                     //move the node
                     if (!MoveNode( model_part, rneigh_el, model_part.GetNode(*it), spstep)) std::cout << "node " << model_part.GetNode(*it).Id() << " could not be moved from " << model_part.GetNode(*it).GetInitialPosition() << " to " << spstep << std::endl;
                     else
@@ -450,8 +450,8 @@ public:
                 {
                     //element runs through cylinder
                     std::cout << "element is running through cylinder with nodes " << edge->pGetPoint(node0)->Id() << " and " << edge->pGetPoint(node1)->Id() << std::endl;
-                    Point<3> old_position = edge->pGetPoint(node0)->GetInitialPosition();
-                    Point<3> new_position = cylinder.ClosestPointOnCap(old_position);
+                   Point old_position = edge->pGetPoint(node0)->GetInitialPosition();
+                   Point new_position = cylinder.ClosestPointOnCap(old_position);
 
                     //check if there is already a node at the new_position
                     WeakPointerVector< Node<3> >& rneigh_nodes = edge->pGetPoint(node0)->GetValue(NEIGHBOUR_NODES);
@@ -461,8 +461,8 @@ public:
                         if(new_position == rneigh_nodes[i].GetInitialPosition())
                         {
                             //the current node is on the new_position
-                            Point<3> old_position2 = rneigh_nodes[i].GetInitialPosition();
-                            Point<3> new_position2 = old_position2 + 0.5*(old_position2 - old_position);
+                           Point old_position2 = rneigh_nodes[i].GetInitialPosition();
+                           Point new_position2 = old_position2 + 0.5*(old_position2 - old_position);
                             WeakPointerVector<Element>& rneigh_el2 = rneigh_nodes[i].GetValue(NEIGHBOUR_ELEMENTS);
                             //move the node
                             if (!MoveNode( model_part, rneigh_el2, rneigh_nodes[i], new_position2)) std::cout << "node " << rneigh_nodes[i].Id() << " could not be moved from " << rneigh_nodes[i].GetInitialPosition() << " to " << new_position2 << std::endl;
@@ -475,7 +475,7 @@ public:
                         }
                     }
 
-                    Point<3> step = (new_position - old_position) / 10;
+                   Point step = (new_position - old_position) / 10;
 
                     WeakPointerVector<Element>& rneigh_el = edge->pGetPoint(node0)->GetValue(NEIGHBOUR_ELEMENTS);
 
@@ -483,7 +483,7 @@ public:
                     for (int i=0; i<10; ++i)
                     {
                         //calculate new node position
-                        Point<3> spstep = old_position + step*(i+1);
+                       Point spstep = old_position + step*(i+1);
 
                         //move the node onto the cap
                         if (!MoveNode( model_part, rneigh_el, *(edge->pGetPoint(node0)), spstep)) std::cout << "node " << edge->pGetPoint(node0)->Id() << " could not be moved from " << edge->pGetPoint(node0)->GetInitialPosition() << " to " << spstep << std::endl;
@@ -526,8 +526,8 @@ public:
                                  iedd->pGetPoint(2)->FastGetSolutionStepValue( IS_VISITED ) == 3 ) )
                         {
                             //one of the edge's nodes is visited
-                            Point<3> new_position = 0.5 * (iedd->pGetPoint(0)->GetInitialPosition() + iedd->pGetPoint(2)->GetInitialPosition());
-                            Point<3> point = new_position - iedd->pGetPoint(1)->GetInitialPosition();
+                           Point new_position = 0.5 * (iedd->pGetPoint(0)->GetInitialPosition() + iedd->pGetPoint(2)->GetInitialPosition());
+                           Point point = new_position - iedd->pGetPoint(1)->GetInitialPosition();
                             double distance = pow(point[0],2.0)+pow(point[1],2.0)+pow(point[2],2.0);
 
                             if ( distance > 0.000001 )
@@ -557,11 +557,11 @@ public:
      * finite element deformation in interactive surgery simulation
      * UU-CS-2001-16 (2001)
      */
-    bool MoveNode( ModelPart& model_part, WeakPointerVector<Element>& adjacent_elems, Node<3>& rNode, Point<3>& newPosition )
+    bool MoveNode( ModelPart& model_part, WeakPointerVector<Element>& adjacent_elems, Node<3>& rNode,Point& newPosition )
     {
         int elem_id = 0;
 
-        Point<3> newLocalPoint;
+       Point newLocalPoint;
         //find element, the new point lies within
         if( FindElement( adjacent_elems, newPosition, elem_id, newLocalPoint ) )
         {
@@ -569,7 +569,7 @@ public:
             //map all variables to the new position
             MapNodalValues( rNode, elem, newLocalPoint );
             //determine current deformation state in newLocalPoint
-            Point<3> undeformed_point( 0.0, 0.0, 0.0 );
+           Point undeformed_point( 0.0, 0.0, 0.0 );
             undeformed_point = newPosition - rNode.GetSolutionStepValue(DISPLACEMENT);
             //move node to new undeformed_point
             rNode.SetInitialPosition( undeformed_point );
@@ -587,7 +587,7 @@ public:
      * @param elem element the local point lies inside
      * @param localPoint point from which all values are maped
      */
-    void MapNodalValues( Node<3>& rNode, Element::Pointer& elem, Point<3> localPoint )
+    void MapNodalValues( Node<3>& rNode, Element::Pointer& elem,Point localPoint )
     {
         if(rNode.HasDofFor(DISPLACEMENT_X)
                 || rNode.HasDofFor(DISPLACEMENT_Y)
@@ -649,8 +649,8 @@ public:
      * @param rThisVariable variabletype which should be calculated at the local point
      * @return newValue
      */
-    //double MappedValue( Node<3>& node, Element::Pointer& elem, Point<3>& localPoint,
-    double MappedValue( Element::Pointer& elem, Point<3>& localPoint,
+    //double MappedValue( Node<3>& node, Element::Pointer& elem,Point& localPoint,
+    double MappedValue( Element::Pointer& elem,Point& localPoint,
                         const Variable<double>& rThisVariable )
     {
         double newValue = 0.0;
@@ -671,7 +671,7 @@ public:
      * @param rThisVariable variabletype which should be calculated at the local point
      * @return newValue
      */
-    Vector MappedValue( Element::Pointer& elem, Point<3>& localPoint,
+    Vector MappedValue( Element::Pointer& elem,Point& localPoint,
                         const Variable<array_1d<double, 3 > >& rThisVariable)
     {
         Vector newValue = ZeroVector(3);
@@ -692,7 +692,7 @@ public:
      * @param rThisVariable variabletype which should be calculated at the local point
      * @return newValue
     */
-    Vector MappedValue( Element::Pointer& elem, Point<3>& localPoint, const Variable<Kratos::Vector>& rThisVariable)
+    Vector MappedValue( Element::Pointer& elem,Point& localPoint, const Variable<Kratos::Vector>& rThisVariable)
     {
         Vector newValue = ZeroVector(6);
 
@@ -1130,7 +1130,7 @@ public:
 //                 for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin(); it!=model_part.Elements().ptr_end(); ++it){
 //                     //get integration points
 //                     GeometryType::IntegrationPointsArrayType integration_points = (*it)->GetGeometry().IntegrationPoints( (*it)->GetIntegrationMethod() );
-//                     Point<3> coords;
+//                    Point coords;
 //                     std::vector<Vector> InsituStresses;
 //                     Vector InsituStress = ZeroVector(6);
 //                     for( unsigned int i=0; i< integration_points.size(); i++ ){
@@ -1158,7 +1158,7 @@ public:
             GeometryType::IntegrationPointsArrayType integration_points = (*it)->GetGeometry().IntegrationPoints( (*it)->GetIntegrationMethod() );
             std::vector<Vector> ValuesOnIntPoint(integration_points.size());
             (*it)->GetValueOnIntegrationPoints(INSITU_STRESS, ValuesOnIntPoint, model_part.GetProcessInfo());
-            Point<3> coords;
+           Point coords;
             for( unsigned int i=0; i<integration_points.size(); i++ )
             {
                 (*it)->GetGeometry().GlobalCoordinates(coords, integration_points[i]);
@@ -1178,7 +1178,7 @@ public:
 
         for (std::map<int, int>::iterator it=vicinitynodes.begin(); it != vicinitynodes.end(); ++it)
         {
-            Point<3> point = model_part.GetNode(it->first).GetInitialPosition();
+           Point point = model_part.GetNode(it->first).GetInitialPosition();
             for (int i=0; i<3; ++i)
             {
                 error = model_part.GetNode(it->first).GetSolutionStepValue(INSITU_STRESS)[i] -  point[i];

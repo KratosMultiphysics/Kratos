@@ -187,12 +187,12 @@ protected:
     /**
      * Calculation of the Contact Multipliers or Penalty Factors
      */
-    virtual void CalculateExplicitFactors(GeneralVariables& rVariables,
+    virtual void CalculateExplicitFactors(ConditionVariables& rVariables,
 					  ProcessInfo& rCurrentProcessInfo);
     /**
      * Tangent Matrix construction methods:
      */
-    void CalculateDomainShapeN(GeneralVariables& rVariables);
+    void CalculateDomainShapeN(ConditionVariables& rVariables);
 
 
     /**
@@ -203,7 +203,7 @@ protected:
     /**
      * Calculation of the Material Stiffness Matrix by components
      */
-    virtual void CalculateContactStiffness (double &Kcont,GeneralVariables& rVariables,
+    virtual void CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,
 					    unsigned int& ndi,unsigned int& ndj,
 					    unsigned int& idir,unsigned int& jdir);
 
@@ -211,31 +211,31 @@ protected:
     /**
      * Normal Force construction by components
      */
-    virtual void CalculateNormalForce       (double &F,GeneralVariables& rVariables,
+    virtual void CalculateNormalForce       (double &F,ConditionVariables& rVariables,
 					     unsigned int& ndi,unsigned int& idir);
 
     /**
      * Tangent Stick Force construction by components
      */
-    virtual void CalculateTangentStickForce (double &F,GeneralVariables& rVariables,
+    virtual void CalculateTangentStickForce (double &F,ConditionVariables& rVariables,
 					     unsigned int& ndi,unsigned int& idir);
     /**
      * Tangent Slip Force construction by components
      */
-    virtual void CalculateTangentSlipForce  (double &F,GeneralVariables& rVariables,
+    virtual void CalculateTangentSlipForce  (double &F,ConditionVariables& rVariables,
 					     unsigned int& ndi,unsigned int& idir);
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-    inline bool CheckFictiousContacts(GeneralVariables& rVariables);
+    inline bool CheckFictiousContacts(ConditionVariables& rVariables);
 
     PointType& CalculateCurrentTangent(PointType &rTangent);
 
-    void FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& AuxVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr);
+    void FSigmaP(ConditionVariables& rVariables, std::vector<Vector > &SigmaP, PointType& AuxVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr);
 
-    void FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& AuxVector,unsigned int &ndi,unsigned int &ndj);
+    void FSigmaPnd(ConditionVariables& rVariables, std::vector<Vector > &SigmaP, PointType& AuxVector,unsigned int &ndi,unsigned int &ndj);
 
 
 

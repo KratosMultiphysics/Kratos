@@ -20,9 +20,7 @@
 #include "custom_utilities/contact_utilities.h"
 #include "utilities/table_stream_utility.h"
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
-#if !defined(_WIN32)
-    #include "utilities/color_utilities.h"
-#endif
+#include "utilities/color_utilities.h"
 
 namespace Kratos
 {
@@ -113,6 +111,29 @@ public:
     ///@{
     
     /**
+     * Criterias that need to be called before getting the solution
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     * @return true if convergence is achieved, false otherwise
+     */
+    
+    bool PreCriteria(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        BaseType::PreCriteria(rModelPart, rDofSet, A, Dx, b);
+        
+        return true;
+    }
+    
+    /**
      * Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
@@ -130,7 +151,8 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
+        // We call the base class
+        BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
         
         // Defining the convergence
         unsigned int is_converged_active = 0;
@@ -212,8 +234,6 @@ public:
                 }
                 else
                 {
-                    (it_node)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = zero_vector; // NOTE: To clear the value (can affect future iterations)
-                    
                     if ((it_node)->Is(ACTIVE) == true )
                     {
                         (it_node)->Set(ACTIVE, false);
@@ -233,11 +253,7 @@ public:
                 {
                     if (mPrintingOutput == false)
                     {
-                    #if !defined(_WIN32)
                         table << BOLDFONT(FGRN("       Achieved"));
-                    #else
-                        table << "Achieved";
-                    #endif
                     }
                     else
                     {
@@ -248,11 +264,7 @@ public:
                 {
                     if (mPrintingOutput == false)
                     {
-                    #if !defined(_WIN32)
                         table << BOLDFONT(FRED("   Not achieved"));
-                    #else
-                        table << "Not achieved";
-                    #endif
                     }
                     else
                     {
@@ -263,11 +275,7 @@ public:
                 {
                     if (mPrintingOutput == false)
                     {
-                    #if !defined(_WIN32)
                         table << BOLDFONT(FGRN("       Achieved"));
-                    #else
-                        table << "Achieved";
-                    #endif
                     }
                     else
                     {
@@ -278,11 +286,7 @@ public:
                 {
                     if (mPrintingOutput == false)
                     {
-                    #if !defined(_WIN32)
                         table << BOLDFONT(FRED("   Not achieved"));
-                    #else
-                        table << "Not achieved";
-                    #endif
                     }
                     else
                     {
@@ -296,11 +300,7 @@ public:
                 {
                     if (mPrintingOutput == false)
                     {
-                    #if !defined(_WIN32)
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                    #else
-                        std::cout << "\tActive set convergence is achieved" << std::endl;
-                    #endif
                     }
                     else
                     {
@@ -311,11 +311,7 @@ public:
                 {
                     if (mPrintingOutput == false)
                     {
-                    #if !defined(_WIN32)
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
-                    #else
-                        std::cout << "\tActive set convergence is not achieved" << std::endl;
-                    #endif
                     }
                     else
                     {
@@ -327,11 +323,7 @@ public:
                 {
                     if (mPrintingOutput == false)
                     {
-                    #if !defined(_WIN32)
                         std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                    #else
-                        std::cout << "\tSlip/stick set convergence is achieved" << std::endl;
-                    #endif
                     }
                     else
                     {
@@ -342,11 +334,7 @@ public:
                 {
                     if (mPrintingOutput == false)
                     {
-                    #if !defined(_WIN32)
                         std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
-                    #else
-                        std::cout << "\tSlip/stick set  convergence is not achieved" << std::endl;
-                    #endif
                     }
                     else
                     {
@@ -487,7 +475,27 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    
+    /**
+     * This method resets the weighted gap in the nodes of the problem
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     */
+    
+    void ResetWeightedGap(ModelPart& rModelPart) override
+    {       
+        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
 
+        #pragma omp parallel for 
+        for(int i = 0; i < num_nodes; i++) 
+        {
+            auto it_node = nodes_array.begin() + i;
+            
+            it_node->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
+            it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
+        }
+    }
+    
     ///@}
     ///@name Protected  Access
     ///@{

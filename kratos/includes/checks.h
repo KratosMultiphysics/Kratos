@@ -58,21 +58,20 @@ try {                                                                           
 
 #define KRATOS_CHECK_VARIABLE_KEY(TheVariable)                               \
     KRATOS_ERROR_IF(TheVariable.Key() == 0)                                  \
-        << #TheVariable << " Key is 0." << std::endl                         \
+        << TheVariable.Name() << " Key is 0." << std::endl                   \
         << "Check that Kratos variables have been correctly registered and " \
            "all required applications have been imported."                   \
         << std::endl;
 
-#define KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)             \
-    KRATOS_ERROR_IF_NOT(TheNode.SolutionStepsDataHas(TheVariable))            \
-        << "Missing " << #TheVariable                                         \
-        << " variable in solution step data for node " << TheNode.Id() << "." \
-        << std::endl;
-
-#define KRATOS_CHECK_DOF_IN_NODE(TheVariable, TheNode)                     \
-    KRATOS_ERROR_IF_NOT(TheNode.HasDofFor(TheVariable))                    \
-        << "Missing Degree of Freedom for " << #TheVariable << " in node " \
+#define KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)                          \
+    KRATOS_ERROR_IF_NOT(TheNode.SolutionStepsDataHas(TheVariable))                         \
+        << "Missing " << TheVariable.Name() << " variable in solution step data for node " \
         << TheNode.Id() << "." << std::endl;
+
+#define KRATOS_CHECK_DOF_IN_NODE(TheVariable, TheNode)            \
+    KRATOS_ERROR_IF_NOT(TheNode.HasDofFor(TheVariable))           \
+        << "Missing Degree of Freedom for " << TheVariable.Name() \
+        << " in node " << TheNode.Id() << "." << std::endl;
 
 #ifdef KRATOS_DEBUG
 #define KRATOS_DEBUG_CHECK(IsTrue) KRATOS_CHECK(IsTrue)

@@ -1,0 +1,147 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "beam2D_line_load_test",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "solve_problem"   : true,
+        "problem_type"    : "solid",
+        "parallel_type"   : "OpenMP",
+        "time_step"       : 0.0005,
+        "start_time"      : 0.0,
+        "end_time"        : 0.005,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "structural_mechanics_implicit_dynamic_solver",
+        "echo_level"                         : 0,
+        "time_integration_method"            : "implicit",
+        "scheme_type"                        : "newmark",
+        "model_import_settings"              : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "mmg_lagrangian_test/beam2D_line_load_test",
+            "input_file_label" : 0
+        },
+        "material_import_settings" :{
+            "materials_filename": "mmg_lagrangian_test/materials_2D.json"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "linear_solver_settings"             : {
+            "solver_type" : "SuperLUSolver",
+            "scaling"     : false
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
+        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","LineLoad2D_Load_on_lines_Auto1"]
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
+            "variable_name"   : "LINE_LOAD",
+            "modulus"         : -1.0e7,
+            "direction"       : [0.0,1,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "_output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "MultipleFiles"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION"],
+            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    },
+    "recursive_remeshing_process" :[
+    {
+        "python_module"   : "mmg_process",
+        "kratos_module"   : "KratosMultiphysics.MeshingApplication",
+        "help"                  : "This process automatically remesh using MMG library",
+        "process_name"          : "MmgProcess",
+        "Parameters"            : {
+            "model_part_name"                  : "MainModelPart",
+            "strategy"                         : "Hessian",
+            "hessian_strategy_parameters"              :{
+                "metric_variable"                  : ["DISPLACEMENT"],
+                "interpolation_error"              : 0.004
+            },
+            "framework"                            : "Lagrangian",
+            "automatic_remesh"                 : true,
+            "automatic_remesh_parameters"      :{
+                "automatic_remesh_type"            : "Ratio",
+                "min_size_ratio"                   : 0.5,
+                "max_size_ratio"                   : 1.0,
+                "refer_type"                       : "Mean"
+            },
+            "initial_remeshing"                : false,
+            "step_frequency"                   : 10,
+            "enforce_current"                   : true,
+            "filename"                         : "mmg_lagrangian_test/beam2D_line_load_test",
+            "save_external_files"               : true,
+            "anisotropy_remeshing"              : false,
+            "echo_level"                        : 0,
+            "debug_mode"                        : false
+        }
+    }
+    ],
+    "compare_two_files_check_process" :[
+    {
+        "python_module"   : "compare_two_files_check_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"                  : "This process compares two files and executes an Unittest Assert",
+        "process_name"          : "CompareTwoFilesCheckProcess",
+        "Parameters"            : {
+            "file_name_1"            : "mmg_lagrangian_test/beam2D_line_load_test_step=10.sol",
+            "file_name_2"            : "mmg_lagrangian_test/beam2D_line_load_test_result.sol",
+            "deterministic"          : false,
+            "error_assumed"          : 1.0e-6,
+            "dimension"              : 2,
+            "non_deterministic_comp" : "sol_file"
+        }
+    }
+    ]
+}

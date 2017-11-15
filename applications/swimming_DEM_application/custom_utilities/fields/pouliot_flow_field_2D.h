@@ -201,11 +201,9 @@ private:
 ///@name Member r_variables
 ///@{
 
-double mA;
-double mD;
 std::vector<int> mCoordinatesAreUpToDate;
-std::vector<double> mExpX;
-std::vector<double> mExpY;
+std::vector<double> mX;
+std::vector<double> mY;
 
 ///@}
 ///@name Private Operators

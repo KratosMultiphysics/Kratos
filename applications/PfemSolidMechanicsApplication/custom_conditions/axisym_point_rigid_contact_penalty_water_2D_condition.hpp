@@ -88,18 +88,18 @@ namespace Kratos
          AxisymPointRigidContactPenaltyWater2DCondition() {};
 
          virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-               GeneralVariables& rVariables,
+               ConditionVariables& rVariables,
                double& rIntegrationWeight);
 
          virtual void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
-               GeneralVariables& rVariables,
+               ConditionVariables& rVariables,
                double& rIntegrationWeight);
 
          /**
           * Calculation of the Contact Forces Vector
           */
          virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
-               GeneralVariables& rVariables,
+               ConditionVariables& rVariables,
                double& rIntegrationWeight );
 
       private:

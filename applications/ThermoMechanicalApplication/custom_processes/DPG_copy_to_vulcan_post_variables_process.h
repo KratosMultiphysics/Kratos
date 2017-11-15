@@ -56,7 +56,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "includes/define.h"
 #include "includes/c2c_variables.h"
-#include "includes/deprecated_variables.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "utilities/geometry_utilities.h"
@@ -287,7 +286,7 @@ namespace Kratos
 
 					 double& temp = i_node->FastGetSolutionStepValue(TEMPERATURES);
 					 temp = i_node->FastGetSolutionStepValue(TEMPERATURE);
-// 					 i_node->FastGetSolutionStepValue(SOLID_FRACTION) = i_node->FastGetSolutionStepValue(DP_ALPHA1);
+// 					 i_node->FastGetSolutionStepValue(SOLIDFRACTION) = i_node->FastGetSolutionStepValue(DP_ALPHA1);
 
 					 if(temp<min_wet_temp)
 							 temp = min_wet_temp;
@@ -308,7 +307,7 @@ namespace Kratos
 					// i_node->FastGetSolutionStepValue(TEMPERATURES) = 0.95*min_wet_temp;
 					 i_node->FastGetSolutionStepValue(TEMPERATURES) = print_temperature; //0.998*min_wet_temp;
 					 //i_node->FastGetSolutionStepValue(TEMPERATURES) = i_node->FastGetSolutionStepValue(TEMPERATURE);
-// 					 i_node->FastGetSolutionStepValue(SOLID_FRACTION) = 0.00;
+// 					 i_node->FastGetSolutionStepValue(SOLIDFRACTION) = 0.00;
 				 }
 
 			  }
@@ -336,7 +335,7 @@ namespace Kratos
 
 					 double& temp = i_node->FastGetSolutionStepValue(TEMPERATURES_US);
 					 temp = (1.8 * i_node->FastGetSolutionStepValue(TEMPERATURE) + 32.0);
-					 //i_node->FastGetSolutionStepValue(SOLID_FRACTION) = i_node->FastGetSolutionStepValue(DP_ALPHA1);
+					 //i_node->FastGetSolutionStepValue(SOLIDFRACTION) = i_node->FastGetSolutionStepValue(DP_ALPHA1);
 
 					 if(temp<min_wet_temp)
 							 temp = min_wet_temp;
@@ -349,7 +348,7 @@ namespace Kratos
 					 i_node->FastGetSolutionStepValue(PRESSURES) = 0.00;
 					 i_node->FastGetSolutionStepValue(TEMPERATURES_US) = (1.8 * print_temperature + 32.0) ;
 					 //i_node->FastGetSolutionStepValue(TEMPERATURES) = (1.8 * print_temperature + 32.0) ;
-					 //i_node->FastGetSolutionStepValue(SOLID_FRACTION) = 0.00;
+					 //i_node->FastGetSolutionStepValue(SOLIDFRACTION) = 0.00;
 				 }
 
 			  }

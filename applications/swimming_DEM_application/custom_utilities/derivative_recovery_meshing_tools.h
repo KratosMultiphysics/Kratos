@@ -81,7 +81,7 @@ virtual ~DerivativeRecoveryMeshingTools(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void FillUpEdgesModelPartFromTetrahedraModelPart(ModelPart& r_edges_model_part, ModelPart& r_tetra_model_part, std::string element_type);
+void FillUpEdgesModelPartFromSimplicesModelPart(ModelPart& r_edges_model_part, ModelPart& r_tetra_model_part, std::string element_type);
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************

@@ -23,7 +23,6 @@
 #include "containers/data_value_container.h"
 //#include "containers/hash_data_value_container.h"
 // #include "containers/variables_list_data_value_container.h"
-// #include "containers/fix_data_value_container.h"
 // #include "containers/vector_component_adaptor.h"
 #include "containers/flags.h"
 //#include "containers/all_variables_data_value_container.h"
@@ -40,36 +39,6 @@
 // #include "includes/radiation_settings.h"
 #include "utilities/timer.h"
 
-
-
-#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
-#undef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
-#endif
-#define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
- scope().attr(#flag) = boost::ref(flag)      \
- 
-#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
-#undef KRATOS_REGISTER_IN_PYTHON_FLAG
-#endif
-#define KRATOS_REGISTER_IN_PYTHON_FLAG(flag) \
-    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
-    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
-
-#ifdef KRATOS_REGISTER_IN_PYTHON_VARIABLE
-#undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
-#endif
-#define KRATOS_REGISTER_IN_PYTHON_VARIABLE(variable) \
-    scope().attr(#variable) = boost::ref(variable);
-
-
-#ifdef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
-#undef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
-#endif
-#define KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(name) \
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name) \
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_X) \
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Y) \
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Z)
 
 namespace Kratos
 {
@@ -144,9 +113,5 @@ void  AddC2CVariablesToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(NIYAMA)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(TEMPERATURE_GRADIENT)
 }
-}  // namespace Python.
+} // namespace Python.
 } // Namespace Kratos
-
-#undef KRATOS_REGISTER_IN_PYTHON_FLAG
-#undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
-#undef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS

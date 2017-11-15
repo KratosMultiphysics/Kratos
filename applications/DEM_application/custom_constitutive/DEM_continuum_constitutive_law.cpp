@@ -103,8 +103,8 @@ namespace Kratos {
 
         //mDensity = element1_props[PARTICLE_DENSITY];
         //other_density = element2_props[PARTICLE_DENSITY];
-        //double m1 = 4/3 * KRATOS_M_PI * my_radius * my_radius * my_radius * mDensity;
-        //double m2 = 4/3 * KRATOS_M_PI * other_radius * other_radius * other_radius * other_density;
+        //double m1 = 4/3 * Globals::Pi * my_radius * my_radius * my_radius * mDensity;
+        //double m2 = 4/3 * Globals::Pi * other_radius * other_radius * other_radius * other_density;
 
         const double mRealMass = element1->GetMass();  // { mRealMass = real_mass;  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = real_mass;}
         const double &other_real_mass = element2->GetMass();

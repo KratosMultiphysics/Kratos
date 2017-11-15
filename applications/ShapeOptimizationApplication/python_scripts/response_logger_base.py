@@ -23,19 +23,19 @@ CheckForPreviousImport()
 class ResponseLogger():
 
     # --------------------------------------------------------------------------
-    def initializeLogging( self ):
-        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> initializeLogging << .")
+    def InitializeLogging( self ):
+        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> InitializeLogging << .")
 
     # --------------------------------------------------------------------------
-    def logCurrentResponses( self, optimizationIteration ):
-        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> logCurrentResponses << .")
+    def LogCurrentResponses( self, optimizationIteration ):
+        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> LogCurrentResponses << .")
 
     # --------------------------------------------------------------------------
-    def finalizeLogging( self ):      
-        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> finalizeLogging << .")
+    def FinalizeLogging( self ):      
+        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> FinalizeLogging << .")
 
     # --------------------------------------------------------------------------
-    def getValue( self, variableKey ):
-        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> getValue << .")
+    def GetValue( self, variableKey ):
+        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> GetValue << .")
 
 # ==============================================================================

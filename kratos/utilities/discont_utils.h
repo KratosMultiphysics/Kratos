@@ -97,19 +97,9 @@ public:
         rGradientsValue[4]=ZeroMatrix(4,3);
         rGradientsValue[5]=ZeroMatrix(4,3);
         Nenriched=ZeroMatrix(6,4);
-        //rGPShapeFunctionValues=ZeroMatrix(6,4);
 
         double tot_vol;
         CalculateGeometryData(rPoints, DN_DX, tot_vol);
-
-// KRATOS_WATCH("                                                ");
-
-        /*const int edges[4][4] = {
-            {-1, 0, 1, 2},
-            { 0, -1, 3, 4},
-            { 1, 3, -1, 5},
-            { 2, 4, 5, -1}
-        };*/
 
         const double epsilon = 1e-15; //1.00e-9;
         const double near_factor = 1.00e-12;
@@ -137,20 +127,11 @@ public:
         int new_node_id = 4;
         bounded_matrix<double, 4, 4 > length = ZeroMatrix(4, 4);
 
-        //int n_zero_distance_nodes = 0;
         int n_negative_distance_nodes = 0;
         int n_positive_distance_nodes = 0;
-        array_1d<int,4> signs(4,-2);//[] = {-2, -2, -2, -2};
-        //int zero_distance_nodes[] = {-1, -1, -1, -1};
-        array_1d<int,4> negative_distance_nodes(4,-1);//[] = {-1, -1, -1, -1};
-        array_1d<int,4> positive_distance_nodes(4,-1);//[] = {-1, -1, -1, -1};
-        /*
-        for (int i = 0; i < 6; i++)
-            for (int j = 0; j < n_nodes; j++)
-                rShapeFunctionValues(i, j) = 0.25;
-        */
-
-
+        array_1d<int,4> signs(4,-2); // [] = {-2, -2, -2, -2};
+        array_1d<int,4> negative_distance_nodes(4,-1); // [] = {-1, -1, -1, -1};
+        array_1d<int,4> positive_distance_nodes(4,-1); // [] = {-1, -1, -1, -1};
 
         //compute the gradient of the distance and normalize it
         array_1d<double, 3 > grad_d;
@@ -194,10 +175,11 @@ public:
             {
                 collapsed_node[i] = true;
                 rDistances[i] = 0.0;
-// 		 KRATOS_WATCH("********************************!!!!!!!!!!!!!!!!!!!!!!!!!!!! collapsed node")
             }
             else
+            {
                 collapsed_node[i] = false;
+            }
 
             abs_distance[i] = std::abs(rDistances[i]);
         }
@@ -210,9 +192,6 @@ public:
             if (rDistances[i] * rDistances[j] < 0.0)
             {
                 const double tmp = std::abs(rDistances[i]) / (std::abs(rDistances[i]) + std::abs(rDistances[j]));
-// 		    const double d = std::abs(edges_dx[edge] * grad_d[0] + edges_dy[edge] * grad_d[1] + edges_dz[edge] * grad_d[2]);
-// 		    abs_distance[i] = d * tmp;
-// 		    abs_distance[j] = d * (1.0 - tmp);
 
                 if (collapsed_node[i] == false && collapsed_node[j] == false)
                 {
@@ -226,11 +205,6 @@ public:
 
                     new_node_id++;
                 }
-// 		    else
-// 		    {
-// 		       if(collapsed_node[i] == true) split_edge[edge + 4] = i;
-// 		       else split_edge[edge + 4] = j;
-// 		    }
             }
         }
 
@@ -256,14 +230,6 @@ public:
 
         for (int i_node = 0; i_node < n_nodes; i_node++)
         {
-//                 if (collapsed_node[i_node] == true)
-// 		{
-// 		    abs_distance[i_node] = 0.0;
-// 		    signs[i_node] = 1;
-// 		    positive_distance_nodes[n_negative_distance_nodes++] = i_node;
-// //                     zero_distance_nodes[n_zero_distance_nodes++] = i_node;
-// 		}
-//                 else
             if (rDistances[i_node] < 0.00)
             {
                 signs[i_node] = -1;
@@ -308,15 +274,9 @@ public:
         //            KRATOS_WATCH(volume)
         if (number_of_splitted_edges == 0) // no splitting
         {
-
             rVolumes[0] = volume;
             sub_volumes_sum = volume;
-//                 // Looking for the first node with sign not zero to get the sign of the element.
-//                 for (int i_node = 0; i_node < n_nodes; i_node++)
-//                     if (signs[i_node] != 0) {
-//                         rPartitionsSign[0] = signs[i_node];
-//                         break;
-//                     }
+
             //take the sign from the node with min distance
             double min_distance = 1e9;
             for (int j = 0; j < 4; j++)
@@ -347,16 +307,13 @@ public:
             TetrahedraSplit::Split_Tetrahedra(edge_ids, t, &nel, &n_splitted_edges, &nint);
             array_1d<double,4> local_subtet_indices;
 
-
-
             if (nint != 0)
             {
                 KRATOS_ERROR << "Requiring an internal node for splitting ... can not accept this";
             }
 
-
             //now obtain the tetras and compute their center coordinates and volume
-	    noalias(edge_areas) = ZeroVector(6);
+            noalias(edge_areas) = ZeroVector(6);
             array_1d<double, 3 > center_position;
             for (int i = 0; i < nel; i++)
             {
@@ -371,8 +328,6 @@ public:
                 local_subtet_indices[3] = t[i*4+3];
 
                 AddToEdgeAreas<3>(edge_areas,exact_distance,local_subtet_indices,sub_volume);
-
-
 
                 boost::numeric::ublas::bounded_matrix<double, 4, 3 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
                 boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX_subdomain; //used to retrieve derivatives
@@ -391,7 +346,6 @@ public:
                     }
 
                 CalculateGeometryData(coord_subdomain, DN_DX_subdomain, temp_area);
-
 
                 rVolumes[i] = sub_volume;
 
@@ -447,7 +401,6 @@ public:
 
                             }
 
-
                             if (add_contribution)
                             {
                                 Nenriched(i,j)+=one_quarter; //partition, shape function
@@ -460,32 +413,10 @@ public:
                     }
                     //else //do nothing. it simply can't add to a  node that is not in the same side, since we are creating discontinous shape functions
                 }
-
-                //partition_number++;
-
-
-
-
-                ////////////////////////////////////
-
-
             }
 
             number_of_partitions = nel;
-
         }
-
-//             if(std::abs(sub_volumes_sum/volume - 1.0) > 1e-9)
-// 	    {
-// 	      KRATOS_WATCH(volume);
-// 	      KRATOS_WATCH(rVolumes);
-// 	      KRATOS_WATCH(sub_volumes_sum);
-// 	      KRATOS_THROW_ERROR(std::logic_error,"the elemental volume does not match the sum of the sub volumes","")
-// 	    }
-// KRATOS_WATCH(exact_distance);
-// KRATOS_WATCH(abs_distance);
-
-        //double verify_volume = 0.0;
 
         if (number_of_partitions == 1)
         {
@@ -494,25 +425,6 @@ public:
             for (int j = 0; j < 3; j++)
                 rGradientsValue[0](0, j) = 0.0;
         }
-
-// 	    for (unsigned int i=0; i<4; i++)
-// 	    {
-// 	       if( collapsed_node[i] == true)
-// 	       {
-// 		 KRATOS_WATCH(number_of_partitions);
-// 		 for (int k = 0; k < number_of_partitions; k++)
-// 		 {
-// 		 KRATOS_WATCH(rVolumes[k]);
-//
-// 		 KRATOS_WATCH(NEnriched(k,0));
-// 		 KRATOS_WATCH(rGradientsValue[k]);
-// 		 }
-// 	       }
-// 	    }
-
-
-
-
 
         return number_of_partitions;
         KRATOS_CATCH("");
@@ -761,17 +673,21 @@ public:
     }
 
     //2D IN LOCAL AXIS
-    static int CalculateDiscontinuousShapeFunctionsInLocalAxis(boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rOriginalPoints,boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rRotatedPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX_original,
-            array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, boost::numeric::ublas::bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
-            array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, boost::numeric::ublas::bounded_matrix<double,3*(2-1), (2+1)>& Nenriched,
-            boost::numeric::ublas::bounded_matrix<double,(2), 2 >& rRotationMatrix, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX_in_local_axis ) //, //and information about the interfase:
-    // array_1d<double,(3)>& face_gauss_N, array_1d<double,(3)>& face_gauss_Nenriched, double& face_Area, array_1d<double,(3)>& face_n ,unsigned int& type_of_cut)
+    static int CalculateDiscontinuousShapeFunctionsInLocalAxis(
+        boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rOriginalPoints,
+        boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rRotatedPoints,
+        boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX_original,
+        array_1d<double,(2+1)>& rDistances,
+        array_1d<double,(3*(2-1))>& rVolumes,
+        boost::numeric::ublas::bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
+        array_1d<double,(3*(2-1))>& rPartitionsSign,
+        std::vector<Matrix>& rGradientsValue,
+        boost::numeric::ublas::bounded_matrix<double,3*(2-1), (2+1)>& Nenriched,
+        boost::numeric::ublas::bounded_matrix<double,(2), 2 >& rRotationMatrix,
+        boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX_in_local_axis )
     {
         KRATOS_TRY
 
-        //unsigned int i,j,k;
-        //unsigned int i_aux,j_aux,k_aux; //
-        //type_of_cut = 0;   // 0 means no cuts, 1 means element is cut through edges ij,ik;    2 ij,jk ;    3 ik , kj ;   INTERFASES ON nodes are not contemplated
         double temp_area;
         const double one_third=1.0/3.0;
         boost::numeric::ublas::bounded_matrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
@@ -798,18 +714,14 @@ public:
             rGPShapeFunctionValues(0,1)=one_third;
             rGPShapeFunctionValues(0,2)=one_third;
             Nenriched(0,0) = 0.0;
-            //type_of_cut=1;
             for (int j = 0; j < 3; j++)
                 rGradientsValue[0](0, j) = 0.0;
             if (rDistances(0) < 0.0) rPartitionsSign[0] = -1.0;
             else rPartitionsSign[0] = 1.0;
-            //KRATOS_WATCH("one element not in the intefase")
             return 1;
         }
-
         else //we must create the enrichement, it can be in 2 or 3 parts. we'll start with 3 always.
         {
-            //KRATOS_WATCH("one element IS in the intefase")
             if ((rDistances(0)*rDistances(1))<0.0) //edge 12 is cut
                 cut_edges[0]=true;
             else
@@ -825,10 +737,6 @@ public:
 
             //we reset the NEnriched:
             Nenriched=ZeroMatrix(3,3);
-
-
-
-
 
             //'TRICK' TO AVOID HAVING THE INTERFASE TOO CLOSE TO THE NODES:
             //since we cannot collapse node because we have to contemplate the possibility of discontinuities, we will move a little the intefase so that it is not that close.
@@ -852,9 +760,6 @@ public:
                 rDistances[2]=tolerable_distance*(rDistances[2]/std::abs(rDistances[2]));
             //END OF TRICK. REMEMBER TO OVERWRITE THE DISTANCE VARIABLE IN THE ELEMENT IN CASE THESE LINES HAVE MODIFIED THEM (distances)
 
-
-            //for (int jj = 0; jj < 3; jj++)
-            //	KRATOS_WATCH(rDistances(jj));
             for (unsigned int i=0; i<3; i++) //we go over the 3 edges:
             {
                 int edge_begin_node=i;
@@ -939,7 +844,6 @@ public:
             rGradientsValue[2]=ZeroMatrix(3,2);
             Nenriched=ZeroMatrix(3,3);
             rGPShapeFunctionValues=ZeroMatrix(3,3);
-
 
             //now we must check the 4 created partitions of the domain.
             //one has been collapsed, so we discard it and therefore save only one.
@@ -1057,16 +961,6 @@ private:
         double delta2 = rShapeFunctionValues(Volume2Id, i) * (1.00 - division_j);
         rShapeFunctionValues(Volume2Id, j) += delta2;
         rShapeFunctionValues(Volume2Id, i) -= delta2;
-
-        //            rShapeFunctionValues(Volume1Id, i) += rShapeFunctionValues(Volume1Id, j) * (1.00 - division_i);
-        //            rShapeFunctionValues(Volume1Id, j) *= division_i;
-        //            rShapeFunctionValues(Volume2Id, j) += rShapeFunctionValues(Volume2Id, i) * (1.00 - division_j);
-        //            rShapeFunctionValues(Volume2Id, i) *= division_j;
-        //
-        //            rShapeFunctionValues(Volume1Id, i) = division_i * 0.25;
-        //            rShapeFunctionValues(Volume1Id, j) = 0.5 - 0.25 * division_i;
-        //            rShapeFunctionValues(Volume2Id, i) = 0.5 - 0.25 * division_j;
-        //            rShapeFunctionValues(Volume2Id, j) = division_j * 0.25;
     }
 
     static double ComputeSubTetraVolumeAndCenter(const bounded_matrix<double, 3, 8 > & rAuxCoordinates,

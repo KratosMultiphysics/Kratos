@@ -1,0 +1,46 @@
+{
+    "material_model":{
+        "python_module"   : "test_constitutive_model_process",
+        "kratos_module"   : "KratosMultiphysics.ConstitutiveModelsApplication",
+        "help"            : "This process tests a constitutive model",
+	"parameters"      : {
+	    "model_part_name" : "MaterialDomain",
+	    "properties_id"   : 1,
+            "material_name"   : "steel",
+	    "constitutive_law": {
+                "law_name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw",
+		"model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.VonMisesNeoHookeanPlasticityModel"
+            },
+	    "variables": {
+		"KratosMultiphysics.C10": 3.84615384615384615385e10,
+	        "KratosMultiphysics.YOUNG_MODULUS": 206.9e7,
+		"KratosMultiphysics.POISSON_RATIO": 0.29,
+		"KratosMultiphysics.YIELD_STRESS": 4.5E2,
+		"KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS": 0.0,
+		"KratosMultiphysics.KINEMATIC_HARDENING_MODULUS": 1.2924e2,
+		"KratosMultiphysics.HARDENING_EXPONENT": 16.93,
+		"KratosMultiphysics.REFERENCE_HARDENING_MODULUS": 450,
+		"KratosMultiphysics.INFINITY_HARDENING_MODULUS": 715		
+            },
+	    "tables": {
+		"table1": {
+	            "input_variable"  : "KratosMultiphysics.TEMPERATURE",
+	            "output_variable" : "KratosMultiphysics.YOUNG_MODULUS",
+	            "data": [
+			[0.0, 200e9],
+			[200.0, 200e9]
+		    ]
+		}
+	    },
+	    "element_type": "Tetrahedra3D4",
+            "nodes" : [ [0.0,0.0,0.0], [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
+            "strain": {
+		"deformation_gradient" : [ [1.0,0.0,2.0], [0.0,0.9,0.0], [0.0,0.0,0.1] ],
+		"jacobian": 0.09
+	    },
+	    "echo_level" : 0
+
+        }
+    }
+
+}

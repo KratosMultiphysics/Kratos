@@ -133,7 +133,7 @@ class AnalyticSimulator:
         NDcoors[1] = float(NDxy.imag)
         NDcoors[2] = float(NDz0 + t * NDw0)
 
-        if NDvel != None:
+        if NDvel is None:
             NDxy = 0.0
             for i in range(4):
                 NDxy += A[i] * X[i] * cmath.exp(X[i] ** 2 * t) * mpmath.erfc(- X[i] * math.sqrt(t))

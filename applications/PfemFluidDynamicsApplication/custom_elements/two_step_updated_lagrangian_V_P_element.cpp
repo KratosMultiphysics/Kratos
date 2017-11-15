@@ -27,106 +27,21 @@ namespace Kratos {
   TwoStepUpdatedLagrangianVPElement<TDim>::TwoStepUpdatedLagrangianVPElement(TwoStepUpdatedLagrangianVPElement  const& rOther)
   :Element(rOther)
   {
-
-    // if (mOldFgrad.size() !=   rOther.mOldFgrad.size() )
-    //   mOldFgrad.resize(  rOther.mOldFgrad.size());
-
-    // for(unsigned int i=0; i<  rOther.mOldFgrad.size(); i++)
-    //   {
-    //     mOldFgrad[i] =   rOther.mOldFgrad[i];
-    //   }
-
-
-    if ( mCurrentTotalCauchyStress.size() !=   rOther.mCurrentTotalCauchyStress.size() )
-      mCurrentTotalCauchyStress.resize(  rOther.mCurrentTotalCauchyStress.size());
-
-    for(unsigned int i=0; i<  rOther.mCurrentTotalCauchyStress.size(); i++)
-      {
-        mCurrentTotalCauchyStress[i] =   rOther.mCurrentTotalCauchyStress[i];
-      }
-
-
-    if ( mCurrentDeviatoricCauchyStress.size() !=   rOther.mCurrentDeviatoricCauchyStress.size() )
-      mCurrentDeviatoricCauchyStress.resize(  rOther.mCurrentDeviatoricCauchyStress.size());
-
-    for(unsigned int i=0; i<  rOther.mCurrentDeviatoricCauchyStress.size(); i++)
-      {
-        mCurrentDeviatoricCauchyStress[i] =   rOther.mCurrentDeviatoricCauchyStress[i];
-      }
-
-
-    if ( mUpdatedTotalCauchyStress.size() !=   rOther.mUpdatedTotalCauchyStress.size() )
-      mUpdatedTotalCauchyStress.resize(  rOther.mUpdatedTotalCauchyStress.size());
-
-    for(unsigned int i=0; i<  rOther.mUpdatedTotalCauchyStress.size(); i++)
-      {
-        mUpdatedTotalCauchyStress[i] =   rOther.mUpdatedTotalCauchyStress[i];
-      }
-
-
-    if ( mUpdatedDeviatoricCauchyStress.size() !=   rOther.mUpdatedDeviatoricCauchyStress.size() )
-      mUpdatedDeviatoricCauchyStress.resize(  rOther.mUpdatedDeviatoricCauchyStress.size());
-
-    for(unsigned int i=0; i<  rOther.mUpdatedDeviatoricCauchyStress.size(); i++)
-      {
-        mUpdatedDeviatoricCauchyStress[i] =   rOther.mUpdatedDeviatoricCauchyStress[i];
-      }
-    
+    KRATOS_TRY;
+    KRATOS_CATCH("");
   }
 
 
   template< unsigned int TDim >
   Element::Pointer TwoStepUpdatedLagrangianVPElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
+    KRATOS_TRY;
 
     TwoStepUpdatedLagrangianVPElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
-
-    // if ( NewElement.mOldFgrad.size() !=  mOldFgrad.size() )
-    //   NewElement.mOldFgrad.resize( mOldFgrad.size());
-
-    // for(unsigned int i=0; i< mOldFgrad.size(); i++)
-    //   {
-    //     NewElement.mOldFgrad[i] =  mOldFgrad[i];
-    //   }
-
-
-    if ( NewElement.mCurrentTotalCauchyStress.size() !=  mCurrentTotalCauchyStress.size() )
-      NewElement.mCurrentTotalCauchyStress.resize( mCurrentTotalCauchyStress.size());
-
-    for(unsigned int i=0; i< mCurrentTotalCauchyStress.size(); i++)
-      {
-        NewElement.mCurrentTotalCauchyStress[i] =  mCurrentTotalCauchyStress[i];
-      }
-
-
-    if ( NewElement.mCurrentDeviatoricCauchyStress.size() !=  mCurrentDeviatoricCauchyStress.size() )
-      NewElement.mCurrentDeviatoricCauchyStress.resize( mCurrentDeviatoricCauchyStress.size());
-
-    for(unsigned int i=0; i< mCurrentDeviatoricCauchyStress.size(); i++)
-      {
-        NewElement.mCurrentDeviatoricCauchyStress[i] =  mCurrentDeviatoricCauchyStress[i];
-      }
-
-
-    if ( NewElement.mUpdatedTotalCauchyStress.size() !=  mUpdatedTotalCauchyStress.size() )
-      NewElement.mUpdatedTotalCauchyStress.resize( mUpdatedTotalCauchyStress.size());
-
-    for(unsigned int i=0; i< mUpdatedTotalCauchyStress.size(); i++)
-      {
-        NewElement.mUpdatedTotalCauchyStress[i] =  mUpdatedTotalCauchyStress[i];
-      }
-
-
-    if ( NewElement.mUpdatedDeviatoricCauchyStress.size() !=  mUpdatedDeviatoricCauchyStress.size() )
-      NewElement.mUpdatedDeviatoricCauchyStress.resize( mUpdatedDeviatoricCauchyStress.size());
-
-    for(unsigned int i=0; i< mUpdatedDeviatoricCauchyStress.size(); i++)
-      {
-        NewElement.mUpdatedDeviatoricCauchyStress[i] =  mUpdatedDeviatoricCauchyStress[i];
-      }
-
-    
     return Element::Pointer( new TwoStepUpdatedLagrangianVPElement(NewElement) );
+    
+    KRATOS_CATCH("");
+
   }
 
 
@@ -248,7 +163,6 @@ namespace Kratos {
 
     MatrixType MassMatrix= ZeroMatrix(LocalSize,LocalSize);
     MatrixType StiffnessMatrix= ZeroMatrix(LocalSize,LocalSize);
-    MatrixType BulkMatrix= ZeroMatrix(LocalSize,LocalSize);
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != LocalSize )
@@ -300,17 +214,11 @@ namespace Kratos {
 
 	bool computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,rDN_DX,g);
 	if(computeElement==true){
-
-	  // Evaluate required variables at the integration point
-	  array_1d<double,3> BodyForce(3,0.0);
-
-	  this->EvaluateInPoint(BodyForce,BODY_FORCE,N);
-
 	  // Add integration point contribution to the local mass matrix
 	  // double DynamicWeight=GaussWeight*Density;
 	  // this->ComputeMassMatrix(MassMatrix,N,DynamicWeight,MeanValueMass);
 
-	  this->AddExternalForces(rRightHandSideVector,Density,BodyForce,N,GaussWeight);
+	  this->AddExternalForces(rRightHandSideVector,Density,N,GaussWeight);
 
 	  this->AddInternalForces(rRightHandSideVector,rDN_DX,rElementalVariables,GaussWeight);
 
@@ -348,28 +256,51 @@ namespace Kratos {
 
     // Add residual of previous iteration to RHS
     VectorType VelocityValues = ZeroVector(LocalSize);
-    VectorType UpdatedAccelerations = ZeroVector(LocalSize);
-    VectorType LastAccValues = ZeroVector(LocalSize);
+    VectorType AccelerationValues = ZeroVector(LocalSize);
 
     // //1st order 
     // this->GetVelocityValues(VelocityValues,0);
-    // UpdatedAccelerations = VelocityValues/TimeStep;
+    // AccelerationValues = VelocityValues/TimeStep;
     // this->GetAccelerationValues(LastAccValues,0);
     // this->GetVelocityValues(VelocityValues,1);
-    // UpdatedAccelerations += -VelocityValues/TimeStep; 
-    // // UpdatedAccelerations =LastAccValues;
-    // noalias( rRightHandSideVector ) += -prod(MassMatrix,UpdatedAccelerations);
+    // AccelerationValues += -VelocityValues/TimeStep; 
+    // noalias( rRightHandSideVector ) += -prod(MassMatrix,AccelerationValues);
     // noalias( rLeftHandSideMatrix ) +=  MassMatrix/TimeStep;
 
     //2nd order 
+    this->GetAccelerationValues(AccelerationValues,0);
     this->GetVelocityValues(VelocityValues,0);
-    UpdatedAccelerations = 2.0*VelocityValues/TimeStep;
-    this->GetAccelerationValues(LastAccValues,0);
+    noalias(AccelerationValues)+=-2.0*VelocityValues/TimeStep;
     this->GetVelocityValues(VelocityValues,1);
-    UpdatedAccelerations += -2.0*VelocityValues/TimeStep - LastAccValues; 
-    noalias( rRightHandSideVector ) += -prod(MassMatrix,UpdatedAccelerations);
-    noalias( rLeftHandSideMatrix ) +=  StiffnessMatrix;
-    noalias( rLeftHandSideMatrix ) +=  MassMatrix*2/TimeStep;
+    noalias(AccelerationValues)+=2.0*VelocityValues/TimeStep;//these are negative accelerations
+    noalias( rRightHandSideVector )+= prod(MassMatrix,AccelerationValues);
+    noalias( rLeftHandSideMatrix ) +=  StiffnessMatrix + MassMatrix*2/TimeStep;
+
+
+    // // Add residual of previous iteration to RHS
+    // VectorType VelocityValues = ZeroVector(LocalSize);
+    // VectorType UpdatedAccelerations = ZeroVector(LocalSize);
+    // VectorType LastAccValues = ZeroVector(LocalSize);
+
+    // // //1st order 
+    // // this->GetVelocityValues(VelocityValues,0);
+    // // UpdatedAccelerations = VelocityValues/TimeStep;
+    // // this->GetAccelerationValues(LastAccValues,0);
+    // // this->GetVelocityValues(VelocityValues,1);
+    // // UpdatedAccelerations += -VelocityValues/TimeStep; 
+    // // // UpdatedAccelerations =LastAccValues;
+    // // noalias( rRightHandSideVector ) += -prod(MassMatrix,UpdatedAccelerations);
+    // // noalias( rLeftHandSideMatrix ) +=  MassMatrix/TimeStep;
+
+    // //2nd order 
+    // this->GetVelocityValues(VelocityValues,0);
+    // UpdatedAccelerations = 2.0*VelocityValues/TimeStep;
+    // this->GetAccelerationValues(LastAccValues,0);
+    // this->GetVelocityValues(VelocityValues,1);
+    // UpdatedAccelerations += -2.0*VelocityValues/TimeStep - LastAccValues; 
+    // noalias( rRightHandSideVector ) += -prod(MassMatrix,UpdatedAccelerations);
+    // noalias( rLeftHandSideMatrix ) +=  StiffnessMatrix;
+    // noalias( rLeftHandSideMatrix ) +=  MassMatrix*2/TimeStep;
 
     KRATOS_CATCH( "" );
  
@@ -389,8 +320,6 @@ namespace Kratos {
     const double FourThirds = 4.0 / 3.0;
     const double nTwoThirds = -2.0 / 3.0;
 
-    MatrixType invGradDef=rElementalVariables.InvFgrad;
-
     SizeType FirstRow=0;
     SizeType FirstCol=0;
 
@@ -398,10 +327,10 @@ namespace Kratos {
       {
         for (SizeType i = 0; i < NumNodes; ++i)
 	  {
-	    double lagDNXi=rDN_DX(i,0)*invGradDef(0,0)+rDN_DX(i,1)*invGradDef(1,0);
-	    double lagDNYi=rDN_DX(i,0)*invGradDef(0,1)+rDN_DX(i,1)*invGradDef(1,1);
-	    double lagDNXj=rDN_DX(j,0)*invGradDef(0,0)+rDN_DX(j,1)*invGradDef(1,0);
-	    double lagDNYj=rDN_DX(j,0)*invGradDef(0,1)+rDN_DX(j,1)*invGradDef(1,1);
+	    double lagDNXi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,0);
+	    double lagDNYi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,1);
+	    double lagDNXj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,0);
+	    double lagDNYj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,1);
 	    // lagDNXi=rDN_DX(i,0);
 	    // lagDNYi=rDN_DX(i,1);
 	    // lagDNXj=rDN_DX(j,0);
@@ -434,25 +363,23 @@ namespace Kratos {
 									const double theta,
 									const double Weight){
     
-   const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
     const double FourThirds = 4.0 / 3.0;
     const double nTwoThirds = -2.0 / 3.0;
-
-    MatrixType invGradDef=rElementalVariables.InvFgrad;
 
     SizeType FirstRow=0;
     SizeType FirstCol=0;
 
-  for (SizeType j = 0; j < NumNodes; ++j)
+    for (SizeType j = 0; j < NumNodes; ++j)
       {
         for (SizeType i = 0; i < NumNodes; ++i)
 	  {
-	    double lagDNXi=rDN_DX(i,0)*invGradDef(0,0)+rDN_DX(i,1)*invGradDef(1,0)+rDN_DX(i,2)*invGradDef(2,0);
-	    double lagDNYi=rDN_DX(i,0)*invGradDef(0,1)+rDN_DX(i,1)*invGradDef(1,1)+rDN_DX(i,2)*invGradDef(2,1);
-	    double lagDNZi=rDN_DX(i,0)*invGradDef(0,2)+rDN_DX(i,1)*invGradDef(1,2)+rDN_DX(i,2)*invGradDef(2,2);
-	    double lagDNXj=rDN_DX(j,0)*invGradDef(0,0)+rDN_DX(j,1)*invGradDef(1,0)+rDN_DX(j,2)*invGradDef(2,0);
-	    double lagDNYj=rDN_DX(j,0)*invGradDef(0,1)+rDN_DX(j,1)*invGradDef(1,1)+rDN_DX(j,2)*invGradDef(2,1);
-	    double lagDNZj=rDN_DX(j,0)*invGradDef(0,2)+rDN_DX(j,1)*invGradDef(1,2)+rDN_DX(j,2)*invGradDef(2,2);	  
+	    double lagDNXi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,0)+rDN_DX(i,2)*rElementalVariables.InvFgrad(2,0);
+	    double lagDNYi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,1)+rDN_DX(i,2)*rElementalVariables.InvFgrad(2,1);
+	    double lagDNZi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,2)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,2)+rDN_DX(i,2)*rElementalVariables.InvFgrad(2,2);
+	    double lagDNXj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,0)+rDN_DX(j,2)*rElementalVariables.InvFgrad(2,0);
+	    double lagDNYj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,1)+rDN_DX(j,2)*rElementalVariables.InvFgrad(2,1);
+	    double lagDNZj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,2)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,2)+rDN_DX(j,2)*rElementalVariables.InvFgrad(2,2);	 
 	    // lagDNXi=rDN_DX(i,0);
 	    // lagDNYi=rDN_DX(i,1);
 	    // lagDNZi=rDN_DX(i,2);
@@ -508,14 +435,8 @@ namespace Kratos {
       KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check that the application was correctly registered.","");
     if(VISCOSITY.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check that the application was correctly registered.","");
-    if(NODAL_AREA.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,"NODAL_AREA Key is 0. Check that the application was correctly registered.","");
-    if(BDF_COEFFICIENTS.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,"BDF_COEFFICIENTS Key is 0. Check that the application was correctly registered.","");
     if(DELTA_TIME.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check that the application was correctly registered.","");
-    if(DYNAMIC_TAU.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_TAU Key is 0. Check that the application was correctly registered.","");
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
@@ -530,8 +451,6 @@ namespace Kratos {
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing DENSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(VISCOSITY) == false)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(NODAL_AREA) == false)
-	  KRATOS_THROW_ERROR(std::invalid_argument,"missing NODAL_AREA variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
            this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
            this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
@@ -702,6 +621,21 @@ namespace Kratos {
 
 
 
+  template< unsigned int TDim>
+  bool TwoStepUpdatedLagrangianVPElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+								     const ProcessInfo& rCurrentProcessInfo,
+								     const ShapeFunctionDerivativesType& rDN_DX,
+								     unsigned int g)
+  {
+  
+    double theta=this->GetThetaMomentum();
+    // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+    bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+    const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+    this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
+    return computeElement;
+  
+  }
 
 
   template<  unsigned int TDim>
@@ -993,7 +927,7 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
   }
 
   template< unsigned int TDim >
-  double TwoStepUpdatedLagrangianVPElement<TDim>::ElementSize(/*ShapeFunctionDerivativesType &rDN_DX*/)
+  double TwoStepUpdatedLagrangianVPElement<TDim>::ElementSize()
   {
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -1001,7 +935,7 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
 
     double ElemSize =0;
     array_1d<double,3> Edge(3,0.0);
-    Edge = rGeom[1].Coordinates() - rGeom[0].Coordinates();
+    noalias(Edge) = rGeom[1].Coordinates() - rGeom[0].Coordinates();
     double Length = Edge[0]*Edge[0];
     for (SizeType d = 1; d < TDim; d++)
       Length += Edge[d]*Edge[d];
@@ -1011,7 +945,7 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
     for (SizeType i = 2; i < NumNodes; i++){
       for(SizeType j = 0; j < i; j++)
         {
-    	  Edge = rGeom[i].Coordinates() - rGeom[j].Coordinates();
+    	  noalias(Edge) = rGeom[i].Coordinates() - rGeom[j].Coordinates();
     	  Length = Edge[0]*Edge[0];
     	  for (SizeType d = 1; d < TDim; d++){
     	    Length += Edge[d]*Edge[d];
@@ -1045,6 +979,263 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
     // return sqrt(ElemSize);
 
   }
+
+
+template < > 
+bool TwoStepUpdatedLagrangianVPElement<2>::CalcCompleteStrainRate(ElementalVariables & rElementalVariables,
+								  const ProcessInfo &rCurrentProcessInfo,
+								  const ShapeFunctionDerivativesType& rDN_DX,
+								  const double theta)
+{
+
+  bool computeElement=true;
+  unsigned int dimension=this->GetGeometry().WorkingSpaceDimension();
+  GeometryType& rGeom = this->GetGeometry();
+  const SizeType NumNodes = rGeom.PointsNumber();
+  const SizeType LocalSize = dimension*NumNodes;
+  VectorType  NodePosition= ZeroVector(LocalSize);
+  VectorType VelocityValues = ZeroVector(LocalSize);
+  VectorType RHSVelocities = ZeroVector(LocalSize);
+
+  this->GetPositions(NodePosition,rCurrentProcessInfo,theta);
+  this->GetVelocityValues(RHSVelocities,0); 
+  RHSVelocities*=theta;
+  this->GetVelocityValues(VelocityValues,1);
+  RHSVelocities+=VelocityValues*(1.0-theta);
+
+  rElementalVariables.Fgrad=ZeroMatrix(dimension,dimension);
+  rElementalVariables.FgradVel=ZeroMatrix(dimension,dimension);
+  for (SizeType i = 0; i < dimension; i++)
+    {
+      for (SizeType j = 0; j < dimension; j++)
+	{
+	  for (SizeType k = 0; k < NumNodes; k++)
+	    {
+	      rElementalVariables.Fgrad(i,j)+= NodePosition[dimension*k+i]*rDN_DX(k,j);
+	      rElementalVariables.FgradVel(i,j)+= RHSVelocities[dimension*k+i]*rDN_DX(k,j);
+	    }
+	}
+    }
+
+  //Inverse
+  rElementalVariables.InvFgrad=ZeroMatrix(dimension,dimension);
+  rElementalVariables.DetFgrad=1;
+  MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad, 
+				  rElementalVariables.InvFgrad, 
+				  rElementalVariables.DetFgrad);
+
+  rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
+  rElementalVariables.DetFgradVel=1;
+  MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel, 
+				  rElementalVariables.InvFgradVel, 
+				  rElementalVariables.DetFgradVel);
+
+
+  //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+  rElementalVariables.SpatialVelocityGrad.resize(dimension,dimension);
+  rElementalVariables.SpatialVelocityGrad=prod(rElementalVariables.FgradVel,rElementalVariables.InvFgrad);
+  
+  rElementalVariables.VolumetricDefRate=0;
+  for (SizeType i = 0; i < dimension; i++)
+    {
+      rElementalVariables.VolumetricDefRate+=rElementalVariables.SpatialVelocityGrad(i,i);
+    }
+  
+  // //it checks whether tr(l) == div(v)
+  // CheckStrain1(rElementalVariables.VolumetricDefRate,rElementalVariables.SpatialVelocityGrad);
+        // CheckStrain2(rElementalVariables.SpatialVelocityGrad,rElementalVariables.Fgrad,ElementalVariables.FgradVel);
+ 
+  //it computes Material time Derivative of Green Lagrange strain tensor in MATERIAL configuration --> [D(E)/Dt]
+  // x-component
+  rElementalVariables.MDGreenLagrangeMaterial[0]=rElementalVariables.FgradVel(0,0)*rElementalVariables.Fgrad(0,0) + 
+    rElementalVariables.FgradVel(1,0)*rElementalVariables.Fgrad(1,0);
+  // y-component
+  rElementalVariables.MDGreenLagrangeMaterial[1]=rElementalVariables.FgradVel(1,1)*rElementalVariables.Fgrad(1,1) + 
+    rElementalVariables.FgradVel(0,1)*rElementalVariables.Fgrad(0,1);
+  // xy-component
+  rElementalVariables.MDGreenLagrangeMaterial[2]=(rElementalVariables.FgradVel(0,0)*rElementalVariables.Fgrad(0,1) + 
+						  rElementalVariables.FgradVel(1,0)*rElementalVariables.Fgrad(1,1) +
+						  rElementalVariables.FgradVel(0,1)*rElementalVariables.Fgrad(0,0) + 
+						  rElementalVariables.FgradVel(1,1)*rElementalVariables.Fgrad(1,0))*0.5;
+
+
+  //it computes Material time Derivative of Green Lagrange strain tensor in SPATIAL configuration  --> [d]
+  // x-component
+  rElementalVariables.SpatialDefRate[0]= rElementalVariables.InvFgrad(0,0)*rElementalVariables.MDGreenLagrangeMaterial[0]*rElementalVariables.InvFgrad(0,0) + 
+    rElementalVariables.InvFgrad(1,0)*rElementalVariables.MDGreenLagrangeMaterial[2]*rElementalVariables.InvFgrad(0,0)*2 +
+    rElementalVariables.InvFgrad(1,0)*rElementalVariables.MDGreenLagrangeMaterial[1]*rElementalVariables.InvFgrad(1,0);
+  // y-component
+  rElementalVariables.SpatialDefRate[1]= rElementalVariables.InvFgrad(0,1)*rElementalVariables.MDGreenLagrangeMaterial[0]*rElementalVariables.InvFgrad(0,1) + 
+    rElementalVariables.InvFgrad(0,1)*rElementalVariables.MDGreenLagrangeMaterial[2]*rElementalVariables.InvFgrad(1,1)*2 +
+    rElementalVariables.InvFgrad(1,1)*rElementalVariables.MDGreenLagrangeMaterial[1]*rElementalVariables.InvFgrad(1,1);
+  // xy-component
+  rElementalVariables.SpatialDefRate[2]=rElementalVariables.InvFgrad(0,0)*rElementalVariables.MDGreenLagrangeMaterial[0]*rElementalVariables.InvFgrad(0,1) + 
+    rElementalVariables.InvFgrad(0,0)*rElementalVariables.MDGreenLagrangeMaterial[2]*rElementalVariables.InvFgrad(1,1) +
+    rElementalVariables.InvFgrad(1,0)*rElementalVariables.MDGreenLagrangeMaterial[2]*rElementalVariables.InvFgrad(0,1) +
+    rElementalVariables.InvFgrad(1,0)*rElementalVariables.MDGreenLagrangeMaterial[1]*rElementalVariables.InvFgrad(1,1);
+ 
+  // computeElement=CheckStrain3(rElementalVariables.SpatialDefRate,rElementalVariables.SpatialVelocityGrad);
+
+  double aThird=1.0/3.0;
+  double dev_X=rElementalVariables.SpatialDefRate[0]-
+    (rElementalVariables.SpatialDefRate[0]+rElementalVariables.SpatialDefRate[1])*aThird;
+  double dev_Y=rElementalVariables.SpatialDefRate[1]-
+    (rElementalVariables.SpatialDefRate[0]+rElementalVariables.SpatialDefRate[1])*aThird;
+  rElementalVariables.DeviatoricInvariant=sqrt(2*(dev_X*dev_X + dev_Y*dev_Y +
+						  rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2]));
+
+  return computeElement;
+
+}  
+
+template < > 
+bool TwoStepUpdatedLagrangianVPElement<3>::CalcCompleteStrainRate(ElementalVariables & rElementalVariables,
+								  const ProcessInfo &rCurrentProcessInfo,
+								  const ShapeFunctionDerivativesType& rDN_DX,
+								  const double theta)
+{
+
+  bool computeElement=true;
+  unsigned int dimension=this->GetGeometry().WorkingSpaceDimension();
+  GeometryType& rGeom = this->GetGeometry();
+  const SizeType NumNodes = rGeom.PointsNumber();
+  const SizeType LocalSize = dimension*NumNodes;
+  VectorType  NodePosition= ZeroVector(LocalSize);
+  VectorType VelocityValues = ZeroVector(LocalSize);
+  VectorType RHSVelocities = ZeroVector(LocalSize);
+
+  this->GetPositions(NodePosition,rCurrentProcessInfo,theta);
+  this->GetVelocityValues(RHSVelocities,0); 
+  RHSVelocities*=theta;
+  this->GetVelocityValues(VelocityValues,1);
+  RHSVelocities+=VelocityValues*(1.0-theta);
+
+  rElementalVariables.Fgrad=ZeroMatrix(dimension,dimension);
+  rElementalVariables.FgradVel=ZeroMatrix(dimension,dimension);
+  for (SizeType i = 0; i < dimension; i++)
+    {
+      for (SizeType j = 0; j < dimension; j++)
+	{
+	  for (SizeType k = 0; k < NumNodes; k++)
+	    {
+	      rElementalVariables.Fgrad(i,j)+= NodePosition[dimension*k+i]*rDN_DX(k,j);
+	      rElementalVariables.FgradVel(i,j)+= RHSVelocities[dimension*k+i]*rDN_DX(k,j);
+	    }
+	}
+    }
+
+  //Inverse
+  rElementalVariables.InvFgrad=ZeroMatrix(dimension,dimension);
+  rElementalVariables.DetFgrad=1;
+  MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad, 
+				  rElementalVariables.InvFgrad, 
+				  rElementalVariables.DetFgrad);
+
+  rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
+  rElementalVariables.DetFgradVel=1;
+  MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel, 
+				  rElementalVariables.InvFgradVel, 
+				  rElementalVariables.DetFgradVel);
+
+
+  //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+  rElementalVariables.SpatialVelocityGrad.resize(dimension,dimension);
+  rElementalVariables.SpatialVelocityGrad=prod(rElementalVariables.FgradVel,rElementalVariables.InvFgrad);
+  
+  rElementalVariables.VolumetricDefRate=0;
+  for (SizeType i = 0; i < dimension; i++)
+    {
+      rElementalVariables.VolumetricDefRate+=rElementalVariables.SpatialVelocityGrad(i,i);
+    }
+  
+  // //it checks whether tr(l) == div(v)
+  // CheckStrain1(rElementalVariables.VolumetricDefRate,rElementalVariables.SpatialVelocityGrad);
+  // CheckStrain2(rElementalVariables.SpatialVelocityGrad,rElementalVariables.Fgrad,ElementalVariables.FgradVel);
+ 
+  //it computes Material time Derivative of Green Lagrange strain tensor in MATERIAL configuration --> [D(E)/Dt]
+  MatrixType MatrixA= ZeroMatrix(3,3);
+  MatrixType MatrixB= ZeroMatrix(3,3);
+  MatrixType Matrix1= ZeroMatrix(3,3);
+  MatrixType Matrix2= ZeroMatrix(3,3);
+
+  MatrixA=rElementalVariables.Fgrad;
+  MatrixA(0,1)=rElementalVariables.Fgrad(1,0);
+  MatrixA(0,2)=rElementalVariables.Fgrad(2,0);
+  MatrixA(1,0)=rElementalVariables.Fgrad(0,1);
+  MatrixA(1,2)=rElementalVariables.Fgrad(2,1);
+  MatrixA(2,0)=rElementalVariables.Fgrad(0,2);
+  MatrixA(2,1)=rElementalVariables.Fgrad(1,2);
+
+  MatrixB=rElementalVariables.FgradVel;
+  MatrixB(0,1)=rElementalVariables.FgradVel(1,0);
+  MatrixB(0,2)=rElementalVariables.FgradVel(2,0);
+  MatrixB(1,0)=rElementalVariables.FgradVel(0,1);
+  MatrixB(1,2)=rElementalVariables.FgradVel(2,1);
+  MatrixB(2,0)=rElementalVariables.FgradVel(0,2);
+  MatrixB(2,1)=rElementalVariables.FgradVel(1,2);
+
+  noalias(Matrix1)=prod(MatrixB,rElementalVariables.Fgrad);
+  noalias(Matrix2)=prod(MatrixA,rElementalVariables.FgradVel);
+
+  rElementalVariables.MDGreenLagrangeMaterial[0]= ( Matrix1(0,0) + Matrix2(0,0) ) * 0.5;  //xx-component
+  rElementalVariables.MDGreenLagrangeMaterial[1]= ( Matrix1(1,1) + Matrix2(1,1) ) * 0.5;  //yy-component
+  rElementalVariables.MDGreenLagrangeMaterial[2]= ( Matrix1(2,2) + Matrix2(2,2) ) * 0.5;  //zz-component
+  rElementalVariables.MDGreenLagrangeMaterial[3]= ( Matrix1(0,1) + Matrix2(0,1) ) * 0.5;  //xy-component
+  rElementalVariables.MDGreenLagrangeMaterial[4]= ( Matrix1(0,2) + Matrix2(0,2) ) * 0.5;  //xz-component
+  rElementalVariables.MDGreenLagrangeMaterial[5]= ( Matrix1(1,2) + Matrix2(1,2) ) * 0.5;  //yz-component
+
+
+  //it computes Material time Derivative of Green Lagrange strain tensor in SPATIAL configuration  --> [d]
+  MatrixA=rElementalVariables.InvFgrad;
+  MatrixA(0,1)=rElementalVariables.InvFgrad(1,0);
+  MatrixA(0,2)=rElementalVariables.InvFgrad(2,0);
+  MatrixA(1,0)=rElementalVariables.InvFgrad(0,1);
+  MatrixA(1,2)=rElementalVariables.InvFgrad(2,1);
+  MatrixA(2,0)=rElementalVariables.InvFgrad(0,2);
+  MatrixA(2,1)=rElementalVariables.InvFgrad(1,2);
+
+  MatrixB(0,0)=rElementalVariables.MDGreenLagrangeMaterial[0];  //XX-component;
+  MatrixB(1,1)=rElementalVariables.MDGreenLagrangeMaterial[1];  //YY-component;
+  MatrixB(2,2)=rElementalVariables.MDGreenLagrangeMaterial[2];  //ZZ-component;
+  MatrixB(0,1)=rElementalVariables.MDGreenLagrangeMaterial[3];  //XY-component;
+  MatrixB(1,0)=rElementalVariables.MDGreenLagrangeMaterial[3];  //XY-component;
+  MatrixB(0,2)=rElementalVariables.MDGreenLagrangeMaterial[4];  //ZX-component;
+  MatrixB(2,0)=rElementalVariables.MDGreenLagrangeMaterial[4];  //ZX-component;
+  MatrixB(1,2)=rElementalVariables.MDGreenLagrangeMaterial[5];  //YZ-component;
+  MatrixB(2,1)=rElementalVariables.MDGreenLagrangeMaterial[5];  //YZ-component;
+
+  noalias(Matrix1)=prod(MatrixB,rElementalVariables.InvFgrad);
+  noalias(Matrix2)=prod(MatrixA,Matrix1);
+ 
+  rElementalVariables.SpatialDefRate[0]=Matrix2(0,0);
+  rElementalVariables.SpatialDefRate[1]=Matrix2(1,1);
+  rElementalVariables.SpatialDefRate[2]=Matrix2(2,2);
+  rElementalVariables.SpatialDefRate[3]=Matrix2(0,1);
+  rElementalVariables.SpatialDefRate[4]=Matrix2(0,2);
+  rElementalVariables.SpatialDefRate[5]=Matrix2(1,2);
+
+   // computeElement=CheckStrain3(rElementalVariables.SpatialDefRate,rElementalVariables.SpatialVelocityGrad);
+
+  double aThird=1.0/3.0;
+  double dev_X=rElementalVariables.SpatialDefRate[0]-
+    (rElementalVariables.SpatialDefRate[0]+rElementalVariables.SpatialDefRate[1]+rElementalVariables.SpatialDefRate[2])*aThird;
+  double dev_Y=rElementalVariables.SpatialDefRate[1]-
+    (rElementalVariables.SpatialDefRate[0]+rElementalVariables.SpatialDefRate[1]+rElementalVariables.SpatialDefRate[2])*aThird;
+  double dev_Z=rElementalVariables.SpatialDefRate[2]-
+    (rElementalVariables.SpatialDefRate[0]+rElementalVariables.SpatialDefRate[1]+rElementalVariables.SpatialDefRate[2])*aThird;
+  rElementalVariables.DeviatoricInvariant=sqrt(2*(dev_X*dev_X + dev_Y*dev_Y + dev_Z*dev_Z +
+						  rElementalVariables.SpatialDefRate[3]*rElementalVariables.SpatialDefRate[3] +
+						  rElementalVariables.SpatialDefRate[4]*rElementalVariables.SpatialDefRate[4] +
+						  rElementalVariables.SpatialDefRate[5]*rElementalVariables.SpatialDefRate[5]));
+
+
+  return computeElement;
+
+}  
+
+
+
+
 
 template< unsigned int TDim>
 bool TwoStepUpdatedLagrangianVPElement<TDim>::CalcStrainRate(ElementalVariables & rElementalVariables,
@@ -1198,12 +1389,12 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalcVelDefGrad(const ShapeFunction
   GeometryType& rGeom = this->GetGeometry();
   const SizeType NumNodes = rGeom.PointsNumber();
   const SizeType LocalSize = TDim*NumNodes;
-  VectorType CurrentVelocities = ZeroVector(LocalSize);
-  VectorType UpdatedVelocities = ZeroVector(LocalSize);
+  VectorType VelocityValues = ZeroVector(LocalSize);
   VectorType RHSVelocities = ZeroVector(LocalSize);
-  this->GetVelocityValues(CurrentVelocities,1);
-  this->GetVelocityValues(UpdatedVelocities,0); 
-  RHSVelocities=CurrentVelocities*(1.0-theta)+UpdatedVelocities*theta;
+  this->GetVelocityValues(RHSVelocities,0); 
+  RHSVelocities*=theta;
+  this->GetVelocityValues(VelocityValues,1);
+  RHSVelocities+=VelocityValues*(1.0-theta);
 
   FgradVel.resize(TDim,TDim);
 
@@ -1242,15 +1433,21 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcVolumetricDefRate(const ShapeFunc
   GeometryType& rGeom = this->GetGeometry();
   const SizeType NumNodes = rGeom.PointsNumber();
   const SizeType LocalSize = 2*NumNodes;
-  VectorType CurrentVelocities = ZeroVector(LocalSize);
-  VectorType UpdatedVelocities = ZeroVector(LocalSize);
+  VectorType VelocityValues = ZeroVector(LocalSize);
   VectorType RHSVelocities = ZeroVector(LocalSize);
-  this->GetVelocityValues(CurrentVelocities,1);
-  this->GetVelocityValues(UpdatedVelocities,0);
-  RHSVelocities=CurrentVelocities*theta+UpdatedVelocities*(1.0-theta);
+  this->GetVelocityValues(RHSVelocities,0); 
+  RHSVelocities*=theta;
+  this->GetVelocityValues(VelocityValues,1);
+  RHSVelocities+=VelocityValues*(1.0-theta);
   // RHSVelocities=UpdatedVelocities;
   // RHSVelocities=CurrentVelocities;
 
+  // double lagDNX0=rDN_DX(0,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(0,1)*rElementalVariables.InvFgrad(1,0);
+  // double lagDNX1=rDN_DX(1,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(1,1)*rElementalVariables.InvFgrad(1,0);
+  // double lagDNX2=rDN_DX(2,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(2,1)*rElementalVariables.InvFgrad(1,0);
+  // double lagDNY0=rDN_DX(0,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(0,1)*rElementalVariables.InvFgrad(1,1);
+  // double lagDNY1=rDN_DX(1,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(1,1)*rElementalVariables.InvFgrad(1,1);
+  // double lagDNY2=rDN_DX(2,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(2,1)*rElementalVariables.InvFgrad(1,1);
   double lagDNX0=rDN_DX(0,0)*invGradDef(0,0)+rDN_DX(0,1)*invGradDef(1,0);
   double lagDNX1=rDN_DX(1,0)*invGradDef(0,0)+rDN_DX(1,1)*invGradDef(1,0);
   double lagDNX2=rDN_DX(2,0)*invGradDef(0,0)+rDN_DX(2,1)*invGradDef(1,0);
@@ -1325,13 +1522,13 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcMDGreenLagrangeMaterial(MatrixTyp
 
 template < > 
 void TwoStepUpdatedLagrangianVPElement<3>::CalcMDGreenLagrangeMaterial(MatrixType &Fgrad,
-									    MatrixType &VelDefgrad, 
-									    VectorType &MDGreenLagrangeMaterial)
+								       MatrixType &VelDefgrad, 
+								       VectorType &MDGreenLagrangeMaterial)
 {
-  MatrixType FgradTransp(3,3);
-  MatrixType VelDefgradTransp(3,3);
-  MatrixType part1(3,3);
-  MatrixType part2(3,3);
+  MatrixType FgradTransp= ZeroMatrix(3,3);
+  MatrixType VelDefgradTransp= ZeroMatrix(3,3);
+  MatrixType part1= ZeroMatrix(3,3);
+  MatrixType part2= ZeroMatrix(3,3);
 
   FgradTransp=Fgrad;
   FgradTransp(0,1)=Fgrad(1,0);
@@ -1390,15 +1587,10 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcSpatialDefRate(VectorType &MDGree
 							      MatrixType &invFgrad,
 							      VectorType &SpatialDefRate)
 {
-  MatrixType MDGLM(3,3);
-  MatrixType invFgradTransp(3,3);
-  MatrixType part1(3,3);
-  MatrixType totalMatrix(3,3);
-  MDGLM=ZeroMatrix(3,3);
-  invFgradTransp=ZeroMatrix(3,3);
-  part1=ZeroMatrix(3,3);
-  totalMatrix=ZeroMatrix(3,3);
-
+  MatrixType MDGLM= ZeroMatrix(3,3);
+  MatrixType invFgradTransp= ZeroMatrix(3,3);
+  MatrixType part1= ZeroMatrix(3,3);
+  MatrixType totalMatrix= ZeroMatrix(3,3);
 
   invFgradTransp=invFgrad;
   invFgradTransp(0,1)=invFgrad(1,0);
@@ -1460,9 +1652,10 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcDeviatoricInvariant(VectorType &S
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate,
-								       double& NormalProjSpatialDefRate)
+double TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate)
 {
+  
+  double NormalProjSpatialDefRate=0;
   GeometryType& rGeom = this->GetGeometry();
   const SizeType NumNodes = rGeom.PointsNumber();
   array_1d<double, 3>  NormalMean(3,0.0);
@@ -1472,8 +1665,8 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionDefRate(VectorTyp
         for (SizeType j = (i+1); j < NumNodes; j++)
 	  {
 	    if(rGeom[i].Is(FREE_SURFACE) && rGeom[j].Is(FREE_SURFACE)){
-	      NormalMean += (rGeom[i].FastGetSolutionStepValue(NORMAL) +
-			     rGeom[j].FastGetSolutionStepValue(NORMAL))*0.5;
+	      noalias(NormalMean) += (rGeom[i].FastGetSolutionStepValue(NORMAL) +
+				      rGeom[j].FastGetSolutionStepValue(NORMAL))*0.5;
 	    }
 	  }
 
@@ -1491,14 +1684,14 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionDefRate(VectorTyp
     NormalMean[1]*SpatialDefRate[1]*NormalMean[1]+
     2*NormalMean[0]*SpatialDefRate[2]*NormalMean[1];
 
+ return NormalProjSpatialDefRate;
 }
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate,
-								       double& NormalProjSpatialDefRate)
+double TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate)
 {
-
+  double NormalProjSpatialDefRate=0;
   GeometryType& rGeom = this->GetGeometry();
   const SizeType NumNodes = rGeom.PointsNumber();
   array_1d<double, 3>  NormalMean(3,0.0);
@@ -1510,9 +1703,9 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionDefRate(VectorTyp
 	    for (SizeType k = (j+1); k < NumNodes; k++)
 	      {
 		if(rGeom[i].Is(FREE_SURFACE) && rGeom[j].Is(FREE_SURFACE) && rGeom[k].Is(FREE_SURFACE)){
-		  NormalMean += (rGeom[i].FastGetSolutionStepValue(NORMAL) +
-				 rGeom[j].FastGetSolutionStepValue(NORMAL) +
-				 rGeom[k].FastGetSolutionStepValue(NORMAL)) / 3.0;
+		  noalias(NormalMean) += (rGeom[i].FastGetSolutionStepValue(NORMAL) +
+					  rGeom[j].FastGetSolutionStepValue(NORMAL) +
+					  rGeom[k].FastGetSolutionStepValue(NORMAL)) / 3.0;
 		}
 	      }
 	  }
@@ -1544,6 +1737,8 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionDefRate(VectorTyp
       2*NormalMean[0]*SpatialDefRate[3]*NormalMean[1]+
       2*NormalMean[0]*SpatialDefRate[4]*NormalMean[2]+
       2*NormalMean[1]*SpatialDefRate[5]*NormalMean[2];
+
+    return NormalProjSpatialDefRate;
 
 }
 
@@ -1663,8 +1858,8 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain1(double &VolumetricDefRat
 
 template < > 
 void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVelocityGrad,
-							     MatrixType &Fgrad,
-							     MatrixType &VelDefgrad)
+							MatrixType &Fgrad,
+							MatrixType &VelDefgrad)
 {
   std::cout<<"TO BE IMPLEMENTED ------- CheckStrain2 -------"<<std::endl;
 }
@@ -1787,7 +1982,6 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPElement<TDim>::AddExternalForces(Vector& rRHSVector,
 								       const double Density,
-								       const array_1d<double,3>& rBodyForce,
 								       const ShapeFunctionsType& rN,
 								       const double Weight)
   {
@@ -1814,16 +2008,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
       }
   }
 
-  template< >
-  void TwoStepUpdatedLagrangianVPElement<2>::AddDeviatoricInternalForces(Vector& rRHSVector,const ShapeFunctionDerivativesType& rDN_DX, ElementalVariables& rElementalVariables, const double Weight)
-  {
- 
-  }
-  template< >
-  void TwoStepUpdatedLagrangianVPElement<3>::AddDeviatoricInternalForces(Vector& rRHSVector,const ShapeFunctionDerivativesType& rDN_DX, ElementalVariables& rElementalVariables, const double Weight)
-  {
- 
-  }
+
 
   template< >
   void TwoStepUpdatedLagrangianVPElement<2>::AddInternalForces(Vector& rRHSVector,
@@ -1835,12 +2020,10 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
 
     SizeType FirstRow = 0;
 
-    MatrixType invGradDef=rElementalVariables.InvFgrad;
-
     for (SizeType i = 0; i < NumNodes; ++i)
       {
-	double lagDNXi=rDN_DX(i,0)*invGradDef(0,0)+rDN_DX(i,1)*invGradDef(1,0);
-	double lagDNYi=rDN_DX(i,0)*invGradDef(0,1)+rDN_DX(i,1)*invGradDef(1,1);
+	double lagDNXi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,0);
+	double lagDNYi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,1);
 	// lagDNXi=rDN_DX(i,0);
 	// lagDNYi=rDN_DX(i,1);
 
@@ -1857,23 +2040,20 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
 
   template< >
   void TwoStepUpdatedLagrangianVPElement<3>::AddInternalForces(Vector& rRHSVector,
-								    const ShapeFunctionDerivativesType& rDN_DX,
-								    ElementalVariables& rElementalVariables,
-								    const double Weight)
+							       const ShapeFunctionDerivativesType& rDN_DX,
+							       ElementalVariables& rElementalVariables,
+							       const double Weight)
   {
 
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
     SizeType FirstRow = 0;
 
-    MatrixType invGradDef=rElementalVariables.InvFgrad;
-
     for (SizeType i = 0; i < NumNodes; ++i)
       {
-	double lagDNXi=rDN_DX(i,0)*invGradDef(0,0)+rDN_DX(i,1)*invGradDef(1,0)+rDN_DX(i,2)*invGradDef(2,0);
-	double lagDNYi=rDN_DX(i,0)*invGradDef(0,1)+rDN_DX(i,1)*invGradDef(1,1)+rDN_DX(i,2)*invGradDef(2,1);
-	double lagDNZi=rDN_DX(i,0)*invGradDef(0,2)+rDN_DX(i,1)*invGradDef(1,2)+rDN_DX(i,2)*invGradDef(2,2);
-
+	double lagDNXi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,0)+rDN_DX(i,2)*rElementalVariables.InvFgrad(2,0);
+	double lagDNYi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,1)+rDN_DX(i,2)*rElementalVariables.InvFgrad(2,1);
+	double lagDNZi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,2)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,2)+rDN_DX(i,2)*rElementalVariables.InvFgrad(2,2);
 	// lagDNXi=rDN_DX(i,0);
 	// lagDNYi=rDN_DX(i,1);
 	// lagDNZi=rDN_DX(i,2);

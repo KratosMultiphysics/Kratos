@@ -8,10 +8,10 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         recoverer.DerivativesRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
         self.model_part = model_part
-        self.use_lumped_mass_matrix = pp.CFD_DEM.material_acceleration_calculation_type == 3
+        self.use_lumped_mass_matrix = pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 3
         self.recovery_model_part = ModelPart("PostGradientFluidPart")
         self.custom_functions_tool = CustomFunctionsCalculator3D()
-        self.calculate_vorticity = pp.CFD_DEM.vorticity_calculation_type > 0
+        self.calculate_vorticity = pp.CFD_DEM["vorticity_calculation_type"].GetInt() > 0
 
         if self.use_lumped_mass_matrix:
             self.model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 1
@@ -24,18 +24,19 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         model_part_cloner.GenerateModelPart(self.model_part, self.recovery_model_part, element_type, condition_type)
 
     def CreateCPluPlusStrategies(self, echo_level = 1):
-        #from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
+        from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
         #linear_solver = SuperLUIterativeSolver()
+        from KratosMultiphysics.ExternalSolversApplication import SuperLUSolver
         scheme = ResidualBasedIncrementalUpdateStaticScheme()
         amgcl_smoother = AMGCLSmoother.ILU0
         amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB
-        tolerance = 1e-6
+        tolerance = 1e-8
         max_iterations = 1000
         verbosity = 0 #0->shows no information, 1->some information, 2->all the information
         gmres_size = 50
-        
+
         if self.use_lumped_mass_matrix:
-            linear_solver = CGSolver()
+            linear_solver = SuperLUIterativeSolver()
         else:
             linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
 
@@ -65,7 +66,7 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
         self.FillUpModelPart(self.element_type, self.condition_type)
         self.DOFs = (VELOCITY_Z_GRADIENT_X, VELOCITY_Z_GRADIENT_Y, VELOCITY_Z_GRADIENT_Z)
         self.AddDofs(self.DOFs)
-        self.calculate_vorticity = self.pp.CFD_DEM.lift_force_type
+        self.calculate_vorticity = self.pp.CFD_DEM["lift_force_type"].GetInt()
 
     def Solve(self):
         print("\nSolving for the fluid acceleration...")
@@ -94,7 +95,7 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
 class L2ProjectionMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         L2ProjectionGradientRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
-        self.store_full_gradient = self.pp.CFD_DEM.store_full_gradient
+        self.store_full_gradient = self.pp.CFD_DEM["store_full_gradient_option"].GetBool()
 
     def RecoverMaterialAcceleration(self):
         if self.store_full_gradient:

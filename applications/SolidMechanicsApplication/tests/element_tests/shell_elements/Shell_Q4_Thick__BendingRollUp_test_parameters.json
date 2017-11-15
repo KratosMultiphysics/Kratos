@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "Shell_Q4_Thick__BendingRollUp_test",
         "model_part_name" : "SolidDomain",
-        "domain_size"     : 3,
+        "dimension"       : 3,
         "time_step"       : 0.05,
         "start_time"      : 0.001,
         "end_time"        : 1.0,
@@ -17,7 +17,7 @@
             "input_filename" : "element_tests/shell_elements/Shell_Q4_Thick__BendingRollUp"
         },
         "line_search"                        : false,
-        "rotation_dofs"			     : true,
+        "dofs"                               : ["ROTATION"],
         "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : 1e-6,
         "displacement_absolute_tolerance"    : 1e-9,
