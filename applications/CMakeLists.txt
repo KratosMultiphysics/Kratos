@@ -193,13 +193,9 @@ if(${PFEM2_APPLICATION} MATCHES ON)
   add_subdirectory(pfem_2_application)
 endif(${PFEM2_APPLICATION} MATCHES ON)
 
-if(${MACHINING_APPLICATION} MATCHES ON)
-  add_subdirectory(MachiningApplication)
-endif(${MACHINING_APPLICATION} MATCHES ON)
-
-if(${STRING_DYNAMICS_APPLICATION} MATCHES ON)
-  add_subdirectory(StringDynamicsApplication)
-endif(${STRING_DYNAMICS_APPLICATION} MATCHES ON)
+if(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
+  add_subdirectory(pure_diffusion_application)
+endif(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
 
 if(${MESHLESS_APPLICATION} MATCHES ON)
   add_subdirectory(meshless_application)
@@ -273,17 +269,13 @@ if(${INCOMPRESSIBLE_FLUID_APPLICATION} MATCHES ON)
   add_subdirectory(incompressible_fluid_application)
 endif(${INCOMPRESSIBLE_FLUID_APPLICATION} MATCHES ON)
 
-if(${SHALLOW_WATER_APPLICATION} MATCHES ON)
-  add_subdirectory(ShallowWaterApplication)
-endif(${SHALLOW_WATER_APPLICATION} MATCHES ON)
-
 if(${COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION} MATCHES ON)
   add_subdirectory(CompressiblePotentialFlowApplication)
 endif(${COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION} MATCHES ON)
 
-if(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
-  add_subdirectory(PureDiffusionApplication)
-endif(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
+if(${SHALLOW_WATER_APPLICATION} MATCHES ON)
+  add_subdirectory(ShallowWaterApplication)
+endif(${SHALLOW_WATER_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
