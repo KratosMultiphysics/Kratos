@@ -339,17 +339,6 @@ protected:
         double &TauTwo);
 
     /**
-     * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
-     * This function is used to implement Smagorinsky type LES or non-Newtonian dynamics in derived classes.
-     * @param rData TElementData instance with information about nodal values
-     * @param ElemSize Characteristic length representing the element (for Smagorinsky, this is the filter width)
-     * @return Kinematic viscosity at the integration point.
-     */
-    virtual double EffectiveViscosity(
-        TElementData& rData,
-        double ElementSize);
-
-    /**
      * @brief Write the convective operator evaluated at this point (for each nodal funciton) to an array
      * Evaluate the convective operator for each node's shape function at an arbitrary point
      * @param rResult: Output vector

@@ -7,11 +7,12 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela
+//  Main author:     Ruben Zorrilla
+//  Co-authors:      Jordi Cotela
 //
 
-#ifndef KRATOS_DSS_H
-#define KRATOS_DSS_H
+#ifndef KRATOS_SYMBOLIC_NAVIER_STOKES_H
+#define KRATOS_SYMBOLIC_NAVIER_STOKES_H
 
 #include "includes/define.h"
 #include "includes/element.h"
@@ -48,14 +49,14 @@ namespace Kratos
 ///@{
 
 template< class TElementData >
-class DSS : public FluidElement<TElementData>
+class SymbolicNavierStokes : public FluidElement<TElementData>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of DSS
-    KRATOS_CLASS_POINTER_DEFINITION(DSS);
+    /// Pointer definition of SymbolicNavierStokes
+    KRATOS_CLASS_POINTER_DEFINITION(SymbolicNavierStokes);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -106,21 +107,21 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    DSS(IndexType NewId = 0);
+    SymbolicNavierStokes(IndexType NewId = 0);
 
     /// Constructor using an array of nodes.
     /**
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    DSS(IndexType NewId, const NodesArrayType& ThisNodes);
+    SymbolicNavierStokes(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /// Constructor using a geometry object.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    DSS(IndexType NewId, GeometryType::Pointer pGeometry);
+    SymbolicNavierStokes(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /// Constuctor using geometry and properties.
     /**
@@ -128,10 +129,10 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    DSS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
+    SymbolicNavierStokes(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
-    ~DSS() override;
+    virtual ~SymbolicNavierStokes();
 
     ///@}
     ///@name Operators
@@ -145,7 +146,7 @@ public:
 
     /// Create a new element of this type
     /**
-     * Returns a pointer to a new DSS element, created using given input
+     * Returns a pointer to a new SymbolicNavierStokes element, created using given input
      * @param NewId: the ID of the new element
      * @param ThisNodes: the nodes of the new element
      * @param pProperties: the properties assigned to the new element
@@ -167,39 +168,7 @@ public:
                             GeometryType::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
 
-
-    virtual void Calculate(const Variable<double>& rVariable,
-                           double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo);
-
-
-    virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
-                           array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo);
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 3>> const& rVariable,
-                                     std::vector<array_1d<double, 3>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(Variable<double> const& rVariable,
-                                     std::vector<double>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
-                                     std::vector<array_1d<double, 6>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
-                                     std::vector<Vector>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
-                                     std::vector<Matrix>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void Initialize() override;
 
     ///@}
     ///@name Inquiry
@@ -218,24 +187,15 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override;
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
     ///@}
 
 protected:
 
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Protected member Variables
     ///@{
 
+    /// Constitutive law pointer
+    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     ///@}
     ///@name Protected Operators
@@ -246,69 +206,18 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void AddVelocitySystem(
+    void AddTimeIntegratedSystem(
         TElementData& rData,
         MatrixType& rLHS,
         VectorType& rRHS) override;
 
-    void AddMassLHS(
+    void AddTimeIntegratedLHS(
         TElementData& rData,
-        MatrixType& rMassMatrix) override;
+        MatrixType& rLHS) override;
 
-
-    void AddMassStabilization(
+    void AddTimeIntegratedRHS(
         TElementData& rData,
-        MatrixType& rMassMatrix);
-
-    /**
-     * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
-     * This function is used to implement Smagorinsky type LES or non-Newtonian dynamics in derived classes.
-     * @param rData TElementData instance with information about nodal values
-     * @param ElemSize Characteristic length representing the element (for Smagorinsky, this is the filter width)
-     * @return Kinematic viscosity at the integration point.
-     */
-    virtual double EffectiveViscosity(
-        TElementData& rData,
-        double ElementSize);
-    
-
-    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
-
-    virtual void MomentumProjTerm(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRHS);
-
-    virtual void MassProjTerm(
-        TElementData& rData,
-        double& rMassRHS);
-
-
-    virtual void SubscaleVelocity(
-        TElementData& rData,
-        const ProcessInfo& rProcessInfo,
-        array_1d<double,3>& rVelocitySubscale);
-
-    virtual void SubscalePressure(
-        TElementData& rData,
-        const ProcessInfo& rProcessInfo,
-        double &rPressureSubscale);
-
-        virtual void ASGSMomentumResidual(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRes);
-
-
-    virtual void ASGSMassResidual(
-        TElementData& rData,
-        double& rMomentumRes);
-
-    virtual void OSSMomentumResidual(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRes);
-
-    virtual void OSSMassResidual(
-        TElementData& rData,
-        double& rMassRes);
+        VectorType& rRHS) override;
 
     ///@}
     ///@name Protected  Access
@@ -342,9 +251,9 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override;
+    virtual void save(Serializer& rSerializer) const;
 
-    void load(Serializer& rSerializer) override;
+    virtual void load(Serializer& rSerializer);
 
     ///@}
     ///@name Private Operators
@@ -371,24 +280,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    DSS& operator=(DSS const& rOther);
+    SymbolicNavierStokes& operator=(SymbolicNavierStokes const& rOther);
 
     /// Copy constructor.
-    DSS(DSS const& rOther);
+    SymbolicNavierStokes(SymbolicNavierStokes const& rOther);
 
     ///@}
 
 
-}; // Class DSS
-
-namespace Internals {
-
-template <unsigned int TDim>
-void AddViscousTerm(double DynamicViscosity,
-                    double GaussWeight,
-                    const Kratos::Matrix& rDN_DX,
-                    Kratos::Matrix& rLHS);
-}
+}; // Class SymbolicNavierStokes
 
 ///@}
 
@@ -404,7 +304,7 @@ void AddViscousTerm(double DynamicViscosity,
 /// input stream function
 template< class TElementData >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 DSS<TElementData>& rThis)
+                                 SymbolicNavierStokes<TElementData>& rThis)
 {
     return rIStream;
 }
@@ -412,7 +312,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 /// output stream function
 template< class TElementData >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const DSS<TElementData>& rThis)
+                                 const SymbolicNavierStokes<TElementData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -426,4 +326,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_DSS_H
+#endif // KRATOS_SYMBOLIC_NAVIER_STOKES_H

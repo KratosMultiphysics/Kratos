@@ -39,6 +39,7 @@
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/dss.h"
+#include "custom_elements/symbolic_navier_stokes.h"
 //#include "custom_elements/dynamic_vms.h"
 #include "custom_elements/two_fluid_vms.h"
 #include "custom_elements/stationary_stokes.h"
@@ -64,6 +65,7 @@
 #include "custom_elements/embedded_navier_stokes.h"
 
 #include "custom_utilities/qsvms_data.h"
+#include "custom_utilities/symbolic_navier_stokes_data.h"
 
 
 namespace Kratos
@@ -231,6 +233,8 @@ private:
     /// Expermiental fluid element
     const DSS< QSVMSData<2,3> > mDSS2D;
     const DSS< QSVMSData<3,4> > mDSS3D;
+    const SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > mSymbolicNavierStokes2D3N;
+    const SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > mSymbolicNavierStokes3D4N;
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;
 

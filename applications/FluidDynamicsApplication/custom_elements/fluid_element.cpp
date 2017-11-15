@@ -15,9 +15,21 @@
 #include "includes/checks.h"
 
 #include "custom_utilities/qsvms_data.h"
+#include "custom_utilities/symbolic_navier_stokes_data.h"
 
 namespace Kratos
 {
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Template class instantiation
+
+template class FluidElement< SymbolicNavierStokesData<2,3> >;
+template class FluidElement< SymbolicNavierStokesData<3,4> >;
+
+template class FluidElement< QSVMSData<2,3> >;
+template class FluidElement< QSVMSData<3,4> >;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
@@ -55,13 +67,17 @@ FluidElement<TElementData>::~FluidElement()
 template< class TElementData >
 Element::Pointer FluidElement<TElementData>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
 {
-    KRATOS_ERROR << "Attempting to Create base FluidElement instances, but this is an abstract element." << std::endl;
+    KRATOS_TRY;
+    KRATOS_ERROR << "Attempting to Create base FluidElement instances." << std::endl;
+    KRATOS_CATCH("");
 }
 
 template< class TElementData >
 Element::Pointer FluidElement<TElementData>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    KRATOS_ERROR << "Attempting to Create base FluidElement instances, but this is an abstract element." << std::endl;
+    KRATOS_TRY;
+    KRATOS_ERROR << "Attempting to Create base FluidElement instances." << std::endl;
+    KRATOS_CATCH("");
 }
 
 template <class TElementData>
@@ -657,44 +673,6 @@ void FluidElement<TElementData>::CalculateStaticTau(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-template< class TElementData >
-double FluidElement<TElementData>::EffectiveViscosity(
-    TElementData& rData,
-    double ElementSize)
-{
-    double c_s = rData.CSmagorinsky;
-
-    double kinematic_viscosity = this->Interpolate(rData.Viscosity,rData.N);
-    const auto& r_velocities = rData.Velocity;
-
-    if (c_s != 0.0 )
-    {
-        // Calculate Symetric gradient
-        MatrixType strain_rate = ZeroMatrix(Dim,Dim);
-        for (unsigned int n = 0; n < NumNodes; ++n)
-        {
-            for (unsigned int i = 0; i < Dim; ++i)
-                for (unsigned int j = 0; j < Dim; ++j)
-                    strain_rate(i,j) += 0.5 * ( rData.DN_DX(n,j) * r_velocities(n,i) + rData.DN_DX(n,i) * r_velocities(n,j) );
-        }
-
-        // Norm of symetric gradient
-        double strain_rate_norm = 0.0;
-        for (unsigned int i = 0; i < Dim; ++i)
-            for (unsigned int j = 0; j < Dim; ++j)
-                strain_rate_norm += strain_rate(i,j) * strain_rate(i,j);
-        strain_rate_norm = sqrt(2.0*strain_rate_norm);
-
-        // Nu_sgs = (c_s * Delta)^2 * (2*Sij*Sij)^(1/2)
-        kinematic_viscosity += c_s * c_s * ElementSize * ElementSize * strain_rate_norm;
-    }
-
-    return kinematic_viscosity;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 template< class TElementData >
 void FluidElement<TElementData>::ConvectionOperator(Vector &rResult,
                                    const array_1d<double,3> &rConvVel,
@@ -821,11 +799,5 @@ void FluidElement<TElementData>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Class template instantiation
-///////////////////////////////////////////////////////////////////////////////////////////////////
-template class FluidElement< QSVMSData<2,3> >;
-template class FluidElement< QSVMSData<3,4> >;
 
 }
