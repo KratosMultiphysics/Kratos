@@ -45,6 +45,9 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 class SimpleMeshMovingTest(StructuralMechanichsTestFactory):
     file_name = "mesh_moving_test/simple_mesh_moving_test"
     
+class DynamicBDF2Tests(StructuralMechanichsTestFactory):
+    file_name = "dynamic_test/dynamic_bdf2_test"
+    
 class DynamicBossakTests(StructuralMechanichsTestFactory):
     file_name = "dynamic_test/dynamic_bossak_test"
 

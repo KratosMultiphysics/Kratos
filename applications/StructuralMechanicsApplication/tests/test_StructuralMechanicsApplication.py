@@ -32,6 +32,7 @@ from test_loading_conditions import TestLoadingConditions as TestLoadingConditio
 # Basic moving mesh test
 from SmallTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
 # Dynamic basic tests
+from SmallTests import DynamicBDF2Tests as TDynamicBDF2Tests
 from SmallTests import DynamicBossakTests as TDynamicBossakTests
 from SmallTests import DynamicNewmarkTests as TDynamicNewmarkTests
 # Patch test Small Displacements
@@ -169,6 +170,7 @@ def AssambleTestSuites():
     # Basic moving mesh test
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Dynamic basic tests
+    smallSuite.addTest(TDynamicBDF2Tests('test_execution'))
     smallSuite.addTest(TDynamicBossakTests('test_execution'))
     smallSuite.addTest(TDynamicNewmarkTests('test_execution'))
     # Patch test Small Displacements

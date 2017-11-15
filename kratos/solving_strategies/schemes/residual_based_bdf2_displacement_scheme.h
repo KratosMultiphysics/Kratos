@@ -1,18 +1,18 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:          BSD License
-//  Original author:  Josep Maria Carbonell
-//  coming from       SolidMechanicsApplication
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//  Co-author:        Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME )
-#define  KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME
+
+#if !defined(KRATOS_RESIDUAL_BASED_BDF2_DISPLACEMENT_SCHEME )
+#define  KRATOS_RESIDUAL_BASED_BDF2_DISPLACEMENT_SCHEME
 
 /* System includes */
 
@@ -44,15 +44,45 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Bossak integration scheme (for dynamic problems)
+/** @brief BDF2 integration scheme (for dynamic problems, displacement based)
+ * This scheme is designed to solve a system of the type M*d2(un0)/dt2 + D*d(un0)/dt + K*un0 = fext
+ * If we call:
+ * 
+ *      an0 the acceleration at the current step
+ *      an1 the acceleration one step in the past
+ *      an2 the acceleration two steps in the past
+ * 
+ *      vn0 the velocity at the current step
+ *      vn1 the velocity one step in the past
+ *      vn2 the velocity two steps in the past
+ * 
+ *      un0 the displacemnt at the current step
+ *      un1 the displacemnt one step in the past
+ *      un2 the displacemnt two steps in the past
+ * 
+ * Then we assume:
+ *      d(vn0)/dt |tn0 = c0*vn0 + c1*vn1 + c2*vn2 
+ *      d(un0)/dt |tn0 = c0*un0 + c1*un1 + c2*un2
+ * with:
+ *      c0 = 1.5/dt
+ *      c1 = -2.0/dt
+ *      c2 = 0.5/dt 
+ * 
+ * The LHS and RHS can be defined as:
+ *      RHS = fext - M*d(vn0)/dt - D*d(un0)/dt - K*dn0
+ * and 
+ *      LHS = d(-RHS)/d(un0) = c0*c0*M + c0*D + K
+ * NOTE: this implies that elements are expected to be written in terms 
+ * of unknown DISPLACEMENTS
  */
 template<class TSparseSpace,  class TDenseSpace >
-class ResidualBasedBossakDisplacementScheme: public Scheme<TSparseSpace,TDenseSpace>
+class ResidualBasedBDF2DisplacementScheme
+    : public Scheme<TSparseSpace,TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedBossakDisplacementScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedBDF2DisplacementScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
 
@@ -84,40 +114,26 @@ public:
 
     /**
      * Constructor.
-     * The bossak method
+     * The DBF2 method
      */
-    ResidualBasedBossakDisplacementScheme(double rAlpham = 0.0)
-        :Scheme<TSparseSpace,TDenseSpace>()
+    ResidualBasedBDF2DisplacementScheme()
+        :BaseType()
     {
-        // For pure Newmark Scheme
-        mAlpha.f = 0.0;
-        mAlpha.m = rAlpham;
-
-        // Default values of the Newmark coefficients
-        double beta  = 0.25;
-        double gamma = 0.5;
-
-        CalculateNewmarkCoefficients(beta, gamma);
-
-        // std::cout << " MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= " << mAlpha.m << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
-
         // Allocate auxiliary memory
-        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
 
-        mMatrix.M.resize(NumThreads);
-        mMatrix.D.resize(NumThreads);
+        mMatrix.M.resize(num_threads);
+        mMatrix.D.resize(num_threads);
 
-        mVector.v.resize(NumThreads);
-        mVector.a.resize(NumThreads);
-        mVector.ap.resize(NumThreads);
+        mVector.v.resize(num_threads);
+        mVector.a.resize(num_threads);
     }
 
     /** Copy Constructor.
      */
-    ResidualBasedBossakDisplacementScheme(ResidualBasedBossakDisplacementScheme& rOther)
+    ResidualBasedBDF2DisplacementScheme(ResidualBasedBDF2DisplacementScheme& rOther)
         :BaseType(rOther)
-        ,mAlpha(rOther.mAlpha)
-        ,mNewmark(rOther.mNewmark)
+        ,mBDF2(rOther.mBDF2)
         ,mMatrix(rOther.mMatrix)
         ,mVector(rOther.mVector)
     {
@@ -128,12 +144,12 @@ public:
      */
     BaseTypePointer Clone() override
     {
-        return BaseTypePointer( new ResidualBasedBossakDisplacementScheme(*this) );
+        return BaseTypePointer( new ResidualBasedBDF2DisplacementScheme(*this) );
     }
 
     /** Destructor.
      */
-    ~ResidualBasedBossakDisplacementScheme
+    ~ResidualBasedBDF2DisplacementScheme
     () override {}
 
     ///@}
@@ -145,28 +161,13 @@ public:
     ///@{
 
     /**
-     * Recalculates the Newmark coefficients, taking into account the alpha parameters
-     * @param beta: The Newmark beta coefficient
-     * @param gamma: The Newmark gamma coefficient
-     */
-
-    void CalculateNewmarkCoefficients(
-            double beta,
-            double gamma
-            )
-    {
-        mNewmark.beta  = (1.0 + mAlpha.f - mAlpha.m) * (1.0 + mAlpha.f - mAlpha.m) * beta;
-        mNewmark.gamma = gamma + mAlpha.f - mAlpha.m;
-    }
-
-    /**
      * Performing the update of the solution
-     * Incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
-     * @param rModelPart: The model of the problem to solve
-     * @param rDofSet: Set of all primary variables
-     * @param A: LHS matrix
-     * @param Dx: incremental update of primary variables
-     * @param b: RHS Vector
+     * Incremental update within newton iteration. It updates the state variables at the end of the time step u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
+     * @param rModelPart The model of the problem to solve
+     * @param rDofSet Set of all primary variables
+     * @param A LHS matrix
+     * @param Dx incremental update of primary variables
+     * @param b RHS Vector
      */
 
     void Update(
@@ -207,18 +208,18 @@ public:
         {
             auto it_node = rModelPart.Nodes().begin() + i;
                         
-            array_1d<double, 3 > delta_displacement;
+            const array_1d<double, 3 > & un0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & un1 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            const array_1d<double, 3 > & un2 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 2);
+            
+            array_1d<double, 3 > & vn0 = it_node->FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3 > & vn1 = it_node->FastGetSolutionStepValue(VELOCITY, 1);
+            const array_1d<double, 3 > & vn2 = it_node->FastGetSolutionStepValue(VELOCITY, 2);
 
-            noalias(delta_displacement) = it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3 > & an0 = it_node->FastGetSolutionStepValue(ACCELERATION);
 
-            array_1d<double, 3 > & current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double, 3 > & previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
-
-            array_1d<double, 3 > & current_aceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
-            const array_1d<double, 3 > & previous_aceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-
-            UpdateVelocity(current_velocity, delta_displacement, previous_velocity, previous_aceleration);
-            UpdateAcceleration(current_aceleration, delta_displacement, previous_velocity, previous_aceleration);
+            UpdateVelocity(vn0, un0, un1, un2);
+            UpdateAcceleration(an0, vn0, vn1, vn2);
         }
 
         KRATOS_CATCH( "" );
@@ -226,12 +227,12 @@ public:
 
     /**
      * Performing the prediction of the solution
-     * It predicts the solution for the current step: x = xold + vold * Dt
-     * @param rModelPart: The model of the problem to solve
+     * It predicts the solution for the current step x = xold + vold * Dt
+     * @param rModelPart The model of the problem to solve
      * @param rDofSet set of all primary variables
-     * @param A: LHS matrix
-     * @param Dx: Incremental update of primary variables
-     * @param b: RHS Vector
+     * @param A LHS matrix
+     * @param Dx Incremental update of primary variables
+     * @param b RHS Vector
      */
 
     void Predict(
@@ -261,37 +262,41 @@ public:
             //Predicting: NewDisplacement = previous_displacement + previous_velocity * delta_time;
             //ATTENTION::: the prediction is performed only on free nodes
 
-            const array_1d<double, 3 > & previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-            const array_1d<double, 3 > & previous_velocity     = it_node->FastGetSolutionStepValue(VELOCITY,     1);
-            const array_1d<double, 3 > & previous_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            array_1d<double, 3 > & current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double, 3 > & current_velocity     = it_node->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3 > & current_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & vn2 = it_node->FastGetSolutionStepValue(VELOCITY,     2);
+            const array_1d<double, 3 > & un2 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 2);
+            const array_1d<double, 3 > & an1 = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+            const array_1d<double, 3 > & vn1 = it_node->FastGetSolutionStepValue(VELOCITY,     1);
+            const array_1d<double, 3 > & un1 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3 > & an0 = it_node->FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3 > & vn0 = it_node->FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3 > & un0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
             if (it_node -> IsFixed(ACCELERATION_X))
             {
-                current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[0] + mNewmark.beta * current_acceleration[0]);
+                vn0[0] = (an0[0] - mBDF2.c1 * vn1[0] - mBDF2.c2 * vn2[0])/mBDF2.c0;
+                un0[0] = (vn0[0] - mBDF2.c1 * un1[0] - mBDF2.c2 * un2[0])/mBDF2.c0;
             }
             else if (it_node -> IsFixed(VELOCITY_X))
             {
-                current_displacement[0] = previous_displacement[0] + 0.5 * delta_time * (previous_velocity[0] + current_velocity[0]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
+                un0[0] = (vn1[0] - mBDF2.c1 * un1[0] - mBDF2.c2 * un2[0])/mBDF2.c0;
             }
             else if (it_node -> IsFixed(DISPLACEMENT_X) == false)
             {
-                current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
+                un0[0] = un1[0] + delta_time * vn1[0] + 0.5 * std::pow(delta_time, 2) * an1[0];
             }
 
             if (it_node -> IsFixed(ACCELERATION_Y))
             {
-                current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[1] + mNewmark.beta * current_acceleration[1]);
+                vn0[1] = (an0[1] - mBDF2.c1 * vn1[1] - mBDF2.c2 * vn2[1])/mBDF2.c0;
+                un0[1] = (vn0[1] - mBDF2.c1 * un1[1] - mBDF2.c2 * un2[1])/mBDF2.c0;
             }
             else if (it_node -> IsFixed(VELOCITY_Y))
             {
-                current_displacement[1] = previous_displacement[1] + 0.5 * delta_time * (previous_velocity[1] + current_velocity[1]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1] ;
+                un0[1] = (vn1[1] - mBDF2.c1 * un1[1] - mBDF2.c2 * un2[1])/mBDF2.c0;
             }
             else if (it_node -> IsFixed(DISPLACEMENT_Y) == false)
             {
-                current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1];
+                un0[1] = un1[1] + delta_time * vn1[1] + 0.5 * std::pow(delta_time, 2) * an1[1];
             }
 
             // For 3D cases
@@ -299,24 +304,22 @@ public:
             {
                 if (it_node -> IsFixed(ACCELERATION_Z))
                 {
-                    current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[2] + mNewmark.beta * current_acceleration[2]);
+                    vn0[2] = (an0[2] - mBDF2.c1 * vn1[2] - mBDF2.c2 * vn2[2])/mBDF2.c0;
+                    un0[2] = (vn0[2] - mBDF2.c1 * un1[2] - mBDF2.c2 * un2[2])/mBDF2.c0;
                 }
                 else if (it_node -> IsFixed(VELOCITY_Z))
                 {
-                    current_displacement[2] = previous_displacement[2] + 0.5 * delta_time * (previous_velocity[2] + current_velocity[2]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2] ;
+                    un0[2] = (vn1[2] - mBDF2.c1 * un1[2] - mBDF2.c2 * un2[2])/mBDF2.c0;
                 }
                 else if (it_node -> IsFixed(DISPLACEMENT_Z) == false)
                 {
-                    current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2];
+                    un0[2] = un1[2] + delta_time * vn1[2] + 0.5 * std::pow(delta_time, 2) * an1[2];
                 }
             }
 
             // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
-            const array_1d<double, 3 > delta_displacement = current_displacement - previous_displacement;
-
-            UpdateVelocity(current_velocity, delta_displacement, previous_velocity, previous_acceleration);
-
-            UpdateAcceleration(current_acceleration, delta_displacement, previous_velocity, previous_acceleration);
+            UpdateVelocity(vn0, un0, un1, un2);
+            UpdateAcceleration(an0, vn0, vn1, vn2);
         }
 
         KRATOS_CATCH( "" );
@@ -324,11 +327,10 @@ public:
 
     /**
      * It initializes time step solution. Only for reasons if the time step solution is restarted
-     * @param rModelPart: The model of the problem to solve
-     * @param A: LHS matrix
-     * @param Dx: Incremental update of primary variables
-     * @param b: RHS Vector
-     *
+     * @param rModelPart The model of the problem to solve
+     * @param A LHS matrix
+     * @param Dx Incremental update of primary variables
+     * @param b RHS Vector
      */
     
     void InitializeSolutionStep(
@@ -336,7 +338,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    ) override
+        ) override
     {
         KRATOS_TRY;
 
@@ -344,34 +346,18 @@ public:
 
         BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
 
-        double delta_time = current_process_info[DELTA_TIME];
-
-        double beta = 0.25;
-        if (current_process_info.Has(NEWMARK_BETA))
-        {
-            beta = current_process_info[NEWMARK_BETA];
-        }
-        double gamma = 0.5;
-        if (current_process_info.Has(NEWMARK_GAMMA))
-        {
-            gamma = current_process_info[NEWMARK_GAMMA];
-        }
-
-        CalculateNewmarkCoefficients(beta, gamma);
+        const double delta_time = current_process_info[DELTA_TIME];
 
         if (delta_time < 1.0e-24)
         {
             KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part ";
         }
-
-        // Initializing Newmark constants
-        mNewmark.c0 = ( 1.0 / (mNewmark.beta * delta_time * delta_time) );
-        mNewmark.c1 = ( mNewmark.gamma / (mNewmark.beta * delta_time) );
-        mNewmark.c2 = ( 1.0 / (mNewmark.beta * delta_time) );
-        mNewmark.c3 = ( 0.5 / (mNewmark.beta) - 1.0 );
-        mNewmark.c4 = ( (mNewmark.gamma / mNewmark.beta) - 1.0  );
-        mNewmark.c5 = ( delta_time * 0.5 * ( ( mNewmark.gamma / mNewmark.beta ) - 2.0 ) );
-
+        
+        // The BDF2 constants
+        mBDF2.c0 =  1.5/delta_time;
+        mBDF2.c1 = -2.0/delta_time;
+        mBDF2.c2 =  0.5/delta_time;
+        
         KRATOS_CATCH( "" );
     }
 
@@ -388,21 +374,22 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    ) override
+        ) override
     {
         KRATOS_TRY;
 
         ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
         
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i)
+        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++)
         {
             auto itElem = rModelPart.ElementsBegin() + i;
             itElem->InitializeNonLinearIteration(current_process_info);
         }
         
+        
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i)
+        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++)
         {
             auto itElem = rModelPart.ConditionsBegin() + i;
             itElem->InitializeNonLinearIteration(current_process_info);
@@ -420,7 +407,7 @@ public:
     void InitializeNonLinearIteration(
         Condition::Pointer rCurrentCondition,
         ProcessInfo& CurrentProcessInfo
-        ) override
+    ) override
     {
         (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
@@ -434,7 +421,7 @@ public:
     void InitializeNonLinearIteration(
         Element::Pointer rCurrentElement,
         ProcessInfo& CurrentProcessInfo
-        ) override
+    ) override
     {
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
@@ -474,8 +461,6 @@ public:
 
         AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
 
-        //AssembleTimeSpaceLHS(rCurrentElement, LHS_Contribution, DampMatrix, MassMatrix,CurrentProcessInfo);
-
         KRATOS_CATCH( "" );
     }
 
@@ -491,8 +476,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo
-        ) override
+        ProcessInfo& CurrentProcessInfo) override
     {
 
         KRATOS_TRY;
@@ -530,8 +514,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo
-        ) override
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -570,8 +553,7 @@ public:
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo
-        ) override
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -608,7 +590,7 @@ public:
         KRATOS_TRY;
 
         const int err = Scheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
-        if(err != 0) return err;
+        if(err!=0) return err;
 
         // Check for variables keys
         // Verify that the variables are correctly initialized
@@ -627,7 +609,7 @@ public:
 
         // Check that variables are correctly allocated
         for(ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin();
-                it!=rModelPart.NodesEnd(); ++it)
+                it!=rModelPart.NodesEnd(); it++)
         {
             if (it->SolutionStepsDataHas(DISPLACEMENT) == false)
             {
@@ -645,7 +627,7 @@ public:
 
         // Check that dofs exist
         for(ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin();
-                it!=rModelPart.NodesEnd(); ++it)
+                it!=rModelPart.NodesEnd(); it++)
         {
             if(it->HasDofFor(DISPLACEMENT_X) == false)
             {
@@ -659,12 +641,6 @@ public:
             {
                 KRATOS_ERROR << "missing DISPLACEMENT_Z dof on node " << it->Id() << std::endl;
             }
-        }
-
-        // Check for admissible value of the AlphaBossak
-        if(mAlpha.m > 0.0 || mAlpha.m < -0.3)
-        {
-            KRATOS_ERROR << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is " << mAlpha.m << std::endl;
         }
 
         // Check for minimum value of the buffer index
@@ -703,25 +679,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    struct GeneralAlphaMethod
+    struct BDF2Method
     {
-        double f;  // Alpha Hilbert
-        double m;  // Alpha Bosssak
-    };
-
-    struct NewmarkMethod
-    {
-        double beta;
-        double gamma;
-
-        // System constants
         double c0;
         double c1;
         double c2;
-        double c3;
-        double c4;
-        double c5;
-        double c6;
     };
 
     struct  GeneralMatrices
@@ -734,14 +696,11 @@ protected:
     {
         std::vector< Vector > v;    // Velocity
         std::vector< Vector > a;    // Acceleration
-        std::vector< Vector > ap;   // Previous acceleration
     };
 
-    GeneralAlphaMethod  mAlpha;
-    NewmarkMethod       mNewmark;
-
-    GeneralMatrices     mMatrix;
-    GeneralVectors      mVector;
+    BDF2Method        mBDF2; // The BDF2 coefficients
+    GeneralMatrices mMatrix; // This contains the auxiliar matrices
+    GeneralVectors  mVector; // This contains the auxiliar derivatives
 
     ///@}
     ///@name Protected Operators
@@ -753,44 +712,42 @@ protected:
 
     /**
      * Updating first time Derivative
-     * @param CurrentVelocity The current velocity
-     * @param DeltaDisplacement The increment of displacement
-     * @param PreviousVelocity The previous velocity
-     * @param PreviousAcceleration The previous acceleration
+     * @param vn0 the velocity at the current step
+     * @param un0 the displacemnt at the current step
+     * @param un1 the displacemnt one step in the past
+     * @param un2 the displacemnt two steps in the past
      */
-
+    
     inline void UpdateVelocity(
-        array_1d<double, 3 > & CurrentVelocity,
-        const array_1d<double, 3 > & DeltaDisplacement,
-        const array_1d<double, 3 > & PreviousVelocity,
-        const array_1d<double, 3 > & PreviousAcceleration
-    )
+        array_1d<double, 3> & vn0,
+        const array_1d<double, 3>& un0,
+        const array_1d<double, 3>& un1,
+        const array_1d<double, 3>& un2
+        )
     {
-        noalias(CurrentVelocity) =  (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
-                                     - mNewmark.c5 * PreviousAcceleration);
+        noalias(vn0) = (mBDF2.c0 * un0 + mBDF2.c1 * un1  + mBDF2.c2 * un2);
     }
 
     /**
      * Updating second time Derivative
-     * @param CurrentVelocity The current velocity
-     * @param DeltaDisplacement The increment of displacement
-     * @param PreviousVelocity The previous velocity
-     * @param PreviousAcceleration The previous acceleration
+     * @param an0 the acceleration at the current step
+     * @param vn0 the velocity at the current step
+     * @param vn1 the velocity one step in the past
+     * @param vn2 the velocity two steps in the past
      */
 
     inline void UpdateAcceleration(
-        array_1d<double, 3 > & CurrentAcceleration,
-        const array_1d<double, 3 > & DeltaDisplacement,
-        const array_1d<double, 3 > & PreviousVelocity,
-        const array_1d<double, 3 > & PreviousAcceleration
+        array_1d<double, 3> & an0,
+        const array_1d<double, 3>& vn0,
+        const array_1d<double, 3>& vn1,
+        const array_1d<double, 3>& vn2
     )
     {
-        noalias(CurrentAcceleration) =  (mNewmark.c0 * DeltaDisplacement - mNewmark.c2 * PreviousVelocity
-                                         -  mNewmark.c3 * PreviousAcceleration);
+        noalias(an0) = (mBDF2.c0 * vn0 + mBDF2.c1 * vn1  + mBDF2.c2 * vn2);
     }
 
     /**
-     * It adds the dynamic LHS contribution of the elements M*c0 + D*c1 + K
+     * It adds the dynamic LHS contribution of the elements LHS = d(-RHS)/d(un0) = c0*c0*M + c0*D + K
      * @param LHS_Contribution The dynamic contribution for the LHS
      * @param D The damping matrix
      * @param M The mass matrix
@@ -801,20 +758,19 @@ protected:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo
+        )
     {
         // Adding mass contribution to the dynamic stiffness
         if (M.size1() != 0) // if M matrix declared
         {
-            noalias(LHS_Contribution) += M * (1.0 - mAlpha.m) * mNewmark.c0;
-
-            // std::cout<<" Mass Matrix "<<M<<" coeficient "<<(1-mAlpha.m)*mNewmark.c0<<std::endl;
+            noalias(LHS_Contribution) += M * std::pow(mBDF2.c0, 2);
         }
 
         // Adding  damping contribution
         if (D.size1() != 0) // if D matrix declared
         {
-            noalias(LHS_Contribution) += D * (1.0 - mAlpha.f) * mNewmark.c1;
+            noalias(LHS_Contribution) += D * mBDF2.c0;
         }
     }
 
@@ -842,15 +798,7 @@ protected:
         {
             rCurrentElement->GetSecondDerivativesVector(mVector.a[thread], 0);
 
-            (mVector.a[thread]) *= (1.00 - mAlpha.m);
-
-            rCurrentElement->GetSecondDerivativesVector(mVector.ap[thread], 1);
-
-            noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread];
-
-            noalias(RHS_Contribution)  -= prod(M, mVector.a[thread]);
-            //KRATOS_WATCH( prod(M, mVector.a[thread] ) )
-
+            noalias(RHS_Contribution) -= prod(M, mVector.a[thread]);
         }
 
         // Adding damping contribution
@@ -863,7 +811,7 @@ protected:
     }
 
     /**
-     * It adds the dynamic RHS contribution of the condition b - M*a - D*v
+     * It adds the dynamic RHS contribution of the condition RHS = fext - M*an0 - D*vn0 - K*dn0
      * @param rCurrentCondition The condition to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
@@ -876,7 +824,8 @@ protected:
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo
+        )
     {
         const int thread = OpenMPUtils::ThisThread();
 
@@ -884,12 +833,6 @@ protected:
         if (M.size1() != 0)
         {
             rCurrentCondition->GetSecondDerivativesVector(mVector.a[thread], 0);
-
-            (mVector.a[thread]) *= (1.00 - mAlpha.m);
-
-            rCurrentCondition->GetSecondDerivativesVector(mVector.ap[thread], 1);
-
-            noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread];
 
             noalias(RHS_Contribution)  -= prod(M, mVector.a[thread]);
         }
@@ -948,7 +891,7 @@ private:
     ///@name Un accessible methods
     ///@{
     ///@}
-}; /* Class ResidualBasedBossakDisplacementScheme */
+}; /* Class ResidualBasedBDF2DisplacementScheme */
 ///@}
 ///@name Type Definitions
 ///@{
@@ -958,4 +901,4 @@ private:
 ///@}
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME defined */
+#endif /* KRATOS_RESIDUAL_BASED_BDF2_DISPLACEMENT_SCHEME defined */

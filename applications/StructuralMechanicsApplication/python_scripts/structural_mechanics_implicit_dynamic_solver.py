@@ -63,6 +63,8 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         elif(scheme_type == "bossak"):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+        elif(scheme_type == "bdf2"):
+            mechanical_scheme = KratosMultiphysics.ResidualBasedBDF2DisplacementScheme()
         elif(scheme_type == "relaxation"):
             damp_factor_f =-0.3
             dynamic_factor_m = 10.0
@@ -70,6 +72,6 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                                                        damp_factor_f, dynamic_factor_m)
         else:
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"newmark\", \"bossak\", \"relaxation\""
+            err_msg += "Available options are: \"newmark\", \"bossak\", \"bdf2\", \"relaxation\""
             raise Exception(err_msg)
         return mechanical_scheme
