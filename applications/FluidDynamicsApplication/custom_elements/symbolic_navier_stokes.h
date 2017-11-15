@@ -94,8 +94,8 @@ public:
 
     constexpr static unsigned int Dim = FluidElement<TElementData>::Dim;
     constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
-    constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
-    constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
+
+    constexpr static unsigned int StrainSize = (Dim*3)-3;
 
     ///@}
     ///@name Life Cycle
@@ -218,6 +218,18 @@ protected:
     void AddTimeIntegratedRHS(
         TElementData& rData,
         VectorType& rRHS) override;
+
+    void ComputeGaussPointLHSContribution(
+        TElementData& rData,
+        MatrixType& rLHS);
+
+    void ComputeGaussPointRHSContribution(
+        TElementData& rData,
+        VectorType& rRHS);
+
+    void ComputeConstitutiveResponse(TElementData& rData);
+
+    void ComputeStrain(TElementData& rData);
 
     ///@}
     ///@name Protected  Access
