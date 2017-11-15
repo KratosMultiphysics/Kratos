@@ -173,8 +173,6 @@ class Solution(object):
         
         ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self.solver.Initialize()
-        self.solver.SetEchoLevel(self.echo_level)
-
         
         # Initialize GiD  I/O (gid outputs, file_lists)
         self.SetGraphicalOutput()
@@ -222,8 +220,7 @@ class Solution(object):
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.step
         self.main_model_part.CloneTimeStep(self.time) 
 
-
-        print(" [STEP:",self.step," TIME:",round(self.time,7),"]")
+        print(" [STEP:",self.step," TIME:","{0:1.{1}f}".format(self.time,6),"]")
 
         # processes to be executed at the begining of the solution step
         self.model_processes.ExecuteInitializeSolutionStep()
