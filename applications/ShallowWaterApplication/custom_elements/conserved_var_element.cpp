@@ -10,8 +10,16 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
+// System includes
+
+
+// External includes
+
+
 // Project includes
 #include "includes/define.h"
+#include "includes/cfd_variables.h"
+#include "includes/checks.h"
 #include "custom_elements/conserved_var_element.hpp"
 #include "shallow_water_application.h"
 #include "utilities/math_utils.h"
@@ -26,47 +34,44 @@ namespace Kratos
     int ConservedVarElement<TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
-        
-        const GeometryType& rGeom = this->GetGeometry();
-        const PropertiesType& rProp = this->GetProperties();
-        
-        // verify nodal variables and dofs
+
+        // Base class checks for positive Jacobian and Id > 0
+        int ierr = Element::Check(rCurrentProcessInfo);
+        if(ierr != 0) return ierr;
+
+        // Check that all required variables have been registered
+        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
+        KRATOS_CHECK_VARIABLE_KEY(MOMENTUM)
+        KRATOS_CHECK_VARIABLE_KEY(HEIGHT)
+        KRATOS_CHECK_VARIABLE_KEY(PROJECTED_SCALAR1)
+        KRATOS_CHECK_VARIABLE_KEY(PROJECTED_VECTOR1)
+        KRATOS_CHECK_VARIABLE_KEY(BATHYMETRY)
+        KRATOS_CHECK_VARIABLE_KEY(RAIN)
+        KRATOS_CHECK_VARIABLE_KEY(MANNING)
+        KRATOS_CHECK_VARIABLE_KEY(GRAVITY)
+        KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME)
+        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU)
+        KRATOS_CHECK_VARIABLE_KEY(WATER_HEIGHT_UNIT_CONVERTER)
+
+        // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for ( unsigned int i = 0; i < TNumNodes; i++ )
         {
-            // Verify basic variables
-            if (rGeom[i].SolutionStepsDataHas( HEIGHT ) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable HEIGHT on node ", rGeom[i].Id() )
-            
-            if ( rGeom[i].SolutionStepsDataHas( MOMENTUM ) == false )
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable MOMENTUM on node ", rGeom[i].Id() )
-            
-            if ( rGeom[i].SolutionStepsDataHas( VELOCITY ) == false )
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable VELOCITY on node ", rGeom[i].Id() )
-            
-            // Verify auxiliar variables
-            if (rGeom[i].SolutionStepsDataHas( BATHYMETRY ) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable BATHYMETRY on node ", rGeom[i].Id() )
-            
-            if (rGeom[i].SolutionStepsDataHas( RAIN ) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable RAIN on node ", rGeom[i].Id() )
-            
-            // Verify degrees of freedom
-            if (rGeom[i].HasDofFor( HEIGHT ) == false )
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable HEIGHT on node ", rGeom[i].Id() )
-            
-            if (rGeom[i].HasDofFor( MOMENTUM_X ) == false ||
-                rGeom[i].HasDofFor( MOMENTUM_Y ) == false )
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable MOMENTUM on node ", rGeom[i].Id() )
+            Node<3> &rnode = this->GetGeometry()[i];
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MOMENTUM,rnode)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HEIGHT,rnode)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR1,rnode)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR1,rnode)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BATHYMETRY,rnode)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN,rnode)
+
+            KRATOS_CHECK_DOF_IN_NODE(MOMENTUM_X,rnode)
+            KRATOS_CHECK_DOF_IN_NODE(MOMENTUM_Y,rnode)
+            KRATOS_CHECK_DOF_IN_NODE(HEIGHT,rnode)
         }
-        
-        // Verify properties
-        if (MANNING.Key() == 0 ||
-            rProp.Has( MANNING ) == false ||
-            rProp[MANNING] < 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,"MANNING has Key zero, is not defined or has an invalid value at element", this->Id() )
-        
-        return 0;
-        
+
+        return ierr;
+
         KRATOS_CATCH("")
     }
 
@@ -141,7 +146,7 @@ namespace Kratos
         mHeightUnitConvert = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
      
         // Getting the time step (not fixed to allow variable time step) 
-        const double delta_t = rCurrentProcessInfo[DELTA_TIME]; 
+        const double delta_t = rCurrentProcessInfo[DELTA_TIME];
         const double dt_inv = 1.0 / delta_t; 
         
         // Compute the geometry
@@ -435,7 +440,7 @@ namespace Kratos
         
         // Compute stabilization parameters
         bool stabilization = true;
-        double Ctau = 0.01; // rCurrentProcessInfo[DYNAMIC_TAU];     // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322) 
+        double Ctau = rCurrentProcessInfo[DYNAMIC_TAU];     // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322) 
         double fheight = fabs(rHeight);
         if (stabilization && fheight > 1e-6)
         {

@@ -27,6 +27,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
+#include "includes/checks.h"
 
 #include "includes/dof.h"
 #include "includes/variables.h"
@@ -2158,36 +2159,17 @@ private:
     {
         KRATOS_TRY
 
-        // Unknown variables
-        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(mScalarVar1) == false)
-            KRATOS_THROW_ERROR(std::logic_error, "Add ScalarVariable to the model part!", "");
+        Node<3>& rnode = *mrModelPart.NodesBegin();
 
-        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(mVectorVar1) == false)
-            KRATOS_THROW_ERROR(std::logic_error, "Add ScalarVariable to the model part!", "");
-
-        // Convection variable
-        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY) == false)
-            KRATOS_THROW_ERROR(std::logic_error, "Add VELOCITY variable to the model part!", "");
-
-        // Auxiliar variables
-        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(MEAN_SIZE) == false)
-            KRATOS_THROW_ERROR(std::logic_error, "Add MEAN_SIZE variable to model part!", "");
-
-        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(YP) == false)
-            KRATOS_THROW_ERROR(std::logic_error, "Add YP variable to model part!", "");
-
-        // Delta and projection variables
-        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(DELTA_SCALAR1) == false)
-            KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_SCALAR1 variable to model part!", "");
-
-        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(DELTA_VECTOR1) == false)
-            KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_VECTOR1 variable to model part!", "");
-
-        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(PROJECTED_SCALAR1) == false)
-            KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_SCALAR1 variable to model part!", "");
-
-        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(PROJECTED_VECTOR1) == false)
-            KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_VECTOR1 variable to model part!", "");
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVectorVar1, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mScalarVar1, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DELTA_VECTOR1, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DELTA_SCALAR1, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR1, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR1, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MEAN_SIZE, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(YP, rnode)
 
         return 0;
 
