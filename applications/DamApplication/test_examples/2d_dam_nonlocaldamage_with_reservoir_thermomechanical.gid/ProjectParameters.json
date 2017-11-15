@@ -76,10 +76,11 @@
                 "coarsening_type"     : "aggregation",
                 "scaling"             : false
             },
-            "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2","Parts_Parts_Auto3"],
-            "body_domain_sub_model_part_list"    : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
-            "loads_sub_model_part_list"          : [],
-            "loads_variable_list"                : []
+            "problem_domain_sub_model_part_list" 	: ["Parts_Parts_Auto1","Parts_Parts_Auto2","Parts_Parts_Auto3"],
+            "body_domain_sub_model_part_list"    	: ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+            "mechanical_loads_sub_model_part_list"	: ["SelfWeight2D_Body_Acceleration_Auto1","FreeSurface2D_Free_Surface_Auto1","InfiniteDomain2D_Boundary_Radiation_Auto1","UPCondition2D_Interface_Condition_Auto1"],
+            "loads_sub_model_part_list"          	: [],
+            "loads_variable_list"                	: []
         }
     },
     "output_configuration"     : {
@@ -106,7 +107,7 @@
         "python_module" : "apply_constraint_vector_dam_table_process",
         "kratos_module" : "KratosMultiphysics.DamApplication",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "process_name"  : "ApplyConstraintVectorDamTableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
@@ -146,7 +147,7 @@
         "python_module" : "impose_reservoir_temperature_condition_process",
         "kratos_module" : "KratosMultiphysics.DamApplication",
         "help"          : "This process fixes the given scalar variable",
-        "process_name"  : "ImposeBofangConditionProcess",
+        "process_name"  : "ImposeReservoirTemperatureConditionProcess",
         "Parameters"    : {
             "mesh_id"                                          : 0,
             "model_part_name"                                  : "BOFANGTEMPERATURE_Bofang_Temperature_Auto1",

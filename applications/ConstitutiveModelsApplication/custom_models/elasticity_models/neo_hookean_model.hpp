@@ -202,6 +202,8 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
     
+
+    //**** Particular calculation for the basic neo-hookean models ****//
     
     // virtual void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override
     // {
@@ -277,6 +279,7 @@ namespace Kratos
     //   KRATOS_CATCH(" ")
     // }
 
+    //**** Particular calculation for the basic neo-hookean models ****//
     
     //************// W
 

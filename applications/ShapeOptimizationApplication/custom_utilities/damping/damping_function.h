@@ -112,7 +112,7 @@ class DampingFunction
 
         // Throw error message in case of wrong specification
         else
-            KRATOS_THROW_ERROR(std::invalid_argument, "Specified damping function type not recognized. Options are: linear , cosine. Specified: ",damping_function_type);
+            KRATOS_ERROR << "Specified damping function type not recognized. Options are: linear , cosine. Specified: " << damping_function_type << std::endl;
     }
 
     /// Destructor.
