@@ -462,7 +462,7 @@ protected:
         double beta, gamma;
 
         // System constants
-        double c0, c1, c2, c3, c4, c5, c6;
+        double c0, c1, c2, c3, c4, c5;
     };
 
     GeneralAlphaMethod  mAlpha;
