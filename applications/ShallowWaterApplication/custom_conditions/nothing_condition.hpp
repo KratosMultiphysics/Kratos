@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos       
-//   Last modified by:    Miguel Masó Sotomayor
-//   Date:                September 27th 2017
-//   Revision:            1.0
+//  License:         BSD License
+//                   Kratos default license: Kratos/license.txt
 //
+//  Main authors:    Miguel Maso Sotomayor
 //
 
 #if !defined(KRATOS_NOTHING_CONDITION_H_INCLUDED)

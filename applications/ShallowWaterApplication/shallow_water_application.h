@@ -1,15 +1,24 @@
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    Miguel Masó Sotomayor
-//   Date:                April 26th 2017
-//   Revision:            1.5
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-
+//  Main authors:    Miguel Maso Sotomayor
+//
 
 #if !defined(KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED )
 #define  KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
 
+///@defgroup ShallowWaterApplication Kratos Shallow Water Application
+///@brief Basic set of tools to solve the shallow water equations.
+/// The Shallow Water Application implements a basic set of tools to
+/// solve shallow water problems. This applications contains a basic FEM
+/// implementation of common thechniques using both explicit  pfem2 and 
+/// eulerian shemes.
 
 
 // System includes

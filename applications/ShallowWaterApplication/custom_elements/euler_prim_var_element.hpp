@@ -1,9 +1,13 @@
-//   
-//   Project Name:        Kratos       
-//   Last modified by:    Miguel Masó Sotomayor
-//   Date:                June 28th 2017
-//   Revision:            1.3
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Miguel Maso Sotomayor
 //
 
 #if !defined(KRATOS_EULER_PRIMITIVE_VAR_ELEM_H_INCLUDED)

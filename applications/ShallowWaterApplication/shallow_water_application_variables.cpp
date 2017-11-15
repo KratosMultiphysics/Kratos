@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Miguel Masó Sotomayor
+//  Main authors:    Miguel Maso Sotomayor
 //
 
 #include "shallow_water_application_variables.h"

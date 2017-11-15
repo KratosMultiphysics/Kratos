@@ -1,52 +1,15 @@
-/*
-==============================================================================
-KratosShallowWaterApplication 
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Main Authors:        Miguel Masó Sotomayor
-//                        Pablo Becker
-//   Date:                july 6 2017
-//   Revision:            2.1
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-
+//  Main authors:    Miguel Maso Sotomayor
+//                   Pablo Becker
+//
 
 #if !defined(KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED)
 #define  KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
@@ -508,31 +471,6 @@ public:
         }
         KRATOS_CATCH("")
     }
-
-
-    //~ void ComputeVelocity(ModelPart::NodesContainerType& rNodes)
-    //~ {
-        //~ KRATOS_TRY
-        //~ ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
-        //~ vector<unsigned int> node_partition;
-        //~ #ifdef _OPENMP
-            //~ int number_of_threads = omp_get_max_threads();
-        //~ #else
-            //~ int number_of_threads = 1;
-        //~ #endif
-        //~ OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
-        
-        //~ #pragma omp parallel for
-        //~ for(int kkk=0; kkk<number_of_threads; kkk++)
-        //~ {
-            //~ for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-            //~ {
-                //~ ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-                //~ noalias(inode->GetSolutionStepValue(VELOCITY)) = inode->FastGetSolutionStepValue(MOMENTUM) / inode->FastGetSolutionStepValue(HEIGHT);
-            //~ }
-        //~ }
-        //~ KRATOS_CATCH("")
-    //~ }
 
 
     //to move all the particles across the streamlines. heavy task!
