@@ -116,11 +116,6 @@ public:
     ResidualBasedBDF2DisplacementScheme()
         :ImplicitBaseType()
     {
-        // Allocate auxiliary memory
-        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
-
-        mVector.v.resize(num_threads);
-        mVector.a.resize(num_threads);
     }
 
     /** Copy Constructor.
@@ -128,7 +123,6 @@ public:
     ResidualBasedBDF2DisplacementScheme(ResidualBasedBDF2DisplacementScheme& rOther)
         :ImplicitBaseType(rOther)
         ,mBDF2(rOther.mBDF2)
-        ,mVector(rOther.mVector)
     {
     }
 
@@ -457,15 +451,8 @@ protected:
         double c1;
         double c2;
     };
-    
-    struct GeneralVectors
-    {
-        std::vector< Vector > v;    // Velocity
-        std::vector< Vector > a;    // Acceleration
-    };
 
     BDF2Method        mBDF2; // The BDF2 coefficients
-    GeneralVectors  mVector; // This contains the auxiliar derivatives
 
     ///@}
     ///@name Protected Operators
@@ -556,22 +543,20 @@ protected:
         ProcessInfo& CurrentProcessInfo
         ) override
     {
-        const int thread = OpenMPUtils::ThisThread();
-
         // Adding inertia contribution
         if (M.size1() != 0)
         {
-            rCurrentElement->GetSecondDerivativesVector(mVector.a[thread], 0);
-
-            noalias(RHS_Contribution) -= prod(M, mVector.a[thread]);
+            Vector a;
+            rCurrentElement->GetSecondDerivativesVector(a, 0);
+            noalias(RHS_Contribution) -= prod(M, a);
         }
 
         // Adding damping contribution
         if (D.size1() != 0)
         {
-            rCurrentElement->GetFirstDerivativesVector(mVector.v[thread], 0);
-
-            noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
+            Vector v;
+            rCurrentElement->GetFirstDerivativesVector(v, 0);
+            noalias(RHS_Contribution) -= prod(D, v);
         }
     }
 
@@ -592,23 +577,21 @@ protected:
         ProcessInfo& CurrentProcessInfo
         ) override
     {
-        const int thread = OpenMPUtils::ThisThread();
-
         // Adding inertia contribution
         if (M.size1() != 0)
         {
-            rCurrentCondition->GetSecondDerivativesVector(mVector.a[thread], 0);
-
-            noalias(RHS_Contribution)  -= prod(M, mVector.a[thread]);
+            Vector a;
+            rCurrentCondition->GetSecondDerivativesVector(a, 0);
+            noalias(RHS_Contribution)  -= prod(M, a);
         }
 
         // Adding damping contribution
         // Damping contribution
         if (D.size1() != 0)
         {
-            rCurrentCondition->GetFirstDerivativesVector(mVector.v[thread], 0);
-
-            noalias(RHS_Contribution) -= prod(D, mVector.v [thread]);
+            Vector v;
+            rCurrentCondition->GetFirstDerivativesVector(v, 0);
+            noalias(RHS_Contribution) -= prod(D, v);
         }
     }
 

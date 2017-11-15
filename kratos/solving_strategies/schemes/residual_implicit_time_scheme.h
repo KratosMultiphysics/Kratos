@@ -86,18 +86,12 @@ public:
     ResidualBasedImplicitTimeScheme()
         :BaseType()
     {
-        // Allocate auxiliary memory
-        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
-
-        mMatrix.M.resize(num_threads);
-        mMatrix.D.resize(num_threads);
     }
 
     /** Copy Constructor.
      */
     ResidualBasedImplicitTimeScheme(ResidualBasedImplicitTimeScheme& rOther)
         :BaseType(rOther)
-        ,mMatrix(rOther.mMatrix)
     {
     }
 
@@ -206,7 +200,7 @@ public:
     {
         KRATOS_TRY;
 
-        const int thread = OpenMPUtils::ThisThread();
+        Matrix M, D;
 
         //pElement->InitializeNonLinearIteration(CurrentProcessInfo);
 
@@ -214,13 +208,13 @@ public:
 
         pElement->EquationIdVector(EquationId,CurrentProcessInfo);
 
-        pElement->CalculateMassMatrix(mMatrix.M[thread],CurrentProcessInfo);
+        pElement->CalculateMassMatrix(M,CurrentProcessInfo);
 
-        pElement->CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
+        pElement->CalculateDampingMatrix(D,CurrentProcessInfo);
 
-        AddDynamicsToLHS(LHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
+        AddDynamicsToLHS(LHS_Contribution, D, M, CurrentProcessInfo);
 
-        AddDynamicsToRHS(pElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
+        AddDynamicsToRHS(pElement, RHS_Contribution, D, M, CurrentProcessInfo);
 
         KRATOS_CATCH( "" );
     }
@@ -242,7 +236,7 @@ public:
     {
         KRATOS_TRY;
 
-        const int thread = OpenMPUtils::ThisThread();
+        Matrix M, D;
 
         // Initializing the non linear iteration for the current element
         // pElement->InitializeNonLinearIteration(CurrentProcessInfo);
@@ -250,13 +244,13 @@ public:
         // Basic operations for the element considered
         pElement->CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
 
-        pElement->CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
+        pElement->CalculateMassMatrix(M, CurrentProcessInfo);
 
-        pElement->CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
+        pElement->CalculateDampingMatrix(D,CurrentProcessInfo);
 
         pElement->EquationIdVector(EquationId,CurrentProcessInfo);
 
-        AddDynamicsToRHS (pElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
+        AddDynamicsToRHS (pElement, RHS_Contribution, D, M, CurrentProcessInfo);
 
         KRATOS_CATCH( "" );
     }
@@ -280,7 +274,7 @@ public:
     {
         KRATOS_TRY;
 
-        const int thread = OpenMPUtils::ThisThread();
+        Matrix M, D;
 
         // Initializing the non linear iteration for the current condition
         //pCondition->InitializeNonLinearIteration(CurrentProcessInfo);
@@ -290,13 +284,13 @@ public:
 
         pCondition->EquationIdVector(EquationId,CurrentProcessInfo);
 
-        pCondition->CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
+        pCondition->CalculateMassMatrix(M, CurrentProcessInfo);
 
-        pCondition->CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
+        pCondition->CalculateDampingMatrix(D,CurrentProcessInfo);
 
-        AddDynamicsToLHS(LHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
+        AddDynamicsToLHS(LHS_Contribution, D, M, CurrentProcessInfo);
 
-        AddDynamicsToRHS(pCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
+        AddDynamicsToRHS(pCondition, RHS_Contribution, D, M, CurrentProcessInfo);
 
         // AssembleTimeSpaceLHS_Condition(pCondition, LHS_Contribution,DampMatrix, MassMatrix,CurrentProcessInfo);
 
@@ -320,7 +314,7 @@ public:
     {
         KRATOS_TRY;
 
-        const int thread = OpenMPUtils::ThisThread();
+        Matrix M, D;
 
         // Initializing the non linear iteration for the current condition
         //pCondition->InitializeNonLinearIteration(CurrentProcessInfo);
@@ -330,12 +324,12 @@ public:
 
         pCondition->EquationIdVector(EquationId, CurrentProcessInfo);
 
-        pCondition->CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
+        pCondition->CalculateMassMatrix(M, CurrentProcessInfo);
 
-        pCondition->CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
+        pCondition->CalculateDampingMatrix(D, CurrentProcessInfo);
 
         // Adding the dynamic contributions (static is already included)
-        AddDynamicsToRHS(pCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
+        AddDynamicsToRHS(pCondition, RHS_Contribution, D, M, CurrentProcessInfo);
 
         KRATOS_CATCH( "" );
     }
@@ -416,14 +410,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    struct  GeneralMatrices
-    {
-        std::vector<Matrix> M; // First derivative matrix  (usually mass matrix)
-        std::vector<Matrix> D; // Second derivative matrix (usually damping matrix)
-    };
-
-    GeneralMatrices mMatrix; // This contains the auxiliar matrices
 
     ///@}
     ///@name Protected Operators

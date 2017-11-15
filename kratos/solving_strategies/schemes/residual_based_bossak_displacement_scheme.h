@@ -98,13 +98,6 @@ public:
         CalculateNewmarkCoefficients(beta, gamma);
 
         // std::cout << " MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= " << mAlpha.m << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
-
-        // Allocate auxiliary memory
-        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
-
-        mVector.v.resize(num_threads);
-        mVector.a.resize(num_threads);
-        mVector.ap.resize(num_threads);
     }
 
     /** Copy Constructor.
@@ -113,7 +106,6 @@ public:
         :ImplicitBaseType(rOther)
         ,mAlpha(rOther.mAlpha)
         ,mNewmark(rOther.mNewmark)
-        ,mVector(rOther.mVector)
     {
     }
 
@@ -493,17 +485,8 @@ protected:
         double c6;
     };
 
-    struct GeneralVectors
-    {
-        std::vector< Vector > v;    // Velocity
-        std::vector< Vector > a;    // Acceleration
-        std::vector< Vector > ap;   // Previous acceleration
-    };
-
     GeneralAlphaMethod  mAlpha;
     NewmarkMethod       mNewmark;
-
-    GeneralVectors      mVector;
 
     ///@}
     ///@name Protected Operators
@@ -598,30 +581,28 @@ protected:
         ProcessInfo& CurrentProcessInfo
         ) override
     {
-        const int thread = OpenMPUtils::ThisThread();
-
         // Adding inertia contribution
         if (M.size1() != 0)
         {
-            pElement->GetSecondDerivativesVector(mVector.a[thread], 0);
+            Vector a, ap;
+            pElement->GetSecondDerivativesVector(a, 0);
+            a *= (1.00 - mAlpha.m);
 
-            (mVector.a[thread]) *= (1.00 - mAlpha.m);
-
-            pElement->GetSecondDerivativesVector(mVector.ap[thread], 1);
-
-            noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread];
-
-            noalias(RHS_Contribution)  -= prod(M, mVector.a[thread]);
-            //KRATOS_WATCH( prod(M, mVector.a[thread] ) )
+            pElement->GetSecondDerivativesVector(ap, 1);
+            noalias(a) += mAlpha.m * ap;
+            
+            noalias(RHS_Contribution)  -= prod(M, a);
+            //KRATOS_WATCH( prod(M, a ) )
 
         }
 
         // Adding damping contribution
         if (D.size1() != 0)
         {
-            pElement->GetFirstDerivativesVector(mVector.v[thread], 0);
+            Vector v;
+            pElement->GetFirstDerivativesVector(v, 0);
 
-            noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
+            noalias(RHS_Contribution) -= prod(D, v);
         }
     }
 
@@ -642,29 +623,27 @@ protected:
         ProcessInfo& CurrentProcessInfo
         ) override
     {
-        const int thread = OpenMPUtils::ThisThread();
-
         // Adding inertia contribution
         if (M.size1() != 0)
         {
-            pCondition->GetSecondDerivativesVector(mVector.a[thread], 0);
+            Vector a, ap;
+            pCondition->GetSecondDerivativesVector(a, 0);
+            a *= (1.00 - mAlpha.m);
 
-            (mVector.a[thread]) *= (1.00 - mAlpha.m);
+            pCondition->GetSecondDerivativesVector(ap, 1);
+            noalias(a) += mAlpha.m * ap;
 
-            pCondition->GetSecondDerivativesVector(mVector.ap[thread], 1);
-
-            noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread];
-
-            noalias(RHS_Contribution)  -= prod(M, mVector.a[thread]);
+            noalias(RHS_Contribution)  -= prod(M, a);
         }
 
         // Adding damping contribution
         // Damping contribution
         if (D.size1() != 0)
         {
-            pCondition->GetFirstDerivativesVector(mVector.v[thread], 0);
+            Vector v;
+            pCondition->GetFirstDerivativesVector(v, 0);
 
-            noalias(RHS_Contribution) -= prod(D, mVector.v [thread]);
+            noalias(RHS_Contribution) -= prod(D, v);
         }
     }
 
