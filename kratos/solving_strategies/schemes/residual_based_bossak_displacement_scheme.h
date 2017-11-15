@@ -336,9 +336,9 @@ public:
 
         ProcessInfo current_process_info= rModelPart.GetProcessInfo();
 
-        BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
+        ImplicitBaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
 
-        double delta_time = current_process_info[DELTA_TIME];
+        const double delta_time = current_process_info[DELTA_TIME];
 
         double beta = 0.25;
         if (current_process_info.Has(NEWMARK_BETA))
@@ -352,11 +352,6 @@ public:
         }
 
         CalculateNewmarkCoefficients(beta, gamma);
-
-        if (delta_time < 1.0e-24)
-        {
-            KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part ";
-        }
 
         // Initializing Newmark constants
         mNewmark.c0 = ( 1.0 / (mNewmark.beta * delta_time * delta_time) );

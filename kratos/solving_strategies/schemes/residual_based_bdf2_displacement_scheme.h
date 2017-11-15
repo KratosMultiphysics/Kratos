@@ -337,14 +337,9 @@ public:
 
         ProcessInfo current_process_info= rModelPart.GetProcessInfo();
 
-        BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
+        ImplicitBaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
 
         const double delta_time = current_process_info[DELTA_TIME];
-
-        if (delta_time < 1.0e-24)
-        {
-            KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part ";
-        }
         
         // The BDF2 constants
         mBDF2.c0 =  1.5/delta_time;

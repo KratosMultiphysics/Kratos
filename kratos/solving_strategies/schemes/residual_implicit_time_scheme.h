@@ -339,7 +339,38 @@ public:
 
         KRATOS_CATCH( "" );
     }
+    
+    /**
+     * It initializes time step solution. Only for reasons if the time step solution is restarted
+     * @param rModelPart The model of the problem to solve
+     * @param A LHS matrix
+     * @param Dx Incremental update of primary variables
+     * @param b RHS Vector
+     */
+    
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b
+        ) override
+    {
+        KRATOS_TRY;
 
+        ProcessInfo current_process_info= rModelPart.GetProcessInfo();
+
+        BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
+
+        const double delta_time = current_process_info[DELTA_TIME];
+
+        if (delta_time < 1.0e-24)
+        {
+            KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part ";
+        }
+        
+        KRATOS_CATCH( "" );
+    }
+    
     /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
