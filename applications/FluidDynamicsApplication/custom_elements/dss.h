@@ -168,6 +168,15 @@ public:
                             Properties::Pointer pProperties) const override;
 
 
+    virtual void Calculate(const Variable<double>& rVariable,
+                           double& rOutput,
+                           const ProcessInfo& rCurrentProcessInfo);
+
+
+    virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+                           array_1d<double, 3 > & rOutput,
+                           const ProcessInfo& rCurrentProcessInfo);
+
     ///@}
     ///@name Access
     ///@{
@@ -251,7 +260,7 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix);
 
-    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
+    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
 
     virtual void MomentumProjTerm(
         TElementData& rData,

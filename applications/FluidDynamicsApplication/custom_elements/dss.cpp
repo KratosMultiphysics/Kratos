@@ -72,6 +72,20 @@ Element::Pointer DSS<TElementData>::Create(IndexType NewId,GeometryType::Pointer
     return Element::Pointer(new DSS(NewId, pGeom, pProperties));
 }
 
+template <class TElementData>
+void DSS<TElementData>::Calculate(const Variable<double>& rVariable,
+    double& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+
+template <class TElementData>
+void DSS<TElementData>::Calculate(
+    const Variable<array_1d<double, 3>>& rVariable,
+    array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) {
+    // Lumped projection terms
+    if (rVariable == ADVPROJ) {
+        this->CalculateProjections(rCurrentProcessInfo);
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 

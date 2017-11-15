@@ -249,28 +249,6 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
     }
 }
 
-
-template< class TElementData >
-void FluidElement<TElementData>::Calculate(const Variable<double> &rVariable,
-                          double &rOutput,
-                          const ProcessInfo &rCurrentProcessInfo)
-{
-
-}
-
-
-template< class TElementData >
-void FluidElement<TElementData>::Calculate(const Variable<array_1d<double,3> > &rVariable,
-                          array_1d<double,3> &rOutput,
-                          const ProcessInfo &rCurrentProcessInfo)
-{
-    // Lumped projection terms
-    if (rVariable == ADVPROJ)
-    {
-        this->CalculateProjections(rCurrentProcessInfo);
-    }
-}
-
 template< class TElementData >
 void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
 {

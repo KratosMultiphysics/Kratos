@@ -223,15 +223,6 @@ public:
                                      ProcessInfo &rCurrentProcessInfo);
 
 
-    virtual void Calculate(const Variable<double>& rVariable,
-                           double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo);
-
-
-    virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
-                           array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo);
-
     /**
      * @brief EquationIdVector Returns the global system rows corresponding to each local row.
      * @param rResult rResult[i] is the global index of local row i (output)
@@ -390,8 +381,6 @@ protected:
     virtual void AddMassLHS(
         TElementData& rData,
         MatrixType& rMassMatrix);
-
-    virtual void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) = 0;
 
     void IntegrationPointVorticity(const ShapeFunctionDerivativesType& rDN_DX,
                                    array_1d<double,3> &rVorticity) const;
