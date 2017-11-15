@@ -191,11 +191,11 @@ public:
 
             noalias(delta_displacement) = it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-            array_1d<double, 3 > & current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double, 3 > & previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
+            array_1d<double, 3>& current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
 
-            array_1d<double, 3 > & current_aceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
-            const array_1d<double, 3 > & previous_aceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+            array_1d<double, 3>& current_aceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
+            const array_1d<double, 3>& previous_aceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
 
             UpdateVelocity(current_velocity, delta_displacement, previous_velocity, previous_aceleration);
             UpdateAcceleration(current_aceleration, delta_displacement, previous_velocity, previous_aceleration);
@@ -237,12 +237,12 @@ public:
             //Predicting: NewDisplacement = previous_displacement + previous_velocity * delta_time;
             //ATTENTION::: the prediction is performed only on free nodes
 
-            const array_1d<double, 3 > & previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-            const array_1d<double, 3 > & previous_velocity     = it_node->FastGetSolutionStepValue(VELOCITY,     1);
-            const array_1d<double, 3 > & previous_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            array_1d<double, 3 > & current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double, 3 > & current_velocity     = it_node->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3 > & current_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3>& previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+            const array_1d<double, 3>& previous_velocity     = it_node->FastGetSolutionStepValue(VELOCITY,     1);
+            const array_1d<double, 3>& previous_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3>& current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3>& current_velocity     = it_node->FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3>& current_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
             if (it_node -> IsFixed(ACCELERATION_X))
             {
@@ -494,13 +494,13 @@ protected:
      */
 
     inline void UpdateVelocity(
-        array_1d<double, 3 > & CurrentVelocity,
-        const array_1d<double, 3 > & DeltaDisplacement,
-        const array_1d<double, 3 > & PreviousVelocity,
-        const array_1d<double, 3 > & PreviousAcceleration
+        array_1d<double, 3>& CurrentVelocity,
+        const array_1d<double, 3>& DeltaDisplacement,
+        const array_1d<double, 3>& PreviousVelocity,
+        const array_1d<double, 3>& PreviousAcceleration
     )
     {
-        noalias(CurrentVelocity) =  (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
+        noalias(CurrentVelocity) = (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
                                      - mNewmark.c5 * PreviousAcceleration);
     }
 
@@ -513,13 +513,13 @@ protected:
      */
 
     inline void UpdateAcceleration(
-        array_1d<double, 3 > & CurrentAcceleration,
-        const array_1d<double, 3 > & DeltaDisplacement,
-        const array_1d<double, 3 > & PreviousVelocity,
-        const array_1d<double, 3 > & PreviousAcceleration
+        array_1d<double, 3>& CurrentAcceleration,
+        const array_1d<double, 3>& DeltaDisplacement,
+        const array_1d<double, 3>& PreviousVelocity,
+        const array_1d<double, 3>& PreviousAcceleration
     )
     {
-        noalias(CurrentAcceleration) =  (mNewmark.c0 * DeltaDisplacement - mNewmark.c2 * PreviousVelocity
+        noalias(CurrentAcceleration) = (mNewmark.c0 * DeltaDisplacement - mNewmark.c2 * PreviousVelocity
                                          -  mNewmark.c3 * PreviousAcceleration);
     }
 

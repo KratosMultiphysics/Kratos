@@ -324,11 +324,19 @@ public:
         ImplicitBaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
 
         const double delta_time = current_process_info[DELTA_TIME];
+        const double previous_delta_time = current_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
         
-        // The BDF2 constants
-        mBDF2.c0 =  1.5/delta_time;
-        mBDF2.c1 = -2.0/delta_time;
-        mBDF2.c2 =  0.5/delta_time;
+        // Calculate the BDF coefficients
+//         mBDF2.c0 =  1.5/delta_time;
+//         mBDF2.c1 = -2.0/delta_time;
+//         mBDF2.c2 =  0.5/delta_time;
+        
+        double rho = previous_delta_time / delta_time;
+        double time_coeff = 1.0 / (delta_time * std::pow(rho, 2) + delta_time * rho);
+
+        mBDF2.c0 = time_coeff * (std::pow(rho, 2) + 2.0 * rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
+        mBDF2.c1 = -time_coeff * (std::pow(rho, 2) * rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
+        mBDF2.c2 = time_coeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
         
         KRATOS_CATCH( "" );
     }
@@ -437,12 +445,10 @@ protected:
 
     struct BDF2Method
     {
-        double c0;
-        double c1;
-        double c2;
+        double c0, c1, c2;
     };
 
-    BDF2Method        mBDF2; // The BDF2 coefficients
+    BDF2Method mBDF2; // The BDF2 coefficients
 
     ///@}
     ///@name Protected Operators
