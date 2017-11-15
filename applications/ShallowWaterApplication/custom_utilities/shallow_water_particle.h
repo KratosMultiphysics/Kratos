@@ -72,19 +72,19 @@ public:
     ///@{
 
     /// Pointer definition of Point
-    typedef ShallowParticle* Pointer;
+    typedef ShallowParticle*         Pointer;
     
-    typedef double TDataType; 
+    typedef double                 TDataType; 
 
-    typedef array_1d<double,3> BaseType;
+    typedef array_1d<double,3>      BaseType;
 
-    typedef Point Type;
+    typedef Point                       Type;
 
-    typedef BaseType CoordinatesArrayType;
+    typedef BaseType    CoordinatesArrayType;
 
-    typedef std::size_t SizeType;
+    typedef std::size_t             SizeType;
 
-    typedef std::size_t IndexType;
+    typedef std::size_t            IndexType;
 
     ///@}
     ///@name Constants
@@ -97,16 +97,16 @@ public:
     /// Default constructor.
     ShallowParticle(TDataType const& NewX, TDataType const& NewY, TDataType const& NewZ) : Point(NewX, NewY, NewZ)
     {
-        this->ERASE_FLAG = true; //initializing as useless particle
-        this->SCALAR1 = 0.0;
-        this->VECTOR1 = ZeroVector(3);
+        this->mEraseFlag = true; //initializing as useless particle
+        this->mScalar1 = 0.0;
+        this->mVector1 = ZeroVector(3);
     }
 
     ShallowParticle() : Point(0.0, 0.0, 0.0)
     {
-        this->ERASE_FLAG = true;
-        this->SCALAR1 = 0.0;
-        this->VECTOR1 = ZeroVector(3);
+        this->mEraseFlag = true;
+        this->mScalar1 = 0.0;
+        this->mVector1 = ZeroVector(3);
     }
 
     ~ShallowParticle()
@@ -116,28 +116,28 @@ public:
     // Returning references
     float& GetScalar1()
     {
-        return this->SCALAR1;
+        return this->mScalar1;
     }
 
     float& GetVector1(const unsigned int i)
     {
-        return this->VECTOR1[i];
+        return this->mVector1[i];
     }
 
     array_1d<float,3>& GetVector1()
     {
-        return this->VECTOR1;
+        return this->mVector1;
     }
 
     bool& GetEraseFlag()
     {
-        return this->ERASE_FLAG;
+        return this->mEraseFlag;
     }
 
 private:
-    float SCALAR1;
-    array_1d<float,3> VECTOR1;
-    bool ERASE_FLAG;
+    float mScalar1;
+    array_1d<float,3> mVector1;
+    bool mEraseFlag;
 
 };
 
