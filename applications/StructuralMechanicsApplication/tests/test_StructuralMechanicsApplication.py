@@ -88,6 +88,8 @@ from test_multipoint_contstraints import TestMultipointConstraints as TTestMulti
 from test_nodal_damping import NodalDampingTests as TNodalDampingTests
 # Spring damper element test
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
+# Harmonic analysis tests
+from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
 
 ## NIGTHLY TESTS
 # Shell test
@@ -228,6 +230,8 @@ def AssambleTestSuites():
             smallSuite.addTest(TSpringDamperElementTests('test_undamped_sdof_system_harmonic'))
             smallSuite.addTest(TSpringDamperElementTests('test_damped_mdof_system_dynamic'))
             smallSuite.addTest(TSpringDamperElementTests('test_undamped_mdof_system_eigen'))
+            # Harmonic analysis test
+            smallSuite.addTest(THarmonicAnalysisTests('test_execution'))
         else:
             print(
                 "FEASTSolver solver is not included in the compilation of the External Solvers Application"
@@ -243,8 +247,6 @@ def AssambleTestSuites():
     nightSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
     # nightSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution')) # FIXME: Needs get up to date
     nightSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
-    nightSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
-    nightSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
 
     nightSuite.addTest(TShellT3ThickLinearStaticTests('test_execution'))
     nightSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution'))
@@ -264,6 +266,8 @@ def AssambleTestSuites():
     ####validationSuite.addTest(TSprismPanTests('test_execution'))
     validationSuite.addTest(TPendulusTLTest('test_execution'))
     validationSuite.addTest(TPendulusULTest('test_execution'))
+    validationSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
+    validationSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
     
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
