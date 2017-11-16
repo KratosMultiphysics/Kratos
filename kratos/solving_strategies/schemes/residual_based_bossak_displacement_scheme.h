@@ -189,6 +189,17 @@ public:
 
             noalias(delta_displacement) = it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
+//             auto node_dofs = it_node->GetDofs();
+//             for (auto it_dof = node_dofs.begin(); it_dof != node_dofs.end(); ++it_dof)
+//             {
+//                 std::size_t equation_id = it_dof->EquationId();
+//                 const double value_to_set = (it_dof->IsFree()) ? Dx[equation_id] : 0.0;
+//                 auto current_variable = it_dof->GetVariable().Key();
+//                 if (current_variable == DISPLACEMENT_X) delta_displacement[0] = value_to_set;
+//                 else if (current_variable == DISPLACEMENT_Y) delta_displacement[1] = value_to_set;
+//                 else if (current_variable == DISPLACEMENT_Z) delta_displacement[2] = value_to_set;
+//             }
+            
             array_1d<double, 3>& current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
             const array_1d<double, 3>& previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
 
