@@ -37,7 +37,7 @@ namespace Kratos {
             rModelPart.CreateNewElement("DSS2D", 1, element_nodes, p_properties);
         }
 
-        void InitializeCompleteElement(ModelPart& rModelPart, const std::string& rElementName)
+        void InitializeCompleteElement(ModelPart& rModelPart, const std::string& rElementName, unsigned int BufferSize)
         {
             rModelPart.AddNodalSolutionStepVariable(VELOCITY);
             rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -48,7 +48,7 @@ namespace Kratos {
             rModelPart.AddNodalSolutionStepVariable(VISCOSITY);
             rModelPart.AddNodalSolutionStepVariable(DIVPROJ);
 
-            rModelPart.SetBufferSize(2);
+            rModelPart.SetBufferSize(BufferSize);
 
             Properties::Pointer p_properties = rModelPart.pGetProperties(0);
 
@@ -59,7 +59,10 @@ namespace Kratos {
             std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
             rModelPart.CreateNewElement(rElementName, 1, element_nodes, p_properties);
 
-            rModelPart.CloneTimeStep(0.1);
+            // Loop starts at 1 because you need one less clone than time steps (JC)
+            for (unsigned int i = 1; i < BufferSize; i++) {
+                rModelPart.CloneTimeStep(0.1);
+            }
 
             Element& r_element = *(rModelPart.ElementsBegin());
             Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
@@ -147,7 +150,7 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(DSS2D3NLocalMatrix, FluidDynamicsApplicationFastSuite)
         {
             ModelPart model_part("Test");
-            InitializeCompleteElement(model_part,"DSS2D");
+            InitializeCompleteElement(model_part,"DSS2D",2);
 
             Matrix LHS;
             Vector RHS;
@@ -169,12 +172,12 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(SymbolicNavierStokes2D3NLocalMatrix, FluidDynamicsApplicationFastSuite)
         {
             ModelPart model_part("Test");
-            InitializeCompleteElement(model_part,"SymbolicNavierStokes2D3N");
+            InitializeCompleteElement(model_part,"SymbolicNavierStokes2D3N",3);
 
             Matrix LHS;
             Vector RHS;
 
-            model_part.ElementsBegin()->CalculateLocalVelocityContribution(LHS,RHS,model_part.GetProcessInfo());
+            model_part.ElementsBegin()->CalculateLocalSystem(LHS,RHS,model_part.GetProcessInfo());
 
             KRATOS_WATCH(LHS);
             KRATOS_WATCH(RHS);
