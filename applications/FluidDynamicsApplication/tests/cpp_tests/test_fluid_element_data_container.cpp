@@ -147,7 +147,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(2.0, interpolated_pressure, 1e-6);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(DSS2D3NLocalMatrix, FluidDynamicsApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(LocalMatrixDSS2D3N, FluidDynamicsApplicationFastSuite)
         {
             ModelPart model_part("Test");
             InitializeCompleteElement(model_part,"DSS2D",2);
@@ -169,7 +169,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(RHS[2], 0.0609399, 1e-5);
         }
         
-        KRATOS_TEST_CASE_IN_SUITE(SymbolicNavierStokes2D3NLocalMatrix, FluidDynamicsApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(LocalMatrixSymbolicNavierStokes2D3N, FluidDynamicsApplicationFastSuite)
         {
             ModelPart model_part("Test");
             InitializeCompleteElement(model_part,"SymbolicNavierStokes2D3N",3);
@@ -189,6 +189,7 @@ namespace Kratos {
 
             KRATOS_CHECK_NEAR(RHS[0], 0.256372, 1e-5);
             KRATOS_CHECK_NEAR(RHS[2], 0.0609399, 1e-5);
+            KRATOS_CHECK_NEAR(RHS[3], 666, 1e-5);
         }
     }
 }
