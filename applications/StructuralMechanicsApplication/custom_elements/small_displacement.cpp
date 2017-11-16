@@ -109,11 +109,11 @@ namespace Kratos
         Vector displacements;
         GetValuesVector(displacements);
         
-        // Contribution to external forces
-        const Vector body_force = this->GetBodyForce();
-        
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
         {
+            // Contribution to external forces
+            const Vector body_force = this->GetBodyForce(integration_points, point_number);
+            
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
             
