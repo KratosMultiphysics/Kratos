@@ -924,8 +924,8 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
     for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); g++){
       // rGaussWeights[g] = fabs(DetJ[g] * IntegrationPoints[g].Weight());
       rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
-      if(rGaussWeights[g]<0)
-    	std::cout<<"NEGATIVE GAUSS WEIGHT "<<rGaussWeights[g]<<std::endl;
+      // if(rGaussWeights[g]<0)
+      // 	std::cout<<"NEGATIVE GAUSS WEIGHT "<<rGaussWeights[g]<<std::endl;
     }
   }
 
