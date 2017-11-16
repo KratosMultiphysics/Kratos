@@ -228,8 +228,6 @@ public:
 
         ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
         
-        if (current_process_info[TIME_STEPS] == 1) InitializeAcceleration(rModelPart);
-        
         const double delta_time = current_process_info[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
@@ -457,45 +455,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
-    /**
-     * This method initializes the acceleration when there is a volume acceleration
-     * @param rModelPart The model part where the acceleration is set
-     */
-    void InitializeAcceleration(ModelPart& rModelPart)
-    {
-        const int num_nodes = static_cast<int>(rModelPart.Nodes().size());
-
-        #pragma omp parallel for
-        for(int i = 0;  i < num_nodes; ++i)
-        {
-            auto it_node = rModelPart.Nodes().begin() + i;
-            
-            const array_1d<double, 3>& volume_acceleration = it_node->FastGetSolutionStepValue(VOLUME_ACCELERATION);
-            array_1d<double, 3>& acceleration0 = it_node->FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double, 3>& acceleration1 = it_node->FastGetSolutionStepValue(ACCELERATION,1);
-            array_1d<double, 3>& acceleration2 = it_node->FastGetSolutionStepValue(ACCELERATION,2);
-            
-            if (!(it_node->IsFixed(ACCELERATION_Y)))
-            {
-                acceleration0[0] += volume_acceleration[0];
-                acceleration1[0] += volume_acceleration[0];
-                acceleration2[0] += volume_acceleration[0];
-            }
-            if (!(it_node->IsFixed(ACCELERATION_Y)))
-            {
-                acceleration0[1] += volume_acceleration[1];
-                acceleration1[1] += volume_acceleration[1];
-                acceleration2[1] += volume_acceleration[1];
-            }
-            if (!(it_node->IsFixed(ACCELERATION_Z)))
-            {
-                acceleration0[2] += volume_acceleration[2];
-                acceleration1[2] += volume_acceleration[2];
-                acceleration2[2] += volume_acceleration[2];
-            }
-        }
-    }
     
     /**
      * Updating first time Derivative

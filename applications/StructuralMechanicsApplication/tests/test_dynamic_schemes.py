@@ -26,7 +26,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         elif (scheme_name == "bdf2"):
             scheme = KratosMultiphysics.ResidualBasedBDF2DisplacementScheme()
         else:
-            damp_factor_m = -0.01
+            damp_factor_m = 0.0
             scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
         # convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
@@ -153,6 +153,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
 
         current_analytical_displacement_y = 0.0
         current_analytical_velocity_y = 0.0
+        current_analytical_acceleration_y = 0.0
         while(time <= end_time):
             time = time + dt
             step = step + 1
@@ -160,10 +161,12 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
             mp.ProcessInfo[KratosMultiphysics.TIME_STEPS] = step
 
             self.strategy.Solve()
-            current_analytical_displacement_y += current_analytical_velocity_y * dt + 0.5 * gravity * dt**2
-            current_analytical_velocity_y += dt * gravity
-            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), current_analytical_displacement_y, delta=1e-6)
+            current_analytical_displacement_y += current_analytical_velocity_y * dt + 0.25 * (current_analytical_acceleration_y + gravity) * dt**2
+            current_analytical_velocity_y += dt * 0.5 * (current_analytical_acceleration_y + gravity)
+            current_analytical_acceleration_y = gravity
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y,0), current_analytical_acceleration_y, delta=1e-6)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0), current_analytical_velocity_y, delta=1e-6)
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), current_analytical_displacement_y, delta=1e-6)
             
     def test_spring_bossak_scheme(self):
         self._base_spring_test_dynamic_schemes("bossak")
