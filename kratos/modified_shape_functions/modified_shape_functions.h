@@ -208,14 +208,15 @@ protected:
     ///@{
 
     /**
-    * Returns true if the element is split and false otherwise.
+    * Returns the intersection points condensation matrix.
+    * This matrix is used to extrapolate the subdivisions shape funtion values to the
+    * original geometry ones. It has size (nnodes+nedges)x(nnodes).
     * @return rIntPointCondMatrix: Reference to the intersection points condensation matrix.
     * @param rEdgeNodeI: Integers array containing the nodes "I" that conform the edges.
     * @param rEdgeNodeJ: Integers array containing the nodes "J" that conform the edges.
     * @param rSplitEdges: Integers array containing the original nodes ids and the intersected edges nodes ones.
-    * @param splitEdgesNumber: Number of splitted edges.
     */
-    void SetIntersectionPointsCondensationMatrix(
+    void SetCondensationMatrix(
         Matrix& rIntPointCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
@@ -244,7 +245,9 @@ protected:
     * @return rInterfaceShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values.
     * @return rInterfaceWeightsValues: Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
     * @param rInterfacesVector: std::vector of intersection point based geometries where the values are to be computed.
-    * @param rPmatrix: reference to the interpolation matrix
+    * @param rParentGeometriesVector: std::vector of subdivisions point based parent geometries.
+    * @param rInterfacesParentIdsVector: std::vector containing the parent ids of each interface geometry.
+    * @param rPmatrix: reference to the interface interpolation matrix
     * @param IntegrationMethod: Desired integration quadrature.
     */
     virtual void ComputeInterfaceValuesOnOneSide(
@@ -252,6 +255,9 @@ protected:
         std::vector<Matrix> &rInterfaceShapeFunctionsGradientsValues,
         Vector &rInterfaceWeightsValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
+        const std::vector<IndexedPointGeometryPointerType> &rParentGeometriesVector,
+        const std::vector<unsigned int> &rInterfacesParentIdsVector,
+        const Matrix &rPmatrix,
         const IntegrationMethodType IntegrationMethod);
 
     /**

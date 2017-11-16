@@ -636,16 +636,14 @@ protected:
 
             const VectorType aux_cut = row(rData.N_pos_int, i_gauss_int);
 
-            unsigned int i_out = 0;
-            unsigned int i_int = 0;
-            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-                if (rData.out_vec_identifiers[i_out] == i_node) {
-                    aux_out(i_out) = aux_cut(i_node);
-                    i_out++;
-                } else {
-                    aux_int(i_int) = aux_cut(i_node);
-                    i_int++;
-                }
+            for (unsigned int i_out = 0; i_out < rData.n_neg; ++i_out) {
+                const unsigned int i_out_nodeid = rData.out_vec_identifiers[i_out];
+                aux_out(i_out) = aux_cut(i_out_nodeid);
+            }
+
+            for (unsigned int i_int = 0; i_int < rData.n_pos; ++i_int) {
+                const unsigned int i_int_nodeid = rData.int_vec_identifiers[i_int];
+                aux_int(i_int) = aux_cut(i_int_nodeid);
             }
 
             M_gamma += weight*outer_prod(aux_out,aux_out);

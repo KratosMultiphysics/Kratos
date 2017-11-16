@@ -72,10 +72,10 @@ void Triangle2D3ModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAndGrad
     if (this->IsSplit()) {
         // Get the intersection points condensation matrix
         Matrix p_matrix;
-        SetIntersectionPointsCondensationMatrix(p_matrix,
-                                                mpTriangleSplitter->mEdgeNodeI,
-                                                mpTriangleSplitter->mEdgeNodeJ,
-                                                mpTriangleSplitter->mSplitEdges);
+        SetCondensationMatrix(p_matrix,
+                              mpTriangleSplitter->mEdgeNodeI,
+                              mpTriangleSplitter->mEdgeNodeJ,
+                              mpTriangleSplitter->mSplitEdges);
 
         // Compute the positive side values
         this->ComputeValuesOnOneSide(rPositiveSideShapeFunctionsValues,
@@ -99,10 +99,10 @@ void Triangle2D3ModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAndGrad
     if (this->IsSplit()) {
         // Get the intersection points condensation matrix
         Matrix p_matrix;
-        SetIntersectionPointsCondensationMatrix(p_matrix,
-                                                mpTriangleSplitter->mEdgeNodeI,
-                                                mpTriangleSplitter->mEdgeNodeJ,
-                                                mpTriangleSplitter->mSplitEdges);
+        SetCondensationMatrix(p_matrix,
+                              mpTriangleSplitter->mEdgeNodeI,
+                              mpTriangleSplitter->mEdgeNodeJ,
+                              mpTriangleSplitter->mSplitEdges);
 
         // Compute the negative side values
         this->ComputeValuesOnOneSide(rNegativeSideShapeFunctionsValues,
@@ -124,11 +124,21 @@ void Triangle2D3ModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunctio
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
+        // Get the interface condensation matrix
+        Matrix p_matrix;
+        this->SetCondensationMatrix(p_matrix,
+                                    mpTriangleSplitter->mEdgeNodeI,
+                                    mpTriangleSplitter->mEdgeNodeJ,
+                                    mpTriangleSplitter->mSplitEdges);
+
         // Compute the positive side interface values
         this->ComputeInterfaceValuesOnOneSide(rInterfacePositiveSideShapeFunctionsValues,
                                               rInterfacePositiveSideShapeFunctionsGradientsValues,
                                               rInterfacePositiveSideWeightsValues,
                                               mpTriangleSplitter->mPositiveInterfaces,
+                                              mpTriangleSplitter->mPositiveSubdivisions,
+                                              mpTriangleSplitter->mPositiveInterfacesParentIds,
+                                              p_matrix,
                                               IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
@@ -143,11 +153,21 @@ void Triangle2D3ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunctio
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
+        // Get the interface condensation matrix
+        Matrix p_matrix;
+        this->SetCondensationMatrix(p_matrix,
+                                    mpTriangleSplitter->mEdgeNodeI,
+                                    mpTriangleSplitter->mEdgeNodeJ,
+                                    mpTriangleSplitter->mSplitEdges);
+
         // Compute the positive side interface values
         this->ComputeInterfaceValuesOnOneSide(rInterfaceNegativeSideShapeFunctionsValues,
                                               rInterfaceNegativeSideShapeFunctionsGradientsValues,
                                               rInterfaceNegativeSideWeightsValues,
                                               mpTriangleSplitter->mNegativeInterfaces,
+                                              mpTriangleSplitter->mNegativeSubdivisions,
+                                              mpTriangleSplitter->mNegativeInterfacesParentIds,
+                                              p_matrix,
                                               IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
