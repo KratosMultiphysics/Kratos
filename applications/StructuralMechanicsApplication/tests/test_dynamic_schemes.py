@@ -68,7 +68,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
 
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
    
-    def _base_test_dynamic_schemes(self, scheme_name = "bossak"):
+    def _base_spring_test_dynamic_schemes(self, scheme_name = "bossak"):
         mp = KratosMultiphysics.ModelPart("sdof")
         self._add_variables(mp)
 
@@ -89,7 +89,6 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         element = mp.CreateNewElement("NodalConcentratedElement3D1N", 1, [1], mp.GetProperties()[1])
         mass = 1.0
         stiffness = 10.0
-        damping = 1.0
         element.SetValue(KratosMultiphysics.NODAL_MASS, mass)
         element.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS, [0, stiffness,0])
 
@@ -116,14 +115,71 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
             current_analytical_displacement_y = A * cos(omega*time)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), current_analytical_displacement_y, delta=1e-3)
             
-    def test_bossak_scheme(self):
-        self._base_test_dynamic_schemes("bossak")
+    def _base_fall_test_dynamic_schemes(self, scheme_name = "bossak"):
+        mp = KratosMultiphysics.ModelPart("sdof")
+        self._add_variables(mp)
+
+        # Create node
+        node = mp.CreateNewNode(1,0.0,0.0,0.0)
+        node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
+        node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
+        node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
+
+        #add bcs and initial values
+        node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+        node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,0.0)
+
+        #create element
+        element = mp.CreateNewElement("NodalConcentratedElement3D1N", 1, [1], mp.GetProperties()[1])
+        mass = 1.0
+        stiffness = 0.0
+        element.SetValue(KratosMultiphysics.NODAL_MASS, mass)
+        element.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS, [0, stiffness,0])
+        gravity = -9.81
+        node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION_Y,0,gravity)
+
+        #time integration parameters
+        dt = 0.01
+        time = 0.0
+        end_time = 0.1
+        step = 0
+
+        self._set_and_fill_buffer(mp,2,dt)
+
+        #parameters for analytical solution
+        self.strategy = self._create_solver(mp, scheme_name)
+
+        current_analytical_displacement_y = 0.0
+        current_analytical_velocity_y = 0.0
+        while(time <= end_time):
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+
+            self.strategy.Solve()
+            current_analytical_displacement_y += current_analytical_velocity_y * dt + 0.5 * gravity * dt**2
+            current_analytical_velocity_y += dt * gravity
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), current_analytical_displacement_y, delta=1e-6)
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0), current_analytical_velocity_y, delta=1e-6)
+            
+    def test_spring_bossak_scheme(self):
+        self._base_spring_test_dynamic_schemes("bossak")
         
-    def test_newmark_scheme(self):
-        self._base_test_dynamic_schemes("newmark")
+    def test_spring_newmark_scheme(self):
+        self._base_spring_test_dynamic_schemes("newmark")
         
-    #def test_bdf2_scheme(self):
-        #self._base_test_dynamic_schemes("bdf2")
+    #def test_spring_bdf2_scheme(self):
+        #self._base_spring_test_dynamic_schemes("bdf2")
+        
+    #def test_fall_bossak_scheme(self):
+        #self._base_fall_test_dynamic_schemes("bossak")
+        
+    #def test_fall_newmark_scheme(self):
+        #self._base_fall_test_dynamic_schemes("newmark")
+        
+    #def test_fall_bdf2_scheme(self):
+        #self._base_fall_test_dynamic_schemes("bdf2")
 
 if __name__ == '__main__':
     KratosUnittest.main()

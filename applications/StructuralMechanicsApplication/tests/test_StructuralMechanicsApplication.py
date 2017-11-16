@@ -170,9 +170,12 @@ def AssambleTestSuites():
     # Basic moving mesh test
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Dynamic basic tests
-    smallSuite.addTest(TDynamicSchemesTests('test_bossak_scheme'))
-    smallSuite.addTest(TDynamicSchemesTests('test_newmark_scheme'))
-    #smallSuite.addTest(TDynamicSchemesTests('test_bdf2_scheme'))
+    smallSuite.addTest(TDynamicSchemesTests('test_spring_newmark_scheme'))
+    smallSuite.addTest(TDynamicSchemesTests('test_spring_bossak_scheme'))
+    #smallSuite.addTest(TDynamicSchemesTests('test_spring_bdf2_scheme'))
+    #smallSuite.addTest(TDynamicSchemesTests('test_fall_newmark_scheme'))
+    #smallSuite.addTest(TDynamicSchemesTests('test_fall_bossak_scheme'))
+    #smallSuite.addTest(TDynamicSchemesTests('test_fall_bdf2_scheme'))
     # Patch test Small Displacements
     smallSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     smallSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
