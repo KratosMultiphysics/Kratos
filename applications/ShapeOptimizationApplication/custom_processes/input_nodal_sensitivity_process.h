@@ -57,13 +57,13 @@ namespace Kratos
 /**
  * Requires mesh topology and node numbering to remain constant.
  */
-class SVDSensitivityProcess : public Process
+class InputNodalSensitivityProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(SVDSensitivityProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(InputNodalSensitivityProcess);
 
     typedef ModelPart::NodeType NodeType;
 
@@ -74,7 +74,7 @@ public:
     ///@{
 
     /// Constructor.
-    SVDSensitivityProcess(ModelPart& rModelPart, Parameters& rParameters)
+    InputNodalSensitivityProcess(ModelPart& rModelPart, Parameters& rParameters)
     : Process(), mrModelPart(rModelPart)
     {
         KRATOS_TRY
@@ -113,7 +113,7 @@ public:
     }
 
     /// Destructor.
-    ~SVDSensitivityProcess() override {}
+    ~InputNodalSensitivityProcess() override {}
 
     ///@}
     ///@name Operators
@@ -173,7 +173,7 @@ public:
 
         KRATOS_CATCH("");
 
-        std::cout << "LCHEN: ExecuteInitialize() finished" << std::endl;
+        std::cout << "LCHEN: InputNodalSensitivityProcess::ExecuteInitialize() finished" << std::endl;
     }
 
     void ExecuteBeforeSolutionLoop() override
@@ -259,7 +259,7 @@ public:
         }
 
         KRATOS_CATCH("");
-        std::cout << "LC: svd_sensitivity finished!" << std::endl;
+        std::cout << "LC: InputNodalSensitivityProcess finished!" << std::endl;
     }
 
     void ExecuteFinalizeSolutionStep() override
@@ -293,7 +293,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "SVDSensitivityProcess";
+        return "InputNodalSensitivityProcess";
     }
 
     /// Print information about this object.
@@ -369,7 +369,7 @@ private:
     ///@{
 
     ///@}
-}; /* Class SVDSensitivityProcess */
+}; /* Class InputNodalSensitivityProcess */
 
 ///@}
 
@@ -378,14 +378,14 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-    SVDSensitivityProcess& rThis)
+    InputNodalSensitivityProcess& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const SVDSensitivityProcess& rThis)
+                                  const InputNodalSensitivityProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

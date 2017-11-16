@@ -95,6 +95,10 @@ namespace Kratos
     //--------------- Extended Adjoint Sensitivity Analysis for Structural Mechanics -------------------// lchen
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_DISPLACEMENT_1);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_DISPLACEMENT_2);
+    KRATOS_DEFINE_VARIABLE(double, IY_SENSITIVITY_1);
+    KRATOS_DEFINE_VARIABLE(double, IY_SENSITIVITY_2);
+    KRATOS_DEFINE_VARIABLE(double, IZ_SENSITIVITY_1);
+    KRATOS_DEFINE_VARIABLE(double, IZ_SENSITIVITY_2);
 
 	///@} 
 	///@name Type Definitions

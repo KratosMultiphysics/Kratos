@@ -25,7 +25,8 @@
 #include "custom_processes/input_primal_solution_process.h"
 #include "custom_processes/output_sensitivity_process.h"
 #include "custom_processes/output_elemental_sensitivity_process.h"
-#include "custom_processes/svd_sensitivity_process.h"
+#include "custom_processes/input_nodal_sensitivity_process.h"
+#include "custom_processes/input_elemental_sensitivity_process.h"
 #include "custom_processes/replace_elements_and_conditions_for_adjoint_problem_process.h"
 #include "includes/model_part.h"
 #include "custom_python/add_custom_processes_to_python.h"
@@ -56,9 +57,14 @@ void AddCustomProcessesToPython()
     ("OutputElementalSensitivityProcess", init < ModelPart&, Parameters&>())
     ;
 
-    class_< SVDSensitivityProcess, bases<Process> >
-    ("SVDSensitivityProcess", init<ModelPart&, Parameters&>())
+    class_< InputNodalSensitivityProcess, bases<Process> >
+    ("InputNodalSensitivityProcess", init<ModelPart&, Parameters&>())
     ;
+
+    class_< InputElementalSensitivitiyProcess, bases<Process> >
+    ("InputElementalSensitivitiyProcess", init<ModelPart&, Parameters&>())
+    ;
+
 
     class_<ReplaceElementsAndConditionsForAdjointProblemProcess , bases<Process>, boost::noncopyable >("ReplaceElementsAndConditionsForAdjointProblemProcess",
             init<ModelPart&, Parameters>())

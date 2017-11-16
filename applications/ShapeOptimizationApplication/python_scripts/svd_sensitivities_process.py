@@ -26,11 +26,45 @@ class SVDSensitivitiesProcess(KratosMultiphysics.Process):
     # --------------------------------------------------------------------------
     def ExecuteFinalizeSolutionStep(self):
         #self.__test_np_svd()
-        self.__getAdjointDisplacements()
+        #self.__svdAdjointDisplacements()
+        self.__svdElementalSensitivities()
         
     # --------------------------------------------------------------------------
-    # get adjoint displacements and store them in matrix
-    def __getAdjointDisplacements(self):
+    # svd Elemental Sensitivities
+    def __svdElementalSensitivities(self):
+        
+        numElement = len(self.model_part.Elements)
+        
+        elemsensi_1 = np.empty(numElement)
+        elemsensi_2 = np.empty(numElement)
+        
+        for elem in self.model_part.Elements:
+            elemsensi_1[elem.Id - 1] = elem.GetValue(ShapeOptimizationApplication.IY_SENSITIVITY_1)
+            elemsensi_2[elem.Id - 1] = elem.GetValue(ShapeOptimizationApplication.IY_SENSITIVITY_2)
+            
+        #print(elemsensi_1)
+        #print(elemsensi_2)
+        
+        # SVD for IY_SENSITIVITY_1
+        sensi_matrix = np.stack((elemsensi_1,elemsensi_2))
+        
+        U,s,V = np.linalg.svd(sensi_matrix, full_matrices = True)
+        
+        print("singular values are:")
+        print(s)
+        print("objective modes are:")
+        print(U)
+        print("input modes are:")
+        print(V)
+        
+        # set input modes to the elements
+        for elem in self.model_part.Elements:
+            elem.SetValue(ShapeOptimizationApplication.IY_SENSITIVITY_1, V[(elem.Id - 1),0])
+            elem.SetValue(ShapeOptimizationApplication.IY_SENSITIVITY_2, V[(elem.Id - 1),1])
+            #print(elem)
+    # --------------------------------------------------------------------------
+    # svd adjoint displacements 
+    def __svdAdjointDisplacements(self):
         
         numNode = len(self.model_part.Nodes)
         

@@ -107,7 +107,7 @@ public:
 
         mAlphaBossak = 0.0; //rParameters["alpha_bossak"].GetDouble();
 
-        mNumNodes = 0;
+        mNumElements = 0;
 
         KRATOS_CATCH("")
     }
@@ -164,10 +164,6 @@ public:
 
             */
 
-
-            std::cout << "#################" << std::endl;
-        std::cout << "LCHEN: MANUAL DEBUGGER" << std::endl;
-        std::cout << "#################" << std::endl;
 
         // elements should be ordered by node id before IO begins
         if (mrModelPart.Elements().IsSorted() == false)
