@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "Shell_T3_Thin__BendingRollUp_test",
         "model_part_name" : "SolidDomain",
-        "domain_size"     : 3,
+        "dimension"       : 3,
         "time_step"       : 0.05,
         "start_time"      : 0.001,
         "end_time"        : 1.0,
@@ -11,14 +11,14 @@
         "solver_settings"          : {
             "solver_type"                        : "solid_mechanics_static_solver",
             "solution_type"                      : "Dynamic",
-            "analysis_type"                      : "Non-Linear",
+	    "scheme_type"                        : "Non-Linear",				    
             "echo_level"      			 : 0,
             "model_import_settings"              : {
                 "input_type"     : "mdpa",
                 "input_filename" : "element_tests/shell_elements/Shell_T3_Thin__BendingRollUp"
             },
             "line_search"                        : false,
-            "rotation_dofs"			 : true,
+            "dofs"                               : ["ROTATION"],
             "convergence_criterion"              : "Residual_criterion",
             "displacement_relative_tolerance"    : 1e-6,
             "displacement_absolute_tolerance"    : 1e-9,

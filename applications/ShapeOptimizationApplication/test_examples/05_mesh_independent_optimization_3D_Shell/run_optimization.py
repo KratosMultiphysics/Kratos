@@ -26,12 +26,12 @@ main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_dat
 ###TODO replace this "model" for real one once available in kratos core
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
-# Create an optimizer
+# Create an optimizer 
 # Note that internally variables related to the optimizer are added to the model part
 optimizerFactory = __import__("optimizer_factory")
 optimizer = optimizerFactory.CreateOptimizer( main_model_part, ProjectParameters["optimization_settings"] )
 
-# Create solver for all response functions specified in the optimization settings
+# Create solver for all response functions specified in the optimization settings 
 # Note that internally variables related to the individual functions are added to the model part
 responseFunctionFactory = __import__("response_function_factory")
 listOfResponseFunctions = responseFunctionFactory.CreateListOfResponseFunctions( main_model_part, ProjectParameters["optimization_settings"] )
@@ -58,14 +58,14 @@ for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_li
 # ======================================================================================================================================
 
 class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
-
-    # --------------------------------------------------------------------------
+    
+    # --------------------------------------------------------------------------    
     def __init__( self ):
 
         self.initializeGIDOutput()
         self.initializeProcesses()
         self.initializeSolutionLoop()
-
+        
     # --------------------------------------------------------------------------
     def initializeProcesses( self ):
 
@@ -77,7 +77,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
         if(ProjectParameters.Has("output_process_list")):
             self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
-
+                    
         #print list of constructed processes
         if(echo_level>1):
             for process in self.list_of_processes:
@@ -106,7 +106,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         CSM_solver.SetEchoLevel(echo_level)
 
         for responseFunctionId in listOfResponseFunctions:
-            listOfResponseFunctions[responseFunctionId].initialize()
+            listOfResponseFunctions[responseFunctionId].Initialize()
 
         # Start process
         for process in self.list_of_processes:
@@ -134,21 +134,21 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
 
             print("\n> Starting calculation of response value")
-            startTime = timer.time()
-            listOfResponseFunctions["strain_energy"].calculate_value()
+            startTime = timer.time()                    
+            listOfResponseFunctions["strain_energy"].CalculateValue()
             print("> Time needed for calculation of response value = ",round(timer.time() - startTime,2),"s")
 
-            communicator.reportFunctionValue("strain_energy", listOfResponseFunctions["strain_energy"].get_value())
+            communicator.reportFunctionValue("strain_energy", listOfResponseFunctions["strain_energy"].GetValue())    
 
         # Calculation of gradient of objective function
-        if communicator.isRequestingGradientOf("strain_energy"):
+        if communicator.isRequestingGradientOf("strain_energy"): 
 
             print("\n> Starting calculation of gradients")
-            startTime = timer.time()
-            listOfResponseFunctions["strain_energy"].calculate_gradient()
+            startTime = timer.time()               
+            listOfResponseFunctions["strain_energy"].CalculateGradient()
             print("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
-
-            gradientForCompleteModelPart = listOfResponseFunctions["strain_energy"].get_gradient()
+            
+            gradientForCompleteModelPart = listOfResponseFunctions["strain_energy"].GetGradient()
             gradientOnDesignSurface = {}
             for node in currentDesign.Nodes:
                 gradientOnDesignSurface[node.Id] = gradientForCompleteModelPart[node.Id]
@@ -167,22 +167,17 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             node.Z0 = node.Z0 + node.GetSolutionStepValue(SHAPE_UPDATE_Z)
 
     # --------------------------------------------------------------------------
-    def solveStructure( self, optimizationIteration ):
+    def solveStructure( self, optimizationIteration ): 
 
         # processes to be executed at the begining of the solution step
         for process in self.list_of_processes:
             process.ExecuteInitializeSolutionStep()
 
         self.gid_output.ExecuteInitializeSolutionStep()
-
+            
         # Actual solution
         CSM_solver.Solve()
-
-        for process in self.list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
-
-        self.gid_output.ExecuteFinalizeSolutionStep()
-
+        
         # processes to be executed at the end of the solution step
         for process in self.list_of_processes:
             process.ExecuteFinalizeSolutionStep()
@@ -190,14 +185,16 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         # processes to be executed before witting the output
         for process in self.list_of_processes:
             process.ExecuteBeforeOutputStep()
-
+        
         # write output results GiD: (frequency writing is controlled internally)
         if(self.gid_output.IsOutputStep()):
             self.gid_output.PrintOutput()
+                        
+        self.gid_output.ExecuteFinalizeSolutionStep()
 
         # processes to be executed after witting the output
         for process in self.list_of_processes:
-            process.ExecuteAfterOutputStep()
+            process.ExecuteAfterOutputStep()            
 
     # --------------------------------------------------------------------------
     def finalizeSolutionLoop( self ):

@@ -404,8 +404,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(FACE_NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(FACE_TANGENTIAL_IMPACT_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(LINEAR_IMPULSE)
-        
+        model_part.AddNodalSolutionStepVariable(LINEAR_IMPULSE)        
 
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
@@ -416,6 +415,8 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT) #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
         model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_MOMENT)
+        model_part.AddNodalSolutionStepVariable(FORCE_REACTION)
+        model_part.AddNodalSolutionStepVariable(MOMENT_REACTION)
 
         # BASIC PARTICLE PROPERTIES
         model_part.AddNodalSolutionStepVariable(RADIUS)
@@ -443,15 +444,10 @@ class Procedures(object):
         if DEM_parameters["PostEulerAngles"].GetBool():
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
-
         if "PostStressStrainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
-                
-        if (self.solver.compute_stress_tensor_option):
-            model_part.AddNodalSolutionStepVariable(FORCE_REACTION)
-            model_part.AddNodalSolutionStepVariable(MOMENT_REACTION)
-
+        
         if (self.solver.poisson_ratio_option):
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
 
@@ -1404,14 +1400,14 @@ class DEMIo(object):
 
         # Ice
         if "PostVirtualSeaSurfaceX1" in self.DEM_parameters.keys():
-            self.SeaSurfaceX1 = self.DEM_parameters["PostVirtualSeaSurfaceX1"]
-            self.SeaSurfaceY1 = self.DEM_parameters["PostVirtualSeaSurfaceY1"]
-            self.SeaSurfaceX2 = self.DEM_parameters["PostVirtualSeaSurfaceX2"]
-            self.SeaSurfaceY2 = self.DEM_parameters["PostVirtualSeaSurfaceY2"]
-            self.SeaSurfaceX3 = self.DEM_parameters["PostVirtualSeaSurfaceX3"]
-            self.SeaSurfaceY3 = self.DEM_parameters["PostVirtualSeaSurfaceY3"]
-            self.SeaSurfaceX4 = self.DEM_parameters["PostVirtualSeaSurfaceX4"]
-            self.SeaSurfaceY4 = self.DEM_parameters["PostVirtualSeaSurfaceY4"]
+            self.SeaSurfaceX1 = self.DEM_parameters["PostVirtualSeaSurfaceX1"].GetDouble()
+            self.SeaSurfaceY1 = self.DEM_parameters["PostVirtualSeaSurfaceY1"].GetDouble()
+            self.SeaSurfaceX2 = self.DEM_parameters["PostVirtualSeaSurfaceX2"].GetDouble()
+            self.SeaSurfaceY2 = self.DEM_parameters["PostVirtualSeaSurfaceY2"].GetDouble()
+            self.SeaSurfaceX3 = self.DEM_parameters["PostVirtualSeaSurfaceX3"].GetDouble()
+            self.SeaSurfaceY3 = self.DEM_parameters["PostVirtualSeaSurfaceY3"].GetDouble()
+            self.SeaSurfaceX4 = self.DEM_parameters["PostVirtualSeaSurfaceX4"].GetDouble()
+            self.SeaSurfaceY4 = self.DEM_parameters["PostVirtualSeaSurfaceY4"].GetDouble()
 
     def KRATOSprint(self,message):
         print(message)
@@ -1500,6 +1496,9 @@ class DEMIo(object):
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 self.PushPrintVar(1, REPRESENTATIVE_VOLUME, self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_TENSOR,     self.spheres_variables)
+                
+        if "PostReactions" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostReactions"].GetBool():
                 self.PushPrintVar(1, FORCE_REACTION,        self.spheres_variables)
                 self.PushPrintVar(1, MOMENT_REACTION,       self.spheres_variables)
 

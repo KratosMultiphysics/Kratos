@@ -567,23 +567,12 @@ namespace Kratos
                 
                 // Compute material reponse
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
-                
-                double integration_weight = GetIntegrationWeight(integration_points,
-                                                                 point_number,
-                                                                 this_kinematic_variables.detJ0);
-                
-                if (dimension == 2 && this->GetProperties().Has(THICKNESS))
-                {
-                    integration_weight *= this->GetProperties()[THICKNESS];
-                }
-                
+
                 double StrainEnergy = 0.0;
                     
-                // Compute stresses and constitutive parameters
-                mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, GetStressMeasure());
                 mConstitutiveLawVector[point_number]->CalculateValue(Values, STRAIN_ENERGY, StrainEnergy);
 
-                rOutput[point_number] = integration_weight * StrainEnergy;  // 1/2 * sigma * epsilon
+                rOutput[point_number] = StrainEnergy;  // 1/2 * sigma * epsilon
             } 
         }
         else if (rVariable == VON_MISES_STRESS)
@@ -1379,7 +1368,10 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    Vector BaseSolidElement::GetBodyForce()
+    Vector BaseSolidElement::GetBodyForce(
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber
+        ) const
     {
         Vector body_force = ZeroVector(3);
         
@@ -1394,7 +1386,12 @@ namespace Kratos
         }
         if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
         {
-            body_force += density * GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            Vector N;
+            N = GetGeometry().ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
+            for (unsigned int i_node = 0; i_node < this->GetGeometry().size(); ++i_node)
+            {
+                noalias(body_force) += N[i_node] * density * GetGeometry()[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            }
         }
         
         return body_force;

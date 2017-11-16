@@ -56,10 +56,10 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         if(integration_method == "Explicit"):
             self.nodal_variables = self.nodal_variables + ['NODAL_MASS','MIDDLE_VELOCITY','FORCE_RESIDUAL']
             # Add specific variables for the explicit time integration scheme in rotations
-            if(self.settings["rotation_dofs"].GetBool() == True):
+            if(self._check_input_dof("ROTATION") == True):
                 self.nodal_variables = self.nodal_variables + ['INERTIA_DYADIC','MOMENT_RESIDUAL','POSITION_MOMENTUM','ROTATION_MOMENTUM', 'RESIDUAL_LYAPUNOV', 'TANGENT_LYAPUNOV']
                 
-        print("::[Mechanical Solver]:: Explicit Variables ADDED")
+        print("::[Explicit_Mechanical_Solver]:: Explicit Variables ADDED")
 
 
     #### Specific internal functions ####

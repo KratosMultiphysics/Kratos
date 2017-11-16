@@ -69,6 +69,8 @@
 #include "custom_conditions/surface_load_condition_3d.h"
 
 /* CONSTITUTIVE LAWS */
+#include "custom_constitutive/truss_constitutive_law.h"
+#include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
@@ -364,6 +366,8 @@ private:
     
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
+    const TrussConstitutiveLaw mTrussConstitutiveLaw;
+    const BeamConstitutiveLaw mBeamConstitutiveLaw;
     const ElasticIsotropic3D mElasticIsotropic3D;
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;

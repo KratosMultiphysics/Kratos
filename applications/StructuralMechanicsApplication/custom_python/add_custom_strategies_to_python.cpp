@@ -30,6 +30,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
+#include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
 
 // Schemes
@@ -78,6 +79,7 @@ void  AddCustomStrategiesToPython()
     // Custom strategy types
     typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
+    typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
     typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
 
     // Custom scheme types
@@ -118,6 +120,15 @@ void  AddCustomStrategiesToPython()
         .def("SetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::SetInitializePerformedFlag)
         .def("GetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::GetInitializePerformedFlag)
         ;
+
+    // harmonic Analysis Strategy
+    class_< HarmonicAnalysisStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
+            (
+                "HarmonicAnalysisStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
+            // .def(init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer >())
+            .def("SetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::SetUseMaterialDampingFlag)
+            .def("GetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::GetUseMaterialDampingFlag)
+            ;
 
     //********************************************************************
     //*************************SCHEME CLASSES*****************************

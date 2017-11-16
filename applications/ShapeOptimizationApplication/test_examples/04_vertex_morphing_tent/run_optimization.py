@@ -23,12 +23,12 @@ import sys
 # Model part and solver
 # ======================================================================================================================================
 
-parameter_file = open("ProjectParameters.json",'r')
-ProjectParameters = Parameters( parameter_file.read())
-inputModelPart = ModelPart( ProjectParameters["optimization_settings"]["design_variables"]["input_model_part_name"].GetString() )
+ParameterFile = open("ProjectParameters.json",'r')
+ProjectParameters = Parameters( ParameterFile.read())
+OptimizationModelPart = ModelPart( ProjectParameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString() )
 
-optimizerFactory = __import__("optimizer_factory")
-optimizer = optimizerFactory.CreateOptimizer( inputModelPart, ProjectParameters["optimization_settings"] )
+OptimizerFactory = __import__("optimizer_factory")
+Optimizer = OptimizerFactory.CreateOptimizer( OptimizationModelPart, ProjectParameters["optimization_settings"] )
 
 # ======================================================================================================================================
 # Solver preparation
@@ -37,11 +37,11 @@ optimizer = optimizerFactory.CreateOptimizer( inputModelPart, ProjectParameters[
 class externalAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
     
     # --------------------------------------------------------------------------
-    def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
-        if communicator.isRequestingFunctionValueOf("targetDeviation"): 
-            communicator.reportFunctionValue("targetDeviation", self.ObjectiveFunction(currentDesign))    
-        if communicator.isRequestingGradientOf("targetDeviation"): 
-            communicator.reportGradient("targetDeviation", self.ObjectiveGradient(currentDesign))   
+    def analyzeDesignAndReportToCommunicator( self, currentDesign, OptimizationIteration, Communicator ):
+        if Communicator.isRequestingFunctionValueOf("targetDeviation"): 
+            Communicator.reportFunctionValue("targetDeviation", self.ObjectiveFunction(currentDesign))    
+        if Communicator.isRequestingGradientOf("targetDeviation"): 
+            Communicator.reportGradient("targetDeviation", self.ObjectiveGradient(currentDesign))   
 
     # --------------------------------------------------------------------------
     def ObjectiveFunction( self, currentDesign ):
@@ -84,8 +84,8 @@ newAnalyzer = externalAnalyzer()
 # Optimization
 # ======================================================================================================================================
 
-optimizer.importAnalyzer( newAnalyzer )
-optimizer.importModelPart()
-optimizer.optimize()
+Optimizer.importAnalyzer( newAnalyzer )
+Optimizer.importModelPart()
+Optimizer.optimize()
 
 # ======================================================================================================================================

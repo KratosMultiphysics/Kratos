@@ -285,7 +285,6 @@ namespace Kratos
         )
     {
         const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int block_size = this->GetBlockSize();
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )

@@ -569,7 +569,7 @@ public:
 #else
         DataType* vals = rA.value_data().begin();
         #pragma omp parallel for firstprivate(m)
-        for(int i=0; i<m; ++i)
+        for(int i=0; i<static_cast<int>(m); ++i)
             vals[i] = TDataType();
 #endif
     }
@@ -582,7 +582,7 @@ public:
 #else
         TDataType* vals = rA.value_data().begin();
         #pragma omp parallel for firstprivate(m)
-        for(int i=0; i<m; ++i)
+        for(int i=0; i<static_cast<int>(m); ++i)
             vals[i] = TDataType();
 #endif
     }
