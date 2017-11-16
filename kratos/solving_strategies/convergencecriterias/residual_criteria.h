@@ -109,6 +109,7 @@ public:
         mRatioTolerance       = NewRatioTolerance;
         mAlwaysConvergedNorm  = AlwaysConvergedNorm;
         mInitialResidualIsSet = false;
+        mHistoricalResidualNorm = 0.0;
     }
 
     //* Copy constructor.
@@ -117,6 +118,7 @@ public:
       :BaseType(rOther) 
       ,mInitialResidualIsSet(rOther.mInitialResidualIsSet)
       ,mRatioTolerance(rOther.mRatioTolerance)
+      ,mHistoricalResidualNorm(rOther.mHistoricalResidualNorm)
       ,mInitialResidualNorm(rOther.mInitialResidualNorm)
       ,mCurrentResidualNorm(rOther.mCurrentResidualNorm)
       ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)
@@ -148,6 +150,7 @@ public:
             if (mInitialResidualIsSet == false)
             {
                 mInitialResidualNorm = TSparseSpace::TwoNorm(b);
+                if (mInitialResidualNorm > mHistoricalResidualNorm) mHistoricalResidualNorm = mInitialResidualNorm;
                 mInitialResidualIsSet = true;
             }
 
@@ -156,7 +159,8 @@ public:
 
             const double b_size = TSparseSpace::Size(b);
             
-            if(mInitialResidualNorm/b_size < mAlwaysConvergedNorm)
+            if((mInitialResidualNorm/b_size < mAlwaysConvergedNorm) || 
+                mInitialResidualNorm/mHistoricalResidualNorm < mRatioTolerance)
             {
                 ratio = 0.0;
             }
@@ -167,12 +171,9 @@ public:
 
             TDataType absolute_norm = (mCurrentResidualNorm/b_size);
                     
-            if (rModelPart.GetCommunicator().MyPID() == 0)
+            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() >= 1)
             {
-                if (this->GetEchoLevel() >= 1)
-                {
-                    std::cout << "RESIDUAL CRITERION :: Ratio = "<< ratio  << ";  Norm = " << absolute_norm << std::endl;
-                }
+                std::cout << "RESIDUAL CRITERION :: Ratio = "<< ratio  << ";  Norm = " << absolute_norm << std::endl;
             }
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
@@ -303,6 +304,8 @@ private:
 
     TDataType mRatioTolerance;
 
+    TDataType mHistoricalResidualNorm;
+    
     TDataType mInitialResidualNorm;
 
     TDataType mCurrentResidualNorm;
