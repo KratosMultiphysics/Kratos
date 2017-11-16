@@ -76,6 +76,7 @@ namespace Kratos
 
     mUpdatedLagrangianUWElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mUpdatedLagrangianUWwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mSmallDisplacementUWwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
 
     mAxisymUpdatedLagrangianUwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymUpdatedLagrangianUwPStabElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -213,6 +214,7 @@ namespace Kratos
 
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUWElement2D3N", mUpdatedLagrangianUWElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUWwPElement2D3N", mUpdatedLagrangianUWwPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementUWwPElement2D3N", mSmallDisplacementUWwPElement2D3N )
 
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUwPElement2D3N", mAxisymUpdatedLagrangianUwPElement2D3N )
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUwPStabElement2D3N", mAxisymUpdatedLagrangianUwPStabElement2D3N )

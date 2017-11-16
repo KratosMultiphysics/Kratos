@@ -303,7 +303,7 @@ namespace Kratos
 
       int correct = 0;
 
-      correct = LargeDisplacementElement::Check(rCurrentProcessInfo);
+      correct = SmallDisplacementElement::Check(rCurrentProcessInfo);
 
 
       //verify compatibility with the constitutive law
@@ -414,7 +414,7 @@ namespace Kratos
       //resizing as needed the LHS
       unsigned int MatSize =  number_of_nodes * ( 2*dimension + 1 );
 
-      if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+      if ( rCalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
       {
          if ( rLeftHandSideMatrix.size1() != MatSize )
             rLeftHandSideMatrix.resize( MatSize, MatSize, false );
@@ -424,7 +424,7 @@ namespace Kratos
 
 
       //resizing as needed the RHS
-      if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
+      if ( rCalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
       {
          if ( rRightHandSideVector.size() != MatSize )
             rRightHandSideVector.resize( MatSize, false );
