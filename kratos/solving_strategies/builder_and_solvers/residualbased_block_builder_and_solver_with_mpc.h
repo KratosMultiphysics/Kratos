@@ -471,7 +471,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
             const unsigned int number_of_nodes = rCurrentElement->GetGeometry().PointsNumber();
             MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
 
-            for (auto mpcData : (*mpcDataVector))
+            for (auto& mpcData : (*mpcDataVector))
             {
                 if (mpcData->IsActive())
                 {
@@ -492,7 +492,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                 if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
                                 {
                                     MasterIdWeightMapType masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationId];
-                                    for (auto master : masterWeightsMap)
+                                    for (auto& master : masterWeightsMap)
                                     {
                                         EquationId.push_back(master.first);
                                     }
@@ -517,7 +517,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         {
             const unsigned int number_of_nodes = rCurrentCondition->GetGeometry().PointsNumber();
             MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
-            for (auto mpcData : (*mpcDataVector))
+            for (auto& mpcData : (*mpcDataVector))
             {
                 if (mpcData->IsActive())
                 {
@@ -538,7 +538,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                 if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
                                 {
                                     MasterIdWeightMapType masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationId];
-                                    for (auto master : masterWeightsMap)
+                                    for (auto& master : masterWeightsMap)
                                     {
                                         EquationId.push_back(master.first);
                                     }
@@ -677,20 +677,20 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                     ++currentNumberOfMastersProcessed;
                                     double weight = masterI.second;
                                     double constant = mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndex]];
-                                    for (auto localInternEqId : localInternEquationIds)
+                                    for (auto& localInternEqId : localInternEquationIds)
                                     {
                                         RHS_Contribution(localInternEqId) += -LHS_Contribution(localInternEqId, localSlaveEqId) * constant;
                                     }
 
                                     // For K(m,u) and K(u,m)
-                                    for (auto localInternEqId : localInternEquationIds)
+                                    for (auto& localInternEqId : localInternEquationIds)
                                     { // Loop over all the local equation ids
                                         LHS_Contribution(localInternEqId, localMasterEqId) += LHS_Contribution(localInternEqId, localSlaveEqId) * weight;
                                         LHS_Contribution(localMasterEqId, localInternEqId) += LHS_Contribution(localSlaveEqId, localInternEqId) * weight;
                                     } // Loop over all the local equation ids
 
                                     // For RHS(m) += A'*LHS(s,s)*B
-                                    for (auto localSlaveEqIdOther : localNodalSlaveEquationIds)
+                                    for (auto& localSlaveEqIdOther : localNodalSlaveEquationIds)
                                     {
                                         //std::vector<std::size_t>::iterator itOther = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqIdOther);
                                         int slaveIndexOther = std::distance(localNodalSlaveEquationIds.begin(), it);
@@ -724,9 +724,9 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                     }     // Loop over the nodes
 
                     // For K(u,s) and K(s,u)
-                    for (auto localSlaveEqId : localSlaveEquationIds)
+                    for (auto& localSlaveEqId : localSlaveEquationIds)
                     { // Loop over all the slaves for this node
-                        for (auto localInternEqId : localInternEquationIds)
+                        for (auto& localInternEqId : localInternEquationIds)
                         { // Loop over all the local equation ids
                             LHS_Contribution(localSlaveEqId, localInternEqId) = 0.0;
                             LHS_Contribution(localInternEqId, localSlaveEqId) = 0.0;
@@ -854,27 +854,27 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                 it = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqId);
                                 int slaveIndex = std::distance(localNodalSlaveEquationIds.begin(), it);
                                 MasterIdWeightMapType &masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationIds[slaveIndex]];
-                                for (auto masterI : masterWeightsMap)
+                                for (auto& masterI : masterWeightsMap)
                                 { // Loop over all the masters the slave has
 
                                     int localMasterEqId = currentNumberOfMastersProcessed + currentSysSize;
                                     ++currentNumberOfMastersProcessed;
                                     double weight = masterI.second;
                                     double constant = mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndex]];
-                                    for (auto localInternEqId : localInternEquationIds)
+                                    for (auto& localInternEqId : localInternEquationIds)
                                     {
                                         RHS_Contribution(localInternEqId) += -LHS_Contribution(localInternEqId, localSlaveEqId) * constant;
                                     }
 
                                     // For K(m,u) and K(u,m)
-                                    for (auto localInternEqId : localInternEquationIds)
+                                    for (auto& localInternEqId : localInternEquationIds)
                                     { // Loop over all the local equation ids
                                         LHS_Contribution(localInternEqId, localMasterEqId) += LHS_Contribution(localInternEqId, localSlaveEqId) * weight;
                                         LHS_Contribution(localMasterEqId, localInternEqId) += LHS_Contribution(localSlaveEqId, localInternEqId) * weight;
                                     } // Loop over all the local equation ids
 
                                     // For RHS(m) += A'*LHS(s,s)*B
-                                    for (auto localSlaveEqIdOther : localNodalSlaveEquationIds)
+                                    for (auto& localSlaveEqIdOther : localNodalSlaveEquationIds)
                                     {
                                         //std::vector<std::size_t>::iterator itOther = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqIdOther);
                                         int slaveIndexOther = std::distance(localNodalSlaveEquationIds.begin(), it);
@@ -908,9 +908,9 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                     }     // Loop over the nodes
 
                     // For K(u,s) and K(s,u)
-                    for (auto localSlaveEqId : localSlaveEquationIds)
+                    for (auto& localSlaveEqId : localSlaveEquationIds)
                     { // Loop over all the slaves for this node
-                        for (auto localInternEqId : localInternEquationIds)
+                        for (auto& localInternEqId : localInternEquationIds)
                         { // Loop over all the local equation ids
                             LHS_Contribution(localSlaveEqId, localInternEqId) = 0.0;
                             LHS_Contribution(localInternEqId, localSlaveEqId) = 0.0;
@@ -933,11 +933,11 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         {
             MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
 
-            for (auto mpcData : (*mpcDataVector))
+            for (auto& mpcData : (*mpcDataVector))
             {
                 if (mpcData->IsActive())
                 {
-                    for (auto slaveMasterDofMap : mpcData->mDofConstraints)
+                    for (auto& slaveMasterDofMap : mpcData->mDofConstraints)
                     {
                         SlavePairType slaveDofMap = slaveMasterDofMap.first;
                         MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
@@ -947,7 +947,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                         Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
                         unsigned int slaveEquationId = it->EquationId();
 
-                        for (auto masterDofMapElem : masterDofMap)
+                        for (auto& masterDofMapElem : masterDofMap)
                         {
                             unsigned int masterNodeId;
                             double constant;
@@ -981,7 +981,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         if (info.Has(MPC_DATA_CONTAINER))
         {
             MpcDataPointerVectorType mpcDataVector = info.GetValue(MPC_DATA_CONTAINER);
-            for (auto mpcData : (*mpcDataVector))
+            for (auto& mpcData : (*mpcDataVector))
             {
                 if (mpcData->IsActive())
                 {
@@ -999,7 +999,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         if (CurrentProcessInfo.Has(MPC_DATA_CONTAINER))
         {
             MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
-            for (auto mpcData : (*mpcDataVector))
+            for (auto& mpcData : (*mpcDataVector))
             {
                 if (mpcData->IsActive())
                 {
