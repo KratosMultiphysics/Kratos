@@ -149,7 +149,8 @@ class Solution(object):
         else:
             self.solver.AddDofs()
 
-
+        sys.stdout.flush()
+            
         # Add materials (assign material to model_parts if Materials.json exists)
         self.AddMaterials()
         

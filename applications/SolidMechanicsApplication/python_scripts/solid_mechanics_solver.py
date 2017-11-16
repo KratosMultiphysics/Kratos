@@ -98,8 +98,6 @@ class MechanicalSolver(object):
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part    
         
-        print("::[Solid_Mechanical_Solver]:: Constructed")
-
         
     def GetMinimumBufferSize(self):
         return 2;
@@ -337,11 +335,7 @@ class MechanicalSolver(object):
 
         # Import constitutive laws
         materials_imported = self._import_constitutive_laws()
-        if materials_imported:
-            print("   Constitutive law was successfully imported.")
-        else:
-            print("   Constitutive law was not imported.")
-
+        
     def _import_constitutive_laws(self):
         
         if os.path.isfile("materials.py"):
@@ -350,7 +344,9 @@ class MechanicalSolver(object):
             constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
                                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]);
             constitutive_law.Initialize();
-            
+
+            print("   Reading constitutive law from file :" + os.path.join(problem_path, "materials") + ".py ")
+                        
             return True
         else:
             return False        
