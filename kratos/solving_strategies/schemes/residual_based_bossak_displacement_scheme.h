@@ -94,7 +94,7 @@ public:
         double gamma = 0.5;
 
         CalculateNewmarkCoefficients(beta, gamma);
-
+        
         // std::cout << " MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= " << mAlpha.m << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
     }
 
@@ -189,23 +189,12 @@ public:
 
             noalias(delta_displacement) = it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-//             auto node_dofs = it_node->GetDofs();
-//             for (auto it_dof = node_dofs.begin(); it_dof != node_dofs.end(); ++it_dof)
-//             {
-//                 std::size_t equation_id = it_dof->EquationId();
-//                 const double value_to_set = (it_dof->IsFree()) ? Dx[equation_id] : 0.0;
-//                 auto current_variable = it_dof->GetVariable().Key();
-//                 if (current_variable == DISPLACEMENT_X) delta_displacement[0] = value_to_set;
-//                 else if (current_variable == DISPLACEMENT_Y) delta_displacement[1] = value_to_set;
-//                 else if (current_variable == DISPLACEMENT_Z) delta_displacement[2] = value_to_set;
-//             }
-            
             array_1d<double, 3>& current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
             const array_1d<double, 3>& previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
 
             array_1d<double, 3>& current_aceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
             const array_1d<double, 3>& previous_aceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-
+            
             UpdateVelocity(current_velocity, delta_displacement, previous_velocity, previous_aceleration);
             UpdateAcceleration(current_aceleration, delta_displacement, previous_velocity, previous_aceleration);
         }
@@ -233,7 +222,11 @@ public:
     {
         KRATOS_TRY;
 
-        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
+        ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
+        
+        if (current_process_info[TIME_STEPS] == 1) InitializeAcceleration(rModelPart);
+        
+        const double delta_time = current_process_info[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
@@ -253,44 +246,44 @@ public:
             array_1d<double, 3>& current_velocity     = it_node->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3>& current_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
-            if (it_node -> IsFixed(ACCELERATION_X))
+            if (it_node->IsFixed(ACCELERATION_X))
             {
                 current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[0] + mNewmark.beta * current_acceleration[0]);
             }
-            else if (it_node -> IsFixed(VELOCITY_X))
+            else if (it_node->IsFixed(VELOCITY_X))
             {
                 current_displacement[0] = previous_displacement[0] + 0.5 * delta_time * (previous_velocity[0] + current_velocity[0]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
             }
-            else if (it_node -> IsFixed(DISPLACEMENT_X) == false)
+            else if (it_node->IsFixed(DISPLACEMENT_X) == false)
             {
                 current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
             }
 
-            if (it_node -> IsFixed(ACCELERATION_Y))
+            if (it_node->IsFixed(ACCELERATION_Y))
             {
                 current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[1] + mNewmark.beta * current_acceleration[1]);
             }
-            else if (it_node -> IsFixed(VELOCITY_Y))
+            else if (it_node->IsFixed(VELOCITY_Y))
             {
                 current_displacement[1] = previous_displacement[1] + 0.5 * delta_time * (previous_velocity[1] + current_velocity[1]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1] ;
             }
-            else if (it_node -> IsFixed(DISPLACEMENT_Y) == false)
+            else if (it_node->IsFixed(DISPLACEMENT_Y) == false)
             {
                 current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1];
             }
 
             // For 3D cases
-            if (it_node -> HasDofFor(DISPLACEMENT_Z))
+            if (it_node->HasDofFor(DISPLACEMENT_Z))
             {
-                if (it_node -> IsFixed(ACCELERATION_Z))
+                if (it_node->IsFixed(ACCELERATION_Z))
                 {
                     current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[2] + mNewmark.beta * current_acceleration[2]);
                 }
-                else if (it_node -> IsFixed(VELOCITY_Z))
+                else if (it_node->IsFixed(VELOCITY_Z))
                 {
                     current_displacement[2] = previous_displacement[2] + 0.5 * delta_time * (previous_velocity[2] + current_velocity[2]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2] ;
                 }
-                else if (it_node -> IsFixed(DISPLACEMENT_Z) == false)
+                else if (it_node->IsFixed(DISPLACEMENT_Z) == false)
                 {
                     current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2];
                 }
@@ -488,6 +481,45 @@ protected:
     ///@{
 
     /**
+     * This method initializes the acceleration when there is a volume acceleration
+     * @param rModelPart The model part where the acceleration is set
+     */
+    void InitializeAcceleration(ModelPart& rModelPart)
+    {
+        const int num_nodes = static_cast<int>(rModelPart.Nodes().size());
+
+        #pragma omp parallel for
+        for(int i = 0;  i < num_nodes; ++i)
+        {
+            auto it_node = rModelPart.Nodes().begin() + i;
+            
+            const array_1d<double, 3>& volume_acceleration = it_node->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            array_1d<double, 3>& acceleration0 = it_node->FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3>& acceleration1 = it_node->FastGetSolutionStepValue(ACCELERATION,1);
+            array_1d<double, 3>& acceleration2 = it_node->FastGetSolutionStepValue(ACCELERATION,2);
+            
+            if (!(it_node->IsFixed(ACCELERATION_Y)))
+            {
+                acceleration0[0] += volume_acceleration[0];
+                acceleration1[0] += volume_acceleration[0];
+                acceleration2[0] += volume_acceleration[0];
+            }
+            if (!(it_node->IsFixed(ACCELERATION_Y)))
+            {
+                acceleration0[1] += volume_acceleration[1];
+                acceleration1[1] += volume_acceleration[1];
+                acceleration2[1] += volume_acceleration[1];
+            }
+            if (!(it_node->IsFixed(ACCELERATION_Z)))
+            {
+                acceleration0[2] += volume_acceleration[2];
+                acceleration1[2] += volume_acceleration[2];
+                acceleration2[2] += volume_acceleration[2];
+            }
+        }
+    }
+    
+    /**
      * Updating first time Derivative
      * @param CurrentVelocity The current velocity
      * @param DeltaDisplacement The increment of displacement
@@ -545,7 +577,7 @@ protected:
         {
             noalias(LHS_Contribution) += M * (1.0 - mAlpha.m) * mNewmark.c0;
         }
-
+        
         // Adding  damping contribution
         if (D.size1() != 0) // if D matrix declared
         {

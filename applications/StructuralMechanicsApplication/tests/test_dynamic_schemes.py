@@ -110,6 +110,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
+            mp.ProcessInfo[KratosMultiphysics.TIME_STEPS] = step
 
             self.strategy.Solve()
             current_analytical_displacement_y = A * cos(omega*time)
@@ -156,6 +157,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
+            mp.ProcessInfo[KratosMultiphysics.TIME_STEPS] = step
 
             self.strategy.Solve()
             current_analytical_displacement_y += current_analytical_velocity_y * dt + 0.5 * gravity * dt**2
@@ -172,11 +174,11 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
     #def test_spring_bdf2_scheme(self):
         #self._base_spring_test_dynamic_schemes("bdf2")
         
-    #def test_fall_bossak_scheme(self):
-        #self._base_fall_test_dynamic_schemes("bossak")
+    def test_fall_bossak_scheme(self):
+        self._base_fall_test_dynamic_schemes("bossak")
         
-    #def test_fall_newmark_scheme(self):
-        #self._base_fall_test_dynamic_schemes("newmark")
+    def test_fall_newmark_scheme(self):
+        self._base_fall_test_dynamic_schemes("newmark")
         
     #def test_fall_bdf2_scheme(self):
         #self._base_fall_test_dynamic_schemes("bdf2")
