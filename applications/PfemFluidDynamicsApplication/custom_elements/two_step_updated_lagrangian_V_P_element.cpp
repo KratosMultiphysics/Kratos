@@ -990,27 +990,6 @@ bool TwoStepUpdatedLagrangianVPElement<2>::CalcCompleteStrainRate(ElementalVaria
 								  const ShapeFunctionDerivativesType& rDN_DX,
 								  const double theta)
 {
-
-  // unsigned int dim = 2;
-  // unsigned int nodes_number = dim + 1;
-  // boost::numeric::ublas::bounded_matrix<double, 3, 6 >  B;
-  //   for (unsigned int i = 0; i < nodes_number; i++)
-  //   {
-  //       unsigned int index = dim*i;
-  //       B(0, index) = rDN_DX(i, 0);
-  //       B(0, index + 1) = 0.0;
-  //       B(1, index) = 0.0;
-  //       B(1, index + 1) = rDN_DX(i, 1);
-  //       B(2, index) = rDN_DX(i, 1);
-  //       B(2, index + 1) = rDN_DX(i, 0);
-  //   }
-  // array_1d<double, 3 > grad_sym_vel;
-  // grad_sym_vel = prod(rDN_DX, U);
-  // double gamma_dot = 2.0 * grad_sym_vel[0] * grad_sym_vel[0] + 2.0 * grad_sym_vel[1] * grad_sym_vel[1] +  grad_sym_vel[2] * grad_sym_vel[2];
-  // gamma_dot = sqrt(gamma_dot);
-  // array_1d<double, 3 > grad_sym_vel;
-  // grad_sym_vel = prod(rDN_DX, RHSVelocities);
-
   bool computeElement=true;
   unsigned int dimension=this->GetGeometry().WorkingSpaceDimension();
   GeometryType& rGeom = this->GetGeometry();
@@ -1019,28 +998,11 @@ bool TwoStepUpdatedLagrangianVPElement<2>::CalcCompleteStrainRate(ElementalVaria
   VectorType  NodePosition= ZeroVector(LocalSize);
   VectorType VelocityValues = ZeroVector(LocalSize);
   VectorType RHSVelocities = ZeroVector(LocalSize);
-  // const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-  // const double currentTime = rCurrentProcessInfo[TIME];
   this->GetPositions(NodePosition,rCurrentProcessInfo,theta);
   this->GetVelocityValues(RHSVelocities,0); 
   RHSVelocities*=theta;
   this->GetVelocityValues(VelocityValues,1);
   RHSVelocities+=VelocityValues*(1.0-theta);
-
-  // grad_sym_vel = prod(B, RHSVelocities);
-  // // grad_sym_vel = prod(B, U);
-  // double gamma_dot = 2.0 * grad_sym_vel[0] * grad_sym_vel[0] + 2.0 * grad_sym_vel[1] * grad_sym_vel[1] +  grad_sym_vel[2] * grad_sym_vel[2];
-  // gamma_dot = sqrt(gamma_dot);
-  // grad_sym_vel = prod(B, VelocityValues);
-  // double gamma_dotDefRate= 2.0 * grad_sym_vel[0] * grad_sym_vel[0] + 2.0 * grad_sym_vel[1] * grad_sym_vel[1] +  grad_sym_vel[2] * grad_sym_vel[2];
-  // gamma_dotDefRate = sqrt(gamma_dotDefRate);
-  
-  // for (unsigned int i = 0; i < 6; i++)
-  //   {
-  // std::cout<<"v_0.5("<<i<<")="<<RHSVelocities[i]<<std::endl;
-  // std::cout<<"v_1("<<i<<")="<<VelocityValues[i]<<std::endl;
-  // }
-  
 
   rElementalVariables.Fgrad=ZeroMatrix(dimension,dimension);
   rElementalVariables.FgradVel=ZeroMatrix(dimension,dimension);
@@ -1095,7 +1057,6 @@ bool TwoStepUpdatedLagrangianVPElement<2>::CalcCompleteStrainRate(ElementalVaria
   // 						  rElementalVariables.FgradVel(1,0)*rElementalVariables.Fgrad(1,1) +
   // 						  rElementalVariables.FgradVel(0,1)*rElementalVariables.Fgrad(0,0) + 
   // 						  rElementalVariables.FgradVel(1,1)*rElementalVariables.Fgrad(1,0))*0.5;
-
   // //it computes Material time Derivative of Green Lagrange strain tensor in SPATIAL configuration  --> [d]
   // // x-component
   // rElementalVariables.SpatialDefRate[0]= rElementalVariables.InvFgrad(0,0)*rElementalVariables.MDGreenLagrangeMaterial[0]*rElementalVariables.InvFgrad(0,0) + 
@@ -1130,40 +1091,6 @@ bool TwoStepUpdatedLagrangianVPElement<2>::CalcCompleteStrainRate(ElementalVaria
   			 2.0*rElementalVariables.SpatialDefRate[1]*rElementalVariables.SpatialDefRate[1] +
   			 4.0*rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2]));
 
-  // rElementalVariables.EquivalentStrainRate=sqrt((1.0*rElementalVariables.SpatialDefRate[0]*rElementalVariables.SpatialDefRate[0] +
-  // 						 1.0*rElementalVariables.SpatialDefRate[1]*rElementalVariables.SpatialDefRate[1] +
-  // 						 2.0*rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2]));
-
-  //Cremonesi's Way
-  // rElementalVariables.EquivalentStrainRate=sqrt((0.5*rElementalVariables.SpatialDefRate[0]*rElementalVariables.SpatialDefRate[0] +
-  // 						 0.5*rElementalVariables.SpatialDefRate[1]*rElementalVariables.SpatialDefRate[1] +
-  // 						 rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2]));
-
-  // rElementalVariables.EquivalentStrainRate=sqrt(2.0*rElementalVariables.SpatialVelocityGrad(0,0)*rElementalVariables.SpatialVelocityGrad(0,0) +
-  // 						2.0*rElementalVariables.SpatialVelocityGrad(1,1)*rElementalVariables.SpatialVelocityGrad(1,1) +
-  // 						(rElementalVariables.SpatialVelocityGrad(1,0)+rElementalVariables.SpatialVelocityGrad(0,1))*
-  // 						(rElementalVariables.SpatialVelocityGrad(1,0)+rElementalVariables.SpatialVelocityGrad(0,1)));
-
-  // double FluidViscosity=0;
-  // double FluidFlowIndex=0;
-  // double FluidYieldShear=0;
-  // double FluidAdaptiveExponent=0;
-  // this->EvaluatePropertyFromANotRigidNode(FluidViscosity,VISCOSITY);
-  // this->EvaluatePropertyFromANotRigidNode(FluidFlowIndex,FLOW_INDEX);
-  // this->EvaluatePropertyFromANotRigidNode(FluidYieldShear,YIELD_SHEAR);
-  // this->EvaluatePropertyFromANotRigidNode(FluidAdaptiveExponent,ADAPTIVE_EXPONENT);
-  // double exponent=-FluidAdaptiveExponent*rElementalVariables.EquivalentStrainRate;
-  // if(rElementalVariables.EquivalentStrainRate!=1 && rElementalVariables.EquivalentStrainRate!=0){
-  //   FluidViscosity+=(FluidYieldShear/rElementalVariables.EquivalentStrainRate)*(1-exp(exponent));
-  //   //Cremonesi's Way
-  //   // FluidViscosity+=0.5*(FluidYieldShear/rElementalVariables.EquivalentStrainRate)*(1-exp(exponent));
-  // }
-  // if(rElementalVariables.EquivalentStrainRate<0.00001 && FluidYieldShear!=0 && FluidAdaptiveExponent!=0){
-  //   // for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-  //   FluidViscosity=FluidAdaptiveExponent*FluidYieldShear;
-  // }
-  // this->mMaterialDeviatoricCoefficient=FluidViscosity;
-
   return computeElement;
 
 }  
@@ -1183,8 +1110,6 @@ bool TwoStepUpdatedLagrangianVPElement<3>::CalcCompleteStrainRate(ElementalVaria
   VectorType  NodePosition= ZeroVector(LocalSize);
   VectorType VelocityValues = ZeroVector(LocalSize);
   VectorType RHSVelocities = ZeroVector(LocalSize);
-  // const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-  // const double currentTime = rCurrentProcessInfo[TIME];
   this->GetPositions(NodePosition,rCurrentProcessInfo,theta);
   this->GetVelocityValues(RHSVelocities,0); 
   RHSVelocities*=theta;
@@ -1316,29 +1241,13 @@ bool TwoStepUpdatedLagrangianVPElement<3>::CalcCompleteStrainRate(ElementalVaria
 						  rElementalVariables.SpatialDefRate[4]*rElementalVariables.SpatialDefRate[4] +
 						  rElementalVariables.SpatialDefRate[5]*rElementalVariables.SpatialDefRate[5]));
 
-  // rElementalVariables.EquivalentStrainRate=sqrt(2.0*(rElementalVariables.SpatialDefRate[0]*rElementalVariables.SpatialDefRate[0] +
-  // 						     rElementalVariables.SpatialDefRate[1]*rElementalVariables.SpatialDefRate[1] +
-  // 						     rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2] +
-  // 						     2.0*rElementalVariables.SpatialDefRate[3]*rElementalVariables.SpatialDefRate[3] +
-  // 						     2.0*rElementalVariables.SpatialDefRate[4]*rElementalVariables.SpatialDefRate[4] +
-  // 						     2.0*rElementalVariables.SpatialDefRate[5]*rElementalVariables.SpatialDefRate[5]));
+  rElementalVariables.EquivalentStrainRate=sqrt(2.0*(rElementalVariables.SpatialDefRate[0]*rElementalVariables.SpatialDefRate[0] +
+  						     rElementalVariables.SpatialDefRate[1]*rElementalVariables.SpatialDefRate[1] +
+  						     rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2] +
+  						     2.0*rElementalVariables.SpatialDefRate[3]*rElementalVariables.SpatialDefRate[3] +
+  						     2.0*rElementalVariables.SpatialDefRate[4]*rElementalVariables.SpatialDefRate[4] +
+  						     2.0*rElementalVariables.SpatialDefRate[5]*rElementalVariables.SpatialDefRate[5]));
 
-  rElementalVariables.EquivalentStrainRate=sqrt((rElementalVariables.SpatialDefRate[0]*rElementalVariables.SpatialDefRate[0] +
-						 rElementalVariables.SpatialDefRate[1]*rElementalVariables.SpatialDefRate[1] +
-						 rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2] +
-						 2.0*rElementalVariables.SpatialDefRate[3]*rElementalVariables.SpatialDefRate[3] +
-						 2.0*rElementalVariables.SpatialDefRate[4]*rElementalVariables.SpatialDefRate[4] +
-						 2.0*rElementalVariables.SpatialDefRate[5]*rElementalVariables.SpatialDefRate[5]));
-      
-  // rElementalVariables.EquivalentStrainRate=sqrt(2.0*rElementalVariables.SpatialVelocityGrad(0,0)*rElementalVariables.SpatialVelocityGrad(0,0) +
-  // 						2.0*rElementalVariables.SpatialVelocityGrad(1,1)*rElementalVariables.SpatialVelocityGrad(1,1) +
-  // 						2.0*rElementalVariables.SpatialVelocityGrad(2,2)*rElementalVariables.SpatialVelocityGrad(2,2) +
-  // 						(rElementalVariables.SpatialVelocityGrad(1,0)+rElementalVariables.SpatialVelocityGrad(0,1))*
-  // 						(rElementalVariables.SpatialVelocityGrad(1,0)+rElementalVariables.SpatialVelocityGrad(0,1)) +
-  // 						(rElementalVariables.SpatialVelocityGrad(2,0)+rElementalVariables.SpatialVelocityGrad(0,2))*
-  // 						(rElementalVariables.SpatialVelocityGrad(2,0)+rElementalVariables.SpatialVelocityGrad(0,2)) +
-  // 						(rElementalVariables.SpatialVelocityGrad(2,1)+rElementalVariables.SpatialVelocityGrad(1,2))*
-  // 						(rElementalVariables.SpatialVelocityGrad(2,1)+rElementalVariables.SpatialVelocityGrad(1,2)));
 
   return computeElement;
 
