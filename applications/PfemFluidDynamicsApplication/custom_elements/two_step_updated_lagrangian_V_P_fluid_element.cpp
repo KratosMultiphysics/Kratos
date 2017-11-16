@@ -109,12 +109,9 @@ namespace Kratos {
     this->EvaluatePropertyFromANotRigidNode(FluidYieldShear,YIELD_SHEAR);
     this->EvaluatePropertyFromANotRigidNode(FluidAdaptiveExponent,ADAPTIVE_EXPONENT);
     double exponent=-FluidAdaptiveExponent*equivalentStrainRate;
-    // if(equivalentStrainRate!=1 && equivalentStrainRate!=0){
     if(equivalentStrainRate!=0){
       FluidViscosity+=(FluidYieldShear/equivalentStrainRate)*(1-exp(exponent));
-      //Cremonesi's Way
-      // FluidViscosity+=0.5*(FluidYieldShear/equivalentStrainRate)*(1-exp(exponent));
-    }
+   }
     if(equivalentStrainRate<0.00001 && FluidYieldShear!=0 && FluidAdaptiveExponent!=0){
       // for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
       FluidViscosity=FluidAdaptiveExponent*FluidYieldShear;
@@ -1354,10 +1351,8 @@ namespace Kratos {
     double Density = this->mMaterialDensity;
     double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
     double DeviatoricCoeff = 0;
-    this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);   
-    // if(DeviatoricCoeff>10)
-    //   DeviatoricCoeff=10;
-
+    this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);
+    
     double Tau=0;
     this->CalculateTauFIC(Tau,ElemSize,Density,DeviatoricCoeff,rCurrentProcessInfo);
 
@@ -1370,7 +1365,6 @@ namespace Kratos {
 	totalVolume+=GaussWeight;
 	const ShapeFunctionsType& N = row(NContainer,g);
 	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-	// computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
 	computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
 
 	if(computeElement==true){
