@@ -145,7 +145,6 @@ public:
     {
         if (TSparseSpace::Size(b) != 0) //if we are solving for something
         {
-
             if (mInitialResidualIsSet == false)
             {
                 mInitialResidualNorm = TSparseSpace::TwoNorm(b);
@@ -155,19 +154,19 @@ public:
             TDataType ratio;
             mCurrentResidualNorm = TSparseSpace::TwoNorm(b);
 
-            if(mInitialResidualNorm == 0.00)
+            const double b_size = TSparseSpace::Size(b);
+            
+            if(mInitialResidualNorm/b_size < mAlwaysConvergedNorm)
             {
-                ratio = 0.00;
+                ratio = 0.0;
             }
-
             else
             {
                 ratio = mCurrentResidualNorm/mInitialResidualNorm;
             }
 
-	    double b_size = TSparseSpace::Size(b);
-	    TDataType absolute_norm = (mCurrentResidualNorm/b_size);
-			
+            TDataType absolute_norm = (mCurrentResidualNorm/b_size);
+                    
             if (rModelPart.GetCommunicator().MyPID() == 0)
             {
                 if (this->GetEchoLevel() >= 1)
