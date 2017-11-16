@@ -10,6 +10,8 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication    as KratosSolvers
 
+sys.stdout.flush()
+
 class Solution(object):
 
     def __init__(self):
@@ -18,6 +20,9 @@ class Solution(object):
 
         # Time control starts        
         print(timer.ctime())
+
+        sys.stdout.flush()
+        
         # Measure process time
         self.t0p = timer.clock()
         # Measure wall time
@@ -138,7 +143,7 @@ class Solution(object):
         
         # Add variables (always before importing the model part)
         self.solver.AddVariables()
-        
+
         # Read model_part (note: the buffer_size is set here) (restart is read here)
         self.solver.ImportModelPart()
 

@@ -1,4 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+import sys
 import os
 #import kratos core and applications
 import KratosMultiphysics
@@ -185,6 +186,8 @@ class MechanicalSolver(object):
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):            
             # Import model part from mdpa file.
             print("   Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa ")
+            sys.stdout.flush()
+          
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
             # print("   Finished reading model part from mdpa file ")
             # Check and prepare computing model part and import constitutive laws.
