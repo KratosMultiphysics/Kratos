@@ -109,7 +109,7 @@ void EmbeddedAusasNavierStokes<2>::GetDofList(DofsVectorType& ElementalDofList, 
 
 
 template<>
-void EmbeddedAusasNavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const ElementDataStruct& data)
+void EmbeddedAusasNavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const EmbeddedAusasElementDataStruct& data)
 {
     const int nnodes = 4;
     const int dim = 3;
@@ -755,7 +755,7 @@ const double clhs338 =             pow(DN(3,2), 2);
 
 
 template<>
-void EmbeddedAusasNavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9>& lhs, const ElementDataStruct& data)
+void EmbeddedAusasNavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9>& lhs, const EmbeddedAusasElementDataStruct& data)
 {
     const int nnodes = 3;
     const int dim = 2;
@@ -1020,7 +1020,7 @@ const double clhs132 =             pow(DN(2,1), 2);
 
 
 template<>
-void EmbeddedAusasNavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const ElementDataStruct& data)
+void EmbeddedAusasNavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const EmbeddedAusasElementDataStruct& data)
 {
     const int nnodes = 4;
     const int dim = 3;
@@ -1135,7 +1135,7 @@ const double crhs40 =             rho*(DN(3,0)*crhs7 + DN(3,1)*crhs8 + DN(3,2)*c
 
 
 template<>
-void EmbeddedAusasNavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, const ElementDataStruct& data)
+void EmbeddedAusasNavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, const EmbeddedAusasElementDataStruct& data)
 {
     const int nnodes = 3;
     const int dim = 2;
