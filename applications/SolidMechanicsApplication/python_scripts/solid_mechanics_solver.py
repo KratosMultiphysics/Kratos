@@ -216,8 +216,8 @@ class MechanicalSolver(object):
         else:
             raise Exception("Other input options are not yet implemented.")
 
-
-        print(self.main_model_part)
+        if( self.settings["echo_level"].GetInt() > 0 ):
+            print(self.main_model_part)
         print ("::[Mechanical_Solver]:: Finished importing model part.")
             
     def ExportModelPart(self):

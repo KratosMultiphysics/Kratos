@@ -277,6 +277,8 @@ namespace Kratos
     const ModelDataType&  rModelData  = rVariables.GetModelData();
     const MaterialDataType& rMaterial = rModelData.GetMaterialParameters();
 
+    rVariables.ConstitutiveTensor.clear();
+    
     // Lame constants
     const double& rYoungModulus       = rMaterial.GetYoungModulus();
     const double& rPoissonCoefficient = rMaterial.GetPoissonCoefficient();

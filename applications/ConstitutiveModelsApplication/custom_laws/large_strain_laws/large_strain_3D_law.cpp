@@ -464,7 +464,8 @@ namespace Kratos
     KRATOS_TRY
       
     MatrixType StressMatrix;
-
+    StressMatrix.clear();
+    
     //Calculate Stress and ConstitutiveMatrix   
     if(rModelValues.GetOptions().Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)){
 
