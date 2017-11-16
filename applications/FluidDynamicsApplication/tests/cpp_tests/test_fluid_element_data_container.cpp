@@ -37,7 +37,7 @@ namespace Kratos {
             rModelPart.CreateNewElement("DSS2D", 1, element_nodes, p_properties);
         }
 
-        void InitializeCompleteElement(ModelPart& rModelPart)
+        void InitializeCompleteElement(ModelPart& rModelPart, const std::string& rElementName)
         {
             rModelPart.AddNodalSolutionStepVariable(VELOCITY);
             rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -57,7 +57,7 @@ namespace Kratos {
             rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
             std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
-            rModelPart.CreateNewElement("DSS2D", 1, element_nodes, p_properties);
+            rModelPart.CreateNewElement(rElementName, 1, element_nodes, p_properties);
 
             rModelPart.CloneTimeStep(0.1);
 
@@ -147,7 +147,29 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(DSS2D3NLocalMatrix, FluidDynamicsApplicationFastSuite)
         {
             ModelPart model_part("Test");
-            InitializeCompleteElement(model_part);
+            InitializeCompleteElement(model_part,"DSS2D");
+
+            Matrix LHS;
+            Vector RHS;
+
+            model_part.ElementsBegin()->CalculateLocalVelocityContribution(LHS,RHS,model_part.GetProcessInfo());
+
+            KRATOS_WATCH(LHS);
+            KRATOS_WATCH(RHS);
+
+            KRATOS_CHECK_NEAR(LHS(0,0), 5.533840, 1e-5);
+            KRATOS_CHECK_NEAR(LHS(3,5), -0.0243628, 1e-5);
+            KRATOS_CHECK_NEAR(LHS(0,8), 0.166667, 1e-5);
+            KRATOS_CHECK_NEAR(LHS(8,8), 0.00609399, 1e-5);
+
+            KRATOS_CHECK_NEAR(RHS[0], 0.256372, 1e-5);
+            KRATOS_CHECK_NEAR(RHS[2], 0.0609399, 1e-5);
+        }
+        
+        KRATOS_TEST_CASE_IN_SUITE(SymbolicNavierStokes2D3NLocalMatrix, FluidDynamicsApplicationFastSuite)
+        {
+            ModelPart model_part("Test");
+            InitializeCompleteElement(model_part,"SymbolicNavierStokes2D3N");
 
             Matrix LHS;
             Vector RHS;
