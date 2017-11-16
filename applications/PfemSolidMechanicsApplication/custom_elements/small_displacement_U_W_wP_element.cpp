@@ -7,13 +7,13 @@
 //
 //
 //   Implementation of the Fluid Saturated porous media in a u-w Formulation
-
+//     (Reduction to small displacements)
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_W_wP_element.hpp"
+#include "custom_elements/small_displacement_U_W_wP_element.hpp"
 #include "includes/constitutive_law.h"
 #include "pfem_solid_mechanics_application_variables.h"
 
@@ -22,8 +22,8 @@ namespace Kratos
 
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
-   UpdatedLagrangianUWwPElement::UpdatedLagrangianUWwPElement()
-      : UpdatedLagrangianElement()
+   SmallDisplacementUWwPElement::SmallDisplacementUWwPElement()
+      : SmallDisplacementElement()
    {
       //DO NOT CALL IT: only needed for Register and Serialization!!!
    }
@@ -32,8 +32,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPElement::UpdatedLagrangianUWwPElement( IndexType NewId, GeometryType::Pointer pGeometry )
-      : UpdatedLagrangianElement( NewId, pGeometry )
+   SmallDisplacementUWwPElement::SmallDisplacementUWwPElement( IndexType NewId, GeometryType::Pointer pGeometry )
+      : SmallDisplacementElement( NewId, pGeometry )
    {
       //DO NOT ADD DOFS HERE!!!
    }
@@ -42,8 +42,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPElement::UpdatedLagrangianUWwPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-      : UpdatedLagrangianElement( NewId, pGeometry, pProperties )
+   SmallDisplacementUWwPElement::SmallDisplacementUWwPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+      : SmallDisplacementElement( NewId, pGeometry, pProperties )
    {
    }
 
@@ -51,8 +51,8 @@ namespace Kratos
    //******************************COPY CONSTRUCTOR**************************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPElement::UpdatedLagrangianUWwPElement( UpdatedLagrangianUWwPElement const& rOther)
-      :UpdatedLagrangianElement(rOther)
+   SmallDisplacementUWwPElement::SmallDisplacementUWwPElement( SmallDisplacementUWwPElement const& rOther)
+      :SmallDisplacementElement(rOther)
        ,mTimeStep(rOther.mTimeStep)
    {
    }
@@ -61,9 +61,9 @@ namespace Kratos
    //*******************************ASSIGMENT OPERATOR***********************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPElement&  UpdatedLagrangianUWwPElement::operator=(UpdatedLagrangianUWwPElement const& rOther)
+   SmallDisplacementUWwPElement&  SmallDisplacementUWwPElement::operator=(SmallDisplacementUWwPElement const& rOther)
    {
-      UpdatedLagrangianElement::operator=(rOther);
+      SmallDisplacementElement::operator=(rOther);
 
       mTimeStep = rOther.mTimeStep;
 
@@ -74,19 +74,19 @@ namespace Kratos
    //*********************************OPERATIONS*****************************************
    //************************************************************************************
 
-   Element::Pointer UpdatedLagrangianUWwPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+   Element::Pointer SmallDisplacementUWwPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
    {
-      return Element::Pointer( new UpdatedLagrangianUWwPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+      return Element::Pointer( new SmallDisplacementUWwPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
    }
 
 
    //************************************CLONE*******************************************
    //************************************************************************************
 
-   Element::Pointer UpdatedLagrangianUWwPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+   Element::Pointer SmallDisplacementUWwPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
    {
 
-      UpdatedLagrangianUWwPElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+      SmallDisplacementUWwPElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
       //-----------//
 
@@ -106,29 +106,18 @@ namespace Kratos
          NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
       }
 
-      //-----------//
-
-      if ( NewElement.mDeformationGradientF0.size() != mDeformationGradientF0.size() )
-         NewElement.mDeformationGradientF0.resize(mDeformationGradientF0.size());
-
-      for(unsigned int i=0; i<mDeformationGradientF0.size(); i++)
-      {
-         NewElement.mDeformationGradientF0[i] = mDeformationGradientF0[i];
-      }
-
-      NewElement.mDeterminantF0 = mDeterminantF0;
 
       NewElement.SetData(this->GetData());
       NewElement.SetFlags(this->GetFlags());
 
-      return Element::Pointer( new UpdatedLagrangianUWwPElement(NewElement) );
+      return Element::Pointer( new SmallDisplacementUWwPElement(NewElement) );
    }
 
 
    //*******************************DESTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPElement::~UpdatedLagrangianUWwPElement()
+   SmallDisplacementUWwPElement::~SmallDisplacementUWwPElement()
    {
    }
 
@@ -139,7 +128,7 @@ namespace Kratos
 
 
 
-   void UpdatedLagrangianUWwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   void SmallDisplacementUWwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
    {
       rElementalDofList.resize( 0 );
 
@@ -167,7 +156,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUWwPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+   void SmallDisplacementUWwPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -204,7 +193,7 @@ namespace Kratos
    //*********************************DISPLACEMENT***************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUWwPElement::GetValuesVector( Vector& rValues, int Step )
+   void SmallDisplacementUWwPElement::GetValuesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -239,7 +228,7 @@ namespace Kratos
    //************************************VELOCITY****************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUWwPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+   void SmallDisplacementUWwPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -273,7 +262,7 @@ namespace Kratos
    //*********************************ACCELERATION***************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUWwPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+   void SmallDisplacementUWwPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -308,7 +297,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   int  UpdatedLagrangianUWwPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  SmallDisplacementUWwPElement::Check( const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
@@ -321,13 +310,15 @@ namespace Kratos
       ConstitutiveLaw::Features LawFeatures;
       this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
-      if(LawFeatures.mOptions.Is(ConstitutiveLaw::U_P_LAW))
-         KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-wP element type ", " UpdatedLagrangianUWwPElement" )
+    bool correct_strain_measure = false;
+    for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
+    {
+      if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Infinitesimal)
+	correct_strain_measure = true;
+    }
 
-            //verify that the variables are correctly initialized
-
-            if ( PRESSURE.Key() == 0 )
-               KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" )
+    if( correct_strain_measure == false )
+      KRATOS_ERROR <<  "constitutive law is not compatible with the small displacements element type" << std::endl;
 
                   double WaterBulk = 1e+7;
       if ( GetProperties().Has(WATER_BULK_MODULUS)  ) {
@@ -380,9 +371,9 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUWwPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void SmallDisplacementUWwPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
-      UpdatedLagrangianElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+      SmallDisplacementElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
 
       // SAVE THE TIME STEP, THAT WILL BE USED; BUT IS A BAD IDEA TO DO IT THIS WAY.
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
@@ -411,7 +402,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUWwPElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+   void SmallDisplacementUWwPElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
          VectorType& rRightHandSideVector,
          Flags& rCalculationFlags)
 
@@ -451,7 +442,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUWwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -477,7 +468,7 @@ namespace Kratos
 
    //************************************************************************************
    //         Matrix due to the the water pressure contribution to the internal forces   
-   void UpdatedLagrangianUWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementVariables & rVariables, double & rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -519,7 +510,7 @@ namespace Kratos
 
    //************************************************************************************
    //         Material stiffness matrix
-   void UpdatedLagrangianUWwPElement::CalculateAndAddKuum( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddKuum( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -549,7 +540,7 @@ namespace Kratos
 
    //************************************************************************************
    //      Water material Matrix
-   void UpdatedLagrangianUWwPElement::CalculateAndAddKWwP( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddKWwP( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -587,7 +578,7 @@ namespace Kratos
 
    // ***********************************************************************************
    // ***********************************************************************************
-   void UpdatedLagrangianUWwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -622,7 +613,7 @@ namespace Kratos
 
    // **********************************************************************************
    //    mass balance equation of the mixture (aka: Darcy's Law ) 
-   void UpdatedLagrangianUWwPElement::CalculateAndAddMassBalanceEquation( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddMassBalanceEquation( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
       // a convective term may go here. not coded yet. 
@@ -631,7 +622,7 @@ namespace Kratos
 
    // **********************************************************************************
    //    linear momentum balance equation of the fluid phase (aka: Darcy's Law ) 
-   void UpdatedLagrangianUWwPElement::CalculateAndAddFluidLinearMomentum( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddFluidLinearMomentum( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -669,7 +660,7 @@ namespace Kratos
 
    // **************************************************************************
    // Calculate and Add volumetric loads
-   void UpdatedLagrangianUWwPElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementVariables & rVariables, 
+   void SmallDisplacementUWwPElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementVariables & rVariables, 
          Vector & rVolumeForce, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -712,7 +703,7 @@ namespace Kratos
 
    // **********************************************************************************
    //         CalculateAndAddInternalForces
-   void UpdatedLagrangianUWwPElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+   void SmallDisplacementUWwPElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
          ElementVariables & rVariables,
          double& rIntegrationWeight
          )
@@ -748,7 +739,7 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the Mass matrix
-   void UpdatedLagrangianUWwPElement::CalculateMassMatrix( MatrixType & rMassMatrix, ProcessInfo & rCurrentProcessInfo)
+   void SmallDisplacementUWwPElement::CalculateMassMatrix( MatrixType & rMassMatrix, ProcessInfo & rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -814,7 +805,7 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the Damping matrix
-   void UpdatedLagrangianUWwPElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
+   void SmallDisplacementUWwPElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -944,7 +935,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   double & UpdatedLagrangianUWwPElement::CalculateStabilizationFactor( ElementVariables & rVariables, double & rStabFactor)
+   double & SmallDisplacementUWwPElement::CalculateStabilizationFactor( ElementVariables & rVariables, double & rStabFactor)
    {
       KRATOS_TRY
 
@@ -988,14 +979,14 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
-   void UpdatedLagrangianUWwPElement::save( Serializer& rSerializer ) const
+   void SmallDisplacementUWwPElement::save( Serializer& rSerializer ) const
    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangianElement )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallDisplacementElement )
    }
 
-   void UpdatedLagrangianUWwPElement::load( Serializer& rSerializer )
+   void SmallDisplacementUWwPElement::load( Serializer& rSerializer )
    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangianElement )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallDisplacementElement )
    }
 
 
