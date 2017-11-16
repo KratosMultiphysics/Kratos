@@ -27,8 +27,10 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
-            "damp_factor_m" :-0.01,
+            "bossak_factor" :-0.3,
             "dynamic_factor": 1.0,
+            "lumped_mass_matrix" : true,
+            "consistent_mass_matrix" : false,
             "rayleigh_damping": false, 
             "rayleigh_alpha": 0.0,
             "rayleigh_beta" : 0.0
@@ -57,24 +59,33 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         else:
             self.main_model_part.ProcessInfo[KratosSolid.RAYLEIGH_ALPHA] = 0.0
             self.main_model_part.ProcessInfo[KratosSolid.RAYLEIGH_BETA]  = 0.0
-            
+
+        # compute mass lumped matrix
+        if( self.dynamic_settings["lumped_mass_matrix"].GetBool() == True ):
+            self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
+        else:
+            # compute consistent dynamic tangent/mass matrix
+            if( self.dynamic_settings["consistent_mass_matrix"].GetBool() == True ):
+                self.main_model_part.ProcessInfo[KratosSolid.COMPUTE_DYNAMIC_TANGENT] = True 
+ 
         if(self.settings["component_wise"].GetBool() == True):
             dynamic_factor = self.dynamic_settings["dynamic_factor"].GetDouble()        
-            damp_factor_m  = self.dynamic_settings["damp_factor_m"].GetDouble()
+            damp_factor_m  = self.dynamic_settings["bossak_factor"].GetDouble()
             mechanical_scheme = KratosSolid.ComponentWiseBossakScheme(damp_factor_m, dynamic_factor)
         elif(scheme_type == "Newmark"):
             damp_factor_m = 0.0
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
         elif(scheme_type == "Bossak"):
-            damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
-            mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+            bossak_factor = self.dynamic_settings["bossak_factor"].GetDouble()
+            self.main_model_part.ProcessInfo[KratosSolid.BOSSAK_ALPHA] = bossak_factor;
+            mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(bossak_factor)
         elif(scheme_type == "RotationNewmark"):
             dynamic_factor = self.dynamic_settings["dynamic_factor"].GetDouble() # 0,1 
-            damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
+            damp_factor_m = self.dynamic_settings["bossak_factor"].GetDouble()
             mechanical_scheme = KratosSolid.ResidualBasedRotationNewmarkScheme(dynamic_factor, damp_factor_m)
         elif(scheme_type == "RotationSimo"):
             dynamic_factor = self.dynamic_settings["dynamic_factor"].GetDouble() # 0,1       
-            damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
+            damp_factor_m = self.dynamic_settings["bossak_factor"].GetDouble()
             mechanical_scheme = KratosSolid.ResidualBasedRotationSimoScheme(dynamic_factor, damp_factor_m)
         elif(scheme_type == "RotationEMC"):
             dynamic_factor = self.dynamic_settings["dynamic_factor"].GetDouble() # 0,1       
