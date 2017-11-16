@@ -542,14 +542,14 @@ public:
     }
     
     virtual void InitializeNonLinearIteration(Condition::Pointer rCurrentCondition,
-					      ProcessInfo& current_process_info)
+					      ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
         KRATOS_CATCH("")
     }
 
     virtual void InitializeNonLinearIteration(Element::Pointer rCurrentElement,
-					      ProcessInfo& current_process_info)
+					      ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
         KRATOS_CATCH("")
@@ -706,36 +706,36 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& current_process_info)
+        ProcessInfo& CurrentProcessInfo)
     {
         pCurrentElement->CalculateLocalSystem(
-            LHS_Contribution, RHS_Contribution, current_process_info);
+            LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
     }
 
     virtual void Calculate_RHS_Contribution(
         Element::Pointer pCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& current_process_info)
+        ProcessInfo& CurrentProcessInfo)
     {
-        pCurrentElement->CalculateRightHandSide(RHS_Contribution, current_process_info);
+        pCurrentElement->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
     }
 
     virtual void Calculate_LHS_Contribution(
         Element::Pointer pCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& current_process_info)
+        ProcessInfo& CurrentProcessInfo)
     {
-        pCurrentElement->CalculateLeftHandSide(LHS_Contribution, current_process_info);
+        pCurrentElement->CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
     }
 
     virtual void EquationId(
         Element::Pointer pCurrentElement,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& current_process_info)
+        ProcessInfo& CurrentProcessInfo)
     {
-        (pCurrentElement)->EquationIdVector(EquationId, current_process_info);
+        (pCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
     }
 
     /** functions totally analogous to the precedent but applied to
@@ -746,36 +746,36 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& current_process_info)
+        ProcessInfo& CurrentProcessInfo)
     {
         pCurrentCondition->CalculateLocalSystem(
-            LHS_Contribution, RHS_Contribution, current_process_info);
+            LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
     }
 
     virtual void Condition_Calculate_RHS_Contribution(
         Condition::Pointer pCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& current_process_info)
+        ProcessInfo& CurrentProcessInfo)
     {
-        pCurrentCondition->CalculateRightHandSide(RHS_Contribution, current_process_info);
+        pCurrentCondition->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
     }
 
     virtual void Condition_Calculate_LHS_Contribution(
         Condition::Pointer pCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& current_process_info)
+        ProcessInfo& CurrentProcessInfo)
     {
-        pCurrentCondition->CalculateLeftHandSide(LHS_Contribution, current_process_info);
+        pCurrentCondition->CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
     }
 
     virtual void Condition_EquationId(
         Condition::Pointer pCurrentCondition,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& current_process_info)
+        ProcessInfo& CurrentProcessInfo)
     {
-        (pCurrentCondition)->EquationIdVector(EquationId, current_process_info);
+        (pCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
     }
 
     /** Function that returns the list of Degrees of freedom to be
@@ -784,9 +784,9 @@ public:
     virtual void GetElementalDofList(
         Element::Pointer pCurrentElement,
         Element::DofsVectorType& ElementalDofList,
-        ProcessInfo& current_process_info)
+        ProcessInfo& CurrentProcessInfo)
     {
-        pCurrentElement->GetDofList(ElementalDofList, current_process_info);
+        pCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
     }
 
     /** Function that returns the list of Degrees of freedom to be
@@ -795,9 +795,9 @@ public:
     virtual void GetConditionDofList(
         Condition::Pointer pCurrentCondition,
         Element::DofsVectorType& ConditionDofList,
-        ProcessInfo& current_process_info)
+        ProcessInfo& CurrentProcessInfo)
     {
-        pCurrentCondition->GetDofList(ConditionDofList, current_process_info);
+        pCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
     }
 
     /*@} */
