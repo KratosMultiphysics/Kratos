@@ -189,12 +189,18 @@ void PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElement
     File& r_file = GetFile();
     for (unsigned i_type = 0; i_type < num_elem_types; ++i_type)
     {
-        std::string elem_path = mPrefix + "/Elements/" + mElementNames[i_type];
+        const std::string elem_path = mPrefix + "/Elements/" + mElementNames[i_type];
         const ElementType* elem_key = mElementPointers[i_type];
         ConstElementsContainerType& r_elems = elem_bins.GetBin(elem_key);
         Detail::ConnectivitiesData connectivities;
         connectivities.SetData(r_elems);
         connectivities.WriteData(r_file, elem_path);
+        const int ws_dim = mElementPointers[i_type]->WorkingSpaceDimension();
+        const int dim = mElementPointers[i_type]->GetGeometry().Dimension();
+        const int nnodes = mElementPointers[i_type]->GetGeometry().size();
+        r_file.WriteAttribute(elem_path, "WorkingSpaceDimension", ws_dim);
+        r_file.WriteAttribute(elem_path, "Dimension", dim);
+        r_file.WriteAttribute(elem_path, "NumberOfNodes", nnodes);
         r_file.WriteDataPartition(elem_path + "/Partition", connectivities.GetIds());
     }
 
@@ -236,12 +242,18 @@ void PartitionedModelPartIO::WriteConditions(ConditionsContainerType const& rCon
     File& r_file = GetFile();
     for (unsigned i_type = 0; i_type < num_cond_types; ++i_type)
     {
-        std::string cond_path = mPrefix + "/Conditions/" + mConditionNames[i_type];
+        const std::string cond_path = mPrefix + "/Conditions/" + mConditionNames[i_type];
         const ConditionType* cond_key = mConditionPointers[i_type];
         ConstConditionsContainerType& r_conds = cond_bins.GetBin(cond_key);
         Detail::ConnectivitiesData connectivities;
         connectivities.SetData(r_conds);
         connectivities.WriteData(r_file, cond_path);
+        const int ws_dim = mConditionPointers[i_type]->WorkingSpaceDimension();
+        const int dim = mConditionPointers[i_type]->GetGeometry().Dimension();
+        const int nnodes = mConditionPointers[i_type]->GetGeometry().size();
+        r_file.WriteAttribute(cond_path, "WorkingSpaceDimension", ws_dim);
+        r_file.WriteAttribute(cond_path, "Dimension", dim);
+        r_file.WriteAttribute(cond_path, "NumberOfNodes", nnodes);
         r_file.WriteDataPartition(cond_path + "/Partition", connectivities.GetIds());
     }
 
