@@ -146,6 +146,7 @@ namespace Kratos
 			KRATOS_CHECK_NEAR((*tetrahedra_splitter.mPositiveInterfaces[0])[2].X(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*tetrahedra_splitter.mPositiveInterfaces[0])[2].Y(), 0.0, tolerance);
 			KRATOS_CHECK_NEAR((*tetrahedra_splitter.mPositiveInterfaces[0])[2].Z(), 0.5, tolerance);
+
 			KRATOS_CHECK_NEAR((*tetrahedra_splitter.mNegativeInterfaces[0])[0].X(), 0.0, tolerance);
 			KRATOS_CHECK_NEAR((*tetrahedra_splitter.mNegativeInterfaces[0])[0].Y(), 0.0, tolerance);
 			KRATOS_CHECK_NEAR((*tetrahedra_splitter.mNegativeInterfaces[0])[0].Z(), 0.5, tolerance);
@@ -155,6 +156,9 @@ namespace Kratos
 			KRATOS_CHECK_NEAR((*tetrahedra_splitter.mNegativeInterfaces[0])[2].X(), 0.0, tolerance);
 			KRATOS_CHECK_NEAR((*tetrahedra_splitter.mNegativeInterfaces[0])[2].Y(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*tetrahedra_splitter.mNegativeInterfaces[0])[2].Z(), 0.5, tolerance);
+
+			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mPositiveInterfacesParentIds[0], 0);
+			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mNegativeInterfacesParentIds[0], 2);
 
 		}
 		
@@ -336,6 +340,11 @@ namespace Kratos
 			KRATOS_CHECK_NEAR((*tetrahedra_splitter.mNegativeInterfaces[1])[2].X(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*tetrahedra_splitter.mNegativeInterfaces[1])[2].Y(), 0.0, tolerance);
 			KRATOS_CHECK_NEAR((*tetrahedra_splitter.mNegativeInterfaces[1])[2].Z(), 0.0, tolerance);
+
+			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mPositiveInterfacesParentIds[0], 0);
+			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mPositiveInterfacesParentIds[1], 1);
+			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mNegativeInterfacesParentIds[0], 1);
+			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mNegativeInterfacesParentIds[1], 2);
 			
 		}
 		
