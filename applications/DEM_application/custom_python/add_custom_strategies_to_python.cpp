@@ -97,6 +97,7 @@ namespace Kratos
           .def_readwrite("fem_model_part",&ExplicitSolverSettings::fem_model_part)
           .def_readwrite("cluster_model_part",&ExplicitSolverSettings::cluster_model_part)
           .def_readwrite("inlet_model_part",&ExplicitSolverSettings::inlet_model_part)
+          .def_readwrite("rigid_body_model_part",&ExplicitSolverSettings::rigid_body_model_part)
           ;
 
           class_< ExplicitSolverStrategy,  boost::noncopyable>

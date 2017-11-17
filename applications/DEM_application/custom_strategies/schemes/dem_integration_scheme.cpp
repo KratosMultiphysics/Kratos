@@ -4,6 +4,7 @@
 
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_elements/cluster3D.h"
+#include "custom_elements/rigid_body_element.h"
 #include "dem_integration_scheme.h"
 #include "DEM_application_variables.h"
 
@@ -68,7 +69,7 @@ namespace Kratos {
         array_1d<double, 3 >& force = i.FastGetSolutionStepValue(TOTAL_FORCES);
         
         #ifdef KRATOS_DEBUG
-        DemDebugFunctions::CheckIfNan(force, "NAN in Force in Integration Scheme");
+            DemDebugFunctions::CheckIfNan(force, "NAN in Force in Integration Scheme");
         #endif  
         
         double mass = i.FastGetSolutionStepValue(NODAL_MASS);                   
@@ -109,22 +110,124 @@ namespace Kratos {
         if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) return;
         CalculateTranslationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);  
         
-        if(rotation_option) {
+        if (rotation_option) {
             CalculateRotationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag); 
         }                        
     }
     
     void DEMIntegrationScheme::MoveCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
         CalculateTranslationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);   
-        if(rotation_option) {
+        if (rotation_option) {
             RotateClusterNode(i, delta_t, force_reduction_factor, StepFlag);                
             cluster_element->UpdatePositionOfSpheres();
         }  
         else {
             cluster_element->UpdateLinearDisplacementAndVelocityOfSpheres();
         }
-    }    
-        
+    } 
+    
+    void DEMIntegrationScheme::MoveRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t,
+                                                    const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
+        CalculateTranslationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);
+
+        if (rotation_option) {
+            RotateRigidBodyElementNode(i, delta_t, force_reduction_factor, StepFlag);                
+            rigid_body_element->UpdatePositionOfNodes();
+        }  
+        else {
+            rigid_body_element->UpdateLinearDisplacementAndVelocityOfNodes();
+        }
+    }
+    
+    void DEMIntegrationScheme::RotateRigidBodyElementNode(Node<3>& i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
+    
+        KRATOS_TRY
+
+        array_1d<double, 3>& moments_of_inertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+        array_1d<double, 3>& angular_momentum = i.FastGetSolutionStepValue(ANGULAR_MOMENTUM);
+        array_1d<double, 3>& angular_velocity = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        array_1d<double, 3>& local_angular_velocity = i.FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY);
+        array_1d<double, 3>& torque = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
+        array_1d<double, 3>& rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+        Quaternion<double>& Orientation = i.FastGetSolutionStepValue(ORIENTATION);
+        array_1d<double, 3>& delta_rotation = i.FastGetSolutionStepValue(DELTA_ROTATION);
+
+        bool Fix_Ang_vel[3] = {false, false, false};
+
+        Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
+        Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
+        Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
+
+        if (StepFlag != 1 && StepFlag != 2) {
+                        
+            array_1d<double, 3 > angular_momentum_aux;
+            angular_momentum_aux[0] = 0.0;
+            angular_momentum_aux[1] = 0.0;
+            angular_momentum_aux[2] = 0.0;
+
+            if (Fix_Ang_vel[0] == true || Fix_Ang_vel[1] == true || Fix_Ang_vel[2] == true) {
+                double LocalTensor[3][3];
+                double GlobalTensor[3][3];
+                GeometryFunctions::ConstructLocalTensor(moments_of_inertia, LocalTensor);
+                GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensor, GlobalTensor);
+                GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensor, angular_velocity, angular_momentum_aux);
+            }
+
+
+            for (int j = 0; j < 3; j++) {
+                if (Fix_Ang_vel[j] == false) {
+                    angular_momentum[j] += moment_reduction_factor * torque[j] * delta_t;
+                } else {
+                    angular_momentum[j] = angular_momentum_aux[j];
+                }
+            }
+
+            CalculateAngularVelocityRK(Orientation, moments_of_inertia, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
+            UpdateRotationalVariablesOfCluster(i, moments_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
+            GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
+        }//if (StepFlag != 1 && StepFlag != 2)
+                
+        if (StepFlag == 1 || StepFlag == 2) {
+                        
+            array_1d<double, 3 > local_angular_acceleration, local_torque, quarter_local_angular_velocity, quarter_angular_velocity, AuxAngularVelocity;
+            Quaternion<double  > & AuxOrientation = i.FastGetSolutionStepValue(AUX_ORIENTATION);
+            array_1d<double, 3 > & LocalAuxAngularVelocity = i.FastGetSolutionStepValue(LOCAL_AUX_ANGULAR_VELOCITY);
+
+            if (StepFlag == 1) { //PREDICT
+                //Angular velocity and torques are saved in the local framework:
+                GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, torque, local_torque);
+                CalculateLocalAngularAccelerationByEulerEquations(i,local_angular_velocity,moments_of_inertia,local_torque,moment_reduction_factor,local_angular_acceleration);
+
+                quarter_local_angular_velocity = local_angular_velocity + 0.25 * local_angular_acceleration * delta_t;
+                LocalAuxAngularVelocity        = local_angular_velocity + 0.5  * local_angular_acceleration * delta_t;
+
+                GeometryFunctions::QuaternionVectorLocal2Global(Orientation, quarter_local_angular_velocity, quarter_angular_velocity);
+
+                array_1d<double, 3 > rotation_aux = 0.5 * quarter_angular_velocity * delta_t;
+                GeometryFunctions::UpdateOrientation(Orientation, AuxOrientation, rotation_aux);
+
+                GeometryFunctions::QuaternionVectorLocal2Global(AuxOrientation, LocalAuxAngularVelocity, AuxAngularVelocity);
+                UpdateRotationalVariables(i, rotated_angle, delta_rotation, AuxAngularVelocity, delta_t, Fix_Ang_vel);
+                GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
+            }//if StepFlag == 1
+                    
+            if (StepFlag == 2) { //CORRECT
+                //Angular velocity and torques are saved in the local framework:
+                GeometryFunctions::QuaternionVectorGlobal2Local(AuxOrientation, torque, local_torque);
+                CalculateLocalAngularAccelerationByEulerEquations(i,LocalAuxAngularVelocity,moments_of_inertia,local_torque, moment_reduction_factor,local_angular_acceleration);
+                        
+                local_angular_velocity += local_angular_acceleration * delta_t;
+                GeometryFunctions::QuaternionVectorLocal2Global(Orientation, local_angular_velocity, angular_velocity);
+                        
+                GeometryFunctions::QuaternionVectorLocal2Global(AuxOrientation, LocalAuxAngularVelocity, AuxAngularVelocity);
+                UpdateRotationalVariables(i, rotated_angle, delta_rotation, AuxAngularVelocity, delta_t, Fix_Ang_vel);
+                GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
+            }//if StepFlag == 2
+        }//if (StepFlag == 1 || StepFlag == 2)
+
+        KRATOS_CATCH("")
+    }
+
     void DEMIntegrationScheme::UpdateTranslationalVariables(
                             int StepFlag,
                             Node < 3 > & i,

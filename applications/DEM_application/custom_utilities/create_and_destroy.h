@@ -199,7 +199,12 @@ public:
                                 double radius, 
                                 Properties& params);
     
-    SphericParticle* SphereCreatorForClusters( ModelPart& r_modelpart, 
+	void CentroidCreatorForRigidBodyElements(ModelPart& r_modelpart,
+                                            Node<3>::Pointer& pnew_node,
+                                            int aId,
+                                            array_1d<double, 3>& reference_coordinates);    
+
+	SphericParticle* SphereCreatorForClusters( ModelPart& r_modelpart, 
                                     int r_Elem_Id, 
                                     double radius,
                                     array_1d<double, 3 >& reference_coordinates, 

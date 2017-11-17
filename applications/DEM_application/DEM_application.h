@@ -23,6 +23,7 @@
 #include "custom_elements/ice_continuum_particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
 #include "custom_elements/cluster3D.h"
+#include "custom_elements/rigid_body_element.h"
 #include "custom_elements/thermal_spheric_particle.h"
 #include "custom_elements/sintering_spheric_continuum_particle.h"
 #include "custom_elements/bonding_spheric_continuum_particle.h"
@@ -107,6 +108,7 @@ private:
     const RigidFace3D  mRigidFace3D4N;
     const RigidEdge3D  mRigidEdge3D2N;
     const Cluster3D  mCluster3D;
+    const RigidBodyElement3D mRigidBodyElement3D;
     const CubeCluster3D  mCubeCluster3D;
     const PillCluster3D  mPillCluster3D;
     const EllipsoidCluster3D  mEllipsoidCluster3D;

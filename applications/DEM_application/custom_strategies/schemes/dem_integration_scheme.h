@@ -2,14 +2,8 @@
 // Author: Miguel AngelCeligueta, maceli@cimne.upc.edu
 //
 
-
-#if !defined(KRATOS_DEM_INTEGRATION_SCHEME_H_INCLUDED)
+#if !defined KRATOS_DEM_INTEGRATION_SCHEME_H_INCLUDED
 #define KRATOS_DEM_INTEGRATION_SCHEME_H_INCLUDED
-
-
-
-
-// External includes 
 
 // Project includes
 #include "includes/define.h"
@@ -25,6 +19,7 @@
 namespace Kratos {
     
     class Cluster3D;
+    class RigidBodyElement3D;
 
     class KRATOS_API(DEM_APPLICATION) DEMIntegrationScheme {
     public:
@@ -52,6 +47,9 @@ namespace Kratos {
         virtual void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption); */               
         virtual void Move(Node<3> & i, const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
         virtual void MoveCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
+        virtual void MoveRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t,
+                                          const bool rotation_option, const double force_reduction_factor, const int StepFlag);
+        
         virtual void UpdateTranslationalVariables(
                             int StepFlag, 
                             Node < 3 > & i,
@@ -147,6 +145,7 @@ namespace Kratos {
         virtual void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag);
         
         virtual void RotateClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
+        virtual void RotateRigidBodyElementNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
 
         virtual std::string Info() const {
             std::stringstream buffer;
@@ -207,7 +206,7 @@ namespace Kratos {
         return rOStream;
     }
 
-} // namespace Kratos.
+} // namespace Kratos
 
-#endif // KRATOS_DEM_INTEGRATION_SCHEME_H_INCLUDED  defined 
+#endif // KRATOS_DEM_INTEGRATION_SCHEME_H_INCLUDED defined 
 

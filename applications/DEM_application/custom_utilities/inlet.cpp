@@ -646,7 +646,7 @@ namespace Kratos {
     void DEM_Inlet::UpdateTotalThroughput(Cluster3D& r_cluster)
     {
         ++mTotalNumberOfParticlesInjected;
-        mTotalMassInjected += r_cluster.GetMass();
+        mTotalMassInjected += r_cluster.mMass;
     }
     
     void DEM_Inlet::UpdatePartialThroughput(SphericParticle& r_spheric_particle, const int i)
@@ -660,7 +660,7 @@ namespace Kratos {
     {
         ++mNumberOfParticlesInjected[i];
         
-        mMassInjected[i] += r_cluster.GetMass();
+        mMassInjected[i] += r_cluster.mMass;
     }
 
     double DEM_Inlet::GetInputNumberOfParticles(const ModelPart& mp)
