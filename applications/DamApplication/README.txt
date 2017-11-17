@@ -17,7 +17,6 @@ Note: For the moment, MPI only works in Linux and requires compiling METIS_APPLI
 -DCONVECTION_DIFFUSION_APPLICATION=ON 						                              \
 -DEXTERNAL_SOLVERS_APPLICATION=ON						                                    \
 -DSOLID_MECHANICS_APPLICATION=ON   					                                    \
--DFLUID_DYNAMICS_APPLICATION=ON   					                                    \
 -DPOROMECHANICS_APPLICATION=ON \
 -DDAM_APPLICATION=ON \
 -DUSE_DAM_MPI=ON \
