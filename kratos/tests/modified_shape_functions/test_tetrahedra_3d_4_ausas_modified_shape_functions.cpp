@@ -93,11 +93,11 @@ namespace Kratos
 			// Call the interface outwards normal unit vector calculator
 			std::vector<Vector> positive_side_unit_normals, negative_side_unit_normals;
 			
-			tetrahedra_ausas_shape_functions.ComputePositiveSideInterfaceUnitNormals(
+			tetrahedra_ausas_shape_functions.ComputePositiveSideInterfaceAreaNormals(
 				positive_side_unit_normals,
 				GeometryData::GI_GAUSS_1);
 			
-			tetrahedra_ausas_shape_functions.ComputeNegativeSideInterfaceUnitNormals(
+			tetrahedra_ausas_shape_functions.ComputeNegativeSideInterfaceAreaNormals(
 				negative_side_unit_normals,
 				GeometryData::GI_GAUSS_1);
 
@@ -306,11 +306,11 @@ namespace Kratos
 			// Call the interface outwards normal unit vector calculator
 			std::vector<Vector> positive_side_unit_normals, negative_side_unit_normals;
 			
-			tetrahedra_ausas_shape_functions.ComputePositiveSideInterfaceUnitNormals(
+			tetrahedra_ausas_shape_functions.ComputePositiveSideInterfaceAreaNormals(
 				positive_side_unit_normals,
 				GeometryData::GI_GAUSS_1);
 			
-			tetrahedra_ausas_shape_functions.ComputeNegativeSideInterfaceUnitNormals(
+			tetrahedra_ausas_shape_functions.ComputeNegativeSideInterfaceAreaNormals(
 				negative_side_unit_normals,
 				GeometryData::GI_GAUSS_1);
 
