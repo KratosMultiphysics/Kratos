@@ -76,13 +76,12 @@ namespace Kratos
 			///@name Life Cycle
 			///@{
 
-			LoggerMessage() : mMessage(), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS) {}
 
-			LoggerMessage(std::string const& TheMessage) 
-				: mMessage(TheMessage), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS) {}
+			LoggerMessage(std::string const& TheLabel) 
+				: mLabel(TheLabel), mMessage(), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS) {}
 
 			LoggerMessage(LoggerMessage const& Other) 
-				: mMessage(Other.mMessage), mLevel(Other.mLevel), mSeverity(Other.mSeverity), mCategory(Other.mCategory) {}
+				: mLabel(Other.mLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mSeverity(Other.mSeverity), mCategory(Other.mCategory) {}
 
 			/// Destructor.
 			virtual ~LoggerMessage() {}
@@ -93,6 +92,7 @@ namespace Kratos
 			///@{
 
 			LoggerMessage& operator=(LoggerMessage const& Other) {
+				mLabel = Other.mLabel;
 				mMessage = Other.mMessage;
 				mLevel = Other.mLevel;
 				mSeverity = Other.mSeverity;
@@ -109,6 +109,14 @@ namespace Kratos
 			///@}
 			///@name Access
 			///@{
+
+			void SetLabel(std::string const& TheLabel){
+				mLabel = TheLabel;
+			}
+
+			std::string const& GetLabel() const {
+				return mLabel;
+			}
 
 			void SetMessage(std::string const& TheMessage) {
 				mMessage = TheMessage;
@@ -202,6 +210,7 @@ namespace Kratos
 			///@name Member Variables
 			///@{
 
+			std::string mLabel;
 			std::string mMessage;
 			std::size_t mLevel;
 			Severity mSeverity;
