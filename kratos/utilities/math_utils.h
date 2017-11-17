@@ -25,8 +25,6 @@
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
 
-/* Project includes */
-#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -69,10 +67,6 @@ public:
     typedef std::size_t SizeType;
     
     typedef unsigned int IndexType;
-
-    typedef UblasSpace<TDataType, CompressedMatrix, Vector> SparseSpaceType;
-    
-    typedef UblasSpace<TDataType, Matrix, Vector> LocalSpaceType;
 
     ///@}
     ///@name Life Cycle
