@@ -1,4 +1,4 @@
-import sys, h5py, copy, xdmf_utils
+import os, sys, h5py, copy, xdmf_utils
 
 class XdmfFixedMeshPostProcess(object):
     """Constructs the XDMF hierarchy for fixed mesh results."""
@@ -14,7 +14,7 @@ class XdmfFixedMeshPostProcess(object):
         temporal_grid = xdmf_utils.XdmfElement("Grid")
         temporal_grid.root.set("GridType", "Collection")
         temporal_grid.root.set("CollectionType", "Temporal")
-        list_of_times = ["0.0300", "0.0400", "0.0500"]
+        list_of_times = self._get_list_of_time_labels()
         for current_time in list_of_times:
             # Create the current mesh.
             current_mesh = copy.deepcopy(fixed_mesh)
@@ -41,6 +41,16 @@ class XdmfFixedMeshPostProcess(object):
                 for child in parent.root:
                     child.append(variable_data.root)
 
+    def _get_list_of_time_labels(self):
+        list_of_file_names = []
+        time_prefix = self.model_part_name + "-"
+        for file_name in os.listdir():
+            if file_name.find(time_prefix) == 0:
+                list_of_file_names.append(file_name)
+        list_of_time_labels = []
+        for file_name in list_of_file_names:
+            list_of_time_labels.append(file_name[len(time_prefix):-3])
+        return list_of_time_labels
 
 if __name__ == '__main__':
     model_part_file_name = sys.argv[1]
