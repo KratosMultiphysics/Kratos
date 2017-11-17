@@ -10,6 +10,8 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication    as KratosSolvers
 
+sys.stdout.flush()
+
 class Solution(object):
 
     def __init__(self):
@@ -18,6 +20,9 @@ class Solution(object):
 
         # Time control starts        
         print(timer.ctime())
+
+        sys.stdout.flush()
+        
         # Measure process time
         self.t0p = timer.clock()
         # Measure wall time
@@ -138,7 +143,7 @@ class Solution(object):
         
         # Add variables (always before importing the model part)
         self.solver.AddVariables()
-        
+
         # Read model_part (note: the buffer_size is set here) (restart is read here)
         self.solver.ImportModelPart()
 
@@ -149,7 +154,8 @@ class Solution(object):
         else:
             self.solver.AddDofs()
 
-
+        sys.stdout.flush()
+            
         # Add materials (assign material to model_parts if Materials.json exists)
         self.AddMaterials()
         
@@ -160,24 +166,16 @@ class Solution(object):
 
 
         # Print model_part and properties
-        if(self.echo_level>1):
+        if(self.echo_level>0):
             print("")
             print(self.main_model_part)
             for properties in self.main_model_part.Properties:
                 print(properties)
 
-
-        #### START SOLUTION ####
-
-        self.computing_model_part = self.solver.GetComputingModelPart()
-        
-        ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
-        self.solver.Initialize()
-        self.solver.SetEchoLevel(self.echo_level)
-
         
         # Initialize GiD  I/O (gid outputs, file_lists)
-        self.SetGraphicalOutput()
+        output_model_part = self.solver.GetComputingModelPart()
+        self.SetGraphicalOutput(output_model_part)
         
         self.GraphicalOutputExecuteInitialize()
 
@@ -185,10 +183,20 @@ class Solution(object):
         print(" ")
         print("::[KSM Simulation]:: Analysis -START- ")
 
+        # First execution before solution loop
+        
         self.model_processes.ExecuteBeforeSolutionLoop()
 
         self.GraphicalOutputExecuteBeforeSolutionLoop()        
 
+
+        #### START SOLUTION ####
+      
+        ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
+        self.model_processes.ExecuteInitializeSolutionStep() #trick to use not block builder
+        self.solver.Initialize()
+
+        
         # Set time settings
         self.step       = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
         self.time       = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
@@ -222,8 +230,7 @@ class Solution(object):
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.step
         self.main_model_part.CloneTimeStep(self.time) 
 
-
-        print(" [STEP:",self.step," TIME:",round(self.time,7),"]")
+        print(" [STEP:",self.step," TIME:","{0:1.{1}f}".format(self.time,6),"]")
 
         # processes to be executed at the begining of the solution step
         self.model_processes.ExecuteInitializeSolutionStep()
@@ -291,12 +298,12 @@ class Solution(object):
         print(timer.ctime())
 
         
-    def SetGraphicalOutput(self):
+    def SetGraphicalOutput(self, model_part):
         from gid_output_process import GiDOutputProcess
         self.output_settings = self.ProjectParameters["output_configuration"]
-        self.graphical_output = GiDOutputProcess(self.computing_model_part,
-                                      self.problem_name,
-                                      self.output_settings)        
+        self.graphical_output = GiDOutputProcess(model_part,
+                                                 self.problem_name,
+                                                 self.output_settings)        
 
     def GraphicalOutputExecuteInitialize(self):
         self.graphical_output.ExecuteInitialize() 

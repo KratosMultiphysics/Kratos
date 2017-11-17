@@ -168,12 +168,12 @@ namespace Kratos
       VariableValueData()
       {
 	mType            = NONE;
-	mpIntVariable    = NULL;
-	mpDoubleVariable = NULL;
-	mpVectorVariable = NULL;
-	mpMatrixVariable = NULL;
-	mpArray3Variable = NULL;
-	mpArray6Variable = NULL;
+	mpIntVariable    = nullptr;
+	mpDoubleVariable = nullptr;
+	mpVectorVariable = nullptr;
+	mpMatrixVariable = nullptr;
+	mpArray3Variable = nullptr;
+	mpArray6Variable = nullptr;
       }
 
       // Destructor

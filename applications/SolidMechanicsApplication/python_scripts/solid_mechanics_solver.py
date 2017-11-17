@@ -1,4 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+import sys
 import os
 #import kratos core and applications
 import KratosMultiphysics
@@ -65,7 +66,7 @@ class MechanicalSolver(object):
             "move_mesh_flag": true,
             "clear_storage": false,
             "component_wise": false,
-            "convergence_criterion": "Residual_criteria",
+            "convergence_criterion": "Residual_criterion",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
             "residual_relative_tolerance": 1.0e-4,
@@ -98,8 +99,6 @@ class MechanicalSolver(object):
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part    
         
-        print("::[Solid_Mechanical_Solver]:: Constructed")
-
         
     def GetMinimumBufferSize(self):
         return 2;
@@ -187,6 +186,8 @@ class MechanicalSolver(object):
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):            
             # Import model part from mdpa file.
             print("   Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa ")
+            sys.stdout.flush()
+          
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
             # print("   Finished reading model part from mdpa file ")
             # Check and prepare computing model part and import constitutive laws.
@@ -216,8 +217,6 @@ class MechanicalSolver(object):
         else:
             raise Exception("Other input options are not yet implemented.")
 
-
-        print(self.main_model_part)
         print ("::[Mechanical_Solver]:: Finished importing model part.")
             
     def ExportModelPart(self):
@@ -337,11 +336,7 @@ class MechanicalSolver(object):
 
         # Import constitutive laws
         materials_imported = self._import_constitutive_laws()
-        if materials_imported:
-            print("   Constitutive law was successfully imported.")
-        else:
-            print("   Constitutive law was not imported.")
-
+        
     def _import_constitutive_laws(self):
         
         if os.path.isfile("materials.py"):
@@ -350,7 +345,9 @@ class MechanicalSolver(object):
             constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
                                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]);
             constitutive_law.Initialize();
-            
+
+            print("   Reading constitutive law from file :" + os.path.join(problem_path, "materials") + ".py ")
+                        
             return True
         else:
             return False        

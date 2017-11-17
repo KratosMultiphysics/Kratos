@@ -87,7 +87,9 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         
         self._AssignMaterialProperties()
 
-        print("::[Material_Assigned]::", self.material_name)
+        splitted_law_name = (self.settings["constitutive_law"]["name"].GetString()).split(".")
+        
+        print("::[Material_Assigned]::", self.material_name," [",splitted_law_name[len(splitted_law_name)-1],"]")
         
     #
     def ExecuteFinalize(self):
