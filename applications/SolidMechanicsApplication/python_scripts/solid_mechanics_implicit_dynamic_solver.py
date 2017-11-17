@@ -66,7 +66,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         else:
             # compute consistent dynamic tangent/mass matrix
             if( self.dynamic_settings["consistent_mass_matrix"].GetBool() == True ):
-                self.main_model_part.ProcessInfo[KratosSolid.COMPUTE_DYNAMIC_TANGENT] = True 
+                self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = True 
  
         if(self.settings["component_wise"].GetBool() == True):
             dynamic_factor = self.dynamic_settings["dynamic_factor"].GetDouble()        
@@ -77,7 +77,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
         elif(scheme_type == "Bossak"):
             bossak_factor = self.dynamic_settings["bossak_factor"].GetDouble()
-            self.main_model_part.ProcessInfo[KratosSolid.BOSSAK_ALPHA] = bossak_factor;
+            self.main_model_part.ProcessInfo[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(bossak_factor)
         elif(scheme_type == "RotationNewmark"):
             dynamic_factor = self.dynamic_settings["dynamic_factor"].GetDouble() # 0,1 
