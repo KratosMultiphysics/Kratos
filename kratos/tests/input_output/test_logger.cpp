@@ -69,6 +69,20 @@ namespace Kratos {
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test message with number 12e00");
 		}
 
+		KRATOS_TEST_CASE_IN_SUITE(CheckPoint, KratosCoreFastSuite)
+		{
+			std::stringstream buffer;
+			LoggerOutput output(buffer);
+
+			KRATOS_CHECK_POINT("TestCheckPoint") << "The value in check point is " << 3.14;
+
+#if defined(KRATOS_ENABLE_CHECK_POINT)
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "The value in check point is 3.14");
+#else
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), ""); // should print noting
+#endif
+		}
+
 	}   // namespace Testing
 }  // namespace Kratos.
 
