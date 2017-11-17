@@ -26,7 +26,7 @@
 namespace Kratos
 {
 
-	Logger::Logger()
+	Logger::Logger(std::string const& TheLabel) : mCurrentMessage(TheLabel)
 	{
 	}
 

@@ -77,8 +77,7 @@ namespace Kratos
       ///@name Life Cycle 
       ///@{ 
       
-      /// Default constructor.
-      Logger();
+      Logger(std::string const& TheLabel);
 
 
 	  /// Avoiding Logger to be copied
