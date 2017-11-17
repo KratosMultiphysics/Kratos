@@ -23,10 +23,11 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(LoggerMessageStream, KratosCoreFastSuite)
 		{
-			LoggerMessage message;
+			LoggerMessage message("label");
 
 			message << "Test message with number " << 12 << 'e' << "00";
 
+			KRATOS_CHECK_C_STRING_EQUAL(message.GetLabel().c_str(), "label");
 			KRATOS_CHECK_C_STRING_EQUAL(message.GetMessage().c_str(), "Test message with number 12e00");
 			KRATOS_CHECK_EQUAL(message.GetSeverity(), LoggerMessage::Severity::INFO);
 			KRATOS_CHECK_EQUAL(message.GetCategory(), LoggerMessage::Category::STATUS);
@@ -44,7 +45,7 @@ namespace Kratos {
 			std::stringstream buffer;
 			LoggerOutput output(buffer);
 
-			LoggerMessage message;
+			LoggerMessage message("label");
 			message << "Test message with number " << 12 << 'e' << "00";
 
 			output.WriteMessage(message);
@@ -57,11 +58,11 @@ namespace Kratos {
 			LoggerOutput output(buffer);
 			Logger::AddOutput(output);
 
-			Logger() << "Test message with number " << 12 << 'e' << "00";
+			Logger("TestLabel") << "Test message with number " << 12 << 'e' << "00";
 
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test message with number 12e00");
 
-			Logger() << Logger::Severity::DETAIL << "This log has detailed severity and will not be printed in output " 
+			Logger("TestDetail") << Logger::Severity::DETAIL << "This log has detailed severity and will not be printed in output " 
 				<< Logger::Category::CRITICAL << std::endl;
 
 			// The message has DETAIL severity and should not be written
