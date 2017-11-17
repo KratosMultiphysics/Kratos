@@ -3,7 +3,7 @@ import h5py
 import numpy as np
 
 
-def WriteXdmfParametricCoordinates(file_name, nodes_path, label="XdmfIds"):
+def WriteParametricCoordinates(file_name, nodes_path, label="ParametricCoordinates"):
     """Writes the Xdmf parametric coordinate description for an array of node ids.
 
     In partitioned simulations, the node ids are not sorted globally. In order
@@ -17,15 +17,15 @@ def WriteXdmfParametricCoordinates(file_name, nodes_path, label="XdmfIds"):
     nodes_path -- file path to nodal data
     label -- data set name of the parametric coordinates
     """
-    with h5py.File(file_name, 'r+') as hdf5_file:
-        ids = hdf5_file.get(nodes_path + '/Ids')
+    with h5py.File(file_name, 'r+') as h5py_file:
+        ids = h5py_file.get(nodes_path + '/Ids')
         if len(ids.shape) != 1 or ids.shape[0] == 0:
             raise Exception('Invalid node ids: "' + nodes_path + '/Ids"')
         size = ids.shape[0]
         pcs = np.zeros(size, dtype=np.int32)
         for i in range(size):
             pcs[ids[i]-1] = i + 1 # Use one-based indices.
-        dset = hdf5_file.create_dataset(nodes_path + '/' + label, data=pcs)
+        dset = h5py_file.create_dataset(nodes_path + '/' + label, data=pcs)
 
 
 def GetDimsString(shape):
@@ -44,18 +44,20 @@ class XdmfElement(object):
     """Represent an Xdmf element in xml."""
 
     def __init__(self, tag):
-        """ Construct and XdmfElement.
+        """Construct and XdmfElement.
 
         Keyword arguments:
         tag -- string containing xml tag.
         """
         if not isinstance(tag, str):
-            raise ValueError('%s is not a string' % tag)
+            raise ValueError('%s is not a string.' % tag)
         self._tag = tag
 
-    def Build(self):
-        """Build the xml hierarchy."""
-        raise Exception('Calling base class method.')
+    @property
+    def root(self):
+        if not hasattr(self, '_root'):
+            self._root = ET.Element(self._tag)
+        return self._root
 
     def Write(self, xdmf_file_name):
         """Write the xml hierarchy to an ascii file.
@@ -64,49 +66,31 @@ class XdmfElement(object):
         xdmf_file_name -- ascii file name.
         """
         if not isinstance(xdmf_file_name, str):
-            raise ValueError('%s is not a string' % xdmf_file_name)
-        ET.ElementTree(self.GetXmlElement()).write(xdmf_file_name)
-
-    def SetParentElement(self, parent):
-        """Append this element to parents list of subelements.
-
-        Keyword arguments:
-        parent -- parent xml element
-        """
-        if not isinstance(parent, ET.Element):
-            raise ValueError('%s is not an xml.etree.ElementTree.Element' % parent)
-        parent.append(self.GetXmlElement())
-
-    def GetXmlElement(self):
-        if not hasattr(self, '_root'):
-            self._root = ET.Element(self._tag)
-        return self._root
+            raise ValueError('%s is not a string.' % xdmf_file_name)
+        ET.ElementTree(self.root).write(xdmf_file_name)
 
 
-class XdmfTopology(XdmfElement):
-    def __init__(self, hdf5_file, file_path):
+class KratosTopology(XdmfElement):
+    """Represents a topology of a single element or condition type in Kratos."""
+
+    def __init__(self, h5py_file, file_path):
         XdmfElement.__init__(self, 'Topology')
-        self._hdf5_file = hdf5_file
-        self._file_path = file_path
-
-    def Build(self):
-        root = self.GetXmlElement()
-        root.clear()
-        topology_type = self._get_topology_type()
-        connectivities_path = self._file_path + "/Connectivities"
-        connectivities = self._hdf5_file.get(connectivities_path)
-        number_of_elements = str(connectivities.shape[0])
-        root.set("TopologyType", topology_type)
-        root.set("NumberOfElements", number_of_elements)
+        topology_group = h5py_file.get(file_path)
+        if not "Connectivities" in topology_group.keys():
+            raise ValueError('file_path="%s" is not a topology.' % file_path)
+        if (not "Dimension" in topology_group.attrs) or (not "NumberOfNodes" in topology_group.attrs):
+            raise ValueError('file_path="%s" is missing attributes.' % file_path)
+        self.root.set("TopologyType", self._get_topology_type(topology_group))
+        connectivities_path = file_path + "/Connectivities"
+        connectivities = h5py_file.get(connectivities_path)
+        self.root.set("NumberOfElements", str(connectivities.shape[0]))
         # Subtract 1 from connectivities for zero-based indexing.
-        data = XdmfHdfFunctionDataItem(self._hdf5_file, connectivities_path, "$0 - 1")
-        data.Build() # Construct the subhierarchy.
-        data.SetParentElement(root) # Add subelement to tree.
+        data = XdmfHdfFunctionDataItem(h5py_file, connectivities_path, "$0 - 1")
+        self.root.append(data.root)
 
-    def _get_topology_type(self):
-        grp = self._hdf5_file.get(self._file_path)
-        dim = grp.attrs["Dimension"]
-        num_points = grp.attrs["NumberOfNodes"]
+    def _get_topology_type(self, topology_group):
+        dim = topology_group.attrs["Dimension"]
+        num_points = topology_group.attrs["NumberOfNodes"]
         if num_points == 2:
             return "Polyline"
         elif num_points == 3:
@@ -122,44 +106,30 @@ class XdmfTopology(XdmfElement):
             raise ValueError('Invalid number of points %d.' % num_points)
 
 
-class XdmfGeometry(XdmfElement):
-    def __init__(self, hdf5_file, file_path):
+class KratosGeometry(XdmfElement):
+    """Represents nodal coordinates of a model part in Kratos."""
+
+    def __init__(self, h5py_file, file_path):
         XdmfElement.__init__(self, 'Geometry')
-        self._hdf5_file = hdf5_file
-        self._file_path = file_path
-
-    def Build(self):
-        root = self.GetXmlElement()
-        root.clear()
-        root.set("GeometryType", "XYZ")
-        grp = self._hdf5_file.get(self._file_path)
-        if not "XdmfIds" in grp.keys():
-            raise Exception('Missing "XdmfIds" in %s.' % self._file_path)
-        data = XdmfHdfCoordinateDataItem(self._hdf5_file, self._file_path)
-        data.Build() # Construct the subhierarchy.
-        data.SetParentElement(root) # Add subelement to tree.
+        self.root.set("GeometryType", "XYZ")
+        data = KratosCoordinateDataItem(h5py_file, file_path)
+        self.root.append(data.root)
 
 
-class XdmfNodalAttribute(XdmfElement):
-    def __init__(self, hdf5_file, file_path):
+class KratosNodalSolutionStepDataAttribute(XdmfElement):
+    """Represents nodal solution step data."""
+    
+    def __init__(self, h5py_file, file_path):
         XdmfElement.__init__(self, 'Attribute')
-        self._hdf5_file = hdf5_file
-        self._file_path = file_path
         # Set the attribute's name to data set name.
-        self._name = self._file_path.rsplit(sep="/", maxsplit=1)[1]
+        variable_name = file_path.rsplit(sep="/", maxsplit=1)[1]
+        self.root.set("Name", variable_name)
+        self.root.set("Center", "Node")
+        self.root.set("AttributeType", self._get_attribute_type(h5py_file.get(file_path)))
+        data = XdmfHdfUniformDataItem(h5py_file, file_path)
+        self.root.append(data.root)
 
-    def Build(self):
-        root = self.GetXmlElement()
-        root.clear()
-        root.set("Name", self._name)
-        root.set("Center", "Node")
-        root.set("AttributeType", self._get_attribute_type())
-        data = XdmfHdfUniformDataItem(self._hdf5_file, self._file_path)
-        data.Build() # Construct the subhierarchy.
-        data.SetParentElement(root) # Add subelement to tree.
-
-    def _get_attribute_type(self):
-        data_set = self._hdf5_file.get(self._file_path)
+    def _get_attribute_type(self, data_set):
         if len(data_set.shape) == 1:
             return "Scalar"
         elif len(data_set.shape) == 2:
@@ -169,149 +139,114 @@ class XdmfNodalAttribute(XdmfElement):
 
 
 class XdmfHdfUniformDataItem(XdmfElement):
-    def __init__(self, hdf5_file, file_path):
-        XdmfElement.__init__(self, 'DataItem')
-        self._hdf5_file = hdf5_file
-        self._file_path = file_path
+    """Represents an Xdmf uniform data item with HDF5 data."""
 
-    def Build(self):
-        root = self.GetXmlElement()
-        root.clear()
-        root.set("Format", "HDF")
-        data_set = self._hdf5_file.get(self._file_path)
+    def __init__(self, h5py_file, file_path):
+        XdmfElement.__init__(self, 'DataItem')
+        self.root.set("Format", "HDF")
+        data_set = h5py_file.get(file_path)
         if data_set.dtype == "int32":
-            root.set("DataType", "Int")
+            self.root.set("DataType", "Int")
         elif data_set.dtype == "float64":
-            root.set("DataType", "Float")
-            root.set("Precision", "8")
+            self.root.set("DataType", "Float")
+            self.root.set("Precision", "8")
         else:
             raise ValueError("Invalid data type %s." % data_set.dtype)
-        dims = GetDimsString(data_set.shape)
-        root.set("Dimensions", dims)
-        root.text = self._hdf5_file.filename + ":" + self._file_path
+        self.root.set("Dimensions", GetDimsString(data_set.shape))
+        self.root.text = h5py_file.filename + ":" + file_path
 
 
-class XdmfHdfCoordinateDataItem(XdmfElement):
-    def __init__(self, hdf5_file, file_path):
+class KratosCoordinateDataItem(XdmfElement):
+    """Represents nodal coordinates of a model part in Kratos."""
+
+    def __init__(self, h5py_file, file_path):
         XdmfElement.__init__(self, 'DataItem')
-        self._hdf5_file = hdf5_file
-        self._file_path = file_path
-
-    def Build(self):
-        root = self.GetXmlElement()
-        root.clear()
-        root.set("ItemType", "Coordinate")
-        xdmf_ids = self._hdf5_file.get(self._file_path + "/XdmfIds")
-        coords_dim = GetDimsString(xdmf_ids.shape)
-        root.set("Dimensions", coords_dim)
-        coords_item = ET.Element("DataItem")
-        coords_item.set("Dimensions", coords_dim)
-        coords_item.set("Format", "HDF")
-        coords_item.text = self._hdf5_file.filename + ":" + self._file_path + "/XdmfIds"
-        root.insert(0, coords_item) # Set first subelement to parametric coordinates.
-        xyz_data = XdmfHdfUniformDataItem(self._hdf5_file, self._file_path + "/Coordinates")
-        xyz_data.Build()
-        root.insert(1, xyz_data.GetXmlElement()) # Set second subelement to xyz data.
+        points_group = h5py_file.get(file_path)
+        if (not "ParametricCoordinates" in points_group.keys()) or (not "Coordinates" in points_group.keys()):
+            raise Exception('Invalid file_path="%s".' % file_path)
+        self.root.set("ItemType", "Coordinate")
+        pcs = h5py_file.get(file_path + "/ParametricCoordinates")
+        pc_dims = GetDimsString(pcs.shape)
+        self.root.set("Dimensions", pc_dims)
+        pc_data = ET.Element("DataItem")
+        pc_data.set("Dimensions", pc_dims)
+        pc_data.set("Format", "HDF")
+        pc_data.text = h5py_file.filename + ":" + file_path + "/ParametricCoordinates"
+        self.root.insert(0, pc_data) # Set first subelement to parametric coordinates.
+        xyz_data = XdmfHdfUniformDataItem(h5py_file, file_path + "/Coordinates")
+        self.root.insert(1, xyz_data.root) # Set second subelement to xyz data.
 
 
 class XdmfHdfFunctionDataItem(XdmfElement):
-    def __init__(self, hdf5_file, file_path, function=""):
+    """Represents an Xdmf function data item with HDF5 data."""
+
+    def __init__(self, h5py_file, file_path, function=""):
         XdmfElement.__init__(self, 'DataItem')
-        self._hdf5_file = hdf5_file
-        self._file_path = file_path
-        self._function = function
-
-    def Build(self):
-        root = self.GetXmlElement()
-        root.clear()
-        data_set = self._hdf5_file.get(self._file_path)
-        dims = GetDimsString(data_set.shape)
-        root.set("ItemType", "Function")
-        root.set("Function", self._function)
-        root.set("Dimensions", dims)
-        data = XdmfHdfUniformDataItem(self._hdf5_file, self._file_path)
-        data.Build() # Construct the subhierarchy.
-        data.SetParentElement(root) # Add subelement to tree.
+        self.root.set("ItemType", "Function")
+        self.root.set("Function", function)
+        data_set = h5py_file.get(file_path)
+        self.root.set("Dimensions", GetDimsString(data_set.shape))
+        data = XdmfHdfUniformDataItem(h5py_file, file_path)
+        self.root.append(data.root)
 
 
-class XdmfUniformGrid(XdmfElement):
-    def __init__(self, name, topology, geometry, list_of_attributes=[]):
+class KratosUniformGrid(XdmfElement):
+    """Represents a Kratos mesh consisting of a single element or condition type and possible attributes."""
+
+    def __init__(self, name, topology, geometry, list_of_nodal_attributes=[]):
         XdmfElement.__init__(self, 'Grid')
         if not isinstance(name, str):
             raise ValueError('"name" is not a string.')
-        if not isinstance(topology, XdmfTopology):
-            raise ValueError('"topology" is not a XdmfTopology.')
-        if not isinstance(geometry, XdmfGeometry):
-            raise ValueError('"geometry" is not a XdmfGeometry.')
-        for a in list_of_attributes:
-            if not isinstance(a, XdmfNodalAttribute):
-                raise ValueError('Invalid "list_of_attributes".')
-        root = self.GetXmlElement()
-        root.set("Name", name)
-        root.append(topology.GetXmlElement())
-        root.append(geometry.GetXmlElement())
-        for a in list_of_attributes:
-            root.append(a.GetXmlElement())
+        if not isinstance(topology, KratosTopology):
+            raise ValueError('"topology" is not a KratosTopology.')
+        if not isinstance(geometry, KratosGeometry):
+            raise ValueError('"geometry" is not a KratosGeometry.')
+        for a in list_of_nodal_attributes:
+            if not isinstance(a, KratosNodalSolutionStepDataAttribute):
+                raise ValueError('Invalid "list_of_nodal_attributes".')
+        self.root.set("Name", name)
+        self.root.append(topology.root)
+        self.root.append(geometry.root)
+        for a in list_of_nodal_attributes:
+            self.root.append(a.root)
 
 
-class XdmfModelPart(XdmfElement):
+class KratosCollectionGrid(XdmfElement):
+    """Represents a Kratos mesh consisting of multiple element and condition types and possible attributes."""
+
     def __init__(self, h5py_file, prefix):
         XdmfElement.__init__(self, 'Grid')
-        if not isinstance(h5py_file, h5py.File):
-            raise ValueError('Invalid file.')
-        if not isinstance(prefix, str):
-            raise ValueError('"prefix" is not a string.')
-
-        self._h5py_file = h5py_file
-        self._prefix = prefix
-
-    def Build(self):
-        root = self.GetXmlElement()
-        root.clear()
-        root.set("Name", "Mesh")
-        root.set("GridType", "Collection")
-        nodes_path = self._prefix + "/Nodes/Local"
-        xdmf_geom = XdmfGeometry(self._h5py_file, nodes_path)
-        xdmf_geom.Build()
-        elems_path = self._prefix + "/Elements"
-        elems_grp = self._h5py_file.get(elems_path)
-        for elem_name in elems_grp.keys():
-            xdmf_topology = XdmfTopology(self._h5py_file, elems_path + "/" + elem_name)
-            xdmf_topology.Build()
-            xdmf_ugrid = XdmfUniformGrid(elem_name, xdmf_topology, xdmf_geom)
-            xdmf_ugrid.SetParentElement(root)
-        conds_path = self._prefix + "/Conditions"
-        conds_grp = self._h5py_file.get(conds_path)
-        for cond_name in conds_grp.keys():
-            xdmf_topology = XdmfTopology(self._h5py_file, conds_path + "/" + cond_name)
-            xdmf_topology.Build()
-            xdmf_ugrid = XdmfUniformGrid(cond_name, xdmf_topology, xdmf_geom)
-            xdmf_ugrid.SetParentElement(root)
+        self.root.set("Name", "Mesh")
+        self.root.set("GridType", "Collection")
+        nodes_path = prefix + "/Nodes/Local"
+        geom = KratosGeometry(h5py_file, nodes_path)
+        elems_path = prefix + "/Elements"
+        elems_group = h5py_file.get(elems_path)
+        for elem_name in elems_group.keys():
+            topology = KratosTopology(h5py_file, elems_path + "/" + elem_name)
+            uniform_grid = KratosUniformGrid(elem_name, topology, geom)
+            self.root.append(uniform_grid.root)
+        conds_path = prefix + "/Conditions"
+        conds_group = h5py_file.get(conds_path)
+        for cond_name in conds_group.keys():
+            topology = KratosTopology(h5py_file, conds_path + "/" + cond_name)
+            uniform_grid = KratosUniformGrid(cond_name, topology, geom)
+            self.root.append(uniform_grid.root)
 
 
-class XdmfStaticResults(XdmfElement): 
+class KratosStaticResults(XdmfElement): 
     def __init__(self, model_part_file_name, model_part_prefix, results_file_name, results_prefix):
         XdmfElement.__init__(self, 'Domain')
-        self._model_part_file_name = model_part_file_name
-        self._model_part_prefix = model_part_prefix
-        self._results_file_name = results_file_name
-        self._results_prefix = results_prefix
-        
-    def Build(self):
-        root = self.GetXmlElement()
-        root.clear()
-        with h5py.File(self._model_part_file_name, 'r') as h5py_file:
-            xdmf_model_part = XdmfModelPart(h5py_file, self._model_part_prefix)
-            xdmf_model_part.Build()
-            xdmf_model_part.SetParentElement(root)
-        with h5py.File(self._results_file_name, 'r') as h5py_file:
-            nodal_results_grp = h5py_file.get(self._results_prefix + '/NodalResults')
-            for result_name in nodal_results_grp.keys():
+        with h5py.File(model_part_file_name, 'r') as h5py_file:
+            model_part = KratosCollectionGrid(h5py_file, model_part_prefix)
+            self.root.append(model_part.root)
+        with h5py.File(results_file_name, 'r') as h5py_file:
+            nodal_results_group = h5py_file.get(results_prefix + '/NodalResults')
+            for result_name in nodal_results_group.keys():
                 if result_name == "Partition":
                     continue
-                result_path = self._results_prefix + '/NodalResults/' + result_name
-                xdmf_attribute = XdmfNodalAttribute(h5py_file, result_path)
-                xdmf_attribute.Build()
-                for child in root.find("Grid"):
-                    child.append(xdmf_attribute.GetXmlElement())
+                result_path = results_prefix + '/NodalResults/' + result_name
+                result_data = KratosNodalSolutionStepDataAttribute(h5py_file, result_path)
+                for child in self.root.find("Grid"):
+                    child.append(result_data.root)
         

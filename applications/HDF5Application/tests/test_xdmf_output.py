@@ -5,6 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import xdmf_utils
 
 class ControlledExecutionScope:
+ 
     def __init__(self, scope):
         self.currentPath = os.getcwd()
         self.scope = scope
@@ -97,7 +98,7 @@ class TestCase(KratosUnittest.TestCase):
         }""")
         return HDF5NodalSolutionStepDataIO(params, hdf5_file)
 
-    def test_XdmfTopology(self):
+    def test_KratosTopology(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             model_part = ModelPart("test")
             self._initialize_model_part(model_part)
@@ -106,12 +107,11 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io.WriteModelPart(model_part)
             del hdf5_model_part_io, kratos_hdf5_file
             h5py_file = h5py.File("test_xdmf_output.h5", "r")
-            xdmf_topology = xdmf_utils.XdmfTopology(h5py_file, '/ModelData/Elements/Element2D3N')
-            xdmf_topology.Build()
-            #xml_string = xdmf_utils.ET.tostring(xdmf_topology.GetXmlElement())
+            topology = xdmf_utils.KratosTopology(h5py_file, '/ModelData/Elements/Element2D3N')
+            #print(xdmf_utils.ET.tostring(topology.root))
             self._remove_file("test_xdmf_output.h5")
 
-    def test_XdmfGeometry(self):
+    def test_KratosGeometry(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             model_part = ModelPart("test")
             self._initialize_model_part(model_part)
@@ -119,13 +119,13 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io = self._get_model_part_io(kratos_hdf5_file)
             hdf5_model_part_io.WriteModelPart(model_part)
             del hdf5_model_part_io, kratos_hdf5_file
-            xdmf_utils.WriteXdmfParametricCoordinates("test_xdmf_output.h5", "/ModelData/Nodes/Local")
+            xdmf_utils.WriteParametricCoordinates("test_xdmf_output.h5", "/ModelData/Nodes/Local")
             h5py_file = h5py.File("test_xdmf_output.h5", "r")
-            xdmf_geometry = xdmf_utils.XdmfGeometry(h5py_file, '/ModelData/Nodes/Local')
-            xdmf_geometry.Build()
+            geometry = xdmf_utils.KratosGeometry(h5py_file, '/ModelData/Nodes/Local')
+            #print(xdmf_utils.ET.tostring(geometry.root))
             self._remove_file("test_xdmf_output.h5")
 
-    def test_XdmfNodalAttribute(self):
+    def test_KratosNodalSolutionStepDataAttribute(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             model_part = ModelPart("test")
             self._initialize_model_part(model_part)
@@ -134,15 +134,13 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_nodal_solution_step_data_io.WriteNodalResults(model_part.Nodes, 0)
             del hdf5_nodal_solution_step_data_io, kratos_hdf5_file
             h5py_file = h5py.File("test_xdmf_output.h5", "r")
-            xdmf_scalar_attribute = xdmf_utils.XdmfNodalAttribute(h5py_file, '/ResultsData/NodalResults/DENSITY')
-            xdmf_scalar_attribute.Build()
-            #print(xdmf_utils.ET.tostring(xdmf_scalar_attribute.GetXmlElement()))
-            xdmf_vector_attribute = xdmf_utils.XdmfNodalAttribute(h5py_file, '/ResultsData/NodalResults/DISPLACEMENT')
-            xdmf_vector_attribute.Build()
-            #print(xdmf_utils.ET.tostring(xdmf_vector_attribute.GetXmlElement()))
+            scalar_results_attribute = xdmf_utils.KratosNodalSolutionStepDataAttribute(h5py_file, '/ResultsData/NodalResults/DENSITY')
+            #print(xdmf_utils.ET.tostring(scalar_results_attribute.root))
+            vector_results_attribute = xdmf_utils.KratosNodalSolutionStepDataAttribute(h5py_file, '/ResultsData/NodalResults/DISPLACEMENT')
+            #print(xdmf_utils.ET.tostring(vector_results_attribute.root))
             self._remove_file("test_xdmf_output.h5")
     
-    def test_XdmfModelPart(self):
+    def test_KratosCollectionGrid(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             model_part = ModelPart("test")
             self._initialize_model_part(model_part)
@@ -150,11 +148,10 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io = self._get_model_part_io(kratos_hdf5_file)
             hdf5_model_part_io.WriteModelPart(model_part)
             del hdf5_model_part_io, kratos_hdf5_file
-            xdmf_utils.WriteXdmfParametricCoordinates("test_xdmf_output.h5", "/ModelData/Nodes/Local")
+            xdmf_utils.WriteParametricCoordinates("test_xdmf_output.h5", "/ModelData/Nodes/Local")
             h5py_file = h5py.File("test_xdmf_output.h5", "r")
-            xdmf_model_part = xdmf_utils.XdmfModelPart(h5py_file, '/ModelData')
-            xdmf_model_part.Build()
-            #xdmf_utils.ET.ElementTree(xdmf_model_part.GetXmlElement()).write("test.xml")
+            mesh = xdmf_utils.KratosCollectionGrid(h5py_file, '/ModelData')
+            #xdmf_utils.ET.ElementTree(mesh.root).write("test.xml")
             self._remove_file("test_xdmf_output.h5")
 
     def test_XdmfStaticResults(self):
@@ -167,9 +164,8 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_nodal_solution_step_data_io = self._get_nodal_solution_step_data_io(kratos_hdf5_file)
             hdf5_nodal_solution_step_data_io.WriteNodalResults(model_part.Nodes, 0)
             del hdf5_nodal_solution_step_data_io, hdf5_model_part_io, kratos_hdf5_file
-            xdmf_utils.WriteXdmfParametricCoordinates("test_xdmf_output.h5", "/ModelData/Nodes/Local")
-            xdmf_results = xdmf_utils.XdmfStaticResults("test_xdmf_output.h5", "/ModelData", "test_xdmf_output.h5", "ResultsData")
-            xdmf_results.Build()
+            xdmf_utils.WriteParametricCoordinates("test_xdmf_output.h5", "/ModelData/Nodes/Local")
+            xdmf_results = xdmf_utils.KratosStaticResults("test_xdmf_output.h5", "/ModelData", "test_xdmf_output.h5", "ResultsData")
             #xdmf_utils.ET.ElementTree(xdmf_results.GetXmlElement()).write("test.xml")
             self._remove_file("test_xdmf_output.h5")
 
