@@ -109,7 +109,6 @@ public:
         mRatioTolerance       = NewRatioTolerance;
         mAlwaysConvergedNorm  = AlwaysConvergedNorm;
         mInitialResidualIsSet = false;
-        mHistoricalResidualNorm = 0.0;
     }
 
     //* Copy constructor.
@@ -118,7 +117,6 @@ public:
       :BaseType(rOther) 
       ,mInitialResidualIsSet(rOther.mInitialResidualIsSet)
       ,mRatioTolerance(rOther.mRatioTolerance)
-      ,mHistoricalResidualNorm(rOther.mHistoricalResidualNorm)
       ,mInitialResidualNorm(rOther.mInitialResidualNorm)
       ,mCurrentResidualNorm(rOther.mCurrentResidualNorm)
       ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)
@@ -150,7 +148,6 @@ public:
             if (mInitialResidualIsSet == false)
             {
                 mInitialResidualNorm = TSparseSpace::TwoNorm(b);
-                if (mInitialResidualNorm > mHistoricalResidualNorm) mHistoricalResidualNorm = mInitialResidualNorm;
                 mInitialResidualIsSet = true;
             }
 
@@ -159,8 +156,7 @@ public:
 
             const double b_size = TSparseSpace::Size(b);
             
-            if((mInitialResidualNorm/b_size < mAlwaysConvergedNorm) || 
-                mInitialResidualNorm/mHistoricalResidualNorm < mRatioTolerance)
+            if (mInitialResidualNorm/b_size < mAlwaysConvergedNorm)
             {
                 ratio = 0.0;
             }
@@ -303,8 +299,6 @@ private:
     bool mInitialResidualIsSet;
 
     TDataType mRatioTolerance;
-
-    TDataType mHistoricalResidualNorm;
     
     TDataType mInitialResidualNorm;
 
@@ -313,7 +307,6 @@ private:
     TDataType mAlwaysConvergedNorm;
 
     TDataType mReferenceDispNorm;
-
 
     ///@} 
     ///@name Private Operators
