@@ -173,10 +173,16 @@ namespace Kratos {
         {
             ModelPart model_part("Test");
             InitializeCompleteElement(model_part,"SymbolicNavierStokes2D3N",3);
+            Vector BdfVector = ZeroVector(3);
+            BdfVector[0] = 1.5/0.1;
+            BdfVector[1] = -2./0.1;
+            BdfVector[2] = 0.5/0.1;
+            model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS,BdfVector);
 
             Matrix LHS;
             Vector RHS;
 
+            model_part.ElementsBegin()->Initialize();
             model_part.ElementsBegin()->CalculateLocalSystem(LHS,RHS,model_part.GetProcessInfo());
 
             KRATOS_WATCH(LHS);
