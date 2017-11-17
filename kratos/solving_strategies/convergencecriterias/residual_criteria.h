@@ -117,7 +117,7 @@ public:
       :BaseType(rOther) 
       ,mInitialResidualIsSet(rOther.mInitialResidualIsSet)
       ,mRatioTolerance(rOther.mRatioTolerance)
-      ,mInitialResidualNorm(rOther.mInitialResidualNorm)
+      ,mInitialExternalForceNorm(rOther.mInitialExternalForceNorm)
       ,mCurrentResidualNorm(rOther.mCurrentResidualNorm)
       ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)
       ,mReferenceDispNorm(rOther.mReferenceDispNorm)
@@ -147,7 +147,7 @@ public:
         {
             if (mInitialResidualIsSet == false)
             {
-                mInitialResidualNorm = TSparseSpace::TwoNorm(b);
+                mInitialExternalForceNorm = ComputeExternalForcesVector(rDofSet,A,b);
                 mInitialResidualIsSet = true;
             }
 
@@ -156,13 +156,13 @@ public:
 
             const double b_size = TSparseSpace::Size(b);
             
-            if (mInitialResidualNorm/b_size < mAlwaysConvergedNorm)
+            if (mInitialExternalForceNorm/b_size < mAlwaysConvergedNorm)
             {
                 ratio = 0.0;
             }
             else
             {
-                ratio = mCurrentResidualNorm/mInitialResidualNorm;
+                ratio = mCurrentResidualNorm/mInitialExternalForceNorm;
             }
 
             TDataType absolute_norm = (mCurrentResidualNorm/b_size);
@@ -267,6 +267,26 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    TDataType ComputeExternalForcesVector(        
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& b
+        ) const 
+    {
+        TSystemVectorType f_ext(b.size());
+        TSystemVectorType x(b.size());
+        
+        #pragma omp parallel
+        for (auto it_dof = rDofSet.begin(); it_dof != rDofSet.end(); ++it_dof)
+        {
+            x[it_dof->EquationId()] = it_dof->GetSolutionStepValue();
+        }
+        
+        TSparseSpace::Mult(A, x, f_ext);
+        f_ext += b;
+        
+        return TSparseSpace::TwoNorm(f_ext);
+    }
 
     ///@} 
     ///@name Protected  Access 
@@ -300,7 +320,7 @@ private:
 
     TDataType mRatioTolerance;
     
-    TDataType mInitialResidualNorm;
+    TDataType mInitialExternalForceNorm;
 
     TDataType mCurrentResidualNorm;
 
