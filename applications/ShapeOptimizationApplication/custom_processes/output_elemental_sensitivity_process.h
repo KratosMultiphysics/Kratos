@@ -84,7 +84,8 @@ public:
         {
             "model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "file_name": "PLEASE_SPECIFY_H5_FILE_NAME",
-            "variable_list": ["ADJOINT_DISPLACEMENT"]
+            "variable_list": ["PLEASE_SPECIFY_VARIABLE_LIST"],
+            "output_variable_list": ["IY_SENSITIVITY_1"]
         })");
 
         // try accessing parameters without defaults so that an error is thrown
@@ -98,12 +99,21 @@ public:
         FilenameStream << rParameters["file_name"].GetString() << '_' << mrModelPart.GetCommunicator().MyPID() << ".h5";
         mFilename = FilenameStream.str();
 
-        // nodal variable names to output
+        // elemental variable names to output
         mVariables.resize(rParameters["variable_list"].size());
         for (unsigned int i = 0; i < mVariables.size(); i++)
         {
             mVariables[i] = rParameters["variable_list"].GetArrayItem(i).GetString();
         }
+
+        mOuputVariables.resize(rParameters["output_variable_list"].size());
+        for (unsigned int i = 0; i < mOuputVariables.size(); ++i)
+        {
+            mOuputVariables[i] = rParameters["output_variable_list"].GetArrayItem(i).GetString();
+        }
+
+
+
 
         mAlphaBossak = 0.0; //rParameters["alpha_bossak"].GetDouble();
 
@@ -279,7 +289,7 @@ public:
         });
 
         if (Delta != 0)
-            KRATOS_THROW_ERROR(std::runtime_error, "detected mismatch of node ids in HDF5 file: ", mFilename);
+            KRATOS_THROW_ERROR(std::runtime_error, "detected mismatch of element ids in HDF5 file: ", mFilename);
 
         // output time step data
         std::stringstream TimeStepPatchStream;
@@ -290,7 +300,7 @@ public:
         // write each variable
         for (unsigned int i = 0; i < mVariables.size(); i++)
         {
-            std::string DatasetName = TimeStepGroupName + "/" + mVariables[i];
+            std::string DatasetName = TimeStepGroupName + "/" + mOuputVariables[i];
             if (KratosComponents< Variable<double> >::Has(mVariables[i]))
             {
                 // double variable
@@ -519,6 +529,7 @@ private:
     std::string mFilename;
     SizeType mNumNodes;
     std::vector<std::string> mVariables;
+    std::vector<std::string> mOuputVariables;
     double mAlphaBossak;
 
     SizeType mNumElements;

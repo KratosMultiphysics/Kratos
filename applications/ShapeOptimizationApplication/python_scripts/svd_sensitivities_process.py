@@ -14,6 +14,10 @@ class SVDSensitivitiesProcess(KratosMultiphysics.Process):
         
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.svd_file_name = settings["file_name"].GetString()
+        self.variable_list = settings["variable_list"]
+        #print("#################")
+        #print("#################")
+        #print(self.variable_list[0].GetString())
         #ShapeOptimizationApplication.SVDSensitivitiesProcess.__init__(self, self.model_part, settings)
         
         
@@ -27,16 +31,63 @@ class SVDSensitivitiesProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         #self.__test_np_svd()
         #self.__svdAdjointDisplacements()
-        self.__svdElementalSensitivities()
-        
+        #self.__svdElementalSensitivities_IY()
+        self.__svdElementalSensitivities_IZ()
+
     # --------------------------------------------------------------------------
     # svd Elemental Sensitivities
-    def __svdElementalSensitivities(self):
+    def __svdElementalSensitivities_IZ(self):
         
         numElement = len(self.model_part.Elements)
         
         elemsensi_1 = np.empty(numElement)
         elemsensi_2 = np.empty(numElement)
+        
+        variable_1 = KratosMultiphysics.KratosGlobals.GetVariable(self.variable_list[0].GetString())
+        variable_2 = KratosMultiphysics.KratosGlobals.GetVariable(self.variable_list[1].GetString())
+        #Design_Sensitivity_1 = self.variable_list[0].GetString()
+        #Design_Sensitivity_2 = self.variable_list[1].GetString()
+        
+        print("#################")
+        
+        print("#################")
+        print(variable_1)
+        for elem in self.model_part.Elements:
+            #elemsensi_1[elem.Id - 1] = elem.GetValue(ShapeOptimizationApplication.IZ_SENSITIVITY_1)
+            #elemsensi_2[elem.Id - 1] = elem.GetValue(ShapeOptimizationApplication.IZ_SENSITIVITY_2)
+            elemsensi_1[elem.Id - 1] = elem.GetValue(variable_1)
+            elemsensi_2[elem.Id - 1] = elem.GetValue(variable_2)
+        #print(elemsensi_1)
+        #print(elemsensi_2)
+        
+        # SVD for IY_SENSITIVITY_1
+        sensi_matrix = np.stack((elemsensi_1,elemsensi_2))
+        
+        U,s,V = np.linalg.svd(sensi_matrix, full_matrices = True)
+        
+        print("singular values are:")
+        print(s)
+        print("objective modes are:")
+        print(U)
+        print("input modes are:")
+        print(V)
+        
+        # set input modes to the elements
+        for elem in self.model_part.Elements:
+            elem.SetValue(ShapeOptimizationApplication.IZ_SENSITIVITY_1, V[(elem.Id - 1),0])
+            elem.SetValue(ShapeOptimizationApplication.IZ_SENSITIVITY_2, V[(elem.Id - 1),1])
+            #print(elem)        
+    # --------------------------------------------------------------------------
+    # svd Elemental Sensitivities
+    def __svdElementalSensitivities_IY(self):
+        
+        numElement = len(self.model_part.Elements)
+        
+        elemsensi_1 = np.empty(numElement)
+        elemsensi_2 = np.empty(numElement)
+        
+        #Design_Sensitivity_1 = self.variable_list[0].GetString()
+        #Design_Sensitivity_2 = self.variable_list[1].GetString()
         
         for elem in self.model_part.Elements:
             elemsensi_1[elem.Id - 1] = elem.GetValue(ShapeOptimizationApplication.IY_SENSITIVITY_1)
