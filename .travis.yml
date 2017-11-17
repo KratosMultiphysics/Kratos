@@ -10,6 +10,7 @@ cache: ccache
 
 env:
   global:
+    - CCACHE_SLOPPINESS=pch_defines,time_macros
     - CCACHE_COMPILERCHECK=content
     - CCACHE_COMPRESS=true
     - CCACHE_NODISABLE=true
@@ -36,7 +37,6 @@ before_script:
 - export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/libs
 
 script:
-- ccache --set-config=sloppiness=pch_defines,time_macros
 - cp scripts/build/travis/configure_travis_trusty.sh cmake_build/configure.sh
 - cd cmake_build
 - bash configure.sh
