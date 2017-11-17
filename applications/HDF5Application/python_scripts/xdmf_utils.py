@@ -3,29 +3,34 @@ import h5py
 import numpy as np
 
 
-def WriteParametricCoordinates(file_name, nodes_path, label="ParametricCoordinates"):
-    """Writes the Xdmf parametric coordinate description for an array of node ids.
-
-    In partitioned simulations, the node ids are not sorted globally. In order
-    for xdmf to correctly specify connectivity data, the parametric coordinates
-    must be provided. This function generates the parametric coordinates from
-    the node ids and writes them to the hdf5 file. It expects node ids to be in
-    the range [1, nnodes] (see also ReorderConsecutiveModelPartIO).
+def WriteSortedCoordinates(file_name, nodes_path):
+    """Rewrites coordinates sorted by their node ids.
+    
+    In partitioned simulations, the node ids are not sorted globally. This
+    function writes the coordinates to an new sorted array so that the
+    connectivities can directly index the geometry without searching. It 
+    expects node ids to be in the range [1, nnodes] 
+    (see also ReorderConsecutiveModelPartIO).
 
     Keyword arguments:
     file_name -- name of the hdf5 file
     nodes_path -- file path to nodal data
-    label -- data set name of the parametric coordinates
     """
     with h5py.File(file_name, 'r+') as h5py_file:
+        if "SortedCoordinates" in h5py_file.get(nodes_path).keys():
+            return
         ids = h5py_file.get(nodes_path + '/Ids')
         if len(ids.shape) != 1 or ids.shape[0] == 0:
             raise Exception('Invalid node ids: "' + nodes_path + '/Ids"')
         size = ids.shape[0]
-        pcs = np.zeros(size, dtype=np.int32)
+        pcs = np.zeros(size, dtype=np.int32) # Parametric coordinates.
         for i in range(size):
-            pcs[ids[i]-1] = i + 1 # Use one-based indices.
-        dset = h5py_file.create_dataset(nodes_path + '/' + label, data=pcs)
+            pcs[ids[i]-1] = i # Ids are one-based indices.
+        coords = h5py_file.get(nodes_path + '/Coordinates')
+        sorted_coords = np.zeros(coords.shape)
+        for i in range(size):
+            sorted_coords[i,:] = coords[pcs[i],:]
+        dset = h5py_file.create_dataset(nodes_path + '/SortedCoordinates', data=sorted_coords)
 
 
 def GetDimsString(shape):
@@ -112,7 +117,8 @@ class KratosGeometry(XdmfElement):
     def __init__(self, h5py_file, file_path):
         XdmfElement.__init__(self, 'Geometry')
         self.root.set("GeometryType", "XYZ")
-        data = KratosCoordinateDataItem(h5py_file, file_path)
+        #data = KratosCoordinateDataItem(h5py_file, file_path)
+        data = XdmfHdfUniformDataItem(h5py_file, file_path + "/SortedCoordinates")
         self.root.append(data.root)
 
 
@@ -218,6 +224,7 @@ class KratosCollectionGrid(XdmfElement):
         XdmfElement.__init__(self, 'Grid')
         self.root.set("Name", "Mesh")
         self.root.set("GridType", "Collection")
+        self.root.set("CollectionType", "Spatial")
         nodes_path = prefix + "/Nodes/Local"
         geom = KratosGeometry(h5py_file, nodes_path)
         elems_path = prefix + "/Elements"
@@ -226,13 +233,23 @@ class KratosCollectionGrid(XdmfElement):
             topology = KratosTopology(h5py_file, elems_path + "/" + elem_name)
             uniform_grid = KratosUniformGrid(elem_name, topology, geom)
             self.root.append(uniform_grid.root)
-        conds_path = prefix + "/Conditions"
-        conds_group = h5py_file.get(conds_path)
-        for cond_name in conds_group.keys():
-            topology = KratosTopology(h5py_file, conds_path + "/" + cond_name)
-            uniform_grid = KratosUniformGrid(cond_name, topology, geom)
-            self.root.append(uniform_grid.root)
+        #conds_path = prefix + "/Conditions"
+        #conds_group = h5py_file.get(conds_path)
+        #for cond_name in conds_group.keys():
+        #    topology = KratosTopology(h5py_file, conds_path + "/" + cond_name)
+        #    uniform_grid = KratosUniformGrid(cond_name, topology, geom)
+        #    self.root.append(uniform_grid.root)
 
+
+class KratosTime(XdmfElement):
+    """Represents a Xdmf time element."""
+
+    def __init__(self, current_time):
+        XdmfElement.__init__(self, 'Time')
+        if not isinstance(current_time, str):
+            raise ValueError('"current_time" expects a string.')
+        self.root.set("TimeType", "Single")
+        self.root.set("Value", current_time)
 
 class KratosStaticResults(XdmfElement): 
     def __init__(self, model_part_file_name, model_part_prefix, results_file_name, results_prefix):
