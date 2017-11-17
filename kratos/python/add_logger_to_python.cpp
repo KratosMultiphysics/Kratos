@@ -27,35 +27,26 @@ namespace Python
 
 /**
  * Prints the arguments from the python script using the Kratos Logger class
- * @args: tuple boost::python::object representing the arguments of the function
+ * @args: tuple boost::python::object representing the arguments of the function The first argument is the label
  * @kwargs: dictionary of boost::python::objects resenting key-value pairs for
  * name arguments
  **/
 object print(tuple args, dict kwargs) {
+  if(len(args) == 0)
+    return object();
+  
   std::stringstream buffer;
-  LoggerOutput output(buffer);
-
-  LoggerMessage message;
-
-  list keys = kwargs.keys();
 
   // Extract the tuple part
-  for(int i = 0; i < len(args); ++i) {
+  for(int i = 1; i < len(args); ++i) {
     object curArg = args[i];
     if(curArg) {
-      message << extract<const char *>(boost::python::str(args[i])) << std::endl;
+      buffer << extract<const char *>(boost::python::str(args[i])) << std::endl;
     }
   }
+  const char* label = extract<const char *>(boost::python::str(args[0]));
 
-  // Extract the dict part
-  for(int i = 0; i < len(keys); ++i) {
-    object curArg = kwargs[keys[i]];
-    if(curArg) {
-      message << extract<const char *>(keys[i]) << ": " << extract<const char *>(boost::python::str(kwargs[keys[i]])) << std::endl;
-    }
-  }
-
-  output.WriteMessage(message);
+  Logger(std::string(label)) << buffer.str();
 
   return object();
 }
