@@ -1264,7 +1264,7 @@ protected:
         }
 
         // Return the penalty coefficient
-        const double K = 1000.0;
+        const double K = 10.0;
         // const double denominator = std::max(0.001 * rData.h * rData.h, intersection_area);
         // const double pen_coef = K * diag_max / denominator;
         const double pen_coef = K * diag_max / intersection_area;
