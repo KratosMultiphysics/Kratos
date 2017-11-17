@@ -69,7 +69,8 @@ namespace Kratos
 				STATUS,
 				CRITICAL,
 				STATISTICS,
-				PROFILING
+				PROFILING,
+				CHECKING
 			};
 
 			///@}
