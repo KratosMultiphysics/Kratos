@@ -92,7 +92,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(int, PARTICLE_ID)
   KRATOS_CREATE_VARIABLE(bool, CONTAINS_CLUSTERS)
   KRATOS_CREATE_VARIABLE(bool, RANDOM_ORIENTATION)
-  KRATOS_CREATE_VARIABLE(bool, FLOATING_OPTION)
   KRATOS_CREATE_VARIABLE(int, LOCAL_RESOLUTION_METHOD)
   KRATOS_CREATE_VARIABLE(int, COMPUTE_FEM_RESULTS_OPTION) 
   KRATOS_CREATE_VARIABLE(int, BREAKABLE_CLUSTER) 
@@ -223,7 +222,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(int, RIGID_BODY_MOTION)
   KRATOS_CREATE_VARIABLE(int, FREE_BODY_MOTION)
   KRATOS_CREATE_VARIABLE(double, RIGID_BODY_MASS)
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(RIGID_BODY_CENTROID)
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(RIGID_BODY_CENTER_OF_MASS)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(RIGID_BODY_INERTIAS)
 
   // FORCE AND MOMENTUM
@@ -403,6 +402,7 @@ namespace Kratos
     mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mRigidBodyElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mShipElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mCubeCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mPillCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mEllipsoidCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -476,7 +476,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(PARTICLE_ID)
     KRATOS_REGISTER_VARIABLE(CONTAINS_CLUSTERS)
     KRATOS_REGISTER_VARIABLE(RANDOM_ORIENTATION)
-    KRATOS_REGISTER_VARIABLE(FLOATING_OPTION)
     KRATOS_REGISTER_VARIABLE(LOCAL_RESOLUTION_METHOD)
     KRATOS_REGISTER_VARIABLE(COMPUTE_FEM_RESULTS_OPTION) 
     KRATOS_REGISTER_VARIABLE(BREAKABLE_CLUSTER)
@@ -609,7 +608,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(RIGID_BODY_MOTION)
     KRATOS_REGISTER_VARIABLE(FREE_BODY_MOTION)
     KRATOS_REGISTER_VARIABLE(RIGID_BODY_MASS)
-    KRATOS_REGISTER_VARIABLE(RIGID_BODY_CENTROID)
+    KRATOS_REGISTER_VARIABLE(RIGID_BODY_CENTER_OF_MASS)
     KRATOS_REGISTER_VARIABLE(RIGID_BODY_INERTIAS)
 
     // FORCE AND MOMENTUM
@@ -772,7 +771,8 @@ namespace Kratos
     KRATOS_REGISTER_CONDITION("RigidEdge3D2N", mRigidEdge3D2N)
 
     KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
-    KRATOS_REGISTER_ELEMENT("RigidBodyElement3D", mRigidBodyElement3D)        
+    KRATOS_REGISTER_ELEMENT("RigidBodyElement3D", mRigidBodyElement3D)
+    KRATOS_REGISTER_ELEMENT("ShipElement3D", mShipElement3D)        
     KRATOS_REGISTER_ELEMENT("CubeCluster3D", mCubeCluster3D)
     KRATOS_REGISTER_ELEMENT("PillCluster3D", mPillCluster3D)
     KRATOS_REGISTER_ELEMENT("EllipsoidCluster3D", mEllipsoidCluster3D)

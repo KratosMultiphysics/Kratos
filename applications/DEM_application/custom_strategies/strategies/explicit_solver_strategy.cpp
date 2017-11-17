@@ -805,9 +805,9 @@ namespace Kratos {
         Geometry<Node<3> >::PointsArrayType central_node_list;
         
         array_1d<double, 3> reference_coordinates;
-        reference_coordinates[0] = submp[RIGID_BODY_CENTROID][0];
-        reference_coordinates[1] = submp[RIGID_BODY_CENTROID][1];
-        reference_coordinates[2] = submp[RIGID_BODY_CENTROID][2];
+        reference_coordinates[0] = submp[RIGID_BODY_CENTER_OF_MASS][0];
+        reference_coordinates[1] = submp[RIGID_BODY_CENTER_OF_MASS][1];
+        reference_coordinates[2] = submp[RIGID_BODY_CENTER_OF_MASS][2];
 
         int Node_Id_1 = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(fem_model_part);
         int Node_Id_2 = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(rigid_body_model_part);

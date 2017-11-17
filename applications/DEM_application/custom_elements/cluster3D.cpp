@@ -106,7 +106,6 @@ namespace Kratos {
         mListOfRadii.resize(number_of_spheres);
         mListOfCoordinates.resize(number_of_spheres);
         mListOfSphericParticles.resize(number_of_spheres);
-        mFloatingFlag = false;
         
         const double scaling_factor = cl / reference_size;
         

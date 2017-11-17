@@ -55,11 +55,8 @@ namespace Kratos {
         virtual void UpdateLinearDisplacementAndVelocityOfNodes();
         virtual void GetRigidBodyElementsForce(const array_1d<double,3>& gravity);
         virtual void CollectForcesAndTorquesFromTheNodesOfARigidBodyElement();
-        virtual void ComputeBuoyancyEffects();
         virtual void ComputeAdditionalForces(const array_1d<double,3>& gravity);
         virtual void AddUpAllForcesAndMoments();
-        virtual void ComputeEngineForce();
-        virtual void ComputeWaterDragForce();
         virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
         virtual void SetInitialConditionsToNodes(const array_1d<double,3>& velocity);
         
@@ -90,7 +87,6 @@ namespace Kratos {
         std::vector<array_1d<double, 3> > mListOfCoordinates;
         std::vector<Node<3>::Pointer > mListOfNodes;
         DEMIntegrationScheme* mpIntegrationScheme;
-        bool mFloatingFlag;
  
     //protected:
 
@@ -113,7 +109,7 @@ namespace Kratos {
         }
 
     }; // Class RigidBodyElement3D
-   
+    
     /// input stream function
     inline std::istream& operator >> (std::istream& rIStream, RigidBodyElement3D& rThis);
 
@@ -126,7 +122,7 @@ namespace Kratos {
 
         return rOStream;
     }
- 
+   
 } // namespace Kratos
 
 #endif // KRATOS_RIGID_BODY_ELEMENT_H_INCLUDED  defined
