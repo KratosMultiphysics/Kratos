@@ -79,6 +79,7 @@ namespace Kratos {
     VolumetricCoeff = FluidBulkModulus*timeStep;
 
     if(FluidYieldShear!=0){
+      // std::cout<<"For a Newtonian fluid I should not enter here"<<std::endl;
       DeviatoricCoeff=this->ComputeNonLinearViscosity(rElementalVariables.EquivalentStrainRate);
     }else{
       this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);

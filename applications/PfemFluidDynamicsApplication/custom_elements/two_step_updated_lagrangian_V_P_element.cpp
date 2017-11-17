@@ -1088,8 +1088,8 @@ bool TwoStepUpdatedLagrangianVPElement<2>::CalcCompleteStrainRate(ElementalVaria
 						  rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2]));
 
   rElementalVariables.EquivalentStrainRate=sqrt((2.0*rElementalVariables.SpatialDefRate[0]*rElementalVariables.SpatialDefRate[0] +
-  			 2.0*rElementalVariables.SpatialDefRate[1]*rElementalVariables.SpatialDefRate[1] +
-  			 4.0*rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2]));
+						 2.0*rElementalVariables.SpatialDefRate[1]*rElementalVariables.SpatialDefRate[1] +
+						 4.0*rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2]));
 
   return computeElement;
 
