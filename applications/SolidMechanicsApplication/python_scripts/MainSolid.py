@@ -166,22 +166,16 @@ class Solution(object):
 
 
         # Print model_part and properties
-        if(self.echo_level>1):
+        if(self.echo_level>0):
             print("")
             print(self.main_model_part)
             for properties in self.main_model_part.Properties:
                 print(properties)
 
-
-        #### START SOLUTION ####
-
-        self.computing_model_part = self.solver.GetComputingModelPart()
-        
-        ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
-        self.solver.Initialize()
         
         # Initialize GiD  I/O (gid outputs, file_lists)
-        self.SetGraphicalOutput()
+        output_model_part = self.solver.GetComputingModelPart()
+        self.SetGraphicalOutput(output_model_part)
         
         self.GraphicalOutputExecuteInitialize()
 
@@ -189,10 +183,20 @@ class Solution(object):
         print(" ")
         print("::[KSM Simulation]:: Analysis -START- ")
 
+        # First execution before solution loop
+        
         self.model_processes.ExecuteBeforeSolutionLoop()
 
         self.GraphicalOutputExecuteBeforeSolutionLoop()        
 
+
+        #### START SOLUTION ####
+      
+        ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
+        self.model_processes.ExecuteInitializeSolutionStep() #trick to use not block builder
+        self.solver.Initialize()
+
+        
         # Set time settings
         self.step       = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
         self.time       = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
@@ -294,12 +298,12 @@ class Solution(object):
         print(timer.ctime())
 
         
-    def SetGraphicalOutput(self):
+    def SetGraphicalOutput(self, model_part):
         from gid_output_process import GiDOutputProcess
         self.output_settings = self.ProjectParameters["output_configuration"]
-        self.graphical_output = GiDOutputProcess(self.computing_model_part,
-                                      self.problem_name,
-                                      self.output_settings)        
+        self.graphical_output = GiDOutputProcess(model_part,
+                                                 self.problem_name,
+                                                 self.output_settings)        
 
     def GraphicalOutputExecuteInitialize(self):
         self.graphical_output.ExecuteInitialize() 
