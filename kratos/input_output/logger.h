@@ -31,11 +31,6 @@ namespace Kratos
   ///@addtogroup Kratos
   ///@{
 
-  ///@name Kratos Macros
-  ///@{ 
-
-
-  ///@} 
   ///@name Type Definitions
   ///@{ 
   
@@ -231,7 +226,18 @@ namespace Kratos
     }
   ///@}
 
-  ///@} addtogroup block
+    ///@name Kratos Macros
+    ///@{
+#if defined(KRATOS_ENABLE_CHECK_POINT)
+#define KRATOS_CHECK_POINT(label) Logger(label) << Logger::Category::CHECKING
+#else
+#define KRATOS_CHECK_POINT(label) \
+  if (false)                      \
+    Logger(label) << Logger::Category::CHECKING
+#endif
+    ///@}
+
+    ///@} addtogroup block
 
 }  // namespace Kratos.
 
