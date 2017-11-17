@@ -947,8 +947,8 @@ protected:
             solution_jump = - prev_sol;
         }
 
-        // Compute the penalty coefficient (TODO: Implement a K depending on the element size)
-        const double pen_coef = ComputePenaltyCoefficient(rLeftHandSideMatrix, rData);
+        // Compute the penalty coefficient
+        const double pen_coef = ComputePenaltyCoefficient(rData);
 
         // Compute the LHS and RHS penalty contributions
         bounded_matrix<double, MatrixSize, MatrixSize> P_gamma = ZeroMatrix(MatrixSize, MatrixSize);
@@ -1046,8 +1046,8 @@ protected:
             solution_jump = - prev_sol;
         }
 
-        // Compute the penalty coefficient (TODO: Implement a K independent of the LHS)
-        const double pen_coef = 100.0;
+        // Compute the penalty coefficient
+        const double pen_coef = ComputePenaltyCoefficient(rData);
 
         // Compute the RHS penalty contributions
         array_1d<double, MatrixSize> P_gamma_RHS = ZeroVector(MatrixSize); 
@@ -1239,35 +1239,42 @@ protected:
     }
 
     /**
-    * This function computes the penalty coefficient for the level set BC imposition
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
+    * This function computes the penalty coefficient for the level set normal velocity imposition
     * @param rData: reference to element data structure
     */
-    double ComputePenaltyCoefficient(MatrixType &rLeftHandSideMatrix,
-                                     const EmbeddedAusasElementDataStruct &rData)
-    {
-        constexpr unsigned int BlockSize = TDim + 1;
-        constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
-
-        // Compute the penalty coefficient as K*max(LHS(i,i))*IntArea (we integrate P_gamma over the intersection area)
-        double diag_max = 0.0;
-        for (unsigned int i = 0; i < MatrixSize; i++) {
-            if ((std::abs(rLeftHandSideMatrix(i, i)) > diag_max) && ((i+1) % BlockSize != 0.0)) {
-                diag_max = std::abs(rLeftHandSideMatrix(i, i)); // Maximum diagonal value (associated to velocity)
-            }
-        }
-
+    double ComputePenaltyCoefficient(const EmbeddedAusasElementDataStruct &rData) {
+        
         // Compute the intersection area using the Gauss pts. weights
         double intersection_area = 0.0;
         for (unsigned int i_gauss = 0; i_gauss < (rData.w_gauss_pos_int).size(); ++i_gauss) {
             intersection_area += rData.w_gauss_pos_int(i_gauss);
         }
 
+        // Compute the element average values
+        double avg_rho = 0.0;
+        double avg_visc = 0.0;
+        array_1d<double, 3> avg_vel = ZeroVector(3);
+
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+            avg_rho += rData.rho(i_node);
+            avg_visc += rData.mu(i_node);
+            avg_vel += row(rData.v, i_node);
+        }
+
+        avg_rho /= TNumNodes;
+        avg_visc /= TNumNodes;
+        avg_vel /= TNumNodes;
+
+        const double v_norm = norm_2(avg_vel);
+
+        // Compute the penalty constant
+        const double pen_cons = avg_rho*std::pow(rData.h, TDim)/rData.dt + 
+                                avg_rho*avg_visc*std::pow(rData.h,TDim-2) + 
+                                avg_rho*v_norm*std::pow(rData.h, TDim-1);
+
         // Return the penalty coefficient
         const double K = 10.0;
-        // const double denominator = std::max(0.001 * rData.h * rData.h, intersection_area);
-        // const double pen_coef = K * diag_max / denominator;
-        const double pen_coef = K * diag_max / intersection_area;
+        const double pen_coef = K * pen_cons / intersection_area;
 
         return pen_coef;
     }
