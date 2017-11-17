@@ -202,7 +202,7 @@ Begin Elements Element2D3N// GUI group identifier: Fluid
        112          1         53         61         55 
 End Elements
 
-Begin Conditions WallCondition2D2N// GUI group identifier: Inlet2D
+Begin Conditions WallCondition2D2N// GUI group identifier: Inlet
 1 0 72 71
 2 0 71 70
 3 0 70 68
@@ -210,7 +210,7 @@ Begin Conditions WallCondition2D2N// GUI group identifier: Inlet2D
 5 0 67 66
 End Conditions
 
-Begin Conditions WallCondition2D2N// GUI group identifier: Outlet2D
+Begin Conditions WallCondition2D2N// GUI group identifier: Outlet
 6 0 1 3
 7 0 3 7
 8 0 7 12
@@ -218,7 +218,7 @@ Begin Conditions WallCondition2D2N// GUI group identifier: Outlet2D
 10 0 19 27
 End Conditions
 
-Begin Conditions WallCondition2D2N// GUI group identifier: Top2D
+Begin Conditions WallCondition2D2N// GUI group identifier: Top
 11 0 27 28
 12 0 28 32
 13 0 32 35
@@ -231,7 +231,7 @@ Begin Conditions WallCondition2D2N// GUI group identifier: Top2D
 20 0 69 72
 End Conditions
 
-Begin Conditions WallCondition2D2N// GUI group identifier: Bottom2D
+Begin Conditions WallCondition2D2N// GUI group identifier: Bottom
 21 0 66 60
 22 0 60 54
 23 0 54 45
@@ -436,7 +436,7 @@ Begin SubModelPart Parts_Fluid // Group Fluid // Subtree Parts
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart Inlet2D // Group Inlet2D // Subtree AutomaticInlet2D
+Begin SubModelPart Inlet // Group Inlet // Subtree AutomaticInlet
     Begin SubModelPartNodes
         66
         67
@@ -455,7 +455,7 @@ Begin SubModelPart Inlet2D // Group Inlet2D // Subtree AutomaticInlet2D
          5
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart Outlet2D // Group Outlet2D // Subtree Outlet2D
+Begin SubModelPart Outlet // Group Outlet // Subtree Outlet
     Begin SubModelPartNodes
          1
          3
@@ -474,7 +474,7 @@ Begin SubModelPart Outlet2D // Group Outlet2D // Subtree Outlet2D
         10
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart Top2D // Group Top2D // Subtree NoSlip2D
+Begin SubModelPart Top // Group Top // Subtree NoSlip2D
     Begin SubModelPartNodes
         27
         28
@@ -503,7 +503,7 @@ Begin SubModelPart Top2D // Group Top2D // Subtree NoSlip2D
         20
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart Bottom2D // Group Bottom2D // Subtree NoSlip2D
+Begin SubModelPart Bottom // Group Bottom // Subtree NoSlip2D
     Begin SubModelPartNodes
          1
          2

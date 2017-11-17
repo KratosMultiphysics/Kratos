@@ -40,8 +40,8 @@
             "input_filename" : "couette_ausas_2D"
         },
         "maximum_iterations"           : 1,
-        "dynamic_tau"                  : 0.001,
-        "echo_level"                   : 0,
+        "dynamic_tau"                  : 1.0,
+        "echo_level"                   : 4,
         "time_order"                   : 2,
         "compute_reactions"            : false,
         "divergence_clearance_steps"   : 0,
@@ -51,18 +51,11 @@
         "relative_pressure_tolerance"  : 1e-5,
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
-            "solver_type": "AMGCL",
-            "max_iteration": 100,
-            "tolerance": 1e-9,
-            "provide_coordinates": false,
-            "smoother_type": "ilu0",
-            "krylov_type": "lgmres",
-            "coarsening_type": "aggregation",
-            "scaling": false,
-            "verbosity": 2
+            "solver_type"         : "AMGCL_NS_Solver",
+            "verbosity"           : 2
         },
         "volume_model_part_name"       : "Parts_Fluid",
-        "skin_parts"                   : ["Inlet2D","Outlet2D","Top2D"],
+        "skin_parts"                   : ["Inlet","Outlet","Top","Bottom"],
         "no_skin_parts"                : [],
         "time_stepping"                : {
             "automatic_time_step" : false,
@@ -75,19 +68,7 @@
         "kratos_module" : "KratosMultiphysics",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Inlet2D",
-            "variable_name"   : "VELOCITY",
-            "value"           : [1.0, 0.0, 0.0],
-            "constrained"     : [true,true,true]
-        }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Outlet2D",
+            "model_part_name" : "Outlet",
             "variable_name"   : "VELOCITY",
             "value"           : [null, 0.0, 0.0],
             "constrained"     : [false,true,true]
@@ -97,29 +78,30 @@
         "kratos_module" : "KratosMultiphysics",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Outlet2D",
+            "model_part_name" : "Outlet",
             "variable_name"   : "PRESSURE",
             "value"           : 0.0,
             "constrained"     : true
         }
     },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorVariableProcess",
+        "python_module" : "apply_slip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplySlipProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Top2D",
-            "variable_name"   : "VELOCITY",
-            "value"           : [1.0, 0.0, 0.0],
-            "constrained"     : [true,true,true]
+            "model_part_name" : "Top"
+        }
+    },{
+        "python_module" : "apply_slip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplySlipProcess",
+        "Parameters"    : {
+            "model_part_name" : "Bottom"
         }
     },{
         "python_module" : "apply_distance_modification_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "process_name"  : "ApplyDistanceModificationProcess",
         "Parameters"    : {
-            "mesh_id"                   : 0,
             "model_part_name"           : "Parts_Fluid",
             "check_at_each_time_step"   : false
         }

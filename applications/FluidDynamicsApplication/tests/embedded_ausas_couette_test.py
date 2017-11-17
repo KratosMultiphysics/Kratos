@@ -25,7 +25,7 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
         with WorkFolderScope(self.work_folder):
             self.setUp()
             self.setUpProblem()
-            self.setUpDistanceBoundaryConditions()
+            self.setUpBoundaryConditions()
             self.runTest()
             self.tearDown()
             self.checkResults()
@@ -38,7 +38,7 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
         with WorkFolderScope(self.work_folder):
             self.setUp()
             self.setUpProblem()
-            self.setUpDistanceBoundaryConditions()
+            self.setUpBoundaryConditions()
             self.runTest()
             self.tearDown()
             self.checkResults()
@@ -101,11 +101,45 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
             for process in self.list_of_processes:
                 process.ExecuteInitialize()
 
-    def setUpDistanceBoundaryConditions(self):
+    def setUpBoundaryConditions(self):
         # Set the distance function
         for node in self.main_model_part.Nodes:
             distance = node.Y-self.distance
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
+
+        # Set the inlet function
+        for node in self.main_model_part.GetSubModelPart("Inlet").Nodes:
+            if (node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0):
+                aux_vel = KratosMultiphysics.Vector(3);
+                aux_vel[0] = 1.0
+                aux_vel[1] = 0.0
+                aux_vel[2] = 0.0
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
+                node.Fix(KratosMultiphysics.VELOCITY_X)
+                node.Fix(KratosMultiphysics.VELOCITY_Y)
+                node.Fix(KratosMultiphysics.VELOCITY_Z)
+            else:
+                aux_vel = KratosMultiphysics.Vector(3);
+                aux_vel[0] = 0.0
+                aux_vel[1] = 0.0
+                aux_vel[2] = 0.0
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
+                node.Fix(KratosMultiphysics.VELOCITY_X)
+                node.Fix(KratosMultiphysics.VELOCITY_Y)
+                node.Fix(KratosMultiphysics.VELOCITY_Z)
+
+        # Set the outlet velocity to zero in the negative distance nodes
+        # for node in self.main_model_part.GetSubModelPart("Outlet").Nodes:
+        #     if (node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0):
+        #         aux_vel = KratosMultiphysics.Vector(3);
+        #         aux_vel[0] = 0.0
+        #         aux_vel[1] = 0.0
+        #         aux_vel[2] = 0.0
+        #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
+        #         node.Fix(KratosMultiphysics.VELOCITY_X)
+        #         node.Fix(KratosMultiphysics.VELOCITY_Y)
+        #         node.Fix(KratosMultiphysics.VELOCITY_Z)
+
 
     def runTest(self):
         with WorkFolderScope(self.work_folder):
@@ -205,7 +239,7 @@ if __name__ == '__main__':
     test.work_folder = "EmbeddedAusasCouetteTest2D"   
     test.settings = "EmbeddedAusasCouetteTestParameters.json"
     test.setUpProblem()
-    test.setUpDistanceBoundaryConditions()
+    test.setUpBoundaryConditions()
     test.runTest()
     test.tearDown()
     test.checkResults()

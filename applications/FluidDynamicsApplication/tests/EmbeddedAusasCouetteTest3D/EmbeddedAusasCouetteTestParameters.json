@@ -62,7 +62,7 @@
             "verbosity": 2
         },
         "volume_model_part_name"       : "Parts_Fluid",
-        "skin_parts"                   : ["Inlet3D","Outlet3D","Top3D","Sides3D"],
+        "skin_parts"                   : ["Inlet","Outlet3D","Top3D","Sides3D"],
         "no_skin_parts"                : [],
         "time_stepping"                : {
             "automatic_time_step" : false,
