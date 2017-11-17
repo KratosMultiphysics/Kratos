@@ -314,12 +314,12 @@ public:
         return aux_sum;
     }
 
-    static void Mult(Matrix& rA, VectorType& rX, VectorType& rY)
+    static void Mult(const Matrix& rA, VectorType& rX, VectorType& rY)
     {
         axpy_prod(rA, rX, rY, true);
     }
 
-    static void Mult(compressed_matrix<TDataType>& rA, VectorType& rX, VectorType& rY)
+    static void Mult(const compressed_matrix<TDataType>& rA, VectorType& rX, VectorType& rY)
     {
 #ifndef _OPENMP
         axpy_prod(rA, rX, rY, true);
