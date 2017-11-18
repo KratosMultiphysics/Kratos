@@ -216,7 +216,7 @@ public:
             const double tol = std::pow(1e-3*rData.h, TDim-1); // Tolerance to avoid the unit normal to blow up
             const unsigned int n_gauss = (rData.pos_int_unit_normals).size();
 
-            for (unsigned int i_gauss = 0;  i_gauss < n_gauss; i_gauss) {
+            for (unsigned int i_gauss = 0;  i_gauss < n_gauss; ++i_gauss) {
                 Vector& normal = rData.pos_int_unit_normals[i_gauss];
                 const double n_norm = norm_2(normal);
                 normal /= std::max(n_norm, tol);
