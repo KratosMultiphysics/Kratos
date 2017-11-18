@@ -10,6 +10,7 @@
 //
 #include "shell_cross_section.hpp"
 #include "structural_mechanics_application_variables.h"
+#include "includes/element.h"
 
 namespace Kratos
 {
@@ -460,6 +461,7 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
             {
                 // get the angle in radians of this ply w.r.t the parent section
                 double alpha = Globals::Pi / 180.0 * iPlyAngle;
+
 
                 // make a copy of the generalized strain vector in section coordinate system
                 // and then rotate the (working) generalized strain vector in this ply coordinate system

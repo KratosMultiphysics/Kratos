@@ -99,6 +99,12 @@ add_library(KratosDEMApplication SHARED ${KRATOS_DEM_APPLICATION_SOURCES})
 #)
 #endif(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
 ADD_COMPILER_EXPORT_FLAGS()
+
+# Add Cotire
+if(USE_COTIRE MATCHES ON)
+  cotire(KratosDEMApplication)
+endif(USE_COTIRE MATCHES ON)
+
 target_link_libraries(KratosDEMApplication KratosCore )
 set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
 set_target_properties(KratosDEMApplication PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")

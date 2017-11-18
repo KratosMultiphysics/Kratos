@@ -25,8 +25,6 @@
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
 
-/* Project includes */
-#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -69,10 +67,6 @@ public:
     typedef std::size_t SizeType;
     
     typedef unsigned int IndexType;
-
-    typedef UblasSpace<TDataType, CompressedMatrix, Vector> SparseSpaceType;
-    
-    typedef UblasSpace<TDataType, Matrix, Vector> LocalSpaceType;
 
     ///@}
     ///@name Life Cycle
@@ -800,7 +794,10 @@ public:
         return c;
     }
 
-    static inline array_1d<double, 3> UnitCrossProduct(
+    //this function is deprecated since instead of giving back vec x Tuple it gives back Tuple x Vec ( = -Vec x Tuple)
+    //THAT IS -- THIS FUNCTION GIVES BACK THE OPPOSITE SIGN OF THE PRODUCT
+    //please use instead CrossProd(c,a,b) which is also in general more optimal since it never creates tmp on return
+    KRATOS_DEPRECATED static inline array_1d<double, 3> UnitCrossProduct(
         const array_1d<double, 3>& vec, 
         const array_1d<double, 3>& Tuple
         )
@@ -816,7 +813,10 @@ public:
         return cross;
     }
 
-    static inline array_1d<double, 3> CrossProduct(
+    //this function is deprecated since instead of giving back vec x Tuple it gives back Tuple x Vec ( = -Vec x Tuple)
+    //THAT IS -- THIS FUNCTION GIVES BACK THE OPPOSITE SIGN OF THE PRODUCT
+    //please use instead CrossProd(c,a,b) which is also in general more optimal since it never creates tmp on return
+    KRATOS_DEPRECATED static inline array_1d<double, 3> CrossProduct(
         const array_1d<double, 3>& vec, 
         const array_1d<double, 3>& Tuple
         )
@@ -846,6 +846,25 @@ public:
         c[0] = a[1]*b[2] - a[2]*b[1];
         c[1] = a[2]*b[0] - a[0]*b[2];
         c[2] = a[0]*b[1] - a[1]*b[0];
+    }
+    
+    //general version    
+    template< class T1, class T2, class T3 >
+    static inline void CrossProduct(T1& c, const T2& a, const T3& b ){
+        c[0] = a[1]*b[2] - a[2]*b[1];
+        c[1] = a[2]*b[0] - a[0]*b[2];
+        c[2] = a[0]*b[1] - a[1]*b[0];
+    }
+
+    template< class T1, class T2, class T3 >
+    static inline void UnitCrossProduct(T1& c, const T2& a, const T3& b ){
+        CrossProduct(c,a,b);
+        double norm = norm_2(c);
+#ifdef KRATOS_DEBUG
+        if(norm < 1000.0*std::numeric_limits<double>::epsilon())
+            KRATOS_ERROR << "norm is 0 when making the UnitCrossProduct of the vectors " << a << " and " << b << std::endl;
+#endif
+        c/=norm;
     }
     
     /**

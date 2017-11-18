@@ -159,6 +159,12 @@ void DivideTetrahedra3D4::GenerateIntersectionsSkin() {
         const int n_nodes = 4;
         const unsigned int n_faces = 4;
 
+        // Clear the interfaces vectors
+        mPositiveInterfaces.clear();
+        mNegativeInterfaces.clear();
+        mPositiveInterfacesParentIds.clear();
+        mNegativeInterfacesParentIds.clear();
+
         if (mIsSplit) {
 
             const unsigned int n_positive_subdivision = mPositiveSubdivisions.size();
@@ -187,6 +193,7 @@ void DivideTetrahedra3D4::GenerateIntersectionsSkin() {
                                                                                                                           mAuxPointsContainer(node_j_key),
                                                                                                                           mAuxPointsContainer(node_k_key));
                         mPositiveInterfaces.push_back(p_intersection_tri);
+                        mPositiveInterfacesParentIds.push_back(i_subdivision);
                     }
                 }
             }
@@ -214,6 +221,7 @@ void DivideTetrahedra3D4::GenerateIntersectionsSkin() {
                                                                                                                           mAuxPointsContainer(node_j_key),
                                                                                                                           mAuxPointsContainer(node_k_key));
                         mNegativeInterfaces.push_back(p_intersection_tri);
+                        mNegativeInterfacesParentIds.push_back(i_subdivision);
                     }
                 }
             }
