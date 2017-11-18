@@ -397,7 +397,7 @@ public:
      */
     
     template <typename TType>
-    static inline std::vector<std::size_t> SortIndexes(const std::vector<TType> &ThisVector) 
+    static std::vector<std::size_t> SortIndexes(const std::vector<TType> &ThisVector) 
     {
         // Initialize original index locations
         std::vector<std::size_t> idx(ThisVector.size());
