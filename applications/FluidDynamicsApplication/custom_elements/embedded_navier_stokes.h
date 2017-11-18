@@ -148,7 +148,7 @@ public:
     }
 
     /**
-     * Fill the element data structure. If the element is split, 
+     * Fill the element data structure. If the element is split,
      * calls the modified shape functions calculator.
      * @param rData: reference to the element data structure
      * @param rCurrentProcessInfo: reference to the ProcessInfo
@@ -206,11 +206,21 @@ public:
                 rData.DN_DX_pos_int,
                 rData.w_gauss_pos_int,
                 GeometryData::GI_GAUSS_2);
-            
+
             // Call the fluid side Gauss pts. unit normal calculator
             p_modified_sh_func->ComputePositiveSideInterfaceAreaNormals(
                 rData.pos_int_unit_normals,
                 GeometryData::GI_GAUSS_2);
+
+            // Normalize the obtained area normals
+            const double tol = std::pow(1e-3*rData.h, TDim-1); // Tolerance to avoid the unit normal to blow up
+            const unsigned int n_gauss = (rData.pos_int_unit_normals).size();
+
+            for (unsigned int i_gauss = 0;  i_gauss < n_gauss; i_gauss) {
+                Vector& normal = rData.pos_int_unit_normals[i_gauss];
+                const double n_norm = norm_2(normal);
+                normal /= std::max(n_norm, tol);
+            }
         }
     };
 
@@ -303,7 +313,7 @@ public:
         VectorType& rRightHandSideVector,
         EmbeddedElementDataStruct& rData,
         const ProcessInfo& rCurrentProcessInfo) {
-        
+
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_local;
         bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
@@ -458,7 +468,7 @@ protected:
             bounded_matrix<double, (TDim-1)*3, MatrixSize> B_matrix = ZeroMatrix((TDim-1)*3, MatrixSize);
             SetInterfaceStrainMatrix(aux_DN_DX, B_matrix);
 
-            // Compute some Gauss pt. auxiliar matrices  
+            // Compute some Gauss pt. auxiliar matrices
             const bounded_matrix<double, TDim, (TDim-1)*3> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
             const bounded_matrix<double, (TDim-1)*3, MatrixSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
 
@@ -477,25 +487,25 @@ protected:
                     N_aux_trans(i*BlockSize+comp, comp) = aux_N(i);
                 }
             }
-            
+
             // Contribution coming fron the shear stress operator
             auxLeftHandSideMatrix += weight*prod(N_aux_trans, aux_matrix_ACB);
-            
-            
+
+
             // Contribution coming from the pressure terms
             const bounded_matrix<double, MatrixSize, (TDim-1)*3> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
             auxLeftHandSideMatrix -= weight*prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
-            
+
         }
-        
+
         // LHS assembly
         rLeftHandSideMatrix -= auxLeftHandSideMatrix;
-        
+
         // RHS assembly
         rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol);
     }
-    
-    
+
+
     /**
      * This function computes the penalty coefficient for the level set BC imposition
      * @param rLeftHandSideMatrix: reference to the LHS matrix
@@ -550,7 +560,7 @@ protected:
         GetPreviousSolutionVector(rData, prev_sol);
 
         // Set the penalty matrix
-        MatrixType P_gamma(TNumNodes, TNumNodes);    
+        MatrixType P_gamma(TNumNodes, TNumNodes);
         noalias(P_gamma) = ZeroMatrix(TNumNodes, TNumNodes);
 
         const unsigned int n_gauss_total = (rData.w_gauss_pos_int).size();
@@ -613,7 +623,7 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const EmbeddedElementDataStruct& rData) {
-                                                            
+
         constexpr unsigned int BlockSize = TDim+1;                 // Block size
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
 
@@ -758,7 +768,7 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const EmbeddedElementDataStruct& rData) {
-        
+
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -957,7 +967,7 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const EmbeddedElementDataStruct& rData) {
-        
+
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -1055,7 +1065,7 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const EmbeddedElementDataStruct& rData) {
-        
+
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -1223,7 +1233,7 @@ protected:
     void SetNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
         bounded_matrix<double, TDim, TDim>& rNormProjMatrix) {
-        
+
         rNormProjMatrix.clear();
 
         // Fill the normal projection matrix (nxn)
@@ -1246,7 +1256,7 @@ protected:
     void SetTangentialProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
         bounded_matrix<double, TDim, TDim>& rTangProjMatrix) {
-        
+
         rTangProjMatrix.clear();
 
         // Fill the tangential projection matrix (I - nxn)
@@ -1270,7 +1280,7 @@ protected:
     void SetVoigtNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
         bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtNormProjMatrix) {
-        
+
         rVoigtNormProjMatrix.clear();
 
         if (TDim == 3) {
@@ -1300,7 +1310,7 @@ protected:
     void GetPreviousSolutionVector(
         const ElementDataType& rData,
         array_1d<double, TNumNodes*(TDim+1)>& rPrevSolVector) {
-        
+
         rPrevSolVector.clear();
 
         for (unsigned int i=0; i<TNumNodes; i++) {
