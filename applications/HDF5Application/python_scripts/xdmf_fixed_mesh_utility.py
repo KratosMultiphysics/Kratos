@@ -1,3 +1,8 @@
+"""Generate xdmf metadata file from results stored in HDF5.
+
+After running a Kratos simulation with HDF5 output on a fixed mesh, an Xdmf
+metadata file can be generated for post-processing.
+"""
 import os, sys, h5py, copy, xdmf_utils
 
 class XdmfFixedMeshPostProcess(object):

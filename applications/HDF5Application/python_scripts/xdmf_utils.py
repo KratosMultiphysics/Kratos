@@ -46,10 +46,19 @@ def GetDimsString(shape):
 
 
 class XdmfElement(object):
-    """Represent an Xdmf element in xml."""
+    """Represents an Xdmf element in xml.
+    
+    The Xdmf metadata is stored in an xml tree. Derived classes of this class
+    type represent various Xdmf concepts for Kratos meshes by defining
+    their xml tags, attributes, children and text. By constructing an object
+    of a derived type, the xml hierarchy is built and can be accessed through
+    the object's root member.
+    """
 
     def __init__(self, tag):
-        """Construct and XdmfElement.
+        """Construct an XdmfElement.
+
+        This should be called from the derived class.
 
         Keyword arguments:
         tag -- string containing xml tag.
@@ -60,6 +69,7 @@ class XdmfElement(object):
 
     @property
     def root(self):
+        """The xml element containing Xdmf metadata."""
         if not hasattr(self, '_root'):
             self._root = ET.Element(self._tag)
         return self._root
@@ -85,7 +95,12 @@ class KratosTopology(XdmfElement):
             raise ValueError('file_path="%s" is not a topology.' % file_path)
         if (not "Dimension" in topology_group.attrs) or (not "NumberOfNodes" in topology_group.attrs):
             raise ValueError('file_path="%s" is missing attributes.' % file_path)
-        self.root.set("TopologyType", self._get_topology_type(topology_group))
+        topology_type = self._get_topology_type(topology_group)
+        if topology_type == "Edge_2":
+            self.root.set("TopologyType", "Polyline")
+            self.root.set("NodesPerElement", "2")
+        else:
+            self.root.set("TopologyType", topology_type)
         connectivities_path = file_path + "/Connectivities"
         connectivities = h5py_file.get(connectivities_path)
         self.root.set("NumberOfElements", str(connectivities.shape[0]))
@@ -94,10 +109,11 @@ class KratosTopology(XdmfElement):
         self.root.append(data.root)
 
     def _get_topology_type(self, topology_group):
+        """Determine the type of topology based on the number of nodes and dimension."""
         dim = topology_group.attrs["Dimension"]
         num_points = topology_group.attrs["NumberOfNodes"]
         if num_points == 2:
-            return "Polyline"
+            return "Edge_2" # A polyline with 2 nodes.
         elif num_points == 3:
             return "Triangle"
         elif num_points == 4:
@@ -112,7 +128,13 @@ class KratosTopology(XdmfElement):
 
 
 class KratosGeometry(XdmfElement):
-    """Represents nodal coordinates of a model part in Kratos."""
+    """Represents nodal coordinates of a model part in Kratos.
+    
+    This class expects nodal coordinates to be sorted. In partitioned
+    simulations the coordinates are not sorted globally. Therefore, for
+    post-processing with Xdmf, the coordinates must first be sorted by
+    their Ids and written to a new dataset called "SortedCoordinates".
+    """
 
     def __init__(self, h5py_file, file_path):
         XdmfElement.__init__(self, 'Geometry')
@@ -251,19 +273,3 @@ class KratosTime(XdmfElement):
         self.root.set("TimeType", "Single")
         self.root.set("Value", current_time)
 
-class KratosStaticResults(XdmfElement): 
-    def __init__(self, model_part_file_name, model_part_prefix, results_file_name, results_prefix):
-        XdmfElement.__init__(self, 'Domain')
-        with h5py.File(model_part_file_name, 'r') as h5py_file:
-            model_part = KratosCollectionGrid(h5py_file, model_part_prefix)
-            self.root.append(model_part.root)
-        with h5py.File(results_file_name, 'r') as h5py_file:
-            nodal_results_group = h5py_file.get(results_prefix + '/NodalResults')
-            for result_name in nodal_results_group.keys():
-                if result_name == "Partition":
-                    continue
-                result_path = results_prefix + '/NodalResults/' + result_name
-                result_data = KratosNodalSolutionStepDataAttribute(h5py_file, result_path)
-                for child in self.root.find("Grid"):
-                    child.append(result_data.root)
-        
