@@ -130,9 +130,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_SOURCES} ${KRATOS_TESTING_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES})
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosCore)
-endif(USE_COTIRE MATCHES ON)
+
 
 target_link_libraries(KratosCore ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
@@ -141,10 +139,12 @@ install(TARGETS KratosCore DESTINATION libs )
 ## Define library Kratos which defines the basic python interface
 add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos KratosCore)
+set_target_properties(Kratos PROPERTIES PREFIX "")
+
 if(USE_COTIRE MATCHES ON)
+    cotire(KratosCore)
     cotire(Kratos)
 endif(USE_COTIRE MATCHES ON)
-set_target_properties(Kratos PROPERTIES PREFIX "")
 
 ## Changing the .dll suffix to .pyd (For Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
