@@ -84,7 +84,7 @@ namespace Kratos
 				positive_interface_side_weights,
 				GeometryData::GI_GAUSS_1);
 
-			tetrahedra_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+			tetrahedra_shape_functions.ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
 				negative_interface_side_sh_func,
 				negative_interface_side_sh_func_gradients,
 				negative_interface_side_weights,
@@ -141,7 +141,7 @@ namespace Kratos
             KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](3,1),  0.0, tolerance);
             KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](3,2),  1.0, tolerance);
             
-            KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](0,0), -1.0, tolerance);
+            KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,0), -1.0, tolerance);
             KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,1), -1.0, tolerance);
             KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,2), -1.0, tolerance);
             KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](1,0),  1.0, tolerance);

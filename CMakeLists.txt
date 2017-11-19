@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 2.8.6)
 
+
+
 if(POLICY CMP0054)
   cmake_policy(SET CMP0054 OLD)
 endif(POLICY CMP0054)
@@ -161,6 +163,10 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
+if(USE_COTIRE MATCHES ON)
+    include(cotire)
+endif(USE_COTIRE MATCHES ON)
+
 ######################################################################################
 ######################################################################################
 ######################################################################################
@@ -311,6 +317,21 @@ if(${MPI_NEEDED} MATCHES ON )
   # find_package(Boost COMPONENTS mpi_python REQUIRED)
 endif(${MPI_NEEDED} MATCHES ON )
 
+# Find zlib (for gidpost)
+find_package(ZLIB)
+
+if( ZLIB_FOUND )
+  include_directories( ${ZLIB_INCLUDE_DIRS} )
+else( ZLIB_FOUND )
+  message( "-- Preparing local ZLIB compilation.")
+  include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
+  # Compile our own
+  add_subdirectory(external_libraries/zlib)
+  # we have to add this for zconf
+  include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
+  set( ZLIB_LIBRARIES zlib )
+endif( ZLIB_FOUND )
+  
 
 ##echo user options
 message( " ")
@@ -321,10 +342,6 @@ message( " ")
 ######################################################################################
 #include internal dependencies
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries )
-include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
-# we have to add this for zconf
-include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
-# include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/gidpost )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
@@ -334,7 +351,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 # include subdirectories
-add_subdirectory(external_libraries/zlib)
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 add_subdirectory(applications)
