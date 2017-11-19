@@ -184,25 +184,25 @@ class XdmfHdfUniformDataItem(XdmfElement):
         self.root.text = h5py_file.filename + ":" + file_path
 
 
-class KratosCoordinateDataItem(XdmfElement):
-    """Represents nodal coordinates of a model part in Kratos."""
+# class KratosCoordinateDataItem(XdmfElement):
+#     """Represents nodal coordinates of a model part in Kratos."""
 
-    def __init__(self, h5py_file, file_path):
-        XdmfElement.__init__(self, 'DataItem')
-        points_group = h5py_file.get(file_path)
-        if (not "ParametricCoordinates" in points_group.keys()) or (not "Coordinates" in points_group.keys()):
-            raise Exception('Invalid file_path="%s".' % file_path)
-        self.root.set("ItemType", "Coordinate")
-        pcs = h5py_file.get(file_path + "/ParametricCoordinates")
-        pc_dims = GetDimsString(pcs.shape)
-        self.root.set("Dimensions", pc_dims)
-        pc_data = ET.Element("DataItem")
-        pc_data.set("Dimensions", pc_dims)
-        pc_data.set("Format", "HDF")
-        pc_data.text = h5py_file.filename + ":" + file_path + "/ParametricCoordinates"
-        self.root.insert(0, pc_data) # Set first subelement to parametric coordinates.
-        xyz_data = XdmfHdfUniformDataItem(h5py_file, file_path + "/Coordinates")
-        self.root.insert(1, xyz_data.root) # Set second subelement to xyz data.
+#     def __init__(self, h5py_file, file_path):
+#         XdmfElement.__init__(self, 'DataItem')
+#         points_group = h5py_file.get(file_path)
+#         if (not "ParametricCoordinates" in points_group.keys()) or (not "Coordinates" in points_group.keys()):
+#             raise Exception('Invalid file_path="%s".' % file_path)
+#         self.root.set("ItemType", "Coordinate")
+#         pcs = h5py_file.get(file_path + "/ParametricCoordinates")
+#         pc_dims = GetDimsString(pcs.shape)
+#         self.root.set("Dimensions", pc_dims)
+#         pc_data = ET.Element("DataItem")
+#         pc_data.set("Dimensions", pc_dims)
+#         pc_data.set("Format", "HDF")
+#         pc_data.text = h5py_file.filename + ":" + file_path + "/ParametricCoordinates"
+#         self.root.insert(0, pc_data) # Set first subelement to parametric coordinates.
+#         xyz_data = XdmfHdfUniformDataItem(h5py_file, file_path + "/Coordinates")
+#         self.root.insert(1, xyz_data.root) # Set second subelement to xyz data.
 
 
 class XdmfHdfFunctionDataItem(XdmfElement):
