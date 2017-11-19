@@ -378,7 +378,7 @@ protected:
 
     // Auxiliar function to fill the element data structure
     void FillEmbeddedAusasElementData(
-        EmbeddedAusasElementDataStruct& rData, 
+        EmbeddedAusasElementDataStruct& rData,
         const ProcessInfo& rCurrentProcessInfo) {
 
         // Get the element geometry
@@ -475,7 +475,7 @@ protected:
                 rData.DN_DX_pos_int,
                 rData.w_gauss_pos_int,
                 GeometryData::GI_GAUSS_2);
-            
+
             // Call the negative side interface modified shape functions calculator
             p_ausas_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
                 rData.N_neg_int,
@@ -484,14 +484,31 @@ protected:
                 GeometryData::GI_GAUSS_2);
 
             // Call the positive side Gauss pts. unit normal calculator
-            p_ausas_modified_sh_func->ComputePositiveSideInterfaceUnitNormals(
+            p_ausas_modified_sh_func->ComputePositiveSideInterfaceAreaNormals(
                 rData.pos_int_unit_normals,
                 GeometryData::GI_GAUSS_2);
 
             // Call the negative side Gauss pts. unit normal calculator
-            p_ausas_modified_sh_func->ComputeNegativeSideInterfaceUnitNormals(
+            p_ausas_modified_sh_func->ComputeNegativeSideInterfaceAreaNormals(
                 rData.neg_int_unit_normals,
                 GeometryData::GI_GAUSS_2);
+
+            // Normalize the obtained positive and negative sides area normals
+            const double tol = std::pow(1e-3*rData.h, TDim-1); // Tolerance to avoid the unit normal to blow up
+            const unsigned int n_gauss_pos = (rData.pos_int_unit_normals).size();
+            const unsigned int n_gauss_neg = (rData.neg_int_unit_normals).size();
+
+            for (unsigned int i_gauss = 0;  i_gauss < n_gauss_pos; ++i_gauss) {
+                Vector& normal = rData.pos_int_unit_normals[i_gauss];
+                const double n_norm = norm_2(normal);
+                normal /= std::max(n_norm, tol);
+            }
+
+            for (unsigned int i_gauss = 0;  i_gauss < n_gauss_neg; ++i_gauss) {
+                Vector& normal = rData.neg_int_unit_normals[i_gauss];
+                const double n_norm = norm_2(normal);
+                normal /= std::max(n_norm, tol);
+            }
 
         } else {
             // Fill the shape functions container
@@ -586,7 +603,7 @@ protected:
 
                 noalias(rLeftHandSideMatrix) += w_gauss * lhs_local;
                 noalias(rRightHandSideVector) += w_gauss * rhs_local;
-            }    
+            }
         }
     }
 
@@ -654,7 +671,7 @@ protected:
                 ComputeGaussPointRHSContribution(rhs_local, rData);
 
                 noalias(rRightHandSideVector) += w_gauss * rhs_local;
-            }    
+            }
         }
     }
 
@@ -669,7 +686,7 @@ protected:
         MatrixType &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
         const EmbeddedAusasElementDataStruct &rData) {
-        
+
         constexpr unsigned int BlockSize = TDim + 1;
         constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
 
@@ -692,7 +709,7 @@ protected:
             // Get the positive side shape functions gradients Gauss pt. values
             const bounded_matrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss];
 
-            // Get the positive side Gauss pt. normal 
+            // Get the positive side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.pos_int_unit_normals[i_gauss];
 
             // Set the auxiliar test function matrix
@@ -742,7 +759,7 @@ protected:
             // Get the negative side shape functions gradients Gauss pt. values
             const bounded_matrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_neg_int[i_gauss];
 
-            // Get the negative side Gauss pt. normal 
+            // Get the negative side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.neg_int_unit_normals[i_gauss];
 
             // Set the auxiliar test function matrix
@@ -796,7 +813,7 @@ protected:
     void AddRHSBoundaryTermsContribution(
         VectorType &rRightHandSideVector,
         const EmbeddedAusasElementDataStruct &rData) {
-        
+
         constexpr unsigned int BlockSize = TDim + 1;
         constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
 
@@ -819,7 +836,7 @@ protected:
             // Get the positive side shape functions gradients Gauss pt. values
             const bounded_matrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss];
 
-            // Get the positive side Gauss pt. normal 
+            // Get the positive side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.pos_int_unit_normals[i_gauss];
 
             // Set the auxiliar test function matrix
@@ -869,7 +886,7 @@ protected:
             // Get the negative side shape functions gradients Gauss pt. values
             const bounded_matrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_neg_int[i_gauss];
 
-            // Get the negative side Gauss pt. normal 
+            // Get the negative side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.neg_int_unit_normals[i_gauss];
 
             // Set the auxiliar test function matrix
@@ -921,7 +938,7 @@ protected:
         MatrixType &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
         const EmbeddedAusasElementDataStruct &rData) {
-        
+
         constexpr unsigned int BlockSize = TDim + 1;
         constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
 
@@ -961,7 +978,7 @@ protected:
             // Get the positive side shape functions Gauss pt. values
             const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss);
 
-            // Get the positive side Gauss pt. normal 
+            // Get the positive side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.pos_int_unit_normals[i_gauss];
 
             // Compute and assemble the LHS contribution
@@ -987,7 +1004,7 @@ protected:
             // Get the negative side shape functions Gauss pt. values
             const array_1d<double, TNumNodes> aux_N = row(rData.N_neg_int, i_gauss);
 
-            // Get the negative side Gauss pt. normal 
+            // Get the negative side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.neg_int_unit_normals[i_gauss];
 
             // Compute and assemble the LHS contribution
@@ -1020,7 +1037,7 @@ protected:
     void AddRHSNormalVelocityPenaltyContribution(
         VectorType &rRightHandSideVector,
         const EmbeddedAusasElementDataStruct &rData) {
-        
+
         constexpr unsigned int BlockSize = TDim + 1;
         constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
 
@@ -1050,7 +1067,7 @@ protected:
         const double pen_coef = ComputePenaltyCoefficient(rData);
 
         // Compute the RHS penalty contributions
-        array_1d<double, MatrixSize> P_gamma_RHS = ZeroVector(MatrixSize); 
+        array_1d<double, MatrixSize> P_gamma_RHS = ZeroVector(MatrixSize);
 
         // Contribution coming from the positive side penalty term
         const unsigned int n_int_pos_gauss = (rData.w_gauss_pos_int).size();
@@ -1060,7 +1077,7 @@ protected:
             // Get the positive side shape functions Gauss pt. values
             const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss);
 
-            // Get the positive side Gauss pt. normal 
+            // Get the positive side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.pos_int_unit_normals[i_gauss];
 
             // Compute and assemble the LHS contribution
@@ -1084,7 +1101,7 @@ protected:
             // Get the negative side shape functions Gauss pt. values
             const array_1d<double, TNumNodes> aux_N = row(rData.N_neg_int, i_gauss);
 
-            // Get the negative side Gauss pt. normal 
+            // Get the negative side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.neg_int_unit_normals[i_gauss];
 
             // Compute and assemble the LHS contribution
@@ -1115,7 +1132,7 @@ protected:
         MatrixType &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
         const EmbeddedAusasElementDataStruct &rData) {
-        
+
         constexpr unsigned int BlockSize = TDim + 1;
         constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
 
@@ -1145,7 +1162,7 @@ protected:
         bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
 
         // Drop the pressure rows and columns
-        for (unsigned int i=0; i<TNumNodes; ++i) {   
+        for (unsigned int i=0; i<TNumNodes; ++i) {
             const unsigned int aux = i*BlockSize + TDim;
             for (unsigned int j=0; j<MatrixSize; ++j) {
                 rLeftHandSideMatrix(aux, j) = 0.0;
@@ -1161,7 +1178,7 @@ protected:
             // Get the positive side shape functions Gauss pt. values
             const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss);
 
-            // Get the positive side Gauss pt. normal 
+            // Get the positive side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.pos_int_unit_normals[i_gauss];
 
             // Compute and assemble the LHS contribution
@@ -1187,7 +1204,7 @@ protected:
             // Get the negative side shape functions Gauss pt. values
             const array_1d<double, TNumNodes> aux_N = row(rData.N_neg_int, i_gauss);
 
-            // Get the negative side Gauss pt. normal 
+            // Get the negative side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.neg_int_unit_normals[i_gauss];
 
             // Compute and assemble the LHS contribution
@@ -1243,7 +1260,7 @@ protected:
     * @param rData: reference to element data structure
     */
     double ComputePenaltyCoefficient(const EmbeddedAusasElementDataStruct &rData) {
-        
+
         // Compute the intersection area using the Gauss pts. weights
         double intersection_area = 0.0;
         for (unsigned int i_gauss = 0; i_gauss < (rData.w_gauss_pos_int).size(); ++i_gauss) {
@@ -1268,8 +1285,8 @@ protected:
         const double v_norm = norm_2(avg_vel);
 
         // Compute the penalty constant
-        const double pen_cons = avg_rho*std::pow(rData.h, TDim)/rData.dt + 
-                                avg_rho*avg_visc*std::pow(rData.h,TDim-2) + 
+        const double pen_cons = avg_rho*std::pow(rData.h, TDim)/rData.dt +
+                                avg_rho*avg_visc*std::pow(rData.h,TDim-2) +
                                 avg_rho*v_norm*std::pow(rData.h, TDim-1);
 
         // Return the penalty coefficient
@@ -1287,7 +1304,7 @@ protected:
     void GetPreviousSolutionVector(
         const EmbeddedAusasElementDataStruct& rData,
         array_1d<double, TNumNodes*(TDim+1)>& rPrevSolVector) {
-        
+
         rPrevSolVector.clear();
 
         for (unsigned int i=0; i<TNumNodes; i++) {
@@ -1304,7 +1321,7 @@ protected:
     * @param StrainSize: strain size (3 in 2D and 6 in 3D)
     */
     void ComputeStrain(
-        EmbeddedAusasElementDataStruct& rData, 
+        EmbeddedAusasElementDataStruct& rData,
         const unsigned int StrainSize) {
 
         const bounded_matrix<double, TNumNodes, TDim>& v = rData.v;
@@ -1396,7 +1413,7 @@ protected:
     void SetVoigtNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
         bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtNormProjMatrix) {
-        
+
         rVoigtNormProjMatrix.clear();
 
         if (TDim == 3) {
@@ -1425,7 +1442,7 @@ protected:
     void SetExpandedStrainMatrix(
         const bounded_matrix<double, TNumNodes, TDim> &rDN_DX,
         bounded_matrix<double, (TDim-1)*3, TNumNodes*(TDim+1)> &rBmatrix) {
-        
+
         constexpr unsigned int block_size = TDim + 1;
         rBmatrix.clear();
 
@@ -1440,7 +1457,7 @@ protected:
                 rBmatrix(4, i * block_size + 1) = rDN_DX(i, 2);
                 rBmatrix(4, i * block_size + 2) = rDN_DX(i, 1);
                 rBmatrix(5, i * block_size)     = rDN_DX(i, 2);
-                rBmatrix(5, i * block_size + 2) = rDN_DX(i, 0);    
+                rBmatrix(5, i * block_size + 2) = rDN_DX(i, 0);
             }
         } else {
             for (unsigned int i = 0; i < TNumNodes; i++) {
