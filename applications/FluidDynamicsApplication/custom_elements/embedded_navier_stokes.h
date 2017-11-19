@@ -267,8 +267,6 @@ public:
         KRATOS_CATCH("Error in embedded Navier-Stokes element CalculateLocalSystem method.");
     }
 
-
-    /// Checks the input and that all required Kratos variables have been registered.
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -297,7 +295,6 @@ public:
 
         KRATOS_CATCH("");
     }
-
 
     /**
      * Calculates both LHS and RHS elemental contributions for those cases in where
@@ -340,7 +337,6 @@ public:
         rLeftHandSideMatrix *= rData.volume/static_cast<double>(TNumNodes);
         rRightHandSideVector *= rData.volume/static_cast<double>(TNumNodes);
     }
-
 
     /**
     * Calculates both LHS and RHS elemental contributions for those cases in where
@@ -489,22 +485,19 @@ protected:
             }
 
             // Contribution coming fron the shear stress operator
-            auxLeftHandSideMatrix += weight*prod(N_aux_trans, aux_matrix_ACB);
-
+            noalias(auxLeftHandSideMatrix) += weight*prod(N_aux_trans, aux_matrix_ACB);
 
             // Contribution coming from the pressure terms
             const bounded_matrix<double, MatrixSize, (TDim-1)*3> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
-            auxLeftHandSideMatrix -= weight*prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
-
+            noalias(auxLeftHandSideMatrix) -= weight*prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
         }
 
         // LHS assembly
-        rLeftHandSideMatrix -= auxLeftHandSideMatrix;
+        noalias(rLeftHandSideMatrix) -= auxLeftHandSideMatrix;
 
         // RHS assembly
-        rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol);
+        noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, prev_sol);
     }
-
 
     /**
      * This function computes the penalty coefficient for the level set BC imposition
@@ -539,7 +532,6 @@ protected:
 
         return pen_coef;
     }
-
 
     /**
     * This functions adds the penalty extra term level set contribution.
@@ -593,7 +585,7 @@ protected:
             }
         }
 
-        rLeftHandSideMatrix += auxLeftHandSideMatrix;
+        noalias(rLeftHandSideMatrix) += auxLeftHandSideMatrix;
 
         // RHS penalty contribution assembly
         if (this->Has(EMBEDDED_VELOCITY)) {
@@ -606,12 +598,11 @@ protected:
                 }
             }
 
-            rRightHandSideVector += prod(auxLeftHandSideMatrix, aux_embedded_vel);
+            noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, aux_embedded_vel);
         }
 
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol); // Residual contribution assembly
+        noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, prev_sol); // Residual contribution assembly
     }
-
 
     /**
     * This functions adds the level set strong boundary condition imposition contribution.
@@ -692,11 +683,11 @@ protected:
         }
 
         // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix += auxLeftHandSideMatrix;
+        noalias(rLeftHandSideMatrix) += auxLeftHandSideMatrix;
 
         // RHS outside Nitche contribution assembly
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
+        noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, prev_sol);
 
         // Compute f_gamma if level set velocity is not 0
         if (this->Has(EMBEDDED_VELOCITY)) {
@@ -722,10 +713,9 @@ protected:
                 }
             }
 
-            rRightHandSideVector += prod(auxLeftHandSideMatrix, aux_embedded_vel);
+            noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, aux_embedded_vel);
         }
     }
-
 
     /**
     * This drops the outer nodes velocity constributions in both LHS and RHS matrices.
@@ -756,7 +746,6 @@ protected:
             }
         }
     }
-
 
     /**
     * This function adds the Nitsche normal component of the penalty contribution (Winter formulation).
@@ -830,7 +819,7 @@ protected:
             // Compute the current cut point auxLHS contribution
             const bounded_matrix<double, MatrixSize, TDim> aux_1 = prod(N_aux_trans, normal_projection_matrix);
             const bounded_matrix<double, MatrixSize, MatrixSize> aux_2 = prod(aux_1, N_aux);
-            auxLeftHandSideMatrix += cons_coef*weight*aux_2;
+            noalias(auxLeftHandSideMatrix) += cons_coef*weight*aux_2;
         }
 
         // If level set velocity is not 0, add its contribution to the RHS
@@ -844,18 +833,17 @@ protected:
                 }
             }
 
-            auxRightHandSideVector += prod(auxLeftHandSideMatrix, embedded_vel_exp);
+            noalias(auxRightHandSideVector) += prod(auxLeftHandSideMatrix, embedded_vel_exp);
         }
 
         // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix += auxLeftHandSideMatrix;
+        noalias(rLeftHandSideMatrix) += auxLeftHandSideMatrix;
 
         // RHS outside Nitche contribution assembly
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector += auxRightHandSideVector;
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
+        noalias(rRightHandSideVector) += auxRightHandSideVector;
+        noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, prev_sol);
     }
-
 
     /**
     * This function adds the Nitsche normal component of the symmetric counterpart of the fluxes (Winter formulation).
@@ -925,16 +913,16 @@ protected:
             const bounded_matrix<double, MatrixSize, TDim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
 
             // Contribution coming fron the shear stress operator
-            auxLeftHandSideMatrix += adjoint_consistency_term*weight*prod(aux_matrix_BCAPnorm, N_aux);
+            noalias(auxLeftHandSideMatrix) += adjoint_consistency_term*weight*prod(aux_matrix_BCAPnorm, N_aux);
 
             // Contribution coming from the pressure terms
             const bounded_matrix<double, MatrixSize, TDim> aux_matrix_VPnorm = prod(trans_pres_to_voigt_matrix_normal_op, normal_projection_matrix);
-            auxLeftHandSideMatrix += weight*prod(aux_matrix_VPnorm, N_aux);
+            noalias(auxLeftHandSideMatrix) += weight*prod(aux_matrix_VPnorm, N_aux);
 
         }
 
         // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix -= auxLeftHandSideMatrix; // The minus sign comes from the Nitsche formulation
+        noalias(rLeftHandSideMatrix) -= auxLeftHandSideMatrix; // The minus sign comes from the Nitsche formulation
 
         // RHS outside Nitche contribution assembly
         // If level set velocity is not 0, add its contribution to the RHS
@@ -948,14 +936,13 @@ protected:
                 }
             }
 
-            auxRightHandSideVector += prod(auxLeftHandSideMatrix, embedded_vel_exp);
+            noalias(auxRightHandSideVector) += prod(auxLeftHandSideMatrix, embedded_vel_exp);
         }
 
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector -= auxRightHandSideVector;
-        rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol);
+        noalias(rRightHandSideVector) -= auxRightHandSideVector;
+        noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, prev_sol);
     }
-
 
     /**
     * This function adds the Nitsche tangential component of the penalty contribution (Winter formulation).
@@ -1022,16 +1009,16 @@ protected:
             const bounded_matrix<double, MatrixSize, TDim> aux_matrix_PtangACB = prod(aux_matrix_PtangA, aux_matrix_CB);
 
             // Contribution coming from the traction vector tangencial component
-            auxLeftHandSideMatrix_1 += coeff_1*weight*prod(N_aux_trans, aux_matrix_PtangACB);
+            noalias(auxLeftHandSideMatrix_1) += coeff_1*weight*prod(N_aux_trans, aux_matrix_PtangACB);
 
             // Contribution coming from the shear force generated by the velocity jump
             const bounded_matrix<double, MatrixSize, TDim> aux_matrix_N_trans_tang = prod(N_aux_trans, tangential_projection_matrix);
-            auxLeftHandSideMatrix_2 += coeff_2*weight*prod(aux_matrix_N_trans_tang, trans(N_aux_trans));
+            noalias(auxLeftHandSideMatrix_2) += coeff_2*weight*prod(aux_matrix_N_trans_tang, trans(N_aux_trans));
         }
 
         // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix += auxLeftHandSideMatrix_1;
-        rLeftHandSideMatrix += auxLeftHandSideMatrix_2;
+        noalias(rLeftHandSideMatrix) += auxLeftHandSideMatrix_1;
+        noalias(rLeftHandSideMatrix) += auxLeftHandSideMatrix_2;
 
         // RHS outside Nitche contribution assembly
         // If level set velocity is not 0, add its contribution to the RHS
@@ -1045,15 +1032,14 @@ protected:
                 }
             }
 
-            auxRightHandSideVector += prod(auxLeftHandSideMatrix_2, embedded_vel_exp);
+            noalias(auxRightHandSideVector) += prod(auxLeftHandSideMatrix_2, embedded_vel_exp);
         }
 
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector += auxRightHandSideVector;
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix_1, prev_sol);
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix_2, prev_sol);
+        noalias(rRightHandSideVector) += auxRightHandSideVector;
+        noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix_1, prev_sol);
+        noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix_2, prev_sol);
     }
-
 
     /**
     * This function adds the Nitsche tangential component of the symmetric counterpart of the fluxes (Winter formulation).
@@ -1157,7 +1143,6 @@ protected:
         noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix_2, prev_sol);
     }
 
-
     /**
     * This functions collects and adds all the level set boundary condition contributions
     * @param rLeftHandSideMatrix: reference to the LHS matrix
@@ -1188,7 +1173,6 @@ protected:
             AddBoundaryConditionModifiedNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
         }
     }
-
 
     /**
     * This functions sets the B strain matrix (pressure columns are set to zero)
@@ -1224,7 +1208,6 @@ protected:
         }
     }
 
-
     /**
     * This functions sets the normal projection matrix nxn
     * @param rUnitNormal: reference to Gauss pt. unit normal vector
@@ -1246,7 +1229,6 @@ protected:
             rNormProjMatrix(1,1) = rUnitNormal(1)*rUnitNormal(1);
         }
     }
-
 
     /**
     * This functions sets the tangential projection matrix I - nxn
@@ -1270,7 +1252,6 @@ protected:
             rTangProjMatrix(1,1) = 1.0 - rUnitNormal(1)*rUnitNormal(1);
         }
     }
-
 
     /**
     * This functions sets the auxiliar matrix to compute the normal projection in Voigt notation
@@ -1301,7 +1282,6 @@ protected:
         }
     }
 
-
     /**
     * This functions sets a vector containing the element previous solution
     * @param rData: reference to the element data structure
@@ -1320,7 +1300,6 @@ protected:
             rPrevSolVector(i*(TDim+1)+TDim) = rData.p(i);
         }
     }
-
 
     ///@}
     ///@name Protected  Access
@@ -1389,4 +1368,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_STOKES_ELEMENT_SYMBOLIC_INCLUDED  defined
+#endif // KRATOS_EMBEDDED_NAVIER_STOKES  defined
