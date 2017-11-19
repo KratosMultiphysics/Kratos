@@ -146,7 +146,8 @@ public:
             
             array_1d<double, 3> aux_cross_product;
             MathUtils<double>::CrossProduct(aux_cross_product, x21cell, x31cell);
-            aux_cross_product /= norm_2(aux_cross_product);
+            aux_cross_product /= rVariables.DetjSlave;
+//             aux_cross_product /= norm_2(aux_cross_product);
             
             for ( unsigned int i_node = 0; i_node < 2 * TNumNodes; ++i_node )
             {
@@ -906,7 +907,7 @@ private:
         const bool ConsiderNormalVariation,
         const GeometryType& SlaveGeometry,
         const GeometryType& MasterGeometry,
-        const double Coeff = 1.0
+        double Coeff = 1.0
         )
     {
         // We create the auxiliar array
@@ -918,24 +919,27 @@ private:
         //  We initialize some values
         const array_1d<double, 3>& coords_center = SlaveGeometry.Center().Coordinates();
         const array_1d<double, 3>& coords_node = (iBelong < TNumNodes) ? SlaveGeometry[iBelong].Coordinates() : MasterGeometry[iBelong - TNumNodes].Coordinates();
+//         double delta_position;
+//         CalculateDeltaPosition(delta_position, SlaveGeometry, MasterGeometry, iBelong, iDoF);
+//         Coeff = (std::abs(delta_position) > 0.0) ? Coeff : 0.0;
     
         // The corresponding part to the nodal coordinates
         array_1d<double, 3> aux_der = ZeroVector(3);
         aux_der[iDoF] = 1.0;
-        aux_delta_vertex += Coeff * aux_der;
+        aux_delta_vertex += aux_der;
         
         // The corresponding part to the normal
         const double coordsxdeltanormal = (ConsiderNormalVariation == true) ? inner_prod(coords_node - coords_center, column(DeltaNormal, iDoF)) : 0.0;
         
         const double factor_belong = (iBelong < TNumNodes) ? (1.0 - auxiliar_coeff) : 1.0; 
         const double deltacoordsxnormal =  factor_belong * Normal[iDoF];
-        aux_delta_vertex += - Coeff * Normal * (deltacoordsxnormal + coordsxdeltanormal);
+        aux_delta_vertex += - Normal * (deltacoordsxnormal + coordsxdeltanormal);
         
         // The corresponding part to delta normal
         const double coordsxnormal = - inner_prod(coords_node - coords_center, Normal);
-        if (ConsiderNormalVariation == true) aux_delta_vertex += Coeff * coordsxnormal * trans(column(DeltaNormal, iDoF));
+        if (ConsiderNormalVariation == true) aux_delta_vertex += coordsxnormal * trans(column(DeltaNormal, iDoF));
         
-        return aux_delta_vertex;
+        return Coeff * aux_delta_vertex;
     }
     
     /**
@@ -961,7 +965,7 @@ private:
         const bool ConsiderNormalVariation,
         const GeometryType& SlaveGeometry,
         const GeometryType& MasterGeometry,
-        const double Coeff = 1.0
+        double Coeff = 1.0
         )
     {
         noalias(row(DeltaVertexMatrix, iTriangle)) += LocalDeltaVertex( Normal,  DeltaNormal, iDoF, iBelong, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, Coeff);
