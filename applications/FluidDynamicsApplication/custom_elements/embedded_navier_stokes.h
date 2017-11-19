@@ -148,7 +148,7 @@ public:
     }
 
     /**
-     * Fill the element data structure. If the element is split, 
+     * Fill the element data structure. If the element is split,
      * calls the modified shape functions calculator.
      * @param rData: reference to the element data structure
      * @param rCurrentProcessInfo: reference to the ProcessInfo
@@ -206,11 +206,21 @@ public:
                 rData.DN_DX_pos_int,
                 rData.w_gauss_pos_int,
                 GeometryData::GI_GAUSS_2);
-            
+
             // Call the fluid side Gauss pts. unit normal calculator
-            p_modified_sh_func->ComputePositiveSideInterfaceUnitNormals(
+            p_modified_sh_func->ComputePositiveSideInterfaceAreaNormals(
                 rData.pos_int_unit_normals,
                 GeometryData::GI_GAUSS_2);
+
+            // Normalize the obtained area normals
+            const double tol = std::pow(1e-3*rData.h, TDim-1); // Tolerance to avoid the unit normal to blow up
+            const unsigned int n_gauss = (rData.pos_int_unit_normals).size();
+
+            for (unsigned int i_gauss = 0;  i_gauss < n_gauss; ++i_gauss) {
+                Vector& normal = rData.pos_int_unit_normals[i_gauss];
+                const double n_norm = norm_2(normal);
+                normal /= std::max(n_norm, tol);
+            }
         }
     };
 
@@ -257,8 +267,6 @@ public:
         KRATOS_CATCH("Error in embedded Navier-Stokes element CalculateLocalSystem method.");
     }
 
-
-    /// Checks the input and that all required Kratos variables have been registered.
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -288,7 +296,6 @@ public:
         KRATOS_CATCH("");
     }
 
-
     /**
      * Calculates both LHS and RHS elemental contributions for those cases in where
      * all the nodes belong to the fluid domain.
@@ -303,7 +310,7 @@ public:
         VectorType& rRightHandSideVector,
         EmbeddedElementDataStruct& rData,
         const ProcessInfo& rCurrentProcessInfo) {
-        
+
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_local;
         bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
@@ -330,7 +337,6 @@ public:
         rLeftHandSideMatrix *= rData.volume/static_cast<double>(TNumNodes);
         rRightHandSideVector *= rData.volume/static_cast<double>(TNumNodes);
     }
-
 
     /**
     * Calculates both LHS and RHS elemental contributions for those cases in where
@@ -458,7 +464,7 @@ protected:
             bounded_matrix<double, (TDim-1)*3, MatrixSize> B_matrix = ZeroMatrix((TDim-1)*3, MatrixSize);
             SetInterfaceStrainMatrix(aux_DN_DX, B_matrix);
 
-            // Compute some Gauss pt. auxiliar matrices  
+            // Compute some Gauss pt. auxiliar matrices
             const bounded_matrix<double, TDim, (TDim-1)*3> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
             const bounded_matrix<double, (TDim-1)*3, MatrixSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
 
@@ -477,59 +483,64 @@ protected:
                     N_aux_trans(i*BlockSize+comp, comp) = aux_N(i);
                 }
             }
-            
+
             // Contribution coming fron the shear stress operator
-            auxLeftHandSideMatrix += weight*prod(N_aux_trans, aux_matrix_ACB);
-            
-            
+            noalias(auxLeftHandSideMatrix) += weight*prod(N_aux_trans, aux_matrix_ACB);
+
             // Contribution coming from the pressure terms
             const bounded_matrix<double, MatrixSize, (TDim-1)*3> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
-            auxLeftHandSideMatrix -= weight*prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
-            
+            noalias(auxLeftHandSideMatrix) -= weight*prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
         }
-        
+
         // LHS assembly
-        rLeftHandSideMatrix -= auxLeftHandSideMatrix;
-        
+        noalias(rLeftHandSideMatrix) -= auxLeftHandSideMatrix;
+
         // RHS assembly
-        rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol);
+        noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, prev_sol);
     }
-    
-    
+
     /**
      * This function computes the penalty coefficient for the level set BC imposition
      * @param rLeftHandSideMatrix: reference to the LHS matrix
      * @param rData: reference to element data structure
      */
-    double ComputePenaltyCoefficient(
-        MatrixType& rLeftHandSideMatrix,
-        const EmbeddedElementDataStruct& rData) {
+    double ComputePenaltyCoefficient(const EmbeddedElementDataStruct& rData) {
 
-        constexpr unsigned int BlockSize = TDim+1;
-        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
-
-        // Compute the penalty coefficient as K*max(LHS(i,i))*IntArea (we integrate P_gamma over the intersection area)
-        double diag_max = 0.0;
-        for (unsigned int i=0; i<MatrixSize; i++) {
-            if ((fabs(rLeftHandSideMatrix(i,i)) > diag_max) && (i%BlockSize != 0.0)) {
-                diag_max = fabs(rLeftHandSideMatrix(i,i)); // Maximum diagonal value (associated to velocity)
-            }
-        }
-
-        // Compute the intersection area from the weights values
+        // Compute the intersection area using the Gauss pts. weights
         double intersection_area = 0.0;
         for (unsigned int i_gauss = 0; i_gauss < (rData.w_gauss_pos_int).size(); ++i_gauss) {
-            intersection_area += rData.w_gauss_pos_int[i_gauss];
+            intersection_area += rData.w_gauss_pos_int(i_gauss);
         }
 
-        // Comute the penalty coefficient
-        const double K = 100.0;
-        const double denominator = std::max(0.0001*rData.h*rData.h, intersection_area);
-        const double pen_coef = K*diag_max/denominator;
+        // Compute the element average values
+        double avg_rho = 0.0;
+        double avg_visc = 0.0;
+        array_1d<double, 3> avg_vel = ZeroVector(3);
+
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+            avg_rho += rData.rho(i_node);
+            avg_visc += rData.mu(i_node);
+            avg_vel += row(rData.v, i_node);
+        }
+
+        avg_rho /= TNumNodes;
+        avg_visc /= TNumNodes;
+        avg_vel /= TNumNodes;
+
+        const double v_norm = norm_2(avg_vel);
+
+        // Compute the penalty constant
+        const double pen_cons = avg_rho*std::pow(rData.h, TDim)/rData.dt +
+                                avg_rho*avg_visc*std::pow(rData.h,TDim-2) +
+                                avg_rho*v_norm*std::pow(rData.h, TDim-1);
+
+        // Return the penalty coefficient
+        const double K = 10.0;
+        const double pen_coef = K * pen_cons / intersection_area;
 
         return pen_coef;
-    }
 
+    }
 
     /**
     * This functions adds the penalty extra term level set contribution.
@@ -550,7 +561,7 @@ protected:
         GetPreviousSolutionVector(rData, prev_sol);
 
         // Set the penalty matrix
-        MatrixType P_gamma(TNumNodes, TNumNodes);    
+        MatrixType P_gamma(TNumNodes, TNumNodes);
         noalias(P_gamma) = ZeroMatrix(TNumNodes, TNumNodes);
 
         const unsigned int n_gauss_total = (rData.w_gauss_pos_int).size();
@@ -562,7 +573,7 @@ protected:
         }
 
         // Multiply the penalty matrix by the penalty coefficient
-        double pen_coef = ComputePenaltyCoefficient(rLeftHandSideMatrix, rData);
+        double pen_coef = ComputePenaltyCoefficient(rData);
         P_gamma *= pen_coef;
 
         VectorType auxRightHandSideVector = ZeroVector(MatrixSize);
@@ -583,7 +594,7 @@ protected:
             }
         }
 
-        rLeftHandSideMatrix += auxLeftHandSideMatrix;
+        noalias(rLeftHandSideMatrix) += auxLeftHandSideMatrix;
 
         // RHS penalty contribution assembly
         if (this->Has(EMBEDDED_VELOCITY)) {
@@ -596,12 +607,11 @@ protected:
                 }
             }
 
-            rRightHandSideVector += prod(auxLeftHandSideMatrix, aux_embedded_vel);
+            noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, aux_embedded_vel);
         }
 
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol); // Residual contribution assembly
+        noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, prev_sol); // Residual contribution assembly
     }
-
 
     /**
     * This functions adds the level set strong boundary condition imposition contribution.
@@ -613,7 +623,7 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const EmbeddedElementDataStruct& rData) {
-                                                            
+
         constexpr unsigned int BlockSize = TDim+1;                 // Block size
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
 
@@ -682,11 +692,11 @@ protected:
         }
 
         // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix += auxLeftHandSideMatrix;
+        noalias(rLeftHandSideMatrix) += auxLeftHandSideMatrix;
 
         // RHS outside Nitche contribution assembly
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
+        noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, prev_sol);
 
         // Compute f_gamma if level set velocity is not 0
         if (this->Has(EMBEDDED_VELOCITY)) {
@@ -712,10 +722,9 @@ protected:
                 }
             }
 
-            rRightHandSideVector += prod(auxLeftHandSideMatrix, aux_embedded_vel);
+            noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, aux_embedded_vel);
         }
     }
-
 
     /**
     * This drops the outer nodes velocity constributions in both LHS and RHS matrices.
@@ -747,7 +756,6 @@ protected:
         }
     }
 
-
     /**
     * This function adds the Nitsche normal component of the penalty contribution (Winter formulation).
     * @param rLeftHandSideMatrix: reference to the LHS matrix
@@ -758,7 +766,7 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const EmbeddedElementDataStruct& rData) {
-        
+
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -820,7 +828,7 @@ protected:
             // Compute the current cut point auxLHS contribution
             const bounded_matrix<double, MatrixSize, TDim> aux_1 = prod(N_aux_trans, normal_projection_matrix);
             const bounded_matrix<double, MatrixSize, MatrixSize> aux_2 = prod(aux_1, N_aux);
-            auxLeftHandSideMatrix += cons_coef*weight*aux_2;
+            noalias(auxLeftHandSideMatrix) += cons_coef*weight*aux_2;
         }
 
         // If level set velocity is not 0, add its contribution to the RHS
@@ -834,18 +842,17 @@ protected:
                 }
             }
 
-            auxRightHandSideVector += prod(auxLeftHandSideMatrix, embedded_vel_exp);
+            noalias(auxRightHandSideVector) += prod(auxLeftHandSideMatrix, embedded_vel_exp);
         }
 
         // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix += auxLeftHandSideMatrix;
+        noalias(rLeftHandSideMatrix) += auxLeftHandSideMatrix;
 
         // RHS outside Nitche contribution assembly
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector += auxRightHandSideVector;
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
+        noalias(rRightHandSideVector) += auxRightHandSideVector;
+        noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, prev_sol);
     }
-
 
     /**
     * This function adds the Nitsche normal component of the symmetric counterpart of the fluxes (Winter formulation).
@@ -915,16 +922,16 @@ protected:
             const bounded_matrix<double, MatrixSize, TDim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
 
             // Contribution coming fron the shear stress operator
-            auxLeftHandSideMatrix += adjoint_consistency_term*weight*prod(aux_matrix_BCAPnorm, N_aux);
+            noalias(auxLeftHandSideMatrix) += adjoint_consistency_term*weight*prod(aux_matrix_BCAPnorm, N_aux);
 
             // Contribution coming from the pressure terms
             const bounded_matrix<double, MatrixSize, TDim> aux_matrix_VPnorm = prod(trans_pres_to_voigt_matrix_normal_op, normal_projection_matrix);
-            auxLeftHandSideMatrix += weight*prod(aux_matrix_VPnorm, N_aux);
+            noalias(auxLeftHandSideMatrix) += weight*prod(aux_matrix_VPnorm, N_aux);
 
         }
 
         // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix -= auxLeftHandSideMatrix; // The minus sign comes from the Nitsche formulation
+        noalias(rLeftHandSideMatrix) -= auxLeftHandSideMatrix; // The minus sign comes from the Nitsche formulation
 
         // RHS outside Nitche contribution assembly
         // If level set velocity is not 0, add its contribution to the RHS
@@ -938,14 +945,13 @@ protected:
                 }
             }
 
-            auxRightHandSideVector += prod(auxLeftHandSideMatrix, embedded_vel_exp);
+            noalias(auxRightHandSideVector) += prod(auxLeftHandSideMatrix, embedded_vel_exp);
         }
 
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector -= auxRightHandSideVector;
-        rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol);
+        noalias(rRightHandSideVector) -= auxRightHandSideVector;
+        noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, prev_sol);
     }
-
 
     /**
     * This function adds the Nitsche tangential component of the penalty contribution (Winter formulation).
@@ -957,7 +963,7 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const EmbeddedElementDataStruct& rData) {
-        
+
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -1012,16 +1018,16 @@ protected:
             const bounded_matrix<double, MatrixSize, TDim> aux_matrix_PtangACB = prod(aux_matrix_PtangA, aux_matrix_CB);
 
             // Contribution coming from the traction vector tangencial component
-            auxLeftHandSideMatrix_1 += coeff_1*weight*prod(N_aux_trans, aux_matrix_PtangACB);
+            noalias(auxLeftHandSideMatrix_1) += coeff_1*weight*prod(N_aux_trans, aux_matrix_PtangACB);
 
             // Contribution coming from the shear force generated by the velocity jump
             const bounded_matrix<double, MatrixSize, TDim> aux_matrix_N_trans_tang = prod(N_aux_trans, tangential_projection_matrix);
-            auxLeftHandSideMatrix_2 += coeff_2*weight*prod(aux_matrix_N_trans_tang, trans(N_aux_trans));
+            noalias(auxLeftHandSideMatrix_2) += coeff_2*weight*prod(aux_matrix_N_trans_tang, trans(N_aux_trans));
         }
 
         // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix += auxLeftHandSideMatrix_1;
-        rLeftHandSideMatrix += auxLeftHandSideMatrix_2;
+        noalias(rLeftHandSideMatrix) += auxLeftHandSideMatrix_1;
+        noalias(rLeftHandSideMatrix) += auxLeftHandSideMatrix_2;
 
         // RHS outside Nitche contribution assembly
         // If level set velocity is not 0, add its contribution to the RHS
@@ -1035,15 +1041,14 @@ protected:
                 }
             }
 
-            auxRightHandSideVector += prod(auxLeftHandSideMatrix_2, embedded_vel_exp);
+            noalias(auxRightHandSideVector) += prod(auxLeftHandSideMatrix_2, embedded_vel_exp);
         }
 
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector += auxRightHandSideVector;
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix_1, prev_sol);
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix_2, prev_sol);
+        noalias(rRightHandSideVector) += auxRightHandSideVector;
+        noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix_1, prev_sol);
+        noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix_2, prev_sol);
     }
-
 
     /**
     * This function adds the Nitsche tangential component of the symmetric counterpart of the fluxes (Winter formulation).
@@ -1055,7 +1060,7 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const EmbeddedElementDataStruct& rData) {
-        
+
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -1147,7 +1152,6 @@ protected:
         noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix_2, prev_sol);
     }
 
-
     /**
     * This functions collects and adds all the level set boundary condition contributions
     * @param rLeftHandSideMatrix: reference to the LHS matrix
@@ -1178,7 +1182,6 @@ protected:
             AddBoundaryConditionModifiedNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
         }
     }
-
 
     /**
     * This functions sets the B strain matrix (pressure columns are set to zero)
@@ -1214,7 +1217,6 @@ protected:
         }
     }
 
-
     /**
     * This functions sets the normal projection matrix nxn
     * @param rUnitNormal: reference to Gauss pt. unit normal vector
@@ -1223,7 +1225,7 @@ protected:
     void SetNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
         bounded_matrix<double, TDim, TDim>& rNormProjMatrix) {
-        
+
         rNormProjMatrix.clear();
 
         // Fill the normal projection matrix (nxn)
@@ -1237,7 +1239,6 @@ protected:
         }
     }
 
-
     /**
     * This functions sets the tangential projection matrix I - nxn
     * @param rUnitNormal: reference to Gauss pt. unit normal vector
@@ -1246,7 +1247,7 @@ protected:
     void SetTangentialProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
         bounded_matrix<double, TDim, TDim>& rTangProjMatrix) {
-        
+
         rTangProjMatrix.clear();
 
         // Fill the tangential projection matrix (I - nxn)
@@ -1261,7 +1262,6 @@ protected:
         }
     }
 
-
     /**
     * This functions sets the auxiliar matrix to compute the normal projection in Voigt notation
     * @param rUnitNormal: reference to Gauss pt. unit normal vector
@@ -1270,7 +1270,7 @@ protected:
     void SetVoigtNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
         bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtNormProjMatrix) {
-        
+
         rVoigtNormProjMatrix.clear();
 
         if (TDim == 3) {
@@ -1291,7 +1291,6 @@ protected:
         }
     }
 
-
     /**
     * This functions sets a vector containing the element previous solution
     * @param rData: reference to the element data structure
@@ -1300,7 +1299,7 @@ protected:
     void GetPreviousSolutionVector(
         const ElementDataType& rData,
         array_1d<double, TNumNodes*(TDim+1)>& rPrevSolVector) {
-        
+
         rPrevSolVector.clear();
 
         for (unsigned int i=0; i<TNumNodes; i++) {
@@ -1310,7 +1309,6 @@ protected:
             rPrevSolVector(i*(TDim+1)+TDim) = rData.p(i);
         }
     }
-
 
     ///@}
     ///@name Protected  Access
@@ -1379,4 +1377,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_STOKES_ELEMENT_SYMBOLIC_INCLUDED  defined
+#endif // KRATOS_EMBEDDED_NAVIER_STOKES  defined
