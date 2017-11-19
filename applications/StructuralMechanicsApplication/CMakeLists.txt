@@ -82,13 +82,9 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosStructuralMechanicsApplication SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES})
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosStructuralMechanicsApplication)
-endif(USE_COTIRE MATCHES ON)
 target_link_libraries(KratosStructuralMechanicsApplication KratosCore) # KratosSolidMechanicsApplication)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
-install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
 
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
@@ -116,6 +112,12 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosStructuralMechanicsApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
+
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py" DESTINATION KratosMultiphysics )
