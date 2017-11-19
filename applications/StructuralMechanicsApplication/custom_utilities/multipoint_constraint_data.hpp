@@ -23,6 +23,8 @@
 
 // project includes
 #include <boost/functional/hash.hpp>
+#include "includes/dof.h"
+#include "containers/variable_data.h"
 
 namespace Kratos
 {

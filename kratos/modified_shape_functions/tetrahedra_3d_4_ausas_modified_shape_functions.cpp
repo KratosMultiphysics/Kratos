@@ -174,33 +174,33 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeInterfaceNegativeSideShape
     }
 };
 
-// Compute the positive side interface outwards unit normal vector values.
-void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveSideInterfaceUnitNormals(
-    std::vector<Vector> &rPositiveSideInterfaceUnitNormal,
+// Compute the positive side interface outwards area normal vector values.
+void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveSideInterfaceAreaNormals(
+    std::vector<Vector> &rPositiveSideInterfaceAreaNormals,
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
         // Compute the positive side interface outwars unit normal values
-        this->ComputeInterfaceNormalOnOneSide(rPositiveSideInterfaceUnitNormal,
+        this->ComputeInterfaceNormalOnOneSide(rPositiveSideInterfaceAreaNormals,
                                               mpTetrahedraSplitter->mPositiveInterfaces,
                                               IntegrationMethod);
     } else {
-        KRATOS_ERROR << "Using the ComputePositiveSideInterfaceUnitNormals method for a non divided geometry.";
+        KRATOS_ERROR << "Using the ComputePositiveSideInterfaceAreaNormals method for a non divided geometry.";
     }
 };
 
-// Compute the positive side interface outwards unit normal vector values.
-void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeSideInterfaceUnitNormals(
-    std::vector<Vector> &rNegativeSideInterfaceUnitNormal,
+// Compute the positive side interface outwards area normal vector values.
+void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeSideInterfaceAreaNormals(
+    std::vector<Vector> &rNegativeSideInterfaceAreaNormals,
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
         // Compute the positive side interface outwars unit normal values
-        this->ComputeInterfaceNormalOnOneSide(rNegativeSideInterfaceUnitNormal,
+        this->ComputeInterfaceNormalOnOneSide(rNegativeSideInterfaceAreaNormals,
                                               mpTetrahedraSplitter->mNegativeInterfaces,
                                               IntegrationMethod);
     } else {
-        KRATOS_ERROR << "Using the ComputeNegativeSideInterfaceUnitNormals method for a non divided geometry.";
+        KRATOS_ERROR << "Using the ComputeNegativeSideInterfaceAreaNormals method for a non divided geometry.";
     }
 };
 

@@ -167,21 +167,21 @@ public:
         const IntegrationMethodType IntegrationMethod) = 0;
         
     /**
-    * Returns the positive side outwards unit normal vector values for the Gauss pts. of given quadrature.
-    * @return rPositiveSideInterfaceUnitNormal: Outwards unit normal vector list.
+    * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
+    * @return rPositiveSideInterfaceAreaNormal: Outwards unit normal vector list.
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void ComputePositiveSideInterfaceUnitNormals(
-        std::vector<Vector> &rPositiveSideInterfaceUnitNormal,
+    virtual void ComputePositiveSideInterfaceAreaNormals(
+        std::vector<Vector> &rPositiveSideInterfaceAreaNormal,
         const IntegrationMethodType IntegrationMethod) = 0;
 
     /**
-    * Returns the positive side outwards unit normal vector values for the Gauss pts. of given quadrature.
-    * @return rNegativeSideInterfaceUnitNormal: Outwards unit normal vector list.
+    * Returns the negative side outwards area normal vector values for the Gauss pts. of given quadrature.
+    * @return rNegativeSideInterfaceAreaNormal: Outwards unit normal vector list.
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void ComputeNegativeSideInterfaceUnitNormals(
-        std::vector<Vector> &rNegativeSideInterfaceUnitNormal,
+    virtual void ComputeNegativeSideInterfaceAreaNormals(
+        std::vector<Vector> &rNegativeSideInterfaceAreaNormal,
         const IntegrationMethodType IntegrationMethod) = 0;
 
     /**
@@ -261,13 +261,13 @@ protected:
         const IntegrationMethodType IntegrationMethod);
 
     /**
-    * Returns the outwards unit normal vector values in either the positive or negative element interfaces for a given quadrature.
-    * @return rInterfaceUnitNormalValues: std::vector of subdivisions point based geometries where the values are to be computed.
+    * Returns the outwards area normal vector values in either the positive or negative element interfaces for a given quadrature.
+    * @return rInterfaceAreaNormalValues: std::vector containing the area normal values for the selected quadrature Gauss pts.
     * @param rInterfacesVector: std::vector of intersection point based geometries where the values are to be computed.
     * @param IntegrationMethod: Desired integration quadrature.
     */
     virtual void ComputeInterfaceNormalOnOneSide(
-        std::vector<Vector> &rInterfaceUnitNormalValues,
+        std::vector<Vector> &rInterfaceAreaNormalValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const IntegrationMethodType IntegrationMethod);
 
