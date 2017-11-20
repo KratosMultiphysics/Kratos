@@ -74,6 +74,8 @@ namespace Kratos
       
       Logger(std::string const& TheLabel);
 
+      Logger(std::string const& TheLabel, const CodeLocation& Location);
+
 
 	  /// Avoiding Logger to be copied
 	  Logger(Logger const& rOther) = delete;
@@ -116,6 +118,7 @@ namespace Kratos
 		  return mCurrentMessage.GetMessage();
 	  }
       
+    const CodeLocation GetCurrentLocation() const;
       
       ///@}
       ///@name Inquiry
@@ -143,13 +146,16 @@ namespace Kratos
 		  mCurrentMessage << rValue;
 
 		  return *this;
-	  }
+    }
 
 	  /// Manipulator stream function
 	  Logger& operator << (std::ostream& (*pf)(std::ostream&));
 
 	  /// char stream function
-	  Logger& operator << (const char * rString);
+    Logger& operator << (const char * rString);
+      
+    // Location stream function
+    Logger& operator << (CodeLocation const& TheLocation);
 
 	  /// Severity stream function
 	  Logger& operator << (Severity const& TheSeverity);
@@ -169,7 +175,8 @@ namespace Kratos
       ///@{ 
         
 		 LoggerMessage mCurrentMessage;
-        
+     std::vector<CodeLocation> mCallStack;   
+
       ///@} 
       ///@name Private Operators
       ///@{ 

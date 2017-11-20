@@ -26,8 +26,12 @@
 namespace Kratos
 {
 
-	Logger::Logger(std::string const& TheLabel) : mCurrentMessage(TheLabel)
+	Logger::Logger(std::string const& TheLabel) : mCurrentMessage(TheLabel), mCallStack()
 	{
+	}
+
+	Logger(std::string const& TheLabel, const CodeLocation& Location) : mCurrentMessage(TheLabel), mCallStack() {
+		add_to_call_stack(Location);
 	}
 
 	Logger::~Logger()
@@ -48,6 +52,17 @@ namespace Kratos
 		}
 	}
 
+	const CodeLocation Logger::GetCurrentLocation() const {
+		if(mCallStack.empty())
+			return CodeLocation("Unknown File", "Unknown Location", 0);
+		return mCallStack[0];
+	}
+
+	void Logger::AddToCallStack(CodeLocation const& TheLocation)
+	{
+		mCallStack.push_back(TheLocation);
+	}
+
     std::string Logger::Info() const
 	{
 		return "Logger";
@@ -62,6 +77,14 @@ namespace Kratos
 	{
 	}
 
+	/// Manipulator stream function
+	Logger& Logger::operator << (std::ostream& (*pf)(std::ostream&))
+	{
+		mCurrentMessage << pf;
+
+		return *this;
+	}
+
 	/// char stream function
 	Logger& Logger::operator << (const char * rString)
 	{
@@ -70,13 +93,15 @@ namespace Kratos
 		return *this;
 	}
 
-	Logger& Logger::operator << (std::ostream& (*pf)(std::ostream&))
+	// Location stream function
+	Logger& Logger::operator << (CodeLocation const& TheLocation)
 	{
-		mCurrentMessage << pf;
+		AddToCallStack(TheLocation);
 
 		return *this;
 	}
 
+	/// Severity stream function
 	Logger& Logger::operator << (Severity const& TheSeverity)
 	{
 		mCurrentMessage << TheSeverity;
@@ -84,6 +109,7 @@ namespace Kratos
 		return *this;
 	}
 
+	/// Category stream function
 	Logger& Logger::operator << (Category const& TheCategory) {
 		mCurrentMessage << TheCategory;
 
