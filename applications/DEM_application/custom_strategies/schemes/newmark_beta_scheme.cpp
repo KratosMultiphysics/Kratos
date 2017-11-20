@@ -7,14 +7,16 @@ namespace Kratos {
         if(verbose) std::cout << "\nAssigning NewmarkBetaScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
-
+    
     /*void NewmarkBetaScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
         DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);
-        //r_model_part.AddNodalSolutionStepVariable(OLD_FORCE?);}
+        //r_model_part.AddNodalSolutionStepVariable(OLD_FORCE?);
+    }
     
     void NewmarkBetaScheme::AddClustersVariables(ModelPart & r_model_part, bool TRotationOption){
         DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);
-        //r_model_part.AddNodalSolutionStepVariable(OLD_FORCE?);}*/
+        //r_model_part.AddNodalSolutionStepVariable(OLD_FORCE?);                      
+    }  */      
 
     void NewmarkBetaScheme::UpdateTranslationalVariables(
             int StepFlag,
@@ -32,9 +34,9 @@ namespace Kratos {
 
         const array_1d<double, 3 >& old_force = i.FastGetSolutionStepValue(TOTAL_FORCES);
         
-        double mass_inv = 1.0 / mass;
         for (int k = 0; k < 3; k++) {
             if (Fix_vel[k] == false) {
+                double mass_inv = 1.0 / mass;
                 double old_acceleration = mass_inv * old_force[k];
                 double acceleration = force_reduction_factor * mass_inv * force[k];
                 delta_displ[k] = delta_t * vel[k] + delta_t * delta_t * ((0.5 - mBeta) * acceleration + mBeta * old_acceleration);
@@ -46,7 +48,7 @@ namespace Kratos {
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
             }
-        } // dimensions
+        } // dimensions  
     }
 
     void NewmarkBetaScheme::UpdateRotationalVariables(
@@ -69,8 +71,8 @@ namespace Kratos {
                 rotated_angle[k] += delta_rotation[k];
             }
         }
-    }
-
+    } 
+    
     void NewmarkBetaScheme::UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
@@ -150,11 +152,11 @@ namespace Kratos {
         GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensorInv, GlobalTensorInv);
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensorInv, angular_momentum, angular_velocity);
     }
-
+    
     void NewmarkBetaScheme::CalculateLocalAngularAcceleration(
                                 const Node < 3 > & i,
                                 const double moment_of_inertia,
-                                const array_1d<double, 3 >& torque,
+                                const array_1d<double, 3 >& torque, 
                                 const double moment_reduction_factor,
                                 array_1d<double, 3 >& angular_acceleration){
         
@@ -163,19 +165,19 @@ namespace Kratos {
             angular_acceleration[j] = moment_reduction_factor * torque[j] * moment_of_inertia_inv;
         }
     }
-
+    
     void NewmarkBetaScheme::CalculateLocalAngularAccelerationByEulerEquations(
                                 const Node < 3 > & i,
                                 const array_1d<double, 3 >& local_angular_velocity,
                                 const array_1d<double, 3 >& moments_of_inertia,
-                                const array_1d<double, 3 >& local_torque,
+                                const array_1d<double, 3 >& local_torque, 
                                 const double moment_reduction_factor,
                                 array_1d<double, 3 >& local_angular_acceleration){
-
+        
         for (int j = 0; j < 3; j++) {
             //Euler equations in Explicit (Forward Euler) scheme:
             local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
-            local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;
+            local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;            
         }
     }
     
@@ -206,4 +208,5 @@ namespace Kratos {
                 }
             }
     }
+    
 } //namespace Kratos

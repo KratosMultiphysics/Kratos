@@ -11,8 +11,8 @@
 #include <cfloat>
 
 // Project includes
-#include "dem_integration_scheme.h"
 #include "includes/define.h"
+#include "dem_integration_scheme.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
 #include "custom_utilities/GeometryFunctions.h"
@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class KRATOS_API(DEM_APPLICATION) ForwardEulerScheme : public DEMIntegrationScheme {
+    class ForwardEulerScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
@@ -47,6 +47,7 @@ namespace Kratos {
         void SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
         
         /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption) override;
+    
         void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption) override;*/
 
         void UpdateTranslationalVariables(
@@ -72,7 +73,7 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_acceleration,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
-
+        
         void UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
@@ -91,7 +92,7 @@ namespace Kratos {
                 const array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
-
+        
         void QuaternionCalculateMidAngularVelocities(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
@@ -99,35 +100,35 @@ namespace Kratos {
                 const double dt,
                 const array_1d<double, 3>& InitialAngularVel,
                 array_1d<double, 3>& FinalAngularVel)  override;
-
+    
         void UpdateAngularVelocity(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
                 const array_1d<double, 3>& angular_momentum,
                 array_1d<double, 3>& angular_velocity)  override;
-
-        void CalculateLocalAngularAcceleration(
-                const Node < 3 > & i,
-                const double moment_of_inertia,
-                const array_1d<double, 3 >& torque,
-                const double moment_reduction_factor,
-                array_1d<double, 3 >& angular_acceleration) override;
-
-        void CalculateLocalAngularAccelerationByEulerEquations(
-                const Node < 3 > & i,
-                const array_1d<double, 3 >& local_angular_velocity,
-                const array_1d<double, 3 >& moments_of_inertia,
-                const array_1d<double, 3 >& local_torque,
-                const double moment_reduction_factor,
-                array_1d<double, 3 >& local_angular_acceleration) override;
         
+        void CalculateLocalAngularAcceleration(
+                                const Node < 3 > & i,
+                                const double moment_of_inertia,
+                                const array_1d<double, 3 >& torque, 
+                                const double moment_reduction_factor,
+                                array_1d<double, 3 >& angular_acceleration) override;
+        
+        void CalculateLocalAngularAccelerationByEulerEquations(
+                                    const Node < 3 > & i,
+                                    const array_1d<double, 3 >& local_angular_velocity,
+                                    const array_1d<double, 3 >& moments_of_inertia,
+                                    const array_1d<double, 3 >& local_torque, 
+                                    const double moment_reduction_factor,
+                                    array_1d<double, 3 >& local_angular_acceleration) override;
+                                    
         void CalculateAngularVelocityRK(
                                     const Quaternion<double  >& Orientation,
                                     const array_1d<double, 3 >& moments_of_inertia,
                                     const array_1d<double, 3 >& angular_momentum,
                                     array_1d<double, 3 > & angular_velocity,
                                     const double delta_t,
-                                    const bool Fix_Ang_vel[3]) override;
+                                    const bool Fix_Ang_vel[3]) override;                                    
         
         /// Turn back information as a string.
 
@@ -154,6 +155,7 @@ namespace Kratos {
 
     private:
 
+
         /// Assignment operator.
 
         ForwardEulerScheme& operator=(ForwardEulerScheme const& rOther) {
@@ -167,7 +169,7 @@ namespace Kratos {
         }
 
 
-        ///@}
+        ///@}    
 
     }; // Class ForwardEulerScheme 
 

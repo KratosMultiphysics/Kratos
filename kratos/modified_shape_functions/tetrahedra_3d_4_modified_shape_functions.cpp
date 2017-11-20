@@ -72,10 +72,10 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAndGr
     if (this->IsSplit()) {
         // Get the intersection points condensation matrix
         Matrix p_matrix;
-        SetIntersectionPointsCondensationMatrix(p_matrix,
-                                                mpTetrahedraSplitter->mEdgeNodeI,
-                                                mpTetrahedraSplitter->mEdgeNodeJ,
-                                                mpTetrahedraSplitter->mSplitEdges);
+        this->SetCondensationMatrix(p_matrix,
+                                    mpTetrahedraSplitter->mEdgeNodeI,
+                                    mpTetrahedraSplitter->mEdgeNodeJ,
+                                    mpTetrahedraSplitter->mSplitEdges);
 
         // Compute the positive side values
         this->ComputeValuesOnOneSide(rPositiveSideShapeFunctionsValues,
@@ -99,10 +99,10 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAndGr
     if (this->IsSplit()) {
         // Get the intersection points condensation matrix
         Matrix p_matrix;
-        SetIntersectionPointsCondensationMatrix(p_matrix,
-                                                mpTetrahedraSplitter->mEdgeNodeI,
-                                                mpTetrahedraSplitter->mEdgeNodeJ,
-                                                mpTetrahedraSplitter->mSplitEdges);
+        this->SetCondensationMatrix(p_matrix,
+                                    mpTetrahedraSplitter->mEdgeNodeI,
+                                    mpTetrahedraSplitter->mEdgeNodeJ,
+                                    mpTetrahedraSplitter->mSplitEdges);
 
         // Compute the negative side values
         this->ComputeValuesOnOneSide(rNegativeSideShapeFunctionsValues,
@@ -124,11 +124,21 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunct
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
+        // Get the interface condensation matrix
+        Matrix p_matrix;
+        this->SetCondensationMatrix(p_matrix,
+                                    mpTetrahedraSplitter->mEdgeNodeI,
+                                    mpTetrahedraSplitter->mEdgeNodeJ,
+                                    mpTetrahedraSplitter->mSplitEdges);
+
         // Compute the positive side interface values
         this->ComputeInterfaceValuesOnOneSide(rInterfacePositiveSideShapeFunctionsValues,
                                               rInterfacePositiveSideShapeFunctionsGradientsValues,
                                               rInterfacePositiveSideWeightsValues,
                                               mpTetrahedraSplitter->mPositiveInterfaces,
+                                              mpTetrahedraSplitter->mPositiveSubdivisions,
+                                              mpTetrahedraSplitter->mPositiveInterfacesParentIds,
+                                              p_matrix,
                                               IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
@@ -143,11 +153,21 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunct
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
+        // Get the interface condensation matrix
+        Matrix p_matrix;
+        this->SetCondensationMatrix(p_matrix,
+                                    mpTetrahedraSplitter->mEdgeNodeI,
+                                    mpTetrahedraSplitter->mEdgeNodeJ,
+                                    mpTetrahedraSplitter->mSplitEdges);
+
         // Compute the positive side interface values
         this->ComputeInterfaceValuesOnOneSide(rInterfaceNegativeSideShapeFunctionsValues,
                                               rInterfaceNegativeSideShapeFunctionsGradientsValues,
                                               rInterfaceNegativeSideWeightsValues,
                                               mpTetrahedraSplitter->mNegativeInterfaces,
+                                              mpTetrahedraSplitter->mNegativeSubdivisions,
+                                              mpTetrahedraSplitter->mNegativeInterfacesParentIds,
+                                              p_matrix,
                                               IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
@@ -155,32 +175,32 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunct
 };
 
 // Compute the positive side interface outwards unit normal vector values.
-void Tetrahedra3D4ModifiedShapeFunctions::ComputePositiveSideInterfaceUnitNormals(
-    std::vector<Vector> &rPositiveSideInterfaceUnitNormal,
+void Tetrahedra3D4ModifiedShapeFunctions::ComputePositiveSideInterfaceAreaNormals(
+    std::vector<Vector> &rPositiveSideInterfaceAreaNormals,
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
         // Compute the positive side interface outwars unit normal values
-        this->ComputeInterfaceNormalOnOneSide(rPositiveSideInterfaceUnitNormal,
+        this->ComputeInterfaceNormalOnOneSide(rPositiveSideInterfaceAreaNormals,
                                               mpTetrahedraSplitter->mPositiveInterfaces,
                                               IntegrationMethod);
     } else {
-        KRATOS_ERROR << "Using the ComputePositiveSideInterfaceUnitNormals method for a non divided geometry.";
+        KRATOS_ERROR << "Using the ComputePositiveSideInterfaceAreaNormals method for a non divided geometry.";
     }
 };
 
 // Compute the positive side interface outwards unit normal vector values.
-void Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeSideInterfaceUnitNormals(
-    std::vector<Vector> &rNegativeSideInterfaceUnitNormal,
+void Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeSideInterfaceAreaNormals(
+    std::vector<Vector> &rNegativeSideInterfaceAreaNormals,
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
         // Compute the positive side interface outwars unit normal values
-        this->ComputeInterfaceNormalOnOneSide(rNegativeSideInterfaceUnitNormal,
+        this->ComputeInterfaceNormalOnOneSide(rNegativeSideInterfaceAreaNormals,
                                               mpTetrahedraSplitter->mNegativeInterfaces,
                                               IntegrationMethod);
     } else {
-        KRATOS_ERROR << "Using the ComputeNegativeSideInterfaceUnitNormals method for a non divided geometry.";
+        KRATOS_ERROR << "Using the ComputeNegativeSideInterfaceAreaNormals method for a non divided geometry.";
     }
 };
 
