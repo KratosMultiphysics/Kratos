@@ -44,11 +44,12 @@ namespace Kratos {
             rModelPart.AddNodalSolutionStepVariable(VELOCITY);
             rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
             rModelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-            rModelPart.AddNodalSolutionStepVariable(ADVPROJ);
+            rModelPart.AddNodalSolutionStepVariable(ADVPROJ); // OSS only!
             rModelPart.AddNodalSolutionStepVariable(PRESSURE);
             rModelPart.AddNodalSolutionStepVariable(DENSITY);
-            rModelPart.AddNodalSolutionStepVariable(VISCOSITY);
-            rModelPart.AddNodalSolutionStepVariable(DIVPROJ);
+            rModelPart.AddNodalSolutionStepVariable(VISCOSITY); // VMS only!
+            rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY); // Symbolic only!
+            rModelPart.AddNodalSolutionStepVariable(DIVPROJ); // OSS only!
 
             rModelPart.SetBufferSize(BufferSize);
 
@@ -61,9 +62,10 @@ namespace Kratos {
             std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
             rModelPart.CreateNewElement(rElementName, 1, element_nodes, p_properties);
 
+            const double dt = 0.1;
             // Loop starts at 1 because you need one less clone than time steps (JC)
             for (unsigned int i = 1; i < BufferSize; i++) {
-                rModelPart.CloneTimeStep(0.1);
+                rModelPart.CloneTimeStep(i*dt);
             }
 
             Element& r_element = *(rModelPart.ElementsBegin());
@@ -74,7 +76,8 @@ namespace Kratos {
                 r_node.FastGetSolutionStepValue(PRESSURE) = 10.0 * r_node.X();
                 r_node.FastGetSolutionStepValue(VELOCITY_X) = r_node.Y();
                 r_node.FastGetSolutionStepValue(DENSITY) = 100.0;
-                r_node.FastGetSolutionStepValue(VISCOSITY) = 0.01;
+                r_node.FastGetSolutionStepValue(VISCOSITY) = 0.01; //VMS only!
+                r_node.FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = 0.01; //Symbolic only!
             }
         }
 
@@ -183,11 +186,14 @@ namespace Kratos {
             BdfVector[1] = -2./0.1;
             BdfVector[2] = 0.5/0.1;
             model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS,BdfVector);
+            // Set sound velocity
+			model_part.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
 
 			// Set the element properties
+            Node<3>& r_node = *(model_part.Nodes().begin());
 			Properties::Pointer p_properties = model_part.pGetProperties(0);
-			p_properties->SetValue(DENSITY, 1000.0);
-			p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+			p_properties->SetValue(DENSITY, r_node.FastGetSolutionStepValue(DENSITY));
+            p_properties->SetValue(DYNAMIC_VISCOSITY, r_node.FastGetSolutionStepValue(DYNAMIC_VISCOSITY));
 			Newtonian2DLaw::Pointer p_constitutive(new Newtonian2DLaw());
 			p_properties->SetValue(CONSTITUTIVE_LAW, p_constitutive);
 
