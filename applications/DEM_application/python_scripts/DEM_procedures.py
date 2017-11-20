@@ -402,6 +402,13 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)  #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_IMPACT_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL) # JIG: SHOULD BE REMOVED IN THE FUTURE
+        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG) # JIG: SHOULD BE REMOVED IN THE FUTURE
+        model_part.AddNodalSolutionStepVariable(ORIENTATION) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM) # JIG: Is it necessary?
         model_part.AddNodalSolutionStepVariable(FACE_NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(FACE_TANGENTIAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LINEAR_IMPULSE)        
@@ -479,17 +486,16 @@ class Procedures(object):
 
     def AddClusterVariables(self, model_part, DEM_parameters):
         # KINEMATIC
-        model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
         model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY) # JIG: Is it necessary?
         model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL) # JIG: SHOULD BE REMOVED IN THE FUTURE
         model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG) # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION)
-        model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION)
-        model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
+        model_part.AddNodalSolutionStepVariable(ORIENTATION) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM) # JIG: Is it necessary?
 
         # FORCES
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
