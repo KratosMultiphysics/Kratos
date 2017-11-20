@@ -19,11 +19,11 @@ class FluidElementTest(UnitTest.TestCase):
     def setUp(self):
         self.domain_size = 2
         self.input_file = "cavity10"
-        self.reference_file = "reference10"
+        self.reference_file = "reference10_symbolic"
         self.work_folder = "FluidElementTest"
 
         self.dt = 0.1
-        self.nsteps = 100
+        self.nsteps = 10
 
         self.check_tolerance = 1e-6
         self.print_output = False
@@ -52,29 +52,35 @@ class FluidElementTest(UnitTest.TestCase):
             if self.print_output:
                 self.printOutput()
 
-    def testCavityOSS(self):
-        self.reference_file = "reference10_oss"
-        self.oss_switch = 1
-        self.testCavity()
-
     def setUpModel(self):
         self.fluid_model_part = ModelPart("Fluid")
 
     def setUpSolvers(self):
         import vms_monolithic_solver
         vms_monolithic_solver.AddVariables(self.fluid_model_part)
+        self.fluid_model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY)
 
         model_part_io = ModelPartIO(self.input_file)
         model_part_io.ReadModelPart(self.fluid_model_part)
 
-        self.fluid_model_part.SetBufferSize(2)
+        self.fluid_model_part.SetBufferSize(3)
         vms_monolithic_solver.AddDofs(self.fluid_model_part)
+
+        ## Set up consitutive law
+        self.fluid_model_part.Properties[1].SetValue(DENSITY,1.0)
+        self.fluid_model_part.Properties[1].SetValue(DYNAMIC_VISCOSITY,0.01)
+        constitutive_law = Newtonian2DLaw()
+        self.fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW,constitutive_law)
+
+        self.fluid_model_part.ProcessInfo.SetValue(SOUND_VELOCITY,1e12)
 
         ## Replace element and conditions
         replace_settings = Parameters("""{
-            "element_name":"DSS2D",
-            "condition_name": "MonolithicWallCondition2D"
+            "element_name":"SymbolicNavierStokes2D3N",
+            "condition_name": "NavierStokesWallCondition2D"
         }""")
+
+        ReplaceElementsAndConditionsProcess(self.fluid_model_part, replace_settings).Execute()
 
         # Building custom fluid solver
         self.fluid_solver = vms_monolithic_solver.MonolithicSolver(self.fluid_model_part,self.domain_size)
@@ -84,9 +90,7 @@ class FluidElementTest(UnitTest.TestCase):
         abs_pres_tol = 1e-7
         self.fluid_solver.conv_criteria = VelPrCriteria(rel_vel_tol,abs_vel_tol,rel_pres_tol,abs_pres_tol)
 
-        alpha = -0.3
-        move_mesh = 0
-        self.fluid_solver.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(alpha,move_mesh,self.domain_size)
+        self.fluid_solver.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
         precond = DiagonalPreconditioner()
         self.fluid_solver.linear_solver = BICGSTABSolver(1e-6, 5000, precond)
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.fluid_solver.linear_solver)
@@ -107,9 +111,12 @@ class FluidElementTest(UnitTest.TestCase):
                 self.fluid_solver.MoveMeshFlag)
 
         self.fluid_solver.solver.SetEchoLevel(0)
-        self.fluid_solver.solver.Check()
 
-        self.fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH,self.oss_switch)
+        # Initialize constitutive law
+        for element in self.fluid_model_part.Elements:
+            element.Initialize()
+
+        self.fluid_solver.solver.Check()
 
         self.fluid_solver.divergence_clearance_steps = 0
         self.fluid_solver.use_slip_conditions = 0
@@ -129,7 +136,7 @@ class FluidElementTest(UnitTest.TestCase):
         ## Set initial and boundary conditions
         for node in self.fluid_model_part.Nodes:
             node.SetSolutionStepValue(DENSITY,rho)
-            node.SetSolutionStepValue(VISCOSITY,nu)
+            node.SetSolutionStepValue(DYNAMIC_VISCOSITY,mu)
 
             if node.X == xmin or node.X == xmax or node.Y == ymin or node.Y == ymax:
                 node.Fix(VELOCITY_X)
@@ -146,7 +153,15 @@ class FluidElementTest(UnitTest.TestCase):
         for step in range(self.nsteps):
             time = time+self.dt
             self.fluid_model_part.CloneTimeStep(time)
-            self.fluid_solver.Solve()
+
+            bdf_coefficients = Vector(3)
+            bdf_coefficients[0] = 1.5/self.dt
+            bdf_coefficients[1] = -2./self.dt
+            bdf_coefficients[2] = 0.5/self.dt
+            self.fluid_model_part.ProcessInfo[BDF_COEFFICIENTS] = bdf_coefficients
+
+            if step > 0: # first step is skipped (to fill BDF2 buffer)
+                self.fluid_solver.Solve()
 
     def checkResults(self):
 
@@ -158,7 +173,6 @@ class FluidElementTest(UnitTest.TestCase):
                     temp = node.GetSolutionStepValue(PRESSURE,0)
                     ref_file.write("{0}, {1}, {2}, {3}\n".format(node.Id, vel[0], vel[1], temp))
         else:
-            return
             with open(self.reference_file+'.csv','r') as reference_file:
                 reference_file.readline() # skip header
                 line = reference_file.readline()
@@ -198,15 +212,14 @@ class FluidElementTest(UnitTest.TestCase):
         gid_io.WriteNodalResults(VELOCITY,self.fluid_model_part.Nodes,label,0)
         gid_io.WriteNodalResults(PRESSURE,self.fluid_model_part.Nodes,label,0)
         gid_io.WriteNodalResults(DENSITY,self.fluid_model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(VISCOSITY,self.fluid_model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(DYNAMIC_VISCOSITY,self.fluid_model_part.Nodes,label,0)
 
         gid_io.FinalizeResults()
 
 if __name__ == '__main__':
     test = FluidElementTest()
     test.setUp()
-    test.print_reference_values = False
+    test.print_reference_values = True
     test.print_output = True
-    test.testCavityOSS()
-    #test.testCavity()
+    test.testCavity()
     test.tearDown()
