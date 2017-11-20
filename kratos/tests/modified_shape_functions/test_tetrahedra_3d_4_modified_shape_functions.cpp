@@ -89,16 +89,16 @@ namespace Kratos
 				negative_interface_side_sh_func_gradients,
 				negative_interface_side_weights,
 				GeometryData::GI_GAUSS_1);
-																							   
+
 			// Call the interface outwards normal unit vector calculator
-			std::vector<Vector> positive_side_unit_normals, negative_side_unit_normals;
-			
-			tetrahedra_shape_functions.ComputePositiveSideInterfaceUnitNormals(
-				positive_side_unit_normals,
+			std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
+
+			tetrahedra_shape_functions.ComputePositiveSideInterfaceAreaNormals(
+				positive_side_area_normals,
 				GeometryData::GI_GAUSS_1);
-			
-			tetrahedra_shape_functions.ComputeNegativeSideInterfaceUnitNormals(
-				negative_side_unit_normals,
+
+			tetrahedra_shape_functions.ComputeNegativeSideInterfaceAreaNormals(
+				negative_side_area_normals,
 				GeometryData::GI_GAUSS_1);
 
             const double tolerance = 1e-10;
@@ -140,7 +140,7 @@ namespace Kratos
             KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](3,0),  0.0, tolerance);
             KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](3,1),  0.0, tolerance);
             KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](3,2),  1.0, tolerance);
-            
+
             KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,0), -1.0, tolerance);
             KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,1), -1.0, tolerance);
             KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,2), -1.0, tolerance);
@@ -222,12 +222,12 @@ namespace Kratos
             KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[0](3,2),  1.0, tolerance);
 
 			// Check Gauss pts. outwards unit normal values
-			KRATOS_CHECK_NEAR(positive_side_unit_normals[0](0),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(positive_side_unit_normals[0](1),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(positive_side_unit_normals[0](2), -1.0, tolerance);
-			KRATOS_CHECK_NEAR(negative_side_unit_normals[0](0),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(negative_side_unit_normals[0](1),  0.0, tolerance);
-            KRATOS_CHECK_NEAR(negative_side_unit_normals[0](2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1),  0.0, tolerance);
+            KRATOS_CHECK_NEAR(negative_side_area_normals[0](2),  1.0, tolerance);
 		}
 
 
@@ -244,13 +244,13 @@ namespace Kratos
 			base_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 			Properties::Pointer p_properties(new Properties(0));
 			base_model_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties);
-			
+
 			// Set the DISTANCE field
 			base_model_part.Nodes()[1].FastGetSolutionStepValue(DISTANCE) = -1.0;
 			base_model_part.Nodes()[2].FastGetSolutionStepValue(DISTANCE) =  1.0;
 			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) = -1.0;
 			base_model_part.Nodes()[4].FastGetSolutionStepValue(DISTANCE) =  1.0;
-			
+
 			// Set the elemental distances vector
 			Geometry<Node<3>>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
 
@@ -297,16 +297,16 @@ namespace Kratos
 				negative_interface_side_sh_func_gradients,
 				negative_interface_side_weights,
 				GeometryData::GI_GAUSS_1);
-																							   
+
 			// Call the interface outwards normal unit vector calculator
-			std::vector<Vector> positive_side_unit_normals, negative_side_unit_normals;
-			
-			tetrahedra_shape_functions.ComputePositiveSideInterfaceUnitNormals(
-				positive_side_unit_normals,
+			std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
+
+			tetrahedra_shape_functions.ComputePositiveSideInterfaceAreaNormals(
+				positive_side_area_normals,
 				GeometryData::GI_GAUSS_1);
-			
-			tetrahedra_shape_functions.ComputeNegativeSideInterfaceUnitNormals(
-				negative_side_unit_normals,
+
+			tetrahedra_shape_functions.ComputeNegativeSideInterfaceAreaNormals(
+				negative_side_area_normals,
 				GeometryData::GI_GAUSS_1);
 
             const double tolerance = 1e-10;
@@ -324,7 +324,7 @@ namespace Kratos
             KRATOS_CHECK_NEAR(positive_side_sh_func(2,1), 0.500, tolerance);
             KRATOS_CHECK_NEAR(positive_side_sh_func(2,2), 0.125, tolerance);
             KRATOS_CHECK_NEAR(positive_side_sh_func(2,3), 0.250, tolerance);
-            
+
             KRATOS_CHECK_NEAR(negative_side_sh_func(0,0), 0.500, tolerance);
             KRATOS_CHECK_NEAR(negative_side_sh_func(0,1), 0.125, tolerance);
             KRATOS_CHECK_NEAR(negative_side_sh_func(0,2), 0.250, tolerance);
@@ -505,19 +505,19 @@ namespace Kratos
             KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[1](3,2),  1.0, tolerance);
 
 			// Check Gauss pts. outwards unit normal values
-			KRATOS_CHECK_NEAR(positive_side_unit_normals[0](0), -0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(positive_side_unit_normals[0](1),       0.0, 1e-6);
-			KRATOS_CHECK_NEAR(positive_side_unit_normals[0](2), -0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(positive_side_unit_normals[1](0), -0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(positive_side_unit_normals[1](1),       0.0, 1e-6);
-            KRATOS_CHECK_NEAR(positive_side_unit_normals[1](2), -0.707107, 1e-6);
-            
-			KRATOS_CHECK_NEAR(negative_side_unit_normals[0](0),  0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_unit_normals[0](1),       0.0, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_unit_normals[0](2),  0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_unit_normals[1](0),  0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_unit_normals[1](1),       0.0, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_unit_normals[1](2),  0.707107, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0), -0.707107, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1),       0.0, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), -0.707107, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[1](0), -0.707107, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[1](1),       0.0, 1e-6);
+            KRATOS_CHECK_NEAR(positive_side_area_normals[1](2), -0.707107, 1e-6);
+
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0),  0.707107, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1),       0.0, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](2),  0.707107, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[1](0),  0.707107, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[1](1),       0.0, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[1](2),  0.707107, 1e-6);
 		}
 
 
@@ -534,13 +534,13 @@ namespace Kratos
 			base_model_part.CreateNewNode(4, 1.0, 2.0, 2.0);
 			Properties::Pointer p_properties(new Properties(0));
 			base_model_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties);
-			
+
 			// Set the DISTANCE field
 			base_model_part.Nodes()[1].FastGetSolutionStepValue(DISTANCE) = -0.5;
 			base_model_part.Nodes()[2].FastGetSolutionStepValue(DISTANCE) =  1.0;
 			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) = -0.5;
 			base_model_part.Nodes()[4].FastGetSolutionStepValue(DISTANCE) =  1.0;
-			
+
 			// Set the elemental distances vector
 			Geometry<Node<3>>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
 
@@ -570,7 +570,7 @@ namespace Kratos
 				negative_side_sh_func_gradients,
 				negative_side_weights,
 				GeometryData::GI_GAUSS_2);
-																							
+
             const double tolerance = 1e-10;
 
             // Check Gauss pts. weights

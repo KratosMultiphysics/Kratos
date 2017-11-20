@@ -12,10 +12,9 @@
 #include <iostream>
 
 // External includes
-#include<cmath>
+// #include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/linear_plane_strain.h"
 
 #include "structural_mechanics_application_variables.h"

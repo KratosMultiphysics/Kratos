@@ -50,6 +50,9 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosFluidDynamicsApplication SHARED ${KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES} ${KRATOS_FLUID_DYNAMICS_TESTING_SOURCES})
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosFluidDynamicsApplication)
+endif(USE_COTIRE MATCHES ON)
 target_link_libraries(KratosFluidDynamicsApplication KratosCore )
 set_target_properties(KratosFluidDynamicsApplication PROPERTIES COMPILE_DEFINITIONS "FLUID_DYNAMICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosFluidDynamicsApplication PROPERTIES PREFIX "")
