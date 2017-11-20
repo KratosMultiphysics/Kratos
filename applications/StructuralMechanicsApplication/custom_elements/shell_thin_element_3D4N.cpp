@@ -1986,12 +1986,12 @@ namespace Kratos
 			for (int i = 0; i < 4; i++)
 			{
 				//eqn 5.2.29
-                                Vector vec1;
+                                Vector vec1(3);
                                 MathUtils<double>::CrossProduct<Vector, Vector, Vector>(vec1, s_xi, data.r_cartesian[i]);
 				d_xi_i[i] = std::sqrt(inner_prod(vec1, vec1));
 				chi_xi_i[i] = d_xi_i[i] / l_xi;
 
-				Vector vec2;
+				Vector vec2(3);
                                 MathUtils<double>::CrossProduct<Vector, Vector, Vector>(vec2, s_eta, data.r_cartesian[i]);
 				d_eta_i[i] = std::sqrt(inner_prod(vec2, vec2));
 				chi_eta_i[i] = d_eta_i[i] / l_eta;
@@ -2003,7 +2003,7 @@ namespace Kratos
 			double l_13 = std::sqrt(inner_prod(r_13, r_13));
 
 			Vector e_24 = Vector(r_24 / l_24);
-			Vector vec1, vec2;
+			Vector vec1(3), vec2(3);
 			MathUtils<double>::CrossProduct<Vector, Vector, Vector>(vec1, e_24, r_13*-1.0);
 			MathUtils<double>::CrossProduct<Vector, Vector, Vector>(vec2, e_24, r_13);
 			double d_24 = std::sqrt(inner_prod(vec1, vec2));
