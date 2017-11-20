@@ -74,9 +74,6 @@ namespace Kratos
       
       Logger(std::string const& TheLabel);
 
-      Logger(std::string const& TheLabel, const CodeLocation& Location);
-
-
 	  /// Avoiding Logger to be copied
 	  Logger(Logger const& rOther) = delete;
 
@@ -95,7 +92,7 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
-      
+
       
       ///@}
       ///@name Static Methods
@@ -116,10 +113,8 @@ namespace Kratos
 
 	  std::string const& GetCurrentMessage() {
 		  return mCurrentMessage.GetMessage();
-	  }
-      
-    const CodeLocation GetCurrentLocation() const;
-      
+        }
+          
       ///@}
       ///@name Inquiry
       ///@{
@@ -174,8 +169,7 @@ namespace Kratos
       ///@name Member Variables 
       ///@{ 
         
-		 LoggerMessage mCurrentMessage;
-     std::vector<CodeLocation> mCallStack;   
+	  LoggerMessage mCurrentMessage; 
 
       ///@} 
       ///@name Private Operators
@@ -233,10 +227,21 @@ namespace Kratos
     }
   ///@}
 
-    ///@name Kratos Macros
-    ///@{
-      #define KRATOS_INFO(label)   Logger(label) << Logger::Severity::INFO
+  ///@name Kratos Macros
+  ///@{
+// Each-N block
+#define KRATOS_LOG_OCCURRENCES_LINE(line) kratos_log_loop_counter##line
+#define KRATOS_LOG_OCCURRENCES KRATOS_LOG_OCCURRENCES_LINE(__LINE__)
 
+#define KRATOS_INFO(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::INFO
+#define KRATOS_INFO_IF(label, conditional) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::INFO
+#define KRATOS_INFO_FIRST(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::INFO
+#define KRATOS_INFO_ONCE(label, __COUNT__) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == __COUNT__) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::INFO
+
+#define KRATOS_WARNING(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
+#define KRATOS_WARNING_IF(label, conditional) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
+#define KRATOS_WARNING_FIRST(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
+#define KRATOS_WARNING_ONCE(label, __COUNT__) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == __COUNT__) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
 
 #if defined(KRATOS_ENABLE_CHECK_POINT)
 #define KRATOS_CHECK_POINT(label) Logger(label) << Logger::Category::CHECKING

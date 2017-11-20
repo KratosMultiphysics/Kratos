@@ -26,12 +26,8 @@
 namespace Kratos
 {
 
-	Logger::Logger(std::string const& TheLabel) : mCurrentMessage(TheLabel), mCallStack()
+	Logger::Logger(std::string const& TheLabel) : mCurrentMessage(TheLabel)
 	{
-	}
-
-	Logger(std::string const& TheLabel, const CodeLocation& Location) : mCurrentMessage(TheLabel), mCallStack() {
-		add_to_call_stack(Location);
 	}
 
 	Logger::~Logger()
@@ -50,17 +46,6 @@ namespace Kratos
 		{
 		  GetOutputsInstance().push_back(TheOutput);
 		}
-	}
-
-	const CodeLocation Logger::GetCurrentLocation() const {
-		if(mCallStack.empty())
-			return CodeLocation("Unknown File", "Unknown Location", 0);
-		return mCallStack[0];
-	}
-
-	void Logger::AddToCallStack(CodeLocation const& TheLocation)
-	{
-		mCallStack.push_back(TheLocation);
 	}
 
     std::string Logger::Info() const
@@ -96,7 +81,7 @@ namespace Kratos
 	// Location stream function
 	Logger& Logger::operator << (CodeLocation const& TheLocation)
 	{
-		AddToCallStack(TheLocation);
+		mCurrentMessage << TheLocation;
 
 		return *this;
 	}
