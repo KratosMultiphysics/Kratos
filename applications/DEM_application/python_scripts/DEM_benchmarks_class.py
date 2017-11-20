@@ -2381,8 +2381,8 @@ class Benchmark16: ########## DEM-FEM Grid
             final_velocity_3_error+=fabs(m-n)
         final_velocity_3_error/=summation_of_ref_data3
 
-        for t, v1,v2,v3 in zip(times, DEM_data1, DEM_data2, DEM_data3):
-            print(t, v1, v2, v3)
+        #for t, v1,v2,v3 in zip(times, DEM_data1, DEM_data2, DEM_data3):
+        #    print(t, v1, v2, v3)
 
         print("Error in velocity sphere 1 =", 100*final_velocity_1_error,"%")
 
