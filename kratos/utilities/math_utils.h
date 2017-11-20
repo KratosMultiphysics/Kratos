@@ -848,9 +848,9 @@ public:
     template< class T1, class T2, class T3 >
     static inline void CrossProduct(T1& c, const T2& a, const T3& b ){
 #ifdef KRATOS_DEBUG
-        if (c.size() != 3 || a.size() != 3 || b.size() != 3) 
+        if (a.size() != 3 || b.size() != 3) 
         {
-            KRATOS_ERROR << "The size of the vectors is different of 3: " << a << ", " << b << " and " << c<< std::endl;
+            KRATOS_ERROR << "The size of the vectors is different of 3: " << a << " and " << b << std::endl;
         }
 #endif
         c[0] = a[1]*b[2] - a[2]*b[1];
