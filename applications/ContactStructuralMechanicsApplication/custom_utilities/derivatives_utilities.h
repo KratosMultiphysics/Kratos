@@ -512,7 +512,80 @@ public:
             }
         }
     }
+    
+    /**
+     * Calculates the increment of the shape functions
+     * @param rVariables The kinematic variables
+     * @param rDerivativeData The derivatives container
+     * @param SlaveGeometry The geometry of the slave side
+     * @param MasterGeometry The geometry of the master side
+     * @param SlaveNormal The normal of the slave side
+     * @param DecompGeom The triangle used to decompose the geometry
+     * @param LocalPointDecomp The local coordinates in the decomposed geometry
+     * @param LocalPointParent The local coordinates in the slave geometry
+     * @param ConsiderNormalVariation If consider the normal derivative
+     */
+    
+    static inline void CalculateDeltaN1(
+        const GeneralVariables& rVariables,
+        DerivativeDataType& rDerivativeData,
+        GeometryType& SlaveGeometry,
+        GeometryType& MasterGeometry,
+        const array_1d<double, 3> SlaveNormal,
+        const DecompositionType& DecompGeom,
+        const PointType& LocalPointDecomp,
+        const PointType& LocalPointParent,
+        const bool ConsiderNormalVariation = false
+        )
+    {
+        /* Shape functions */
+        const VectorType& N1 = rVariables.NSlave;
 
+        /* Local gradients */
+        const MatrixType& DNDe1 = rVariables.DNDeSlave;
+        
+        // The Normal and delta Normal in the center of the element
+        bounded_matrix<double, TDim, TDim> delta_normal = ZeroMatrix(TDim, TDim);
+        
+        /* Shape function decomposition */
+        VectorType N_decomp;
+        DecompGeom.ShapeFunctionsValues( N_decomp, LocalPointDecomp.Coordinates() );
+        
+        if (TDim == 2)
+        {
+            // TODO: Finish this!!!!
+        }
+        else
+        {
+            for ( unsigned int i_node = 0; i_node < 2 * TNumNodes; ++i_node)
+            {
+                for (unsigned i_dof = 0; i_dof < TDim; ++i_dof) 
+                {
+                    array_1d<double, 3> aux_RHS1 = ZeroVector(3);
+                    
+                    // The vertex cell contribution
+                    const auto& local_delta_cell = rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof]; 
+                    for(std::size_t i_belong = 0; i_belong < 3; ++i_belong)
+                    {
+                        noalias(aux_RHS1) += N_decomp[i_belong] * row(local_delta_cell, i_belong);
+                    }
+                    
+                    // Local contribution
+                    const array_1d<double, 3>& aux_delta_node = LocalDeltaVertex( SlaveNormal,  delta_normal, i_dof, i_node, ConsiderNormalVariation, SlaveGeometry, MasterGeometry );
+                    if (i_node < TNumNodes) noalias(aux_RHS1) -= N1[i_node] * aux_delta_node;
+                    
+                    // We compute the delta coordinates 
+                    array_1d<double, 2> aux_delta_coords1;
+                    DeltaPointLocalCoordinates(aux_delta_coords1, aux_RHS1, rVariables.DNDeSlave, SlaveGeometry, SlaveNormal);
+                    
+                    // Now we can compute the delta shape functions
+                    auto& delta_n1 = rDerivativeData.DeltaN1[i_node * TDim + i_dof];
+                    noalias(delta_n1) = (aux_delta_coords1[0] * column(DNDe1, 0) + aux_delta_coords1[1] * column(DNDe1, 1));
+                }
+            }
+        }
+    }
+    
     /**
      * Calculates the increment of the shape functions
      * @param rVariables The kinematic variables
@@ -525,6 +598,7 @@ public:
      * @param LocalPointDecomp The local coordinates in the decomposed geometry
      * @param LocalPointParent The local coordinates in the slave geometry
      * @param ConsiderNormalVariation If consider the normal derivative
+     * @param DualLM If the dual Lm formulation is considered
      */
     
     static inline void CalculateDeltaN(
@@ -595,15 +669,9 @@ public:
                     
                     // The derivatives of the dual shape function 
                     auto& delta_phi = rDerivativeData.DeltaPhi[i_node * TDim + i_dof];
-                    noalias(delta_phi) = prod(rDerivativeData.DeltaAe[i_dof], N1);
-                    if (DualLM == true)
-                    {
-                        noalias(delta_phi) += (aux_delta_coords1[0] * prod(rDerivativeData.Ae, column(DNDe1, 0)) + aux_delta_coords1[1] * prod(rDerivativeData.Ae, column(DNDe1, 1)));
-                    }
-                    else
-                    {
-                        noalias(delta_phi) += (aux_delta_coords1[0] *  column(DNDe1, 0) + aux_delta_coords1[1] * column(DNDe1, 1));
-                    }
+                    noalias(delta_phi) = prod(rDerivativeData.DeltaAe[i_node * TDim + i_dof], N1);
+                    if (DualLM == true) noalias(delta_phi) += prod(rDerivativeData.Ae, delta_n1);
+                    else noalias(delta_phi) += delta_n1;
                 }
             }
         }
@@ -860,6 +928,9 @@ public:
                                     
                     // Update the derivative of DetJ
                     CalculateDeltaDetjSlave(decomp_geom, rVariables, rDerivativeData); 
+                    
+                    // Update the derivatives of the shape functions and the gap
+                    CalculateDeltaN1(rVariables, rDerivativeData, SlaveGeometry, master_geometry, SlaveNormal, decomp_geom, local_point_decomp, local_point_parent, ConsiderNormalVariation);
                     
                     // Integrate
                     const double integration_weight = AxiSymCoeff * integration_points_slave[point_number].Weight();

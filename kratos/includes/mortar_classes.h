@@ -498,9 +498,9 @@ public:
     
     // Auxiliar types
     typedef array_1d<double, TNumNodes>                                         type_1;
-    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>      type_2;
-    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> type_3;
-    typedef boost::numeric::ublas::bounded_matrix<double, 3, 3>                 type_4;
+    typedef bounded_matrix<double, TNumNodes, TDim>      type_2;
+    typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
+    typedef bounded_matrix<double, 3, 3>                 type_4;
     
     // Auxiliar sizes
     static const unsigned int size_1 =     (TNumNodes * TDim);
@@ -733,9 +733,9 @@ public:
     // Auxiliar types
     typedef DerivativeData<TDim, TNumNodes>       BaseClassType;
     typedef array_1d<double, TNumNodes>                  type_1;
-    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>      type_2;
-    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> type_3;
-    typedef boost::numeric::ublas::bounded_matrix<double, 3, 3>                 type_4;
+    typedef bounded_matrix<double, TNumNodes, TDim>      type_2;
+    typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
+    typedef bounded_matrix<double, 3, 3>                 type_4;
     
     // Auxiliar sizes
     static const unsigned int size_1 =     (TNumNodes * TDim);
@@ -932,11 +932,11 @@ public:
      */
     void CalculateMortarOperators(
         KinematicVariables& rKinematicVariables,
-        const double& rIntegrationWeight
+        const double rIntegrationWeight
         )
     {
         /* DEFINITIONS */
-        const double& det_j_slave = rKinematicVariables.DetjSlave; 
+        const double det_j_slave = rKinematicVariables.DetjSlave; 
         const Vector& phi_vector  = rKinematicVariables.PhiLagrangeMultipliers;
         const Vector& n1_vector   = rKinematicVariables.NSlave;
         const Vector& n2_vector   = rKinematicVariables.NMaster;
@@ -945,7 +945,7 @@ public:
         {
             for (unsigned int j_slave = 0; j_slave < TNumNodes; ++j_slave)
             {
-                const double& phi = phi_vector[i_slave];
+                const double phi = phi_vector[i_slave];
                 
                 DOperator(i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * n1_vector[j_slave];
                 MOperator(i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * n2_vector[j_slave];
@@ -961,10 +961,10 @@ public:
     {
         // We calculate the inverse of D operator
         double auxdet;
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>& inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
+        const bounded_matrix<double, TNumNodes, TNumNodes>& inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
         
         // We calculate the P operator
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> POperator = prod(inv_D_operator, MOperator);
+        const bounded_matrix<double, TNumNodes, TNumNodes> POperator = prod(inv_D_operator, MOperator);
         
         return POperator;
     }
@@ -1093,7 +1093,7 @@ public:
     static const unsigned int size_2 = 2 * (TNumNodes * TDim);
     
     // D and M directional derivatives
-    array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>, size_2> DeltaDOperator, DeltaMOperator;
+    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_2> DeltaDOperator, DeltaMOperator;
 
     ///@}
     ///@name Operators
@@ -1130,11 +1130,11 @@ public:
     void CalculateDeltaMortarOperators(
         KinematicVariables& rKinematicVariables,
         DerivativeDataType& rDerivativeData,
-        const double& rIntegrationWeight
+        const double rIntegrationWeight
         )
     {
         /* DEFINITIONS */
-        const double& det_j_slave = rKinematicVariables.DetjSlave; 
+        const double det_j_slave = rKinematicVariables.DetjSlave; 
         const Vector& vector_phi = rKinematicVariables.PhiLagrangeMultipliers;
         const Vector& vector_n1  = rKinematicVariables.NSlave;
         const Vector& vector_n2  = rKinematicVariables.NMaster;
@@ -1151,7 +1151,7 @@ public:
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
-            const double& phi = vector_phi[i_node];
+            const double phi = vector_phi[i_node];
             
             for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node)
             {
@@ -1340,12 +1340,12 @@ public:
      */
     void CalculateAeComponents(
         KinematicVariables& rKinematicVariables,
-        const double& rIntegrationWeight
+        const double rIntegrationWeight
         )
     {
         /* DEFINITIONS */
         const Vector& n1 = rKinematicVariables.NSlave;
-        const double& det_j = rKinematicVariables.DetjSlave; 
+        const double det_j = rKinematicVariables.DetjSlave; 
         
         De += rIntegrationWeight * (ComputeDe(n1, det_j));
         Me += rIntegrationWeight * det_j * outer_prod(n1, n1);
@@ -1360,7 +1360,7 @@ public:
         const double tolerance = std::numeric_limits<double>::epsilon(); 
         
         // We compute the norm
-        const double& norm_me = norm_frobenius(Me);
+        const double norm_me = norm_frobenius(Me);
         
         // Now we normalize the matrix
         const bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = Me/norm_me;
@@ -1369,7 +1369,7 @@ public:
         double aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_Me); 
         if (std::abs(aux_det) >= tolerance) 
         { 
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);  
+            const bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);  
              
             return (1.0/norm_me) * prod(De, normalized_inv_Me); 
         } 
@@ -1389,10 +1389,10 @@ public:
      * @param N1 The shape function 
      * @param detJ The jacobian of the geometry 
      */
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
+    bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
         const Vector& N1, 
-        const double& detJ 
-        )
+        const double detJ 
+        ) const 
     {
         bounded_matrix<double, TNumNodes, TNumNodes> De;
     
@@ -1400,14 +1400,8 @@ public:
         {
             for (unsigned int j = 0; j < TNumNodes; ++j)
             {
-                if (i == j)
-                {
-                    De(i,i) = detJ * N1[i];
-                }
-                else
-                {
-                    De(i,j) = 0.0;
-                }
+                if (i == j) De(i,i) = detJ * N1[i];
+                else De(i,j) = 0.0;
             }
         }
         
@@ -1576,20 +1570,25 @@ public:
     void CalculateDeltaAeComponents(
         KinematicVariablesType& rKinematicVariables,
         DerivativeDataType& rDerivativeData,
-        const double& rIntegrationWeight
+        const double rIntegrationWeight
         )
     {
         /* DEFINITIONS */
-        const Vector n1 = rKinematicVariables.NSlave;
+        const double det_j_slave = rKinematicVariables.DetjSlave;
+        const Vector& n1 = rKinematicVariables.NSlave;
         
         BaseClassType::CalculateAeComponents(rKinematicVariables, rIntegrationWeight);
         
         for (unsigned int i = 0; i < size_3; ++i)
         {
-            const double& delta_det_j = rDerivativeData.DeltaDetjSlave[i];
+            const double delta_det_j = rDerivativeData.DeltaDetjSlave[i];
+            const Vector& delta_n1 = rDerivativeData.DeltaN1[i];
             
-            DeltaDe[i] += rIntegrationWeight * this->ComputeDe( n1, delta_det_j );
-            DeltaMe[i] += rIntegrationWeight * delta_det_j * outer_prod(n1, n1);
+            DeltaDe[i] += rIntegrationWeight * this->ComputeDe( n1, delta_det_j )
+                       +  rIntegrationWeight * this->ComputeDe( delta_n1, det_j_slave );
+            
+            DeltaMe[i] += rIntegrationWeight * delta_det_j * outer_prod(n1, n1)
+                       +  rIntegrationWeight * det_j_slave * (outer_prod(delta_n1, n1) + outer_prod(n1, delta_n1));
         }
     }
  
@@ -1602,30 +1601,27 @@ public:
         const double tolerance = std::numeric_limits<double>::epsilon();
         
         // We compute the norm
-        const double& norm_Me = norm_frobenius(BaseClassType::Me);
+        const double norm_Me = norm_frobenius(BaseClassType::Me);
         
         // Now we normalize the matrix
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = BaseClassType::Me/norm_Me;
+        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = BaseClassType::Me/norm_Me;
         
         // We compute the normalized inverse
         aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_Me);
-        if (std::abs(aux_det) < tolerance)
-        {
-            return false;
-        }
+        if (std::abs(aux_det) < tolerance) return false;
         
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance); 
+        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance); 
         
         // Now we compute the inverse
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> inv_Me = normalized_inv_Me/norm_Me;
+        const bounded_matrix<double, TNumNodes, TNumNodes> inv_Me = normalized_inv_Me/norm_Me;
         
         noalias(rDerivativeData.Ae) = prod(BaseClassType::De, inv_Me);
         
-        array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> , size_3>& delta_Ae = rDerivativeData.DeltaAe;
+        array_1d<bounded_matrix<double, TNumNodes, TNumNodes> , size_3>& delta_Ae = rDerivativeData.DeltaAe;
         
         for (unsigned int i = 0; i < size_3; ++i)
-        {
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> aux_matrix = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
+        {            
+            const bounded_matrix<double, TNumNodes, TNumNodes> aux_matrix = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
             noalias(delta_Ae[i]) = prod(aux_matrix, inv_Me);
         }
         
