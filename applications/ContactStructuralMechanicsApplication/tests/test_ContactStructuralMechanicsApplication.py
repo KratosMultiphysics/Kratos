@@ -166,7 +166,7 @@ def AssambleTestSuites():
             ##TALMIroningDieTestContact,
             TLargeDisplacementPatchTestHexa,
             TALMLargeDisplacementPatchTestTetra,
-            #TALMLargeDisplacementPatchTestHexa, # TODO: FIX THSI TEST
+            TALMLargeDisplacementPatchTestHexa,
         ])
     )
 
