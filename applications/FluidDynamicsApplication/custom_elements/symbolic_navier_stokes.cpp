@@ -1048,10 +1048,6 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSCo
     const auto& N = rData.N;
     const auto& DN = rData.DN_DX;
 
-    // Auxiliary variables used in the calculation of the RHS
-    const array_1d<double,Dim> f_gauss = this->Interpolate(rData.BodyForce,rData.N);
-    const array_1d<double,Dim> grad_p = prod(trans(DN), p);
-
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
@@ -1127,10 +1123,6 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSCo
     // Get shape function values
     const auto& N = rData.N;
     const auto& DN = rData.DN_DX;
-
-    // Auxiliary variables used in the calculation of the RHS
-    const array_1d<double,Dim> f_gauss = this->Interpolate(rData.BodyForce,rData.N);
-    const array_1d<double,Dim> grad_p = prod(trans(DN), p);
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
