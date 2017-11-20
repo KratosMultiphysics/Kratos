@@ -110,7 +110,8 @@ namespace Kratos
 	}
 
 	/// Category stream function
-	Logger& Logger::operator << (Category const& TheCategory) {
+	Logger& Logger::operator << (Category const& TheCategory)
+	{
 		mCurrentMessage << TheCategory;
 
 		return *this;
