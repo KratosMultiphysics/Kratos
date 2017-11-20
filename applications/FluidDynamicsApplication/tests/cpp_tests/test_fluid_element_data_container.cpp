@@ -19,6 +19,8 @@
 #include "custom_utilities/nodal_data_handler.h"
 #include "custom_utilities/fluid_element_data_container.h"
 
+#include "custom_constitutive/newtonian_2d_law.h"
+
 namespace Kratos {
     namespace Testing {
 
@@ -172,12 +174,22 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LocalMatrixSymbolicNavierStokes2D3N, FluidDynamicsApplicationFastSuite)
         {
             ModelPart model_part("Test");
+            model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
             InitializeCompleteElement(model_part,"SymbolicNavierStokes2D3N",3);
+
+            // Set the BDF coefficients (0.1 is the time step in InitializeCompleteElement)
             Vector BdfVector = ZeroVector(3);
             BdfVector[0] = 1.5/0.1;
             BdfVector[1] = -2./0.1;
             BdfVector[2] = 0.5/0.1;
             model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS,BdfVector);
+
+			// Set the element properties
+			Properties::Pointer p_properties = model_part.pGetProperties(0);
+			p_properties->SetValue(DENSITY, 1000.0);
+			p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+			Newtonian2DLaw::Pointer p_constitutive(new Newtonian2DLaw());
+			p_properties->SetValue(CONSTITUTIVE_LAW, p_constitutive);
 
             Matrix LHS;
             Vector RHS;
