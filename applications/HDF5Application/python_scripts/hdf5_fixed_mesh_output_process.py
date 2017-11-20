@@ -18,6 +18,8 @@ class Hdf5FixedMeshOutputProcess(KratosMultiphysics.Process):
                 "list_of_elements" : [],
                 "list_of_conditions" : [],
                 "list_of_variables" : [],
+                "output_time_frequency": 1.0,
+                "output_step_frequency": 0,
                 "partitioned" : false,
                 "time_tag_precision" : 4,
                 "echo_level" : 0
@@ -28,6 +30,10 @@ class Hdf5FixedMeshOutputProcess(KratosMultiphysics.Process):
         self._list_of_elements = settings["list_of_elements"].Clone()
         self._list_of_conditions = settings["list_of_conditions"].Clone()
         self._list_of_variables = settings["list_of_variables"].Clone()
+        self._output_time_frequency = settings["output_time_frequency"].GetDouble()
+        self._output_step_frequency = settings["output_step_frequency"].GetInt()
+        self._output_time = 0.0
+        self._output_step = 0
         self._partitioned = settings["partitioned"].GetBool()
         self._echo_level = settings["echo_level"].GetInt()
         self._time_tag_precision = settings["time_tag_precision"].GetInt()
@@ -76,10 +82,17 @@ class Hdf5FixedMeshOutputProcess(KratosMultiphysics.Process):
         hdf5_file = self._get_hdf5_file(self.model_part.Name + ".h5")
         self._get_model_part_io(hdf5_file).WriteModelPart(self.model_part)
         self._get_nodal_results_io(hdf5_file).WriteNodalResults(self.model_part.Nodes, 0)
+        self._output_time = 0.0
+        self._output_step = 0
 
     def ExecuteFinalizeSolutionStep(self):
-        fmt = "{:." + str(self._time_tag_precision) + "f}"
-        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        time_tag = "-" + fmt.format(current_time)
-        hdf5_file = self._get_hdf5_file(self.model_part.Name + time_tag + ".h5")
-        self._get_nodal_results_io(hdf5_file).WriteNodalResults(self.model_part.Nodes, 0)
+        delta_time = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self._output_time += delta_time
+        self._output_step += 1
+        if self._output_time >= self._output_time_frequency or self._output_step == self._output_step_frequency:
+            fmt = "{:." + str(self._time_tag_precision) + "f}"
+            time_tag = "-" + fmt.format(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
+            hdf5_file = self._get_hdf5_file(self.model_part.Name + time_tag + ".h5")
+            self._get_nodal_results_io(hdf5_file).WriteNodalResults(self.model_part.Nodes, 0)
+            self._output_time = 0.0
+            self._output_step = 0
