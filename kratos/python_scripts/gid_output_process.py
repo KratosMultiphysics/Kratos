@@ -238,27 +238,12 @@ class GiDOutputProcess(Process):
     def IsOutputStep(self):
 
         if self.output_control_is_time:
-            print( str(self.model_part.ProcessInfo[TIME])+">"+ str(self.next_output) )
-            #return ( self.model_part.ProcessInfo[TIME] > self.next_output )
-            print( "IsOutputStep TIME=", self.model_part.ProcessInfo[TIME])
-            print( "self.next_output=", self.next_output)
-            tolerance=self.model_part.ProcessInfo[DELTA_TIME]*0.001
-
-            if(self.next_output == 0):
-                return True
-            #if(self.model_part.ProcessInfo[TIME] < (self.next_output + tolerance) and self.model_part.ProcessInfo[TIME] > (self.next_output - tolerance)):
-            if (self.model_part.ProcessInfo[TIME] > (self.next_output - tolerance)):
-                return True
-            else:
-                return False
+            #print( str(self.model_part.ProcessInfo[TIME])+">"+ str(self.next_output) )
+            return ( self.model_part.ProcessInfo[TIME] > self.next_output )
         else:
             return ( self.step_count >= self.next_output )
 
     def PrintOutput(self):
-
-        print( "Print OutPut ", self.model_part.ProcessInfo[TIME])
-        tolerance=self.model_part.ProcessInfo[DELTA_TIME]*0.001
-
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeOutputStep()
@@ -288,7 +273,7 @@ class GiDOutputProcess(Process):
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
             if self.output_control_is_time:
-                while self.next_output <= time + tolerance:
+                while self.next_output <= time:
                     self.next_output += self.output_frequency
             else:
                 while self.next_output <= self.step_count:
