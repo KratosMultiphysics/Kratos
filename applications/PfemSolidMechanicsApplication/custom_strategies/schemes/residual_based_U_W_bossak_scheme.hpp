@@ -293,6 +293,15 @@ namespace Kratos
                   //std::cout<<" PressureCur [1] "<<CurrentPressure<<" PressurePre [1] "<<PreviousPressure<<" ID "<<i->Id()<<std::endl;
                }
 
+               if (i->HasDofFor(JACOBIAN))
+               {
+                  double& PreviousJacobian    = (i)->FastGetSolutionStepValue(JACOBIAN, 1);
+                  double& CurrentJacobian    = (i)->FastGetSolutionStepValue(JACOBIAN);
+
+                  if ((i->pGetDof(JACOBIAN))->IsFixed() == false)
+                     CurrentJacobian = PreviousJacobian;
+
+               }
 
 
                //updating time derivatives ::: please note that displacements and its time derivatives
