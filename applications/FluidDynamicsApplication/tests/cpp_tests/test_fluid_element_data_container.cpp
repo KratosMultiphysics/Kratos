@@ -77,7 +77,7 @@ namespace Kratos {
                 r_node.FastGetSolutionStepValue(VELOCITY_X) = r_node.Y();
                 r_node.FastGetSolutionStepValue(DENSITY) = 100.0;
                 r_node.FastGetSolutionStepValue(VISCOSITY) = 0.01; //VMS only!
-                r_node.FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = 0.01; //Symbolic only!
+                r_node.FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = 1.0; //Symbolic only!
             }
         }
 
