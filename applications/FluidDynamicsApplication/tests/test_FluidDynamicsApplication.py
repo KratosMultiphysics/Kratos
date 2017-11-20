@@ -55,7 +55,6 @@ def AssambleTestSuites():
     smallSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))
     smallSuite.addTest(DarcyChannelTest('testDarcyDensity'))
     smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette2D'))
-    smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette3D'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
@@ -74,6 +73,7 @@ def AssambleTestSuites():
     allSuite.addTest(DarcyChannelTest('testDarcyNonLinear'))
     allSuite.addTest(TEmbeddedCouette3DTest('test_execution'))
     allSuite.addTest(TEmbeddedCouette3DImposedTest('test_execution'))
+    allSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette3D'))
 
     return suites
 

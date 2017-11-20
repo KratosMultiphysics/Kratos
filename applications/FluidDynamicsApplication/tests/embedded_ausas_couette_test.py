@@ -18,26 +18,30 @@ class WorkFolderScope:
 
 class EmbeddedAusasCouetteTest(UnitTest.TestCase):
     def testEmbeddedAusasCouette2D(self):
-        self.distance = 0.3
-        self.work_folder = "EmbeddedAusasCouetteTest2D"   
-        self.settings = "EmbeddedAusasCouetteTestParameters.json"
+        self.distance = 0.25
+        self.work_folder = "EmbeddedAusasCouette2DTest"   
+        self.reference_file = "reference_couette_ausas_2D"
+        self.settings = "EmbeddedAusasCouette2DTestParameters.json"
 
         with WorkFolderScope(self.work_folder):
             self.setUp()
             self.setUpProblem()
+            self.setUpDistanceField()
             self.setUpBoundaryConditions()
             self.runTest()
             self.tearDown()
             self.checkResults()
 
     def testEmbeddedAusasCouette3D(self):
-        self.distance = 0.6
-        self.work_folder = "EmbeddedAusasCouetteTest3D"   
-        self.settings = "EmbeddedAusasCouetteTestParameters.json"
+        self.distance = 0.25
+        self.work_folder = "EmbeddedAusasCouette3DTest"   
+        self.reference_file = "reference_couette_ausas_3D"
+        self.settings = "EmbeddedAusasCouette3DTestParameters.json"
 
         with WorkFolderScope(self.work_folder):
             self.setUp()
             self.setUpProblem()
+            self.setUpDistanceField()
             self.setUpBoundaryConditions()
             self.runTest()
             self.tearDown()
@@ -54,7 +58,6 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
                 os.remove(self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+'.time')
             except FileNotFoundError as e:
                 pass
-
 
     def setUpProblem(self):
         with WorkFolderScope(self.work_folder):
@@ -101,12 +104,18 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
             for process in self.list_of_processes:
                 process.ExecuteInitialize()
 
-    def setUpBoundaryConditions(self):
+    def setUpDistanceField(self):
         # Set the distance function
-        for node in self.main_model_part.Nodes:
-            distance = node.Y-self.distance
-            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
+        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): 
+            for node in self.main_model_part.Nodes:
+                distance = node.Y-self.distance
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
+        elif (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3): 
+            for node in self.main_model_part.Nodes:
+                distance = node.Z-self.distance
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
 
+    def setUpBoundaryConditions(self):
         # Set the inlet function
         for node in self.main_model_part.GetSubModelPart("Inlet").Nodes:
             if (node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0):
@@ -127,19 +136,6 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
                 node.Fix(KratosMultiphysics.VELOCITY_X)
                 node.Fix(KratosMultiphysics.VELOCITY_Y)
                 node.Fix(KratosMultiphysics.VELOCITY_Z)
-
-        # Set the outlet velocity to zero in the negative distance nodes
-        # for node in self.main_model_part.GetSubModelPart("Outlet").Nodes:
-        #     if (node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0):
-        #         aux_vel = KratosMultiphysics.Vector(3);
-        #         aux_vel[0] = 0.0
-        #         aux_vel[1] = 0.0
-        #         aux_vel[2] = 0.0
-        #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-        #         node.Fix(KratosMultiphysics.VELOCITY_X)
-        #         node.Fix(KratosMultiphysics.VELOCITY_Y)
-        #         node.Fix(KratosMultiphysics.VELOCITY_Z)
-
 
     def runTest(self):
         with WorkFolderScope(self.work_folder):
@@ -198,47 +194,73 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
                 gid_io.FinalizeResults()
 
     def checkResults(self):
-        pass
+        with WorkFolderScope(self.work_folder):
+            ## 2D results check
+            if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3): 
+                if self.print_reference_values:
+                    with open(self.reference_file+'.csv','w') as ref_file:
+                        ref_file.write("#ID, VELOCITY_X, VELOCITY_Y\n")
+                        for node in self.main_model_part.Nodes:
+                            vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
+                            ref_file.write("{0}, {1}, {2}\n".format(node.Id, vel[0], vel[1]))
+                else:
+                    with open(self.reference_file+'.csv','r') as reference_file:
+                        reference_file.readline() # skip header
+                        line = reference_file.readline()
 
-        # if self.print_reference_values:
-        #     with open(self.reference_file+'.csv','w') as ref_file:
-        #         ref_file.write("#ID, VELOCITY_X, VELOCITY_Y, TEMPERATURE\n")
-        #         for node in self.fluid_model_part.Nodes:
-        #             vel = node.GetSolutionStepValue(VELOCITY,0)
-        #             temp = node.GetSolutionStepValue(TEMPERATURE,0)
-        #             ref_file.write("{0}, {1}, {2}, {3}\n".format(node.Id, vel[0], vel[1], temp))
-        # else:
-        #     with open(self.reference_file+'.csv','r') as reference_file:
-        #         reference_file.readline() # skip header
-        #         line = reference_file.readline()
-        #         node_iter = self.fluid_model_part.Nodes
+                        for node in self.main_model_part.Nodes:
+                            values = [ float(i) for i in line.rstrip('\n ').split(',') ]
+                            node_id = values[0]
+                            reference_vel_x = values[1]
+                            reference_vel_y = values[2]
 
-        #         for node in self.fluid_model_part.Nodes:
-        #             values = [ float(i) for i in line.rstrip('\n ').split(',') ]
-        #             node_id = values[0]
-        #             reference_vel_x = values[1]
-        #             reference_vel_y = values[2]
-        #             reference_temp = values[3]
+                            velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                            self.assertAlmostEqual(reference_vel_x, velocity[0], delta = self.check_tolerance)
+                            self.assertAlmostEqual(reference_vel_y, velocity[1], delta = self.check_tolerance)
 
-        #             velocity = node.GetSolutionStepValue(VELOCITY)
-        #             self.assertAlmostEqual(reference_vel_x, velocity[0], delta=self.check_tolerance)
-        #             self.assertAlmostEqual(reference_vel_y, velocity[1], delta=self.check_tolerance)
-        #             temperature = node.GetSolutionStepValue(TEMPERATURE)
-        #             self.assertAlmostEqual(reference_temp, temperature, delta=self.check_tolerance)
+                            line = reference_file.readline()
+                        if line != '': # If we did not reach the end of the reference file
+                            self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
+            ## 3D results check
+            elif (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3): 
+                if self.print_reference_values:
+                    with open(self.reference_file+'.csv','w') as ref_file:
+                        ref_file.write("#ID, VELOCITY_X, VELOCITY_Y, VELOCITY_Z\n")
+                        for node in self.main_model_part.Nodes:
+                            vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
+                            ref_file.write("{0}, {1}, {2}, {3}\n".format(node.Id, vel[0], vel[1], vel[2]))
+                else:
+                    with open(self.reference_file+'.csv','r') as reference_file:
+                        reference_file.readline() # skip header
+                        line = reference_file.readline()
 
-        #             line = reference_file.readline()
-        #         if line != '': # If we did not reach the end of the reference file
-        #             self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
+                        for node in self.main_model_part.Nodes:
+                            values = [ float(i) for i in line.rstrip('\n ').split(',') ]
+                            node_id = values[0]
+                            reference_vel_x = values[1]
+                            reference_vel_y = values[2]
+                            reference_vel_z = values[3]
+
+                            velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                            self.assertAlmostEqual(reference_vel_x, velocity[0], delta = self.check_tolerance)
+                            self.assertAlmostEqual(reference_vel_y, velocity[1], delta = self.check_tolerance)
+                            self.assertAlmostEqual(reference_vel_z, velocity[2], delta = self.check_tolerance)
+
+                            line = reference_file.readline()
+                        if line != '': # If we did not reach the end of the reference file
+                            self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
 
 if __name__ == '__main__':
     test = EmbeddedAusasCouetteTest()
     test.setUp()
     test.distance = 0.25
-    test.print_output = True
-    #test.print_reference_values = True
-    test.work_folder = "EmbeddedAusasCouetteTest2D"   
-    test.settings = "EmbeddedAusasCouetteTestParameters.json"
+    test.print_output = False
+    test.print_reference_values = False
+    test.work_folder = "EmbeddedAusasCouette2DTest"
+    test.reference_file = "reference_couette_ausas_2D"   
+    test.settings = "EmbeddedAusasCouette2DTestParameters.json"
     test.setUpProblem()
+    test.setUpDistanceField()
     test.setUpBoundaryConditions()
     test.runTest()
     test.tearDown()
