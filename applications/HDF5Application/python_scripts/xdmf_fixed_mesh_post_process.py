@@ -4,6 +4,7 @@ After running a Kratos simulation with HDF5 output on a fixed mesh, an Xdmf
 metadata file can be generated for post-processing.
 """
 import os, sys, h5py, copy, xdmf_utils
+import KratosMultiphysics.HDF5Application as KratosHDF5
 
 class XdmfFixedMeshPostProcess(object):
     """Constructs the XDMF hierarchy for fixed mesh results."""
@@ -12,7 +13,7 @@ class XdmfFixedMeshPostProcess(object):
         self.model_part_name = model_part_name
 
     def Execute(self):
-        xdmf_utils.WriteSortedCoordinates(self.model_part_name + ".h5", "/ModelData/Nodes/Local")
+        KratosHDF5.HDF5SortedCoordinatesProcess(self.model_part_name + ".h5", "/ModelData/Nodes/Local").Execute()
         # Create the reference mesh's xml hierarchy.
         with h5py.File(self.model_part_name + ".h5", "r") as h5py_file:
             fixed_mesh = xdmf_utils.KratosCollectionGrid(h5py_file, "/ModelData")

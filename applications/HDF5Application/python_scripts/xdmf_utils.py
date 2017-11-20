@@ -1,36 +1,5 @@
 import xml.etree.ElementTree as ET
 import h5py
-import numpy as np
-
-
-def WriteSortedCoordinates(file_name, nodes_path):
-    """Rewrites coordinates sorted by their node ids.
-    
-    In partitioned simulations, the node ids are not sorted globally. This
-    function writes the coordinates to an new sorted array so that the
-    connectivities can directly index the geometry without searching. It 
-    expects node ids to be in the range [1, nnodes] 
-    (see also ReorderConsecutiveModelPartIO).
-
-    Keyword arguments:
-    file_name -- name of the hdf5 file
-    nodes_path -- file path to nodal data
-    """
-    with h5py.File(file_name, 'r+') as h5py_file:
-        if "SortedCoordinates" in h5py_file.get(nodes_path).keys():
-            return
-        ids = h5py_file.get(nodes_path + '/Ids')
-        if len(ids.shape) != 1 or ids.shape[0] == 0:
-            raise Exception('Invalid node ids: "' + nodes_path + '/Ids"')
-        size = ids.shape[0]
-        pcs = np.zeros(size, dtype=np.int32) # Parametric coordinates.
-        for i in range(size):
-            pcs[ids[i]-1] = i # Ids are one-based indices.
-        coords = h5py_file.get(nodes_path + '/Coordinates')
-        sorted_coords = np.zeros(coords.shape)
-        for i in range(size):
-            sorted_coords[i,:] = coords[pcs[i],:]
-        dset = h5py_file.create_dataset(nodes_path + '/SortedCoordinates', data=sorted_coords)
 
 
 def GetDimsString(shape):
@@ -113,7 +82,7 @@ class KratosTopology(XdmfElement):
         dim = topology_group.attrs["Dimension"]
         num_points = topology_group.attrs["NumberOfNodes"]
         if num_points == 2:
-            return "Edge_2" # A polyline with 2 nodes.
+            return "Edge_2" # Workaround for a polyline with 2 nodes.
         elif num_points == 3:
             return "Triangle"
         elif num_points == 4:
@@ -184,6 +153,7 @@ class XdmfHdfUniformDataItem(XdmfElement):
         self.root.text = h5py_file.filename + ":" + file_path
 
 
+# Apparently not supported by paraviews xdmf plugin.
 # class KratosCoordinateDataItem(XdmfElement):
 #     """Represents nodal coordinates of a model part in Kratos."""
 
