@@ -78,11 +78,11 @@ public:
     
     /**
      * Project a point over a plane
-     * @param PointOrigin: A point in the plane
-     * @param PointDestiny: The point to be projected
-     * @param Normal: The normal of the plane
-     * @return PointProjected: The point pojected over the plane
-     * @return Distance: The distance between the point and the plane
+     * @param PointOrigin A point in the plane
+     * @param PointDestiny The point to be projected
+     * @param Normal The normal of the plane
+     * @param PointProjected The point pojected over the plane
+     * @param Distance The distance between the point and the plane
      */
     
     static inline void Project(
@@ -102,9 +102,9 @@ public:
     
     /**
      * This function scales the points according to a factor (to increase the bounding box)
-     * @param PointToScale: The point to scale
-     * @param Center: The reference point
-     * @param ScaleFactor: The factor considered to "grow" the node
+     * @param PointToScale The point to scale
+     * @param Normal The normal of the point
+     * @param LengthSearch The factor considered to "grow" the node
      */
     
     template<class TPointType>
@@ -119,8 +119,8 @@ public:
     
     /**
      * Calculates the distance between nodes
-     * @param PointOrigin: The first node
-     * @param PointDestiny: The second node
+     * @param PointOrigin The first node
+     * @param PointDestiny The second node
      */
     
     static inline double DistancePoints(
@@ -135,8 +135,7 @@ public:
     
     /**
      * It computes the mean of the normal in the condition in all the nodes
-     * @param ModelPart: The model part to compute
-     * @return The modelparts with the normal computed
+     * @param rModelPart The model part to compute
      */
     
     static inline void ComputeNodesMeanNormalModelPart(ModelPart& rModelPart) 
@@ -171,13 +170,15 @@ public:
             CoordinatesArrayType aux_coords;
             aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
             it_cond->SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
-            const array_1d<double, 3>& normal = it_cond->GetValue(NORMAL);
+//             const array_1d<double, 3>& normal = it_cond->GetValue(NORMAL);
             
             const unsigned int number_nodes = this_geometry.PointsNumber();
             
             for (unsigned int i = 0; i < number_nodes; ++i)
             {
                 auto& this_node = this_geometry[i];
+                aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_node.Coordinates());
+                const array_1d<double, 3>& normal = this_geometry.UnitNormal(aux_coords);
                 auto& aux_normal = this_node.GetValue(NORMAL);
                 for (unsigned int index = 0; index < 3; ++index)
                 {
@@ -206,8 +207,7 @@ public:
     
     /**
      * It computes the mean of the normal in the condition in all the nodes using the area to weight it
-     * @param ModelPart: The model part to compute
-     * @return The modelparts with the normal computed
+     * @param rModelPart The model part to compute
      */
     
     static inline void ComputeNodesMeanNormalAreaWeightedModelPart(ModelPart& rModelPart) 
@@ -293,8 +293,7 @@ public:
 
     /**
      * It computes the directional derivative of the normal in the condition in all the nodes
-     * @param ModelPart: The model part to compute
-     * @return The modelparts with the normal computed
+     * @param rModelPart The model part to compute
      */
 
     static inline void ComputeDeltaNodesMeanNormalModelPart(ModelPart & rModelPart)
@@ -498,7 +497,8 @@ public:
     
     /**
      * It calculates the center updated in u_n+1/2
-     * @param ThisGeometry: The geometry to calculate
+     * @param ThisGeometry The geometry to calculate
+     * @param DeltaTime The increment of time considered
      * @return point: The center in u_n+1/2 (Newmark)
      */
     
@@ -532,9 +532,9 @@ public:
          
     /** 
      * It calculates the matrix of a variable of a geometry 
-     * @param Nodes: The geometry to calculate 
-     * @param rVarName: The name of the variable to calculate 
-     * @param step: The step where calculate 
+     * @param Nodes The geometry to calculate 
+     * @param rVarName The name of the variable to calculate 
+     * @param Step The step where calculate 
      * @return var_matrix: The matrix containing the variables of the geometry 
      */ 
      
