@@ -1771,8 +1771,8 @@ namespace Kratos
 		}
 
 		if (fabs(v1[2]) != 1.00) {
-                    MathUtils<double>::UnitCrossProduct<arraydim>(v2, GlobalZ, v1);
-                    MathUtils<double>::UnitCrossProduct<arraydim>(v3, v1, v2);
+                    MathUtils<double>::UnitCrossProduct(v2, GlobalZ, v1);
+                    MathUtils<double>::UnitCrossProduct(v3, v1, v2);
 		}
 
 		//manual rotation around the beam axis
@@ -1818,7 +1818,7 @@ namespace Kratos
 		VectorNorm = MathUtils<double>::Norm(v2);
 		if (VectorNorm > numerical_limit) v2 /= VectorNorm;
 
-                MathUtils<double>::UnitCrossProduct<arraydim>(v3, v1, v2);
+                MathUtils<double>::UnitCrossProduct(v3, v1, v2);
 
 		Matrix RotationMatrix = ZeroMatrix(msDimension);
 		for (int i = 0; i < msDimension; ++i) {

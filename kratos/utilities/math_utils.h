@@ -827,7 +827,7 @@ public:
      * @param c The resulting vector
      */
     
-    template< class T1 = array_1d<double, 3>, class T2 = T1, class T3 = T1>
+    template< class T1, class T2 , class T3>
     static inline void CrossProduct(T1& c, const T2& a, const T3& b ){
 #ifdef KRATOS_DEBUG
         if (a.size() != 3 || b.size() != 3) 
@@ -848,7 +848,7 @@ public:
      * @param c The resulting vector
      */
     
-    template< class T1 = array_1d<double, 3>, class T2 = T1, class T3 = T1>
+    template< class T1, class T2 , class T3>
     static inline void UnitCrossProduct(T1& c, const T2& a, const T3& b ){
         CrossProduct(c,a,b);
         const double norm = norm_2(c);
