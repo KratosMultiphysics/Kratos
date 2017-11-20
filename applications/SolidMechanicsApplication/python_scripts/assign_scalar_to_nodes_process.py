@@ -84,23 +84,27 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         ## set the value
         self.value_is_numeric = False
         self.value_is_spatial_function = False
-
+        self.value_is_current_value = False
+        
         if self.settings["value"].IsNumber():
             self.value_is_numeric = True
             self.value = self.settings["value"].GetDouble()
         else:   
             self.function_expression = self.settings["value"].GetString()
-            
-            if (sys.version_info > (3, 0)):
-                self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval', optimize=2))
-            else:
-                self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval'))
 
-            self.value_is_spatial_function = True
+            if( self.function_expression == "current" ):
+                self.value_is_current_value = True
+            else:
+                if (sys.version_info > (3, 0)):
+                    self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval', optimize=2))
+                else:
+                    self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval'))
+
+                self.value_is_spatial_function = True
             
-            if(self.function_expression.find("x") == -1 and 
-               self.function_expression.find("y") == -1 and
-               self.function_expression.find("z") == -1): #depends on time only
+                if(self.function_expression.find("x") == -1 and 
+                   self.function_expression.find("y") == -1 and
+                   self.function_expression.find("z") == -1): #depends on time only
                     self.value_is_spatial_function = False                    
 
                     
@@ -192,7 +196,10 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             params.AddEmptyValue("value").SetDouble(self.value)
             self.AssignValueProcess = KratosSolid.AssignScalarToNodesProcess(self.model_part, params)
         else:
-            self.AssignValueProcess = KratosSolid.AssignScalarFieldToNodesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
+            if( self.value_is_current_value ):
+                self.AssignValueProcess = KratosMultiphysics.Process() #void process
+            else: 
+                self.AssignValueProcess = KratosSolid.AssignScalarFieldToNodesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
 
             
     #
