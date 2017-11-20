@@ -246,11 +246,11 @@ protected:
     /**
      * Volumetric loads
      */
-    virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+    void CalculateAndAddExternalForcesUJWwP(VectorType& rRightHandSideVector,
           ElementVariables & rVariables,
           Vector & rVolumeForces,
           double& rIntegrationWeight
-          ) override;
+          );
     /**
      * Fluid Linear Momentum balance equation
      */

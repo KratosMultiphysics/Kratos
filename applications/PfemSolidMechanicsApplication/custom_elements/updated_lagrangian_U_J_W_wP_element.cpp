@@ -621,7 +621,7 @@ namespace Kratos
       }
 
 
-      this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight); 
+      this->CalculateAndAddExternalForcesUJWwP( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight); 
 
       this->CalculateAndAddInternalWaterForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
@@ -689,7 +689,7 @@ namespace Kratos
 
    // **************************************************************************
    // Calculate and Add volumetric loads
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementVariables & rVariables, 
+   void UpdatedLagrangianUJWwPElement::CalculateAndAddExternalForcesUJWwP( VectorType & rRightHandSideVector, ElementVariables & rVariables, 
          Vector & rVolumeForce, double & rIntegrationWeight)
    {
       KRATOS_TRY
