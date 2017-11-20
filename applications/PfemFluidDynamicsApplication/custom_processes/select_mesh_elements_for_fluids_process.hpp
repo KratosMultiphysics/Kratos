@@ -277,9 +277,6 @@ public:
 		if(numrigid==0 && numfreesurf==0 && numisolated==0){
 		  Alpha*=1.75;
 		}
-		if(numboundary==nds){
-		  Alpha*=0.9;
-		}
 
 	      }else  if(dimension==3){
 		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
