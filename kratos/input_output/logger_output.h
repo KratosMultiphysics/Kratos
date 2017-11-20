@@ -82,7 +82,7 @@ namespace Kratos
 			///@name Access
 			///@{
 
-			void WriteMessage(LoggerMessage const& TheMessage) {
+			virtual void WriteMessage(LoggerMessage const& TheMessage) {
 				auto message_severity = TheMessage.GetSeverity();
 				if (message_severity <= mSeverity)
 				{
