@@ -170,18 +170,20 @@ namespace Kratos
       
     const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
     double ModelPartVolume = 0;
-    if( dimension ==2 ){
+    if( dimension == 2 ){
       
       for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; i_elem++)
 	{
-	  ModelPartVolume += i_elem->GetGeometry().Area();
+	  if( i_elem->GetGeometry().Dimension() == 2 )
+	    ModelPartVolume += i_elem->GetGeometry().Area();
 	}
     }
     else{ //dimension == 3
       
       for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; i_elem++)
 	{
-	  ModelPartVolume += i_elem->GetGeometry().Volume();
+	  if( i_elem->GetGeometry().Dimension() == 3 )
+	    ModelPartVolume += i_elem->GetGeometry().Volume();
 	}
      }
 

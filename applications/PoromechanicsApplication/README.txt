@@ -16,6 +16,7 @@ Note: For the moment, MPI only works in Linux and requires compiling METIS_APPLI
 -DTRILINOS_LIBRARY_PREFIX="trilinos_"                                                       \
 -DEXTERNAL_SOLVERS_APPLICATION=ON						                                    \
 -DSOLID_MECHANICS_APPLICATION=ON   					                                    \
+-DFLUID_DYNAMICS_APPLICATION=ON   					                                    \
 -DPOROMECHANICS_APPLICATION=ON \
 -DUSE_PORO_MPI=ON \
 
