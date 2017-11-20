@@ -818,25 +818,7 @@ public:
  
 	return cross;
     }
-    
-    /**
-     * Identical but it assumes that the output vector is given already the correct size
-     * @param a First input vector
-     * @param b Second input vector
-     * @param c The resulting vector
-     */
-    
-    static inline void CrossProduct(
-        array_1d<double, 3>& c, 
-        const array_1d<double, 3>& a, 
-        const array_1d<double, 3>& b
-        )
-    {
-        c[0] = a[1]*b[2] - a[2]*b[1];
-        c[1] = a[2]*b[0] - a[0]*b[2];
-        c[2] = a[0]*b[1] - a[1]*b[0];
-    }
-    
+
     /**
      * Performs the cross product of the two input vectors a,b
      * a,b are assumed to be of size 3 (check is only performed on vector sizes in debug mode)
@@ -845,7 +827,7 @@ public:
      * @param c The resulting vector
      */
     
-    template< class T1, class T2, class T3 >
+    template< class T1 = array_1d<double, 3>, class T2 = T1, class T3 = T1>
     static inline void CrossProduct(T1& c, const T2& a, const T3& b ){
 #ifdef KRATOS_DEBUG
         if (a.size() != 3 || b.size() != 3) 
@@ -866,7 +848,7 @@ public:
      * @param c The resulting vector
      */
     
-    template< class T1, class T2, class T3 >
+    template< class T1 = array_1d<double, 3>, class T2 = T1, class T3 = T1>
     static inline void UnitCrossProduct(T1& c, const T2& a, const T3& b ){
         CrossProduct(c,a,b);
         const double norm = norm_2(c);

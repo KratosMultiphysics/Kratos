@@ -602,8 +602,8 @@ namespace Kratos
 		}
 
 		if (fabs(DirectionVectorX[2]) != 1.00) {
-                    MathUtils<double>::UnitCrossProduct<arraydim, arraydim, arraydim>(DirectionVectorY, DirectionVectorX, GlobalZ);
-                    MathUtils<double>::UnitCrossProduct<arraydim, arraydim, arraydim>(DirectionVectorZ, DirectionVectorY, DirectionVectorX);
+                    MathUtils<double>::UnitCrossProduct<arraydim>(DirectionVectorY, DirectionVectorX, GlobalZ);
+                    MathUtils<double>::UnitCrossProduct<arraydim>(DirectionVectorZ, DirectionVectorY, DirectionVectorX);
 		}
 
 		//2nd fill big rotation matrix

@@ -261,8 +261,7 @@ namespace Kratos
             }
         }
 
-        typedef array_1d<double, 3 > array3;
-        array3 ge, gn;
+        array_1d<double, 3 > ge, gn;
         
         for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
         {
@@ -277,8 +276,8 @@ namespace Kratos
             ge[2] = J[point_number](2, 0);
             gn[2] = J[point_number](2, 1);
 
-            array3 normal;
-            MathUtils<double>::UnitCrossProduct<array3, array3, array3>(normal, gn, ge);
+            array_1d<double, 3 > normal;
+            MathUtils<double>::UnitCrossProduct(normal, gn, ge);
             
             // Calculating the pressure on the gauss point
             double pressure = 0.0;
@@ -306,7 +305,7 @@ namespace Kratos
             }
 
             //generic load on gauss point
-            array3 gauss_load = surface_load;
+            array_1d<double, 3> gauss_load = surface_load;
             for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
                 if( GetGeometry()[ii].SolutionStepsDataHas( SURFACE_LOAD ) )
