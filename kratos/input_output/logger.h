@@ -228,6 +228,9 @@ namespace Kratos
 
     ///@name Kratos Macros
     ///@{
+      #define KRATOS_INFO(label)   Logger(label) << Logger::Severity::INFO
+
+
 #if defined(KRATOS_ENABLE_CHECK_POINT)
 #define KRATOS_CHECK_POINT(label) Logger(label) << Logger::Category::CHECKING
 #else
