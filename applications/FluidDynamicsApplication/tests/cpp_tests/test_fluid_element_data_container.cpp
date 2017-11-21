@@ -206,14 +206,13 @@ namespace Kratos {
             KRATOS_WATCH(LHS);
             KRATOS_WATCH(RHS);
 
-            KRATOS_CHECK_NEAR(LHS(0,0), 5.533840, 1e-5);
-            KRATOS_CHECK_NEAR(LHS(3,5), -0.0243628, 1e-5);
+            KRATOS_CHECK_NEAR(LHS(0,0), 50.9043, 1e-5);
+            KRATOS_CHECK_NEAR(LHS(3,5), -0.00938651, 1e-5);
             KRATOS_CHECK_NEAR(LHS(0,8), 0.166667, 1e-5);
-            KRATOS_CHECK_NEAR(LHS(8,8), 0.00609399, 1e-5);
+            KRATOS_CHECK_NEAR(LHS(8,8), 0.00689309, 1e-5);
 
-            KRATOS_CHECK_NEAR(RHS[0], 0.256372, 1e-5);
-            KRATOS_CHECK_NEAR(RHS[2], 0.0609399, 1e-5);
-            KRATOS_CHECK_NEAR(RHS[3], 666, 1e-5);
+            KRATOS_CHECK_NEAR(RHS[0], 0.406135, 1e-5);
+            KRATOS_CHECK_NEAR(RHS[2], 0.0689307, 1e-5);
         }
     }
 }
