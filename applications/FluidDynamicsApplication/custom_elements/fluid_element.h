@@ -332,7 +332,7 @@ protected:
     virtual void CalculateStaticTau(
         const TElementData& rData,
         double Density,
-        double KinematicVisc,
+        double DynamicViscosity,
         const array_1d<double,3> &Velocity,
         double ElemSize,
         double &TauOne,

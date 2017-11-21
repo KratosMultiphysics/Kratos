@@ -652,7 +652,7 @@ template< class TElementData >
 void FluidElement<TElementData>::CalculateStaticTau(
     const TElementData& rData,
     double Density,
-    double KinematicVisc,
+    double DynamicViscosity,
     const array_1d<double,3> &Velocity,
     double ElemSize,
     double &TauOne,
@@ -666,9 +666,9 @@ void FluidElement<TElementData>::CalculateStaticTau(
         VelNorm += Velocity[d]*Velocity[d];
     VelNorm = std::sqrt(VelNorm);
 
-    double InvTau = Density * ( rData.DynamicTau/rData.DeltaTime + c1 * KinematicVisc / (ElemSize*ElemSize) + c2 * VelNorm / ElemSize );
+    double InvTau = c1 * DynamicViscosity / (ElemSize*ElemSize) + Density * ( rData.DynamicTau/rData.DeltaTime + c2 * VelNorm / ElemSize );
     TauOne = 1.0/InvTau;
-    TauTwo = Density * (KinematicVisc + c2 * VelNorm * ElemSize / c1);
+    TauTwo = DynamicViscosity + c2 * Density * VelNorm * ElemSize / c1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
