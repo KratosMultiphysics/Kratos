@@ -47,8 +47,7 @@ namespace Kratos {
             rModelPart.AddNodalSolutionStepVariable(ADVPROJ); // OSS only!
             rModelPart.AddNodalSolutionStepVariable(PRESSURE);
             rModelPart.AddNodalSolutionStepVariable(DENSITY);
-            rModelPart.AddNodalSolutionStepVariable(VISCOSITY); // VMS only!
-            rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY); // Symbolic only!
+            rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
             rModelPart.AddNodalSolutionStepVariable(DIVPROJ); // OSS only!
 
             rModelPart.SetBufferSize(BufferSize);
@@ -76,8 +75,7 @@ namespace Kratos {
                 r_node.FastGetSolutionStepValue(PRESSURE) = 10.0 * r_node.X();
                 r_node.FastGetSolutionStepValue(VELOCITY_X) = r_node.Y();
                 r_node.FastGetSolutionStepValue(DENSITY) = 100.0;
-                r_node.FastGetSolutionStepValue(VISCOSITY) = 0.01; //VMS only!
-                r_node.FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = 1.0; //Symbolic only!
+                r_node.FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = 1.0;
             }
         }
 
@@ -177,7 +175,6 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LocalMatrixSymbolicNavierStokes2D3N, FluidDynamicsApplicationFastSuite)
         {
             ModelPart model_part("Test");
-            model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
             InitializeCompleteElement(model_part,"SymbolicNavierStokes2D3N",3);
 
             // Set the BDF coefficients (0.1 is the time step in InitializeCompleteElement)

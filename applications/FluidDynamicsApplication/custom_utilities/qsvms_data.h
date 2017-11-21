@@ -46,7 +46,7 @@ NodalVectorData MomentumProjection;
 
 NodalScalarData Pressure;
 NodalScalarData Density;
-NodalScalarData Viscosity;
+NodalScalarData DynamicViscosity;
 NodalScalarData MassProjection;
 
 double CSmagorinsky;
@@ -67,7 +67,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(MomentumProjection,ADVPROJ,r_geometry);
     this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
     this->FillFromNodalData(Density,DENSITY,r_geometry);
-    this->FillFromNodalData(Viscosity,VISCOSITY,r_geometry);
+    this->FillFromNodalData(DynamicViscosity,DYNAMIC_VISCOSITY,r_geometry);
     this->FillFromNodalData(MassProjection,DIVPROJ,r_geometry);
     this->FillFromElementData(CSmagorinsky,C_SMAGORINSKY,rElement);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
@@ -85,7 +85,7 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(ADVPROJ);
     KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(VISCOSITY);
+    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
     KRATOS_CHECK_VARIABLE_KEY(DIVPROJ);
 
     for (unsigned int i = 0; i < TNumNodes; i++)
@@ -96,7 +96,7 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADVPROJ,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY,r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VISCOSITY,r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DYNAMIC_VISCOSITY,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DIVPROJ,r_geometry[i]);
     }
 

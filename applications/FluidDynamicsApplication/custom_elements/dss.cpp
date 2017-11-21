@@ -578,14 +578,15 @@ void DSS<TElementData>::AddMassStabilization(
 template <class TElementData>
 double DSS<TElementData>::EffectiveViscosity(
     TElementData& rData, double ElementSize) {
+    
     double c_s = rData.CSmagorinsky;
-
-    double density = this->Interpolate(rData.Density,rData.N);
-    double viscosity = this->Interpolate(rData.Viscosity, rData.N);
-    const auto& r_velocities = rData.Velocity;
-    const auto& r_dndx = rData.DN_DX;
+    double viscosity = this->Interpolate(rData.DynamicViscosity, rData.N);
 
     if (c_s != 0.0) {
+        const double density = this->Interpolate(rData.Density, rData.N);
+        const auto& r_velocities = rData.Velocity;
+        const auto& r_dndx = rData.DN_DX;
+
         // Calculate Symetric gradient
         MatrixType strain_rate = ZeroMatrix(Dim, Dim);
         for (unsigned int n = 0; n < NumNodes; ++n) {
@@ -605,10 +606,10 @@ double DSS<TElementData>::EffectiveViscosity(
 
         // Nu_sgs = (c_s * Delta)^2 * (2*Sij*Sij)^(1/2)
         viscosity +=
-            c_s * c_s * ElementSize * ElementSize * strain_rate_norm;
+            density * c_s * c_s * ElementSize * ElementSize * strain_rate_norm;
     }
 
-    return viscosity * density;
+    return viscosity;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -63,6 +63,7 @@ class FluidElementTest(UnitTest.TestCase):
     def setUpSolvers(self):
         import vms_monolithic_solver
         vms_monolithic_solver.AddVariables(self.fluid_model_part)
+        self.fluid_model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY)
 
         model_part_io = ModelPartIO(self.input_file)
         model_part_io.ReadModelPart(self.fluid_model_part)
@@ -123,13 +124,12 @@ class FluidElementTest(UnitTest.TestCase):
 
         rho = 1.0
         mu = 0.01
-        nu = mu/rho
         ux = 1.0
 
         ## Set initial and boundary conditions
         for node in self.fluid_model_part.Nodes:
             node.SetSolutionStepValue(DENSITY,rho)
-            node.SetSolutionStepValue(VISCOSITY,nu)
+            node.SetSolutionStepValue(DYNAMIC_VISCOSITY,mu)
 
             if node.X == xmin or node.X == xmax or node.Y == ymin or node.Y == ymax:
                 node.Fix(VELOCITY_X)
