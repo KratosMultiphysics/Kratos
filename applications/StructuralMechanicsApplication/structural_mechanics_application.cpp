@@ -169,7 +169,9 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     // Adding adjoint conditions
     mPointLoadAdjointCondition2D1N(  0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     mPointLoadAdjointCondition3D1N(  0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
-    mSurfaceLoadAdjointCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
+    mSurfaceLoadAdjointCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mMockPointLoadAdjointCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+    mMockPointLoadAdjointCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) )
 
 {}
 
@@ -444,6 +446,8 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "PointLoadAdjointCondition2D1N", mPointLoadAdjointCondition2D1N )
     KRATOS_REGISTER_CONDITION( "PointLoadAdjointCondition3D1N", mPointLoadAdjointCondition3D1N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadAdjointCondition3D3N", mSurfaceLoadAdjointCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "MockPointLoadAdjointCondition2D1N", mMockPointLoadAdjointCondition2D1N )
+    KRATOS_REGISTER_CONDITION( "MockPointLoadAdjointCondition3D1N", mMockPointLoadAdjointCondition3D1N )
 
     // Register linear elastics laws
     Serializer::Register( "LinearElastic3DLaw", mElasticIsotropic3D );
