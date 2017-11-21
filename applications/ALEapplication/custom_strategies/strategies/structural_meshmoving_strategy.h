@@ -175,7 +175,7 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
     // Update FEM-base
     CalculateMeshVelocities();
     // Optimization iteration: MoveMesh changes the reference
-    // MoveMesh();
+    MoveMesh();
 
     // Clearing the system if needed
     if(mreform_dof_at_every_step == true)
