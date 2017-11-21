@@ -77,6 +77,8 @@ class FluidElementTest(UnitTest.TestCase):
             "condition_name": "MonolithicWallCondition2D"
         }""")
 
+        ReplaceElementsAndConditionsProcess(self.fluid_model_part, replace_settings).Execute()
+        
         # Building custom fluid solver
         self.fluid_solver = vms_monolithic_solver.MonolithicSolver(self.fluid_model_part,self.domain_size)
         rel_vel_tol = 1e-5
