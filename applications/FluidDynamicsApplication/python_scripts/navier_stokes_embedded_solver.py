@@ -22,7 +22,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "navier_stokes_embedded_solver",
+            "solver_type": "embedded_solver_from_defaults",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -76,23 +76,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Set the element replace settings
-        self.settings.AddEmptyValue("element_replace_settings")
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                "element_name":"EmbeddedNavierStokes3D4N",
-                "condition_name": "NavierStokesWallCondition3D"
-                }
-                """)
-        elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                "element_name":"EmbeddedNavierStokes2D3N",
-                "condition_name": "NavierStokesWallCondition2D"
-                }
-                """)
-        else:
-            raise Exception("Domain size is not 2 or 3!!")
+        self._SetEmbeddedElementReplaceSettings()
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
@@ -106,13 +90,14 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         ## Add base class variables
         super(NavierStokesEmbeddedMonolithicSolver, self).AddVariables()
         ## Add specific variables needed for the embedded solver
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)          # Distance function nodal values
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)    # Speed of sound velocity
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE) # Nodal external pressure
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY) # At the moment, the EmbeddedNavierStokes element works with the DYNAMIC_VISCOSITY
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.EMBEDDED_WET_PRESSURE)    # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.EMBEDDED_WET_VELOCITY)    # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ELEMENTAL_DISTANCES)   # Store the element nodal distance values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)        # Speed of sound velocity
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)     # Nodal external pressure
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)     # At the moment, the EmbeddedNavierStokes element works with the DYNAMIC_VISCOSITY
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.EMBEDDED_WET_PRESSURE)        # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.EMBEDDED_WET_VELOCITY)        # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
         print("Monolithic embedded fluid solver variables added correctly")
 
@@ -253,3 +238,48 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             for node in self.main_model_part.Nodes:
                 distance_value = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -distance_value)
+
+    def _SetEmbeddedElementReplaceSettings(self):
+        solver_type = self.settings["solver_type"].GetString()
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.settings.AddEmptyValue("element_replace_settings")
+        
+        if (solver_type == "Embedded"):
+            if(domain_size == 3):
+                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                {
+                    "element_name":"EmbeddedNavierStokes3D4N",
+                    "condition_name": "NavierStokesWallCondition3D3N"
+                }
+                """)
+            elif(domain_size == 2):
+                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                {
+                    "element_name":"EmbeddedNavierStokes2D3N",
+                    "condition_name": "NavierStokesWallCondition2D2N"
+                }
+                """)
+            else:
+                raise Exception("Domain size is not 2 or 3!!")
+
+        elif (solver_type == "EmbeddedAusas"):
+            if(domain_size == 3):
+                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                {
+                    "element_name":"EmbeddedAusasNavierStokes3D4N",
+                    "condition_name": "EmbeddedAusasNavierStokesWallCondition3D3N"
+                }
+                """)
+            elif(domain_size == 2):
+                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                {
+                    "element_name":"EmbeddedAusasNavierStokes2D3N",
+                    "condition_name": "EmbeddedAusasNavierStokesWallCondition2D2N"
+                }
+                """)
+            else:
+                raise Exception("Domain size is not 2 or 3!!")
+
+        else:
+            raise Exception("Wrong embedded solver type!!")
+

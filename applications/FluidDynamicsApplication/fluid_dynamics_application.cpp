@@ -79,7 +79,13 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mNavierStokesWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     // Embedded Navier-Stokes symbolic elements
     mEmbeddedNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mEmbeddedNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
+    mEmbeddedNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    // Embedded Navier-Stokes symbolic element with Ausas discontinuous shape functions
+    mEmbeddedAusasNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mEmbeddedAusasNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mEmbeddedAusasNavierStokesWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mEmbeddedAusasNavierStokesWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
+    
 {}
 
 void KratosFluidDynamicsApplication::Register()
@@ -159,6 +165,8 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("NavierStokes3D4N",mNavierStokes3D);
     KRATOS_REGISTER_ELEMENT("EmbeddedNavierStokes2D3N",mEmbeddedNavierStokes2D);
     KRATOS_REGISTER_ELEMENT("EmbeddedNavierStokes3D4N",mEmbeddedNavierStokes3D);
+    KRATOS_REGISTER_ELEMENT("EmbeddedAusasNavierStokes2D3N",mEmbeddedAusasNavierStokes2D);
+    KRATOS_REGISTER_ELEMENT("EmbeddedAusasNavierStokes3D4N",mEmbeddedAusasNavierStokes3D);
 
     // Register Conditions
     KRATOS_REGISTER_CONDITION("WallCondition2D2N",mWallCondition2D); //this is the name the element should have according to the naming convention
@@ -173,8 +181,10 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_CONDITION("WallConditionDiscontinuous3D",mWallConditionDiscontinuous3D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition2D",mMonolithicWallCondition2D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D",mMonolithicWallCondition3D);
-    KRATOS_REGISTER_CONDITION("NavierStokesWallCondition2D",mNavierStokesWallCondition2D);
-    KRATOS_REGISTER_CONDITION("NavierStokesWallCondition3D",mNavierStokesWallCondition3D);
+    KRATOS_REGISTER_CONDITION("NavierStokesWallCondition2D2N",mNavierStokesWallCondition2D);
+    KRATOS_REGISTER_CONDITION("NavierStokesWallCondition3D3N",mNavierStokesWallCondition3D);
+    KRATOS_REGISTER_CONDITION("EmbeddedAusasNavierStokesWallCondition2D2N",mEmbeddedAusasNavierStokesWallCondition2D);
+    KRATOS_REGISTER_CONDITION("EmbeddedAusasNavierStokesWallCondition3D3N",mEmbeddedAusasNavierStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("StokesWallCondition3D",mStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition2D",mFSPeriodicCondition2D);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition3D",mFSPeriodicCondition3D);
