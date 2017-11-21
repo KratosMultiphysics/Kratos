@@ -247,7 +247,7 @@ namespace Kratos
                }
                else if (i->pGetDof(DISPLACEMENT_X)->IsFixed() == false)
                {
-                  CurrentDisplacement[0] = PreviousDisplacement[0] + DeltaTime * PreviousVelocity[0] + 0.5 * std::pow(DeltaTime, 2) * PreviousAcceleration[0];
+                  //CurrentDisplacement[0] = PreviousDisplacement[0] + DeltaTime * PreviousVelocity[0] + 0.5 * std::pow(DeltaTime, 2) * PreviousAcceleration[0];
                }
 
 
@@ -261,7 +261,7 @@ namespace Kratos
                }
                else if (i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false )
                {
-                  CurrentDisplacement[1] = PreviousDisplacement[1] + DeltaTime * PreviousVelocity[1] + 0.5 * std::pow(DeltaTime, 2) * PreviousAcceleration[1];
+                  //CurrentDisplacement[1] = PreviousDisplacement[1] + DeltaTime * PreviousVelocity[1] + 0.5 * std::pow(DeltaTime, 2) * PreviousAcceleration[1];
                }
 
                // For 3D cases
@@ -277,7 +277,7 @@ namespace Kratos
                   }
                   else if (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false)
                   {
-                     CurrentDisplacement[2] = PreviousDisplacement[2] + DeltaTime * PreviousVelocity[2] + 0.5 * std::pow(DeltaTime, 2) * PreviousAcceleration[2];
+                     //CurrentDisplacement[2] = PreviousDisplacement[2] + DeltaTime * PreviousVelocity[2] + 0.5 * std::pow(DeltaTime, 2) * PreviousAcceleration[2];
                   }
                }
 
@@ -344,7 +344,7 @@ namespace Kratos
                }
                else if (i->pGetDof(WATER_DISPLACEMENT_X)->IsFixed() == false)
                {
-                  CurrentWaterDisplacement[0] = PreviousWaterDisplacement[0] + DeltaTime * PreviousWaterVelocity[0] + 0.5 * std::pow(DeltaTime, 2) * PreviousWaterAcceleration[0];
+                  //CurrentWaterDisplacement[0] = PreviousWaterDisplacement[0] + DeltaTime * PreviousWaterVelocity[0] + 0.5 * std::pow(DeltaTime, 2) * PreviousWaterAcceleration[0];
                }
 
 
@@ -358,7 +358,7 @@ namespace Kratos
                }
                else if (i->pGetDof(WATER_DISPLACEMENT_Y)->IsFixed() == false)
                {
-                  CurrentWaterDisplacement[1] = PreviousWaterDisplacement[1] + DeltaTime * PreviousWaterVelocity[1] + 0.5 * std::pow(DeltaTime, 2) * PreviousWaterAcceleration[1];
+                  //CurrentWaterDisplacement[1] = PreviousWaterDisplacement[1] + DeltaTime * PreviousWaterVelocity[1] + 0.5 * std::pow(DeltaTime, 2) * PreviousWaterAcceleration[1];
                }
 
                // For 3D cases
@@ -374,7 +374,7 @@ namespace Kratos
                   }
                   else if (i->pGetDof(WATER_DISPLACEMENT_Z)->IsFixed() == false)
                   {
-                     CurrentWaterDisplacement[2] = PreviousWaterDisplacement[2] + DeltaTime * PreviousWaterVelocity[2] + 0.5 * std::pow(DeltaTime, 2) * PreviousWaterAcceleration[2];
+                     //CurrentWaterDisplacement[2] = PreviousWaterDisplacement[2] + DeltaTime * PreviousWaterVelocity[2] + 0.5 * std::pow(DeltaTime, 2) * PreviousWaterAcceleration[2];
                   }
                }
 
