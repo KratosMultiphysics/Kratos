@@ -22,7 +22,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
                 node3 = model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
                 
                 # Allocate a geometry
-                geom = KratosMultiphysics.Triangle2D3N(node1,node2,node3)
+                geom = KratosMultiphysics.Triangle2D3(node1,node2,node3)
         else:
             if (nnodes == 4):
                 node3 = model_part.CreateNewNode(3, 0.0, 1.0, 0.0)

@@ -223,7 +223,7 @@ public:
     //************************************************************************************
     //************************************************************************************
    
-    bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0)
+    bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0) override
     {
       
       KRATOS_TRY
@@ -249,7 +249,7 @@ public:
     //************************************************************************************
     //************************************************************************************
     
-    bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
+    bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
 
@@ -264,12 +264,40 @@ public:
       KRATOS_CATCH("")     
     } 
 
+            // *********************************************************************************
+            // *********************************************************************************
+            virtual void GetParametricDirections(BoundingBoxParameters & rValues, Vector & rT1, Vector & rT2) override
+            {
+               KRATOS_TRY
+               
+               // GetTheNormalOfThePlane
+               const PointType  & rPoint = rValues.GetPoint();
+               PointType Normal(3);
+
+               Normal = rPoint - mBox.Center; 
+               Normal /= norm_2(Normal);
+
+               rT1 = Normal; 
+               if ( fabs(Normal(2))  > 1e-5) {
+                  rT1(2) = (-pow(Normal(0),2) - pow(Normal(1),2) )  / Normal(2);
+                  rT1 /= norm_2(rT1);
+               } else {
+                  rT1(0) = 0; rT1(1) = 0; rT1(2) = 1;
+               }
+
+               rT2 = ZeroVector(3);
+               rT2(0) =  Normal(1) * rT1(2) - Normal(2)*rT1(1);
+               rT2(1) = -Normal(0) * rT1(2) + Normal(2)*rT1(0);
+               rT2(2) =  Normal(0) * rT1(1) - Normal(1)*rT1(0);
+    
+               KRATOS_CATCH("")
+            }
 
     //************************************************************************************
     //************************************************************************************
 
     //Sphere
-    void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 )
+    void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 ) override
     {
       KRATOS_TRY
 
@@ -413,19 +441,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "SphereBoundingBox";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         rOStream << this->mBox.UpperPoint << " , " << this->mBox.LowerPoint;
     }

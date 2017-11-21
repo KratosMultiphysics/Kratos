@@ -199,7 +199,7 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    bool SearchConditionMasters(ModelPart& rModelPart)
+    bool SearchConditionMasters()
     {
 
       KRATOS_TRY
@@ -210,32 +210,30 @@ namespace Kratos
       
       bool found=false;
 
-      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond != rModelPart.ConditionsEnd(); i_cond++)
+      for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.ConditionsBegin(); i_cond != mrModelPart.ConditionsEnd(); i_cond++)
 	{
 
 	  if( i_cond->Is(BOUNDARY) ) //composite condition
 	    composite_conditions++;
-	  
-	  //std::cout<<" Condition ("<<i_cond->Id()<<") : ME="<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<", MN= "<<i_cond->GetValue(MASTER_NODES)[0].Id()<<std::endl;
+
+	 
+	  //std::cout<<" BeforeSearch::Condition ("<<i_cond->Id()<<") ME="<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<", MN= "<<i_cond->GetValue(MASTER_NODES)[0].Id()<<std::endl;
 
 	  //********************************************************************
 
-	  boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
-
+	  boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
+	  boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
+	 	    
 	  Geometry< Node<3> >& rConditionGeometry = i_cond->GetGeometry();
 	  unsigned int size=rConditionGeometry.size();
 			    
 	  bool perform_search = true;
 	  for(unsigned int i=0; i<size; i++)
 	    {
-	      if( rConditionGeometry[i].SolutionStepsDataHas(RIGID_WALL) ){
-		if( rConditionGeometry[i].FastGetSolutionStepValue(RIGID_WALL) ) //if is a rigid wall do not search else do search
-		  perform_search = false;
-	      }
+	      if( rConditionGeometry[i].Is(RIGID) ) //if is a rigid wall do not search else do search
+		perform_search = false;	     
 	    }		   		     
 
-	  if( size != 2 ) 
-	    perform_search = false;
 
 	  if( i_cond->Is(CONTACT) )
 	    perform_search = false;
@@ -245,61 +243,143 @@ namespace Kratos
 
 	  if( perform_search )
 	    {
-
-	      WeakPointerVector<Element >& rE1 = rConditionGeometry[0].GetValue(NEIGHBOUR_ELEMENTS);				    
-	      WeakPointerVector<Element >& rE2 = rConditionGeometry[1].GetValue(NEIGHBOUR_ELEMENTS);
-
-	      if( rE1.size() == 0 || rE2.size() == 0 )
-		std::cout<<" NO SIZE in NEIGHBOUR_ELEMENTS "<<std::endl;
 	      
-	      for(WeakPointerVector< Element >::iterator ie = rE1.begin(); ie!=rE1.end(); ie++)
-		{
-		  for(WeakPointerVector< Element >::iterator ne = rE2.begin(); ne!=rE2.end(); ne++)
-		    {
+	      if( size == 2 ) {
+		
+		WeakPointerVector<Element >& rE1 = rConditionGeometry[0].GetValue(NEIGHBOUR_ELEMENTS);				    
+		WeakPointerVector<Element >& rE2 = rConditionGeometry[1].GetValue(NEIGHBOUR_ELEMENTS);
 
-		      if (ne->Id() == ie->Id() && !found)
-			{
-			  WeakPointerVector< Element > MasterElements;
-			  MasterElements.push_back(Element::WeakPointer( *(ie.base()) ) );
-			  i_cond->SetValue(MASTER_ELEMENTS,MasterElements);
-					 
-			  Geometry< Node<3> >& rElementGeom = ie->GetGeometry();
+		if( rE1.size() == 0 || rE2.size() == 0 )
+		  std::cout<<" NO SIZE in NEIGHBOUR_ELEMENTS "<<std::endl;
+	      
+		for(WeakPointerVector< Element >::iterator ie = rE1.begin(); ie!=rE1.end(); ie++)
+		  {
+		    for(WeakPointerVector< Element >::iterator ne = rE2.begin(); ne!=rE2.end(); ne++)
+		      {
 
-			  rElementGeom.NodesInFaces(lpofa);
-
-			  int node = 0;
-			  for (unsigned int i=0; i<rElementGeom.size(); i++)
-			    {
-			      if( (   rConditionGeometry[0].Id() == rElementGeom[lpofa(1,i)].Id() 
-				      && rConditionGeometry[1].Id() == rElementGeom[lpofa(2,i)].Id() ) || 
-				  (   rConditionGeometry[0].Id() == rElementGeom[lpofa(2,i)].Id() 
-				      && rConditionGeometry[1].Id() == rElementGeom[lpofa(1,i)].Id() ) )
-				{
-				  node=i;
-				  found = true;
-				  break;
-				}
+			if (ne->Id() == ie->Id() && !found)
+			  {
+			    WeakPointerVector< Element > MasterElements;
+			    MasterElements.push_back(Element::WeakPointer( *(ie.base()) ) );
+			    if( mEchoLevel >= 1 ){
+			      if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
+				std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
 			    }
+			    i_cond->SetValue(MASTER_ELEMENTS,MasterElements);
+			    
+			    Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
+
+			    //get matrix nodes in faces
+			    rElementGeometry.NodesInFaces(lpofa);
+			    rElementGeometry.NumberNodesInFaces(lnofa);
+			    
+			    int node = 0;
+			    for (unsigned int iface=0; iface<rElementGeometry.size(); iface++)
+			      {
+				ModelerUtilities ModelerUtils;
+				found = ModelerUtils.FindCondition(rConditionGeometry,rElementGeometry,lpofa,lnofa,iface);
+				
+				if( found )
+				  {
+				    node=iface;
+				    break;
+				  }
+			      }
 						
-			  if(found){
-			    WeakPointerVector< Node<3> > MasterNodes;
-			    MasterNodes.push_back( Node<3>::WeakPointer( rElementGeom(lpofa(0,node)) ) );
-			    i_cond->SetValue(MASTER_NODES,MasterNodes);
-			  }
-			  else{						 
-			    std::cout<<" MASTER_NODE not FOUND : something is wrong "<<std::endl;			  
-			  }
+			    if(found){		    
+			      WeakPointerVector< Node<3> > MasterNodes;
+			      MasterNodes.push_back( Node<3>::WeakPointer( rElementGeometry(lpofa(0,node)) ) );
+			      if( mEchoLevel >= 1 ){
+				if(i_cond->GetValue(MASTER_NODES)[0].Id() != MasterNodes[0].Id())
+				  std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ("<<i_cond->GetValue(MASTER_NODES)[0].Id()<<" != "<<MasterNodes[0].Id()<<")"<<std::endl;
+				i_cond->SetValue(MASTER_NODES,MasterNodes);
+			      }
+			    }
+			    else{						 
+			      std::cout<<" MASTER_NODE not FOUND : something is wrong "<<std::endl;			  
+			    }
 
-			}
-		    }
-		}
+			  }
+		      }
+		  }
+	      }
+	      if( size == 3 ) {
+	      
+		
+		WeakPointerVector<Element >& rE1 = rConditionGeometry[0].GetValue(NEIGHBOUR_ELEMENTS);				    
+		WeakPointerVector<Element >& rE2 = rConditionGeometry[1].GetValue(NEIGHBOUR_ELEMENTS);
+		WeakPointerVector<Element >& rE3 = rConditionGeometry[2].GetValue(NEIGHBOUR_ELEMENTS);
 
+		if( rE1.size() == 0 || rE2.size() == 0 || rE3.size() == 0 )
+		  std::cout<<" NO SIZE in NEIGHBOUR_ELEMENTS "<<std::endl;
+	      
+		for(WeakPointerVector< Element >::iterator ie = rE1.begin(); ie!=rE1.end(); ie++)
+		  {
+		    for(WeakPointerVector< Element >::iterator je = rE2.begin(); je!=rE2.end(); je++)
+		      {
+			
+			if (je->Id() == ie->Id() && !found)
+			  {
+			    
+			    for(WeakPointerVector< Element >::iterator ke = rE3.begin(); ke!=rE3.end(); ke++)
+			      {
+
+				if (ke->Id() == ie->Id() && !found)
+				  {
+			    
+				    WeakPointerVector< Element > MasterElements;
+				    MasterElements.push_back(Element::WeakPointer( *(ie.base()) ) );
+				    if( mEchoLevel >= 1 ){
+				      if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
+					std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
+				    }
+				    i_cond->SetValue(MASTER_ELEMENTS,MasterElements);
+					 
+				    Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
+
+				    //get matrix nodes in faces
+				    rElementGeometry.NodesInFaces(lpofa);
+				    rElementGeometry.NumberNodesInFaces(lnofa);
+			    
+				    int node = 0;
+				    for (unsigned int iface=0; iface<rElementGeometry.size(); iface++)
+				      {
+					ModelerUtilities ModelerUtils;
+					found = ModelerUtils.FindCondition(rConditionGeometry,rElementGeometry,lpofa,lnofa,iface);
+					
+					if( found )
+					  {
+					    node=iface;
+					    break;
+					  }
+				      }
+							
+				    if(found){		    
+				      WeakPointerVector< Node<3> > MasterNodes;
+				      MasterNodes.push_back( Node<3>::WeakPointer( rElementGeometry(lpofa(0,node)) ) );
+				      if( mEchoLevel >= 1 ){
+					if(i_cond->GetValue(MASTER_NODES)[0].Id() != MasterNodes[0].Id())
+					  std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ("<<i_cond->GetValue(MASTER_NODES)[0].Id()<<" != "<<MasterNodes[0].Id()<<")"<<std::endl;
+				      }
+				      i_cond->SetValue(MASTER_NODES,MasterNodes);
+				    }
+				    else{						 
+				      std::cout<<" MASTER_NODE not FOUND : something is wrong "<<std::endl;			  
+				    }
+				  }
+			      }
+			  }
+		      }
+		  }
+	      }
+
+	      
 	      total_conditions++;
 	    }
 
 	  //********************************************************************
 
-	  //std::cout<<" After Condition ("<<i_cond->Id()<<") : ME="<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<", MN= "<<i_cond->GetValue(MASTER_NODES)[0].Id()<<std::endl;
+	  //std::cout<<" AfterSearch::Condition ("<<i_cond->Id()<<") : ME="<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<", MN= "<<i_cond->GetValue(MASTER_NODES)[0].Id()<<std::endl;
 
 	  if(found)
 	    counter++;
@@ -309,20 +389,22 @@ namespace Kratos
 
       if(counter == total_conditions){
 	if( mEchoLevel >= 1 )
-	  std::cout<<"   Condition Masters (ModelPart "<<rModelPart.Name()<<"): LOCATED ["<<counter<<"]"<<std::endl;
+	  std::cout<<"   Condition Masters (ModelPart "<<mrModelPart.Name()<<"): LOCATED ["<<counter<<"]"<<std::endl;
 	found=true;
       }
       else{
 	if( mEchoLevel >= 1 )
-	  std::cout<<"   Condition Masters (ModelPart "<<rModelPart.Name()<<"): not LOCATED ["<<counter-total_conditions<<"]"<<std::endl;
+	  std::cout<<"   Condition Masters (ModelPart "<<mrModelPart.Name()<<"): not LOCATED ["<<counter-total_conditions<<"]"<<std::endl;
 	found=false;
       }
 
       if(counter!= composite_conditions)
 	if( mEchoLevel >= 1 )
-	  std::cout<<"   Condition Masters (ModelPart "<<rModelPart.Name()<<"): LOCATED ["<<counter<<"] COMPOSITE ["<<composite_conditions<<"] NO MATCH"<<std::endl;
+	  std::cout<<"   Condition Masters (ModelPart "<<mrModelPart.Name()<<"): LOCATED ["<<counter<<"] COMPOSITE ["<<composite_conditions<<"] NO MATCH"<<std::endl;
 			
       return found;
+
+      std::cout<<" Condition Masters Found "<<std::endl;
 
       KRATOS_CATCH( "" )
     }
@@ -391,6 +473,30 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
+
+
+    //**************************************************************************
+    //**************************************************************************
+
+    bool ClearMasterEntities( ModelPart& rModelPart, ModelPart::ConditionsContainerType& rTemporaryConditions)
+    {
+      KRATOS_TRY
+
+      for(ModelPart::ConditionsContainerType::iterator ic = rTemporaryConditions.begin(); ic!= rTemporaryConditions.end(); ic++)
+	{
+	  WeakPointerVector< Element >& MasterElements = ic->GetValue(MASTER_ELEMENTS);
+	  MasterElements.erase(MasterElements.begin(), MasterElements.end());
+	  
+	  WeakPointerVector< Node<3> >& MasterNodes = ic->GetValue(MASTER_NODES);
+	  MasterNodes.erase(MasterNodes.begin(), MasterNodes.end());
+	}
+
+      return true;
+      
+      KRATOS_CATCH( "" )
+    }
+
+    
     //**************************************************************************
     //**************************************************************************
 
@@ -483,7 +589,7 @@ namespace Kratos
 	
       return true;
 
-            KRATOS_CATCH( "" )
+      KRATOS_CATCH( "" )
     }
 
     //**************************************************************************
@@ -494,6 +600,9 @@ namespace Kratos
     {
 
       KRATOS_TRY
+
+      //master conditions must be deleted and set them again in the build
+      this->ClearMasterEntities(rModelPart, rTemporaryConditions);
       
       //properties to be used in the generation
       int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
@@ -505,13 +614,12 @@ namespace Kratos
 
       rConditionId=0;
       for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ie++)
-	{
-	  
-	  Geometry< Node<3> >& rGeometry = ie->GetGeometry();
+	{	  
+	  Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
 
-	  const unsigned int dimension = rGeometry.WorkingSpaceDimension();
+	  const unsigned int dimension = rElementGeometry.WorkingSpaceDimension();
 	  
-	  if( rGeometry.FacesNumber() >= 3 ){ //3 or 4
+	  if( rElementGeometry.FacesNumber() >= 3 ){ //3 or 4
 
 	    //********************************************************************
 	    /*each face is opposite to the corresponding node number so in 2D triangle
@@ -533,24 +641,25 @@ namespace Kratos
 	    boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
 	 
 	    WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
+
 	    
 	    //get matrix nodes in faces
-	    rGeometry.NodesInFaces(lpofa);
-	    rGeometry.NumberNodesInFaces(lnofa);
+	    rElementGeometry.NodesInFaces(lpofa);
+	    rElementGeometry.NumberNodesInFaces(lnofa);
 	    
 	    //loop on neighbour elements of an element
 	    unsigned int iface=0;
 	    for(WeakPointerVector< Element >::iterator ne = rE.begin(); ne!=rE.end(); ne++)
 	      {
 		unsigned int NumberNodesInFace = lnofa[iface];
-
+				
 		if (ne->Id() == ie->Id())
 		  {
 		    //if no neighbour is present => the face is free surface
 		    for(unsigned int j=1; j<=NumberNodesInFace; j++)
 		      {
-			rGeometry[lpofa(j,iface)].Set(BOUNDARY);
-			//std::cout<<" node ["<<j<<"]"<<rGeometry[lpofa(j,iface)].Id()<<std::endl;
+			rElementGeometry[lpofa(j,iface)].Set(BOUNDARY);
+			//std::cout<<" node ["<<j<<"]"<<rElementGeometry[lpofa(j,iface)].Id()<<std::endl;
 		      }
 
 		    //1.- create geometry: points array and geometry type
@@ -561,7 +670,7 @@ namespace Kratos
 
 		    for(unsigned int j=1; j<=NumberNodesInFace; j++)
 		      {
-			FaceNodes.push_back(rGeometry(lpofa(j,iface)));
+			FaceNodes.push_back(rElementGeometry(lpofa(j,iface)));
 		      }
 				    
 							
@@ -593,7 +702,7 @@ namespace Kratos
 			Geometry< Node<3> >& rConditionGeometry = i_cond->GetGeometry();
 
 			ModelerUtilities ModelerUtils;
-			condition_found = ModelerUtils.FindCondition(rConditionGeometry,rGeometry,lpofa,lnofa,iface);
+			condition_found = ModelerUtils.FindCondition(rConditionGeometry,rElementGeometry,lpofa,lnofa,iface);
 
 			if( condition_found ){
 			  
@@ -607,17 +716,20 @@ namespace Kratos
 			
 		      }
 		    // Search for existing conditions: end
-
+		    
 		    if( !point_condition ){
 		      // usually one MasterElement and one MasterNode for 2D and 3D simplex
 		      // can be more than one in other geometries -> it has to be extended to that cases
+
+		      // std::cout<<" ID "<<p_cond->Id()<<" MASTER ELEMENT "<<ie->Id()<<std::endl;
+		      // std::cout<<" MASTER NODE "<<rElementGeometry[lpofa(0,iface)].Id()<<" or "<<rElementGeometry[lpofa(NumberNodesInFace,iface)].Id()<<std::endl;
 		      
 		      WeakPointerVector< Element >& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
 		      MasterElements.push_back( Element::WeakPointer( *(ie.base()) ) );
 		      p_cond->SetValue(MASTER_ELEMENTS,MasterElements);
 
 		      WeakPointerVector< Node<3> >& MasterNodes = p_cond->GetValue(MASTER_NODES);
-		      MasterNodes.push_back( Node<3>::WeakPointer( rGeometry(lpofa(0,iface)) ) );
+		      MasterNodes.push_back( Node<3>::WeakPointer( rElementGeometry(lpofa(0,iface)) ) );
 		      p_cond->SetValue(MASTER_NODES,MasterNodes);
 		    }
 
@@ -632,6 +744,7 @@ namespace Kratos
 	  }
 	}
 
+       
       return true;
 
       KRATOS_CATCH( "" )
@@ -717,15 +830,15 @@ namespace Kratos
 
 	    if( this->CheckAcceptedCondition( rModelPart, *i_cond ) ){
 
-	      Geometry< Node<3> >& rGeometry = i_cond->GetGeometry();
+	      Geometry< Node<3> >& rConditionGeometry = i_cond->GetGeometry();
 
 	      Condition::NodesArrayType FaceNodes;
 
-	      FaceNodes.reserve(rGeometry.size() );
+	      FaceNodes.reserve(rConditionGeometry.size() );
 
-	      for(unsigned int j=0; j<rGeometry.size(); j++)
+	      for(unsigned int j=0; j<rConditionGeometry.size(); j++)
 		{
-		  FaceNodes.push_back(rGeometry(j));
+		  FaceNodes.push_back(rConditionGeometry(j));
 		}
 
 	      rPreservedConditions[i_cond->Id()] += 1;
@@ -782,9 +895,9 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      Geometry< Node<3> >& rGeometry = rCondition.GetGeometry();
+      Geometry< Node<3> >& rConditionGeometry = rCondition.GetGeometry();
 	
-      return FindConditionID(rModelPart, rGeometry);	
+      return FindConditionID(rModelPart, rConditionGeometry);	
 
       KRATOS_CATCH( "" )
     }

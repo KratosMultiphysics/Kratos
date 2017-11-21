@@ -9,7 +9,7 @@
 
 #if !defined(KRATOS_SOLID_MECHANICS_MATH_UTILITIES)
 #define KRATOS_SOLID_MECHANICS_MATH_UTILITIES
-#define PI 3.1415926535898
+
 
 #ifdef FIND_MAX
 #undef FIND_MAX
@@ -109,13 +109,13 @@ public:
         if(p < 0) return false; //in this case the square roots below will be negative. This substitutes with better efficiency lines 107-110
         
         solution(0)=
-            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))+PI/3.0)
+            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))+ Globals::Pi / 3.0)
             -b/(3*a);
         solution(1)=
             sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p))))-b/(3*a)
             ;
         solution(2)=
-            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))-PI/3.0)
+            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))- Globals::Pi / 3.0)
             -b/(3*a);
 
 //        if(std::isnan<double>(solution(0)) || std::isnan<double>(solution(1))|| std::isnan<double>(solution(2)))
@@ -279,13 +279,13 @@ public:
         // In exact arithmetic for a symmetric matrix  -1 <= r <= 1
         // but computation error can leave it slightly outside this range.
         double phi = 0.0;
-        if (r <= -1) { phi = KRATOS_M_PI / 3.0; }
+        if (r <= -1) { phi = Globals::Pi / 3.0; }
         else if (r >= 1) { phi = 0.0; }
         else { phi = acos(r) / 3.0;}
             
         // the eigenvalues satisfy eig3 <= eig2 <= eig1
         Result[0] = q + 2.0 * p * cos(phi);
-        Result[2] = q + 2.0 * p * cos(phi + (2.0*KRATOS_M_PI/3.0));
+        Result[2] = q + 2.0 * p * cos(phi + (2.0 * Globals::Pi / 3.0));
         Result[1] = 3.0 * q - Result[0] - Result[2];     //% since trace(A) = eig1 + eig2 + eig3   
 
         return Result;
@@ -914,7 +914,7 @@ public:
                         {
                             theta = 0.5*atan(2*A(i,j)/(A(i,i)-A(j,j)));
                         }
-                        else theta = 0.25*PI;
+                        else theta = 0.25 * Globals::Pi;
                     }
                     MatrixType T(n,n);
 		    noalias(T) = IdentityMatrix( n );

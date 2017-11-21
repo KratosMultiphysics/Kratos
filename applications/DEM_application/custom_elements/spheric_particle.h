@@ -207,13 +207,11 @@ void   SetParticleKNormalFromProperties(double* particle_k_normal);
 virtual double GetParticleKTangential();
 void   SetParticleKTangentialFromProperties(double* particle_k_tangential);
 
-//Conical damage
+//Dependent Friction
 virtual double GetParticleContactRadius();
 void   SetParticleContactRadiusFromProperties(double* particle_contact_radius);
 virtual double GetParticleMaxStress();
 void   SetParticleMaxStressFromProperties(double* particle_max_stress);
-virtual double GetParticleAlpha();
-void   SetParticleAlphaFromProperties(double* particle_alpha);
 virtual double GetParticleGamma();
 void   SetParticleGammaFromProperties(double* particle_gamma);
 
@@ -402,7 +400,7 @@ virtual void AddUpMomentsAndProject(double LocalCoordSystem[3][3],
                                     double ViscoLocalRotationalMoment[3]) final;
 
 virtual void ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& vel, double tangential_vel[3],
-                         double mTimeStep, double density, bool sliding, double inverse_of_volume,
+                         double mTimeStep, bool sliding, double inverse_of_volume,
                          double LocalElasticContactForce, DEMWall* cast_neighbour);
 
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);

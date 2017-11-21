@@ -34,7 +34,7 @@ class EmpireWrapper:
         # -------------------------------------------------------------------------------------------------
         def __init__(self):
             self.model_parts = {}
-            self._LoadEmpireLibrary()
+            self._load_empire_library()
         # -------------------------------------------------------------------------------------------------
 
         ##### Public Functions #####
@@ -68,13 +68,13 @@ class EmpireWrapper:
             # mesh_name: name of mesh in the emperor input
             
             # Save the ModelPart for data-field exchange later
-            self._SaveModelPart(mesh_name, model_part)
+            self._save_model_part(mesh_name, model_part)
             
             # extract interface mesh information
             numNodes = [];          numElems = []
             nodeCoors = [];         nodeIDs = []
             numNodesPerElem = [];   elemTable = []
-            self._GetMesh(model_part, numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable)
+            self._get_mesh(model_part, numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable)
 
             # convert python lists to ctypes, required for empire-function call
             c_numNodes = (ctp.c_int * len(numNodes))(*numNodes)
@@ -108,7 +108,7 @@ class EmpireWrapper:
             # mesh_name: name of mesh in the emperor input
 
             # Save the ModelPart for data-field exchange later
-            self._SaveModelPart(mesh_name, model_part)
+            self._save_model_part(mesh_name, model_part)
 
             c_numNodes = ctp.pointer(ctp.c_int(0))
             c_numElems = ctp.pointer(ctp.c_int(0))
@@ -129,12 +129,12 @@ class EmpireWrapper:
             numNodesPerElem = c_numNodesPerElem.contents
             elemTable = c_elemTable.contents
             
-            self._SetMesh(model_part, numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable)
+            self._set_mesh(model_part, numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable)
             print("::EMPIRE:: Received Mesh")
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
-        def SendDataField(self, mesh_name, data_field_name, kratos_variable):
+        def SendDataField(self, mesh_name, data_field_name, kratos_variables):
             ''' Send data field to the server
             \param[in] name name of the field
             \param[in] sizeOfArray size of the array (data field)
@@ -147,9 +147,11 @@ class EmpireWrapper:
             # get ModelPart
             model_part = self.model_parts[mesh_name]
 
+            if not type(kratos_variables) == list:
+                kratos_variables = [kratos_variables]
+
             # extract data field from nodes
-            data_field = []
-            self._GetDataField(model_part, kratos_variable, data_field)
+            data_field = self._get_data_field(model_part, kratos_variables)
 
             # convert list containg the data field to ctypes
             c_data_field = (ctp.c_double * len(data_field))(*data_field)
@@ -160,7 +162,7 @@ class EmpireWrapper:
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
-        def ReceiveDataField(self, mesh_name, data_field_name, kratos_variable):   
+        def ReceiveDataField(self, mesh_name, data_field_name, kratos_variables):   
             ''' Receive data field from the server
             \param[in] name name of the field
             \param[in] sizeOfArray size of the array (data field)
@@ -173,18 +175,22 @@ class EmpireWrapper:
             # get ModelPart
             model_part = self.model_parts[mesh_name]
 
-            # Determine Size of Variable
-            size_of_variable = self._SizeOfVariable(model_part, kratos_variable)
+            if not type(kratos_variables) == list:
+                kratos_variables = [kratos_variables]
+
+            # Determine Sizes of Variables
+            sizes_of_variables = self._sizes_of_variables(model_part, kratos_variables)
+            self._check_size_of_variables(sizes_of_variables)
 
             # initialize vector storing the values
-            size_data_field = model_part.NumberOfNodes() * size_of_variable
+            size_data_field = model_part.NumberOfNodes() * sum(sizes_of_variables)
             c_size_data_field = ctp.c_int(size_data_field)
             c_data_field = (ctp.c_double * size_data_field)(0)
 
             # receive data field from empire
             self.libempire_api.EMPIRE_API_recvDataField(data_field_name.encode(), c_size_data_field, c_data_field)
 
-            self._SetDataField(model_part, kratos_variable, c_data_field, size_of_variable)
+            self._set_data_field(model_part, kratos_variables, c_data_field, sizes_of_variables)
         # -------------------------------------------------------------------------------------------------
         
         # -------------------------------------------------------------------------------------------------
@@ -219,7 +225,7 @@ class EmpireWrapper:
 
             self.libempire_api.EMPIRE_API_recvSignal_double(array_name.encode(), array_size, c_signal)
 
-            return self._ConvertToList(array_size, c_signal)
+            return self._convert_to_list(array_size, c_signal)
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
@@ -234,7 +240,7 @@ class EmpireWrapper:
 
         ##### Private Functions #####
         # -------------------------------------------------------------------------------------------------
-        def _LoadEmpireLibrary(self):
+        def _load_empire_library(self):
             if hasattr(self, 'libempire_api'): # the library has been loaded already
                 raise ImportError("The EMPIRE library must be loaded only once!")
 
@@ -250,7 +256,7 @@ class EmpireWrapper:
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
-        def _GetMesh(self, model_part, num_nodes, num_elements, node_coords, node_IDs, num_nodes_per_element, element_table):
+        def _get_mesh(self, model_part, num_nodes, num_elements, node_coords, node_IDs, num_nodes_per_element, element_table):
             num_nodes.append(model_part.NumberOfNodes())
             num_elements.append(model_part.NumberOfElements())
             
@@ -267,7 +273,7 @@ class EmpireWrapper:
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
-        def _SetMesh(self, model_part, num_nodes, num_elements, node_coords, node_IDs, num_nodes_per_element, element_table):
+        def _set_mesh(self, model_part, num_nodes, num_elements, node_coords, node_IDs, num_nodes_per_element, element_table):
             # This function requires an empty ModelPart
             # It constructs Nodes and Elements from what was received from EMPIRE
 
@@ -309,60 +315,95 @@ class EmpireWrapper:
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
-        def _GetDataField(self, model_part, kratos_variable, data_field):
-            size_of_variable = self._SizeOfVariable(model_part, kratos_variable)
+        def _get_data_field(self, model_part, kratos_variables):
+            sizes_of_variables = self._sizes_of_variables(model_part, kratos_variables)
+            self._check_size_of_variables(sizes_of_variables)            
 
+            num_nodes = model_part.NumberOfNodes()
+            sum_sizes = sum(sizes_of_variables)
+
+            data_field = [0.0] * (num_nodes * sum_sizes) # preallocate
+
+            node_i = 0
             for node in model_part.Nodes:
-                data_value = node.GetSolutionStepValue(kratos_variable)
+                size_index = 0
+                for var_index in range(len(kratos_variables)):
+                    size_of_variable = sizes_of_variables[var_index]
+                    variable = kratos_variables[var_index]
 
-                if size_of_variable == 1:
-                    data_field.append(data_value)
-                else:
-                    for i in range(size_of_variable):
-                        data_field.append(data_value[i])
+                    data_value = node.GetSolutionStepValue(variable)
+
+                    if size_of_variable == 1:
+                        data_field[node_i * sum_sizes + size_index] = data_value
+                        size_index += 1
+                    else:
+                        for k in range(size_of_variable):
+                            data_field[node_i * sum_sizes + size_index] = data_value[k]
+                            size_index += 1
+                node_i += 1
+            
+            return data_field
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
-        def _SetDataField(self, model_part, kratos_variable, data_field, size_of_variable):
+        def _set_data_field(self, model_part, kratos_variables, data_field, size_of_variables):
             # check if size of data field is correct
-            if len(data_field) != model_part.NumberOfNodes() * size_of_variable:
-                raise("ERROR: received data field has wrong size!")
+            if len(data_field) != model_part.NumberOfNodes() * sum(size_of_variables):
+                raise Exception("received data field has wrong size!")
 
-            if size_of_variable > 1:
-                value = Vector(size_of_variable)
+            # Preallocate values
+            values = []
+            for size_of_variable in size_of_variables:
+                if size_of_variable > 1:
+                    values.append(Vector(size_of_variable))
+                else:
+                    values.append(0.0)
 
-            i = 0
+            sum_sizes = sum(size_of_variables)
+
+            node_i = 0
             # assign values to nodes of interface for current time step
             for node in model_part.Nodes:
-                if size_of_variable == 1:
-                    value = data_field[size_of_variable * i]
-                else:
-                    for j in range(size_of_variable):
-                        value[j] = data_field[size_of_variable * i + j]
+                size_index = 0
+                for var_index in range(len(kratos_variables)):
+                    size_of_variable = size_of_variables[var_index]
+                    variable = kratos_variables[var_index]
+                    value = values[var_index] # get the preallocated object
+
+                    if size_of_variable == 1:
+                        value = data_field[sum_sizes * node_i + size_index]
+                        size_index += 1
+                    else:
+                        for k in range(size_of_variable):
+                            value[k] = data_field[sum_sizes * node_i + size_index]
+                            size_index += 1
                 
-                node.SetSolutionStepValue(kratos_variable, 0, value)
+                    node.SetSolutionStepValue(variable, 0, value)
                 
-                i = i + 1
+                node_i =+ 1
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
-        def _SizeOfVariable(self, model_part, kratos_variable):
+        def _sizes_of_variables(self, model_part, kratos_variables):
             # this function is very general, even though EMPIRE works with Scalar and Vector quantities only!
-            try:
-                first_node = next(iter(model_part.Nodes))
-                value = first_node.GetSolutionStepValue(kratos_variable)
-                if (isinstance(value, float) or isinstance(value, int)): # Variable is a scalar
-                    size_of_variable = 1
-                else:
-                    size_of_variable = len(first_node.GetSolutionStepValue(kratos_variable))
-            except StopIteration:
-                raise TypeError("size_of_variable could not be determined")
+            sizes_of_variables = []
+            first_node = next(iter(model_part.Nodes))
+            for variable in kratos_variables:
+                try:
+                    value = first_node.GetSolutionStepValue(variable)
+                    if (isinstance(value, float) or isinstance(value, int)): # Variable is a scalar
+                        size_of_variable = 1
+                    else:
+                        size_of_variable = len(value)
+                    sizes_of_variables.append(size_of_variable)
+                except StopIteration:
+                    raise TypeError("Size of Variable \"" + variable + "\" could not be determined")
             
-            return size_of_variable
+            return sizes_of_variables
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
-        def _SaveModelPart(self, mesh_name, model_part):
+        def _save_model_part(self, mesh_name, model_part):
             # Save the model_part for data-field exchange later
             if mesh_name in self.model_parts:
                 raise ValueError("Mesh exsts already")
@@ -371,11 +412,25 @@ class EmpireWrapper:
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
-        def _ConvertToList(self, array_size, c_signal):
+        def _convert_to_list(self, array_size, c_signal):
             converted_list = [0.0] * array_size # preallocate
 
             for i in range(array_size):
                 converted_list[i] = c_signal[i]
             
             return converted_list
+        # -------------------------------------------------------------------------------------------------
+
+        # -------------------------------------------------------------------------------------------------
+        def _check_size_of_variables(self, size_of_variables):
+            sum_sizes = sum(size_of_variables)
+
+            possible_sizes = [ 1,  # Scalar
+                               3,  # Vector
+                               6 ] # doubleVector
+
+            if sum_sizes not in possible_sizes:
+                err_msg =  "Wrong size of variables: " + str(sum_sizes) + " !\n"
+                err_msg += "Curently only Scalar, Vector and doubleVector are supported by Empire!"
+                raise Exception(err_msg)
         # -------------------------------------------------------------------------------------------------

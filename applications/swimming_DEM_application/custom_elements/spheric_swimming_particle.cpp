@@ -676,7 +676,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, a
     }
 
     else {
-        const double basset_force_coeff = 6.0 * mRadius * mRadius * mFluidDensity * std::sqrt(KRATOS_M_PI * mKinematicViscosity);
+        const double basset_force_coeff = 6.0 * mRadius * mRadius * mFluidDensity * std::sqrt(Globals::Pi * mKinematicViscosity);
         const double delta_time = r_current_process_info[DELTA_TIME];
         int n_steps_per_quad_step = r_current_process_info[TIME_STEPS_PER_QUADRATURE_STEP];
         const double quadrature_delta_time = n_steps_per_quad_step * delta_time;
@@ -776,7 +776,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(NodeType& nod
     SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(slip_rot, mSlipVel, slip_rot_cross_slip_vel)
 
     if (mMagnusForceType == 1){ // Rubinow and Keller, 1961 (Re_p < 0.1; nondimensional_slip_rot_vel < 0.1)
-        lift_force = KRATOS_M_PI * SWIMMING_POW_3(mRadius) * mFluidDensity * slip_rot_cross_slip_vel;
+        lift_force = Globals::Pi * SWIMMING_POW_3(mRadius) * mFluidDensity * slip_rot_cross_slip_vel;
     }
 
     else if (mMagnusForceType == 2){ // Oesterle and Bui Dihn, 1998 (Re_p < 140)
@@ -792,13 +792,13 @@ void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(NodeType& nod
 
         else {
             const double lift_coeff = 0.45  + (rot_reynolds / reynolds - 0.45) * exp(- 0.05684 * pow(rot_reynolds, 0.4) * pow(reynolds, 0.3));
-            noalias(lift_force) = 0.5 *  mFluidDensity * KRATOS_M_PI * SWIMMING_POW_2(mRadius) * lift_coeff * mNormOfSlipVel * slip_rot_cross_slip_vel / norm_of_slip_rot;
+            noalias(lift_force) = 0.5 *  mFluidDensity * Globals::Pi * SWIMMING_POW_2(mRadius) * lift_coeff * mNormOfSlipVel * slip_rot_cross_slip_vel / norm_of_slip_rot;
         }
     }
 
     else if (mMagnusForceType == 3){ // Loth, 2008 (Re_p < 2000; nondimensional_slip_rot_vel < 20)
         // calculate as in Rubinow and Keller, 1963
-        lift_force = KRATOS_M_PI * SWIMMING_POW_3(mRadius) * mFluidDensity * slip_rot_cross_slip_vel;
+        lift_force = Globals::Pi * SWIMMING_POW_3(mRadius) * mFluidDensity * slip_rot_cross_slip_vel;
         // correct coefficient
         double reynolds;
         ComputeParticleReynoldsNumber(reynolds);
@@ -835,11 +835,11 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(NodeType& 
         }
 
         else { // Rubinow and Keller, 1961 (Re_rot < 32)
-            rotational_coeff = 64 * KRATOS_M_PI / rot_reynolds;
+            rotational_coeff = 64 * Globals::Pi / rot_reynolds;
         }
 
         if (mHydrodynamicTorqueType == 2){ // Loth, 2008 (Re_rot < 2000, Re_p < 20)
-            rotational_coeff *= 1.0 + 5 / (64 * KRATOS_M_PI) * std::pow(rot_reynolds, 0.6);
+            rotational_coeff *= 1.0 + 5 / (64 * Globals::Pi) * std::pow(rot_reynolds, 0.6);
         }
 
         noalias(hydro_torque) = 0.5 * mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * slip_rot;
@@ -872,7 +872,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBrownianMotionForce(NodeType&
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<> dis(-0.5, 0.5);
-        double coeff = std::sqrt(24 * kT * 2 / KRATOS_M_PI * ComputeStokesDragCoefficient() * delta_t_inv);
+        double coeff = std::sqrt(24 * kT * 2 / Globals::Pi * ComputeStokesDragCoefficient() * delta_t_inv);
         brownian_motion_force[0] = coeff * dis(gen);
         brownian_motion_force[1] = coeff * dis(gen);
         brownian_motion_force[2] = coeff * dis(gen);*/
@@ -1013,7 +1013,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
     }
 
     else if (mDragForceType == 9){ // Coin-shaped Stokesian
-        drag_coeff = 2.0 / KRATOS_M_PI * ComputeStokesDragCoefficient();
+        drag_coeff = 2.0 / Globals::Pi * ComputeStokesDragCoefficient();
     }
 
     else if (mDragForceType == 11){ // Maxey-Riley expression with Faxen correction
@@ -1035,7 +1035,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
 template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeStokesDragCoefficient()
 {
-    double drag_coeff = 6.0 * KRATOS_M_PI * mKinematicViscosity * mFluidDensity * mRadius;
+    double drag_coeff = 6.0 * Globals::Pi * mKinematicViscosity * mFluidDensity * mRadius;
 
     return drag_coeff;
 }
@@ -1059,7 +1059,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(
         non_newtonian_option = 0;
     }
 
-    const double area                          = KRATOS_M_PI * SWIMMING_POW_2(mRadius);
+    const double area                          = Globals::Pi * SWIMMING_POW_2(mRadius);
     const array_1d<double, 3> weight           = mRealMass * gravity;
     const array_1d<double, 3> buoyancy         = mFluidDensity / particle_density * weight; // hydrostatic case!! (only for Weatherford)
     
@@ -1214,8 +1214,8 @@ double SphericSwimmingParticle<TBaseElement>::ComputeGanserDragCoefficient(const
     KRATOS_TRY
 
     const int isometric_shape                = 1; // TEMPORARY!! yes (1) or no (0); shold be given as data
-    const double surface_area                = 4 * KRATOS_M_PI * SWIMMING_POW_2(mRadius); // TEMPORARY!! corresponding to a sphere; should be generalized b taking it as a parameter
-    const double surface_area_circular_diam  = sqrt(4.0 * surface_area / KRATOS_M_PI);
+    const double surface_area                = 4 * Globals::Pi * SWIMMING_POW_2(mRadius); // TEMPORARY!! corresponding to a sphere; should be generalized b taking it as a parameter
+    const double surface_area_circular_diam  = sqrt(4.0 * surface_area / Globals::Pi);
 
     double equiv_reynolds;
     double k_1;
@@ -1251,7 +1251,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeIshiiDragCoefficient(const 
         coeff = (24 + 2.4 * pow(reynolds, 0.75)) / reynolds;
     }
 
-    double drag_coeff = 0.5 * coeff * KRATOS_M_PI * SWIMMING_POW_2(mRadius);
+    double drag_coeff = 0.5 * coeff * Globals::Pi * SWIMMING_POW_2(mRadius);
 
     return drag_coeff;
 }
@@ -1261,7 +1261,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeIshiiDragCoefficient(const 
 template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeNewtonRegimeDragCoefficient()
 {
-    double drag_coeff  = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) * mFluidDensity * mNormOfSlipVel;
+    double drag_coeff  = 0.5 * Globals::Pi * SWIMMING_POW_2(mRadius) * mFluidDensity * mNormOfSlipVel;
 
     drag_coeff *= 0.44;
 
@@ -1273,7 +1273,7 @@ template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeIntermediateRegimeDragCoefficient()
 {
     double reynolds;
-    double drag_coeff  = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) * mFluidDensity * mNormOfSlipVel;
+    double drag_coeff  = 0.5 * Globals::Pi * SWIMMING_POW_2(mRadius) * mFluidDensity * mNormOfSlipVel;
 
     ComputeParticleReynoldsNumber(reynolds);
 
@@ -1287,7 +1287,7 @@ template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeHaiderDragCoefficient()
 {
     const double sphericity = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_SPHERICITY);
-    double drag_coeff       = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) * mFluidDensity * mNormOfSlipVel;
+    double drag_coeff       = 0.5 * Globals::Pi * SWIMMING_POW_2(mRadius) * mFluidDensity * mNormOfSlipVel;
 
     double A = exp(2.3288 - 6.4581 * sphericity + 2.4486 * sphericity * sphericity);
     double B = 0.0964 + 0.5565 * sphericity;
@@ -1326,7 +1326,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeBeetstraDragCoefficient()
 
         double A = 180 + 18 * std::pow(eps, 4) / eps_s * (1 + 1.5 * std::sqrt(eps_s));
         double B = 0.31 * (1.0 / eps + 3 * eps_s * eps + 8.4 * std::pow(particle_reynolds, - 0.343)) / (1.0 + std::pow(10.0, 3 * eps_s) * std::pow(particle_reynolds, 2 * eps - 2.5));
-        drag_coeff = KRATOS_M_PI_3 * mKinematicViscosity * mFluidDensity * mRadius * (A * eps_s / eps + B * particle_reynolds);
+        drag_coeff = Globals::Pi / 3.0 * mKinematicViscosity * mFluidDensity * mRadius * (A * eps_s / eps + B * particle_reynolds);
     }
 
     return drag_coeff;
@@ -1398,7 +1398,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeElSamniLiftCoefficient(cons
          const double shear_rate_p   = mNormOfSlipVel / mRadius * (4.5 / power_law_n - 3.5); // graphic model by Unhlherr et al. (fit by Wallis, G.B. and Dobson, J.E., 1973)
          double equivalent_viscosity = yield_stress / shear_rate_p + power_law_K * pow(shear_rate_p, power_law_n - 1);
          const double coeff          = std::max(0.09 * mNormOfSlipVel, 5.82 * sqrt(0.5 * mNormOfSlipVel * equivalent_viscosity /  mFluidDensity));
-         const double lift_coeff     = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) *  mFluidDensity * coeff * mNormOfSlipVel / vorticity_norm;
+         const double lift_coeff     = 0.5 * Globals::Pi * SWIMMING_POW_2(mRadius) *  mFluidDensity * coeff * mNormOfSlipVel / vorticity_norm;
          return(lift_coeff);
     }
 
@@ -1425,7 +1425,7 @@ template < class TBaseElement >
 
          C *= 4.1126 / sqrt(reynolds_shear);
 
-         double lift_coeff = mFluidDensity * KRATOS_M_PI * SWIMMING_POW_3(mRadius) * C;
+         double lift_coeff = mFluidDensity * Globals::Pi * SWIMMING_POW_3(mRadius) * C;
 
          return lift_coeff;
      }

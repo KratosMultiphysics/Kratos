@@ -124,13 +124,13 @@ namespace Kratos
 
                   array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
                   array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-                  array_1d<double, 3 > & ImposedDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_DISPLACEMENT);
+                  //array_1d<double, 3 > & ImposedDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_DISPLACEMENT);
                   //array_1d<double, 3 > & Velocity             = (i)->FastGetSolutionStepValue(VELOCITY);
                   //double time_step = r_model_part.GetProcessInfo()[DELTA_TIME];
 
                   double               & CurrentWaterPressure   = (i)->FastGetSolutionStepValue(WATER_PRESSURE);
                   const double         & PreviousWaterPressure  = (i)->FastGetSolutionStepValue(WATER_PRESSURE, 1);
-                  const double         & ImposedWaterPressure   = (i)->FastGetSolutionStepValue(IMPOSED_WATER_PRESSURE);
+                  //const double         & ImposedWaterPressure   = (i)->FastGetSolutionStepValue(IMPOSED_WATER_PRESSURE);
 
                   if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
                   {
@@ -138,7 +138,7 @@ namespace Kratos
                   }
                   else
                   {
-                     CurrentDisplacement[0]  = PreviousDisplacement[0] + ImposedDisplacement[0];//to impose fixed displacements;
+                     //CurrentDisplacement[0]  = PreviousDisplacement[0] + ImposedDisplacement[0];//to impose fixed displacements;
                      //CurrentDisplacement[0] +=  time_step * Velocity[0];
                   }
 
@@ -148,7 +148,7 @@ namespace Kratos
                   }
                   else
                   {
-                     CurrentDisplacement[1]  = PreviousDisplacement[1] + ImposedDisplacement[1];//to impose fixed displacements;
+                     //CurrentDisplacement[1]  = PreviousDisplacement[1] + ImposedDisplacement[1];//to impose fixed displacements;
                      //CurrentDisplacement[1] +=  time_step * Velocity[1];
                   }
 
@@ -161,7 +161,7 @@ namespace Kratos
                      }
                      else
                      {
-                        CurrentDisplacement[2]= PreviousDisplacement[2] + ImposedDisplacement[2];//to impose fixed displacements;
+                        //CurrentDisplacement[2]= PreviousDisplacement[2] + ImposedDisplacement[2];//to impose fixed displacements;
                         //CurrentDisplacement[2] +=  time_step * Velocity[2];
                      }
                   }
@@ -174,7 +174,7 @@ namespace Kratos
                      }
                      else
                      {
-                        CurrentWaterPressure =  ImposedWaterPressure ; // TO BE FIX, have to declare...
+                        //CurrentWaterPressure =  ImposedWaterPressure ; // TO BE FIX, have to declare...
                         CurrentWaterPressure =  PreviousWaterPressure ;
                      }
                   }

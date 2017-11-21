@@ -31,9 +31,12 @@ def CreateSolver(main_model_part, custom_settings):
         elif (solver_type == "eigen_value"):
             solver_module_name = "structural_mechanics_eigensolver"
 
+        elif (solver_type == "harmonic_analysis"):
+            solver_module_name = "structural_mechanics_harmonic_analysis_solver"
+
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"Static\", \"Dynamic\", \"eigen_value\""
+            err_msg += "Available options are: \"Static\", \"Dynamic\", \"eigen_value\", \"harmonic_analysis\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism

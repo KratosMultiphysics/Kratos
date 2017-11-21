@@ -65,7 +65,7 @@ double AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes
 {
     const double Radius = CalculateRadius(rVariables);
     const double Thickness = (this->GetValue(ELEMENT_POINTER))->GetProperties()[THICKNESS];
-    const double AxiSymCoefficient = 2.0 * M_PI * Radius/Thickness;
+    const double AxiSymCoefficient = 2.0 * Globals::Pi * Radius/Thickness;
     return MortarBaseType::GetIntegrationWeight(rVariables, ThisIntegrationMethod, PointNumber) * AxiSymCoefficient;
 }
 

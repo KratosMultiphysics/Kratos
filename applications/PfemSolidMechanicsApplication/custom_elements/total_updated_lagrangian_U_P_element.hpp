@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_P_element.hpp"
+#include "custom_elements/solid_elements/updated_lagrangian_U_P_element.hpp"
 
 
 namespace Kratos
@@ -160,34 +160,34 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                            GeneralVariables& rVariables,
+                            ElementVariables& rVariables,
                             double& rIntegrationWeight);
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                            GeneralVariables& rVariables,
+                            ElementVariables& rVariables,
                             Vector& rVolumeForce,
                             double& rIntegrationWeight);
 
     /**
      * Initialize Element General Variables
      */
-    void InitializeGeneralVariables(GeneralVariables & rVariables, 
+    void InitializeElementVariables(ElementVariables & rVariables, 
 				    const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
      * Transform Element General Variables
      */
-    void TransformGeneralVariables(GeneralVariables & rVariables,
+    void TransformElementVariables(ElementVariables & rVariables,
 				   const double& rPointNumber);
 
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(GeneralVariables& rVariables,
+    void CalculateKinematics(ElementVariables& rVariables,
                              const double& rPointNumber);
 
 
@@ -202,19 +202,19 @@ protected:
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( GeneralVariables& rVariables, 
+    void GetHistoricalVariables( ElementVariables& rVariables, 
 				 const double& rPointNumber );
 
 
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
+    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables);
 
     /**
      * Calculation of the DN_DX in the updated configuration
      */
-    void CalculatePushForwardDN_DX(GeneralVariables& rVariables);
+    void CalculatePushForwardDN_DX(ElementVariables& rVariables);
 
     ///@}
     ///@name Protected  Access

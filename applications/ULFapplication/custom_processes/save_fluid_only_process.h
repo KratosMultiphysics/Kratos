@@ -133,9 +133,9 @@ public:
             id++;
         }
 
-        fluid_only_model_part.Nodes().Sort();
-        fluid_only_model_part.Elements().Sort();
-        fluid_only_model_part.Conditions().Sort();
+        //fluid_only_model_part.Nodes().Sort();
+        //fluid_only_model_part.Elements().Sort();
+        //fluid_only_model_part.Conditions().Sort();
 
         //WE HAVE TO COPY THE ProcessInfo pointer to the new part, otherwise it is empty
         fluid_only_model_part.SetProcessInfo(fluid_model_part.pGetProcessInfo());

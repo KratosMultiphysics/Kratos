@@ -101,6 +101,7 @@ class DamThermoMechanicSolver(object):
                 },
                 "problem_domain_sub_model_part_list": [""],
                 "body_domain_sub_model_part_list": [],
+                "mechanical_loads_sub_model_part_list": [],
                 "loads_sub_model_part_list": [],
                 "loads_variable_list": []
             }
@@ -150,6 +151,7 @@ class DamThermoMechanicSolver(object):
         thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
         thermal_settings.SetSpecificHeatVariable(KratosMultiphysics.SPECIFIC_HEAT)
         thermal_settings.SetDensityVariable(KratosMultiphysics.DENSITY)
+        thermal_settings.SetVolumeSourceVariable(KratosMultiphysics.HEAT_FLUX)
         thermal_settings.SetSurfaceSourceVariable(KratosMultiphysics.FACE_HEAT_FLUX)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, thermal_settings)
         
@@ -158,7 +160,12 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SPECIFIC_HEAT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        # This Variable is used for computing heat source according Azenha Formulation
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.ALPHA_HEAT_SOURCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.TIME_ACTIVATION)
+
 
         print("Variables correctly added")
 
@@ -210,7 +217,7 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.ProcessInfo.SetValue(KratosConvDiff.THETA, self.settings["thermal_solver_settings"]["theta_scheme"].GetDouble())
 
         # Get the computing model parts
-        self.thermal_computing_model_part = self.main_model_part.GetSubModelPart(self.thermal_model_part_name)
+        self.thermal_computing_model_part = self.GetComputingThermalModelPart()
         self.mechanical_computing_model_part = self.GetComputingModelPart()
         
         # Builder and solver creation
@@ -251,6 +258,9 @@ class DamThermoMechanicSolver(object):
     
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.mechanical_model_part_name)
+
+    def GetComputingThermalModelPart(self):
+        return self.main_model_part.GetSubModelPart(self.thermal_model_part_name)
     
     def GetOutputVariables(self):
         pass
@@ -327,6 +337,7 @@ class DamThermoMechanicSolver(object):
         aux_params.AddEmptyValue("mechanical_model_part_name").SetString(self.mechanical_model_part_name)
         aux_params.AddValue("mechanical_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["problem_domain_sub_model_part_list"])
         aux_params.AddValue("body_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"])
+        aux_params.AddValue("mechanical_loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["mechanical_loads_sub_model_part_list"])
         aux_params.AddValue("loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"])
 
         # CheckAndPrepareModelProcess creates the solid_computational_model_part

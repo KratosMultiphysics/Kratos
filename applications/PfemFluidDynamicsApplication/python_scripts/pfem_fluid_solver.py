@@ -28,8 +28,7 @@ class PfemFluidSolver:
                 "input_filename": "unknown_name",
                 "input_file_label": 0
             },
-            "rotation_dofs": false,
-            "pressure_dofs": false,
+            "dofs"                : [],
             "stabilization_factor": 1.0,
             "reform_dofs_at_each_step": false,
             "line_search": false,
@@ -47,9 +46,9 @@ class PfemFluidSolver:
             "pressure_tolerance": 1e-5,
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "AMGCL",
-                "max_iteration"                  : 1000,
-                "tolerance"                      : 1e-12,
-                "provide_coordinates"            : true,
+                "max_iteration"                  : 5000,
+                "tolerance"                      : 1e-9,
+                "provide_coordinates"            : false,
                 "scaling"                        : false,
                 "smoother_type"                  : "damped_jacobi",
                 "krylov_type"                    : "cg",
@@ -57,10 +56,10 @@ class PfemFluidSolver:
                 "verbosity"                      : 0
             },
             "velocity_linear_solver_settings": {
-                "solver_type"                    : "bicgstab",
-                "max_iteration"                  : 10000,
-                "tolerance"                      : 1e-12,
-                "preconditioner_type"            : "ILU0Preconditioner",
+                "solver_type"                    : "BICGSTABSolver",
+                "max_iteration"                  : 5000,
+                "tolerance"                      : 1e-9,
+                "preconditioner_type"            : "None",
                 "scaling"                        : false
             },
             "bodies_list": [
@@ -109,7 +108,7 @@ class PfemFluidSolver:
                                                               self.settings["pressure_tolerance"].GetDouble(),
                                                               self.settings["maximum_pressure_iterations"].GetInt(),
                                                               self.settings["time_order"].GetInt(),
-                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
 
         # Set echo_level
         self.fluid_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
