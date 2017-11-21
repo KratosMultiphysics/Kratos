@@ -15,7 +15,7 @@
 // Project includes
 #include "custom_conditions/point_torque_3D_condition.hpp"
 
-#include "structural_mechanics_application.h"
+//#include "structural_mechanics_application.h"
 #include "structural_mechanics_application_variables.h"
 
 

@@ -30,6 +30,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
+#include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
 #include "custom_strategies/custom_strategies/explicit_strategy.hpp" 
 
@@ -80,6 +81,7 @@ void  AddCustomStrategiesToPython()
     // Custom strategy types
     typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
+    typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
     typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
     typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
 
@@ -125,6 +127,7 @@ void  AddCustomStrategiesToPython()
         .def("GetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::GetInitializePerformedFlag)
         ;
 
+
     class_< ExplicitStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
         (
         "ExplicitStrategy",
@@ -134,6 +137,17 @@ void  AddCustomStrategiesToPython()
         .def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
         .def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag)
         ;
+
+    // harmonic Analysis Strategy
+    class_< HarmonicAnalysisStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
+            (
+                "HarmonicAnalysisStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
+            // .def(init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer >())
+            .def("SetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::SetUseMaterialDampingFlag)
+            .def("GetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::GetUseMaterialDampingFlag)
+            ;
+
+
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
     //********************************************************************

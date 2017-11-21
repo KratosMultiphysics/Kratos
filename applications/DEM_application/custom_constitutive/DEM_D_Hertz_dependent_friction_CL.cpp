@@ -215,11 +215,11 @@ namespace Kratos {
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
         
-//         if (previous_indentation > indentation) {
-//             const double minoring_factor = sqrt (indentation / previous_indentation);
-//             LocalElasticContactForce[0] = OldLocalElasticContactForce[0] * minoring_factor - mKt * LocalDeltDisp[0];
-//             LocalElasticContactForce[1] = OldLocalElasticContactForce[1] * minoring_factor - mKt * LocalDeltDisp[1];
-//         }
+        if (previous_indentation > indentation) {
+            const double minoring_factor = sqrt (indentation / previous_indentation);
+            LocalElasticContactForce[0] = OldLocalElasticContactForce[0] * minoring_factor - mKt * LocalDeltDisp[0];
+            LocalElasticContactForce[1] = OldLocalElasticContactForce[1] * minoring_factor - mKt * LocalDeltDisp[1];
+        }
         
         AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
@@ -232,7 +232,7 @@ namespace Kratos {
             double critical_force = 0.16666666666666667 * pow((Globals::Pi * element1->GetParticleMaxStress()), 3) * pow((equiv_radius / equiv_young), 2);
 //           double critical_force = 0.6666666666666667 * Globals::Pi * equiv_radius * indentation * element1->GetParticleMaxStress();
             
-            if (normal_contact_force < critical_force) {
+            if (normal_contact_force > critical_force) {
                 double critical_force_inv = 1.0  / critical_force;
                 equiv_tg_of_fri_ang *= pow((normal_contact_force * critical_force_inv), element1->GetParticleGamma());
             }
