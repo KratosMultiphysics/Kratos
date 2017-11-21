@@ -279,6 +279,7 @@ void KratosStructuralMechanicsApplication::Register()
     // Rayleigh variables
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_ALPHA )
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_BETA )
+    KRATOS_REGISTER_VARIABLE( SYSTEM_DAMPING_RATIO )
 
     // Nodal load variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD )

@@ -75,7 +75,7 @@ namespace Kratos {
         double* pGetParticleKTangential();
         void    SetParticleKTangentialFromProperties(double* particle_k_tangential);
         
-        //Conical damage    
+        // Dependent Friction    
         double  GetParticleContactRadius();
         double* pGetParticleContactRadius();
         void    SetParticleContactRadiusFromProperties(double* particle_contact_radius);
@@ -83,10 +83,6 @@ namespace Kratos {
         double  GetParticleMaxStress();
         double* pGetParticleMaxStress();
         void    SetParticleMaxStressFromProperties(double* particle_max_stress);
-    
-        double  GetParticleAlpha();
-        double* pGetParticleAlpha();
-        void    SetParticleAlphaFromProperties(double* particle_alpha);
     
         double  GetParticleGamma();
         double* pGetParticleGamma();
@@ -120,10 +116,9 @@ namespace Kratos {
         double* mParticleCohesion;
         double* mParticleKNormal;
         double* mParticleKTangential;
-        //Conical damage    
+        //Dependent Friction
         double* mParticleContactRadius;
         double* mParticleMaxStress;
-        double* mParticleAlpha;
         double* mParticleGamma;        
         double* mContactSigmaMin; 
         double* mContactTauZero;

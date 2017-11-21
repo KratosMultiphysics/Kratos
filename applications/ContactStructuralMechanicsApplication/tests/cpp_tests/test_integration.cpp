@@ -21,12 +21,6 @@
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
 
-/* TRIANGLES */
-#include "geometries/triangle_2d_3.h"
-#include "geometries/triangle_3d_3.h"
-/* QUADRILATERALS */
-#include "geometries/quadrilateral_2d_4.h"
-
 /* GAUSS-LEGENDRE */
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
@@ -40,14 +34,14 @@ namespace Kratos
     namespace Testing 
     {
 
-        typedef Point                                             PointType;
-        typedef Node<3>                                               NodeType;
-        typedef Geometry<NodeType>                            GeometryNodeType;
-        typedef Geometry<PointType>                          GeometryPointType;
+        typedef Point                                                     PointType;
+        typedef Node<3>                                                    NodeType;
+        typedef Geometry<NodeType>                                 GeometryNodeType;
+        typedef Geometry<PointType>                               GeometryPointType;
         
         ///Type definition for integration methods
-        typedef GeometryData::IntegrationMethod              IntegrationMethod;
-        typedef IntegrationPoint<2>                       IntegrationPointType;
+        typedef GeometryData::IntegrationMethod                   IntegrationMethod;
+        typedef IntegrationPoint<2>                            IntegrationPointType;
         typedef GeometryNodeType::IntegrationPointsArrayType integration_pointsType;
 
         /** 
@@ -72,7 +66,7 @@ namespace Kratos
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
             
-            Triangle2D3 <Node<3>> triangle0( condition_nodes_0 );
+            Triangle3D3 <Node<3>> triangle0( condition_nodes_0 );
             
             std::vector<NodeType::Pointer> condition_nodes_1 (3);
             
@@ -80,7 +74,7 @@ namespace Kratos
             condition_nodes_1[1] = p_node_2;
             condition_nodes_1[2] = p_node_4;
             
-            Triangle2D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
             
             std::vector<NodeType::Pointer> condition_nodes_2 (3);
             
@@ -88,7 +82,7 @@ namespace Kratos
             condition_nodes_2[1] = p_node_3;
             condition_nodes_2[2] = p_node_4;
             
-            Triangle2D3 <Node<3>> triangle_2( condition_nodes_2 );
+            Triangle3D3 <Node<3>> triangle_2( condition_nodes_2 );
             
             std::vector<NodeType::Pointer> condition_nodes_3 (3);
             
@@ -96,7 +90,7 @@ namespace Kratos
             condition_nodes_3[1] = p_node_1;
             condition_nodes_3[2] = p_node_4;
             
-            Triangle2D3 <Node<3>> triangle_3( condition_nodes_3 );
+            Triangle3D3 <Node<3>> triangle_3( condition_nodes_3 );
             
             // We calculate the integral of the mass matrix (assuming constant density)
             GeometryNodeType::IntegrationPointsArrayType integration_points = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
@@ -198,7 +192,7 @@ namespace Kratos
             condition_nodes_0[2] = p_node_3;
             condition_nodes_0[3] = p_node_4;
             
-            Quadrilateral2D4 <Node<3>> quadrilateral_0( condition_nodes_0 );
+            Quadrilateral3D4 <Node<3>> quadrilateral_0( condition_nodes_0 );
             
             std::vector<NodeType::Pointer> condition_nodes_1 (3);
             
@@ -206,7 +200,7 @@ namespace Kratos
             condition_nodes_1[1] = p_node_2;
             condition_nodes_1[2] = p_node_3;
             
-            Triangle2D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
             
             std::vector<NodeType::Pointer> condition_nodes_2 (3);
             
@@ -214,7 +208,7 @@ namespace Kratos
             condition_nodes_2[1] = p_node_3;
             condition_nodes_2[2] = p_node_4;
             
-            Triangle2D3 <Node<3>> triangle_2( condition_nodes_2 );
+            Triangle3D3 <Node<3>> triangle_2( condition_nodes_2 );
             
             // We calculate the integral of the mass matrix (assuming constant density)
             GeometryNodeType::IntegrationPointsArrayType integration_pointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
@@ -315,7 +309,7 @@ namespace Kratos
             condition_nodes_0[2] = p_node_3;
             condition_nodes_0[3] = p_node_4;
             
-            Quadrilateral2D4 <Node<3>> quadrilateral_0( condition_nodes_0 );
+            Quadrilateral3D4 <Node<3>> quadrilateral_0( condition_nodes_0 );
             
             std::vector<NodeType::Pointer> condition_nodes_1 (3);
             
@@ -323,7 +317,7 @@ namespace Kratos
             condition_nodes_1[1] = p_node_2;
             condition_nodes_1[2] = p_node_0;
             
-            Triangle2D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
             
             std::vector<NodeType::Pointer> condition_nodes_2 (3);
             
@@ -331,7 +325,7 @@ namespace Kratos
             condition_nodes_2[1] = p_node_3;
             condition_nodes_2[2] = p_node_0;
             
-            Triangle2D3 <Node<3>> triangle_2( condition_nodes_2 );
+            Triangle3D3 <Node<3>> triangle_2( condition_nodes_2 );
             
             std::vector<NodeType::Pointer> condition_nodes_3 (3);
             
@@ -339,7 +333,7 @@ namespace Kratos
             condition_nodes_3[1] = p_node_4;
             condition_nodes_3[2] = p_node_0;
             
-            Triangle2D3 <Node<3>> triangle_3( condition_nodes_3 );
+            Triangle3D3 <Node<3>> triangle_3( condition_nodes_3 );
             
             std::vector<NodeType::Pointer> condition_nodes_4 (3);
             
@@ -347,7 +341,7 @@ namespace Kratos
             condition_nodes_4[1] = p_node_1;
             condition_nodes_4[2] = p_node_0;
             
-            Triangle2D3 <Node<3>> triangle_4( condition_nodes_4 );
+            Triangle3D3 <Node<3>> triangle_4( condition_nodes_4 );
             
             // We calculate the integral of the mass matrix (assuming constant density)
             GeometryNodeType::IntegrationPointsArrayType integration_pointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();

@@ -73,7 +73,8 @@ void AddCustomProcessesToPython()
     ;
 
     class_< DistanceModificationProcess, bases<Process>, boost::noncopyable >
-    ("DistanceModificationProcess",init < ModelPart&, const bool, const bool >())
+    ("DistanceModificationProcess",init < ModelPart&, const bool, const bool, const bool >())
+    .def(init< ModelPart&, Parameters& >())
     ;
 
     class_< EmbeddedNodesInitializationProcess, bases<Process>, boost::noncopyable >
