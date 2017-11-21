@@ -1189,20 +1189,20 @@ double SphericSwimmingParticle<TBaseElement>::CalculateShahsTerm(double power_la
                                                    double sphericity,
                                                    int drag_modifier_type)
 {
-    if (fabs(power_law_N) < power_law_tol || fabs(power_law_K) < power_law_tol){
+    if (std::abs(power_law_N) < power_law_tol || std::abs(power_law_K) < power_law_tol){
         std::cout << "WARNING: Shah's method is being used with Power Law data being zero!!" << std::endl << std::flush;
     }
 
     double shah_A_i = 1 / (6.9148 * power_law_N * power_law_N - 24.838 * power_law_N + 22.642);
     double shah_B_i = 1 / (-0.5067 * power_law_N * power_law_N + 1.3234 * power_law_N - 0.1744);
 
-    double dimensionless_shah = sqrt(pow(13.08, 2 - power_law_N) * pow(2 * mRadius, power_law_N + 2) * pow( mFluidDensity, power_law_N) * pow(particle_density -  mFluidDensity, 2 - power_law_N) / (pow(2, 2 * (power_law_N - 1)) * power_law_K * power_law_K));
-    double reynolds = pow(dimensionless_shah * shah_A_i, shah_B_i);
+    double dimensionless_shah = std::sqrt(std::pow(13.08, 2 - power_law_N) * std::pow(2 * mRadius, power_law_N + 2) * std::pow( mFluidDensity, power_law_N) * std::pow(particle_density -  mFluidDensity, 2 - power_law_N) / (std::pow(2, 2 * (power_law_N - 1)) * power_law_K * power_law_K));
+    double reynolds = std::pow(dimensionless_shah * shah_A_i, shah_B_i);
     double fi_i = CalculateDragCoeffFromSphericity(reynolds, 1.0, drag_modifier_type) / CalculateDragCoeffFromSphericity(reynolds, sphericity, drag_modifier_type);
-    dimensionless_shah = sqrt(pow(fi_i, 2 - power_law_N)) * dimensionless_shah;
-    reynolds = pow(dimensionless_shah * shah_A_i, shah_B_i);
+    dimensionless_shah = std::sqrt(std::pow(fi_i, 2 - power_law_N)) * dimensionless_shah;
+    reynolds = std::pow(dimensionless_shah * shah_A_i, shah_B_i);
 
-    double terminal_vel =  pow(pow(2, power_law_N - 1) * power_law_K * reynolds / (pow(2 * mRadius, power_law_N) *  mFluidDensity), 1 / (2 - power_law_N)) ;
+    double terminal_vel =  std::pow(std::pow(2, power_law_N - 1) * power_law_K * reynolds / (std::pow(2 * mRadius, power_law_N) *  mFluidDensity), 1 / (2 - power_law_N)) ;
 
     return terminal_vel;
 }

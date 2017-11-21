@@ -50,7 +50,7 @@ class Algorithm(BaseAlgorithm):
         else:
             return code
 
-    def TheSimulationMustGoON(self):
+    def TheSimulationMustGoOn(self):
         it_must_go_on = self.time <= self.final_time
 
         if self.pp.CFD_DEM["fluid_already_calculated"].GetBool():
