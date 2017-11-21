@@ -270,7 +270,16 @@ protected:
     virtual double EffectiveViscosity(
         TElementData& rData,
         double ElementSize);
+
     
+    virtual void CalculateStaticTau(
+        const TElementData& rData,
+        double Density,
+        double DynamicViscosity,
+        const array_1d<double,3> &Velocity,
+        double ElemSize,
+        double &TauOne,
+        double &TauTwo);    
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
 

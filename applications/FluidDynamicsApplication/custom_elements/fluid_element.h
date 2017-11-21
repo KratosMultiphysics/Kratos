@@ -329,15 +329,6 @@ protected:
     /// Characteristic element size h to be used in stabilization parameters.
     virtual double ElementSize();
 
-    virtual void CalculateStaticTau(
-        const TElementData& rData,
-        double Density,
-        double DynamicViscosity,
-        const array_1d<double,3> &Velocity,
-        double ElemSize,
-        double &TauOne,
-        double &TauTwo);
-
     /**
      * @brief Write the convective operator evaluated at this point (for each nodal funciton) to an array
      * Evaluate the convective operator for each node's shape function at an arbitrary point

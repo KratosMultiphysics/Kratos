@@ -649,31 +649,6 @@ double FluidElement<TElementData>::ElementSize()
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::CalculateStaticTau(
-    const TElementData& rData,
-    double Density,
-    double DynamicViscosity,
-    const array_1d<double,3> &Velocity,
-    double ElemSize,
-    double &TauOne,
-    double &TauTwo)
-{
-    constexpr double c1 = 8.0;
-    constexpr double c2 = 2.0;
-
-    double VelNorm = Velocity[0]*Velocity[0];
-    for (unsigned int d = 1; d < Dim; d++)
-        VelNorm += Velocity[d]*Velocity[d];
-    VelNorm = std::sqrt(VelNorm);
-
-    double InvTau = c1 * DynamicViscosity / (ElemSize*ElemSize) + Density * ( rData.DynamicTau/rData.DeltaTime + c2 * VelNorm / ElemSize );
-    TauOne = 1.0/InvTau;
-    TauTwo = DynamicViscosity + c2 * Density * VelNorm * ElemSize / c1;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template< class TElementData >
 void FluidElement<TElementData>::ConvectionOperator(Vector &rResult,
                                    const array_1d<double,3> &rConvVel,
                                    const ShapeFunctionDerivativesType &DN_DX)

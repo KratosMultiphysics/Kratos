@@ -615,6 +615,32 @@ double DSS<TElementData>::EffectiveViscosity(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
+void DSS<TElementData>::CalculateStaticTau(
+    const TElementData& rData,
+    double Density,
+    double DynamicViscosity,
+    const array_1d<double,3> &Velocity,
+    double ElemSize,
+    double &TauOne,
+    double &TauTwo)
+{
+    constexpr double c1 = 8.0;
+    constexpr double c2 = 2.0;
+
+    double velocity_norm = Velocity[0]*Velocity[0];
+    for (unsigned int d = 1; d < Dim; d++)
+        velocity_norm += Velocity[d]*Velocity[d];
+    velocity_norm = std::sqrt(velocity_norm);
+
+    double InvTau = c1 * DynamicViscosity / (ElemSize*ElemSize) + Density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / ElemSize );
+    TauOne = 1.0/InvTau;
+    TauTwo = DynamicViscosity + c2 * Density * velocity_norm * ElemSize / c1;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template< class TElementData >
 void DSS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProcessInfo)
 {
     // Get Shape function data
