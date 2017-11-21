@@ -180,7 +180,14 @@ class AdjointStructuralSolver:
             elif (domain_size == 3):
                 self.response_function = ShapeOptimizationApplication.ReworkStrainEnergyResponseFunction(self.main_model_part, self.settings["response_function_settings"])
             else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))       
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+        elif self.settings["response_function_settings"]["response_type"].GetString() == "target_displacement":
+            if (domain_size == 2):
+                raise Exception("Currently only availible for 3D. Your choice is 2D")
+            elif (domain_size == 3):
+                self.response_function = ShapeOptimizationApplication.TargetDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))           
         else:
             raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
 

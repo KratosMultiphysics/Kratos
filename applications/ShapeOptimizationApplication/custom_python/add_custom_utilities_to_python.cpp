@@ -41,6 +41,7 @@
 #include "custom_utilities/response_functions/nodal_displacement_response_function.h"
 #include "custom_utilities/response_functions/rework_strain_energy_response_function.h" //TODO: fusseder rename it after finishing
 #include "custom_utilities/response_functions/rework_eigenfrequency_response_function.h" //TODO: fusseder rename it after finishing
+#include "custom_utilities/response_functions/target_displacement_response_function.h"
 #include "custom_utilities/finite_differences_utilities.h" //MFusseder
 // ==============================================================================
 
@@ -206,6 +207,8 @@ void  AddCustomUtilitiesToPython()
     class_<ReworkEigenfrequencyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
       ("ReworkEigenfrequencyResponseFunction", init<ModelPart&, Parameters&>()); 
 
+    class_<TargetDisplacementResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
+      ("TargetDisplacementResponseFunction", init<ModelPart&, Parameters&>());
     // ================================================================
     // For Finite Differences TODO: is this needed?
     // ================================================================
