@@ -61,7 +61,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(LoggerStream, KratosCoreFastSuite)
 		{
-			std::stringstream buffer;
+			static std::stringstream buffer;
 			LoggerOutput output(buffer);
 			Logger::AddOutput(output);
 
@@ -74,7 +74,7 @@ namespace Kratos {
 
 			// The message has DETAIL severity and should not be written
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test message with number 12e00");
-		}
+        }
 
 		KRATOS_TEST_CASE_IN_SUITE(CheckPoint, KratosCoreFastSuite)
 		{
@@ -92,7 +92,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfo, KratosCoreFastSuite)
         {
-            std::stringstream buffer;
+            static std::stringstream buffer;
 			LoggerOutput output(buffer);
 			Logger::AddOutput(output);
 
@@ -103,7 +103,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoIf, KratosCoreFastSuite)
         {
-            std::stringstream buffer;
+            static std::stringstream buffer;
 			LoggerOutput output(buffer);
 			Logger::AddOutput(output);
 
@@ -115,7 +115,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoFirst, KratosCoreFastSuite)
         {
-            std::stringstream buffer;
+            static std::stringstream buffer;
 			LoggerOutput output(buffer);
 			Logger::AddOutput(output);
 
@@ -123,14 +123,12 @@ namespace Kratos {
                 KRATOS_INFO_FIRST("TestInfo") << "Test info message - " << i;
             }
 
-            std::cout << buffer.str().c_str() << std::endl;
-
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test info message - 0");
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoOnce, KratosCoreFastSuite)
         {
-            std::stringstream buffer;
+            static std::stringstream buffer;
 			LoggerOutput output(buffer);
 			Logger::AddOutput(output);
 
