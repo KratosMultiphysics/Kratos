@@ -96,9 +96,9 @@ public:
 
     /**
      * Generate a new ModelPart containing only the interface. It will contain the conditions addressed in the call 
-     * @param rOriginPart: The original model part
-     * @param condition_name: Name of the condition to be created
-     * @return InterfacePart: The interface model part
+     * @param rOriginPart The original model part
+     * @param rInterfacePart The interface model part
+     * @param ThisParameters The configuration parameters
      */
     
     template< const unsigned int TDim>
@@ -156,7 +156,11 @@ private:
 
     /**
      * Creates a new condition with a giving name
-     * @return InterfacePart: The interface model part
+     * @param rpElem The pointer to the element
+     * @param rGeometry The  geometry considered
+     * @param CondId The Id of the condition
+     * @param ConditionName The name of the condition
+     * @param IsMortar If the condition is mortar
      */
 
     void CreateNewCondition(
@@ -169,13 +173,13 @@ private:
     
     /**
      * It prints the nodes and conditions in the interface, gives an error otherwise there are not
-     * @param NodesCounter: Number of nodes in the interface
-     * @return CondCounter: Number of conditions in the interface
+     * @param NodesCounter Number of nodes in the interface
+     * @param CondCounter Number of conditions in the interface
      */
 
     void PrintNodesAndConditions(
-            const int& NodesCounter,
-            const int& CondCounter
+            const int NodesCounter,
+            const int CondCounter
             );
     
     /**
@@ -187,14 +191,15 @@ private:
     
     /**
      * This method creates the conditions for the edges
-     * @param rInterfacePart: The model part of the interface
-     * @param rpElem: Pointer to the element
-     * @param EdgeGeometry: Geometry considered
-     * @param ConditionName: The name of the condition
-     * @param FinalString: The last part added to the name condition
-     * @param SimplestGeometry: If consider or not the simplest geometry
-     * @param CondCounter: The counter of conditions
-     * @param CondId: The condition id
+     * @param rInterfacePart The model part of the interface
+     * @param rpElem Pointer to the element
+     * @param EdgeGeometry Geometry considered
+     * @param ConditionName The name of the condition
+     * @param FinalString The last part added to the name condition
+     * @param SimplestGeometry If consider or not the simplest geometry
+     * @param CondCounter The counter of conditions
+     * @param CondId The condition id
+     * @param IsMortar If the condition is mortar
      */
 
     inline void GenerateEdgeCondition(
@@ -203,7 +208,7 @@ private:
         GeometryType& EdgeGeometry,
         const std::string& ConditionName,
         const std::string& FinalString,
-        const bool& SimplestGeometry,
+        const bool SimplestGeometry,
         unsigned int& CondCounter,
         unsigned int& CondId,
         const bool IsMortar
@@ -211,14 +216,15 @@ private:
     
     /**
      * This method creates the conditions for the faces
-     * @param rInterfacePart: The model part of the interface
-     * @param rpElem: Pointer to the element
-     * @param FaceGeometry: Geometry considered
-     * @param ConditionName: The name of the condition
-     * @param FinalString: The last part added to the name condition
-     * @param SimplestGeometry: If consider or not the simplest geometry
-     * @param CondCounter: The counter of conditions
-     * @param CondId: The condition id
+     * @param rInterfacePart The model part of the interface
+     * @param rpElem Pointer to the element
+     * @param FaceGeometry Geometry considered
+     * @param ConditionName The name of the condition
+     * @param FinalString The last part added to the name condition
+     * @param SimplestGeometry If consider or not the simplest geometry
+     * @param CondCounter The counter of conditions
+     * @param CondId The condition id
+     * @param IsMortar If the condition is mortar
      */
 
     inline void GenerateFaceCondition(
@@ -227,7 +233,7 @@ private:
         GeometryType& FaceGeometry,
         const std::string& ConditionName,
         const std::string& FinalString,
-        const bool& SimplestGeometry,
+        const bool SimplestGeometry,
         unsigned int& CondCounter,
         unsigned int& CondId,
         const bool IsMortar
