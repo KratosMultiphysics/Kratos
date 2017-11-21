@@ -54,10 +54,6 @@ if (output_post == True):
 ## Creation of the Kratos model (build sub_model_parts or submeshes)
 StructureModel = Model()
 StructureModel.AddModelPart(main_model_part)
-# Get the list of the sub_model_parts in where the processes are to be applied
-for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
-    part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-    StructureModel.AddModelPart(main_model_part.GetSubModelPart(part_name))
 
 ## Print model_part and properties
 if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):
