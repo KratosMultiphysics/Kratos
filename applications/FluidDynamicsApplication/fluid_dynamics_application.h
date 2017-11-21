@@ -38,7 +38,7 @@
 #include "fluid_dynamics_application_variables.h"
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms.h"
-#include "custom_elements/dss.h"
+#include "custom_elements/qs_vms.h"
 #include "custom_elements/symbolic_navier_stokes.h"
 //#include "custom_elements/dynamic_vms.h"
 #include "custom_elements/two_fluid_vms.h"
@@ -231,8 +231,8 @@ private:
     /// 3D instance of the VMS element
     const VMS<3> mVMS3D;
     /// Expermiental fluid element
-    const DSS< QSVMSData<2,3> > mDSS2D;
-    const DSS< QSVMSData<3,4> > mDSS3D;
+    const QSVMS< QSVMSData<2,3> > mQSVMS2D3N;
+    const QSVMS< QSVMSData<3,4> > mQSVMS3D4N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > mSymbolicNavierStokes2D3N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > mSymbolicNavierStokes3D4N;
     /// 3D instance of the two-fluid VMS element

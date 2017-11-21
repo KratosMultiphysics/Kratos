@@ -10,8 +10,7 @@
 //  Main authors:    Jordi Cotela
 //
 
-#include "dss.h"
-#include "fluid_element.h"
+#include "qs_vms.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
@@ -23,61 +22,61 @@ namespace Kratos
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class DSS< QSVMSData<2,3> >;
-template class DSS< QSVMSData<3,4> >;
+template class QSVMS< QSVMSData<2,3> >;
+template class QSVMS< QSVMSData<3,4> >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
 template< class TElementData >
-DSS<TElementData>::DSS(IndexType NewId):
+QSVMS<TElementData>::QSVMS(IndexType NewId):
     FluidElement<TElementData>(NewId)
 {}
 
 template< class TElementData >
-DSS<TElementData>::DSS(IndexType NewId, const NodesArrayType& ThisNodes):
+QSVMS<TElementData>::QSVMS(IndexType NewId, const NodesArrayType& ThisNodes):
     FluidElement<TElementData>(NewId,ThisNodes)
 {}
 
 
 template< class TElementData >
-DSS<TElementData>::DSS(IndexType NewId, GeometryType::Pointer pGeometry):
+QSVMS<TElementData>::QSVMS(IndexType NewId, GeometryType::Pointer pGeometry):
     FluidElement<TElementData>(NewId,pGeometry)
 {}
 
 
 template< class TElementData >
-DSS<TElementData>::DSS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
+QSVMS<TElementData>::QSVMS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
     FluidElement<TElementData>(NewId,pGeometry,pProperties)
 {}
 
 
 template< class TElementData >
-DSS<TElementData>::~DSS()
+QSVMS<TElementData>::~QSVMS()
 {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Operations
 
 template< class TElementData >
-Element::Pointer DSS<TElementData>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
+Element::Pointer QSVMS<TElementData>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
 {
-    return Element::Pointer(new DSS(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new QSVMS(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
 
 template< class TElementData >
-Element::Pointer DSS<TElementData>::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
+Element::Pointer QSVMS<TElementData>::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
 {
-    return Element::Pointer(new DSS(NewId, pGeom, pProperties));
+    return Element::Pointer(new QSVMS(NewId, pGeom, pProperties));
 }
 
 template <class TElementData>
-void DSS<TElementData>::Calculate(const Variable<double>& rVariable,
+void QSVMS<TElementData>::Calculate(const Variable<double>& rVariable,
     double& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
 
 template <class TElementData>
-void DSS<TElementData>::Calculate(
+void QSVMS<TElementData>::Calculate(
     const Variable<array_1d<double, 3>>& rVariable,
     array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) {
     // Lumped projection terms
@@ -90,7 +89,7 @@ void DSS<TElementData>::Calculate(
 // Inquiry
 
 template< class TElementData >
-int DSS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
 
@@ -106,7 +105,7 @@ int DSS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void DSS<TElementData>::GetValueOnIntegrationPoints(Variable<array_1d<double, 3 > > const& rVariable,
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<array_1d<double, 3 > > const& rVariable,
                                             std::vector<array_1d<double, 3 > >& rValues,
                                             ProcessInfo const& rCurrentProcessInfo)
 {
@@ -151,7 +150,7 @@ void DSS<TElementData>::GetValueOnIntegrationPoints(Variable<array_1d<double, 3 
 
 
 template< class TElementData >
-void DSS<TElementData>::GetValueOnIntegrationPoints(Variable<double> const& rVariable,
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<double> const& rVariable,
                                             std::vector<double>& rValues,
                                             ProcessInfo const& rCurrentProcessInfo)
 {
@@ -239,21 +238,21 @@ void DSS<TElementData>::GetValueOnIntegrationPoints(Variable<double> const& rVar
 }
 
 template <class TElementData>
-void DSS<TElementData>::GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
                                                     std::vector<array_1d<double, 6>>& rValues,
                                                     ProcessInfo const& rCurrentProcessInfo)
 {
 }
 
 template <class TElementData>
-void DSS<TElementData>::GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
                                                     std::vector<Vector>& rValues,
                                                     ProcessInfo const& rCurrentProcessInfo)
 {
 }
 
 template <class TElementData>
-void DSS<TElementData>::GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
                                                     std::vector<Matrix>& rValues,
                                                     ProcessInfo const& rCurrentProcessInfo)
 {
@@ -263,25 +262,25 @@ void DSS<TElementData>::GetValueOnIntegrationPoints(Variable<Matrix> const& rVar
 // Input and output
 
 template< class TElementData >
-std::string DSS<TElementData>::Info() const
+std::string QSVMS<TElementData>::Info() const
 {
     std::stringstream buffer;
-    buffer << "DSS #" << this->Id();
+    buffer << "QSVMS #" << this->Id();
     return buffer.str();
 }
 
 
 template< class TElementData >
-void DSS<TElementData>::PrintInfo(std::ostream& rOStream) const
+void QSVMS<TElementData>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "DSS" << Dim << "D";
+    rOStream << "QSVMS" << Dim << "D";
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected functions
 
 template< class TElementData >
-void DSS<TElementData>::ASGSMomentumResidual(
+void QSVMS<TElementData>::ASGSMomentumResidual(
     TElementData& rData,
     array_1d<double,3> &rMomentumRes)
 {
@@ -312,7 +311,7 @@ void DSS<TElementData>::ASGSMomentumResidual(
 
 
 template< class TElementData >
-void DSS<TElementData>::ASGSMassResidual(
+void QSVMS<TElementData>::ASGSMassResidual(
     TElementData& rData,
     double &rMomentumRes)
 {
@@ -321,7 +320,7 @@ void DSS<TElementData>::ASGSMassResidual(
 
 
 template< class TElementData >
-void DSS<TElementData>::OSSMomentumResidual(
+void QSVMS<TElementData>::OSSMomentumResidual(
     TElementData& rData,
     array_1d<double,3> &rMomentumRes)
 {
@@ -334,7 +333,7 @@ void DSS<TElementData>::OSSMomentumResidual(
 
 
 template< class TElementData >
-void DSS<TElementData>::OSSMassResidual(
+void QSVMS<TElementData>::OSSMassResidual(
     TElementData& rData,
     double &rMassRes)
 {
@@ -345,7 +344,7 @@ void DSS<TElementData>::OSSMassResidual(
 
 
 template< class TElementData >
-void DSS<TElementData>::MomentumProjTerm(
+void QSVMS<TElementData>::MomentumProjTerm(
     TElementData& rData,
     array_1d<double,3> &rMomentumRHS)
 {
@@ -369,7 +368,7 @@ void DSS<TElementData>::MomentumProjTerm(
 
 
 template< class TElementData >
-void DSS<TElementData>::MassProjTerm(
+void QSVMS<TElementData>::MassProjTerm(
     TElementData& rData,
     double &rMassRHS)
 {
@@ -385,7 +384,7 @@ void DSS<TElementData>::MassProjTerm(
 // Evaluation of system terms on Gauss Points
 
 template< class TElementData >
-void DSS<TElementData>::AddVelocitySystem(
+void QSVMS<TElementData>::AddVelocitySystem(
     TElementData& rData,
     MatrixType &rLHS,
     VectorType &rRHS)
@@ -489,7 +488,7 @@ void DSS<TElementData>::AddVelocitySystem(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void DSS<TElementData>::AddMassLHS(
+void QSVMS<TElementData>::AddMassLHS(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {
@@ -525,7 +524,7 @@ void DSS<TElementData>::AddMassLHS(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void DSS<TElementData>::AddMassStabilization(
+void QSVMS<TElementData>::AddMassStabilization(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {
@@ -576,7 +575,7 @@ void DSS<TElementData>::AddMassStabilization(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class TElementData>
-double DSS<TElementData>::EffectiveViscosity(
+double QSVMS<TElementData>::EffectiveViscosity(
     TElementData& rData, double ElementSize) {
     
     double c_s = rData.CSmagorinsky;
@@ -615,7 +614,7 @@ double DSS<TElementData>::EffectiveViscosity(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void DSS<TElementData>::CalculateStaticTau(
+void QSVMS<TElementData>::CalculateStaticTau(
     const TElementData& rData,
     double Density,
     double DynamicViscosity,
@@ -641,7 +640,7 @@ void DSS<TElementData>::CalculateStaticTau(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void DSS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProcessInfo)
+void QSVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProcessInfo)
 {
     // Get Shape function data
     Vector GaussWeights;
@@ -694,7 +693,7 @@ void DSS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProcessI
 }
 
 template< class TElementData >
-void DSS<TElementData>::SubscaleVelocity(
+void QSVMS<TElementData>::SubscaleVelocity(
     TElementData& rData,
     const ProcessInfo &rProcessInfo,
     array_1d<double,3> &rVelocitySubscale)
@@ -719,7 +718,7 @@ void DSS<TElementData>::SubscaleVelocity(
 }
 
 template< class TElementData >
-void DSS<TElementData>::SubscalePressure(
+void QSVMS<TElementData>::SubscalePressure(
         TElementData& rData,
         const ProcessInfo& rProcessInfo,
         double &rPressureSubscale)
@@ -755,7 +754,7 @@ void DSS<TElementData>::SubscalePressure(
 // serializer
 
 template< class TElementData >
-void DSS<TElementData>::save(Serializer& rSerializer) const
+void QSVMS<TElementData>::save(Serializer& rSerializer) const
 {
     typedef FluidElement<TElementData> BaseElement;
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElement );
@@ -763,7 +762,7 @@ void DSS<TElementData>::save(Serializer& rSerializer) const
 
 
 template< class TElementData >
-void DSS<TElementData>::load(Serializer& rSerializer)
+void QSVMS<TElementData>::load(Serializer& rSerializer)
 {
     typedef FluidElement<TElementData> BaseElement;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElement);

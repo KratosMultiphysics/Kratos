@@ -16,7 +16,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
 
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_element.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dss.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/symbolic_navier_stokes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dynamic_vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fractional_step.cpp

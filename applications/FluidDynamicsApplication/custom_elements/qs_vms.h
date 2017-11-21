@@ -10,8 +10,8 @@
 //  Main authors:    Jordi Cotela
 //
 
-#ifndef KRATOS_DSS_H
-#define KRATOS_DSS_H
+#ifndef KRATOS_QS_VMS_H
+#define KRATOS_QS_VMS_H
 
 #include "includes/define.h"
 #include "includes/element.h"
@@ -48,14 +48,14 @@ namespace Kratos
 ///@{
 
 template< class TElementData >
-class DSS : public FluidElement<TElementData>
+class QSVMS : public FluidElement<TElementData>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of DSS
-    KRATOS_CLASS_POINTER_DEFINITION(DSS);
+    /// Pointer definition of QSVMS
+    KRATOS_CLASS_POINTER_DEFINITION(QSVMS);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -106,21 +106,21 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    DSS(IndexType NewId = 0);
+    QSVMS(IndexType NewId = 0);
 
     /// Constructor using an array of nodes.
     /**
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    DSS(IndexType NewId, const NodesArrayType& ThisNodes);
+    QSVMS(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /// Constructor using a geometry object.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    DSS(IndexType NewId, GeometryType::Pointer pGeometry);
+    QSVMS(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /// Constuctor using geometry and properties.
     /**
@@ -128,10 +128,10 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    DSS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
+    QSVMS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
-    ~DSS() override;
+    ~QSVMS() override;
 
     ///@}
     ///@name Operators
@@ -145,7 +145,7 @@ public:
 
     /// Create a new element of this type
     /**
-     * Returns a pointer to a new DSS element, created using given input
+     * Returns a pointer to a new QSVMS element, created using given input
      * @param NewId: the ID of the new element
      * @param ThisNodes: the nodes of the new element
      * @param pProperties: the properties assigned to the new element
@@ -380,15 +380,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    DSS& operator=(DSS const& rOther);
+    QSVMS& operator=(QSVMS const& rOther);
 
     /// Copy constructor.
-    DSS(DSS const& rOther);
+    QSVMS(QSVMS const& rOther);
 
     ///@}
 
 
-}; // Class DSS
+}; // Class QSVMS
 
 namespace Internals {
 
@@ -413,7 +413,7 @@ void AddViscousTerm(double DynamicViscosity,
 /// input stream function
 template< class TElementData >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 DSS<TElementData>& rThis)
+                                 QSVMS<TElementData>& rThis)
 {
     return rIStream;
 }
@@ -421,7 +421,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 /// output stream function
 template< class TElementData >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const DSS<TElementData>& rThis)
+                                 const QSVMS<TElementData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -435,4 +435,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_DSS_H
+#endif // KRATOS_QS_VMS_H
