@@ -174,6 +174,7 @@ CMAKE_EXTRA=(
   -DMKL_SOLVERS_APPLICATION=OFF
   -DMKLSOLVER_INCLUDE_DIR="/opt/intel/Compiler/11.1/072/mkl/include"
   -DMKLSOLVER_LIB_DIR="/opt/intel/Compiler/11.1/072/mkl/lib/em64t"
+  -DUSE_COTIRE=ON
 )
 
 ########################################################################################################################

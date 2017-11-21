@@ -45,6 +45,7 @@ DEPENDENCIES: (U-wP,RESTORE,Stabilization_Factor,#CURRENT#)
 DEPENDENCIES: (U-J-wP,RESTORE,Stabilization_Factor,#CURRENT#)
 DEPENDENCIES: (U-W,HIDE,Stabilization_Factor,#CURRENT#)
 DEPENDENCIES: (U-J,HIDE,Stabilization_Factor,#CURRENT#)
+DEPENDENCIES: (U-W-wP,RESTORE,Stabilization_Factor,#CURRENT#)
 QUESTION: Stabilization_Factor
 VALUE: 1
 QUESTION: Set_Contact_Technology#CB#(1,0)
