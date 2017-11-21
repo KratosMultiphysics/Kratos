@@ -266,7 +266,7 @@ public:
 
         for (unsigned int i=0; i<mpvalue->Size(); ++i)
         {
-            if (!(*mpvalue)[i].IsNumber()) // TODO Check if this is true for Double AND int
+            if (!(*mpvalue)[i].IsNumber()) 
                 return false;
         }
         return true; // All entries are numbers or Vector is empty
@@ -292,7 +292,7 @@ public:
             
             for (unsigned int j=0; j<ncols; ++j) // Check all values in column
             {
-                if (!row_i[j].IsNumber()) // TODO Check if this is true for Double AND int
+                if (!row_i[j].IsNumber()) 
                     return false;
             }
         }
