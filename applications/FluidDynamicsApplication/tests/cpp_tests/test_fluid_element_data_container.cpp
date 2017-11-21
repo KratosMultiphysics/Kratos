@@ -36,7 +36,7 @@ namespace Kratos {
             rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
             std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
-            rModelPart.CreateNewElement("DSS2D", 1, element_nodes, p_properties);
+            rModelPart.CreateNewElement("QSVMS2D3N", 1, element_nodes, p_properties);
         }
 
         void InitializeCompleteElement(ModelPart& rModelPart, const std::string& rElementName, unsigned int BufferSize)
@@ -150,10 +150,10 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(2.0, interpolated_pressure, 1e-6);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(LocalMatrixDSS2D3N, FluidDynamicsApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(LocalMatrixQSVMS2D3N, FluidDynamicsApplicationFastSuite)
         {
             ModelPart model_part("Test");
-            InitializeCompleteElement(model_part,"DSS2D",2);
+            InitializeCompleteElement(model_part,"QSVMS2D3N",2);
 
             Matrix LHS;
             Vector RHS;

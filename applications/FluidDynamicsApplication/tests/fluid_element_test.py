@@ -73,7 +73,7 @@ class FluidElementTest(UnitTest.TestCase):
 
         ## Replace element and conditions
         replace_settings = Parameters("""{
-            "element_name":"DSS2D",
+            "element_name":"QSVMS2D3N",
             "condition_name": "MonolithicWallCondition2D"
         }""")
 
