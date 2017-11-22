@@ -157,6 +157,12 @@ CMAKE_BUILD=(
 # Set additional arguments ( for example trillinos etc....)
 
 CMAKE_EXTRA=(
+  # Skip problems
+  -DCMAKE_SKIP_RPATH=ON
+
+  # I know the -j8 is not intended for this, but it helps not reaching the max ram in this system
+  -DCOTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES=-j8 
+
   # Runkratos
   -DINSTALL_EMBEDDED_PYTHON=ON
 
