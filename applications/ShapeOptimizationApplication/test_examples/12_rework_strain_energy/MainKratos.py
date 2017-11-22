@@ -243,7 +243,7 @@ while(time <= end_time):
 # initialize response function(s), compute function value and gradient and write gradient output
 # numberOfObjectives = ProjectParameters["optimization_settings"]["objectives"].size()
 # for objectiveNumber in range(numberOfObjectives):
-    #main_model_part.AddNodalSolutionStepVariable(IZ_SENSITIVITY)
+    #main_model_part.AddNodalSolutionStepVariable(I33_SENSITIVITY)
 
 
     #main_model_part.AddNodalSolutionStepVariable(STRAIN_ENERGY_SHAPE_GRADIENT)

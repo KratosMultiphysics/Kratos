@@ -34,9 +34,9 @@
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/input_output/vtk_file_io.h"
-#include "custom_utilities/response_functions/eigenfrequency_response_function.h"
-#include "custom_utilities/response_functions/eigenfrequency_response_function_lin_scal.h"
-#include "custom_utilities/response_functions/eigenfrequency_response_function_KS.h"
+//#include "custom_utilities/response_functions/eigenfrequency_response_function.h"
+//#include "custom_utilities/response_functions/eigenfrequency_response_function_lin_scal.h"
+//#include "custom_utilities/response_functions/eigenfrequency_response_function_KS.h"
 #include "custom_utilities/response_functions/local_stress_response_function.h"
 #include "custom_utilities/response_functions/nodal_displacement_response_function.h"
 #include "custom_utilities/response_functions/rework_strain_energy_response_function.h" //TODO: fusseder rename it after finishing
@@ -154,7 +154,7 @@ void  AddCustomUtilitiesToPython()
         .def("GetGradient", &MassResponseFunction::GetGradient)
         ;
   
-    class_<EigenfrequencyResponseFunction, bases<Process> >("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>())
+   /* class_<EigenfrequencyResponseFunction, bases<Process> >("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>())
         .def("initialize", &EigenfrequencyResponseFunction::initialize)
         .def("calculate_value", &EigenfrequencyResponseFunction::calculate_value)
         .def("calculate_gradient", &EigenfrequencyResponseFunction::calculate_gradient) 
@@ -179,7 +179,7 @@ void  AddCustomUtilitiesToPython()
         .def("get_value", &EigenfrequencyResponseFunctionKS::get_value)
         .def("get_initial_value", &EigenfrequencyResponseFunctionKS::get_initial_value)  
         .def("get_gradient", &EigenfrequencyResponseFunctionKS::get_gradient)   
-        ;
+        ;*/
 
     class_<StructuralResponseFunction, boost::noncopyable>("StructuralResponseFunction", init<ModelPart&, Parameters&>())
         .def("Initialize", &StructuralResponseFunction::Initialize)

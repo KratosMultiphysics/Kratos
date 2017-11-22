@@ -96,7 +96,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","POINT_LOAD","SHAPE_SENSITIVITY"],
-            "gauss_point_results" : ["FORCE","MOMENT", "IZ_SENSITIVITY"]
+            "gauss_point_results" : ["FORCE","MOMENT", "I33_SENSITIVITY"]
         },
         "point_data_configuration"  : []
     },

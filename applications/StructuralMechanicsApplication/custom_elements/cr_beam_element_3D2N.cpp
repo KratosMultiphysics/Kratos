@@ -1063,7 +1063,7 @@ namespace Kratos
 			Matrix LeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
 			this->CalculateLeftHandSide(LeftHandSideMatrix, rCurrentProcessInfo);
 			Vector NodalDeformation = ZeroVector(msElementSize);
-			this->GetValuesVector(NodalDeformation);
+			CrBeamElement3D2N::GetValuesVector(NodalDeformation); //modified by M.Fusseder
 			rRightHandSideVector = ZeroVector(msElementSize);
 			rRightHandSideVector -= prod(LeftHandSideMatrix, NodalDeformation);
 		}
@@ -1254,7 +1254,7 @@ namespace Kratos
 			LeftHandSideMatrix = this->mLHS;
 
 			Vector NodalDeformation = ZeroVector(msElementSize);
-			this->GetValuesVector(NodalDeformation);
+			CrBeamElement3D2N::GetValuesVector(NodalDeformation);//modified by M.Fusseder
 			Stress = ZeroVector(msElementSize);
 			Stress = prod(LeftHandSideMatrix, NodalDeformation);
 			bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = ZeroMatrix(msElementSize);
@@ -1742,6 +1742,14 @@ namespace Kratos
 
 		KRATOS_CATCH("")
 	}
+
+	std::string CrBeamElement3D2N::Info() const // added by M.Fusseder
+    {
+		if(mIsLinearElement)
+			return "CrLinearBeamElement3D2N";
+		else	
+			return "CrBeamElement3D2N";
+    }
 
 	Orientation::Orientation(array_1d<double, Orientation::msDimension>& v1, const double theta) {
 

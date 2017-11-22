@@ -108,107 +108,6 @@ namespace Kratos
 
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;	
 
-		//void Initialize() override;
-	
-		/*Matrix CreateElementStiffnessMatrix_Material();
-		Matrix CreateElementStiffnessMatrix_Geometry(const Vector qe);
-		Matrix CalculateDeformationStiffness();
-		Matrix CalculateTransformationS();
-
-		Vector CalculateElementForces();
-
-		void CalculateTransformationMatrix(
-			Matrix& rRotationMatrix);
-
-		void CalculateInitialLocalCS();
-
-		Matrix UpdateRotationMatrixLocal();
-
-		void CalculateLocalSystem(
-			MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override;
-
-		void CalculateRightHandSide(
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override;
-
-		void CalculateLeftHandSide(
-			MatrixType& rLeftHandSideMatrix,
-			ProcessInfo& rCurrentProcessInfo) override;
-
-		void CalculateMassMatrix(
-			MatrixType& rMassMatrix,
-			ProcessInfo& rCurrentProcessInfo) override;
-
-		void CalculateLumpedMassMatrix(
-			MatrixType& rMassMatrix,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void CalculateConsistentMassMatrix(
-			MatrixType& rMassMatrix,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void BuildSingleMassMatrix(
-			MatrixType& rMassMatrix,
-			const double Phi, const double CT, const double CR, const double L);
-
-		void CalculateDampingMatrix(
-			MatrixType& rDampingMatrix,
-			ProcessInfo& rCurrentProcessInfo) override;
-
-		void AddExplicitContribution(const VectorType& rRHSVector,
-			const Variable<VectorType>& rRHSVariable,
-			Variable<array_1d<double, 3> >& rDestinationVariable,
-			const ProcessInfo& rCurrentProcessInfo) override;*/
-
-		/*void GetSecondDerivativesVector(
-			Vector& rValues,
-			int Step = 0) override;
-
-		void GetFirstDerivativesVector(
-			Vector& rValues,
-			int Step = 0) override;
-
-		void AssembleSmallInBigMatrix(Matrix SmallMatrix, Matrix& BigMatrix);*/
-
-		/*double CalculateCurrentLength();
-		double CalculatePsi(const double I, const double A_eff);
-		double CalculateShearModulus();
-		double CalculateReferenceLength();
-		void UpdateIncrementDeformation();
-
-		Vector CalculateBodyForces();  */
-
-		/*void CalculateOnIntegrationPoints(
-			const Variable<array_1d<double, 3 > >& rVariable,
-			std::vector< array_1d<double, 3 > >& rOutput,
-			const ProcessInfo& rCurrentProcessInfo) override;
-
-		void GetValueOnIntegrationPoints(
-			const Variable<array_1d<double, 3 > >& rVariable,
-			std::vector< array_1d<double, 3 > >& rOutput,
-			const ProcessInfo& rCurrentProcessInfo) override;
-
-		void CalculateOnIntegrationPoints(
-			const Variable<Vector >& rVariable,
-			std::vector< Vector >& rOutput,
-			const ProcessInfo& rCurrentProcessInfo) override;
-
-		void GetValueOnIntegrationPoints(
-			const Variable<Vector>& rVariable,
-			std::vector<Vector>& rValues,
-			const ProcessInfo& rCurrentProcessInfo) override;
-
-
-		IntegrationMethod GetIntegrationMethod() const override;
-
-		void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
-			const Vector ForceInput, VectorType& rRightHandSideVector,
-			const double GeometryLength);*/
-
-		//std::string Info() const override; 
-
 	protected:
 		CrBeamAdjointElement3D2N(): CrBeamElement3D2N()
 		{
@@ -217,24 +116,6 @@ namespace Kratos
 
 	private:
 		bool mIsLinearElement = false;
-		/*double mdPhi_x_a, mRotInertiaY, mRotInertiaZ;
-		Vector mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;
-		Vector mTotalNodalDeformation, mTotalNodalPosistion, mBodyForces;
-		Vector mDeformationModes, mIncrementDeformation;
-		Matrix mLHS, mRotationMatrix, mRotationMatrix0;
-		Vector mNX0, mNY0, mNZ0;
-		Vector mQuaternionVEC_A, mQuaternionVEC_B;
-		double mQuaternionSCA_A, mQuaternionSCA_B;
-		Vector mPhiS, mPhiA;
-		Vector mNodalForces;
-
-		int mIterationCount = 0;
-		
-		bool mIsLumpedMassMatrix = false;*/
-
-		//CrBeamAdjointElement3D2N(): {}; -----------------------------------> is now protected
-
-
 
 		friend class Serializer;
 		void save(Serializer& rSerializer) const override;

@@ -125,13 +125,6 @@ public:
 
     void DisturbElementDesignVariable(Element& rTracedElement,std::string variable_label , double DisturbanceMeasure )  
     {
-        const Variable<double> & rIT =
-           	  KratosComponents<Variable<double> >::Get("IT");         
-        const Variable<double> & rIY =
-           	  KratosComponents<Variable<double> >::Get("IY");         
-        const Variable<double> & rIZ =
-           	  KratosComponents<Variable<double> >::Get("IZ"); 
-
         const Variable<double> & rDesignVariable =
            	  KratosComponents<Variable<double> >::Get(variable_label); 
 
@@ -151,25 +144,6 @@ public:
 			const double current_property_value = rTracedElement.GetProperties()[rDesignVariable];
             p_local_property->SetValue(rDesignVariable, (current_property_value + DisturbanceMeasure));
         }
-        else if (rDesignVariable == rIT || rDesignVariable == rIY || rDesignVariable == rIZ)
-        { 
-            mElementID = rTracedElement.Id();
-
-			// Save properties and its pointer
-            Properties& r_global_property = rTracedElement.GetProperties(); 
-            mpGlobalProperties = rTracedElement.pGetProperties(); 
-
-            // Create new property and assign it to the element
-            Properties::Pointer p_local_property(new Properties(r_global_property));
-            rTracedElement.SetProperties(p_local_property);
-
-			// Check which entry of the inertia vector shall be treated as design variable
-			Vector& inertia = rTracedElement.GetProperties()[LOCAL_INERTIA_VECTOR];
-            std::cout << "Have Inertia vector" << std::endl;
-			double& design_variable = rDesignVariable==rIT ? inertia[0] : rDesignVariable==rIY ? inertia[1] : inertia[2];
-            std::cout <<  design_variable << std::endl;
-			design_variable += DisturbanceMeasure;
-        }  
         else
             KRATOS_ERROR << "Chosen Design Variable not availible!!" << std::endl;  
 
