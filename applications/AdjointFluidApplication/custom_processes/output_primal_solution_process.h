@@ -358,7 +358,7 @@ public:
             int itNode = 0;
             for (const auto& rNode : mrModelPart.Nodes())
             {
-                Delta += std::abs(rNode.Id() - NodeIdBuffer[itNode]);
+                Delta += std::abs(static_cast<int>(rNode.Id()) - static_cast<int>(NodeIdBuffer[itNode]));
                 itNode++;
             }
     
