@@ -765,7 +765,6 @@ namespace Kratos
     KRATOS_REGISTER_CONDITION("MAPcond", mMapCon3D3N)
 
     // SERIALIZER
-    Serializer::Register("VariablesList", mVariablesList);
     Serializer::Register("PropertiesProxy", PropertiesProxy());
 
     Serializer::Register("DEM_D_Linear_viscous_Coulomb", DEM_D_Linear_viscous_Coulomb());
