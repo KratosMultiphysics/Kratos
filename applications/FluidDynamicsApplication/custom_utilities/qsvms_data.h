@@ -24,8 +24,8 @@ namespace Kratos {
 ///@name Kratos classes
 ///@{
 
-template< size_t TDim, size_t TNumNodes >
-class QSVMSData : public FluidElementData<TDim,TNumNodes, false>
+template< size_t TDim, size_t TNumNodes,bool TElementIntegratesInTime = false >
+class QSVMSData : public FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>
 {
 public:
 

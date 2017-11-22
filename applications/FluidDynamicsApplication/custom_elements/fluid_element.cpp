@@ -15,6 +15,7 @@
 #include "includes/checks.h"
 
 #include "custom_utilities/qsvms_data.h"
+#include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 
 namespace Kratos
@@ -28,6 +29,9 @@ template class FluidElement< SymbolicNavierStokesData<3,4> >;
 
 template class FluidElement< QSVMSData<2,3> >;
 template class FluidElement< QSVMSData<3,4> >;
+
+template class FluidElement< TimeIntegratedQSVMSData<2,3> >;
+template class FluidElement< TimeIntegratedQSVMSData<3,4> >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

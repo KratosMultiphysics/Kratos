@@ -15,6 +15,7 @@
 #include "includes/checks.h"
 
 #include "custom_utilities/qsvms_data.h"
+#include "custom_utilities/time_integrated_qsvms_data.h"
 
 namespace Kratos
 {
@@ -24,6 +25,9 @@ namespace Kratos
 
 template class QSVMS< QSVMSData<2,3> >;
 template class QSVMS< QSVMSData<3,4> >;
+
+template class QSVMS< TimeIntegratedQSVMSData<2,3> >;
+template class QSVMS< TimeIntegratedQSVMSData<3,4> >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
@@ -382,6 +386,28 @@ void QSVMS<TElementData>::MassProjTerm(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Evaluation of system terms on Gauss Points
+
+template <class TElementData>
+void QSVMS<TElementData>::AddTimeIntegratedSystem(
+    TElementData& rData, MatrixType& rLHS, VectorType& rRHS) {
+
+    // Call specialized implementation (it is on a helper class to avoid partial template specialization problems)
+    Internals::SpecializedAddTimeIntegratedSystem<TElementData,
+        TElementData::ElementManagesTimeIntegration>::AddSystem(this, rData,
+        rLHS, rRHS);
+}
+
+template <class TElementData>
+void QSVMS<TElementData>::AddTimeIntegratedLHS(
+    TElementData& rData, MatrixType& rLHS) {
+        KRATOS_ERROR << "AddTimeIntegratedLHS is not implemented." << std::endl;
+    }
+
+template <class TElementData>
+void QSVMS<TElementData>::AddTimeIntegratedRHS(
+    TElementData& rData, VectorType& rRHS) {
+        KRATOS_ERROR << "AddTimeIntegratedRHS is not implemented." << std::endl;
+    }
 
 template< class TElementData >
 void QSVMS<TElementData>::AddVelocitySystem(
@@ -859,6 +885,37 @@ void AddViscousTerm<3>(double DynamicViscosity,
         }
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// For Standard data: Time integration is not available
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <class TElementData>
+void SpecializedAddTimeIntegratedSystem<TElementData, false>::AddSystem(
+    const FluidElement<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
+    Vector& rRHS) {
+    KRATOS_TRY;
+    KRATOS_ERROR << "Trying to use time-integrated element functions with a "
+                    "data type that does not have previous time step data"
+                 << std::endl;
+    KRATOS_CATCH("");
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Specialized time integration
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <class TElementData>
+void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
+    const FluidElement<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
+    Vector& rRHS) {
+    Matrix VelocityPressureLHS;
+    Matrix MassMatrix;
+    Vector VelocityPressureRHS;
+
+    KRATOS_WATCH("Hi!");
 }
+
+} // namespace Internals
+
+} // namespace Kratos

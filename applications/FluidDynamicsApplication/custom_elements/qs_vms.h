@@ -47,6 +47,36 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+namespace Internals {
+
+template <unsigned int TDim>
+void AddViscousTerm(double DynamicViscosity,
+                    double GaussWeight,
+                    const Kratos::Matrix& rDN_DX,
+                    Kratos::Matrix& rLHS);
+
+template <class TElementData, bool TDataKnowsAboutTimeIntegration>
+class SpecializedAddTimeIntegratedSystem {
+   public:
+    static void AddSystem(const FluidElement<TElementData>* pElement,
+        TElementData& rData, Matrix& rLHS, Vector& rRHS);
+};
+
+template <class TElementData>
+class SpecializedAddTimeIntegratedSystem<TElementData, true> {
+   public:
+    static void AddSystem(const FluidElement<TElementData>* pElement,
+        TElementData& rData, Matrix& rLHS, Vector& rRHS);
+};
+
+template <class TElementData>
+class SpecializedAddTimeIntegratedSystem<TElementData, false> {
+   public:
+    static void AddSystem(const FluidElement<TElementData>* pElement,
+        TElementData& rData, Matrix& rLHS, Vector& rRHS);
+};
+}
+
 template< class TElementData >
 class QSVMS : public FluidElement<TElementData>
 {
@@ -246,6 +276,19 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void AddTimeIntegratedSystem(
+        TElementData& rData,
+        MatrixType& rLHS,
+        VectorType& rRHS) override;
+
+    void AddTimeIntegratedLHS(
+        TElementData& rData,
+        MatrixType& rLHS) override;
+
+    void AddTimeIntegratedRHS(
+        TElementData& rData,
+        VectorType& rRHS) override;
+
     void AddVelocitySystem(
         TElementData& rData,
         MatrixType& rLHS,
@@ -335,6 +378,12 @@ protected:
 
 
     ///@}
+    ///@name Protected Friends
+    ///@{
+
+    friend class Internals::SpecializedAddTimeIntegratedSystem<TElementData, TElementData::ElementManagesTimeIntegration>;
+
+    ///@}
 
 private:
 
@@ -389,15 +438,6 @@ private:
 
 
 }; // Class QSVMS
-
-namespace Internals {
-
-template <unsigned int TDim>
-void AddViscousTerm(double DynamicViscosity,
-                    double GaussWeight,
-                    const Kratos::Matrix& rDN_DX,
-                    Kratos::Matrix& rLHS);
-}
 
 ///@}
 
