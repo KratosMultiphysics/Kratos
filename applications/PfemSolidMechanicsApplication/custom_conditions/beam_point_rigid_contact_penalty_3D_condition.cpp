@@ -260,7 +260,7 @@ namespace Kratos
       noalias(Kuug) = rVariables.Penalty.Normal * rIntegrationWeight  * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal);
 
       //Building the Local Stiffness Matrix
-      MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kuug, 0, 0 );
+      BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kuug, 0, 0 );
 
       // std::cout<<std::endl;
       // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" rVariables.Gap.Normal "<<rVariables.Gap.Normal<<" rVariables.Surface.Normal "<<rVariables.Surface.Normal<<" rIntegrationWeight "<<rIntegrationWeight<<" nxn : "<<outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal)<<std::endl;
@@ -316,7 +316,7 @@ namespace Kratos
 	 }
 	 
 	 //Building the Local Stiffness Matrix
-	 MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kuug, 0, 0 );
+	 BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kuug, 0, 0 );
 
 
 	 //The geometric part of the torque contribution must be added here:
@@ -429,7 +429,8 @@ namespace Kratos
 
        double SectionMeanRadius = GetProperties()[CROSS_SECTION_AREA];
        PointType RadiusVector  = SectionMeanRadius * rVariables.Surface.Normal;
-       PointType ContactTorque = MathUtils<double>::CrossProduct( RadiusVector, rVariables.Surface.Tangent);
+       PointType ContactTorque;
+       MathUtils<double>::CrossProduct( ContactTorque, rVariables.Surface.Tangent, RadiusVector );
        ContactTorque *= TangentForceModulus;
 
        //std::cout<<" [ContactTorque]: "<<ContactTorque<<" [TangentForceModulus]: "<<TangentForceModulus<<std::endl;
@@ -488,7 +489,8 @@ namespace Kratos
 	   RadiusVector[i] =  SectionMeanRadius * rVariables.Surface.Normal[i];
 	 }
        
-       array_1d<double, 3 > DeltaRotationDisplacement =  MathUtils<double>::CrossProduct( RadiusVector, DeltaRotation );
+       array_1d<double, 3 > DeltaRotationDisplacement;
+       MathUtils<double>::CrossProduct( DeltaRotationDisplacement, DeltaRotation, RadiusVector );
 
        // bool Regularization = false;
 

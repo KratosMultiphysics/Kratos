@@ -483,7 +483,7 @@ namespace Kratos
       Kuug(dimension*2, dimension*2) = stab_LM;
 
       //Building the Local Stiffness Matrix
-      MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kuug, 0, 0 );
+      BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kuug, 0, 0 );
 
       // std::cout<<std::endl;
       // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" rVariables.Gap.Normal "<<rVariables.Gap.Normal<<" rVariables.Surface.Normal "<<rVariables.Surface.Normal<<" rIntegrationWeight "<<rIntegrationWeight<<" nxn : "<<outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal)<<std::endl;
@@ -506,7 +506,7 @@ namespace Kratos
       Kuug(dimension*2,dimension*2) = 1;
 
       //Building the Local Stiffness Matrix
-      MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kuug, 0, 0 );
+      BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kuug, 0, 0 );
 
 
     }
@@ -637,7 +637,8 @@ namespace Kratos
 	   RadiusVector[i] =  SectionMeanRadius * rVariables.Surface.Normal[i];
 	 }
        
-       array_1d<double, 3 > DeltaRotationDisplacement =  MathUtils<double>::CrossProduct( RadiusVector, DeltaRotation );
+       array_1d<double, 3 > DeltaRotationDisplacement;
+       MathUtils<double>::CrossProduct( DeltaRotationDisplacement, DeltaRotation, RadiusVector );
 
        // bool Regularization = false;
 

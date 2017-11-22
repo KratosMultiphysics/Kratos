@@ -22,6 +22,7 @@
 #include "includes/condition.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "utilities/beam_math_utilities.hpp"
 
 #include "custom_bounding/spatial_bounding_box.hpp"
 
@@ -59,7 +60,9 @@ public:
     //typedef bounded_vector<double, 3>        PointType;
     typedef array_1d<double, 3>                PointType;
 
-
+    ///Type definition for beam utilities
+    typedef BeamMathUtils<double>      BeamMathUtilsType;
+ 
     ///@{
     // Counted pointer of BeamPointRigidContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( BeamPointRigidContactCondition );

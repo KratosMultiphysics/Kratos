@@ -276,8 +276,8 @@ namespace Kratos
 	    
 	    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 	
-	    Matrix Kij     ( 2, 2 );
-	    Matrix SkewSymmMatrix( 2, 2 );
+	    boost::numeric::ublas::bounded_matrix<double, 2, 2 > Kij;
+	    boost::numeric::ublas::bounded_matrix<double, 2, 2 > SkewSymmMatrix;
 	
 	    //Compute the K sub matrix
 	    SkewSymmMatrix( 0, 0 ) =  0.0;
@@ -300,7 +300,7 @@ namespace Kratos
 		    coeff = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De( j, 0 ) * rIntegrationWeight;
 		    Kij = coeff * SkewSymmMatrix;
 		    
-		    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+		    BeamMathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 		  }
 	      }
 
@@ -316,6 +316,7 @@ namespace Kratos
       
     KRATOS_CATCH( "" )
   }
+
   
   //***********************************************************************************
   //***********************************************************************************
