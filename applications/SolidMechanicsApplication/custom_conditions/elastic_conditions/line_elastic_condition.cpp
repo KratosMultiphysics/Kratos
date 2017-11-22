@@ -159,7 +159,7 @@ namespace Kratos
 
     //Get external load
     this->CalculateExternalStiffness(rVariables);
-    
+ 
     KRATOS_CATCH( "" )
   }
 
@@ -188,7 +188,7 @@ namespace Kratos
     if( this->Has( BALLAST_COEFFICIENT ) ){
       double& BallastCoefficient = this->GetValue( BALLAST_COEFFICIENT );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	rVariables.ExternalScalarValue -= rVariables.N[i] * BallastCoefficient;
+	rVariables.ExternalScalarValue += rVariables.N[i] * fabs(BallastCoefficient);
     }
 
 
@@ -197,7 +197,7 @@ namespace Kratos
       Vector& BallastCoefficient = this->GetValue( BALLAST_COEFFICIENT_VECTOR );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{	  
-	  rVariables.ExternalScalarValue -= rVariables.N[i] * BallastCoefficient[i]; 
+	  rVariables.ExternalScalarValue += rVariables.N[i] * fabs(BallastCoefficient[i]); 
 	}
     }
     
@@ -205,7 +205,7 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( BALLAST_COEFFICIENT ) ) 
-	  rVariables.ExternalScalarValue -= rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( BALLAST_COEFFICIENT ) );     
+	  rVariables.ExternalScalarValue += rVariables.N[i] * fabs( GetGeometry()[i].FastGetSolutionStepValue( BALLAST_COEFFICIENT ) );     
       }
     
     rVariables.ExternalVectorValue *= rVariables.ExternalScalarValue;
@@ -271,7 +271,9 @@ namespace Kratos
       else
 	{
 	  if( dimension == 2 ){
-	  
+
+	    ElasticCondition::CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+	    
 	    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 	
 	    Matrix Kij     ( 2, 2 );
@@ -297,7 +299,7 @@ namespace Kratos
 		
 		    coeff = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De( j, 0 ) * rIntegrationWeight;
 		    Kij = coeff * SkewSymmMatrix;
-		
+		    
 		    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 		  }
 	      }
