@@ -65,6 +65,7 @@ namespace Kratos {
         
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
         virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
+        virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
    
         double GetSqrtOfRealMass();
         virtual double SlowGetDensity();
@@ -91,7 +92,8 @@ namespace Kratos {
  
     protected:
 
-        DEMIntegrationScheme* mpIntegrationScheme;        
+        DEMIntegrationScheme* mpIntegrationScheme;
+        DEMIntegrationScheme* mpRotationalIntegrationScheme;
       
     private:
        

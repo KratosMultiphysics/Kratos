@@ -270,7 +270,7 @@ class ExplicitStrategy:
 
         self.SetVariablesAndOptions()
 
-        if (self.DEM_parameters["IntegrationScheme"].GetString() == 'Verlet_Velocity'):
+        if (self.DEM_parameters["IntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
@@ -415,8 +415,8 @@ class ExplicitStrategy:
             class_name = 'TaylorScheme'
         elif name == 'Newmark_Beta_Method':
             class_name = 'NewmarkBetaScheme'
-        elif name == 'Verlet_Velocity':
-            class_name = 'VerletVelocityScheme'
+        elif name == 'Velocity_Verlet':
+            class_name = 'VelocityVerletScheme'
 
         return class_name
 
@@ -478,6 +478,11 @@ class ExplicitStrategy:
             scheme_name = properties[DEM_INTEGRATION_SCHEME_NAME]
         else:
             scheme_name = self.DEM_parameters["IntegrationScheme"].GetString()
+            
+        #if properties.Has(DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME):
+            #scheme_name = properties[DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME]
+        #else:
+            #scheme_name = self.DEM_parameters["RotationalIntegrationScheme"].GetString()
 
         scheme, error_status, summary_mssg = self.GetScheme(scheme_name)
         scheme.SetIntegrationSchemeInProperties(properties, True)

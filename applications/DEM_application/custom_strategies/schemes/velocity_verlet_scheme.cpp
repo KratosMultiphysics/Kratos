@@ -1,20 +1,21 @@
 // Project includes
-#include "verlet_velocity_scheme.h"
+#include "velocity_verlet_scheme.h"
 
 namespace Kratos {
     
-    void VerletVelocityScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-            if(verbose) std::cout << "\nAssigning VerletVelocityScheme to properties " << pProp->Id() << std::endl;
+    void VelocityVerletScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+            if(verbose) std::cout << "\nAssigning VelocityVerletScheme to properties " << pProp->Id() << std::endl;
             pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+            pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
         }
 
-    /*void VerletVelocityScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
+    /*void VelocityVerletScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
          DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);}
     
-    void VerletVelocityScheme::AddClustersVariables(ModelPart & r_model_part, bool TRotationOption){
+    void VelocityVerletScheme::AddClustersVariables(ModelPart & r_model_part, bool TRotationOption){
          DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);}*/
 
-    void VerletVelocityScheme::UpdateTranslationalVariables(
+    void VelocityVerletScheme::UpdateTranslationalVariables(
             int StepFlag,
             Node < 3 > & i,
             array_1d<double, 3 >& coor,
@@ -61,9 +62,9 @@ namespace Kratos {
            }
 
 
-    }//VerletVelocityScheme
+    }//VelocityVerletScheme
         
-    void VerletVelocityScheme::UpdateRotationalVariables(
+    void VelocityVerletScheme::UpdateRotationalVariables(
             int StepFlag,
             const Node < 3 > & i,
             array_1d<double, 3 >& rotated_angle,
@@ -97,7 +98,7 @@ namespace Kratos {
             }//CORRECT
     }
     
-    void VerletVelocityScheme::UpdateRotationalVariablesOfCluster(
+    void VelocityVerletScheme::UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
@@ -126,7 +127,7 @@ namespace Kratos {
         }
     }
     
-    void VerletVelocityScheme::UpdateRotationalVariables(
+    void VelocityVerletScheme::UpdateRotationalVariables(
                 const Node < 3 > & i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -147,7 +148,7 @@ namespace Kratos {
         }
     }
     
-    void VerletVelocityScheme::QuaternionCalculateMidAngularVelocities(
+    void VelocityVerletScheme::QuaternionCalculateMidAngularVelocities(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
                 const array_1d<double, 3>& angular_momentum,
@@ -167,7 +168,7 @@ namespace Kratos {
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensorInv, angular_momentum, FinalAngularVel);
     }
     
-    void VerletVelocityScheme::UpdateAngularVelocity(
+    void VelocityVerletScheme::UpdateAngularVelocity(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
                 const array_1d<double, 3>& angular_momentum,
@@ -179,7 +180,7 @@ namespace Kratos {
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensorInv, angular_momentum, angular_velocity);
     }
     
-    void VerletVelocityScheme::CalculateLocalAngularAcceleration(
+    void VelocityVerletScheme::CalculateLocalAngularAcceleration(
                                 const Node < 3 > & i,
                                 const double moment_of_inertia,
                                 const array_1d<double, 3 >& torque, 
@@ -193,7 +194,7 @@ namespace Kratos {
     }
     
     
-    void VerletVelocityScheme::CalculateLocalAngularAccelerationByEulerEquations(
+    void VelocityVerletScheme::CalculateLocalAngularAccelerationByEulerEquations(
                                 const Node < 3 > & i,
                                 const array_1d<double, 3 >& local_angular_velocity,
                                 const array_1d<double, 3 >& moments_of_inertia,
@@ -208,7 +209,7 @@ namespace Kratos {
         }
     }
     
-    void VerletVelocityScheme::CalculateAngularVelocityRK(
+    void VelocityVerletScheme::CalculateAngularVelocityRK(
                                     const Quaternion<double  >& Orientation,
                                     const array_1d<double, 3 >& moments_of_inertia,
                                     const array_1d<double, 3 >& angular_momentum,

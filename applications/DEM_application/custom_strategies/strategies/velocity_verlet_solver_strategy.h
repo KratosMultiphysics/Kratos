@@ -11,17 +11,17 @@
 namespace Kratos
 {
   template<class TBaseStrategy>
-  class VerletVelocitySolverStrategy: public TBaseStrategy
+  class VelocityVerletSolverStrategy: public TBaseStrategy
   {
       public:
 
       /// Pointer definition of ExplicitSolverStrategy
-      KRATOS_CLASS_POINTER_DEFINITION(VerletVelocitySolverStrategy);
+      KRATOS_CLASS_POINTER_DEFINITION(VelocityVerletSolverStrategy);
 
       /// Default constructor.
-      VerletVelocitySolverStrategy(){}
+      VelocityVerletSolverStrategy(){}
 
-      VerletVelocitySolverStrategy(
+      VelocityVerletSolverStrategy(
                              ExplicitSolverSettings& settings,
                              const double max_delta_time,
                              const double n_step_search,
@@ -36,7 +36,7 @@ namespace Kratos
       {}
 
       /// Destructor.
-      virtual ~VerletVelocitySolverStrategy()
+      virtual ~VelocityVerletSolverStrategy()
       {
          Timer::SetOuputFile("TimesPartialRelease");
          Timer::PrintTimingInformation();
@@ -82,7 +82,7 @@ namespace Kratos
 
       }//Solve()
 
-  }; // Class VerletVelocitySolverStrategy<TBaseStrategy>
+  }; // Class VelocityVerletSolverStrategy<TBaseStrategy>
 
 
 }  // namespace Kratos.

@@ -34,6 +34,7 @@ SphericParticle::SphericParticle()
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
     mpIntegrationScheme = NULL;
+    mpRotationalIntegrationScheme = NULL;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -43,6 +44,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
     mpIntegrationScheme = NULL;
+    mpRotationalIntegrationScheme = NULL;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
@@ -53,6 +55,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
     mpIntegrationScheme = NULL;
+    mpRotationalIntegrationScheme = NULL;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
@@ -63,6 +66,7 @@ SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNode
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
     mpIntegrationScheme = NULL;
+    mpRotationalIntegrationScheme = NULL;
 }
 
 Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
@@ -80,7 +84,10 @@ SphericParticle::~SphericParticle(){
     }
     if (mpIntegrationScheme!=NULL) {
         delete mpIntegrationScheme;
-    }        
+    }
+    if (mpRotationalIntegrationScheme!=NULL) {
+        delete mpRotationalIntegrationScheme;
+    }
 }
 
 void SphericParticle::Initialize(const ProcessInfo& r_process_info)
@@ -135,6 +142,11 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     
     DEMIntegrationScheme::Pointer& integration_scheme = GetProperties()[DEM_INTEGRATION_SCHEME_POINTER];
     SetIntegrationScheme(integration_scheme);
+    
+    if (this->Is(DEMFlags::HAS_ROTATION)) {
+        DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
+        SetIntegrationScheme(rotational_integration_scheme);
+    }
     
     KRATOS_CATCH( "" )
 }
@@ -1629,7 +1641,10 @@ void SphericParticle::TransformNeighbourCoorsToClosestInPeriodicDomain(const Pro
 
 
 void SphericParticle::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
-    GetIntegrationScheme().Move(GetGeometry()[0], delta_t, rotation_option, force_reduction_factor, StepFlag);
+    GetIntegrationScheme().Move(GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
+    if (rotation_option) {
+        GetRotationalIntegrationScheme().Rotate(GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
+    }
 }
 
 void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}

@@ -358,8 +358,8 @@ class Procedures(object):
             scheme = TaylorScheme()
         elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
             scheme = NewmarkBetaScheme(0.5, 0.25)
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Verlet_Velocity'):
-            scheme = VerletVelocityScheme()
+        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Velocity_Verlet'):
+            scheme = VelocityVerletScheme()
         else:
             self.KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")

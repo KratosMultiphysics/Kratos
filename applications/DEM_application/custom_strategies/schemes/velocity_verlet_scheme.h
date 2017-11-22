@@ -22,28 +22,28 @@
 
 namespace Kratos {
 
-    class VerletVelocityScheme : public DEMIntegrationScheme {
+    class VelocityVerletScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
 
-        /// Pointer definition of VerletVelocityScheme
-        KRATOS_CLASS_POINTER_DEFINITION(VerletVelocityScheme);
+        /// Pointer definition of VelocityVerletScheme
+        KRATOS_CLASS_POINTER_DEFINITION(VelocityVerletScheme);
 
         /// Default constructor.
 
-        VerletVelocityScheme() {}
+        VelocityVerletScheme() {}
 
         /// Destructor.
-        virtual ~VerletVelocityScheme() {}
+        virtual ~VelocityVerletScheme() {}
         
         DEMIntegrationScheme* CloneRaw() const override {
-            DEMIntegrationScheme* cloned_scheme(new VerletVelocityScheme(*this));
+            DEMIntegrationScheme* cloned_scheme(new VelocityVerletScheme(*this));
             return cloned_scheme;
         }
         
         DEMIntegrationScheme::Pointer CloneShared() const override {
-            DEMIntegrationScheme::Pointer cloned_scheme(new VerletVelocityScheme(*this));
+            DEMIntegrationScheme::Pointer cloned_scheme(new VelocityVerletScheme(*this));
             return cloned_scheme;
         }
         
@@ -137,14 +137,14 @@ namespace Kratos {
 
         virtual std::string Info() const override{
             std::stringstream buffer;
-            buffer << "VerletVelocityScheme";
+            buffer << "VelocityVerletScheme";
             return buffer.str();
         }
 
         /// Print information about this object.
 
         virtual void PrintInfo(std::ostream& rOStream) const override{
-            rOStream << "VerletVelocityScheme";
+            rOStream << "VelocityVerletScheme";
         }
 
         /// Print object's data.
@@ -160,18 +160,18 @@ namespace Kratos {
 
         /// Assignment operator.
 
-        VerletVelocityScheme& operator=(VerletVelocityScheme const& rOther) {
+        VelocityVerletScheme& operator=(VelocityVerletScheme const& rOther) {
             return *this;
         }
 
         /// Copy constructor.
 
-        VerletVelocityScheme(VerletVelocityScheme const& rOther) {
+        VelocityVerletScheme(VelocityVerletScheme const& rOther) {
             *this = rOther;
         }
 
 
-    }; // Class VerletVelocityScheme
+    }; // Class VelocityVerletScheme
 
     ///@} 
 
@@ -187,12 +187,12 @@ namespace Kratos {
     /// input stream function
 
     inline std::istream& operator>>(std::istream& rIStream,
-            VerletVelocityScheme& rThis) {
+            VelocityVerletScheme& rThis) {
         return rIStream;
     }
 
     inline std::ostream& operator<<(std::ostream& rOStream,
-            const VerletVelocityScheme& rThis) {
+            const VelocityVerletScheme& rThis) {
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
         rThis.PrintData(rOStream);

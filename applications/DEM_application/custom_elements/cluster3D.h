@@ -59,7 +59,7 @@ namespace Kratos
         virtual void CustomInitialize(ProcessInfo& r_process_info);
         virtual void SetOrientation(const Quaternion<double> Orientation);
         virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy);
-        virtual void UpdatePositionOfSpheres();
+        virtual void UpdateAngularDisplacementAndVelocityOfSpheres();
         virtual void UpdateLinearDisplacementAndVelocityOfSpheres();
         virtual void GetClustersForce(const array_1d<double,3>& gravity);
         virtual void CollectForcesAndTorquesFromSpheres();
@@ -74,6 +74,7 @@ namespace Kratos
         
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
         virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
+        virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
            
         virtual double GetMass();
         virtual double SlowGetDensity();
@@ -103,7 +104,8 @@ namespace Kratos
         std::vector<double>                mListOfRadii;
         std::vector<array_1d<double, 3> >  mListOfCoordinates;        
         std::vector<SphericParticle*>      mListOfSphericParticles; 
-        DEMIntegrationScheme* mpIntegrationScheme;        
+        DEMIntegrationScheme* mpIntegrationScheme;
+        DEMIntegrationScheme* mpRotationalIntegrationScheme;       
       
     private:
        

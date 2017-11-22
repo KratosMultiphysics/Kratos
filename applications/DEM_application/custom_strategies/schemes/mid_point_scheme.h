@@ -52,6 +52,7 @@ namespace Kratos {
         void SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override {
             if(verbose) std::cout << "\nAssigning MidPointScheme to properties " << pProp->Id() << std::endl;
             pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+            pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
         }
 
         /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption)  override {

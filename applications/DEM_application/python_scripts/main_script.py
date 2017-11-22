@@ -129,8 +129,8 @@ class Solution(object):
             return TaylorScheme()
         elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
             return NewmarkBetaScheme(0.5, 0.25)
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Verlet_Velocity'):
-            return VerletVelocityScheme()
+        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Velocity_Verlet'):
+            return VelocityVerletScheme()
         else:
             return None
 

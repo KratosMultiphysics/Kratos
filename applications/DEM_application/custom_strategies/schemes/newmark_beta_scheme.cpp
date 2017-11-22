@@ -6,6 +6,7 @@ namespace Kratos {
     void NewmarkBetaScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
         if(verbose) std::cout << "\nAssigning NewmarkBetaScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+        pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
     
     /*void NewmarkBetaScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){

@@ -53,6 +53,7 @@ namespace Kratos
       void SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override {
         if(verbose) std::cout << "\nAssigning ConstAverageAccelerationScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+        pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
             
      /// Its the same to do a loop`in nodes or element??? Need to be compared.  

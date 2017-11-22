@@ -16,6 +16,7 @@ namespace Kratos {
     void DEMIntegrationScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
         //if(verbose) std::cout << "\nAssigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+        pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
     /*void DEMIntegrationScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
@@ -105,25 +106,25 @@ namespace Kratos {
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
     }
     
-    void DEMIntegrationScheme::Move(Node<3> & i, const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
+    void DEMIntegrationScheme::Move(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
         if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) return;
-        CalculateTranslationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);  
-        
-        if(rotation_option /*&& StepFlag != 1*/) {
-            CalculateRotationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag); 
-        }                        
+        CalculateTranslationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);
     }
     
-    void DEMIntegrationScheme::MoveCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
+    void DEMIntegrationScheme::Rotate(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
+        if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) return;
+        CalculateRotationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);
+    }
+    
+    void DEMIntegrationScheme::MoveCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
         CalculateTranslationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);   
-        if(rotation_option /*&& StepFlag != 1*/) {
-            RotateClusterNode(i, delta_t, force_reduction_factor, StepFlag);                
-            cluster_element->UpdatePositionOfSpheres();
-        }  
-        else {
-            cluster_element->UpdateLinearDisplacementAndVelocityOfSpheres();
-        }
-    }    
+        cluster_element->UpdateLinearDisplacementAndVelocityOfSpheres();
+    }
+    
+    void DEMIntegrationScheme::RotateCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
+        CalculateRotationalMotionOfClusterNode(i, delta_t, force_reduction_factor, StepFlag);                
+        cluster_element->UpdateAngularDisplacementAndVelocityOfSpheres();
+    }
         
     void DEMIntegrationScheme::UpdateTranslationalVariables(
                             int StepFlag,
@@ -214,34 +215,34 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateAngularVelocity) shouldn't be accessed, use derived class instead", 0);
     }    
     
-    void DEMIntegrationScheme::CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag) {
-
-        KRATOS_TRY
-
-        ProcessInfo& r_process_info = model_part.GetProcessInfo();
-        double delta_t = r_process_info[DELTA_TIME];
-        vector<unsigned int> node_partition;
-        double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF];
-        bool virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
-        double moment_reduction_factor = 1.0;
-        if (virtual_mass_option) {
-            moment_reduction_factor = 1.0 - virtual_mass_coeff;
-            if ((moment_reduction_factor > 1.0) || (moment_reduction_factor < 0.0)) {
-                KRATOS_THROW_ERROR(std::runtime_error, "The virtual mass coefficient is either larger than 1 or negative: virtual_mass_coeff= ", virtual_mass_coeff)
-            }
-        }      
-
-        #pragma omp parallel for shared(delta_t)
-        for (int k = 0; k < (int) pNodes.size(); k++) {
-            ModelPart::NodeIterator i_iterator = pNodes.ptr_begin() + k;
-            Node < 3 > & i = *i_iterator;
-            if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
-            CalculateRotationalMotionOfNode(i, delta_t, moment_reduction_factor, StepFlag);            
-        }//for Node                  
-
-        KRATOS_CATCH(" ")
-
-    }//rotational_motion
+//     void DEMIntegrationScheme::CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag) {
+// 
+//         KRATOS_TRY
+// 
+//         ProcessInfo& r_process_info = model_part.GetProcessInfo();
+//         double delta_t = r_process_info[DELTA_TIME];
+//         vector<unsigned int> node_partition;
+//         double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF];
+//         bool virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
+//         double moment_reduction_factor = 1.0;
+//         if (virtual_mass_option) {
+//             moment_reduction_factor = 1.0 - virtual_mass_coeff;
+//             if ((moment_reduction_factor > 1.0) || (moment_reduction_factor < 0.0)) {
+//                 KRATOS_THROW_ERROR(std::runtime_error, "The virtual mass coefficient is either larger than 1 or negative: virtual_mass_coeff= ", virtual_mass_coeff)
+//             }
+//         }      
+// 
+//         #pragma omp parallel for shared(delta_t)
+//         for (int k = 0; k < (int) pNodes.size(); k++) {
+//             ModelPart::NodeIterator i_iterator = pNodes.ptr_begin() + k;
+//             Node < 3 > & i = *i_iterator;
+//             if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
+//             CalculateRotationalMotionOfNode(i, delta_t, moment_reduction_factor, StepFlag);            
+//         }//for Node                  
+// 
+//         KRATOS_CATCH(" ")
+// 
+//     }//rotational_motion
     
     void DEMIntegrationScheme::CalculateLocalAngularAccelerationByEulerEquations(
                                     const Node < 3 > & i,
@@ -295,14 +296,14 @@ namespace Kratos {
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
                 Node<3> & i = cluster_element.GetGeometry()[0];
 
-                RotateClusterNode(i, delta_t, moment_reduction_factor, StepFlag);                
-                cluster_element.UpdatePositionOfSpheres();
+                CalculateRotationalMotionOfClusterNode(i, delta_t, moment_reduction_factor, StepFlag);                
+                cluster_element.UpdateAngularDisplacementAndVelocityOfSpheres();
             } //for Elements
         } //for number of threads
         KRATOS_CATCH(" ")
     }
     
-    void DEMIntegrationScheme::RotateClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
+    void DEMIntegrationScheme::CalculateRotationalMotionOfClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
         KRATOS_TRY
         array_1d<double, 3 > & moments_of_inertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
         array_1d<double, 3 > & angular_momentum = i.FastGetSolutionStepValue(ANGULAR_MOMENTUM);

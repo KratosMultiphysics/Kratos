@@ -50,8 +50,10 @@ namespace Kratos {
         
         /*virtual void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption);
         virtual void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption); */               
-        virtual void Move(Node<3> & i, const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-        virtual void MoveCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
+        virtual void Move(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void Rotate(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void MoveCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void RotateCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         virtual void UpdateTranslationalVariables(
                             int StepFlag, 
                             Node < 3 > & i,
@@ -118,7 +120,7 @@ namespace Kratos {
                 const array_1d<double, 3>& angular_momentum,
                 array_1d<double, 3>& angular_velocity);
 
-        virtual void CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag);
+//         virtual void CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag);
         
         virtual void UpdateLocalAngularVelocity(
                 const Node < 3 > & i,
@@ -146,7 +148,7 @@ namespace Kratos {
 
         virtual void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag);
         
-        virtual void RotateClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
+        virtual void CalculateRotationalMotionOfClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
 
         virtual std::string Info() const {
             std::stringstream buffer;

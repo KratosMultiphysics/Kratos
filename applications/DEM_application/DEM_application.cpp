@@ -43,7 +43,7 @@
 #include "custom_strategies/schemes/newmark_beta_scheme.h"
 #include "custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "custom_strategies/schemes/taylor_scheme.h"
-#include "custom_strategies/schemes/verlet_velocity_scheme.h"
+#include "custom_strategies/schemes/velocity_verlet_scheme.h"
 
 
 namespace Kratos
@@ -59,8 +59,10 @@ namespace Kratos
           
   //scheme
   KRATOS_CREATE_VARIABLE(std::string, DEM_INTEGRATION_SCHEME_NAME)
+  KRATOS_CREATE_VARIABLE(std::string, DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME)
   KRATOS_CREATE_VARIABLE(DEMIntegrationScheme::Pointer, DEM_INTEGRATION_SCHEME_POINTER)
-          
+  KRATOS_CREATE_VARIABLE(DEMIntegrationScheme::Pointer, DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER)
+  
   //Probability distribution
   KRATOS_CREATE_VARIABLE(std::string, PROBABILITY_DISTRIBUTION)        
   KRATOS_CREATE_VARIABLE(std::string, EXCENTRICITY_PROBABILITY_DISTRIBUTION)        
@@ -436,8 +438,10 @@ namespace Kratos
             
     //scheme
     KRATOS_REGISTER_VARIABLE(DEM_INTEGRATION_SCHEME_NAME)
+    KRATOS_REGISTER_VARIABLE(DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME)
     KRATOS_REGISTER_VARIABLE(DEM_INTEGRATION_SCHEME_POINTER)
-           
+    KRATOS_REGISTER_VARIABLE(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER)
+    
     KRATOS_REGISTER_VARIABLE(PROBABILITY_DISTRIBUTION)        
     KRATOS_REGISTER_VARIABLE(EXCENTRICITY_PROBABILITY_DISTRIBUTION)        
 
@@ -794,7 +798,7 @@ namespace Kratos
     Serializer::Register("NewmarkBetaScheme", NewmarkBetaScheme());
     Serializer::Register("SymplecticEulerScheme", SymplecticEulerScheme());
     Serializer::Register("TaylorScheme", TaylorScheme());
-    Serializer::Register("VerletVelocityScheme", VerletVelocityScheme());
+    Serializer::Register("VelocityVerletScheme", VelocityVerletScheme());
     Serializer::Register("DEMIntegrationScheme", DEMIntegrationScheme());
     
     std::cout << " done."                                  << std::endl;

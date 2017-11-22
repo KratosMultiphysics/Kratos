@@ -16,7 +16,7 @@
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
 #include "custom_strategies/strategies/explicit_solver_continuum.h"
 #include "custom_strategies/strategies/iterative_solver_strategy.h"
-#include "custom_strategies/strategies/verlet_solver_strategy.h"
+#include "custom_strategies/strategies/velocity_verlet_solver_strategy.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -30,7 +30,7 @@
 #include "custom_strategies/schemes/forward_euler_scheme.h"
 #include "custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "custom_strategies/schemes/newmark_beta_scheme.h"
-#include "custom_strategies/schemes/verlet_velocity_scheme.h"
+#include "custom_strategies/schemes/velocity_verlet_scheme.h"
 #include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
 #include "custom_strategies/schemes/taylor_scheme.h"
 
@@ -80,7 +80,7 @@ namespace Kratos
 
           class_< NewmarkBetaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("NewmarkBetaScheme", init<const double, const double>());
 
-          class_< VerletVelocityScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("VerletVelocityScheme", init<>());
+          class_< VelocityVerletScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("VelocityVerletScheme", init<>());
 
           class_< TaylorScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("TaylorScheme", init<>());
 
@@ -124,15 +124,15 @@ namespace Kratos
 
           ;
 
-          class_< VerletVelocitySolverStrategy<ExplicitSolverStrategy>, bases< ExplicitSolverStrategy >,  boost::noncopyable>
+          class_< VelocityVerletSolverStrategy<ExplicitSolverStrategy>, bases< ExplicitSolverStrategy >,  boost::noncopyable>
           (
-          "VerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "VelocityVerletSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
 
           ;
 
-          class_< VerletVelocitySolverStrategy<ContinuumExplicitSolverStrategy>, bases< ContinuumExplicitSolverStrategy >,  boost::noncopyable>
+          class_< VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>, bases< ContinuumExplicitSolverStrategy >,  boost::noncopyable>
           (
-          "ContinuumVerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ContinuumVelocityVerletSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
 
           ;
 

@@ -155,6 +155,7 @@ virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_
 virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
 virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme); 
 virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
+virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
 
 virtual void ComputeConditionRelativeData(int rigid_neighbour_index,
                                           DEMWall* const wall,
@@ -428,6 +429,7 @@ PropertiesProxy* mFastProperties;
 int mClusterId;
 double mBoundDeltaDispSq;
 DEMIntegrationScheme* mpIntegrationScheme;
+DEMIntegrationScheme* mpRotationalIntegrationScheme;
 double mGlobalDamping;
 
 private:
