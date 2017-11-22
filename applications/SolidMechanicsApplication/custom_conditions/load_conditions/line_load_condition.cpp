@@ -180,7 +180,7 @@ namespace Kratos
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
 
-    noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
+    //noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
     
     //PRESSURE CONDITION:
     rVariables.ExternalVectorValue = rVariables.Normal;
@@ -302,7 +302,7 @@ namespace Kratos
 	    SkewSymmMatrix( 1, 0 ) = +1.0;
 	    SkewSymmMatrix( 1, 1 ) =  0.0;
 
-	    double DiscretePressure=0;
+	    double DiscretePressure;
 	    unsigned int RowIndex = 0;
 	    unsigned int ColIndex = 0;
         
@@ -348,6 +348,12 @@ namespace Kratos
     ErrorCode = LoadCondition::Check(rCurrentProcessInfo);
 
     // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(NEGATIVE_FACE_PRESSURE);
+    KRATOS_CHECK_VARIABLE_KEY(NEGATIVE_FACE_PRESSURE_VECTOR);
+
+    KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE);
+    KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE_VECTOR);
+    
     KRATOS_CHECK_VARIABLE_KEY(LINE_LOAD);
     KRATOS_CHECK_VARIABLE_KEY(LINE_LOAD_VECTOR);
         

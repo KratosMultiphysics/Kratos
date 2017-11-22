@@ -187,10 +187,39 @@ namespace Kratos
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
 
-    noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
+    //noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
+
+    //PRESSURE CONDITION:
+    rVariables.ExternalVectorValue = rVariables.Normal;
+    rVariables.ExternalScalarValue = 0.0;
+
+    //defined on condition
+    if( this->Has( BALLAST_COEFFICIENT ) ){
+      double& BallastCoefficient = this->GetValue( BALLAST_COEFFICIENT );
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	rVariables.ExternalScalarValue -= rVariables.N[i] * BallastCoefficient;
+    }
+
+
+    //defined on condition nodes  
+    if( this->Has( BALLAST_COEFFICIENT_VECTOR ) ){
+      Vector& BallastCoefficient = this->GetValue( BALLAST_COEFFICIENT_VECTOR );
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{	  
+	  rVariables.ExternalScalarValue -= rVariables.N[i] * BallastCoefficient[i]; 
+	}
+    }
+
     
-    rVariables.ExternalScalarValue = 0;
-   
+    //defined on geometry nodes
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+	if( GetGeometry()[i].SolutionStepsDataHas( BALLAST_COEFFICIENT ) ) 
+	  rVariables.ExternalScalarValue -= rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( BALLAST_COEFFICIENT ) );     
+      }
+    
+    rVariables.ExternalVectorValue *= rVariables.ExternalScalarValue;
+    
     //STIFFNESS CONDITION:
     
     //defined on condition
@@ -386,6 +415,9 @@ namespace Kratos
     ErrorCode = ElasticCondition::Check(rCurrentProcessInfo);
       
     // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(BALLAST_COEFFICIENT);
+    KRATOS_CHECK_VARIABLE_KEY(BALLAST_COEFFICIENT_VECTOR);
+    
     KRATOS_CHECK_VARIABLE_KEY(SURFACE_STIFFNESS);
     KRATOS_CHECK_VARIABLE_KEY(SURFACE_STIFFNESS_VECTOR);
         

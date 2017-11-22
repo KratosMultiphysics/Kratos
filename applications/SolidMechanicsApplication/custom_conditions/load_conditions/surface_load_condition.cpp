@@ -187,7 +187,7 @@ namespace Kratos
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
 
-    noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
+    //noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
     
     //PRESSURE CONDITION:
     rVariables.ExternalVectorValue = rVariables.Normal;
@@ -430,7 +430,25 @@ namespace Kratos
 
   int SurfaceLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
   {
-    return 0;
+    KRATOS_TRY
+
+    // Perform base condition checks
+    int ErrorCode = 0;
+    ErrorCode = LoadCondition::Check(rCurrentProcessInfo);
+
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(NEGATIVE_FACE_PRESSURE);
+    KRATOS_CHECK_VARIABLE_KEY(NEGATIVE_FACE_PRESSURE_VECTOR);
+
+    KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE);
+    KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE_VECTOR);
+    
+    KRATOS_CHECK_VARIABLE_KEY(SURFACE_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(SURFACE_LOAD_VECTOR);
+        
+    return ErrorCode;
+    
+    KRATOS_CATCH( "" )
   }
 
   //***********************************************************************************
