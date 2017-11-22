@@ -142,7 +142,15 @@ target_link_libraries(Kratos KratosCore)
 set_target_properties(Kratos PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)
+    ## KratosCore its ok
     cotire(KratosCore)
+
+    ## Kratos cannot be compiled with just one unity build as it takes way too much ram
+    SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j8")
+
+    ## This soruces in particular take too much ram by their own
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(Kratos)
 endif(USE_COTIRE MATCHES ON)
 
