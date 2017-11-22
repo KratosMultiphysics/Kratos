@@ -4,9 +4,9 @@
         "model_part_name" : "Structure",
         "domain_size"     : 3,
 		"parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
+        "time_step"       : 0.5,
         "start_time"      : 0.0,
-        "end_time"        : 1.0,
+        "end_time"        : 0.99,
         "echo_level"      : 0
     },
     "solver_settings"          : {
@@ -23,9 +23,12 @@
         },
         "contact_settings":
         {
-            "mortar_type"                    : "ALMContactFrictionless"
+            "mortar_type"                    : "ALMContactFrictionless",
+            "adaptative_strategy"            : false,
+            "split_factor"                   : 11.0,
+            "max_number_splits"              : 1
         },
-        "block_builder"                      : true,
+        "block_builder"                      : false,
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
@@ -62,7 +65,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
             "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,-0.02],
+            "value"           : [0.0,0.0,"-1.0*t"],
             "interval"        : [0.0,"End"]
         }
     }],
@@ -80,7 +83,12 @@
             "search_factor"               : 2.0,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "integration_order"           : 2
+            "integration_order"           : 2,
+            "manual_ALM"                  : true,
+            "normal_variation"            : false,
+            "penalty"                     : 1.0e14,
+            "scale_factor"                : 1.0e0,
+            "debug_mode"                  : false
         }
     }
     ],
@@ -99,7 +107,7 @@
             "node_output"         : true,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","NORMAL_CONTACT_STRESS"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
             "nodal_flags_results": ["ACTIVE"],
             "gauss_point_results" : []
         },

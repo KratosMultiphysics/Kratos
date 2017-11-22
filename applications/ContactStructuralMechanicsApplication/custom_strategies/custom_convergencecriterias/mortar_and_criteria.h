@@ -13,7 +13,6 @@
 #define  KRATOS_MORTAR_AND_CRITERIA_H
 
 /* System includes */
-#include <algorithm>    // std::sort
 
 /* External includes */
 
@@ -214,7 +213,7 @@ public:
 
     /**
      * This function initialize the convergence criteria
-     * @param rModelPart: The model part of interest
+     * @param rModelPart The model part of interest
      */ 
     
     void Initialize(ModelPart& rModelPart) override

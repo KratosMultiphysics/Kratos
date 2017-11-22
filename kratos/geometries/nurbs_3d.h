@@ -1401,7 +1401,10 @@ public:
     {
         Vector gXi,gEta;
         BaseVectors(Xi,Eta,gXi,gEta);
-        Vector Normal = MathUtils<double>::UnitCrossProduct(gXi,gEta);
+        Vector Normal;
+
+        MathUtils<double>::UnitCrossProduct(Normal, gEta, gXi);
+
         return Normal;
     }
 
