@@ -22,6 +22,7 @@
 
 // Project includes
 #include "processes/process.h"
+#include "includes/key_hash.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "containers/variables_list.h"
@@ -81,78 +82,6 @@ namespace Kratos
     typedef MeshType::NodeConstantIterator                 NodeConstantIterator;
     typedef MeshType::ConditionConstantIterator       ConditionConstantIterator;
     typedef MeshType::ElementConstantIterator           ElementConstantIterator;
-    
-    #if !defined(HASH_COMBINE)
-    #define HASH_COMBINE
-    template <class TClassType>
-    inline void HashCombine(std::size_t& Seed, const TClassType& Value)
-    {
-        std::hash<TClassType> hasher;
-        Seed ^= hasher(Value) + 0x9e3779b9 + (Seed<<6) + (Seed>>2);
-    }
-    #endif
-    
-    #if !defined(HASH_RANGE)
-    #define HASH_RANGE
-    template <class TClassType>
-    inline std::size_t HashRange(TClassType First, TClassType Last)
-    {
-        std::size_t seed = 0;
-
-        while (First!=Last)
-        {
-            HashCombine(seed, *First);
-            ++First;
-        }
-        
-        return seed;
-    }
-    #endif
-    
-    #if !defined(KEY_COMPAROR_RANGE)
-    #define KEY_COMPAROR_RANGE
-    template<class TClassType>
-    struct KeyComparorRange
-    {
-        bool operator()(const TClassType& lhs, const TClassType& rhs) const
-        {
-            if(lhs.size() != rhs.size())
-            {
-                return false;
-            }
-
-            auto it_lhs = lhs.begin();
-            auto it_rhs = rhs.begin();
-
-            while(it_lhs != lhs.end()) // NOTE: We already checked that are same size
-            {
-                if(*it_lhs != *it_rhs) 
-                {
-                    return false;
-                }
-                if(it_lhs != lhs.end())
-                {
-                    ++it_lhs;
-                    ++it_rhs;
-                }
-            }
-
-            return true;
-        }
-    };
-    #endif
-    
-    #if !defined(KEY_HASHER_RANGE)
-    #define KEY_HASHER_RANGE
-    template<class TClassType>
-    struct KeyHasherRange
-    {
-        std::size_t operator()(const TClassType& rRange) const
-        {
-            return HashRange(rRange.begin(), rRange.end());
-        }
-    };
-    #endif
 
 ///@}
 ///@name  Enum's
