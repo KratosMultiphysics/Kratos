@@ -345,6 +345,8 @@ class MechanicalSolver(object):
             constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
                                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]);
             constitutive_law.Initialize();
+        
+            problem_path = os.getcwd()
 
             print("   Reading constitutive law from file :" + os.path.join(problem_path, "materials") + ".py ")
                         
