@@ -142,6 +142,7 @@ target_link_libraries(Kratos KratosCore)
 set_target_properties(Kratos PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)
+<<<<<<< HEAD
     ## KratosCore its ok
     cotire(KratosCore)
 
@@ -151,6 +152,9 @@ if(USE_COTIRE MATCHES ON)
     ## This soruces in particular take too much ram by their own
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+=======
+    cotire(KratosCore)
+>>>>>>> 487290e4b5fa3b13e161321f64f975c0cf872102
     cotire(Kratos)
 endif(USE_COTIRE MATCHES ON)
 
