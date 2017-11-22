@@ -82,7 +82,7 @@ BOOST_PYTHON_MODULE(KratosULFApplication)
            bases<KratosApplication>, boost::noncopyable >("KratosULFApplication")
            ;
     AddCustomUtilitiesToPython();
-    AddCustomIOToPython();
+    //AddCustomIOToPython();
     AddCustomStrategiesToPython();
     AddProcessesToPython();
 
@@ -96,7 +96,7 @@ BOOST_PYTHON_MODULE(KratosULFApplication)
     */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_LAGRANGIAN_INLET)
 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(PRESSURE_FORCE)    
+    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(PRESSURE_FORCE)    
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(VAUX)
 
 }

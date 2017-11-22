@@ -704,6 +704,46 @@ public:
         return false;
     }
 
+    /**
+     * Returns the local coordinates of a given arbitrary point
+     * The local coordinates are computed solving for xi and eta the system
+     * given by the linear transformation:
+     * x = (1-xi-eta)*x1 + xi*x2 + eta*x3
+     * y = (1-xi-eta)*y1 + xi*y2 + eta*y3
+     * @param rResult: The vector containing the local coordinates of the point
+     * @param rPoint: The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PointLocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+        ) override {
+
+        rResult = ZeroVector(3);
+        
+        const TPointType& point_0 = this->GetPoint(0);
+
+        // Compute the Jacobian matrix and its determinant
+        bounded_matrix<double, 2, 2> J;
+        J(0,0) = this->GetPoint(1).X() - this->GetPoint(0).X();
+        J(0,1) = this->GetPoint(2).X() - this->GetPoint(0).X();
+        J(1,0) = this->GetPoint(1).Y() - this->GetPoint(0).Y();
+        J(1,1) = this->GetPoint(2).Y() - this->GetPoint(0).Y();
+        const double det_J = J(0,0)*J(1,1) - J(0,1)*J(1,0);
+
+        // Compute eta and xi
+        const double eta = (J(1,0)*(point_0.X() - rPoint(0)) +
+                            J(0,0)*(rPoint(1) - point_0.Y())) / det_J;
+        const double xi  = (J(1,1)*(rPoint(0) - point_0.X()) + 
+                            J(0,1)*(point_0.Y() - rPoint(1))) / det_J;
+
+        rResult(0) = xi;
+        rResult(1) = eta;
+        rResult(2) = 0.0;
+
+        return rResult;
+    }
+
 
     /** This method gives you number of all edges of this
     geometry. This method will gives you number of all the edges

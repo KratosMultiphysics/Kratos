@@ -70,17 +70,11 @@ namespace Kratos
 		for (; i < 4; i++)
 			if (rNode.Id() == rTetrahedra[i].Id())
 				break;
-		constexpr int tetrahedra_connectivity[4][3] = { {3,2,1},{2,3,0},{0,3,1},{0,1,2} };
+		const int tetrahedra_connectivity[4][3] = { {3,2,1},{2,3,0},{0,3,1},{0,1,2} };
 		Triangle3D3<Point > face(rTetrahedra(tetrahedra_connectivity[i][0]), rTetrahedra(tetrahedra_connectivity[i][1]), rTetrahedra(tetrahedra_connectivity[i][2]));
-		Point center = face.Center();
-		Point v1 = face[0] - face[1];
-		Point v2 = face[0] - face[2];
-		Point normal;
-		MathUtils<double>::CrossProduct(normal, v1, v2);
-		double norm = norm_2(normal);
-		if(norm > std::numeric_limits<double>::epsilon())
-		normal /= norm;
-		constexpr double height_coeficient = 0.81649658092772603273242802490196; // sqrt(6.00)/3.00
+		Point center(0.5,0.5,0.5);
+		Point normal = face.UnitNormal(center);
+		const double height_coeficient = 0.81649658092772603273242802490196; // sqrt(6.00)/3.00
 		rOptimumPoint = center + normal * face.AverageEdgeLength() * height_coeficient;
 	}
 

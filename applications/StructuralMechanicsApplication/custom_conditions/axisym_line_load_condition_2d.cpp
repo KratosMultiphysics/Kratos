@@ -26,7 +26,7 @@ namespace Kratos
         IndexType NewId,
         GeometryType::Pointer pGeometry 
         )
-            : LineLoadCondition( NewId, pGeometry )
+            : LineLoadCondition2D( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
     }
@@ -39,7 +39,7 @@ namespace Kratos
         GeometryType::Pointer pGeometry, 
         PropertiesType::Pointer pProperties 
         )
-            : LineLoadCondition( NewId, pGeometry, pProperties )
+            : LineLoadCondition2D( NewId, pGeometry, pProperties )
     {
     }
 
@@ -89,7 +89,7 @@ namespace Kratos
         N = GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
         const double Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, GetGeometry());
         const double Thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
-        const double AxiSymCoefficient = 2.0 * M_PI * Radius/Thickness;
+        const double AxiSymCoefficient = 2.0 * Globals::Pi * Radius/Thickness;
         
         return AxiSymCoefficient * IntegrationPoints[PointNumber].Weight() * detJ;
     }
@@ -101,7 +101,7 @@ namespace Kratos
     void AxisymLineLoadCondition2D::save( Serializer& rSerializer ) const
     {
         rSerializer.save( "Name", "AxisymLineLoadCondition2D" );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition2D );
     }
     
     //************************************************************************************
@@ -109,7 +109,7 @@ namespace Kratos
     
     void AxisymLineLoadCondition2D::load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoadCondition2D );
     }
 
 } // Namespace Kratos

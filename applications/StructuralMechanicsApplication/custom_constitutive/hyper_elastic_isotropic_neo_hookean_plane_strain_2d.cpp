@@ -12,10 +12,9 @@
 #include <iostream>
 
 // External includes
-#include<cmath>
+// #include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 
 #include "structural_mechanics_application_variables.h"
@@ -54,56 +53,6 @@ HyperElasticIsotropicNeoHookeanPlaneStrain2D::~HyperElasticIsotropicNeoHookeanPl
 {
 };
 
-//************************************************************************************
-//************************************************************************************
-
-void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-{
-    // The deformation gradient
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
-    
-    // To reuse the 3D law we resize the deformation gradient to 3
-    Matrix deformation_gradient_f3D(3, 3);
-    deformation_gradient_f3D( 0 , 0 ) = deformation_gradient_f( 0 , 0 );
-    deformation_gradient_f3D( 1 , 0 ) = deformation_gradient_f( 1 , 0 );
-    deformation_gradient_f3D( 0 , 1 ) = deformation_gradient_f( 0 , 1 );
-    deformation_gradient_f3D( 1 , 1 ) = deformation_gradient_f( 1 , 1 );
-    deformation_gradient_f3D( 0 , 2 ) = 0.0;
-    deformation_gradient_f3D( 1 , 2 ) = 0.0;
-    deformation_gradient_f3D( 2 , 0 ) = 0.0;
-    deformation_gradient_f3D( 2 , 1 ) = 0.0;
-    deformation_gradient_f3D( 2 , 2 ) = 1.0;
-    
-    rValues.SetDeformationGradientF(deformation_gradient_f3D);
-    
-    HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateMaterialResponseKirchhoff (Parameters& rValues)
-{
-    // The deformation gradient
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
-    
-    // To reuse the 3D law we resize the deformation gradient to 3
-    Matrix deformation_gradient_f3D(3, 3);
-    deformation_gradient_f3D( 0 , 0 ) = deformation_gradient_f( 0 , 0 );
-    deformation_gradient_f3D( 1 , 0 ) = deformation_gradient_f( 1 , 0 );
-    deformation_gradient_f3D( 0 , 1 ) = deformation_gradient_f( 0 , 1 );
-    deformation_gradient_f3D( 1 , 1 ) = deformation_gradient_f( 1 , 1 );
-    deformation_gradient_f3D( 0 , 2 ) = 0.0;
-    deformation_gradient_f3D( 1 , 2 ) = 0.0;
-    deformation_gradient_f3D( 2 , 0 ) = 0.0;
-    deformation_gradient_f3D( 2 , 1 ) = 0.0;
-    deformation_gradient_f3D( 2 , 2 ) = 1.0;
-    
-    rValues.SetDeformationGradientF(deformation_gradient_f3D);
-    
-    HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff(rValues);
-}
-
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
@@ -128,7 +77,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::GetLawFeatures(Features& rFea
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrix(
+void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixPK2(
     Matrix& ConstitutiveMatrix,
     const Matrix& InverseCTensor,
     const double& DeterminantF,
@@ -151,6 +100,35 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrix(
             const unsigned int& j1 = this->msIndexVoigt2D3C[j][1];
             
             ConstitutiveMatrix(i, j) = (LameLambda*InverseCTensor(i0,i1)*InverseCTensor(j0,j1)) + ((LameMu-LameLambda * log_j) * (InverseCTensor(i0,j0) * InverseCTensor(i1,j1) + InverseCTensor(i0,j1) * InverseCTensor(i1,j0)));
+        }
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixKirchoff(
+    Matrix& ConstitutiveMatrix,
+    const double& DeterminantF,
+    const double& LameLambda,
+    const double& LameMu
+    )
+{
+    ConstitutiveMatrix.clear();
+    
+    const double log_j = std::log(DeterminantF);
+    
+    for(unsigned int i = 0; i < 3; i++)
+    {
+        const unsigned int& i0 = this->msIndexVoigt2D3C[i][0];
+        const unsigned int& i1 = this->msIndexVoigt2D3C[i][1];
+            
+        for(unsigned int j = 0; j < 3; j++)
+        {
+            const unsigned int& j0 = this->msIndexVoigt2D3C[j][0];
+            const unsigned int& j1 = this->msIndexVoigt2D3C[j][1];
+            
+            ConstitutiveMatrix(i,j) = (LameLambda*((i0 == i1) ? 1.0 : 0.0)*((j0 == j1) ? 1.0 : 0.0)) + ((LameMu-LameLambda * log_j) * (((i0 == j0) ? 1.0 : 0.0) * ((i1 == j1) ? 1.0 : 0.0) + ((i0 == j1) ? 1.0 : 0.0) * ((i1 == j0) ? 1.0 : 0.0)));
         }
     }
 }

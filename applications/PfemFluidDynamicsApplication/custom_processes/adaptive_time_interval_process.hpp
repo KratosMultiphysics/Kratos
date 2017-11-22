@@ -284,148 +284,163 @@ namespace Kratos
 	OpenMPUtils::PartitionedIterators(mrModelPart.Elements(),ElemBegin,ElemEnd);
 	for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
 	  {
-	    double temporaryTimeInterval=rCurrentProcessInfo[DELTA_TIME];
-	    double currentElementalArea =  0;
-	    const unsigned int dimension = (itElem)->GetGeometry().WorkingSpaceDimension();
-	    if(dimension==2){
-	      currentElementalArea =  (itElem)->GetGeometry().Area();
-	      Geometry<Node<3> >  updatedElementCoordinates;
-	      bool solidElement=false;
-	      for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
-		{
-		  if(itElem->GetGeometry()[i].Is(SOLID) || itElem->GetGeometry()[i].Is(TO_ERASE) || itElem->IsNot(ACTIVE)){
-		    solidElement=true;
-		  }
-	
-		  const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		  Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
-		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
+	    unsigned int size = itElem->GetGeometry().size();
+	    unsigned int rigid_nodes   = 0;
+	    for(unsigned int i=0; i<size; i++)
+	      {
+		if(itElem->GetGeometry()[i].Is(RIGID)){
+		    rigid_nodes++;
 		}
-
-	      double newArea=0;
-	      if(itElem->GetGeometry().size()==3){
-		Triangle2D3<Node<3> > myGeometry(updatedElementCoordinates);
-		newArea=myGeometry.Area();
-	      }else if(itElem->GetGeometry().size()==6){
-		Triangle2D6<Node<3> > myGeometry(updatedElementCoordinates);
-		newArea=myGeometry.Area();
-	      }else{
-		std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
 	      }
-
-	      if(solidElement==true){
-		newArea=currentElementalArea;
-	      }
-
-	      if(newArea<0.001*currentElementalArea && currentElementalArea>0){
-		double reducedTimeInterval=0.5*temporaryTimeInterval;
+	    
+	    if( rigid_nodes != size ){
+	    
+	      double temporaryTimeInterval=rCurrentProcessInfo[DELTA_TIME];
+	      double currentElementalArea =  0;
+	      const unsigned int dimension = (itElem)->GetGeometry().WorkingSpaceDimension();
+	      if(dimension==2){
 	      
-		if(reducedTimeInterval<temporaryTimeInterval){
-		  rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
-		  /* std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl; */
-		  rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
-		  increaseTimeInterval=false;
-		  break;
-		}
-	      }else{
-		Geometry<Node<3> >  updatedEnlargedElementCoordinates;
-
+		currentElementalArea =  (itElem)->GetGeometry().Area();
+		Geometry<Node<3> >  updatedElementCoordinates;
+		bool solidElement=false;
 		for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
 		  {
+		    if(itElem->GetGeometry()[i].Is(SOLID) || itElem->GetGeometry()[i].Is(TO_ERASE) || itElem->IsNot(ACTIVE)){
+		      solidElement=true;
+		    }
+		  
 		    const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		    Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
-		    updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
-
+		    Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
+		    updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		  }
 
+		double newArea=0;
 		if(itElem->GetGeometry().size()==3){
-		  Triangle2D3<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		  Triangle2D3<Node<3> > myGeometry(updatedElementCoordinates);
 		  newArea=myGeometry.Area();
 		}else if(itElem->GetGeometry().size()==6){
-		  Triangle2D6<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		  Triangle2D6<Node<3> > myGeometry(updatedElementCoordinates);
 		  newArea=myGeometry.Area();
 		}else{
 		  std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
+		}
+
+		if(solidElement==true){
+		  newArea=currentElementalArea;
 		}
 
 		if(newArea<0.001*currentElementalArea && currentElementalArea>0){
-		  increaseTimeInterval=false;
-		  /* std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl; */
-		}
-
-	      }
-	    }
-	    else if(dimension==3){
-	      double currentElementalVolume =  (itElem)->GetGeometry().Volume();
-	      Geometry<Node<3> >  updatedElementCoordinates;
-	      bool solidElement=false;
-	      for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
-		{
-		  if(itElem->GetGeometry()[i].Is(SOLID) || itElem->IsNot(ACTIVE)){
-		    solidElement=true;
-		  }
-		  const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		  Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
-		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
-		}
-
-	      double newVolume=0;
-	      if(itElem->GetGeometry().size()==4){
-		Tetrahedra3D4<Node<3> > myGeometry(updatedElementCoordinates);
-		newVolume=myGeometry.Volume();
-	      }else if(itElem->GetGeometry().size()==10){
-		Tetrahedra3D10<Node<3> > myGeometry(updatedElementCoordinates);
-		newVolume=myGeometry.Volume();
-	      }else{
-		std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
-	      }
-
-	      if(solidElement==true){
-		newVolume=currentElementalVolume;
-	      }
-
-	      if(newVolume<0.001*currentElementalVolume && currentElementalVolume>0){
-		double reducedTimeInterval=0.5*temporaryTimeInterval;
+		  double reducedTimeInterval=0.5*temporaryTimeInterval;
 	      
-		if(reducedTimeInterval<temporaryTimeInterval){
-		  rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
-		  /* std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl; */
-		  rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
-		  increaseTimeInterval=false;
-		  break;
-		}
-	      }else{
-		Geometry<Node<3> >  updatedEnlargedElementCoordinates;
+		  if(reducedTimeInterval<temporaryTimeInterval){
+		    rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
+		    /* std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl; */
+		    rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
+		    increaseTimeInterval=false;
+		    break;
+		  }
+		}else{
+		  Geometry<Node<3> >  updatedEnlargedElementCoordinates;
 
+		  for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+		    {
+		      const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+		      Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
+		      updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
+
+		    }
+
+		  if(itElem->GetGeometry().size()==3){
+		    Triangle2D3<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		    newArea=myGeometry.Area();
+		  }else if(itElem->GetGeometry().size()==6){
+		    Triangle2D6<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		    newArea=myGeometry.Area();
+		  }else{
+		    std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
+		  }
+
+		  if(newArea<0.001*currentElementalArea && currentElementalArea>0){
+		    increaseTimeInterval=false;
+		    /* std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl; */
+		  }
+
+		}
+	      }
+	      else if(dimension==3){
+		double currentElementalVolume = 0;
+		if( itElem->GetGeometry().Dimension() == 3 )
+		  currentElementalVolume = (itElem)->GetGeometry().Volume();
+		Geometry<Node<3> >  updatedElementCoordinates;
+		bool solidElement=false;
 		for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
 		  {
+		    if(itElem->GetGeometry()[i].Is(SOLID) || itElem->IsNot(ACTIVE)){
+		      solidElement=true;
+		    }
 		    const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		    Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
-		    updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
+		    Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
+		    updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		  }
 
+		double newVolume=0;
 		if(itElem->GetGeometry().size()==4){
-		  Tetrahedra3D4<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		  Tetrahedra3D4<Node<3> > myGeometry(updatedElementCoordinates);
 		  newVolume=myGeometry.Volume();
 		}else if(itElem->GetGeometry().size()==10){
-		  Tetrahedra3D10<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		  Tetrahedra3D10<Node<3> > myGeometry(updatedElementCoordinates);
+
 		  newVolume=myGeometry.Volume();
 		}else{
 		  std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
 		}
 
+		if(solidElement==true){
+		  newVolume=currentElementalVolume;
+		}
+
 		if(newVolume<0.001*currentElementalVolume && currentElementalVolume>0){
-		  increaseTimeInterval=false;
-		  /* std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl; */
+		  double reducedTimeInterval=0.5*temporaryTimeInterval;
+	      
+		  if(reducedTimeInterval<temporaryTimeInterval){
+		    rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
+		    /* std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl; */
+		    rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
+		    increaseTimeInterval=false;
+		    break;
+		  }
+		}else{
+		  Geometry<Node<3> >  updatedEnlargedElementCoordinates;
+
+		  for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+		    {
+		      const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+		      Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
+		      updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
+		    }
+
+		  if(itElem->GetGeometry().size()==4){
+		    Tetrahedra3D4<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		    newVolume=myGeometry.Volume();
+		  }else if(itElem->GetGeometry().size()==10){
+		    Tetrahedra3D10<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		    newVolume=myGeometry.Volume();
+		  }else{
+		    std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
+		  }
+
+		  if(newVolume<0.001*currentElementalVolume && currentElementalVolume>0){
+		    increaseTimeInterval=false;
+		    /* std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl; */
+		  }
+
+
 		}
 
 
+
 	      }
-
-
-
 	    }
-		
 	  }
 
       }

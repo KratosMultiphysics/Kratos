@@ -10,11 +10,7 @@
 //
 #include "shell_cross_section.hpp"
 #include "structural_mechanics_application_variables.h"
-
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif // M_PI
-
+#include "includes/element.h"
 
 namespace Kratos
 {
@@ -464,7 +460,8 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
             else
             {
                 // get the angle in radians of this ply w.r.t the parent section
-                double alpha = M_PI / 180.0 * iPlyAngle;
+                double alpha = Globals::Pi / 180.0 * iPlyAngle;
+
 
                 // make a copy of the generalized strain vector in section coordinate system
                 // and then rotate the (working) generalized strain vector in this ply coordinate system
@@ -893,7 +890,7 @@ void ShellCrossSection::GetLaminaeOrientation(Vector & rOrientation_Vector)
     for(PlyCollection::iterator ply_it = mStack.begin(); ply_it != mStack.end(); ++ply_it)
     {
         Ply& iPly = *ply_it;
-        rOrientation_Vector[counter] = iPly.GetOrientationAngle() / 180.0*KRATOS_M_PI;
+        rOrientation_Vector[counter] = iPly.GetOrientationAngle() / 180.0 * Globals::Pi;
         counter++;
     }
 }

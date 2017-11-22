@@ -20,7 +20,6 @@
 namespace Kratos
 {
 
-
 /**this function manages intervals. It aims at being used within processes
 *
 */
@@ -46,7 +45,7 @@ public:
         }
         else
         {
-            Parameters defaults(R"( {"default_interval": [0.0, 10.0]} )");
+            Parameters defaults(R"( {"default_interval": [0.0, 1e30]} )");
             settings.AddValue("interval", defaults["default_interval"]);
         }
 

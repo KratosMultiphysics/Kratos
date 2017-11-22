@@ -97,19 +97,19 @@ public:
     
     /**
      * This function fills the ConditionMap for the Mortar condition // LEGACY WAY
-     * @param ConditionPointers: The map storing the potential contact conditions
-     * @param pCond1: The condition pointer of the slave 
-     * @param pCond2: The  condition pointer of the master 
-     * @param ContactNormal1: The normals of the slave
-     * @param ContactNormal2: The normals of the master
-     * @param ActiveCheckLength: The threshold distance to check the potential contact
-     * @param DualCheck: The threshold distance to check the potential contact
-     * @param StrictCheck: If the node must be inside or not
+     * @param ConditionPointers The map storing the potential contact conditions
+     * @param pCond1 The condition pointer of the slave 
+     * @param pCond2 The  condition pointer of the master 
+     * @param ContactNormal1 The normals of the slave
+     * @param ContactNormal2 The normals of the master
+     * @param ActiveCheckLength The threshold distance to check the potential contact
+     * @param DualCheck The threshold distance to check the potential contact
+     * @param StrictCheck If the node must be inside or not
      */
     
     template< const bool TFill>
     static inline void ContactContainerFiller(
-        boost::shared_ptr<ConditionMap>& ConditionPointers,
+        ConditionMap::Pointer& ConditionPointers,
         Condition::Pointer & pCond1,       // SLAVE
         const Condition::Pointer & pCond2, // MASTER
         const array_1d<double, 3> & ContactNormal1, // SLAVE
@@ -149,14 +149,14 @@ public:
     
     /**
      * This function checks if the geometry can be potentially in contact using exact integration
-     * @param rVariables: the kinematic variables
-     * @param rThisMortarConditionMatrices: The mortar operators
-     * @param IntegrationUtility: The exact integration utility
-     * @param pCondSlave: The pointer of the slave
-     * @param pCondMaster: The pointer of the master
-     * @param SlaveNormal: The normals of the slave
-     * @param MasterNormal: The normals of the master
-     * @param ActiveCheckLength: The threshold distance to check the potential contact
+     * @param rVariables the kinematic variables
+     * @param rThisMortarConditionMatrices The mortar operators
+     * @param IntegrationUtility The exact integration utility
+     * @param SlaveGeometry The geometry of the slave
+     * @param MasterGeometry The geometry of the master
+     * @param SlaveNormal The normals of the slave
+     * @param MasterNormal The normals of the master
+     * @param ActiveCheckLength The threshold distance to check the potential contact
      * @return condition_is_active: True if at least one node is active, false otherwise
      */
     template< const unsigned int TDim, const unsigned int TNumNodes, const bool TFill>
@@ -306,15 +306,15 @@ public:
     
     /**
      * This function checks the ConditionMap for the Mortar condition 
-     * @param ConditionPointers: The map storing the potential contact conditions
-     * @param pCondSlave: The condition pointer of the slave 
-     * @param SlaveNormal: The normals of the slave
-     * @param ActiveCheckLength: The threshold distance to check the potential contact
+     * @param ConditionPointers The map storing the potential contact conditions
+     * @param SlaveGeometry The condition geometry of the slave 
+     * @param SlaveNormal The normals of the slave
+     * @param ActiveCheckLength The threshold distance to check the potential contact
      */
     
     template< const unsigned int TDim, const unsigned int TNumNodes >
     static inline void ExactContactContainerChecker(
-        boost::shared_ptr<ConditionMap>& ConditionPointers,
+        ConditionMap::Pointer& ConditionPointers,
         GeometryType& SlaveGeometry,            // SLAVE
         const array_1d<double, 3>& SlaveNormal, // SLAVE
         const double ActiveCheckLength
@@ -398,14 +398,14 @@ private:
     
     /**
      * This function checks the nodes of the geometry if they can be potentially in contact
-     * @param Geom1: The geometry of the slave 
-     * @param Geom1: The geometry of the master 
-     * @param ContactNormal1: The normals of the slave
-     * @param ContactNormal2: The normals of the master
-     * @param ActiveCheckLength: The threshold distance to check the potential contact
-     * @param DualCheck: The threshold distance to check the potential contact
-     * @param StrictCheck: If the node must be inside or not
-     * @param tolerance: The tolerance considered in the calculations
+     * @param Geom1 The geometry of the slave 
+     * @param Geom2 The geometry of the master 
+     * @param ContactNormal1 The normals of the slave
+     * @param ContactNormal2 The normals of the master
+     * @param ActiveCheckLength The threshold distance to check the potential contact
+     * @param DualCheck The threshold distance to check the potential contact
+     * @param StrictCheck If the node must be inside or not
+     * @param Tolerance The Tolerance considered in the calculations
      * @return at_least_one_node_potential_contact: True if at least one node is active, false otherwise
      */
     static inline bool CheckGeometryNodes(
@@ -416,7 +416,7 @@ private:
         const double ActiveCheckLength,
         const bool DualCheck = false, 
         const bool StrictCheck = true,
-        const double tolerance = std::numeric_limits<double>::epsilon()
+        const double Tolerance = std::numeric_limits<double>::epsilon()
         )
     {
         bool at_least_one_node_potential_contact = false;
@@ -427,7 +427,7 @@ private:
                 Point projected_point;
                 double aux_distance = 0.0;
                 const array_1d<double, 3> normal = Geom1[i_node].GetValue(NORMAL);
-                if (norm_2(normal) < tolerance)
+                if (norm_2(normal) < Tolerance)
                 {
                     aux_distance = MortarUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, ContactNormal1);
                 }
@@ -437,7 +437,7 @@ private:
                 }  
                 
                 array_1d<double, 3> result;
-                if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
+                if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, Tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                 {
                     at_least_one_node_potential_contact = true;
                     
@@ -447,7 +447,7 @@ private:
                 if (DualCheck == true)
                 {
                     aux_distance = MortarUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, -ContactNormal2);
-                    if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
+                    if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, Tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                     {
                         at_least_one_node_potential_contact = true;
                         

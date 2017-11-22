@@ -18,6 +18,8 @@
 #include "custom_constitutive/hencky_cam_clay_plane_strain_2D_law.hpp"
 #include "pfem_solid_mechanics_application_variables.h"
 
+// TO DO: Remove. This constitutive model is a special case of Borja
+
 namespace Kratos
 {
 

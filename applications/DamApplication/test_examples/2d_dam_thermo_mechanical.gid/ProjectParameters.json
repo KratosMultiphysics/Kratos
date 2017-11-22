@@ -62,10 +62,11 @@
                 "solver_type" : "SuperLUSolver",
                 "scaling"     : false
             },
-            "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
-            "body_domain_sub_model_part_list"    : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
-            "loads_sub_model_part_list"          : [],
-            "loads_variable_list"                : []
+            "problem_domain_sub_model_part_list" 	: ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+            "body_domain_sub_model_part_list"    	: ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+	    "mechanical_loads_sub_model_part_list" 	: ["HydroLinePressure2D_Hydrostatic_Pressure_Auto1"],
+            "loads_sub_model_part_list"          	: [],
+            "loads_variable_list"                	: []
         }
     },
     "output_configuration"     : {
@@ -92,7 +93,7 @@
         "python_module" : "apply_constraint_vector_dam_table_process",
         "kratos_module" : "KratosMultiphysics.DamApplication",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "process_name"  : "ApplyConstraintVectorDamTableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
@@ -131,7 +132,7 @@
         "python_module" : "impose_reservoir_temperature_condition_process",
         "kratos_module" : "KratosMultiphysics.DamApplication",
         "help"          : "This process fixes the given scalar variable",
-        "process_name"  : "ImposeBofangConditionProcess",
+        "process_name"  : "ImposeReservoirTemperatureConditionProcess",
         "Parameters"    : {
             "mesh_id"                                          : 0,
             "model_part_name"                                  : "BOFANGTEMPERATURE_Bofang_Temperature_Auto1",
@@ -169,7 +170,7 @@
         "python_module" : "impose_water_loads_condition_process",
         "kratos_module" : "KratosMultiphysics.DamApplication",
         "help"          : "This process sets a scalar variable value over a condition",
-        "process_name"  : "HydrostaticConditionsProcess",
+        "process_name"  : "ImposeWaterLoadsConditionProcess",
         "Parameters"    : {
             "mesh_id"                                          : 0,
             "model_part_name"                                  : "HydroLinePressure2D_Hydrostatic_Pressure_Auto1",

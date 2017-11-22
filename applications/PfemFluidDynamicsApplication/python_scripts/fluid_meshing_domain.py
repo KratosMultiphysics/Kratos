@@ -22,7 +22,7 @@ class FluidMeshingDomain(meshing_domain.MeshingDomain):
         self.element_mean_volume = 0
         
         number_of_elements =  self.main_model_part.NumberOfElements()
-        nodes_for_element  =  self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] + 1
+        nodes_for_element  =  self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION] + 1
 
         if(number_of_elements != 0):
             self.element_mean_volume = self.domain_volume/float(number_of_elements*nodes_for_element)

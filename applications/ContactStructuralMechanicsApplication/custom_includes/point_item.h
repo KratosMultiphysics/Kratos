@@ -20,6 +20,9 @@
 #include "includes/condition.h"
 #include "geometries/point.h"
 
+/* Custom utilities */
+#include "custom_utilities/contact_utilities.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -65,18 +68,18 @@ public:
         Point(Coords)
     {}
     
-    PointItem(Condition::Pointer Cond):
-        mpOriginCond(Cond)
+    PointItem(Condition::Pointer pCond):
+        mpOriginCond(pCond)
     {
         UpdatePoint(0.0);
     }
     
     PointItem(
         const array_1d<double, 3> Coords,
-        Condition::Pointer Cond
+        Condition::Pointer pCond
     ):
         Point(Coords),
-        mpOriginCond(Cond)
+        mpOriginCond(pCond)
     {}
 
     ///Copy constructor  (not really required)
@@ -110,7 +113,7 @@ public:
     
     /**
      * Set the point
-     * @param The point
+     * @param Point The point
      */
     void SetPoint(const Point Point)
     {
@@ -119,12 +122,12 @@ public:
 
     /**
      * Sets the condition associated to the point
-     * @param Cond: The pointer to the condition
+     * @param pCond The pointer to the condition
      */
 
-    void SetCondition(Condition::Pointer Cond)
+    void SetCondition(Condition::Pointer pCond)
     {
-        mpOriginCond = Cond;
+        mpOriginCond = pCond;
     }
     
     /**
@@ -139,22 +142,24 @@ public:
     
     /**
      * This function updates the database, using as base for the coordinates the condition center
-     * @return Coordinates: The coordinates of the item
+     * @param DeltaTime The increment in the time scheme
      */
 
     void UpdatePoint(const double& DeltaTime)
     {        
-        Point center;
-        if (mpOriginCond->GetGeometry()[0].SolutionStepsDataHas(VELOCITY_X) == true)
+        bool update_coordinates = false;
+        if (mpOriginCond->GetGeometry()[0].SolutionStepsDataHas(VELOCITY_X) == true && DeltaTime > 0.0)
         {
-            center = ContactUtilities::GetHalfJumpCenter(mpOriginCond->GetGeometry(), DeltaTime); // NOTE: Center in half delta time
+            update_coordinates = true;
+        }
+        if (update_coordinates == true)
+        {
+            this->Coordinates() = ContactUtilities::GetHalfJumpCenter(mpOriginCond->GetGeometry(), DeltaTime); // NOTE: Center in half delta time
         }
         else
         {
-            center = mpOriginCond->GetGeometry().Center(); // NOTE: Real center
+            this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates(); // NOTE: Real center
         }
-        
-        this->Coordinates() = center.Coordinates();
     }
 
 protected:

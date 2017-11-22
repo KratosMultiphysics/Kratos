@@ -30,7 +30,7 @@
 // Project includes
 
 // Core applications
-#include "solid_mechanics_application.h"
+//#include "solid_mechanics_application.h"
 #include "pfem_application.h"
 
 //conditions

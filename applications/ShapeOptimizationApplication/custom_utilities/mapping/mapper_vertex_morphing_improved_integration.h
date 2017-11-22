@@ -71,7 +71,7 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingImprovedIntegration( ModelPart& designSurface, Parameters& optimizationSettings )
+    MapperVertexMorphingImprovedIntegration( ModelPart& designSurface, Parameters optimizationSettings )
         : MapperVertexMorphing(designSurface, optimizationSettings)
     {
         SetIntegrationMethod(optimizationSettings);
@@ -94,7 +94,7 @@ public:
     ///@{
 
     // --------------------------------------------------------------------------
-    void SetIntegrationMethod( Parameters& optimizationSettings )
+    void SetIntegrationMethod( Parameters optimizationSettings )
     {
         std::string integration_method = optimizationSettings["design_variables"]["filter"]["integration"]["integration_method"].GetString();
         if (integration_method.compare("area_weighted_sum") == 0)

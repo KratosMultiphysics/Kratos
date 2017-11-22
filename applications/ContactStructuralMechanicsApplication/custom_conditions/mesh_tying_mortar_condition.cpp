@@ -84,7 +84,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
 //     mThisSlaveElement = this->GetValue(ELEMENT_POINTER);
     
     // Populate of the vector of master elements (it is supposed to be constant)    
-    boost::shared_ptr<ConditionMap>& all_conditions_maps = this->GetValue( MAPPING_PAIRS );
+    ConditionMap::Pointer& all_conditions_maps = this->GetValue( MAPPING_PAIRS );
     
     mIntegrationOrder = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
@@ -818,7 +818,7 @@ template< >
 boost::numeric::ublas::bounded_matrix<double, 6, 6> MeshTyingMortarCondition<2,3,ScalarValue>::CalculateLocalLHS<6>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -882,7 +882,7 @@ template< >
 boost::numeric::ublas::bounded_matrix<double, 12, 12> MeshTyingMortarCondition<2,3,Vector2DValue>::CalculateLocalLHS<12>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1054,7 +1054,7 @@ template< >
 boost::numeric::ublas::bounded_matrix<double, 6, 6> MeshTyingMortarCondition<2,4,ScalarValue>::CalculateLocalLHS<6>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1118,7 +1118,7 @@ template< >
 boost::numeric::ublas::bounded_matrix<double, 12, 12> MeshTyingMortarCondition<2,4,Vector2DValue>::CalculateLocalLHS<12>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1290,7 +1290,7 @@ template< >
 boost::numeric::ublas::bounded_matrix<double, 9, 9> MeshTyingMortarCondition<3,4,ScalarValue>::CalculateLocalLHS<9>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1404,7 +1404,7 @@ template< >
 boost::numeric::ublas::bounded_matrix<double, 27, 27> MeshTyingMortarCondition<3,4,Vector3DValue>::CalculateLocalLHS<27>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -2166,7 +2166,7 @@ template< >
 boost::numeric::ublas::bounded_matrix<double, 12, 12> MeshTyingMortarCondition<3,8,ScalarValue>::CalculateLocalLHS<12>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -2350,7 +2350,7 @@ template< >
 boost::numeric::ublas::bounded_matrix<double, 36, 36> MeshTyingMortarCondition<3,8,Vector3DValue>::CalculateLocalLHS<36>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -3690,7 +3690,7 @@ template<>
 array_1d<double, 6> MeshTyingMortarCondition<2,3,ScalarValue>::CalculateLocalRHS<6>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -3726,7 +3726,7 @@ template<>
 array_1d<double, 12> MeshTyingMortarCondition<2,3,Vector2DValue>::CalculateLocalRHS<12>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -3768,7 +3768,7 @@ template<>
 array_1d<double, 6> MeshTyingMortarCondition<2,4,ScalarValue>::CalculateLocalRHS<6>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -3804,7 +3804,7 @@ template<>
 array_1d<double, 12> MeshTyingMortarCondition<2,4,Vector2DValue>::CalculateLocalRHS<12>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -3846,7 +3846,7 @@ template<>
 array_1d<double, 9> MeshTyingMortarCondition<3,4,ScalarValue>::CalculateLocalRHS<9>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -3885,7 +3885,7 @@ template<>
 array_1d<double, 27> MeshTyingMortarCondition<3,4,Vector3DValue>::CalculateLocalRHS<27>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -3942,7 +3942,7 @@ template<>
 array_1d<double, 12> MeshTyingMortarCondition<3,8,ScalarValue>::CalculateLocalRHS<12>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -3984,7 +3984,7 @@ template<>
 array_1d<double, 36> MeshTyingMortarCondition<3,8,Vector3DValue>::CalculateLocalRHS<36>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
-    const unsigned int& rMasterElementIndex,
+    const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {

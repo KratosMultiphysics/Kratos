@@ -314,20 +314,20 @@ namespace Kratos
 			{
 				theSection = props[SHELL_CROSS_SECTION];
 			}
-			else if (theSection->CheckIsOrthotropic(props))
-			{
-				// make new instance of shell cross section
-				theSection =
-					ShellCrossSection::Pointer(new ShellCrossSection());
+			// else if (theSection->CheckIsOrthotropic(props))
+			// {
+			// 	// make new instance of shell cross section
+			// 	theSection =
+			// 		ShellCrossSection::Pointer(new ShellCrossSection());
 
-				// Assign orthotropic material law for entire element
-				LinearElasticOrthotropic2DLaw OrthoLaw;
-				props.SetValue(CONSTITUTIVE_LAW, OrthoLaw.Clone());
+			// 	// Assign orthotropic material law for entire element
+			// 	LinearElasticOrthotropic2DLaw OrthoLaw;
+			// 	props.SetValue(CONSTITUTIVE_LAW, OrthoLaw.Clone());
 
-				// Parse material properties for each layer
-				Element* thisElement = this;
-				theSection->ParseOrthotropicPropertyMatrix(props, thisElement);
-			}
+			// 	// Parse material properties for each layer
+			// 	Element* thisElement = this;
+			// 	theSection->ParseOrthotropicPropertyMatrix(props, thisElement);
+			// }
 			else
 			{
 				theSection =

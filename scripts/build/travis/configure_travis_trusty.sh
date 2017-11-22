@@ -111,10 +111,10 @@ CMAKE_LIBS=(
 
 CMAKE_APPLICATION=(
   -DEXTERNAL_SOLVERS_APPLICATION=ON
-  -DSOLID_MECHANICS_APPLICATION=ON
+  -DSTRUCTURAL_MECHANICS_APPLICATION=ON
   -DFLUID_DYNAMICS_APPLICATION=ON
   -DDEM_APPLICATION=ON
-  -DSWIMMING_DEM_APPLICATION=ON
+  -DSWIMMING_DEM_APPLICATION=OFF
 )
 
 ########################################################################################################################
@@ -174,6 +174,7 @@ CMAKE_EXTRA=(
   -DMKL_SOLVERS_APPLICATION=OFF
   -DMKLSOLVER_INCLUDE_DIR="/opt/intel/Compiler/11.1/072/mkl/include"
   -DMKLSOLVER_LIB_DIR="/opt/intel/Compiler/11.1/072/mkl/lib/em64t"
+  -DUSE_COTIRE=ON
 )
 
 ########################################################################################################################

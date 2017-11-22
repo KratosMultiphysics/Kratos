@@ -20,7 +20,6 @@
 #include <unordered_set>
 #include <algorithm>
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 #include "utilities/timer.h"
 
@@ -973,6 +972,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                     NodeType &node = r_model_part.Nodes()[slaveNodeId];
                     Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
                     unsigned int slaveEquationId = it->EquationId();
+                    double slaveDxValue = 0.0;
 
                     for (auto masterDofMapElem : masterDofMap)
                     {
@@ -986,10 +986,11 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                         Node<3>::DofsContainerType::iterator it = masterNode.GetDofs().find(masterDofKey);
                         masterEquationId = it->EquationId();
 
-                        Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + TSparseSpace::GetValue(Dx, masterEquationId) * weight;
+                        slaveDxValue = slaveDxValue + TSparseSpace::GetValue(Dx, masterEquationId) * weight;
                     }
+                    slaveDxValue = slaveDxValue + mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationId];
 
-                    Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationId];
+                    Dx[slaveEquationId] = slaveDxValue;
                     mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationId] = 0.0;
                 }
             }

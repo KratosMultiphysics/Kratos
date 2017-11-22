@@ -26,7 +26,7 @@
 
 ///VARIABLES used:
 //Data:      
-//StepData: DOMAIN_LABEL, CONTACT_FORCE, DISPLACEMENT
+//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked) 
 //          (set)     
 //          (modified)  
@@ -72,7 +72,6 @@ namespace Kratos
     {
       std::cout<<" generate_new_nodes_process_for_homogeneous_mesh CONSTRUCTOR "<<std::endl;
 
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -110,7 +109,7 @@ namespace Kratos
 	std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
 
       ModelerUtilities ModelerUtils;
-      const unsigned int dimension = mrModelPart.ElementsBegin(mMeshId)->GetGeometry().WorkingSpaceDimension();
+      const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
       const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
@@ -137,10 +136,10 @@ namespace Kratos
 	double freeSurfaceLength=0;
 
 	/////////////////////////        compute the free-surface length         /////////////////////////
-	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
-	//ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
+	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
+	//ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
 	const unsigned int nds = element_begin->GetGeometry().size();
-	for(ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(mMeshId); ie++)
+	for(ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
 	  {
 	    unsigned int freesurfaceNodes=0;
 	    double freeSurfaceElementalSize=0;
@@ -211,7 +210,7 @@ namespace Kratos
 	// if( mEchoLevel > 0 )
 	std::cout<<"freeSurface length "<<freeSurfaceLength<<"  offset "<<offset<<std::endl;
 
-	for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(mMeshId) ; i_node != mrModelPart.NodesEnd(mMeshId) ; i_node++)
+	for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
 	  {
 	    if(i_node->Is(BOUNDARY) && i_node->IsNot(RIGID)){
 	      array_1d<double, 3>  Normal(3,0.0);
@@ -322,8 +321,6 @@ namespace Kratos
     ModelerUtilities::MeshingParameters& mrRemesh;
 
     ModelerUtilities mModelerUtilities;  
-
-    ModelPart::IndexType mMeshId; 
 
     int mEchoLevel;
 

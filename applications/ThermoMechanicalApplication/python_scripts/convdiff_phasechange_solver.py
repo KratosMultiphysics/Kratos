@@ -36,8 +36,8 @@ def AddVariables(model_part, settings):
     #model_part.AddNodalSolutionStepVariable(settings.GetTransferCoefficientVariable());
     #model_part.AddNodalSolutionStepVariable(HTC); #Mirar para quitarla de enmedio
     model_part.AddNodalSolutionStepVariable(ENTHALPY);
-    model_part.AddNodalSolutionStepVariable(SOLID_FRACTION);
-    model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_RATE);
+    model_part.AddNodalSolutionStepVariable(SOLIDFRACTION);
+    model_part.AddNodalSolutionStepVariable(SOLIDFRACTION_RATE);
     model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 

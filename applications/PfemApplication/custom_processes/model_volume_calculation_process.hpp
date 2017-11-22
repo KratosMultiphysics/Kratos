@@ -111,16 +111,6 @@ public:
       if( mEchoLevel > 0 )
 	std::cout<<"  [ Model Volume : "<<mModelVolume<<" ]"<<std::endl;
 
-
-      // unsigned int start=0;
-      // unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
-      // if(NumberOfMeshes>1) 
-      // 	start=1;
-      // for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
-      // 	{
-      // 	  std::cout<<"   [ Mesh Volume ["<<MeshId<<"]: "<<mMeshVolume[MeshId]<<" ]"<<std::endl;
-      // 	}
-
       KRATOS_CATCH( "" )
 	
     }
@@ -136,14 +126,6 @@ public:
       if( mEchoLevel > 0 )
 	std::cout<<"  [ Model Volume : "<<ModelVolume<<" ] [ Step increment : "<<ModelVolume-mModelVolume<<" ] "<<std::endl;
 
-      // unsigned int start=0;
-      // unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
-      // if(NumberOfMeshes>1) 
-      // 	start=1;
-      // for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
-      // 	{
-      // 	  std::cout<<"   [ Mesh Volume ["<<MeshId<<"]: "<<MeshVolume[MeshId]<<" ] [ Step increment : "<<MeshVolume[MeshId]-mMeshVolume[MeshId]<<" ] "<<std::endl;
-      // 	}
 
       KRATOS_CATCH( "" )      
     }

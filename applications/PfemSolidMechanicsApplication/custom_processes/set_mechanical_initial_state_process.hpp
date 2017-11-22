@@ -24,12 +24,12 @@
 #include "utilities/math_utils.h"
 #include "pfem_solid_mechanics_application_variables.h"
 
+#include "includes/kratos_parameters.h"
 
 
 namespace Kratos
 {
 
-   // blah blah blah
    class SetMechanicalInitialStateProcess
       : public Process 
    {
@@ -53,9 +53,11 @@ namespace Kratos
 
          // Constructor.
 
-         SetMechanicalInitialStateProcess(ModelPart& rModelPart);
+         //SetMechanicalInitialStateProcess(ModelPart& rModelPart);
 
-         SetMechanicalInitialStateProcess(ModelPart& rModelPart, const bool rGravity, const double rSV = 0.0, const double rSH = 0.0);
+         //SetMechanicalInitialStateProcess(ModelPart& rModelPart, const bool rGravity, const double rSV = 0.0, const double rSH = 0.0, const double rWaterPressure = 0.0, const bool rYmaxBool = false, const double rYmax = 0.0, const double rWaterLoad = 0.0);
+
+         SetMechanicalInitialStateProcess( ModelPart& rModelPart, Parameters rParameters);
 
 
          /** Destructor.
@@ -73,28 +75,34 @@ namespace Kratos
          /**@name Operations */
          /*@{ */
 
-         virtual void ExecuteInitialize();
 
          virtual void ExecuteFinalizeSolutionStep();
 
+
+         void operator()()
+         {
+            Execute();
+         }
+
+         virtual void Execute();
 
       protected:
 
          void SetInitialMechanicalState(ModelPart& rModelPart, int EchoLevel = 0);
 
-         void SetInitialMechanicalStateConstant(ModelPart& rModelPart, double S1, double S2, int EchoLevel = 0);
+         void SetInitialMechanicalStateConstant(ModelPart& rModelPart, double S1, double S2, double WaterPressure, int EchoLevel = 0);
 
-         void SetMechanicalState(ModelPart& rModelPart, const unsigned int& rMeshId, int& EchoLevel, const double& rYmax);
+         void SetMechanicalState(ModelPart& rModelPart, int& EchoLevel, const double& rYmax);
 
-         void SetMechanicalStateUwP(ModelPart& rModelPart, const unsigned int& rMeshId, int& EchoLevel, const double& rYmax);
+         void SetMechanicalStateUwP(ModelPart& rModelPart, int& EchoLevel, const double& rYmax);
 
-         void SetMechanicalStateU(ModelPart& rModelPart, const unsigned int& rMeshId, int& EchoLevel, const double& rYmax);
+         void SetMechanicalStateU(ModelPart& rModelPart, int& EchoLevel, const double& rYmax);
 
-         void SetMechanicalStateUP(ModelPart& rModelPart, const unsigned int& rMeshId, int& EchoLevel, const double& rYmax);
+         void SetMechanicalStateUP(ModelPart& rModelPart, int& EchoLevel, const double& rYmax);
 
-         void SetMechanicalStateConstantUP(ModelPart& rModelPart, const unsigned int& rMeshId, const double& rS1, const double& rS2, int& EchoLevel);
+         void SetMechanicalStateConstantUP(ModelPart& rModelPart, const double& rS1, const double& rS2, int& EchoLevel);
 
-         void SetMechanicalStateConstant(ModelPart& rModelPart, const unsigned int& rMeshId, const double& rS1, const double& rS2, int& EchoLevel);
+         void SetMechanicalStateConstant(ModelPart& rModelPart, const double& rS1, const double& rS2, const double& rWaterPressure, int& EchoLevel);
 
       private:
 
@@ -104,7 +112,15 @@ namespace Kratos
 
          std::vector<double> mInitialStress;
 
+         double mInitialWaterPressure; 
+
          ModelPart& mrModelPart;
+
+         bool mSurfaceLoadBool; 
+
+         double mSurfaceLoad;
+
+         double mWaterLoad;
 
    }; //end class SetMechanicalInitialStateProcess
 

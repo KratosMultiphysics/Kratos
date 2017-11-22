@@ -10,12 +10,13 @@
 #if !defined(KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED )
 #define  KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED
 
+
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_wP_element.hpp"
+#include "custom_elements/solid_elements/axisymmetric_updated_lagrangian_element.hpp"
 
 namespace Kratos
 {
@@ -38,7 +39,7 @@ namespace Kratos
 
 
 class AxisymUpdatedLagrangianUwPElement
-    : public UpdatedLagrangianUwPElement
+    : public AxisymmetricUpdatedLagrangianElement
 {
 public:
 
@@ -97,7 +98,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected element variables, creating a new one
@@ -106,39 +107,60 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
+    //************* GETTING METHODS
+    //************************************************************************************
+    //************************************************************************************
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+     int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
+    //GET:
+
+    /**
+     * Get on rVariable a double Value from the Element Constitutive Law
+     */
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo) override;
+
+    //************* STARTING - ENDING  METHODS
 
 
     /**
-     * Calculate Element Kinematics
+    * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables,
-                                     const double& rPointNumber);
-
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Calculation of the Deformation Gradient F
+     * Sets on rResult the ID's of the element degrees of freedom
      */
-    void CalculateDeformationGradient(const Matrix& rDN_DX,
-                                      Matrix& rF,
-                                      Matrix& rDeltaPosition,
-                                      double& rCurrentRadius,
-                                      double& rReferenceRadius);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Calculation of the Deformation Matrix  BL
+     * Sets on rValues the nodal displacements
      */
-    using UpdatedLagrangianUwPElement::CalculateDeformationMatrix; //We put this because the compiler complains: AxisymUpdatedLagrangianUwPElement::CalculateDeformationMatrix' hides overloaded virtual function
-    virtual void CalculateDeformationMatrix(Matrix& rB,
-                                            Matrix& rF,
-                                            Vector& rN,
-                                            double& rCurrentRadius);
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
+
+    /**
+     * Sets on rValues the nodal velocities
+     */
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+
+    /**
+     * Sets on rValues the nodal accelerations
+     */
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
 
-    virtual void CalculateRadius(double & rCurrentRadius, double & rReferenceRadius, const Vector& rN);
-
-    virtual void Initialize();
 
     ///@}
     ///@name Access
@@ -162,27 +184,10 @@ protected:
     ///@{
 
 
-    /**
-     * Container for historical total elastic deformation measure F0 = dx/dX
-     */
-    //std::vector< Matrix > mDeformationGradientF0;
-
-
-    /**
-     * Container for the total deformation gradient determinants
-     */
-    //Vector mDeterminantF0;
-
-
     /**** 
        the time step (requiered). It shall be somewhere else.
     ****/    
-    //double mTimeStep;
-
-    /*** 
-        Just to check a few things
-     ***/
-    //bool mCompressibleWater;
+    double mTimeStep;
 
     ///@}
     ///@name Protected Operators
@@ -192,109 +197,47 @@ protected:
     ///@name Protected Operations
     ///@{
 
+
     /**
      * Calculation and addition of the matrices of the LHS
      */
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
-                                    double& rIntegrationWeight);
+                                    ElementVariables& rVariables,
+                                    double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
+                                    ElementVariables& rVariables,
                                     Vector& rVolumeForce,
-                                    double& rIntegrationWeight);
+                                    double& rIntegrationWeight) override;
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
-   /**
-     * Finalize Element Internal Variables
-     */
-    //virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
-
-
+ 
 
     /**
-     * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
+     * Initialize System Matrices
      */
-    virtual void CalculateAndAddKuum(MatrixType& rK,
-                                     GeneralVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    );
+    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+                                  VectorType& rRightHandSideVector,
+                                  Flags& rCalculationFlags) override;
 
+    //on integration points:
     /**
-     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
+     * Calculate a double Variable on the Element Constitutive Law
      */
-    virtual void CalculateAndAddKuug(MatrixType& rK,
-                                     GeneralVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    );
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * Calculation of the Kup matrix
-     */
-    virtual void CalculateAndAddKup (MatrixType& rK,
-                                     GeneralVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    );
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * Calculation of the Kpu matrix
-     */
-    virtual void CalculateAndAddKpu(MatrixType& rK,
-                                    GeneralVariables & rVariables,
-                                    double& rIntegrationWeight
-                                   );
-
-
-    /**
-     * Calculation of the Kpp matrix
-     */
-    virtual void CalculateAndAddKpp(MatrixType& rK,
-                                    GeneralVariables & rVariables,
-                                    double& rIntegrationWeight
-                                   );
-
-
-    /**
-     * Calculation of the Kpp Stabilization Term matrix
-     */
-    virtual void CalculateAndAddKppStab(MatrixType& rK,
-                                        GeneralVariables & rVariables,
-                                        double& rIntegrationWeight
-                                       );
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            double& rIntegrationWeight
-                                              );
-
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            double& rIntegrationWeight
-                                                  );
-
-    /**
-      * Calculation of the Internal Forces due to sigma. Fi = B * sigma
-      */
-    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-                                       GeneralVariables & rVariables,
-                                       double& rIntegrationWeight
-                                      );
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Protected  Access
@@ -338,9 +281,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

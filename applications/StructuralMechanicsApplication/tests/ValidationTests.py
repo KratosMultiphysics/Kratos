@@ -45,3 +45,9 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
     
 class SprismPanTests(StructuralMechanichsTestFactory):
     file_name = "sprism_test/pan_test"
+    
+class PendulusTLTest(StructuralMechanichsTestFactory):
+    file_name = "pendulus_test/pendulus_TL_test"
+    
+class PendulusULTest(StructuralMechanichsTestFactory):
+    file_name = "pendulus_test/pendulus_UL_test"

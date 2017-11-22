@@ -15,7 +15,7 @@
 #include "utilities/quaternion.h"
 #include "custom_utilities/cluster_information.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
-//#include "custom_utilities/properties_proxies.h"
+#include "custom_utilities/properties_proxies.h"
 
 namespace Kratos
 {
@@ -109,7 +109,6 @@ namespace Kratos
   // *************** Continuum only END ***************
 
   // MATERIAL PARAMETERS
-  class PropertiesProxy; //forward declaration
   KRATOS_DEFINE_VARIABLE(std::vector<PropertiesProxy>, VECTOR_OF_PROPERTIES_PROXIES)
   KRATOS_DEFINE_VARIABLE(double, NODAL_MASS_COEFF)
   KRATOS_DEFINE_VARIABLE(double, PARTICLE_MOMENT_OF_INERTIA)
@@ -127,8 +126,6 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, K_TANGENTIAL)
   KRATOS_DEFINE_VARIABLE(double, CONTACT_RADIUS)
   KRATOS_DEFINE_VARIABLE(double, MAX_STRESS)
-  KRATOS_DEFINE_VARIABLE(double, ALPHA)
-  KRATOS_DEFINE_VARIABLE(double, ALPHA_FUNCTION)
   KRATOS_DEFINE_VARIABLE(double, GAMMA)
   KRATOS_DEFINE_VARIABLE(double, EXCENTRICITY)
   KRATOS_DEFINE_VARIABLE(double, EXCENTRICITY_STANDARD_DEVIATION)

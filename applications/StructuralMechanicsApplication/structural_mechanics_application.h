@@ -68,7 +68,7 @@
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
 #include "custom_conditions/axisym_point_load_condition.h"
-#include "custom_conditions/line_load_condition.h"
+#include "custom_conditions/line_load_condition_2d.h"
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
 
@@ -77,6 +77,8 @@
 #include "custom_conditions/adjoint_conditions/surface_load_adjoint_condition_3d.h"
 
 /* CONSTITUTIVE LAWS */
+#include "custom_constitutive/truss_constitutive_law.h"
+#include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
@@ -87,8 +89,8 @@
 
 /* UTILITIES */
 // Cross sections
-#include "custom_utilities/shell_cross_section.hpp"
-#include "custom_utilities/multipoint_constraint_data.hpp"
+// #include "custom_utilities/shell_cross_section.hpp"
+// #include "custom_utilities/multipoint_constraint_data.hpp"
 
 namespace Kratos
 {
@@ -358,9 +360,8 @@ private:
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
     
     // Line load
-    const LineLoadCondition mLineLoadCondition2D2N;
-    const LineLoadCondition mLineLoadCondition2D3N;
-    const LineLoadCondition mLineLoadCondition3D2N;
+    const LineLoadCondition2D mLineLoadCondition2D2N;
+    const LineLoadCondition2D mLineLoadCondition2D3N;
     
     const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D2N;
     const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D3N;
@@ -385,6 +386,8 @@ private:
     
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
+    const TrussConstitutiveLaw mTrussConstitutiveLaw;
+    const BeamConstitutiveLaw mBeamConstitutiveLaw;
     const ElasticIsotropic3D mElasticIsotropic3D;
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;

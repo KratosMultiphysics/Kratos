@@ -24,7 +24,7 @@
 "CleanIndentationsOption"          : true,
 "RemoveBallsInEmbeddedOption"      : true,
 "DeltaOption"                      : "Absolute",
-"SearchTolerance"                  : 0.0,
+"SearchTolerance"                  : 0.5,
 "CoordinationNumber"               : 10,
 "AmplifiedSearchRadiusExtension"   : 1.1,
 "ModelDataInfo"                    : false,
@@ -83,5 +83,5 @@
 "PredefinedSkinOption"             : false,
 "MeanRadius"                       : 0.0001,
 
-"problem_name"                     :"benchmark13"
+"problem_name"                     : "benchmark13"
 }
