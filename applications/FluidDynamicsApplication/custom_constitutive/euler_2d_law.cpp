@@ -53,13 +53,7 @@ namespace Kratos
     Euler2DLaw::~Euler2DLaw() {}
 
     void  Euler2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues) {
-
-        //-----------------------------//
-
-        //a.-Check if the constitutive parameters are passed correctly to the law calculation
-        //CheckParameters(rValues);
-
-        //b.- Get Values to compute the constitutive law:
+        // Get values to compute the constitutive law:
         Flags &Options = rValues.GetOptions();
 
         Vector& StressVector = rValues.GetStressVector();
@@ -94,25 +88,6 @@ namespace Kratos
         //Set the spacedimension
         rFeatures.mSpaceDimension = 2;
 
-    }
-
-    //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
-    //************************************************************************************
-
-    // bool Euler2DLaw::CheckParameters(Parameters& rValues)
-    // {
-    //     return rValues.CheckAllParameters();
-    // }
-
-    int Euler2DLaw::Check(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const ProcessInfo& rCurrentProcessInfo) {
-
-        if(DYNAMIC_VISCOSITY.Key() == 0 || rMaterialProperties[DYNAMIC_VISCOSITY] != 0.00)
-            KRATOS_ERROR << "DYNAMIC_VISCOSITY has Key zero or invalid value (different to zero)";
-
-        return 0;
     }
 
 } // Namespace Kratos

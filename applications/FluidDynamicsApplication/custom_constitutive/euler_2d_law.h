@@ -25,8 +25,7 @@ namespace Kratos
 {
     /**
      * Defines an Euler fluid constitutive law
-     * This material law is defined by the parameters:
-     * 1) DYNAMIC_VISCOSITY
+     * This material law represents a null shear stress contribution.
      */
     class Euler2DLaw : public ConstitutiveLaw
     {
@@ -68,8 +67,7 @@ namespace Kratos
          * Assignment operator.
          */
 
-        //Newtonian3DLaw& operator=(const Newtonian3DLaw& rOther);
-
+        Euler2DLaw& operator = (const Euler2DLaw& rOther);
 
         /**
          * Destructor.
@@ -91,33 +89,32 @@ namespace Kratos
          */
         void GetLawFeatures(Features& rFeatures) override;
 
-
-        /**
-         * This function is designed to be called once to perform all the checks needed
-         * on the input provided. Checks can be "expensive" as the function is designed
-         * to catch user's errors.
-         * @param rMaterialProperties
-         * @param rElementGeometry
-         * @param rCurrentProcessInfo
-         * @return
-         */
-        int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
-
         /**
          * Input and output
          */
+
         /**
          * Turn back information as a string.
          */
-        //virtual String Info() const;
+        std::string Info() const override {
+            std::stringstream buffer;
+            buffer << "Euler2DLaw #";
+            return buffer.str();
+        };
+
         /**
          * Print information about this object.
          */
-        //virtual void PrintInfo(std::ostream& rOStream) const;
+        void PrintInfo(std::ostream& rOStream) const override {
+            rOStream << Info();
+        };
+
         /**
          * Print object's data.
          */
-        //virtual void PrintData(std::ostream& rOStream) const;
+        void PrintData(std::ostream& rOStream) const override {
+            rOStream << Info();
+        };
 
     private:
 
