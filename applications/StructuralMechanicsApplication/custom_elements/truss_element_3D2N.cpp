@@ -441,7 +441,7 @@ namespace Kratos
 
 	int  TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo){
 		KRATOS_TRY
-
+		const double numerical_limit = std::numeric_limits<double>::epsilon();
 		if (this->GetGeometry().WorkingSpaceDimension() != msDimension || this->GetGeometry().PointsNumber() != msNumberOfNodes)
 			{
 				KRATOS_THROW_ERROR(std::invalid_argument,
@@ -470,13 +470,13 @@ namespace Kratos
 
 		
 		if (this->GetProperties().Has(CROSS_AREA) == false ||
-			this->GetProperties()[CROSS_AREA] == 0)
+			this->GetProperties()[CROSS_AREA] <= numerical_limit)
 		{
 			KRATOS_ERROR <<  "CROSS_AREA not provided for this element" << this->Id() << std::endl;
 		}
 
 		if (this->GetProperties().Has(YOUNG_MODULUS) == false ||
-			this->GetProperties()[YOUNG_MODULUS] == 0)
+			this->GetProperties()[YOUNG_MODULUS] <= numerical_limit)
 		{
 			KRATOS_ERROR << "YOUNG_MODULUS not provided for this element" << this->Id() << std::endl;
 		}
@@ -506,13 +506,13 @@ namespace Kratos
 		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
 		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
 		const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-		const double L = sqrt(dx*dx + dy*dy + dz*dz);
+		const double L = std::sqrt(dx*dx + dy*dy + dz*dz);
 		return L;
 		KRATOS_CATCH("")
 	}
-	double TrussElement3D2N::CalculateCurrentLength(){
+	double TrussElement3D2N::CalculateCurrentLength() {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		const double du = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X)
 			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
 		const double dv = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y)
@@ -522,10 +522,11 @@ namespace Kratos
 		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
 		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
 		const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-		const double l = sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy) 
-			+ (dw + dz)*(dw + dz));
+		const double l = std::sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy) +
+			(dw + dz)*(dw + dz));
 		return l;
 		KRATOS_CATCH("")
+
 	}
 	void TrussElement3D2N::UpdateInternalForces(bounded_vector<double,
 		TrussElement3D2N::msLocalSize>& rinternalForces){
