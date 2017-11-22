@@ -102,6 +102,7 @@ class MpcData
 		*/
     MpcData() : mDofConstraints(), mEquationIdToWeightsMap()
     {
+        mIsWeak = false;
     }
     /// Destructor.
     virtual ~MpcData(){};
@@ -197,6 +198,23 @@ class MpcData
     {
         mName = name;
     }
+
+    /**
+		Set the name for the current set of constraints. 
+		 */
+    void SetWeak(bool isWeak)
+    {
+        mIsWeak = isWeak;
+    }
+
+   /**
+		Set the name for the current set of constraints. 
+		 */
+    bool IsWeak()
+    {
+       return mIsWeak;
+    }    
+
     /**
 		Get the name for the current set of constraints. 
 		 */
@@ -235,7 +253,7 @@ class MpcData
         std::cout << std::endl;
         std::cout << "===============================================================" << std::endl;
         std::cout << "Number of Slave DOFs :: " << mDofConstraints.size() << std::endl;
-        for (auto& i : mDofConstraints)
+        for (auto &i : mDofConstraints)
         {
             std::cout << "Number of Master DOFs :: " << i.second.size() << std::endl;
         }
@@ -250,15 +268,15 @@ class MpcData
         rOStream << " MpcData object " << std::endl;
         rOStream << "===============================================================" << std::endl;
         rOStream << "Number of Slave DOFs :: " << mDofConstraints.size() << std::endl;
-        for (const auto& i : mDofConstraints)
+        for (const auto &i : mDofConstraints)
         {
             rOStream << "Number of Master DOFs :: " << i.second.size() << std::endl;
         }
 
-        rOStream << "===============================================================" << std::endl;  
+        rOStream << "===============================================================" << std::endl;
     }
 
-    ///@name Member Variables 
+    ///@name Member Variables
     ///@{
     //this holds the definition of the constraint - can be constructed prior to EquationIds
     std::unordered_map<SlavePairType, MasterDofWeightMapType, pair_hash> mDofConstraints;
@@ -273,6 +291,8 @@ class MpcData
 
     bool mActive;
     std::string mName;
+    bool mIsWeak;
+
     ///@}
 
     ///@name Serialization
@@ -283,18 +303,20 @@ class MpcData
     {
         rSerializer.save("MpcDataName", mName);
         rSerializer.save("NumConstraints", mDofConstraints.size());
-        for (const auto& slaveMasterrelation : mDofConstraints){
+        for (const auto &slaveMasterrelation : mDofConstraints)
+        {
 
-            rSerializer.save("slaveID", (slaveMasterrelation.first).first); // saving the vector of the slave id 
+            rSerializer.save("slaveID", (slaveMasterrelation.first).first);   // saving the vector of the slave id
             rSerializer.save("slaveKey", (slaveMasterrelation.first).second); // saving the vector of the slave key
 
             rSerializer.save("numMasters", (slaveMasterrelation.second).size()); // Writint number of masters for this slave
-            for (const auto& masterIdKeyConstant: (slaveMasterrelation.second) ){
-                rSerializer.save("masterID", std::get<0>(masterIdKeyConstant.first)); // saving the id of the master
+            for (const auto &masterIdKeyConstant : (slaveMasterrelation.second))
+            {
+                rSerializer.save("masterID", std::get<0>(masterIdKeyConstant.first));  // saving the id of the master
                 rSerializer.save("masterKey", std::get<1>(masterIdKeyConstant.first)); // saving the id of the master
-                rSerializer.save("constant", std::get<2>(masterIdKeyConstant.first)); // saving the id of the master
+                rSerializer.save("constant", std::get<2>(masterIdKeyConstant.first));  // saving the id of the master
 
-                rSerializer.save("weight", masterIdKeyConstant.second); // saving the id of the master 
+                rSerializer.save("weight", masterIdKeyConstant.second); // saving the id of the master
             }
         }
     }
@@ -304,15 +326,17 @@ class MpcData
         rSerializer.load("MpcDataName", mName);
         int numConstraints = 0;
         rSerializer.load("NumConstraints", numConstraints);
-        for (int i=0; i<numConstraints; i++){
-            int slaveID(0),slaveKey(0), numMasters(0);
+        for (int i = 0; i < numConstraints; i++)
+        {
+            int slaveID(0), slaveKey(0), numMasters(0);
             rSerializer.load("slaveID", slaveID);
             rSerializer.load("slaveKey", slaveKey);
-            rSerializer.load("numMasters", numMasters); 
-            for(int j=0; j<numMasters; j++){
+            rSerializer.load("numMasters", numMasters);
+            for (int j = 0; j < numMasters; j++)
+            {
                 int masterID(0), masterKey(0);
                 double constant(0), weight(0);
-                
+
                 rSerializer.load("masterID", masterID);
                 rSerializer.load("masterKey", masterKey);
                 rSerializer.load("constant", constant);
@@ -320,9 +344,8 @@ class MpcData
 
                 mDofConstraints[std::make_pair(slaveID, slaveKey)][std::tie(masterID, masterKey, constant)] += weight;
             }
-
         }
-    } 
+    }
 
     ///@}
 };

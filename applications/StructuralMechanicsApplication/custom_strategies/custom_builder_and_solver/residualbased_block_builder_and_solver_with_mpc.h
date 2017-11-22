@@ -589,7 +589,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                 std::vector<std::size_t> SlavesCorrespondingToMasters;
 
                 // Formulating the local slave equationId vector
-                for (int i = 0; i < EquationId.size(); ++i)
+                for (unsigned int i = 0; i < EquationId.size(); ++i)
                 {
                     localEquationIds.push_back(i);
                     if (mpcData->mEquationIdToWeightsMap.count(EquationId[i]) > 0)
@@ -771,7 +771,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                 std::vector<std::size_t> SlavesCorrespondingToMasters;
 
                 // Formulating the local slave equationId vector
-                for (int i = 0; i < EquationId.size(); ++i)
+                for (unsigned int i = 0; i < EquationId.size(); ++i)
                 {
                     localEquationIds.push_back(i);
                     if (mpcData->mEquationIdToWeightsMap.count(EquationId[i]) > 0)
