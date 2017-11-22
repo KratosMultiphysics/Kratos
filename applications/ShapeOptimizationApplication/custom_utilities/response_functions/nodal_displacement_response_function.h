@@ -303,10 +303,11 @@ public:
 
         rResponseGradient.clear();
 
-		if(rAdjointElem.Id() == m_neighboring_pElement->Id() )
+		if( rAdjointElem.Id() == m_neighboring_pElement->Id() )
 		{
 			DofsVectorType dofs_of_lement; 
 			m_neighboring_pElement->GetDofList(dofs_of_lement,rProcessInfo);
+
 			const VariableComponentType& rTRACED_ADJOINT_DOF =
             	KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + m_traced_dof_label);	
 			int index = 0;
@@ -314,11 +315,12 @@ public:
 			{
 				if(m_traced_pNode->pGetDof(rTRACED_ADJOINT_DOF) == dofs_of_lement[i])
 				{
-					rResponseGradient[i] = -1; //TODO: Check for correct sign!
+					rResponseGradient[i] = -1;
 				}
 				index++;
 			}
 		}
+
 
 		KRATOS_CATCH("");
 

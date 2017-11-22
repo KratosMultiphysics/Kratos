@@ -52,6 +52,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
   # Adding elements for adjoint sensitivity analysis
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/shell_thin_adjoint_element_3D3N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/shell_thin_adjoint_element_3D4N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/cr_beam_adjoint_element_3D2N.cpp
 
   # Solid elements

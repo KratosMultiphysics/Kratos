@@ -40,7 +40,7 @@ namespace Kratos
 	{
 		const GeometryType& rGeom = this->GetGeometry();
 		return BaseType::Pointer(new CrBeamAdjointElement3D2N(
-			NewId, rGeom.Create(rThisNodes), pProperties, this->mIsLinearElement));
+			NewId, rGeom.Create(rThisNodes), pProperties, true));//this->mIsLinearElement));
 	}
 
 	Element::Pointer CrBeamAdjointElement3D2N::Create(IndexType NewId,
@@ -49,7 +49,7 @@ namespace Kratos
     {
         KRATOS_TRY
         return Element::Pointer(
-                new CrBeamAdjointElement3D2N(NewId, pGeom, pProperties, this->mIsLinearElement));
+                new CrBeamAdjointElement3D2N(NewId, pGeom, pProperties, true)); //this->mIsLinearElement));
         KRATOS_CATCH("")
     }
 

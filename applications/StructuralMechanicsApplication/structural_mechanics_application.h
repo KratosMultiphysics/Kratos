@@ -35,6 +35,7 @@
 
 /* Adding the adjoint elements */
 #include "custom_elements/adjoint_elements/shell_thin_adjoint_element_3D3N.hpp"
+#include "custom_elements/adjoint_elements/shell_thin_adjoint_element_3D4N.hpp"
 #include "custom_elements/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
 
 /* Adding shells and membranes elements */
@@ -257,6 +258,7 @@ private:
 
     // Adding adjoint elements
     const ShellThinAdjointElement3D3N mShellThinAdjointElement3D3N;
+    const ShellThinAdjointElement3D4N   mShellThinAdjointElement3D4N;
     const CrBeamAdjointElement3D2N mCrLinearBeamAdjointElement3D2N;
 
 
@@ -268,6 +270,7 @@ private:
     const ShellThinElement3D3N mShellThinElement3D3N;
     const ShellThinElement3D3N mShellThinCorotationalElement3D3N;
 	const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
+    const ShellThinElement3D4N   mShellThinElement3D4N;
 
     // Adding the membrane element 
     const MembraneElement mMembraneElement3D3N;
@@ -378,6 +381,7 @@ private:
     const PointLoadAdjointCondition mPointLoadAdjointCondition2D1N;
     const PointLoadAdjointCondition mPointLoadAdjointCondition3D1N;
     const SurfaceLoadAdjointCondition3D mSurfaceLoadAdjointCondition3D3N;
+    const SurfaceLoadAdjointCondition3D mSurfaceLoadAdjointCondition3D4N;
     
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
@@ -387,7 +391,7 @@ private:
     const LinearPlaneStress  mLinearPlaneStress;
     const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
     const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
-	  const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
+	const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
 
     ///@}
     ///@name Private Operators

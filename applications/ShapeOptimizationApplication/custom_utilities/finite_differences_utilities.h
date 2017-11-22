@@ -123,8 +123,18 @@ public:
     void SetDerivedObject(std::string _DerivedObject) { mDerivedObject = _DerivedObject; }   
     std::string GetDerivedObject() { return mDerivedObject; } 
 
-    void DisturbElementDesignVariable(Element& rTracedElement, const Variable<double>& rDesignVariable, double DisturbanceMeasure )  
+    void DisturbElementDesignVariable(Element& rTracedElement,std::string variable_label , double DisturbanceMeasure )  
     {
+        const Variable<double> & rIT =
+           	  KratosComponents<Variable<double> >::Get("IT");         
+        const Variable<double> & rIY =
+           	  KratosComponents<Variable<double> >::Get("IY");         
+        const Variable<double> & rIZ =
+           	  KratosComponents<Variable<double> >::Get("IZ"); 
+
+        const Variable<double> & rDesignVariable =
+           	  KratosComponents<Variable<double> >::Get(variable_label); 
+
         if ( rTracedElement.GetProperties().Has(rDesignVariable) ) 
 		{
             mElementID = rTracedElement.Id();
@@ -136,15 +146,18 @@ public:
             Properties::Pointer p_local_property(new Properties(r_global_property));
             rTracedElement.SetProperties(p_local_property);
 
+           
 			// Disturb the design variable
 			const double current_property_value = rTracedElement.GetProperties()[rDesignVariable];
             p_local_property->SetValue(rDesignVariable, (current_property_value + DisturbanceMeasure));
         }
-        else if (rDesignVariable == IT || rDesignVariable == IY || rDesignVariable == IZ)
+        else if (rDesignVariable == rIT || rDesignVariable == rIY || rDesignVariable == rIZ)
         { 
+            mElementID = rTracedElement.Id();
+
 			// Save properties and its pointer
             Properties& r_global_property = rTracedElement.GetProperties(); 
-            Properties::Pointer mpGlobalProperties = rTracedElement.pGetProperties(); 
+            mpGlobalProperties = rTracedElement.pGetProperties(); 
 
             // Create new property and assign it to the element
             Properties::Pointer p_local_property(new Properties(r_global_property));
@@ -152,8 +165,9 @@ public:
 
 			// Check which entry of the inertia vector shall be treated as design variable
 			Vector& inertia = rTracedElement.GetProperties()[LOCAL_INERTIA_VECTOR];
-			double& design_variable = rDesignVariable==IT ? inertia[0] : rDesignVariable==IY ? inertia[1] : inertia[2];
-
+            std::cout << "Have Inertia vector" << std::endl;
+			double& design_variable = rDesignVariable==rIT ? inertia[0] : rDesignVariable==rIY ? inertia[1] : inertia[2];
+            std::cout <<  design_variable << std::endl;
 			design_variable += DisturbanceMeasure;
         }  
         else
@@ -244,9 +258,9 @@ public:
             std::vector<Matrix> stress_vector;
   
             if(item_1 == 'M') 
-                rTracedElement.GetValueOnIntegrationPoints(SHELL_MOMENT, stress_vector, rCurrentProcessInfo);
+                rTracedElement.GetValueOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector, rCurrentProcessInfo);
             else if(item_1 == 'F') 
-                rTracedElement.GetValueOnIntegrationPoints(SHELL_FORCE, stress_vector, rCurrentProcessInfo);
+                rTracedElement.GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector, rCurrentProcessInfo);
             else 
                 KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;  
 

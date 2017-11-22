@@ -169,7 +169,15 @@ public:
             for (auto it = elements_begin; it != elements_end; ++it)
                 it->SetValue(DISTURBANCE_MEASURE, mDelta);
         } 
-    }   //TODO: eventually it is also necessary to give the disturbance measure to the conditions
+#pragma omp parallel
+        {
+            ModelPart::ConditionIterator conditions_begin;
+            ModelPart::ConditionIterator conditions_end;
+            OpenMPUtils::PartitionedIterators(r_model_part.Conditions(), conditions_begin, conditions_end);
+            for (auto it = conditions_begin; it != conditions_end; ++it)
+                it->SetValue(DISTURBANCE_MEASURE, mDelta);
+        } 
+    }   
 
         KRATOS_CATCH("");
     }

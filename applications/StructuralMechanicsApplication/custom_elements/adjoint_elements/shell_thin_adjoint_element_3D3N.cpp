@@ -625,9 +625,9 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Vector >& rVariable,
         std::vector<Matrix> stress_vector;
   
         if(item_1 == 'M') 
-            ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_MOMENT, stress_vector, rCurrentProcessInfo);
+            ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector, rCurrentProcessInfo);
         else if(item_1 == 'F') 
-            ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_FORCE, stress_vector, rCurrentProcessInfo);
+            ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector, rCurrentProcessInfo);
         else 
             KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;  
 
@@ -717,19 +717,29 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
     Vector stress_vector_dist;
     ProcessInfo copy_process_info = rCurrentProcessInfo;
     DofsVectorType element_dof_list;
+    double dist_measure  = 0.0;
+    double original_value = 0.0;
 
 	// Get disturbance measure
-    double dist_measure = this->GetValue(DISTURBANCE_MEASURE); 	
+    double eta = this->GetValue(DISTURBANCE_MEASURE); 	
 
     ShellThinElement3D3N::GetDofList(element_dof_list, copy_process_info);
 
     this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
     rOutput.resize(OPT_NUM_DOFS, OPT_NUM_GP);
+    rOutput.clear();
     for(size_t i = 0; i < OPT_NUM_DOFS; i++)
     {
+        dist_measure =  eta * element_dof_list[i]->GetSolutionStepValue();
+ 
+        if(fabs(dist_measure) < 1e-20 )
+            continue;
+
+        original_value = element_dof_list[i]->GetSolutionStepValue();  
         element_dof_list[i]->GetSolutionStepValue() += dist_measure;
 
+  
         this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
         for(size_t j = 0; j < OPT_NUM_GP; j++)
@@ -739,8 +749,9 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
             rOutput(i,j) = stress_vector_dist[j];
         }   
 
-        element_dof_list[i]->GetSolutionStepValue() -= dist_measure;
-
+        element_dof_list[i]->GetSolutionStepValue()  = original_value; 
+        original_value = 0.0;
+    
         stress_vector_dist.clear();
     }
 

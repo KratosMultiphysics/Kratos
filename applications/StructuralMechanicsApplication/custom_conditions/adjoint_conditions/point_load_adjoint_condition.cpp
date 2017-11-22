@@ -215,9 +215,9 @@ namespace Kratos
         {
             Vector RHS;
             Matrix dummy_LHS;  
-            ProcessInfo testProcessInfo = rCurrentProcessInfo;  
+            ProcessInfo copy_process_info = rCurrentProcessInfo;
 
-            PointLoadCondition::CalculateAll(dummy_LHS, RHS, testProcessInfo, false, true);
+            PointLoadCondition::CalculateAll(dummy_LHS, RHS, copy_process_info, false, true);
 
             int k = 0;
             for(unsigned int i = 0; i < RHS.size();++i)
