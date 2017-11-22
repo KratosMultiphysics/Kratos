@@ -1,0 +1,80 @@
+//  KratosAdjointFluidApplication
+//
+//  License:		 BSD License
+//					 license: AdjointFluidApplication/license.txt
+//
+//  Main authors:    Michael Andre, https://github.com/msandre
+//
+
+#if !defined(KRATOS_GEOMETRICAL_SENSITIVITY_UTILITY_H_INCLUDED)
+#define KRATOS_GEOMETRICAL_SENSITIVITY_UTILITY_H_INCLUDED
+
+// System includes
+#include <memory>
+
+// External includes
+#include <boost/numeric/ublas/matrix.hpp>
+
+
+// Project includes
+#include "includes/define.h"
+
+// Application includes
+
+namespace Kratos
+{
+///@addtogroup AdjointFluidApplication
+///@{
+///@name Kratos Classes
+///@{
+
+class GeometricalSensitivityUtility
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    KRATOS_CLASS_POINTER_DEFINITION(GeometricalSensitivityUtility);
+
+    typedef boost::numeric::ublas::matrix<double> MatrixType;
+
+    typedef MatrixType JacobianType;
+
+    typedef MatrixType ShapeFunctionsLocalGradientType;
+
+    typedef MatrixType ShapeFunctionsGradientType;
+    
+    typedef unsigned IndexType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    GeometricalSensitivityUtility(const JacobianType& rJ, const ShapeFunctionsLocalGradientType& rDN_De);
+
+    ~GeometricalSensitivityUtility();
+    
+    ///@}
+    ///@name Operations
+    ///@{
+
+    void CalculateSensitivity(IndexType iNode, IndexType iCoord, double& rDetJ_Deriv, ShapeFunctionsGradientType& rDN_DX_Deriv) const;
+
+    ///@}
+
+private:
+    ///@name Member Variables
+    ///@{
+
+    class Impl;
+    std::unique_ptr<Impl> mpImpl;
+
+    ///@}
+};
+
+///@} // Kratos Classes
+///@} // Adjoint Fluid Application group
+
+} /* namespace Kratos.*/
+
+#endif /* KRATOS_GEOMETRICAL_SENSITIVITY_UTILITY_H_INCLUDED defined */
