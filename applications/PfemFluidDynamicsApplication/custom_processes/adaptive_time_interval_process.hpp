@@ -368,7 +368,9 @@ namespace Kratos
 		}
 	      }
 	      else if(dimension==3){
-		double currentElementalVolume =  (itElem)->GetGeometry().Volume();
+		double currentElementalVolume = 0;
+		if( itElem->GetGeometry().Dimension() == 3 )
+		  currentElementalVolume = (itElem)->GetGeometry().Volume();
 		Geometry<Node<3> >  updatedElementCoordinates;
 		bool solidElement=false;
 		for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
@@ -387,6 +389,7 @@ namespace Kratos
 		  newVolume=myGeometry.Volume();
 		}else if(itElem->GetGeometry().size()==10){
 		  Tetrahedra3D10<Node<3> > myGeometry(updatedElementCoordinates);
+
 		  newVolume=myGeometry.Volume();
 		}else{
 		  std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;

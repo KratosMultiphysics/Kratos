@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "utilities/divide_tetrahedra_3d_4.h"
 #include "modified_shape_functions/modified_shape_functions.h"
 
 namespace Kratos
@@ -155,21 +156,21 @@ public:
         const IntegrationMethodType IntegrationMethod) override;
 
     /**
-    * Returns the positive side outwards unit normal vector values for the Gauss pts. of given quadrature.
-    * @return rPositiveSideInterfaceUnitNormal: Outwards unit normal vector list.
+    * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
+    * @return rPositiveSideInterfaceAreaNormals: Outwards area normal vector list.
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    void ComputePositiveSideInterfaceUnitNormals(
-        std::vector<Vector> &rPositiveSideInterfaceUnitNormal,
+    void ComputePositiveSideInterfaceAreaNormals(
+        std::vector<Vector> &rPositiveSideInterfaceAreaNormals,
         const IntegrationMethodType IntegrationMethod) override;
 
     /**
-    * Returns the positive side outwards unit normal vector values for the Gauss pts. of given quadrature.
-    * @return rNegativeSideInterfaceUnitNormal: Outwards unit normal vector list.
+    * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
+    * @return rNegativeSideInterfaceAreaNormals: Outwards area normal vector list.
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    void ComputeNegativeSideInterfaceUnitNormals(
-        std::vector<Vector> &rNegativeSideInterfaceUnitNormal,
+    void ComputeNegativeSideInterfaceAreaNormals(
+        std::vector<Vector> &rNegativeSideInterfaceAreaNormals,
         const IntegrationMethodType IntegrationMethod) override;
 
     /**

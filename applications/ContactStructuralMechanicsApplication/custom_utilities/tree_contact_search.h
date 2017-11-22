@@ -97,11 +97,14 @@ public:
     
     /**
      * The constructor of the search utility uses the following inputs:
-     * @param rMainModelPart: The model part to be considered
-     * @param AllocationSize: The allocation considered in the search
-     * @param ActiveCheckFactor: The factor considered to check if active or not
-     * @param IntegrationOrder: The integration order considered
-     * @param BucketSize: The size of the bucket
+     * @param rMainModelPart The model part to be considered
+     * @param ThisParameters The condiguration parameters, it includes:
+     *                       - The allocation considered in the search
+     *                       - The factor considered to check if active or not
+     *                       - The integration order considered
+     *                       - The size of the bucket
+     *                       - The proportion increased of the Radius/Bounding-box volume for the search
+     *                       - TypeSearch: 0 means search in radius, 1 means search in box // TODO: Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
      * NOTE: Use an InterfacePreprocess object to create such a model part from a regular one:
      * InterfaceMapper = InterfacePreprocess()
      * InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
@@ -178,9 +181,6 @@ public:
 
     /**
      * This function has as pourpose to find potential contact conditions and fill the mortar conditions with the necessary pointers
-     * @param Searchfactor: The proportion increased of the Radius/Bounding-box volume for the search
-     * @param TypeSearch: 0 means search in radius, 1 means search in box // TODO: Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
-     * @return The mortar conditions alreay created
      */
     
     void UpdateMortarConditions();
@@ -266,8 +266,9 @@ protected:
     /**
      * It check the conditions if they are correctly detected
      * @return ConditionPointers1: A vector containing the pointers to the conditions 
-     * @param pCond1: The pointer to the condition in the destination model part
-     * @param pCond2: The pointer to the condition in the destination model part  
+     * @param pCond1 The pointer to the condition in the destination model part
+     * @param pCond2 The pointer to the condition in the destination model part  
+     * @param InvertedSearch If the search is inverted
      */
     
     static inline CheckResult CheckCondition(
@@ -286,7 +287,7 @@ protected:
     
     /**
      * This converts the framework string to an enum
-     * @param str: The string
+     * @param str The string
      * @return SearchTreeType: The equivalent enum
      */
     

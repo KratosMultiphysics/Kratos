@@ -15,7 +15,6 @@
 // External includes
 
 // Project includes
-#include "utilities/divide_triangle_2d_3.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
 namespace Kratos
@@ -73,10 +72,10 @@ void Triangle2D3ModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAndGrad
     if (this->IsSplit()) {
         // Get the intersection points condensation matrix
         Matrix p_matrix;
-        SetIntersectionPointsCondensationMatrix(p_matrix,
-                                                mpTriangleSplitter->mEdgeNodeI,
-                                                mpTriangleSplitter->mEdgeNodeJ,
-                                                mpTriangleSplitter->mSplitEdges);
+        SetCondensationMatrix(p_matrix,
+                              mpTriangleSplitter->mEdgeNodeI,
+                              mpTriangleSplitter->mEdgeNodeJ,
+                              mpTriangleSplitter->mSplitEdges);
 
         // Compute the positive side values
         this->ComputeValuesOnOneSide(rPositiveSideShapeFunctionsValues,
@@ -100,10 +99,10 @@ void Triangle2D3ModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAndGrad
     if (this->IsSplit()) {
         // Get the intersection points condensation matrix
         Matrix p_matrix;
-        SetIntersectionPointsCondensationMatrix(p_matrix,
-                                                mpTriangleSplitter->mEdgeNodeI,
-                                                mpTriangleSplitter->mEdgeNodeJ,
-                                                mpTriangleSplitter->mSplitEdges);
+        SetCondensationMatrix(p_matrix,
+                              mpTriangleSplitter->mEdgeNodeI,
+                              mpTriangleSplitter->mEdgeNodeJ,
+                              mpTriangleSplitter->mSplitEdges);
 
         // Compute the negative side values
         this->ComputeValuesOnOneSide(rNegativeSideShapeFunctionsValues,
@@ -125,11 +124,21 @@ void Triangle2D3ModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunctio
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
+        // Get the interface condensation matrix
+        Matrix p_matrix;
+        this->SetCondensationMatrix(p_matrix,
+                                    mpTriangleSplitter->mEdgeNodeI,
+                                    mpTriangleSplitter->mEdgeNodeJ,
+                                    mpTriangleSplitter->mSplitEdges);
+
         // Compute the positive side interface values
         this->ComputeInterfaceValuesOnOneSide(rInterfacePositiveSideShapeFunctionsValues,
                                               rInterfacePositiveSideShapeFunctionsGradientsValues,
                                               rInterfacePositiveSideWeightsValues,
                                               mpTriangleSplitter->mPositiveInterfaces,
+                                              mpTriangleSplitter->mPositiveSubdivisions,
+                                              mpTriangleSplitter->mPositiveInterfacesParentIds,
+                                              p_matrix,
                                               IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
@@ -144,44 +153,54 @@ void Triangle2D3ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunctio
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
+        // Get the interface condensation matrix
+        Matrix p_matrix;
+        this->SetCondensationMatrix(p_matrix,
+                                    mpTriangleSplitter->mEdgeNodeI,
+                                    mpTriangleSplitter->mEdgeNodeJ,
+                                    mpTriangleSplitter->mSplitEdges);
+
         // Compute the positive side interface values
         this->ComputeInterfaceValuesOnOneSide(rInterfaceNegativeSideShapeFunctionsValues,
                                               rInterfaceNegativeSideShapeFunctionsGradientsValues,
                                               rInterfaceNegativeSideWeightsValues,
                                               mpTriangleSplitter->mNegativeInterfaces,
+                                              mpTriangleSplitter->mNegativeSubdivisions,
+                                              mpTriangleSplitter->mNegativeInterfacesParentIds,
+                                              p_matrix,
                                               IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
     }
 };
 
-// Compute the positive side interface outwards unit normal vector values.
-void Triangle2D3ModifiedShapeFunctions::ComputePositiveSideInterfaceUnitNormals(
-    std::vector<Vector> &rPositiveSideInterfaceUnitNormal,
+// Compute the positive side interface outwards area normal vector values.
+void Triangle2D3ModifiedShapeFunctions::ComputePositiveSideInterfaceAreaNormals(
+    std::vector<Vector> &rPositiveSideInterfaceAreaNormal,
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
-        // Compute the positive side interface outwars unit normal values
-        this->ComputeInterfaceNormalOnOneSide(rPositiveSideInterfaceUnitNormal,
+        // Compute the positive side interface outwars area normal values
+        this->ComputeInterfaceNormalOnOneSide(rPositiveSideInterfaceAreaNormal,
                                               mpTriangleSplitter->mPositiveInterfaces,
                                               IntegrationMethod);
     } else {
-        KRATOS_ERROR << "Using the ComputePositiveSideInterfaceUnitNormals method for a non divided geometry.";
+        KRATOS_ERROR << "Using the ComputePositiveSideInterfaceAreaNormals method for a non divided geometry.";
     }
 };
 
-// Compute the positive side interface outwards unit normal vector values.
-void Triangle2D3ModifiedShapeFunctions::ComputeNegativeSideInterfaceUnitNormals(
-    std::vector<Vector> &rNegativeSideInterfaceUnitNormal,
+// Compute the positive side interface outwards area normal vector values.
+void Triangle2D3ModifiedShapeFunctions::ComputeNegativeSideInterfaceAreaNormals(
+    std::vector<Vector> &rNegativeSideInterfaceAreaNormal,
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
-        // Compute the positive side interface outwars unit normal values
-        this->ComputeInterfaceNormalOnOneSide(rNegativeSideInterfaceUnitNormal,
+        // Compute the positive side interface outwars area normal values
+        this->ComputeInterfaceNormalOnOneSide(rNegativeSideInterfaceAreaNormal,
                                               mpTriangleSplitter->mNegativeInterfaces,
                                               IntegrationMethod);
     } else {
-        KRATOS_ERROR << "Using the ComputeNegativeSideInterfaceUnitNormals method for a non divided geometry.";
+        KRATOS_ERROR << "Using the ComputeNegativeSideInterfaceAreaNormals method for a non divided geometry.";
     }
 };
 

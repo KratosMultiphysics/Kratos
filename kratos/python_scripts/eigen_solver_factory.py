@@ -17,7 +17,7 @@ def ConstructSolver(settings):
         eigen_solver = KratosMultiphysics.PowerIterationHighestEigenvalueSolver( settings, linear_solver)
     elif(solver_type == "rayleigh_quotient_iteration_eigenvalue_solver"):
         eigen_solver = KratosMultiphysics.RayleighQuotientIterationEigenvalueSolver( settings, linear_solver)
-    elif(solver_type == "FEAST"):
+    elif(solver_type == "FEAST" or solver_type == "feast"):
         import KratosMultiphysics.ExternalSolversApplication
         eigen_solver = KratosMultiphysics.ExternalSolversApplication.FEASTSolver(settings, linear_solver)
     else:

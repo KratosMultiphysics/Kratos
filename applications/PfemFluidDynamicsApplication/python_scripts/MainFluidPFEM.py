@@ -14,8 +14,6 @@ import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.PfemApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication     
 import KratosMultiphysics.SolidMechanicsApplication
-import KratosMultiphysics.PfemSolidMechanicsApplication   
-import KratosMultiphysics.ContactMechanicsApplication
 
 class Solution(object):
 
@@ -87,8 +85,8 @@ class Solution(object):
         self.solver.AddVariables()
 
         # Add PfemSolidMechanicsApplication Variables
-        import pfem_solid_variables  
-        pfem_solid_variables.AddVariables(self.main_model_part) 
+        import pfem_variables  
+        pfem_variables.AddVariables(self.main_model_part) 
         
         
     def Run(self):

@@ -167,21 +167,21 @@ public:
         const IntegrationMethodType IntegrationMethod) = 0;
         
     /**
-    * Returns the positive side outwards unit normal vector values for the Gauss pts. of given quadrature.
-    * @return rPositiveSideInterfaceUnitNormal: Outwards unit normal vector list.
+    * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
+    * @return rPositiveSideInterfaceAreaNormal: Outwards unit normal vector list.
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void ComputePositiveSideInterfaceUnitNormals(
-        std::vector<Vector> &rPositiveSideInterfaceUnitNormal,
+    virtual void ComputePositiveSideInterfaceAreaNormals(
+        std::vector<Vector> &rPositiveSideInterfaceAreaNormal,
         const IntegrationMethodType IntegrationMethod) = 0;
 
     /**
-    * Returns the positive side outwards unit normal vector values for the Gauss pts. of given quadrature.
-    * @return rNegativeSideInterfaceUnitNormal: Outwards unit normal vector list.
+    * Returns the negative side outwards area normal vector values for the Gauss pts. of given quadrature.
+    * @return rNegativeSideInterfaceAreaNormal: Outwards unit normal vector list.
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void ComputeNegativeSideInterfaceUnitNormals(
-        std::vector<Vector> &rNegativeSideInterfaceUnitNormal,
+    virtual void ComputeNegativeSideInterfaceAreaNormals(
+        std::vector<Vector> &rNegativeSideInterfaceAreaNormal,
         const IntegrationMethodType IntegrationMethod) = 0;
 
     /**
@@ -208,14 +208,15 @@ protected:
     ///@{
 
     /**
-    * Returns true if the element is split and false otherwise.
+    * Returns the intersection points condensation matrix.
+    * This matrix is used to extrapolate the subdivisions shape funtion values to the
+    * original geometry ones. It has size (nnodes+nedges)x(nnodes).
     * @return rIntPointCondMatrix: Reference to the intersection points condensation matrix.
     * @param rEdgeNodeI: Integers array containing the nodes "I" that conform the edges.
     * @param rEdgeNodeJ: Integers array containing the nodes "J" that conform the edges.
     * @param rSplitEdges: Integers array containing the original nodes ids and the intersected edges nodes ones.
-    * @param splitEdgesNumber: Number of splitted edges.
     */
-    void SetIntersectionPointsCondensationMatrix(
+    void SetCondensationMatrix(
         Matrix& rIntPointCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
@@ -244,7 +245,9 @@ protected:
     * @return rInterfaceShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values.
     * @return rInterfaceWeightsValues: Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
     * @param rInterfacesVector: std::vector of intersection point based geometries where the values are to be computed.
-    * @param rPmatrix: reference to the interpolation matrix
+    * @param rParentGeometriesVector: std::vector of subdivisions point based parent geometries.
+    * @param rInterfacesParentIdsVector: std::vector containing the parent ids of each interface geometry.
+    * @param rPmatrix: reference to the interface interpolation matrix
     * @param IntegrationMethod: Desired integration quadrature.
     */
     virtual void ComputeInterfaceValuesOnOneSide(
@@ -252,16 +255,19 @@ protected:
         std::vector<Matrix> &rInterfaceShapeFunctionsGradientsValues,
         Vector &rInterfaceWeightsValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
+        const std::vector<IndexedPointGeometryPointerType> &rParentGeometriesVector,
+        const std::vector<unsigned int> &rInterfacesParentIdsVector,
+        const Matrix &rPmatrix,
         const IntegrationMethodType IntegrationMethod);
 
     /**
-    * Returns the outwards unit normal vector values in either the positive or negative element interfaces for a given quadrature.
-    * @return rInterfaceUnitNormalValues: std::vector of subdivisions point based geometries where the values are to be computed.
+    * Returns the outwards area normal vector values in either the positive or negative element interfaces for a given quadrature.
+    * @return rInterfaceAreaNormalValues: std::vector containing the area normal values for the selected quadrature Gauss pts.
     * @param rInterfacesVector: std::vector of intersection point based geometries where the values are to be computed.
     * @param IntegrationMethod: Desired integration quadrature.
     */
     virtual void ComputeInterfaceNormalOnOneSide(
-        std::vector<Vector> &rInterfaceUnitNormalValues,
+        std::vector<Vector> &rInterfaceAreaNormalValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const IntegrationMethodType IntegrationMethod);
 
@@ -288,7 +294,7 @@ protected:
     ///@{
 
     const GeometryPointerType mpInputGeometry;
-    const Vector& mrNodalDistances;
+    const Vector mNodalDistances;
 
     ///@}
     ///@name Serialization
@@ -319,7 +325,7 @@ protected:
 
     /// Copy constructor.
     ModifiedShapeFunctions(ModifiedShapeFunctions const& rOther)
-        : mpInputGeometry(rOther.mpInputGeometry) , mrNodalDistances(rOther.mrNodalDistances) {};
+        : mpInputGeometry(rOther.mpInputGeometry) , mNodalDistances(rOther.mNodalDistances) {};
 
     ///@}
 
