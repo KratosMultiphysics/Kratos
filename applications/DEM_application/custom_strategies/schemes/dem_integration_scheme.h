@@ -146,7 +146,7 @@ namespace Kratos {
                                     const double delta_t,
                                     const bool Fix_Ang_vel[3]);
 
-        virtual void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag);
+//         virtual void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag);
         
         virtual void CalculateRotationalMotionOfClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
 

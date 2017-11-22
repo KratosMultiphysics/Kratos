@@ -270,7 +270,7 @@ class ExplicitStrategy:
 
         self.SetVariablesAndOptions()
 
-        if (self.DEM_parameters["IntegrationScheme"].GetString() == 'Velocity_Verlet'):
+        if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
@@ -404,7 +404,7 @@ class ExplicitStrategy:
 
         return math.sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * math.exp(alpha)) - 1.0)
 
-    def IntegrationSchemeTranslator(self, name):
+    def TranslationalIntegrationSchemeTranslator(self, name):
         class_name = None
 
         if name == 'Forward_Euler':
@@ -419,28 +419,70 @@ class ExplicitStrategy:
             class_name = 'VelocityVerletScheme'
 
         return class_name
+    
+    def RotationalIntegrationSchemeTranslator(self, name):
+        class_name = None
 
-    def GetSchemeInstance(self, class_name):
+        if name == 'Forward_Euler':
+            class_name = 'ForwardEulerScheme'
+        elif name == 'Symplectic_Euler':
+            class_name = 'SymplecticEulerScheme'
+        elif name == 'Taylor_Scheme':
+            class_name = 'TaylorScheme'
+        elif name == 'Newmark_Beta_Method':
+            class_name = 'NewmarkBetaScheme'
+        elif name == 'Velocity_Verlet':
+            class_name = 'VelocityVerletScheme'
+        elif name == 'Runge_Kutta':
+            class_name = 'RungeKuttaScheme'
+        elif name == 'Quaternion_Integration':
+            class_name = 'QuaternionIntegrationScheme'
+
+        return class_name
+
+    def GetTranslationalSchemeInstance(self, class_name):
+        return globals().get(class_name)()
+    
+    def GetRotationalSchemeInstance(self, class_name):
         return globals().get(class_name)()
 
-    def GetScheme(self, name):
-        class_name = self.IntegrationSchemeTranslator(name)
-        scheme = None
+    def GetTranslationalScheme(self, name):
+        class_name = self.TranslationalIntegrationSchemeTranslator(name)
+        translational_scheme = None
         error_status = 0
         summary = ''
 
         if not class_name == None:
             try:
-                scheme = self.GetSchemeInstance(class_name)
-                return scheme, error_status, summary
+                translational_scheme = self.GetSchemeInstance(class_name)
+                return translational_scheme, error_status, summary
             except:
                 error_status = 1
-                summary = 'The class corresponding to the scheme name (' + name + ') has not been added to python. Please, select a different name or add the required class.'
+                summary = 'The class corresponding to the translational integration scheme name (' + name + ') has not been added to python. Please, select a different name or add the required class.'
         else:
             error_status = 2
-            summary = 'The scheme name (' + name + ') does not designate any available scheme. Please, select a different one'
+            summary = 'The translational integration scheme name (' + name + ') does not designate any available scheme. Please, select a different one'
 
-        return scheme, error_status, summary
+        return translational_scheme, error_status, summary
+    
+    def GetRotationalScheme(self, name):
+        class_name = self.RotationalIntegrationSchemeTranslator(name)
+        rotational_scheme = None
+        error_status = 0
+        summary = ''
+
+        if not class_name == None:
+            try:
+                rotational_scheme = self.GetRotationalSchemeInstance(class_name)
+                return rotational_scheme, error_status, summary
+            except:
+                error_status = 1
+                summary = 'The class corresponding to the rotational integration scheme name (' + name + ') has not been added to python. Please, select a different name or add the required class.'
+        else:
+            error_status = 2
+            summary = 'The rotational integration scheme name (' + name + ') does not designate any available scheme. Please, select a different one'
+
+        return rotational_scheme, error_status, summary
 
     def ModifyProperties(self, properties):
         DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]

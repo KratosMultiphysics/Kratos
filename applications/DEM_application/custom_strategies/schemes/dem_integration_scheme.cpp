@@ -15,7 +15,7 @@ namespace Kratos {
     
     void DEMIntegrationScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
         //if(verbose) std::cout << "\nAssigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+        pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
@@ -264,44 +264,44 @@ namespace Kratos {
             KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateAngularVelocityRK) shouldn't be accessed, use derived class instead", 0);                        
     }  
    
-    void DEMIntegrationScheme::CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag) { //must be done AFTER the translational motion!
-
-        KRATOS_TRY
-
-        typedef ModelPart::ElementsContainerType ElementsArrayType;
-        typedef ElementsArrayType::iterator ElementIterator;
-        ProcessInfo& r_process_info = rcluster_model_part.GetProcessInfo();
-
-        double delta_t = r_process_info[DELTA_TIME];
-        double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF];
-        bool virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
-        double moment_reduction_factor = 1.0;
-        if (virtual_mass_option) {
-            moment_reduction_factor = 1.0 - virtual_mass_coeff;
-            if ((moment_reduction_factor > 1.0) || (moment_reduction_factor < 0.0)) {
-                KRATOS_THROW_ERROR(std::runtime_error, "The virtual mass coefficient is either larger than 1 or negative: virtual_mass_coeff= ", virtual_mass_coeff)
-            }
-        }
-
-        vector<unsigned int> element_partition;
-        ElementsArrayType& pElements = rcluster_model_part.GetCommunicator().LocalMesh().Elements();
-        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), element_partition);
-
-        #pragma omp parallel for shared(delta_t)        
-        for (int k = 0; k < (int) OpenMPUtils::GetNumThreads(); k++) {
-            ElementIterator i_begin = pElements.ptr_begin() + element_partition[k];
-            ElementIterator i_end = pElements.ptr_begin() + element_partition[k + 1];
-
-            for (ElementsArrayType::iterator it = i_begin; it != i_end; ++it) {
-                Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
-                Node<3> & i = cluster_element.GetGeometry()[0];
-
-                CalculateRotationalMotionOfClusterNode(i, delta_t, moment_reduction_factor, StepFlag);                
-                cluster_element.UpdateAngularDisplacementAndVelocityOfSpheres();
-            } //for Elements
-        } //for number of threads
-        KRATOS_CATCH(" ")
-    }
+//     void DEMIntegrationScheme::CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag) { //must be done AFTER the translational motion!
+// 
+//         KRATOS_TRY
+// 
+//         typedef ModelPart::ElementsContainerType ElementsArrayType;
+//         typedef ElementsArrayType::iterator ElementIterator;
+//         ProcessInfo& r_process_info = rcluster_model_part.GetProcessInfo();
+// 
+//         double delta_t = r_process_info[DELTA_TIME];
+//         double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF];
+//         bool virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
+//         double moment_reduction_factor = 1.0;
+//         if (virtual_mass_option) {
+//             moment_reduction_factor = 1.0 - virtual_mass_coeff;
+//             if ((moment_reduction_factor > 1.0) || (moment_reduction_factor < 0.0)) {
+//                 KRATOS_THROW_ERROR(std::runtime_error, "The virtual mass coefficient is either larger than 1 or negative: virtual_mass_coeff= ", virtual_mass_coeff)
+//             }
+//         }
+// 
+//         vector<unsigned int> element_partition;
+//         ElementsArrayType& pElements = rcluster_model_part.GetCommunicator().LocalMesh().Elements();
+//         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), element_partition);
+// 
+//         #pragma omp parallel for shared(delta_t)        
+//         for (int k = 0; k < (int) OpenMPUtils::GetNumThreads(); k++) {
+//             ElementIterator i_begin = pElements.ptr_begin() + element_partition[k];
+//             ElementIterator i_end = pElements.ptr_begin() + element_partition[k + 1];
+// 
+//             for (ElementsArrayType::iterator it = i_begin; it != i_end; ++it) {
+//                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
+//                 Node<3> & i = cluster_element.GetGeometry()[0];
+// 
+//                 CalculateRotationalMotionOfClusterNode(i, delta_t, moment_reduction_factor, StepFlag);                
+//                 cluster_element.UpdateAngularDisplacementAndVelocityOfSpheres();
+//             } //for Elements
+//         } //for number of threads
+//         KRATOS_CATCH(" ")
+//     }
     
     void DEMIntegrationScheme::CalculateRotationalMotionOfClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
         KRATOS_TRY

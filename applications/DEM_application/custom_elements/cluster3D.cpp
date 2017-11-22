@@ -27,19 +27,19 @@ namespace Kratos {
             
     Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
         mpRotationalIntegrationScheme = NULL;
     }
       
     Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
         mpRotationalIntegrationScheme = NULL;
     }
       
     Cluster3D::Cluster3D(IndexType NewId, NodesArrayType const& ThisNodes)
     : Element(NewId, ThisNodes) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
         mpRotationalIntegrationScheme = NULL;
     }
     
@@ -69,8 +69,8 @@ namespace Kratos {
         mListOfCoordinates.clear();  
         mListOfRadii.clear();  
         
-        if (mpIntegrationScheme!=NULL) {
-            delete mpIntegrationScheme;
+        if (mpTranslationalIntegrationScheme!=NULL) {
+            delete mpTranslationalIntegrationScheme;
         }
         
         if (mpRotationalIntegrationScheme!=NULL) {
@@ -97,8 +97,8 @@ namespace Kratos {
 
         CustomInitialize(r_process_info);
         
-        DEMIntegrationScheme::Pointer& integration_scheme = GetProperties()[DEM_INTEGRATION_SCHEME_POINTER];
-        SetIntegrationScheme(integration_scheme);
+        DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
+        SetIntegrationScheme(translational_integration_scheme);
         
         DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
         SetIntegrationScheme(rotational_integration_scheme);
@@ -491,7 +491,7 @@ namespace Kratos {
     }
     
     void Cluster3D::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag ) {
-        GetIntegrationScheme().MoveCluster(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
+        GetTranslationalIntegrationScheme().MoveCluster(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
         if (rotation_option) {
             GetRotationalIntegrationScheme().RotateCluster(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
         }

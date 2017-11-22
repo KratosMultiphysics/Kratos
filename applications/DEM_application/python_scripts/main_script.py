@@ -49,7 +49,8 @@ class Solution(object):
         self.report        = DEM_procedures.Report()
         self.parallelutils = DEM_procedures.ParallelUtils()
         self.materialTest  = DEM_procedures.MaterialTest()
-        self.scheme = self.SetScheme()
+        self.translational_scheme = self.SetTranslationalScheme()
+        self.rotational_scheme    = self.SetRotationalScheme()
 
         # Define control variables
         self.p_frequency = 100   # activate every 100 steps
@@ -120,27 +121,53 @@ class Solution(object):
         else:
             return ParticleCreatorDestructor(self.watcher)
 
-    def SelectScheme(self):
-        if (self.DEM_parameters["IntegrationScheme"].GetString() == 'Forward_Euler'):
-            return ForwardEulerScheme()
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Symplectic_Euler'):
-            return SymplecticEulerScheme()
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Taylor_Scheme'):
-            return TaylorScheme()
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-            return NewmarkBetaScheme(0.5, 0.25)
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Velocity_Verlet'):
-            return VelocityVerletScheme()
+    def SelectTranslationalScheme(self):
+        if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler'):
+            scheme = ForwardEulerScheme()
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
+            scheme = SymplecticEulerScheme()
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
+            scheme = TaylorScheme()
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
+            scheme = NewmarkBetaScheme(0.5, 0.25)
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+            scheme = VelocityVerletScheme()
+        else:
+            return None
+    
+    def SelectRotationalScheme(self):
+        if (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Forward_Euler'):
+            scheme = ForwardEulerScheme()
+        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
+            scheme = SymplecticEulerScheme()
+        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
+            scheme = TaylorScheme()
+        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
+            scheme = NewmarkBetaScheme(0.5, 0.25)
+        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+            scheme = VelocityVerletScheme()
+        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Runge_Kutta'):
+            scheme = RungeKuttaScheme()
+        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration'):
+            scheme = QuaternionIntegrationScheme()
         else:
             return None
 
-    def SetScheme(self):
-        scheme = self.SelectScheme()
+    def SetTranslationalScheme(self):
+        translational_scheme = self.SelectTranslationalScheme()
 
-        if scheme == None:
-            self.KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
+        if translational_scheme == None:
+            self.KRATOSprint('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
-        return scheme
+        return translational_scheme
+    
+    def SetRotationalScheme(self):
+        rotational_scheme = self.SelectRotationalScheme()
+
+        if rotational_scheme == None:
+            self.KRATOSprint('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            sys.exit("\nExecution was aborted.\n")
+        return rotational_scheme
 
     def SetSolverStrategy(self):
 

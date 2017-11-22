@@ -64,7 +64,7 @@ namespace Kratos {
         virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
         
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-        virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
+        virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
         virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
    
         double GetSqrtOfRealMass();
@@ -92,7 +92,7 @@ namespace Kratos {
  
     protected:
 
-        DEMIntegrationScheme* mpIntegrationScheme;
+        DEMIntegrationScheme* mpTranslationalIntegrationScheme;
         DEMIntegrationScheme* mpRotationalIntegrationScheme;
       
     private:

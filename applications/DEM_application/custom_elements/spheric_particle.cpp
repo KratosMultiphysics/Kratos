@@ -33,7 +33,7 @@ SphericParticle::SphericParticle()
     mRealMass = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
-    mpIntegrationScheme = NULL;
+    mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
 }
 
@@ -43,7 +43,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mRealMass = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
-    mpIntegrationScheme = NULL;
+    mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
 }
 
@@ -54,7 +54,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mRealMass = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
-    mpIntegrationScheme = NULL;
+    mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
 }
 
@@ -65,7 +65,7 @@ SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNode
     mRealMass = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
-    mpIntegrationScheme = NULL;
+    mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
 }
 
@@ -82,8 +82,8 @@ SphericParticle::~SphericParticle(){
         delete mSymmStressTensor;
         mSymmStressTensor = NULL;
     }
-    if (mpIntegrationScheme!=NULL) {
-        delete mpIntegrationScheme;
+    if (mpTranslationalIntegrationScheme!=NULL) {
+        delete mpTranslationalIntegrationScheme;
     }
     if (mpRotationalIntegrationScheme!=NULL) {
         delete mpRotationalIntegrationScheme;
@@ -140,8 +140,8 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
 
     CreateDiscontinuumConstitutiveLaws(r_process_info);
     
-    DEMIntegrationScheme::Pointer& integration_scheme = GetProperties()[DEM_INTEGRATION_SCHEME_POINTER];
-    SetIntegrationScheme(integration_scheme);
+    DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
+    SetIntegrationScheme(translational_integration_scheme);
     
     if (this->Is(DEMFlags::HAS_ROTATION)) {
         DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
@@ -1641,7 +1641,7 @@ void SphericParticle::TransformNeighbourCoorsToClosestInPeriodicDomain(const Pro
 
 
 void SphericParticle::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
-    GetIntegrationScheme().Move(GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
+    GetTranslationalIntegrationScheme().Move(GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
     if (rotation_option) {
         GetRotationalIntegrationScheme().Rotate(GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
     }

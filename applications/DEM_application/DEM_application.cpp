@@ -60,7 +60,7 @@ namespace Kratos
   //scheme
   KRATOS_CREATE_VARIABLE(std::string, DEM_INTEGRATION_SCHEME_NAME)
   KRATOS_CREATE_VARIABLE(std::string, DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME)
-  KRATOS_CREATE_VARIABLE(DEMIntegrationScheme::Pointer, DEM_INTEGRATION_SCHEME_POINTER)
+  KRATOS_CREATE_VARIABLE(DEMIntegrationScheme::Pointer, DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER)
   KRATOS_CREATE_VARIABLE(DEMIntegrationScheme::Pointer, DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER)
   
   //Probability distribution
@@ -439,7 +439,7 @@ namespace Kratos
     //scheme
     KRATOS_REGISTER_VARIABLE(DEM_INTEGRATION_SCHEME_NAME)
     KRATOS_REGISTER_VARIABLE(DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME)
-    KRATOS_REGISTER_VARIABLE(DEM_INTEGRATION_SCHEME_POINTER)
+    KRATOS_REGISTER_VARIABLE(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER)
     KRATOS_REGISTER_VARIABLE(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER)
     
     KRATOS_REGISTER_VARIABLE(PROBABILITY_DISTRIBUTION)        
@@ -792,13 +792,15 @@ namespace Kratos
     Serializer::Register("DEM_KDEM2D", DEM_KDEM2D());
     Serializer::Register("DEM_ExponentialHC", DEM_ExponentialHC());
     
-    Serializer::Register("ConstAverageAccelerationScheme", ConstAverageAccelerationScheme());
     Serializer::Register("ForwardEulerScheme", ForwardEulerScheme());
-    Serializer::Register("MidPointScheme", MidPointScheme());
-    Serializer::Register("NewmarkBetaScheme", NewmarkBetaScheme());
     Serializer::Register("SymplecticEulerScheme", SymplecticEulerScheme());
     Serializer::Register("TaylorScheme", TaylorScheme());
+    Serializer::Register("NewmarkBetaScheme", NewmarkBetaScheme());
     Serializer::Register("VelocityVerletScheme", VelocityVerletScheme());
+    Serializer::Register("RungeKuttaScheme", RungeKuttaScheme());
+    Serializer::Register("QuaternionIntegrationScheme", QuaternionIntegrationScheme());
+//     Serializer::Register("ConstAverageAccelerationScheme", ConstAverageAccelerationScheme());
+//     Serializer::Register("MidPointScheme", MidPointScheme());
     Serializer::Register("DEMIntegrationScheme", DEMIntegrationScheme());
     
     std::cout << " done."                                  << std::endl;

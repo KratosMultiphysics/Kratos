@@ -77,14 +77,16 @@ namespace Kratos
           class_< ForwardEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("ForwardEulerScheme", init<>());
 
           class_< SymplecticEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("SymplecticEulerScheme", init<>());
+          
+          class_< TaylorScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("TaylorScheme", init<>());
 
           class_< NewmarkBetaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("NewmarkBetaScheme", init<const double, const double>());
 
           class_< VelocityVerletScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("VelocityVerletScheme", init<>());
 
-          class_< TaylorScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("TaylorScheme", init<>());
+          class_< RungeKuttaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("RungeKuttaScheme", init<const double, const double>());
 
-          class_< ConstAverageAccelerationScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("ConstAverageAccelerationScheme", init<>());
+          class_< QuaternionIntegrationScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("QuaternionIntegrationScheme", init<>());
 
           class_<DemSearchType, bases<SpatialSearch>, boost::noncopyable>("OMP_DEMSearch")
                   .def(init<>())

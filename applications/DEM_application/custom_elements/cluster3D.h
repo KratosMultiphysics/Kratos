@@ -53,7 +53,7 @@ namespace Kratos
       
         using Element::Initialize;
         virtual void Initialize(ProcessInfo& r_process_info);
-        virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme);
+        virtual void SetIntegrationScheme(DEMTranslationalIntegrationScheme::Pointer& integration_scheme);
         virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override {};
         virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override {};
         virtual void CustomInitialize(ProcessInfo& r_process_info);
@@ -73,9 +73,9 @@ namespace Kratos
         virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
         
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-        virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
+        virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
         virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
-           
+        
         virtual double GetMass();
         virtual double SlowGetDensity();
         virtual int SlowGetParticleMaterial();
@@ -104,7 +104,7 @@ namespace Kratos
         std::vector<double>                mListOfRadii;
         std::vector<array_1d<double, 3> >  mListOfCoordinates;        
         std::vector<SphericParticle*>      mListOfSphericParticles; 
-        DEMIntegrationScheme* mpIntegrationScheme;
+        DEMIntegrationScheme* mpTranslationalIntegrationScheme;
         DEMIntegrationScheme* mpRotationalIntegrationScheme;       
       
     private:

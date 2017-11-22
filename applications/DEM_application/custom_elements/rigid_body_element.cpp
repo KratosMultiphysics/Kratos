@@ -27,19 +27,19 @@ namespace Kratos {
             
     RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
         mpRotationalIntegrationScheme = NULL;
     }
       
     RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
         mpRotationalIntegrationScheme = NULL;
     }
       
     RigidBodyElement::RigidBodyElement(IndexType NewId, NodesArrayType const& ThisNodes)
     : Element(NewId, ThisNodes) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
         mpRotationalIntegrationScheme = NULL;
     }
     

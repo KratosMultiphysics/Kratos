@@ -5,7 +5,7 @@ namespace Kratos {
     
         void TaylorScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
             if(verbose) std::cout << "\nAssigning TaylorScheme to properties " << pProp->Id() << std::endl;
-            pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+            pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
             pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
         }
 
