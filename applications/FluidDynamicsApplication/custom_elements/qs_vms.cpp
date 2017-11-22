@@ -896,7 +896,7 @@ void SpecializedAddTimeIntegratedSystem<TElementData, false>::AddSystem(
     Vector& rRHS) {
     KRATOS_TRY;
     KRATOS_ERROR << "Trying to use time-integrated element functions with a "
-                    "data type that does not have previous time step data"
+                    "data type that does not know previous time step data"
                  << std::endl;
     KRATOS_CATCH("");
 }
@@ -909,9 +909,38 @@ template <class TElementData>
 void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
     const FluidElement<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
     Vector& rRHS) {
-    Matrix VelocityPressureLHS;
-    Matrix MassMatrix;
-    Vector VelocityPressureRHS;
+/*
+    // Resize and intialize output
+    if (rLeftHandSideMatrix.size1() != LocalSize)
+        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+
+    if (rRightHandSideVector.size() != LocalSize)
+        rRightHandSideVector.resize(LocalSize, false);
+
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    pElement->CalculateGeometryData(
+        gauss_weights, shape_functions, shape_derivatives);
+    const unsigned int number_of_gauss_points = gauss_weights.size();
+
+    TElementData data;
+    data.Initialize(pElement, rCurrentProcessInfo);
+
+    // Iterate over integration points to evaluate local contribution
+    for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+        data.UpdateGeometryValues(
+            gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+
+        pElement->AddTimeIntegratedSystem(
+            data, rLeftHandSideMatrix, rRightHandSideVector);
+        pElement->AddTimeIntegratedSystem(
+            data, rLeftHandSideMatrix, rRightHandSideVector);
+    }*/
 
     KRATOS_WATCH("Hi!");
 }
