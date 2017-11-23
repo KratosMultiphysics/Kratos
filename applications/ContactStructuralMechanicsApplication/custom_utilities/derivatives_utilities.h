@@ -255,7 +255,7 @@ public:
             const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
             for ( unsigned int i_dof = 0; i_dof < TDim; ++i_dof)
             {
-                const auto& aux_delta_normal = subrange(aux_delta_normal_0[i_node * TDim + i_dof], 0, TDim);
+                const auto& aux_delta_normal = aux_delta_normal_0[i_node * TDim + i_dof];
                 aux_delta_normal0 += delta_disp[i_dof] * aux_delta_normal;
             }
         }
@@ -273,7 +273,7 @@ public:
         {
             for ( unsigned int i_dof = 0; i_dof < TDim; ++i_dof)
             {
-                const auto& aux_delta_normal = subrange(aux_delta_normal_0[i_node * TDim + i_dof], 0, TDim);
+                const auto& aux_delta_normal = aux_delta_normal_0[i_node * TDim + i_dof];
                 normalized_delta_normal_0[i_node * TDim + i_dof] = prod(renormalizer_matrix, aux_delta_normal);
             }
         }
