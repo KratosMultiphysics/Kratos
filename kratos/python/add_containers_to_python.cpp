@@ -678,6 +678,9 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTEGRATION_WEIGHT )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_COORDINATES )
 
+    //for Compressible Potential application
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( GAMMA )
+
 
     class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer, boost::noncopyable >	("ConvectionDiffusionSettings", init<	>() )
     .def("SetDensityVariable",&ConvectionDiffusionSettings::SetDensityVariable)

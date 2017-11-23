@@ -284,6 +284,9 @@ namespace Kratos
 //     KRATOS_DEFINE_VARIABLE( double, MATERIAL )
 //   KRATOS_DEFINE_VARIABLE(double, MOULD_AVERAGE_TEMPERATURE)
 
+    //for Compressible Potential Application
+    KRATOS_DEFINE_VARIABLE( double, GAMMA )
+
 
     //vectors
 

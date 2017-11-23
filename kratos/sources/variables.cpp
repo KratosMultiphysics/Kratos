@@ -305,6 +305,9 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, LATENT_HEAT )
   KRATOS_CREATE_VARIABLE( double, AMBIENT_TEMPERATURE )
 
+  //for Compressible Potential application
+  KRATOS_CREATE_VARIABLE( double, GAMMA )
+
 
   //vectors
 
@@ -1043,6 +1046,12 @@ namespace Kratos
 
 
       //--------------- Vulcan Application -------------------//
+
+      //--------------- Compressible Potential Application -------------------//
+
+      KRATOS_REGISTER_VARIABLE( GAMMA )
+
+      //--------------- Compressible Potential Application -------------------//
 
       // for Click2Cast application
 //       KRATOS_REGISTER_VARIABLE(NODE_PROPERTY_ID)

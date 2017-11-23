@@ -60,7 +60,8 @@ public:
     struct ElementalData
     {
         array_1d<double,TNumNodes> phis, distances;
-        double rho;
+        double density;
+        double derivative;
         double vol;
 
         bounded_matrix<double, TNumNodes, TDim > DN_DX;
@@ -283,17 +284,39 @@ public:
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override
     {
+        //Matrix to compute the residual
+        MatrixType rLaplacianMatrix;
+
         ElementalData<NumNodes,Dim> data;
 
         //calculate shape functions
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+        array_1d<double,Dim> velocity;
+        double density = 0;
+        double derivative = 0;
+
+        Vector DNV = ZeroVector(NumNodes);
 
         //gather nodal data
         for(unsigned int i=0; i<NumNodes; i++)
         {
             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
         }
-        
+
+        // array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
+
+        // // std::vector< array_1d<double,3> > velocity;
+
+        // // this->GetValueOnIntegrationPoints(VELOCITY, velocity, rCurrentProcessInfo);        
+
+        // std::vector<double> density;
+
+        // this->GetValueOnIntegrationPoints(DENSITY,density,rCurrentProcessInfo);
+
+        // data.density = density[0];
+
+        // data.derivative = ComputeDensityDerivative(rCurrentProcessInfo);
         
         //TEST:
         bool kutta_element = false;
@@ -312,10 +335,20 @@ public:
                 rRightHandSideVector.resize(NumNodes,false);
             rLeftHandSideMatrix.clear();
 
-            ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);
-                        
-            noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
-            
+            if(rLaplacianMatrix.size1() != NumNodes || rLaplacianMatrix.size2() != NumNodes)
+                rLaplacianMatrix.resize(NumNodes,NumNodes,false);
+            rLaplacianMatrix.clear();
+
+            //ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);
+            this->ComputeDensity(density,derivative,velocity,rCurrentProcessInfo);
+            DNV = prod(data.DN_DX, velocity);
+
+            noalias(rLeftHandSideMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
+            noalias(rLeftHandSideMatrix) += data.vol*derivative*outer_prod(DNV, trans(DNV));
+
+            noalias(rLaplacianMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
+
+            noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, data.phis);
         }
         else //it is a wake element
         {
@@ -327,6 +360,10 @@ public:
             if(rRightHandSideVector.size() != 2*NumNodes)
                 rRightHandSideVector.resize(2*NumNodes,false);
             rLeftHandSideMatrix.clear();
+
+            if(rLaplacianMatrix.size1() != 2*NumNodes || rLaplacianMatrix.size2() != 2*NumNodes)
+                rLaplacianMatrix.resize(2*NumNodes,2*NumNodes,false);
+            rLaplacianMatrix.clear();            
             
             //subdivide the element
             constexpr unsigned int nvolumes = 3*(Dim-1);
@@ -338,8 +375,7 @@ public:
             bounded_matrix<double,nvolumes, 2> NEnriched;
             
             for(unsigned int i=0; i<GradientsValue.size(); ++i)
-                GradientsValue[i].resize(2,Dim,false);
-           
+                GradientsValue[i].resize(2,Dim,false);       
             
             
             for(unsigned int i = 0; i<NumNodes; ++i)
@@ -362,13 +398,34 @@ public:
             //compute the lhs and rhs that would correspond to it not being divided
             Matrix lhs_positive = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_negative = ZeroMatrix(NumNodes,NumNodes);
+
+            Matrix laplacian_positive = ZeroMatrix(NumNodes,NumNodes);
+            Matrix laplacian_negative = ZeroMatrix(NumNodes,NumNodes);             
             
             for(unsigned int i=0; i<nsubdivisions; ++i)
             {
+                this->ComputeDensityOnSplitElement(density,derivative,velocity,PartitionsSign[i],rCurrentProcessInfo);
+                DNV = prod(data.DN_DX, velocity);
+
                 if(PartitionsSign[i] > 0)
-                    ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data);
+                {
+                    //ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data);
+
+                    noalias(lhs_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
+                    noalias(lhs_positive) += Volumes[i]*derivative*outer_prod(DNV, trans(DNV));
+
+                    noalias(laplacian_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));                    
+                }                    
                 else
-                    ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data);
+                {
+                    //ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data);
+
+                    noalias(lhs_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
+                    noalias(lhs_negative) += Volumes[i]*derivative*outer_prod(DNV, trans(DNV));
+
+                    noalias(laplacian_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX)); 
+                }
+                    
             }
 
             //also next version works - NON SYMMETRIC - but it does not require a penalty
@@ -391,7 +448,13 @@ public:
                             rLeftHandSideMatrix(i,j+NumNodes)   =  0.0; 
                             
                             rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j); 
-                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0; 
+                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
+
+                            rLaplacianMatrix(i,j)            =  laplacian_positive(i,j); 
+                            rLaplacianMatrix(i,j+NumNodes)   =  0.0; 
+                            
+                            rLaplacianMatrix(i+NumNodes,j+NumNodes) =  laplacian_negative(i,j); 
+                            rLaplacianMatrix(i+NumNodes,j)          =  0.0;
                         }
                     }
                 }
@@ -405,7 +468,13 @@ public:
                             rLeftHandSideMatrix(i,j+NumNodes)          =  0.0; 
                             
                             rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j); 
-                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0; 
+                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
+
+                            rLaplacianMatrix(i,j)            =  laplacian_positive(i,j); 
+                            rLaplacianMatrix(i,j+NumNodes)   =  0.0; 
+                            
+                            rLaplacianMatrix(i+NumNodes,j+NumNodes) =  laplacian_negative(i,j); 
+                            rLaplacianMatrix(i+NumNodes,j)          =  0.0; 
                         }
                     }
                     
@@ -415,11 +484,14 @@ public:
                     {
                         if(data.distances[i]<0)
                         {
-                                for(unsigned int j=0; j<NumNodes; ++j)
-                                {
-                                    rLeftHandSideMatrix(i,j)          = lhs_positive(i,j); 
-                                    rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j); 
-                                }
+                            for(unsigned int j=0; j<NumNodes; ++j)
+                            {
+                                rLeftHandSideMatrix(i,j)          = lhs_positive(i,j); 
+                                rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j); 
+
+                                rLaplacianMatrix(i,j)          = laplacian_positive(i,j); 
+                                rLaplacianMatrix(i,j+NumNodes) = -laplacian_positive(i,j);
+                            }
                         }
                     }
                     
@@ -429,16 +501,19 @@ public:
                         if(data.distances[i]>0)
                         {   
                             for(unsigned int j=0; j<NumNodes; ++j)
-                                {
-                                    rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = lhs_negative(i,j);
-                                    rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j); 
-                                }
+                            {
+                                rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = lhs_negative(i,j);
+                                rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j);
+
+                                rLaplacianMatrix(i+NumNodes,j+NumNodes) = laplacian_negative(i,j);
+                                rLaplacianMatrix(i+NumNodes,j) = -laplacian_negative(i,j);
+                            }
                         }
                     }
                 }
             Vector split_element_values(NumNodes*2);
             GetValuesOnSplitElement(split_element_values, data.distances);
-            noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
+            noalias(rRightHandSideVector) = -prod(rLaplacianMatrix,split_element_values);
         }
         
     }
@@ -509,7 +584,7 @@ public:
             if ((this)->IsDefined(ACTIVE))
                 active = (this)->Is(ACTIVE);
 
-            if(active && !this->Is(MARKER))
+            if(active && !this->Is(MARKER))//normal element
             {
                 const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
                 const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
@@ -530,7 +605,7 @@ public:
 
                 p = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
             }
-            else if(this->Is(MARKER) && active==true)
+            else if(this->Is(MARKER) && active==true)//wake element
             {
                 const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
                 const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
@@ -566,9 +641,96 @@ public:
                 p =  (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
             }
 
-
             rValues[0] = p;
+
         }
+        if (rVariable == DENSITY)
+        {
+            double density = 0.0;
+
+            bool active = true;
+            if ((this)->IsDefined(ACTIVE))
+                active = (this)->Is(ACTIVE);
+
+            if(active && !this->Is(MARKER))//normal element
+            {
+                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+                //const double densityinfinity = rCurrentProcessInfo[DENSITY];
+                const double densityinfinity = GetProperties().GetValue(DENSITY);
+                const double gamma = rCurrentProcessInfo[GAMMA];
+                const double a = rCurrentProcessInfo[SOUND_VELOCITY];
+
+                const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
+
+                ElementalData<NumNodes,Dim> data;
+
+                //calculate shape functions
+                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+                
+                //gather nodal data
+                for(unsigned int i=0; i<NumNodes; i++)
+                {
+                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                }
+
+                //compute local velocity
+                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
+
+                const double v_norm2 = inner_prod(v,v);
+                const double base = 1 + (gamma -1)*v_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
+                const double exponent = 1/(gamma -1);
+
+                density = densityinfinity*pow(base,exponent); 
+            }
+            else if(this->Is(MARKER) && active==true)//wake element
+            {
+                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+                //const double densityinfinity = rCurrentProcessInfo[DENSITY];
+                const double densityinfinity = GetProperties().GetValue(DENSITY);
+                const double gamma = rCurrentProcessInfo[GAMMA];
+                const double a = rCurrentProcessInfo[SOUND_VELOCITY];
+
+                const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
+
+                ElementalData<NumNodes,Dim> data;
+
+                //calculate shape functions
+                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+                array_1d<double,NumNodes> distances;
+                GetWakeDistances(distances);
+
+                //taking only positive part
+                // for (unsigned int i = 0; i < NumNodes; i++)
+                // {
+                //     if(distances[i] > 0)
+                //         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                //     else
+                //         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                // }
+
+                //negative part - sign is opposite to the previous case
+                for (unsigned int i = 0; i < NumNodes; i++)
+                {
+                    if(distances[i] < 0)                    
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);                    
+                    else                    
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);                    
+                }
+
+                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
+
+                const double v_norm2 = inner_prod(v,v);
+                const double base = 1 + (gamma -1)*v_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
+                const double exponent = 1/(gamma -1);
+
+                density = densityinfinity*pow(base,exponent);          
+            }
+
+            rValues[0] = density;
+
+        }
+        
     }
 
     void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
@@ -597,7 +759,7 @@ public:
                     data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
                 }
 
-                array_1d<double,Dim> vaux = -prod(trans(data.DN_DX), data.phis);
+                array_1d<double,Dim> vaux = prod(trans(data.DN_DX), data.phis);
                 
                 for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
             }
@@ -620,7 +782,7 @@ public:
                         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
                 }
 
-                array_1d<double,Dim> vaux = -prod(trans(data.DN_DX), data.phis);
+                array_1d<double,Dim> vaux = prod(trans(data.DN_DX), data.phis);
                 
                 for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
             }
@@ -629,7 +791,8 @@ public:
 
             rValues[0] = v;
         }
-    }
+    }    
+
 
 
     ///@}
@@ -703,6 +866,8 @@ protected:
         const ElementalData<NumNodes,Dim>& data)
     {
         noalias(lhs) += weight*prod(data.DN_DX, trans(data.DN_DX));
+
+        //noalias(lhs) += weight*data.density*prod(data.DN_DX, trans(data.DN_DX));
     }
 
     void ComputeRHSGaussPointContribution(
@@ -736,6 +901,95 @@ protected:
         }
     }
 
+    void ComputeDensityOnSplitElement(double& density, double& derivative, array_1d<double,Dim>& velocity, double& rPartitionsSign, const ProcessInfo& rCurrentProcessInfo)
+    {
+        //This function computes density, velocity and the derivative of the density w.r.t. the square of the local velocity
+        //for a split element
+
+        const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+        //const double densityinfinity = rCurrentProcessInfo[DENSITY];
+        const double densityinfinity = GetProperties().GetValue(DENSITY);
+        const double gamma = rCurrentProcessInfo[GAMMA];
+        const double a = rCurrentProcessInfo[SOUND_VELOCITY];
+
+        const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
+
+        ElementalData<NumNodes,Dim> data;
+
+        //calculate shape functions
+        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+        array_1d<double,NumNodes> distances;
+        GetWakeDistances(distances);
+
+        if(rPartitionsSign > 0)//taking positive part
+        {
+            for (unsigned int i = 0; i < NumNodes; i++)
+            {
+                if(distances[i] > 0)
+                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                else
+                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+            }
+        }
+        else if(rPartitionsSign < 0)//taking negative part
+        {
+            for (unsigned int i = 0; i < NumNodes; i++)
+            {
+                if(distances[i] < 0)                    
+                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);                    
+                else                    
+                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);                    
+            }
+        }       
+
+        velocity = prod(trans(data.DN_DX), data.phis);
+
+        const double v_norm2 = inner_prod(velocity,velocity);
+        const double base = 1 + (gamma -1)*v_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
+
+        density = densityinfinity*pow(base,1/(gamma -1));
+        derivative = -densityinfinity*pow(base,(2 - gamma)/(gamma -1))/(2*a*a);
+    }
+
+    void ComputeDensity(double& density, 
+                        double& derivative, 
+                        array_1d<double,Dim>& velocity, 
+                        const ProcessInfo& rCurrentProcessInfo)
+    {
+        //This function computes density, velocity and the derivative of the density w.r.t. the square of the local velocity
+        //for a normal element
+        
+        const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+        //const double densityinfinity = rCurrentProcessInfo[DENSITY];
+        const double densityinfinity = GetProperties().GetValue(DENSITY);
+        const double gamma = rCurrentProcessInfo[GAMMA];
+        const double a = rCurrentProcessInfo[SOUND_VELOCITY];
+
+        const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
+
+        ElementalData<NumNodes,Dim> data;
+
+        //calculate shape functions
+        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+        
+        //gather nodal data
+        for(unsigned int i=0; i<NumNodes; i++)
+        {
+            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+        }
+
+        //compute local velocity
+        velocity = prod(trans(data.DN_DX), data.phis);
+
+        const double v_norm2 = inner_prod(velocity,velocity);
+        const double base = 1 + (gamma -1)*v_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
+
+        density = densityinfinity*pow(base,1/(gamma -1));
+        derivative = -densityinfinity*pow(base,(2 - gamma)/(gamma -1))/(2*a*a);        
+    }
+
+    
 
 
 

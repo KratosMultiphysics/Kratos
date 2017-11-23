@@ -351,18 +351,32 @@ public:
             rRightHandSideVector.resize(TNumNodes,false);
         rLeftHandSideMatrix.clear();
 
-        array_1d<double,3> An;
-        if(TDim == 2) CalculateNormal2D(An);
-        else CalculateNormal3D(An);
+        ElementPointerType pElem = pGetElement();
 
-        const array_1d<double,3>& v = this->GetValue(VELOCITY);
-        const double value = -inner_prod(v, An)/static_cast<double>(TNumNodes);
-
-        for(unsigned int i=0; i<TNumNodes; ++i)
+        if(!pElem->Is(MARKER))//normal element
         {
-            rRightHandSideVector[i] = value;
-        }
+            array_1d<double,3> An;
+            if(TDim == 2) CalculateNormal2D(An);
+            else CalculateNormal3D(An);
 
+            const array_1d<double,3>& v = this->GetValue(VELOCITY);
+            const double value = inner_prod(v, An)/static_cast<double>(TNumNodes);
+
+            for(unsigned int i=0; i<TNumNodes; ++i)
+            {
+                rRightHandSideVector[i] = value;
+            }
+
+        }
+        else if(pElem->Is(MARKER))//wake condition
+        {
+            //std::cout << "WAKE COJNDITION! THERE SHOULD BE ONLY TWO = " << this->Id()  << std::endl;
+            for(unsigned int i=0; i<TNumNodes; ++i)
+            {
+                rRightHandSideVector[i] = 0;
+            }
+
+        }
     }
 
 
@@ -443,22 +457,6 @@ public:
             //std::cout << "Condition = " << this->Id()  << std::endl;
             std::vector<double> rValues;
             ElementPointerType pElem = pGetElement();
-            //std::cout << pElem->Id()  << std::endl;
-            // if(pElem == 0)
-            // {
-            //     std::cout << "Condition = " << this->Id()  << std::endl;
-            //     std::cout << pElem << std::endl;
-            // }
-            // else
-            // {
-            //     std::cout << pElem->Id() << std::endl;
-            // }
-            if(this->Id()==1)
-            {
-                std::cout << "Condition = " << this->Id()  << std::endl;
-                std::cout << mpElement.lock() << std::endl;
-            }
-            //std::cout << pElem  << "HALLO" << std::endl;
             pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
             this->SetValue(PRESSURE,rValues[0]);
         }

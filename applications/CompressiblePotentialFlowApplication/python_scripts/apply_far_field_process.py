@@ -15,21 +15,30 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
                 "inlet_phi": 1.0,
-                "velocity_infinity": [1.0,0.0,0]
+                "velocity_infinity": [1.0,0.0,0],
+                "density_infinity"  : 1.225,
+                "gamma"                 : 1.4,
+                "speed_sound_infinity"  : 340 
             }  """ );
         
             
         settings.ValidateAndAssignDefaults(default_parameters);
         
-        self.model_part = Model[settings["model_part_name"].GetString()]
-        self.velocity_infinity = KratosMultiphysics.Vector(3)#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
-        self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
-        self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
-        self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
-        #self.density_infinity = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
-        self.inlet_phi = settings["inlet_phi"].GetDouble()
+        self.model_part             = Model[settings["model_part_name"].GetString()]
+        self.inlet_phi              = settings["inlet_phi"].GetDouble()
+        self.velocity_infinity      = KratosMultiphysics.Vector(3)#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
+        self.velocity_infinity[0]   = settings["velocity_infinity"][0].GetDouble()
+        self.velocity_infinity[1]   = settings["velocity_infinity"][1].GetDouble()
+        self.velocity_infinity[2]   = settings["velocity_infinity"][2].GetDouble()            
+        self.density_infinity       = settings["density_infinity"].GetDouble()
+        #self.density_infinity      = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
+        self.gamma                  = settings["gamma"].GetDouble()
+        self.speed_sound_infinity   = settings["speed_sound_infinity"].GetDouble()
         
-        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.VELOCITY,self.velocity_infinity)
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.VELOCITY,       self.velocity_infinity)
+        #self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY,        self.density_infinity)
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.GAMMA,          self.gamma)
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, self.speed_sound_infinity)
         
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part,self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
         
