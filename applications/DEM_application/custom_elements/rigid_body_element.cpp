@@ -56,7 +56,7 @@ namespace Kratos {
 
     }   
     
-    void RigidBodyElement::SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme){
+    void RigidBodyElement::SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme){
 
     }
     
