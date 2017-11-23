@@ -19,6 +19,7 @@
 #include "testing/testing.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "tests/geometries/test_geometry.h"
+#include "includes/global_variables.h"
 
 // Utility includes
 #include "utilities/geometry_utilities.h"
@@ -58,7 +59,7 @@ namespace Testing
     {
         return typename Quadrilateral3D4<TPointType>::Pointer(new Quadrilateral3D4<TPointType>(
         GeneratePoint<TPointType>(0.0, 0.0, 0.0),
-        GeneratePoint<TPointType>(std::cos(M_PI/4), 0.0, std::sin(M_PI/4)),
+        GeneratePoint<TPointType>(std::cos(Globals::Pi/4), 0.0, std::sin(Globals::Pi/4)),
         GeneratePoint<TPointType>(1.0, 1.0, 0.5),
         GeneratePoint<TPointType>(0.0, 1.0, 0.0)
         ));
