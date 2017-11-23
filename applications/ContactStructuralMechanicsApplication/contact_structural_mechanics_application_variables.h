@@ -41,9 +41,6 @@ KRATOS_DEFINE_VARIABLE( double, WEIGHTED_FRICTION )                             
 KRATOS_DEFINE_VARIABLE( double, WEIGHTED_SCALAR_RESIDUAL )                           // The integrated scalar residual  
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )                // The integrated vector residual         
 
-/* Matrix to store the derivatives of the normal */
-KRATOS_DEFINE_VARIABLE( Matrix, DELTA_NORMAL )                                       // Directional derivative of the normal
-
 /* For ALM mortar condition */
 KRATOS_DEFINE_VARIABLE( double, AUGMENTED_NORMAL_CONTACT_PRESSURE )                 // The resultant augmented pressure in the normal direction
 KRATOS_DEFINE_VARIABLE( double, AUGMENTED_TANGENT_CONTACT_PRESSURE )                // The resultant augmented pressure in the tangent direction
