@@ -135,7 +135,6 @@ namespace Kratos
 
 	void CrBeamElement2D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
 	{
-
 		KRATOS_TRY
 		if (rValues.size() != msElementSize) rValues.resize(msElementSize, false);
 
@@ -156,19 +155,44 @@ namespace Kratos
 	void CrBeamElement2D2N::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 		VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
 		{
-			std::cout << "LocalSystem" << std::endl;
+			KRATOS_TRY;
+			// t
+			this->DeformationForces = this->CalculateInternalStresses_DeformationModes();
+
+			// qe
+			Vector NodalForces = ZeroVector(msElementSize);
+			NodalForces = this->ReturnElementForces_Local();
+			// q
+			this->GlobalizeVector(NodalForces);
+
+			// Kt
+			this->CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
+			this->K_lin = rLeftHandSideMatrix;
+
+			// residual >>> r = f_ext - f_int
+			rRightHandSideVector = ZeroVector(msElementSize);
+			rRightHandSideVector -= NodalForces;
+			KRATOS_CATCH("")
 		}
 
 	void CrBeamElement2D2N::CalculateRightHandSide(VectorType& rRightHandSideVector,
 		ProcessInfo& rCurrentProcessInfo)
 		{
-			std::cout << "RHS" << std::endl;
+			KRATOS_TRY;
+			Vector DeforLin = ZeroVector(msElementSize);
+			this->GetValuesVector(DeforLin);
+			rRightHandSideVector = ZeroVector(msElementSize);
+			rRightHandSideVector -= prod(this->K_lin,DeforLin);
+			KRATOS_CATCH("")
 		}
 
 	void CrBeamElement2D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 		ProcessInfo& rCurrentProcessInfo) 
 		{
-			std::cout << "LHS" << std::endl;
+			KRATOS_TRY;
+			rLeftHandSideMatrix = this->CreateElementStiffnessMatrix_Total();
+			this->GlobalizeMatrix(rLeftHandSideMatrix);
+			KRATOS_CATCH("")
 		}
 
 	/////////////////////////////////////////////////
@@ -366,16 +390,16 @@ namespace Kratos
 		KRATOS_TRY	
 		// co-rotating K
 		bounded_matrix<double,msElementSize,msElementSize> K_r = this->CreateElementStiffnessMatrix_Kr();
-
+		
 		// element K (mat+geo)
 		bounded_matrix<double,msLocalSize,msLocalSize> K_d_mat = this->CreateElementStiffnessMatrix_Kd_mat();
 		bounded_matrix<double,msLocalSize,msLocalSize> K_d_geo = this->CreateElementStiffnessMatrix_Kd_geo();
 		bounded_matrix<double,msLocalSize,msLocalSize> K_d = K_d_mat+K_d_geo;
-
+		
 		bounded_matrix<double,msElementSize,msLocalSize> S = this->CalculateTransformationS();
 		bounded_matrix<double,msElementSize,msElementSize> K_d_element = prod(K_d,Matrix(trans(S)));
 		K_d_element = prod(S,K_d_element);
-
+		
 		// total K
 		bounded_matrix<double,msElementSize,msElementSize> K_total = ZeroMatrix(msElementSize, msElementSize);
 		K_total += K_r;
@@ -439,12 +463,14 @@ namespace Kratos
 		RotationMatrix(0, 0) = c;
 		RotationMatrix(0, 1) = -s;
 		RotationMatrix(1, 0) = s;
-		RotationMatrix(2, 2) = c;
+		RotationMatrix(1, 1) = c;
+		RotationMatrix(2, 2) = 1.00;
 
 		RotationMatrix(3, 3) = c;
 		RotationMatrix(3, 4) = -s;
 		RotationMatrix(4, 3) = s;
-		RotationMatrix(5, 5) = c;
+		RotationMatrix(4, 4) = c;
+		RotationMatrix(5, 5) = 1.00;
 
 		return RotationMatrix;
 		KRATOS_CATCH("")
@@ -455,6 +481,7 @@ namespace Kratos
 	{
 		KRATOS_TRY;
 		bounded_matrix<double,msElementSize,msElementSize> R = this->CreateRotationMatrix();
+
 		A = prod(A,Matrix(trans(R)));
 		A = prod(R,A);
 		KRATOS_CATCH("")

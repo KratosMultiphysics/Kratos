@@ -134,6 +134,7 @@ namespace Kratos
 
 		bool mIsLinearElement = false;
 		bounded_vector<double,msLocalSize> DeformationForces = ZeroVector(msLocalSize);
+		MatrixType K_lin = ZeroMatrix(msElementSize,msElementSize);
 		CrBeamElement2D2N() {};
 
 
