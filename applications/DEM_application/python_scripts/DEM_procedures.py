@@ -8,6 +8,7 @@ import DEM_material_test_script
 import os
 import shutil
 import sys
+import weakref
 from glob import glob
 
 def Flush(a):
@@ -37,7 +38,7 @@ class MdpaCreator(object):
 
     def __init__(self, path, DEM_parameters):
 
-        self.DEM_parameters = DEM_parameters
+        self.DEM_parameters = weakref.proxy(DEM_parameters)
         self.current_path = path
 
 
@@ -167,8 +168,8 @@ class PostUtils(object):
 
     def __init__(self, DEM_parameters, spheres_model_part):
 
-        self.DEM_parameters = DEM_parameters
-        self.spheres_model_part = spheres_model_part
+        self.DEM_parameters = weakref.proxy(DEM_parameters)
+        self.spheres_model_part = weakref.proxy(spheres_model_part)
         self.post_utilities = PostUtilities()
 
         self.vel_trap_graph_counter = 0
@@ -325,7 +326,7 @@ class Procedures(object):
         # Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
 
         # Initialization of member variables
-        self.DEM_parameters = DEM_parameters
+        self.DEM_parameters = weakref.proxy(DEM_parameters)
 
         # SIMULATION FLAGS
         self.rotation_OPTION               = self.DEM_parameters["RotationOption"].GetBool()
@@ -372,8 +373,8 @@ class Procedures(object):
         DEM_inlet_model_part = all_model_parts.Get('DEMInletPart')
         rigid_face_model_part = all_model_parts.Get('RigidFacePart')
         
-        self.solver=solver
-        self.scheme=scheme
+        self.solver = weakref.proxy(solver)
+        self.scheme = weakref.proxy(scheme)
         self.AddCommonVariables(spheres_model_part, DEM_parameters)
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
         self.AddMpiVariables(spheres_model_part)      
@@ -454,7 +455,7 @@ class Procedures(object):
         if "PostStressStrainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
-        
+
         if (self.solver.poisson_ratio_option):
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
 
@@ -845,7 +846,7 @@ class DEMFEMProcedures(object):
     def __init__(self, DEM_parameters, graphs_path, spheres_model_part, RigidFace_model_part):
 
         # GLOBAL VARIABLES OF THE SCRIPT
-        self.DEM_parameters = DEM_parameters
+        self.DEM_parameters = weakref.proxy(DEM_parameters)
 
         if not "TestType" in DEM_parameters.keys():
             self.TestType = "None"
@@ -861,8 +862,8 @@ class DEMFEMProcedures(object):
             self.contact_mesh_OPTION = self.DEM_parameters["ContactMeshOption"].GetBool()
 
         self.graphs_path = graphs_path
-        self.spheres_model_part = spheres_model_part
-        self.RigidFace_model_part = RigidFace_model_part
+        self.spheres_model_part = weakref.proxy(spheres_model_part)
+        self.RigidFace_model_part = weakref.proxy(RigidFace_model_part)
         #self.solver = solver
         self.aux = AuxiliaryUtilities()
 
@@ -1291,7 +1292,6 @@ class MaterialTest(object):
 class MultifileList(object):
 
     def __init__(self, post_path, name, step, which_folder):
-        os.chdir(post_path)
         self.index = 0
         self.step = step
         self.name = name
@@ -1309,12 +1309,12 @@ class DEMIo(object):
     def __init__(self, DEM_parameters, post_path):
 
         self.post_path = post_path
-        self.mixed_model_part                                     = ModelPart("Mixed_Part")
-        self.mixed_spheres_and_clusters_model_part                = ModelPart("MixedSpheresAndClustersPart")
-        self.mixed_spheres_not_in_cluster_and_clusters_model_part = ModelPart("MixedSpheresNotInClusterAndClustersPart")
+        self.mixed_model_part                                     = weakref.proxy(ModelPart("Mixed_Part"))
+        self.mixed_spheres_and_clusters_model_part                = weakref.proxy(ModelPart("MixedSpheresAndClustersPart"))
+        self.mixed_spheres_not_in_cluster_and_clusters_model_part = weakref.proxy(ModelPart("MixedSpheresNotInClusterAndClustersPart"))
         
         # Printing variables
-        self.DEM_parameters = DEM_parameters
+        self.DEM_parameters = weakref.proxy(DEM_parameters)
         self.global_variables                          = []
         self.spheres_and_clusters_variables            = []
         self.spheres_and_clusters_local_axis_variables = []
@@ -1438,7 +1438,7 @@ class DEMIo(object):
         self.AddContactVariables()
         self.AddMpiVariables()
         self.Configure(DEM_parameters["problem_name"].GetString(), DEM_parameters["OutputFileType"].GetString(), DEM_parameters["Multifile"].GetString(), DEM_parameters["ContactMeshOption"].GetBool())
-        self.SetOutputName(DEM_parameters["problem_name"].GetString())
+        #self.SetOutputName(DEM_parameters["problem_name"].GetString())
 
     def PushPrintVar(self, variable, name, print_list):
         if (Var_Translator(variable)):
@@ -1567,7 +1567,9 @@ class DEMIo(object):
                             self.deformed_mesh_flag,
                             self.write_conditions)
 
-        self.post_utility = PostUtilities()
+
+        #self.post_utility = PostUtilities()
+
 
     def SetOutputName(self,name):
         self.gid_io.ChangeOutputName(name)

@@ -4,6 +4,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 import math
 import time
+import weakref
 import cluster_file_reader
 
 class ExplicitStrategy:
@@ -12,13 +13,13 @@ class ExplicitStrategy:
 
         # Initialization of member variables
 
-        self.spheres_model_part = all_model_parts.Get("SpheresPart")
-        self.inlet_model_part = all_model_parts.Get("DEMInletPart")
-        self.fem_model_part = all_model_parts.Get("RigidFacePart")
-        self.cluster_model_part = all_model_parts.Get("ClusterPart")
-        self.contact_model_part = all_model_parts.Get("ContactPart")
+        self.spheres_model_part = weakref.proxy(all_model_parts.Get("SpheresPart"))
+        self.inlet_model_part = weakref.proxy(all_model_parts.Get("DEMInletPart"))
+        self.fem_model_part = weakref.proxy(all_model_parts.Get("RigidFacePart"))
+        self.cluster_model_part = weakref.proxy(all_model_parts.Get("ClusterPart"))
+        self.contact_model_part = weakref.proxy(all_model_parts.Get("ContactPart"))
 
-        self.DEM_parameters = DEM_parameters
+        self.DEM_parameters = weakref.proxy(DEM_parameters)
 
         if not "ComputeStressTensorOption" in DEM_parameters.keys():
             self.compute_stress_tensor_option = 0
@@ -40,8 +41,8 @@ class ExplicitStrategy:
         self.rotation_option         = DEM_parameters["RotationOption"].GetBool()
         self.bounding_box_option     = DEM_parameters["BoundingBoxOption"].GetBool()
         self.fix_velocities_flag     = 0
-        self.Procedures              = procedures
-        self.time_integration_scheme = scheme
+        self.Procedures              = weakref.proxy(procedures)
+        self.time_integration_scheme = weakref.proxy(scheme)
         #self.time_integration_scheme.SetRotationOption(self.rotation_option)
 
         self.clean_init_indentation_option = DEM_parameters["CleanIndentationsOption"].GetBool()
@@ -135,8 +136,8 @@ class ExplicitStrategy:
         self.safety_factor = DEM_parameters["DeltaTimeSafetyFactor"].GetDouble()  # For critical time step @53214
 
         # CREATOR-DESTRUCTOR
-        self.creator_destructor = creator_destructor
-        self.dem_fem_search = dem_fem_search
+        self.creator_destructor = weakref.proxy(creator_destructor)
+        self.dem_fem_search = weakref.proxy(dem_fem_search)
 
         # STRATEGIES
         self.search_strategy = OMP_DEMSearch()
