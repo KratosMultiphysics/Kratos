@@ -559,7 +559,7 @@ public:
         )
     {        
         // The normals of the nodes
-        NormalSlave = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL);
+        NormalSlave = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL, 0);
         
         // Displacements and velocities of the slave       
         u1 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1);
@@ -587,17 +587,9 @@ public:
             DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
             DeltaN2[i] = ZeroVector(TNumNodes);
             DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-            DeltaNormalSlave[i] = ZeroMatrix(TNumNodes, TDim);
         }
     
-        if (TDim == 2) // Derivative of master's normal
-        {
-            for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
-            {
-                DeltaNormalMaster[i] = ZeroMatrix(TNumNodes, TDim);
-            }
-        }
-        else // Derivative of the cell vertex
+        if (TDim == 3) // Derivative of the cell vertex
         {
             for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
             {
@@ -633,7 +625,7 @@ public:
     {
         const GeometryType& MasterGeometry =  pCond->GetGeometry();
         
-        NormalMaster = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL);
+        NormalMaster = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL, 0);
         
         // Displacements, coordinates and normals of the master
         u2 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 0)

@@ -42,7 +42,7 @@ bool ExactMortarIntegrationUtility<2,2, false>::GetExactIntegration(
     // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
     for (unsigned int i_slave = 0; i_slave < 2; ++i_slave)
     {
-        const array_1d<double, 3>& normal = OriginalSlaveGeometry[i_slave].GetValue(NORMAL);
+        const array_1d<double, 3>& normal = OriginalSlaveGeometry[i_slave].FastGetSolutionStepValue(NORMAL);
         
         MortarUtilities::FastProjectDirection(OriginalMasterGeometry, OriginalSlaveGeometry[i_slave].Coordinates(), projected_gp_global, MasterNormal, -normal ); // The opposite direction
         
@@ -364,7 +364,7 @@ bool ExactMortarIntegrationUtility<2,2, true>::GetExactIntegration(
     // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
     for (unsigned int i_slave = 0; i_slave < 2; ++i_slave)
     {
-        const array_1d<double, 3>& normal = OriginalSlaveGeometry[i_slave].GetValue(NORMAL);
+        const array_1d<double, 3>& normal = OriginalSlaveGeometry[i_slave].FastGetSolutionStepValue(NORMAL);
         
         MortarUtilities::FastProjectDirection(OriginalMasterGeometry, OriginalSlaveGeometry[i_slave].Coordinates(), projected_gp_global, MasterNormal, -normal ); // The opposite direction
         

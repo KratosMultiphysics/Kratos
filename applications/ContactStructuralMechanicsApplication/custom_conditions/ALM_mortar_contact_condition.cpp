@@ -563,7 +563,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 
                 for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
                 {
-                    const array_1d<double, 3>& normal = slave_geometry[i_node].GetValue(NORMAL);
+                    const array_1d<double, 3>& normal = slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
                     const array_1d<double, TDim> aux_array = row(D_x1_M_x2, i_node);
                                     
                     double& weighted_gap = slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
@@ -583,7 +583,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                     for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
                     {
                         // We compute the tangent
-                        const array_1d<double, 3>& normal = slave_geometry[i_node].GetValue(NORMAL);
+                        const array_1d<double, 3>& normal = slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
                         const array_1d<double, 3>& lm = slave_geometry[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                         const double lm_normal = inner_prod(normal, lm);
                         array_1d<double, 3> tangent_lm = lm - lm_normal * normal;
@@ -645,7 +645,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     if (consider_normal_variation == true)
     {
         // Compute the normal derivatives of the slave
-        DerivativesUtilitiesType::CalculateDeltaNormalSlave(rDerivativeData, GetGeometry());
+        DerivativesUtilitiesType::CalculateDeltaNormal(rDerivativeData.DeltaNormalSlave, GetGeometry());
     }
     
     // Create the mortar operators
@@ -687,7 +687,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 if (consider_normal_variation == true)
                 {
                     // Compute the normal derivatives of the master
-                    DerivativesUtilitiesType::CalculateDeltaNormalMaster(rDerivativeData, master_geometry);
+                    DerivativesUtilitiesType::CalculateDeltaNormal(rDerivativeData.DeltaNormalMaster, master_geometry);
                 }
                 
                 const bool dual_LM =  DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry, normal_slave, mThisMasterElements[pair_index], rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method, GetAxisymmetricCoefficient(rVariables));

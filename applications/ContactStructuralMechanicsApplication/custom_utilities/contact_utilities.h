@@ -153,7 +153,7 @@ public:
         for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
-            it_node->SetValue(NORMAL, zero_vect);
+            it_node->FastGetSolutionStepValue(NORMAL) = zero_vect;
         }
         
         // Sum all the nodes normals
@@ -170,7 +170,6 @@ public:
             CoordinatesArrayType aux_coords;
             aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
             it_cond->SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
-//             const array_1d<double, 3>& normal = it_cond->GetValue(NORMAL);
             
             const unsigned int number_nodes = this_geometry.PointsNumber();
             
@@ -179,7 +178,7 @@ public:
                 auto& this_node = this_geometry[i];
                 aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_node.Coordinates());
                 const array_1d<double, 3>& normal = this_geometry.UnitNormal(aux_coords);
-                auto& aux_normal = this_node.GetValue(NORMAL);
+                auto& aux_normal = this_node.FastGetSolutionStepValue(NORMAL);
                 for (unsigned int index = 0; index < 3; ++index)
                 {
                     #pragma omp atomic
@@ -199,8 +198,9 @@ public:
         {
             auto it_node = nodes_array.begin() + i;
 
-            const double norm_normal = norm_2(it_node->GetValue(NORMAL));
-            if (norm_normal > tolerance) it_node->GetValue(NORMAL) /= norm_normal;
+            array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
+            const double norm_normal = norm_2(normal);
+            if (norm_normal > tolerance) normal /= norm_normal;
             else KRATOS_ERROR << "WARNING:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
         }
     }
@@ -226,7 +226,7 @@ public:
         {
             auto it_node = nodes_array.begin() + i;
             it_node->SetValue(NODAL_AREA, 0.0);
-            it_node->SetValue(NORMAL, zero_vect);
+            it_node->FastGetSolutionStepValue(NORMAL) = zero_vect;
         }
         
         // Aux coordinates
@@ -256,7 +256,7 @@ public:
                 double& nodal_area = this_node.GetValue(NODAL_AREA);
                 #pragma omp atomic
                 nodal_area += rArea;
-                auto& aux_normal = this_node.GetValue(NORMAL);
+                auto& aux_normal = this_node.FastGetSolutionStepValue(NORMAL);
                 for (unsigned int index = 0; index < 3; ++index)
                 {
                     #pragma omp atomic
@@ -270,7 +270,7 @@ public:
         {
             auto it_node = nodes_array.begin() + i;
             const double& total_area = it_node->GetValue(NODAL_AREA);
-            if (total_area > tolerance) it_node->GetValue(NORMAL) /= total_area;
+            if (total_area > tolerance) it_node->FastGetSolutionStepValue(NORMAL) /= total_area;
         }
         
         if (rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] == true)
@@ -284,9 +284,10 @@ public:
         {
             auto it_node = nodes_array.begin() + i;
 
-            const double norm_normal = norm_2(it_node->GetValue(NORMAL));
+            array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
+            const double norm_normal = norm_2(normal);
             
-            if (norm_normal > tolerance) it_node->GetValue(NORMAL) /= norm_normal;
+            if (norm_normal > tolerance) normal /= norm_normal;
             else KRATOS_ERROR << "WARNING:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
         }
     }
@@ -481,7 +482,7 @@ public:
         for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
-            const array_1d<double, 3>& nj = it_node->GetValue(NORMAL); // nodal non-normalized normal (this function is called before normalization)
+            const array_1d<double, 3>& nj = it_node->FastGetSolutionStepValue(NORMAL); // nodal non-normalized normal (this function is called before normalization)
             
             Matrix nj_o_nj = subrange( outer_prod( nj, nj ), 0, dimension, 0, dimension );
             const double nj_norm = norm_2( nj );
