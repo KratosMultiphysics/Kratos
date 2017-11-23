@@ -1230,13 +1230,18 @@ private:
                 high[i] = i_node->Coordinate(i+1) > high[i] ? i_node->Coordinate(i+1) : high[i];
             }
         }
-// KRATOS_WATCH( low[0] )      
-// KRATOS_WATCH( low[1] )
-// KRATOS_WATCH( low[2] )
-// KRATOS_WATCH( "" )
-// KRATOS_WATCH( high[0] )      
-// KRATOS_WATCH( high[1] )
-// KRATOS_WATCH( high[2] )
+	// KRATOS_WATCH( low[0] )      
+        // loop over all skin nodes
+        for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
+            i_node != mrSkinModelPart.NodesEnd();
+            i_node++)
+        {
+            for (int i = 0 ; i < 3; i++)
+            {
+                low[i]  = i_node->Coordinate(i+1) < low[i]  ? i_node->Coordinate(i+1) : low[i];
+                high[i] = i_node->Coordinate(i+1) > high[i] ? i_node->Coordinate(i+1) : high[i];
+            }
+        }
         mOctree.SetBoundingBox(low,high);
 
         //mOctree.RefineWithUniformSize(0.0625);
