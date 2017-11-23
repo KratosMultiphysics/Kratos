@@ -86,16 +86,21 @@ class FluidHDF5Loader:
             self.old_time_index = 0
             self.future_time_index = 1
             viscosity = 1e-6
-            density = 1000.
+            density = 1000. # BIG TODO: READ THIS FROM NODES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             for node in self.fluid_model_part.Nodes:
                 node.SetSolutionStepValue(VISCOSITY, viscosity)
                 node.SetSolutionStepValue(DENSITY, density)
         else:
+            self.dtype = np.float64
+            if pp.CFD_DEM["store_fluid_in_single_precision"].GetBool():
+                self.dtype = np.float32
+
             self.compression_type = 'gzip'
             for node in self.fluid_model_part.Nodes:
                 viscosity = node.GetSolutionStepValue(VISCOSITY)
                 density = node.GetSolutionStepValue(DENSITY)
                 break
+
             with h5py.File(self.file_path, 'w') as f:
                 f.attrs['kinematic viscosity'] = viscosity
                 f.attrs['time step'] = pp.Dt
@@ -103,12 +108,8 @@ class FluidHDF5Loader:
                 f.attrs['solver type'] = pp.FluidSolverConfiguration.solver_type
                 f.attrs['linear system solver type'] = pp.FluidSolverConfiguration.linear_solver_config.solver_type
                 f.attrs['use orthogonal subscales'] = bool(pp.FluidSolverConfiguration.oss_switch)
-                self.dtype = np.float64
                 nodes = np.array([(node.Id, node.X, node.Y, node.Z) for node in fluid_model_part.Nodes])
                 f.create_dataset(name = 'nodes', compression = self.compression_type, data = nodes, dtype = np.float64)
-
-            if pp.CFD_DEM["store_fluid_in_single_precision"].GetBool():
-                self.dtype = np.float32
 
         self.last_time = 0.0
 
