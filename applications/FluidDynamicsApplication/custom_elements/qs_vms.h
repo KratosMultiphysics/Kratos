@@ -47,34 +47,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+// Forward decalration of auxiliary class
 namespace Internals {
-
-template <unsigned int TDim>
-void AddViscousTerm(double DynamicViscosity,
-                    double GaussWeight,
-                    const Kratos::Matrix& rDN_DX,
-                    Kratos::Matrix& rLHS);
-
 template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class SpecializedAddTimeIntegratedSystem {
-   public:
-    static void AddSystem(const FluidElement<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
-template <class TElementData>
-class SpecializedAddTimeIntegratedSystem<TElementData, true> {
-   public:
-    static void AddSystem(const FluidElement<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
-template <class TElementData>
-class SpecializedAddTimeIntegratedSystem<TElementData, false> {
-   public:
-    static void AddSystem(const FluidElement<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
+class SpecializedAddTimeIntegratedSystem;
 }
 
 template< class TElementData >
@@ -376,13 +352,6 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
-
-    ///@}
-    ///@name Protected Friends
-    ///@{
-
-    friend class Internals::SpecializedAddTimeIntegratedSystem<TElementData, TElementData::ElementManagesTimeIntegration>;
-
     ///@}
 
 private:
@@ -394,6 +363,11 @@ private:
     ///@name Member Variables
     ///@{
 
+    ///@}
+    ///@name Friends
+    ///@{
+
+    friend class Internals::SpecializedAddTimeIntegratedSystem<TElementData, TElementData::ElementManagesTimeIntegration>;
     ///@}
     ///@name Serialization
     ///@{
@@ -471,7 +445,39 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 }
 ///@}
 
+
+namespace Internals {
+
+template <unsigned int TDim>
+void AddViscousTerm(double DynamicViscosity,
+                    double GaussWeight,
+                    const Kratos::Matrix& rDN_DX,
+                    Kratos::Matrix& rLHS);
+
+template <class TElementData, bool TDataKnowsAboutTimeIntegration>
+class SpecializedAddTimeIntegratedSystem {
+   public:
+    static void AddSystem(QSVMS<TElementData>* pElement,
+        TElementData& rData, Matrix& rLHS, Vector& rRHS);
+};
+
+template <class TElementData>
+class SpecializedAddTimeIntegratedSystem<TElementData, true> {
+   public:
+    static void AddSystem(QSVMS<TElementData>* pElement,
+        TElementData& rData, Matrix& rLHS, Vector& rRHS);
+};
+
+template <class TElementData>
+class SpecializedAddTimeIntegratedSystem<TElementData, false> {
+   public:
+    static void AddSystem(QSVMS<TElementData>* pElement,
+        TElementData& rData, Matrix& rLHS, Vector& rRHS);
+};
+
 ///@} // Fluid Dynamics Application group
+
+} // namespace Internals
 
 } // namespace Kratos.
 

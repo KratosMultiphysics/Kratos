@@ -892,7 +892,7 @@ void AddViscousTerm<3>(double DynamicViscosity,
 
 template <class TElementData>
 void SpecializedAddTimeIntegratedSystem<TElementData, false>::AddSystem(
-    const FluidElement<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
+    QSVMS<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
     Vector& rRHS) {
     KRATOS_TRY;
     KRATOS_ERROR << "Trying to use time-integrated element functions with a "
@@ -907,42 +907,41 @@ void SpecializedAddTimeIntegratedSystem<TElementData, false>::AddSystem(
 
 template <class TElementData>
 void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
-    const FluidElement<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
+    QSVMS<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
     Vector& rRHS) {
-/*
-    // Resize and intialize output
-    if (rLeftHandSideMatrix.size1() != LocalSize)
-        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+        Matrix mass_matrix = ZeroMatrix(rLHS.size1(),rLHS.size2());
 
-    if (rRightHandSideVector.size() != LocalSize)
-        rRightHandSideVector.resize(LocalSize, false);
+        pElement->AddVelocitySystem(rData,rLHS,rRHS);
+        pElement->AddMassLHS(rData,mass_matrix);
 
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
-    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+        noalias(rLHS) += rData.bdf0*mass_matrix;
+        
+        Vector acceleration = ZeroVector(rRHS.size());
 
-    // Get Shape function data
-    Vector gauss_weights;
-    Matrix shape_functions;
-    ShapeFunctionDerivativesArrayType shape_derivatives;
-    pElement->CalculateGeometryData(
-        gauss_weights, shape_functions, shape_derivatives);
-    const unsigned int number_of_gauss_points = gauss_weights.size();
+        int LocalIndex = 0;
+        const auto& r_velocities = rData.Velocity;
+        const auto& r_velocities_step1 = rData.Velocity_OldStep1;
+        const auto& r_velocities_step2 = rData.Velocity_OldStep2;
+        const auto& r_pressures = rData.Pressure;
+        const auto& r_pressures_step1 = rData.Pressure_OldStep1;
+        const auto& r_pressures_step2 = rData.Pressure_OldStep2;
 
-    TElementData data;
-    data.Initialize(pElement, rCurrentProcessInfo);
+        for (unsigned int i = 0; i < TElementData::NumNodes; ++i) {
+            for (unsigned int d = 0; d < TElementData::Dim; ++d)  {
+                // Velocity Dofs
+                acceleration[LocalIndex] = rData.bdf0*r_velocities(i,d);
+                acceleration[LocalIndex] += rData.bdf1*r_velocities_step1(i,d);
+                acceleration[LocalIndex] += rData.bdf2*r_velocities_step2(i,d);
+                ++LocalIndex;
+            }
+            // Pressure Dof (I don't think this is needed JC)
+            acceleration[LocalIndex] = rData.bdf0*r_pressures[i];
+            acceleration[LocalIndex] += rData.bdf1*r_pressures_step1[i];
+            acceleration[LocalIndex] += rData.bdf2*r_pressures_step2[i];
+            ++LocalIndex;
+        }
 
-    // Iterate over integration points to evaluate local contribution
-    for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-        data.UpdateGeometryValues(
-            gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
-
-        pElement->AddTimeIntegratedSystem(
-            data, rLeftHandSideMatrix, rRightHandSideVector);
-        pElement->AddTimeIntegratedSystem(
-            data, rLeftHandSideMatrix, rRightHandSideVector);
-    }*/
-
-    KRATOS_WATCH("Hi!");
+        noalias(rRHS) -= prod(mass_matrix,acceleration);
 }
 
 } // namespace Internals
