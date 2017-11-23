@@ -576,9 +576,9 @@ public:
     {
         if(rValues.size() != 1) rValues.resize(1);
 
-        if (rVariable == PRESSURE)
+        if (rVariable == PRESSURE)//actually it computes pressure coefficient cp
         {
-            double p = 0.0;
+            double cp = 0.0;
 
             bool active = true;
             if ((this)->IsDefined(ACTIVE))
@@ -587,6 +587,9 @@ public:
             if(active && !this->Is(MARKER))//normal element
             {
                 const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+                const double gamma = rCurrentProcessInfo[GAMMA];
+                const double a = rCurrentProcessInfo[SOUND_VELOCITY];
+
                 const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
 
                 ElementalData<NumNodes,Dim> data;
@@ -602,12 +605,21 @@ public:
 
                 const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
 
+                const double v_norm2 = inner_prod(v,v);
+                const double base = 1 + (gamma -1)*v_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
+                const double exponent = 1/(gamma -1);
 
-                p = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+                cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
+
+
+                //cp = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
             }
             else if(this->Is(MARKER) && active==true)//wake element
             {
                 const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+                const double gamma = rCurrentProcessInfo[GAMMA];
+                const double a = rCurrentProcessInfo[SOUND_VELOCITY];
+                
                 const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
 
                 ElementalData<NumNodes,Dim> data;
@@ -636,12 +648,18 @@ public:
                         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);                    
                 }
 
-                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);                
+                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
+
+                const double v_norm2 = inner_prod(v,v);
+                const double base = 1 + (gamma -1)*v_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
+                const double exponent = 1/(gamma -1);
+
+                cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);                
                 
-                p =  (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+                //cp =  (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
             }
 
-            rValues[0] = p;
+            rValues[0] = cp;
 
         }
         if (rVariable == DENSITY)
