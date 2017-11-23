@@ -38,7 +38,7 @@ class MdpaCreator(object):
 
     def __init__(self, path, DEM_parameters):
 
-        self.DEM_parameters = weakref.proxy(DEM_parameters)
+        self.DEM_parameters = DEM_parameters
         self.current_path = path
 
 
@@ -168,8 +168,8 @@ class PostUtils(object):
 
     def __init__(self, DEM_parameters, spheres_model_part):
 
-        self.DEM_parameters = weakref.proxy(DEM_parameters)
-        self.spheres_model_part = weakref.proxy(spheres_model_part)
+        self.DEM_parameters = DEM_parameters
+        self.spheres_model_part = spheres_model_part
         self.post_utilities = PostUtilities()
 
         self.vel_trap_graph_counter = 0
@@ -326,7 +326,7 @@ class Procedures(object):
         # Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
 
         # Initialization of member variables
-        self.DEM_parameters = weakref.proxy(DEM_parameters)
+        self.DEM_parameters = DEM_parameters
 
         # SIMULATION FLAGS
         self.rotation_OPTION               = self.DEM_parameters["RotationOption"].GetBool()
@@ -846,7 +846,7 @@ class DEMFEMProcedures(object):
     def __init__(self, DEM_parameters, graphs_path, spheres_model_part, RigidFace_model_part):
 
         # GLOBAL VARIABLES OF THE SCRIPT
-        self.DEM_parameters = weakref.proxy(DEM_parameters)
+        self.DEM_parameters = DEM_parameters
 
         if not "TestType" in DEM_parameters.keys():
             self.TestType = "None"
@@ -862,8 +862,8 @@ class DEMFEMProcedures(object):
             self.contact_mesh_OPTION = self.DEM_parameters["ContactMeshOption"].GetBool()
 
         self.graphs_path = graphs_path
-        self.spheres_model_part = weakref.proxy(spheres_model_part)
-        self.RigidFace_model_part = weakref.proxy(RigidFace_model_part)
+        self.spheres_model_part = spheres_model_part
+        self.RigidFace_model_part = RigidFace_model_part
         #self.solver = solver
         self.aux = AuxiliaryUtilities()
 
@@ -1309,12 +1309,12 @@ class DEMIo(object):
     def __init__(self, DEM_parameters, post_path):
 
         self.post_path = post_path
-        self.mixed_model_part                                     = weakref.proxy(ModelPart("Mixed_Part"))
-        self.mixed_spheres_and_clusters_model_part                = weakref.proxy(ModelPart("MixedSpheresAndClustersPart"))
-        self.mixed_spheres_not_in_cluster_and_clusters_model_part = weakref.proxy(ModelPart("MixedSpheresNotInClusterAndClustersPart"))
+        self.mixed_model_part                                     = ModelPart("Mixed_Part")
+        self.mixed_spheres_and_clusters_model_part                = ModelPart("MixedSpheresAndClustersPart")
+        self.mixed_spheres_not_in_cluster_and_clusters_model_part = ModelPart("MixedSpheresNotInClusterAndClustersPart")
         
         # Printing variables
-        self.DEM_parameters = weakref.proxy(DEM_parameters)
+        self.DEM_parameters = DEM_parameters
         self.global_variables                          = []
         self.spheres_and_clusters_variables            = []
         self.spheres_and_clusters_local_axis_variables = []
@@ -1568,7 +1568,7 @@ class DEMIo(object):
                             self.write_conditions)
 
 
-        #self.post_utility = PostUtilities()
+        self.post_utility = PostUtilities()
 
 
     def SetOutputName(self,name):

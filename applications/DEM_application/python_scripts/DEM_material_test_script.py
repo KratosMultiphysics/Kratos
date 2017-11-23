@@ -22,7 +22,7 @@ class MaterialTest(object):
       self.graphs_path = graphs_path
       self.post_path = post_path
       self.spheres_model_part = spheres_model_part
-      self.RigidFace_model_part = weakref.proxy(RigidFace_model_part)
+      self.RigidFace_model_part = RigidFace_model_part
       self.Procedures = weakref.proxy(procedures)
       self.solver = weakref.proxy(solver)
       
@@ -907,7 +907,7 @@ class PreUtils(object):
 
     def __init__(self, spheres_model_part):
 
-        self.spheres_model_part = weakref.proxy(spheres_model_part)
+        self.spheres_model_part = spheres_model_part
         self.PreUtilities = PreUtilities()
 
     def BreakBondUtility(self, spheres_model_part):
