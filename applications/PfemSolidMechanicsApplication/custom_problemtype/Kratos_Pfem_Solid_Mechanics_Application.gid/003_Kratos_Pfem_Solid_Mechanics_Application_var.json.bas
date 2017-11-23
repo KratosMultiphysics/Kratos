@@ -68,11 +68,15 @@
 *if(strcmp(GenData(DOFS),"U-P")==0)
                                                 "PRESSURE",
 *endif
-*if(strcmp(GenData(DOFS),"U-wP")==0 || strcmp(GenData(DOFS),"U-J-wP")==0 )
+*if(strcmp(GenData(DOFS),"U-wP")==0 )
                                                 "WATER_PRESSURE",
 *endif
-*if(strcmp(GenData(DOFS),"U-J-wP")==0 || strcmp(GenData(DOFS),"U-J")==0 )
-						"JACOBIAN",
+*if( strcmp(GenData(DOFS),"U-J-wP")==0 )
+                                                "WATER_PRESSURE",
+						"JACOBIAN"
+*endif
+*if( strcmp(GenData(DOFS),"U-J")==0 )
+						"JACOBIAN"
 *endif
 *if(strcmp(GenData(DOFS),"U-W")==0)
 						"WATER_DISPLACEMENT"
