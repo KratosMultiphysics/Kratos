@@ -2,8 +2,8 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-#if !defined(KRATOS_SYMPLECTIC_EULER_SCHEME_H_INCLUDED )
-#define  KRATOS_SYMPLECTIC_EULER_SCHEME_H_INCLUDED
+#if !defined(KRATOS_RUNGE_KUTTA_SCHEME_H_INCLUDED )
+#define  KRATOS_RUNGE_KUTTA_SCHEME_H_INCLUDED
 
 // System includes
 #include <string>
@@ -20,27 +20,27 @@
 
 namespace Kratos {
 
-    class SymplecticEulerScheme : public DEMIntegrationScheme {
+    class RungeKuttaScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
 
-        /// Pointer definition of SymplecticEulerScheme
-        KRATOS_CLASS_POINTER_DEFINITION(SymplecticEulerScheme);
+        /// Pointer definition of RungeKuttaScheme
+        KRATOS_CLASS_POINTER_DEFINITION(RungeKuttaScheme);
 
         /// Default constructor.
-        SymplecticEulerScheme() {}
+        RungeKuttaScheme() {}
 
         /// Destructor.
-        virtual ~SymplecticEulerScheme() {}
+        virtual ~RungeKuttaScheme() {}
         
         DEMIntegrationScheme* CloneRaw() const override {
-            DEMIntegrationScheme* cloned_scheme(new SymplecticEulerScheme(*this));
+            DEMIntegrationScheme* cloned_scheme(new RungeKuttaScheme(*this));
             return cloned_scheme;
         }
         
         DEMIntegrationScheme::Pointer CloneShared() const override {
-            DEMIntegrationScheme::Pointer cloned_scheme(new SymplecticEulerScheme(*this));
+            DEMIntegrationScheme::Pointer cloned_scheme(new RungeKuttaScheme(*this));
             return cloned_scheme;
         }
 
@@ -153,14 +153,14 @@ namespace Kratos {
 
         virtual std::string Info() const override{
             std::stringstream buffer;
-            buffer << "SymplecticEulerScheme";
+            buffer << "RungeKuttaScheme";
             return buffer.str();
         }
 
         /// Print information about this object.
 
         virtual void PrintInfo(std::ostream& rOStream) const override{
-            rOStream << "SymplecticEulerScheme";
+            rOStream << "RungeKuttaScheme";
         }
 
         /// Print object's data.
@@ -176,29 +176,29 @@ namespace Kratos {
 
         /// Assignment operator.
 
-        SymplecticEulerScheme& operator=(SymplecticEulerScheme const& rOther) {
+        RungeKuttaScheme& operator=(RungeKuttaScheme const& rOther) {
             return *this;
         }
 
         /// Copy constructor.
 
-        SymplecticEulerScheme(SymplecticEulerScheme const& rOther) {
+        RungeKuttaScheme(RungeKuttaScheme const& rOther) {
             *this = rOther;
         }
 
 
         ///@}
 
-    }; // Class SymplecticEulerScheme
+    }; // Class RungeKuttaScheme
 
 
     inline std::istream& operator>>(std::istream& rIStream,
-            SymplecticEulerScheme& rThis) {
+            RungeKuttaScheme& rThis) {
         return rIStream;
     }
 
     inline std::ostream& operator<<(std::ostream& rOStream,
-            const SymplecticEulerScheme& rThis) {
+            const RungeKuttaScheme& rThis) {
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
         rThis.PrintData(rOStream);
@@ -208,4 +208,4 @@ namespace Kratos {
 
 } // namespace Kratos.
 
-#endif // KRATOS_SYMPLECTIC_EULER_SCHEME_H_INCLUDED  defined
+#endif // KRATOS_RUNGE_KUTTA_SCHEME_H_INCLUDED  defined

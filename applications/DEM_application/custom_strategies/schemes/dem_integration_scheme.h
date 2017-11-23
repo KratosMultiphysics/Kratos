@@ -48,8 +48,6 @@ namespace Kratos {
 
         virtual void SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const;
         
-        /*virtual void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption);
-        virtual void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption); */               
         virtual void Move(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         virtual void Rotate(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         virtual void MoveCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
@@ -76,6 +74,16 @@ namespace Kratos {
                                 const array_1d<double, 3 >& torque, 
                                 const double moment_reduction_factor,
                                 array_1d<double, 3 >& angular_acceleration);
+        
+        virtual void CalculateNewRotationalVariables(
+                int StepFlag,
+                const Node < 3 > & i,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                array_1d<double, 3 >& angular_velocity,
+                array_1d<double, 3 >& angular_acceleration,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]);
 
         virtual void UpdateRotationalVariables(
                 int StepFlag,

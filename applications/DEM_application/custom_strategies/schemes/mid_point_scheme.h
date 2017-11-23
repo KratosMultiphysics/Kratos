@@ -55,18 +55,6 @@ namespace Kratos {
             pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
         }
 
-        /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption)  override {
-
-            DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);
-
-        }
-
-        void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption)  override {
-
-            DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);
-
-        }*/
-
         void UpdateTranslationalVariables(
                 int StepFlag,
                 Node < 3 > & i,

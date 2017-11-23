@@ -39,12 +39,12 @@
 #include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
-#include "custom_strategies/schemes/mid_point_scheme.h"
-#include "custom_strategies/schemes/newmark_beta_scheme.h"
 #include "custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "custom_strategies/schemes/taylor_scheme.h"
+#include "custom_strategies/schemes/newmark_beta_scheme.h"
 #include "custom_strategies/schemes/velocity_verlet_scheme.h"
-
+#include "custom_strategies/schemes/runge_kutta_scheme.h"
+#include "custom_strategies/schemes/quaternion_integration_scheme.h"
 
 namespace Kratos
 {

@@ -8,12 +8,6 @@ namespace Kratos {
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
-    
-    /*void ForwardEulerScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
-         DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);}
-    
-    void ForwardEulerScheme::AddClustersVariables(ModelPart & r_model_part, bool TRotationOption){
-         DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);}*/
 
     void ForwardEulerScheme::UpdateTranslationalVariables(
             int StepFlag,
@@ -36,13 +30,74 @@ namespace Kratos {
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
                 vel[k] += delta_t * force_reduction_factor * force[k] * mass_inv;
-            }
-            else {
+            } else {
                 delta_displ[k] = delta_t * vel[k];
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
             }
         } // dimensions
+    }
+
+    void ForwardEulerScheme::CalculateNewRotationalVariables(
+                int StepFlag,
+                const Node < 3 > & i,
+                const double moment_of_inertia,
+                array_1d<double, 3 >& angular_velocity,
+                array_1d<double, 3 >& torque,
+                const double moment_reduction_factor,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
+        
+        bool Fix_Ang_vel[3] = {false, false, false};
+
+        Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
+        Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
+        Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
+
+        array_1d<double, 3 > angular_acceleration;                    
+        CalculateLocalAngularAcceleration(i, moment_of_inertia, torque, moment_reduction_factor, angular_acceleration);                       
+                   
+        UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
+    }
+    
+    void ForwardEulerScheme::CalculateNewRotationalVariables(
+                int StepFlag,
+                const Node < 3 > & i,
+                const array_1d<double, 3 >& moments_of_inertia,
+                array_1d<double, 3 >& angular_velocity,
+                array_1d<double, 3 >& torque,
+                const double moment_reduction_factor,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
+        
+        bool Fix_Ang_vel[3] = {false, false, false};
+
+        Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
+        Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
+        Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
+
+        array_1d<double, 3 > local_angular_acceleration, local_torque, local_angular_velocity, angular_acceleration;
+
+        //Angular velocity and torques are saved in the global framework:
+        GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, torque, local_torque);
+        GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
+        CalculateLocalAngularAccelerationByEulerEquations(i, local_angular_velocity, moments_of_inertia, local_torque, moment_reduction_factor, local_angular_acceleration);                        
+
+        //Angular acceleration is saved in the Global framework:
+        GeometryFunctions::QuaternionVectorLocal2Global(Orientation, local_angular_acceleration, angular_acceleration);
+                    
+        UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
+
+        double ang = DEM_MODULUS_3(delta_rotation);
+              
+        if (ang) {
+            GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
+        } //if ang
+//         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
     }
 
     void ForwardEulerScheme::UpdateRotationalVariables(
@@ -65,7 +120,7 @@ namespace Kratos {
                 rotated_angle[k] += delta_rotation[k];
             }
         }
-    } 
+    }
 
     void ForwardEulerScheme::UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
@@ -139,35 +194,34 @@ namespace Kratos {
         GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensorInv, GlobalTensorInv);
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensorInv, angular_momentum, angular_velocity);
     }
-    
+
     void ForwardEulerScheme::CalculateLocalAngularAcceleration(
-                                const Node < 3 > & i,
-                                const double moment_of_inertia,
-                                const array_1d<double, 3 >& torque, 
-                                const double moment_reduction_factor,
-                                array_1d<double, 3 >& angular_acceleration){
-        
+                const Node < 3 > & i,
+                const double moment_of_inertia,
+                const array_1d<double, 3 >& torque,
+                const double moment_reduction_factor,
+                array_1d<double, 3 >& angular_acceleration) {
+
         double moment_of_inertia_inv = 1.0 / moment_of_inertia;
         for (int j = 0; j < 3; j++) {
             angular_acceleration[j] = moment_reduction_factor * torque[j] * moment_of_inertia_inv;
         }
     }
-    
+
     void ForwardEulerScheme::CalculateLocalAngularAccelerationByEulerEquations(
-                                const Node < 3 > & i,
-                                const array_1d<double, 3 >& local_angular_velocity,
-                                const array_1d<double, 3 >& moments_of_inertia,
-                                const array_1d<double, 3 >& local_torque, 
-                                const double moment_reduction_factor,
-                                array_1d<double, 3 >& local_angular_acceleration){
-        
+                const Node < 3 > & i,
+                const array_1d<double, 3 >& local_angular_velocity,
+                const array_1d<double, 3 >& moments_of_inertia,
+                const array_1d<double, 3 >& local_torque,
+                const double moment_reduction_factor,
+                array_1d<double, 3 >& local_angular_acceleration) {
+
         for (int j = 0; j < 3; j++) {
-            //Euler equations in Explicit (Forward Euler) scheme:
             local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
-            local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;            
+            local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;
         }
     }
-    
+
     void ForwardEulerScheme::CalculateAngularVelocityRK(
                                     const Quaternion<double  >& Orientation,
                                     const array_1d<double, 3 >& moments_of_inertia,
@@ -175,8 +229,6 @@ namespace Kratos {
                                     array_1d<double, 3 >& angular_velocity,
                                     const double delta_t,
                                     const bool Fix_Ang_vel[3]) {
-        
-            double dt = delta_t;
             
             double LocalTensorInv[3][3];
             
@@ -185,9 +237,9 @@ namespace Kratos {
             array_1d<double, 3 > angular_velocity1 = angular_velocity;
             array_1d<double, 3 > angular_velocity2, angular_velocity3, angular_velocity4;
 
-            QuaternionCalculateMidAngularVelocities(Orientation, LocalTensorInv, angular_momentum, 0.5*dt, angular_velocity1, angular_velocity2);
-            QuaternionCalculateMidAngularVelocities(Orientation, LocalTensorInv, angular_momentum, 0.5*dt, angular_velocity2, angular_velocity3);
-            QuaternionCalculateMidAngularVelocities(Orientation, LocalTensorInv, angular_momentum,     dt, angular_velocity3, angular_velocity4);
+            QuaternionCalculateMidAngularVelocities(Orientation, LocalTensorInv, angular_momentum, 0.5*delta_t, angular_velocity1, angular_velocity2);
+            QuaternionCalculateMidAngularVelocities(Orientation, LocalTensorInv, angular_momentum, 0.5*delta_t, angular_velocity2, angular_velocity3);
+            QuaternionCalculateMidAngularVelocities(Orientation, LocalTensorInv, angular_momentum,     delta_t, angular_velocity3, angular_velocity4);
 
             for (int j = 0; j < 3; j++) {
                 if (Fix_Ang_vel[j] == false){
@@ -195,5 +247,4 @@ namespace Kratos {
                 }
             }
     }
-    
 } //namespace Kratos

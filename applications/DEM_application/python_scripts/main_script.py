@@ -122,7 +122,7 @@ class Solution(object):
             return ParticleCreatorDestructor(self.watcher)
 
     def SelectTranslationalScheme(self):
-        if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler'):
+        if   (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler'):
             scheme = ForwardEulerScheme()
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
             scheme = SymplecticEulerScheme()
@@ -136,7 +136,7 @@ class Solution(object):
             return None
     
     def SelectRotationalScheme(self):
-        if (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Forward_Euler'):
+        if   (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Forward_Euler'):
             scheme = ForwardEulerScheme()
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
             scheme = SymplecticEulerScheme()
