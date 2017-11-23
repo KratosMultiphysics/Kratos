@@ -5,7 +5,7 @@
 		"Material": {
 			"name": "steel",
 			"constitutive_law": {
-				"name": "KratosMultiphysics.SolidMechanicsApplication.LinearElastic3DLaw"
+				"name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
 			},
 			"Variables": {
 				"KratosMultiphysics.YOUNG_MODULUS": 200.0,
@@ -30,7 +30,7 @@
 		"Material": {
 			"name": "steel",
 			"constitutive_law": {
-				"name": "ConstitutiveLaw"
+				"name": "KratosMultiphysics.ConstitutiveLaw"
 			},
 			"Variables": {
 				"YOUNG_MODULUS": 100.0,
