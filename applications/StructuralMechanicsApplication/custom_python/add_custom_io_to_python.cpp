@@ -1,0 +1,38 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Philipp Bucher
+//
+
+
+// System includes
+
+// External includes
+#include <boost/python.hpp>
+
+
+// Project includes
+#include "custom_python/add_custom_io_to_python.h"
+
+
+namespace Kratos
+{
+
+namespace Python
+{
+using namespace boost::python;
+
+void  AddCustomIOToPython()
+{
+    
+}
+
+}  // namespace Python.
+
+} // Namespace Kratos
