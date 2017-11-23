@@ -89,6 +89,20 @@ namespace Kratos
 			Vector& rValues,
 			int Step = 0) override;
 
+
+		void CalculateLocalSystem(
+			MatrixType& rLeftHandSideMatrix,
+			VectorType& rRightHandSideVector,
+			ProcessInfo& rCurrentProcessInfo) override;
+
+		void CalculateRightHandSide(
+			VectorType& rRightHandSideVector,
+			ProcessInfo& rCurrentProcessInfo) override;
+
+		void CalculateLeftHandSide(
+			MatrixType& rLeftHandSideMatrix,
+			ProcessInfo& rCurrentProcessInfo) override;
+
 	/////////////////////////////////////////////////
 	///////////// CUSTOM FUNCTIONS --->>
 	/////////////////////////////////////////////////

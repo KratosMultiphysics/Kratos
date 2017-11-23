@@ -153,6 +153,24 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
+	void CrBeamElement2D2N::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
+		VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+		{
+			std::cout << "LocalSystem" << std::endl;
+		}
+
+	void CrBeamElement2D2N::CalculateRightHandSide(VectorType& rRightHandSideVector,
+		ProcessInfo& rCurrentProcessInfo)
+		{
+			std::cout << "RHS" << std::endl;
+		}
+
+	void CrBeamElement2D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+		ProcessInfo& rCurrentProcessInfo) 
+		{
+			std::cout << "LHS" << std::endl;
+		}
+
 	/////////////////////////////////////////////////
 	///////////// CUSTOM FUNCTIONS --->>
 	/////////////////////////////////////////////////
