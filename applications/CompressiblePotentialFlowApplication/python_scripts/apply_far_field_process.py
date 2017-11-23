@@ -59,6 +59,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
         pos = 1e30
         for node in self.model_part.Nodes:
+            #node.Set(KratosMultiphysics.STRUCTURE)#setting structure fla
             dx = node.X - x0
             dy = node.Y - y0
             dz = node.Z - z0

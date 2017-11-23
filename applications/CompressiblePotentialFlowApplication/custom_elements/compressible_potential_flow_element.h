@@ -323,7 +323,9 @@ public:
         for(unsigned int i=0; i<NumNodes; ++i)
             if(GetGeometry()[i].Is(STRUCTURE))
             {
+                std::cout << "KUTTA ELEMENT = " << this->Id()  << std::endl;
                 kutta_element = true;
+                std::cout << "X = " << GetGeometry()[i].X()  << std::endl;
                 break;
             }
 
@@ -339,16 +341,18 @@ public:
                 rLaplacianMatrix.resize(NumNodes,NumNodes,false);
             rLaplacianMatrix.clear();
 
-            //ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);
+            ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);
+            noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
+
             this->ComputeDensity(density,derivative,velocity,rCurrentProcessInfo);
             DNV = prod(data.DN_DX, velocity);
 
-            noalias(rLeftHandSideMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
-            noalias(rLeftHandSideMatrix) += data.vol*derivative*outer_prod(DNV, trans(DNV));
+            // noalias(rLeftHandSideMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
+            // noalias(rLeftHandSideMatrix) += data.vol*derivative*outer_prod(DNV, trans(DNV));
 
-            noalias(rLaplacianMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
+            // noalias(rLaplacianMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
 
-            noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, data.phis);
+            //noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, data.phis);
         }
         else //it is a wake element
         {
@@ -409,19 +413,19 @@ public:
 
                 if(PartitionsSign[i] > 0)
                 {
-                    //ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data);
+                    ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data);
 
-                    noalias(lhs_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
-                    noalias(lhs_positive) += Volumes[i]*derivative*outer_prod(DNV, trans(DNV));
+                    // noalias(lhs_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
+                    // noalias(lhs_positive) += Volumes[i]*derivative*outer_prod(DNV, trans(DNV));
 
                     noalias(laplacian_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));                    
                 }                    
                 else
                 {
-                    //ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data);
+                    ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data);
 
-                    noalias(lhs_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
-                    noalias(lhs_negative) += Volumes[i]*derivative*outer_prod(DNV, trans(DNV));
+                    // noalias(lhs_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
+                    // noalias(lhs_negative) += Volumes[i]*derivative*outer_prod(DNV, trans(DNV));
 
                     noalias(laplacian_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX)); 
                 }
@@ -513,7 +517,7 @@ public:
                 }
             Vector split_element_values(NumNodes*2);
             GetValuesOnSplitElement(split_element_values, data.distances);
-            noalias(rRightHandSideVector) = -prod(rLaplacianMatrix,split_element_values);
+            noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
         }
         
     }
@@ -609,17 +613,17 @@ public:
                 const double base = 1 + (gamma -1)*v_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
                 const double exponent = 1/(gamma -1);
 
-                cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
+                //cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
 
 
-                //cp = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+                cp = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
             }
             else if(this->Is(MARKER) && active==true)//wake element
             {
                 const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
                 const double gamma = rCurrentProcessInfo[GAMMA];
                 const double a = rCurrentProcessInfo[SOUND_VELOCITY];
-                
+
                 const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
 
                 ElementalData<NumNodes,Dim> data;
@@ -919,7 +923,11 @@ protected:
         }
     }
 
-    void ComputeDensityOnSplitElement(double& density, double& derivative, array_1d<double,Dim>& velocity, double& rPartitionsSign, const ProcessInfo& rCurrentProcessInfo)
+    void ComputeDensityOnSplitElement(  double& density, 
+                                        double& derivative, 
+                                        array_1d<double,Dim>& velocity, 
+                                        double& rPartitionsSign, 
+                                        const ProcessInfo& rCurrentProcessInfo)
     {
         //This function computes density, velocity and the derivative of the density w.r.t. the square of the local velocity
         //for a split element

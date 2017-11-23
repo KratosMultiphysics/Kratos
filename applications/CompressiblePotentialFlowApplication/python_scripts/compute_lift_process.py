@@ -150,7 +150,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
            ry += n[1]*pressure*length
            rz += n[2]*pressure*length
            #print(ry)
-           print("  counter =", counter,"   X =", cond.GetNodes()[0].X0 ,"  An =", n*length ,"  pressure =", pressure ,"    lift =", ry)
+           #print("  counter =", counter,"   X =", cond.GetNodes()[0].X0 ,"  An =", n*length ,"  pressure =", pressure ,"    lift =", ry)
            
            cp_file.write('{0:13f} {1:15f} {2:15f} {3:15f} {4:15f} {5:15f} {6:15f} {7:15f}\n'.format(pressure, cp, x, y, n[0], n[1], n[2], length))
            
