@@ -399,6 +399,7 @@ namespace Kratos
       mpProperties->SetValue(PENALTY_PARAMETER, CustomProperties["PENALTY_PARAMETER"].GetDouble());
       mpProperties->SetValue(TANGENTIAL_PENALTY_RATIO, CustomProperties["TANGENTIAL_PENALTY_RATIO"].GetDouble());
       mpProperties->SetValue(TAU_STAB, CustomProperties["TAU_STAB"].GetDouble());
+      mpProperties->SetValue(THICKNESS, 1.0);
 
       mrMainModelPart.AddProperties(mpProperties, NumberOfProperties);
 
