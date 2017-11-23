@@ -101,13 +101,25 @@ namespace Kratos
 		double CalculateCurrentLength();
 		double CalculateReferenceLength();
 
-		bounded_matrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd();
+		bounded_matrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_mat();
+		bounded_matrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_geo();
+		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Kr();
+		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Total();
+
+		void GlobalizeMatrix(Matrix &A);
+		void GlobalizeVector(Vector &A);
+
+
+		bounded_matrix<double,msElementSize,msElementSize> CreateRotationMatrix();
 
 		bounded_vector<double,msLocalSize> CalculateDeformationParameters();
+		bounded_vector<double,msLocalSize> CalculateInternalStresses_DeformationModes();
+		bounded_vector<double,msElementSize> ReturnElementForces_Local();
 
 	private:
 
 		bool mIsLinearElement = false;
+		bounded_vector<double,msLocalSize> DeformationForces = ZeroVector(msLocalSize);
 		CrBeamElement2D2N() {};
 
 
