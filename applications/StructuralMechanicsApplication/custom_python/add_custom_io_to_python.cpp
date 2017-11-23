@@ -19,6 +19,8 @@
 
 // Project includes
 #include "custom_python/add_custom_io_to_python.h"
+#include "custom_io/gid_io_eigen.h"
+
 
 
 namespace Kratos
@@ -30,6 +32,14 @@ using namespace boost::python;
 
 void  AddCustomIOToPython()
 {
+        class_<GidIOEigen, GidIOEigen::Pointer, bases<GidIO<>>, boost::noncopyable>(
+            "GidIOEigen",init<std::string const&, 
+                              GiD_PostMode,
+                              MultiFileFlag,
+                              WriteDeformedMeshFlag,
+                              WriteConditionsFlag>())
+        .def("WriteEigenResults",&GidIOEigen::WriteEigenResults)
+        ;
     
 }
 

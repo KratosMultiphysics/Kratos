@@ -51,24 +51,31 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class GiDIOEigen : public GiDIO
+//   template<class TGaussPointContainer = GidGaussPointsContainer, class TMeshContainer = GidMeshContainer>
+  class GidIOEigen : public GidIO<>
     {
     public:
       ///@name Type Definitions
       ///@{
       
-      /// Pointer definition of GiDIOEigen
-      KRATOS_CLASS_POINTER_DEFINITION(GiDIOEigen);
+      /// Pointer definition of GidIOEigen
+      KRATOS_CLASS_POINTER_DEFINITION(GidIOEigen);
   
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-      GiDIOEigen(){}
+      GidIOEigen( const std::string& rDatafilename,
+                  GiD_PostMode Mode,
+                  MultiFileFlag use_multiple_files_flag,
+                  WriteDeformedMeshFlag write_deformed_flag,
+                  WriteConditionsFlag write_conditions_flag) : 
+        GidIO<>(rDatafilename, Mode, use_multiple_files_flag, write_deformed_flag, write_conditions_flag)
+        {}
 
       /// Destructor.
-      virtual ~GiDIOEigen(){}
+      virtual ~GidIOEigen(){}
       
 
       ///@}
@@ -79,6 +86,33 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
+        
+        /**
+     * writes nodal results for variables of type array_1d<double, 3>
+     * (e.g. DISPLACEMENT)
+     */
+    void WriteEigenResults( Variable<array_1d<double, 3> > const& rVariable,
+                            NodesContainerType& rNodes,
+                            double SolutionTag, std::size_t SolutionStepNumber)
+    {
+
+        Timer::Start("Writing Eigen Results");
+
+        GiD_fBeginResult(mResultFile,(char*)(rVariable.Name().c_str()), "Kratos_Eigen",
+                         SolutionTag, GiD_Vector,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for (NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
+        {
+            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
+                                        SolutionStepNumber );
+            GiD_fWriteVector( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
+        }
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Eigen Results");
+
+    }
       
       
       ///@}
@@ -99,12 +133,12 @@ namespace Kratos
       virtual std::string Info() const
       {
 	std::stringstream buffer;
-        buffer << "GiDIOEigen" ;
+        buffer << "GidIOEigen" ;
         return buffer.str();
       }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "GiDIOEigen";}
+      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "GidIOEigen";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
@@ -189,15 +223,15 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-      GiDIOEigen& operator=(GiDIOEigen const& rOther){}
+    //   GidIOEigen& operator=(GidIOEigen const& rOther){}
 
       /// Copy constructor.
-      GiDIOEigen(GiDIOEigen const& rOther){}
+    //   GidIOEigen(GidIOEigen const& rOther){}
 
         
       ///@}    
         
-    }; // Class GiDIOEigen 
+    }; // Class GidIOEigen 
 
   ///@} 
   
@@ -212,11 +246,11 @@ namespace Kratos
  
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream, 
-				    GiDIOEigen& rThis){}
+				    GidIOEigen& rThis){}
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const GiDIOEigen& rThis)
+				    const GidIOEigen& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
