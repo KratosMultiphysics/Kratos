@@ -11,7 +11,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
     def test_input(self):
         try:
-            import KratosMultiphysics.FluidDynamicsApplication
+            import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
         except:
             self.skipTest("KratosMultiphysics.FluidDynamicsApplication is not available")
             
@@ -63,6 +63,8 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.assertTrue(model_part.Properties[1].GetValue(KratosMultiphysics.YOUNG_MODULUS) == 200.0)
         self.assertTrue(model_part.Properties[1].GetValue(KratosMultiphysics.POISSON_RATIO) == 0.3)
         self.assertTrue(model_part.Properties[1].GetValue(KratosMultiphysics.YIELD_STRESS) == 400.0)
+        self.assertTrue(model_part.Properties[1].GetValue(KratosFluid.SUBSCALE_PRESSURE) == 0.1)
+        self.assertTrue(model_part.Properties[1].GetValue(KratosFluid.VORTICITY_MAGNITUDE) == -5.888)
 
         self.assertTrue(model_part.Properties[2].GetValue(KratosMultiphysics.YOUNG_MODULUS) == 100.0)
         self.assertTrue(model_part.Properties[2].GetValue(KratosMultiphysics.POISSON_RATIO) == 0.1)
