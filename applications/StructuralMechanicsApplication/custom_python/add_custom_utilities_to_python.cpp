@@ -29,6 +29,7 @@
 
 //Processes
 #include "custom_processes/apply_multi_point_constraints_process.h"
+#include "custom_processes/postprocess_eigenvalues_process.h"
 
 
 namespace Kratos
@@ -83,6 +84,9 @@ void  AddCustomUtilitiesToPython()
     .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariable)
     .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)      
     .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
+
+    class_<PostprocessEigenvaluesProcess, boost::noncopyable, bases<Process>>(
+        "PostprocessEigenvaluesProcess", init<ModelPart&, int>());
 
 }
 

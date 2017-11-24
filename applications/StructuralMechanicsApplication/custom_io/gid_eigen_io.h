@@ -51,187 +51,187 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-//   template<class TGaussPointContainer = GidGaussPointsContainer, class TMeshContainer = GidMeshContainer>
-  class GidEigenIO : public GidIO<>
+class GidEigenIO : public GidIO<>
+{
+  public:
+    ///@name Type Definitions
+    ///@{
+    
+    /// Pointer definition of GidEigenIO
+    KRATOS_CLASS_POINTER_DEFINITION(GidEigenIO);
+
+    typedef std::vector<std::vector<std::vector<double>>> AnimationStepResults;
+
+    ///@}
+    ///@name Life Cycle 
+    ///@{ 
+    
+    /// Default constructor.
+    GidEigenIO( const std::string& rDatafilename,
+                GiD_PostMode Mode,
+                MultiFileFlag use_multiple_files_flag,
+                WriteDeformedMeshFlag write_deformed_flag,
+                WriteConditionsFlag write_conditions_flag) : 
+    GidIO<>(rDatafilename, Mode, use_multiple_files_flag, write_deformed_flag, write_conditions_flag)
+    {}
+
+    /// Destructor.
+    ~GidEigenIO() = default;
+
+    // Explicitly delete the other constructors
+    GidEigenIO(const GidEigenIO&) = delete;
+    GidEigenIO& operator=(const GidEigenIO&) = delete;
+
+    ///@}
+    ///@name Operators 
+    ///@{
+    
+    
+    ///@}
+    ///@name Operations
+    ///@{
+    
+    /**
+    * writes nodal results for variables of type array_1d<double, 3>
+    * (e.g. DISPLACEMENT)
+    */
+    void WriteEigenResults( const AnimationStepResults& step_results, 
+                            const std::vector<int>& nodal_ids, 
+                            const std::vector<std::string>& labels, 
+                            const int AnimationStepNumber )
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of GidEigenIO
-      KRATOS_CLASS_POINTER_DEFINITION(GidEigenIO);
-  
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      GidEigenIO( const std::string& rDatafilename,
-                  GiD_PostMode Mode,
-                  MultiFileFlag use_multiple_files_flag,
-                  WriteDeformedMeshFlag write_deformed_flag,
-                  WriteConditionsFlag write_conditions_flag) : 
-        GidIO<>(rDatafilename, Mode, use_multiple_files_flag, write_deformed_flag, write_conditions_flag)
-        {}
-
-      /// Destructor.
-      virtual ~GidEigenIO(){}
-      
-
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-        
-        /**
-     * writes nodal results for variables of type array_1d<double, 3>
-     * (e.g. DISPLACEMENT)
-     */
-    void WriteEigenResults( Variable<array_1d<double, 3> > const& rVariable,
-                            NodesContainerType& rNodes,
-                            double SolutionTag, std::size_t SolutionStepNumber)
-    {
-
         Timer::Start("Writing Eigen Results");
 
-        GiD_fBeginResult(mResultFile,(char*)(rVariable.Name().c_str()), "Kratos_Eigen",
-                         SolutionTag, GiD_Vector,
-                         GiD_OnNodes, NULL, NULL, 0, NULL );
-        for (NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
+        for(unsigned int i_eigen_val=0; i_eigen_val<labels.size(); ++i_eigen_val)
         {
-            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
-                                        SolutionStepNumber );
-            GiD_fWriteVector( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
+            GiD_fBeginResult( mResultFile, (char*)labels[i_eigen_val].c_str() , "EigenVector_Animation",
+                              AnimationStepNumber, GiD_Vector,
+                              GiD_OnNodes, NULL, NULL, 0, NULL );
+
+            int index = 0;
+            for (const auto& i_nodal_results : step_results[i_eigen_val]) // loop through nodal results
+            {
+                GiD_fWriteVector( mResultFile, nodal_ids[index], 
+                                    i_nodal_results[0], i_nodal_results[1], i_nodal_results[2] );
+                ++index;
+            }
+
+            GiD_fEndResult(mResultFile);
         }
-        GiD_fEndResult(mResultFile);
-
         Timer::Stop("Writing Eigen Results");
-
     }
       
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+    ///@}
+    ///@name Access
+    ///@{ 
+    
+    
+    ///@}
+    ///@name Inquiry
+    ///@{
+    
+    
+    ///@}      
+    ///@name Input and output
+    ///@{
 
-      /// Turn back information as a string.
-      virtual std::string Info() const
-      {
-	std::stringstream buffer;
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
         buffer << "GidEigenIO" ;
         return buffer.str();
-      }
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "GidEigenIO";}
+    }
+    
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "GidEigenIO";}
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const {}
+    
+        
+    ///@}      
+    ///@name Friends
+    ///@{
+    
+        
+    ///@}
       
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
+  protected:
+    ///@name Protected static Member Variables 
+    ///@{ 
+    
+    
+    ///@} 
+    ///@name Protected member Variables 
+    ///@{ 
+    
+    
+    ///@} 
+    ///@name Protected Operators
+    ///@{ 
+    
+    
+    ///@} 
+    ///@name Protected Operations
+    ///@{ 
+    
+    
+    ///@} 
+    ///@name Protected  Access 
+    ///@{ 
+    
+    
+    ///@}      
+    ///@name Protected Inquiry 
+    ///@{ 
+    
+    
+    ///@}    
+    ///@name Protected LifeCycle 
+    ///@{ 
+    
         
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-    //   GidEigenIO& operator=(GidEigenIO const& rOther){}
+    ///@}
+    
+  private:
+    ///@name Static Member Variables 
+    ///@{ 
+    
+    
+    ///@} 
+    ///@name Member Variables 
+    ///@{ 
+    
+    
+    ///@} 
+    ///@name Private Operators
+    ///@{ 
+    
+    
+    ///@} 
+    ///@name Private Operations
+    ///@{ 
+    
+    
+    ///@} 
+    ///@name Private  Access 
+    ///@{ 
+    
+    
+    ///@}    
+    ///@name Private Inquiry 
+    ///@{ 
+    
+    
+    ///@}    
+    ///@name Un accessible methods 
+    ///@{ 
 
-      /// Copy constructor.
-    //   GidEigenIO(GidEigenIO const& rOther){}
-
-        
-      ///@}    
-        
-    }; // Class GidEigenIO 
+    
+    ///@}    
+    
+}; // Class GidEigenIO 
 
   ///@} 
   
