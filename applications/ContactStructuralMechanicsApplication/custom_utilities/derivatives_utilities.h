@@ -151,7 +151,7 @@ public:
             {
                 for (unsigned i_dof = 0; i_dof < TDim; ++i_dof) 
                 {
-                    const bounded_matrix<double, 3, 3>& local_delta_vertex = rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof];
+                    const auto& local_delta_vertex = rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof];
                     array_1d<double, 3> aux_delta_cross_product1, aux_delta_cross_product2;
                     
                     MathUtils<double>::CrossProduct(aux_delta_cross_product1, row(local_delta_vertex, 1) - row(local_delta_vertex, 0), x31cell);
@@ -444,18 +444,18 @@ public:
                         if (ConsiderNormalVariation != NODERIVATIVESCOMPUTATION && belong_index < TNumNodes) delta_normal = all_delta_normal[belong_index * TDim + i_dof] * (1.0/aux_nodes_coeff);
                         else delta_normal = ZeroVector(3);
                     
-                        bounded_matrix<double, 3, 3>& local_delta_vertex = rDerivativeData.DeltaCellVertex[belong_index * TDim + i_dof];
+                        auto& local_delta_vertex = rDerivativeData.DeltaCellVertex[belong_index * TDim + i_dof];
                         
                         // Special cases (slave nodes)
                         if (i_belong == 0) // First node of the slave
                         {
                             const double coeff = 1.0 + num/denom;
-                            LocalDeltaVertex(local_delta_vertex, Normal, delta_normal, i_dof, i_triangle, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, coeff);
+                            noalias(row(local_delta_vertex, i_triangle)) += LocalDeltaVertex( Normal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, coeff);
                         }
                         else if (i_belong == 1) // Second node of the slave
                         {
                             const double coeff = - num/denom;
-                            LocalDeltaVertex(local_delta_vertex, Normal, delta_normal, i_dof, i_triangle, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, coeff);
+                            noalias(row(local_delta_vertex, i_triangle)) += LocalDeltaVertex( Normal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, coeff);
                         }
                         
                         // We define some auxiliar coefficients
@@ -502,9 +502,8 @@ public:
                     if (ConsiderNormalVariation != NODERIVATIVESCOMPUTATION && belong_index < TNumNodes) delta_normal = all_delta_normal[belong_index * TDim + i_dof] * (1.0/aux_nodes_coeff);
                     else delta_normal = ZeroVector(3);
                     
-                    bounded_matrix<double, 3, 3>& local_delta_vertex = rDerivativeData.DeltaCellVertex[belong_index * TDim + i_dof];
-                    
-                    LocalDeltaVertex(local_delta_vertex, Normal, delta_normal, i_dof, i_triangle, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry);
+                    auto& local_delta_vertex = rDerivativeData.DeltaCellVertex[belong_index * TDim + i_dof];
+                    noalias(row(local_delta_vertex, i_triangle)) += LocalDeltaVertex( Normal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry);
                 }
             }
         }
@@ -1013,35 +1012,6 @@ private:
         if (ConsiderNormalVariation != NODERIVATIVESCOMPUTATION) aux_delta_vertex += coordsxnormal * DeltaNormal;
         
         return Coeff * aux_delta_vertex;
-    }
-    
-    /**
-     * This method is used to compute the directional derivatives of the cell vertex (locally)
-     * @param DeltaVertexMatrix The whole delta vertex matrix
-     * @param Normal The normal of the slave surface
-     * @param DeltaNormal The derivative of the normal vector
-     * @param iDoF The DoF computed index
-     * @param iTriangle The triangle point index
-     * @param iBelong The belong (intersection, node, etc..) index
-     * @param ConsiderNormalVariation If the normal variation is considered
-     * @param SlaveGeometry The geometry of the slave side
-     * @param MasterGeometry The geometry of the master side
-     * @param Coeff The coefficient considered in proportion
-     */
-    static inline void LocalDeltaVertex(
-        bounded_matrix<double, 3, 3>& DeltaVertexMatrix,
-        const array_1d<double, 3>& Normal,
-        const array_1d<double, 3>& DeltaNormal,
-        const unsigned int iDoF,
-        const unsigned int iTriangle,
-        const unsigned int iBelong,
-        const NormalDerivativesComputation ConsiderNormalVariation,
-        const GeometryType& SlaveGeometry,
-        const GeometryType& MasterGeometry,
-        double Coeff = 1.0
-        )
-    {
-        noalias(row(DeltaVertexMatrix, iTriangle)) += LocalDeltaVertex( Normal,  DeltaNormal, iDoF, iBelong, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, Coeff);
     }
     
     /**
