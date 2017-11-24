@@ -80,8 +80,8 @@ class PostprocessEigenvaluesProcess : public Process
         Parameters default_parameters(R"(
             {
                 "animation_steps"   :  1,
-                "use_eigenfrequency_in_label" : false
-                "eigen_results" : [],
+                "use_eigenfrequency_in_label" : false,
+                "eigen_results" : []
             }  )"
         );
 
