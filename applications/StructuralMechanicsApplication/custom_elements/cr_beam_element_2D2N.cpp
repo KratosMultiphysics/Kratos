@@ -156,7 +156,7 @@ namespace Kratos
 		VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
 		{
 			KRATOS_TRY;
-			// t (just for testing disabled!!!)
+			// t 
 			this->DeformationForces = this->CalculateInternalStresses_DeformationModes();
 
 			// qe
@@ -239,7 +239,7 @@ namespace Kratos
 		else if (std::abs(dx) < numerical_limit)
 		{
 			phi = PI / 2.00; // dy > 0 and dx = 0
-			if (dy < -numerical_limit) phi = 0.7500 * PI;  // dy < 0 and dx = 0
+			if (dy < -numerical_limit) phi = 1.500 * PI;  // dy < 0 and dx = 0
 		}
 		else
 		{
@@ -273,7 +273,7 @@ namespace Kratos
 		else if (std::abs(dx) < numerical_limit)
 		{
 			phi = PI / 2.00; // dy > 0 and dx = 0
-			if (dy < -numerical_limit) phi = 0.7500 * PI;  // dy < 0 and dx = 0
+			if (dy < -numerical_limit) phi = 1.500 * PI;  // dy < 0 and dx = 0
 		}
 		else
 		{
@@ -482,6 +482,8 @@ namespace Kratos
 		const double current_element_angle = this->CalculateDeformedElementAngle();
 		const double c = std::cos(current_element_angle);
 		const double s = std::sin(current_element_angle);
+
+		KRATOS_WATCH(current_element_angle);
 
 		bounded_matrix<double,msElementSize,msElementSize> RotationMatrix = ZeroMatrix(msElementSize,msElementSize);
 
