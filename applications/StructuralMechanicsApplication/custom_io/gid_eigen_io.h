@@ -101,29 +101,12 @@ class GidEigenIO : public GidIO<>
     * Write the post-processed eigensolver-results
     * The label is the Eigenvalue or -frequency
     */
-    void WriteEigenResults( const EigenResults& eigen_results, 
-                            const std::vector<SizeType>& nodal_ids, 
-                            const std::string& label, 
-                            const SizeType AnimationStepNumber )
-    {
-        const SizeType num_nodes = nodal_ids.size();
-
-        KRATOS_ERROR_IF_NOT(eigen_results.size() == num_nodes) 
-            << "The Input sizes are inconsistent!" << std::endl;
-
-        GiD_fBeginResult( mResultFile, (char*)label.c_str() , "EigenVector_Animation",
-                          AnimationStepNumber, GiD_Vector,
-                          GiD_OnNodes, NULL, NULL, 0, NULL );
-
-        for (SizeType i=0; i<num_nodes; ++i)
-        {
-            const auto& nodal_result = eigen_results[i];
-            GiD_fWriteVector( mResultFile, nodal_ids[i], 
-                nodal_result[0], nodal_result[1], nodal_result[2] );
-        }
-
-        GiD_fEndResult(mResultFile);
-    }
+    template<typename T>
+    inline void WriteEigenResults( ModelPart& rModelPart, 
+                                   const Variable<T>& rVariable,
+                                   std::string Label, 
+                                   const SizeType AnimationStepNumber );
+      
       
     ///@}
     ///@name Access
@@ -241,6 +224,46 @@ class GidEigenIO : public GidIO<>
   
   ///@name Type Definitions       
   ///@{ 
+
+template<>
+inline void GidEigenIO::WriteEigenResults<double>(ModelPart& rModelPart, 
+                               const Variable<double>& rVariable,
+                               std::string Label, 
+                               const SizeType AnimationStepNumber) 
+{
+    Label += "_" + rVariable.Name();  
+    GiD_fBeginResult( mResultFile, (char*)Label.c_str() , "EigenVector_Animation",
+                        AnimationStepNumber, GiD_Scalar,
+                        GiD_OnNodes, NULL, NULL, 0, NULL );
+
+    for (const auto& node : rModelPart.Nodes())
+    {
+        const double& nodal_result = node.FastGetSolutionStepValue(rVariable);
+        GiD_fWriteScalar( mResultFile, node.Id(), nodal_result );
+    }
+
+    GiD_fEndResult(mResultFile);
+}
+
+template<>
+inline void GidEigenIO::WriteEigenResults<array_1d<double, 3>>(ModelPart& rModelPart, 
+                                                               const Variable<array_1d<double, 3>>& rVariable,
+                                                               std::string Label, 
+                                                               const SizeType AnimationStepNumber) 
+{
+    Label += "_" + rVariable.Name();
+    GiD_fBeginResult( mResultFile, (char*)Label.c_str() , "EigenVector_Animation",
+                        AnimationStepNumber, GiD_Vector,
+                        GiD_OnNodes, NULL, NULL, 0, NULL );
+
+    for (auto& node : rModelPart.Nodes())
+    {
+        const array_1d<double, 3>& nodal_result = node.FastGetSolutionStepValue(rVariable);
+        GiD_fWriteVector(mResultFile, node.Id(), nodal_result[0], nodal_result[1], nodal_result[2]);
+    }
+
+    GiD_fEndResult(mResultFile);
+}
   
   
   ///@} 
