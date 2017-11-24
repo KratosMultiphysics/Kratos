@@ -240,7 +240,7 @@ class ALMContactProcess(python_process.PythonProcess):
         self.interface_preprocess = ContactStructuralMechanicsApplication.InterfacePreprocessCondition(computing_model_part)
             
         if self.params["contact_type"].GetString() == "Frictionless":
-            if self.normal_variation == True:
+            if self.normal_variation == 2:
                 if self.axisymmetric == True:
                     condition_name = "ALMNVFrictionlessAxisymMortarContact"
                 else:
@@ -251,7 +251,7 @@ class ALMContactProcess(python_process.PythonProcess):
                 else:
                     condition_name = "ALMFrictionlessMortarContact"
         elif self.params["contact_type"].GetString() == "Frictional":
-            if self.normal_variation == True:
+            if self.normal_variation == 2:
                 if self.axisymmetric == True:
                     condition_name = "ALMNVFrictionalAxisymMortarContact"
                 else:
