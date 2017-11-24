@@ -79,7 +79,7 @@ namespace Kratos
             typedef Triangle3D3<PointType> TriangleType;
             typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
             typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
-            typedef DerivativesUtilities<TDim, TNumNodes, false> DerivativesUtilitiesType;
+            typedef DerivativesUtilities<TDim, TNumNodes, false, true> DerivativesUtilitiesType;
             typedef ExactMortarIntegrationUtility<TDim, TNumNodes, true> IntegrationUtility;
             
             // Some definitions
@@ -100,7 +100,7 @@ namespace Kratos
             MortarKinematicVariablesWithDerivatives<TDim, TNumNodes> rVariables; // These are the kinematic variables for the current configuration
             
             // Create the initial contact data
-            DerivativeData<TDim, TNumNodes> rDerivativeData0;
+            DerivativeData<TDim, TNumNodes, true> rDerivativeData0;
             rDerivativeData0.Initialize(slave_geometry_0, ThisModelPart.GetProcessInfo());
             
             // We call the exact integration utility
@@ -156,7 +156,7 @@ namespace Kratos
                 }
                 
                 // Create the current contact data
-                DerivativeData<TDim, TNumNodes> rDerivativeData;
+                DerivativeData<TDim, TNumNodes, true> rDerivativeData;
                 rDerivativeData.Initialize(slave_geometry_1, ThisModelPart.GetProcessInfo());
                 
                 // We compute the normal derivatives

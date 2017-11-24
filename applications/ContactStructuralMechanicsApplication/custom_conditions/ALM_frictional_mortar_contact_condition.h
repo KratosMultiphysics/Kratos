@@ -29,7 +29,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef Point                                  PointType;
+    typedef Point                                     PointType;
     typedef Node<3>                                    NodeType;
     typedef Geometry<NodeType>                     GeometryType;
     typedef Geometry<PointType>               GeometryPointType;
@@ -54,7 +54,7 @@ namespace Kratos
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
 template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
-class AugmentedLagrangianMethodFrictionalMortarContactCondition: public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, true> 
+class AugmentedLagrangianMethodFrictionalMortarContactCondition: public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, true, TNormalVariation> 
 {
 public:
     ///@name Type Definitions
@@ -63,37 +63,37 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionalMortarContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionalMortarContactCondition );
 
-    typedef AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, true>       BaseType;
+    typedef AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, true, TNormalVariation> BaseType;
     
-    typedef typename BaseType::MortarConditionMatrices                    MortarConditionMatrices;
+    typedef typename BaseType::MortarConditionMatrices                                MortarConditionMatrices;
     
-    typedef Condition                                                           ConditionBaseType;
+    typedef Condition                                                                       ConditionBaseType;
     
-    typedef typename ConditionBaseType::VectorType                                     VectorType;
+    typedef typename ConditionBaseType::VectorType                                                 VectorType;
 
-    typedef typename ConditionBaseType::MatrixType                                     MatrixType;
+    typedef typename ConditionBaseType::MatrixType                                                 MatrixType;
 
-    typedef typename ConditionBaseType::IndexType                                       IndexType;
+    typedef typename ConditionBaseType::IndexType                                                   IndexType;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                 GeometryPointerType;
+    typedef typename ConditionBaseType::GeometryType::Pointer                             GeometryPointerType;
 
-    typedef typename ConditionBaseType::NodesArrayType                             NodesArrayType;
+    typedef typename ConditionBaseType::NodesArrayType                                         NodesArrayType;
 
-    typedef typename ConditionBaseType::PropertiesType::Pointer             PropertiesPointerType;
+    typedef typename ConditionBaseType::PropertiesType::Pointer                         PropertiesPointerType;
     
-    typedef typename ConditionBaseType::EquationIdVectorType                 EquationIdVectorType;
+    typedef typename ConditionBaseType::EquationIdVectorType                             EquationIdVectorType;
     
-    typedef typename ConditionBaseType::DofsVectorType                             DofsVectorType;
+    typedef typename ConditionBaseType::DofsVectorType                                         DofsVectorType;
     
-    typedef typename std::vector<array_1d<PointType,TDim>>                 ConditionArrayListType;
+    typedef typename std::vector<array_1d<PointType,TDim>>                             ConditionArrayListType;
     
-    typedef Line2D2<Point>                                                            LineType;
+    typedef Line2D2<Point>                                                                           LineType;
     
-    typedef Triangle3D3<Point>                                                    TriangleType;
+    typedef Triangle3D3<Point>                                                                   TriangleType;
     
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type             DecompositionType;
     
-    typedef DerivativeDataFrictional<TDim, TNumNodes>                          DerivativeDataType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation>                    DerivativeDataType;
     
     static constexpr unsigned int MatrixSize = TDim * (TNumNodes + TNumNodes + TNumNodes);
          

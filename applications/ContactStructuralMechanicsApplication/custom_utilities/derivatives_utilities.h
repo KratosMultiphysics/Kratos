@@ -44,7 +44,7 @@ namespace Kratos
 ///@name  Functions
 ///@{
     
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
+template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
 class DerivativesUtilities
 {
 public:
@@ -52,41 +52,41 @@ public:
     ///@{
     
     // General type definitions
-    typedef Vector VectorType;
+    typedef Vector                                                                                     VectorType;
 
-    typedef Matrix MatrixType;
+    typedef Matrix                                                                                     MatrixType;
 
-    typedef std::size_t IndexType;
+    typedef std::size_t                                                                                 IndexType;
 
-    typedef Geometry<NodeType> GeometryType;
+    typedef Geometry<NodeType>                                                                       GeometryType;
 
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    typedef Geometry<NodeType>::PointsArrayType                                                    NodesArrayType;
 
-    typedef Properties PropertiesType;
+    typedef Properties                                                                             PropertiesType;
     
     typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
     
-    typedef PointBelong<TNumNodes>                                                 PointBelongType;
+    typedef PointBelong<TNumNodes>                                                                PointBelongType;
     
-    typedef Geometry<PointBelongType>                                      GeometryPointBelongType;
+    typedef Geometry<PointBelongType>                                                     GeometryPointBelongType;
     
-    typedef array_1d<PointBelongType,TDim>                                      ConditionArrayType;
+    typedef array_1d<PointBelongType,TDim>                                                     ConditionArrayType;
     
-    typedef typename std::vector<ConditionArrayType>                        ConditionArrayListType;
+    typedef typename std::vector<ConditionArrayType>                                       ConditionArrayListType;
     
-    typedef Line2D2<PointType>                                                            LineType;
+    typedef Line2D2<PointType>                                                                           LineType;
     
-    typedef Triangle3D3<PointType>                                                    TriangleType;
+    typedef Triangle3D3<PointType>                                                                   TriangleType;
     
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type  DecompositionType;
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                 DecompositionType;
     
-    typedef typename std::conditional<TFrictional == true, DerivativeDataFrictional<TDim, TNumNodes>, DerivativeData<TDim, TNumNodes> >::type DerivativeDataType;
+    typedef typename std::conditional<TFrictional == true, DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation>, DerivativeData<TDim, TNumNodes, TNormalVariation> >::type DerivativeDataType;
     
-    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes>              GeneralVariables;
+    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes>                             GeneralVariables;
     
-    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional>    AeData;
+    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation> AeData;
     
-    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional>    MortarConditionMatrices;
+    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation> MortarConditionMatrices;
     
     ///@}
     ///@name Life Cycle
