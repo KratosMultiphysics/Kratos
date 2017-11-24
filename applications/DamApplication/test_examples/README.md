@@ -1,6 +1,6 @@
 # Dam Examples
 
-The test examples of dam application have been moved to specific examples repository.
+The test examples of dam application have been moved to specific repository.
 
-Plese click [here](https://github.com/KratosMultiphysics/Examples/tree/master/dam) to be redirected.
+Please click [here](https://github.com/KratosMultiphysics/Examples/tree/master/dam) to be redirected.
 
