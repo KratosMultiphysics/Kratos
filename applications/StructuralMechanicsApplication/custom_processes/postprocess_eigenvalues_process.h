@@ -66,29 +66,30 @@ class PostprocessEigenvaluesProcess : public Process
 
     typedef std::size_t SizeType;
 
-    typedef ModelPart::NodeIterator NodeIterator;
     typedef ModelPart::NodeType::DofsContainerType DofsContainerType;
     
-    typedef std::vector<std::vector<std::vector<std::vector<double>>>> AnimationResults;
-    /* The main reason to do this is to access the nodal database only once and computing 
-       the animated results
-    Structure of this AnimationResults:
-    AnimationStep
-        EigenValues
-            Nodes
-                Coordinates
-    */
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     PostprocessEigenvaluesProcess(ModelPart &rModelPart,
-                                  const SizeType NumAnimationSteps,
-                                  const bool LabelEigenfreq) 
-                                  : mrModelPart(rModelPart),
-                                    mNumAnimationSteps(NumAnimationSteps),
-                                    mLabelEigenfreq(LabelEigenfreq) { }
+                                  Parameters OutputParameters) 
+                                  : mrModelPart(rModelPart), 
+                                    mOutputParameters(OutputParameters)
+    {
+        Parameters default_parameters(R"(
+            {
+                "animation_steps"   :  1,
+                "use_eigenfrequency_in_label" : false
+                "eigen_results" : [],
+            }  )"
+        );
+
+        mOutputParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+        mNumAnimationSteps = mOutputParameters["animation_steps"].GetInt();
+        mLabelEigenfreq = mOutputParameters["use_eigenfrequency_in_label"].GetBool();
+    }
 
     /// Destructor.
     ~PostprocessEigenvaluesProcess() = default;
@@ -112,7 +113,7 @@ class PostprocessEigenvaluesProcess : public Process
         
         mpGidEigenIO = GidEigenIO::Pointer (new GidEigenIO( 
                             result_file_name,
-                            GiD_PostBinary,//GiD_PostBinary,
+                            GiD_PostBinary,
                             MultiFileFlag::SingleFile,
                             WriteDeformedMeshFlag::WriteUndeformed,
                             WriteConditionsFlag::WriteConditions) );
@@ -161,9 +162,11 @@ class PostprocessEigenvaluesProcess : public Process
                 
                 label = GetLabel(eigenvalue_vector[j]);
 
-                // for(const auto& r_variable : mVariables)
-                //     mpGidEigenIO->WriteEigenResults(mrModelPart, r_variable, label, i);
-                mpGidEigenIO->WriteEigenResults(mrModelPart, DISPLACEMENT, label, i);
+                const auto& requested_results = mOutputParameters["eigen_results"];
+
+                for (const auto& var_name : requested_results)
+                    mpGidEigenIO->WriteEigenResults(mrModelPart, DISPLACEMENT, label, i);
+                    // mpGidEigenIO->WriteEigenResults(mrModelPart, GetVariable(var_name.GetString()), label, i);
             }
         }
     }
@@ -240,6 +243,7 @@ class PostprocessEigenvaluesProcess : public Process
     ///@name Member Variables
     ///@{
     ModelPart& mrModelPart;
+    Parameters mOutputParameters;
     SizeType mNumAnimationSteps;
     bool mLabelEigenfreq;
     GidEigenIO::Pointer mpGidEigenIO;
@@ -256,7 +260,7 @@ class PostprocessEigenvaluesProcess : public Process
     {
         std::string label = "EigenValue_";
 
-        // Compute the Eigenfrequency from the Eigenvalue
+        // Compute the Eigenfrequency from the Eigenvalue (if the User specified it)
         if (mLabelEigenfreq)
         {
             label = "EigenFrequency_";
@@ -265,8 +269,14 @@ class PostprocessEigenvaluesProcess : public Process
 
         std::stringstream strstr;
         strstr << std::fixed << std::setprecision(3) << LabelNumber;
-        return label + strstr.str();
-        
+        return label + strstr.str();   
+    }
+
+
+    template<typename T>
+    Variable<T> GetVariable(const std::string VariableName)
+    {
+        return DISPLACEMENT;
     }
 
     ///@}

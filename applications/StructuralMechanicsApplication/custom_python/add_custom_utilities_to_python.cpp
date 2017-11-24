@@ -86,7 +86,7 @@ void  AddCustomUtilitiesToPython()
     .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
 
     class_<PostprocessEigenvaluesProcess, boost::noncopyable, bases<Process>>(
-        "PostprocessEigenvaluesProcess", init<ModelPart&, int, bool>());
+        "PostprocessEigenvaluesProcess", init<ModelPart&, Parameters>());
 
 }
 

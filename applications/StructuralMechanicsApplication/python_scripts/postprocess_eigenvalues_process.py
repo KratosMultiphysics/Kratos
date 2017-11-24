@@ -18,7 +18,7 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.T
             {
                 "computing_model_part_name"   : "computing_domain",
                 "animation_steps"   :  20,
-                "dof_variable_name" : ["DISPLACEMENT"],
+                "eigen_results" : ["DISPLACEMENT"],
                 "use_eigenfrequency_in_label" : true
             }
             """
@@ -28,10 +28,11 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.T
 
         KratosMultiphysics.Process.__init__(self)
         model_part = Model[settings["computing_model_part_name"].GetString()]
+        settings.RemoveValue("computing_model_part_name")
         animation_steps = settings["animation_steps"].GetInt()
         use_eigenfrequency_in_label = settings["use_eigenfrequency_in_label"].GetBool()
         self.post_eigen_process = StructuralMechanicsApplication.PostprocessEigenvaluesProcess(
-                                    model_part, animation_steps, use_eigenfrequency_in_label)
+                                    model_part, settings)
                                                                               
     def ExecuteInitialize(self):
         self.post_eigen_process.ExecuteInitialize()
