@@ -305,12 +305,12 @@ namespace Kratos
             rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_X, Step );
             rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_Y, Step );
             rValues[index + 6] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_Z, Step );
-            rValues[index + 7] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE_ACCELERATIONN, Step );
+            rValues[index + 7] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE_ACCELERATION, Step );
          } else {
             rValues[index + 2] = 0.0;
             rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_X, Step );
             rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_Y, Step );
-            rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE_ACCELERATIONN, Step );
+            rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE_ACCELERATION, Step );
          }
 
       }
