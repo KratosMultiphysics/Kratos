@@ -1438,7 +1438,7 @@ class DEMIo(object):
         self.AddContactVariables()
         self.AddMpiVariables()
         self.Configure(DEM_parameters["problem_name"].GetString(), DEM_parameters["OutputFileType"].GetString(), DEM_parameters["Multifile"].GetString(), DEM_parameters["ContactMeshOption"].GetBool())
-        #self.SetOutputName(DEM_parameters["problem_name"].GetString())
+        self.SetOutputName(DEM_parameters["problem_name"].GetString())
 
     def PushPrintVar(self, variable, name, print_list):
         if (Var_Translator(variable)):
