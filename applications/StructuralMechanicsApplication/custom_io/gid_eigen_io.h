@@ -10,8 +10,8 @@
 //  Main authors:    Philipp Bucher 
 //
 
-#if !defined(KRATOS_GID_IO_EIGEN_H_INCLUDED )
-#define  KRATOS_GID_IO_EIGEN_H_INCLUDED
+#if !defined(KRATOS_GID_EIGEN_IO_H_INCLUDED )
+#define  KRATOS_GID_EIGEN_IO_H_INCLUDED
 
 
 // System includes
@@ -52,21 +52,21 @@ namespace Kratos
   /** Detail class definition.
   */
 //   template<class TGaussPointContainer = GidGaussPointsContainer, class TMeshContainer = GidMeshContainer>
-  class GidIOEigen : public GidIO<>
+  class GidEigenIO : public GidIO<>
     {
     public:
       ///@name Type Definitions
       ///@{
       
-      /// Pointer definition of GidIOEigen
-      KRATOS_CLASS_POINTER_DEFINITION(GidIOEigen);
+      /// Pointer definition of GidEigenIO
+      KRATOS_CLASS_POINTER_DEFINITION(GidEigenIO);
   
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-      GidIOEigen( const std::string& rDatafilename,
+      GidEigenIO( const std::string& rDatafilename,
                   GiD_PostMode Mode,
                   MultiFileFlag use_multiple_files_flag,
                   WriteDeformedMeshFlag write_deformed_flag,
@@ -75,7 +75,7 @@ namespace Kratos
         {}
 
       /// Destructor.
-      virtual ~GidIOEigen(){}
+      virtual ~GidEigenIO(){}
       
 
       ///@}
@@ -133,12 +133,12 @@ namespace Kratos
       virtual std::string Info() const
       {
 	std::stringstream buffer;
-        buffer << "GidIOEigen" ;
+        buffer << "GidEigenIO" ;
         return buffer.str();
       }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "GidIOEigen";}
+      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "GidEigenIO";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
@@ -223,15 +223,15 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-    //   GidIOEigen& operator=(GidIOEigen const& rOther){}
+    //   GidEigenIO& operator=(GidEigenIO const& rOther){}
 
       /// Copy constructor.
-    //   GidIOEigen(GidIOEigen const& rOther){}
+    //   GidEigenIO(GidEigenIO const& rOther){}
 
         
       ///@}    
         
-    }; // Class GidIOEigen 
+    }; // Class GidEigenIO 
 
   ///@} 
   
@@ -246,11 +246,11 @@ namespace Kratos
  
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream, 
-				    GidIOEigen& rThis){}
+				    GidEigenIO& rThis){}
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const GidIOEigen& rThis)
+				    const GidEigenIO& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -264,6 +264,6 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_GID_IO_EIGEN_H_INCLUDED  defined 
+#endif // KRATOS_GID_EIGEN_IO_H_INCLUDED  defined 
 
 

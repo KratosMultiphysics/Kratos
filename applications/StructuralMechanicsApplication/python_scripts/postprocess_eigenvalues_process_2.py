@@ -75,7 +75,7 @@ class PostProcessEigenvaluesProcess2(KratosMultiphysics.Process, KratosUnittest.
             # We create a different ouput for each eigenvalue
             output_file = "EigenValue_w="+str(round(evs, 3))
             
-            gid_io = StructuralMechanicsApplication.GidIOEigen(output_file, gid_mode, singlefile, deformed_mesh_flag, write_conditions)
+            gid_io = StructuralMechanicsApplication.GidEigenIO(output_file, gid_mode, singlefile, deformed_mesh_flag, write_conditions)
             gid_io.InitializeMesh(0.0) 
             gid_io.WriteMesh(self.model_part.GetMesh())
             gid_io.WriteNodeMesh(self.model_part.GetMesh())
