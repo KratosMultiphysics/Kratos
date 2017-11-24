@@ -122,7 +122,7 @@ namespace Kratos
 
 		void GlobalizeMatrix(Matrix &A);
 		void GlobalizeVector(Vector &A);
-
+		double Modulus2Pi(double A);
 
 		bounded_matrix<double,msElementSize,msElementSize> CreateRotationMatrix();
 

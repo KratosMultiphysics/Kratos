@@ -19,7 +19,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
 
-#define PI 3.141592653589793238462643383279502884197169399375105820974944592308
+#define Pi 3.141592653589793238462643383279502884197169399375105820974944592308
 
 namespace Kratos
 {
@@ -235,11 +235,11 @@ namespace Kratos
 
 		double phi;
 		if ((dx > numerical_limit) & (std::abs(dy) < numerical_limit)) phi = 0.00; // dy = 0 and dx > 0
-		else if ((dx < -numerical_limit) & (std::abs(dy) < numerical_limit)) phi = PI; // dy = 0 and dx < 0
+		else if ((dx < -numerical_limit) & (std::abs(dy) < numerical_limit)) phi = Pi; // dy = 0 and dx < 0
 		else if (std::abs(dx) < numerical_limit)
 		{
-			phi = PI / 2.00; // dy > 0 and dx = 0
-			if (dy < -numerical_limit) phi = 1.500 * PI;  // dy < 0 and dx = 0
+			phi = Pi / 2.00; // dy > 0 and dx = 0
+			if (dy < -numerical_limit) phi = 1.500 * Pi;  // dy < 0 and dx = 0
 		}
 		else
 		{
@@ -269,11 +269,11 @@ namespace Kratos
 
 		double phi;
 		if ((dx > numerical_limit) & (std::abs(dy) < numerical_limit)) phi = 0.00; // dy = 0 and dx > 0
-		else if ((dx < -numerical_limit) & (std::abs(dy) < numerical_limit)) phi = PI; // dy = 0 and dx < 0
+		else if ((dx < -numerical_limit) & (std::abs(dy) < numerical_limit)) phi = Pi; // dy = 0 and dx < 0
 		else if (std::abs(dx) < numerical_limit)
 		{
-			phi = PI / 2.00; // dy > 0 and dx = 0
-			if (dy < -numerical_limit) phi = 1.500 * PI;  // dy < 0 and dx = 0
+			phi = Pi / 2.00; // dy > 0 and dx = 0
+			if (dy < -numerical_limit) phi = 1.500 * Pi;  // dy < 0 and dx = 0
 		}
 		else
 		{
@@ -448,6 +448,9 @@ namespace Kratos
 		DeformationParameters[2] -= 2.00 * (this->CalculateDeformedElementAngle()
 		 - this->CalculateInitialElementAngle());
 
+		//calculate modulus 2PI for phi_a
+		DeformationParameters[2] = this->Modulus2Pi(DeformationParameters[2] + Pi) - Pi;
+
 		return DeformationParameters;
 		KRATOS_CATCH("")
 	}
@@ -483,8 +486,6 @@ namespace Kratos
 		const double c = std::cos(current_element_angle);
 		const double s = std::sin(current_element_angle);
 
-		KRATOS_WATCH(current_element_angle);
-
 		bounded_matrix<double,msElementSize,msElementSize> RotationMatrix = ZeroMatrix(msElementSize,msElementSize);
 
 		RotationMatrix(0, 0) = c;
@@ -498,6 +499,8 @@ namespace Kratos
 		RotationMatrix(4, 3) = s;
 		RotationMatrix(4, 4) = c;
 		RotationMatrix(5, 5) = 1.00;
+
+
 
 		return RotationMatrix;
 		KRATOS_CATCH("")
@@ -533,6 +536,17 @@ namespace Kratos
 
 		bounded_vector<double,msElementSize> qe = prod(S,t);
 		return qe;
+		KRATOS_CATCH("")
+	 }
+
+
+
+	 double CrBeamElement2D2N::Modulus2Pi(double A)
+	 {
+		KRATOS_TRY;	
+		const int B = A / (2.00 * Pi);
+		const double C = A - (B*2.00*Pi);
+		return C;
 		KRATOS_CATCH("")
 	 }
 
