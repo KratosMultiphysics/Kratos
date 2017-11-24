@@ -73,8 +73,13 @@ class FluidElementTest(UnitTest.TestCase):
         self.fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW,constitutive_law)
 
         self.fluid_model_part.ProcessInfo.SetValue(SOUND_VELOCITY,1e12)
+        self.fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH,0)
 
         ## Replace element and conditions
+        #replace_settings = Parameters("""{
+        #    "element_name":"TimeIntegratedQSVMS2D3N",
+        #    "condition_name": "NavierStokesWallCondition2D"
+        #}""")
         replace_settings = Parameters("""{
             "element_name":"SymbolicNavierStokes2D3N",
             "condition_name": "NavierStokesWallCondition2D"
@@ -161,6 +166,13 @@ class FluidElementTest(UnitTest.TestCase):
             self.fluid_model_part.ProcessInfo[BDF_COEFFICIENTS] = bdf_coefficients
 
             if step > 0: # first step is skipped (to fill BDF2 buffer)
+                for node in self.fluid_model_part.Nodes:
+                    v0 = node.GetSolutionStepValue(VELOCITY,0)
+                    v1 = node.GetSolutionStepValue(VELOCITY,1)
+                    v2 = node.GetSolutionStepValue(VELOCITY,2)
+                    acceleration = v0*bdf_coefficients[0] + v1*bdf_coefficients[1] + v2*bdf_coefficients[2]
+                    node.SetSolutionStepValue(ACCELERATION,acceleration)
+
                 self.fluid_solver.Solve()
 
     def checkResults(self):
