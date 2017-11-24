@@ -81,7 +81,7 @@ class Algorithm(BaseAlgorithm):
             node.SetSolutionStepValue(VELOCITY_Y, vel[1])
             node.SetSolutionStepValue(VELOCITY_Z, vel[2])
 
-    def FluidSolve(self, time = 'None'):
+    def FluidSolve(self, time = 'None', solve_system = True):
         fluid_model_part = self.all_model_parts.Get('FluidPart')
 
         for node in fluid_model_part.Nodes:

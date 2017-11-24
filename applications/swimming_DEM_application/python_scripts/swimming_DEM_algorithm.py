@@ -98,8 +98,8 @@ class Algorithm(object):
         self.disperse_phase_solution = DEM_algorithm.Solution(self.pp)
 
     def SetCouplingParameters(self, varying_parameters):
-        parameters_file = open('ProjectParametersDEM.json', 'r')
-        self.pp.CFD_DEM = Parameters(parameters_file.read())
+        with open(self.main_path + '/ProjectParametersDEM.json', 'r') as parameters_file:
+            self.pp.CFD_DEM = Parameters(parameters_file.read())
         self.SetDoSolveDEMVariable()
         self.SetBetaParameters()
         self.SetCustomBetaParameters(varying_parameters)
@@ -526,7 +526,9 @@ class Algorithm(object):
                 self.out = 0
 
             # solving the DEM part
-            self.derivative_recovery_counter.Activate(self.time > self.pp.CFD_DEM["interaction_start_time"].GetDouble())
+            interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
+
+            self.derivative_recovery_counter.Activate(self.time > interaction_start_time)
 
             if self.derivative_recovery_counter.Tick():
                 self.recovery.Recover()
@@ -534,7 +536,6 @@ class Algorithm(object):
             Say('Solving DEM... (', self.disperse_phase_solution.spheres_model_part.NumberOfElements(0), 'elements )')
             first_dem_iter = True
 
-            interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
             coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
             project_at_every_substep_option = self.pp.CFD_DEM["project_at_every_substep_option"].GetBool()
             coupling_scheme_type = self.pp.CFD_DEM["coupling_scheme_type"].GetString()
@@ -546,8 +547,7 @@ class Algorithm(object):
                 self.DEM_step += 1   # this variable is necessary to get a good random insertion of particles
                 self.disperse_phase_solution.spheres_model_part.ProcessInfo[TIME_STEPS]    = self.DEM_step
                 self.disperse_phase_solution.rigid_face_model_part.ProcessInfo[TIME_STEPS] = self.DEM_step
-                self.disperse_phase_algorithm.cluster_model_part.ProcessInfo[TIME_STEPS]    = self.DEM_step
-
+                self.disperse_phase_solution.cluster_model_part.ProcessInfo[TIME_STEPS]   = self.DEM_step
                 self.PerformInitialDEMStepOperations(self.time_dem)
 
                 if self.time >= interaction_start_time and coupling_level_type and (project_at_every_substep_option or first_dem_iter):
