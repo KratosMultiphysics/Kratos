@@ -19,7 +19,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
 
-
+#define PI 3.141592653589793238462643383279502884197169399375105820974944592308
 
 namespace Kratos
 {
@@ -156,7 +156,7 @@ namespace Kratos
 		VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
 		{
 			KRATOS_TRY;
-			// t
+			// t (just for testing disabled!!!)
 			this->DeformationForces = this->CalculateInternalStresses_DeformationModes();
 
 			// qe
@@ -164,11 +164,9 @@ namespace Kratos
 			NodalForces = this->ReturnElementForces_Local();
 			// q
 			this->GlobalizeVector(NodalForces);
-
 			// Kt
 			this->CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
-			this->K_lin = rLeftHandSideMatrix;
-
+				
 			// residual >>> r = f_ext - f_int
 			rRightHandSideVector = ZeroVector(msElementSize);
 			rRightHandSideVector -= NodalForces;
@@ -192,6 +190,7 @@ namespace Kratos
 			KRATOS_TRY;
 			rLeftHandSideMatrix = this->CreateElementStiffnessMatrix_Total();
 			this->GlobalizeMatrix(rLeftHandSideMatrix);
+			this->K_lin = rLeftHandSideMatrix;
 			KRATOS_CATCH("")
 		}
 
@@ -228,14 +227,28 @@ namespace Kratos
 	{
 		KRATOS_TRY;
 		const double numerical_limit = std::numeric_limits<double>::epsilon();
-		const double dx_0 = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-		const double dy_0 = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
 
-		const double norm = std::sqrt((dx_0*dx_0) + (dy_0*dy_0));
-		double dx_0_normalized = 0.00;
-		if (std::abs(dx_0) > numerical_limit) dx_0_normalized = dx_0 / norm;
-		const double phi_0 = std::acos(dx_0_normalized);
-		return phi_0;
+		const double dx = this->GetGeometry()[1].X0()-this->GetGeometry()[0].X0();
+		const double dy = this->GetGeometry()[1].Y0()-this->GetGeometry()[0].Y0();
+
+		const double norm = std::sqrt((dx*dx) + (dy*dy));
+
+		double phi;
+		if ((dx > numerical_limit) & (std::abs(dy) < numerical_limit)) phi = 0.00; // dy = 0 and dx > 0
+		else if ((dx < -numerical_limit) & (std::abs(dy) < numerical_limit)) phi = PI; // dy = 0 and dx < 0
+		else if (std::abs(dx) < numerical_limit)
+		{
+			phi = PI / 2.00; // dy > 0 and dx = 0
+			if (dy < -numerical_limit) phi = 0.7500 * PI;  // dy < 0 and dx = 0
+		}
+		else
+		{
+			phi = (norm - dx) / dy;
+			phi = std::atan(phi);
+			phi = 2.00 * phi;
+		}
+
+		return phi;
 		KRATOS_CATCH("")
 	}
 
@@ -247,21 +260,31 @@ namespace Kratos
 		Vector CurrentDisplacement = ZeroVector(msElementSize);
 		this->GetValuesVector(CurrentDisplacement,0);
 
-
 		const double dx = (this->GetGeometry()[1].X0()+CurrentDisplacement[3])
 		 - (this->GetGeometry()[0].X0()+CurrentDisplacement[0]);
 		const double dy = (this->GetGeometry()[1].Y0()+CurrentDisplacement[4])
 		 - (this->GetGeometry()[0].Y0()+CurrentDisplacement[1]);
 
 		const double norm = std::sqrt((dx*dx) + (dy*dy));
-		double dx_normalized = 0.00;
-		if (std::abs(dx) > numerical_limit) dx_normalized = dx / norm;
-		const double phi = std::acos(dx_normalized);
+
+		double phi;
+		if ((dx > numerical_limit) & (std::abs(dy) < numerical_limit)) phi = 0.00; // dy = 0 and dx > 0
+		else if ((dx < -numerical_limit) & (std::abs(dy) < numerical_limit)) phi = PI; // dy = 0 and dx < 0
+		else if (std::abs(dx) < numerical_limit)
+		{
+			phi = PI / 2.00; // dy > 0 and dx = 0
+			if (dy < -numerical_limit) phi = 0.7500 * PI;  // dy < 0 and dx = 0
+		}
+		else
+		{
+			phi = (norm - dx) / dy;
+			phi = std::atan(phi);
+			phi = 2.00 * phi;
+		}
+
 		return phi;
 		KRATOS_CATCH("")
 	}
-
-
 
 	double CrBeamElement2D2N::CalculateCurrentLength() 
 	{
@@ -330,7 +353,7 @@ namespace Kratos
 
 		Kd(0, 0) = E*A / L;
 		Kd(1, 1) = E*Iz / L;
-		Kd(2, 2) = 3.00 * Psi * E * Iz;
+		Kd(2, 2) = 3.00 * Psi * E * Iz / L;
 		return Kd;
 		KRATOS_CATCH("")
 	}
@@ -413,6 +436,7 @@ namespace Kratos
 	bounded_vector<double,CrBeamElement2D2N::msLocalSize> CrBeamElement2D2N::CalculateDeformationParameters()
 	{
 		KRATOS_TRY;
+		//calculate v
 
 		Vector CurrentDisplacement = ZeroVector(msElementSize);
 		this->GetValuesVector(CurrentDisplacement,0);
@@ -433,6 +457,7 @@ namespace Kratos
 	 CrBeamElement2D2N::CalculateInternalStresses_DeformationModes()
 	{
 		KRATOS_TRY;
+		//calculate t
 
 		bounded_vector<double,msLocalSize> DeformationStresses = ZeroVector(msLocalSize);
 
@@ -499,8 +524,10 @@ namespace Kratos
 	 CrBeamElement2D2N::ReturnElementForces_Local()
 	 {
 		KRATOS_TRY;
+		// calculate qe
+
 		bounded_matrix<double,msElementSize,msLocalSize> S = this->CalculateTransformationS();
-		bounded_vector<double,msLocalSize> t = this->CalculateDeformationParameters();
+		bounded_vector<double,msLocalSize> t = this->CalculateInternalStresses_DeformationModes();
 
 		bounded_vector<double,msElementSize> qe = prod(S,t);
 		return qe;
