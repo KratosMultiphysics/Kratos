@@ -40,7 +40,7 @@ namespace Kratos {
 
     void ForwardEulerScheme::CalculateNewRotationalVariables(
                 int StepFlag,
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const double moment_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
@@ -49,36 +49,25 @@ namespace Kratos {
                 array_1d<double, 3 >& delta_rotation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        
-        bool Fix_Ang_vel[3] = {false, false, false};
 
-        Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
-        Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
-        Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
-
-        array_1d<double, 3 > angular_acceleration;                    
-        CalculateLocalAngularAcceleration(i, moment_of_inertia, torque, moment_reduction_factor, angular_acceleration);                       
-                   
+        array_1d<double, 3 > angular_acceleration;
+        CalculateLocalAngularAcceleration(i, moment_of_inertia, torque, moment_reduction_factor, angular_acceleration);
+ 
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
     }
-    
+
     void ForwardEulerScheme::CalculateNewRotationalVariables(
                 int StepFlag,
-                const Node < 3 > & i,
-                const array_1d<double, 3 >& moments_of_inertia,
+                Node < 3 >& i,
+                const array_1d<double, 3 > moments_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
+                Quaternion<double  >& Orientation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        
-        bool Fix_Ang_vel[3] = {false, false, false};
-
-        Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
-        Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
-        Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
 
         array_1d<double, 3 > local_angular_acceleration, local_torque, local_angular_velocity, angular_acceleration;
 
@@ -102,7 +91,7 @@ namespace Kratos {
 
     void ForwardEulerScheme::UpdateRotationalVariables(
                 int StepFlag,
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,
@@ -123,7 +112,7 @@ namespace Kratos {
     }
 
     void ForwardEulerScheme::UpdateRotationalVariablesOfCluster(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -152,7 +141,7 @@ namespace Kratos {
     }
     
     void ForwardEulerScheme::UpdateRotationalVariables(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 const array_1d<double, 3 >& angular_velocity,
@@ -196,7 +185,7 @@ namespace Kratos {
     }
 
     void ForwardEulerScheme::CalculateLocalAngularAcceleration(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
@@ -209,7 +198,7 @@ namespace Kratos {
     }
 
     void ForwardEulerScheme::CalculateLocalAngularAccelerationByEulerEquations(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const array_1d<double, 3 >& local_angular_velocity,
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,

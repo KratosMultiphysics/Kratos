@@ -98,6 +98,7 @@ namespace Kratos {
         CustomInitialize(r_process_info);
         
         DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
+        DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
         SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
     }
     

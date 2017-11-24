@@ -26,7 +26,7 @@ namespace Kratos {
         double mass_inv = 1.0 / mass;
         for (int k = 0; k < 3; k++) {
             if (Fix_vel[k] == false) {
-                delta_displ[k] = delta_t * (vel [k] + (0.5 * delta_t * inv_mass) * force[k]);
+                delta_displ[k] = delta_t * (vel [k] + (0.5 * delta_t * mass_inv) * force[k]);
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
                 vel[k] += delta_t * force_reduction_factor * force[k] * mass_inv;
@@ -40,56 +40,58 @@ namespace Kratos {
 
     void TaylorScheme::CalculateNewRotationalVariables(
                 int StepFlag,
-                const Node < 3 > & i,
-                double moment_of_inertia,
+                Node < 3 >& i,
+                const double moment_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
+                const double moment_reduction_factor,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
 
-            array_1d<double, 3 > angular_acceleration;                    
-            CalculateLocalAngularAcceleration(i, moment_of_inertia, torque, force_reduction_factor,angular_acceleration);                       
-                   
-            UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
+        array_1d<double, 3 > angular_acceleration;
+        CalculateLocalAngularAcceleration(i, moment_of_inertia, torque, moment_reduction_factor, angular_acceleration);
+ 
+        UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
     }
-    
+
     void TaylorScheme::CalculateNewRotationalVariables(
                 int StepFlag,
-                const Node < 3 > & i,
-                array_1d<double, 3 >& moments_of_inertia,
+                Node < 3 >& i,
+                const array_1d<double, 3 > moments_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
+                const double moment_reduction_factor,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 Quaternion<double  >& Orientation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
 
-            array_1d<double, 3 > local_angular_acceleration, local_torque, local_angular_velocity, angular_acceleration;
+        array_1d<double, 3 > local_angular_acceleration, local_torque, local_angular_velocity, angular_acceleration;
 
-            //Angular velocity and torques are saved in the global framework:
-            GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, torque, local_torque);
-            GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
-            CalculateLocalAngularAccelerationByEulerEquations(i, local_angular_velocity, moments_of_inertia, local_torque, moment_reduction_factor, local_angular_acceleration);                        
+        //Angular velocity and torques are saved in the global framework:
+        GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, torque, local_torque);
+        GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
+        CalculateLocalAngularAccelerationByEulerEquations(i, local_angular_velocity, moments_of_inertia, local_torque, moment_reduction_factor, local_angular_acceleration);                        
 
-            //Angular acceleration is saved in the Global framework:
-            GeometryFunctions::QuaternionVectorLocal2Global(Orientation, local_angular_acceleration, angular_acceleration);
+        //Angular acceleration is saved in the Global framework:
+        GeometryFunctions::QuaternionVectorLocal2Global(Orientation, local_angular_acceleration, angular_acceleration);
                     
-            UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
+        UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
 
-            double ang = DEM_MODULUS_3(delta_rotation);
-                
-            if (ang) {
-                GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
-            } //if ang
-//             GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
+        double ang = DEM_MODULUS_3(delta_rotation);
+              
+        if (ang) {
+            GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
+        } //if ang
+//         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
     }
 
     void TaylorScheme::UpdateRotationalVariables(
                 int StepFlag,
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,
@@ -110,7 +112,7 @@ namespace Kratos {
     }
 
     void TaylorScheme::UpdateRotationalVariablesOfCluster(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -139,7 +141,7 @@ namespace Kratos {
     }
     
     void TaylorScheme::UpdateRotationalVariables(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 const array_1d<double, 3 >& angular_velocity,
@@ -183,7 +185,7 @@ namespace Kratos {
     }
 
     void TaylorScheme::CalculateLocalAngularAcceleration(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
@@ -196,7 +198,7 @@ namespace Kratos {
     }
 
     void TaylorScheme::CalculateLocalAngularAccelerationByEulerEquations(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const array_1d<double, 3 >& local_angular_velocity,
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,

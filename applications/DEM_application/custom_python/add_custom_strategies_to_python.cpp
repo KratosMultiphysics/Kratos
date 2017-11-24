@@ -82,7 +82,7 @@ namespace Kratos
 
           class_< VelocityVerletScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("VelocityVerletScheme", init<>());
 
-          class_< RungeKuttaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("RungeKuttaScheme", init<const double, const double>());
+          class_< RungeKuttaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("RungeKuttaScheme", init<>());
 
           class_< QuaternionIntegrationScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("QuaternionIntegrationScheme", init<>());
 

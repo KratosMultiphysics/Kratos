@@ -153,8 +153,7 @@ virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info);
 
 virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-virtual void SetTranslationalIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme);
-virtual void SetRotationalIntegrationScheme(DEMIntegrationScheme::Pointer& rotational_integration_scheme);
+virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
 virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
 virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
 

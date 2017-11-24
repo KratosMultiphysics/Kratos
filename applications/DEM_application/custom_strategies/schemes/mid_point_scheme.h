@@ -86,7 +86,7 @@ namespace Kratos {
 
         void UpdateRotationalVariables(
                 int StepFlag,
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,
@@ -107,7 +107,7 @@ namespace Kratos {
         }
 
         void CalculateLocalAngularAcceleration(
-                const Node < 3 > & i,
+                Node < 3 > & i,
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
@@ -119,7 +119,7 @@ namespace Kratos {
         }
 
         void CalculateLocalAngularAccelerationByEulerEquations(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const array_1d<double, 3 >& local_angular_velocity,
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,

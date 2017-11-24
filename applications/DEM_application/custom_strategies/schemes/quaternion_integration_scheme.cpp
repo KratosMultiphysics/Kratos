@@ -28,25 +28,26 @@ namespace Kratos {
 
     void QuaternionIntegrationScheme::CalculateNewRotationalVariables(
                 int StepFlag,
-                const Node < 3 > & i,
-                double moment_of_inertia,
+                Node < 3 >& i,
+                const double moment_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
+                const double moment_reduction_factor,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        
-        bool Fix_Ang_vel[3] = {false, false, false};
-        Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
-        Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
-        Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
-        
+
         array_1d<double, 3 > local_angular_acceleration, local_torque, quarter_local_angular_velocity, quarter_angular_velocity, AuxAngularVelocity;
         array_1d<double, 3 > & local_angular_velocity  = i.FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY);
         Quaternion<double  > & AuxOrientation          = i.FastGetSolutionStepValue(AUX_ORIENTATION);
         array_1d<double, 3 > & LocalAuxAngularVelocity = i.FastGetSolutionStepValue(LOCAL_AUX_ANGULAR_VELOCITY);
         Quaternion<double  > Orientation               = Quaternion<double>(1.0, 0.0, 0.0, 0.0);
+        
+        array_1d<double, 3 > moments_of_inertia;
+        moments_of_inertia[0] = moment_of_inertia;
+        moments_of_inertia[1] = moment_of_inertia;
+        moments_of_inertia[2] = moment_of_inertia;
 
         if (StepFlag != 1 && StepFlag != 2) {
             //Angular velocity and torques are saved in the local framework:
@@ -98,26 +99,21 @@ namespace Kratos {
     
     void QuaternionIntegrationScheme::CalculateNewRotationalVariables(
                 int StepFlag,
-                const Node < 3 > & i,
-                array_1d<double, 3 >& moments_of_inertia,
+                Node < 3 >& i,
+                const array_1d<double, 3 > moments_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
+                const double moment_reduction_factor,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 Quaternion<double  >& Orientation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        
-        bool Fix_Ang_vel[3] = {false, false, false};
-        Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
-        Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
-        Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
-        
+
         array_1d<double, 3 > local_angular_acceleration, local_torque, quarter_local_angular_velocity, quarter_angular_velocity, AuxAngularVelocity;
         array_1d<double, 3 > & local_angular_velocity = i.FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY);
         Quaternion<double  > & AuxOrientation = i.FastGetSolutionStepValue(AUX_ORIENTATION);
         array_1d<double, 3 > & LocalAuxAngularVelocity = i.FastGetSolutionStepValue(LOCAL_AUX_ANGULAR_VELOCITY);
-        Quaternion<double  >& Orientation            = i.FastGetSolutionStepValue(ORIENTATION);
 
         if (StepFlag != 1 && StepFlag != 2) {
             //Angular velocity and torques are saved in the local framework:
@@ -169,7 +165,7 @@ namespace Kratos {
 
     void QuaternionIntegrationScheme::UpdateRotationalVariables(
                 int StepFlag,
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,
@@ -190,7 +186,7 @@ namespace Kratos {
     }
 
     void QuaternionIntegrationScheme::UpdateRotationalVariablesOfCluster(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -219,7 +215,7 @@ namespace Kratos {
     }
     
     void QuaternionIntegrationScheme::UpdateRotationalVariables(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 const array_1d<double, 3 >& angular_velocity,
@@ -263,7 +259,7 @@ namespace Kratos {
     }
 
     void QuaternionIntegrationScheme::CalculateLocalAngularAcceleration(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
@@ -276,7 +272,7 @@ namespace Kratos {
     }
 
     void QuaternionIntegrationScheme::CalculateLocalAngularAccelerationByEulerEquations(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const array_1d<double, 3 >& local_angular_velocity,
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,

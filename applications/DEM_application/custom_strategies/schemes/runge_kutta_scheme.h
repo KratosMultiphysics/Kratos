@@ -1,5 +1,5 @@
 //
-// Author: Miquel Santasusana msantasusana@cimne.upc.edu
+// Author: Joaquin Irazabal jirazabal@cimne.upc.edu
 //
 
 #if !defined(KRATOS_RUNGE_KUTTA_SCHEME_H_INCLUDED )
@@ -62,10 +62,11 @@ namespace Kratos {
 
         void CalculateNewRotationalVariables(
                 int StepFlag,
-                const Node < 3 > & i,
-                double moment_of_inertia,
+                Node < 3 >& i,
+                const double moment_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
+                const double moment_reduction_factor,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 const double delta_t,
@@ -73,10 +74,11 @@ namespace Kratos {
     
         void CalculateNewRotationalVariables(
                 int StepFlag,
-                const Node < 3 > & i,
-                array_1d<double, 3 >& moments_of_inertia,
+                Node < 3 >& i,
+                const array_1d<double, 3 > moments_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
+                const double moment_reduction_factor,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 Quaternion<double  >& Orientation,
@@ -85,7 +87,7 @@ namespace Kratos {
 
         void UpdateRotationalVariables(
                 int StepFlag,
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,
@@ -94,7 +96,7 @@ namespace Kratos {
                 const bool Fix_Ang_vel[3]) override;
 
         void UpdateRotationalVariablesOfCluster(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -105,7 +107,7 @@ namespace Kratos {
                 const bool Fix_Ang_vel[3]) override;
 
         void UpdateRotationalVariables(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 const array_1d<double, 3 >& angular_velocity,
@@ -127,14 +129,14 @@ namespace Kratos {
                 array_1d<double, 3>& angular_velocity)  override;
 
         void CalculateLocalAngularAcceleration(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
                 array_1d<double, 3 >& angular_acceleration) override;
 
         void CalculateLocalAngularAccelerationByEulerEquations(
-                const Node < 3 > & i,
+                Node < 3 >& i,
                 const array_1d<double, 3 >& local_angular_velocity,
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,

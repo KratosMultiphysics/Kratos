@@ -516,8 +516,8 @@ class ExplicitStrategy:
             pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
             self.Procedures.KRATOSprint(properties)
 
-        if properties.Has(DEM_INTEGRATION_SCHEME_NAME):
-            scheme_name = properties[DEM_INTEGRATION_SCHEME_NAME]
+        if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
+            scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
         else:
             scheme_name = self.DEM_parameters["IntegrationScheme"].GetString()
             
