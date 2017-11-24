@@ -385,7 +385,7 @@ class Procedures(object):
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
         
-    def AddAllVariablesInAllModelParts(self, solver, scheme, all_model_parts, DEM_parameters):
+    def AddAllVariablesInAllModelParts(self, solver, translational_scheme, rotational_scheme, all_model_parts, DEM_parameters):
         
         spheres_model_part = all_model_parts.Get('SpheresPart')
         cluster_model_part = all_model_parts.Get('ClusterPart')
@@ -393,7 +393,8 @@ class Procedures(object):
         rigid_face_model_part = all_model_parts.Get('RigidFacePart')
         
         self.solver=solver
-        self.scheme=scheme
+        self.translational_scheme=translational_scheme
+        self.rotational_scheme=rotational_scheme
         self.AddCommonVariables(spheres_model_part, DEM_parameters)
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
         self.AddMpiVariables(spheres_model_part)      

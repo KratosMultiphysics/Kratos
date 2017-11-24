@@ -3,9 +3,13 @@
 
 namespace Kratos {
 
-    void RungeKuttaScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+    void RungeKuttaScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
         if(verbose) std::cout << "\nAssigning RungeKuttaScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+    }
+    
+    void RungeKuttaScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+        if(verbose) std::cout << "\nAssigning RungeKuttaScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
@@ -26,7 +30,7 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error, "This scheme (RungeKuttaScheme) should not calculate translational motion, so the function (RungeKuttaScheme::UpdateTranslationalVariables) shouldn't be accessed", 0);
     }
 
-    void RungeKuttaScheme::CalculateNewRotationalVariables(
+    void RungeKuttaScheme::CalculateNewRotationalVariablesofSpheres(
                 int StepFlag,
                 Node < 3 >& i,
                 const double moment_of_inertia,
@@ -74,7 +78,7 @@ namespace Kratos {
         }
     }
     
-    void RungeKuttaScheme::CalculateNewRotationalVariables(
+    void RungeKuttaScheme::CalculateNewRotationalVariablesofClusters(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,
@@ -170,7 +174,7 @@ namespace Kratos {
         }
     }
     
-    void RungeKuttaScheme::UpdateRotationalVariables(
+    void RungeKuttaScheme::UpdateRotatedAngle(
                 Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -215,7 +219,6 @@ namespace Kratos {
     }
 
     void RungeKuttaScheme::CalculateLocalAngularAcceleration(
-                Node < 3 >& i,
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
@@ -228,7 +231,6 @@ namespace Kratos {
     }
 
     void RungeKuttaScheme::CalculateLocalAngularAccelerationByEulerEquations(
-                Node < 3 >& i,
                 const array_1d<double, 3 >& local_angular_velocity,
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,
@@ -242,12 +244,12 @@ namespace Kratos {
     }
 
     void RungeKuttaScheme::CalculateAngularVelocityRK(
-                                    const Quaternion<double  >& Orientation,
-                                    const array_1d<double, 3 >& moments_of_inertia,
-                                    const array_1d<double, 3 >& angular_momentum,
-                                    array_1d<double, 3 >& angular_velocity,
-                                    const double delta_t,
-                                    const bool Fix_Ang_vel[3]) {
+                const Quaternion<double  >& Orientation,
+                const array_1d<double, 3 >& moments_of_inertia,
+                const array_1d<double, 3 >& angular_momentum,
+                array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
             
         double LocalTensorInv[3][3];
             

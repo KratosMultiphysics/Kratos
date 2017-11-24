@@ -61,7 +61,8 @@ namespace Kratos
 
           class_<DEMIntegrationScheme, boost::noncopyable >
                     ("DEMIntegrationScheme", init< >())
-            .def("SetIntegrationSchemeInProperties", &DEMIntegrationScheme::SetIntegrationSchemeInProperties)
+            .def("SetTranslationalIntegrationSchemeInProperties", &DEMIntegrationScheme::SetTranslationalIntegrationSchemeInProperties)
+            .def("SetRotationalIntegrationSchemeInProperties", &DEMIntegrationScheme::SetRotationalIntegrationSchemeInProperties)
                   ;
           
           class_<Variable<DEMIntegrationScheme::Pointer>, boost::noncopyable >("DEMIntegrationSchemePointerVariable", no_init)
@@ -100,7 +101,7 @@ namespace Kratos
           ;
 
           class_< ExplicitSolverStrategy,  boost::noncopyable>
-          ("ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer, const bool>())
+          ("ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, /*DEMIntegrationScheme::Pointer,*/ SpatialSearch::Pointer, const bool>())
                   .def("Solve", &ExplicitSolverStrategy::Solve)
                   .def("Initialize", &ExplicitSolverStrategy::Initialize)
                   .def("SetSearchRadiiOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiOnAllParticles)
@@ -114,25 +115,25 @@ namespace Kratos
 
           class_< ContinuumExplicitSolverStrategy, bases< ExplicitSolverStrategy >,  boost::noncopyable>
           (
-          "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, /*DEMIntegrationScheme::Pointer,*/ SpatialSearch::Pointer>())
                   .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategy::PrepareContactElementsForPrinting)
           ;
 
           class_< IterativeSolverStrategy, bases< ExplicitSolverStrategy >,  boost::noncopyable>
           (
-          "IterativeSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer, const bool>())
+          "IterativeSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, /*DEMIntegrationScheme::Pointer,*/ SpatialSearch::Pointer, const bool>())
 
           ;
 
           class_< VelocityVerletSolverStrategy<ExplicitSolverStrategy>, bases< ExplicitSolverStrategy >,  boost::noncopyable>
           (
-          "VelocityVerletSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "VelocityVerletSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, /*DEMIntegrationScheme::Pointer,*/ SpatialSearch::Pointer>())
 
           ;
 
           class_< VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>, bases< ContinuumExplicitSolverStrategy >,  boost::noncopyable>
           (
-          "ContinuumVelocityVerletSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ContinuumVelocityVerletSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, /*DEMIntegrationScheme::Pointer,*/ SpatialSearch::Pointer>())
 
           ;
 

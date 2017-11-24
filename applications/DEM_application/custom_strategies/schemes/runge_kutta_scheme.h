@@ -1,5 +1,5 @@
 //
-// Author: Joaquin Irazabal jirazabal@cimne.upc.edu
+// Author: Joaquin Irazabal, jirazabal@cimne.upc.edu
 //
 
 #if !defined(KRATOS_RUNGE_KUTTA_SCHEME_H_INCLUDED )
@@ -44,8 +44,9 @@ namespace Kratos {
             return cloned_scheme;
         }
 
-        void SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
-
+        void SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        
         void UpdateTranslationalVariables(
                 int StepFlag,
                 Node < 3 > & i,
@@ -60,7 +61,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_vel[3]) override;
 
-        void CalculateNewRotationalVariables(
+        void CalculateNewRotationalVariablesofSpheres(
                 int StepFlag,
                 Node < 3 >& i,
                 const double moment_of_inertia,
@@ -72,7 +73,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
     
-        void CalculateNewRotationalVariables(
+        void CalculateNewRotationalVariablesofClusters(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,
@@ -106,7 +107,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
 
-        void UpdateRotationalVariables(
+        void UpdateRotatedAngle(
                 Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -129,14 +130,12 @@ namespace Kratos {
                 array_1d<double, 3>& angular_velocity)  override;
 
         void CalculateLocalAngularAcceleration(
-                Node < 3 >& i,
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
                 array_1d<double, 3 >& angular_acceleration) override;
 
         void CalculateLocalAngularAccelerationByEulerEquations(
-                Node < 3 >& i,
                 const array_1d<double, 3 >& local_angular_velocity,
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,

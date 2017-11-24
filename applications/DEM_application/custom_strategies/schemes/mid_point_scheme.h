@@ -49,9 +49,13 @@ namespace Kratos {
             return cloned_scheme;
         }
         
-        void SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override {
+        void SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override {
             if(verbose) std::cout << "\nAssigning MidPointScheme to properties " << pProp->Id() << std::endl;
             pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+        }
+        
+        void SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override {
+            if(verbose) std::cout << "\nAssigning MidPointScheme to properties " << pProp->Id() << std::endl;
             pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
         }
 
@@ -107,7 +111,6 @@ namespace Kratos {
         }
 
         void CalculateLocalAngularAcceleration(
-                Node < 3 > & i,
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
@@ -119,7 +122,6 @@ namespace Kratos {
         }
 
         void CalculateLocalAngularAccelerationByEulerEquations(
-                Node < 3 >& i,
                 const array_1d<double, 3 >& local_angular_velocity,
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,

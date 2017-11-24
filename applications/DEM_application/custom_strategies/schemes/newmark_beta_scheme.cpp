@@ -3,12 +3,16 @@
 
 namespace Kratos {
 
-    void NewmarkBetaScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+    void NewmarkBetaScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
         if(verbose) std::cout << "\nAssigning NewmarkBetaScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
-        pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
+    void NewmarkBetaScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+        if(verbose) std::cout << "\nAssigning NewmarkBetaScheme to properties " << pProp->Id() << std::endl;
+        pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+    }
+    
     void NewmarkBetaScheme::UpdateTranslationalVariables(
             int StepFlag,
             Node < 3 > & i,
@@ -41,7 +45,7 @@ namespace Kratos {
         } // dimensions
     }
 
-    void NewmarkBetaScheme::CalculateNewRotationalVariables(
+    void NewmarkBetaScheme::CalculateNewRotationalVariablesofSpheres(
                 int StepFlag,
                 Node < 3 >& i,
                 const double moment_of_inertia,
@@ -54,12 +58,12 @@ namespace Kratos {
                 const bool Fix_Ang_vel[3]) {
 
         array_1d<double, 3 > angular_acceleration;
-        CalculateLocalAngularAcceleration(i, moment_of_inertia, torque, moment_reduction_factor, angular_acceleration);
+        CalculateLocalAngularAcceleration(moment_of_inertia, torque, moment_reduction_factor, angular_acceleration);
  
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
     }
 
-    void NewmarkBetaScheme::CalculateNewRotationalVariables(
+    void NewmarkBetaScheme::CalculateNewRotationalVariablesofClusters(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,
@@ -71,13 +75,15 @@ namespace Kratos {
                 Quaternion<double  >& Orientation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
+        
+        array_1d<double, 3 > & local_angular_velocity  = i.FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY);
 
-        array_1d<double, 3 > local_angular_acceleration, local_torque, local_angular_velocity, angular_acceleration;
+        array_1d<double, 3 > local_angular_acceleration, local_torque, /*local_angular_velocity,*/ angular_acceleration;
 
         //Angular velocity and torques are saved in the global framework:
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, torque, local_torque);
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
-        CalculateLocalAngularAccelerationByEulerEquations(i, local_angular_velocity, moments_of_inertia, local_torque, moment_reduction_factor, local_angular_acceleration);                        
+        CalculateLocalAngularAccelerationByEulerEquations( local_angular_velocity, moments_of_inertia, local_torque, moment_reduction_factor, local_angular_acceleration);                        
 
         //Angular acceleration is saved in the Global framework:
         GeometryFunctions::QuaternionVectorLocal2Global(Orientation, local_angular_acceleration, angular_acceleration);
@@ -89,7 +95,8 @@ namespace Kratos {
         if (ang) {
             GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
         } //if ang
-//         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
+        GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
+        
     }
 
     void NewmarkBetaScheme::UpdateRotationalVariables(
@@ -143,7 +150,7 @@ namespace Kratos {
         }
     }
     
-    void NewmarkBetaScheme::UpdateRotationalVariables(
+    void NewmarkBetaScheme::UpdateRotatedAngle(
                 Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -188,7 +195,6 @@ namespace Kratos {
     }
 
     void NewmarkBetaScheme::CalculateLocalAngularAcceleration(
-                Node < 3 >& i,
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
@@ -201,7 +207,6 @@ namespace Kratos {
     }
 
     void NewmarkBetaScheme::CalculateLocalAngularAccelerationByEulerEquations(
-                Node < 3 >& i,
                 const array_1d<double, 3 >& local_angular_velocity,
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,
@@ -215,13 +220,13 @@ namespace Kratos {
     }
 
     void NewmarkBetaScheme::CalculateAngularVelocityRK(
-                                    const Quaternion<double  >& Orientation,
-                                    const array_1d<double, 3 >& moments_of_inertia,
-                                    const array_1d<double, 3 >& angular_momentum,
-                                    array_1d<double, 3 >& angular_velocity,
-                                    const double delta_t,
-                                    const bool Fix_Ang_vel[3]) {
-            
+                const Quaternion<double  >& Orientation,
+                const array_1d<double, 3 >& moments_of_inertia,
+                const array_1d<double, 3 >& angular_momentum,
+                array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
+
             double LocalTensorInv[3][3];
             
             GeometryFunctions::ConstructInvLocalTensor(moments_of_inertia, LocalTensorInv);

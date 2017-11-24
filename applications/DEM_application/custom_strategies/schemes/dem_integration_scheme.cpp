@@ -13,9 +13,13 @@ namespace Kratos {
     DEMIntegrationScheme::DEMIntegrationScheme(){}
     DEMIntegrationScheme::~DEMIntegrationScheme(){}
     
-    void DEMIntegrationScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEMIntegrationScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
         //if(verbose) std::cout << "\nAssigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+    }
+    
+    void DEMIntegrationScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+        //if(verbose) std::cout << "\nAssigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
     
@@ -79,7 +83,7 @@ namespace Kratos {
         Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
         Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
         
-        CalculateNewRotationalVariables(StepFlag, i, moment_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, delta_t, Fix_Ang_vel);
+        CalculateNewRotationalVariablesofSpheres(StepFlag, i, moment_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, delta_t, Fix_Ang_vel);
 
 //         array_1d<double, 3 > angular_acceleration;                    
 //         CalculateLocalAngularAcceleration(i, moment_of_inertia, torque, force_reduction_factor,angular_acceleration);
@@ -106,7 +110,7 @@ namespace Kratos {
         Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
         Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
         
-        CalculateNewRotationalVariables(StepFlag, i, moments_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, Orientation, delta_t, Fix_Ang_vel);
+        CalculateNewRotationalVariablesofClusters(StepFlag, i, moments_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, Orientation, delta_t, Fix_Ang_vel);
                 
 //         int type = 1; // 0 for RK algorithm, 1 for Zhao algorithm and 2 for classical method
 // 
@@ -239,23 +243,23 @@ namespace Kratos {
     }
            
     void DEMIntegrationScheme::UpdateTranslationalVariables(
-                            int StepFlag,
-                            Node < 3 > & i,
-                            array_1d<double, 3 >& coor,
-                            array_1d<double, 3 >& displ,
-                            array_1d<double, 3 >& delta_displ,
-                            array_1d<double, 3 >& vel,
-                            const array_1d<double, 3 >& initial_coor,
-                            const array_1d<double, 3 >& force,
-                            const double force_reduction_factor,
-                            const double mass,
-                            const double delta_t,
-                            const bool Fix_vel[3])
+                int StepFlag,
+                Node < 3 > & i,
+                array_1d<double, 3 >& coor,
+                array_1d<double, 3 >& displ,
+                array_1d<double, 3 >& delta_displ,
+                array_1d<double, 3 >& vel,
+                const array_1d<double, 3 >& initial_coor,
+                const array_1d<double, 3 >& force,
+                const double force_reduction_factor,
+                const double mass,
+                const double delta_t,
+                const bool Fix_vel[3])
     {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateTranslationalVariables) shouldn't be accessed, use derived class instead", 0);
     }
     
-    void DEMIntegrationScheme::CalculateNewRotationalVariables(
+    void DEMIntegrationScheme::CalculateNewRotationalVariablesofSpheres(
                 int StepFlag,
                 Node < 3 >& i,
                 const double moment_of_inertia,
@@ -266,10 +270,10 @@ namespace Kratos {
                 array_1d<double, 3 >& delta_rotation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateNewRotationalVariables) shouldn't be accessed, use derived class instead", 0);            
+        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateNewRotationalVariablesofSpheres) shouldn't be accessed, use derived class instead", 0);            
     }
     
-    void DEMIntegrationScheme::CalculateNewRotationalVariables(
+    void DEMIntegrationScheme::CalculateNewRotationalVariablesofClusters(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,
@@ -281,7 +285,7 @@ namespace Kratos {
                 Quaternion<double  >& Orientation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateNewRotationalVariables) shouldn't be accessed, use derived class instead", 0);            
+        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateNewRotationalVariablesofClusters) shouldn't be accessed, use derived class instead", 0);            
     }
     
     void DEMIntegrationScheme::UpdateLocalAngularVelocity(
@@ -293,16 +297,7 @@ namespace Kratos {
                 const bool Fix_Ang_vel[3]) {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateLocalAngularVelocity) shouldn't be accessed, use derived class instead", 0);            
     }
-    
-    void DEMIntegrationScheme::CalculateLocalAngularAcceleration(
-                                Node < 3 >& i,
-                                const double moment_of_inertia,
-                                const array_1d<double, 3 >& torque, 
-                                const double moment_reduction_factor,
-                                array_1d<double, 3 >& angular_acceleration){
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateLocalAngularAcceleration) shouldn't be accessed, use derived class instead", 0);            
-    }
-    
+
     void DEMIntegrationScheme::UpdateRotationalVariables(
                 int StepFlag,
                 Node < 3 >& i,
@@ -328,7 +323,7 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariablesOfCluster) shouldn't be accessed, use derived class instead", 0);
     }
     
-    void DEMIntegrationScheme::UpdateRotationalVariables(
+    void DEMIntegrationScheme::UpdateRotatedAngle(
                 Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -354,25 +349,32 @@ namespace Kratos {
                 const array_1d<double, 3>& angular_momentum,
                 array_1d<double, 3>& angular_velocity) {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateAngularVelocity) shouldn't be accessed, use derived class instead", 0);
-    }    
+    }
+    
+    void DEMIntegrationScheme::CalculateLocalAngularAcceleration(
+                const double moment_of_inertia,
+                const array_1d<double, 3 >& torque, 
+                const double moment_reduction_factor,
+                array_1d<double, 3 >& angular_acceleration){
+        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateLocalAngularAcceleration) shouldn't be accessed, use derived class instead", 0);            
+    }
     
     void DEMIntegrationScheme::CalculateLocalAngularAccelerationByEulerEquations(
-                                    Node < 3 >& i,
-                                    const array_1d<double, 3 >& local_angular_velocity,
-                                    const array_1d<double, 3 >& moments_of_inertia,
-                                    const array_1d<double, 3 >& local_torque, 
-                                    const double moment_reduction_factor,
-                                    array_1d<double, 3 >& local_angular_acceleration){
+                const array_1d<double, 3 >& local_angular_velocity,
+                const array_1d<double, 3 >& moments_of_inertia,
+                const array_1d<double, 3 >& local_torque, 
+                const double moment_reduction_factor,
+                array_1d<double, 3 >& local_angular_acceleration){
             KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateLocalAngularAccelerationByEulerEquations) shouldn't be accessed, use derived class instead", 0);                        
     }  
 
     void DEMIntegrationScheme::CalculateAngularVelocityRK(
-                                    const Quaternion<double  >& Orientation,
-                                    const array_1d<double, 3 >& moments_of_inertia,
-                                    const array_1d<double, 3 >& angular_momentum,
-                                    array_1d<double, 3 >& angular_velocity,
-                                    const double delta_t,
-                                    const bool Fix_Ang_vel[3]) {
+                const Quaternion<double  >& Orientation,
+                const array_1d<double, 3 >& moments_of_inertia,
+                const array_1d<double, 3 >& angular_momentum,
+                array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
             KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateAngularVelocityRK) shouldn't be accessed, use derived class instead", 0);                        
     }
 }

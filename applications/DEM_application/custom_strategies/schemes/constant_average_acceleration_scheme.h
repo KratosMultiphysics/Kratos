@@ -50,9 +50,13 @@ namespace Kratos
             return cloned_scheme;
         }
       
-      void SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override {
+      void SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override {
         if(verbose) std::cout << "\nAssigning ConstAverageAccelerationScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+    }
+    
+      void SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override {
+        if(verbose) std::cout << "\nAssigning ConstAverageAccelerationScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
             

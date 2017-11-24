@@ -123,33 +123,33 @@ class Solution(object):
 
     def SelectTranslationalScheme(self):
         if   (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler'):
-            scheme = ForwardEulerScheme()
+            return ForwardEulerScheme()
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
-            scheme = SymplecticEulerScheme()
+            return SymplecticEulerScheme()
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
-            scheme = TaylorScheme()
+            return TaylorScheme()
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-            scheme = NewmarkBetaScheme(0.5, 0.25)
+            return NewmarkBetaScheme(0.5, 0.25)
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
-            scheme = VelocityVerletScheme()
+            return VelocityVerletScheme()
         else:
             return None
     
     def SelectRotationalScheme(self):
         if   (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Forward_Euler'):
-            scheme = ForwardEulerScheme()
+            return ForwardEulerScheme()
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
-            scheme = SymplecticEulerScheme()
+            return SymplecticEulerScheme()
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
-            scheme = TaylorScheme()
+            return TaylorScheme()
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-            scheme = NewmarkBetaScheme(0.5, 0.25)
+            return NewmarkBetaScheme(0.5, 0.25)
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
-            scheme = VelocityVerletScheme()
+            return VelocityVerletScheme()
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Runge_Kutta'):
-            scheme = RungeKuttaScheme()
+            return RungeKuttaScheme()
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration'):
-            scheme = QuaternionIntegrationScheme()
+            return QuaternionIntegrationScheme()
         else:
             return None
 
@@ -192,7 +192,8 @@ class Solution(object):
 
 
     def SetSolver(self):
-        return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.DEM_parameters, self.procedures)
+        #return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.DEM_parameters, self.procedures)
+        return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.DEM_parameters, self.procedures)
 
     def Run(self):
         self.Initialize()
@@ -204,7 +205,7 @@ class Solution(object):
         self.CleanUpOperations()
 
     def AddVariables(self):
-        self.procedures.AddAllVariablesInAllModelParts(self.solver, self.scheme, self.all_model_parts, self.DEM_parameters)
+        self.procedures.AddAllVariablesInAllModelParts(self.solver, self.translational_scheme, self.rotational_scheme, self.all_model_parts, self.DEM_parameters)
 
     def FillAnalyticSubModelParts(self):
         if not self.spheres_model_part.HasSubModelPart("AnalyticParticlesPart"):
