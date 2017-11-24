@@ -9,7 +9,7 @@ import math
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return PostProcessEigenvaluesProcess(Model, settings["Parameters"])
+    return PostProcessEigenvaluesProcess2(Model, settings["Parameters"])
 
 class PostProcessEigenvaluesProcess2(KratosMultiphysics.Process, KratosUnittest.TestCase):
     def __init__(self, Model, settings):
@@ -19,7 +19,13 @@ class PostProcessEigenvaluesProcess2(KratosMultiphysics.Process, KratosUnittest.
             {
                 "model_part_name"   : "Structure",
                 "dof_variable_name" : "DISPLACEMENT",
-                "animation_steps"   :  1
+                "animation_steps"   :  1,
+                "gidpost_flags"     : {
+                    "GiDPostMode"           : "GiD_PostBinary",
+                    "WriteDeformedMeshFlag" : "WriteDeformed",
+                    "WriteConditionsFlag"   : "WriteConditions",
+                    "MultiFileFlag"         : "SingleFile"
+                }
             }
             """
         );
@@ -59,17 +65,17 @@ class PostProcessEigenvaluesProcess2(KratosMultiphysics.Process, KratosUnittest.
         deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
         write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteConditions
         
-        ## Debug
-        #for node in self.model_part.Nodes:
-            #EigenMatrix = node.GetValue(self.eigenvectorvariable)
-            #print(EigenMatrix)
+        # # Debug
+        # for node in self.model_part.Nodes:
+        #     EigenMatrix = node.GetValue(self.eigenvectorvariable)
+        #     print(EigenMatrix)
         
         eigen_values = [ev for ev in self.model_part.ProcessInfo[self.eigenvaluevariable]]
         for evs, count in zip(eigen_values, range(len(eigen_values))):
             # We create a different ouput for each eigenvalue
             output_file = "EigenValue_w="+str(round(evs, 3))
             
-            gid_io = KratosMultiphysics.GidIOEigen(output_file, gid_mode, singlefile, deformed_mesh_flag, write_conditions)
+            gid_io = StructuralMechanicsApplication.GidIOEigen(output_file, gid_mode, singlefile, deformed_mesh_flag, write_conditions)
             gid_io.InitializeMesh(0.0) 
             gid_io.WriteMesh(self.model_part.GetMesh())
             gid_io.WriteNodeMesh(self.model_part.GetMesh())
