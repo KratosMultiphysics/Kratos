@@ -37,10 +37,6 @@ template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 const Kratos::Flags AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR(Kratos::Flags::Create(0));
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 const Kratos::Flags AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX(Kratos::Flags::Create(1));
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-const Kratos::Flags AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS(Kratos::Flags::Create(2));
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-const Kratos::Flags AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS(Kratos::Flags::Create(3));
 
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
@@ -190,10 +186,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     // Create local system components
     LocalSystemComponents local_system;
 
-    // Calculation flags
-    local_system.CalculationFlags.Set(AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true);
-    local_system.CalculationFlags.Set(AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true);
-
     //Initialize sizes for the system components
     if ( rLHSVariables.size( ) != rLeftHandSideMatrices.size( ) )
     {
@@ -305,10 +297,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     // Create local system components
     LocalSystemComponents local_system;
 
-    // Calculation flags
-    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX, true );
-    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true );
-
     VectorType right_hand_side_vector = Vector( );
 
     // Initialize size for the system components
@@ -363,10 +351,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 {
     // Create local system components
     LocalSystemComponents local_system;
-
-    // Calculation flags
-    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR, true );
-    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true );
 
     MatrixType left_hand_side_matrix = Matrix( );
 
@@ -742,8 +726,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                             
                             const double integration_weight = integration_points_slave[point_number].Weight() * GetAxisymmetricCoefficient(rVariables);
                             
-                            if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX ) ||
-                                    rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+                            if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX ))
                             {
                                 /* Update the derivatives */
                                 // Update the derivative of the integration vertex (just in 3D)
@@ -773,8 +756,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 const unsigned int active_inactive = GetActiveInactiveValue(slave_geometry);
                 
                 // Assemble of the matrix is required
-                if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX ) ||
-                        rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+                if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX ) )
                 {
                     // Calculate the local contribution
                     const bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS( rThisMortarConditionMatrices, rDerivativeData, active_inactive);
@@ -788,8 +770,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 }
                 
                 // Assemble of the vector is required
-                if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR ) ||
-                        rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+                if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR ))
                 {
                     // Calculate the local contribution
                     const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS( rThisMortarConditionMatrices, rDerivativeData, active_inactive);
@@ -897,39 +878,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     const unsigned int rPairIndex
     )
 {
-    if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
-    {
-        /* COMPONENT-WISE LHS MATRIX */
-        const std::vector<Variable<MatrixType> >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables( );
-        bool calculated;
-
-        for ( unsigned int i = 0; i < rLeftHandSideVariables.size( ); ++i )
-        {
-            calculated = false;
-
-            if ( rLeftHandSideVariables[i] == MORTAR_CONTACT_OPERATOR )
-            {
-                MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrices( )[i];
-                
-                // Assemble in the correct position
-                this->AssembleContactPairLHSToConditionSystem(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
-                calculated = true;
-            }
-
-            if ( calculated == false )
-            {
-                KRATOS_ERROR <<  " CONDITION can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
-            }
-        }
-    }
-    else 
-    {   
-        /* SINGLE LHS MATRIX */
-        MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );      
-        
-        // Assemble in the correct position
-        this->AssembleContactPairLHSToConditionSystem(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
-    }
+    /* SINGLE LHS MATRIX */
+    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );      
+    
+    // Assemble in the correct position
+    this->AssembleContactPairLHSToConditionSystem(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
 }
 
 /***********************************************************************************/
@@ -1049,40 +1002,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     const unsigned int rPairIndex
     )
 {   
-    if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
-    {
-        /* COMPONENT-WISE RHS VECTOR */
-        const std::vector<Variable<VectorType> >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables( );
-        bool calculated;
-
-        for ( unsigned int i = 0; i < rRightHandSideVariables.size( ); ++i )
-        {
-            calculated = false;
-
-            if ( rRightHandSideVariables[i] == MORTAR_CONTACT_OPERATOR )
-            {
-                VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVectors()[i];
-
-                // Assemble
-                this->AssembleContactPairRHSToConditionSystem( RHS_contact_pair, rRightHandSideVector, rPairIndex );
-                
-                calculated = true;
-            }
-
-            if ( calculated == false )
-            {
-                KRATOS_ERROR << " CONDITION can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
-            }
-        }
-    }
-    else 
-    {
-        /* SINGLE RHS VECTOR */
-        VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-        
-        // Assemble
-        this->AssembleContactPairRHSToConditionSystem( RHS_contact_pair, rRightHandSideVector, rPairIndex );
-    }
+    /* SINGLE RHS VECTOR */
+    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+    
+    // Assemble
+    this->AssembleContactPairRHSToConditionSystem( RHS_contact_pair, rRightHandSideVector, rPairIndex );
 }
 
 /***********************************************************************************/
