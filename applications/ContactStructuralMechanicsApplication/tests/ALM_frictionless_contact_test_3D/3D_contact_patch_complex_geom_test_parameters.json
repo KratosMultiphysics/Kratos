@@ -97,7 +97,7 @@
             "search_factor"             : 1.5,
             "contact_type"              : "Frictionless",
             "max_number_results"        : 1000,
-            "normal_variation"          : false,
+            "normal_variation"          : "NODERIVATIVESCOMPUTATION",
             "type_search"               : "InRadius",
             "integration_order"         : 2,
             "active_check_factor"       : 1.0e-1,

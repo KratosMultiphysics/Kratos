@@ -460,7 +460,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     IntegrationUtility integration_utility = IntegrationUtility (mIntegrationOrder);
     
     // If we consider the normal variation
-    const bool consider_normal_variation = rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION];
+    const NormalDerivativesComputation consider_normal_variation = static_cast<NormalDerivativesComputation>(rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION]);
     
     // Iterate over the master segments
     for (unsigned int pair_index = 0; pair_index < mPairSize; ++pair_index)
@@ -623,10 +623,10 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     DerivativeDataType rDerivativeData;
     rDerivativeData.Initialize(slave_geometry, rCurrentProcessInfo);
     
-    const bool consider_normal_variation = rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION];
+    const NormalDerivativesComputation consider_normal_variation = static_cast<NormalDerivativesComputation>(rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION]);
     
     // We compute the normal derivatives
-    if (consider_normal_variation == true)
+    if (consider_normal_variation == NODALELEMENTALDERIVATIVES)
     {
         // Compute the normal derivatives of the slave
         DerivativesUtilitiesType::CalculateDeltaNormal(rDerivativeData.DeltaNormalSlave, GetGeometry());
@@ -668,7 +668,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 // Initialize the mortar operators
                 rThisMortarConditionMatrices.Initialize();
                 
-                if (consider_normal_variation == true)
+                if (consider_normal_variation == NODALELEMENTALDERIVATIVES)
                 {
                     // Compute the normal derivatives of the master
                     DerivativesUtilitiesType::CalculateDeltaNormal(rDerivativeData.DeltaNormalMaster, master_geometry);

@@ -34,7 +34,7 @@ class ALMContactProcess(python_process.PythonProcess):
             "strict_search_check"         : true,
             "max_number_results"          : 1000,
             "bucket_size"                 : 4,
-            "normal_variation"            : false,
+            "normal_variation"            : "NODERIVATIVESCOMPUTATION",
             "pair_variation"              : true,
             "manual_ALM"                  : false,
             "stiffness_factor"            : 1.0,
@@ -68,7 +68,14 @@ class ALMContactProcess(python_process.PythonProcess):
         self.axisymmetric  = self.params["axisymmetric"].GetBool()
         if (self.axisymmetric == True) and (self.dimension == 3):
             raise NameError("3D and axisymmetric makes no sense")
-        self.normal_variation = self.params["normal_variation"].GetBool()
+        if (self.params["normal_variation"].GetString() == "NODERIVATIVESCOMPUTATION"):
+            self.normal_variation = 0
+        elif (self.params["normal_variation"].GetString() == "ELEMENTALDERIVATIVES"):
+            self.normal_variation = 1
+        elif (self.params["normal_variation"].GetString() == "NODALELEMENTALDERIVATIVES"):
+            self.normal_variation = 2
+        else:
+            raise NameError("The options to normal derivatives are: NODERIVATIVESCOMPUTATION, ELEMENTALDERIVATIVES, NODALELEMENTALDERIVATIVES")
         self.database_step_update = self.params["database_step_update"].GetInt() 
         self.database_step = 0
         self.frictional_law = self.params["frictional_law"].GetString()

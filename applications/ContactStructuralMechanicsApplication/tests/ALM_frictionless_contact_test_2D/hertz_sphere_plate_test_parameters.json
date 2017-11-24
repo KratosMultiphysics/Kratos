@@ -101,7 +101,7 @@
             "type_search"                 : "InRadius",
             "integration_order"           : 2,
             "active_check_factor"         : 1.0e-01,
-            "normal_variation"            : false,
+            "normal_variation"            : "NODERIVATIVESCOMPUTATION",
             "dual_search_check"           : false,
             "strict_search_check"         : true,
             "stiffness_factor"            : 10.0,
