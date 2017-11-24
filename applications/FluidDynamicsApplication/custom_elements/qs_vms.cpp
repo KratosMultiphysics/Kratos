@@ -910,12 +910,14 @@ void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
     QSVMS<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
     Vector& rRHS) {
         Matrix mass_matrix = ZeroMatrix(rLHS.size1(),rLHS.size2());
+        Matrix velocity_lhs = ZeroMatrix(rLHS.size1(),rLHS.size2());
 
-        pElement->AddVelocitySystem(rData,rLHS,rRHS);
+        pElement->AddVelocitySystem(rData,velocity_lhs,rRHS);
         pElement->AddMassLHS(rData,mass_matrix);
 
-        noalias(rLHS) += rData.bdf0*mass_matrix;
+        noalias(rLHS) += rData.bdf0*mass_matrix + velocity_lhs;
         
+        Vector values = ZeroVector(rRHS.size());
         Vector acceleration = ZeroVector(rRHS.size());
 
         int LocalIndex = 0;
@@ -923,24 +925,21 @@ void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
         const auto& r_velocities_step1 = rData.Velocity_OldStep1;
         const auto& r_velocities_step2 = rData.Velocity_OldStep2;
         const auto& r_pressures = rData.Pressure;
-        const auto& r_pressures_step1 = rData.Pressure_OldStep1;
-        const auto& r_pressures_step2 = rData.Pressure_OldStep2;
 
         for (unsigned int i = 0; i < TElementData::NumNodes; ++i) {
             for (unsigned int d = 0; d < TElementData::Dim; ++d)  {
+                values[LocalIndex] = r_velocities(i,d);
                 // Velocity Dofs
                 acceleration[LocalIndex] = rData.bdf0*r_velocities(i,d);
                 acceleration[LocalIndex] += rData.bdf1*r_velocities_step1(i,d);
                 acceleration[LocalIndex] += rData.bdf2*r_velocities_step2(i,d);
                 ++LocalIndex;
             }
-            // Pressure Dof (I don't think this is needed JC)
-            acceleration[LocalIndex] = rData.bdf0*r_pressures[i];
-            acceleration[LocalIndex] += rData.bdf1*r_pressures_step1[i];
-            acceleration[LocalIndex] += rData.bdf2*r_pressures_step2[i];
+            values[LocalIndex] = r_pressures[i];
             ++LocalIndex;
         }
 
+        noalias(rRHS) -= prod(velocity_lhs,values);
         noalias(rRHS) -= prod(mass_matrix,acceleration);
 }
 

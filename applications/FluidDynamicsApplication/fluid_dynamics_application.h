@@ -65,6 +65,7 @@
 #include "custom_elements/embedded_navier_stokes.h"
 
 #include "custom_utilities/qsvms_data.h"
+#include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 
 
@@ -233,6 +234,8 @@ private:
     /// Expermiental fluid element
     const QSVMS< QSVMSData<2,3> > mQSVMS2D3N;
     const QSVMS< QSVMSData<3,4> > mQSVMS3D4N;
+    const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
+    const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > mSymbolicNavierStokes2D3N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > mSymbolicNavierStokes3D4N;
     /// 3D instance of the two-fluid VMS element
