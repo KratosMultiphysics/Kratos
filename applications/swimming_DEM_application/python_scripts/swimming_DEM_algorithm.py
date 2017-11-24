@@ -546,12 +546,7 @@ class Algorithm(object):
                 self.DEM_step += 1   # this variable is necessary to get a good random insertion of particles
                 self.disperse_phase_solution.spheres_model_part.ProcessInfo[TIME_STEPS]    = self.DEM_step
                 self.disperse_phase_solution.rigid_face_model_part.ProcessInfo[TIME_STEPS] = self.DEM_step
-                self.disperse_phase_al    Element::Pointer CreateSphericParticle(ModelPart& r_modelpart,
-                                              int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
-                                              Properties::Pointer r_params,
-                                              const double radius,
-                                              const Element& r_reference_element);gorithm.cluster_model_part.ProcessInfo[TIME_STEPS]    = self.DEM_step
+                self.disperse_phase_solution.cluster_model_part.ProcessInfo[TIME_STEPS]    = self.DEM_step
 
                 self.PerformInitialDEMStepOperations(self.time_dem)
 
