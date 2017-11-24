@@ -198,8 +198,8 @@ double GeometricalSensitivityUtility::Impl::CalculateCofactor(const TMatrixType&
             ia2(j_sub++) = k;
 
     double first_minor;
-    typename std::conditional<std::is_same<TMatrixType, MatrixType>::value, SubMatrixType, SubSubMatrixType>::type sub_mat(
-        rMat, ia1, ia2);
+    typename std::conditional<std::is_same<TMatrixType, MatrixType>::value, SubMatrixType,
+                              SubSubMatrixType>::type sub_mat(rMat, ia1, ia2);
     first_minor = CalculateDeterminant(sub_mat);
 
     return ((i + j) % 2) ? -first_minor : first_minor;
