@@ -1,7 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-# Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import math
@@ -17,8 +16,10 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.T
         default_settings = KratosMultiphysics.Parameters(
             """
             {
-                "model_part_name"   : "Structure",
-                "animation_steps"   :  20
+                "computing_model_part_name"   : "computing_domain",
+                "animation_steps"   :  20,
+                "dof_variable_name" : ["DISPLACEMENT"],
+                "use_eigenfrequency_in_label" : true
             }
             """
         );
@@ -26,10 +27,11 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.T
         settings.ValidateAndAssignDefaults(default_settings)
 
         KratosMultiphysics.Process.__init__(self)
-        model_part = Model[settings["model_part_name"].GetString()]
-        animation_steps =  settings["animation_steps"].GetInt()
+        model_part = Model[settings["computing_model_part_name"].GetString()]
+        animation_steps = settings["animation_steps"].GetInt()
+        use_eigenfrequency_in_label = settings["use_eigenfrequency_in_label"].GetBool()
         self.post_eigen_process = StructuralMechanicsApplication.PostprocessEigenvaluesProcess(
-                                    model_part, animation_steps)
+                                    model_part, animation_steps, use_eigenfrequency_in_label)
                                                                               
     def ExecuteInitialize(self):
         self.post_eigen_process.ExecuteInitialize()

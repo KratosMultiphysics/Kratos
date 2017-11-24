@@ -13,10 +13,7 @@
 #if !defined(KRATOS_GID_EIGEN_IO_H_INCLUDED )
 #define  KRATOS_GID_EIGEN_IO_H_INCLUDED
 
-
-// System includes
-#include <string>
-#include <iostream> 
+// System includes 
 
 // External includes 
 
@@ -26,9 +23,6 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
-
   ///@name Kratos Globals
   ///@{ 
   
@@ -48,8 +42,11 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
-  /** Detail class definition.
+  /// GidIO specialized for writting Eigenvalue Results
+  
+  /** The main functionality of this class is to write the custom format 
+  * that the postprocessing of the Eigenvalues creates. 
+  * Also the result labels contain the Eigenvalue or -frequency
   */
 class GidEigenIO : public GidIO<>
 {
@@ -60,7 +57,13 @@ class GidEigenIO : public GidIO<>
     /// Pointer definition of GidEigenIO
     KRATOS_CLASS_POINTER_DEFINITION(GidEigenIO);
 
-    typedef std::vector<std::vector<std::vector<double>>> AnimationStepResults;
+    typedef std::size_t SizeType;    
+
+    typedef std::vector<std::vector<double>> EigenResults;
+    /* Structure of this EigenResults (results for one Eigenvalue)
+    Nodes
+        Coordinates
+    */
 
     ///@}
     ///@name Life Cycle 
@@ -72,8 +75,11 @@ class GidEigenIO : public GidIO<>
                 MultiFileFlag use_multiple_files_flag,
                 WriteDeformedMeshFlag write_deformed_flag,
                 WriteConditionsFlag write_conditions_flag) : 
-    GidIO<>(rDatafilename, Mode, use_multiple_files_flag, write_deformed_flag, write_conditions_flag)
-    {}
+            GidIO<>(rDatafilename, 
+                    Mode, 
+                    use_multiple_files_flag, 
+                    write_deformed_flag, 
+                    write_conditions_flag) { }
 
     /// Destructor.
     ~GidEigenIO() = default;
@@ -92,33 +98,31 @@ class GidEigenIO : public GidIO<>
     ///@{
     
     /**
-    * writes nodal results for variables of type array_1d<double, 3>
-    * (e.g. DISPLACEMENT)
+    * Write the post-processed eigensolver-results
+    * The label is the Eigenvalue or -frequency
     */
-    void WriteEigenResults( const AnimationStepResults& step_results, 
-                            const std::vector<int>& nodal_ids, 
-                            const std::vector<std::string>& labels, 
-                            const int AnimationStepNumber )
+    void WriteEigenResults( const EigenResults& eigen_results, 
+                            const std::vector<SizeType>& nodal_ids, 
+                            const std::string& label, 
+                            const SizeType AnimationStepNumber )
     {
-        Timer::Start("Writing Eigen Results");
+        const SizeType num_nodes = nodal_ids.size();
 
-        for(unsigned int i_eigen_val=0; i_eigen_val<labels.size(); ++i_eigen_val)
+        KRATOS_ERROR_IF_NOT(eigen_results.size() == num_nodes) 
+            << "The Input sizes are inconsistent!" << std::endl;
+
+        GiD_fBeginResult( mResultFile, (char*)label.c_str() , "EigenVector_Animation",
+                          AnimationStepNumber, GiD_Vector,
+                          GiD_OnNodes, NULL, NULL, 0, NULL );
+
+        for (SizeType i=0; i<num_nodes; ++i)
         {
-            GiD_fBeginResult( mResultFile, (char*)labels[i_eigen_val].c_str() , "EigenVector_Animation",
-                              AnimationStepNumber, GiD_Vector,
-                              GiD_OnNodes, NULL, NULL, 0, NULL );
-
-            int index = 0;
-            for (const auto& i_nodal_results : step_results[i_eigen_val]) // loop through nodal results
-            {
-                GiD_fWriteVector( mResultFile, nodal_ids[index], 
-                                    i_nodal_results[0], i_nodal_results[1], i_nodal_results[2] );
-                ++index;
-            }
-
-            GiD_fEndResult(mResultFile);
+            const auto& nodal_result = eigen_results[i];
+            GiD_fWriteVector( mResultFile, nodal_ids[i], 
+                nodal_result[0], nodal_result[1], nodal_result[2] );
         }
-        Timer::Stop("Writing Eigen Results");
+
+        GiD_fEndResult(mResultFile);
     }
       
     ///@}
@@ -244,20 +248,6 @@ class GidEigenIO : public GidIO<>
   ///@{ 
         
  
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
-				    GidEigenIO& rThis){}
-
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const GidEigenIO& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }
   ///@}
 
   ///@} addtogroup block

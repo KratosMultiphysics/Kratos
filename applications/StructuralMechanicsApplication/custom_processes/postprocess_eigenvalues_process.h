@@ -20,8 +20,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/kratos_parameters.h"
 
 #include "custom_io/gid_eigen_io.h"
 
@@ -47,7 +45,13 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
+/// Process to create the animated Eigenvectors
+/** This process takes the results of an Eigenvalue Analysis and creates the 
+ * animated Eigenvectors (Eigenmodes) for GiD using the GidEigenIO, which
+ * is customized for this case
+ * The Input should be the ComputingModelPart! (Otherwise nodal results migth be messed up)
+ * It is of particular importance that all Nodes have the same Dofs!
+ */
 class PostprocessEigenvaluesProcess : public Process
 {
   public:
@@ -60,9 +64,15 @@ class PostprocessEigenvaluesProcess : public Process
     /// Pointer definition of PostprocessEigenvaluesProcess
     KRATOS_CLASS_POINTER_DEFINITION(PostprocessEigenvaluesProcess);
 
+    typedef std::size_t SizeType;
+
     typedef ModelPart::NodeIterator NodeIterator;
+    typedef ModelPart::NodeType::DofsContainerType DofsContainerType;
+    
     typedef std::vector<std::vector<std::vector<std::vector<double>>>> AnimationResults;
-    /* Structure of this AnimationResults
+    /* The main reason to do this is to access the nodal database only once and computing 
+       the animated results
+    Structure of this AnimationResults:
     AnimationStep
         EigenValues
             Nodes
@@ -74,9 +84,11 @@ class PostprocessEigenvaluesProcess : public Process
     ///@{
 
     PostprocessEigenvaluesProcess(ModelPart &rModelPart,
-                                  const int NumAnimationSteps) 
+                                  const SizeType NumAnimationSteps,
+                                  const bool LabelEigenfreq) 
                                   : mrModelPart(rModelPart),
-                                    mNumAnimationSteps(NumAnimationSteps) { }
+                                    mNumAnimationSteps(NumAnimationSteps),
+                                    mLabelEigenfreq(LabelEigenfreq) { }
 
     /// Destructor.
     ~PostprocessEigenvaluesProcess() = default;
@@ -122,69 +134,108 @@ class PostprocessEigenvaluesProcess : public Process
     {
         KRATOS_ERROR_IF_NOT(mpGidEigenIO) << " EigenIO is uninitialized!" << std::endl;
 
-        const int num_nodes = mrModelPart.NumberOfNodes();
+        const SizeType num_nodes = mrModelPart.NumberOfNodes();
         const auto& eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
-        const int num_eigenvalues = eigenvalue_vector.size();
+        const SizeType num_eigenvalues = eigenvalue_vector.size();
+
+        std::vector<std::string> labels(num_eigenvalues);
+        std::vector<SizeType> nodal_ids(num_nodes);
+        
+        NodeIterator it_begin = mrModelPart.NodesBegin();
+        
+        const SizeType num_node_dofs_ref = it_begin->GetDofs().size();
 
         AnimationResults animated_results(mNumAnimationSteps);
-        for (int i=0; i<mNumAnimationSteps; ++i)
+        for (SizeType i=0; i<mNumAnimationSteps; ++i)
         {
             animated_results[i].resize(num_eigenvalues);
-            for (int j=0; j<num_eigenvalues; ++j)
+            for (SizeType j=0; j<num_eigenvalues; ++j)
             {
                 animated_results[i][j].resize(num_nodes);
-                for (int k=0; k<num_nodes; ++k)
-                {
-                    animated_results[i][j][k].resize(3);
-                }
+                for (SizeType k=0; k<num_nodes; ++k)
+                    animated_results[i][j][k].resize(GetSizeOfVariable(mVariableName));
             }
         }
-        
-        std::vector<std::string> labels(num_eigenvalues);
-        std::vector<int> nodal_ids(num_nodes);
-
-        for (int i=0; i<num_eigenvalues; ++i)
-        {
-            std::stringstream strstr;
-            strstr << std::fixed << std::setprecision(3) << eigenvalue_vector[i];
-            std::string eigenval = strstr.str();
-
-            labels[i] = "EigenValue_" + eigenval;
-        }
-
-        NodeIterator it_begin = mrModelPart.NodesBegin();
-
-        // #pragma omp parallel for // Don't modify, this is best suitable for this case
-        for (int i=0; i<num_nodes; i++)
+        // TODO pragma for
+        for (SizeType i=0; i<num_nodes; i++)
         {
             NodeIterator node_it = it_begin + i;
-
             nodal_ids[i] = node_it->Id();
-
+            const SizeType num_node_dofs = node_it->GetDofs().size();
             const auto& eigen_matrix = node_it->GetValue(EIGENVECTOR_MATRIX);
-            // # NOTE: The DoF stored include the velocity and acceleration, solve this in the future
+            const SizeType size_eigen_matrix = eigen_matrix.size2();
+            
+            // Validation
+            KRATOS_ERROR_IF_NOT(num_node_dofs == num_node_dofs_ref) 
+                << "Inconsistent number of dofs on node " << nodal_ids[i] << std::endl;
+            KRATOS_ERROR_IF_NOT(num_node_dofs == size_eigen_matrix) 
+                << "Number of results on node " << nodal_ids[i] << " is wrong" << std::endl;
 
-            for (int j=0; j < mNumAnimationSteps; ++j)
+            for (SizeType j=0; j < mNumAnimationSteps; ++j)
             {
                 auto& step_results = animated_results[j];
 
                 double angle = 2 * Globals::Pi * j / mNumAnimationSteps;
 
-                for(int k=0; k<num_eigenvalues; ++k)
-                {
+                for(SizeType k=0; k<num_eigenvalues; ++k)
+                {                        
                     auto& nodal_results = step_results[k][i];
-                    nodal_results[0] = std::cos(angle) * eigen_matrix(k, 0);
-                    nodal_results[1] = std::cos(angle) * eigen_matrix(k, 1);
-                    nodal_results[2] = std::cos(angle) * eigen_matrix(k, 2);
+                    
+                    for (SizeType m=0; m<num_node_dofs_ref; ++m)
+                        nodal_results[m] = std::cos(angle) * eigen_matrix(k, m);
                 }
             }
         }
 
-        for (int i=0; i < mNumAnimationSteps; ++i) // "Time"
+
+        for (SizeType i=0; i<num_eigenvalues; ++i)
         {
-            mpGidEigenIO->WriteEigenResults(animated_results[i], nodal_ids, labels, i);
+            std::stringstream strstr;
+            strstr << std::fixed << std::setprecision(3) << eigenvalue_vector[i];
+            std::string eigenval = strstr.str();
+            
+
+
+
+
+
+
+
+            labels[i] = "EigenValue_" + eigenval;
+        }
+
+        for (SizeType i=0; i < mNumAnimationSteps; ++i) // "Time"
+        {
+            // for (SizeType j=0; j < num_eigenvalues; ++j)
+                // mpGidEigenIO->WriteEigenResults(nodal_ids, labels[j], i, animated_results[i][j]);
+                // mpGidEigenIO->WriteEigenResults(nodal_ids, labels[j], i, animated_results[i][j]);
         }
     }
+
+    // std::cout << r_node_dofs[m].GetVariable().Name() << std::endl;
+
+// SizeType m = 0;
+// // for (auto itDof = std::begin(r_node_dofs); itDof != std::end(r_node_dofs); itDof++)
+// for (const auto& dof : r_node_dofs)
+// {
+//     const std::string variable_name = dof.GetVariable().Name();
+//     // std::cout << itDof->GetVariable().Name() << std::endl;
+//     if( KratosComponents< Variable<double> >::Has( variable_name ) ) //case of double variable
+//     {
+
+//     }
+//     else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) ) //case of component variable
+//     {
+//         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+//         component_type var_component = KratosComponents< component_type >::Get(variable_name);
+//         std::string source_var = var_component.GetSourceVariable().Name();
+//     }
+//     else
+//     {
+//         KRATOS_ERROR << std::endl;
+//     }
+//     ++m;
+// }
 
     ///@}
     ///@name Access
@@ -258,16 +309,41 @@ class PostprocessEigenvaluesProcess : public Process
     ///@name Member Variables
     ///@{
     ModelPart& mrModelPart;
-    int mNumAnimationSteps;
+    SizeType mNumAnimationSteps;
+    bool mLabelEigenfreq;
     GidEigenIO::Pointer mpGidEigenIO;
 
     ///@}
     ///@name Private Operators
     ///@{
 
+    struct DofResultLabel
+    {
+        bool mResultSize;
+        std::string mResultLabel;
+    };
+
     ///@}
     ///@name Private Operations
     ///@{
+
+    SizeType GetSizeOfVariable(const std::string VariableName)
+    {
+        SizeType size_of_variable = 0;
+        if( KratosComponents< Variable<double> >::Has( VariableName ) ) //case of double variable
+        {
+            size_of_variable = 1;
+        }
+        else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) ) //case of component variable
+        {
+            size_of_variable = 3;
+        }
+        else
+        {
+            KRATOS_ERROR << "Unsupported Size of Variable " << VariableName << std::endl;
+        }
+        return size_of_variable;
+    }
 
     ///@}
     ///@name Private  Access
