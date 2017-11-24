@@ -8,7 +8,6 @@
 
 // System includes
 #include <type_traits>
-#include <iomanip> // DEBUG
 
 // External includes
 #include <boost/numeric/ublas/io.hpp>
@@ -21,7 +20,6 @@ namespace Kratos
 {
 ///@addtogroup AdjointFluidApplication
 ///@{
-
 ///@name Kratos Classes
 ///@{
 
@@ -122,17 +120,6 @@ void GeometricalSensitivityUtility::Impl::Initialize()
     mCofactorJ = CalculateCofactorMatrix(mrJ);
     mDetJ = CalculateDeterminant(mrJ);
 
-    if (mrJ.size1() == 3)
-    {
-        MatrixType cofactorJ_sensitivity = CalculateCofactorOfJacobianSensitivity(5, 2);
-
-        std::cout << "mrJ = " << std::setprecision(12) << mrJ << std::endl;
-        std::cout << "mCofactorJ = " << mCofactorJ << std::endl;
-        std::cout << "cofactorJ_sensitivity = " << cofactorJ_sensitivity << std::endl;
-    }
-    // std::cout << "Det(J) = " << mDetJ << std::endl;
-    // std::cout << "Cofactor(J) = " << mCofactorJ << std::endl;
-
     KRATOS_CATCH("");
 }
 
@@ -142,6 +129,12 @@ void GeometricalSensitivityUtility::Impl::CalculateSensitivity(IndexType iNode, 
 
     rDetJ_Deriv = CalculateDeterminantOfJacobianSensitivity(iNode, iCoord);
 
+    MatrixType cofactorJ_deriv = CalculateCofactorOfJacobianSensitivity(iNode, iCoord);
+    if (rDN_DX_Deriv.size1() != mrDN_De.size1() || rDN_DX_Deriv.size2() != mCofactorJ.size1())
+        rDN_DX_Deriv.resize(mrDN_De.size1(), mCofactorJ.size1());
+    noalias(rDN_DX_Deriv) = (1.0 / mDetJ) * prod(mrDN_De, trans(cofactorJ_deriv));
+    rDN_DX_Deriv += -(rDetJ_Deriv / (mDetJ * mDetJ)) * prod(mrDN_De, trans(mCofactorJ));
+
     KRATOS_CATCH("");
 }
 
@@ -149,9 +142,6 @@ template<class TMatrixType>
 double GeometricalSensitivityUtility::Impl::CalculateDeterminant(const TMatrixType& rMat) const
 {
     KRATOS_TRY;
-
-    //KRATOS_ERROR_IF(rMat.size1() != rMat.size2())
-    //    << "Non-square matrix detected." << std::endl;
 
     double det;
     if (rMat.size1() == 1)
@@ -186,7 +176,7 @@ double GeometricalSensitivityUtility::Impl::CalculateCofactor(const TMatrixType&
 
     IndirectArrayType ia1(rMat.size1() - 1), ia2(rMat.size2() - 1);
 
-    // Construct the submatrix for the first minor.
+    // Construct the submatrix structure for the first minor.
     unsigned i_sub = 0;
     for (unsigned k = 0; k < rMat.size1(); ++k)
         if (k != i)
@@ -198,6 +188,7 @@ double GeometricalSensitivityUtility::Impl::CalculateCofactor(const TMatrixType&
             ia2(j_sub++) = k;
 
     double first_minor;
+    // Here the sub type depends on if the matrix is already a submatrix.
     typename std::conditional<std::is_same<TMatrixType, MatrixType>::value, SubMatrixType,
                               SubSubMatrixType>::type sub_mat(rMat, ia1, ia2);
     first_minor = CalculateDeterminant(sub_mat);
@@ -221,7 +212,6 @@ GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Impl::C
             cofactor_matrix(i, j) = CalculateCofactor(rMat, i, j);
 
     return cofactor_matrix;
-
     KRATOS_CATCH("");
 }
 
@@ -252,12 +242,13 @@ GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Impl::C
         }
         else
         {
-            IndexType i_coord_sub = (i > iCoord) ? iCoord : iCoord - 1;
+            // Decrement the coordinate index if it's greater than the deleted row.
+            IndexType i_coord_sub = (iCoord > i) ? iCoord - 1 : iCoord;
             for (unsigned j = 0; j < mrJ.size2(); ++j)
             {
                 IndirectArrayType ia1(mrJ.size1() - 1), ia2(mrJ.size2() - 1);
 
-                // Construct the Jacobian sub-matrix for the first minor.
+                // Construct the Jacobian submatrix structure for the first minor.
                 unsigned i_sub = 0;
                 for (unsigned k = 0; k < mrJ.size1(); ++k)
                     if (k != i)
@@ -269,20 +260,11 @@ GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Impl::C
                         ia2(j_sub++) = k;
 
                 const SubMatrixType sub_jacobian(mrJ, ia1, ia2);
-                const MatrixType cofactor_sub_jacobian =
-                    CalculateCofactorMatrix(sub_jacobian);
-                    
-                // Construct the corresponding shape function local gradients
-                // sub-matrix.
-                const SubMatrixType sub_DN_De(mrDN_De, ia3, ia2);
+                const MatrixType cofactor_sub_jacobian = CalculateCofactorMatrix(sub_jacobian);
 
-                // if (i == 1 && j == 2)
-                // {
-                //     std::cout << "sub_jacobian = " << sub_jacobian << std::endl;
-                //     std::cout << "cofactor_sub_jacobian = " << cofactor_sub_jacobian << std::endl;
-                //     std::cout << "mrDN_De = " << mrDN_De << std::endl;
-                //     std::cout << "sub_DN_De = " << sub_DN_De << std::endl;
-                // }
+                // Construct the corresponding shape function local gradients
+                // submatrix.
+                const SubMatrixType sub_DN_De(mrDN_De, ia3, ia2);
 
                 const double first_minor_deriv = inner_prod(
                     matrix_row<const MatrixType>(cofactor_sub_jacobian, i_coord_sub),

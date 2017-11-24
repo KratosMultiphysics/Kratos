@@ -11,7 +11,7 @@
 //
 
 // External includes
-#include <iomanip>
+//#include <iomanip>
 
 // Project includes
 #include "testing/testing.h"
@@ -69,9 +69,6 @@ void CheckDeterminantOfJacobianSensitivityByFiniteDifference(double DetJ_Deriv,
     rGeom[iNode].Coordinates()[iCoord] -= StepSize;
     double finite_difference_detJ_deriv = (detJ_perturbed - detJ) / StepSize;
     KRATOS_CHECK_NEAR(DetJ_Deriv, finite_difference_detJ_deriv, Tolerance);
-
-    //std::cout << '(' << iNode << ',' << iCoord << ") : " << std::setprecision(12)
-    //          << DetJ_Deriv << ' ' << finite_difference_detJ_deriv << std::endl;
 }
 
 void CheckShapeFunctionsGradientSensitivityByFiniteDifference(Matrix& DN_DX_Deriv,
@@ -100,22 +97,19 @@ void CheckShapeFunctionsGradientSensitivityByFiniteDifference(Matrix& DN_DX_Deri
             {
                 const double finite_difference_ij = (rDN_DX_perturbed(i,j) - rDN_DX(i,j)) / StepSize;
                 KRATOS_CHECK_NEAR(DN_DX_Deriv(i,j), finite_difference_ij, Tolerance);
-                if (i == 0 && j == 0)
-                    std::cout << '(' << iNode << ',' << iCoord << ") : " << std::setprecision(12)
-                    << DN_DX_Deriv(i,j) << ' ' << finite_difference_ij << std::endl;
             }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Constructor, KratosSensitivityTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_2, KratosSensitivityTestSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateQuadrilateral2D4N();
     Geometry<Point>& r_geom = *p_geom;
-    std::cout << std::endl << "DEBUG QUAD BEGIN" << std::endl;
-    Geometry<Point>::IntegrationPointsArrayType gauss_points =
-        r_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-    std::cout << "Shape function values : ";
-    for (unsigned i = 0; i < gauss_points.size(); ++i)
-        std::cout << gauss_points[i] << std::endl;
+
+    // Geometry<Point>::IntegrationPointsArrayType gauss_points =
+    //     r_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    // std::cout << "Shape function values : ";
+    // for (unsigned i = 0; i < gauss_points.size(); ++i)
+    //     std::cout << gauss_points[i] << std::endl;
 
     Geometry<Point>::JacobiansType J;
     r_geom.Jacobian(J, GeometryData::GI_GAUSS_2);
@@ -123,34 +117,30 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Constructor, KratosSensi
     Geometry<Point>::ShapeFunctionsGradientsType DN_De;
     DN_De = r_geom.ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_2);
 
-    GeometricalSensitivityUtility geom_sensitivity(J[1], DN_De[1]);
-    std::cout << "DEBUG QUAD END" << std::endl;
+    GeometricalSensitivityUtility::ShapeFunctionsGradientType DN_DX_deriv;
+
+    for (unsigned g = 0; g < r_geom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); ++g)
+    {
+        const Matrix& rJ = J[g];
+        const Matrix& rDN_De = DN_De[g];
+        GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
+
+        for (unsigned i_node = 0; i_node < p_geom->size(); ++i_node)
+            for (unsigned i_coord = 0; i_coord < r_geom[i_node].Dimension(); i_coord++)
+            {
+                double detJ_deriv;
+                geom_sensitivity.CalculateSensitivity(i_node, i_coord, detJ_deriv, DN_DX_deriv);
+                CheckDeterminantOfJacobianSensitivityByFiniteDifference(
+                    detJ_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_2);
+                CheckShapeFunctionsGradientSensitivityByFiniteDifference(
+                    DN_DX_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_2);
+            }
+    }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Constructor2, KratosSensitivityTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Hexahedra3D8N_GAUSS_2, KratosSensitivityTestSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateHexahedra3D8N();
-    Geometry<Point>& r_geom = *p_geom;
-    std::cout << std::endl << "DEBUG HEX BEGIN" << std::endl;
-    Geometry<Point>::IntegrationPointsArrayType gauss_points =
-        r_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-    std::cout << "Shape function values : ";
-    for (unsigned i = 0; i < gauss_points.size(); ++i)
-        std::cout << gauss_points[i] << std::endl;
-
-    Geometry<Point>::JacobiansType J;
-    r_geom.Jacobian(J, GeometryData::GI_GAUSS_2);
-
-    Geometry<Point>::ShapeFunctionsGradientsType DN_De;
-    DN_De = r_geom.ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_2);
-
-    GeometricalSensitivityUtility geom_sensitivity(J[6], DN_De[6]);
-    std::cout << "DEBUG HEX END" << std::endl;
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N, KratosSensitivityTestSuite)
-{
-    Geometry<Point>::Pointer p_geom = CreateQuadrilateral2D4N();
     Geometry<Point>& r_geom = *p_geom;
 
     Geometry<Point>::JacobiansType J;
@@ -174,8 +164,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N, Krato
                 geom_sensitivity.CalculateSensitivity(i_node, i_coord, detJ_deriv, DN_DX_deriv);
                 CheckDeterminantOfJacobianSensitivityByFiniteDifference(
                     detJ_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_2);
-                //CheckShapeFunctionsGradientSensitivityByFiniteDifference(
-                //    DN_DX_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_2);
+                CheckShapeFunctionsGradientSensitivityByFiniteDifference(
+                    DN_DX_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_2);
             }
     }
 }
