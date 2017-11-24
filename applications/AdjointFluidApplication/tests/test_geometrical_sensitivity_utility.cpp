@@ -126,170 +126,77 @@ void CheckShapeFunctionsGradientSensitivityByFiniteDifference(Matrix& DN_DX_Deri
             }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_2, KratosSensitivityTestSuite)
+void TestThisGeometry(Geometry<Point>& rGeom,
+                      GeometryData::IntegrationMethod ThisMethod,
+                      double StepSize = 1e-7,
+                      double Tolerance = 1e-7)
 {
-    Geometry<Point>::Pointer p_geom = CreateQuadrilateral2D4N();
-    Geometry<Point>& r_geom = *p_geom;
-
     // Geometry<Point>::IntegrationPointsArrayType gauss_points =
-    //     r_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    //     rGeom.IntegrationPoints(ThisMethod);
     // std::cout << "Shape function values : ";
     // for (unsigned i = 0; i < gauss_points.size(); ++i)
     //     std::cout << gauss_points[i] << std::endl;
 
     Geometry<Point>::JacobiansType J;
-    r_geom.Jacobian(J, GeometryData::GI_GAUSS_2);
+    rGeom.Jacobian(J, ThisMethod);
 
     Geometry<Point>::ShapeFunctionsGradientsType DN_De;
-    DN_De = r_geom.ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_2);
+    DN_De = rGeom.ShapeFunctionsLocalGradients(ThisMethod);
 
     GeometricalSensitivityUtility::ShapeFunctionsGradientType DN_DX_deriv;
 
-    for (unsigned g = 0; g < r_geom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); ++g)
+    for (unsigned g = 0; g < rGeom.IntegrationPointsNumber(ThisMethod); ++g)
     {
         const Matrix& rJ = J[g];
         const Matrix& rDN_De = DN_De[g];
         GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
 
-        for (unsigned i_node = 0; i_node < r_geom.size(); ++i_node)
-            for (unsigned i_coord = 0; i_coord < r_geom[i_node].Dimension(); i_coord++)
+        for (unsigned i_node = 0; i_node < rGeom.size(); ++i_node)
+            for (unsigned i_coord = 0; i_coord < rGeom[i_node].Dimension(); i_coord++)
             {
                 double detJ_deriv;
                 geom_sensitivity.CalculateSensitivity(i_node, i_coord, detJ_deriv, DN_DX_deriv);
                 CheckDeterminantOfJacobianSensitivityByFiniteDifference(
-                    detJ_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_2);
+                    detJ_deriv, g, i_node, i_coord, rGeom, ThisMethod, StepSize, Tolerance);
                 CheckShapeFunctionsGradientSensitivityByFiniteDifference(
-                    DN_DX_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_2);
+                    DN_DX_deriv, g, i_node, i_coord, rGeom, ThisMethod, StepSize, Tolerance);
             }
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_2, KratosSensitivityTestSuite)
+{
+    Geometry<Point>::Pointer p_geom = CreateQuadrilateral2D4N();
+    Geometry<Point>& r_geom = *p_geom;
+    TestThisGeometry(r_geom, GeometryData::GI_GAUSS_2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_1, KratosSensitivityTestSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateQuadrilateral2D4N();
     Geometry<Point>& r_geom = *p_geom;
-
-    Geometry<Point>::JacobiansType J;
-    r_geom.Jacobian(J, GeometryData::GI_GAUSS_1);
-
-    Geometry<Point>::ShapeFunctionsGradientsType DN_De;
-    DN_De = r_geom.ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_1);
-
-    GeometricalSensitivityUtility::ShapeFunctionsGradientType DN_DX_deriv;
-
-    for (unsigned g = 0; g < r_geom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); ++g)
-    {
-        const Matrix& rJ = J[g];
-        const Matrix& rDN_De = DN_De[g];
-        GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
-
-        for (unsigned i_node = 0; i_node < r_geom.size(); ++i_node)
-            for (unsigned i_coord = 0; i_coord < r_geom[i_node].Dimension(); i_coord++)
-            {
-                double detJ_deriv;
-                geom_sensitivity.CalculateSensitivity(i_node, i_coord, detJ_deriv, DN_DX_deriv);
-                CheckDeterminantOfJacobianSensitivityByFiniteDifference(
-                    detJ_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_1);
-                CheckShapeFunctionsGradientSensitivityByFiniteDifference(
-                    DN_DX_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_1);
-            }
-    }
+    TestThisGeometry(r_geom, GeometryData::GI_GAUSS_1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Hexahedra3D8N_GAUSS_2, KratosSensitivityTestSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateHexahedra3D8N();
     Geometry<Point>& r_geom = *p_geom;
-
-    Geometry<Point>::JacobiansType J;
-    r_geom.Jacobian(J, GeometryData::GI_GAUSS_2);
-
-    Geometry<Point>::ShapeFunctionsGradientsType DN_De;
-    DN_De = r_geom.ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_2);
-
-    GeometricalSensitivityUtility::ShapeFunctionsGradientType DN_DX_deriv;
-
-    for (unsigned g = 0; g < r_geom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); ++g)
-    {
-        const Matrix& rJ = J[g];
-        const Matrix& rDN_De = DN_De[g];
-        GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
-
-        for (unsigned i_node = 0; i_node < r_geom.size(); ++i_node)
-            for (unsigned i_coord = 0; i_coord < r_geom[i_node].Dimension(); i_coord++)
-            {
-                double detJ_deriv;
-                geom_sensitivity.CalculateSensitivity(i_node, i_coord, detJ_deriv, DN_DX_deriv);
-                CheckDeterminantOfJacobianSensitivityByFiniteDifference(
-                    detJ_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_2);
-                CheckShapeFunctionsGradientSensitivityByFiniteDifference(
-                    DN_DX_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_2);
-            }
-    }
+    TestThisGeometry(r_geom, GeometryData::GI_GAUSS_2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Triangle2D3N_GAUSS_1, KratosSensitivityTestSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateTriangle2D3N();
     Geometry<Point>& r_geom = *p_geom;
-
-    Geometry<Point>::JacobiansType J;
-    r_geom.Jacobian(J, GeometryData::GI_GAUSS_1);
-
-    Geometry<Point>::ShapeFunctionsGradientsType DN_De;
-    DN_De = r_geom.ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_1);
-
-    GeometricalSensitivityUtility::ShapeFunctionsGradientType DN_DX_deriv;
-
-    for (unsigned g = 0; g < r_geom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); ++g)
-    {
-        const Matrix& rJ = J[g];
-        const Matrix& rDN_De = DN_De[g];
-        GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
-
-        for (unsigned i_node = 0; i_node < r_geom.size(); ++i_node)
-            for (unsigned i_coord = 0; i_coord < r_geom[i_node].Dimension(); i_coord++)
-            {
-                double detJ_deriv;
-                geom_sensitivity.CalculateSensitivity(i_node, i_coord, detJ_deriv, DN_DX_deriv);
-                CheckDeterminantOfJacobianSensitivityByFiniteDifference(
-                    detJ_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_1);
-                CheckShapeFunctionsGradientSensitivityByFiniteDifference(
-                    DN_DX_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_1, 1e-8);
-            }
-    }
+    TestThisGeometry(r_geom, GeometryData::GI_GAUSS_1, 1e-8);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Tetrahedra3D4N_GAUSS_1, KratosSensitivityTestSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateTetrahedra3D4N();
     Geometry<Point>& r_geom = *p_geom;
-
-    Geometry<Point>::JacobiansType J;
-    r_geom.Jacobian(J, GeometryData::GI_GAUSS_1);
-
-    Geometry<Point>::ShapeFunctionsGradientsType DN_De;
-    DN_De = r_geom.ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_1);
-
-    GeometricalSensitivityUtility::ShapeFunctionsGradientType DN_DX_deriv;
-
-    for (unsigned g = 0; g < r_geom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); ++g)
-    {
-        const Matrix& rJ = J[g];
-        const Matrix& rDN_De = DN_De[g];
-        GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
-
-        for (unsigned i_node = 0; i_node < r_geom.size(); ++i_node)
-            for (unsigned i_coord = 0; i_coord < r_geom[i_node].Dimension(); i_coord++)
-            {
-                double detJ_deriv;
-                geom_sensitivity.CalculateSensitivity(i_node, i_coord, detJ_deriv, DN_DX_deriv);
-                CheckDeterminantOfJacobianSensitivityByFiniteDifference(
-                    detJ_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_1);
-                CheckShapeFunctionsGradientSensitivityByFiniteDifference(
-                    DN_DX_deriv, g, i_node, i_coord, r_geom, GeometryData::GI_GAUSS_1, 1e-8);
-            }
-    }
+    TestThisGeometry(r_geom, GeometryData::GI_GAUSS_1, 1e-8);
 }
 
 } // namespace Testing
