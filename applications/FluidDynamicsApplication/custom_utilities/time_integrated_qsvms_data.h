@@ -42,9 +42,6 @@ using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalV
 NodalVectorData Velocity_OldStep1;
 NodalVectorData Velocity_OldStep2;
 
-NodalScalarData Pressure_OldStep1;
-NodalScalarData Pressure_OldStep2;
-
 double bdf0;
 double bdf1;
 double bdf2;
@@ -59,8 +56,6 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
-    this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1);
-    this->FillFromHistoricalNodalData(Pressure_OldStep2,PRESSURE,r_geometry,2);
 
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
     bdf0 = BDFVector[0];
