@@ -15,14 +15,9 @@
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
-#include <vector>
 
 // Project includes
-// #include "contact_structural_mechanics_application.h"
 #include "contact_structural_mechanics_application_variables.h"
-#include "includes/serializer.h"
-#include "includes/ublas_interface.h"
 #include "includes/condition.h"
 #include "includes/kratos_flags.h"
 #include "includes/mortar_classes.h"
@@ -44,7 +39,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef Point                                             PointType;
+    typedef Point                                                PointType;
     typedef Node<3>                                               NodeType;
     typedef Geometry<NodeType>                                GeometryType;
     
@@ -58,10 +53,7 @@ namespace Kratos
 ///@name  Enum's
 ///@{
     
-#if !defined(TENSOR_VALUE)
-#define TENSOR_VALUE
     enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector2DPScalarValue = 3, Vector3DValue = 3, Vector3DPScalarValue = 4 };
-#endif
     
 ///@}
 ///@name  Functions

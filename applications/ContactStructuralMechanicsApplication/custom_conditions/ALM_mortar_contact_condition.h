@@ -17,12 +17,8 @@
 // External includes
 #include "structural_mechanics_application.h"
 #include "structural_mechanics_application_variables.h"
-#include "boost/smart_ptr.hpp"
-#include <vector>
 
 // Project includes
-#include "includes/serializer.h"
-#include "includes/ublas_interface.h"
 #include "includes/condition.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
