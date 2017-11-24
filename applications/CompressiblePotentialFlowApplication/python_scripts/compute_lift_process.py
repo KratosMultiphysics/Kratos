@@ -30,6 +30,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         
         settings.ValidateAndAssignDefaults(default_parameters);
         
+        
         self.model_part = Model[settings["model_part_name"].GetString()]
         #self.model_part = Model.get('model_part_name',None)
         self.velocity_infinity = [0,0,0]#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
@@ -77,6 +78,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          CP = []
          X = []
          
+         NX = []
+         NY = []
+         
          cp_file = open("cp.dat",'w') 
          cp_file.write("FULL POTENTIAL APPLICATION CP FILE\n\n")
          cp_file.write("UInf {0:13f} \n".format(self.velocity_infinity[0]))
@@ -89,10 +93,12 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          counter = 0
          for cond in self.model_part.Conditions:
            n = cond.GetValue(NORMAL)           
-           norm = linalg.norm(n)
-           n = n/norm
-           edge = [ cond.GetNodes()[1].X0-cond.GetNodes()[0].X0 , cond.GetNodes()[1].Y0-cond.GetNodes()[0].Y0 , cond.GetNodes()[1].Z0-cond.GetNodes()[0].Z0]
-           length = linalg.norm(edge)
+           #norm = linalg.norm(n)
+           #n = n/norm
+           #edge = [ cond.GetNodes()[1].X0-cond.GetNodes()[0].X0 , cond.GetNodes()[1].Y0-cond.GetNodes()[0].Y0 , cond.GetNodes()[1].Z0-cond.GetNodes()[0].Z0]
+           #length = linalg.norm(edge)
+           NX.append(n[0])
+           NY.append(n[1])
            #print(cond)
            
            # Previous way of computing pressure
@@ -145,14 +151,18 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
            #   print('Cp = ', cp)
            #   print(' ')
            
-           
+           '''
            rx += n[0]*pressure*length
            ry += n[1]*pressure*length
            rz += n[2]*pressure*length
+           '''
+           rx += n[0]*pressure
+           ry += n[1]*pressure
+           rz += n[2]*pressure
            #print(ry)
            #print("  counter =", counter,"   X =", cond.GetNodes()[0].X0 ,"  An =", n*length ,"  pressure =", pressure ,"    lift =", ry)
            
-           cp_file.write('{0:13f} {1:15f} {2:15f} {3:15f} {4:15f} {5:15f} {6:15f} {7:15f}\n'.format(pressure, cp, x, y, n[0], n[1], n[2], length))
+           #cp_file.write('{0:13f} {1:15f} {2:15f} {3:15f} {4:15f} {5:15f} {6:15f} {7:15f}\n'.format(pressure, cp, x, y, n[0], n[1], n[2], length))
            
            #print(cond.GetNodes()[0])
            #print(n)
@@ -160,8 +170,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          
          cp_file.flush()
          
-         Lift = ry
-         Drag = rx
+         Lift = ry/1
+         Drag = rx/1
          
          c = 1 #chord
          Cl = Lift #2*Lift/(self.density_infinity*self.velocity_infinity[0]*self.velocity_infinity[0]*c)
@@ -203,5 +213,11 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          plt.gca().invert_yaxis()
          plt.grid(True)         
          plt.show()
+         
+         '''
+         plt.plot(NX,NY,'ro')
+         plt.grid(True)         
+         plt.show()
+         '''
          
          

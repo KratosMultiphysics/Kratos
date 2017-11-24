@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication
 import math
+from math import *
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -20,16 +21,30 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 "fluid_part_name"           : "MainModelPart",
                 "direction"                 : [1.0,0.0,0.0],
                 "stl_filename"              : "please specify name of stl file",
-                "epsilon"    : 1e-9
+                "epsilon"    : 1e-9,
+                "AOAdeg" : 10
             }
             """)
 
-        settings.ValidateAndAssignDefaults(default_settings) 
+        settings.ValidateAndAssignDefaults(default_settings)
+        
+        
+        self.AOAdeg                 = settings["AOAdeg"].GetDouble()
+        
+        #convert angle to radians
+        self.AOArad = self.AOAdeg*pi/180       
  
+        self.direction = KratosMultiphysics.Vector(3)
+        self.direction[0] = settings["direction"][0].GetDouble()*cos(self.AOArad)
+        self.direction[1] = settings["direction"][0].GetDouble()*sin(self.AOArad)
+        self.direction[2] = settings["direction"][2].GetDouble()
+        
+        '''
         self.direction = KratosMultiphysics.Vector(3)
         self.direction[0] = settings["direction"][0].GetDouble()
         self.direction[1] = settings["direction"][1].GetDouble()
         self.direction[2] = settings["direction"][2].GetDouble()
+        '''
         dnorm = math.sqrt(self.direction[0]**2 + self.direction[1]**2 + self.direction[2]**2)
         self.direction[0] /= dnorm
         self.direction[1] /= dnorm
@@ -46,9 +61,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         AvgNodeNum = 10
         nodal_neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.fluid_model_part,AvgElemNum, AvgNodeNum)
         # Find neighbours
-        nodal_neighbour_search.Execute()
-        
-        
+        nodal_neighbour_search.Execute()       
         
         self.stl_filename = settings["stl_filename"].GetString()
         
@@ -56,11 +69,16 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         #mark as STRUCTURE and deactivate the elements that touch the kutta node
         for node in self.kutta_model_part.Nodes:
             node.Set(KratosMultiphysics.STRUCTURE)
+            x1 = node.X
+            y1 = node.Y
+            z1 = node.Z
+            
+        
             
 
-
-            
-        print(self.kutta_model_part)            
+        #find wake node in the outflow boundary
+        pos = 0    
+        #print(self.kutta_model_part)            
         
 
         #compute the distances of the elements of the wake, and decide which ones are wak    
@@ -77,8 +95,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             for node in self.kutta_model_part.Nodes:
                 x0 = node.X
                 y0 = node.Y
-                for elem in self.fluid_model_part.Elements:
-                   
+                for elem in self.fluid_model_part.Elements:  
                     
     
                     #check in the potentially active portion
@@ -108,7 +125,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             d =  xn[0]*self.n[0] + xn[1]*self.n[1]
                             if(abs(d) < self.epsilon):
                                 d = self.epsilon
-                            if(xn[0] < 0 and xn[1] > 0 and xn[1] < 0.0001):#for high angles of attack
+                            #if(xn[0] < 0 and xn[1] > 0 and xn[1] < 0.0001):#for high angles of attack
+                            if(xn[0] < 0 and d > 0 and d < 0.0001):#for high angles of attack
                                 d = -self.epsilon
                             #    print(elnode)
                             #    print(elnode.X - x0)
@@ -129,13 +147,36 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             for elnode in elem.GetNodes():
                                 elnode.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0,distances[counter])
                                 counter+=1
+                                dx = elnode.X - x1
+                                dy = elnode.Y - y1
+                                dz = elnode.Z - z1
+                                tmp = dx*self.direction[0] + dy*self.direction[1] + dz*self.direction[2]
+                                if(tmp > pos):
+                                    pos = tmp                               
+                            
                             elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,distances)
                             
                             #for elnode in elem.GetNodes():
                                 #if elnode.Is(KratosMultiphysics.STRUCTURE):
                                     #elem.Set(KratosMultiphysics.ACTIVE,False)
                                     #elem.Set(KratosMultiphysics.MARKER,False)
-                                    
+            
+            
+            #find the wake elements at the outflow boundary
+            for elem in self.fluid_model_part.Elements:
+                if(elem.Is(KratosMultiphysics.MARKER)):
+                    counter = 0
+                    for elnode in elem.GetNodes():
+                        dx = elnode.X - x1
+                        dy = elnode.Y - y1
+                        dz = elnode.Z - z1
+                        tmp = dx*self.direction[0] + dy*self.direction[1] + dz*self.direction[2]
+                        
+                        if(tmp > pos-1e-9):
+                            counter +=1
+                    #if(counter > 0):
+                    #    elem.Set(KratosMultiphysics.BOUNDARY,True)
+                        
 
                             
         else: #3D case

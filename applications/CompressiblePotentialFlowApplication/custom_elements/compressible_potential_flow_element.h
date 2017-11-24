@@ -203,7 +203,7 @@ public:
                 if(distances[i] > 0)
                     rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
                 else
-                    rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE,0).EquationId();
+                    rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE).EquationId();
             }
 
             //negative part - sign is opposite to the previous case
@@ -212,7 +212,7 @@ public:
                 if(distances[i] < 0)
                     rResult[NumNodes+i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
                 else
-                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE,0).EquationId();
+                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE).EquationId();
             }
         }
 
@@ -284,6 +284,8 @@ public:
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override
     {
+        const bool compressible = rCurrentProcessInfo[IS_RESTARTED];
+
         //Matrix to compute the residual
         MatrixType rLaplacianMatrix;
 
@@ -293,7 +295,7 @@ public:
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
         array_1d<double,Dim> velocity;
-        double density = 0;
+        double density = GetProperties().GetValue(DENSITY);
         double derivative = 0;
 
         Vector DNV = ZeroVector(NumNodes);
@@ -322,10 +324,8 @@ public:
         bool kutta_element = false;
         for(unsigned int i=0; i<NumNodes; ++i)
             if(GetGeometry()[i].Is(STRUCTURE))
-            {
-                std::cout << "KUTTA ELEMENT = " << this->Id()  << std::endl;
-                kutta_element = true;
-                std::cout << "X = " << GetGeometry()[i].X()  << std::endl;
+            {                
+                kutta_element = true;                
                 break;
             }
 
@@ -341,18 +341,26 @@ public:
                 rLaplacianMatrix.resize(NumNodes,NumNodes,false);
             rLaplacianMatrix.clear();
 
-            ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);
-            noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
+            if(compressible == 0)
+            {
+                //std::cout << "density = " << density  << std::endl;
+                //ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);
+                noalias(rLeftHandSideMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
+                noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
+            }
+            else
+            {
+                this->ComputeDensity(density,derivative,velocity,rCurrentProcessInfo);
+                DNV = prod(data.DN_DX, velocity);
+                //std::cout << "density normal = " << density  << std::endl;
 
-            this->ComputeDensity(density,derivative,velocity,rCurrentProcessInfo);
-            DNV = prod(data.DN_DX, velocity);
+                noalias(rLeftHandSideMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
+                noalias(rLeftHandSideMatrix) += data.vol*derivative*outer_prod(DNV, trans(DNV));
 
-            // noalias(rLeftHandSideMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
-            // noalias(rLeftHandSideMatrix) += data.vol*derivative*outer_prod(DNV, trans(DNV));
+                noalias(rLaplacianMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
 
-            // noalias(rLaplacianMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
-
-            //noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, data.phis);
+                noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, data.phis);
+            }            
         }
         else //it is a wake element
         {
@@ -404,32 +412,48 @@ public:
             Matrix lhs_negative = ZeroMatrix(NumNodes,NumNodes);
 
             Matrix laplacian_positive = ZeroMatrix(NumNodes,NumNodes);
-            Matrix laplacian_negative = ZeroMatrix(NumNodes,NumNodes);             
-            
-            for(unsigned int i=0; i<nsubdivisions; ++i)
+            Matrix laplacian_negative = ZeroMatrix(NumNodes,NumNodes);
+
+            if(compressible == 0)             
             {
-                this->ComputeDensityOnSplitElement(density,derivative,velocity,PartitionsSign[i],rCurrentProcessInfo);
-                DNV = prod(data.DN_DX, velocity);
-
-                if(PartitionsSign[i] > 0)
+                for(unsigned int i=0; i<nsubdivisions; ++i)
                 {
-                    ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data);
-
-                    // noalias(lhs_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
-                    // noalias(lhs_positive) += Volumes[i]*derivative*outer_prod(DNV, trans(DNV));
-
-                    noalias(laplacian_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));                    
-                }                    
-                else
-                {
-                    ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data);
-
-                    // noalias(lhs_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
-                    // noalias(lhs_negative) += Volumes[i]*derivative*outer_prod(DNV, trans(DNV));
-
-                    noalias(laplacian_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX)); 
+                    if(PartitionsSign[i] > 0)
+                    {
+                        //ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data);
+                        noalias(lhs_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
+                    }                        
+                    else
+                    {
+                        //ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data);
+                        noalias(lhs_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
+                    }                  
+                        
                 }
-                    
+            }
+            else
+            {
+                for(unsigned int i=0; i<nsubdivisions; ++i)
+                {
+                    this->ComputeDensityOnSplitElement(density,derivative,velocity,PartitionsSign[i],rCurrentProcessInfo);
+                    DNV = prod(data.DN_DX, velocity);
+                    //std::cout << "density wake = " << density  << std::endl;
+
+                    if(PartitionsSign[i] > 0)
+                    {                    
+                        noalias(lhs_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
+                        noalias(lhs_positive) += Volumes[i]*derivative*outer_prod(DNV, trans(DNV));
+
+                        noalias(laplacian_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));                    
+                    }                    
+                    else
+                    {
+                        noalias(lhs_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
+                        noalias(lhs_negative) += Volumes[i]*derivative*outer_prod(DNV, trans(DNV));
+
+                        noalias(laplacian_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX)); 
+                    }
+                }  
             }
 
             //also next version works - NON SYMMETRIC - but it does not require a penalty
@@ -442,8 +466,25 @@ public:
 //                 bounded_matrix<double,Dim,Dim> P = IdentityMatrix(Dim,Dim) - nn;
 //                 noalias(tmp) = prod(data.DN_DX,P);
 //                 bounded_matrix<double,NumNodes,NumNodes> tangent_constraint = /*1e3**/data.vol*prod(tmp, trans(data.DN_DX));
-                if(kutta_element == true)
+                if(kutta_element == true || this->Is(BOUNDARY))
                 {
+                    // if(this->Is(BOUNDARY))
+                    // {
+                    //     std::cout << ""   << std::endl;
+                    //     std::cout << "BOUNDARY ELEMENT = " << GetGeometry()  << std::endl;
+                    //     std::cout << ""   << std::endl;
+                    // }
+
+                    // if(kutta_element == true)
+                    // {
+                    //     std::cout << ""   << std::endl;
+                    //     std::cout << "KUTTA ELEMENT = " << GetGeometry()  << std::endl;
+                    //     std::cout << ""   << std::endl;
+                    // }
+                        
+
+                    // std::cout << "KUTTA ELEMENT = " << this->Id()  << std::endl;
+                    // std::cout << "X = " << GetGeometry()  << std::endl;
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)
@@ -517,7 +558,10 @@ public:
                 }
             Vector split_element_values(NumNodes*2);
             GetValuesOnSplitElement(split_element_values, data.distances);
-            noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
+            if(compressible==0)
+                noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
+            else
+                noalias(rRightHandSideVector) = -prod(rLaplacianMatrix,split_element_values);
         }
         
     }
@@ -610,13 +654,20 @@ public:
                 const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
 
                 const double v_norm2 = inner_prod(v,v);
-                const double base = 1 + (gamma -1)*v_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
-                const double exponent = 1/(gamma -1);
+
+                const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
+
+                const double exponent = gamma/(gamma -1);
 
                 //cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
+                //double cp1 = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
 
+                // double cp1 = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
+                cp =  (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
 
-                cp = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+                // std::cout << "cp =" << cp << std::endl;
+                // std::cout << "Mach =" << vinfinity_norm2/(a*a) << std::endl;
+                // std::cout << "cp1 =" << cp1 << std::endl;
             }
             else if(this->Is(MARKER) && active==true)//wake element
             {
@@ -655,8 +706,8 @@ public:
                 const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
 
                 const double v_norm2 = inner_prod(v,v);
-                const double base = 1 + (gamma -1)*v_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
-                const double exponent = 1/(gamma -1);
+                const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
+                const double exponent = gamma/(gamma -1);
 
                 cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);                
                 
@@ -699,7 +750,7 @@ public:
                 const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
 
                 const double v_norm2 = inner_prod(v,v);
-                const double base = 1 + (gamma -1)*v_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
+                const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
                 const double exponent = 1/(gamma -1);
 
                 density = densityinfinity*pow(base,exponent); 
@@ -743,7 +794,7 @@ public:
                 const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
 
                 const double v_norm2 = inner_prod(v,v);
-                const double base = 1 + (gamma -1)*v_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
+                const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
                 const double exponent = 1/(gamma -1);
 
                 density = densityinfinity*pow(base,exponent);          
@@ -812,6 +863,10 @@ public:
 
 
             rValues[0] = v;
+        }
+        if (rVariable == NORMAL)
+        {
+            rValues[0] = this->GetValue(NORMAL);
         }
     }    
 
@@ -972,7 +1027,7 @@ protected:
         velocity = prod(trans(data.DN_DX), data.phis);
 
         const double v_norm2 = inner_prod(velocity,velocity);
-        const double base = 1 + (gamma -1)*v_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
+        const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
 
         density = densityinfinity*pow(base,1/(gamma -1));
         derivative = -densityinfinity*pow(base,(2 - gamma)/(gamma -1))/(2*a*a);
@@ -994,6 +1049,12 @@ protected:
 
         const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
 
+        // Check that all required variables have been read correctly
+        if(vinfinity_norm2 == 0 || densityinfinity == 0 || gamma == 0 || a==0 )
+            KRATOS_ERROR << "One input variable is 0. Check if the variables are correctly read.";
+
+        
+
         ElementalData<NumNodes,Dim> data;
 
         //calculate shape functions
@@ -1008,11 +1069,33 @@ protected:
         //compute local velocity
         velocity = prod(trans(data.DN_DX), data.phis);
 
-        const double v_norm2 = inner_prod(velocity,velocity);
-        const double base = 1 + (gamma -1)*v_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
+        double v_norm2 = inner_prod(velocity,velocity);
+        if(v_norm2/a > 0.94)
+        {
+            v_norm2 = 0.94*a;
+        }
 
-        density = densityinfinity*pow(base,1/(gamma -1));
-        derivative = -densityinfinity*pow(base,(2 - gamma)/(gamma -1))/(2*a*a);        
+        const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
+
+        if(base > 0)
+        {
+            density = densityinfinity*pow(base,1/(gamma -1));
+            derivative = -densityinfinity*pow(base,(2 - gamma)/(gamma -1))/(2*a*a); 
+        }
+        else
+        {
+            std::cout << "vinfinity_norm2 =" << vinfinity_norm2 << std::endl;
+            std::cout << "v_norm2 =" << v_norm2 << std::endl;
+            std::cout << "base =" << base << std::endl;
+            density = densityinfinity*0.00001;
+            derivative = -densityinfinity*pow(densityinfinity*0.00001,(2 - gamma)/(gamma -1))/(2*a*a); 
+        }
+
+        // if(base < 0)
+        //     KRATOS_THROW_ERROR( std::invalid_argument, "element with density below zero ", this->Id() )
+
+        // density = densityinfinity*pow(base,1/(gamma -1));
+        // derivative = -densityinfinity*pow(base,(2 - gamma)/(gamma -1))/(2*a*a);        
     }
 
     

@@ -1,4 +1,5 @@
 import KratosMultiphysics
+from math import *
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -18,7 +19,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "velocity_infinity": [1.0,0.0,0],
                 "density_infinity"  : 1.225,
                 "gamma"                 : 1.4,
-                "speed_sound_infinity"  : 340 
+                "speed_sound_infinity"  : 340,
+                "AOAdeg" : 10
             }  """ );
         
             
@@ -34,13 +36,34 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         #self.density_infinity      = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
         self.gamma                  = settings["gamma"].GetDouble()
         self.speed_sound_infinity   = settings["speed_sound_infinity"].GetDouble()
+        self.AOAdeg                 = settings["AOAdeg"].GetDouble()
+        
+        
+        #convert angle to radians
+        self.AOArad = self.AOAdeg*pi/180
+        
+        self.velocity_infinity[0]   = settings["velocity_infinity"][0].GetDouble()*cos(self.AOArad)
+        self.velocity_infinity[1]   = settings["velocity_infinity"][0].GetDouble()*sin(self.AOArad)
+        self.velocity_infinity[2]   = settings["velocity_infinity"][2].GetDouble()
+        
+        print(self.velocity_infinity)
+        print(self.AOAdeg)
+        print(self.AOArad)
+        print(sin(self.AOArad))
+        
         
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.VELOCITY,       self.velocity_infinity)
-        #self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY,        self.density_infinity)
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY,        self.density_infinity)
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.GAMMA,          self.gamma)
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, self.speed_sound_infinity)
         
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,0)
+        
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part,self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        
+        
+                
+        
         
         
     def Execute(self):
@@ -54,8 +77,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         
         #find the node with the minimal x
         x0 = node1.X
-        y0 = node1.X
-        z0 = node1.X
+        y0 = node1.Y
+        z0 = node1.Z
 
         pos = 1e30
         for node in self.model_part.Nodes:
