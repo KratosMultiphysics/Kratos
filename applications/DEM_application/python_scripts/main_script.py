@@ -23,7 +23,6 @@ else:
 class Solution(object):
 
     def LoadParametersFile(self):
-        print(os.getcwd())
         parameters_file = open("ProjectParametersDEM.json",'r')
         self.DEM_parameters = Parameters(parameters_file.read())
 
