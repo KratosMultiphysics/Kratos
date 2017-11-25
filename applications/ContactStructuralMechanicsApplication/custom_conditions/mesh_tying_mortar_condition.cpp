@@ -35,10 +35,6 @@ template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR(Kratos::Flags::Create(0));
 template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX(Kratos::Flags::Create(1));
-template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
-const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS(Kratos::Flags::Create(2));
-template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
-const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS(Kratos::Flags::Create(3));
 
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
@@ -49,7 +45,7 @@ Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Create(
     NodesArrayType const& rThisNodes,
     PropertiesType::Pointer pProperties ) const
 {
-    return boost::make_shared< MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Condition::Pointer( new MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>( NewId, this->GetGeometry().Create( rThisNodes ), pProperties ));
 }
 
 /***********************************************************************************/
@@ -61,7 +57,7 @@ Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Create(
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return boost::make_shared< MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor> >( NewId, pGeom, pProperties );
+    return Condition::Pointer( new MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>( NewId, pGeom, pProperties ));
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -272,10 +268,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateLocalSystem(
     // Create local system components
     LocalSystemComponents LocalSystem;
 
-    // Calculation flags
-    LocalSystem.CalculationFlags.Set(MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true);
-    LocalSystem.CalculationFlags.Set(MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true);
-
     //Initialize sizes for the system components
     if ( rLHSVariables.size( ) != rLeftHandSideMatrices.size( ) )
     {
@@ -389,7 +381,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateLeftHandSide
 
     // Calculation flags
     LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX, true );
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true );
 
     VectorType RightHandSideVector = Vector( );
 
@@ -445,10 +436,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateRightHandSid
 {
     // Create local system components
     LocalSystemComponents LocalSystem;
-
-    // Calculation flags
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR, true );
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true );
 
     MatrixType LeftHandSideMatrix = Matrix( );
 
@@ -566,20 +553,18 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
     this->InitializeDofData(rDofData, rCurrentProcessInfo);
   
 //     // We calculate the Equation ID, LHS and RHS of the slave parent element
-//     boost::numeric::ublas::bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution;
+//     bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution;
 //     array_1d<double, DimensionLocalElem> RHS_SlaveElem_Contribution;
 //     Element::EquationIdVectorType& EquationIdSlaveElem;
 //     
 //     (mThisSlaveElement) -> EquationIdVector(EquationIdSlaveElem, rCurrentProcessInfo);
 //     
-//     if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX ) ||
-//                 rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+//     if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX ) )
 //     {
 //         // We calculate the contributions of the local elements
 //         (mThisSlaveElement) -> CalculateLeftHandSide(LHS_SlaveElem_Contribution,rCurrentProcessInfo);
 //     }
-//     if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR ) ||
-//             rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+//     if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR ) )
 //     {
 //         // We calculate the contributions of the local elements
 //         (mThisSlaveElement) -> CalculateRightHandSide(RHS_SlaveElem_Contribution,rCurrentProcessInfo);
@@ -629,12 +614,11 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
 //             rThisMortarConditionMatrices.print();
             
             // Assemble of the matrix is required
-            if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX ) ||
-                    rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+            if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX ) )
             {        
                 // Calculate the local contribution
-                const boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, pair_index, rCurrentProcessInfo);
-    //             const boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, LHS_SlaveElem_Contribution, EquationIdSlaveElem, pair_index, rCurrentProcessInfo);
+                const bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, pair_index, rCurrentProcessInfo);
+    //             const bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, LHS_SlaveElem_Contribution, EquationIdSlaveElem, pair_index, rCurrentProcessInfo);
                 
 //                 // Debug
 // //                 KRATOS_WATCH(LHS_contact_pair);
@@ -645,8 +629,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
             }
 
             // Assemble of the vector is required
-            if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR ) ||
-                    rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+            if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR ) )
             {
                 // Calculate the local contribution
                 const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, pair_index, rCurrentProcessInfo);
@@ -815,18 +798,18 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::MasterShapeFunctionVa
 
 template< >
 template< >
-boost::numeric::ublas::bounded_matrix<double, 6, 6> MeshTyingMortarCondition<2,3,ScalarValue>::CalculateLocalLHS<6>(
+bounded_matrix<double, 6, 6> MeshTyingMortarCondition<2,3,ScalarValue>::CalculateLocalLHS<6>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
     const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    boost::numeric::ublas::bounded_matrix<double, 6, 6> lhs;
+    bounded_matrix<double, 6, 6> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -879,18 +862,18 @@ boost::numeric::ublas::bounded_matrix<double, 6, 6> MeshTyingMortarCondition<2,3
 
 template< >
 template< >
-boost::numeric::ublas::bounded_matrix<double, 12, 12> MeshTyingMortarCondition<2,3,Vector2DValue>::CalculateLocalLHS<12>(
+bounded_matrix<double, 12, 12> MeshTyingMortarCondition<2,3,Vector2DValue>::CalculateLocalLHS<12>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
     const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    boost::numeric::ublas::bounded_matrix<double, 12, 12> lhs;
+    bounded_matrix<double, 12, 12> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -1051,18 +1034,18 @@ boost::numeric::ublas::bounded_matrix<double, 12, 12> MeshTyingMortarCondition<2
 
 template< >
 template< >
-boost::numeric::ublas::bounded_matrix<double, 6, 6> MeshTyingMortarCondition<2,4,ScalarValue>::CalculateLocalLHS<6>(
+bounded_matrix<double, 6, 6> MeshTyingMortarCondition<2,4,ScalarValue>::CalculateLocalLHS<6>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
     const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    boost::numeric::ublas::bounded_matrix<double, 6, 6> lhs;
+    bounded_matrix<double, 6, 6> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -1115,18 +1098,18 @@ boost::numeric::ublas::bounded_matrix<double, 6, 6> MeshTyingMortarCondition<2,4
 
 template< >
 template< >
-boost::numeric::ublas::bounded_matrix<double, 12, 12> MeshTyingMortarCondition<2,4,Vector2DValue>::CalculateLocalLHS<12>(
+bounded_matrix<double, 12, 12> MeshTyingMortarCondition<2,4,Vector2DValue>::CalculateLocalLHS<12>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
     const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    boost::numeric::ublas::bounded_matrix<double, 12, 12> lhs;
+    bounded_matrix<double, 12, 12> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -1287,18 +1270,18 @@ boost::numeric::ublas::bounded_matrix<double, 12, 12> MeshTyingMortarCondition<2
 
 template< >
 template< >
-boost::numeric::ublas::bounded_matrix<double, 9, 9> MeshTyingMortarCondition<3,4,ScalarValue>::CalculateLocalLHS<9>(
+bounded_matrix<double, 9, 9> MeshTyingMortarCondition<3,4,ScalarValue>::CalculateLocalLHS<9>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
     const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    boost::numeric::ublas::bounded_matrix<double, 9, 9> lhs;
+    bounded_matrix<double, 9, 9> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -1401,18 +1384,18 @@ boost::numeric::ublas::bounded_matrix<double, 9, 9> MeshTyingMortarCondition<3,4
 
 template< >
 template< >
-boost::numeric::ublas::bounded_matrix<double, 27, 27> MeshTyingMortarCondition<3,4,Vector3DValue>::CalculateLocalLHS<27>(
+bounded_matrix<double, 27, 27> MeshTyingMortarCondition<3,4,Vector3DValue>::CalculateLocalLHS<27>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
     const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    boost::numeric::ublas::bounded_matrix<double, 27, 27> lhs;
+    bounded_matrix<double, 27, 27> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -2163,18 +2146,18 @@ boost::numeric::ublas::bounded_matrix<double, 27, 27> MeshTyingMortarCondition<3
 
 template< >
 template< >
-boost::numeric::ublas::bounded_matrix<double, 12, 12> MeshTyingMortarCondition<3,8,ScalarValue>::CalculateLocalLHS<12>(
+bounded_matrix<double, 12, 12> MeshTyingMortarCondition<3,8,ScalarValue>::CalculateLocalLHS<12>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
     const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    boost::numeric::ublas::bounded_matrix<double, 12, 12> lhs;
+    bounded_matrix<double, 12, 12> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -2347,18 +2330,18 @@ boost::numeric::ublas::bounded_matrix<double, 12, 12> MeshTyingMortarCondition<3
 
 template< >
 template< >
-boost::numeric::ublas::bounded_matrix<double, 36, 36> MeshTyingMortarCondition<3,8,Vector3DValue>::CalculateLocalLHS<36>(
+bounded_matrix<double, 36, 36> MeshTyingMortarCondition<3,8,Vector3DValue>::CalculateLocalLHS<36>(
     const MortarConditionMatrices& rMortarConditionMatrices,
     DofData& rDofData,
     const unsigned int rMasterElementIndex,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    boost::numeric::ublas::bounded_matrix<double, 36, 36> lhs;
+    bounded_matrix<double, 36, 36> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);

@@ -47,9 +47,9 @@ Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNode
     NodesArrayType const& rThisNodes,
     PropertiesType::Pointer pProperties ) const
 {
-    KRATOS_ERROR << "You are calling to the base class method Create, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method Create, check your condition declaration" << std::endl;
     
-    return boost::make_shared< AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Condition::Pointer( new AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> ( NewId, this->GetGeometry().Create( rThisNodes ), pProperties ));
 }
 
 /***********************************************************************************/
@@ -61,9 +61,9 @@ Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNode
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    KRATOS_ERROR << "You are calling to the base class method Create, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method Create, check your condition declaration" << std::endl;
     
-    return boost::make_shared< AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> >( NewId, pGeom, pProperties );
+    return Condition::Pointer( new AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> ( NewId, pGeom, pProperties ));
 }
 
 /************************************* DESTRUCTOR **********************************/

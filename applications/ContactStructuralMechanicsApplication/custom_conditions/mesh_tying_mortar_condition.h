@@ -147,8 +147,6 @@ public:
 
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
 
     ///@}
     ///@name Operators
@@ -393,8 +391,8 @@ protected:
     public:
         
         // Auxiliar types
-        typedef boost::numeric::ublas::bounded_matrix<double, NumNodes, TTensor>  Type1;
-        typedef boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> Type2;
+        typedef bounded_matrix<double, NumNodes, TTensor>  Type1;
+        typedef bounded_matrix<double, NumNodes, NumNodes> Type2;
         
         // Master and element geometries
         GeometryType SlaveGeometry;
@@ -503,9 +501,9 @@ protected:
      * This is called during the assembling process in order
      * to calculate all condition contributions to the global system
      * matrix and the right hand side
-     * @param rLeftHandSideMatrix: the condition left hand side matrix
-     * @param rRightHandSideVector: the condition right hand side
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rLeftHandSideMatrix the condition left hand side matrix
+     * @param rRightHandSideVector the condition right hand side
+     * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateLocalSystem( 
         MatrixType& rLeftHandSideMatrix,
@@ -517,10 +515,10 @@ protected:
      * This function provides a more general interface to the condition.
      * it is designed so that rLHSvariables and rRHSvariables are passed TO the condition
      * thus telling what is the desired output
-     * @param rLeftHandSideMatrices: container with the output left hand side matrices
-     * @param rLHSVariables: paramter describing the expected LHSs
-     * @param rRightHandSideVectors: container for the desired RHS output
-     * @param rRHSVariables: parameter describing the expected RHSs
+     * @param rLeftHandSideMatrices container with the output left hand side matrices
+     * @param rLHSVariables paramter describing the expected LHSs
+     * @param rRightHandSideVectors container for the desired RHS output
+     * @param rRHSVariables parameter describing the expected RHSs
      */
     void CalculateLocalSystem( 
         std::vector< MatrixType >& rLeftHandSideMatrices,
@@ -533,8 +531,8 @@ protected:
     /**
      * This is called during the assembling process in order
      * to calculate the condition right hand side vector only
-     * @param rRightHandSideVector: the condition right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rRightHandSideVector the condition right hand side vector
+     * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
@@ -545,8 +543,8 @@ protected:
      * This function provides a more general interface to the condition.
      * it is designed so that rRHSvariables are passed TO the condition
      * thus telling what is the desired output
-     * @param rRightHandSideVectors: container for the desired RHS output
-     * @param rRHSVariables: parameter describing the expected RHSs
+     * @param rRightHandSideVectors container for the desired RHS output
+     * @param rRHSVariables parameter describing the expected RHSs
      */
     void CalculateRightHandSide(
         std::vector< VectorType >& rRightHandSideVectors,
@@ -557,8 +555,8 @@ protected:
     /**
      * This is called during the assembling process in order
      * to calculate the condition left hand side matrix only
-     * @param rLeftHandSideMatrix: the condition left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rLeftHandSideMatrix the condition left hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateLeftHandSide( 
         MatrixType& rLeftHandSideMatrix,
@@ -569,8 +567,8 @@ protected:
      * This function provides a more general interface to the condition.
      * it is designed so that rRHSvariables are passed TO the condition
      * thus telling what is the desired output
-     * @param rRightHandSideVectors: container for the desired LHS output
-     * @param rRHSVariables: parameter describing the expected LHSs
+     * @param rRightHandSideVectors container for the desired LHS output
+     * @param rRHSVariables parameter describing the expected LHSs
      */
     void CalculateLeftHandSide( 
         std::vector< MatrixType >& rLeftHandSideMatrices,
@@ -632,31 +630,15 @@ protected:
     
     void CalculateAndAddLHS( 
         LocalSystemComponents& rLocalSystem,
-        const boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize>& LHS_contact_pair, 
+        const bounded_matrix<double, MatrixSize, MatrixSize>& LHS_contact_pair, 
         const unsigned int rPairIndex
         )
     {
-        if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
-        {
-            /* COMPONENT-WISE LHS MATRIX */
-            const std::vector<Variable<MatrixType> >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables( );
-
-            for ( unsigned int i = 0; i < rLeftHandSideVariables.size( ); i++ )
-            {
-                MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrices( )[i];
-                
-                // Assemble in the correct position
-                this->AssembleContactPairLHSToConditionSystem(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
-            }
-        }
-        else 
-        {   
-            /* SINGLE LHS MATRIX */
-            MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );      
-            
-            // Assemble in the correct position
-            this->AssembleContactPairLHSToConditionSystem(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
-        }
+        /* SINGLE LHS MATRIX */
+        MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );      
+        
+        // Assemble in the correct position
+        this->AssembleContactPairLHSToConditionSystem(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
     }
 
     /*
@@ -664,7 +646,7 @@ protected:
      */
     
     void AssembleContactPairLHSToConditionSystem( 
-        const boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize>& rPairLHS,
+        const bounded_matrix<double, MatrixSize, MatrixSize>& rPairLHS,
         MatrixType& rConditionLHS,
         const unsigned int rPairIndex
         )
@@ -681,10 +663,10 @@ protected:
      */
     
     template< unsigned int MatrixSize >
-    boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
+    bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         DofData& rDofData,
-//         const boost::numeric::ublas::bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution,
+//         const bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution,
 //         const Element::EquationIdVectorType& EquationIdSlaveElem,
         const unsigned int rMasterElementIndex,
         const ProcessInfo& rCurrentProcessInfo
@@ -700,27 +682,11 @@ protected:
         const unsigned int rPairIndex
         )
     {
-        if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
-        {
-            /* COMPONENT-WISE RHS VECTOR */
-            const std::vector<Variable<VectorType> >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables( );
-
-            for ( unsigned int i = 0; i < rRightHandSideVariables.size( ); i++ )
-            {
-                VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVectors()[i];
-
-                // Assemble
-                this->AssembleContactPairRHSToConditionSystem( RHS_contact_pair, rRightHandSideVector, rPairIndex );
-            }
-        }
-        else 
-        {
-            /* SINGLE RHS VECTOR */
-            VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-            
-            // Assemble
-            this->AssembleContactPairRHSToConditionSystem( RHS_contact_pair, rRightHandSideVector, rPairIndex );
-        }
+        /* SINGLE RHS VECTOR */
+        VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+        
+        // Assemble
+        this->AssembleContactPairRHSToConditionSystem( RHS_contact_pair, rRightHandSideVector, rPairIndex );
     }
     
     /*
