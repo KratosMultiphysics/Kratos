@@ -175,59 +175,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateLocalSystem( 
-    std::vector<MatrixType>& rLeftHandSideMatrices,
-    const std::vector<Variable<MatrixType> >& rLHSVariables,
-    std::vector<VectorType>& rRightHandSideVectors,
-    const std::vector<Variable<VectorType> >& rRHSVariables,
-    ProcessInfo& rCurrentProcessInfo 
-    )
-{    
-    // Create local system components
-    LocalSystemComponents local_system;
-
-    //Initialize sizes for the system components
-    if ( rLHSVariables.size( ) != rLeftHandSideMatrices.size( ) )
-    {
-        rLeftHandSideMatrices.resize( rLHSVariables.size( ) );
-    }
-
-    if ( rRHSVariables.size( ) != rRightHandSideVectors.size( ) )
-    {
-        rRightHandSideVectors.resize( rRHSVariables.size( ) );
-    }
-
-    local_system.CalculationFlags.Set(AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_LHS_MATRIX, true);
-    for ( unsigned int i = 0; i < rLeftHandSideMatrices.size( ); ++i )
-    {
-        // Note: rRightHandSideVectors.size() > 0
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0],local_system.CalculationFlags );
-    }
-
-    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_RHS_VECTOR, true );
-    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_LHS_MATRIX, false ); // Temporarily only
-    for ( unsigned int i = 0; i < rRightHandSideVectors.size( ); ++i )
-    {
-        // Note: rLeftHandSideMatrices.size() > 0
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], local_system.CalculationFlags  );
-    }
-    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_LHS_MATRIX, true ); // Reactivated again
-
-    // Set Variables to Local system components
-    local_system.SetLeftHandSideMatrices( rLeftHandSideMatrices );
-    local_system.SetRightHandSideVectors( rRightHandSideVectors );
-
-    local_system.SetLeftHandSideVariables( rLHSVariables );
-    local_system.SetRightHandSideVariables( rRHSVariables );
-
-    // Calculate condition system
-    this->CalculateConditionSystem( local_system, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -237,7 +184,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     KRATOS_TRY;
 
     // Create local system components
-    LocalSystemComponents local_system;
+    LocalSystem local_system;
 
     // Calculation flags
     local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_LHS_MATRIX, true );
@@ -266,7 +213,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     )
 {
     // Create local system components
-    LocalSystemComponents local_system;
+    LocalSystem local_system;
 
     // Calculation flags
     local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_LHS_MATRIX, true );
@@ -288,41 +235,13 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateLeftHandSide( 
-    std::vector< MatrixType >& rLeftHandSideMatrices,
-    const std::vector< Variable< MatrixType > >& rLHSVariables,
-    ProcessInfo& rCurrentProcessInfo 
-    )
-{
-    // Create local system components
-    LocalSystemComponents local_system;
-
-    VectorType right_hand_side_vector = Vector( );
-
-    // Initialize size for the system components
-    for( unsigned int i = 0; i < rLeftHandSideMatrices.size( ); ++i )
-    {
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[i], right_hand_side_vector, local_system.CalculationFlags );
-    }
-
-    local_system.SetLeftHandSideMatrices( rLeftHandSideMatrices );
-    local_system.SetRightHandSideVector( right_hand_side_vector );
-
-    // Calculate condition system
-    this->CalculateConditionSystem( local_system, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateRightHandSide( 
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo 
     )
 {
     // Create local system components
-    LocalSystemComponents local_system;
+    LocalSystem local_system;
 
     // Calculation flags
     local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_RHS_VECTOR, true);
@@ -335,34 +254,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     //Set Variables to Local system components
     local_system.SetLeftHandSideMatrix( left_hand_side_matrix );
     local_system.SetRightHandSideVector( rRightHandSideVector );
-
-    // Calculate condition system
-    this->CalculateConditionSystem( local_system, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateRightHandSide( 
-    std::vector< VectorType >& rRightHandSideVectors,
-    const std::vector< Variable< VectorType > >& rRHSVariables,
-    ProcessInfo& rCurrentProcessInfo )
-{
-    // Create local system components
-    LocalSystemComponents local_system;
-
-    MatrixType left_hand_side_matrix = Matrix( );
-
-    // Initialize size for the system components
-    for( unsigned int i = 0; i < rRightHandSideVectors.size(); ++i )
-    {
-        this->InitializeSystemMatrices( left_hand_side_matrix, rRightHandSideVectors[i], local_system.CalculationFlags );
-    }
-
-    // Set Variables to Local system components
-    local_system.SetLeftHandSideMatrix( left_hand_side_matrix );
-    local_system.SetRightHandSideVectors( rRightHandSideVectors );
 
     // Calculate condition system
     this->CalculateConditionSystem( local_system, rCurrentProcessInfo );
@@ -606,7 +497,7 @@ const unsigned int AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNode
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation>::CalculateConditionSystem( 
-    LocalSystemComponents& rLocalSystem,
+    LocalSystem& rLocalSystem,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -865,7 +756,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateAndAddLHS(
-    LocalSystemComponents& rLocalSystem,
+    LocalSystem& rLocalSystem,
     const bounded_matrix<double, MatrixSize, MatrixSize>& LHS_contact_pair, 
     const unsigned int rPairIndex
     )
@@ -1079,7 +970,7 @@ bounded_matrix<double, 36, 36> AugmentedLagrangianMethodMortarContactCondition<3
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateAndAddRHS(
-    LocalSystemComponents& rLocalSystem,
+    LocalSystem& rLocalSystem,
     const array_1d<double, MatrixSize>& RHS_contact_pair,
     const unsigned int rPairIndex
     )

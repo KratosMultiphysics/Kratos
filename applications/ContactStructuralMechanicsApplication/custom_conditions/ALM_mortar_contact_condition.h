@@ -396,53 +396,32 @@ protected:
     ///@{
     
    /**
-    * This struct is used in the component wise calculation only
-    * is defined here and is used to declare a member variable in the component wise condition
-    * private pointers can only be accessed by means of set and get functions
-    * this allows to set and not copy the local system variables
+    * This struct is used to store the flags and components of the local system
     */
-    struct LocalSystemComponents
+    struct LocalSystem
     {
     private:
-            //for calculation local system with compacted LHS and RHS
-            MatrixType *mpLeftHandSideMatrix;
-            VectorType *mpRightHandSideVector;
-
-            //for calculation local system with LHS and RHS components
-            std::vector<MatrixType> *mpLeftHandSideMatrices;
-            std::vector<VectorType> *mpRightHandSideVectors;
-            
-            //LHS variable components
-            const std::vector< Variable< MatrixType > > *mpLeftHandSideVariables;
-
-            //RHS variable components
-            const std::vector< Variable< VectorType > > *mpRightHandSideVariables;
+        // For calculation local system with compacted LHS and RHS
+        MatrixType *mpLeftHandSideMatrix;
+        VectorType *mpRightHandSideVector;
 
     public:
-            // Calculation flags
-            Flags  CalculationFlags;
+        // Calculation flags
+        Flags  CalculationFlags;
 
-           /**
-            * Sets the value of a specified pointer variable
-            */
-            void SetLeftHandSideMatrix( MatrixType& rLeftHandSideMatrix ) { mpLeftHandSideMatrix = &rLeftHandSideMatrix; };
-            void SetLeftHandSideMatrices( std::vector<MatrixType>& rLeftHandSideMatrices ) { mpLeftHandSideMatrices = &rLeftHandSideMatrices; };
-            void SetLeftHandSideVariables(const std::vector< Variable< MatrixType > >& rLeftHandSideVariables ) { mpLeftHandSideVariables = &rLeftHandSideVariables; };
+        /**
+        * Sets the value of a specified pointer variable
+        */
+        void SetLeftHandSideMatrix( MatrixType& rLeftHandSideMatrix ) { mpLeftHandSideMatrix = &rLeftHandSideMatrix; };
 
-            void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
-            void SetRightHandSideVectors( std::vector<VectorType>& rRightHandSideVectors ) { mpRightHandSideVectors = &rRightHandSideVectors; };
-            void SetRightHandSideVariables(const std::vector< Variable< VectorType > >& rRightHandSideVariables ) { mpRightHandSideVariables = &rRightHandSideVariables; };
+        void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
 
-           /**
-            * Returns the value of a specified pointer variable
-            */
-            MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
-            std::vector<MatrixType>& GetLeftHandSideMatrices() { return *mpLeftHandSideMatrices; };
-            const std::vector< Variable< MatrixType > >& GetLeftHandSideVariables() { return *mpLeftHandSideVariables; };
+        /**
+        * Returns the value of a specified pointer variable
+        */
+        MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
 
-            VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
-            std::vector<VectorType>& GetRightHandSideVectors() { return *mpRightHandSideVectors; };
-            const std::vector< Variable< VectorType > >& GetRightHandSideVariables() { return *mpRightHandSideVariables; };
+        VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
     };
 
     ///@}
@@ -450,6 +429,7 @@ protected:
     ///@{
 
     IntegrationMethod mThisIntegrationMethod;            // Integration order of the element
+    unsigned int mPairIndex;                             // The current index contact pair
     unsigned int mPairSize;                              // The number of contact pairs
     std::vector<Condition::Pointer> mThisMasterElements; // Vector which contains the pointers to the master elements
     std::vector<bool> mThisMasterElementsActive;         // Vector which contains if the conditions are active or not
@@ -484,24 +464,6 @@ protected:
         ) override;
 
     /**
-     * This function provides a more general interface to the condition.
-     * it is designed so that rLHSvariables and rRHSvariables are passed TO the condition
-     * thus telling what is the desired output
-     * @param rLeftHandSideMatrices container with the output left hand side matrices
-     * @param rLHSVariables paramter describing the expected LHSs
-     * @param rRightHandSideVectors container for the desired RHS output
-     * @param rRHSVariables parameter describing the expected RHSs
-     */
-    
-    void CalculateLocalSystem( 
-        std::vector< MatrixType >& rLeftHandSideMatrices,
-        const std::vector< Variable< MatrixType > >& rLHSVariables,
-        std::vector< VectorType >& rRightHandSideVectors,
-        const std::vector< Variable< VectorType > >& rRHSVariables,
-        ProcessInfo& rCurrentProcessInfo 
-        ) override;
-
-    /**
      * This is called during the assembling process in order
      * to calculate the condition right hand side vector only
      * @param rRightHandSideVector the condition right hand side vector
@@ -510,20 +472,6 @@ protected:
     
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo 
-        ) override;
-
-    /**
-     * This function provides a more general interface to the condition.
-     * it is designed so that rRHSvariables are passed TO the condition
-     * thus telling what is the desired output
-     * @param rRightHandSideVectors container for the desired RHS output
-     * @param rRHSVariables parameter describing the expected RHSs
-     */
-    
-    void CalculateRightHandSide(
-        std::vector< VectorType >& rRightHandSideVectors,
-        const std::vector< Variable< VectorType > >& rRHSVariables,
         ProcessInfo& rCurrentProcessInfo 
         ) override;
 
@@ -540,25 +488,11 @@ protected:
         ) override;
 
     /**
-     * This function provides a more general interface to the condition.
-     * it is designed so that rRHSvariables are passed TO the condition
-     * thus telling what is the desired output
-     * @param rLeftHandSideMatrices container for the desired LHS output
-     * @param rLHSVariables parameter describing the expected LHSs
-     */
-    
-    void CalculateLeftHandSide( 
-        std::vector< MatrixType >& rLeftHandSideMatrices,
-        const std::vector< Variable< MatrixType > >& rLHSVariables,
-        ProcessInfo& rCurrentProcessInfo 
-        ) override;
-
-    /**
      * Calculates the condition contribution
      */
     
     void CalculateConditionSystem( 
-        LocalSystemComponents& rLocalSystem,
+        LocalSystem& rLocalSystem,
         const ProcessInfo& CurrentProcessInfo 
         );
     
@@ -594,7 +528,7 @@ protected:
      */
 
     void CalculateAndAddLHS( 
-        LocalSystemComponents& rLocalSystem,
+        LocalSystem& rLocalSystem,
         const bounded_matrix<double, MatrixSize, MatrixSize>& LHS_contact_pair, 
         const unsigned int rPairIndex
         );
@@ -624,7 +558,7 @@ protected:
      */
     
     void CalculateAndAddRHS( 
-        LocalSystemComponents& rLocalSystem,
+        LocalSystem& rLocalSystem,
         const array_1d<double, MatrixSize>& RHS_contact_pair, 
         const unsigned int rPairIndex
         );
