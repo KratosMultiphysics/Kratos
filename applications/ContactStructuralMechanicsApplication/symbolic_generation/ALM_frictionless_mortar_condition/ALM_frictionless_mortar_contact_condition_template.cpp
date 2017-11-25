@@ -197,6 +197,35 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 /***********************************************************************************/
 /***********************************************************************************/
 
+template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+int AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Check( const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    // Base class checks for positive Jacobian and Id > 0
+    int ierr = BaseType::Check(rCurrentProcessInfo);
+    if(ierr != 0) return ierr;
+
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(NORMAL_CONTACT_STRESS)
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for ( unsigned int i = 0; i < TNumNodes; i++ )
+    {
+        Node<3> &rnode = this->GetGeometry()[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL_CONTACT_STRESS,rnode)
+
+        KRATOS_CHECK_DOF_IN_NODE(NORMAL_CONTACT_STRESS, rnode)
+    }
+
+    return ierr;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false>;
 template class AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false>;
 template class AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false>;

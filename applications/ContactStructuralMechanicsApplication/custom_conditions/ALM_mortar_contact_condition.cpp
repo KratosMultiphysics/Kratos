@@ -82,7 +82,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 {
     KRATOS_TRY;
     
-    mIntegrationOrder = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+    mIntegrationOrder = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
     
     KRATOS_CATCH( "" );
 }
@@ -1297,7 +1297,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     ProcessInfo& CurrentProcessInfo 
     )
 {
-    KRATOS_ERROR << "You are calling to the base class method EquationIdVector, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method EquationIdVector, check your condition definition" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1309,7 +1309,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     ProcessInfo& rCurrentProcessInfo 
 )
 {
-    KRATOS_ERROR << "You are calling to the base class method GetDofList, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method GetDofList, check your condition definition" << std::endl;
 }
 
 //******************************* GET DOUBLE VALUE *********************************/
@@ -1400,6 +1400,43 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     // TODO: Fill this!!!
     
     KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
+int AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::Check( const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    // Base class checks for positive Jacobian and Id > 0
+    int ierr = Condition::Check(rCurrentProcessInfo);
+    if(ierr != 0) return ierr;
+
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
+    KRATOS_CHECK_VARIABLE_KEY(WEIGHTED_GAP)
+    KRATOS_CHECK_VARIABLE_KEY(NORMAL)
+    KRATOS_ERROR_IF(!(this->Has(NORMAL))) << "NORMAL not defined in the AugmentedLagrangianMethodMortarContactCondition" << std::endl;
+    KRATOS_ERROR_IF(!(this->Has(MAPPING_PAIRS))) << "MAPPING_PAIRS not defined in the AugmentedLagrangianMethodMortarContactCondition" << std::endl;
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for ( unsigned int i = 0; i < TNumNodes; i++ )
+    {
+        Node<3> &rnode = this->GetGeometry()[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WEIGHTED_GAP,rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,rnode)
+
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
+    }
+
+    return ierr;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
