@@ -17,6 +17,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <iomanip>
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -25,6 +26,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
+#include "H5Cpp.h"
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -297,6 +299,76 @@ public:
         return correction_scaling;
     }
 
+    // --------------------------------------------------------------------------
+    boost::python::dict GetAdjointDesignSurfaceShapeSensitivities( 
+        const boost::python::list& rFileList, 
+        const boost::python::list& rNodeIdList
+    )
+    {
+        
+        KRATOS_TRY
+        
+        boost::python::dict rAdjointDesignSurfaceShapeSensitivities;
+
+        std::string adjoint_time_step = "";
+
+        for (unsigned int i = 0;i<len(rFileList); i++ )
+        {
+            std::string filename = boost::python::extract<std::string>(rFileList[i]);
+
+            std::cout<<">- --- Opening file "<<filename<<std::endl;
+
+            H5::H5File File(filename.c_str(), H5F_ACC_RDONLY);
+
+            if (adjoint_time_step.compare("")==0)
+            {
+                // Look for the earliest time step
+                H5::DataSet StartTimeDataSet = File.openDataSet("/NodalData/StartTime");
+                double StartTimeValue;
+                StartTimeDataSet.read(&StartTimeValue, H5::PredType::NATIVE_DOUBLE);
+                std::stringstream StartTimeStr;
+                StartTimeStr << "/NodalData/" << std::fixed << std::setprecision(10) << StartTimeValue << "/SHAPE_SENSITIVITY";
+
+                adjoint_time_step = StartTimeStr.str();
+            }
+
+            // Read the node ids list
+            H5::DataSet NodeIdDataSet = File.openDataSet("/NodalData/Id");
+            hsize_t Dims[2];
+            NodeIdDataSet.getSpace().getSimpleExtentDims(Dims);
+            std::vector<unsigned int> NodeIdList(Dims[0]);
+            NodeIdDataSet.read(NodeIdList.data(), H5::PredType::NATIVE_UINT);
+
+            std::map<unsigned int, unsigned int> NodeIndexMap;
+            for (unsigned int i=0; i<NodeIdList.size(); i++)
+                NodeIndexMap.insert(std::pair<unsigned int,unsigned int>(NodeIdList[i], i));
+
+            H5::DataSet TimeStepDataSet = File.openDataSet(adjoint_time_step.c_str());
+            hsize_t DimsTime[2];
+            TimeStepDataSet.getSpace().getSimpleExtentDims(DimsTime);
+
+            std::vector<double> NodalAdjointSensitivities(3*DimsTime[0]);
+            TimeStepDataSet.read(NodalAdjointSensitivities.data(), H5::PredType::NATIVE_DOUBLE);
+
+            for (unsigned int j=0; j<len(rNodeIdList); j++)
+            {
+                unsigned int node_id = boost::python::extract<unsigned int>(rNodeIdList[j]);
+                if (NodeIndexMap.find(node_id) != NodeIndexMap.end())
+                {
+                    unsigned int node_local_index = NodeIndexMap[node_id];
+                    boost::python::list ShapeSensitivity;
+                    ShapeSensitivity.append(NodalAdjointSensitivities[node_local_index*3]);
+                    ShapeSensitivity.append(NodalAdjointSensitivities[node_local_index*3 + 1]);
+                    ShapeSensitivity.append(NodalAdjointSensitivities[node_local_index*3 + 2]);
+                    rAdjointDesignSurfaceShapeSensitivities[node_id] = ShapeSensitivity;
+                }
+            }            
+        }
+        
+        return rAdjointDesignSurfaceShapeSensitivities;
+
+        KRATOS_CATCH("")
+    }    
     // ==============================================================================
 
     ///@}

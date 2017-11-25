@@ -29,6 +29,7 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
+#include "custom_utilities/mapping/mapper_empire_nurbs.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
@@ -55,6 +56,9 @@ void  AddCustomUtilitiesToPython()
     class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, Parameters>())
         .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
+    class_<MapperEmpireNURBS, bases<Process> >("MapperEmpireNURBS", init<ModelPart&, Parameters&>())
+        .def("MapToDesignSpace", &MapperEmpireNURBS::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperEmpireNURBS::MapToGeometrySpace)
         ;
 
     class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, Parameters>())
@@ -66,6 +70,11 @@ void  AddCustomUtilitiesToPython()
         .def("MapToDesignSpace", &MapperVertexMorphingImprovedIntegration::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingImprovedIntegration::MapToGeometrySpace)
         ;
+
+    class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, Parameters&>())
+        .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
+        ;        
 
 
     // ================================================================
@@ -93,6 +102,10 @@ void  AddCustomUtilitiesToPython()
         // ----------------------------------------------------------------
         .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
         .def("UpdateControlPointChangeByInputVariable", &OptimizationUtilities::UpdateControlPointChangeByInputVariable)        
+        // ----------------------------------------------------------------
+        // Adjoint extract design surface shape sensitivities
+        // ----------------------------------------------------------------
+        .def("GetAdjointDesignSurfaceSensitivities", &OptimizationUtilities::GetAdjointDesignSurfaceShapeSensitivities)
         ;
 
     // ========================================================================
