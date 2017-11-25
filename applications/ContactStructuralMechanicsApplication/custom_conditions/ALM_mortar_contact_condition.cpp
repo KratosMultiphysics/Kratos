@@ -904,7 +904,7 @@ bounded_matrix<double, 10, 10> AugmentedLagrangianMethodMortarContactCondition<2
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
     
     return ZeroMatrix(10, 10);
 }
@@ -919,7 +919,7 @@ bounded_matrix<double, 21, 21> AugmentedLagrangianMethodMortarContactCondition<3
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
     
     return ZeroMatrix(21, 21);
 }
@@ -934,7 +934,7 @@ bounded_matrix<double, 28, 28> AugmentedLagrangianMethodMortarContactCondition<3
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
     
     return ZeroMatrix(28, 28);
 }
@@ -949,7 +949,7 @@ bounded_matrix<double, 12, 12> AugmentedLagrangianMethodMortarContactCondition<2
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
     
     return ZeroMatrix(12, 12);
 }
@@ -964,7 +964,7 @@ bounded_matrix<double, 27, 27> AugmentedLagrangianMethodMortarContactCondition<3
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
     
     return ZeroMatrix(27, 27);
 }
@@ -979,7 +979,7 @@ bounded_matrix<double, 36, 36> AugmentedLagrangianMethodMortarContactCondition<3
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
     
     return ZeroMatrix(36, 36);
 }
@@ -994,7 +994,7 @@ bounded_matrix<double, 10, 10> AugmentedLagrangianMethodMortarContactCondition<2
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
     
     return ZeroMatrix(10, 10);
 }
@@ -1009,7 +1009,7 @@ bounded_matrix<double, 21, 21> AugmentedLagrangianMethodMortarContactCondition<3
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
     
     return ZeroMatrix(21, 21);
 }
@@ -1024,7 +1024,7 @@ bounded_matrix<double, 28, 28> AugmentedLagrangianMethodMortarContactCondition<3
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
     
     return ZeroMatrix(28, 28);
 }
@@ -1039,7 +1039,7 @@ bounded_matrix<double, 12, 12> AugmentedLagrangianMethodMortarContactCondition<2
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
     
     return ZeroMatrix(12, 12);
 }
@@ -1054,7 +1054,7 @@ bounded_matrix<double, 27, 27> AugmentedLagrangianMethodMortarContactCondition<3
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
     
     return ZeroMatrix(27, 27);
 }
@@ -1069,7 +1069,7 @@ bounded_matrix<double, 36, 36> AugmentedLagrangianMethodMortarContactCondition<3
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
     
     return ZeroMatrix(36, 36);
 }
@@ -1118,7 +1118,7 @@ array_1d<double,10> AugmentedLagrangianMethodMortarContactCondition<2, 2, false,
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
     
     return ZeroVector(10);
 }
@@ -1133,7 +1133,7 @@ array_1d<double,21> AugmentedLagrangianMethodMortarContactCondition<3, 3, false,
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
     
     return ZeroVector(21);
 }
@@ -1148,7 +1148,7 @@ array_1d<double,28> AugmentedLagrangianMethodMortarContactCondition<3, 4, false,
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
     
     return ZeroVector(28);
 }
@@ -1163,7 +1163,7 @@ array_1d<double,12> AugmentedLagrangianMethodMortarContactCondition<2, 2, true, 
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
     
     return ZeroVector(12);
 }
@@ -1178,7 +1178,7 @@ array_1d<double,27> AugmentedLagrangianMethodMortarContactCondition<3, 3, true, 
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
     
     return ZeroVector(27);
 }
@@ -1193,7 +1193,7 @@ array_1d<double,36> AugmentedLagrangianMethodMortarContactCondition<3, 4, true, 
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
     
     return ZeroVector(36);
 }
@@ -1208,7 +1208,7 @@ array_1d<double,10> AugmentedLagrangianMethodMortarContactCondition<2, 2, false,
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
     
     return ZeroVector(10);
 }
@@ -1223,7 +1223,7 @@ array_1d<double,21> AugmentedLagrangianMethodMortarContactCondition<3, 3, false,
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
     
     return ZeroVector(21);
 }
@@ -1238,7 +1238,7 @@ array_1d<double,28> AugmentedLagrangianMethodMortarContactCondition<3, 4, false,
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
     
     return ZeroVector(28);
 }
@@ -1253,7 +1253,7 @@ array_1d<double,12> AugmentedLagrangianMethodMortarContactCondition<2, 2, true, 
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
     
     return ZeroVector(12);
 }
@@ -1268,7 +1268,7 @@ array_1d<double,27> AugmentedLagrangianMethodMortarContactCondition<3, 3, true, 
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
     
     return ZeroVector(27);
 }
@@ -1283,7 +1283,7 @@ array_1d<double,36> AugmentedLagrangianMethodMortarContactCondition<3, 4, true, 
         const unsigned int rActiveInactive
         )
 {
-    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
     
     return ZeroVector(36);
 }
