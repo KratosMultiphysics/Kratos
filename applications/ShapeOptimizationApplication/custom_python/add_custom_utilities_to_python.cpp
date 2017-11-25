@@ -56,6 +56,7 @@ void  AddCustomUtilitiesToPython()
     class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, Parameters>())
         .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
+        ;
     class_<MapperEmpireNURBS, bases<Process> >("MapperEmpireNURBS", init<ModelPart&, Parameters&>())
         .def("MapToDesignSpace", &MapperEmpireNURBS::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperEmpireNURBS::MapToGeometrySpace)
