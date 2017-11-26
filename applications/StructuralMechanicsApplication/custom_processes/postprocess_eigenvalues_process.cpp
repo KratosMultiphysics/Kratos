@@ -10,219 +10,129 @@
 //  Main authors:    Philipp Bucher
 //
 
-#if !defined(KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED )
-#define  KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED
-
-
 // System includes
-// Please put system includes in @{KRATOS_NAME_LOWER}.h
+
 
 // External includes
-// Please put external includes in @{KRATOS_NAME_LOWER}.h
+
 
 // Project includes
-@{KRATOS_PROJECT_INCLUDES}
-#include "custom_processes/@{KRATOS_NAME_LOWER}.h"
+#include "custom_processes/postprocess_eigenvalues_process.h"
+#include "structural_mechanics_application_variables.h"
 
-namespace Kratos {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-@{KRATOS_CLASS_TEMPLATE}
-class PostprocessEigenvaluesProcess : public @{KRATOS_CLASS_BASE} 
+namespace Kratos
 {
-public:
-  ///@name Type Definitions
-  ///@{
 
-  ///@}
-  ///@name Pointer Definitions
-  /// Pointer definition of PostprocessEigenvaluesProcess
-  KRATOS_CLASS_POINTER_DEFINITION(PostprocessEigenvaluesProcess);
+    PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart &rModelPart,
+                                                                 Parameters OutputParameters) 
+                                                                 : mrModelPart(rModelPart), 
+                                                                   mOutputParameters(OutputParameters)
+    {
+        Parameters default_parameters(R"(
+            {
+                "result_file_name" : "",
+                "animation_steps"   :  1,
+                "use_eigenfrequency_in_label" : false,
+                "eigen_results" : []
+            }  )"
+        );
 
-  ///@}
-  ///@name Life Cycle
-  ///@{
+        mOutputParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    }
 
-  PostprocessEigenvaluesProcess() {
-  }
 
-  /// Destructor.
-  virtual ~PostprocessEigenvaluesProcess() {
-  }
+    void PostprocessEigenvaluesProcess::ExecuteInitialize()
+    {
+        std::string result_file_name = mOutputParameters["result_file_name"].GetString();
 
-  ///@}
-  ///@name Operators
-  ///@{
+        if (result_file_name == "") // use the name of the ModelPart in case nothing was assigned
+            result_file_name = mrModelPart.Name();
+        
+        result_file_name += "_EigenResults";
+        
+        mpGidEigenIO = GidEigenIO::Pointer (new GidEigenIO( 
+                            result_file_name,
+                            GiD_PostBinary,
+                            MultiFileFlag::SingleFile,
+                            WriteDeformedMeshFlag::WriteUndeformed,
+                            WriteConditionsFlag::WriteConditions) );
 
-  void operator()() {
-    Execute();
-  }
+        KRATOS_ERROR_IF_NOT(mpGidEigenIO) << "EigenIO could not be initialized!" << std::endl;
+    }
 
-  ///@}
-  ///@name Operations
-  ///@{
+    void PostprocessEigenvaluesProcess::ExecuteBeforeSolutionLoop()
+    {
+        KRATOS_ERROR_IF_NOT(mpGidEigenIO) << " EigenIO is uninitialized!" << std::endl;
 
-  virtual void Execute() {
-  }
+        mpGidEigenIO->InitializeMesh(0.0);
+        mpGidEigenIO->WriteMesh(mrModelPart.GetMesh());
+        mpGidEigenIO->WriteNodeMesh(mrModelPart.GetMesh());
+        mpGidEigenIO->FinalizeMesh();
+    }
 
-  virtual void Clear() {
-  }
+    void PostprocessEigenvaluesProcess::ExecuteFinalize()
+    {
+        KRATOS_ERROR_IF_NOT(mpGidEigenIO) << " EigenIO is uninitialized!" << std::endl;
 
-  ///@}
-  ///@name Access
-  ///@{
+        const auto& eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
+        const SizeType num_eigenvalues = eigenvalue_vector.size();
 
-  ///@}
-  ///@name Inquiry
-  ///@{
+        const SizeType num_animation_steps = mOutputParameters["animation_steps"].GetInt();
+        double angle = 0.0;
+        std::string label = "";
 
-  ///@}
-  ///@name Input and output
-  ///@{
+        const SizeType num_requested_results = mOutputParameters["eigen_results"].size();
+        std::vector<std::string> requested_results(num_requested_results);
 
-  /// Turn back information as a string.
-  virtual std::string Info() const {
-      return "PostprocessEigenvaluesProcess";
-  }
+        for (SizeType i=0; i<num_requested_results; ++i)
+            requested_results[i] = mOutputParameters["eigen_results"].GetArrayItem(i).GetString();
 
-  /// Print information about this object.
-  virtual void PrintInfo(std::ostream& rOStream) const {
-    rOStream << "PostprocessEigenvaluesProcess";
-  }
+        for (SizeType i=0; i < num_animation_steps; ++i)
+        {
+            angle = 2 * Globals::Pi * i / num_animation_steps;
 
-  /// Print object's data.
-  virtual void PrintData(std::ostream& rOStream) const {
-  }
+            for(SizeType j=0; j<num_eigenvalues; ++j)
+            {
+                label = GetLabel(eigenvalue_vector[j]);
 
-  ///@}
-  ///@name Friends
-  ///@{
+                for(auto& node : mrModelPart.Nodes())
+                {
+                    // Copy the eigenvector to the Solutionstepvariable. Credit to Michael Andre
+                    DofsContainerType& r_node_dofs = node.GetDofs();
+                    Matrix& r_node_eigenvectors = node.GetValue(EIGENVECTOR_MATRIX);
 
-  ///@}
+                    KRATOS_ERROR_IF_NOT(r_node_dofs.size() == r_node_eigenvectors.size2()) 
+                        << "Number of results on node " << node.Id() << " is wrong" << std::endl;
 
-protected:
+                    SizeType k = 0;
+                    for (auto& r_dof : r_node_dofs)
+                        r_dof.GetSolutionStepValue(0) = std::cos(angle) * r_node_eigenvectors(j,k++);
+                }
+                
+                // for (const auto& var_name : requested_results)
+                //     // I have to get the Variable form the Name somehow
+                //     mpGidEigenIO->WriteEigenResults(mrModelPart, var_name.GetVariable(), label, i);
 
-  ///@name Protected static Member Variables
-  ///@{
+                mpGidEigenIO->WriteEigenResults(mrModelPart, DISPLACEMENT, label, i);                
+            }
+        }
+    }
 
-  ///@}
-  ///@name Protected member Variables
-  ///@{
+    std::string PostprocessEigenvaluesProcess::GetLabel(double LabelNumber)
+    {
+        std::string label = "EigenValue_";
 
-  ///@}
-  ///@name Protected Operators
-  ///@{
+        // Compute the Eigenfrequency from the Eigenvalue (if the User specified it)
+        if (mOutputParameters["use_eigenfrequency_in_label"].GetBool())
+        {
+            label = "EigenFrequency_";
+            LabelNumber = std::sqrt(LabelNumber) / (2 * Globals::Pi);
+        }
 
-  ///@}
-  ///@name Protected Operations
-  ///@{
-
-  ///@}
-  ///@name Protected  Access
-  ///@{
-
-  ///@}
-  ///@name Protected Inquiry
-  ///@{
-
-  ///@}
-  ///@name Protected LifeCycle
-  ///@{
-
-  ///@}
-
-private:
-
-  ///@name Static Member Variables
-  ///@{
-
-  ///@}
-  ///@name Member Variables
-  ///@{
-
-  ///@}
-  ///@name Private Operators
-  ///@{
-
-  ///@}
-  ///@name Private Operations
-  ///@{
-
-  ///@}
-  ///@name Private  Access
-  ///@{
-
-  ///@}
-  ///@name Private Inquiry
-  ///@{
-
-  ///@}
-  ///@name Un accessible methods
-  ///@{
-
-  /// Assignment operator.
-  PostprocessEigenvaluesProcess& operator=(PostprocessEigenvaluesProcess const& rOther);
-
-  /// Copy constructor.
-  //PostprocessEigenvaluesProcess(PostprocessEigenvaluesProcess const& rOther);
-
-  ///@}
-
-}; // Class PostprocessEigenvaluesProcess
-
-//avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
-template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
-const Kratos::Flags PostprocessEigenvaluesProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::PERFORM_STEP1(Kratos::Flags::Create(0));
-
-template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
-const Kratos::Flags PostprocessEigenvaluesProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::DO_EXPENSIVE_CHECKS(Kratos::Flags::Create(1));
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
-
-/// input stream function
-template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-inline std::istream& operator >> (std::istream& rIStream,
-                                  PostprocessEigenvaluesProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>& rThis);
-
-/// output stream function
-template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const PostprocessEigenvaluesProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
-///@}
+        std::stringstream strstr;
+        strstr << std::fixed << std::setprecision(3) << LabelNumber;
+        return label + strstr.str();   
+    }
 
 }  // namespace Kratos.
-
-#endif // KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED  defined
