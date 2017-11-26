@@ -173,21 +173,9 @@ class PostprocessEigenvaluesProcess : public Process
                         r_dof.GetSolutionStepValue(0) = std::cos(angle) * r_node_eigenvectors(j,k++);
                 }
                 
-
-
-
                 for (const auto& var_name : requested_results)
-                {
-                    WrapperForIOCall(var_name, label, i);
-                    // // mpGidEigenIO->WriteEigenResults(mrModelPart, DISPLACEMENT, label, i);
-                    // std::cout << "IsVectorVariable " << IsVectorVariable(var_name) << std::endl;
-                    // // mpGidEigenIO->WriteEigenResults(mrModelPart, GetVariable(var_name.GetString()), label, i);
-
-                    // if (IsVectorVariable(var_name))
-                    // {
-                    //     GetVariable<Variable< array_1d<double, 3> > >(var_name);
-                    // }
-                }
+                    // I have to get the Variable form the Name somehow
+                    mpGidEigenIO->WriteEigenResults(mrModelPart, DISPLACEMENT, label, i);
             }
         }
     }
@@ -290,91 +278,6 @@ class PostprocessEigenvaluesProcess : public Process
         strstr << std::fixed << std::setprecision(3) << LabelNumber;
         return label + strstr.str();   
     }
-
-    void WrapperForIOCall(const std::string VariableName, const std::string Label,
-                          const SizeType AnimationStepNumber)
-    {
-        if( KratosComponents< Variable<double> >::Has( VariableName ) ) //case of double variable
-        {
-            // Variable< double> & r_variable = KratosComponents< double >::Get(VariableName);
-            mpGidEigenIO->WriteEigenResults(mrModelPart, 
-                                            KratosComponents< double >::Get(VariableName), 
-                                            Label, 
-                                            AnimationStepNumber);
-        }
-        else if( KratosComponents< Variable< array_1d<double, 3> > >::Has(VariableName) ) //case of component variable
-        {
-            // Variable< double> & r_variable = KratosComponents< array_1d<double, 3> >::Get(VariableName);
-            mpGidEigenIO->WriteEigenResults(mrModelPart, 
-                                            KratosComponents< array_1d<double, 3> >::Get(VariableName), 
-                                            Label, 
-                                            AnimationStepNumber);            
-        }
-        else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(VariableName) ) //case of component variable
-        {
-            KRATOS_ERROR << "Vector Components cannot be querried!" << std::endl;
-        }
-        else
-        {
-            KRATOS_ERROR << "Invalid Type of Variable" << std::endl;
-        }
-        
-
-    }
-
-    // bool IsVectorVariable(const std::string VariableName)
-    // {
-    //     std::cout << "VariableName: " << VariableName << std::endl;
-    //     if( KratosComponents< Variable<double> >::Has( VariableName ) ) //case of double variable
-    //     {
-    //         return false;
-    //         // mdouble_value = rParameters["value"].GetDouble();
-
-    //         // if( model_part.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<double> >::Get( mvariable_name ) ) == false )
-    //         // {
-    //         //     KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
-    //         // }
-    //     }
-    //     else if( KratosComponents< Variable< array_1d<double, 3> > >::Has(VariableName) ) //case of component variable
-    //     {
-    //         return true;
-    //     }
-    //     else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(VariableName) ) //case of component variable
-    //     {
-    //         KRATOS_ERROR << "Vector Components cannot be querried!" << std::endl;
-    //         // typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-    //         // component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
-
-    //         // if( model_part.GetNodalSolutionStepVariablesList().Has( var_component.GetSourceVariable() ) == false )
-    //         // {
-    //         //     KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
-    //         // }
-
-    //     }
-    //     else
-    //     {
-    //         KRATOS_ERROR << "Invalid Type of Variable" << std::endl;
-    //     }
-    // }
-
-    // template< class TVarType>
-    // TVarType GetVariable(const std::string VariableName)
-    // {
-    //     if( KratosComponents< Variable<TVarType> >::Has( VariableName ) ) //case of double variable
-    //     {
-    //         return KratosComponents< TVarType >::Get(VariableName);
-    //         // mdouble_value = rParameters["value"].GetDouble();
-
-    //         // if( model_part.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<double> >::Get( mvariable_name ) ) == false )
-    //         // {
-    //         //     KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
-    //         // }
-    //     }
-    //     else
-    //     {
-    //         KRATOS_ERROR << "Invalid Type of Variable" << std::endl;
-    //     }
-    // }
 
     ///@}
     ///@name Private  Access

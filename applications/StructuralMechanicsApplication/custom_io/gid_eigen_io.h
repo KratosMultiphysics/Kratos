@@ -101,9 +101,9 @@ class GidEigenIO : public GidIO<>
     * Write the post-processed eigensolver-results
     * The label is the Eigenvalue or -frequency
     */
-    template< class TVarType>
+    template<typename T>
     inline void WriteEigenResults( ModelPart& rModelPart, 
-                                   const TVarType& rVariable,
+                                   const Variable<T>& rVariable,
                                    std::string Label, 
                                    const SizeType AnimationStepNumber );
       
@@ -226,10 +226,10 @@ class GidEigenIO : public GidIO<>
   ///@{ 
 
 template<>
-inline void GidEigenIO::WriteEigenResults<Variable<double>>(ModelPart& rModelPart, 
-                                                  const Variable<double>& rVariable,
-                                                  std::string Label, 
-                                                  const SizeType AnimationStepNumber) 
+inline void GidEigenIO::WriteEigenResults<double>(ModelPart& rModelPart, 
+                               const Variable<double>& rVariable,
+                               std::string Label, 
+                               const SizeType AnimationStepNumber) 
 {
     Label += "_" + rVariable.Name();  
     GiD_fBeginResult( mResultFile, (char*)Label.c_str() , "EigenVector_Animation",
@@ -246,7 +246,7 @@ inline void GidEigenIO::WriteEigenResults<Variable<double>>(ModelPart& rModelPar
 }
 
 template<>
-inline void GidEigenIO::WriteEigenResults<Variable<array_1d<double, 3>>>(ModelPart& rModelPart, 
+inline void GidEigenIO::WriteEigenResults<array_1d<double, 3>>(ModelPart& rModelPart, 
                                                                const Variable<array_1d<double, 3>>& rVariable,
                                                                std::string Label, 
                                                                const SizeType AnimationStepNumber) 
