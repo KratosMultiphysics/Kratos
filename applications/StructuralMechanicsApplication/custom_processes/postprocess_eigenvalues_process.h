@@ -184,7 +184,8 @@ class PostprocessEigenvaluesProcess : public Process
     
     std::string GetLabel(double LabelNumber);
 
-    void WrapperForIOCall(const std::string VariableName, const std::string Label,
+    void WrapperForIOCall(const std::string VariableName, 
+                          const std::string Label,
                           const SizeType AnimationStepNumber);
 
     ///@}

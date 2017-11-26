@@ -138,27 +138,37 @@ namespace Kratos
     {
         if( KratosComponents< Variable<double> >::Has( VariableName ) ) //case of double variable
         {
-            const Variable<double > r_variable = KratosComponents< Variable<double > >::Get(VariableName);
+            const Variable<double > variable = KratosComponents< Variable<double > >::Get(VariableName);
+
+            KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable )) 
+                << "Requesting EigenResults for a Variable that is not in the ModelPart: " 
+                << variable << std::endl;
+
             mpGidEigenIO->WriteEigenResults(mrModelPart, 
-                                            r_variable, 
+                                            variable, 
                                             Label, 
                                             AnimationStepNumber); 
         }
         else if( KratosComponents< Variable< array_1d<double, 3> > >::Has(VariableName) ) //case of component variable
         {
-            const Variable<array_1d<double,3> > r_variable = KratosComponents< Variable<array_1d<double,3> > >::Get(VariableName);
+            const Variable<array_1d<double,3> > variable = KratosComponents< Variable<array_1d<double,3> > >::Get(VariableName);
+
+            KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable )) 
+                << "Requesting EigenResults for a Variable that is not in the ModelPart: " 
+                << variable << std::endl;
+
             mpGidEigenIO->WriteEigenResults(mrModelPart, 
-                                            r_variable, 
+                                            variable, 
                                             Label, 
                                             AnimationStepNumber);            
         }
         else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(VariableName) ) //case of component variable
         {
-            KRATOS_ERROR << "Vector Components cannot be querried!" << std::endl;
+            KRATOS_ERROR << "Vector Components cannot be querried, name: " << VariableName << std::endl;
         }
         else
         {
-            KRATOS_ERROR << "Invalid Type of Variable" << std::endl;
+            KRATOS_ERROR << "Invalid Type of Variable, name: " << VariableName << std::endl;
         }
         
 
