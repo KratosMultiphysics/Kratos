@@ -173,9 +173,11 @@ class PostprocessEigenvaluesProcess : public Process
                         r_dof.GetSolutionStepValue(0) = std::cos(angle) * r_node_eigenvectors(j,k++);
                 }
                 
-                for (const auto& var_name : requested_results)
-                    // I have to get the Variable form the Name somehow
-                    mpGidEigenIO->WriteEigenResults(mrModelPart, DISPLACEMENT, label, i);
+                // for (const auto& var_name : requested_results)
+                //     // I have to get the Variable form the Name somehow
+                //     mpGidEigenIO->WriteEigenResults(mrModelPart, var_name.GetVariable(), label, i);
+
+                mpGidEigenIO->WriteEigenResults(mrModelPart, DISPLACEMENT, label, i);                
             }
         }
     }
