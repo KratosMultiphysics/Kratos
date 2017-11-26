@@ -38,8 +38,8 @@ void  AddCustomIOToPython()
                               MultiFileFlag,
                               WriteDeformedMeshFlag,
                               WriteConditionsFlag>())
-        .def("WriteEigenResults",&GidEigenIO::WriteEigenResults<double>)
-        .def("WriteEigenResults",&GidEigenIO::WriteEigenResults<array_1d<double, 3>>)
+        .def("WriteEigenResults",&GidEigenIO::WriteEigenResults<Variable<double>>)
+        .def("WriteEigenResults",&GidEigenIO::WriteEigenResults<Variable<array_1d<double, 3>>>)
         ;
     
 }

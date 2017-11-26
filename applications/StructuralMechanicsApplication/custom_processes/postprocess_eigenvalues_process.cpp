@@ -110,11 +110,8 @@ namespace Kratos
                         r_dof.GetSolutionStepValue(0) = std::cos(angle) * r_node_eigenvectors(j,k++);
                 }
                 
-                // for (const auto& var_name : requested_results)
-                //     // I have to get the Variable form the Name somehow
-                //     mpGidEigenIO->WriteEigenResults(mrModelPart, var_name.GetVariable(), label, i);
-
-                mpGidEigenIO->WriteEigenResults(mrModelPart, DISPLACEMENT, label, i);                
+                for (const auto& var_name : requested_results)
+                    WrapperForIOCall(var_name, label, i);                
             }
         }
     }
@@ -133,6 +130,38 @@ namespace Kratos
         std::stringstream strstr;
         strstr << std::fixed << std::setprecision(3) << LabelNumber;
         return label + strstr.str();   
+    }
+
+    void PostprocessEigenvaluesProcess::WrapperForIOCall(const std::string VariableName, 
+                                                         const std::string Label,
+                                                         const SizeType AnimationStepNumber)
+    {
+        if( KratosComponents< Variable<double> >::Has( VariableName ) ) //case of double variable
+        {
+            const Variable<double > r_variable = KratosComponents< Variable<double > >::Get(VariableName);
+            mpGidEigenIO->WriteEigenResults(mrModelPart, 
+                                            r_variable, 
+                                            Label, 
+                                            AnimationStepNumber); 
+        }
+        else if( KratosComponents< Variable< array_1d<double, 3> > >::Has(VariableName) ) //case of component variable
+        {
+            const Variable<array_1d<double,3> > r_variable = KratosComponents< Variable<array_1d<double,3> > >::Get(VariableName);
+            mpGidEigenIO->WriteEigenResults(mrModelPart, 
+                                            r_variable, 
+                                            Label, 
+                                            AnimationStepNumber);            
+        }
+        else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(VariableName) ) //case of component variable
+        {
+            KRATOS_ERROR << "Vector Components cannot be querried!" << std::endl;
+        }
+        else
+        {
+            KRATOS_ERROR << "Invalid Type of Variable" << std::endl;
+        }
+        
+
     }
 
 }  // namespace Kratos.
