@@ -16,6 +16,7 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.T
         default_settings = KratosMultiphysics.Parameters(
             """
             {
+                "result_file_name" : "Structure",
                 "computing_model_part_name"   : "computing_domain",
                 "animation_steps"   :  20,
                 "eigen_results" : ["DISPLACEMENT"],
