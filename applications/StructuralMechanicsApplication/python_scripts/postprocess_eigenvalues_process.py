@@ -17,6 +17,7 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.T
             """
             {
                 "result_file_name" : "Structure",
+                "result_file_format_use_ascii" : false,
                 "computing_model_part_name"   : "computing_domain",
                 "animation_steps"   :  20,
                 "list_of_result_variables" : ["DISPLACEMENT"],
