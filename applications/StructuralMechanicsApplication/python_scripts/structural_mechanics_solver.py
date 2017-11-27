@@ -493,14 +493,14 @@ class MechanicalSolver(object):
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
         return KratosMultiphysics.LineSearchStrategy(computing_model_part, 
-                                                                     mechanical_scheme, 
-                                                                     linear_solver, 
-                                                                     mechanical_convergence_criterion, 
-                                                                     builder_and_solver,
-                                                                     self.settings["max_iteration"].GetInt(),
-                                                                     self.settings["compute_reactions"].GetBool(),
-                                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                     self.settings["move_mesh_flag"].GetBool())
+                                                     mechanical_scheme, 
+                                                     linear_solver, 
+                                                     mechanical_convergence_criterion, 
+                                                     builder_and_solver,
+                                                     self.settings["max_iteration"].GetInt(),
+                                                     self.settings["compute_reactions"].GetBool(),
+                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                     self.settings["move_mesh_flag"].GetBool())
  
     
     
