@@ -152,24 +152,122 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
+	void CrBeamElement2D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
+		ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY;
+		if (rMassMatrix.size1() != msElementSize) {
+			rMassMatrix.resize(msElementSize, msElementSize, false);
+		}
+		rMassMatrix = ZeroMatrix(msElementSize, msElementSize);
+
+		const double L = this->CalculateCurrentLength();
+		const double A = this->GetProperties()[CROSS_AREA];
+		const double rho = this->GetProperties()[DENSITY];
+
+		const double pre_beam = (rho * A * L) / 420.00;
+		const double pre_bar = (rho * A * L) / 6.00;
+
+		// bar part
+		rMassMatrix(0, 0) = 2.00 * pre_bar;
+		rMassMatrix(0, 3) = 1.00 * pre_bar;
+		rMassMatrix(3, 0) = 1.00 * pre_bar;
+		rMassMatrix(3, 3) = 2.00 * pre_bar;
+
+		// beam part
+
+		rMassMatrix(1, 1) = pre_beam * 156.00;
+		rMassMatrix(1, 2) = pre_beam * 22.00 * L;
+		rMassMatrix(1, 4) = pre_beam * 54.00;
+		rMassMatrix(1, 5) = pre_beam * (-13.00) * L;
+
+		rMassMatrix(2, 1) = pre_beam * 22.00 * L;
+		rMassMatrix(2, 2) = pre_beam * 4.00 * L * L;
+		rMassMatrix(2, 4) = pre_beam * 13.00 * L;
+		rMassMatrix(2, 5) = pre_beam * (-3.00) * L * L;
+
+		rMassMatrix(4, 1) = pre_beam * 54.00;
+		rMassMatrix(4, 2) = pre_beam * 13.00 * L;
+		rMassMatrix(4, 4) = pre_beam * 156.00;
+		rMassMatrix(4, 5) = pre_beam * (-22.00) * L;
+
+		rMassMatrix(5, 1) = pre_beam * (-13.00) * L;
+		rMassMatrix(5, 2) = pre_beam * (-3.00) * L * L;
+		rMassMatrix(5, 4) = pre_beam * (-22.00) * L;
+		rMassMatrix(5, 5) = pre_beam * (4.00) * L * L;		
+		KRATOS_CATCH("")
+	}
+
+	void CrBeamElement2D2N::CalculateDampingMatrix(MatrixType& rDampingMatrix,
+		ProcessInfo& rCurrentProcessInfo) {
+
+		KRATOS_TRY
+		if (rDampingMatrix.size1() != msElementSize)
+		{
+			rDampingMatrix.resize(msElementSize, msElementSize, false);
+		}
+
+		rDampingMatrix = ZeroMatrix(msElementSize, msElementSize);
+
+		Matrix StiffnessMatrix = ZeroMatrix(msElementSize, msElementSize);
+
+		this->CalculateLeftHandSide(StiffnessMatrix, rCurrentProcessInfo);
+
+		Matrix MassMatrix = ZeroMatrix(msElementSize, msElementSize);
+
+		this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+
+		double alpha = 0.0;
+		if (this->GetProperties().Has(RAYLEIGH_ALPHA))
+		{
+			alpha = this->GetProperties()[RAYLEIGH_ALPHA];
+		}
+		else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA))
+		{
+			alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+		}
+
+		double beta = 0.0;
+		if (this->GetProperties().Has(RAYLEIGH_BETA))
+		{
+			beta = this->GetProperties()[RAYLEIGH_BETA];
+		}
+		else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
+		{
+			beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+		}
+
+		rDampingMatrix += alpha * MassMatrix;
+		rDampingMatrix += beta  * StiffnessMatrix;
+
+		KRATOS_CATCH("")
+	}
+
 	void CrBeamElement2D2N::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 		VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
 		{
 			KRATOS_TRY;
 			// t 
 			this->DeformationForces = this->CalculateInternalStresses_DeformationModes();
+			if(this->mIsLinearElement) this->DeformationForces = ZeroVector(msLocalSize);
 
 			// qe
 			Vector NodalForces = ZeroVector(msElementSize);
 			NodalForces = this->ReturnElementForces_Local();
 			// q
 			this->GlobalizeVector(NodalForces);
+			this->F_int_global = NodalForces;
 			// Kt
 			this->CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
 				
 			// residual >>> r = f_ext - f_int
-			rRightHandSideVector = ZeroVector(msElementSize);
-			rRightHandSideVector -= NodalForces;
+			if(this->mIsLinearElement) this->CalculateRightHandSideLinear(rRightHandSideVector,rLeftHandSideMatrix);
+			else
+			{
+				rRightHandSideVector = ZeroVector(msElementSize);
+				rRightHandSideVector -= NodalForces;
+			}
+
 			KRATOS_CATCH("")
 		}
 
@@ -177,10 +275,12 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo)
 		{
 			KRATOS_TRY;
-			Vector DeforLin = ZeroVector(msElementSize);
-			this->GetValuesVector(DeforLin);
-			rRightHandSideVector = ZeroVector(msElementSize);
-			rRightHandSideVector -= prod(this->K_lin,DeforLin);
+			if(this->mIsLinearElement) this->CalculateRightHandSideLinear(rRightHandSideVector,this->K_master);
+			else
+			{
+				rRightHandSideVector = ZeroVector(msElementSize);
+				rRightHandSideVector -= this->F_int_global;
+			}
 			KRATOS_CATCH("")
 		}
 
@@ -190,13 +290,28 @@ namespace Kratos
 			KRATOS_TRY;
 			rLeftHandSideMatrix = this->CreateElementStiffnessMatrix_Total();
 			this->GlobalizeMatrix(rLeftHandSideMatrix);
-			this->K_lin = rLeftHandSideMatrix;
+			this->K_master = rLeftHandSideMatrix;
 			KRATOS_CATCH("")
 		}
 
 	/////////////////////////////////////////////////
 	///////////// CUSTOM FUNCTIONS --->>
 	/////////////////////////////////////////////////
+
+	void CrBeamElement2D2N::CalculateRightHandSideLinear(
+		VectorType& rRightHandSideVector, MatrixType rLeftHandSideMatrix)
+		{
+			KRATOS_TRY;
+			Vector NodalDeformation = ZeroVector(msElementSize);
+			this->GetValuesVector(NodalDeformation);
+			rRightHandSideVector = ZeroVector(msElementSize);
+			rRightHandSideVector -= prod(rLeftHandSideMatrix, NodalDeformation);
+			KRATOS_CATCH("")
+		}
+
+
+
+
 	double CrBeamElement2D2N::CalculateShearModulus() {
 		KRATOS_TRY;
 		const double nu = this->GetProperties()[POISSON_RATIO];
@@ -550,7 +665,105 @@ namespace Kratos
 		KRATOS_CATCH("")
 	 }
 
+	int CrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY
+		const double numerical_limit = std::numeric_limits<double>::epsilon();
+			if (GetGeometry().WorkingSpaceDimension() != 2 || GetGeometry().size() != 2)
+			{
+				KRATOS_ERROR <<
+					"The beam element works only in 2D and with 2 noded elements" << ""
+					<< std::endl;
+			}
+		//verify that the variables are correctly initialized
+		if (VELOCITY.Key() == 0) {
+			KRATOS_ERROR <<
+				"VELOCITY has Key zero! (check if the application is correctly registered" << ""
+				<< std::endl;
+		}
+		if (DISPLACEMENT.Key() == 0) {
+			KRATOS_ERROR <<
+				"DISPLACEMENT has Key zero! (check if the application is correctly registered"<< ""
+				<< std::endl;
+		}
+		if (ACCELERATION.Key() == 0) {
+			KRATOS_ERROR <<
+				"ACCELERATION has Key zero! (check if the application is correctly registered" << ""
+				<< std::endl;
+		}
+		if (DENSITY.Key() == 0) {
+			KRATOS_ERROR <<
+				"DENSITY has Key zero! (check if the application is correctly registered" << ""
+				<< std::endl;
+		}
+		if (CROSS_AREA.Key() == 0) {
+			KRATOS_ERROR <<
+				"CROSS_AREA has Key zero! (check if the application is correctly registered" << ""
+				<< std::endl;
+		}
+		//verify that the dofs exist
+		for (unsigned int i = 0; i<this->GetGeometry().size(); ++i)
+		{
+			if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false) {
+				KRATOS_ERROR <<
+					"missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id()
+					<< std::endl;
+			}
+			if (this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false ||
+				this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false) {
+				KRATOS_ERROR <<
+					"missing one of the dofs for the variable DISPLACEMENT on node " <<
+						GetGeometry()[i].Id() << std::endl;
+			}
+		}
 
+
+
+		if (this->GetProperties().Has(CROSS_AREA) == false ||
+			this->GetProperties()[CROSS_AREA] <= numerical_limit)
+		{
+			KRATOS_ERROR << "CROSS_AREA not provided for this element" << this->Id()
+				<< std::endl;
+		}
+
+		if (this->GetProperties().Has(YOUNG_MODULUS) == false ||
+			this->GetProperties()[YOUNG_MODULUS] <= numerical_limit)
+		{
+			KRATOS_ERROR << "YOUNG_MODULUS not provided for this element" << this->Id()
+				<< std::endl;
+		}
+		if (this->GetProperties().Has(DENSITY) == false)
+		{
+			KRATOS_ERROR << "DENSITY not provided for this element" << this->Id()
+				<< std::endl;
+		}
+
+		if (this->GetProperties().Has(POISSON_RATIO) == false)
+		{
+			KRATOS_ERROR << "POISSON_RATIO not provided for this element" << this->Id()
+				<< std::endl;
+		}
+
+		if (this->GetProperties().Has(I33) == false)
+		{
+			KRATOS_ERROR << "I33 not provided for this element" << this->Id()
+				<< std::endl;
+		}
+		return 0;
+
+		KRATOS_CATCH("")
+		}
+
+
+	void CrBeamElement2D2N::save(Serializer& rSerializer) const
+	{
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+	}
+
+	void CrBeamElement2D2N::load(Serializer& rSerializer)
+	{
+		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+	}
 } // namespace Kratos.
 
 

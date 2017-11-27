@@ -251,6 +251,7 @@ private:
     const CrBeamElement3D2N mCrBeamElement3D2N;
     const CrBeamElement3D2N mCrLinearBeamElement3D2N;
     const CrBeamElement2D2N mCrBeamElement2D2N;
+    const CrBeamElement2D2N mCrLinearBeamElement2D2N;
 
 
     // Adding the shells elements 

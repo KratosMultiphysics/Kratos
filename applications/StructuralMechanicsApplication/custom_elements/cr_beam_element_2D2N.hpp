@@ -89,6 +89,13 @@ namespace Kratos
 			Vector& rValues,
 			int Step = 0) override;
 
+		void CalculateMassMatrix(
+			MatrixType& rMassMatrix,
+			ProcessInfo& rCurrentProcessInfo) override;
+
+		void CalculateDampingMatrix(
+			MatrixType& rDampingMatrix,
+			ProcessInfo& rCurrentProcessInfo) override;			
 
 		void CalculateLocalSystem(
 			MatrixType& rLeftHandSideMatrix,
@@ -102,6 +109,8 @@ namespace Kratos
 		void CalculateLeftHandSide(
 			MatrixType& rLeftHandSideMatrix,
 			ProcessInfo& rCurrentProcessInfo) override;
+
+		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 	/////////////////////////////////////////////////
 	///////////// CUSTOM FUNCTIONS --->>
@@ -120,6 +129,8 @@ namespace Kratos
 		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Kr();
 		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Total();
 
+		void CalculateRightHandSideLinear(VectorType& rRightHandSideVector, MatrixType rLeftHandSideMatrix);
+
 		void GlobalizeMatrix(Matrix &A);
 		void GlobalizeVector(Vector &A);
 		double Modulus2Pi(double A);
@@ -134,12 +145,15 @@ namespace Kratos
 
 		bool mIsLinearElement = false;
 		bounded_vector<double,msLocalSize> DeformationForces = ZeroVector(msLocalSize);
-		MatrixType K_lin = ZeroMatrix(msElementSize,msElementSize);
+		Vector F_int_global = ZeroVector(msElementSize);
+		Matrix K_master = ZeroMatrix(msElementSize,msElementSize);
 		CrBeamElement2D2N() {};
 
 
 
 		friend class Serializer;
+		void save(Serializer& rSerializer) const override;
+		void load(Serializer& rSerializer) override;
 	};
 
 }
