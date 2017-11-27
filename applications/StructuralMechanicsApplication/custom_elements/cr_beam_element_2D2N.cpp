@@ -267,6 +267,7 @@ namespace Kratos
 				rRightHandSideVector = ZeroVector(msElementSize);
 				rRightHandSideVector -= NodalForces;
 			}
+			rRightHandSideVector += this->CalculateBodyForces();
 
 			KRATOS_CATCH("")
 		}
@@ -281,6 +282,7 @@ namespace Kratos
 				rRightHandSideVector = ZeroVector(msElementSize);
 				rRightHandSideVector -= this->F_int_global;
 			}
+			rRightHandSideVector += this->CalculateBodyForces();
 			KRATOS_CATCH("")
 		}
 
@@ -298,6 +300,122 @@ namespace Kratos
 	///////////// CUSTOM FUNCTIONS --->>
 	/////////////////////////////////////////////////
 
+	bounded_vector<double,CrBeamElement2D2N::msElementSize> CrBeamElement2D2N::CalculateBodyForces()
+	{
+		KRATOS_TRY
+		//getting shapefunctionvalues for linear SF
+		const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues(
+			GeometryData::GI_GAUSS_1);
+
+		bounded_vector<double,msDimension> EquivalentLineLoad = ZeroVector(msDimension);
+		bounded_vector<double,msElementSize> BodyForcesGlobal = ZeroVector(msElementSize);
+
+		const double A = this->GetProperties()[CROSS_AREA];
+		const double l = this->CalculateCurrentLength();
+		const double rho = this->GetProperties()[DENSITY];
+
+		//calculating equivalent line load
+		for (int i = 0; i < msNumberOfNodes; ++i)
+		{
+			EquivalentLineLoad += A * rho*
+				this->GetGeometry()[i].
+				FastGetSolutionStepValue(VOLUME_ACCELERATION)*Ncontainer(0, i);
+		}
+
+
+		// adding the nodal forces
+		for (int i = 0; i < msNumberOfNodes; ++i)
+		{
+			int index = i*msLocalSize;
+			for (int j = 0; j < msDimension; ++j)
+			{
+				BodyForcesGlobal[j + index] =
+					EquivalentLineLoad[j] * Ncontainer(0, i) * l;
+			}
+		}
+
+		// adding the nodal moments
+		this->CalculateAndAddWorkEquivalentNodalForcesLineLoad
+			(EquivalentLineLoad, BodyForcesGlobal, l);
+
+		// return the total ForceVector
+		return BodyForcesGlobal;
+		KRATOS_CATCH("")
+	}
+
+	void CrBeamElement2D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
+		const bounded_vector<double,CrBeamElement2D2N::msDimension> ForceInput,
+		bounded_vector<double,CrBeamElement2D2N::msElementSize>& rRightHandSideVector,
+		const double GeometryLength)
+	{
+		KRATOS_TRY;
+		//calculate orthogonal load vector
+		const double numerical_limit = std::numeric_limits<double>::epsilon();
+		Vector GeometricOrientation = ZeroVector(3);
+		GeometricOrientation[0] = this->GetGeometry()[1].X()
+			- this->GetGeometry()[0].X();
+		GeometricOrientation[1] = this->GetGeometry()[1].Y()
+			- this->GetGeometry()[0].Y();
+		GeometricOrientation[2] = 0.000;
+
+
+		const double VectorNormA = MathUtils<double>::Norm(GeometricOrientation);
+		if (VectorNormA > numerical_limit) GeometricOrientation /= VectorNormA;
+
+		Vector LineLoadDir = ZeroVector(3);
+		for (int i = 0; i < msDimension; ++i)
+		{
+			LineLoadDir[i] = ForceInput[i];
+		}
+
+		const double VectorNormB = MathUtils<double>::Norm(LineLoadDir);
+		if (VectorNormB > numerical_limit) LineLoadDir /= VectorNormB;
+
+		double cosAngle = 0.00;
+		for (int i = 0; i < msDimension; ++i)
+		{
+			cosAngle += LineLoadDir[i] * GeometricOrientation[i];
+		}
+
+		const double sinAngle = std::sqrt(1.00 - (cosAngle*cosAngle));
+		const double NormForceVectorOrth = sinAngle * VectorNormB;
+
+
+		Vector NodeA = ZeroVector(3);
+		NodeA[0] = this->GetGeometry()[0].X();
+		NodeA[1] = this->GetGeometry()[0].Y();
+		NodeA[2] = 0.00;
+
+
+		Vector NodeB = ZeroVector(3);
+		NodeB = NodeA + LineLoadDir;
+
+		Vector NodeC = ZeroVector(3);
+		NodeC = NodeA + (GeometricOrientation*cosAngle);
+
+		Vector LoadOrthogonalDir = ZeroVector(3);
+		LoadOrthogonalDir = NodeB - NodeC;
+		const double VectorNormC = MathUtils<double>::Norm(LoadOrthogonalDir);
+		if (VectorNormC > numerical_limit) LoadOrthogonalDir /= VectorNormC;
+
+
+
+		// now caluclate respective work equivilent nodal moments
+
+		const double CustomMoment = NormForceVectorOrth *
+			GeometryLength*GeometryLength / 12.00;
+
+		Vector MomentNodeA = ZeroVector(3);
+		MomentNodeA = MathUtils<double>::CrossProduct(GeometricOrientation,
+			LoadOrthogonalDir);
+		MomentNodeA *= CustomMoment;
+
+
+		rRightHandSideVector[msDimension] += MomentNodeA[2];
+		rRightHandSideVector[(2*msDimension)+1] -= MomentNodeA[2];
+
+		KRATOS_CATCH("")
+	}
 	void CrBeamElement2D2N::CalculateRightHandSideLinear(
 		VectorType& rRightHandSideVector, MatrixType rLeftHandSideMatrix)
 		{

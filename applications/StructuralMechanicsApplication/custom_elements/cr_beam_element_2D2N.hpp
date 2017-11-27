@@ -119,6 +119,13 @@ namespace Kratos
 		double CalculatePsi(const double I, const double A_eff);
 		double CalculateInitialElementAngle();
 		double CalculateDeformedElementAngle();
+		
+		bounded_vector<double,msElementSize> CalculateBodyForces();  
+		void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
+			const bounded_vector<double,msDimension> ForceInput,
+			bounded_vector<double,msElementSize>& rRightHandSideVector,
+			const double GeometryLength);
+
 
 		bounded_matrix<double,msElementSize,msLocalSize> CalculateTransformationS();
 		double CalculateCurrentLength();
