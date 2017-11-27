@@ -253,7 +253,7 @@ class DEMEnergyCalculator(object):
         self.calculate_option = False
         
         if "EnergyCalculationOption" in DEM_parameters.keys():
-            if DEM_parameters["EnergyCalculationOption"].GetBool(): 
+            if DEM_parameters["EnergyCalculationOption"].GetBool():
                 self.calculate_option = True
                 self.DEM_parameters = DEM_parameters
                 self.SpheresModelPart = spheres_model_part
@@ -280,7 +280,7 @@ class DEMEnergyCalculator(object):
 
     def CalculateEnergyAndPlot(self, time):
         if self.calculate_option:
-            if not "TestType" in self.DEM_parameters.keys():
+            #if not "TestType" in self.DEM_parameters.keys():
                 if (self.energy_graph_counter == self.graph_frequency):
                     self.energy_graph_counter = 0
 
