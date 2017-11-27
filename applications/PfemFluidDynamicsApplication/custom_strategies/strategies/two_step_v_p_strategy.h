@@ -465,7 +465,7 @@ public:
        ModelPart::ElementIterator ElemBegin;
        ModelPart::ElementIterator ElemEnd;
        OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
-
+#pragma omp for
        for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
 	 {
 	   /* itElem-> InitializeElementStrainStressState(); */
@@ -682,7 +682,7 @@ protected:
             ModelPart::NodeIterator NodeBegin;
             ModelPart::NodeIterator NodeEnd;
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
-
+#pragma omp for
             for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
             {
                 const array_1d<double,3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
@@ -736,7 +736,7 @@ protected:
             ModelPart::NodeIterator NodeBegin;
             ModelPart::NodeIterator NodeEnd;
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
-
+#pragma omp for
             for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
             {
                 const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
@@ -796,7 +796,7 @@ protected:
 	    ModelPart::NodeIterator NodeBegin;
 	    ModelPart::NodeIterator NodeEnd;
 	    OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
-
+#pragma omp for
 	    for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
 	      {
 		itNode->FastGetSolutionStepValue(VELOCITY,0)=itNode->FastGetSolutionStepValue(VELOCITY,1);

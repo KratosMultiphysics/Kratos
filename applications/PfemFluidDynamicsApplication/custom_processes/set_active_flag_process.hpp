@@ -125,6 +125,7 @@ namespace Kratos
 	    ModelerUtilities ModelerUtils;
 	    ModelPartVolume=ModelerUtils.ComputeModelPartVolume(mrModelPart);
 	  }
+#pragma omp for
 	  for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
 	    {
 	      bool sliverEliminationCriteria=false;
@@ -308,6 +309,7 @@ namespace Kratos
 	  ModelPart::ElementIterator ElemBegin;
 	  ModelPart::ElementIterator ElemEnd;
 	  OpenMPUtils::PartitionedIterators(mrModelPart.Elements(),ElemBegin,ElemEnd);
+#pragma omp for
 	  for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
 	    {
 	      if((itElem)->IsNot(ACTIVE)){

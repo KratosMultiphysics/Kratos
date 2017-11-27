@@ -225,7 +225,7 @@ namespace Kratos
 	    ModelPart::NodeIterator NodeBegin;
 	    ModelPart::NodeIterator NodeEnd;
 	    OpenMPUtils::PartitionedIterators(mrModelPart.Nodes(),NodeBegin,NodeEnd);
-
+#pragma omp for
 	    for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
 	      {
 		if(itNode->IsNot(TO_ERASE) && itNode->IsNot(ISOLATED) && itNode->IsNot(SOLID)){
@@ -282,6 +282,7 @@ namespace Kratos
 	ModelPart::ElementIterator ElemBegin;
 	ModelPart::ElementIterator ElemEnd;
 	OpenMPUtils::PartitionedIterators(mrModelPart.Elements(),ElemBegin,ElemEnd);
+#pragma omp for
 	for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
 	  {
 	    double temporaryTimeInterval=rCurrentProcessInfo[DELTA_TIME];
