@@ -32,6 +32,7 @@ namespace Kratos
         Parameters default_parameters(R"(
             {
                 "result_file_name" : "",
+                "result_file_format_use_ascii" : false,
                 "animation_steps"   :  1,
                 "label_type" : "angular_frequency",
                 "list_of_result_variables" : []
@@ -50,10 +51,14 @@ namespace Kratos
             result_file_name = mrModelPart.Name();
         
         result_file_name += "_EigenResults";
-        
+
+        auto post_mode = GiD_PostBinary;
+        if (mOutputParameters["result_file_format_use_ascii"].GetBool()) // this format is only needed for testing
+            post_mode = GiD_PostAscii;
+
         mpGidEigenIO = GidEigenIO::Pointer (new GidEigenIO( 
                             result_file_name,
-                            GiD_PostBinary,
+                            post_mode,
                             MultiFileFlag::SingleFile,
                             WriteDeformedMeshFlag::WriteUndeformed,
                             WriteConditionsFlag::WriteConditions) );
@@ -87,6 +92,8 @@ namespace Kratos
         std::vector<Variable<array_1d<double,3>>> requested_vector_results;
         GetVariables(requested_double_results, requested_vector_results);
 
+        mpGidEigenIO->InitializeResults(0.0, mrModelPart.GetMesh());
+
         for (SizeType i=0; i < num_animation_steps; ++i)
         {
             angle = 2 * Globals::Pi * i / num_animation_steps;
@@ -116,6 +123,7 @@ namespace Kratos
                     mpGidEigenIO->WriteEigenResults(mrModelPart, variable, label, i);               
             }
         }
+        mpGidEigenIO->FinalizeResults();        
     }
 
     void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
@@ -137,7 +145,7 @@ namespace Kratos
 
                 rRequestedDoubleResults.push_back(variable);
             }
-            else if( KratosComponents< Variable< array_1d<double, 3> > >::Has(variable_name) ) //case of component variable
+            else if (KratosComponents< Variable< array_1d<double, 3> > >::Has(variable_name) ) //case of component variable
             {
                 const Variable<array_1d<double,3> > variable = KratosComponents< Variable<array_1d<double,3> > >::Get(variable_name);
 
@@ -147,7 +155,7 @@ namespace Kratos
 
                 rRequestedVectorResults.push_back(variable);       
             }
-            else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) ) //case of component variable
+            else if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) ) //case of component variable
             {
                 KRATOS_ERROR << "Vector Components cannot be querried, name: " << variable_name << std::endl;
             }
@@ -183,8 +191,8 @@ namespace Kratos
         }
         else
         {
-            KRATOS_ERROR << "Wrong \"lable_type\"! Available options are: \"angular_frequency\","
-                         << "\"frequency\", \"step\"" << std::endl;
+            KRATOS_ERROR << "The requested label_type \"" << lable_type << "\" is not available!\n" 
+                         << "Available options are: \"angular_frequency\", \"frequency\", \"step\"" << std::endl;
         }
 
         std::stringstream strstr;
