@@ -33,8 +33,8 @@ namespace Kratos
             {
                 "result_file_name" : "",
                 "animation_steps"   :  1,
-                "use_eigenfrequency_in_label" : false,
-                "eigen_results" : []
+                "label_type" : "angular_frequency",
+                "list_of_result_variables" : []
             }  )"
         );
 
@@ -76,17 +76,16 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(mpGidEigenIO) << " EigenIO is uninitialized!" << std::endl;
 
         const auto& eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
+        // Note: this is omega^2
         const SizeType num_eigenvalues = eigenvalue_vector.size();
 
         const SizeType num_animation_steps = mOutputParameters["animation_steps"].GetInt();
         double angle = 0.0;
         std::string label = "";
 
-        const SizeType num_requested_results = mOutputParameters["eigen_results"].size();
-        std::vector<std::string> requested_results(num_requested_results);
-
-        for (SizeType i=0; i<num_requested_results; ++i)
-            requested_results[i] = mOutputParameters["eigen_results"].GetArrayItem(i).GetString();
+        std::vector<Variable<double>> requested_double_results;
+        std::vector<Variable<array_1d<double,3>>> requested_vector_results;
+        GetVariables(requested_double_results, requested_vector_results);
 
         for (SizeType i=0; i < num_animation_steps; ++i)
         {
@@ -94,84 +93,103 @@ namespace Kratos
 
             for(SizeType j=0; j<num_eigenvalues; ++j)
             {
-                label = GetLabel(eigenvalue_vector[j]);
+                label = GetLabel(j, eigenvalue_vector[j]);
 
-                for(auto& node : mrModelPart.Nodes())
+                for(auto& r_node : mrModelPart.Nodes())
                 {
                     // Copy the eigenvector to the Solutionstepvariable. Credit to Michael Andre
-                    DofsContainerType& r_node_dofs = node.GetDofs();
-                    Matrix& r_node_eigenvectors = node.GetValue(EIGENVECTOR_MATRIX);
+                    DofsContainerType& r_node_dofs = r_node.GetDofs();
+                    Matrix& r_node_eigenvectors = r_node.GetValue(EIGENVECTOR_MATRIX);
 
                     KRATOS_ERROR_IF_NOT(r_node_dofs.size() == r_node_eigenvectors.size2()) 
-                        << "Number of results on node " << node.Id() << " is wrong" << std::endl;
+                        << "Number of results on node " << r_node.Id() << " is wrong" << std::endl;
 
                     SizeType k = 0;
                     for (auto& r_dof : r_node_dofs)
                         r_dof.GetSolutionStepValue(0) = std::cos(angle) * r_node_eigenvectors(j,k++);
                 }
                 
-                for (const auto& var_name : requested_results)
-                    WrapperForIOCall(var_name, label, i);                
+                for (const auto& variable : requested_double_results)
+                    mpGidEigenIO->WriteEigenResults(mrModelPart, variable, label, i);                
+            
+                for (const auto& variable : requested_vector_results)
+                    mpGidEigenIO->WriteEigenResults(mrModelPart, variable, label, i);               
             }
         }
     }
 
-    std::string PostprocessEigenvaluesProcess::GetLabel(double LabelNumber)
+    void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
+                                                     std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults)
     {
-        std::string label = "EigenValue_";
+        std::string variable_name;
 
-        // Compute the Eigenfrequency from the Eigenvalue (if the User specified it)
-        if (mOutputParameters["use_eigenfrequency_in_label"].GetBool())
+        for (SizeType i=0; i<mOutputParameters["list_of_result_variables"].size(); ++i)
         {
-            label = "EigenFrequency_";
-            LabelNumber = std::sqrt(LabelNumber) / (2 * Globals::Pi);
-        }
+            variable_name = mOutputParameters["list_of_result_variables"].GetArrayItem(i).GetString();
 
-        std::stringstream strstr;
-        strstr << std::fixed << std::setprecision(3) << LabelNumber;
-        return label + strstr.str();   
+            if( KratosComponents< Variable<double> >::Has( variable_name ) ) //case of double variable
+            {
+                const Variable<double > variable = KratosComponents< Variable<double > >::Get(variable_name);
+
+                KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable )) 
+                    << "Requesting EigenResults for a Variable that is not in the ModelPart: " 
+                    << variable << std::endl;
+
+                rRequestedDoubleResults.push_back(variable);
+            }
+            else if( KratosComponents< Variable< array_1d<double, 3> > >::Has(variable_name) ) //case of component variable
+            {
+                const Variable<array_1d<double,3> > variable = KratosComponents< Variable<array_1d<double,3> > >::Get(variable_name);
+
+                KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable )) 
+                    << "Requesting EigenResults for a Variable that is not in the ModelPart: " 
+                    << variable << std::endl;
+
+                rRequestedVectorResults.push_back(variable);       
+            }
+            else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) ) //case of component variable
+            {
+                KRATOS_ERROR << "Vector Components cannot be querried, name: " << variable_name << std::endl;
+            }
+            else
+            {
+                KRATOS_ERROR << "Invalid Type of Variable, name: " << variable_name << std::endl;
+            }
+        }
     }
 
-    void PostprocessEigenvaluesProcess::WrapperForIOCall(const std::string VariableName, 
-                                                         const std::string Label,
-                                                         const SizeType AnimationStepNumber)
+    std::string PostprocessEigenvaluesProcess::GetLabel(const int NumberOfEigenvalue,
+                                                        const double EigenvalueSolution)
     {
-        if( KratosComponents< Variable<double> >::Has( VariableName ) ) //case of double variable
+        std::string label;
+        double label_number;
+
+        const std::string lable_type = mOutputParameters["label_type"].GetString();
+
+        if (lable_type == "angular_frequency")
         {
-            const Variable<double > variable = KratosComponents< Variable<double > >::Get(VariableName);
-
-            KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable )) 
-                << "Requesting EigenResults for a Variable that is not in the ModelPart: " 
-                << variable << std::endl;
-
-            mpGidEigenIO->WriteEigenResults(mrModelPart, 
-                                            variable, 
-                                            Label, 
-                                            AnimationStepNumber); 
+            label = "EigenValue_[rad/s]_";
+            label_number = std::sqrt(EigenvalueSolution);
         }
-        else if( KratosComponents< Variable< array_1d<double, 3> > >::Has(VariableName) ) //case of component variable
+        else if (lable_type == "frequency")
         {
-            const Variable<array_1d<double,3> > variable = KratosComponents< Variable<array_1d<double,3> > >::Get(VariableName);
-
-            KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable )) 
-                << "Requesting EigenResults for a Variable that is not in the ModelPart: " 
-                << variable << std::endl;
-
-            mpGidEigenIO->WriteEigenResults(mrModelPart, 
-                                            variable, 
-                                            Label, 
-                                            AnimationStepNumber);            
+            label = "EigenFrequency_[Hz]_";
+            label_number = std::sqrt(EigenvalueSolution) / (2 * Globals::Pi);
         }
-        else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(VariableName) ) //case of component variable
+        else if (lable_type == "step")
         {
-            KRATOS_ERROR << "Vector Components cannot be querried, name: " << VariableName << std::endl;
+            label = "NoOfEigenValue_";
+            label_number = NumberOfEigenvalue;
         }
         else
         {
-            KRATOS_ERROR << "Invalid Type of Variable, name: " << VariableName << std::endl;
+            KRATOS_ERROR << "Wrong \"lable_type\"! Available options are: \"angular_frequency\","
+                         << "\"frequency\", \"step\"" << std::endl;
         }
-        
 
+        std::stringstream strstr;
+        strstr << label_number;
+        return label + strstr.str();   
     }
 
 }  // namespace Kratos.

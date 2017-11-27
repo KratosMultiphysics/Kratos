@@ -24,7 +24,6 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_cross_sections_to_python.h"
-#include "custom_python/add_custom_io_to_python.h"
 
 namespace Kratos
 {
@@ -48,7 +47,6 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
     AddCustomUtilitiesToPython();
     AddCustomConstitutiveLawsToPython();
     AddCrossSectionsToPython();
-    AddCustomIOToPython();
 
     //registering variables in python
     // Generalized eigenvalue problem

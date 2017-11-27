@@ -77,13 +77,6 @@ class PostprocessEigenvaluesProcess : public Process
     PostprocessEigenvaluesProcess(ModelPart &rModelPart,
                                   Parameters OutputParameters);
 
-    /// Destructor.
-    ~PostprocessEigenvaluesProcess() = default;
-
-    // Explicitly delete the other constructors
-    PostprocessEigenvaluesProcess(const PostprocessEigenvaluesProcess&) = delete;
-    PostprocessEigenvaluesProcess& operator=(const PostprocessEigenvaluesProcess&) = delete;
-
     ///@}
     ///@name Operators
     ///@{
@@ -182,11 +175,11 @@ class PostprocessEigenvaluesProcess : public Process
     ///@name Private Operations
     ///@{
     
-    std::string GetLabel(double LabelNumber);
+    std::string GetLabel(const int NumberOfEigenValue,
+                         const double EigenValueSolution);
 
-    void WrapperForIOCall(const std::string VariableName, 
-                          const std::string Label,
-                          const SizeType AnimationStepNumber);
+    void GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
+                      std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults);
 
     ///@}
     ///@name Private  Access
