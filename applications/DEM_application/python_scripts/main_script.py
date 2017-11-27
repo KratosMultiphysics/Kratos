@@ -129,23 +129,24 @@ class Solution(object):
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
             return TaylorScheme()
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-            return NewmarkBetaScheme(0.5, 0.25)
+            return NewmarkBetaScheme
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             return VelocityVerletScheme()
         else:
             return None
     
     def SelectRotationalScheme(self):
-        if   (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Forward_Euler'):
-            return ForwardEulerScheme()
-        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
-            return SymplecticEulerScheme()
-        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
-            return TaylorScheme()
-        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-            return NewmarkBetaScheme(0.5, 0.25)
-        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
-            return VelocityVerletScheme()
+        if (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Direct_Integration'):
+            if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler'):
+                return ForwardEulerScheme()
+            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
+                return SymplecticEulerScheme()
+            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
+                return TaylorScheme()
+            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
+                return NewmarkBetaScheme
+            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+                return VelocityVerletScheme()
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Runge_Kutta'):
             return RungeKuttaScheme()
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration'):

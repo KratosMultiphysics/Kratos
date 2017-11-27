@@ -117,17 +117,15 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
         
-        double dt = 0.5 * delta_t;
-        
         if (StepFlag == 1) //PREDICT
         {
              for (int k = 0; k < 3; k++) {
                  if (Fix_Ang_vel[k] == false) {
-                     delta_rotation[k] = angular_velocity[k] * dt + 0.5 * dt * dt * angular_acceleration[k];
+                     delta_rotation[k] = angular_velocity[k] * delta_t + 0.5 * delta_t * delta_t * angular_acceleration[k];
                      rotated_angle[k] += delta_rotation[k];
-                     angular_velocity[k] += 0.5 * angular_acceleration[k] * dt;
+                     angular_velocity[k] += 0.5 * angular_acceleration[k] * delta_t;
                 } else {
-                     delta_rotation[k] = angular_velocity[k] * dt;
+                     delta_rotation[k] = angular_velocity[k] * delta_t;
                      rotated_angle[k] += delta_rotation[k];
                 }
             }
@@ -137,7 +135,7 @@ namespace Kratos {
         {
             for (int k = 0; k < 3; k++) {
                 if (Fix_Ang_vel[k] == false) {
-                    angular_velocity[k] += 0.5 * angular_acceleration[k] * dt;
+                    angular_velocity[k] += 0.5 * angular_acceleration[k] * delta_t;
                 }
             }
         }//CORRECT
@@ -154,10 +152,8 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
         
-        double dt = 0.5 * delta_t;
-        
         for (int k = 0; k < 3; k++) {
-                delta_rotation[k] = angular_velocity[k] * dt;
+                delta_rotation[k] = angular_velocity[k] * delta_t;
                 rotated_angle[k] += delta_rotation[k];
         }
         
@@ -182,8 +178,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
         
-        double dt = 0.5 * delta_t;
-        delta_rotation = angular_velocity * dt;
+        delta_rotation = angular_velocity * delta_t;
         rotated_angle += delta_rotation;
     }
     
@@ -191,12 +186,12 @@ namespace Kratos {
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
                 const array_1d<double, 3>& angular_momentum,
-                const double dt,
+                const double delta_t,
                 const array_1d<double, 3>& InitialAngularVel,
                 array_1d<double, 3>& FinalAngularVel) {
         
         array_1d<double, 3 > aux = InitialAngularVel;
-        DEM_MULTIPLY_BY_SCALAR_3(aux, dt);
+        DEM_MULTIPLY_BY_SCALAR_3(aux, delta_t);
         array_1d<double, 3 > TempDeltaRotation = aux;
 
         Quaternion<double> TempOrientation;

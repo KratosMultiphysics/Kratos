@@ -351,35 +351,36 @@ class Procedures(object):
         
     def SetTranslationalScheme(self):
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler'):
-            scheme = ForwardEulerScheme()
+            translational_scheme = ForwardEulerScheme()
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
-            scheme = SymplecticEulerScheme()
+            translational_scheme = SymplecticEulerScheme()
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
-            scheme = TaylorScheme()
+            translational_scheme = TaylorScheme()
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-            scheme = NewmarkBetaScheme(0.5, 0.25)
+            translational_scheme = NewmarkBetaScheme(0.5, 0.25)
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
-            scheme = VelocityVerletScheme()
+            translational_scheme = VelocityVerletScheme()
         else:
             self.KRATOSprint('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return translational_scheme
     
     def SetRotationalScheme(self):
-        if (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Forward_Euler'):
-            scheme = ForwardEulerScheme()
-        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
-            scheme = SymplecticEulerScheme()
-        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
-            scheme = TaylorScheme()
-        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-            scheme = NewmarkBetaScheme(0.5, 0.25)
-        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
-            scheme = VelocityVerletScheme()
+        if (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Direct_Integration'):
+            if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler'):
+                rotational_scheme = ForwardEulerScheme()
+            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
+                rotational_scheme = SymplecticEulerScheme()
+            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
+                rotational_scheme = TaylorScheme()
+            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
+                rotational_scheme = NewmarkBetaScheme(0.5, 0.25)
+            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+                rotational_scheme = VelocityVerletScheme()
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Runge_Kutta'):
-            scheme = RungeKuttaScheme()
+            rotational_scheme = RungeKuttaScheme()
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration'):
-            scheme = QuaternionIntegrationScheme()
+            rotational_scheme = QuaternionIntegrationScheme()
         else:
             self.KRATOSprint('Error: selected rotational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")

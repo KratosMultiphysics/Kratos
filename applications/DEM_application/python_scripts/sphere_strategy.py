@@ -423,31 +423,38 @@ class ExplicitStrategy:
 
         return class_name
     
-    def RotationalIntegrationSchemeTranslator(self, name):
+    def RotationalIntegrationSchemeTranslator(self, name_translational, name_rotational):
         class_name = None
 
-        if name == 'Forward_Euler':
-            class_name = 'ForwardEulerScheme'
-        elif name == 'Symplectic_Euler':
-            class_name = 'SymplecticEulerScheme'
-        elif name == 'Taylor_Scheme':
-            class_name = 'TaylorScheme'
-        elif name == 'Newmark_Beta_Method':
-            class_name = 'NewmarkBetaScheme'
-        elif name == 'Velocity_Verlet':
-            class_name = 'VelocityVerletScheme'
-        elif name == 'Runge_Kutta':
+        if name_rotational == 'Direct_Integration':
+            if name_translational == 'Forward_Euler':
+                class_name = 'ForwardEulerScheme'
+            elif name_translational == 'Symplectic_Euler':
+                class_name = 'SymplecticEulerScheme'
+            elif name_translational == 'Taylor_Scheme':
+                class_name = 'TaylorScheme'
+            elif name_translational == 'Newmark_Beta_Method':
+                class_name = 'NewmarkBetaScheme'
+            elif name_translational == 'Velocity_Verlet':
+                class_name = 'VelocityVerletScheme'
+        elif name_rotational == 'Runge_Kutta':
             class_name = 'RungeKuttaScheme'
-        elif name == 'Quaternion_Integration':
+        elif name_rotational == 'Quaternion_Integration':
             class_name = 'QuaternionIntegrationScheme'
 
         return class_name
 
     def GetTranslationalSchemeInstance(self, class_name):
-        return globals().get(class_name)()
+         if not class_name == 'NewmarkBetaScheme':
+             return globals().get(class_name)()
+         else:
+             return globals().get(class_name)(0.5,0.25)
     
     def GetRotationalSchemeInstance(self, class_name):
-        return globals().get(class_name)()
+         if not class_name == 'NewmarkBetaScheme':
+             return globals().get(class_name)()
+         else:
+             return globals().get(class_name)(0.5,0.25)
 
     def GetTranslationalScheme(self, name):
         class_name = self.TranslationalIntegrationSchemeTranslator(name)
@@ -468,8 +475,8 @@ class ExplicitStrategy:
 
         return translational_scheme, error_status, summary
     
-    def GetRotationalScheme(self, name):
-        class_name = self.RotationalIntegrationSchemeTranslator(name)
+    def GetRotationalScheme(self, name_translational, name_rotational):
+        class_name = self.RotationalIntegrationSchemeTranslator(name_translational, name_rotational)
         rotational_scheme = None
         error_status = 0
         summary = ''
@@ -525,6 +532,7 @@ class ExplicitStrategy:
             translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
 
         translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
+        
         translational_scheme.SetTranslationalIntegrationSchemeInProperties(properties, True)
             
         if properties.Has(DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME):
@@ -532,6 +540,6 @@ class ExplicitStrategy:
         else:
             rotational_scheme_name = self.DEM_parameters["RotationalIntegrationScheme"].GetString()
             
-        rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(rotational_scheme_name)
+        rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
 
