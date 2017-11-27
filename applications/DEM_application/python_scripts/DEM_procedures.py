@@ -8,6 +8,7 @@ import DEM_material_test_script
 import os
 import shutil
 import sys
+import weakref
 from glob import glob
 
 def Flush(a):
@@ -393,9 +394,9 @@ class Procedures(object):
         DEM_inlet_model_part = all_model_parts.Get('DEMInletPart')
         rigid_face_model_part = all_model_parts.Get('RigidFacePart')
         
-        self.solver=solver
-        self.translational_scheme=translational_scheme
-        self.rotational_scheme=rotational_scheme
+        self.solver = weakref.proxy(solver) 
+        self.translational_scheme = weakref.proxy(translational_scheme) 
+        self.rotational_scheme=weakref.proxy(rotational_scheme)
         self.AddCommonVariables(spheres_model_part, DEM_parameters)
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
         self.AddMpiVariables(spheres_model_part)      
