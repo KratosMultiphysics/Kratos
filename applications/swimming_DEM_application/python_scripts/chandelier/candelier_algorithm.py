@@ -51,11 +51,11 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.AddEmptyValue("faxen_force_type").SetInt(0)
         self.pp.CFD_DEM.AddEmptyValue("vorticity_calculation_type").SetInt(0)
         self.pp.CFD_DEM.AddEmptyValue("print_FLUID_VEL_PROJECTED_RATE_option").SetBool(False)
-        self.pp.CFD_DEM.AddEmptyValue("print_MATERIAL_FLUID_ACCEL_PROJECTED_option").SetBool(True)        
+        self.pp.CFD_DEM.AddEmptyValue("print_MATERIAL_FLUID_ACCEL_PROJECTED_option").SetBool(True)
         self.pp.CFD_DEM.AddEmptyValue("basset_force_type").SetInt(basset_force_type)
         self.pp.CFD_DEM.AddEmptyValue("print_BASSET_FORCE_option").SetBool(True)
         self.pp.CFD_DEM.AddEmptyValue("basset_force_integration_type").SetInt(1)
-        self.pp.CFD_DEM.AddEmptyValue("n_init_basset_steps").SetInt(2)        
+        self.pp.CFD_DEM.AddEmptyValue("n_init_basset_steps").SetInt(2)
         self.pp.CFD_DEM.AddEmptyValue("time_steps_per_quadrature_step").SetInt(Nq)
         self.pp.CFD_DEM.AddEmptyValue("delta_time_quadrature").SetDouble( self.pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt() * self.pp.CFD_DEM["MaxTimeStep"].GetDouble() )
         self.pp.CFD_DEM.AddEmptyValue("quadrature_order").SetInt(2)
@@ -89,7 +89,7 @@ class Algorithm(BaseAlgorithm):
         self.results_database = candelier_hdf5.ResultsCandelier(self.pp, self.main_path)
 
     def DEMSolve(self, time = 'None'):
-        self.disperse_phase_algorithm.solver.Solve()
+        self.disperse_phase_solution.solver.Solve()
         for node in self.spheres_model_part.Nodes:
             coor_calculated = [node.X, node.Y, node.Z]
             self.radial_error = self.results_database.CalculateError(time, coor_calculated)

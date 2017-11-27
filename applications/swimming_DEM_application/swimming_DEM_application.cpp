@@ -95,7 +95,6 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_CONDITION("MonolithicDEMCoupledWallCondition3D",mMonolithicDEMCoupledWallCondition3D)
   KRATOS_REGISTER_CONDITION("ComputeLaplacianSimplexCondition2D",  mComputeLaplacianSimplexCondition2D)
   KRATOS_REGISTER_CONDITION("ComputeLaplacianSimplexCondition3D", mComputeLaplacianSimplexCondition3D)
-  Serializer::Register( "VariablesList", mVariablesList );
  }
 
 }  // namespace Kratos.
