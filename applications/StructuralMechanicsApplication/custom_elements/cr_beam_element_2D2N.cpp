@@ -19,7 +19,6 @@
 #include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
 
-#define Pi 3.141592653589793238462643383279502884197169399375105820974944592308
 
 namespace Kratos
 {
@@ -468,11 +467,11 @@ namespace Kratos
 
 		double phi;
 		if ((dx > numerical_limit) & (std::abs(dy) < numerical_limit)) phi = 0.00; // dy = 0 and dx > 0
-		else if ((dx < -numerical_limit) & (std::abs(dy) < numerical_limit)) phi = Pi; // dy = 0 and dx < 0
+		else if ((dx < -numerical_limit) & (std::abs(dy) < numerical_limit)) phi = Globals::Pi; // dy = 0 and dx < 0
 		else if (std::abs(dx) < numerical_limit)
 		{
-			phi = Pi / 2.00; // dy > 0 and dx = 0
-			if (dy < -numerical_limit) phi = 1.500 * Pi;  // dy < 0 and dx = 0
+			phi = Globals::Pi / 2.00; // dy > 0 and dx = 0
+			if (dy < -numerical_limit) phi = 1.500 * Globals::Pi;  // dy < 0 and dx = 0
 		}
 		else
 		{
@@ -502,11 +501,11 @@ namespace Kratos
 
 		double phi;
 		if ((dx > numerical_limit) & (std::abs(dy) < numerical_limit)) phi = 0.00; // dy = 0 and dx > 0
-		else if ((dx < -numerical_limit) & (std::abs(dy) < numerical_limit)) phi = Pi; // dy = 0 and dx < 0
+		else if ((dx < -numerical_limit) & (std::abs(dy) < numerical_limit)) phi = Globals::Pi; // dy = 0 and dx < 0
 		else if (std::abs(dx) < numerical_limit)
 		{
-			phi = Pi / 2.00; // dy > 0 and dx = 0
-			if (dy < -numerical_limit) phi = 1.500 * Pi;  // dy < 0 and dx = 0
+			phi = Globals::Pi / 2.00; // dy > 0 and dx = 0
+			if (dy < -numerical_limit) phi = 1.500 * Globals::Pi;  // dy < 0 and dx = 0
 		}
 		else
 		{
@@ -522,6 +521,7 @@ namespace Kratos
 	double CrBeamElement2D2N::CalculateCurrentLength() 
 	{
 		KRATOS_TRY;
+		const double numerical_limit = std::numeric_limits<double>::epsilon();
 		const double du = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X)
 			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
 		const double dv = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y)
@@ -531,15 +531,20 @@ namespace Kratos
 		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
 
 		const double l = std::sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy));
+
+		if (l<numerical_limit) KRATOS_ERROR << "length 0 for element " << this->Id() << std::endl;
 		return l;
 		KRATOS_CATCH("")
 	}
 
 	double CrBeamElement2D2N::CalculateReferenceLength() {
 		KRATOS_TRY;
+		const double numerical_limit = std::numeric_limits<double>::epsilon();
 		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
 		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
 		const double L = std::sqrt((dx*dx) + (dy*dy));
+
+		if (L<numerical_limit) KRATOS_ERROR << "length 0 for element " << this->Id() << std::endl;
 		return L;
 		KRATOS_CATCH("")
 	}
@@ -682,7 +687,7 @@ namespace Kratos
 		 - this->CalculateInitialElementAngle());
 
 		//calculate modulus 2PI for phi_a
-		DeformationParameters[2] = this->Modulus2Pi(DeformationParameters[2] + Pi) - Pi;
+		DeformationParameters[2] = this->Modulus2Pi(DeformationParameters[2] + Globals::Pi) - Globals::Pi;
 
 		return DeformationParameters;
 		KRATOS_CATCH("")
@@ -777,8 +782,8 @@ namespace Kratos
 	 double CrBeamElement2D2N::Modulus2Pi(double A)
 	 {
 		KRATOS_TRY;	
-		const int B = A / (2.00 * Pi);
-		const double C = A - (B*2.00*Pi);
+		const int B = A / (2.00 * Globals::Pi);
+		const double C = A - (B*2.00*Globals::Pi);
 		return C;
 		KRATOS_CATCH("")
 	 }
