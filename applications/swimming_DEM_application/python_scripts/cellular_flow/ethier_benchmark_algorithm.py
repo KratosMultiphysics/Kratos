@@ -44,7 +44,7 @@ class Algorithm(BaseAlgorithm):
             model_part_io_fluid = ModelPartIO(self.pp.problem_name.replace('ethier', 'ethier_ndiv_' + str(self.pp.CFD_DEM.size_parameter)))
         elif num_type(self.pp.CFD_DEM.size_parameter) == 'float':
             model_part_io_fluid = ModelPartIO(self.pp.problem_name.replace('ethier', 'ethier_h_' + str(self.pp.CFD_DEM.size_parameter)))
-        model_part_io_fluid.ReadModelPart(self.fluid_algorithm.fluid_model_part)
+        model_part_io_fluid.ReadModelPart(self.fluid_solution.fluid_model_part)
 
     def AddExtraVariables(self, run_code = ''):
         BaseAlgorithm.AddExtraVariables(self, self.run_code)
@@ -81,7 +81,7 @@ class Algorithm(BaseAlgorithm):
             node.SetSolutionStepValue(VELOCITY_Y, vel[1])
             node.SetSolutionStepValue(VELOCITY_Z, vel[2])
 
-    def FluidSolve(self, time = 'None'):
+    def FluidSolve(self, time = 'None', solve_system = True):
         fluid_model_part = self.all_model_parts.Get('FluidPart')
 
         for node in fluid_model_part.Nodes:
