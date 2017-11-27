@@ -231,7 +231,8 @@ def AssambleTestSuites():
             smallSuite.addTest(TSpringDamperElementTests('test_damped_mdof_system_dynamic'))
             smallSuite.addTest(TSpringDamperElementTests('test_undamped_mdof_system_eigen'))
             # Harmonic analysis test
-            smallSuite.addTest(THarmonicAnalysisTests('test_execution'))
+            smallSuite.addTest(THarmonicAnalysisTests('test_undamped_mdof_harmonic'))
+            smallSuite.addTest(THarmonicAnalysisTests('test_harmonic_mdpa_input'))
         else:
             print(
                 "FEASTSolver solver is not included in the compilation of the External Solvers Application"
