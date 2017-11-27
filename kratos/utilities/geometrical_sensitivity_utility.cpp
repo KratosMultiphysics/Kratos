@@ -13,8 +13,8 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 
-// Application includes
-#include "custom_utilities/geometrical_sensitivity_utility.h"
+// Project includes
+#include "utilities/geometrical_sensitivity_utility.h"
 
 namespace Kratos
 {

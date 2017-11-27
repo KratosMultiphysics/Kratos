@@ -11,7 +11,6 @@
 //
 
 // External includes
-//#include <iomanip>
 
 // Project includes
 #include "testing/testing.h"
@@ -21,9 +20,7 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-
-// Application includes
-#include "custom_utilities/geometrical_sensitivity_utility.h"
+#include "utilities/geometrical_sensitivity_utility.h"
 
 namespace Kratos
 {
