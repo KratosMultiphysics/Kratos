@@ -476,7 +476,7 @@ class Solution(object):
 
         os.chdir(self.post_path)
         self.demio.InitializeMesh(self.all_model_parts)
-        os.chdir(self.main_path)
+        #os.chdir(self.main_path)
 
     def PrintResultsForGid(self, time):
         if self.solver.poisson_ratio_option:
