@@ -166,10 +166,9 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestCrBeam3D2N('test_cr_beam_nonlinear'))
     smallSuite.addTest(TTestCrBeam3D2N('test_cr_beam_dynamic_lumped_mass_matrix'))
     smallSuite.addTest(TTestCrBeam3D2N('test_cr_beam_dynamic_consistent_mass_matrix'))
-    smallSuite.addTest(TTestCrBeam3D2N('test_cr_beam_linear_local_axis2'))
-    smallSuite.addTest(TTestCrBeam2D2N('test_cr_beam_linear'))
-    smallSuite.addTest(TTestCrBeam2D2N('test_cr_beam_nonlinear'))
-    smallSuite.addTest(TTestCrBeam2D2N('test_cr_beam_dynamic_consistent_mass_matrix'))
+    smallSuite.addTest(TTestCrBeam3D2N('test_cr_beam_linear_local_axis2'))    
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam2D2N]))
+
     # Test loading conditions
     smallSuite.addTest(TestLoadingConditions('test_LineLoadCondition2D2N'))
     smallSuite.addTest(TestLoadingConditions('test_LineLoadCondition2D2NAngle'))
