@@ -16,6 +16,7 @@ import embedded
 import variables_management as vars_man
 import time as timer
 import os
+import weakref
 
 try:
     import define_output  # MA: some GUI write this file, some others not!
@@ -73,16 +74,16 @@ class Algorithm(object):
         self.main_path = os.getcwd()
 
         self.SetFluidAlgorithm()
-        self.fluid_solution.coupling_algorithm = self
+        self.fluid_solution.coupling_algorithm = weakref.proxy(self)
 
         self.pp = self.fluid_solution.pp
 
         self.SetCouplingParameters(varying_parameters)
 
         self.SetDispersePhaseAlgorithm()
-        self.disperse_phase_solution.coupling_algorithm = self
+        self.disperse_phase_solution.coupling_algorithm = weakref.proxy(self)
 
-        self.procedures = self.disperse_phase_solution.procedures
+        self.procedures = weakref.proxy(self.disperse_phase_solution.procedures)
         self.report = DEM_procedures.Report()
 
         # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
@@ -430,7 +431,7 @@ class Algorithm(object):
 
     def FluidInitialize(self):
         self.fluid_model_part = self.fluid_solution.fluid_model_part
-        self.fluid_solution.vars_man=self.vars_man
+        self.fluid_solution.vars_man= self.vars_man
 
         self.fluid_solution.SetFluidSolverModule()
         self.fluid_solution.AddFluidVariables()

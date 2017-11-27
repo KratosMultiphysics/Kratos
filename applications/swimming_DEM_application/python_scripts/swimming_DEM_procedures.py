@@ -9,6 +9,7 @@ from KratosMultiphysics.SwimmingDEMApplication import *
 import DEM_procedures
 import shutil
 import os
+import weakref
 
 def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, cluster_model_part, DEM_inlet_model_part):
 
@@ -456,7 +457,7 @@ class PostUtils:
                  rigid_faces_model_part,
                  mixed_model_part):
 
-        self.gid_io                 = gid_io
+        self.gid_io                 = weakref.proxy(gid_io)
         self.fluid_model_part       = fluid_model_part
         self.balls_model_part       = balls_model_part
         self.clusters_model_part    = clusters_model_part
