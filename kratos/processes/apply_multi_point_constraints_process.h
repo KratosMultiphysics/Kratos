@@ -34,7 +34,7 @@ namespace Kratos
 class ApplyMultipointConstraintsProcess : public Process
 {
   public:
-    /// Pointer definition of MoveRotorProcess
+    /// Pointer definition of ApplyMultipointConstraintsProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyMultipointConstraintsProcess);
 
     typedef MpcData::Pointer MpcDataPointerType;

@@ -32,14 +32,14 @@
 
 namespace Kratos
 {
-/** \brief Quaternion
-	* A simple class that implements the main features of quaternion algebra
+/** \brief MpcData
+	* A class that implements the data structure needed for applying Multipoint constraints.
 	*/
 class MpcData
 {
 
   public:
-    /// Pointer definition of DataValueContainer
+    /// Pointer definition of MpcData
     KRATOS_CLASS_POINTER_DEFINITION(MpcData);
 
     typedef Dof<double> DofType;
@@ -59,6 +59,7 @@ class MpcData
 
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
 
+  private:
     struct key_hash_tuple : public std::unary_function<key_tupple, std::size_t>
     {
         std::size_t operator()(const key_tupple &k) const
@@ -103,8 +104,7 @@ class MpcData
         }
     };
 
-    //friend bool operator == (MpcData &obj1, MpcData &obj2);
-
+  public:
     typedef std::unordered_map<const key_tupple, double, key_hash_tuple, key_equal_tuple> MasterDofWeightMapType;
     //typedef std::unordered_map<std::tuple<unsigned int, VariableComponentType, int>, double> ;
     ///@name Life Cycle
@@ -121,13 +121,11 @@ class MpcData
 
     ///@}
 
-  public:
     ///@name Operators
     ///@{
 
     ///@}
 
-  public:
     ///@name Access
     ///@{
 
@@ -361,12 +359,50 @@ class MpcData
 
     virtual void save(Serializer &rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, MpcData);
+        rSerializer.save("MpcDataName", mName);
+        rSerializer.save("NumConstraints", mDofConstraints.size());
+        for (const auto &slaveMasterrelation : mDofConstraints)
+        {
+
+            rSerializer.save("slaveID", (slaveMasterrelation.first).first);   // saving the vector of the slave id
+            rSerializer.save("slaveKey", (slaveMasterrelation.first).second); // saving the vector of the slave key
+
+            rSerializer.save("numMasters", (slaveMasterrelation.second).size()); // Writint number of masters for this slave
+            for (const auto &masterIdKeyConstant : (slaveMasterrelation.second))
+            {
+                rSerializer.save("masterID", std::get<0>(masterIdKeyConstant.first));  // saving the id of the master
+                rSerializer.save("masterKey", std::get<1>(masterIdKeyConstant.first)); // saving the id of the master
+                rSerializer.save("constant", std::get<2>(masterIdKeyConstant.first));  // saving the id of the master
+
+                rSerializer.save("weight", masterIdKeyConstant.second); // saving the id of the master
+            }
+        }
     }
 
     virtual void load(Serializer &rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, MpcData);
+        rSerializer.load("MpcDataName", mName);
+        int numConstraints = 0;
+        rSerializer.load("NumConstraints", numConstraints);
+        for (int i = 0; i < numConstraints; i++)
+        {
+            int slaveID(0), slaveKey(0), numMasters(0);
+            rSerializer.load("slaveID", slaveID);
+            rSerializer.load("slaveKey", slaveKey);
+            rSerializer.load("numMasters", numMasters);
+            for (int j = 0; j < numMasters; j++)
+            {
+                int masterID(0), masterKey(0);
+                double constant(0), weight(0);
+
+                rSerializer.load("masterID", masterID);
+                rSerializer.load("masterKey", masterKey);
+                rSerializer.load("constant", constant);
+                rSerializer.load("weight", weight);
+
+                mDofConstraints[std::make_pair(slaveID, slaveKey)][std::tie(masterID, masterKey, constant)] += weight;
+            }
+        }
     }
 
     ///@}
