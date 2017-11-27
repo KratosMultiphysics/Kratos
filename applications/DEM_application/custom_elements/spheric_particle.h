@@ -207,13 +207,11 @@ void   SetParticleKNormalFromProperties(double* particle_k_normal);
 virtual double GetParticleKTangential();
 void   SetParticleKTangentialFromProperties(double* particle_k_tangential);
 
-//Conical damage
+//Dependent Friction
 virtual double GetParticleContactRadius();
 void   SetParticleContactRadiusFromProperties(double* particle_contact_radius);
 virtual double GetParticleMaxStress();
 void   SetParticleMaxStressFromProperties(double* particle_max_stress);
-virtual double GetParticleAlpha();
-void   SetParticleAlphaFromProperties(double* particle_alpha);
 virtual double GetParticleGamma();
 void   SetParticleGammaFromProperties(double* particle_gamma);
 

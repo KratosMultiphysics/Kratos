@@ -86,7 +86,8 @@ namespace Kratos {
         const array_1d<double,3> current_rotor_position = mCoordinatesOfStatorCenter + vector_to_rotor_center;
         noalias(mrModelPart[ROTATION_CENTER]) = current_rotor_position;
         //UPDATE VELOCITY OF ROTOR AXIS:
-        const array_1d<double,3> rotor_velocity = MathUtils<double>::CrossProduct(vector_to_rotor_center, mW1);
+        array_1d<double,3> rotor_velocity;
+        MathUtils<double>::CrossProduct(rotor_velocity, mW1, vector_to_rotor_center);
 
         //UPDATE LOCAL AXES (ROTATE THEM AROUND (0,0,1) THE ROTATED ANGLE )
         double rotated_angle2;
@@ -138,7 +139,9 @@ namespace Kratos {
             noalias(node_i->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) = node_i->Coordinates() - backup_coordinates;
 
             array_1d<double,3>& current_node_velocity = node_i->FastGetSolutionStepValue(VELOCITY);
-            current_node_velocity = rotor_velocity + MathUtils<double>::CrossProduct(from_rotor_center_to_node, mW2);
+            array_1d<double,3> aux;
+            MathUtils<double>::CrossProduct(aux, mW2, from_rotor_center_to_node);
+            noalias(current_node_velocity) = rotor_velocity + aux;
             if ((rCurrentTime > mTimeLiftBucket) && (rCurrentTime <= mTimeStopLiftBucket)) current_node_velocity[2] += mBucketLiftingVelocity[2];
 
         }//end of loop over nodes

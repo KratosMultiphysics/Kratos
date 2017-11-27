@@ -8,6 +8,7 @@ import DEM_material_test_script
 import os
 import shutil
 import sys
+import weakref
 from glob import glob
 
 def Flush(a):
@@ -372,8 +373,8 @@ class Procedures(object):
         DEM_inlet_model_part = all_model_parts.Get('DEMInletPart')
         rigid_face_model_part = all_model_parts.Get('RigidFacePart')
         
-        self.solver=solver
-        self.scheme=scheme
+        self.solver = weakref.proxy(solver)
+        self.scheme = weakref.proxy(scheme)
         self.AddCommonVariables(spheres_model_part, DEM_parameters)
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
         self.AddMpiVariables(spheres_model_part)      
@@ -402,6 +403,13 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)  #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_IMPACT_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL) # JIG: SHOULD BE REMOVED IN THE FUTURE
+        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG) # JIG: SHOULD BE REMOVED IN THE FUTURE
+        model_part.AddNodalSolutionStepVariable(ORIENTATION) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM) # JIG: Is it necessary?
         model_part.AddNodalSolutionStepVariable(FACE_NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(FACE_TANGENTIAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LINEAR_IMPULSE)        
@@ -447,7 +455,7 @@ class Procedures(object):
         if "PostStressStrainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
-        
+
         if (self.solver.poisson_ratio_option):
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
 
@@ -479,17 +487,16 @@ class Procedures(object):
 
     def AddClusterVariables(self, model_part, DEM_parameters):
         # KINEMATIC
-        model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
         model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY) # JIG: Is it necessary?
         model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL) # JIG: SHOULD BE REMOVED IN THE FUTURE
         model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG) # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION)
-        model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION)
-        model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
+        model_part.AddNodalSolutionStepVariable(ORIENTATION) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION) # JIG: Is it necessary?
+        model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM) # JIG: Is it necessary?
 
         # FORCES
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
@@ -1285,7 +1292,6 @@ class MaterialTest(object):
 class MultifileList(object):
 
     def __init__(self, post_path, name, step, which_folder):
-        os.chdir(post_path)
         self.index = 0
         self.step = step
         self.name = name
@@ -1561,7 +1567,9 @@ class DEMIo(object):
                             self.deformed_mesh_flag,
                             self.write_conditions)
 
+
         self.post_utility = PostUtilities()
+
 
     def SetOutputName(self,name):
         self.gid_io.ChangeOutputName(name)

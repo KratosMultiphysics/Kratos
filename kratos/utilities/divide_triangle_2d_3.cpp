@@ -169,6 +169,10 @@ void DivideTriangle2D3::GenerateIntersectionsSkin() {
         mNegativeInterfaces.clear();
         mPositiveInterfaces.reserve(1);
         mNegativeInterfaces.reserve(1);
+        mPositiveInterfacesParentIds.clear();
+        mNegativeInterfacesParentIds.clear();
+        mPositiveInterfacesParentIds.reserve(1);
+        mNegativeInterfacesParentIds.reserve(1);
 
         if (mIsSplit) {
 
@@ -193,6 +197,7 @@ void DivideTriangle2D3::GenerateIntersectionsSkin() {
                         IndexedPointGeometryPointerType p_intersection_line = boost::make_shared<IndexedPointLineType>(mAuxPointsContainer(node_i_key), 
                                                                                                                        mAuxPointsContainer(node_j_key));
                         mPositiveInterfaces.push_back(p_intersection_line);
+                        mPositiveInterfacesParentIds.push_back(i_subdivision);
 
                         // In triangles, a unique face can belong to the interface
                         break; 
@@ -218,6 +223,7 @@ void DivideTriangle2D3::GenerateIntersectionsSkin() {
                         IndexedPointGeometryPointerType p_intersection_line = boost::make_shared<IndexedPointLineType>(mAuxPointsContainer(node_i_key), 
                                                                                                                        mAuxPointsContainer(node_j_key));
                         mNegativeInterfaces.push_back(p_intersection_line);
+                        mNegativeInterfacesParentIds.push_back(i_subdivision);
 
                         // In triangles, a unique face can belong to the interface
                         break; 

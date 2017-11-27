@@ -105,9 +105,6 @@ class Kratos_Execute_Test:
                 self.gid_output.ExecuteInitializeSolutionStep()
                         
             self.solver.Solve()
-
-            current_vals = [ev for ev in self.computing_model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]]
-            print(current_vals)
             
             if (self.output_post == True):
                 self.gid_output.ExecuteFinalizeSolutionStep()

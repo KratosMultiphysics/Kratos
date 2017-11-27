@@ -174,7 +174,7 @@ bool ExactMortarIntegrationUtility<3,3, false>::GetExactIntegration(
     )
 {
     // Firt we create an auxiliar plane based in the condition center and its normal
-    const PointType slave_center = OriginalSlaveGeometry.Center();
+    const PointType& slave_center = OriginalSlaveGeometry.Center();
     
     // We define the condition tangents
     const array_1d<double, 3> slave_tangent_xi  = (OriginalSlaveGeometry[1].Coordinates() - OriginalSlaveGeometry[0].Coordinates())/norm_2(OriginalSlaveGeometry[1].Coordinates() - OriginalSlaveGeometry[0].Coordinates());
@@ -187,7 +187,7 @@ bool ExactMortarIntegrationUtility<3,3, false>::GetExactIntegration(
     // We define the auxiliar geometry
     std::vector<PointType::Pointer> points_array_slave  (3);
     std::vector<PointType::Pointer> points_array_master (3);
-    for (unsigned int i_node = 0; i_node < 3; i_node++)
+    for (unsigned int i_node = 0; i_node < 3; ++i_node)
     {
         PointType aux_point;
         
@@ -212,14 +212,12 @@ bool ExactMortarIntegrationUtility<3,3, false>::GetExactIntegration(
     // We create the pointlist
     PointListType point_list;
     
-    // All the points inside
-    if ((all_inside[0] == true) &&
-        (all_inside[1] == true) &&
-        (all_inside[2] == true))
+    // All the master points are inside the slave geometry
+    if (CheckAllInside(all_inside) == true)
     {
         ConditionsPointsSlave.resize(1);
         
-        for (unsigned int i_node = 0; i_node < 3; i_node++)
+        for (unsigned int i_node = 0; i_node < 3; ++i_node)
         {
             PointType point;
             OriginalSlaveGeometry.PointLocalCoordinates(point, OriginalMasterGeometry[i_node]);
@@ -262,7 +260,7 @@ bool ExactMortarIntegrationUtility<3,4, false>::GetExactIntegration(
     const double tolerance = std::numeric_limits<double>::epsilon();
     
     // Firt we create an auxiliar plane based in the condition center and its normal
-    const PointType slave_center = OriginalSlaveGeometry.Center();
+    const PointType& slave_center = OriginalSlaveGeometry.Center();
     
     // We define the condition tangents
     const array_1d<double, 3> slave_tangent_xi  = (OriginalSlaveGeometry[2].Coordinates() - OriginalSlaveGeometry[0].Coordinates())/norm_2(OriginalSlaveGeometry[2].Coordinates() - OriginalSlaveGeometry[0].Coordinates());
@@ -273,7 +271,7 @@ bool ExactMortarIntegrationUtility<3,4, false>::GetExactIntegration(
     std::vector<PointType::Pointer> points_array_slave  (4);
     std::vector<PointType::Pointer> points_array_slave_not_rotated  (4);
     std::vector<PointType::Pointer> points_array_master (4);
-    for (unsigned int i_node = 0; i_node < 4; i_node++)
+    for (unsigned int i_node = 0; i_node < 4; ++i_node)
     {
         PointType aux_point;
         
@@ -300,11 +298,8 @@ bool ExactMortarIntegrationUtility<3,4, false>::GetExactIntegration(
     // We create the pointlist
     PointListType point_list;
     
-    // All the points inside
-    if ((all_inside[0] == true) &&
-        (all_inside[1] == true) &&
-        (all_inside[2] == true) &&
-        (all_inside[3] == true))
+    // All the master points are inside the slave geometry
+    if (CheckAllInside(all_inside) == true)
     {
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, master_geometry);
@@ -521,7 +516,7 @@ bool ExactMortarIntegrationUtility<3,3, true>::GetExactIntegration(
     )
 {
     // Firt we create an auxiliar plane based in the condition center and its normal
-    const PointType slave_center = OriginalSlaveGeometry.Center();
+    const PointType& slave_center = OriginalSlaveGeometry.Center();
     
     // We define the condition tangents
     const array_1d<double, 3> slave_tangent_xi  = (OriginalSlaveGeometry[1].Coordinates() - OriginalSlaveGeometry[0].Coordinates())/norm_2(OriginalSlaveGeometry[1].Coordinates() - OriginalSlaveGeometry[0].Coordinates());
@@ -534,7 +529,7 @@ bool ExactMortarIntegrationUtility<3,3, true>::GetExactIntegration(
     // We define the auxiliar geometry
     std::vector<PointType::Pointer> points_array_slave  (3);
     std::vector<PointType::Pointer> points_array_master (3);
-    for (unsigned int i_node = 0; i_node < 3; i_node++)
+    for (unsigned int i_node = 0; i_node < 3; ++i_node)
     {
         PointType aux_point;
         
@@ -559,18 +554,16 @@ bool ExactMortarIntegrationUtility<3,3, true>::GetExactIntegration(
     // We create the pointlist
     PointListType point_list;
     
-    // All the points inside
-    if ((all_inside[0] == true) &&
-        (all_inside[1] == true) &&
-        (all_inside[2] == true))
+    // All the master points are inside the slave geometry
+    if (CheckAllInside(all_inside) == true)
     {
         ConditionsPointsSlave.resize(1);
         
-        for (unsigned int i_node = 0; i_node < 3; i_node++)
+        for (unsigned int i_node = 0; i_node < 3; ++i_node)
         {
             PointType point;
             OriginalSlaveGeometry.PointLocalCoordinates(point, OriginalMasterGeometry[i_node]);
-            ConditionsPointsSlave[0][i_node] = PointBelong<3>(point.Coordinates(), static_cast<PointBelongsTriangle3D3N>(i_node));
+            ConditionsPointsSlave[0][i_node] = PointBelong<3>(point.Coordinates(), static_cast<PointBelongsTriangle3D3N>(i_node + 3));
         }
         
         return true;
@@ -609,7 +602,7 @@ bool ExactMortarIntegrationUtility<3,4, true>::GetExactIntegration(
     const double tolerance = std::numeric_limits<double>::epsilon();
     
     // Firt we create an auxiliar plane based in the condition center and its normal
-    const PointType slave_center = OriginalSlaveGeometry.Center();
+    const PointType& slave_center = OriginalSlaveGeometry.Center();
     
     // We define the condition tangents
     const array_1d<double, 3> slave_tangent_xi  = (OriginalSlaveGeometry[2].Coordinates() - OriginalSlaveGeometry[0].Coordinates())/norm_2(OriginalSlaveGeometry[2].Coordinates() - OriginalSlaveGeometry[0].Coordinates());
@@ -620,7 +613,7 @@ bool ExactMortarIntegrationUtility<3,4, true>::GetExactIntegration(
     std::vector<PointType::Pointer> points_array_slave  (4);
     std::vector<PointType::Pointer> points_array_slave_not_rotated  (4);
     std::vector<PointType::Pointer> points_array_master (4);
-    for (unsigned int i_node = 0; i_node < 4; i_node++)
+    for (unsigned int i_node = 0; i_node < 4; ++i_node)
     {
         PointType aux_point;
         
@@ -647,11 +640,8 @@ bool ExactMortarIntegrationUtility<3,4, true>::GetExactIntegration(
     // We create the pointlist
     PointListType point_list;
     
-    // All the points inside
-    if ((all_inside[0] == true) &&
-        (all_inside[1] == true) &&
-        (all_inside[2] == true) &&
-        (all_inside[3] == true))
+    // All the master points are inside the slave geometry
+    if (CheckAllInside(all_inside) == true)
     {
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, master_geometry, Master);
@@ -692,10 +682,10 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactIntegratio
     
     const bool is_inside = GetExactIntegration(OriginalSlaveGeometry, SlaveNormal, OriginalMasterGeometry, MasterNormal, conditions_points_slave);
     
-    for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
+    for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom)
     {
         std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-        for (unsigned int i_node = 0; i_node < TDim; i_node++)
+        for (unsigned int i_node = 0; i_node < TDim; ++i_node)
         {
             PointType global_point;
             OriginalSlaveGeometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
@@ -707,7 +697,7 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactIntegratio
         const GeometryPointType::IntegrationPointsArrayType& local_integration_slave = decomp_geom.IntegrationPoints( mAuxIntegrationMethod );
         
         // Integrating the mortar operators
-        for ( unsigned int point_number = 0; point_number < local_integration_slave.size(); point_number++ )
+        for ( unsigned int point_number = 0; point_number < local_integration_slave.size(); ++point_number )
         {
             const double weight = local_integration_slave[point_number].Weight();
             const PointType local_point_decomp = local_integration_slave[point_number].Coordinates();
@@ -718,7 +708,7 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactIntegratio
             
             const double det_J = decomp_geom.DeterminantOfJacobian( local_point_decomp ) * (TDim == 2 ? 2.0 : 1.0);
             
-            IntegrationPointsSlave.push_back( IntegrationPointType( local_point_parent.Coordinate(1), local_point_parent.Coordinate(2), weight * det_J )); // TODO: Change push_back for a fic opoeration
+            IntegrationPointsSlave.push_back( IntegrationPointType( local_point_parent.Coordinate(1), local_point_parent.Coordinate(2), weight * det_J )); // TODO: Change push_back for a fix opoeration
         }
     }
     
@@ -758,10 +748,10 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetTotalArea(
 {        
     rArea = 0.0;
     
-    for (unsigned int i_geom = 0; i_geom < ConditionsPointsSlave.size(); i_geom++)
+    for (unsigned int i_geom = 0; i_geom < ConditionsPointsSlave.size(); ++i_geom)
     {
         std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-        for (unsigned int i_node = 0; i_node < TDim; i_node++)
+        for (unsigned int i_node = 0; i_node < TDim; ++i_node)
         {
             PointType global_point;
             OriginalSlaveGeometry.GlobalCoordinates(global_point, ConditionsPointsSlave[i_geom][i_node]);
@@ -774,7 +764,7 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetTotalArea(
         {
             std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{"; 
             
-            for (unsigned int i = 0; i < 3; i++)
+            for (unsigned int i = 0; i < 3; ++i)
             {
                 std::cout << std::setprecision(16) << decomp_geom[i].X() << "," << decomp_geom[i].Y() << "," << decomp_geom[i].Z();
                 
@@ -854,7 +844,7 @@ double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGetExactArea
 //             std::cout << "\n\nID: " << SlaveCond->Id() << std::endl;
         std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{";
         
-        for (unsigned int i = 0; i < TNumNodes; i++)
+        for (unsigned int i = 0; i < TNumNodes; ++i)
         {
             std::cout << this_geom[i].X() << "," << this_geom[i].Y() << "," << this_geom[i].Z();
             
@@ -875,7 +865,7 @@ double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGetExactArea
                 auto this_geom = (it_pair->first)->GetGeometry();
                 
                 std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{";
-                for (unsigned int i = 0; i < TNumNodes; i++)
+                for (unsigned int i = 0; i < TNumNodes; ++i)
                 {
                     std::cout << this_geom[i].X() << "," << this_geom[i].Y() << "," << this_geom[i].Z();
                     
@@ -973,13 +963,13 @@ inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::PushBackPoi
     GeometryPointType& ThisGeometry
     )
 {
-    for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
     {
         if (AllInside[i_node] == true)
         {
             // We check if the node already exists
             bool add_point = true;
-            for (unsigned int iter = 0; iter < PointList.size(); iter++)
+            for (unsigned int iter = 0; iter < PointList.size(); ++iter)
             {
                 if (CheckPoints(ThisGeometry[i_node], PointList[iter]) == true)
                 {
@@ -1006,13 +996,13 @@ inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::PushBackPoi
     const PointBelongs& ThisBelongs
     )
 {
-    for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
     {
         if (AllInside[i_node] == true)
         {
             // We check if the node already exists
             bool add_point = true;
-            for (unsigned int iter = 0; iter < PointList.size(); iter++)
+            for (unsigned int iter = 0; iter < PointList.size(); ++iter)
             {
                 if (CheckPoints(ThisGeometry[i_node], PointList[iter]) == true)
                 {
@@ -1038,10 +1028,10 @@ inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::CheckInside
     array_1d<bool, TNumNodes>& AllInside,
     GeometryPointType& Geometry1,
     GeometryPointType& Geometry2,
-    const double& Tolerance
+    const double Tolerance
     )
 {
-    for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
     {
         GeometryNodeType::CoordinatesArrayType projected_gp_local;
     
@@ -1063,7 +1053,7 @@ inline std::vector<std::size_t> ExactMortarIntegrationUtility<TDim, TNumNodes, T
     v /= norm_2(v);
     array_1d<double, 3> n = GetNormalVector2D(v);
     
-    for (unsigned int elem = 1; elem < list_size; elem++)
+    for (unsigned int elem = 1; elem < list_size; ++elem)
     {
         angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
         if (angles[elem - 1] < 0.0)
@@ -1071,7 +1061,7 @@ inline std::vector<std::size_t> ExactMortarIntegrationUtility<TDim, TNumNodes, T
             v = PointList[elem].Coordinates() - PointList[0].Coordinates();
             v /= norm_2(v);
             n = GetNormalVector2D(v);
-            for (unsigned int aux_elem = 0; aux_elem <= (elem - 1); aux_elem++)
+            for (unsigned int aux_elem = 0; aux_elem <= (elem - 1); ++aux_elem)
             {
                 angles[aux_elem] -= angles[elem - 1];
             }
@@ -1096,10 +1086,10 @@ inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::ComputeClip
     const double z_ref = RefCenter.Coordinate(3);
     
     // We find the intersection in each side
-    for (unsigned int i_edge = 0; i_edge < TNumNodes; i_edge++)
+    for (unsigned int i_edge = 0; i_edge < TNumNodes; ++i_edge)
     {  
         const unsigned int ip_edge = (i_edge == (TNumNodes - 1)) ? 0 : i_edge + 1;
-        for (unsigned int j_edge = 0; j_edge < TNumNodes; j_edge++)
+        for (unsigned int j_edge = 0; j_edge < TNumNodes; ++j_edge)
         {
             const unsigned int jp_edge = (j_edge == (TNumNodes - 1)) ? 0 : j_edge + 1;
             
@@ -1119,7 +1109,7 @@ inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::ComputeClip
                 
                 // Ititialize the check
                 bool add_point = true;
-                for (unsigned int iter = 0; iter < PointList.size(); iter++)
+                for (unsigned int iter = 0; iter < PointList.size(); ++iter)
                 {
                     if (CheckPoints(intersected_point, PointList[iter]) == true)
                     {
@@ -1171,7 +1161,7 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TriangleInt
         ConditionsPointsSlave.resize((list_size - 2));
         
         // We recover this point to the triangle plane and compute the local coordinates
-        for (unsigned int i_point_list = 0; i_point_list < PointList.size(); i_point_list++)
+        for (unsigned int i_point_list = 0; i_point_list < PointList.size(); ++i_point_list)
         {
             MortarUtilities::RotatePoint(PointList[i_point_list], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
             PointType local_point;
@@ -1179,7 +1169,7 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TriangleInt
             PointList[i_point_list].Coordinates() = local_point.Coordinates();
         }
         
-        for (unsigned int elem = 0; elem < list_size - 2; elem++) // NOTE: We always have two points less that the number of nodes
+        for (unsigned int elem = 0; elem < list_size - 2; ++elem) // NOTE: We always have two points less that the number of nodes
         {
             ArrayTriangleType points_locals;
             
