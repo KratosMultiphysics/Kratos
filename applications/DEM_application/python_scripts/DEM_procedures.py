@@ -477,7 +477,7 @@ class Procedures(object):
         if "PostStressStrainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
-        
+
         if (self.solver.poisson_ratio_option):
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
 
@@ -1314,7 +1314,6 @@ class MaterialTest(object):
 class MultifileList(object):
 
     def __init__(self, post_path, name, step, which_folder):
-        os.chdir(post_path)
         self.index = 0
         self.step = step
         self.name = name
@@ -1590,7 +1589,9 @@ class DEMIo(object):
                             self.deformed_mesh_flag,
                             self.write_conditions)
 
+
         self.post_utility = PostUtilities()
+
 
     def SetOutputName(self,name):
         self.gid_io.ChangeOutputName(name)

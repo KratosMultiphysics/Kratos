@@ -49,6 +49,10 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         cl = StructuralMechanicsApplication.LinearElastic3DLaw()
         mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
+    def _apply_elemental_data(self,element):
+        # Adding LOCAL_AXIS_2
+        element.SetValue(KratosMultiphysics.LOCAL_AXIS_2,(0,1,0))
+
     def _apply_BCs(self,mp,which_dof):
         if (which_dof == 'xyz'):
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
@@ -178,9 +182,9 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         self.assertAlmostEqual(moment_z, Moment_i)
         #check displacement as soon as a total circle is formed
         #M = EI * 2 * pi / L ---> 13200000.0 reached at t_step = 527
-        if (timestep == 527):
-            self.assertAlmostEqual(displacement_x, -1.00,2)
-            self.assertAlmostEqual(displacement_y, 0.00,5)
+        if (timestep == 5):
+            self.assertAlmostEqual(displacement_x, -0.0008214481371826507)
+            self.assertAlmostEqual(displacement_y, 0.03560205297258129)
 
     def _check_results_dynamic(self,mp,time_i,nr_nodes):
         #check free vibration of cantilever tip
@@ -248,6 +252,49 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         #solve + compare
         self._solve_linear(mp)    
         self._check_results_linear(mp,nr_nodes)
+
+    def test_cr_beam_linear_local_axis2(self):
+            dim = 3
+            nr_nodes = 11
+            nr_elements = nr_nodes-1
+            mp = KratosMultiphysics.ModelPart("solid_part")
+            self._add_variables(mp)
+            self._apply_material_properties(mp,dim)
+
+            #create nodes
+            dx = 1.20 / nr_elements
+            for i in range(nr_nodes):
+                mp.CreateNewNode(i+1,i*dx,0.00,0.00)
+            #add dofs
+            self._add_dofs(mp)
+            #create condition
+            mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])  
+            #create submodelparts for dirichlet boundary conditions
+            bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+            bcs_xyz.AddNodes([1])
+            bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
+            bcs_rot.AddNodes([1])    
+            #create a submodalpart for neumann boundary conditions
+            bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+            bcs_neumann.AddNodes([nr_nodes])
+            bcs_neumann.AddConditions([1])             
+            #create Element
+            for i in range(nr_elements):
+                mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2],
+                mp.GetProperties()[0])
+
+            #apply local_axis_2 elemental data
+            for i in range(nr_elements): self._apply_elemental_data(mp.GetElement(i+1))
+            #apply boundary conditions
+            Force_Y = -400000.00
+            self._apply_BCs(bcs_xyz,'xyz')
+            self._apply_BCs(bcs_rot,'rotXYZ')
+
+            self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+            
+            #solve + compare
+            self._solve_linear(mp)    
+            self._check_results_linear(mp,nr_nodes)
 
     def test_cr_beam_nonlinear(self):
         dim = 3
@@ -417,3 +464,4 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 if __name__ == '__main__':
     KratosUnittest.main()
 
+        

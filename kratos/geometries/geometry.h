@@ -1183,11 +1183,20 @@ public:
     ///@}
     ///@name Jacobian
     ///@{
-
-    virtual CoordinatesArrayType& GlobalCoordinates( CoordinatesArrayType& rResult, CoordinatesArrayType const& LocalCoordinates ) const
+    
+    /** This method provides the global coordinates corresponding to the local coordinates provided
+     * @param rResult The array containing the global coordinates corresponding to the local coordinates provided
+     * @param LocalCoordinates The local coordinates provided
+     * @return An array containing the global coordinates corresponding to the local coordinates provides
+     * @see PointLocalCoordinates
+     */
+    virtual CoordinatesArrayType& GlobalCoordinates( 
+        CoordinatesArrayType& rResult, 
+        CoordinatesArrayType const& LocalCoordinates 
+        ) const
     {
-		if (rResult.size() != 3)
-			rResult.resize(3, false);
+        if (rResult.size() != 3)
+            rResult.resize(3, false);
         noalias( rResult ) = ZeroVector( 3 );
 
         Vector N( this->size() );
@@ -1195,6 +1204,34 @@ public:
 
         for ( IndexType i = 0 ; i < this->size() ; i++ )
             noalias( rResult ) += N[i] * (*this)[i];
+
+        return rResult;
+    }
+    
+    /** This method provides the global coordinates corresponding to the local coordinates provided, considering additionally a certain increment in the coordinates
+     * @param rResult The array containing the global coordinates corresponding to the local coordinates provided
+     * @param LocalCoordinates The local coordinates provided
+     * @param DeltaPosition The increment of position considered
+     * @return An array containing the global coordinates corresponding to the local coordinates provides
+     * @see PointLocalCoordinates
+     */
+    virtual CoordinatesArrayType& GlobalCoordinates( 
+        CoordinatesArrayType& rResult, 
+        CoordinatesArrayType const& LocalCoordinates,
+        Matrix& DeltaPosition 
+        ) const
+    {
+        if (rResult.size() != 3)
+            rResult.resize(3, false);
+        noalias( rResult ) = ZeroVector( 3 );
+        if (DeltaPosition.size2() != 3)
+            DeltaPosition.resize(DeltaPosition.size1(), 3);
+
+        Vector N( this->size() );
+        ShapeFunctionsValues( N, LocalCoordinates );
+
+        for ( IndexType i = 0 ; i < this->size() ; i++ )
+            noalias( rResult ) += N[i] * ((*this)[i] + row(DeltaPosition, i));
 
         return rResult;
     }
