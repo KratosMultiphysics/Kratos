@@ -153,7 +153,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         try:
             import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
         except ImportError as e:
-            print("AdjointFluidApplication not found: Skipping harmonic analysis mdpa test")
+            self.skipTest("AdjointFluidApplication not found: Skipping harmonic analysis mdpa test")
         
         import Kratos_Execute_Structural_Test
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
