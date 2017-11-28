@@ -43,7 +43,7 @@ void AddCustomIOToPython()
 {
     using namespace boost::python;
 
-    class_<HDF5::File, HDF5::File::Pointer, boost::noncopyable >("HDF5File", init<Parameters&>())
+    class_<HDF5::File, HDF5::File::Pointer, boost::noncopyable >("HDF5File", no_init)
     .def("HasPath",&HDF5::File::HasPath)
     .def("IsGroup",&HDF5::File::IsGroup)
     .def("IsDataSet",&HDF5::File::IsDataSet)
