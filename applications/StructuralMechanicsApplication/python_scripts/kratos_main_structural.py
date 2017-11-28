@@ -19,7 +19,8 @@ if (parallel_type == "MPI"):
     from KratosMultiphysics.TrilinosApplication import *
 
 ## Structure model part definition
-main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
+main_model_part_name = ProjectParameters["problem_data"]["model_part_name"].GetString()
+main_model_part = ModelPart(main_model_part_name)
 main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
 ## Solver construction
@@ -51,12 +52,8 @@ if (output_post == True):
     gid_output.ExecuteInitialize()
 
 ## Creation of the Kratos model (build sub_model_parts or submeshes)
-StructureModel = {ProjectParameters["problem_data"]["model_part_name"].GetString(): main_model_part}
-
-## Get the list of the sub_model_parts in where the processes are to be applied
-for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
-    part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-    StructureModel.update({part_name: main_model_part.GetSubModelPart(part_name)})
+StructureModel = Model()
+StructureModel.AddModelPart(main_model_part)
 
 ## Print model_part and properties
 if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):

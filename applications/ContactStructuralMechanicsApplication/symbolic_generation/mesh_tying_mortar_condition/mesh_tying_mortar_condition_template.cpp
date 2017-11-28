@@ -681,7 +681,7 @@ template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::InitializeGeneralVariables(
     GeneralVariables& rVariables,
     const ProcessInfo& rCurrentProcessInfo,
-    const unsigned int& rMasterElementIndex
+    const unsigned int rMasterElementIndex
     )
 {
     // Master segment info
