@@ -20,7 +20,12 @@ class Solution(BaseAlgorithm):
         return SolverStrategy
 
     def SetSolver(self):
-        return self.solver_strategy.SwimmingStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.pp.CFD_DEM, self.procedures)
+        return self.solver_strategy.SwimmingStrategy(self.all_model_parts,
+                                                     self.creator_destructor,
+                                                     self.dem_fem_search,
+                                                     self.scheme,
+                                                     self.pp.CFD_DEM,
+                                                     self.procedures)
 
     def SelectScheme(self):
         scheme = BaseAlgorithm.SelectScheme(self)
