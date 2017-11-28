@@ -143,10 +143,10 @@ namespace Kratos {
             UpdateRotatedAngle(i, rotated_angle, delta_rotation, half_angular_velocity, delta_t, Fix_Ang_vel);
             GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
 
-            GeometryFunctions::QuaternionVectorGlobal2Local(half_Orientation, torque, local_torque);
             CalculateLocalAngularAccelerationByEulerEquations(half_local_angular_velocity, moments_of_inertia, local_torque, moment_reduction_factor,local_angular_acceleration);
 
             local_angular_velocity += local_angular_acceleration * delta_t;
+            
             GeometryFunctions::QuaternionVectorLocal2Global(Orientation, local_angular_velocity, angular_velocity);
         }
         
