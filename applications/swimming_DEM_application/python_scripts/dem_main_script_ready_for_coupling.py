@@ -13,7 +13,7 @@ class Solution(BaseAlgorithm):
 
     def __init__(self, pp):
         self.pp = pp
-        super(Solution,self).__init__()
+        super(Solution, self).__init__()
 
     def SetSolverStrategy(self):
         import swimming_sphere_strategy as SolverStrategy
