@@ -43,26 +43,20 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.CROSS_AREA,1.0)
 
     def _solve_eigen(self,mp,echo=0):
-        eigensolver_settings = KratosMultiphysics.Parameters("""
-            {
-                    "solver_type": "FEAST",
-                    "print_feast_output": false,
-                    "perform_stochastic_estimate": false,
-                    "solve_eigenvalue_problem": true,
-                    "lambda_min": 1.0e-2,
-                    "lambda_max": 25.0,
-                    "search_dimension": 7,
-                    "linear_solver_settings": {
-                        "solver_type": "complex_skyline_lu_solver"
-                    }
-                
-            }
-            """)
+        feast_system_solver_settings = KratosMultiphysics.Parameters("""{ }""")
 
-        feast_system_solver_settings = eigensolver_settings["linear_solver_settings"]
+        eigensolver_settings = KratosMultiphysics.Parameters("""
+        {
+                "perform_stochastic_estimate": false,
+                "lambda_min": 1.0e-2,
+                "lambda_max": 25.0,
+                "search_dimension": 7
+        }
+        """)
+
         feast_system_solver = ExternalSolversApplication.PastixComplexSolver(feast_system_solver_settings)
-        linear_solver = ExternalSolversApplication.FEASTSolver(eigensolver_settings, feast_system_solver)
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        eigen_solver = ExternalSolversApplication.FEASTSolver(eigensolver_settings, feast_system_solver)
+        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_solver)
 
         eigen_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         eig_strategy = StructuralMechanicsApplication.EigensolverStrategy(mp,
@@ -75,7 +69,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
     def _setup_harmonic_solver(self,mp,echo=0):
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(KratosMultiphysics.LinearSolver())
         eigen_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
-        harmonic_strategy = StructuralMechanicsApplication.HarmonicAnalysisStrategy(mp, eigen_scheme, builder_and_solver)   
+        harmonic_strategy = StructuralMechanicsApplication.HarmonicAnalysisStrategy(mp, eigen_scheme, builder_and_solver, False)   
         harmonic_strategy.SetEchoLevel(echo)
 
         return harmonic_strategy
@@ -89,7 +83,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
 
-    def _undamped_mdof_test(self):
+    def test_undamped_mdof_harmonic(self):
         mp = KratosMultiphysics.ModelPart("mdof")
         self._add_variables(mp)
         self._apply_material_properties(mp)
@@ -138,7 +132,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         exfreq = 1.0
         max_exfreq = 20.0
         df = 0.05
-
+        
         while(exfreq <= max_exfreq):
             mp.CloneTimeStep(exfreq)
             harmonic_solver.Solve()
@@ -155,7 +149,12 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             
             exfreq = exfreq + df       
 
-    def _mdpa_input_test(self):
+    def test_harmonic_mdpa_input(self):
+        try:
+            import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
+        except ImportError as e:
+            self.skipTest("AdjointFluidApplication not found: Skipping harmonic analysis mdpa test")
+        
         import Kratos_Execute_Structural_Test
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             #run simulation and write to hdf5 file
@@ -176,15 +175,6 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             # remove other generated files
             if "harmonic_analysis_test.time" in os.listdir("./harmonic_analysis_test"):
                 os.remove("./harmonic_analysis_test/harmonic_analysis_test.time")
-
-    
-    def test_execution(self):
-        # self._undamped_mdof_test()
-        try:
-            import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
-            self._mdpa_input_test()
-        except ImportError as e:
-            print("AdjointFluidApplication not found: Skipping harmonic analysis mdpa test")
 
 if __name__ == '__main__':
     KratosUnittest.main()

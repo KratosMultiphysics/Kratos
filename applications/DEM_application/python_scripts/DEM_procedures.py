@@ -8,6 +8,7 @@ import DEM_material_test_script
 import os
 import shutil
 import sys
+import weakref
 from glob import glob
 
 def Flush(a):
@@ -372,8 +373,8 @@ class Procedures(object):
         DEM_inlet_model_part = all_model_parts.Get('DEMInletPart')
         rigid_face_model_part = all_model_parts.Get('RigidFacePart')
         
-        self.solver=solver
-        self.scheme=scheme
+        self.solver = weakref.proxy(solver)
+        self.scheme = weakref.proxy(scheme)
         self.AddCommonVariables(spheres_model_part, DEM_parameters)
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
         self.AddMpiVariables(spheres_model_part)      
@@ -454,7 +455,7 @@ class Procedures(object):
         if "PostStressStrainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
-        
+
         if (self.solver.poisson_ratio_option):
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
 
@@ -1291,7 +1292,6 @@ class MaterialTest(object):
 class MultifileList(object):
 
     def __init__(self, post_path, name, step, which_folder):
-        os.chdir(post_path)
         self.index = 0
         self.step = step
         self.name = name
@@ -1567,7 +1567,9 @@ class DEMIo(object):
                             self.deformed_mesh_flag,
                             self.write_conditions)
 
+
         self.post_utility = PostUtilities()
+
 
     def SetOutputName(self,name):
         self.gid_io.ChangeOutputName(name)
