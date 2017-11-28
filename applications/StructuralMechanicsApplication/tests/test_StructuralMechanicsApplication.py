@@ -27,6 +27,7 @@ from test_quadratic_elements import TestQuadraticElements as TTestQuadraticEleme
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
 from test_patch_test_truss import TestTruss3D2N as TTestTruss3D2N
 from test_patch_test_cr_beam import TestCrBeam3D2N as TTestCrBeam3D2N
+from test_patch_test_cr_beam import TestCrBeam2D2N as TTestCrBeam2D2N
 # Test loading conditions
 from test_loading_conditions import TestLoadingConditions as TestLoadingConditions
 # Basic moving mesh test
@@ -80,6 +81,7 @@ from SmallTests import Simple3D2NTrussDynamicTest as T3D2NTrussDynamicTest
 from SmallTests import Simple3D2NBeamCrTest as T3D2NBeamCrTest
 from SmallTests import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
 from SmallTests import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
+from SmallTests import Simple2D2NBeamCrTest as T2D2NBeamCrTest
 
 # Multipoint constraint tests
 from test_multipoint_contstraints import TestMultipointConstraints as TTestMultipointConstraints
@@ -147,6 +149,7 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     ## Beams
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam3D2N]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam2D2N]))
     # Test loading conditions
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingConditions]))
     # Basic moving mesh test
@@ -196,6 +199,7 @@ def AssambleTestSuites():
     smallSuite.addTest(T3D2NBeamCrTest('test_execution'))
     smallSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
     smallSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
+    smallSuite.addTest(T2D2NBeamCrTest('test_execution'))
     # Nodal damping test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests]))
 

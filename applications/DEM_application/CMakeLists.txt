@@ -101,15 +101,11 @@ add_library(KratosDEMApplication SHARED ${KRATOS_DEM_APPLICATION_SOURCES})
 #endif(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
 ADD_COMPILER_EXPORT_FLAGS()
 
-# Add Cotire
-if(USE_COTIRE MATCHES ON)
-  cotire(KratosDEMApplication)
-endif(USE_COTIRE MATCHES ON)
+
 
 target_link_libraries(KratosDEMApplication KratosCore )
 set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
 set_target_properties(KratosDEMApplication PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")
-install(TARGETS KratosDEMApplication DESTINATION libs )
 
 if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
     add_definitions(-DDEBUG_MACRO)
@@ -141,6 +137,13 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("KratosDEMApplication subdir inc_dirs = ${inc_dirs}")
+# Add Cotire
+if(USE_COTIRE MATCHES ON)
+  cotire(KratosDEMApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosDEMApplication DESTINATION libs )
+
 
 # Add to the KratosMultiphysics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DEMApplication.py" DESTINATION KratosMultiphysics )

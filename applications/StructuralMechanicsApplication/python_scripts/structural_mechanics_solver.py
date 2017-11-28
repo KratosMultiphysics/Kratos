@@ -446,7 +446,10 @@ class MechanicalSolver(object):
         if analysis_type == "linear":
             mechanical_solver = self._create_linear_strategy()
         elif analysis_type == "non_linear":
-            mechanical_solver = self._create_newton_raphson_strategy()
+            if(self.settings["line_search"].GetBool() == False):
+                mechanical_solver = self._create_newton_raphson_strategy()
+            else:
+                mechanical_solver = self._create_line_search_strategy()
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
@@ -482,3 +485,22 @@ class MechanicalSolver(object):
                                                                      self.settings["compute_reactions"].GetBool(),
                                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                      self.settings["move_mesh_flag"].GetBool())
+ 
+    def _create_line_search_strategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        mechanical_scheme = self.get_solution_scheme()
+        linear_solver = self.get_linear_solver()
+        mechanical_convergence_criterion = self.get_convergence_criterion()
+        builder_and_solver = self.get_builder_and_solver()
+        return KratosMultiphysics.LineSearchStrategy(computing_model_part, 
+                                                     mechanical_scheme, 
+                                                     linear_solver, 
+                                                     mechanical_convergence_criterion, 
+                                                     builder_and_solver,
+                                                     self.settings["max_iteration"].GetInt(),
+                                                     self.settings["compute_reactions"].GetBool(),
+                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                     self.settings["move_mesh_flag"].GetBool())
+ 
+    
+    
