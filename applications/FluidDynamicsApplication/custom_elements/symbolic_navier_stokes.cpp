@@ -1264,6 +1264,4 @@ void SymbolicNavierStokes<TElementData>::load(Serializer& rSerializer)
     rSerializer.load("mpConstitutiveLaw",mpConstitutiveLaw);
 }
 
-
-
 }
