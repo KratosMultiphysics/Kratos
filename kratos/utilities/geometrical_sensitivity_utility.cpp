@@ -1,7 +1,11 @@
-//  KratosAdjointFluidApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:		 BSD License
-//					 license: AdjointFluidApplication/license.txt
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
@@ -15,11 +19,10 @@
 
 // Project includes
 #include "utilities/geometrical_sensitivity_utility.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {
-///@addtogroup AdjointFluidApplication
-///@{
 ///@name Kratos Classes
 ///@{
 
@@ -33,8 +36,6 @@ public:
 
     using SubMatrixType = boost::numeric::ublas::matrix_indirect<const MatrixType, IndirectArrayType>;
 
-    using SubSubMatrixType = boost::numeric::ublas::matrix_indirect<const SubMatrixType, IndirectArrayType>;
-    
     template <class T>
     using matrix_row = boost::numeric::ublas::matrix_row<T>;
 
@@ -70,15 +71,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    template<class TMatrixType>
-    double CalculateDeterminant(const TMatrixType& rMat) const;
-
-    template<class TMatrixType>
-    double CalculateCofactor(const TMatrixType& rMat, IndexType i, IndexType j) const;
-
-    template<class TMatrixType>
-    MatrixType CalculateCofactorMatrix(const TMatrixType& rMat) const;
-
     double CalculateDeterminantOfJacobianSensitivity(IndexType iNode, IndexType iCoord) const;
 
     MatrixType CalculateCofactorOfJacobianSensitivity(IndexType iNode, IndexType iCoord) const;
@@ -87,7 +79,6 @@ private:
 };
 
 ///@} // Kratos Classes
-///@} // Adjoint Fluid Application group
 
 GeometricalSensitivityUtility::GeometricalSensitivityUtility(const JacobianType& rJ, const ShapeFunctionsLocalGradientType& rDN_De)
 : mpImpl(new Impl(rJ, rDN_De))
@@ -117,8 +108,8 @@ void GeometricalSensitivityUtility::Impl::Initialize()
         << ") != shape function local-coordinates size(" << mrDN_De.size2()
         << ")." << std::endl;
 
-    mCofactorJ = CalculateCofactorMatrix(mrJ);
-    mDetJ = CalculateDeterminant(mrJ);
+    mCofactorJ = MathUtils<double>::CofactorMatrix(mrJ);
+    mDetJ = MathUtils<double>::DetMat(mrJ);
 
     KRATOS_CATCH("");
 }
@@ -135,83 +126,6 @@ void GeometricalSensitivityUtility::Impl::CalculateSensitivity(IndexType iNode, 
     noalias(rDN_DX_Deriv) = (1.0 / mDetJ) * prod(mrDN_De, trans(cofactorJ_deriv));
     rDN_DX_Deriv += -(rDetJ_Deriv / (mDetJ * mDetJ)) * prod(mrDN_De, trans(mCofactorJ));
 
-    KRATOS_CATCH("");
-}
-
-template<class TMatrixType>
-double GeometricalSensitivityUtility::Impl::CalculateDeterminant(const TMatrixType& rMat) const
-{
-    KRATOS_TRY;
-
-    double det;
-    if (rMat.size1() == 1)
-        det = rMat(0, 0);
-    else if (rMat.size1() == 2)
-        det = rMat(0, 0) * rMat(1, 1) - rMat(1, 0) * rMat(0, 1);
-    else if (rMat.size1() == 3)
-        det = rMat(0, 0) * rMat(1, 1) * rMat(2, 2) +
-              rMat(1, 0) * rMat(2, 1) * rMat(0, 2) +
-              rMat(0, 1) * rMat(1, 2) * rMat(2, 0) -
-              rMat(2, 0) * rMat(1, 1) * rMat(0, 2) -
-              rMat(2, 1) * rMat(1, 2) * rMat(0, 0) -
-              rMat(1, 0) * rMat(0, 1) * rMat(2, 2);
-    else
-        KRATOS_ERROR << "Matrix dimension = " << rMat.size1()
-                     << " is not supported." << std::endl;
-
-    return det;
-    KRATOS_CATCH("");
-}
-
-template <class TMatrixType>
-double GeometricalSensitivityUtility::Impl::CalculateCofactor(const TMatrixType& rMat, IndexType i, IndexType j) const
-{
-    static_assert(std::is_same<TMatrixType, MatrixType>::value ||
-                      std::is_same<TMatrixType, SubMatrixType>::value,
-                  "Invalid template parameter.");
-    KRATOS_TRY;
-
-    if (rMat.size1() == 1 && rMat.size2() == 1)
-        return 1.0;
-
-    IndirectArrayType ia1(rMat.size1() - 1), ia2(rMat.size2() - 1);
-
-    // Construct the submatrix structure for the first minor.
-    unsigned i_sub = 0;
-    for (unsigned k = 0; k < rMat.size1(); ++k)
-        if (k != i)
-            ia1(i_sub++) = k;
-
-    unsigned j_sub = 0;
-    for (unsigned k = 0; k < rMat.size2(); ++k)
-        if (k != j)
-            ia2(j_sub++) = k;
-
-    double first_minor;
-    // Here the sub type depends on if the matrix is already a submatrix.
-    typename std::conditional<std::is_same<TMatrixType, MatrixType>::value, SubMatrixType,
-                              SubSubMatrixType>::type sub_mat(rMat, ia1, ia2);
-    first_minor = CalculateDeterminant(sub_mat);
-
-    return ((i + j) % 2) ? -first_minor : first_minor;
-    KRATOS_CATCH("");
-}
-
-template <class TMatrixType>
-GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Impl::CalculateCofactorMatrix(const TMatrixType& rMat) const
-{
-    static_assert(std::is_same<TMatrixType, MatrixType>::value ||
-                      std::is_same<TMatrixType, SubMatrixType>::value,
-                  "Invalid template parameter.");
-    KRATOS_TRY;
-
-    MatrixType cofactor_matrix(rMat.size1(), rMat.size2());
-
-    for (unsigned i = 0; i < rMat.size1(); ++i)
-        for (unsigned j = 0; j < rMat.size2(); ++j)
-            cofactor_matrix(i, j) = CalculateCofactor(rMat, i, j);
-
-    return cofactor_matrix;
     KRATOS_CATCH("");
 }
 
@@ -260,7 +174,7 @@ GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Impl::C
                         ia2(j_sub++) = k;
 
                 const SubMatrixType sub_jacobian(mrJ, ia1, ia2);
-                const MatrixType cofactor_sub_jacobian = CalculateCofactorMatrix(sub_jacobian);
+                const MatrixType cofactor_sub_jacobian = MathUtils<double>::CofactorMatrix(sub_jacobian);
 
                 // Construct the corresponding shape function local gradients
                 // submatrix.
