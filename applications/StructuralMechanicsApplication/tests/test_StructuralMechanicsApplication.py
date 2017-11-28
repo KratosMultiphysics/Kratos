@@ -137,37 +137,18 @@ def AssambleTestSuites():
     smallSuite = suites['small']
     # Simple patch tests
     ## Solids
-    smallSuite.addTest(TTestConstitutiveLaw('test_Uniaxial_HyperElastic_3D'))
-    smallSuite.addTest(TTestConstitutiveLaw('test_Shear_HyperElastic_3D'))
-    smallSuite.addTest(TTestConstitutiveLaw('test_Shear_Plus_Strech_HyperElastic_3D'))
-    smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_triangle'))
-    smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_quadrilateral'))
-    smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_3D_hexa'))
-    smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_2D_triangle'))
-    smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_2D_quadrilateral'))
-    smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_3D_hexa'))
-    smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_2D_triangle'))
-    smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_2D_quadrilateral'))
-    smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_3D_hexa'))
-    smallSuite.addTest(TTestQuadraticElements('test_Quad8'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestLargeStrain]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
     ## Shells
-    smallSuite.addTest(TTestPatchTestShells('test_thin_shell_triangle'))
-    smallSuite.addTest(TTestPatchTestShells('test_thick_shell_triangle'))
-    smallSuite.addTest(TTestPatchTestShells('test_thin_shell_quadrilateral'))
-    smallSuite.addTest(TTestPatchTestShells('test_thick_shell_quadrilateral'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShells]))
     ## Trusses
-    smallSuite.addTest(TTestTruss3D2N('test_truss3D2N_linear'))
-    smallSuite.addTest(TTestTruss3D2N('test_truss3D2N_nonlinear'))
-    smallSuite.addTest(TTestTruss3D2N('test_truss3D2N_dynamic'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     ## Beams
-    smallSuite.addTest(TTestCrBeam3D2N('test_cr_beam_linear'))
-    smallSuite.addTest(TTestCrBeam3D2N('test_cr_beam_nonlinear'))
-    smallSuite.addTest(TTestCrBeam3D2N('test_cr_beam_dynamic_lumped_mass_matrix'))
-    smallSuite.addTest(TTestCrBeam3D2N('test_cr_beam_dynamic_consistent_mass_matrix'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam3D2N]))
     # Test loading conditions
-    smallSuite.addTest(TestLoadingConditions('test_LineLoadCondition2D2N'))
-    smallSuite.addTest(TestLoadingConditions('test_LineLoadCondition2D2NAngle'))
-    smallSuite.addTest(TestLoadingConditions('test_SurfaceLoadCondition3D4N'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingConditions]))
     # Basic moving mesh test
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Dynamic basic tests
@@ -216,7 +197,7 @@ def AssambleTestSuites():
     smallSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
     smallSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
     # Nodal damping test
-    smallSuite.addTest(TNodalDampingTests('test_nodal_damping'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests]))
 
     if (missing_external_dependencies == False):
         if (hasattr(KratosMultiphysics.ExternalSolversApplication,
@@ -226,12 +207,9 @@ def AssambleTestSuites():
             smallSuite.addTest(TEigen3D3NThinCircleTests('test_execution'))
             smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
             # Element damping test
-            smallSuite.addTest(TSpringDamperElementTests('test_undamped_mdof_system_dynamic'))
-            smallSuite.addTest(TSpringDamperElementTests('test_undamped_sdof_system_harmonic'))
-            smallSuite.addTest(TSpringDamperElementTests('test_damped_mdof_system_dynamic'))
-            smallSuite.addTest(TSpringDamperElementTests('test_undamped_mdof_system_eigen'))
+            smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests]))
             # Harmonic analysis test
-            smallSuite.addTest(THarmonicAnalysisTests('test_execution'))
+            smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTests]))
         else:
             print(
                 "FEASTSolver solver is not included in the compilation of the External Solvers Application"
