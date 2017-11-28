@@ -701,8 +701,8 @@ public:
         }
         
         // We define the normal and tangents
-        array_1d<double,3> tangent_xi(0.0);
-        array_1d<double,3> tangent_eta(0.0);
+        array_1d<double,3> tangent_xi(3, 0.0);
+        array_1d<double,3> tangent_eta(3, 0.0);
         
         Matrix j_node = ZeroMatrix( dimension, local_space_dimension ); 
         this->Jacobian( j_node, rPointLocalCoordinates);
