@@ -532,7 +532,7 @@ namespace Kratos
 
 		const double l = std::sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy));
 
-		if (l<numerical_limit) KRATOS_ERROR << "length 0 for element " << this->Id() << std::endl;
+		KRATOS_ERROR_IF(l<numerical_limit) << "length 0 for element " << this->Id() << std::endl;
 		return l;
 		KRATOS_CATCH("")
 	}
@@ -544,7 +544,7 @@ namespace Kratos
 		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
 		const double L = std::sqrt((dx*dx) + (dy*dy));
 
-		if (L<numerical_limit) KRATOS_ERROR << "length 0 for element " << this->Id() << std::endl;
+		KRATOS_ERROR_IF(L<numerical_limit) << "length 0 for element " << this->Id() << std::endl;
 		return L;
 		KRATOS_CATCH("")
 	}
