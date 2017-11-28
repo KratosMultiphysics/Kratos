@@ -242,6 +242,56 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
+	void CrBeamElement2D2N::AddExplicitContribution(const VectorType& rRHSVector,
+		const Variable<VectorType>& rRHSVariable,
+		Variable<array_1d<double, 3> >& rDestinationVariable,
+		const ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY;
+		if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL)
+		{
+
+			for (int i = 0; i< msNumberOfNodes; ++i)
+			{
+				int index = msLocalSize * i;
+
+				GetGeometry()[i].SetLock();
+
+				array_1d<double, 3> &ForceResidual =
+					GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+				for (int j = 0; j< 3; ++j)
+				{
+					ForceResidual[j] += rRHSVector[index + j];
+				}
+				GetGeometry()[i].UnSetLock();
+			}
+		}
+
+
+		if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL)
+		{
+
+			for (int i = 0; i< msNumberOfNodes; ++i)
+			{
+				int index = (msLocalSize * i) + 3;
+
+				GetGeometry()[i].SetLock();
+
+				array_1d<double, 3> &MomentResidual =
+					GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
+
+				for (int j = 0; j< 3; ++j)
+				{
+					MomentResidual[j] += rRHSVector[index + j];
+				}			
+				GetGeometry()[i].UnSetLock();
+			}
+		}
+
+		KRATOS_CATCH("")
+	}
+
 	void CrBeamElement2D2N::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 		VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
 		{
