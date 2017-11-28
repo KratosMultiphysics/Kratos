@@ -48,14 +48,19 @@ public:
     
     typedef unsigned IndexType;
 
+    typedef boost::numeric::ublas::indirect_array<boost::numeric::ublas::vector<std::size_t>> IndirectArrayType;
+
+    typedef boost::numeric::ublas::matrix_indirect<const MatrixType, IndirectArrayType> SubMatrixType;
+
+    template <class T>
+    using matrix_row = boost::numeric::ublas::matrix_row<T>;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     GeometricalSensitivityUtility(const JacobianType& rJ, const ShapeFunctionsLocalGradientType& rDN_De);
 
-    ~GeometricalSensitivityUtility();
-    
     ///@}
     ///@name Operations
     ///@{
@@ -68,8 +73,20 @@ private:
     ///@name Member Variables
     ///@{
 
-    class Impl;
-    std::unique_ptr<Impl> mpImpl;
+    const JacobianType& mrJ;
+    const ShapeFunctionsLocalGradientType& mrDN_De;
+    MatrixType mCofactorJ;
+    double mDetJ;
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    void Initialize();
+
+    double CalculateDeterminantOfJacobianSensitivity(IndexType iNode, IndexType iCoord) const;
+
+    MatrixType CalculateCofactorOfJacobianSensitivity(IndexType iNode, IndexType iCoord) const;
 
     ///@}
 };

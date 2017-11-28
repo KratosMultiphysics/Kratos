@@ -11,10 +11,8 @@
 //
 
 // System includes
-#include <type_traits>
 
 // External includes
-#include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 
 // Project includes
@@ -23,81 +21,18 @@
 
 namespace Kratos
 {
-///@name Kratos Classes
-///@{
-
-class GeometricalSensitivityUtility::Impl
-{
-public:
-    ///@name Type Definitions
-    ///@{
-
-    using IndirectArrayType = boost::numeric::ublas::indirect_array<boost::numeric::ublas::vector<std::size_t>>;
-
-    using SubMatrixType = boost::numeric::ublas::matrix_indirect<const MatrixType, IndirectArrayType>;
-
-    template <class T>
-    using matrix_row = boost::numeric::ublas::matrix_row<T>;
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    Impl(const JacobianType& rJ, const ShapeFunctionsLocalGradientType& rDN_De)
-        : mrJ(rJ), mrDN_De(rDN_De)
-    {
-    }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    void Initialize();
-
-    void CalculateSensitivity(IndexType iNode, IndexType iCoord, double& rDetJ_Deriv, ShapeFunctionsGradientType& rDN_DX_Deriv) const;
-
-    ///@}
-
-private:
-    ///@name Member Variables
-    ///@{
-
-    const JacobianType& mrJ;
-    const ShapeFunctionsLocalGradientType& mrDN_De;
-    MatrixType mCofactorJ;
-    double mDetJ;
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    double CalculateDeterminantOfJacobianSensitivity(IndexType iNode, IndexType iCoord) const;
-
-    MatrixType CalculateCofactorOfJacobianSensitivity(IndexType iNode, IndexType iCoord) const;
-
-    ///@}
-};
-
-///@} // Kratos Classes
 
 GeometricalSensitivityUtility::GeometricalSensitivityUtility(const JacobianType& rJ, const ShapeFunctionsLocalGradientType& rDN_De)
-: mpImpl(new Impl(rJ, rDN_De))
+: mrJ(rJ), mrDN_De(rDN_De)
 {
     KRATOS_TRY;
-    mpImpl->Initialize();
+
+    Initialize();
+    
     KRATOS_CATCH("");
 }
 
-GeometricalSensitivityUtility::~GeometricalSensitivityUtility() = default;
-
-void GeometricalSensitivityUtility::CalculateSensitivity(IndexType iNode, IndexType iCoord, double& rDetJ_Deriv, ShapeFunctionsGradientType& rDN_DX_Deriv) const
-{
-    KRATOS_TRY;
-    mpImpl->CalculateSensitivity(iNode, iCoord, rDetJ_Deriv, rDN_DX_Deriv);
-    KRATOS_CATCH("");
-}
-
-void GeometricalSensitivityUtility::Impl::Initialize()
+void GeometricalSensitivityUtility::Initialize()
 {
     KRATOS_TRY;
 
@@ -114,7 +49,7 @@ void GeometricalSensitivityUtility::Impl::Initialize()
     KRATOS_CATCH("");
 }
 
-void GeometricalSensitivityUtility::Impl::CalculateSensitivity(IndexType iNode, IndexType iCoord, double& rDetJ_Deriv, ShapeFunctionsGradientType& rDN_DX_Deriv) const
+void GeometricalSensitivityUtility::CalculateSensitivity(IndexType iNode, IndexType iCoord, double& rDetJ_Deriv, ShapeFunctionsGradientType& rDN_DX_Deriv) const
 {
     KRATOS_TRY;
 
@@ -129,14 +64,14 @@ void GeometricalSensitivityUtility::Impl::CalculateSensitivity(IndexType iNode, 
     KRATOS_CATCH("");
 }
 
-double GeometricalSensitivityUtility::Impl::CalculateDeterminantOfJacobianSensitivity(
+double GeometricalSensitivityUtility::CalculateDeterminantOfJacobianSensitivity(
     IndexType iNode, IndexType iCoord) const
 {
     return inner_prod(matrix_row<const MatrixType>(mCofactorJ, iCoord),
                       matrix_row<const ShapeFunctionsLocalGradientType>(mrDN_De, iNode));
 }
 
-GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Impl::CalculateCofactorOfJacobianSensitivity(
+GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::CalculateCofactorOfJacobianSensitivity(
     IndexType iNode, IndexType iCoord) const
 {
     KRATOS_TRY;
