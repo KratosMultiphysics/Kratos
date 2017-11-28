@@ -44,7 +44,6 @@ Import_WindTurbineApplication = False
 Import_MultiScaleApplication = False
 Import_ContactStructuralMechanicsApplication = False
 Import_KratosMappingApplication = False
-Import_HDF5Application = False
 
 print("Applications Available:")
 print("Import_ExternalSolversApplication: False")
@@ -88,7 +87,6 @@ print("Import_WindTurbineApplication: False")
 print("Import_MultiScaleApplication: False")
 print("Import_ContactStructuralMechanicsApplication: False")
 print("Import_KratosMappingApplication: False")
-print("Import_HDF5Application: False")
 
 application_directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -135,7 +133,6 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_MultiScaleApplication: " + str(Import_MultiScaleApplication))
     print("Import_ContactStructuralMechanicsApplication: " + str(Import_ContactStructuralMechanicsApplication))
     print("Import_KratosMappingApplication: " + str(Import_KratosMappingApplication))
-    print("Import_HDF5Application: " + str(Import_HDF5Application))
 
     if(Import_ExternalSolversApplication):
         print("importing KratosExternalSolversApplication ...")
@@ -488,15 +485,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.AddApplication(mapping_application)
         print("KratosMappingApplication Succesfully imported")     
 
-    if(Import_HDF5Application):
-        print("importing KratosHDF5Application ...")
-        sys.path.append(applications_path + '/HDF5Application/python_scripts')
-        sys.path.append(applications_path + '/HDF5Application/Linux')
-        from KratosHDF5Application import *
-        hdf5_application = KratosHDF5Application()
-        kernel.AddApplication(hdf5_application)
-        print("KratosHDF5Application Succesfully imported")
-
     # dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
     if(Import_SolidMechanicsApplication):
@@ -579,8 +567,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(mapping_application)    
     if(Import_ConstitutiveModelsApplication):
         kernel.InitializeApplication(constitutive_models_application)
-    if(Import_HDF5Application):
-        kernel.InitializeApplication(hdf5_application)
     if(Import_UmatApplication):
         kernel.InitializeApplication(umat_application)
 
