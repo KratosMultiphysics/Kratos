@@ -11,34 +11,45 @@
 //
 
 
-#if !defined(KRATOS_VMS_H_INCLUDED )
-#define  KRATOS_VMS_H_INCLUDED
+
+#if !defined(KRATOS_SURFACE_TENSION_H_INCLUDED)
+#define  KRATOS_SURFACE_TENSION_H_INCLUDED
+
 
 // System includes
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <vector>
+#include <ctime>
+#include <stdlib.h>
+#include <iomanip>
 
 
 // External includes
+//#include "boost/smart_ptr.hpp"
+
 
 
 // Project includes
 #include "containers/array_1d.h"
+
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/ublas_interface.h"
 #include "includes/serializer.h"
+#include "includes/variables.h"
+#include "ULF_application.h"
 #include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/deprecated_variables.h"
 #include "boost/make_shared.hpp"
-
-// Application includes
-#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
 
-///@addtogroup FluidDynamicsApplication
+///@addtogroup ULF
 ///@{
 
 ///@name Kratos Globals
@@ -101,14 +112,14 @@ namespace Kratos
  */
 template< unsigned int TDim,
           unsigned int TNumNodes = TDim + 1 >
-class VMS : public Element
+class SurfaceTension : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of VMS
-    KRATOS_CLASS_POINTER_DEFINITION(VMS);
+    /// Pointer definition of SurfaceTension
+    KRATOS_CLASS_POINTER_DEFINITION(SurfaceTension);
 
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;
@@ -144,8 +155,8 @@ public:
 
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
-    typedef array_1d<double, TNumNodes> ShapeFunctionsType;
-    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
+//     typedef array_1d<double, TNumNodes> ShapeFunctionsType;
+//     typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
 
     ///@}
     ///@name Life Cycle
@@ -157,7 +168,7 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    VMS(IndexType NewId = 0) :
+    SurfaceTension(IndexType NewId = 0) :
         Element(NewId)
     {}
 
@@ -166,7 +177,7 @@ public:
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    VMS(IndexType NewId, const NodesArrayType& ThisNodes) :
+    SurfaceTension(IndexType NewId, const NodesArrayType& ThisNodes) :
         Element(NewId, ThisNodes)
     {}
 
@@ -175,7 +186,7 @@ public:
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    VMS(IndexType NewId, GeometryType::Pointer pGeometry) :
+    SurfaceTension(IndexType NewId, GeometryType::Pointer pGeometry) :
         Element(NewId, pGeometry)
     {}
 
@@ -185,12 +196,12 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    VMS(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
+    SurfaceTension(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
         Element(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
-    ~VMS() override
+     virtual ~SurfaceTension()
     {}
 
 
@@ -205,24 +216,27 @@ public:
 
     /// Create a new element of this type
     /**
-     * Returns a pointer to a new VMS element, created using given input
+     * Returns a pointer to a new SurfaceTension element, created using given input
      * @param NewId: the ID of the new element
      * @param ThisNodes: the nodes of the new element
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const override
+                            PropertiesType::Pointer pProperties) const
     {
-	return boost::make_shared< VMS<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+	
+        return boost::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        
+        //return Element::Pointer(new SurfaceTension(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
     
-    Element::Pointer Create(IndexType NewId,
-                           GeometryType::Pointer pGeom,
-                           PropertiesType::Pointer pProperties) const override
-    {
-        return boost::make_shared< VMS<TDim, TNumNodes> >(NewId, pGeom, pProperties);
-    }
+     Element::Pointer Create(IndexType NewId,
+                            GeometryType::Pointer pGeom,
+                            PropertiesType::Pointer pProperties) const
+     {
+         return boost::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, pGeom, pProperties);
+     }
 
     /// Provides local contributions from body forces and OSS projection terms
     /**
@@ -234,9 +248,9 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      ProcessInfo& rCurrentProcessInfo)
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -255,8 +269,8 @@ public:
      * @param rLeftHandSideMatrix Local matrix, will be filled with zeros
      * @param rCurrentProcessInfo Process info instance
      */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
+    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo)
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -276,8 +290,8 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance from the ModelPart. It is
      * expected to contain values for OSS_SWITCH, DYNAMIC_TAU and DELTA_TIME
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                        ProcessInfo& rCurrentProcessInfo)
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -325,7 +339,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -380,9 +394,9 @@ public:
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
+    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override
+            ProcessInfo& rCurrentProcessInfo)
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -415,6 +429,71 @@ public:
         this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
 
         this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
+        
+        
+        
+	// Surface tension contribution
+	int k = 0;
+	if(TDim < 3)
+	{
+	    array_1d<double,3> node_indx;
+	    node_indx[0] = 0.0;
+	    node_indx[1] = 0.0;
+	    node_indx[2] = 0.0;
+	    int node_indx_wrong = 5;
+	    for(unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+	    {
+	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(CURVATURE) != 0.0)
+		k++;
+	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(IS_BOUNDARY) < 0.1)
+		node_indx_wrong = iNode;
+	    }
+	    if(k > 2 && node_indx_wrong != 5)
+	    {
+	      this->GetGeometry()[node_indx_wrong].FastGetSolutionStepValue(CURVATURE) = 0.0;
+	    }
+	    k = 0;
+	    for(unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+	    {
+	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0 || this->GetGeometry()[iNode].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	      {
+		  node_indx[k] = iNode;
+		  k++;
+	      }
+	    }
+	    if(k > 1)
+	      this->ApplySurfaceTensionContribution(rDampingMatrix, rRightHandSideVector, node_indx, k, rCurrentProcessInfo);
+	}
+	else
+	{
+	    array_1d<double,4> node_indx;
+	    node_indx[0] = 0.0;
+	    node_indx[1] = 0.0;
+	    node_indx[2] = 0.0;
+	    node_indx[3] = 0.0;
+	    int node_indx_wrong = 5;
+	    for(unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+	    {
+	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(MEAN_CURVATURE) != 0.0)
+		k++;
+	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(IS_BOUNDARY) < 0.1)
+		node_indx_wrong = iNode;
+	    }
+	    if(k > 2 && node_indx_wrong != 5)
+	    {
+	      this->GetGeometry()[node_indx_wrong].FastGetSolutionStepValue(MEAN_CURVATURE) = 0.0;
+	    }
+	    k = 0;
+	    for(unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+	    {
+	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(IS_FREE_SURFACE) > 0.999 || this->GetGeometry()[iNode].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	      {
+		  node_indx[k] = iNode;
+		  k++;
+	      }
+	    }	  
+	    
+	}
 
         // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
         VectorType U = ZeroVector(LocalSize);
@@ -435,7 +514,7 @@ public:
         noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
     }
 
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
+    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -452,9 +531,9 @@ public:
      * @param rCurrentProcessInfo Process info instance (will be checked for OSS_SWITCH)
      * @see MarkForRefinement for a use of the error ratio
      */
-    void Calculate(const Variable<double>& rVariable,
+   virtual void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo) override
+                           const ProcessInfo& rCurrentProcessInfo)
     {
         if (rVariable == ERROR_RATIO)
         {
@@ -491,9 +570,9 @@ public:
      * @param Output Will be overwritten with the elemental momentum error
      * @param rCurrentProcessInfo Process info instance (unused)
      */
-    void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+   virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo) override
+                           const ProcessInfo& rCurrentProcessInfo)
     {
         if (rVariable == ADVPROJ) // Compute residual projections for OSS
         {
@@ -608,30 +687,30 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+    virtual void EquationIdVector(EquationIdVectorType& rResult,
+                                  ProcessInfo& rCurrentProcessInfo);
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo) override;
+    virtual void GetDofList(DofsVectorType& rElementalDofList,
+                            ProcessInfo& rCurrentProcessInfo);
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
     /**
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    void GetFirstDerivativesVector(Vector& Values, int Step = 0) override;
+    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0);
 
     /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
     /**
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    void GetSecondDerivativesVector(Vector& Values, int Step = 0) override;
+    virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0);
 
     /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
     /**
@@ -643,9 +722,9 @@ public:
      * @param Output Will be filled with the values of the variable on integrartion points
      * @param rCurrentProcessInfo Process info instance
      */
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo);
 
     /// Obtain a double elemental variable, evaluated on gauss points.
     /**
@@ -659,9 +738,9 @@ public:
      * @param Output Will be filled with the values of the variable on integrartion points
      * @param rCurrentProcessInfo Process info instance
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo)
     {
         if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU || rVariable == TAU)
         {
@@ -788,27 +867,27 @@ public:
              with associated value of 0.0). This is catastrophic if the variable referenced
              goes out of scope.
              */
-            const VMS<TDim, TNumNodes>* const_this = static_cast<const VMS<TDim, TNumNodes>*> (this);
+            const SurfaceTension<TDim, TNumNodes>* const_this = static_cast<const SurfaceTension<TDim, TNumNodes>*> (this);
             rValues[0] = const_this->GetValue(rVariable);
         }
     }
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+   virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
             std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo)
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo)
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo)
     {}
 
     ///@}
@@ -828,7 +907,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -904,14 +983,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "VMS #" << Id();
+        buffer << "SurfaceTension #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "VMS" << TDim << "D";
+        rOStream << "SurfaceTension" << TDim << "D";
     }
 
 //        /// Print object's data.
@@ -1272,6 +1351,348 @@ protected:
         this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
     }
 
+    
+    
+    /// Add the surface tension term to the velocity contribution 
+    // ApplySurfaceTensionContribution(rDampingMatrix, rRightHandSideVector, node_indx, rCurrentProcessInfo);
+    
+    void ApplySurfaceTensionContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector,
+            const array_1d< double, 3 >& node_indx, const int& k, const ProcessInfo& rCurrentProcessInfo)
+    {
+	const double gamma = rCurrentProcessInfo[SURFTENS_COEFF]; //surface tension coefficient between air and water [N m-1]	
+	
+	double dt = rCurrentProcessInfo[DELTA_TIME];
+	
+	double theta_s = rCurrentProcessInfo[CONTACT_ANGLE_STATIC];
+	double pi = 3.14159265359;
+	theta_s = theta_s*pi/180.0;
+	double sin_t = sin(theta_s);
+	double cos_t = cos(theta_s);
+	
+	array_1d<double,2> m;
+	
+	//Clearing spurious curvatures:
+	for(unsigned int i = 0; i < 3; i++){
+	    if((this->GetGeometry()[i].FastGetSolutionStepValue(IS_BOUNDARY) == 0.0) || (this->GetGeometry()[i].FastGetSolutionStepValue(IS_FREE_SURFACE) == 0.0))
+	        this->GetGeometry()[i].FastGetSolutionStepValue(CURVATURE) = 0.0;
+	}
+	
+	//Flag counter to identify contact element:
+	double flag_surf = 0.0;
+	flag_surf += this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE);
+	flag_surf += this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_FREE_SURFACE);
+	flag_surf += this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_FREE_SURFACE);
+	double flag_trip = 0.0;
+	flag_trip += (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
+	flag_trip += (this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
+	flag_trip += (this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
+	double flag_struct = 0.0;
+	flag_struct += (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
+	
+	int ii = 5;
+	int jj = 6;
+	int kk = 7;
+	double avg_curv = 0.0;
+	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//Set the indexes as follows:
+	// node "ii" -> triple point, if the element has one
+	// node "jj" -> node with flag IS_FREE_SURFACE
+	// node "kk" -> in elements with 3 nodes at the boundary:
+	//		- if "ii" is TRIPLE_POINT, "kk" has flag IS_STRUCTURE (besides IS_FREE_SURFACE)
+	//		- if there is no TRIPLE_POINT, "kk" is another IS_FREE_SURFACE node
+	//////////////////////////////////////////////////////////////////////////////////////////
+	if(k < 3) //General element with two nodes at the interface
+	{
+	    //Step to detect triple point. Node with index ii is TRIPLE_POINT, and node with index jj is IS_FREE_SURFACE
+	    ii = node_indx[0];
+	    jj = node_indx[1];
+	
+	    if(flag_trip > 0 && (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
+	    {
+		  ii = node_indx[1];
+		  jj = node_indx[0];	    
+	    }
+	}
+	else //Element with three nodes at the free surface OR one at free surface, one triple point and one at the structure
+	{
+	  if(flag_trip == 0.0) //three nodes at interface
+	  {
+	    if(flag_struct == 0.0)
+	    {
+	      for(int i = 0; i < 3; i++)
+	      {
+		avg_curv += 0.333333333333*(this->GetGeometry()[i].FastGetSolutionStepValue(CURVATURE));
+	      }
+	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(CURVATURE) > avg_curv)
+	      {
+		ii = node_indx[1];
+		jj = node_indx[2];
+		kk = node_indx[0];
+	      }
+	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(CURVATURE) > avg_curv)
+	      {
+		ii = node_indx[0];
+		jj = node_indx[2];
+		kk = node_indx[1];
+	      }
+	      if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(CURVATURE) > avg_curv)
+	      {
+		ii = node_indx[0];
+		jj = node_indx[1];
+		kk = node_indx[2];
+	      }
+	    }
+	    else //first time step, TRIPLE_POINT has not been set yet, but the element has a TRIPLE_POINT
+	    {
+	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+	      {
+		jj = node_indx[0];
+		if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(CURVATURE) > 1.0)
+		{
+		  ii = node_indx[1]; //TRIPLE_POINT
+		  kk = node_indx[2]; //IS_STRUCTURE
+		}
+		else
+		{
+		  ii = node_indx[2]; //TRIPLE_POINT
+		  kk = node_indx[1]; //IS_STRUCTURE
+		}
+	      }
+	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+	      {
+		jj = node_indx[1];
+		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(CURVATURE) > 1.0)
+		{
+		  ii = node_indx[0]; //TRIPLE_POINT
+		  kk = node_indx[2]; //IS_STRUCTURE
+		}
+		else
+		{
+		  ii = node_indx[2]; //TRIPLE_POINT
+		  kk = node_indx[0]; //IS_STRUCTURE
+		}
+	      }
+	      if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+	      {
+		jj = node_indx[2];
+		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(CURVATURE) > 1.0)
+		{
+		  ii = node_indx[0]; //TRIPLE_POINT
+		  kk = node_indx[1]; //IS_STRUCTURE
+		}
+		else
+		{
+		  ii = node_indx[1]; //TRIPLE_POINT
+		  kk = node_indx[0]; //IS_STRUCTURE
+		}
+	      }
+	    }
+	  }
+	  else //Element has one node with TRIPLE_POINT
+	  {
+	    if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	    {
+	      ii = node_indx[0];
+	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+	      {
+		jj = node_indx[1];
+		kk = node_indx[2]; //IS_STRUCTURE
+	      }
+	      else
+	      {
+		jj = node_indx[2];
+		kk = node_indx[1]; //IS_STRUCTURE
+	      }
+	    }
+	    if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	    {
+	      ii = node_indx[1];
+	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+	      {
+		jj = node_indx[0];
+		kk = node_indx[2]; //IS_STRUCTURE
+	      }
+	      else
+	      {
+		jj = node_indx[2];
+		kk = node_indx[0]; //IS_STRUCTURE
+	      }
+	    }
+	    if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	    {
+	      ii = node_indx[2];
+	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+	      {
+		jj = node_indx[0];
+		kk = node_indx[1];
+	      }
+	      else
+	      {
+		jj = node_indx[1];
+		kk = node_indx[0];
+	      }
+	    }	    
+	  }
+	}
+	
+	array_1d<double,2> An1;
+	array_1d<double,2> An2;
+	An1[0] = this->GetGeometry()[ii].FastGetSolutionStepValue(NORMAL_X);
+	An1[1] = this->GetGeometry()[ii].FastGetSolutionStepValue(NORMAL_Y);
+	double norm1 = sqrt(An1[0]*An1[0] + An1[1]*An1[1]);
+	An1 /= norm1;
+	An2[0] = this->GetGeometry()[jj].FastGetSolutionStepValue(NORMAL_X);
+	An2[1] = this->GetGeometry()[jj].FastGetSolutionStepValue(NORMAL_Y);
+	double norm2 = sqrt(An2[0]*An2[0] + An2[1]*An2[1]);
+	An2 /= norm2;
+	        
+	double x1 = this->GetGeometry()[ii].X();
+	double y1 = this->GetGeometry()[ii].Y();
+	double x2 = this->GetGeometry()[jj].X();
+	double y2 = this->GetGeometry()[jj].Y();
+	//vector x12 is the vector pointing from node 1 [ii] to node 2 [jj]
+	array_1d<double,2> x12;
+	x12[0] = x2 - x1;
+	x12[1] = y2 - y1;
+	double dl = sqrt(x12[0]*x12[0] + x12[1]*x12[1]);
+	x12 /= dl;
+	
+	double curv1 = this->GetGeometry()[ii].FastGetSolutionStepValue(CURVATURE);
+	double curv2 = this->GetGeometry()[jj].FastGetSolutionStepValue(CURVATURE);
+	
+	array_1d<double,2> norm_eq;
+	
+	//elemental variables for the laplacian
+	boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
+	boost::numeric::ublas::bounded_matrix<double,3,2> msDN_Dx = ZeroMatrix(3,2);
+	array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
+	double Area;
+	GeometryUtils::CalculateGeometryData(this->GetGeometry(),msDN_Dx,msN,Area);
+	// 3 by 3 matrix that stores the laplacian
+	msWorkMatrix = 0.5 * gamma * dl * prod(msDN_Dx,trans(msDN_Dx)) * dt;
+	
+
+	
+	if(flag_trip == 0)
+	{
+	  if(this->GetGeometry()[ii].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
+	  {
+	    //CSF:
+	    rRightHandSideVector[3*ii]   -= 0.5*gamma*curv1*An1[0]*dl;
+	    rRightHandSideVector[3*ii+1] -= 0.5*gamma*curv1*An1[1]*dl;
+
+	    //Output force:
+	    this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_X) = -gamma*curv1*An1[0]*dl;
+	    this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Y) = -gamma*curv1*An1[1]*dl;	    
+	  }
+	}
+	else
+	{
+	    if (this->GetGeometry()[ii].FastGetSolutionStepValue(NORMAL_X) > 0.0)
+	    {
+		m[0] = -cos_t;
+		m[1] = sin_t;
+	    }
+	    else
+	    {
+		m[0] = cos_t;
+		m[1] = sin_t;
+	    }
+	    if(k < 3)
+	    {
+
+	      if (this->GetGeometry()[ii].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	      {
+		  double coef = 1.0;
+		  //MODEL 1 - contact angle condition with vector tangent to the surface:
+		  rRightHandSideVector[3*ii] 	-= coef*gamma*(m[0]-x12[0]);
+ 		  rRightHandSideVector[3*ii+1]	-= coef*gamma*(m[1]-x12[1]);    
+ 		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_X) = -coef*gamma*(m[0] - x12[0]);
+ 		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Y) = -coef*gamma*(m[1] - x12[1]);		  	  
+		  
+
+		  
+  	  
+		  
+	      }
+	      else
+	      {
+		  this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_X) = 0.0;
+	      }
+	    }
+	}
+	
+	//CSF:
+	rRightHandSideVector[3*jj] 	-= 0.5*gamma*curv2*An2[0]*dl;
+	rRightHandSideVector[3*jj+1] 	-= 0.5*gamma*curv2*An2[1]*dl;
+	
+	//Output force:
+	this->GetGeometry()[jj].FastGetSolutionStepValue(FORCE_X) = -gamma*curv2*An2[0]*dl;
+	this->GetGeometry()[jj].FastGetSolutionStepValue(FORCE_Y) = -gamma*curv2*An2[1]*dl;
+
+	rDampingMatrix(3*ii,3*ii) += msWorkMatrix(ii,ii);
+	rDampingMatrix(3*ii+1,3*ii+1) += msWorkMatrix(ii,ii);
+	
+	rDampingMatrix(3*ii,3*jj) += msWorkMatrix(ii,jj);
+	rDampingMatrix(3*ii+1,3*jj+1) += msWorkMatrix(ii,jj);
+//     
+	rDampingMatrix(3*jj,3*ii) += msWorkMatrix(jj,ii);
+	rDampingMatrix(3*jj+1,3*ii+1) += msWorkMatrix(jj,ii);
+	    
+	rDampingMatrix(3*jj,3*jj) += msWorkMatrix(jj,jj);
+	rDampingMatrix(3*jj+1,3*jj+1) += msWorkMatrix(jj,jj);
+	
+	
+	if(k > 2 && this->GetGeometry()[kk].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
+	{	   
+	    array_1d<double,2> An3;
+	    An3[0] = this->GetGeometry()[kk].FastGetSolutionStepValue(NORMAL_X);
+	    An3[1] = this->GetGeometry()[kk].FastGetSolutionStepValue(NORMAL_Y);
+	    double norm3 = sqrt(An3[0]*An3[0] + An3[1]*An3[1]);
+	    An3 /= norm3;
+	    double curv3 = this->GetGeometry()[kk].FastGetSolutionStepValue(CURVATURE);
+	    
+	    double x3 = this->GetGeometry()[kk].X();
+	    double y3 = this->GetGeometry()[kk].Y();
+	    array_1d<double,2> x31;
+	    array_1d<double,2> x32;
+	    x31[0] = x1 - x3;
+	    x31[1] = y1 - y3;
+	    double dl1 = sqrt(x31[0]*x31[0] + x31[1]*x31[1]);
+	    x32[0] = x2 - x3;
+	    x32[1] = y2 - y3;
+	    double dl2 = sqrt(x32[0]*x32[0] + x32[1]*x32[1]);
+	    dl = dl1 + dl2;
+	    	    
+	    //CSF:
+	    rRightHandSideVector[3*kk] 		-= gamma*curv3*An3[0]*dl;
+	    rRightHandSideVector[3*kk+1] 	-= gamma*curv3*An3[1]*dl;
+	    msWorkMatrix = 1.0 * gamma * dl * prod(msDN_Dx,trans(msDN_Dx)) * dt;
+	    
+	   
+// 	    
+	    rDampingMatrix(3*kk,3*kk) += msWorkMatrix(kk,kk);
+	    rDampingMatrix(3*kk+1,3*kk+1) += msWorkMatrix(kk,kk);
+	    
+
+
+	}
+	
+	//Clean spurious force values
+	for(unsigned int i = 0; i < 3; i++)
+	{
+	  if(this->GetGeometry()[i].FastGetSolutionStepValue(IS_BOUNDARY) == 0.0)
+	  {
+	    this->GetGeometry()[i].FastGetSolutionStepValue(FORCE_X) = 0.0;
+	    this->GetGeometry()[i].FastGetSolutionStepValue(FORCE_Y) = 0.0;
+	    this->GetGeometry()[i].FastGetSolutionStepValue(FORCE_Z) = 0.0;
+	  }
+	}
+    }
+    
 
     /// Assemble the contribution from an integration point to the element's residual.
     /** Note that the dynamic term is not included in the momentum equation.
@@ -1409,7 +1830,7 @@ protected:
                                       double ElemSize,
                                       const ProcessInfo &rProcessInfo)
     {
-        const double Csmag = (static_cast< const VMS<TDim> * >(this) )->GetValue(C_SMAGORINSKY);
+        const double Csmag = (static_cast< const SurfaceTension<TDim> * >(this) )->GetValue(C_SMAGORINSKY);
         double Viscosity = 0.0;
         this->EvaluateInPoint(Viscosity,VISCOSITY,rN);
 
@@ -1542,7 +1963,7 @@ protected:
     /**
      * Estimate the element size from its area or volume, required to calculate stabilization parameters.
      * Note that its implementation is different for 2D or 3D elements.
-     * @see VMS2D, VMS3D for actual implementation
+     * @see ST2D, ST3D for actual implementation
      * @param Volume (in 3D) or Area (in 2D) of the element
      * @return Element size h
      */
@@ -1562,9 +1983,9 @@ protected:
 
     /// Adds the contribution of the viscous term to the momentum equation (alternate).
     /**
-     * This function is an alternate implementation of VMS::AddViscousTerm.
+     * This function is an alternate implementation of ST::AddViscousTerm.
      * This version works with ublas matrices, using the relationship between stress and
-     * rate of strain given by VMS::CalculateC. It is currently unused (as VMS::AddViscousTerm
+     * rate of strain given by ST::CalculateC. It is currently unused (as ST::AddViscousTerm
      * is a more efficient implementation of the Cauchy equation) but it is left here so derived
      * classes can use it to implement other constitutive equations.
      * @param rDampingMatrix Elemental Damping matrix
@@ -1707,7 +2128,7 @@ protected:
 
     /// Calculate the strain rate matrix
     /**
-     * Unused, left to support derived classes. @see VMS::AddBTransCB
+     * Unused, left to support derived classes. @see SurfaceTension::AddBTransCB
      * @param rB Strain rate matrix
      * @param rShapeDeriv Nodal shape funcion derivatives
      */
@@ -1716,7 +2137,7 @@ protected:
 
     /// Calculate a matrix that provides the stress given the strain rate
     /**
-     * Unused, left to support derived classes. @see VMS::AddBTransCB.
+     * Unused, left to support derived classes. @see SurfaceTension::AddBTransCB.
      * Note that only non-zero terms are written, so the output matrix should be
      * initialized before calling this.
      * @param rC Matrix representation of the stress tensor (output)
@@ -1812,13 +2233,16 @@ private:
     ///@{
 
     friend class Serializer;
+    
 
-    void save(Serializer& rSerializer) const override
+
+
+     virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
@@ -1848,14 +2272,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    VMS & operator=(VMS const& rOther);
+    SurfaceTension & operator=(SurfaceTension const& rOther);
 
     /// Copy constructor.
-    VMS(VMS const& rOther);
+    SurfaceTension(SurfaceTension const& rOther);
 
     ///@}
 
-}; // Class VMS
+}; // Class SurfaceTension
 
 ///@}
 
@@ -1872,7 +2296,7 @@ private:
 template< unsigned int TDim,
           unsigned int TNumNodes >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 VMS<TDim, TNumNodes>& rThis)
+                                 SurfaceTension<TDim, TNumNodes>& rThis)
 {
     return rIStream;
 }
@@ -1881,7 +2305,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 template< unsigned int TDim,
           unsigned int TNumNodes >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const VMS<TDim, TNumNodes>& rThis)
+                                 const SurfaceTension<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -1895,4 +2319,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_VMS_H_INCLUDED  defined
+#endif // KRATOS_ST_H_INCLUDED  defined

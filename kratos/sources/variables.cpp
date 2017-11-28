@@ -1,3 +1,4 @@
+
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -1256,4 +1257,4 @@ namespace Kratos
       KRATOS_REGISTER_FLAG(PERIODIC);
 
   }
-}  // namespace Kratos.
+} // namespace Kratos.

@@ -21,10 +21,11 @@ set( KRATOS_ULF_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ulf_frac2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ulf_frac3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ulf_axisym.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_tension.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/Point_Neumann2D.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/Point_Neumann3D.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/Point_Neumann_Axisym.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SurfaceTension2D.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/Point_Neumann_Axisym.cpp
+
 
 
 
@@ -48,6 +49,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 install(TARGETS KratosULFApplication DESTINATION libs )
+
+
+if(${INSTALL_TESTING_FILES} MATCHES ON)
+  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)

@@ -1,3 +1,4 @@
+ 
 //
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: anonymous $
@@ -34,14 +35,13 @@
 #include "custom_elements/ulf_frac2d.h"
 #include "custom_elements/ulf_frac3d.h"
 #include "custom_elements/ulf_axisym.h"
-//#include "custom_elements/ulf_frac2d_swimming.h"
-//#include "custom_elements/ulf_frac3d_swimming.h"
+// #include "custom_elements/ulf_frac2d_swimming.h"
+// #include "custom_elements/ulf_frac3d_swimming.h"
 #include "custom_conditions/Point_Neumann3D.h"
 #include "custom_conditions/Point_Neumann2D.h"
 #include "custom_conditions/Point_Neumann_Axisym.h"
-#include "custom_elements/SurfaceTension2D.h"
-
-
+#include "custom_elements/surface_tension.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -65,67 +65,41 @@ namespace Kratos
 
 //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
 //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
+
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
+KRATOS_DEFINE_VARIABLE(int, PATCH_INDEX)
+KRATOS_DEFINE_VARIABLE(double, TAUONE)
+KRATOS_DEFINE_VARIABLE(double, TAUTWO)
+KRATOS_DEFINE_VARIABLE(double, NODAL_LENGTH)
+KRATOS_DEFINE_VARIABLE(double, CURVATURE)
+KRATOS_DEFINE_VARIABLE(double, TRIPLE_POINT)
+KRATOS_DEFINE_VARIABLE(double, IS_FLUID)
+KRATOS_DEFINE_VARIABLE(double, CONTACT_ANGLE)
+KRATOS_DEFINE_VARIABLE(double, CONTACT_ANGLE_STATIC )
+KRATOS_DEFINE_VARIABLE(double, SURFTENS_COEFF) 
+KRATOS_DEFINE_VARIABLE(double, MEAN_CURVATURE)
+KRATOS_DEFINE_VARIABLE(double, GAUSSIAN_CURVATURE)
+KRATOS_DEFINE_VARIABLE(double, PRINCIPAL_CURVATURE_1)
+KRATOS_DEFINE_VARIABLE(double, PRINCIPAL_CURVATURE_2) 
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VISCOUS_STRESSX)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VISCOUS_STRESSY)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VISCOUS_STRESSZ) 
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRINCIPAL_DIRECTION_1) 
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRINCIPAL_DIRECTION_2)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NORMAL_GEOMETRIC)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ADHESION_FORCE)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NORMAL_EQ)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NORMAL_CL_EQ)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NORMAL_TP)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NORMAL_CL)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SOLID_FRACTION_GRADIENT_PROJECTED)
+KRATOS_DEFINE_VARIABLE(double, SUBSCALE_PRESSURE)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SUBSCALE_VELOCITY)
+KRATOS_DEFINE_VARIABLE( double, ERASE_FLAG )
+
 KRATOS_DEFINE_VARIABLE(double, PRESSURE_OLD_IT)
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
-
-
-
-//droplet model newly added Variables
-
-
-        KRATOS_DEFINE_APPLICATION_VARIABLE(int,PATCH_INDEX) //already defined in fluiddynamics app.
-
-        KRATOS_DEFINE_APPLICATION_VARIABLE(double,TAUONE) //already defined in fluiddynamics app.
-        KRATOS_DEFINE_APPLICATION_VARIABLE(double,TAUTWO) //already defined in fluiddynamics app.
-
-        KRATOS_DEFINE_VARIABLE(double, IS_STRUCTURE)
-        KRATOS_DEFINE_VARIABLE(double, NODAL_LENGTH)
-        
-        //KRATOS_DEFINE_VARIABLE(double, Y_WALL)
-        
-        KRATOS_DEFINE_VARIABLE(double, CURVATURE)
-        KRATOS_DEFINE_VARIABLE(double, IS_FREE_SURFACE)
-        KRATOS_DEFINE_VARIABLE( double, IS_WATER )
-        KRATOS_DEFINE_VARIABLE( double, TRIPLE_POINT )
-        KRATOS_DEFINE_VARIABLE( double, IS_INTERFACE )
-        KRATOS_DEFINE_VARIABLE( double, IS_BOUNDARY )
-        KRATOS_DEFINE_VARIABLE(double, IS_FLUID)
-        KRATOS_DEFINE_VARIABLE( double, CONTACT_ANGLE )
-        KRATOS_DEFINE_VARIABLE( double, CONTACT_ANGLE )
-        KRATOS_DEFINE_VARIABLE( double, CONTACT_ANGLE_STATIC )
-        KRATOS_DEFINE_VARIABLE( double, SURFTENS_COEFF ) 
-        KRATOS_DEFINE_VARIABLE(double, IS_LAGRANGIAN_INLET)
-        KRATOS_DEFINE_VARIABLE( double, MEAN_CURVATURE )
-        KRATOS_DEFINE_VARIABLE( double, GAUSSIAN_CURVATURE )
-        KRATOS_DEFINE_VARIABLE( double, PRINCIPAL_CURVATURE_1 )
-        KRATOS_DEFINE_VARIABLE( double, PRINCIPAL_CURVATURE_2 ) 
-        
-        //KRATOS_DEFINE_VARIABLE(double, DIVPROJ)
-        
-        // KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADVPROJ )
-        
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( VISCOUS_STRESSX )
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( VISCOUS_STRESSY )
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( VISCOUS_STRESSZ ) 
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( PRINCIPAL_DIRECTION_1 ) 
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( PRINCIPAL_DIRECTION_2 )
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NORMAL_GEOMETRIC )
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADHESION_FORCE )
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NORMAL_EQ )
-        
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NORMAL_CL_EQ )
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NORMAL_TP )
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NORMAL_CL )
-        
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( PRESSURE_GRAD_PROJECTED )
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( PHASE_FRACTION_GRADIENT )
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( SOLID_FRACTION_GRADIENT )
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( SOLID_FRACTION_GRADIENT_PROJECTED )
-        
-        
-
-
-
 
 ///@}
 ///@name Type Definitions
@@ -275,19 +249,23 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    const UpdatedLagrangianFluid mUpdatedLagrangianFluid2D;
-    const UpdatedLagrangianFluid3D mUpdatedLagrangianFluid3D;
-    const UpdatedLagrangianFluidInc mUpdatedLagrangianFluid2Dinc;
-    const UpdatedLagrangianFluid3Dinc mUpdatedLagrangianFluid3Dinc;
-    //
-    const UlfFrac2D mUlfFrac2D;
-    const UlfFrac3D mUlfFrac3D;
-    const UlfAxisym mUlfAxisym;    
-    const PointNeumann3D  mPointNeumann3D;
-    const PointNeumann2D  mPointNeumann2D;
-    const PointNeumannAxisym  mPointNeumannAxisym;
-    
-    const SurfaceTension2D mSurfaceTension2D;
+     const UpdatedLagrangianFluid mUpdatedLagrangianFluid2D;
+     const UpdatedLagrangianFluid3D mUpdatedLagrangianFluid3D;
+     const UpdatedLagrangianFluidInc mUpdatedLagrangianFluid2Dinc;
+     const UpdatedLagrangianFluid3Dinc mUpdatedLagrangianFluid3Dinc;
+//     //
+     const UlfFrac2D mUlfFrac2D;
+     const UlfFrac3D mUlfFrac3D;
+     const UlfAxisym mUlfAxisym;    
+     const PointNeumann3D  mPointNeumann3D;
+     const PointNeumann2D  mPointNeumann2D;
+     const PointNeumannAxisym  mPointNeumannAxisym;
+            /// 2D instance of the element
+   /// 2D instance of the SurfaceTension element
+    const SurfaceTension<2> mSurfaceTension2D;
+    /// 3D instance of the SurfaceTension element
+    const SurfaceTension<3> mSurfaceTension3D;
+
 
     ///@}
     ///@name Private Operators
@@ -341,6 +319,5 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_KRATOS_ULF_APPLICATION_H_INCLUDED  defined 
-
 
 

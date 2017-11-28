@@ -6,6 +6,15 @@ KratosMultiphysics.CheckForPreviousImport()
 import mesh_solver_base
 
 
+
+
+def AddDofs(model_part):
+    for node in model_part.Nodes:
+        # adding dofs
+        node.AddDof(AUX_MESH_VAR)
+    print("variables for the mesh solver added correctly")
+
+
 def CreateSolver(model_part, custom_settings):
     return MeshSolverLaplacian(model_part, custom_settings)
 

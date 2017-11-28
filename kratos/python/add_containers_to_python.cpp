@@ -1,3 +1,4 @@
+
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -138,42 +139,26 @@ void TestContainers(int repeat_number)
 	//}
 	//Timer::Stop("AllVariables GetValue Test");
 	KRATOS_WATCH(d);
-
 	KRATOS_WATCH(properties);
 	std::cout << Timer() << std::endl;
 	Table<double> test_table;
 	test_table.insert(3.14,25.);
-
 	properties.SetTable(TEMPERATURE, DENSITY, test_table);
-
 	test_table.insert(1., 2.);
-
 	properties.SetTable(DISPLACEMENT_X, TIME, test_table);
-
 	test_table.insert(2., 3.);
-
 	properties.SetTable(TIME, DISPLACEMENT_X, test_table);
-
 	test_table.insert(3., 4.);
-
 	properties.SetTable(TIME, DISPLACEMENT_Y, test_table);
-
 	test_table.insert(4., 5.);
-
 	properties.SetTable(TIME, DENSITY, test_table);
-
 	Table<double>& retrieved_table = properties.GetTable(TEMPERATURE, DENSITY);
-
 	KRATOS_WATCH(retrieved_table);
 	KRATOS_WATCH(properties.GetTable(TEMPERATURE, DENSITY));
 	KRATOS_WATCH(properties.GetTable(DISPLACEMENT_X, TIME));
 	KRATOS_WATCH(properties.GetTable(TIME, DISPLACEMENT_X));
 	KRATOS_WATCH(properties.GetTable(TIME, DISPLACEMENT_Y));
 	KRATOS_WATCH(properties.GetTable(TIME, DENSITY));
-
-
-
-
 }
 */
 template<class TContainerType>
