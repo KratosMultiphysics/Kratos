@@ -209,7 +209,7 @@ def AssambleTestSuites():
             # Element damping test
             smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests]))
             # Harmonic analysis test
-            smallSuite.addTest(THarmonicAnalysisTests('test_execution'))
+            smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTests]))
         else:
             print(
                 "FEASTSolver solver is not included in the compilation of the External Solvers Application"
