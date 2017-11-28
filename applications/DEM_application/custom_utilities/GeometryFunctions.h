@@ -43,8 +43,8 @@ namespace Kratos {
             if (linear_period > 0.0) {
                 double linear_omega = 2.0 * Globals::Pi / linear_period;
                 double inv_linear_omega = 1.0 / linear_omega;
-                noalias(center_position) = initial_center + linear_velocity * sin(linear_omega * time) * inv_linear_omega;
-                noalias(linear_velocity_changed) = linear_velocity * cos(linear_omega * time);
+                noalias(center_position) = initial_center + linear_velocity * sin(linear_omega * (time - velocity_start_time)) * inv_linear_omega;
+                noalias(linear_velocity_changed) = linear_velocity * cos(linear_omega * (time - velocity_start_time));
                 noalias(previous_displ) = center_position - initial_center;
             } else {
                 center_position[0] = initial_center[0] + previous_displ[0] + dt * linear_velocity[0];
