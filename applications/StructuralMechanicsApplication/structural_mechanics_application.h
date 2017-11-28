@@ -63,6 +63,7 @@
 #include "custom_conditions/point_torque_3D_condition.hpp"
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
+#include "custom_conditions/point_contact_condition.h"
 #include "custom_conditions/axisym_point_load_condition.h"
 #include "custom_conditions/line_load_condition_2d.h"
 #include "custom_conditions/axisym_line_load_condition_2d.h"
@@ -342,6 +343,8 @@ private:
     // Point load
     const PointLoadCondition mPointLoadCondition2D1N;
     const PointLoadCondition mPointLoadCondition3D1N;
+    const PointContactCondition mPointContactCondition2D1N;
+    const PointContactCondition mPointContactCondition3D1N;
     
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
     
