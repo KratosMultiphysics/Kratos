@@ -97,7 +97,6 @@ namespace Kratos {
 
         virtual void UpdateRotationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,
@@ -105,8 +104,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]);
 
-        virtual void UpdateRotationalVariablesOfCluster(
-                Node < 3 >& i,
+        virtual void UpdateRotationalVariables(
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -117,34 +115,16 @@ namespace Kratos {
                 const bool Fix_Ang_vel[3]);
         
         virtual void UpdateRotatedAngle(
-                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 const array_1d<double, 3 >& angular_velocity,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]);
-        
-        virtual void QuaternionCalculateMidAngularVelocities(
-                const Quaternion<double>& Orientation,
-                const double LocalTensorInv[3][3],
-                const array_1d<double, 3>& angular_momentum,
-                const double dt,
-                const array_1d<double, 3>& InitialAngularVel,
-                array_1d<double, 3>& FinalAngularVel);
-    
+                const double delta_t);
+
         virtual void UpdateAngularVelocity(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
                 const array_1d<double, 3>& angular_momentum,
                 array_1d<double, 3>& angular_velocity);
-        
-        virtual void UpdateLocalAngularVelocity(
-                Node < 3 >& i,
-                array_1d<double, 3 >& partial_local_angular_velocity,
-                array_1d<double, 3 >& local_angular_velocity,
-                array_1d<double, 3 >& local_angular_acceleration,
-                double dt,
-                const bool Fix_Ang_vel[3]);
         
         virtual void CalculateLocalAngularAcceleration(
                 const double moment_of_inertia,
@@ -166,8 +146,14 @@ namespace Kratos {
                 array_1d<double, 3 > & angular_velocity,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]);
-
-//         virtual void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag);
+        
+        virtual void QuaternionCalculateMidAngularVelocities(
+                const Quaternion<double>& Orientation,
+                const double LocalTensorInv[3][3],
+                const array_1d<double, 3>& angular_momentum,
+                const double dt,
+                const array_1d<double, 3>& InitialAngularVel,
+                array_1d<double, 3>& FinalAngularVel);
         
         virtual void CalculateRotationalMotionOfClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
 

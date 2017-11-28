@@ -74,7 +74,7 @@ namespace Kratos {
             }
             
             CalculateAngularVelocityRK(Orientation, moments_of_inertia, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
-            UpdateRotationalVariablesOfCluster(i, moments_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
+            UpdateRotationalVariables(moments_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
         }
     }
     
@@ -118,35 +118,12 @@ namespace Kratos {
             }
             
             CalculateAngularVelocityRK(Orientation, moments_of_inertia, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
-            UpdateRotationalVariablesOfCluster(i, moments_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
+            UpdateRotationalVariables(moments_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
             GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
         }
     }
 
     void RungeKuttaScheme::UpdateRotationalVariables(
-                int StepFlag,
-                Node < 3 >& i,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                array_1d<double, 3 >& angular_velocity,
-                array_1d<double, 3 >& angular_acceleration,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) {
-
-        for (int k = 0; k < 3; k++) {
-            if (Fix_Ang_vel[k] == false) {
-                delta_rotation[k] = angular_velocity[k] * delta_t;
-                rotated_angle[k] += delta_rotation[k];
-                angular_velocity[k] += delta_t * angular_acceleration[k];
-            } else {
-                delta_rotation[k] = angular_velocity[k] * delta_t;
-                rotated_angle[k] += delta_rotation[k];
-            }
-        }
-    }
-
-    void RungeKuttaScheme::UpdateRotationalVariablesOfCluster(
-                Node < 3 >& i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -172,18 +149,6 @@ namespace Kratos {
                 angular_velocity[j] = angular_velocity_aux[j];
             }
         }
-    }
-    
-    void RungeKuttaScheme::UpdateRotatedAngle(
-                Node < 3 >& i,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                const array_1d<double, 3 >& angular_velocity,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) {
-        
-        delta_rotation = angular_velocity * delta_t;
-        rotated_angle += delta_rotation;
     }
     
     void RungeKuttaScheme::QuaternionCalculateMidAngularVelocities(

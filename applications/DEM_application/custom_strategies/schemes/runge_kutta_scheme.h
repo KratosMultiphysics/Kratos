@@ -87,31 +87,12 @@ namespace Kratos {
                 const bool Fix_Ang_vel[3]) override;
 
         void UpdateRotationalVariables(
-                int StepFlag,
-                Node < 3 >& i,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                array_1d<double, 3 >& angular_velocity,
-                array_1d<double, 3 >& angular_acceleration,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) override;
-
-        void UpdateRotationalVariablesOfCluster(
-                Node < 3 >& i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 Quaternion<double  >& Orientation,
                 const array_1d<double, 3 >& angular_momentum,
                 array_1d<double, 3 >& angular_velocity,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) override;
-
-        void UpdateRotatedAngle(
-                Node < 3 >& i,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                const array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
 

@@ -89,46 +89,12 @@ namespace Kratos {
 
         void UpdateRotationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& angular_acceleration,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
-
-        void UpdateRotationalVariablesOfCluster(
-                Node < 3 >& i,
-                const array_1d<double, 3 >& moments_of_inertia,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                Quaternion<double  >& Orientation,
-                const array_1d<double, 3 >& angular_momentum,
-                array_1d<double, 3 >& angular_velocity,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) override;
-
-        void UpdateRotatedAngle(
-                Node < 3 >& i,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                const array_1d<double, 3 >& angular_velocity,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) override;
-
-        void QuaternionCalculateMidAngularVelocities(
-                const Quaternion<double>& Orientation,
-                const double LocalTensorInv[3][3],
-                const array_1d<double, 3>& angular_momentum,
-                const double dt,
-                const array_1d<double, 3>& InitialAngularVel,
-                array_1d<double, 3>& FinalAngularVel) override;
-    
-        void UpdateAngularVelocity(
-                const Quaternion<double>& Orientation,
-                const double LocalTensorInv[3][3],
-                const array_1d<double, 3>& angular_momentum,
-                array_1d<double, 3>& angular_velocity)  override;
 
         void CalculateLocalAngularAcceleration(
                 const double moment_of_inertia,
@@ -142,14 +108,6 @@ namespace Kratos {
                 const array_1d<double, 3 >& local_torque,
                 const double moment_reduction_factor,
                 array_1d<double, 3 >& local_angular_acceleration) override;
-
-        void CalculateAngularVelocityRK(
-                const Quaternion<double  >& Orientation,
-                const array_1d<double, 3 >& moments_of_inertia,
-                const array_1d<double, 3 >& angular_momentum,
-                array_1d<double, 3 > & angular_velocity,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) override;
 
         /// Turn back information as a string.
 
