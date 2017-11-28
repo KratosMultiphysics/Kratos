@@ -68,7 +68,7 @@ namespace Kratos {
                 const bool Fix_vel[3]);
         
         virtual void CalculateTranslationalMotionOfNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
-        virtual void CalculateRotationalMotionOfNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void CalculateRotationalMotionOfSphereNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         
         virtual void CalculateNewRotationalVariablesofSpheres(
                 int StepFlag,

@@ -476,7 +476,6 @@ class Solution(object):
 
         os.chdir(self.post_path)
         self.demio.InitializeMesh(self.all_model_parts)
-        #os.chdir(self.main_path)
 
     def PrintResultsForGid(self, time):
         if self.solver.poisson_ratio_option:
@@ -501,7 +500,6 @@ class Solution(object):
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()
         self.demio.CloseMultifiles()
-    
-    
+
 if __name__ == "__main__":
     Solution().Run()

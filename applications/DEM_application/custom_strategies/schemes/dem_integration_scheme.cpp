@@ -30,7 +30,7 @@ namespace Kratos {
     
     void DEMIntegrationScheme::Rotate(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
         if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) return;
-        CalculateRotationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);
+        CalculateRotationalMotionOfSphereNode(i, delta_t, force_reduction_factor, StepFlag);
     }
     
     void DEMIntegrationScheme::MoveCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
@@ -66,7 +66,7 @@ namespace Kratos {
         UpdateTranslationalVariables(StepFlag, i, coor, displ, delta_displ, vel, initial_coor, force, force_reduction_factor, mass, delta_t, Fix_vel);       
     }
     
-    void DEMIntegrationScheme::CalculateRotationalMotionOfNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
+    void DEMIntegrationScheme::CalculateRotationalMotionOfSphereNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
     
         double moment_of_inertia               = i.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
         array_1d<double, 3 >& angular_velocity = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
