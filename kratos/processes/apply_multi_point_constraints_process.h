@@ -26,7 +26,11 @@
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/binbased_fast_point_locator.h"
-#include "containers/multipoint_constraint_data.h"
+#include "spaces/ublas_space.h"
+
+// Application includes
+#include "containers/constraint.h"
+#include "containers/multipoint_constraint.h"
 
 namespace Kratos
 {
@@ -37,16 +41,17 @@ class ApplyMultipointConstraintsProcess : public Process
     /// Pointer definition of ApplyMultipointConstraintsProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyMultipointConstraintsProcess);
 
-    typedef MpcData::Pointer MpcDataPointerType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef Constraint<LocalSpaceType>::Pointer ConstraintPointerType;
+    typedef MultipointConstraint<LocalSpaceType>::Pointer MpcPointerType;
     typedef Dof<double> *DofPointerType;
     typedef Dof<double> DofType;
-    typedef std::map<std::string, MpcDataPointerType> MpcDataMapType;
-    typedef MpcData::VariableComponentType VariableComponentType;
+    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
     typedef ProcessInfo ProcessInfoType;
     typedef ProcessInfo::Pointer ProcessInfoPointerType;
     typedef unsigned int IndexType;
-    typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
-    typedef MpcData::VariableType VariableType;
+    typedef Kratos::Variable<double> VariableType;
+    typedef boost::shared_ptr<std::vector<ConstraintPointerType>> ConstraintSharedPointerVectorType;
     typedef ModelPart::NodeIterator NodeIterator;
 
     /// Constructor.
@@ -59,23 +64,28 @@ class ApplyMultipointConstraintsProcess : public Process
                 "constraint_set_name":"default",
                 "master_sub_model_part_name":"default_master",
                 "slave_sub_model_part_name":"default_slave",                
-                "variable_names":[""],
+                "variable_names":[],
                 "reform_every_step":false   
             }  )");
+        m_parameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+        if(m_parameters["variable_names"].size() == 0)
+            KRATOS_THROW_ERROR("","In ApplyMultipointConstraintsProcess class constructor :: No DOFs specified for applying Multipoint constraints."," ")
+
 
         ProcessInfoPointerType info = mr_model_part.pGetProcessInfo();
-        if (info->GetValue(MPC_DATA_CONTAINER) == NULL)
-            info->SetValue(MPC_DATA_CONTAINER, new std::vector<MpcDataPointerType>());
+        if (info->GetValue(CONSTRAINTS_CONTAINER) == nullptr)
+            info->SetValue(CONSTRAINTS_CONTAINER, ConstraintSharedPointerVectorType(new std::vector<ConstraintPointerType>()));
 
-        pMpc = MpcDataPointerType(new MpcData());
-        std::string name = rParameters["constraint_set_name"].GetString();
+        pMpc = MpcPointerType(new MultipointConstraint<LocalSpaceType>());
+        std::string name = m_parameters["constraint_set_name"].GetString();
         pMpc->SetName(name);
         pMpc->SetActive(true);
 
-        MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
+        ConstraintSharedPointerVectorType mpcDataVector = info->GetValue(CONSTRAINTS_CONTAINER);
         (*mpcDataVector).push_back(pMpc);
 
-        if (! m_parameters["reform_every_step"].GetBool())
+        if (!m_parameters["reform_every_step"].GetBool())
             // Adding the master slave relation between the master and slave sub model parts
             AddMasterSlaveRelation();
     }
@@ -85,14 +95,14 @@ class ApplyMultipointConstraintsProcess : public Process
 
         // IMPORTANT : This constructor is not to be used when using this process in the normal KRATOS process_list of python script
         ProcessInfoPointerType info = mr_model_part.pGetProcessInfo();
-        if (info->GetValue(MPC_DATA_CONTAINER) == NULL)
-            info->SetValue(MPC_DATA_CONTAINER, new std::vector<MpcDataPointerType>());
+        if (info->GetValue(CONSTRAINTS_CONTAINER) == nullptr)
+            info->SetValue(CONSTRAINTS_CONTAINER, ConstraintSharedPointerVectorType(new std::vector<ConstraintPointerType>()));
 
-        pMpc = MpcDataPointerType(new MpcData());
+        pMpc = MpcPointerType(new MultipointConstraint<LocalSpaceType>());
         pMpc->SetName(name);
         pMpc->SetActive(true);
 
-        MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
+        ConstraintSharedPointerVectorType mpcDataVector = info->GetValue(CONSTRAINTS_CONTAINER);
         (*mpcDataVector).push_back(pMpc);
     }
 
@@ -122,7 +132,7 @@ class ApplyMultipointConstraintsProcess : public Process
     }
 
     // Functions which use two variable components
-    template <int TDim> 
+    template <int TDim>
     void ApplyConstraints(ModelPart &master_model_part, ModelPart &slave_model_part)
     {
         BinBasedFastPointLocator<TDim> *p_point_locator = new BinBasedFastPointLocator<TDim>(master_model_part);
@@ -242,7 +252,7 @@ class ApplyMultipointConstraintsProcess : public Process
     }
 
     /// Destructor.
-    virtual ~ApplyMultipointConstraintsProcess()
+    ~ApplyMultipointConstraintsProcess() override
     {
     }
 
@@ -272,7 +282,7 @@ class ApplyMultipointConstraintsProcess : public Process
     }
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "ApplyMultipointConstraintsProcess";
@@ -280,10 +290,10 @@ class ApplyMultipointConstraintsProcess : public Process
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream &rOStream) const override { rOStream << "ApplyMultipointConstraintsProcess"; }
+    void PrintInfo(std::ostream &rOStream) const override { rOStream << "ApplyMultipointConstraintsProcess"; }
 
     /// Print object's data.
-    void PrintData()
+    void PrintData(std::ostream &rOStream) const override
     {
         std::cout << "Number of slave nodes :: " << std::endl;
         pMpc->GetInfo();
@@ -303,13 +313,12 @@ class ApplyMultipointConstraintsProcess : public Process
     ///@name Protected member Variables
     ///@{
     ModelPart &mr_model_part;
-    MpcDataPointerType pMpc;
+    MpcPointerType pMpc;
     Parameters m_parameters;
 
   private:
     /// Assignment operator.
     ApplyMultipointConstraintsProcess &operator=(ApplyMultipointConstraintsProcess const &rOther) { return *this; }
-
 
 }; // Class MoveRotorProcess
 

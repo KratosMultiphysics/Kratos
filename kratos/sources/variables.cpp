@@ -469,7 +469,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, INTEGRATION_WEIGHT )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_COORDINATES )
 
-  KRATOS_CREATE_VARIABLE(MpcDataPointerVectorType, MPC_DATA_CONTAINER)
+  KRATOS_CREATE_VARIABLE(ConstraintSharedPointerVectorType, CONSTRAINTS_CONTAINER)
 
   //for Vulcan application
 //   Kratos::Variable<double> LAST_AIR( "LAST AIR" );
@@ -983,7 +983,7 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( NODAL_SWITCH )
 
       // For MPC implementations
-      KRATOS_REGISTER_VARIABLE(MPC_DATA_CONTAINER)
+      KRATOS_REGISTER_VARIABLE(CONSTRAINTS_CONTAINER)
 
 
       //--------------- OTHER Applications -------------------//

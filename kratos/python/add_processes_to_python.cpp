@@ -52,11 +52,8 @@
 #include "processes/assign_scalar_field_to_conditions_process.h"
 #include "processes/reorder_and_optimize_modelpart_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
-<<<<<<< HEAD
 #include "processes/apply_multi_point_constraints_process.h"
-=======
 #include "processes/simple_mortar_mapper_process.h"
->>>>>>> 66002c0206c53eff5eeed0423afc6522f6bec943
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -71,6 +68,7 @@ namespace Kratos
 namespace Python
 {
 typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
 void  AddProcessesToPython()
 {

@@ -32,7 +32,8 @@
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
 #include "containers/periodic_variables_container.h"
-#include "containers/multipoint_constraint_data.h"
+#include "containers/constraint.h"
+#include "spaces/ublas_space.h"
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
@@ -478,9 +479,10 @@ namespace Kratos
 //     KRATOS_DEFINE_VARIABLE(double,TEMPERATURES_US)
 //     KRATOS_DEFINE_VARIABLE(double,FRONT_MEETING)
 
-  typedef MpcData::Pointer MpcDataPointerType;
-  typedef std::vector<MpcDataPointerType>*  MpcDataPointerVectorType;
-  KRATOS_DEFINE_VARIABLE(MpcDataPointerVectorType, MPC_DATA_CONTAINER)
+typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+typedef Constraint<LocalSpaceType>::Pointer ConstraintPointerType;
+typedef boost::shared_ptr<std::vector<ConstraintPointerType>>ConstraintSharedPointerVectorType;
+KRATOS_DEFINE_VARIABLE(ConstraintSharedPointerVectorType, CONSTRAINTS_CONTAINER)
 
 }  // namespace Kratos.
 
