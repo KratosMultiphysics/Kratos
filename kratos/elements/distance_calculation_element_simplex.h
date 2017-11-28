@@ -292,70 +292,73 @@ public:
             else negatives++;
         }
         
-        if(positives> 0  && negatives>0) //the element is cut by the interface
-        {   
-            array_1d<double,3> x0; //point on the cut
-            
-            //****************************************************************
-            //here impose the constraint that the zero is mantained
-            //****************************************************************
-            //compute a penalty factor by inspecting the diagonal of the LHS
-            double penalty = 0.0;
-            for(unsigned int i=0; i<TDim+1; i++)
-            {
-                penalty = std::max( penalty, fabs( rLeftHandSideMatrix(i,i) ) );
-            }
-            penalty *= 1e2; //1e6;
-            
-            //now loop over all the edges and 
-            for(unsigned int i=0; i<TDim; i++)
-            {
-                for(unsigned int j=i+1; j<TDim+1; j++)
-                {
-                    if(distances[i]*distances[j] < 0) //edge is divided
-                    {
-                        const double Ni = fabs(distances[j])/(fabs(distances[i])+fabs(distances[j]) + 1e-30);
-                        const double Nj = 1.0-Ni;
-                        
-                        rLeftHandSideMatrix(i,i) += penalty*Ni*Ni;
-                        rLeftHandSideMatrix(i,j) += penalty*Ni*Nj;
-                        rLeftHandSideMatrix(j,i) += penalty*Nj*Ni;
-                        rLeftHandSideMatrix(j,j) += penalty*Nj*Nj;
-                        
-                        noalias(x0) = Ni*GetGeometry()[i].Coordinates() + Nj*GetGeometry()[j].Coordinates();
-                    }
-                }
-            }
-            /*
-            if(step == 2)
-            {*/
-                //****************************************************************
-                //here impose (more weakly) that exact distance are mantained
-                //****************************************************************
-                array_1d<double,TDim+1> dexact;
-                
-                //compute normal
-                array_1d<double,TDim> n = prod(trans(DN_DX),distances);
-                n /= (norm_2(n) + 1e-30);
-                
-                //find exact distances
-                for(unsigned int i=0; i<TDim; i++)
-                {
-                    array_1d<double,3> dx = GetGeometry()[i].Coordinates() - x0;
-                    dexact[i] = inner_prod(n, dx);
-                }
-                
-                //impose constraint
-                penalty *= 0.1;
-                for(unsigned int i=0; i<TDim; i++)
-                {
-                    rLeftHandSideMatrix(i,i) += penalty;
-                    rRightHandSideVector(i) += penalty*(dexact[i] - distances[i]);
-                }
+//         if(positives> 0  && negatives>0) //the element is cut by the interface
+//         {   
+//             array_1d<double,3> x0; //point on the cut
+//             
+//             //****************************************************************
+//             //here impose the constraint that the zero is mantained
+//             //****************************************************************
+//             //compute a penalty factor by inspecting the diagonal of the LHS
+//             double penalty = 0.0;
+//             for(unsigned int i=0; i<TDim+1; i++)
+//             {
+//                 penalty = std::max( penalty, fabs( rLeftHandSideMatrix(i,i) ) );
 //             }
-            
-             ImposeBCs(rLeftHandSideMatrix, rRightHandSideVector, distances);
-        }
+//             penalty *= 1e2; //1e6;
+//             
+//             //now loop over all the edges and 
+//             for(unsigned int i=0; i<TDim; i++)
+//             {
+//                 for(unsigned int j=i+1; j<TDim+1; j++)
+//                 {
+//                     if(distances[i]*distances[j] < 0) //edge is divided
+//                     {
+//                         const double Ni = fabs(distances[j])/(fabs(distances[i])+fabs(distances[j]) + 1e-30);
+//                         const double Nj = 1.0-Ni;
+//                         
+//                         rLeftHandSideMatrix(i,i) += penalty*Ni*Ni;
+//                         rLeftHandSideMatrix(i,j) += penalty*Ni*Nj;
+//                         rLeftHandSideMatrix(j,i) += penalty*Nj*Ni;
+//                         rLeftHandSideMatrix(j,j) += penalty*Nj*Nj;
+//                         
+//                         noalias(x0) = Ni*GetGeometry()[i].Coordinates() + Nj*GetGeometry()[j].Coordinates();
+//                     }
+//                 }
+//             }
+//             /*
+//             if(step == 2)
+//             {*/
+// //                 //****************************************************************
+// //                 //here impose (more weakly) that exact distance are mantained
+// //                 //****************************************************************
+// //                 array_1d<double,TDim+1> dexact;
+// //                 
+// //                 //compute normal
+// //                 array_1d<double,TDim> n = prod(trans(DN_DX),distances);
+// //                 n /= (norm_2(n) + 1e-30);
+// //                 
+// //                 //find exact distances
+// //                 for(unsigned int i=0; i<TDim; i++)
+// //                 {
+// //                     array_1d<double,3> dx = GetGeometry()[i].Coordinates() - x0;
+// //                     
+// //                     dexact[i] = 0.0;
+// //                     for(unsigned int k=0; k<TDim; k++)
+// //                         dexact[i] = n[k]*dx[k]; 
+// //                 }
+// //                 
+// //                 //impose constraint
+// //                 penalty *= 0.1;
+// //                 for(unsigned int i=0; i<TDim; i++)
+// //                 {
+// //                     rLeftHandSideMatrix(i,i) += penalty;
+// //                     rRightHandSideVector(i) += penalty*(dexact[i] - distances[i]);
+// //                 }
+// // //             }
+// //             
+// //              ImposeBCs(rLeftHandSideMatrix, rRightHandSideVector, distances);
+//         }
         
         
     }
