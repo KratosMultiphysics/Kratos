@@ -796,10 +796,12 @@ namespace Kratos {
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
             DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         else {
             double aux = sin(thetaMag)/thetaMag;
             DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         Orientation = DeltaOrientation * Orientation;
         Orientation.ToEulerAngles(EulerAngles);
@@ -818,10 +820,12 @@ namespace Kratos {
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
             DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag * 0.5), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         else {
             double aux = sin(thetaMag)/thetaMag;
             DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         Orientation = DeltaOrientation * Orientation;
     }
@@ -839,10 +843,12 @@ namespace Kratos {
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
             DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag * 0.5), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         else {
             double aux = sin(thetaMag)/thetaMag;
             DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         NewOrientation = DeltaOrientation * Orientation;
     }
@@ -861,10 +867,12 @@ namespace Kratos {
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
             Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            Orientation.normalize();
         }
         else {
             double aux = sin(thetaMag)/thetaMag;
             Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            Orientation.normalize();
         }
         Orientation.ToEulerAngles(EulerAngles);
     }
@@ -880,10 +888,12 @@ namespace Kratos {
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
             DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         else {
             double aux = sin(thetaMag)/thetaMag;
             DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
     }
 
