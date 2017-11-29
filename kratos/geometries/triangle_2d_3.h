@@ -448,8 +448,8 @@ public:
         boxcenter[1]   = 0.50 * (rLowPoint[1] + rHighPoint[1]);
         boxcenter[2]   = 0.00;
 
-        boxhalfsize[0] = 0.50 * (rHighPoint[0] - rLowPoint[0]);
-        boxhalfsize[1] = 0.50 * (rHighPoint[1] - rLowPoint[1]);
+        boxhalfsize[0] = 0.50 * std::abs(rHighPoint[0] - rLowPoint[0]);
+        boxhalfsize[1] = 0.50 * std::abs(rHighPoint[1] - rLowPoint[1]);
         boxhalfsize[2] = 0.00;
 
         return TriBoxOverlap(boxcenter, boxhalfsize);
