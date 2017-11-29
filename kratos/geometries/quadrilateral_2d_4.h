@@ -24,6 +24,7 @@
 
 // Project includes
 #include "geometries/line_2d_2.h"
+#include "geometries/triangle_2d_3.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
 
@@ -509,6 +510,32 @@ public:
         edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 3 ) ) );
         edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ) ) );
         return edges;
+    }
+
+    /** This method checks if an axis-aliged bounding box (AABB)
+    intersects the quadrilateral
+
+    @return bool if the quadrilateral overlaps the box
+    @param rLowPoint first corner of the box
+    @param rHighPoint second corner of the box
+    @see Triangle2D3::HasIntersection
+    */
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    {
+        typename Triangle2D3<PointType>::Pointer p_triangle_0 (new Triangle2D3<PointType>(
+            this->pGetPoint( 0 ),
+            this->pGetPoint( 1 ),
+            this->pGetPoint( 2 )
+        ));
+        typename Triangle2D3<PointType>::Pointer p_triangle_1 (new Triangle2D3<PointType>(
+            this->pGetPoint( 2 ),
+            this->pGetPoint( 3 ),
+            this->pGetPoint( 0 )
+        ));
+
+        if     ( p_triangle_0->HasIntersection(rLowPoint, rHighPoint) ) return true;
+        else if( p_triangle_1->HasIntersection(rLowPoint, rHighPoint) ) return true;
+        else return false;
     }
 
     ///@}
