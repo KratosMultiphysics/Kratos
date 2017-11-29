@@ -169,35 +169,36 @@ namespace Kratos
     std::string PostprocessEigenvaluesProcess::GetLabel(const int NumberOfEigenvalue,
                                                         const double EigenvalueSolution)
     {
-        std::string label;
         double label_number;
-
+        
+        std::stringstream parser;
+        parser << (NumberOfEigenvalue + 1);
+        std::string label = parser.str();
+        
         const std::string lable_type = mOutputParameters["label_type"].GetString();
 
         if (lable_type == "angular_frequency")
         {
-            label = "EigenValue_[rad/s]_";
+            label += "_EigenValue_[rad/s]_";
             label_number = std::sqrt(EigenvalueSolution);
         }
         else if (lable_type == "frequency")
         {
-            label = "EigenFrequency_[Hz]_";
+            label += "_EigenFrequency_[Hz]_";
             label_number = std::sqrt(EigenvalueSolution) / (2 * Globals::Pi);
-        }
-        else if (lable_type == "step")
-        {
-            label = "NoOfEigenValue_";
-            label_number = NumberOfEigenvalue;
         }
         else
         {
             KRATOS_ERROR << "The requested label_type \"" << lable_type << "\" is not available!\n" 
-                         << "Available options are: \"angular_frequency\", \"frequency\", \"step\"" << std::endl;
+                         << "Available options are: \"angular_frequency\", \"frequency\"" << std::endl;
         }
 
-        std::stringstream strstr;
-        strstr << label_number;
-        return label + strstr.str();   
+        // reset the stringstream
+        parser.str( std::string() );
+        parser.clear();
+
+        parser << label_number;
+        return label + parser.str();   
     }
 
 }  // namespace Kratos.
