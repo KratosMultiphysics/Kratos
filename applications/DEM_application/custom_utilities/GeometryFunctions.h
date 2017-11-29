@@ -782,29 +782,7 @@ namespace Kratos {
         GlobalTensor[1][0] = GlobalTensorTraspC2[0]; GlobalTensor[1][1] = GlobalTensorTraspC2[1]; GlobalTensor[1][2] = GlobalTensorTraspC2[2];
         GlobalTensor[2][0] = GlobalTensorTraspC3[0]; GlobalTensor[2][1] = GlobalTensorTraspC3[1]; GlobalTensor[2][2] = GlobalTensorTraspC3[2];
     }
-    
-    static inline void UpdateOrientation(array_1d<double, 3>& EulerAngles, const array_1d<double, 3>& RotatedAngle)
-    {
-        Quaternion<double> Orientation = Quaternion<double>::Identity();
-                        
-        array_1d<double, 3 > theta = RotatedAngle;
-        DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
-
-        double thetaMag = DEM_MODULUS_3(theta);
-                    
-        const double epsilon = std::numeric_limits<double>::epsilon();
-                    
-        if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
-            double aux = (1 - thetaMag * thetaMag / 6);
-            Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-        }
-        else {
-            double aux = sin(thetaMag)/thetaMag;
-            Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-        }
-        Orientation.ToEulerAngles(EulerAngles);
-    }
-    
+       
     static inline void UpdateOrientation(array_1d<double, 3>& EulerAngles, Quaternion<double>& Orientation, const array_1d<double, 3>& DeltaRotation)
     {
         Quaternion<double> DeltaOrientation = Quaternion<double>::Identity();
@@ -867,6 +845,28 @@ namespace Kratos {
             DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
         }
         NewOrientation = DeltaOrientation * Orientation;
+    }
+    
+    static inline void EulerAnglesFromRotationAngle(array_1d<double, 3>& EulerAngles, const array_1d<double, 3>& RotatedAngle)
+    {
+        Quaternion<double> Orientation = Quaternion<double>::Identity();
+                        
+        array_1d<double, 3 > theta = RotatedAngle;
+        DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
+
+        double thetaMag = DEM_MODULUS_3(theta);
+                    
+        const double epsilon = std::numeric_limits<double>::epsilon();
+                    
+        if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
+            double aux = (1 - thetaMag * thetaMag / 6);
+            Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+        }
+        else {
+            double aux = sin(thetaMag)/thetaMag;
+            Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+        }
+        Orientation.ToEulerAngles(EulerAngles);
     }
     
     static inline void OrientationFromRotationAngle(Quaternion<double>& DeltaOrientation, const array_1d<double, 3>& DeltaRotation)
