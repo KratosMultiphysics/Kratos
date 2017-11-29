@@ -46,10 +46,9 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-from KratosMultiphysics.ConstitutiveModelsApplication import *
 import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication    as KratosSolvers
-import KratosMultiphysics.PfemApplication               as KratosPfemBase
+import KratosMultiphysics.PfemApplication           as KratosPfem
 import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
 import KratosMultiphysics.PfemFluidDynamicsApplication  as KratosPfemFluid
@@ -89,10 +88,6 @@ main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, Project
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["dimension"].GetInt())
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParameters["problem_data"]["time_step"].GetDouble())
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, ProjectParameters["problem_data"]["start_time"].GetDouble())
-if( ProjectParameters["problem_data"].Has("gravity_vector") ):
-    main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_X, ProjectParameters["problem_data"]["gravity_vector"][0].GetDouble())
-    main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Y, ProjectParameters["problem_data"]["gravity_vector"][1].GetDouble())
-    main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, ProjectParameters["problem_data"]["gravity_vector"][2].GetDouble())
 
 ###TODO replace this "model" for real one once available in kratos core
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
@@ -110,6 +105,8 @@ pfem_solid_variables.AddVariables(main_model_part)
 
 # Read model_part (note: the buffer_size is set here) (restart is read here)
 solver.ImportModelPart()
+#reset the time step. if the problem is reloaded. there
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParameters["problem_data"]["time_step"].GetDouble())
 
 # Add dofs (always after importing the model part)
 if((main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
@@ -139,22 +136,24 @@ if(echo_level>1):
 
 #obtain the list of the processes to be applied
 
-import process_handler
+import process_factory
+#the process order of execution is important
+list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
+list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
+#list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["water_process_list"] )
+#list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["assign_initial_state_process_list"] )
+if(ProjectParameters.Has("problem_process_list")):
+    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
+if(ProjectParameters.Has("output_process_list")):
+    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
+            
+#print list of constructed processes
+if(echo_level>1):
+    for process in list_of_processes:
+        print(process)
 
-process_parameters = KratosMultiphysics.Parameters("{}") 
-process_parameters.AddValue("echo_level", ProjectParameters["problem_data"]["echo_level"])
-process_parameters.AddValue("constraints_process_list", ProjectParameters["constraints_process_list"])
-process_parameters.AddValue("loads_process_list", ProjectParameters["loads_process_list"])
-if( ProjectParameters.Has("problem_process_list") ):
-    process_parameters.AddValue("problem_process_list", ProjectParameters["problem_process_list"])
-if( ProjectParameters.Has("output_process_list") ):
-    process_parameters.AddValue("output_process_list", ProjectParameters["output_process_list"])
-if( ProjectParameters.Has("processes_sub_model_part_tree_list") ):
-    process_parameters.AddValue("processes_sub_model_part_tree_list",ProjectParameters["processes_sub_model_part_tree_list"])
-
-model_processes = process_handler.ProcessHandler(Model, process_parameters)
-
-model_processes.ExecuteInitialize()
+for process in list_of_processes:
+    process.ExecuteInitialize()
 
 #### processes settings end ####
 
@@ -205,7 +204,8 @@ current_id = 0
 print(" ")
 print("::[KPFEM Simulation]:: Analysis -START- ")
 
-model_processes.ExecuteBeforeSolutionLoop()
+for process in list_of_processes:
+    process.ExecuteBeforeSolutionLoop()
 
 # writing a initial state results file or single file (if no restart)
 if((main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
@@ -222,11 +222,16 @@ delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
 
 
 # Solving the problem (time integration)
+xVector = [];
+yVector = [];
+zVector = [];
 while(time < end_time):
 
     # current time parameters
     # main_model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME] = delta_time
     delta_time = main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+    delta_time = 1.0*delta_time
+    main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = delta_time
     
     time = time + delta_time
     step = step + 1
@@ -238,43 +243,81 @@ while(time < end_time):
     print(" [STEP:",step," TIME:",time,"]")
 
     # processes to be executed at the begining of the solution step
-    model_processes.ExecuteInitializeSolutionStep()
+    for process in list_of_processes:
+        process.ExecuteInitializeSolutionStep()
       
     gid_output.ExecuteInitializeSolutionStep()
 
     # solve time step
     clock_time = StartTimeMeasuring();
 
-    solver.InitializeSolutionStep()
+    #solver.InitializeSolutionStep()
 
-    solver.Predict()
+    #solver.Predict()
 
-    solver.SolveSolutionStep()
+    #solver.SolveSolutionStep()
 
-    solver.FinalizeSolutionStep()
+    #solver.FinalizeSolutionStep()
 
+    solver.Solve()
+    
     StopTimeMeasuring(clock_time,"Solving", False);
+
+    ## LMV
+    xVector.append(time)
+    nodes = main_model_part.GetNodes()
+    node = nodes[162]
+    pw = node.GetSolutionStepValue(KratosMultiphysics.WATER_PRESSURE) / (20.0)
+    yVector.append(pw)
+
+    #analyticalSolution
+    E = 10000.0
+    nu = 0.2
+    K = 1e-5
+    H = 4.0
+    uAnal = 0
+    Constrained = E * ( 1.0 - nu) / ( 1.0 + nu) / ( 1.0 - 2.0 * nu)
+    T = time * K * Constrained / H / H
+    import numpy as np
+    for i in range(0, 40):
+        M = 3.14159 / 2.0 * ( 2.0* float(i) + 1.0)
+        uAnal = uAnal + 2.0 / M * np.sin( M) * np.exp( - M*M*T) 
+    zVector.append(uAnal)
 
     gid_output.ExecuteFinalizeSolutionStep()
 
     # processes to be executed at the end of the solution step
-    model_processes.ExecuteFinalizeSolutionStep()
+    for process in list_of_processes:
+        process.ExecuteFinalizeSolutionStep()
 
     # processes to be executed before witting the output      
-    model_processes.ExecuteBeforeOutputStep()
+    for process in list_of_processes:
+        process.ExecuteBeforeOutputStep()
      
     # write output results GiD: (frequency writing is controlled internally)
     if(gid_output.IsOutputStep()):
         gid_output.PrintOutput()
 
     # processes to be executed after witting the output
-    model_processes.ExecuteAfterOutputStep()
+    for process in list_of_processes:
+        process.ExecuteAfterOutputStep()
 
+
+
+import matplotlib.pyplot as plt
+plt.semilogx( xVector, yVector, 'r', label='numerical')
+plt.semilogx( xVector, zVector, 'b-.', label= 'analytical')
+plt.xlabel('time (s)')
+plt.ylabel('norm excess pw (-)')
+plt.legend()
+plt.title(' oedometer test')
+plt.show()
 
 # Ending the problem (time integration finished)
 gid_output.ExecuteFinalize()
 
-model_processes.ExecuteFinalize()
+for process in list_of_processes:
+    process.ExecuteFinalize()
 
 print("::[KPFEM Simulation]:: Analysis -END- ")
 print(" ")
@@ -289,7 +332,7 @@ tfp = timer.clock()
 # Measure wall time
 tfw = timer.time()
 
-print("::[KPFEM Simulation]:: [Elapsed Time = %.2f" % (tfw - t0w),"seconds] (%.2f" % (tfp - t0p),"seconds of cpu/s time)")
+print("::[KPFEM Simulation]:: [Elapsed Time = %.2f" % (tfp - t0p),"seconds] (%.2f" % (tfw - t0w),"seconds of cpu/s time)")
 
 print(timer.ctime())
 
