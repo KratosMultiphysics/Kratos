@@ -40,8 +40,9 @@ script:
 - cp scripts/build/travis/configure_travis_trusty.sh cmake_build/configure.sh
 - cd cmake_build
 - bash configure.sh
-- make all_pch
-- make install -j2
+- make all_unity
+- make runkratos
+- make install/fast
 - ccache -s
 
 # - cd ../kratos/python_scripts

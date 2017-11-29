@@ -58,8 +58,8 @@ class TestGidIO(KratosUnittest.TestCase):
 
     def __Check(self,output_file,reference_file):
         import filecmp
-        self.assertTrue( filecmp.cmp(os.path.dirname(os.path.realpath(__file__)) + "\\" 
-            +output_file, os.path.dirname(os.path.realpath(__file__)) + "\\" +reference_file))
+        self.assertTrue( filecmp.cmp(os.path.dirname(os.path.realpath(__file__)) + "/" 
+            +output_file, os.path.dirname(os.path.realpath(__file__)) + "/" +reference_file))
 
     def test_gid_io_all(self):
         model_part = self.__InitialRead()
@@ -79,22 +79,22 @@ class TestGidIO(KratosUnittest.TestCase):
 
         self.__WriteOutput(model_part,"deactivated_out")
 
-        self.__Check("deactivated_out.mdpa_0.post.msh","deactivated_ref.ref")
+        self.__Check("deactivated_out_0.post.msh","deactivated_ref.ref")
 
-    def testDoubleFreeError(self):
+    def test_DoubleFreeError(self):
 
         output_file_1 = "outFile"
         output_file_2 = "otherFile"
 
-        gid_mode = GiDPostMode.GiD_PostAscii
-        multifile = MultiFileFlag.MultipleFiles
-        deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
-        write_conditions = WriteConditionsFlag.WriteConditions
+        gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostAscii
+        multifile = KratosMultiphysics.MultiFileFlag.MultipleFiles
+        deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
+        write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteConditions
 
-        gid_io_1 = GidIO(output_file_1, gid_mode, multifile,
+        gid_io_1 = KratosMultiphysics.GidIO(output_file_1, gid_mode, multifile,
                          deformed_mesh_flag, write_conditions)
 
-        gid_io_2 = GidIO(output_file_2, gid_mode, multifile,
+        gid_io_2 = KratosMultiphysics.GidIO(output_file_2, gid_mode, multifile,
                          deformed_mesh_flag, write_conditions)
 
         gid_io_1 = None

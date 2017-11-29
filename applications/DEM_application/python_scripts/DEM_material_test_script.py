@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import math
 import datetime
 import shutil
+import weakref
 
 #import string
 #import matplotlib
@@ -22,8 +23,8 @@ class MaterialTest(object):
       self.post_path = post_path
       self.spheres_model_part = spheres_model_part
       self.RigidFace_model_part = RigidFace_model_part
-      self.Procedures = procedures
-      self.solver = solver
+      self.Procedures = weakref.proxy(procedures)
+      self.solver = weakref.proxy(solver)
       
       self.top_mesh_nodes = []; self.bot_mesh_nodes = []; self.top_mesh_fem_nodes = []; self.bot_mesh_fem_nodes = [];
       

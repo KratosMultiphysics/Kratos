@@ -22,9 +22,12 @@ def CreateDataset(file_or_group, name, data):
 
     file_or_group.create_dataset(dtype = dtype, name = name, data = data)
 
-def CreateGroup(file_or_group, name):
+def CreateGroup(file_or_group, name, overwrite_previous = True):
     if name in file_or_group:
-        file_or_group['/'].__delitem__(name)
+        if overwrite_previous:
+            file_or_group['/'].__delitem__(name)
+        else:
+            return file_or_group['/' + name]
 
     return file_or_group.create_group(name)
 
@@ -47,6 +50,7 @@ class FluidHDF5Loader:
         self.shape = (self.n_nodes,)
         self.store_pressure = pp.CFD_DEM["store_fluid_pressure_option"].GetBool()
         self.store_gradient = pp.CFD_DEM["store_full_gradient_option"].GetBool()
+        self.load_derivatives = pp.CFD_DEM["load_derivatives"].GetBool()
         self.there_are_more_steps_to_load = True
         self.main_path = main_path
         self.pp = pp
@@ -57,7 +61,7 @@ class FluidHDF5Loader:
 
         if pp.CFD_DEM["store_fluid_pressure_option"].GetBool():
             number_of_variables += 1
-        if pp.CFD_DEM["load_derivatives"].GetBool():
+        if self.load_derivatives:
             number_of_variables += 9
 
         self.extended_shape = self.shape + (number_of_variables, )
@@ -82,16 +86,21 @@ class FluidHDF5Loader:
             self.old_time_index = 0
             self.future_time_index = 1
             viscosity = 1e-6
-            density = 1000.
+            density = 1000. # BIG TODO: READ THIS FROM NODES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             for node in self.fluid_model_part.Nodes:
                 node.SetSolutionStepValue(VISCOSITY, viscosity)
                 node.SetSolutionStepValue(DENSITY, density)
         else:
+            self.dtype = np.float64
+            if pp.CFD_DEM["store_fluid_in_single_precision"].GetBool():
+                self.dtype = np.float32
+
             self.compression_type = 'gzip'
             for node in self.fluid_model_part.Nodes:
                 viscosity = node.GetSolutionStepValue(VISCOSITY)
                 density = node.GetSolutionStepValue(DENSITY)
                 break
+
             with h5py.File(self.file_path, 'w') as f:
                 f.attrs['kinematic viscosity'] = viscosity
                 f.attrs['time step'] = pp.Dt
@@ -99,12 +108,8 @@ class FluidHDF5Loader:
                 f.attrs['solver type'] = pp.FluidSolverConfiguration.solver_type
                 f.attrs['linear system solver type'] = pp.FluidSolverConfiguration.linear_solver_config.solver_type
                 f.attrs['use orthogonal subscales'] = bool(pp.FluidSolverConfiguration.oss_switch)
-                self.dtype = np.float64
                 nodes = np.array([(node.Id, node.X, node.Y, node.Z) for node in fluid_model_part.Nodes])
                 f.create_dataset(name = 'nodes', compression = self.compression_type, data = nodes, dtype = np.float64)
-
-            if pp.CFD_DEM["store_fluid_in_single_precision"].GetBool():
-                self.dtype = np.float32
 
         self.last_time = 0.0
 
@@ -207,7 +212,7 @@ class FluidHDF5Loader:
         if self.store_pressure:
             self.UpdateFluidVariable(future_step_dataset_name + '/p', PRESSURE, next(indices), must_load_from_database, alpha_old, alpha_future)
 
-        if self.store_gradient:
+        if self.load_derivatives:
             self.UpdateFluidVariable(future_step_dataset_name + '/dvxx', VELOCITY_X_GRADIENT_X, next(indices), must_load_from_database, alpha_old, alpha_future)
             self.UpdateFluidVariable(future_step_dataset_name + '/dvxy', VELOCITY_X_GRADIENT_Y, next(indices), must_load_from_database, alpha_old, alpha_future)
             self.UpdateFluidVariable(future_step_dataset_name + '/dvxz', VELOCITY_X_GRADIENT_Z, next(indices), must_load_from_database, alpha_old, alpha_future)
@@ -227,7 +232,9 @@ class ParticleHistoryLoader:
         self.main_path = main_path
         self.particles_list_file_name = self.main_path + '/all_particles.hdf5'
         self.prerun_fluid_file_name = pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").GetString()
+
         self.CreateAllParticlesFileIfNecessary()
+        self.run_code = None
 
     def CreateAllParticlesFileIfNecessary(self):
         if not self.pp.CFD_DEM["full_particle_history_watcher"].GetString() == 'Empty':
@@ -239,7 +246,7 @@ class ParticleHistoryLoader:
             radii = np.array([node.GetSolutionStepValue(RADIUS) for node in nodes])
             times = np.array([0.0 for node in nodes])
 
-            with h5py.File(self.particles_list_file_name) as f:
+            with h5py.File(self.particles_list_file_name, 'w') as f:
                 WriteDataToFile(file_or_group = f,
                                 names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS', 'TIME'],
                                 data = [Ids, X0s, Y0s, Z0s, radii, times])
@@ -283,20 +290,30 @@ class ParticleHistoryLoader:
         else:
             mean_radius = 1.0
 
-        with h5py.File('particles_snapshot.hdf5') as f:
+        with h5py.File(self.main_path + '/particles_snapshots.hdf5') as f:
             prerun_fluid_file_name = self.prerun_fluid_file_name.split('/')[- 1]
-            current_fluid = CreateGroup(f, prerun_fluid_file_name)
+            current_fluid = CreateGroup(f, prerun_fluid_file_name, overwrite_previous = False)
+
+            # snapshot_name = 't=' + str(round(time, 3)) + '_RADIUS=' + str(round(mean_radius, 4)) + '_in_box'
+            snapshot_name = str(len(current_fluid.items()) + 1)
+            self.run_code = prerun_fluid_file_name.strip('.hdf5') + '_' + snapshot_name
+
+            snapshot = CreateGroup(current_fluid, snapshot_name)
+            snapshot.attrs['time'] = time
+            snapshot.attrs['particles_nondimensional_radius'] = mean_radius
             # storing the input parameters for this run, the one corresponding
             # to the current pre-calculated fluid
             for k, v in ((k, v) for k, v in json.loads(self.pp.CFD_DEM.WriteJsonString()).items() if 'comment' not in k):
-                current_fluid.attrs[k] = v
-
-            snapshot_name = 't=' + str(round(time, 3)) + '_RADIUS=' + str(round(mean_radius, 4)) + '_in_box'
-            snapshot = CreateGroup(current_fluid, snapshot_name)
-            snapshot.attrs['time'] = time
+                snapshot.attrs[k] = v
 
             names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS']
             data = [Ids_inside, X0s_inside, Y0s_inside, Z0s_inside, radii_inside]
 
             for dset_name, datum in zip(names, data):
                 CreateDataset(snapshot, dset_name, datum)
+
+    def GetRunCode(self):
+        if self.run_code == None:
+            raise RuntimeError('No run code has been generated so far, because no snapshot has been performed yet')
+        else:
+            return self.run_code
