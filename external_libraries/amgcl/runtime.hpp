@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,6 @@ THE SOFTWARE.
 #include <amgcl/solver/gmres.hpp>
 #include <amgcl/solver/lgmres.hpp>
 #include <amgcl/solver/fgmres.hpp>
-#include <amgcl/solver/idrs.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
 
 
@@ -153,7 +152,11 @@ typename boost::disable_if<
     typename backend::coarsening_is_supported<Backend, Coarsening>::type,
     void
     >::type
-process_amg(runtime::relaxation::type, const Func&) {
+process_amg(
+        runtime::relaxation::type relaxation,
+        const Func &func
+        )
+{
     throw std::logic_error("The coarsening is not supported by the backend");
 }
 
@@ -180,11 +183,25 @@ process_amg(
                 amgcl::relaxation::gauss_seidel
                 >(func);
             break;
+        case runtime::relaxation::multicolor_gauss_seidel:
+            process_amg<
+                Backend,
+                Coarsening,
+                amgcl::relaxation::multicolor_gauss_seidel
+                >(func);
+            break;
         case runtime::relaxation::ilu0:
             process_amg<
                 Backend,
                 Coarsening,
                 amgcl::relaxation::ilu0
+                >(func);
+            break;
+        case runtime::relaxation::parallel_ilu0:
+            process_amg<
+                Backend,
+                Coarsening,
+                amgcl::relaxation::parallel_ilu0
                 >(func);
             break;
         case runtime::relaxation::iluk:
@@ -215,7 +232,6 @@ process_amg(
                 amgcl::relaxation::spai0
                 >(func);
             break;
-#ifndef AMGCL_RUNTIME_DISABLE_SPAI1
         case runtime::relaxation::spai1:
             process_amg<
                 Backend,
@@ -223,8 +239,6 @@ process_amg(
                 amgcl::relaxation::spai1
                 >(func);
             break;
-#endif
-#ifndef AMGCL_RUNTIME_DISABLE_CHEBYSHEV
         case runtime::relaxation::chebyshev:
             process_amg<
                 Backend,
@@ -232,9 +246,6 @@ process_amg(
                 amgcl::relaxation::chebyshev
                 >(func);
             break;
-#endif
-        default:
-            precondition(false, "Unsupported relaxation value");
     }
 }
 
@@ -523,8 +534,7 @@ enum type {
     bicgstabl,  ///< BiCGStab(ell)
     gmres,      ///< GMRES
     lgmres,     ///< LGMRES
-    fgmres,     ///< FGMRES
-    idrs        ///< IDR(s)
+    fgmres      ///< FGMRES
 };
 
 inline std::ostream& operator<<(std::ostream &os, type s)
@@ -542,8 +552,6 @@ inline std::ostream& operator<<(std::ostream &os, type s)
             return os << "lgmres";
         case fgmres:
             return os << "fgmres";
-        case idrs:
-            return os << "idrs";
         default:
             return os << "???";
     }
@@ -566,8 +574,6 @@ inline std::istream& operator>>(std::istream &in, type &s)
         s = lgmres;
     else if (val == "fgmres")
         s = fgmres;
-    else if (val == "idrs")
-        s = idrs;
     else
         throw std::invalid_argument("Invalid solver value");
 
@@ -625,12 +631,6 @@ inline void process_solver(
                 func.template process<Solver>();
             }
             break;
-        case runtime::solver::idrs:
-            {
-                typedef amgcl::solver::idrs<Backend, InnerProduct> Solver;
-                func.template process<Solver>();
-            }
-            break;
     }
 }
 
@@ -681,14 +681,13 @@ struct solver_get_params {
 };
 
 template <
-    class Backend,
     class Matrix,
     class Precond,
     class Vec1,
     class Vec2
     >
 struct solver_solve {
-    typedef typename Backend::value_type value_type;
+    typedef typename Precond::backend_type::value_type value_type;
     typedef typename math::scalar_of<value_type>::type scalar_type;
 
     void * handle;
@@ -754,7 +753,7 @@ class iterative_solver {
                 const InnerProduct &inner_product = InnerProduct()
                 )
             : solver(prm.get("type", runtime::solver::bicgstab)),
-              handle(0), n(n)
+              handle(0)
         {
             if (!prm.erase("type")) AMGCL_PARAM_MISSING("type");
 
@@ -805,7 +804,7 @@ class iterative_solver {
 
             runtime::detail::process_solver<Backend, InnerProduct>(
                     solver,
-                    runtime::detail::solver_solve<backend_type, Matrix, Precond, Vec1, Vec2>(
+                    runtime::detail::solver_solve<Matrix, Precond, Vec1, Vec2>(
                         handle, A, P, rhs, x, iters, resid)
                     );
 
@@ -833,13 +832,9 @@ class iterative_solver {
             return (*this)(P.system_matrix(), P, rhs, x);
         }
 
-        friend std::ostream& operator<<(std::ostream &os, const iterative_solver &s) {
-            return os << s.solver << ": " << s.n << " unknowns";
-        }
     private:
-        const runtime::solver::type solver;
-        void *handle;
-        size_t n;
+        const runtime::solver::type  solver;
+        void                        *handle;
 };
 
 } // namespace runtime

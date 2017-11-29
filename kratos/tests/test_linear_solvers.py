@@ -226,8 +226,102 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 ]
             }
             """)
+        
+    def test_bicgstab_iluk(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
 
-    def test_amgcl_scalar(self):
+                        "solver_type" : "AMGCL",
+                        "smoother_type":"iluk",
+                        "krylov_type": "bicgstab",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 100,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 1,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
+        
+    def test_lgmres_iluk(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+
+                        "solver_type" : "AMGCL",
+                        "smoother_type":"iluk",
+                        "krylov_type": "lgmres",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 300,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 1 ,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
+        
+    def test_bicgstab_ilu0(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "AMGCL",
+                        "smoother_type":"ilu0",
+                        "krylov_type": "bicgstab",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 100,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 1,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
+        
+    def test_bicgstab_spai0(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "AMGCL",
+                        "smoother_type":"spai0",
+                        "krylov_type": "bicgstab",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 100,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 1,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
+        
+    def test_cg_spai0(self):
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -240,71 +334,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "max_iteration": 100,
                         "provide_coordinates": false,
                         "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 0,
-                        "tolerance": 1e-6,
-                        "scaling": false,
-                        "block_size": 1,
-                        "use_block_matrices_if_possible" : true,
-                        "coarse_enough" : 100
-                    },
-                    {
-
-                        "solver_type" : "AMGCL",
-                        "smoother_type":"spai0",
-                        "krylov_type": "bicgstab",
-                        "coarsening_type": "aggregation",
-                        "max_iteration": 100,
-                        "provide_coordinates": false,
-                        "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 0,
-                        "tolerance": 1e-6,
-                        "scaling": false,
-                        "block_size": 1,
-                        "use_block_matrices_if_possible" : true,
-                        "coarse_enough" : 100
-                    },
-                    {
-
-                        "solver_type" : "AMGCL",
-                        "smoother_type":"ilu0",
-                        "krylov_type": "bicgstab",
-                        "coarsening_type": "aggregation",
-                        "max_iteration": 100,
-                        "provide_coordinates": false,
-                        "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 0,
-                        "tolerance": 1e-6,
-                        "scaling": false,
-                        "block_size": 1,
-                        "use_block_matrices_if_possible" : true,
-                        "coarse_enough" : 100
-                    },
-                    {
-
-                        "solver_type" : "AMGCL",
-                        "smoother_type":"iluk",
-                        "krylov_type": "bicgstab",
-                        "coarsening_type": "aggregation",
-                        "max_iteration": 100,
-                        "provide_coordinates": false,
-                        "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 0,
-                        "tolerance": 1e-6,
-                        "scaling": false,
-                        "block_size": 1,
-                        "use_block_matrices_if_possible" : true,
-                        "coarse_enough" : 100
-                    },                    
-                    {
-
-                        "solver_type" : "AMGCL",
-                        "smoother_type":"iluk",
-                        "krylov_type": "lgmres",
-                        "coarsening_type": "aggregation",
-                        "max_iteration": 300,
-                        "provide_coordinates": false,
-                        "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 0,
+                        "verbosity" : 1,
                         "tolerance": 1e-6,
                         "scaling": false,
                         "block_size": 1,

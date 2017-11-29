@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -85,10 +85,7 @@ THE SOFTWARE.
  */
 
 #include <vector>
-#include <complex>
 #include <cmath>
-
-#include <boost/math/special_functions/sign.hpp>
 
 #include <amgcl/util.hpp>
 #include <amgcl/value_type/interface.hpp>
@@ -101,23 +98,17 @@ enum storage_order {
     col_major
 };
 
-template <class T>
-inline T real(T a) {
-    return a;
-}
-
-template <class T>
-inline T real(std::complex<T> a) {
-    return std::real(a);
-}
-
 /// In-place QR factorization.
-template <typename value_type, class Enable = void>
+/**
+ * \tparam Order Storage order of the input matrix. Should be col_major for
+ *               the best performance.
+ */
+template <typename value_type, storage_order Order, class Enable = void>
 class QR {
     public:
-        QR() : m(0), n(0), row_stride(0), col_stride(0), r(NULL) {}
+        QR() : m(0), n(0) {}
 
-        void compute(int rows, int cols, int row_stride, int col_stride, value_type *A) {
+        void compute(int rows, int cols, value_type *A, int max_cols = -1) {
             /*
              *  Ported from ZGEQR2
              *  ==================
@@ -155,15 +146,20 @@ class QR {
              *  A[i+1:m)[i], and tau in tau[i].
              *  ==============================================================
              */
-            const int m = rows;
-            const int n = cols;
-            const int k = std::min(m, n);
+            m = rows;
+            n = cols;
+            k = std::min(m, n);
 
-            if (k <= 0) return;
+            nmax = (max_cols < 0 ? n : max_cols);
 
             r = A;
 
-            tau.resize(k);
+            tau.resize(std::min(m, nmax));
+
+            if (k <= 0) return;
+
+            const int row_stride = (Order == row_major ? nmax : 1);
+            const int col_stride = (Order == row_major ? 1 : m);
 
             for(int i = 0, ii = 0; i < k; ++i, ii += row_stride + col_stride) {
                 // Generate elementary reflector H(i) to annihilate A[i+1:m)[i]
@@ -177,14 +173,73 @@ class QR {
             }
         }
 
-        void compute(int rows, int cols, value_type *A, storage_order order = row_major) {
-            int row_stride = (order == row_major ? cols : 1);
-            int col_stride = (order == row_major ? 1 : rows);
-            compute(rows, cols, row_stride, col_stride, A);
+        void append_cols(int cols) {
+            const int row_stride = (Order == row_major ? nmax : 1);
+            const int col_stride = (Order == row_major ? 1 : m);
+
+            int old_n = n;
+            n += cols;
+
+            precondition(n <= nmax, "Too many columns in QR::append_cols()");
+
+            int old_k = k;
+            k = std::min(m, n);
+
+            for(int i = 0, ii = 0; i < k; ++i, ii += row_stride + col_stride) {
+                if (i >= old_k) {
+                    // Generate elementary reflector H(i) to annihilate A[i+1:m)[i]
+                    tau[i] = gen_reflector(m-i, r[ii], r + ii + row_stride, row_stride);
+                }
+
+                if (i+1 < n) {
+                    // Apply H(i)' to A[i:m)[i+1:n) from the left
+                    int l = std::max(i, old_n-1);
+                    apply_reflector(m-i, n-l-1, r + ii, row_stride, math::adjoint(tau[i]),
+                            r + i * row_stride + (l + 1) * col_stride, row_stride, col_stride);
+                }
+            }
+        }
+
+        // Returns element of the matrix R.
+        value_type R(int i, int j) const {
+            if (j < i) return math::zero<value_type>();
+
+            const int row_stride = (Order == row_major ? nmax : 1);
+            const int col_stride = (Order == row_major ? 1 : m);
+
+            return r[i*row_stride + j*col_stride];
+        }
+
+        // Returns element of the matrix Q.
+        value_type Q(int i, int j) const {
+            const int row_stride = (Order == row_major ? nmax : 1);
+            const int col_stride = (Order == row_major ? 1 : m);
+
+            return q[i*row_stride + j*col_stride];
+        }
+
+        // Solves the system Q R x = f
+        void solve(value_type *f, value_type *x) const {
+            const int row_stride = (Order == row_major ? nmax : 1);
+            const int col_stride = (Order == row_major ? 1 : m);
+
+            for(int i = 0, ii = 0; i < n; ++i, ii += row_stride + col_stride)
+                apply_reflector(m-i, 1, r+ii, row_stride, math::adjoint(tau[i]), f+i, 1, 1);
+
+            std::copy(f, f+n, x);
+
+            for(int i = n; i --> 0; ) {
+                value_type rii = r[i*(row_stride+col_stride)];
+                if (math::is_zero(rii)) continue;
+                x[i] = math::inverse(rii) * x[i];
+
+                for(int j = 0, ja = 0; j < i; ++j, ja += row_stride)
+                    x[j] -= r[ja+i*col_stride] * x[i];
+            }
         }
 
         // Computes Q explicitly.
-        void factorize(int rows, int cols, int row_stride, int col_stride, value_type *A) {
+        void compute_q(int ncols = -1) {
             /*
              *  Ported from ZUNG2R
              *  ==================
@@ -199,32 +254,27 @@ class QR {
              *
              *  ==============================================================
              */
-            compute(rows, cols, row_stride, col_stride, A);
+            q.resize(m * nmax);
 
-            m = rows;
-            n = cols;
+            ncols = (ncols < 0 ? n : ncols);
 
-            int k = std::min(m, n);
-
-            this->row_stride = row_stride;
-            this->col_stride = col_stride;
-
-            q.resize(m * n);
+            const int row_stride = (Order == row_major ? nmax : 1);
+            const int col_stride = (Order == row_major ? 1 : m);
 
             // Initialise columns k+1:n to zero.
             // [In the original code these were initialized to the columns of
             // the unit matrix, but since k = min(n,m), the main diagonal is
             // never seen here].
             for(int i = 0, ia = 0; i < m; ++i, ia += row_stride)
-                for(int j = k, ja = k * col_stride; j < n; ++j, ja += col_stride)
+                for(int j = k, ja = k * col_stride; j < ncols; ++j, ja += col_stride)
                     q[ia + ja] = (i == j ? math::identity<value_type>() : math::zero<value_type>());
 
             for(int i = k-1, ic = i * col_stride, ii = i*(row_stride + col_stride);
                     i >= 0; --i, ic -= col_stride, ii -= row_stride + col_stride)
             {
                 // Apply H(i) to A[i:m)[i+1:n) from the left
-                if (i < n-1)
-                    apply_reflector(m-i, n-i-1, r+ii, row_stride, tau[i], &q[ii+col_stride], row_stride, col_stride);
+                if (i < ncols-1)
+                    apply_reflector(m-i, ncols-i-1, r+ii, row_stride, tau[i], &q[ii+col_stride], row_stride, col_stride);
 
                 // Copy i-th reflector (including zeros and unit diagonal)
                 // to the column of Q to be processed next
@@ -237,91 +287,12 @@ class QR {
                     q[jr + ic] = -tau[i] * r[jr + ic];
             }
         }
-
-        void factorize(int rows, int cols, value_type *A, storage_order order = row_major) {
-            int row_stride = (order == row_major ? cols : 1);
-            int col_stride = (order == row_major ? 1 : rows);
-            factorize(rows, cols, row_stride, col_stride, A);
-        }
-
-        // Returns element of the matrix R.
-        value_type R(int i, int j) const {
-            if (j < i) return math::zero<value_type>();
-            return r[i*row_stride + j*col_stride];
-        }
-
-        // Returns element of the matrix Q.
-        value_type Q(int i, int j) const {
-            return q[i*row_stride + j*col_stride];
-        }
-
-        // Solves the system Q R x = f
-        void solve(
-                int rows, int cols, int row_stride, int col_stride, value_type *A,
-                value_type *f, value_type *x)
-        {
-            if (rows >= cols) {
-                // We are solving overdetermined (tall) system Ax = f by
-                // writing the matrix A as A = QR and solving for x as
-                // x = R^-1 Q^-1 f = R^-1 Q^T f.
-                compute(rows, cols, row_stride, col_stride, A);
-
-                for(int i = 0, ii = 0; i < cols; ++i, ii += row_stride + col_stride)
-                    apply_reflector(rows-i, 1, r+ii, row_stride, math::adjoint(tau[i]), f+i, 1, 1);
-
-                std::copy(f, f+cols, x);
-
-                for(int i = cols, ia = (cols-1) * col_stride; i --> 0; ia -= col_stride) {
-                    value_type rii = r[i*(row_stride+col_stride)];
-                    if (math::is_zero(rii)) continue;
-                    x[i] = math::inverse(rii) * x[i];
-
-                    for(int j = 0, ja = 0; j < i; ++j, ja += row_stride)
-                        x[j] -= r[ia + ja] * x[i];
-                }
-            } else {
-                // We are solving underdetermined (wide) system Ax = f by
-                // writing the matrix A^T as A^T = QR and solving for x as
-                // x = Q^-T R^-T f = Q R^-T f.
-                for(int i = 0, n = cols * rows; i < n; ++i)
-                    A[i] = math::adjoint(A[i]);
-                compute(cols, rows, col_stride, row_stride, A);
-
-                for(int i = 0, ia = 0; i < rows; ++i, ia += col_stride) {
-                    value_type rii = math::adjoint(r[i*(row_stride+col_stride)]);
-                    if (math::is_zero(rii)) continue;
-                    f[i] = math::inverse(rii) * f[i];
-
-                    for(int j = i+1, ja = j * row_stride; j < rows; ++j, ja += row_stride)
-                        f[j] -= math::adjoint(r[ia + ja]) * f[i];
-                }
-
-                std::copy(f, f+rows, x);
-                std::fill(x+rows, x+cols, math::zero<value_type>());
-
-                for(int i = rows; i --> 0; ) {
-                    int ii = i * (col_stride + row_stride);
-                    apply_reflector(cols-i, 1, r+ii, col_stride, tau[i], x+i, 1, 1);
-                }
-            }
-        }
-
-        void solve(
-                int rows, int cols, value_type *A, value_type *f, value_type *x,
-                storage_order order = row_major
-                )
-        {
-            int row_stride = (order == row_major ? cols : 1);
-            int col_stride = (order == row_major ? 1 : rows);
-            solve(rows, cols, row_stride, col_stride, A, f, x);
-        }
-
     private:
         typedef typename math::scalar_of<value_type>::type scalar_type;
 
         static scalar_type sqr(scalar_type x) { return x * x; }
 
-        int m, n, row_stride, col_stride;
+        int m, n, k, nmax;
 
         value_type *r;
         std::vector<value_type> tau;
@@ -380,7 +351,7 @@ class QR {
 
             if (math::is_zero(xnorm2)) return tau;
 
-            scalar_type beta = -boost::math::copysign(sqrt(sqr(math::norm(alpha)) + xnorm2), amgcl::detail::real(alpha));
+            scalar_type beta = sqrt(sqr(math::norm(alpha)) + xnorm2);
 
             tau = math::identity<value_type>() - math::inverse(beta) * alpha;
             alpha = math::inverse(alpha - beta * math::identity<value_type>());
@@ -456,44 +427,57 @@ class QR {
 
 };
 
-template <class value_type>
-class QR<value_type, typename boost::enable_if< math::is_static_matrix<value_type> >::type>
+template <class value_type, storage_order Order>
+class QR<value_type, Order, typename boost::enable_if< math::is_static_matrix<value_type> >::type>
 {
     public:
         typedef typename amgcl::math::rhs_of<value_type>::type rhs_type;
 
         QR() {}
 
-        void compute(int rows, int cols, int row_stride, int col_stride, value_type *A) {
+        void compute(int rows, int cols, value_type *A, int max_cols = -1) {
             const int M = math::static_rows<value_type>::value;
             const int N = math::static_cols<value_type>::value;
 
             m = rows;
             n = cols;
+            nmax = (max_cols < 0 ? n : max_cols);
 
             r = A;
 
-            copy_to_scalar_buf(rows, cols, row_stride, col_stride, A);
-            base.compute(rows * M, cols * N, 1, rows * M, buf.data());
+            buf.resize(M * m * N * nmax);
+
+            const int brows = M * m;
+            const int row_stride = (Order == row_major ? nmax : 1);
+            const int col_stride = (Order == row_major ? 1 : m);
+
+            for(int i = 0, ib = 0; i < m; ++i)
+                for(int ii = 0; ii < M; ++ii, ++ib)
+                    for(int j = 0, jb = 0; j < n; ++j)
+                        for(int jj = 0; jj < N; ++jj, jb += brows)
+                            buf[ib + jb] = A[i * row_stride + j * col_stride](ii, jj);
+
+            base.compute(rows * M, cols * N, buf.data(), nmax * N);
         }
 
-        void factorize(int rows, int cols, int row_stride, int col_stride, value_type *A) {
+        void append_cols(int cols) {
             const int M = math::static_rows<value_type>::value;
             const int N = math::static_cols<value_type>::value;
 
-            m = rows * M;
-            n = cols * N;
+            int old_n = n;
+            n += cols;
 
-            r = A;
+            const int brows = M * m;
+            const int row_stride = (Order == row_major ? nmax : 1);
+            const int col_stride = (Order == row_major ? 1 : m);
 
-            copy_to_scalar_buf(rows, cols, row_stride, col_stride, A);
-            base.factorize(m, n, 1, m, buf.data());
-        }
+            for(int i = 0, ib = 0; i < m; ++i)
+                for(int ii = 0; ii < M; ++ii, ++ib)
+                    for(int j = old_n, jb = j * brows; j < n; ++j)
+                        for(int jj = 0; jj < N; ++jj, jb += brows)
+                            buf[ib + jb] = r[i * row_stride + j * col_stride](ii, jj);
 
-        void factorize(int rows, int cols, value_type *A, storage_order order = row_major) {
-            int row_stride = (order == row_major ? cols : 1);
-            int col_stride = (order == row_major ? 1 : rows);
-            factorize(rows, cols, row_stride, col_stride, A);
+            base.append_cols(cols * N);
         }
 
         value_type R(int i, int j) const {
@@ -528,58 +512,23 @@ class QR<value_type, typename boost::enable_if< math::is_static_matrix<value_typ
         }
 
         // Solves the system Q R x = f
-        void solve(
-                int rows, int cols, int row_stride, int col_stride, value_type *A,
-                rhs_type *f, rhs_type *x)
-        {
-            const int M = math::static_rows<value_type>::value;
-            const int N = math::static_cols<value_type>::value;
-
-            m = rows * M;
-            n = cols * N;
-
-            r = A;
-
-            copy_to_scalar_buf(rows, cols, row_stride, col_stride, A);
-            base.solve(m, n, 1, m, buf.data(),
+        void solve(rhs_type *f, rhs_type *x) const {
+            base.solve(
                     reinterpret_cast<scalar_type*>(f),
                     reinterpret_cast<scalar_type*>(x)
                     );
         }
 
-        void solve(
-                int rows, int cols, value_type *A, rhs_type *f, rhs_type *x,
-                storage_order order = row_major
-                )
-        {
-            int row_stride = (order == row_major ? cols : 1);
-            int col_stride = (order == row_major ? 1 : rows);
-            solve(rows, cols, row_stride, col_stride, A, f, x);
-        }
+        void compute_q() { base.compute_q(); }
 
     private:
         typedef typename amgcl::math::scalar_of<value_type>::type scalar_type;
 
-        int m, n;
+        int m, n, nmax;
         value_type *r;
 
-        QR<scalar_type> base;
+        QR<scalar_type, col_major> base;
         std::vector<scalar_type> buf;
-
-        void copy_to_scalar_buf(int rows, int cols, int row_stride, int col_stride, value_type *A) {
-            const int M = math::static_rows<value_type>::value;
-            const int N = math::static_cols<value_type>::value;
-
-            buf.resize(M * rows * N * cols);
-
-            const int scalar_rows = M * rows;
-
-            for(int i = 0, ib = 0; i < rows; ++i)
-                for(int ii = 0; ii < M; ++ii, ++ib)
-                    for(int j = 0, jb = 0; j < cols; ++j)
-                        for(int jj = 0; jj < N; ++jj, jb += scalar_rows)
-                            buf[ib + jb] = A[i * row_stride + j * col_stride](ii, jj);
-        }
 };
 
 } // namespace detail

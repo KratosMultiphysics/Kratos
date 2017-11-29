@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ THE SOFTWARE.
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/range/numeric.hpp>
 
 #include <mpi.h>
 
@@ -79,8 +80,12 @@ class block_preconditioner {
             boost::shared_ptr<build_matrix> Aloc = boost::make_shared<build_matrix>();
             boost::shared_ptr<build_matrix> Arem = boost::make_shared<build_matrix>();
 
-            Aloc->set_size(n, n, true);
-            Arem->set_size(n, 0, true);
+            Aloc->nrows = n;
+            Aloc->ncols = n;
+            Arem->nrows = n;
+
+            Aloc->ptr.resize(n + 1, 0);
+            Arem->ptr.resize(n + 1, 0);
 
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < n; ++i) {
@@ -94,11 +99,14 @@ class block_preconditioner {
                 }
             }
 
-            std::partial_sum(Aloc->ptr, Aloc->ptr + n + 1, Aloc->ptr);
-            std::partial_sum(Arem->ptr, Arem->ptr + n + 1, Arem->ptr);
+            boost::partial_sum(Aloc->ptr, Aloc->ptr.begin());
+            boost::partial_sum(Arem->ptr, Arem->ptr.begin());
 
-            Aloc->set_nonzeros(Aloc->ptr[n]);
-            Arem->set_nonzeros(Arem->ptr[n]);
+            Aloc->col.resize(Aloc->ptr.back());
+            Aloc->val.resize(Aloc->ptr.back());
+
+            Arem->col.resize(Arem->ptr.back());
+            Arem->val.resize(Arem->ptr.back());
 
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < n; ++i) {
@@ -121,8 +129,8 @@ class block_preconditioner {
                 }
             }
 
-            C = boost::make_shared< comm_pattern<backend_type> >(comm, n, Arem->nnz, Arem->col, bprm);
-            Arem->ncols = C->renumber(Arem->nnz, Arem->col);
+            C = boost::make_shared< comm_pattern<backend_type> >(comm, n, Arem->col, bprm);
+            Arem->ncols = C->renumber(Arem->col);
 
             P = boost::make_shared<Precond>(Aloc, prm, bprm);
 
@@ -147,6 +155,7 @@ class block_preconditioner {
             P->apply(rhs, x);
         }
     private:
+        ptrdiff_t n;
         boost::shared_ptr< comm_pattern<backend_type> > C;
         boost::shared_ptr<bmatrix>  Arem;
         boost::shared_ptr<matrix> A;

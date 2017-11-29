@@ -4,7 +4,6 @@
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/adapter/block_matrix.hpp>
 #include <amgcl/value_type/static_matrix.hpp>
-#include <amgcl/make_solver.hpp>
 
 namespace amgcl {
 
@@ -116,10 +115,6 @@ class make_block_solver {
 
         typename Precond::matrix const& system_matrix() const {
             return S->system_matrix();
-        }
-
-        friend std::ostream& operator<<(std::ostream &os, const make_block_solver &p) {
-            return os << *p.S << std::endl;
         }
     private:
         typedef make_solver<Precond, IterativeSolver> Solver;
