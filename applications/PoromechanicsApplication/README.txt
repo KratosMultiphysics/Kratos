@@ -20,6 +20,6 @@ Note: For the moment, MPI only works in Linux and requires compiling METIS_APPLI
 -DPOROMECHANICS_APPLICATION=ON \
 -DUSE_PORO_MPI=ON \
 
-2. Uncomment (remove #~ ) the following line in PoromechanicsApplication/custom_problemtype/Poromechanics_Application.gid/poromechanics_main.py
+2. Uncomment (remove #) the following line in PoromechanicsApplication/custom_problemtype/Poromechanics_Application.gid/poromechanics_main.py and PoromechanicsApplication/custom_problemtype/Poromechanics_Application.gid/poromechanics_fracture_main.py
 
-#~ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+# import KratosMultiphysics.TrilinosApplication as TrilinosApplication
