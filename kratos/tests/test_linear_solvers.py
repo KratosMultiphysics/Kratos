@@ -62,7 +62,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         
         target_norm = tolerance*space.TwoNorm(boriginal)
 
-        if(achieved_norm > target_norm):
+        if(not (achieved_norm <= target_norm)):
             print(settings.PrettyPrintJsonString())
             print("achieved_norm",achieved_norm)
             print("target_norm",target_norm)
