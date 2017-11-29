@@ -26,6 +26,7 @@
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
+#include "includes/element.h"
 
 namespace Kratos
 {
@@ -193,6 +194,10 @@ public:
                  const unsigned int dimension   = geometry.WorkingSpaceDimension();
                  const int MatSize = MassMatrix.size1();
 
+                 Element::EquationIdVectorType testVector;
+                 itElem->EquationIdVector(testVector,rCurrentProcessInfo);
+                 KRATOS_WATCH(testVector[0]);
+
                  index = 0;
                  for (unsigned int i = 0; i <geometry.size(); i++)
                  {
@@ -202,6 +207,14 @@ public:
                      double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_MASS);
                      array_1d<double,3>& nodal_inertia = geometry(i)->FastGetSolutionStepValue(NODAL_INERTIA);                     
 
+                    KRATOS_WATCH(geometry(i)->GetDofPosition(DISPLACEMENT_X));
+                    KRATOS_WATCH(geometry(i)->GetDofPosition(DISPLACEMENT_Y));
+                    KRATOS_WATCH(geometry(i)->GetDofPosition(DISPLACEMENT_Z));
+                    KRATOS_WATCH(geometry(i)->GetDofPosition(ROTATION_X));
+                    KRATOS_WATCH(geometry(i)->GetDofPosition(ROTATION_Y));
+                    KRATOS_WATCH(geometry(i)->GetDofPosition(ROTATION_Z));
+
+
                      geometry(i)->SetLock();
 
                      for (int j = 0;j<MatSize;++j)
@@ -209,7 +222,7 @@ public:
                         // claculate consistent mass matrix
                         // and condense it down to one diag entry
                         mass += MassMatrix(index,j);  
-                        if(check_rot)
+                        if(check_rot & ((index+dimension+2)<= MatSize))
                         {
                         nodal_inertia[0] += MassMatrix(index+dimension,j);   
                         nodal_inertia[1] += MassMatrix(index+dimension+1,j);   
@@ -218,12 +231,16 @@ public:
                      }
                      if (check_rot) for (int j =0;j<3;++j) nodal_inertia[j] = std::abs(nodal_inertia[j]);
 
+                     KRATOS_WATCH(mass);
+                     KRATOS_WATCH(nodal_inertia);
+                     KRATOS_WATCH(MassMatrix);
+
                      geometry(i)->UnSetLock();
                  }
              }
          }
 
-	rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = CalculateLumpedMassMatrix;
+	    rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = CalculateLumpedMassMatrix;
         
         KRATOS_CATCH( "" )
 

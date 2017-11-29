@@ -704,7 +704,7 @@ virtual void Update(ModelPart& r_model_part,
   {
 
     const unsigned int number_of_nodes = rCurrentElement->GetGeometry().size();
-    const unsigned int dimension       = rCurrentElement->GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension       = 3;
     unsigned int       element_size    = number_of_nodes * dimension;
     const bool check_has_rot_dof = rCurrentElement->GetGeometry()[0].HasDofFor(ROTATION_X);
     
@@ -722,9 +722,7 @@ virtual void Update(ModelPart& r_model_part,
 
         rValues[index]     = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[0];
         rValues[index + 1] = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[1];
-
-        if ( dimension == 3 )
-          rValues[index + 2] = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[2];
+        rValues[index + 2] = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[2];
 
 
         if (check_has_rot_dof)
@@ -733,9 +731,7 @@ virtual void Update(ModelPart& r_model_part,
           
           rValues[index+dimension]     = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[0];
           rValues[index+dimension+1] = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[1];
-    
-          if ( dimension == 3 )
-            rValues[index+dimension+2] = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[2];          
+          rValues[index+dimension+2] = rCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[2];          
         }
 
       }
@@ -774,7 +770,7 @@ virtual void Update(ModelPart& r_model_part,
   {
 
     const unsigned int number_of_nodes = rCurrentCondition->GetGeometry().size();
-    const unsigned int dimension       = rCurrentCondition->GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension       = 3;
     unsigned int       condition_size    = number_of_nodes * dimension;
     const bool check_has_rot_dof = rCurrentCondition->GetGeometry()[0].HasDofFor(ROTATION_X);
 
@@ -792,9 +788,7 @@ virtual void Update(ModelPart& r_model_part,
 
       rValues[index]     = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[0];
       rValues[index + 1] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[1];
-
-      if ( dimension == 3 )
-        rValues[index + 2] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[2];
+      rValues[index + 2] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[2];
 
         if (check_has_rot_dof)
         {
@@ -802,9 +796,7 @@ virtual void Update(ModelPart& r_model_part,
           
           rValues[index+dimension]     = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[0];
           rValues[index+dimension+1] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[1];
-    
-          if ( dimension == 3 )
-            rValues[index+dimension+2] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[2];          
+          rValues[index+dimension+2] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[2];          
         }
     }
   }
