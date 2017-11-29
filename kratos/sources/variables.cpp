@@ -527,8 +527,8 @@ namespace Kratos
   //------------------------------------------------------------------------------//
   //------------------------------------------------------------------------------//
 
-  KratosApplication::KratosApplication() :
-
+  KratosApplication::KratosApplication(const std::string ApplicationName) :
+    mApplicationName(ApplicationName),
     //point conditions
     mPointCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     mPointCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),

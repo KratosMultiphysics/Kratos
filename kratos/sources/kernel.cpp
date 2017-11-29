@@ -9,16 +9,7 @@
 //
 //  Main authors:    Pooyan Dadvand
 //
-
-
-
-
-
-
-
-
-
-
+#include <iostream>
 
 #include "includes/kernel.h"
 #include "includes/kratos_version.h"
@@ -33,9 +24,14 @@ namespace Kratos
 	std::cout << " ' /   __| _` | __|  _ \\   __|" << std::endl;
 	std::cout << " . \\  |   (   | |   (   |\\__ \\ " << std::endl;
 	std::cout << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/" << std::endl;
-    std::cout << "           Multi-Physics "<< KRATOS_VERSION << std::endl;
+        std::cout << "           Multi-Physics "<< KRATOS_VERSION << std::endl;
+    
+    
+        KratosApplication::Pointer pKratosApplication = boost::make_shared<KratosApplication>(std::string("KratosMultiphysics"));
+        pKratosApplication->RegisterVariables();
+        this->AddApplication(pKratosApplication);
 
-        mKratosApplication.RegisterVariables();
+        
     }
 
     std::string Kernel::Info() const

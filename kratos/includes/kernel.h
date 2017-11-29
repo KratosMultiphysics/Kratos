@@ -17,6 +17,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <unordered_map>
 
 // External includes
 
@@ -24,6 +25,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/kratos_application.h"
+
 
 namespace Kratos
 {
@@ -97,11 +99,12 @@ public:
 
     @param NewApplication The application to be added and synchronized
     */
-    void AddApplication(KratosApplication& NewApplication)
+    void AddApplication(KratosApplication::Pointer pNewApplication)
     {
         //typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
 
-        NewApplication.Register();
+        pNewApplication->Register();
+        mApplicationsList[pNewApplication->Name()] = pNewApplication;
 		
 		/*
         KratosComponents<VariableData>::GetComponents().insert(NewApplication.GetVariables().begin(),NewApplication.GetVariables().end());
@@ -120,7 +123,7 @@ public:
                 NewApplication.GetComponents(Variable<Matrix>("NONE")).end());
         
 		Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > temp_adaptor(DISPLACEMENT, 0); // the displacement is not important, only an array_1d variable is needed!
-
+ KratosApplication() = delete;
         KratosComponents<array_1d_component_type>::GetComponents().insert(NewApplication.GetComponents(array_1d_component_type("NONE", temp_adaptor)).begin(),				  
 				NewApplication.GetComponents(array_1d_component_type("NONE", temp_adaptor)).end());
 
@@ -199,7 +202,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    KratosApplication mKratosApplication;
+    std::unordered_map< std::string, KratosApplication::Pointer > mApplicationsList;
+//     KratosApplication mKratosApplication;
 
 
     ///@}

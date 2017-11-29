@@ -17,6 +17,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <memory>
 
 // Project includes
 #include "includes/define.h"
@@ -25,6 +26,7 @@
 #include "includes/condition.h"
 #include "includes/periodic_condition.h"
 #include "utilities/quaternion.h"
+
 
 namespace Kratos
 {
@@ -52,7 +54,9 @@ public:
     ///@{
 
     /// Default constructor.
-    KratosApplication();
+    KratosApplication(const std::string ApplicationName );
+        
+    KratosApplication() = delete;
 
 
     /// Copy constructor.
@@ -101,6 +105,8 @@ public:
     void RegisterMATVariables(); //TODO: move to application
     void RegisterLegacyStructuralAppVariables(); //TODO: move to application
 
+    std::string Name(){return mApplicationName;}
+    
     ///@}
     ///@name Access
     ///@{
@@ -345,6 +351,7 @@ protected:
     ///@name Protected member Variables
 
     ///@{
+    std::string mApplicationName;
 
     //general conditions must be defined
 
@@ -497,6 +504,7 @@ private:
     ///@name Member Variables
 
     ///@{
+    
 
 
 

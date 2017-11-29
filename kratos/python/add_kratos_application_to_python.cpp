@@ -32,7 +32,7 @@ using namespace boost::python;
 
 void  AddKratosApplicationToPython()
 {
-    class_<KratosApplication, KratosApplication::Pointer, boost::noncopyable >("KratosApplication")
+    class_<KratosApplication, KratosApplication::Pointer, boost::noncopyable >("KratosApplication", init<std::string>())
     .def("Register",&KratosApplication::Register)
     //.def("",&Kernel::Initialize)
     .def(self_ns::str(self))

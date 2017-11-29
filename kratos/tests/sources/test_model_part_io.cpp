@@ -95,7 +95,7 @@ namespace Kratos {
 			)input"));
 
 			Kernel kernel;
-			KratosApplication application;
+			KratosApplication application(std::string("Kratos"));
 			application.Register();
 			kernel.Initialize();
 
