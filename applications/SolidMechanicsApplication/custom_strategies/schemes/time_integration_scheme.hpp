@@ -15,15 +15,13 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
+#include "includes/process_info.h"
 #include "includes/variables.h"
 
 namespace Kratos
 {
-  ///@addtogroup ConstitutiveModelsApplication
+  ///@addtogroup SolidMechanicsApplication
   ///@{
-
   
   ///@name Kratos Globals
   ///@{
@@ -55,6 +53,9 @@ namespace Kratos
  
     ///@name Type Definitions
     ///@{
+
+    typedef Node<3> NodeType;
+    
     KRATOS_CLASS_POINTER_DEFINITION( TimeIntegrationScheme );
 
     ///@}
@@ -63,7 +64,7 @@ namespace Kratos
 
     
     /// Default Constructor.
-    TimeIntegrationScheme(double rAlpham = 0.0) {}
+    TimeIntegrationScheme() {}
 
     /// Copy Constructor.
     TimeIntegrationScheme(TimeIntegrationScheme& rOther) {}
