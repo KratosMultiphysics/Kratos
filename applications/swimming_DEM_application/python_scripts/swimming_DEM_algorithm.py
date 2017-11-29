@@ -76,7 +76,7 @@ class Algorithm(object):
         self.SetFluidAlgorithm()
         self.fluid_solution.coupling_algorithm = weakref.proxy(self)
 
-        self.pp = weakref.proxy(self.fluid_solution.pp)
+        self.pp = self.fluid_solution.pp
 
         self.SetCouplingParameters(varying_parameters)
 
@@ -432,7 +432,7 @@ class Algorithm(object):
 
     def FluidInitialize(self):
         self.fluid_model_part = self.fluid_solution.fluid_model_part
-        self.fluid_solution.vars_man = weakref.proxy(vars_man)
+        self.fluid_solution.vars_man = vars_man
 
         self.fluid_solution.SetFluidSolverModule()
         self.fluid_solution.AddFluidVariables()
