@@ -441,18 +441,18 @@ public:
      */
     bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override 
     {
-        Point boxcenter;
-        Point boxhalfsize;
+        Point box_center;
+        Point box_half_size;
 
-        boxcenter[0]   = 0.50 * (rLowPoint[0] + rHighPoint[0]);
-        boxcenter[1]   = 0.50 * (rLowPoint[1] + rHighPoint[1]);
-        boxcenter[2]   = 0.00;
+        box_center[0] = 0.50 * (rLowPoint[0] + rHighPoint[0]);
+        box_center[1] = 0.50 * (rLowPoint[1] + rHighPoint[1]);
+        box_center[2] = 0.00;
 
-        boxhalfsize[0] = 0.50 * std::abs(rHighPoint[0] - rLowPoint[0]);
-        boxhalfsize[1] = 0.50 * std::abs(rHighPoint[1] - rLowPoint[1]);
-        boxhalfsize[2] = 0.00;
+        box_half_size[0] = 0.50 * std::abs(rHighPoint[0] - rLowPoint[0]);
+        box_half_size[1] = 0.50 * std::abs(rHighPoint[1] - rLowPoint[1]);
+        box_half_size[2] = 0.00;
 
-        return TriBoxOverlap(boxcenter, boxhalfsize);
+        return TriBoxOverlap(box_center, box_half_size);
     }
 
     /** This method calculates and returns length, area or volume of
