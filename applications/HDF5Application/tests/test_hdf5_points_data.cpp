@@ -42,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadData, KratosHDF5TestSuite)
     }
     test_file.WriteDataSet("/Nodes/Ids", ids);
     test_file.WriteDataSet("/Nodes/Coordinates", coords);
-    HDF5::Detail::PointsData data;
+    HDF5::Internals::PointsData data;
     data.ReadData(test_file, "/Nodes", 0, 3);
     for (unsigned i = 0; i < 3; ++i)
     {
@@ -70,7 +70,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_CreateNodes, KratosHDF5TestSuite)
     }
     test_file.WriteDataSet("/Nodes/Ids", ids);
     test_file.WriteDataSet("/Nodes/Coordinates", coords);
-    HDF5::Detail::PointsData data;
+    HDF5::Internals::PointsData data;
     data.ReadData(test_file, "/Nodes", 0, 3);
     HDF5::NodesContainerType nodes;
     data.CreateNodes(nodes);
@@ -92,7 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_SetData, KratosHDF5TestSuite)
             i + 1, 1.2345, 1.2345, 1.2345);
         nodes.push_back(p_node);
     }
-    HDF5::Detail::PointsData data;
+    HDF5::Internals::PointsData data;
     data.SetData(nodes);
     KRATOS_CHECK(data.size() == 3);
     for (int i = 0; i < 3; ++i)
@@ -119,7 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_WriteData, KratosHDF5TestSuite)
             i + 1, 1.2345, 1.2345, 1.2345);
         nodes.push_back(p_node);
     }
-    HDF5::Detail::PointsData data;
+    HDF5::Internals::PointsData data;
     data.SetData(nodes);
     data.WriteData(test_file, "/Nodes");
     HDF5::Vector<int> ids(3);

@@ -6,7 +6,7 @@ namespace Kratos
 {
 namespace HDF5
 {
-namespace Detail
+namespace Internals
 {
 DataValueContainerIO::DataValueContainerIO(std::string Prefix, File::Pointer pFile)
     : mPrefix(Prefix), mpFile(pFile)
@@ -100,6 +100,6 @@ void DataValueContainerIO::WriteDataValueContainer(DataValueContainer const& rDa
     KRATOS_CATCH("Path: \"" + mPrefix + "/DataValues\".");
 }
 
-} // namespace Detail.
+} // namespace Internals.
 } // namespace HDF5.
 } // namespace Kratos.

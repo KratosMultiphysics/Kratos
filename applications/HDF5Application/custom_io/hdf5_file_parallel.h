@@ -292,7 +292,7 @@ private:
             local_start[0] = 0;
  
         // Set the data type.
-        hid_t dtype_id = Detail::GetScalarDataType<T>();
+        hid_t dtype_id = Internals::GetScalarDataType<T>();
 
         // Create and write the data set.
         hid_t file_id = GetFileId();
@@ -515,7 +515,7 @@ private:
         local_start[0] = StartIndex;
 
         // Set the data type.
-        hid_t dtype_id = Detail::GetScalarDataType<T>();
+        hid_t dtype_id = Internals::GetScalarDataType<T>();
         if (dtype_id == H5T_NATIVE_INT)
         {
             KRATOS_ERROR_IF_NOT(HasIntDataType(Path))

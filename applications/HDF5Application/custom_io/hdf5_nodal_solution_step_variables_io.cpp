@@ -8,7 +8,7 @@ namespace Kratos
 {
 namespace HDF5
 {
-namespace Detail
+namespace Internals
 {
 NodalSolutionStepVariablesIO::NodalSolutionStepVariablesIO(std::string Prefix, File::Pointer pFile)
 : mPrefix(Prefix), mpFile(pFile)
@@ -93,6 +93,6 @@ void NodalSolutionStepVariablesIO::ReadAndAssignBufferSize(ModelPart& rModelPart
     KRATOS_CATCH("");
 }
 
-} // namespace Detail.
+} // namespace Internals.
 } // namespace HDF5.
 } // namespace Kratos.

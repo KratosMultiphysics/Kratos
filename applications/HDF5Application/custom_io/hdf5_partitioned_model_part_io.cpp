@@ -76,13 +76,13 @@ bool PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
     File& r_file = GetFile();
 
     // Read local nodes.
-    Detail::PointsData local_points;
+    Internals::PointsData local_points;
     local_points.ReadData(r_file, mPrefix + "/Nodes/Local", local_start_index, local_block_size);
     local_points.CreateNodes(rNodes);
     local_points.Clear();
     
     // Read ghost nodes.
-    Detail::PointsData ghost_points;
+    Internals::PointsData ghost_points;
     ghost_points.ReadData(r_file, mPrefix + "/Nodes/Ghost", ghost_start_index, ghost_block_size);
     ghost_points.CreateNodes(rNodes);
     ghost_points.Clear();
@@ -121,14 +121,14 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     }
 
     // Write local nodes.
-    Detail::PointsData local_points;
+    Internals::PointsData local_points;
     local_points.SetData(local_nodes);
     local_points.WriteData(r_file, mPrefix + "/Nodes/Local");
     r_file.WriteDataPartition(mPrefix + "/Nodes/Local/Partition", local_points.GetIds());
     local_points.Clear();
 
     // Write ghost nodes.
-    Detail::PointsData ghost_points;
+    Internals::PointsData ghost_points;
     ghost_points.SetData(ghost_nodes);
     ghost_points.WriteData(r_file, mPrefix + "/Nodes/Ghost");
     r_file.WriteDataPartition(mPrefix + "/Nodes/Ghost/Partition", ghost_points.GetIds());
@@ -140,19 +140,19 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 
 void PartitionedModelPartIO::ReadProperties(PropertiesContainerType& rProperties)
 {
-    Detail::PropertiesIO prop_io(mPrefix, mpFile);
+    Internals::PropertiesIO prop_io(mPrefix, mpFile);
     prop_io.ReadProperties(rProperties);
 }
 
 void PartitionedModelPartIO::WriteProperties(Properties const& rProperties)
 {
-    Detail::PropertiesIO prop_io(mPrefix, mpFile);
+    Internals::PropertiesIO prop_io(mPrefix, mpFile);
     prop_io.WriteProperties(rProperties);
 }
 
 void PartitionedModelPartIO::WriteProperties(PropertiesContainerType const& rProperties)
 {
-    Detail::PropertiesIO prop_io(mPrefix, mpFile);
+    Internals::PropertiesIO prop_io(mPrefix, mpFile);
     prop_io.WriteProperties(rProperties);
 }
 
@@ -170,7 +170,7 @@ void PartitionedModelPartIO::ReadElements(NodesContainerType& rNodes,
     for (unsigned i = 0; i < mElementNames.size(); ++i)
     {
         const std::string elem_path = mPrefix + "/Elements/" + mElementNames[i];
-        Detail::ConnectivitiesData connectivities;
+        Internals::ConnectivitiesData connectivities;
         std::tie(start_index, block_size) =
             GetPartitionStartIndexAndBlockSize(elem_path + "/Partition");
         connectivities.ReadData(r_file, elem_path, start_index, block_size);
@@ -186,7 +186,7 @@ void PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElement
     KRATOS_TRY;
 
     const unsigned num_elem_types = mElementNames.size();
-    Detail::PointerBinsUtility<ElementType> elem_bins(mElementPointers);
+    Internals::PointerBinsUtility<ElementType> elem_bins(mElementPointers);
     elem_bins.CreateBins(rElements);
     File& r_file = GetFile();
     for (unsigned i_type = 0; i_type < num_elem_types; ++i_type)
@@ -194,7 +194,7 @@ void PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElement
         std::string elem_path = mPrefix + "/Elements/" + mElementNames[i_type];
         const ElementType* elem_key = mElementPointers[i_type];
         ConstElementsContainerType& r_elems = elem_bins.GetBin(elem_key);
-        Detail::ConnectivitiesData connectivities;
+        Internals::ConnectivitiesData connectivities;
         connectivities.SetData(r_elems);
         connectivities.WriteData(r_file, elem_path);
         r_file.WriteDataPartition(elem_path + "/Partition", connectivities.GetIds());
@@ -217,7 +217,7 @@ void PartitionedModelPartIO::ReadConditions(NodesContainerType& rNodes,
     for (unsigned i = 0; i < mConditionNames.size(); ++i)
     {
         const std::string cond_path = mPrefix + "/Conditions/" + mConditionNames[i];
-        Detail::ConnectivitiesData connectivities;
+        Internals::ConnectivitiesData connectivities;
         std::tie(start_index, block_size) =
             GetPartitionStartIndexAndBlockSize(cond_path + "/Partition");
         connectivities.ReadData(r_file, cond_path, start_index, block_size);
@@ -233,7 +233,7 @@ void PartitionedModelPartIO::WriteConditions(ConditionsContainerType const& rCon
     KRATOS_TRY;
 
     const unsigned num_cond_types = mConditionNames.size();
-    Detail::PointerBinsUtility<ConditionType> cond_bins(mConditionPointers);
+    Internals::PointerBinsUtility<ConditionType> cond_bins(mConditionPointers);
     cond_bins.CreateBins(rConditions);
     File& r_file = GetFile();
     for (unsigned i_type = 0; i_type < num_cond_types; ++i_type)
@@ -241,7 +241,7 @@ void PartitionedModelPartIO::WriteConditions(ConditionsContainerType const& rCon
         std::string cond_path = mPrefix + "/Conditions/" + mConditionNames[i_type];
         const ConditionType* cond_key = mConditionPointers[i_type];
         ConstConditionsContainerType& r_conds = cond_bins.GetBin(cond_key);
-        Detail::ConnectivitiesData connectivities;
+        Internals::ConnectivitiesData connectivities;
         connectivities.SetData(r_conds);
         connectivities.WriteData(r_file, cond_path);
         r_file.WriteDataPartition(cond_path + "/Partition", connectivities.GetIds());
@@ -255,12 +255,12 @@ void PartitionedModelPartIO::ReadModelPart(ModelPart& rModelPart)
     KRATOS_TRY;
 
     ReadProperties(rModelPart.rProperties());
-    Detail::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
+    Internals::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
     process_info_io.ReadDataValueContainer(rModelPart.GetProcessInfo());
     ReadNodes(rModelPart.Nodes());
     ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
-    Detail::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
+    Internals::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
     nodal_variables_io.ReadAndAssignVariablesList(rModelPart);
     nodal_variables_io.ReadAndAssignBufferSize(rModelPart);
     ReadAndAssignPartitionIndex(mPrefix + "/Nodes/Ghost", rModelPart);
@@ -272,11 +272,11 @@ void PartitionedModelPartIO::WriteModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
-    Detail::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
+    Internals::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
     nodal_variables_io.WriteVariablesList(rModelPart);
     nodal_variables_io.WriteBufferSize(rModelPart.GetBufferSize());
     WriteProperties(rModelPart.rProperties());
-    Detail::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
+    Internals::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
     process_info_io.WriteDataValueContainer(rModelPart.GetProcessInfo());
     rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through
                                // the writing process.

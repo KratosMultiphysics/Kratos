@@ -233,7 +233,7 @@ private:
         dims[1] = rData.size2();
 
         // Set the data type.
-        hid_t dtype_id = Detail::GetScalarDataType<T>();
+        hid_t dtype_id = Internals::GetScalarDataType<T>();
 
         // Create and write the data set.
         hid_t dspace_id = H5Screate_simple(ndims, dims, nullptr);
@@ -378,7 +378,7 @@ private:
         mem_dims[1] = rData.size2(); // Set second dimension.
 
         // Set the data type.
-        hid_t dtype_id = Detail::GetScalarDataType<T>();
+        hid_t dtype_id = Internals::GetScalarDataType<T>();
         if (dtype_id == H5T_NATIVE_INT)
         {
             KRATOS_ERROR_IF_NOT(HasIntDataType(Path))

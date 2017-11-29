@@ -6,7 +6,7 @@ namespace Kratos
 {
 namespace HDF5
 {
-namespace Detail
+namespace Internals
 {
 void ConnectivitiesData::ReadData(File& rFile, std::string Path, unsigned StartIndex, unsigned BlockSize)
 {
@@ -183,6 +183,6 @@ void ConnectivitiesData::Clear()
     mPropertiesIds.clear();
     mConnectivities.clear();
 }
-} // namespace Detail.
+} // namespace Internals.
 } // namespace HDF5.
 } // namespace Kratos.

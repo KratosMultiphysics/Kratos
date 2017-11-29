@@ -65,7 +65,7 @@ bool ModelPartIO::ReadNodes(NodesContainerType& rNodes)
 
     const std::size_t num_nodes = ReadNodesNumber();
     File& r_file = GetFile();
-    Detail::PointsData points;
+    Internals::PointsData points;
 
     points.ReadData(r_file, mPrefix + "/Nodes/Local", 0, num_nodes);
     points.CreateNodes(rNodes);
@@ -84,7 +84,7 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 {
     KRATOS_TRY;
 
-    Detail::PointsData points;
+    Internals::PointsData points;
     points.SetData(rNodes);
     File& r_file = GetFile();
     points.WriteData(r_file, mPrefix + "/Nodes/Local");
@@ -94,19 +94,19 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 
 void ModelPartIO::ReadProperties(PropertiesContainerType& rProperties)
 {
-    Detail::PropertiesIO prop_io(mPrefix, mpFile);
+    Internals::PropertiesIO prop_io(mPrefix, mpFile);
     prop_io.ReadProperties(rProperties);
 }
 
 void ModelPartIO::WriteProperties(Properties const& rProperties)
 {
-    Detail::PropertiesIO prop_io(mPrefix, mpFile);
+    Internals::PropertiesIO prop_io(mPrefix, mpFile);
     prop_io.WriteProperties(rProperties);
 }
 
 void ModelPartIO::WriteProperties(PropertiesContainerType const& rProperties)
 {
-    Detail::PropertiesIO prop_io(mPrefix, mpFile);
+    Internals::PropertiesIO prop_io(mPrefix, mpFile);
     prop_io.WriteProperties(rProperties);
 }
 
@@ -124,7 +124,7 @@ void ModelPartIO::ReadElements(NodesContainerType& rNodes,
     {
         const std::string elem_path = mPrefix + "/Elements/" + mElementNames[i];
         const unsigned num_elems = r_file.GetDataDimensions(elem_path + "/Ids")[0];
-        Detail::ConnectivitiesData connectivities;
+        Internals::ConnectivitiesData connectivities;
         connectivities.ReadData(r_file, elem_path, 0, num_elems);
         const ElementType& r_elem = *mElementPointers[i];
         connectivities.CreateElements(r_elem, rNodes, rProperties, rElements);
@@ -138,7 +138,7 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rElements)
     KRATOS_TRY;
 
     const unsigned num_elem_types = mElementNames.size();
-    Detail::PointerBinsUtility<ElementType> elem_bins(mElementPointers);
+    Internals::PointerBinsUtility<ElementType> elem_bins(mElementPointers);
     elem_bins.CreateBins(rElements);
     File& r_file = GetFile();
     for (unsigned i_type = 0; i_type < num_elem_types; ++i_type)
@@ -146,7 +146,7 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rElements)
         std::string& r_elem_name = mElementNames[i_type];
         const ElementType* elem_key = mElementPointers[i_type];
         ConstElementsContainerType& r_elems = elem_bins.GetBin(elem_key);
-        Detail::ConnectivitiesData connectivities;
+        Internals::ConnectivitiesData connectivities;
         connectivities.SetData(r_elems);
         connectivities.WriteData(r_file, mPrefix + "/Elements/" + r_elem_name);
     }
@@ -168,7 +168,7 @@ void ModelPartIO::ReadConditions(NodesContainerType& rNodes,
     {
         const std::string cond_path = mPrefix + "/Conditions/" + mConditionNames[i];
         const unsigned num_conds = r_file.GetDataDimensions(cond_path + "/Ids")[0];
-        Detail::ConnectivitiesData connectivities;
+        Internals::ConnectivitiesData connectivities;
         connectivities.ReadData(r_file, cond_path, 0, num_conds);
         const ConditionType& r_cond = *mConditionPointers[i];
         connectivities.CreateConditions(r_cond, rNodes, rProperties, rConditions);
@@ -182,7 +182,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
     KRATOS_TRY;
 
     const unsigned num_cond_types = mConditionNames.size();
-    Detail::PointerBinsUtility<ConditionType> cond_bins(mConditionPointers);
+    Internals::PointerBinsUtility<ConditionType> cond_bins(mConditionPointers);
     cond_bins.CreateBins(rConditions);
     File& r_file = GetFile();
     for (unsigned i_type = 0; i_type < num_cond_types; ++i_type)
@@ -190,7 +190,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
         std::string& r_cond_name = mConditionNames[i_type];
         const ConditionType* cond_key = mConditionPointers[i_type];
         ConstConditionsContainerType& r_conds = cond_bins.GetBin(cond_key);
-        Detail::ConnectivitiesData connectivities;
+        Internals::ConnectivitiesData connectivities;
         connectivities.SetData(r_conds);
         connectivities.WriteData(r_file, mPrefix + "/Conditions/" + r_cond_name);
     }
@@ -203,12 +203,12 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
     KRATOS_TRY;
 
     ReadProperties(rModelPart.rProperties());
-    Detail::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
+    Internals::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
     process_info_io.ReadDataValueContainer(rModelPart.GetProcessInfo());
     ReadNodes(rModelPart.Nodes());
     ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
-    Detail::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
+    Internals::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
     nodal_variables_io.ReadAndAssignVariablesList(rModelPart);
     nodal_variables_io.ReadAndAssignBufferSize(rModelPart);
 
@@ -219,11 +219,11 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
-    Detail::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
+    Internals::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
     nodal_variables_io.WriteVariablesList(rModelPart);
     nodal_variables_io.WriteBufferSize(rModelPart.GetBufferSize());
     WriteProperties(rModelPart.rProperties());
-    Detail::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
+    Internals::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
     process_info_io.WriteDataValueContainer(rModelPart.GetProcessInfo());
     rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through
                                // the writing process.
