@@ -80,6 +80,7 @@ namespace Kratos
       	double DetFgrad;
       	double DetFgradVel;
       	double DeviatoricInvariant;
+      	double EquivalentStrainRate;
       	double VolumetricDefRate;
       	VectorType SpatialDefRate;
       	VectorType MDGreenLagrangeMaterial;
@@ -336,10 +337,12 @@ namespace Kratos
       ///@name Friends
       ///@{
 
-
       ///@}
     protected:
 
+      double mMaterialDeviatoricCoefficient=0;
+      double mMaterialVolumetricCoefficient=0;
+      double mMaterialDensity=0;
 
       ///@name Protected static Member Variables
       ///@{
@@ -376,7 +379,8 @@ namespace Kratos
       virtual void ComputeMaterialParameters (double& Density,
 					      double& DeviatoricCoeff,
 					      double& VolumetricCoeff,
-					      double timeStep){};
+					      double timeStep,
+					      ElementalVariables& rElementalVariables){};
 
       virtual double GetThetaMomentum (){return 1.0;};
 
@@ -573,6 +577,9 @@ namespace Kratos
 
       void CalcDeviatoricInvariant(VectorType &SpatialDefRate,
 				   double &DeviatoricInvariant);
+
+      void CalcEquivalentStrainRate(VectorType &SpatialDefRate,
+				    double &EquivalentStrainRate);
 
       double CalcNormalProjectionDefRate(VectorType &SpatialDefRate);
 
