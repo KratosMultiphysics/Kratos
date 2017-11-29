@@ -49,6 +49,7 @@
 namespace Kratos
 {
 KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
+        KratosApplication("KratosStructuralMechanicsApplication"),
     /* ELEMENTS */
     // Adding the truss elements
     mTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), false),    

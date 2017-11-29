@@ -39,6 +39,7 @@ namespace Kratos
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
 KratosMetisApplication::KratosMetisApplication()
+    :KratosApplication("KratosMetisApplication")
 {}
 
 

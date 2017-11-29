@@ -49,7 +49,9 @@ public:
     ///@{
 
     /// Default constructor.
-    KratosFSIApplication() {}
+    KratosFSIApplication():
+        KratosApplication("KratosFSIApplication")
+        {}
 
     /// Destructor.
     virtual ~KratosFSIApplication() {}

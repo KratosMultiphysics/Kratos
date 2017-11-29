@@ -71,7 +71,9 @@ public:
     ///@{
 
     /// Default constructor.
-    KratosTrilinosApplication() {}
+    KratosTrilinosApplication():
+        KratosApplication("KratosTrilinosApplication")
+        {}
 
     /// Destructor.
     virtual ~KratosTrilinosApplication() {}

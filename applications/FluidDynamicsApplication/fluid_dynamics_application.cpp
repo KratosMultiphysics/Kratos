@@ -34,6 +34,7 @@ namespace Kratos
 {
 
 KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
+        KratosApplication("KratosFluidDynamicsApplication"),
     mVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mTwoFluidVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
