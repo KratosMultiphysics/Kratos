@@ -61,7 +61,6 @@
 
 /* CONDITIONS */
 #include "custom_conditions/point_moment_3D_condition.hpp"
-#include "custom_conditions/point_torque_3D_condition.hpp"
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
 #include "custom_conditions/point_contact_condition.h"
@@ -367,8 +366,6 @@ private:
     
     // Beam moment condition
     const PointMoment3DCondition mPointMomentCondition3D1N;
-    // Torque condition
-    const PointTorque3DCondition mPointTorqueCondition3D1N;
     
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws

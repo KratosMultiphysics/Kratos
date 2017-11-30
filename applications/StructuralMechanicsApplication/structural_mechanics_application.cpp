@@ -153,9 +153,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     mSurfaceLoadCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
     mSurfaceLoadCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9 ) ) ) ),
     // Beam's point moment condition
-    mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
-    // Torque's point condition
-    mPointTorqueCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) )
+    mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) )
 {}
 
 void KratosStructuralMechanicsApplication::Register()
@@ -253,9 +251,6 @@ void KratosStructuralMechanicsApplication::Register()
     // CONDITIONS
     /* Moment condition */
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_MOMENT )
-    /* Torque condition */
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
 
     // Adding the SPRISM EAS variables
     KRATOS_REGISTER_VARIABLE(ALPHA_EAS);
@@ -420,8 +415,6 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D9N", mSurfaceLoadCondition3D9N )
     // Beam's point moment condition
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N );
-    // Torque moment condition
-    KRATOS_REGISTER_CONDITION( "PointTorqueCondition3D1N", mPointTorqueCondition3D1N );
 
     // For MPC implementations
     KRATOS_REGISTER_VARIABLE(MPC_DATA_CONTAINER)
