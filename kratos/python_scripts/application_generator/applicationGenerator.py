@@ -411,7 +411,6 @@ class ApplicationGenerator(TemplateRule):
 
         # First read the file and parse all the info
         with open(srcFile, 'r') as src:
-            last = None 
             for l in src:
                 # Select the block
                 if 'Import_' in l and 'Application = False' in l:
@@ -432,8 +431,6 @@ class ApplicationGenerator(TemplateRule):
                 # Append the result if its not null
                 if l is not '\n' or currentBlock == 'prepareBlock':
                     fileStruct[currentBlock].append(l)
-
-                last = l
 
         # Prepare some blocks
         prepareBlockContent = [
