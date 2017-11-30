@@ -32,6 +32,7 @@
 
 /* Adding beam element */
 #include "custom_elements/cr_beam_element_3D2N.hpp"
+#include "custom_elements/cr_beam_element_2D2N.hpp"
 
 
 /* Adding shells and membranes elements */
@@ -63,6 +64,7 @@
 #include "custom_conditions/point_torque_3D_condition.hpp"
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
+#include "custom_conditions/point_contact_condition.h"
 #include "custom_conditions/axisym_point_load_condition.h"
 #include "custom_conditions/line_load_condition_2d.h"
 #include "custom_conditions/axisym_line_load_condition_2d.h"
@@ -249,6 +251,8 @@ private:
     // Adding the beam element 
     const CrBeamElement3D2N mCrBeamElement3D2N;
     const CrBeamElement3D2N mCrLinearBeamElement3D2N;
+    const CrBeamElement2D2N mCrBeamElement2D2N;
+    const CrBeamElement2D2N mCrLinearBeamElement2D2N;
 
 
     // Adding the shells elements 
@@ -342,6 +346,8 @@ private:
     // Point load
     const PointLoadCondition mPointLoadCondition2D1N;
     const PointLoadCondition mPointLoadCondition3D1N;
+    const PointContactCondition mPointContactCondition2D1N;
+    const PointContactCondition mPointContactCondition3D1N;
     
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
     

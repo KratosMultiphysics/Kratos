@@ -12,7 +12,7 @@
 #include "shell_thin_element_3D3N.hpp"
 #include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
-
+#include "custom_utilities/shell_utilities.h"
 #include "geometries/triangle_3d_3.h"
 
 #include <string>
@@ -57,69 +57,69 @@
 namespace Kratos
 {
 
-namespace Utilities
-{
-inline void InterpToStandardGaussPoints(double& v1, double& v2, double& v3)
-{
-    double vg1 = v1;
-    double vg2 = v2;
-    double vg3 = v3;
-#ifdef OPT_AVARAGE_RESULTS
-    v1 = (vg1+vg2+vg3)/3.0;
-    v2 = (vg1+vg2+vg3)/3.0;
-    v3 = (vg1+vg2+vg3)/3.0;
-#else
-    v1 = (2.0*vg1)/3.0 - vg2/3.0       + (2.0*vg3)/3.0;
-    v2 = (2.0*vg1)/3.0 + (2.0*vg2)/3.0 - vg3/3.0;
-    v3 = (2.0*vg2)/3.0 - vg1/3.0       + (2.0*vg3)/3.0;
-#endif // OPT_AVARAGE_RESULTS
-}
-
-inline void InterpToStandardGaussPoints(std::vector< double >& v)
-{
-    if(v.size() != 3) return;
-    InterpToStandardGaussPoints(v[0], v[1], v[2]);
-}
-
-inline void InterpToStandardGaussPoints(std::vector< array_1d<double,3> >& v)
-{
-    if(v.size() != 3) return;
-    for(size_t i = 0; i < 3; i++)
-        InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
-}
-
-inline void InterpToStandardGaussPoints(std::vector< array_1d<double,6> >& v)
-{
-    if(v.size() != 3) return;
-    for(size_t i = 0; i < 6; i++)
-        InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
-}
-
-inline void InterpToStandardGaussPoints(std::vector< Vector >& v)
-{
-    if(v.size() != 3) return;
-    size_t ncomp = v[0].size();
-    for(int i = 1; i < 3; i++)
-        if(v[i].size() != ncomp)
-            return;
-    for(size_t i = 0; i < ncomp; i++)
-        InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
-}
-
-inline void InterpToStandardGaussPoints(std::vector< Matrix >& v)
-{
-    if(v.size() != 3) return;
-    size_t nrows = v[0].size1();
-    size_t ncols = v[0].size2();
-    for(int i = 1; i < 3; i++)
-        if(v[i].size1() != nrows || v[i].size2() != ncols)
-            return;
-    for(size_t i = 0; i < nrows; i++)
-        for(size_t j = 0; j < ncols; j++)
-            InterpToStandardGaussPoints(v[0](i,j), v[1](i,j), v[2](i,j));
-}
-
-}
+// namespace Utilities
+// {
+// inline void InterpToStandardGaussPoints(double& v1, double& v2, double& v3)
+// {
+//     double vg1 = v1;
+//     double vg2 = v2;
+//     double vg3 = v3;
+// #ifdef OPT_AVARAGE_RESULTS
+//     v1 = (vg1+vg2+vg3)/3.0;
+//     v2 = (vg1+vg2+vg3)/3.0;
+//     v3 = (vg1+vg2+vg3)/3.0;
+// #else
+//     v1 = (2.0*vg1)/3.0 - vg2/3.0       + (2.0*vg3)/3.0;
+//     v2 = (2.0*vg1)/3.0 + (2.0*vg2)/3.0 - vg3/3.0;
+//     v3 = (2.0*vg2)/3.0 - vg1/3.0       + (2.0*vg3)/3.0;
+// #endif // OPT_AVARAGE_RESULTS
+// }
+// 
+// inline void InterpToStandardGaussPoints(std::vector< double >& v)
+// {
+//     if(v.size() != 3) return;
+//     InterpToStandardGaussPoints(v[0], v[1], v[2]);
+// }
+// 
+// inline void InterpToStandardGaussPoints(std::vector< array_1d<double,3> >& v)
+// {
+//     if(v.size() != 3) return;
+//     for(size_t i = 0; i < 3; i++)
+//         InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
+// }
+// 
+// inline void InterpToStandardGaussPoints(std::vector< array_1d<double,6> >& v)
+// {
+//     if(v.size() != 3) return;
+//     for(size_t i = 0; i < 6; i++)
+//         InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
+// }
+// 
+// inline void InterpToStandardGaussPoints(std::vector< Vector >& v)
+// {
+//     if(v.size() != 3) return;
+//     size_t ncomp = v[0].size();
+//     for(int i = 1; i < 3; i++)
+//         if(v[i].size() != ncomp)
+//             return;
+//     for(size_t i = 0; i < ncomp; i++)
+//         InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
+// }
+// 
+// inline void InterpToStandardGaussPoints(std::vector< Matrix >& v)
+// {
+//     if(v.size() != 3) return;
+//     size_t nrows = v[0].size1();
+//     size_t ncols = v[0].size2();
+//     for(int i = 1; i < 3; i++)
+//         if(v[i].size1() != nrows || v[i].size2() != ncols)
+//             return;
+//     for(size_t i = 0; i < nrows; i++)
+//         for(size_t j = 0; j < ncols; j++)
+//             InterpToStandardGaussPoints(v[0](i,j), v[1](i,j), v[2](i,j));
+// }
+// 
+// }
 
 // =====================================================================================
 //
