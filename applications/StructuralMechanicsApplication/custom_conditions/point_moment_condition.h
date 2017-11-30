@@ -57,21 +57,20 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // Constructor void
-    PointMomentCondition()
-    {};
+    /// Default constructor.
+    PointMomentCondition( 
+        IndexType NewId, 
+        GeometryType::Pointer pGeometry 
+        );
+    
+    PointMomentCondition( 
+        IndexType NewId, 
+        GeometryType::Pointer pGeometry,  
+        PropertiesType::Pointer pProperties 
+        );
 
-    // Constructor using an array of nodes
-    PointMomentCondition( IndexType NewId, GeometryType::Pointer pGeometry ):BaseLoadCondition(NewId,pGeometry)
-    {};
-
-    // Constructor using an array of nodes with properties
-    PointMomentCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):BaseLoadCondition(NewId,pGeometry,pProperties)
-    {};
-
-    // Destructor
-    ~PointMomentCondition() override
-    {};
+    /// Destructor.
+    ~PointMomentCondition() override;
 
     ///@}
     ///@name Operators
@@ -81,37 +80,19 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * Called to initialize the element.
-     * Must be called before any calculation is done
-     */
-    void Initialize() override;
-
-    /**
-     * Called at the beginning of each solution step
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-
-    /**
-     * This is called for non-linear analysis at the beginning of the iteration process
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * This is called for non-linear analysis at the beginning of the iteration process
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
     
-    /**
-     * Called at the end of eahc solution step
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
     
+    Condition::Pointer Create( 
+        IndexType NewId, 
+        NodesArrayType const& ThisNodes,  
+        PropertiesType::Pointer pProperties 
+        ) const override;
+
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      * @param rResult: The vector containing the equation id
@@ -162,50 +143,6 @@ public:
         int Step = 0 
         ) override;
 
-    /**
-     * This function provides a more general interface to the element. 
-     * It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
-     * @param rLeftHandSideMatrices: container with the output left hand side matrices
-     * @param rLHSVariables: paramter describing the expected LHSs
-     * @param rRightHandSideVectors: container for the desired RHS output
-     * @param rRHSVariables: parameter describing the expected RHSs
-     */
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix, 
-        VectorType& rRightHandSideVector, 
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-      * This is called during the assembling process in order to calculate the elemental right hand side vector only
-      * @param rRightHandSideVector: the elemental right hand side vector
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector, 
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-        
-    /**
-      * This is called during the assembling process in order to calculate the elemental mass matrix
-      * @param rMassMatrix: the elemental mass matrix
-      * @param rCurrentProcessInfo: The current process info instance
-      */
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo 
-        ) override;
-    
-    /**
-      * This is called during the assembling process in order
-      * to calculate the elemental damping matrix
-      * @param rDampingMatrix: the elemental damping matrix
-      * @param rCurrentProcessInfo: The current process info instance
-      */
-    void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo 
-        ) override;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -216,28 +153,6 @@ public:
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
-    /**
-     * Check if Rotational Dof existant
-     */
-    bool HasRotDof(){return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);};
-    
-    unsigned int GetBlockSize()
-    {
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        if( HasRotDof() ) // if it has rotations
-        {
-            if(dim == 2)
-                return 3;
-            else if(dim == 3)
-                return 6;
-            else
-                KRATOS_ERROR << "the conditions only works for 2D and 3D elements";
-        }
-        else
-        {
-            return dim;
-        }
-    }
     
     ///@}
     ///@name Access
@@ -289,18 +204,11 @@ protected:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         );
-    
+        
     /**
-     * This functions computes the integration weight to consider
-     * @param IntegrationPoints: The array containing the integration points
-     * @param PointNumber: The id of the integration point considered
-     * @param detJ: The determinant of the jacobian of the element
+     * It calcules the integration weight for the point moment 
      */
-    virtual double GetIntegrationWeight(
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber,
-        const double detJ
-        );
+    virtual double GetPointMomentIntegrationWeight();
     
     ///@}
     ///@name Protected  Access
@@ -313,6 +221,9 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
+    
+    // A protected default constructor necessary for serialization
+    PointMomentCondition() {};
 
 private:
     ///@name Static Member Variables
