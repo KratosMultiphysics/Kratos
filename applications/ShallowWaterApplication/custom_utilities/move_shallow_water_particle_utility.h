@@ -14,6 +14,9 @@
 #if !defined(KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED)
 #define  KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
 
+///@defgroup MoveShallowWaterParticleUtility
+///@brief Utility to move particles on the eulerian mesh with an 
+/// explicit scheme. This is the basic tool of the pfem2 framework
 
 
 // System includes
@@ -82,8 +85,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(MoveShallowWaterParticleUtility);
 
     //template<unsigned int TDim>
-    MoveShallowWaterParticleUtility(ModelPart& model_part, Parameters rParameters) :
-        mrModelPart(model_part),
+    MoveShallowWaterParticleUtility(ModelPart& rModelPart, Parameters rParameters) :
+        mrModelPart(rModelPart),
         mScalarVar1(KratosComponents< Variable<double> >::Get( rParameters["convection_scalar_variable"].GetString() ) ),
         mVectorVar1(KratosComponents< Variable<array_1d<double,3> > >::Get( rParameters["convection_vector_variable"].GetString() ) )
     {
@@ -138,14 +141,12 @@ public:
                 position_node = pnode->Coordinates();
                 WeakPointerVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
                 //we loop all the nodes to check all the edges
-                const double number_of_neighbours = double(rneigh.size());
+                const double number_of_neighbours = static_cast<double>(rneigh.size());
                 for( WeakPointerVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
                 {
                     array_1d<double,3> position_difference;
                     position_difference = inode->Coordinates() - position_node;
-                    double current_distance= sqrt(pow(position_difference[0],2)+pow(position_difference[1],2)+pow(position_difference[2],2));
-                    //if (current_distance>distance)
-                    //	distance=current_distance;
+                    const double current_distance = norm_2(position_difference);
                     distance += current_distance / number_of_neighbours;
                 }
                 //and we save the largest edge.
@@ -191,9 +192,9 @@ public:
         }
 
         //matrix containing the position of the 4/15/45 particles that we will seed at the beggining
-        boost::numeric::ublas::bounded_matrix<double, 5*(1+TDim), 3 > pos;
-        boost::numeric::ublas::bounded_matrix<double, 5*(1+TDim), (1+TDim) > N;
-        
+        bounded_matrix<double, 5*(1+TDim), 3 > pos;
+        bounded_matrix<double, 5*(1+TDim), (1+TDim) > N;
+
         int particle_id=0;
         mNElems = mrModelPart.Elements().size();
 
@@ -248,9 +249,10 @@ public:
                 ++particle_id;
 
                 ShallowParticle& pparticle = mParticlesVector[particle_id-1];
-                pparticle.X()=pos(j,0);
-                pparticle.Y()=pos(j,1);
-                pparticle.Z()=pos(j,2);
+                //~ pparticle.X()=pos(j,0);
+                //~ pparticle.Y()=pos(j,1);
+                //~ pparticle.Z()=pos(j,2);
+                pparticle.Coordinates() = row(pos,j);
                 
                 pparticle.GetEraseFlag()=false;
                 
@@ -274,10 +276,8 @@ public:
 
         mNParticles=particle_id; //we save the last particle created as the total number of particles we have. For the moment this is true.
         std::cout << "  [Creating particles : " << mNParticles << " particles created]" << std::endl;
-        //KRATOS_WATCH(mNParticles);
-        //KRATOS_WATCH(mLastElemId);
+
         mParticlePrintingToolInitialized=false;
-        //std::cin >> artz;
 
         KRATOS_CATCH("")
     }
@@ -308,6 +308,14 @@ public:
     }
 
 
+    /// Calculates the mean velocity
+    /** This function computes the mean velocity within an element and
+     * stores it in MEAN_VEL_OVER_ELEM_SIZE variable.
+     * This variable keeps the courant number aprox 0.1 in each substep
+     * 
+     * @see MoveParticle
+     * @see MoveParticleInverseWay
+     */
     void CalculateVelOverElemSize()
     {
         KRATOS_TRY
@@ -347,7 +355,10 @@ public:
     }
 
 
-    //name self explained
+    /// Reset the boundary conditions 
+    /** When a variable is fixed this function resets the nodal values
+     * with the previous time step
+     */
     void ResetBoundaryConditions() 
     {
         KRATOS_TRY
@@ -396,6 +407,12 @@ public:
     }
 
 
+    /// Auxiliar function to compute the "delta variables"
+    /** Delta variables are the difference between two time steps.
+     * It's value is used to update particles info
+     * 
+     * @see CorrectParticlesWithoutMovingUsingDeltaVariables
+     */
     void CalculateDeltaVariables()
     {
         KRATOS_TRY
@@ -422,6 +439,9 @@ public:
     }
 
 
+    /// Auxiliar function
+    /** This function copy a scalar variable value to the previous time step
+     */
     void CopyScalarVarToPreviousTimeStep(const Variable<double>& OriginVariable,
                    ModelPart::NodesContainerType& rNodes)
     {
@@ -448,6 +468,9 @@ public:
     }
 
 
+    /// Auxiliar function
+    /** This function copy a vector variable value to the previous time step
+     */
     void CopyVectorVarToPreviousTimeStep(const Variable<array_1d<double,3>>& OriginVariable,
                    ModelPart::NodesContainerType& rNodes)
     {
@@ -474,7 +497,14 @@ public:
     }
 
 
-    //to move all the particles across the streamlines. heavy task!
+    /// Move all the particles
+    /** This function moves the particles across the streamlines 
+     * according to the velocity given by VELOCITY variable. The 
+     * movement is performed in nsubsteps, during a total time 
+     * of DELTA_TIME
+     * 
+     * @see Moveparticle
+     */
     void MoveParticles() 
     {
         KRATOS_TRY
@@ -489,7 +519,7 @@ public:
         if (offset!=0) even_timestep=false;
         else even_timestep=true;
 
-        const int post_offset = mMaxNumberOfParticles*int(even_timestep); //and we also save the offset to know the location in which we will save the pointers after we've moved the particles
+        const int post_offset = mMaxNumberOfParticles * static_cast<int>(even_timestep); //and we also save the offset to know the location in which we will save the pointers after we've moved the particles
 
         double delta_t = CurrentProcessInfo[DELTA_TIME];
 
@@ -499,7 +529,7 @@ public:
         //double integration_distance= 2.0; 
 
         mMaxSubSteps = 10;
-        mMaxSubStepDt=delta_t/double(mMaxSubSteps);
+        mMaxSubStepDt = delta_t / static_cast<double>(mMaxSubSteps);
 
         vector<unsigned int> element_partition;
         #ifdef _OPENMP
@@ -522,8 +552,8 @@ public:
                 
                 int & number_of_particles = mNumOfParticlesInElems[ii]; //old_element->GetValue(NUMBER_OF_BED_PARTICLES);
                 
-                mNumOfParticlesInElemsAux[ii]=number_of_particles;
-                mNumOfParticlesInElems[ii]=0;
+                mNumOfParticlesInElemsAux[ii] = number_of_particles;
+                mNumOfParticlesInElems[ii] = 0;
                 //we reset the local vectors for a faster access;
             }
         }
@@ -536,21 +566,21 @@ public:
         for(int kkk=0; kkk<number_of_threads; kkk++)
         {
             ResultContainerType results(max_results);
-        
+
             WeakPointerVector< Element > elements_in_trajectory;
             elements_in_trajectory.resize(20);
-            
-            for(unsigned int ielem=element_partition[kkk]; ielem<element_partition[kkk+1]; ielem++)
+
+            for(unsigned int ielem = element_partition[kkk]; ielem<element_partition[kkk+1]; ielem++)
             {
                 ModelPart::ElementsContainerType::iterator old_element = ielembegin+ielem;
                 const int old_element_id = old_element->Id();
 
                 ParticlePointerVector& old_element_particle_pointers = mVectorOfParticlePointersVectors(old_element_id-1);
-                
-                if ( (results.size()) !=max_results )
+
+                if ( (results.size()) != max_results )
                     results.resize(max_results);
 
-                unsigned int number_of_elements_in_trajectory=0; //excluding the origin one (current one, ielem)
+                unsigned int number_of_elements_in_trajectory = 0; //excluding the origin one (current one, ielem)
 
                 for(int ii=0; ii<(mNumOfParticlesInElemsAux(ielem)); ii++)
                 {
@@ -559,25 +589,27 @@ public:
                     Element::Pointer pcurrent_element( *old_element.base() );
                     ResultIteratorType result_begin = results.begin();
                     bool & erase_flag=pparticle.GetEraseFlag();
-                    if (erase_flag==false){
+                    if (erase_flag == false){
                         MoveParticle(pparticle,pcurrent_element,elements_in_trajectory,number_of_elements_in_trajectory,result_begin,max_results); //saqué N de los argumentos, no lo necesito ya q empieza SIEMPRE en un nodo y no me importa donde termina
 
                         const int current_element_id = pcurrent_element->Id();
 
                         int & number_of_particles_in_current_elem = mNumOfParticlesInElems(current_element_id-1);
 
-                        if (number_of_particles_in_current_elem<mMaxNumberOfParticles && erase_flag==false) 
+                        if (number_of_particles_in_current_elem < mMaxNumberOfParticles && erase_flag == false) 
                         {
                             ParticlePointerVector& current_element_particle_pointers = mVectorOfParticlePointersVectors(current_element_id-1);
 
                             #pragma omp critical
                             {
-                                if (number_of_particles_in_current_elem<mMaxNumberOfParticles) // we cant go over this node, there's no room. otherwise we would be in the position of the first particle of the next element!!
+                                if (number_of_particles_in_current_elem < mMaxNumberOfParticles) // we cant go over this node, there's no room. otherwise we would be in the position of the first particle of the next element!!
                                 {
                                     current_element_particle_pointers(post_offset+number_of_particles_in_current_elem) = &pparticle;
                                     number_of_particles_in_current_elem++ ;
-                                    if (number_of_particles_in_current_elem > mMaxNumberOfParticles)
-                                        KRATOS_WATCH("MAL");
+                                    KRATOS_ERROR_IF( number_of_particles_in_current_elem > mMaxNumberOfParticles ) <<
+                                        "In move shallow water particle utility: exceeded maximum number of particles" << std::endl;
+                                    //~ if (number_of_particles_in_current_elem > mMaxNumberOfParticles)
+                                        //~ KRATOS_WATCH("MAL");
                                 }
                                 else
                                 {
@@ -594,49 +626,42 @@ public:
             }
         }
 
-        /*
-        //now we pass info from the local vector to the elements:
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
-            {
-                ModelPart::ElementsContainerType::iterator old_element = ielembegin+ii;
-            
-                old_element->GetValue(NUMBER_OF_BED_PARTICLES) = mNumOfParticlesInElems(ii);
-                //old_element->GetValue(NUMBER_OF_WATER_PARTICLES) = mnumber_of_water_particles_in_elems(ii);
-            }
-
-        }
-        */
-
-        //after having changed everything we change the status of the mOddTimeStep flag:
+        // After having changed everything we change the status of the mOddTimeStep flag:
         mOffset = post_offset;; //
 
         KRATOS_CATCH("")
     }
 
 
+    /// Transfer particles information to the mesh nodes
+    /** This function explicitly projects data from particles (lagrangian) 
+     * onto the eulerian mesh. Shape functions of the elements determine  
+     * the particle location within the element and its contribution to 
+     * each node as a weighting function.
+     */
     void TransferLagrangianToEulerian() //explicit
     {
         KRATOS_TRY
 
         //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
         //const double delta_t =CurrentProcessInfo[DELTA_TIME];
-        const double threshold= 0.0/(double(TDim)+1.0);
+        const double threshold = 1e-10 / (static_cast<double>(TDim)+1.0);
 
         std::cout << "projecting info to mesh" << std::endl;
 
-        const int offset = mOffset; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
-                                    //(flag managed only by MoveParticles)
+        const int offset = mOffset;
+        // the array of pointers for each element has twice the required size so that
+        // we use a part in odd timesteps and the other in even ones.
+        //(flag managed only by MoveParticles)
 
-        //we must project data from the particles (lagrangian) onto the eulerian mesh
+        // We must project data from the particles (lagrangian) onto the eulerian mesh
         //int nnodes = mrModelPart.Nodes().size();
         //array_1d<double,(n_nodes)> eulerian_nodes_sumweights;
 
-        //we save data from previous time step of the eulerian mesh in case we must reuse it later cos no particle was found around the nodes
-        //though we could've use a bigger buffer, to be changed later!
-        //after having saved data, we reset them to zero, this way it's easier to add the contribution of the surrounding particles.
+        // We save data from previous time step of the eulerian mesh in case we must reuse it later 
+        // cos no particle was found around the nodes though we could've use a bigger buffer, to be changed later!
+        // after having saved data, we reset them to zero, this way it's easier to add the contribution 
+        // of the surrounding particles.
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
         vector<unsigned int> node_partition;
         #ifdef _OPENMP
@@ -658,7 +683,7 @@ public:
             }
         }
 
-        //adding contribution, loop on elements, since each element has stored the particles found inside of it
+        // Adding contribution, loop on elements, since each element has stored the particles found inside of it
         vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Elements().size(), element_partition);
 
@@ -677,7 +702,7 @@ public:
                 //array_1d<double,(TDim+1)> weighting_inverse_divisor;
 
                 Geometry<Node<3> >& geom = ielem->GetGeometry();
-                 
+
                 for (int i=0 ; i!=(TDim+1) ; ++i) 
                 {
                     nodes_positions[i*3+0]=geom[i].X();
@@ -685,11 +710,7 @@ public:
                     nodes_positions[i*3+2]=geom[i].Z();
                     //weighting_inverse_divisor[i]=1.0/((geom[i].FastGetSolutionStepValue(MEAN_SIZE))*1.01); 
                 }
-                ///KRATOS_WATCH(ielem->Id())
-                ///KRATOS_WATCH(ielem->GetValue(NEIGHBOUR_NODES).size());
 
-                //int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_BED_PARTICLES);
-                //ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(BED_PARTICLE_POINTERS));
                 int & number_of_particles_in_elem= mNumOfParticlesInElems[ii];
                 ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[ii];
 
@@ -718,23 +739,20 @@ public:
 
                         for (int j=0 ; j!=(TDim+1); j++) //going through the 3/4 nodes of the element
                         {
+                            // These lines for a weighting function based on the distance (or square distance) from the node insteadof the shape functions
                             //double sq_dist = 0;
-                            //these lines for a weighting function based on the distance (or square distance) from the node insteadof the shape functions
                             //for (int k=0 ; k!=(TDim); k++) sq_dist += ((position[k] - nodes_positions[j*3+k])*(position[k] - nodes_positions[j*3+k]));
                             //double weight = (1.0 - (sqrt(sq_dist)*weighting_inverse_divisor[j] ) );
                             
                             double weight=N(j)*N(j);
                             //weight=N(j)*N(j)*N(j);
                             if (weight<threshold) weight=1e-10;
-                            if (weight<0.0) {KRATOS_WATCH(weight)}//;weight=0.0;KRATOS_WATCH(velocity);KRATOS_WATCH(N);KRATOS_WATCH(number_of_particles_in_elem);}//{KRATOS_WATCH(weight); KRATOS_WATCH(geom[j].Id()); KRATOS_WATCH(position);}
-                            else 
+
+                            nodes_added_weights[j] += weight;
+                            nodes_added_scalar1[j] += weight*static_cast<double>(particle_scalar1);
+                            for (int k=0 ; k!=(TDim); k++) //x,y,(z)
                             {
-                                nodes_added_weights[j] += weight;
-                                nodes_added_scalar1[j] += weight*particle_scalar1;
-                                for (int k=0 ; k!=(TDim); k++) //x,y,(z)
-                                {
-                                    nodes_added_vector1[j*3+k] += weight * double(particle_vector1[k]);
-                                }
+                                nodes_added_vector1[j*3+k] += weight * static_cast<double>(particle_vector1[k]);
                             }
                         }
                     }
@@ -767,8 +785,6 @@ public:
                     array_1d<double,3> & vector = inode->FastGetSolutionStepValue(PROJECTED_VECTOR1);
                     scalar /=sum_weights; // resetting the scalar1
                     vector /=sum_weights; // resetting the vector1
-                    //~ inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=(inode->FastGetSolutionStepValue(PROJECTED_SCALAR1))/sum_weights; // Resetting the vector1
-                    //~ inode->FastGetSolutionStepValue(PROJECTED_VECTOR1)=(inode->FastGetSolutionStepValue(PROJECTED_VECTOR1))/sum_weights; // Resetting the vector1
                 }
                 else // This should never happen because other ways to recover the information have been executed before, but leaving it just in case..
                 {
@@ -782,6 +798,12 @@ public:
     }
 
 
+    /// Update all the particles without moving them
+    /** This function updates all the particles variables using the
+     * "delta variables" from the nodal database.
+     * 
+     * @see CorrectParticleUsingDeltaVariables
+     */
     void CorrectParticlesWithoutMovingUsingDeltaVariables() 
     {
         KRATOS_TRY
@@ -834,8 +856,7 @@ public:
     }
 
 
-    //**************************************************************************************************************
-    //**************************************************************************************************************
+    /// AddUniqueWeakPointer
     template< class TDataType >
     void AddUniqueWeakPointer
         (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
@@ -854,9 +875,20 @@ public:
     }
 
 
-    //**************************************************************************************************************
-    //**************************************************************************************************************
-    void PreReseed(int minimum_number_of_particles) 
+    /// Fill an element with particles
+    /** This function is to be executed after moving particles and
+     * before tranferring data from lagrangian particles to eulerian mesh
+     * If an element finishes with less particles than "minimum number
+     * of particles", then PreReseed adds particles inside it.
+     * A minimal reseed is performed in order to not disturb the projection
+     * from lagrangian to euelrian.
+     * 
+     * @see MinimumNumberOfParticles
+     * 
+     * @see MoveParticles
+     * @see MoveParticleInverseWay: is called to get the particle values
+     */
+    void PreReseed(int MinimumNumberOfParticles) 
     {
         KRATOS_TRY
 
@@ -867,7 +899,7 @@ public:
         //tools for the paralelization
         unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
         vector<unsigned int> elem_partition;
-        int number_of_rows=mrModelPart.Elements().size();
+        int number_of_rows = mrModelPart.Elements().size();
         elem_partition.resize(number_of_threads + 1);
         int elem_partition_size = number_of_rows / number_of_threads;
         elem_partition[0] = 0;
@@ -885,8 +917,8 @@ public:
             //ModelPart::ElementsContainerType::iterator it_end = mrModelPart.ElementsBegin() + elem_partition[k+1] ; 
             //ModelPart::NodesContainerType local_list=aux[k];
             //PointerVectorSet<ShallowParticle, IndexedObject> & list=aux[k];
-            boost::numeric::ublas::bounded_matrix<double, (TDim+1), 3 > pos;
-            boost::numeric::ublas::bounded_matrix<double, (TDim+1) , (TDim+1) > N;
+            bounded_matrix<double, (TDim+1), 3 > pos;
+            bounded_matrix<double, (TDim+1) , (TDim+1) > N;
             unsigned int freeparticle=0; //we start with the first position in the particles array
 
             //int local_id=1;
@@ -898,9 +930,9 @@ public:
                 //const int & elem_id = ielem->Id();
                 //ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(BED_PARTICLE_POINTERS));
                 //int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_BED_PARTICLES);
-                int & number_of_particles_in_elem= mNumOfParticlesInElems[ii];
+                int & number_of_particles_in_elem = mNumOfParticlesInElems[ii];
                 ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[ii];
-                if (number_of_particles_in_elem<(minimum_number_of_particles))// && (ielem->GetGeometry())[0].Y()<0.10 )
+                if (number_of_particles_in_elem < (MinimumNumberOfParticles)) // && (ielem->GetGeometry())[0].Y()<0.10 )
                 {
                     Geometry< Node<3> >& geom = ielem->GetGeometry();
                     ComputeGaussPointPositionsForPreReseed(geom, pos, N);
@@ -926,25 +958,21 @@ public:
                                     freeparticle++;
                             }
                             else
-                            {
                                 freeparticle++;
-                            }
                         }
 
                         ShallowParticle pparticle(pos(j,0),pos(j,1),pos(j,2));
 
                         array_1d<double,TDim+1>aux2_N;
                         bool is_found = CalculatePosition(geom,pos(j,0),pos(j,1),pos(j,2),aux2_N);
-                        if (is_found==false)
-                        {
-                            KRATOS_WATCH(aux2_N);
-                        }
+                        KRATOS_ERROR_IF_NOT( is_found ) <<
+                            "In move shallow water particle utility: particle not found in domain" << std::endl;
 
                         pparticle.GetEraseFlag()=false;
 
                         ResultIteratorType result_begin = results.begin();
                         Element::Pointer pelement( *ielem.base() );
-                        MoveParticle_inverse_way(pparticle, pelement, result_begin, max_results);
+                        MoveParticleInverseWay(pparticle, pelement, result_begin, max_results);
 
                         //and we copy it to the array:
                         mParticlesVector[freeparticle] =  pparticle;
@@ -962,9 +990,19 @@ public:
     }
 
 
-    //**************************************************************************************************************
-    //**************************************************************************************************************
-    void PostReseed(int minimum_number_of_particles) //pooyan's way
+    /// Fill an element with particles
+    /** This function is to be executed after the mesh stage solver is
+     * called and the particles are updated.
+     * If an element contains less particles than "minimum number of
+     * particles", then PostReseed adds particles inside it.
+     * A full reseed is performed and the particle gets it's convected
+     * variables directly from the eulerian mesh
+     * 
+     * @param MinimumNumberOfParticles
+     * 
+     * @see PreReseed
+     */
+    void PostReseed(int MinimumNumberOfParticles) //pooyan's way
     {
         KRATOS_TRY
         
@@ -999,11 +1037,9 @@ public:
             unsigned int freeparticle = 0; //we start by the first position;
 
             int k = OpenMPUtils::ThisThread();
-            //ModelPart::ElementsContainerType::iterator it_begin = mrModelPart.ElementsBegin() +  elem_partition[k]; 
-            //ModelPart::ElementsContainerType::iterator it_end = mrModelPart.ElementsBegin() + elem_partition[k+1] ; 
 
-            boost::numeric::ublas::bounded_matrix<double, (3+2*TDim), 3 > pos; //7 particles (2D) or 9 particles (3D)
-            boost::numeric::ublas::bounded_matrix<double, (3+2*TDim), (TDim+1) > N;
+            bounded_matrix<double, (3+2*TDim), 3 > pos; //7 particles (2D) or 9 particles (3D)
+            bounded_matrix<double, (3+2*TDim), (TDim+1) > N;
 
             double mesh_scalar1;
             array_1d<double,3> mesh_vector1;
@@ -1011,33 +1047,29 @@ public:
             array_1d<int, (3+2*TDim) > positions;
             
             unsigned int number_of_reseeded_particles;
-            //unsigned int number_of_water_reseeded_particles;
-
-            //array_1d<double, 3 > nodes_distances;
 
             for(unsigned int ii=elem_partition[k]; ii<elem_partition[k+1]; ii++)
             {
                 //const int & elem_id = ielem->Id();
                 ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-                
-                //int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_BED_PARTICLES);
-                //ParticlePointerVector&  element_particle_pointers = (ielem->GetValue(BED_PARTICLE_POINTERS));
-                int & number_of_particles_in_elem= mNumOfParticlesInElems[ii];
+
+                int & number_of_particles_in_elem = mNumOfParticlesInElems[ii];
                 ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[ii];
 
                 Geometry< Node<3> >& geom = ielem->GetGeometry();
-                if ( (number_of_particles_in_elem<(minimum_number_of_particles)))// && (geom[0].Y()<0.10) ) || (number_of_water_particles_in_elem>2 && number_of_particles_in_elem<(minimum_number_of_particles) ) )
+                if ( number_of_particles_in_elem < (MinimumNumberOfParticles) ) // && (geom[0].Y()<0.10) ) || (number_of_water_particles_in_elem>2 && number_of_particles_in_elem<(MinimumNumberOfParticles) ) )
                 {
                     //bool reseed_more=false;
-                    number_of_reseeded_particles=0;
+                    number_of_reseeded_particles = 0;
 
                     //reseed_more=true;
-                    number_of_reseeded_particles= 3+2*TDim;
+                    number_of_reseeded_particles = 3 + 2*TDim;
                     ComputeGaussPointPositionsForPostReseed(geom, pos, N);
-                    
+
                     for (unsigned int j = 0; j < number_of_reseeded_particles; j++) 
                     {
-                        //now we have to find an empty space (a particle that was about to be deleted) in the particles model part. once found. there will be our renewed particle:
+                        // Now we have to find an empty space (a particle that was about to be deleted) in the 
+                        // particles model part. once found. there will be our renewed particle:
                         bool keep_looking = true;
                         while(keep_looking)
                         {
@@ -1058,21 +1090,15 @@ public:
                                     freeparticle++;
                             }
                             else
-                            {
                                 freeparticle++;
-                            }
                         }
 
                         ShallowParticle pparticle(pos(j,0),pos(j,1),pos(j,2));
 
                         array_1d<double,TDim+1>aux_N;
                         bool is_found = CalculatePosition(geom,pos(j,0),pos(j,1),pos(j,2),aux_N);
-                        if (is_found==false)
-                        {
-                            KRATOS_WATCH(aux_N);
-                            KRATOS_WATCH(j)
-                            KRATOS_WATCH(ielem->Id())
-                        }
+                        KRATOS_ERROR_IF_NOT( is_found ) <<
+                            "In move shallow water particle utility: particle not found in domain" << std::endl;
 
                         mesh_scalar1 = 0.0;
                         mesh_vector1 = ZeroVector(3);
@@ -1090,15 +1116,9 @@ public:
                         element_particle_pointers(offset+number_of_particles_in_elem) = &mParticlesVector[freeparticle];
                         number_of_particles_in_elem++;
 
-                        if (keep_looking)
-                        {
-                            KRATOS_THROW_ERROR(std::logic_error, "FINISHED THE LIST AND COULDNT FIND A FREE CELL FOR THE NEW PARTICLE!", "");
-                        }
-                        else
-                        {
-                            reused_particles++;
-                        }
-
+                        KRATOS_ERROR_IF( keep_looking ) <<
+                            "In move shallow water particle utility: Finished the list and couldnt find a free cell for the new particle!" << std::endl;
+                        reused_particles++;
                     }
                 }
             }
@@ -1108,48 +1128,54 @@ public:
     }
 
 
-    void ExecuteParticlesPrintingTool( ModelPart& lagrangian_model_part, unsigned int filter_factor ) 
+    /// Fill a model part with particles
+    /** This function prints the particles to a model part
+     * 
+     * @param rLagrangianModelPart: empty model part to print particles
+     * @param FilterFactor: the function will print one particle of every "filter factor"
+     */
+    void ExecuteParticlesPrintingTool( ModelPart& rLagrangianModelPart, unsigned int FilterFactor ) 
     {
         KRATOS_TRY
-        //we will only print one out of every "filter_factor" particles of the total particle list
-        
+        // We will only print one out of every "filter factor" particles of the total particle list
+
         if (mParticlePrintingToolInitialized == false)
         {
-            if (lagrangian_model_part.NodesBegin() - lagrangian_model_part.NodesEnd() > 0)
-                KRATOS_THROW_ERROR(std::logic_error, "AN EMPTY MODEL PART IS REQUIRED FOR THE PRINTING OF PARTICLES", "");
-            
-            lagrangian_model_part.AddNodalSolutionStepVariable(mScalarVar1);
-            lagrangian_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            
-            for (unsigned int i = 0; i != ((mMaxNumberOfParticles*mNElems)/filter_factor) + filter_factor; i++)
+            KRATOS_ERROR_IF( rLagrangianModelPart.NodesBegin() - rLagrangianModelPart.NodesEnd() > 0 ) <<
+                "In move shallow water particle utility: an empty model part is required for the particles printing tool" << std::endl;
+
+            rLagrangianModelPart.AddNodalSolutionStepVariable(mScalarVar1);
+            rLagrangianModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+            for (unsigned int i = 0; i != ((mMaxNumberOfParticles*mNElems)/FilterFactor) + FilterFactor; i++)
             {
-                Node < 3 > ::Pointer pnode = lagrangian_model_part.CreateNewNode( i+mLastNodeId+1 , 0.0, 0.0, 0.0);  //recordar que es el nueevo model part!!
-                //pnode->SetBufferSize(mr_model_part.NodesBegin()->GetBufferSize());
+                Node < 3 > ::Pointer pnode = rLagrangianModelPart.CreateNewNode( i+mLastNodeId+1 , 0.0, 0.0, 0.0);  //recordar que es el nueevo model part!!
+                //pnode->SetBufferSize(mrModelPart.NodesBegin()->GetBufferSize());
                 pnode->SetBufferSize(1);
             }
             mParticlePrintingToolInitialized=true;
         }
-        
-        //resetting data of the unused particles
+
+        // Resetting data of the unused particles
         const double inactive_particle_position = -10.0;
         array_1d<double,3>inactive_particle_position_vector;
         inactive_particle_position_vector(0)=inactive_particle_position;
         inactive_particle_position_vector(1)=inactive_particle_position;
         inactive_particle_position_vector(2)=inactive_particle_position;
-        ModelPart::NodesContainerType::iterator inodebegin = lagrangian_model_part.NodesBegin();
-        for(unsigned int ii = 0; ii<lagrangian_model_part.Nodes().size(); ii++)
+        ModelPart::NodesContainerType::iterator inodebegin = rLagrangianModelPart.NodesBegin();
+        for(unsigned int ii = 0; ii < rLagrangianModelPart.Nodes().size(); ii++)
         {
             ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
             inode->FastGetSolutionStepValue(mScalarVar1)  = 0.0;
             inode->FastGetSolutionStepValue(DISPLACEMENT) = inactive_particle_position_vector;
         }
-        
+
         int counter = 0;
-        //ModelPart::NodesContainerType::iterator it_begin = lagrangian_model_part.NodesBegin();
+        //ModelPart::NodesContainerType::iterator it_begin = rLagrangianModelPart.NodesBegin();
         for (int i = 0; i != mMaxNumberOfParticles*mNElems; i++)
         {
             ShallowParticle& pparticle = mParticlesVector[i];
-            if(pparticle.GetEraseFlag() == false && i%filter_factor == 0)
+            if(pparticle.GetEraseFlag() == false && i%FilterFactor == 0)
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin + counter; //copying info from the particle to the (printing) node.
                 inode->FastGetSolutionStepValue(mScalarVar1)  = pparticle.GetScalar1();
@@ -1157,7 +1183,7 @@ public:
                 counter++;
             }
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -1168,14 +1194,25 @@ protected:
 private:
 
 
-    ///this function moves a particle according to the "velocity" given
-    ///by "rVariable". The movement is performed in nsubsteps, during a total time
-    ///of Dt
-    void MoveParticle(ShallowParticle & pparticle,
-                      Element::Pointer & pelement,
-                      WeakPointerVector< Element >& elements_in_trajectory,
-                      unsigned int & number_of_elements_in_trajectory,
-                      ResultIteratorType result_begin,
+    /// Move a particle
+    /** this function moves a particle according to the velocity given
+     * by VELOCITY variable. The movement is performed in nsubsteps, 
+     * during a total time of DELTA_TIME
+     * 
+     * @param pParticle
+     * @param pElement
+     * @param rElementsInTrajectory
+     * @param rNumberOfElementsInTrajectory
+     * @param ResultBegin
+     * @param MaxNumberOfResults
+     * 
+     * @see MoveParticles
+     */
+    void MoveParticle(ShallowParticle & pParticle,
+                      Element::Pointer & pElement,
+                      WeakPointerVector< Element >& rElementsInTrajectory,
+                      unsigned int & rNumberOfElementsInTrajectory,
+                      ResultIteratorType ResultBegin,
                       const unsigned int MaxNumberOfResults)
     {
         ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
@@ -1183,7 +1220,7 @@ private:
         unsigned int nsubsteps;
         double substep_dt;
 
-        bool KEEP_INTEGRATING=false;
+        bool keep_integrating = false;
         bool is_found;
 
         array_1d<double,3> vel;
@@ -1193,15 +1230,15 @@ private:
         array_1d<double,TDim+1> N;
 
         //we start with the first position, then it will enter the loop.
-        position = pparticle.Coordinates(); //initial coordinates
+        position = pParticle.Coordinates(); //initial coordinates
 
         double only_integral  = 0.0 ;
 
-        is_found = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
+        is_found = FindNodeOnMesh(position, N, pElement, ResultBegin, MaxNumberOfResults); //good, now we know where this point is:
         if(is_found == true)
         {
-            KEEP_INTEGRATING=true;
-            Geometry< Node<3> >& geom = pelement->GetGeometry();//the element we're in
+            keep_integrating=true;
+            Geometry< Node<3> >& geom = pElement->GetGeometry();//the element we're in
             vel=ZeroVector(3);
 
             for(unsigned int j=0; j<(TDim+1); j++)
@@ -1210,7 +1247,7 @@ private:
             }
 
             //calculating substep to get +- courant(substep) = 0.1
-            nsubsteps = 10.0 * (delta_t * pelement->GetValue(MEAN_VEL_OVER_ELEM_SIZE));
+            nsubsteps = 10.0 * (delta_t * pElement->GetValue(MEAN_VEL_OVER_ELEM_SIZE));
             if (nsubsteps<1)
                 nsubsteps=1;
             substep_dt = delta_t / double(nsubsteps);
@@ -1219,17 +1256,16 @@ private:
             position += vel*substep_dt;//weight;
 
             // DONE THE FIRST LOCATION OF THE PARTICLE, NOW WE PROCEED TO STREAMLINE INTEGRATION USING THE MESH VELOCITY
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            unsigned int check_from_element_number=0;
+            unsigned int check_from_element_number = 0;
 
             for(unsigned int i=0; i<(nsubsteps-1); i++)// this is for the substeps n+1. in the first one we already knew the position of the particle.
             { 
-                if (KEEP_INTEGRATING==true) 
+                if (keep_integrating == true) 
                 {
-                    is_found = FindNodeOnMesh(position, N ,pelement,elements_in_trajectory,number_of_elements_in_trajectory,check_from_element_number,result_begin,MaxNumberOfResults); //good, now we know where this point is:
+                    is_found = FindNodeOnMesh(position, N, pElement, rElementsInTrajectory, rNumberOfElementsInTrajectory, check_from_element_number, ResultBegin, MaxNumberOfResults); //good, now we know where this point is:
                     if(is_found == true)
                     {
-                        Geometry< Node<3> >& geom = pelement->GetGeometry();//the element we're in
+                        Geometry< Node<3> >& geom = pElement->GetGeometry();//the element we're in
 
                         vel = ZeroVector(3);
                         for(unsigned int j=0; j<(TDim+1); j++)
@@ -1244,7 +1280,7 @@ private:
                     }
                     else 
                     {
-                        KEEP_INTEGRATING=false;
+                        keep_integrating=false;
                         break;
                     }
                 }
@@ -1253,31 +1289,41 @@ private:
             }
         }
 
-        if (KEEP_INTEGRATING==false) (pparticle.GetEraseFlag()=true);
-        else is_found = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //we must save the pointer of the last element that we're in (inside the pointervector pelement)
+        if (keep_integrating == false) (pParticle.GetEraseFlag()=true);
+        else is_found = FindNodeOnMesh(position, N ,pElement,ResultBegin,MaxNumberOfResults); //we must save the pointer of the last element that we're in (inside the pointervector pElement)
         
-        if (is_found==false) ( pparticle.GetEraseFlag()=true);
+        if (is_found == false) ( pParticle.GetEraseFlag()=true);
 
-         pparticle.Coordinates() = position;
+         pParticle.Coordinates() = position;
     }
 
 
-    void CorrectParticleUsingDeltaVariables(ShallowParticle & pparticle,
-                                            Element::Pointer & pelement,
-                                            Geometry< Node<3> >& geom)
+    /// This function updates a particle
+    /** This function updates a particle variables using the "delta
+     * variables" from the nodal database.
+     * 
+     * @param pParticle
+     * @param pElement
+     * @param rGeom
+     * 
+     * @see CorrectParticlesWithoutMovingUsingDeltaVariables
+     */
+    void CorrectParticleUsingDeltaVariables(ShallowParticle & pParticle,
+                                            Element::Pointer & pElement,
+                                            Geometry< Node<3> >& rGeom)
     {
         array_1d<double,TDim+1> N;
 
         //we start with the first position, then it will enter the loop.
-        array_1d<double,3> coords = pparticle.Coordinates();
-        float & particle_scalar1 = pparticle.GetScalar1();
-        array_1d<float,3> & particle_vector1 = pparticle.GetVector1();
+        array_1d<double,3> coords = pParticle.Coordinates();
+        float & particle_scalar1 = pParticle.GetScalar1();
+        array_1d<float,3> & particle_vector1 = pParticle.GetVector1();
 
         //double distance=0.0;
         double delta_scalar1 = 0.0;
         array_1d<double,3> delta_vector1 = ZeroVector(3);
         
-        bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
+        bool is_found = CalculatePosition(rGeom,coords[0],coords[1],coords[2],N);
         if(is_found == false)
         {
             KRATOS_WATCH(N)
@@ -1288,17 +1334,31 @@ private:
 
         for(unsigned int j=0; j<(TDim+1); j++)
         {
-            delta_scalar1          += geom[j].FastGetSolutionStepValue(DELTA_SCALAR1)*N[j];
-            noalias(delta_vector1) += geom[j].FastGetSolutionStepValue(DELTA_VECTOR1)*N[j];
+            delta_scalar1          += rGeom[j].FastGetSolutionStepValue(DELTA_SCALAR1)*N[j];
+            noalias(delta_vector1) += rGeom[j].FastGetSolutionStepValue(DELTA_VECTOR1)*N[j];
         }
         particle_scalar1 = particle_scalar1 + delta_scalar1;
         particle_vector1 = particle_vector1 + delta_vector1;
     }
 
 
-    void MoveParticle_inverse_way(ShallowParticle & pparticle,
-                                  Element::Pointer & pelement, //NOT A REFERENCE!! WE SHALL NOT OVERWRITE THE ELEMENT IT BELONGS TO!
-                                  ResultIteratorType result_begin,
+    /// Move a particle in the inverse way
+    /** this function moves a particle according to the -velocity given
+     * by VELOCITY variable. The movement is performed by a backward
+     * integration in nsubsteps, during a total time of DELTA_TIME
+     * Before the particle goes out of the element, gets the value
+     * of the eulerian mesh and stores it
+     * 
+     * @param pParticle
+     * @param pElement
+     * @param ResultBegin
+     * @param MaxNumberOfResults
+     * 
+     * @see PreReseed
+     */
+    void MoveParticleInverseWay(ShallowParticle & pParticle,
+                                  Element::Pointer & pElement, //NOT A REFERENCE!! WE SHALL NOT OVERWRITE THE ELEMENT IT BELONGS TO!
+                                  ResultIteratorType ResultBegin,
                                   const unsigned int MaxNumberOfResults)
     {
         ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
@@ -1306,7 +1366,7 @@ private:
         unsigned int nsubsteps;
         double substep_dt;
 
-        bool KEEP_INTEGRATING=false;
+        bool keep_integrating = false;
         bool is_found;
 
         double scalar1 = 0.0;
@@ -1317,15 +1377,15 @@ private:
         array_1d<double,TDim+1> N;
 
         //we start with the first position, then it will enter the loop.
-        position = pparticle.Coordinates(); // + (pparticle)->FastGetSolutionStepValue(DISPLACEMENT); //initial coordinates
+        position = pParticle.Coordinates(); // + (pParticle)->FastGetSolutionStepValue(DISPLACEMENT); //initial coordinates
         
         double only_integral  = 0.0 ;
         
-        is_found = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
+        is_found = FindNodeOnMesh(position, N, pElement, ResultBegin, MaxNumberOfResults); //good, now we know where this point is:
         if(is_found == true)
         {
-            KEEP_INTEGRATING = true;
-            Geometry< Node<3> >& geom = pelement->GetGeometry(); //the element we're in
+            keep_integrating = true;
+            Geometry< Node<3> >& geom = pElement->GetGeometry(); //the element we're in
 
             scalar1 = 0.0;
             vector1 = ZeroVector(3);
@@ -1338,23 +1398,23 @@ private:
                 noalias(vel)     += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
             }
             //calculating substep to get +- courant(substep) = 1/4
-            nsubsteps = 10.0 * (delta_t * pelement->GetValue(MEAN_VEL_OVER_ELEM_SIZE));
+            nsubsteps = 10.0 * (delta_t * pElement->GetValue(MEAN_VEL_OVER_ELEM_SIZE));
             if (nsubsteps<1)
                 nsubsteps=1;
             substep_dt = delta_t / double(nsubsteps);
 
-            only_integral = 1.0;// weight;//*double(nsubsteps);
-            position -= vel*substep_dt;//weight;
+            only_integral = 1.0; // weight;//*double(nsubsteps);
+            position -= vel*substep_dt; //weight;
 
-            for(unsigned int i=0; i<(nsubsteps-1); i++)// this is for the substeps n+1. in the first one we already knew the position of the particle.
+            for(unsigned int i=0; i<(nsubsteps-1); i++) // this is for the substeps n+1. in the first one we already knew the position of the particle.
             {
-                if (KEEP_INTEGRATING == true)
+                if (keep_integrating == true)
                 {
-                    is_found = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
-                    if(is_found == true)
+                    is_found = FindNodeOnMesh(position, N, pElement, ResultBegin, MaxNumberOfResults); //good, now we know where this point is:
+                    if (is_found == true)
                     {
-                        Geometry< Node<3> >& geom = pelement->GetGeometry();//the element we're in
-                
+                        Geometry< Node<3> >& geom = pElement->GetGeometry();//the element we're in
+
                         scalar1 = 0.0;
                         vector1 = ZeroVector(3);
                         vel     = ZeroVector(3);
@@ -1369,315 +1429,319 @@ private:
                         only_integral += 1.0; //weight ; //values saved for the current time step
                         position -= vel*substep_dt; //weight;
                     }
-                    else KEEP_INTEGRATING = false;
+                    else keep_integrating = false;
                 }
             }
 
-            pparticle.GetScalar1() = scalar1;
-            pparticle.GetVector1() = vector1;
+            pParticle.GetScalar1() = scalar1;
+            pParticle.GetVector1() = vector1;
         }
-        //else {KRATOS_WATCH(position); }
     }
 
 
-    ///this function should find the element into which a given node is located
-    ///and return a pointer to the element and the vector containing the 
-    ///shape functions that define the postion within the element
-    ///if "false" is devolved the element is not found
-    bool FindNodeOnMesh( array_1d<double,3>& position,
+    /// Find the element into which a given node is located
+    /** This function should find the element into which a given node
+     * is located and return a pointer to the element and the vector
+     * containing the shape functions that define the positions within
+     * the element.
+     * If false is returned the element is not found
+     * 
+     * @param position of the node
+     * @param N: return shape functions that define the positions within the elem
+     * @param pElement: return a pointer to the element
+     * @param ResultBegin
+     * @param MaxNumberOfResults
+     * @return FindNodeOnMesh if the element is found of not
+     * 
+     * @see CalculatePosition
+     */
+    bool FindNodeOnMesh( const array_1d<double,3>& rPosition,
                          array_1d<double,TDim+1>& N,
-                         Element::Pointer & pelement,
-                         ResultIteratorType result_begin,
+                         Element::Pointer & pElement,
+                         ResultIteratorType ResultBegin,
                          const unsigned int MaxNumberOfResults)
     {
         typedef std::size_t SizeType; 
-        
-        const array_1d<double,3>& coords = position;
-         array_1d<double,TDim+1> aux_N;
+
+        array_1d<double,TDim+1> aux_N;
         //before using the bin to search for possible elements we check first the last element in which the particle was.
-        Geometry<Node<3> >& geom_default = pelement->GetGeometry(); //(*(i))->GetGeometry();
-        bool is_found_1 = CalculatePosition(geom_default,coords[0],coords[1],coords[2],N);
-        if(is_found_1 == true) //that was easy!
+        Geometry<Node<3> >& geom_default = pElement->GetGeometry(); //(*(i))->GetGeometry();
+        bool is_found_1 = CalculatePosition(geom_default,rPosition[0],rPosition[1],rPosition[2],N);
+        if (is_found_1) //that was easy!
         {
             return true;
         }
 
-        //to begin with we check the neighbour elements; it is a bit more expensive
-        WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
-        //the first we check is the one that has negative shape function, because it means it went outside in this direction:
-        //commented, it is not faster than simply checking all the neighbours (branching)
-        /*
-        unsigned int checked_element=0;
-        for (unsigned int i=0;i!=(TDim+1);i++)
-        {
-            if (N[i]<0.0)
-            {
-                checked_element=i;
-                Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
-                bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],aux_N);
-                if (is_found_2)
-                {
-                    pelement=Element::Pointer(((neighb_elems(i))));
-                    N=aux_N;
-                    return true;
-                }
-                break;
-            }
-        }
-        */
-
-        //we check all the neighbour elements
+        // To begin with we check the neighbour elements; it is a bit more expensive
+        WeakPointerVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
             Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
-            bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
+            bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
-                pelement=Element::Pointer(((neighb_elems(i))));
+                pElement=Element::Pointer(((neighb_elems(i))));
                 return true;
             }
         }
 
-        //if checking all the neighbour elements did not work, we have to use the bins
-        //ask to the container for the list of candidate elements
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(coords, result_begin, MaxNumberOfResults );
-                
-        if(results_found>0)
+        // If checking all the neighbour elements did not work, we have to use the bins
+        // ask to the container for the list of candidate elements
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rPosition, ResultBegin, MaxNumberOfResults );
+
+        if (results_found>0)
         {
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();	
-                
+                Geometry<Node<3> >& geom = (*(ResultBegin+i))->GetGeometry();	
+
                 //find local position
-                bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
-                
-                if(is_found == true)
+                bool is_found_3 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
+
+                if (is_found_3)
                 {
-                    pelement=Element::Pointer((*(result_begin+i)));
+                    pElement=Element::Pointer((*(ResultBegin+i)));
                     return true;
                 }
             }
         }
+
         //if nothing worked, then:
         //not found case
         return false;
     }
 
 
-    // VERSION INCLUDING PREDEFINED ELEMENTS FOLLOWING A TRAJECTORY
-    bool FindNodeOnMesh( array_1d<double,3>& position,
-                     array_1d<double,TDim+1>& N,
-                     Element::Pointer & pelement,
-                     WeakPointerVector< Element >& elements_in_trajectory,
-                     unsigned int & number_of_elements_in_trajectory,
-                     unsigned int & check_from_element_number,
-                     ResultIteratorType result_begin,
-                     const unsigned int MaxNumberOfResults)
+    /// Find the element into which a given node is located
+    /** This function should find the element into which a given node
+     * is located and return a pointer to the element and the vector
+     * containing the shape functions that define the positions within
+     * the element.
+     * If false is returned the element is not found
+     * This version includes predefined elements following a trajectory
+     * 
+     * @param rPosition of the node
+     * @param N Output shape functions that define the positions within the elem
+     * @param pElement Output a pointer to the element
+     * @param rElementsInTrajectory
+     * @param rNumberOfElementsInTrajectory Output
+     * @param CheckFromElementNumber
+     * @param ResultBegin
+     * @param MaxNumberOfResults
+     * @return FindNodeOnMesh if the element is found of not
+     * 
+     * @see CalculatePosition
+     */
+    bool FindNodeOnMesh( const array_1d<double,3>& rPosition,
+                         array_1d<double,TDim+1>& N,
+                         Element::Pointer & pElement,
+                         WeakPointerVector< Element >& rElementsInTrajectory,
+                         unsigned int & rNumberOfElementsInTrajectory,
+                         unsigned int & rCheckFromElementNumber,
+                         ResultIteratorType ResultBegin,
+                         const unsigned int MaxNumberOfResults)
     {
         typedef std::size_t SizeType; 
-        
-        const array_1d<double,3>& coords = position;
+
+        //~ const array_1d<double,3>& coords = rPosition;
          array_1d<double,TDim+1> aux_N;
         //before using the bin to search for possible elements we check first the last element in which the particle was.
-        Geometry<Node<3> >& geom_default = pelement->GetGeometry(); //(*(i))->GetGeometry();
-        bool is_found_1 = CalculatePosition(geom_default,coords[0],coords[1],coords[2],N);
+        Geometry<Node<3> >& geom_default = pElement->GetGeometry(); //(*(i))->GetGeometry();
+        bool is_found_1 = CalculatePosition(geom_default,rPosition[0],rPosition[1],rPosition[2],N);
         if(is_found_1 == true)
         {
             return true; //that was easy!
         }
-        
-        //if it was not found in the first element, we can proceed to check in the following elements (in the trajectory defined by previous particles that started from the same element.
-        for (unsigned int i=(check_from_element_number);i!=number_of_elements_in_trajectory;i++)
+
+        // If it was not found in the first element, we can proceed to check in the following elements (in the trajectory defined by previous particles that started from the same element.
+        for (unsigned int i=(rCheckFromElementNumber);i!=rNumberOfElementsInTrajectory;i++)
         {
-            Geometry<Node<3> >& geom = elements_in_trajectory[i].GetGeometry();
-            bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],aux_N);
+            Geometry<Node<3> >& geom = rElementsInTrajectory[i].GetGeometry();
+            bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],aux_N);
             if (is_found_2)
             {
-                pelement=Element::Pointer(((elements_in_trajectory(i))));
-                N=aux_N;
-                check_from_element_number = i+1 ; //now i element matches pelement, so to avoid cheching twice the same element we send the counter to the following element.
+                pElement = Element::Pointer(((rElementsInTrajectory(i))));
+                N = aux_N;
+                rCheckFromElementNumber = i+1 ; //now i element matches pElement, so to avoid cheching twice the same element we send the counter to the following element.
                 return true;
             }
         }
 
-        //now we check the neighbour elements:
-        WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
-        //the first we check is the one that has negative shape function, because it means it went outside in this direction:
-        //commented, it is not faster than simply checking all the neighbours (branching)
-        /*
-        unsigned int checked_element=0;
-        for (unsigned int i=0;i!=(TDim+1);i++)
-        {
-            if (N[i]<0.0)
-            {
-                checked_element=i;
-                Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
-                bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],aux_N);
-                if (is_found_2)
-                {
-                    pelement=Element::Pointer(((neighb_elems(i))));
-                    N=aux_N;
-                    return true;
-                }
-                break;
-            }
-        }
-        */
-
-        //we check all the neighbour elements
+        // Now we check the neighbour elements:
+        WeakPointerVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
             Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
-            bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
+            bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
-                pelement=Element::Pointer(((neighb_elems(i))));
-                if (number_of_elements_in_trajectory<20)
+                pElement=Element::Pointer(((neighb_elems(i))));
+                if (rNumberOfElementsInTrajectory<20)
                 {
-                    elements_in_trajectory(number_of_elements_in_trajectory)=pelement;
-                    number_of_elements_in_trajectory++;
-                    check_from_element_number = number_of_elements_in_trajectory;  //we do it after doing the ++ to the counter, so we woudlnt enter the loop that searches in the elements_in_trajectory list. we are the particle that is adding elements to the list
+                    rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
+                    rNumberOfElementsInTrajectory++;
+                    rCheckFromElementNumber = rNumberOfElementsInTrajectory;  //we do it after doing the ++ to the counter, so we woudlnt enter the loop that searches in the rElementsInTrajectory list. we are the particle that is adding elements to the list
                 }
                 return true;
             }
         }
 
-        //if checking all the neighbour elements did not work, we have to use the bins
-        //ask to the container for the list of candidate elements
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(coords, result_begin, MaxNumberOfResults );
+        // If checking all the neighbour elements did not work, we have to use the bins
+        // ask to the container for the list of candidate elements
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rPosition, ResultBegin, MaxNumberOfResults );
 
         if(results_found>0)
         {
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
-                
+                Geometry<Node<3> >& geom = (*(ResultBegin+i))->GetGeometry();
+
                 //find local position
-                bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
-                
-                if(is_found == true)
+                bool is_found = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
+
+                if (is_found)
                 {
-                    pelement=Element::Pointer((*(result_begin+i)));
-                    if (number_of_elements_in_trajectory<20)
+                    pElement=Element::Pointer((*(ResultBegin+i)));
+                    if (rNumberOfElementsInTrajectory<20)
                     {
-                    elements_in_trajectory(number_of_elements_in_trajectory)=pelement;
-                    number_of_elements_in_trajectory++;
-                    check_from_element_number = number_of_elements_in_trajectory;  //we do it after doing the ++ to the counter, so we woudlnt enter the loop that searches in the elements_in_trajectory list. we are the particle that is adding elements to the list
+                        rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
+                        rNumberOfElementsInTrajectory++;
+                        rCheckFromElementNumber = rNumberOfElementsInTrajectory;  //we do it after doing the ++ to the counter, so we woudlnt enter the loop that searches in the rElementsInTrajectory list. we are the particle that is adding elements to the list
                     }
                     return true;
                 }
             }
         }
+
         //not found case
         return false;
     }
 
 
-    //***************************************
-    //***************************************
-    inline bool CalculatePosition( Geometry<Node < 3 > >&geom,
+    /// Calculate the position of a given particle inside an element
+    /** This function calculates the position of a given particle inside
+     * an element and returns the shape functions that define it position
+     * within the element and returns false if the particle is otuside
+     * the element
+     * 
+     * @param rGeom: the element (a triangle)
+     * @param xc: the postition of the particle
+     * @param yc: the postition of the particle
+     * @param zc: the postition of the particle
+     * @param N: the shape functions to define the particle position
+     * 
+     * @return CalculatePosition
+     */
+    inline bool CalculatePosition( const Geometry<Node < 3 > >&rGeom,
                                    const double xc,
                                    const double yc,
                                    const double zc,
                                    array_1d<double,3> & N )
     {
-        double x0 = geom[0].X();
-        double y0 = geom[0].Y();
-        double x1 = geom[1].X();
-        double y1 = geom[1].Y();
-        double x2 = geom[2].X();
-        double y2 = geom[2].Y();
+        double x0 = rGeom[0].X();
+        double y0 = rGeom[0].Y();
+        double x1 = rGeom[1].X();
+        double y1 = rGeom[1].Y();
+        double x2 = rGeom[2].X();
+        double y2 = rGeom[2].Y();
 
         double area = CalculateVol(x0, y0, x1, y1, x2, y2);
-        double inv_area = 0.0;
-        if (area == 0.0)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
-        }
-        else
-        {
-            inv_area = 1.0 / area;
-        }
+        KRATOS_ERROR_IF( area == 0.0 ) << "In move shallow water particle utility: element with zero area found" << std::endl;
+        double inv_area = 1.0 / area;
 
         N[0] = CalculateVol(x1, y1, x2, y2, xc, yc) * inv_area;
         N[1] = CalculateVol(x2, y2, x0, y0, xc, yc) * inv_area;
         N[2] = CalculateVol(x0, y0, x1, y1, xc, yc) * inv_area;
 
-        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0) //if the xc yc is inside the triangle return true
+        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0)
+            //if the xc yc is inside the triangle return true
             return true;
 
         return false;
     }
 
 
-    //using the pre loaded nodal coordinates
-    inline bool CalculatePosition( const array_1d<double,3*(TDim+1)>& nodes_positions,
+    /// Calculate the position of a given particle inside an element
+    /** This function calculates the position of a given particle inside
+     * an element and returns the shape functions that define it position
+     * within the element and returns false if the particle is otuside
+     * the element
+     * 
+     * @param rNodesPositions of the element (a triangle)
+     * @param xc: the postition of the particle
+     * @param yc: the postition of the particle
+     * @param zc: the postition of the particle
+     * @param N: the shape functions to define the particle position
+     * 
+     * @return CalculatePosition
+     */
+    inline bool CalculatePosition( const array_1d<double,3*(TDim+1)>& rNodesPositions,
                                    const double xc,
                                    const double yc,
                                    const double zc,
                                    array_1d<double,3> & N )
     {
-        const double& x0 = nodes_positions[0];
-        const double& y0 = nodes_positions[1];
-        const double& x1 = nodes_positions[3];
-        const double& y1 = nodes_positions[4];
-        const double& x2 = nodes_positions[6];
-        const double& y2 = nodes_positions[7];
+        const double& x0 = rNodesPositions[0];
+        const double& y0 = rNodesPositions[1];
+        const double& x1 = rNodesPositions[3];
+        const double& y1 = rNodesPositions[4];
+        const double& x2 = rNodesPositions[6];
+        const double& y2 = rNodesPositions[7];
 
         double area = CalculateVol(x0, y0, x1, y1, x2, y2);
-        double inv_area = 0.0;
-        if (area == 0.0)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
-        }
-        else
-        {
-            inv_area = 1.0 / area;
-        }
+        KRATOS_ERROR_IF( area == 0.0 ) << "In move shallow water particle utility: element with zero area found" << std::endl;
+        double inv_area = 1.0 / area;
 
         N[0] = CalculateVol(x1, y1, x2, y2, xc, yc) * inv_area;
         N[1] = CalculateVol(x2, y2, x0, y0, xc, yc) * inv_area;
         N[2] = CalculateVol(x0, y0, x1, y1, xc, yc) * inv_area;
 
-        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0) //if the xc yc is inside the triangle return true
+        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0) 
+            //if the xc yc is inside the triangle return true
             return true;
 
         return false;
     }
 
 
-    inline bool CalculatePosition( Geometry<Node < 3 > >&geom,
+    /// Calculate the position of a given particle inside an element
+    /** This function calculates the position of a given particle inside
+     * an element and returns the shape functions that define it position
+     * within the element and returns false if the particle is otuside
+     * the element
+     * 
+     * @param rGeom: the element (a tetrahedron)
+     * @param xc: the postition of the particle
+     * @param yc: the postition of the particle
+     * @param zc: the postition of the particle
+     * @param N: the shape functions to define the particle position
+     * 
+     * @return CalculatePosition
+     */
+    inline bool CalculatePosition( const Geometry<Node < 3 > >&rGeom,
                                    const double xc,
                                    const double yc,
                                    const double zc,
                                    array_1d<double, 4 > & N )
     {
-        double x0 = geom[0].X();
-        double y0 = geom[0].Y();
-        double z0 = geom[0].Z();
-        double x1 = geom[1].X();
-        double y1 = geom[1].Y();
-        double z1 = geom[1].Z();
-        double x2 = geom[2].X();
-        double y2 = geom[2].Y();
-        double z2 = geom[2].Z();
-        double x3 = geom[3].X();
-        double y3 = geom[3].Y();
-        double z3 = geom[3].Z();
+        double x0 = rGeom[0].X();
+        double y0 = rGeom[0].Y();
+        double z0 = rGeom[0].Z();
+        double x1 = rGeom[1].X();
+        double y1 = rGeom[1].Y();
+        double z1 = rGeom[1].Z();
+        double x2 = rGeom[2].X();
+        double y2 = rGeom[2].Y();
+        double z2 = rGeom[2].Z();
+        double x3 = rGeom[3].X();
+        double y3 = rGeom[3].Y();
+        double z3 = rGeom[3].Z();
 
         double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
-
-        double inv_vol = 0.0;
-        if (vol < 0.000000000000000000000000000001)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
-        }
-        else
-        {
-            inv_vol = 1.0 / vol;
-        }
+        KRATOS_ERROR_IF( vol == 0.0 ) << "In move shallow water particle utility: element with zero vol found" << std::endl;
+        double inv_vol = 1.0 / vol;
 
         N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc) * inv_vol;
         N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc) * inv_vol;
@@ -1693,37 +1757,42 @@ private:
     }
 
 
-    //using the pre loaded nodal coordinates
-    inline bool CalculatePosition( const array_1d<double,3*(TDim+1)>& nodes_positions,
+    /// Calculate the position of a given particle inside an element
+    /** This function calculates the position of a given particle inside
+     * an element and returns the shape functions that define it position
+     * within the element and returns false if the particle is otuside
+     * the element
+     * 
+     * @param rNodesPositions of the element (a tetrahedron)
+     * @param xc: the postition of the particle
+     * @param yc: the postition of the particle
+     * @param zc: the postition of the particle
+     * @param N: the shape functions to define the particle position
+     * 
+     * @return CalculatePosition
+     */
+    inline bool CalculatePosition( const array_1d<double,3*(TDim+1)>& rNodesPositions,
                                    const double xc,
                                    const double yc,
                                    const double zc,
                                    array_1d<double, 4 > & N )
     {
-        const double& x0 = nodes_positions[0];
-        const double& y0 = nodes_positions[1];
-        const double& z0 = nodes_positions[2];
-        const double& x1 = nodes_positions[3];
-        const double& y1 = nodes_positions[4];
-        const double& z1 = nodes_positions[5];
-        const double& x2 = nodes_positions[6];
-        const double& y2 = nodes_positions[7];
-        const double& z2 = nodes_positions[8];
-        const double& x3 = nodes_positions[9];
-        const double& y3 = nodes_positions[10];
-        const double& z3 = nodes_positions[11];
+        const double& x0 = rNodesPositions[0];
+        const double& y0 = rNodesPositions[1];
+        const double& z0 = rNodesPositions[2];
+        const double& x1 = rNodesPositions[3];
+        const double& y1 = rNodesPositions[4];
+        const double& z1 = rNodesPositions[5];
+        const double& x2 = rNodesPositions[6];
+        const double& y2 = rNodesPositions[7];
+        const double& z2 = rNodesPositions[8];
+        const double& x3 = rNodesPositions[9];
+        const double& y3 = rNodesPositions[10];
+        const double& z3 = rNodesPositions[11];
 
         double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
-
-        double inv_vol = 0.0;
-        if (vol < 0.000000000000000000000000000001)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
-        }
-        else
-        {
-            inv_vol = 1.0 / vol;
-        }
+        KRATOS_ERROR_IF( vol == 0.0 ) << "In move shallow water particle utility: element with zero vol found" << std::endl;
+        double inv_vol = 1.0 / vol;
 
         N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc) * inv_vol;
         N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc) * inv_vol;
@@ -1739,8 +1808,9 @@ private:
     }
 
 
-    //***************************************
-    //***************************************
+    /// Calculate the volume
+    /** This function computes the area of a triangle
+     */
     inline double CalculateVol( const double x0, const double y0,
                                 const double x1, const double y1,
                                 const double x2, const double y2 )
@@ -1749,6 +1819,9 @@ private:
     }
 
 
+    /// Calculate the volume
+    /** This function computes the volume of a tetrahedron
+     */
     inline double CalculateVol( const double x0, const double y0, const double z0,
                                 const double x1, const double y1, const double z1,
                                 const double x2, const double y2, const double z2,
@@ -1771,6 +1844,9 @@ private:
     }
 
 
+    /// Compute the Gauss points
+    /**
+     */
     void ComputeGaussPointPositions_4( Geometry< Node < 3 > >& geom,
                                        boost::numeric::ublas::bounded_matrix<double, 7, 3 > & pos,
                                        boost::numeric::ublas::bounded_matrix<double, 7, 3 > & N )
@@ -1814,6 +1890,11 @@ private:
     }
 
 
+    /// Compute the Gauss points
+    /** For a triangle
+     * 
+     * @see PostReseed
+     */
     void ComputeGaussPointPositionsForPostReseed( Geometry< Node < 3 > >& geom,
                                                   boost::numeric::ublas::bounded_matrix<double, 7, 3 > & pos,
                                                   boost::numeric::ublas::bounded_matrix<double, 7, 3 > & N ) //2d
@@ -1887,6 +1968,11 @@ private:
     }
 
 
+    /// Compute the Gauss points
+    /** For a tetrahedron
+     * 
+     * @see PostReseed
+     */
     void ComputeGaussPointPositionsForPostReseed( Geometry< Node < 3 > >& geom,
                                                   boost::numeric::ublas::bounded_matrix<double, 9, 3 > & pos,
                                                   boost::numeric::ublas::bounded_matrix<double, 9, 4 > & N ) //3D
@@ -1954,6 +2040,11 @@ private:
     }
 
 
+    /// Compute the Gauss points
+    /** For a triangle
+     * 
+     * @see PreReseed
+     */
     void ComputeGaussPointPositionsForPreReseed( Geometry< Node < 3 > >& geom,
                                                  boost::numeric::ublas::bounded_matrix<double, 3, 3 > & pos,
                                                  boost::numeric::ublas::bounded_matrix<double, 3, 3 > & N ) //2D
@@ -1987,6 +2078,11 @@ private:
     }
 
 
+    /// Compute the Gauss points
+    /** For a tetrahedron
+     * 
+     * @see PreReseed
+     */
     void ComputeGaussPointPositionsForPreReseed( Geometry< Node < 3 > >& geom,
                                                  boost::numeric::ublas::bounded_matrix<double, 4, 3 > & pos,
                                                  boost::numeric::ublas::bounded_matrix<double, 4, 4 > & N ) //3D
@@ -2027,11 +2123,13 @@ private:
     }
 
 
+    /// Compute the Gauss points
+    /** 
+     */
     void ComputeGaussPointPositions_45( Geometry< Node < 3 > >& geom,
                                         boost::numeric::ublas::bounded_matrix<double, 45, 3 > & pos,
                                         boost::numeric::ublas::bounded_matrix<double, 45, 3 > & N )
     {
-        //std::cout << "NEW ELEMENT" << std::endl;
         unsigned int counter=0;
         for (unsigned int i=0; i!=9;i++)
         {
@@ -2043,18 +2141,20 @@ private:
                 pos(counter, 0) = N(counter,0) * geom[0].X() + N(counter,1) * geom[1].X() + N(counter,2) * geom[2].X();
                 pos(counter, 1) = N(counter,0) * geom[0].Y() + N(counter,1) * geom[1].Y() + N(counter,2) * geom[2].Y();
                 pos(counter, 2) = N(counter,0) * geom[0].Z() + N(counter,1) * geom[1].Z() + N(counter,2) * geom[2].Z();
-                //std::cout << N(counter,0) << " " << N(counter,1) << " " << N(counter,2) << " " << std::endl;
+
                 counter++;
             }
         }
     }
 
 
+    /// Compute the Gauss points
+    /** 
+     */
     void ComputeGaussPointPositions_initial( Geometry< Node < 3 > >& geom,
                                              boost::numeric::ublas::bounded_matrix<double, 15, 3 > & pos,
                                              boost::numeric::ublas::bounded_matrix<double, 15, 3 > & N ) //2D
     {
-        //std::cout << "NEW ELEMENT" << std::endl;
         unsigned int counter=0;
         for (unsigned int i=0; i!=5;i++)
         {
@@ -2066,30 +2166,28 @@ private:
                 pos(counter, 0) = N(counter,0) * geom[0].X() + N(counter,1) * geom[1].X() + N(counter,2) * geom[2].X();
                 pos(counter, 1) = N(counter,0) * geom[0].Y() + N(counter,1) * geom[1].Y() + N(counter,2) * geom[2].Y();
                 pos(counter, 2) = N(counter,0) * geom[0].Z() + N(counter,1) * geom[1].Z() + N(counter,2) * geom[2].Z();
-                //std::cout << N(counter,0) << " " << N(counter,1) << " " << N(counter,2) << " " << std::endl;
+
                 counter++;
             }
         }
     }
 
 
+    /// Compute the Gauss points
+    /** 
+     */
     void ComputeGaussPointPositions_initial( Geometry< Node < 3 > >& geom,
                                              boost::numeric::ublas::bounded_matrix<double, 20, 3 > & pos,
                                              boost::numeric::ublas::bounded_matrix<double, 20, 4 > & N ) //3D
     {
-        //std::cout << "NEW ELEMENT" << std::endl;
-        //double total;
         double fraction_increment;
         unsigned int counter=0;
         for (unsigned int i=0; i!=4;i++) //going to build a particle "pyramid"(tetrahedra) by layers. the first layer will be made by a triangle of 4 base X 4 height. since it is a triangle, it means it will have 10 particles
         {
-            //std::cout << "inside i" <<  i << std::endl;
             for (unsigned int j=0; j!=(4-i);j++)
             {
-                //std::cout << "inside j" << j << std::endl;
                 for (unsigned int k=0; k!=(4-i-j);k++)
                 {
-                    //std::cout << "inside k" << k << std::endl;
                     N(counter,0)= 0.27 * ( 0.175 + double(i) ) ; //this is our "surface" in which we will build each layer, so we must construct a triangle using what's left of the shape functions total (a total of 1)
 
                     //total = 1.0 - N(counter,0); 
@@ -2101,7 +2199,7 @@ private:
                     pos(counter, 0) = N(counter,0) * geom[0].X() + N(counter,1) * geom[1].X() + N(counter,2) * geom[2].X() + N(counter,3) * geom[3].X();
                     pos(counter, 1) = N(counter,0) * geom[0].Y() + N(counter,1) * geom[1].Y() + N(counter,2) * geom[2].Y() + N(counter,3) * geom[3].Y();
                     pos(counter, 2) = N(counter,0) * geom[0].Z() + N(counter,1) * geom[1].Z() + N(counter,2) * geom[2].Z() + N(counter,3) * geom[3].Z();
-                    //std::cout << N(counter,0) << " " << N(counter,1) << " " << N(counter,2) << " " << std::endl;
+
                     counter++;
                 }
                 
@@ -2109,52 +2207,8 @@ private:
         }
     }
 
-    template<class T>
-    bool InvertMatrix(const T& input, T& inverse)
-    {
-        typedef permutation_matrix<std::size_t> pmatrix;
 
-        // create a working copy of the input
-        T A(input);
-
-        // create a permutation matrix for the LU-factorization
-        pmatrix pm(A.size1());
-
-        // perform LU-factorization
-        int res = lu_factorize(A, pm);
-        if (res != 0)
-            return false;
-
-        // create identity matrix of "inverse"
-        inverse.assign(identity_matrix<double> (A.size1()));
-
-        // backsubstitute to get the inverse
-        lu_substitute(A, pm, inverse);
-
-        return true;
-    }
-
-
-    bool InvertMatrix3x3(const boost::numeric::ublas::bounded_matrix<double, TDim+1 , TDim+1  >& A, boost::numeric::ublas::bounded_matrix<double, TDim+1 , TDim+1  >& result)
-    {
-        double determinant =    +A(0,0)*(A(1,1)*A(2,2)-A(2,1)*A(1,2))
-                    -A(0,1)*(A(1,0)*A(2,2)-A(1,2)*A(2,0))
-                    +A(0,2)*(A(1,0)*A(2,1)-A(1,1)*A(2,0));
-        double invdet = 1/determinant;
-        result(0,0) =  (A(1,1)*A(2,2)-A(2,1)*A(1,2))*invdet;
-        result(1,0) = -(A(0,1)*A(2,2)-A(0,2)*A(2,1))*invdet;
-        result(2,0) =  (A(0,1)*A(1,2)-A(0,2)*A(1,1))*invdet;
-        result(0,1) = -(A(1,0)*A(2,2)-A(1,2)*A(2,0))*invdet;
-        result(1,1) =  (A(0,0)*A(2,2)-A(0,2)*A(2,0))*invdet;
-        result(2,1) = -(A(0,0)*A(1,2)-A(1,0)*A(0,2))*invdet;
-        result(0,2) =  (A(1,0)*A(2,1)-A(2,0)*A(1,1))*invdet;
-        result(1,2) = -(A(0,0)*A(2,1)-A(2,0)*A(0,1))*invdet;
-        result(2,2) =  (A(0,0)*A(1,1)-A(1,0)*A(0,1))*invdet;
-
-        return true;
-    }
-
-
+    /// check function
     virtual int Check()
     {
         KRATOS_TRY
@@ -2177,6 +2231,7 @@ private:
     }
 
 
+    /// Member variables
     ModelPart& mrModelPart;
     int mNParticles;
     int mNElems;
