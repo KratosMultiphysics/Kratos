@@ -164,6 +164,18 @@ namespace Kratos {
                 const bool Fix_Ang_vel[3]) {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead", 0);
     }
+    
+    void DEMIntegrationScheme::UpdateRotationalVariables(
+                const double& moment_of_inertia,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                Quaternion<double  >& Orientation,
+                const array_1d<double, 3 >& angular_momentum,
+                array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
+        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead", 0);
+    }
 
     void DEMIntegrationScheme::UpdateRotationalVariables(
                 const array_1d<double, 3 >& moments_of_inertia,
@@ -208,7 +220,17 @@ namespace Kratos {
                 const double moment_reduction_factor,
                 array_1d<double, 3 >& local_angular_acceleration){
             KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateLocalAngularAccelerationByEulerEquations) shouldn't be accessed, use derived class instead", 0);                        
-    }  
+    }
+
+    void DEMIntegrationScheme::CalculateAngularVelocityRK(
+                const Quaternion<double  >& Orientation,
+                const double& moment_of_inertia,
+                const array_1d<double, 3 >& angular_momentum,
+                array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
+            KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateAngularVelocityRK) shouldn't be accessed, use derived class instead", 0); 
+    }
 
     void DEMIntegrationScheme::CalculateAngularVelocityRK(
                 const Quaternion<double  >& Orientation,

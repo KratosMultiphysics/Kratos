@@ -85,6 +85,16 @@ namespace Kratos {
                 Quaternion<double  >& Orientation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
+                
+        virtual void UpdateRotationalVariables(
+                const double& moment_of_inertia,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                Quaternion<double  >& Orientation,
+                const array_1d<double, 3 >& angular_momentum,
+                array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) override;
 
         void UpdateRotationalVariables(
                 const array_1d<double, 3 >& moments_of_inertia,
@@ -95,14 +105,6 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
-
-        void QuaternionCalculateMidAngularVelocities(
-                const Quaternion<double>& Orientation,
-                const double LocalTensorInv[3][3],
-                const array_1d<double, 3>& angular_momentum,
-                const double dt,
-                const array_1d<double, 3>& InitialAngularVel,
-                array_1d<double, 3>& FinalAngularVel) override;
     
         void UpdateAngularVelocity(
                 const Quaternion<double>& Orientation,
@@ -125,11 +127,27 @@ namespace Kratos {
 
         void CalculateAngularVelocityRK(
                 const Quaternion<double  >& Orientation,
+                const double& moment_of_inertia,
+                const array_1d<double, 3 >& angular_momentum,
+                array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) override;
+
+        void CalculateAngularVelocityRK(
+                const Quaternion<double  >& Orientation,
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& angular_momentum,
                 array_1d<double, 3 > & angular_velocity,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
+
+        void QuaternionCalculateMidAngularVelocities(
+                const Quaternion<double>& Orientation,
+                const double LocalTensorInv[3][3],
+                const array_1d<double, 3>& angular_momentum,
+                const double dt,
+                const array_1d<double, 3>& InitialAngularVel,
+                array_1d<double, 3>& FinalAngularVel) override;
 
         /// Turn back information as a string.
 

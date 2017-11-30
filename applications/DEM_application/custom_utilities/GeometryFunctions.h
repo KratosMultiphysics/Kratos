@@ -283,6 +283,21 @@ namespace Kratos {
         ProductMatrices3X3(Temp, RT, GlobalTensor);
     }
 
+    static inline void ConstructLocalTensor(const double moment_of_inertia, double LocalTensor[3][3])
+    {
+        LocalTensor[0][0] = moment_of_inertia; LocalTensor[0][1] = 0.0; LocalTensor[0][2] = 0.0;
+        LocalTensor[1][0] = 0.0; LocalTensor[1][1] = moment_of_inertia; LocalTensor[1][2] = 0.0;
+        LocalTensor[2][0] = 0.0; LocalTensor[2][1] = 0.0; LocalTensor[2][2] = moment_of_inertia;
+    }
+    
+    static inline void ConstructInvLocalTensor(const double moment_of_inertia, double LocalTensorInv[3][3])
+    {
+        double moment_of_inertia_inv = 1/moment_of_inertia;
+        LocalTensorInv[0][0] = moment_of_inertia_inv; LocalTensorInv[0][1] = 0.0; LocalTensorInv[0][2] = 0.0;
+        LocalTensorInv[1][0] = 0.0; LocalTensorInv[1][1] = moment_of_inertia_inv; LocalTensorInv[1][2] = 0.0;
+        LocalTensorInv[2][0] = 0.0; LocalTensorInv[2][1] = 0.0; LocalTensorInv[2][2] = moment_of_inertia_inv;
+    }
+    
     static inline void ConstructLocalTensor(const array_1d<double, 3 >& moments_of_inertia, double LocalTensor[3][3])
     {
         LocalTensor[0][0] = moments_of_inertia[0]; LocalTensor[0][1] = 0.0; LocalTensor[0][2] = 0.0;

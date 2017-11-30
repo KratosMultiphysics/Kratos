@@ -109,6 +109,13 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
 
     if (this->Is(DEMFlags::HAS_ROTATION)) {
         node.GetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = CalculateMomentOfInertia();
+
+        Quaternion<double  > Orientation = Quaternion<double>::Identity();
+        node.GetSolutionStepValue(ORIENTATION) = Orientation;
+        
+        array_1d<double, 3> angular_momentum;
+        CalculateLocalAngularMomentum(angular_momentum);
+        node.GetSolutionStepValue(ANGULAR_MOMENTUM) = angular_momentum;
     }
 
     else {

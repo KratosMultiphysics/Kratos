@@ -103,6 +103,16 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_acceleration,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]);
+        
+        virtual void UpdateRotationalVariables(
+                const double& moment_of_inertia,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                Quaternion<double  >& Orientation,
+                const array_1d<double, 3 >& angular_momentum,
+                array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]);
 
         virtual void UpdateRotationalVariables(
                 const array_1d<double, 3 >& moments_of_inertia,
@@ -138,6 +148,14 @@ namespace Kratos {
                 const array_1d<double, 3 >& local_torque, 
                 const double moment_reduction_factor,
                 array_1d<double, 3 >& local_angular_acceleration);
+        
+        virtual void CalculateAngularVelocityRK(
+                const Quaternion<double  >& Orientation,
+                const double& moment_of_inertia,
+                const array_1d<double, 3 >& angular_momentum,
+                array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]);
         
         virtual void CalculateAngularVelocityRK(
                 const Quaternion<double  >& Orientation,
