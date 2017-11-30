@@ -9,6 +9,7 @@ from KratosMultiphysics.SwimmingDEMApplication import *
 import DEM_procedures
 import shutil
 import os
+import weakref
 
 def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, cluster_model_part, DEM_inlet_model_part):
 
@@ -456,7 +457,7 @@ class PostUtils:
                  rigid_faces_model_part,
                  mixed_model_part):
 
-        self.gid_io                 = gid_io
+        self.gid_io                 = weakref.proxy(gid_io)
         self.fluid_model_part       = fluid_model_part
         self.balls_model_part       = balls_model_part
         self.clusters_model_part    = clusters_model_part
@@ -479,7 +480,18 @@ class PostUtils:
             self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.rigid_faces_model_part)
             self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.fluid_model_part)
 
-        self.gid_io.write_swimming_DEM_results(time, self.fluid_model_part, self.balls_model_part, self.clusters_model_part, self.rigid_faces_model_part, self.mixed_model_part, self.pp.nodal_results, self.pp.dem_nodal_results, self.pp.clusters_nodal_results, self.pp.rigid_faces_nodal_results, self.pp.mixed_nodal_results, self.pp.gauss_points_results)
+        self.gid_io.write_swimming_DEM_results(time,
+                                               self.fluid_model_part,
+                                               self.balls_model_part,
+                                               self.clusters_model_part,
+                                               self.rigid_faces_model_part,
+                                               self.mixed_model_part,
+                                               self.pp.nodal_results,
+                                               self.pp.dem_nodal_results,
+                                               self.pp.clusters_nodal_results,
+                                               self.pp.rigid_faces_nodal_results,
+                                               self.pp.mixed_nodal_results,
+                                               self.pp.gauss_points_results)
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 
@@ -644,7 +656,7 @@ class StationarityAssessmentTool:
 
     def __init__(self, max_pressure_variation_rate_tol, custom_functions_tool):
         self.tol  = max_pressure_variation_rate_tol
-        self.tool = custom_functions_tool
+        self.tool = weakref.proxy(custom_functions_tool)
 
     def Assess(self, model_part): # in the first time step the 'old' pressure vector is created and filled
         stationarity = self.tool.AssessStationarity(model_part, self.tol)

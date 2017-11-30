@@ -165,7 +165,12 @@ class Solution(object):
 
 
     def SetSolver(self):
-        return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.DEM_parameters, self.procedures)
+        return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
+                                                     self.creator_destructor,
+                                                     self.dem_fem_search, 
+                                                     self.scheme,
+                                                     self.DEM_parameters,
+                                                     self.procedures)
 
     def Run(self):
         self.Initialize()
@@ -193,7 +198,7 @@ class Solution(object):
         #self.analytic_model_part.AddElements(analytic_particle_ids)
 
     def Initialize(self):
-        
+
         self.AddVariables()
 
         self.ReadModelParts()
@@ -255,6 +260,7 @@ class Solution(object):
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
         self.report.total_steps_expected = int(self.final_time / self.dt)
         self.KRATOSprint(self.report.BeginReport(timer))
+        os.chdir(self.main_path)
 
     def GetMpFilename(self):
         return self.DEM_parameters["problem_name"].GetString() + "DEM"
@@ -446,6 +452,7 @@ class Solution(object):
 
         os.chdir(self.post_path)
         self.demio.InitializeMesh(self.all_model_parts)
+        os.chdir(self.main_path)
 
     def PrintResultsForGid(self, time):
         if self.solver.poisson_ratio_option:
@@ -470,6 +477,7 @@ class Solution(object):
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()
         self.demio.CloseMultifiles()
+
 
 if __name__ == "__main__":
     Solution().Run()
