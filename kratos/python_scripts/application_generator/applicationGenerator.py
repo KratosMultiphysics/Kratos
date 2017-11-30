@@ -154,6 +154,9 @@ class ApplicationGenerator(TemplateRule):
             if '.svn' in subfolder:
                 subfolder.remove('.svn')
 
+            if '.git' in subfolder:
+                subfolder.remove('.git')
+
             for f in files:
                 src = os.path.join(root, f)
                 fileName = src.split(".")
@@ -348,7 +351,7 @@ class ApplicationGenerator(TemplateRule):
                     newLine = ''
 
                     newLine += 'message("' + self._nameUpper + '_APPLICATION'
-                    newLine += ('.' * (24 - len(self._nameUpper)))
+                    newLine += ('.' * (31 - len(self._nameUpper)))
                     newLine += ' ${' + self._nameUpper + '_APPLICATION}")\n'
 
                     dst.write(newLine)
@@ -408,6 +411,7 @@ class ApplicationGenerator(TemplateRule):
 
         # First read the file and parse all the info
         with open(srcFile, 'r') as src:
+            last = None 
             for l in src:
                 # Select the block
                 if 'Import_' in l and 'Application = False' in l:
@@ -418,16 +422,18 @@ class ApplicationGenerator(TemplateRule):
                     currentBlock = 'appDirBlock'
                 if 'def ImportApplications' in l and currentBlock == 'appDirBlock':
                     currentBlock = 'importValueBlock'
-                if 'if(Import_SolidMechanicsApplication):' in l and currentBlock == 'importValueBlock':
+                if 'if(Import_' in l and currentBlock == 'importValueBlock':
                     currentBlock = 'prepareBlock'
-                if '# dynamic renumbering of variables' in l:
+                if '# dynamic renumbering of variables' in l and currentBlock == 'prepareBlock':
                     currentBlock = 'initializeBlock'
-                if '# def ImportApplications(kernel  ):' in l:
+                if '# def ImportApplications(kernel  ):' in l and currentBlock == 'initializeBlock':
                     currentBlock = 'footer'
 
                 # Append the result if its not null
                 if l is not '\n' or currentBlock == 'prepareBlock':
                     fileStruct[currentBlock].append(l)
+
+                last = l
 
         # Prepare some blocks
         prepareBlockContent = [
@@ -438,8 +444,7 @@ class ApplicationGenerator(TemplateRule):
             ptab * 2 + 'from Kratos{CAMEL}Application import *\n',
             ptab * 2 + '{LOWER}_application = Kratos{CAMEL}Application()\n',
             ptab * 2 + 'kernel.AddApplication({LOWER}_application)\n',
-            ptab * 2 + 'print("Kratos{CAMEL}Application Succesfully imported")\n',
-            '\n'
+            ptab * 2 + 'print("Kratos{CAMEL}Application Succesfully imported")\n'
         ]
 
         prepareBlockContent = [
@@ -459,14 +464,15 @@ class ApplicationGenerator(TemplateRule):
 
         fileStruct['importValueBlock'].append(
             ptab + 'print("Import_{CAMEL}Application: " + str(Import_{CAMEL}Application))\n'.format(
-                CAMEL=self._nameCamel))
+                CAMEL=self._nameCamel)
+        )
 
-        # This line deletes the last \n
-        fileStruct['prepareBlock'] = fileStruct['prepareBlock'][:-1]
         fileStruct['prepareBlock'].append(
             prepareBlockContent
         )
 
+        # This line deletes the last \n
+        fileStruct['initializeBlock'] = fileStruct['initializeBlock'][:-1]
         fileStruct['initializeBlock'].append([
             ptab + 'if(Import_' + self._nameCamel + 'Application):\n',
             ptab * 2 + 'kernel.InitializeApplication(' + self._nameLower + '_application)\n'
