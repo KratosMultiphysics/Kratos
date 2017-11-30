@@ -89,7 +89,7 @@ public:
     
     Condition::Pointer Create( 
         IndexType NewId, 
-        NodesArrayType const& ThisNodes,  
+        NodesArrayType const& rThisNodes,  
         PropertiesType::Pointer pProperties 
         ) const override;
 
