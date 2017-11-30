@@ -31,6 +31,55 @@
 namespace Kratos {
 	namespace Testing {
 
+        /** 
+	     * Auxiliar function to generate a triangular element within 
+         * a given model part using the constitutive law to be tested.
+	     */
+        void GenerateTriangle(
+            ModelPart& rModelPart,
+            const ConstitutiveLaw::Pointer pConstitutiveLaw) {
+
+            // Variables addition
+            rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+
+            // Set the element properties
+            Properties::Pointer p_elem_prop = rModelPart.pGetProperties(0);
+            p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 3.0e-01);
+            p_elem_prop->SetValue(CONSTITUTIVE_LAW, pConstitutiveLaw);
+
+            // Element creation
+            rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            rModelPart.CreateNewNode(2, 0.0, 1.0, 0.0);
+            rModelPart.CreateNewNode(3, 0.0, 0.0, 1.0);
+            std::vector<ModelPart::IndexType> elem_nodes {1, 2, 3};
+            rModelPart.CreateNewElement("Element2D3N", 1, elem_nodes, p_elem_prop);
+        }
+
+        /** 
+	     * Auxiliar function to generate a tetrahedral element within 
+         * a given model part using the constitutive law to be tested.
+	     */
+        void GenerateTetrahedron(
+            ModelPart& rModelPart,
+            const ConstitutiveLaw::Pointer pConstitutiveLaw) {
+
+            // Variables addition
+            rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+
+            // Set the element properties
+            Properties::Pointer p_elem_prop = rModelPart.pGetProperties(0);
+            p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 3.0e-01);
+            p_elem_prop->SetValue(CONSTITUTIVE_LAW, pConstitutiveLaw);
+
+            // Element creation
+            rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+            rModelPart.CreateNewNode(4, 0.0, 0.0, 1.0);
+            std::vector<ModelPart::IndexType> elem_nodes {1, 2, 3, 4};
+            rModelPart.CreateNewElement("Element3D4N", 1, elem_nodes, p_elem_prop);
+        }
+
 	    /** 
 	     * Checks the Newtonian fluid 2D constitutive law.
 	     */
@@ -43,25 +92,10 @@ namespace Kratos {
             Vector strain_vector = ZeroVector(strain_size);
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
-            // Create a raw model part
-			ModelPart model_part("Main");
-			model_part.SetBufferSize(3);
-
-			// Variables addition
-			model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
-
-			// Set the element properties
-			Properties::Pointer p_elem_prop = model_part.pGetProperties(0);
-			p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 3.0e-01);
-			p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_cons_law);
-
-			// Element creation
-			model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-			model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-			model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
-			model_part.CreateNewElement("Element2D3N", 1, elemNodes, p_elem_prop);
-			Element::Pointer p_element = model_part.pGetElement(1);
+            // Get the trial element
+			ModelPart model_part("Main", 3);
+            GenerateTriangle(model_part, p_cons_law);
+            Element::Pointer p_element = model_part.pGetElement(1);
 
             // Set the constitutive law values
             ConstitutiveLaw::Parameters cons_law_values(
@@ -114,26 +148,10 @@ namespace Kratos {
             Vector strain_vector = ZeroVector(strain_size);
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
-            // Create a raw model part
-			ModelPart model_part("Main");
-			model_part.SetBufferSize(3);
-
-			// Variables addition
-			model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
-
-			// Set the element properties
-			Properties::Pointer p_elem_prop = model_part.pGetProperties(0);
-			p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 3.0e-01);
-			p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_cons_law);
-
-			// Element creation
-			model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-			model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-			model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-			model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
-			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3, 4};
-			model_part.CreateNewElement("Element3D4N", 1, elemNodes, p_elem_prop);
-			Element::Pointer p_element = model_part.pGetElement(1);
+            // Get the trial element
+            ModelPart model_part("Main", 3);
+            GenerateTetrahedron(model_part, p_cons_law);
+            Element::Pointer p_element = model_part.pGetElement(1);
 
             // Set the constitutive law values
             ConstitutiveLaw::Parameters cons_law_values(
@@ -196,23 +214,8 @@ namespace Kratos {
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
             // Create a raw model part
-			ModelPart model_part("Main");
-			model_part.SetBufferSize(3);
-
-			// Variables addition
-			model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
-
-			// Set the element properties
-			Properties::Pointer p_elem_prop = model_part.pGetProperties(0);
-			p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 3.0e-01);
-			p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_cons_law);
-
-			// Element creation
-			model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-			model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-			model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
-			model_part.CreateNewElement("Element2D3N", 1, elemNodes, p_elem_prop);
+			ModelPart model_part("Main", 3);
+            GenerateTriangle(model_part, p_cons_law);
 			Element::Pointer p_element = model_part.pGetElement(1);
 
             // Set the constitutive law values
@@ -263,24 +266,8 @@ namespace Kratos {
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
             // Create a raw model part
-			ModelPart model_part("Main");
-			model_part.SetBufferSize(3);
-
-			// Variables addition
-			model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
-
-			// Set the element properties
-			Properties::Pointer p_elem_prop = model_part.pGetProperties(0);
-			p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 3.0e-01);
-			p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_cons_law);
-
-			// Element creation
-			model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-			model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-			model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-			model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
-			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3, 4};
-			model_part.CreateNewElement("Element3D4N", 1, elemNodes, p_elem_prop);
+			ModelPart model_part("Main", 3);
+            GenerateTetrahedron(model_part, p_cons_law);
 			Element::Pointer p_element = model_part.pGetElement(1);
 
             // Set the constitutive law values
