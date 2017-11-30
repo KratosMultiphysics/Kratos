@@ -37,6 +37,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
+#include "custom_strategies/custom_schemes/adjoint_schemes/adjoint_structural_scheme.h"
 
 // Builder and solvers
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -148,6 +149,11 @@ void  AddCustomStrategiesToPython()
             (
                 "EigensolverDynamicScheme", init<>() )
             ;
+
+    class_<AdjointStructuralScheme<SparseSpaceType, LocalSpaceType>, bases<BaseSchemeType>, boost::noncopyable>(
+            "AdjointStructuralScheme", init<Parameters&, StructuralResponseFunction::Pointer>())
+            ;
+
 
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************

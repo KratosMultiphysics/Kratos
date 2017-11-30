@@ -1,8 +1,8 @@
 // ==============================================================================
-//  KratosShapeOptimizationApplication
+//  KratosStructuralMechanicsApplication
 //
 //  License:         BSD License
-//                   license: ShapeOptimizationApplication/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Fusseder Martin   
 //                   martin.fusseder@tum.de
@@ -41,7 +41,7 @@
 #include "includes/ublas_interface.h"
 #include "utilities/openmp_utils.h"
 
-#include "custom_utilities/finite_differences_utilities.h"
+//#include "custom_utilities/finite_differences_utilities.h"
 
 // ==============================================================================
 

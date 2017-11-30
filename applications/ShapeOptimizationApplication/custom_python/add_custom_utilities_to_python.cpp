@@ -37,11 +37,6 @@
 //#include "custom_utilities/response_functions/eigenfrequency_response_function.h"
 //#include "custom_utilities/response_functions/eigenfrequency_response_function_lin_scal.h"
 //#include "custom_utilities/response_functions/eigenfrequency_response_function_KS.h"
-#include "custom_utilities/response_functions/local_stress_response_function.h"
-#include "custom_utilities/response_functions/nodal_displacement_response_function.h"
-#include "custom_utilities/response_functions/rework_strain_energy_response_function.h" //TODO: fusseder rename it after finishing
-#include "custom_utilities/response_functions/rework_eigenfrequency_response_function.h" //TODO: fusseder rename it after finishing
-#include "custom_utilities/finite_differences_utilities.h" //MFusseder
 // ==============================================================================
 
 namespace Kratos
@@ -49,30 +44,7 @@ namespace Kratos
 
 namespace Python
 {
-
-inline
-void CalculateGradient1(
-        StructuralResponseFunction& rThisUtil,
-        const Condition& rAdjointCondition,
-        const Matrix& rAdjointMatrix,
-        Vector& rResponseGradient,
-        ProcessInfo& rProcessInfo)
-{
-    rThisUtil.CalculateGradient(rAdjointCondition,rAdjointMatrix,rResponseGradient,rProcessInfo);
-}
-
-inline
-void CalculateGradient2(
-        StructuralResponseFunction& rThisUtil,
-        const Element& rAdjointElem,
-        const Matrix& rAdjointMatrix,
-        Vector& rResponseGradient,
-        ProcessInfo& rProcessInfo)
-{
-    rThisUtil.CalculateGradient(rAdjointElem,rAdjointMatrix,rResponseGradient,rProcessInfo);
-}
    
-
 void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
@@ -152,6 +124,7 @@ void  AddCustomUtilitiesToPython()
         .def("GetValue", &MassResponseFunction::GetValue)
         .def("GetInitialValue", &MassResponseFunction::GetInitialValue)
         .def("GetGradient", &MassResponseFunction::GetGradient)
+        
         ;
   
    /* class_<EigenfrequencyResponseFunction, bases<Process> >("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>())
@@ -180,50 +153,6 @@ void  AddCustomUtilitiesToPython()
         .def("get_initial_value", &EigenfrequencyResponseFunctionKS::get_initial_value)  
         .def("get_gradient", &EigenfrequencyResponseFunctionKS::get_gradient)   
         ;*/
-
-    class_<StructuralResponseFunction, boost::noncopyable>("StructuralResponseFunction", init<ModelPart&, Parameters&>())
-        .def("Initialize", &StructuralResponseFunction::Initialize)
-        .def("InitializeSolutionStep", &StructuralResponseFunction::InitializeSolutionStep)
-        .def("FinalizeSolutionStep", &StructuralResponseFunction::FinalizeSolutionStep)
-        .def("Check", &StructuralResponseFunction::Check)
-        .def("Clear", &StructuralResponseFunction::Clear)
-        .def("CalculateGradient", CalculateGradient1)
-        .def("CalculateGradient", CalculateGradient2)
-        .def("CalculateFirstDerivativesGradient",
-             &StructuralResponseFunction::CalculateFirstDerivativesGradient)
-        .def("CalculateSecondDerivativesGradient",
-             &StructuralResponseFunction::CalculateSecondDerivativesGradient)
-        .def("CalculateValue", &StructuralResponseFunction::CalculateValue)
-        .def("UpdateSensitivities", &StructuralResponseFunction::UpdateSensitivities);  
-
-    class_<LocalStressResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
-      ("LocalStressResponseFunction", init<ModelPart&, Parameters&>()); 
-
-    class_<NodalDisplacementResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
-      ("NodalDisplacementResponseFunction", init<ModelPart&, Parameters&>());    
-
-    class_<ReworkStrainEnergyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
-      ("ReworkStrainEnergyResponseFunction", init<ModelPart&, Parameters&>());  
-
-    class_<ReworkEigenfrequencyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
-      ("ReworkEigenfrequencyResponseFunction", init<ModelPart&, Parameters&>()); 
-
-    // ================================================================
-    // For Finite Differences TODO: is this needed?
-    // ================================================================
-    class_<FiniteDifferencesUtilities, boost::noncopyable>("FiniteDifferencesUtilities", init< >())
-        .def("SetDesignVariable", &FiniteDifferencesUtilities::SetDesignVariable)
-        .def("GetDesignVariable", &FiniteDifferencesUtilities::GetDesignVariable)
-        .def("SetDerivedObject", &FiniteDifferencesUtilities::SetDerivedObject)
-        .def("GetDerivedObject", &FiniteDifferencesUtilities::GetDerivedObject)
-        .def("DisturbElementDesignVariable", &FiniteDifferencesUtilities::DisturbElementDesignVariable)
-        .def("UndisturbElementDesignVariable", &FiniteDifferencesUtilities::UndisturbElementDesignVariable)
-        .def("GetStressResultantBeam", &FiniteDifferencesUtilities::GetStressResultantBeam)
-        .def("GetStressResultantShell", &FiniteDifferencesUtilities::GetStressResultantShell)
-        .def("GetNodalDisplacement", &FiniteDifferencesUtilities::GetNodalDisplacement)
-        .def("GetStrainEnergy", &FiniteDifferencesUtilities::GetStrainEnergy)
-        
-        ;                 
 
     // ========================================================================
     // For input / output

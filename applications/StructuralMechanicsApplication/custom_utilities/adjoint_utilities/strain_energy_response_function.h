@@ -1,16 +1,16 @@
 // ==============================================================================
-//  KratosShapeOptimizationApplication
+//  KratosStructuralMechanicsApplication
 //
 //  License:         BSD License
-//                   license: ShapeOptimizationApplication/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Fusseder Martin   
 //                   martin.fusseder@tum.de
 //	
 // ==============================================================================
 
-#ifndef REWORK_STRAIN_ENERGY_RESPONSE_FUNCTION_H
-#define REWORK_STRAIN_ENERGY_RESPONSE_FUNCTION_H
+#ifndef STRAIN_ENERGY_RESPONSE_FUNCTION_H
+#define STRAIN_ENERGY_RESPONSE_FUNCTION_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -72,7 +72,7 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class ReworkStrainEnergyResponseFunction : public StructuralResponseFunction
+class StrainEnergyResponseFunction : public StructuralResponseFunction
 {
 public:
 	///@name Type Definitions
@@ -83,15 +83,15 @@ public:
 
 	
 
-	/// Pointer definition of ReworkStrainEnergyResponseFunction
-	KRATOS_CLASS_POINTER_DEFINITION(ReworkStrainEnergyResponseFunction);
+	/// Pointer definition of StrainEnergyResponseFunction
+	KRATOS_CLASS_POINTER_DEFINITION(StrainEnergyResponseFunction);
 
 	///@}
 	///@name Life Cycle
 	///@{
 
 	/// Default constructor.
-	ReworkStrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
+	StrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
 	: StructuralResponseFunction(model_part, responseSettings)
 	{
 	
@@ -103,7 +103,7 @@ public:
 	}
 
 	/// Destructor.
-	virtual ~ReworkStrainEnergyResponseFunction()
+	virtual ~StrainEnergyResponseFunction()
 	{
 	}
 
@@ -235,13 +235,13 @@ public:
 	/// Turn back information as a string.
 	virtual std::string Info() const
 	{
-		return "ReworkStrainEnergyResponseFunction";
+		return "StrainEnergyResponseFunction";
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream &rOStream) const
 	{
-		rOStream << "ReworkStrainEnergyResponseFunction";
+		rOStream << "StrainEnergyResponseFunction";
 	}
 
 	/// Print object's data.
@@ -413,14 +413,14 @@ private:
 	///@{
 
 	/// Assignment operator.
-	//      ReworkStrainEnergyResponseFunction& operator=(SReworkStrainEnergyResponseFunction const& rOther);
+	//      StrainEnergyResponseFunction& operator=(StrainEnergyResponseFunction const& rOther);
 
 	/// Copy constructor.
-	//      ReworkStrainEnergyResponseFunction(ReworkStrainEnergyResponseFunction const& rOther);
+	//      StrainEnergyResponseFunction(StrainEnergyResponseFunction const& rOther);
 
 	///@}
 
-}; // Class ReworkStrainEnergyResponseFunction
+}; // Class StrainEnergyResponseFunction
 
 ///@}
 
@@ -435,4 +435,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // REWORK_STRAIN_ENERGY_RESPONSE_FUNCTION_H
+#endif // STRAIN_ENERGY_RESPONSE_FUNCTION_H

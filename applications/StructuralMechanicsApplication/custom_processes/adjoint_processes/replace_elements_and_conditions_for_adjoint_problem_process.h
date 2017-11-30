@@ -1,7 +1,7 @@
-//  KratosShapeOptimizationApplication
+//  KratosStructuralMechanicsApplication
 //
 //  License:		 BSD License
-//					 license: ShapeOptimizationApplication/license.txt
+//					 license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //                   

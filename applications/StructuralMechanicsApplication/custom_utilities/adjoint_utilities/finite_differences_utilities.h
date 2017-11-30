@@ -1,8 +1,8 @@
 // ==============================================================================
-//  KratosShapeOptimizationApplication
+//  KratosStructuralMechanicsApplication
 //
 //  License:         BSD License
-//                   license: ShapeOptimizationApplication/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Fusseder Martin, https://github.com/MFusseder
 //
@@ -30,7 +30,7 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/kratos_flags.h"
-#include "shape_optimization_application.h"
+//#include "shape_optimization_application.h"
 
 
 #include "includes/element.h"
@@ -71,7 +71,7 @@ namespace Kratos
 
 */
 
-class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) FiniteDifferencesUtilities
+class KRATOS_API(STRUCTUAL_MECHANICS_APPLICATION) FiniteDifferencesUtilities
 {
 public:
     ///@name Type Definitions
@@ -465,7 +465,7 @@ private:
 /**
 * Definition of FiniteDifferencesUtilities variable
 */
-//KRATOS_DEFINE_VARIABLE_IMPLEMENTATION( SHAPE_OPTIMIZATION_APPLICATION, FiniteDifferencesUtilities::Pointer, FINITE_DIFFERENCE_INFORMATION )
+//KRATOS_DEFINE_VARIABLE_IMPLEMENTATION( STRUCTURAL_MECHANICS_APPLICATION, FiniteDifferencesUtilities::Pointer, FINITE_DIFFERENCE_INFORMATION )
 
 
 ///@}

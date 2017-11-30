@@ -1,7 +1,7 @@
-//  KratosShapeOptimizationApplication
+//  KratosStructuralMechanicsApplication
 //
 //  License:		 BSD License
-//					 license: ShapeOptimizationApplication/license.txt
+//					 license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
 //                   Martin Fusseder, https://github.com/MFusseder
@@ -31,7 +31,7 @@
 namespace Kratos
 {
 
-///@addtogroup ShapeOptimizationApplication
+///@addtogroup StructuralMechanicsApplication
 ///@{
 
 ///@name Kratos Globals
@@ -437,7 +437,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-///@} // Shape Optimization Application group
+///@} // Structural Mechanics Application group
 
 }  /* namespace Kratos */
 

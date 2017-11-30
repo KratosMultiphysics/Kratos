@@ -25,12 +25,7 @@
 #include "includes/define.h"
 #include "shape_optimization_application.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_custom_processes_to_python.h"
-#include "custom_python/add_custom_schemes_to_python.h"
 
-//#include "custom_utilities/finite_differences_utilities.h" //MFusseder
-
- 
 // ==============================================================================
 
 namespace Kratos
@@ -52,8 +47,7 @@ namespace Python
 			;
 
 	AddCustomUtilitiesToPython();
-  AddCustomSchemesToPython();
-  AddCustomProcessesToPython();
+
 
 	//registering variables in python
 
@@ -87,26 +81,6 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(DKDXU_X);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(DKDXU_Y);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(DKDXU_Z);
-    // Variables for output of sensitivities
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(CROSS_AREA_SENSITIVITY); 
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD_SENSITIVITY );
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( I22_SENSITIVITY );
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( I33_SENSITIVITY );
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( THICKNESS_SENSITIVITY );
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( YOUNG_MODULUS_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( AREA_EFFECTIVE_Y_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( AREA_EFFECTIVE_Z_SENSITIVITY);
-  
-    // Variables to for computing parts of sensitivity analysis
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(TRACED_STRESS_TYPE); 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_DISP_DERIV_ON_NODE);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_DISP_DERIV_ON_GP); 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_DV_DERIV_ON_NODE); 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_DV_DERIV_ON_GP); 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_ON_GP); 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_ON_NODE); 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(DESIGN_VARIABLE_NAME); 
-    //KRATOS_REGISTER_IN_PYTHON_VARIABLE( FINITE_DIFFERENCE_INFORMATION );
 
     // For mapping
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(MAPPING_ID);

@@ -5,7 +5,6 @@ message("**** configuring KratosStructuralMechanicsApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/ShapeOptimizationApplication ) #added by MFusseder
 
 ## generate variables with the sources
 set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
@@ -90,17 +89,19 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_conditions/surface_load_adjoint_condition_3d.cpp
 )
 
+find_package(HDF5 REQUIRED COMPONENTS CXX)
+include_directories( ${HDF5_INCLUDE_DIRS} )
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosStructuralMechanicsApplication SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES})
 if(USE_COTIRE MATCHES ON)
     cotire(KratosStructuralMechanicsApplication)
 endif(USE_COTIRE MATCHES ON)
-target_link_libraries(KratosStructuralMechanicsApplication KratosCore) # KratosSolidMechanicsApplication)
+target_link_libraries(KratosStructuralMechanicsApplication KratosCore ${HDF5_CXX_LIBRARIES}) # KratosSolidMechanicsApplication)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
 install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
-
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")

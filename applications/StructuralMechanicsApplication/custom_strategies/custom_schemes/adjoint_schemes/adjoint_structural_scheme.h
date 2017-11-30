@@ -1,7 +1,7 @@
-//  KratosShapeOptimizationApplication
+//  KratosStructuralMechanicsApplication
 //
 //  License:		 BSD License
-//					 license: ShapeOptimizationApplication/license.txt
+//					 license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
@@ -29,11 +29,11 @@
 #include "containers/variable.h"
 
 // Application includes
-#include "../../ShapeOptimizationApplication/custom_utilities/response_functions/structural_response_function.h"
+#include "custom_utilities/adjoint_utilities/structural_response_function.h"
 
 namespace Kratos
 {
-///@addtogroup ShapeOptimizationApplication
+///@addtogroup StructuralMechanicsApplication
 ///@{
 
 ///@name Kratos Classes
@@ -414,7 +414,7 @@ private:
 
 ///@}
 
-///@} // Shape Optimization Application group
+///@} // Structural Mechanics Application group
 
 } /* namespace Kratos.*/
 

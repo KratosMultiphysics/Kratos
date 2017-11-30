@@ -1,16 +1,16 @@
 // ==============================================================================
-//  KratosShapeOptimizationApplication
+//  KratosStructuralMechanicsApplication
 //
 //  License:         BSD License
-//                   license: ShapeOptimizationApplication/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Fusseder Martin   
 //                   martin.fusseder@tum.de
 //	
 // ==============================================================================
 
-#ifndef REWORK_EIGENFREQUENCY_RESPONSE_FUNCTION_H
-#define REWORK_EIGENFREQUENCY_RESPONSE_FUNCTION_H
+#ifndef EIGENFREQUENCY_RESPONSE_FUNCTION_H
+#define EIGENFREQUENCY_RESPONSE_FUNCTION_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -72,7 +72,7 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class ReworkEigenfrequencyResponseFunction : public StructuralResponseFunction
+class EigenfrequencyResponseFunction : public StructuralResponseFunction
 {
 public:
 	///@name Type Definitions
@@ -91,15 +91,15 @@ public:
 
 	
 
-	/// Pointer definition of ReworkEigenfrequencyResponseFunction
-	KRATOS_CLASS_POINTER_DEFINITION(ReworkEigenfrequencyResponseFunction);
+	/// Pointer definition of EigenfrequencyResponseFunction
+	KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunction);
 
 	///@}
 	///@name Life Cycle
 	///@{
 
 	/// Default constructor.
-	ReworkEigenfrequencyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
+	EigenfrequencyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
 	: StructuralResponseFunction(model_part, responseSettings)
 	{
 	
@@ -114,7 +114,7 @@ public:
 	}
 
 	/// Destructor.
-	virtual ~ReworkEigenfrequencyResponseFunction()
+	virtual ~EigenfrequencyResponseFunction()
 	{
 	}
 
@@ -238,13 +238,13 @@ public:
 	/// Turn back information as a string.
 	virtual std::string Info() const
 	{
-		return "ReworkEigenfrequencyResponseFunction";
+		return "EigenfrequencyResponseFunction";
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream &rOStream) const
 	{
-		rOStream << "ReworkEigenfrequencyResponseFunction";
+		rOStream << "EigenfrequencyResponseFunction";
 	}
 
 	/// Print object's data.
@@ -663,14 +663,14 @@ private:
 	///@{
 
 	/// Assignment operator.
-	//      ReworkEigenfrequencyResponseFunction& operator=(ReworkEigenfrequencyResponseFunction const& rOther);
+	//      EigenfrequencyResponseFunction& operator=(EigenfrequencyResponseFunction const& rOther);
 
 	/// Copy constructor.
-	//      ReworkEigenfrequencyResponseFunction(ReworkEigenfrequencyResponseFunction const& rOther);
+	//      EigenfrequencyResponseFunction(EigenfrequencyResponseFunction const& rOther);
 
 	///@}
 
-}; // Class ReworkEigenfrequencyResponseFunction
+}; // Class EigenfrequencyResponseFunction
 
 ///@}
 
@@ -685,4 +685,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // REWORK_EIGENFREQUENCY_RESPONSE_FUNCTION_H
+#endif // EIGENFREQUENCY_RESPONSE_FUNCTION_H
