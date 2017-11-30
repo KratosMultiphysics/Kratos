@@ -21,6 +21,8 @@
 #include "includes/cfd_variables.h"
 #include "custom_elements/fluid_element.h"
 
+#include "custom_utilities/embedded_data.h"
+
 namespace Kratos
 {
 
@@ -95,7 +97,8 @@ public:
     constexpr static unsigned int BlockSize = TBaseElement::BlockSize;
     constexpr static unsigned int LocalSize = TBaseElement::LocalSize;
 
-    using ElementData = typename TBaseElement::ElementData;
+    using BaseElementData = typename TBaseElement::ElementData;
+    using EmbeddedElementData = EmbeddedData< BaseElementData >;
 
     ///@}
     ///@name Life Cycle
