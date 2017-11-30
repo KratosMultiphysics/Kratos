@@ -222,7 +222,7 @@ class Solution(object):
         #self.analytic_model_part.AddElements(analytic_particle_ids)
 
     def Initialize(self):
-        
+
         self.AddVariables()
 
         self.ReadModelParts()
@@ -500,6 +500,7 @@ class Solution(object):
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()
         self.demio.CloseMultifiles()
-
+    
+    
 if __name__ == "__main__":
     Solution().Run()

@@ -7,6 +7,7 @@ from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import swimming_DEM_algorithm
 import swimming_DEM_procedures as SDP
+import variables_management as vars_man
 
 sys.path.insert(0,'')
 import DEM_explicit_solver_var as DEM_parameters
@@ -66,7 +67,7 @@ class Algorithm(BaseAlgorithm):
 
     def FluidInitialize(self):
 
-        self.fluid_solution.vars_man=self.vars_man
+        self.fluid_solution.vars_man=vars_man
         self.fluid_solution.Initialize()
         bodies_parts_list = self.fluid_solution.ProjectParameters["solver_settings"]["bodies_list"]
         for i in range(bodies_parts_list.size()):
