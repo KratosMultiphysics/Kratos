@@ -215,26 +215,12 @@ namespace Kratos
 		this->mNodalForces = ZeroVector(msElementSize);
 		this->mNodalForces = nodalForcesLocal_qe;
 
-
-
 		const double N = nodalForcesLocal_qe[6];
 		const double Mt = nodalForcesLocal_qe[9];
 		const double my_A = nodalForcesLocal_qe[4];
 		const double mz_A = nodalForcesLocal_qe[5];
 		const double my_B = nodalForcesLocal_qe[10];
 		const double mz_B = nodalForcesLocal_qe[11];
-
-
-		//KRATOS_WATCH(Mt);
-		//KRATOS_WATCH(my_A);
-		//KRATOS_WATCH(mz_A);
-		//KRATOS_WATCH(my_B);
-		//KRATOS_WATCH(mz_B);
-		//KRATOS_WATCH(elementForces_t);
-		//std::cout << "------------------------------------------" << std::endl;
-
-
-
 
 		const double L = this->CalculateCurrentLength();
 		const double Qy = -1.00 * (mz_A + mz_B) / L;
@@ -541,14 +527,12 @@ namespace Kratos
 		bounded_vector<double,msElementSize>  IncrementDeformation = ZeroVector(msElementSize);
 		IncrementDeformation = this->mIncrementDeformation;
 
+
 		for (unsigned int i = 0; i < msDimension; ++i) {
 			dPhiA[i] = IncrementDeformation[i + 3];
 			dPhiB[i] = IncrementDeformation[i + 9];
 		}
 
-
-		//KRATOS_WATCH(dPhiA);
-		//KRATOS_WATCH(dPhiB);
 		//calculating quaternions
 		Vector drA_vec = ZeroVector(msDimension);
 		Vector drB_vec = ZeroVector(msDimension);
@@ -568,9 +552,6 @@ namespace Kratos
 
 		drA_sca = std::sqrt(drA_sca);
 		drB_sca = std::sqrt(drB_sca);
-
-		//KRATOS_WATCH(drA_sca);
-		//KRATOS_WATCH(drB_sca);
 
 
 		//1st solution step
@@ -609,12 +590,6 @@ namespace Kratos
 		this->mQuaternionVEC_B += tempSca * drB_vec;
 		this->mQuaternionVEC_B += MathUtils<double>::CrossProduct(drB_vec, tempVec);
 
-
-		//KRATOS_WATCH(this->mQuaternionVEC_A);
-		//KRATOS_WATCH(this->mQuaternionSCA_A);
-		//KRATOS_WATCH(this->mQuaternionVEC_B);
-		//KRATOS_WATCH(this->mQuaternionSCA_B);
-
 		//scalar part of difference quaternion
 		double scalar_diff;
 		scalar_diff = (this->mQuaternionSCA_A + this->mQuaternionSCA_B) *
@@ -626,8 +601,6 @@ namespace Kratos
 
 		scalar_diff = 0.50 * std::sqrt(scalar_diff);
 
-		//KRATOS_WATCH(scalar_diff);
-
 		//mean rotation quaternion
 		double meanRotationScalar;
 		meanRotationScalar = (this->mQuaternionSCA_A + this->mQuaternionSCA_B) * 0.50;
@@ -637,9 +610,6 @@ namespace Kratos
 		meanRotationVector = (this->mQuaternionVEC_A + this->mQuaternionVEC_B) * 0.50;
 		meanRotationVector = meanRotationVector / scalar_diff;
 
-		//KRATOS_WATCH(meanRotationScalar);
-		//KRATOS_WATCH(meanRotationVector);
-		
 
 		//vector part of difference quaternion
 		bounded_vector<double,msDimension>  vector_diff = ZeroVector(msDimension);
@@ -650,7 +620,6 @@ namespace Kratos
 
 		vector_diff = 0.50 * vector_diff / scalar_diff;
 
-		//KRATOS_WATCH(vector_diff);
 
 		//rotate inital element basis
 		const double r0 = meanRotationScalar;
@@ -667,14 +636,13 @@ namespace Kratos
 		q.RotateVector3(rotatedNY0);
 		q.RotateVector3(rotatedNZ0);
 
+
 		bounded_matrix<double,msDimension,msDimension> RotatedCS = ZeroMatrix(msDimension, msDimension);
 		for (unsigned int i = 0; i < msDimension; ++i) {
 			RotatedCS(i, 0) = rotatedNX0[i];
 			RotatedCS(i, 1) = rotatedNY0[i];
 			RotatedCS(i, 2) = rotatedNZ0[i];
 		}
-
-		//KRATOS_WATCH(RotatedCS);
 
 		//rotate basis to element axis + redefine R
 		Vector n_bisectrix = ZeroVector(msDimension);
@@ -704,11 +672,6 @@ namespace Kratos
 		for (unsigned int i = 0; i < msDimension; ++i) Identity(i, i) = 1.0;
 		Identity -= 2.0 * outer_prod(n_bisectrix, n_bisectrix);
 		n_xyz = prod(Identity, n_xyz);
-
-		//testing
-		//n_xyz(0, 0) = 0.00;
-		//n_xyz(1, 0) = 1.00;
-		//n_xyz(2, 0) = 0.00;
 
 		//save current CS for GID OUTPUT
 		this->mNX = ZeroVector(msDimension);
@@ -741,17 +704,6 @@ namespace Kratos
 			this->mPhiA = ZeroVector(msDimension);
 		}
 
-
-		/////TESTING
-		//this->mPhiS[1] = 0.00;
-		//this->mPhiS[2] = 0.00;
-		//this->mPhiA[0] = 0.00;
-		//this->mPhiA[1] = 0.00;
-		//this->mPhiA[2] = 0.00;
-
-		//KRATOS_WATCH(n_xyz);
-		//KRATOS_WATCH(this->mPhiS);
-		//KRATOS_WATCH(this->mPhiA);
 		return n_xyz;
 		KRATOS_CATCH("")
 	}
@@ -860,7 +812,6 @@ namespace Kratos
 		else
 		{
 			this->CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
-			//KRATOS_WATCH(rMassMatrix);
 			bounded_matrix<double,msElementSize,msElementSize> RotationMatrix = ZeroMatrix(msElementSize,msElementSize);
 			bounded_matrix<double,msElementSize,msElementSize> aux_matrix = ZeroMatrix(msElementSize,msElementSize);
 
@@ -1084,23 +1035,6 @@ namespace Kratos
 
 		if (this->mIsLinearElement == false)
 		{
-			//this->UpdateIncrementDeformation();
-			//bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = ZeroMatrix(msElementSize);
-			//this->CalculateTransformationMatrix(TransformationMatrix);
-			
-			//bounded_vector<double,msLocalSize> elementForces_t = ZeroVector(msLocalSize);
-			//elementForces_t = this->CalculateElementForces();
-			//bounded_vector<double,msElementSize> nodalForcesLocal_qe = ZeroVector(msElementSize);
-			//bounded_matrix<double,msElementSize,msLocalSize>  TransformationMatrixS = ZeroMatrix(msElementSize, msLocalSize);
-			//TransformationMatrixS = this->CalculateTransformationS();
-			//nodalForcesLocal_qe = prod(TransformationMatrixS,
-			//	elementForces_t);
-			//save local nodal forces
-			//this->mNodalForces = ZeroVector(msElementSize);
-			//this->mNodalForces = nodalForcesLocal_qe;
-
-			//bounded_vector<double,msElementSize> nodalForcesGlobal_q = ZeroVector(msElementSize);
-			//nodalForcesGlobal_q = prod(TransformationMatrix, nodalForcesLocal_qe);
 			rRightHandSideVector -= this->mNodalForces;
 		}
 
@@ -1177,7 +1111,7 @@ namespace Kratos
 		deformation_modes_total_V[3] = l - L;
 		for (int i = 0; i < 3; ++i) deformation_modes_total_V[i] = this->mPhiS[i];
 		for (int i = 0; i < 2; ++i) deformation_modes_total_V[i + 4] = this->mPhiA[i + 1];
-		//KRATOS_WATCH(deformation_modes_total_V);
+
 		//calculate element forces
 		bounded_vector<double,msLocalSize> element_forces_t = ZeroVector(msLocalSize);
 		bounded_matrix<double,msLocalSize,msLocalSize> deformation_stiffness_Kd = ZeroMatrix(msLocalSize);

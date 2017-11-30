@@ -266,6 +266,7 @@ namespace Kratos
 				rRightHandSideVector = ZeroVector(msElementSize);
 				rRightHandSideVector -= NodalForces;
 			}
+
 			rRightHandSideVector += this->CalculateBodyForces();
 
 			KRATOS_CATCH("")
@@ -306,7 +307,7 @@ namespace Kratos
 		const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues(
 			GeometryData::GI_GAUSS_1);
 
-		bounded_vector<double,msDimension> EquivalentLineLoad = ZeroVector(msDimension);
+		bounded_vector<double,3> EquivalentLineLoad = ZeroVector(3); 
 		bounded_vector<double,msElementSize> BodyForcesGlobal = ZeroVector(msElementSize);
 
 		const double A = this->GetProperties()[CROSS_AREA];
@@ -314,16 +315,16 @@ namespace Kratos
 		const double rho = this->GetProperties()[DENSITY];
 
 		//calculating equivalent line load
-		for (int i = 0; i < msNumberOfNodes; ++i)
+ 		for (int i = 0; i < msNumberOfNodes; ++i)
 		{
 			EquivalentLineLoad += A * rho*
 				this->GetGeometry()[i].
 				FastGetSolutionStepValue(VOLUME_ACCELERATION)*Ncontainer(0, i);
-		}
+		} 
 
 
-		// adding the nodal forces
-		for (int i = 0; i < msNumberOfNodes; ++i)
+ 		// adding the nodal forces
+ 		for (int i = 0; i < msNumberOfNodes; ++i)
 		{
 			int index = i*msLocalSize;
 			for (int j = 0; j < msDimension; ++j)
@@ -331,19 +332,18 @@ namespace Kratos
 				BodyForcesGlobal[j + index] =
 					EquivalentLineLoad[j] * Ncontainer(0, i) * l;
 			}
-		}
+		} 
 
 		// adding the nodal moments
-		this->CalculateAndAddWorkEquivalentNodalForcesLineLoad
-			(EquivalentLineLoad, BodyForcesGlobal, l);
-
+ 		this->CalculateAndAddWorkEquivalentNodalForcesLineLoad
+			(EquivalentLineLoad, BodyForcesGlobal, l);  
 		// return the total ForceVector
 		return BodyForcesGlobal;
 		KRATOS_CATCH("")
 	}
 
 	void CrBeamElement2D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
-		const bounded_vector<double,CrBeamElement2D2N::msDimension> ForceInput,
+		const bounded_vector<double,3> ForceInput,
 		bounded_vector<double,CrBeamElement2D2N::msElementSize>& rRightHandSideVector,
 		const double GeometryLength)
 	{
