@@ -230,8 +230,8 @@ namespace Kratos
 		//KRATOS_WATCH(mz_A);
 		//KRATOS_WATCH(my_B);
 		//KRATOS_WATCH(mz_B);
-		KRATOS_WATCH(elementForces_t);
-		std::cout << "------------------------------------------" << std::endl;
+		//KRATOS_WATCH(elementForces_t);
+		//std::cout << "------------------------------------------" << std::endl;
 
 
 
@@ -743,13 +743,13 @@ namespace Kratos
 
 
 		/////TESTING
-		this->mPhiS[1] = 0.00;
-		this->mPhiS[2] = 0.00;
-		this->mPhiA[0] = 0.00;
-		this->mPhiA[1] = 0.00;
-		this->mPhiA[2] = 0.00;
+		//this->mPhiS[1] = 0.00;
+		//this->mPhiS[2] = 0.00;
+		//this->mPhiA[0] = 0.00;
+		//this->mPhiA[1] = 0.00;
+		//this->mPhiA[2] = 0.00;
 
-		KRATOS_WATCH(n_xyz);
+		//KRATOS_WATCH(n_xyz);
 		//KRATOS_WATCH(this->mPhiS);
 		//KRATOS_WATCH(this->mPhiA);
 		return n_xyz;
@@ -1177,7 +1177,7 @@ namespace Kratos
 		deformation_modes_total_V[3] = l - L;
 		for (int i = 0; i < 3; ++i) deformation_modes_total_V[i] = this->mPhiS[i];
 		for (int i = 0; i < 2; ++i) deformation_modes_total_V[i + 4] = this->mPhiA[i + 1];
-		KRATOS_WATCH(deformation_modes_total_V);
+		//KRATOS_WATCH(deformation_modes_total_V);
 		//calculate element forces
 		bounded_vector<double,msLocalSize> element_forces_t = ZeroVector(msLocalSize);
 		bounded_matrix<double,msLocalSize,msLocalSize> deformation_stiffness_Kd = ZeroMatrix(msLocalSize);
