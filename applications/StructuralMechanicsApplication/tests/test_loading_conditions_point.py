@@ -36,7 +36,10 @@ class TestLoadingConditionsPoint(KratosUnittest.TestCase):
         rhs = KratosMultiphysics.Vector(0)
         
         # first we apply a load to the condition 
-        load_on_cond = (1.8, 2.6,-11.47)
+        load_on_cond = KratosMultiphysics.Vector(3)
+        load_on_cond[0] = 1.8
+        load_on_cond[1] = 2.6
+        load_on_cond[2] = -11.47
 
         cond.SetValue(StructuralMechanicsApplication.POINT_LOAD, load_on_cond)
         
@@ -48,7 +51,10 @@ class TestLoadingConditionsPoint(KratosUnittest.TestCase):
             self.assertEqual(rhs[2], load_on_cond[2])
 
         # now we apply a load to the node
-        nodal_load = (5.5, 1.2,-9,3)
+        nodal_load = KratosMultiphysics.Vector(3)
+        nodal_load[0] = -5.5
+        nodal_load[1] = 1.2
+        nodal_load[2] = 9.3
 
         node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD, nodal_load)
         
@@ -84,7 +90,10 @@ class TestLoadingConditionsPoint(KratosUnittest.TestCase):
         rhs = KratosMultiphysics.Vector(0)
         
         # first we apply a load to the condition 
-        load_on_cond = (1.8, 2.6,-11.47)
+        load_on_cond = KratosMultiphysics.Vector(3)
+        load_on_cond[0] = 1.8
+        load_on_cond[1] = 2.6
+        load_on_cond[2] = -11.47
 
         cond.SetValue(StructuralMechanicsApplication.POINT_MOMENT, load_on_cond)
         
@@ -95,7 +104,10 @@ class TestLoadingConditionsPoint(KratosUnittest.TestCase):
         self.assertEqual(rhs[2], load_on_cond[2])
 
         # now we apply a load to the node
-        nodal_load = (5.5, 1.2,-9,3)
+        nodal_load = KratosMultiphysics.Vector(3)
+        nodal_load[0] = -5.5
+        nodal_load[1] = 1.2
+        nodal_load[2] = 9.3
 
         node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_MOMENT, nodal_load)
         

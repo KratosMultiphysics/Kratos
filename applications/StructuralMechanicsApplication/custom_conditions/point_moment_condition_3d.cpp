@@ -16,6 +16,7 @@
 
 
 // Project includes
+#include "includes/checks.h"
 #include "custom_conditions/point_moment_condition_3d.h"
 
 namespace Kratos
@@ -42,7 +43,7 @@ namespace Kratos
 
     Condition::Pointer PointMomentCondition3D::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
     {
-        return boost::make_shared<PointMomentCondition3D>(NewId, pGeom, pProperties);
+        return Condition::Pointer( new PointMomentCondition3D ( NewId, pGeom, pProperties ));
     }
 
     //************************************************************************************
@@ -50,7 +51,7 @@ namespace Kratos
 
     Condition::Pointer PointMomentCondition3D::Create( IndexType NewId, NodesArrayType const& rThisNodes,  PropertiesType::Pointer pProperties ) const
     {
-        return boost::make_shared<PointMomentCondition3D>( NewId, GetGeometry().Create( rThisNodes ), pProperties );
+        return Condition::Pointer( new PointMomentCondition3D ( NewId, GetGeometry().Create( rThisNodes ), pProperties ));
     }
 
     //******************************* DESTRUCTOR *****************************************
@@ -86,11 +87,13 @@ namespace Kratos
         )
     {
         KRATOS_TRY
+
+        rElementalDofList.resize(0);
+        rElementalDofList.reserve(3);
         
-        if (rElementalDofList.size() != 3) rElementalDofList.resize(3,false);
-        rElementalDofList[0] = ( GetGeometry()[0].pGetDof(ROTATION_X));
-        rElementalDofList[1] = ( GetGeometry()[0].pGetDof(ROTATION_Y));
-        rElementalDofList[2] = ( GetGeometry()[0].pGetDof(ROTATION_Z));
+        rElementalDofList.push_back( GetGeometry()[0].pGetDof(ROTATION_X) );
+        rElementalDofList.push_back( GetGeometry()[0].pGetDof(ROTATION_Y) );
+        rElementalDofList.push_back( GetGeometry()[0].pGetDof(ROTATION_Z) );
         
         KRATOS_CATCH("")
     }
@@ -215,25 +218,14 @@ namespace Kratos
     
     int PointMomentCondition3D::Check( const ProcessInfo& rCurrentProcessInfo )
     {
-        if ( ROTATION.Key() == 0 )
-        {
-            KRATOS_ERROR <<  "ROTATION has Key zero! (check if the application is correctly registered" << std::endl;
-        }
+        KRATOS_CHECK_VARIABLE_KEY(ROTATION);
 
-        //verify that the dofs exist
-        for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-        {
-            if ( this->GetGeometry()[i].SolutionStepsDataHas( ROTATION ) == false )
-            {
-                KRATOS_ERROR << "missing variable ROTATION on node " << this->GetGeometry()[i].Id() << std::endl;
-            }
-            if ( this->GetGeometry()[i].HasDofFor( ROTATION_X ) == false ||
-                 this->GetGeometry()[i].HasDofFor( ROTATION_Y ) == false ||
-                 this->GetGeometry()[i].HasDofFor( ROTATION_Z ) == false )
-            {
-                KRATOS_ERROR << "missing one of the dofs for the variable ROTATION on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
-            }
-        }
+        const auto& r_node =this->GetGeometry()[0];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
+
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_X, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z, r_node);
         
         return 0;
     }
