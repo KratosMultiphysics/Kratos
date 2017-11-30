@@ -73,7 +73,7 @@ namespace Kratos
   
   void QFluid3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
   {
-    KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
+    KRATOS_ERROR<< "method not implemented";
   }
   
 
@@ -97,7 +97,7 @@ namespace Kratos
 
     boost::numeric::ublas::bounded_matrix<double,6,12> msB = ZeroMatrix(6,12); 
     boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
-    array_1d<double,4> ms_temp_vec_np;
+    array_1d<double,4> temp_vec_np;
     
     boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
     double Volume;
@@ -191,15 +191,15 @@ namespace Kratos
 #else
 	//nada
 #endif
-	noalias(ms_temp_vec_np) = ZeroVector(4);
+	noalias(temp_vec_np) = ZeroVector(4);
         
 	for(unsigned int iii = 0; iii<number_of_points; iii++)
 	  {
 	    const array_1d<double,3>& v = (GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY,1) );
-	    ms_temp_vec_np[iii] += v[component_index] * density / dt;
+	    temp_vec_np[iii] += v[component_index] * density / dt;
 	  }
 	
-        noalias(rhs_aux) += prod(msMass,ms_temp_vec_np) ;
+        noalias(rhs_aux) += prod(msMass,temp_vec_np) ;
 	
 	//writing the rhs_aux in its place
         for( unsigned int i = 0; i < number_of_points; i++)
@@ -482,7 +482,7 @@ namespace Kratos
 	density=1000.0;
 	
 	density = this->GetValue(DENSITY);
-	KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
+	KRATOS_ERROR<<  "method not implemented" ;
 	
         double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
         double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSUREAUX);
@@ -562,7 +562,7 @@ namespace Kratos
       }
     else if (FractionalStepNumber == 7) 
       {
-    	array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes
+    	array_1d<double,4> temp_vec_np; //dimension = number of nodes
         array_1d<double,4> GalerkinRHS = ZeroVector(4); //dimension = number of nodes
         boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX; // = ZeroMatrix(3,2);
         array_1d<double,4> msN = ZeroVector(4); //dimension = number of nodes
@@ -628,12 +628,12 @@ namespace Kratos
 	
 	bulk_modulus=  -1.0 * dt * 5000.0;
 	
-	ms_temp_vec_np[0]= p_n0;
-	ms_temp_vec_np[1]= p_n1;
-	ms_temp_vec_np[2]= p_n2;
-	ms_temp_vec_np[3]= p_n3;
+	temp_vec_np[0]= p_n0;
+	temp_vec_np[1]= p_n1;
+	temp_vec_np[2]= p_n2;
+	temp_vec_np[3]= p_n3;
 
-        noalias(GalerkinRHS) = prod(Mass, ms_temp_vec_np);
+        noalias(GalerkinRHS) = prod(Mass, temp_vec_np);
 	//KRATOS_WATCH(GalerkinRHS);
 
         //double E_over_R = 24466.81;
@@ -663,8 +663,8 @@ namespace Kratos
 	//double E_over_R = 28961.49;
     	//double C = 1.19e15;
 
-	double E_over_R = 24400.0;//28961.49;
-    	double C = 2.18e12;//1.19e15;
+	constexpr double E_over_R = 24400.0;//28961.49;
+    	constexpr double C = 2.18e12;//1.19e15;
  
 	//////////////
         GalerkinRHS[0] += bulk_modulus * Area * Gaux * 0.25 + 1.0 * bulk_modulus * Area * C * exp(-E_over_R/(temp)) * 0.25 ;

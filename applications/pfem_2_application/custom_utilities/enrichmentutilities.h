@@ -1755,7 +1755,7 @@ namespace Kratos
 	  TetrahedraSplit::Split_Tetrahedra(edge_ids, t, &nel, &n_splitted_edges, &nint);
 	  
 	  if (nint != 0)
-	    KRATOS_THROW_ERROR(std::logic_error, "requiring an internal node for splitting ... can not accept this", "");
+	    KRATOS_ERROR<<"requiring an internal node for splitting ... can not accept this";
 	  
 	  //now obtain the tetras and compute their center coordinates and volume
 	  array_1d<double, 3 > center_position;
@@ -1819,7 +1819,7 @@ namespace Kratos
 	  TetrahedraSplit::Split_Tetrahedra(edge_ids, t, &nel, &n_splitted_edges, &nint);
 	  
 	  if (nint != 0)
-	    KRATOS_THROW_ERROR(std::logic_error, "requiring an internal node for splitting ... can not accept this", "");
+	    KRATOS_ERROR<<"requiring an internal node for splitting ... can not accept this";
 	  coord_node=ZeroMatrix(2,3);
 	  coord_interface_nodes=ZeroMatrix(2,3);
 
@@ -2370,7 +2370,7 @@ namespace Kratos
       double inv_area = 0.0;
       if (area == 0.0)
 	{
-	  KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
+	  KRATOS_ERROR<<"element with zero area found";
 	} else
 	{
 	  inv_area = 1.0 / area;

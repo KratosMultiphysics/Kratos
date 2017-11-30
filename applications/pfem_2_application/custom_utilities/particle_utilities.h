@@ -76,7 +76,7 @@ namespace Kratos
       {
 	
         KRATOS_TRY
-	  // KRATOS_THROW_ERROR(std::logic_error,  "NEGATIVE VALUE OF Time step estimated" , "");
+	  // KRATOS_ERROR(std::logic_error,  "NEGATIVE VALUE OF Time step estimated" , "");
 	  //initializee dt with max dt
 	  //initialize dt with incredible value
 	  double /*dt, glob_min_dt,*/ dummy;
@@ -198,7 +198,7 @@ namespace Kratos
 	
 	
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(NODAL_H) == false)
-	  KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+	  KRATOS_ERROR<<"Add  ----NODAL_H---- variable!!!!!! ERROR";
 	
         double sigma = 0.0;
         if (TDim == 2)
@@ -303,7 +303,7 @@ namespace Kratos
         DistanceVector SquaredResultsDistances(MaximumNumberOfResults);
 	
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(NODAL_H) == false)
-	  KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+	  KRATOS_ERROR<<"Add  ----NODAL_H---- variable!!!!!! ERROR";
         
         double sigma = 0.0;
         if (TDim == 2)
@@ -318,7 +318,7 @@ namespace Kratos
 		work_point.X() = node_it->X();
 		work_point.Y() = node_it->Y();
 		work_point.Z() = node_it->Z();
-		//KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+		//KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
 		double radius = 2.0 * node_it->FastGetSolutionStepValue(NODAL_H);
 		
             	//find all of the new nodes within the radius
@@ -342,12 +342,12 @@ namespace Kratos
 			  {
 			    double tempp=0.0;
 			    tempp=(*it_found)->FastGetSolutionStepValue(YCH4);
-			    //KRATOS_THROW_ERROR(std::logic_error, "nodo without temperature", "");
+			    //KRATOS_ERROR(std::logic_error, "nodo without temperature", "");
 			    if(tempp<298.0) tempp=298.0;
 			    //else tempp=(*it_found)->FastGetSolutionStepValue(YCH4);
 			    temperature_aux += weight * tempp;//temperature
 			    tot_weight += weight;
-			    //KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+			    //KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
 			  }
 		      }
 		    if(tot_weight>0.0)
@@ -398,10 +398,10 @@ namespace Kratos
 	      {
                 Geometry<Node<3> >& geom = pelement->GetGeometry();
 		boost::numeric::ublas::bounded_matrix<double, 3, 2 > msDN_DX;
-		array_1d<double, 3 > msN;
-	    	array_1d<double, 3 > N;
+		array_1d<double, 3 > N;
+	    	//array_1d<double, 3 > N;
 		double Area=0.0;
-	    	GeometryUtils::CalculateGeometryData(geom, msDN_DX, msN, Area);
+	    	GeometryUtils::CalculateGeometryData(geom, msDN_DX, N, Area);
 		
 		int s0=0;
 		int s1=0;
@@ -431,14 +431,14 @@ namespace Kratos
 		    if((geom[1].FastGetSolutionStepValue(IS_INTERFACE)>0.5 && geom[0].FastGetSolutionStepValue(IS_INTERFACE)>0.5))  //IS_INTERFACE
 		      {
             		double norm=0.0;
-	    		//KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", ""); 
+	    		//KRATOS_ERROR(std::logic_error, "element with zero vol found", ""); 
             		interface_segment[0] = (geom[0].X()-geom[1].X());
             		interface_segment[1] = (geom[0].Y()-geom[1].Y());
             		norm = sqrt(  pow((interface_segment[0]),2) + pow((interface_segment[1]),2));
             		//double area1=norm;
             		normaledge1(0)= -interface_segment[1]/norm;
             		normaledge1(1)= interface_segment[0]/norm;
-            		faceheatflux += fabs(1.0*(qrad[0]*normaledge1(0)+qrad[1]*normaledge1(1))*0.0131);
+            		faceheatflux += abs(1.0*(qrad[0]*normaledge1(0)+qrad[1]*normaledge1(1))*0.0131);
 		      }
 		    
 		    if((geom[1].FastGetSolutionStepValue(IS_INTERFACE)>0.5 && geom[2].FastGetSolutionStepValue(IS_INTERFACE)>0.5))
@@ -450,7 +450,7 @@ namespace Kratos
 			//double area1=norm;
 			normaledge1(0)= -interface_segment[1]/norm;
 			normaledge1(1)= interface_segment[0]/norm;
-			faceheatflux += fabs(1.0*(qrad[0]*normaledge1(0)+qrad[1]*normaledge1(1))*0.0131);
+			faceheatflux += abs(1.0*(qrad[0]*normaledge1(0)+qrad[1]*normaledge1(1))*0.0131);
 		      }
 		    if((geom[2].FastGetSolutionStepValue(IS_INTERFACE)>0.5 && geom[0].FastGetSolutionStepValue(IS_INTERFACE)>0.5))
 		      {
@@ -460,7 +460,7 @@ namespace Kratos
 			norm = sqrt(  pow((interface_segment[0]),2) + pow((interface_segment[1]),2));
 			normaledge1(0)= -interface_segment[1]/norm;
 			normaledge1(1)= interface_segment[0]/norm;
-			faceheatflux += fabs(1.0*(qrad[0]*normaledge1(0)+qrad[1]*normaledge1(1))*0.0131);
+			faceheatflux += abs(1.0*(qrad[0]*normaledge1(0)+qrad[1]*normaledge1(1))*0.0131);
 		      }
 		  }
 		if(sum==1)
@@ -473,7 +473,7 @@ namespace Kratos
             		norm = sqrt(  pow((interface_segment[0]),2) + pow((interface_segment[1]),2));
 			normaledge1(0)= -interface_segment[1]/norm;
             		normaledge1(1)= interface_segment[0]/norm;
-			faceheatflux += fabs(1.0*(qrad[0]*normaledge1(0)+qrad[1]*normaledge1(1))*0.0131);
+			faceheatflux += abs(1.0*(qrad[0]*normaledge1(0)+qrad[1]*normaledge1(1))*0.0131);
 		      }		    
 		    if((geom[1].FastGetSolutionStepValue(IS_INTERFACE)<0.5 && geom[2].FastGetSolutionStepValue(IS_INTERFACE)<0.5))
 		      {
@@ -483,7 +483,7 @@ namespace Kratos
 			norm = sqrt(  pow((interface_segment[0]),2) + pow((interface_segment[1]),2));
 			normaledge1(0)= -interface_segment[1]/norm;
 			normaledge1(1)= interface_segment[0]/norm;
-			faceheatflux += fabs(1.0*(qrad[0]*normaledge1(0)+qrad[1]*normaledge1(1))*0.0131);
+			faceheatflux += abs(1.0*(qrad[0]*normaledge1(0)+qrad[1]*normaledge1(1))*0.0131);
 		      }		    
 		    if((geom[2].FastGetSolutionStepValue(IS_INTERFACE)<0.5 && geom[0].FastGetSolutionStepValue(IS_INTERFACE)<0.5))
 		      {
@@ -493,7 +493,7 @@ namespace Kratos
 			norm = sqrt(  pow((interface_segment[0]),2) + pow((interface_segment[1]),2));
 			normaledge1(0)= -interface_segment[1]/norm;
 			normaledge1(1)= interface_segment[0]/norm;
-			faceheatflux += fabs(1.0*(qrad[0]*normaledge1(0)+qrad[1]*normaledge1(1))*0.0131);
+			faceheatflux += abs(1.0*(qrad[0]*normaledge1(0)+qrad[1]*normaledge1(1))*0.0131);
 		      }
 		  }
 		
@@ -537,9 +537,9 @@ namespace Kratos
 		//area_normal *= -0.5;
 		
 		array_1d<double,3> msAuxVec = ZeroVector(3);
-		double c0 = fabs(area_normal[0]);
-		double c1 = fabs(area_normal[1]);
-		double c2 = fabs(area_normal[2]);
+		double c0 = abs(area_normal[0]);
+		double c1 = abs(area_normal[1]);
+		double c2 = abs(area_normal[2]);
 		msAuxVec[0]=c0;
 		msAuxVec[1]=c1;
 		msAuxVec[2]=c2;
@@ -565,9 +565,9 @@ namespace Kratos
 		  MathUtils<double>::CrossProduct(area_normal,v1,v2);
 		  //area_normal *= -0.5;
 		  array_1d<double,3> msAuxVec = ZeroVector(3);
-		  double c0 = fabs(area_normal[0]);
-		  double c1 = fabs(area_normal[1]);
-		  double c2 = fabs(area_normal[2]);
+		  double c0 = abs(area_normal[0]);
+		  double c1 = abs(area_normal[1]);
+		  double c2 = abs(area_normal[2]);
 		  msAuxVec[0]=c0;
 		  msAuxVec[1]=c1;
 		  msAuxVec[2]=c2;
@@ -594,9 +594,9 @@ namespace Kratos
 		  MathUtils<double>::CrossProduct(area_normal,v1,v2);
 		  //area_normal *= -0.5;
 		  array_1d<double,3> msAuxVec = ZeroVector(3);
-		  double c0 = fabs(area_normal[0]);
-		  double c1 = fabs(area_normal[1]);
-		  double c2 = fabs(area_normal[2]);
+		  double c0 = abs(area_normal[0]);
+		  double c1 = abs(area_normal[1]);
+		  double c2 = abs(area_normal[2]);
 		  msAuxVec[0]=c0;
 		  msAuxVec[1]=c1;
 		  msAuxVec[2]=c2;
@@ -621,9 +621,9 @@ namespace Kratos
 		  MathUtils<double>::CrossProduct(area_normal,v1,v2);
 		  //area_normal *= -0.5;	
 		  array_1d<double,3> msAuxVec = ZeroVector(3);
-		  double c0 = fabs(area_normal[0]);
-		  double c1 = fabs(area_normal[1]);
-		  double c2 = fabs(area_normal[2]);
+		  double c0 = abs(area_normal[0]);
+		  double c1 = abs(area_normal[1]);
+		  double c2 = abs(area_normal[2]);
 		  msAuxVec[0]=c0;
 		  msAuxVec[1]=c1;
 		  msAuxVec[2]=c2;
@@ -672,9 +672,9 @@ namespace Kratos
 	      {
 		Geometry<Node<3> >& geom = pelement->GetGeometry();
 		boost::numeric::ublas::bounded_matrix<double, 4, 3 > msDN_DX;
-		array_1d<double, 4 > msN;
+		array_1d<double, 4 > N;
 		double Area=0.0;
-		GeometryUtils::CalculateGeometryData(geom, msDN_DX, msN, Area);
+		GeometryUtils::CalculateGeometryData(geom, msDN_DX, N, Area);
 		array_1d<double, 3 > qrad=ZeroVector(3);
 		double temmp=0.0;
 		for (unsigned int jj = 0; jj < 3; jj++)
@@ -688,7 +688,7 @@ namespace Kratos
 		  }
 		//double faceheatflux=0.0;
 		(iparticle)->FastGetSolutionStepValue(NORMAL) *=(-1.0);
-		(iparticle)->FastGetSolutionStepValue(FACE_HEAT_FLUX) += fabs( (iparticle)->FastGetSolutionStepValue(NORMAL_X) * qrad[0] + (iparticle)->FastGetSolutionStepValue(NORMAL_Y) * qrad[1] + (iparticle)->FastGetSolutionStepValue(NORMAL_Z) * qrad[2]) *0.0131;
+		(iparticle)->FastGetSolutionStepValue(FACE_HEAT_FLUX) += abs( (iparticle)->FastGetSolutionStepValue(NORMAL_X) * qrad[0] + (iparticle)->FastGetSolutionStepValue(NORMAL_Y) * qrad[1] + (iparticle)->FastGetSolutionStepValue(NORMAL_Z) * qrad[2]) *0.0131;
 			
 	      }
 	  }
@@ -721,7 +721,7 @@ namespace Kratos
       void MoveMesh_Streamlines_freesurfaceflows(ModelPart& rModelPart, unsigned int substeps)
       {      
 	const double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
-	//KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+	//KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
 	BinBasedFastPointLocator<TDim> SearchStructure(rModelPart);
 	SearchStructure.UpdateSearchDatabase();
 	
@@ -893,16 +893,16 @@ namespace Kratos
 		  for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin(); i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
 		    {
 
-			//KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+			//KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
 		      if( /*i->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) ==1 and*/ i->FastGetSolutionStepValue(IS_FREE_SURFACE) ==1) //we can erase the current node only if the neighb is not to be erased
 			{
-			  //KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+			  //KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
 			  nf++;
 			  //KRATOS_WATCH(nf)
 			}
 		      if(nf>=2) {in->FastGetSolutionStepValue(IS_WATER)= 1;
 
-			//KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+			//KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
 		      }
 		    }
 		}
@@ -943,10 +943,10 @@ namespace Kratos
                 
                 boost::numeric::ublas::bounded_matrix<double, 4, 3 > msDN_DX;
 		
-	    	array_1d<double, 4 > msN;
+	    	array_1d<double, 4 > N;
 		
 	    	double Area=0.0;
-	    	GeometryUtils::CalculateGeometryData(geom, msDN_DX, msN, Area);
+	    	GeometryUtils::CalculateGeometryData(geom, msDN_DX, N, Area);
 		
 		array_1d<double, 3 > velocity=ZeroVector(3);
 		
@@ -955,7 +955,7 @@ namespace Kratos
 		for (unsigned int jj = 0; jj < 3; jj++)
 		  {
 		    temmp=geom[jj].FastGetSolutionStepValue(VELOCITY);
-		    velocity =msN(jj) * temmp;
+		    velocity =N(jj) * temmp;
 		  }
 		//KRATOS_WATCH(qrad);
         	//double faceheatflux=0.0;
@@ -977,7 +977,7 @@ namespace Kratos
 	  for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin(); node_it != rLagrangianModelPart.NodesEnd(); node_it++)
 	    {
 	      if( node_it->GetValue(NEIGHBOUR_ELEMENTS).size() != 0) (node_it)->FastGetSolutionStepValue(K0) = 0.0;
-	      //if( node_it->FastGetSolutionStepValue(NODAL_MASS) == 0.0) KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+	      //if( node_it->FastGetSolutionStepValue(NODAL_MASS) == 0.0) KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
 	    }
 	
 	for (ModelPart::ElementsContainerType::iterator el_it = rLagrangianModelPart.ElementsBegin();el_it != rLagrangianModelPart.ElementsEnd(); el_it++)
@@ -1089,8 +1089,8 @@ namespace Kratos
 	  {
 	    if(jj!=0)
 	      {
-		if(jj==0) KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
-		//KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+		if(jj==0) KRATOS_ERROR<<"element with zero vol found";
+		//KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
 		area=0.0;
 		velocity_a=ZeroVector(3);
 		velocity_p=ZeroVector(3);
@@ -1336,7 +1336,7 @@ namespace Kratos
 	
 	
 	if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(NODAL_H) == false)
-	  KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+	  KRATOS_ERROR<<"Add  ----NODAL_H---- variable!!!!!! ERROR";
 	
 	double sigma = 0.0;
 	
@@ -1434,7 +1434,7 @@ namespace Kratos
         for (int i = 0; i < nparticles; i++)
 	  {
             ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
-	    //KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+	    //KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 	    
@@ -1456,13 +1456,13 @@ namespace Kratos
                 if( (iparticle)->FastGetSolutionStepValue(DIAMETER)>0)//  ((iparticle)->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0)
 		  {
 		    (iparticle)->FastGetSolutionStepValue(YN2)=1.0; 
-		    // KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");	
+		    // KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");	
                     KRATOS_WATCH("aloneeeeeeeeeeeeeeeeeeeee");
                     KRATOS_WATCH((iparticle)->FastGetSolutionStepValue(DIAMETER));
                     for (unsigned int k = 0; k < geom.size(); k++)
                     {
 		      
-		      //KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+		      //KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
 		      geom[k].SetLock();
 		      geom[k].GetValue(YOUNG_MODULUS) += N[k] * 27400.0 * 1.0 * C * exp(-E_over_R/(Tp)) *905.0 * (iparticle)->FastGetSolutionStepValue(K0);//0.0001;
 		      
@@ -1512,7 +1512,7 @@ namespace Kratos
             const double tt = (node_it)->GetValue(YOUNG_MODULUS);
 	    if (NN != 0.0)
 	      {
-		//KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+		//KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
 		//KRATOS_WATCH(tt);
 		//KRATOS_WATCH(NN);
 		double nodal_mass = node_it->FastGetSolutionStepValue(NODAL_MASS);
@@ -1627,7 +1627,7 @@ namespace Kratos
 	double inv_vol = 0.0;
 	if (vol < 0.0000000000001)
 	  {
-	    KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+	    KRATOS_ERROR<<"element with zero vol found";
 	  }
 	else
 	  {
@@ -1831,7 +1831,7 @@ namespace Kratos
 	  
 	  
       
-	    const double relative_position = fabs(rDistances(1)/(rDistances(1)-rDistances(0) ) ); 
+	    const double relative_position = abs(rDistances(1)/(rDistances(1)-rDistances(0) ) ); 
 	  
 	    InterfacePoints(0,0) = relative_position*rPoints(0,0) +  (1.0-relative_position)*rPoints(1,0);
 	  
@@ -1843,7 +1843,7 @@ namespace Kratos
 	    
 	      {
 	      
-		const double relative_position2 = fabs(rDistances(2)/(rDistances(1)-rDistances(2) ) ); 
+		const double relative_position2 = abs(rDistances(2)/(rDistances(1)-rDistances(2) ) ); 
 	      
 		InterfacePoints(1,0) = relative_position2*rPoints(1,0) +  (1.0-relative_position2)*rPoints(2,0);
 	      
@@ -1855,7 +1855,7 @@ namespace Kratos
 	    
 	      {
 	      
-		const double relative_position2 = fabs(rDistances(0)/(rDistances(2)-rDistances(0) ) ); 
+		const double relative_position2 = abs(rDistances(0)/(rDistances(2)-rDistances(0) ) ); 
 	      
 		InterfacePoints(1,0) = relative_position2*rPoints(2,0) +  (1.0-relative_position2)*rPoints(0,0);
 	      
@@ -1875,7 +1875,7 @@ namespace Kratos
 	  
 	  
 	  
-	    const double relative_position = fabs(rDistances(2)/(rDistances(2)-rDistances(1) ) ); 
+	    const double relative_position = abs(rDistances(2)/(rDistances(2)-rDistances(1) ) ); 
 	  
 	    InterfacePoints(0,0) = relative_position*rPoints(1,0) +  (1.0-relative_position)*rPoints(2,0);
 	  
@@ -1883,7 +1883,7 @@ namespace Kratos
 	  
 	  
 	  
-	    const double relative_position2 = fabs(rDistances(0)/(rDistances(2)-rDistances(0) ) ); 
+	    const double relative_position2 = abs(rDistances(0)/(rDistances(2)-rDistances(0) ) ); 
 	  
 	    InterfacePoints(1,0) = relative_position2*rPoints(2,0) +  (1.0-relative_position2)*rPoints(0,0);
 	  
@@ -1932,7 +1932,7 @@ namespace Kratos
 	double inv_area = 0.0;
 	if (area == 0.0)
 	  {
-	    KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
+	    KRATOS_ERROR<<"element with zero area found";
 	  }
 	else
 	  {
@@ -1958,7 +1958,7 @@ namespace Kratos
 	double inv_area = 0.0;
 	if (area == 0.0)
 	  {
-	    KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
+	    KRATOS_ERROR<<"element with zero area found";
 	  }
 	else
 	  {

@@ -104,7 +104,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
   boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
   array_1d<double,3> msN; //dimension = number of nodes
   array_1d<double,2> ms_vel_gauss; //dimesion coincides with space dimension
-  array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes
+  //array_1d<double,3> temp_vec_np; //dimension = number of nodes
   array_1d<double,3> ms_u_DN; //dimension = number of nodes
   //getting data for the given geometry
   
@@ -252,9 +252,9 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
       for(unsigned int iii = 0; iii<number_of_points; iii++)
         {
 	  const array_1d<double,3>& v = (GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY,1) );
-	  ms_temp_vec_np[iii] = v[component_index] / dt * density;
+	  temp_vec_np[iii] = v[component_index] / dt * density;
         }
-      noalias(rhs_aux) += prod(msMassFactors,ms_temp_vec_np) ;
+      noalias(rhs_aux) += prod(msMassFactors,temp_vec_np) ;
       
       //writing the rhs_aux in its place
       for( unsigned int i = 0; i < number_of_points; i++)
@@ -296,7 +296,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
     array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
-    array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
+    array_1d<double,3> temp_vec_np = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
     boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
@@ -385,19 +385,19 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     //////////////////////////////////////////////////////////
 
     //Dirichlet contribution  (that is: LHS*p_new)
-    ms_temp_vec_np[0] = p0;
-    ms_temp_vec_np[1] = p1;
-    ms_temp_vec_np[2] = p2;
+    temp_vec_np[0] = p0;
+    temp_vec_np[1] = p1;
+    temp_vec_np[2] = p2;
     //LHS is already multiplied by AREA
-    noalias(rRightHandSideVector) = -prod(msWorkMatrix1,ms_temp_vec_np);
+    noalias(rRightHandSideVector) = -prod(msWorkMatrix1,temp_vec_np);
 
     //NOW RHS-=dt L p_old
     //changing the meaning of temp_vec_np
-    ms_temp_vec_np[0] = p0_old;
-    ms_temp_vec_np[1] = p1_old;
-    ms_temp_vec_np[2] = p2_old;
+    temp_vec_np[0] = p0_old;
+    temp_vec_np[1] = p1_old;
+    temp_vec_np[2] = p2_old;
 
-    noalias(rRightHandSideVector) += Area* dt/2.0 * (prod(msWorkMatrix,ms_temp_vec_np)) ;
+    noalias(rRightHandSideVector) += Area* dt/2.0 * (prod(msWorkMatrix,temp_vec_np)) ;
 
     //***************************************************************************
 
@@ -452,7 +452,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
     array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
-    array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
+    array_1d<double,3> temp_vec_np = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
     boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
@@ -725,7 +725,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
         array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
         array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
         array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
-	array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
+	array_1d<double,3> temp_vec_np = ZeroVector(3); //dimension = number of nodes
 	
 	double dt = CurrentProcessInfo[DELTA_TIME];
 	
@@ -795,9 +795,8 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
         Gaux += msDN_DX(1,0) * vel1[0] + msDN_DX(1,1) * vel1[1];
         Gaux += msDN_DX(2,0) * vel2[0] + msDN_DX(2,1) * vel2[1];
 
-	double E_over_R = 28961.49;//24466.81;
-    	double C = 1.4e10; 
-	C=1.19e15;
+	constexpr double E_over_R = 28961.49;//24466.81;
+    	constexpr double C = 1.19e15; 
 	
         double t1 = GetGeometry()[0].FastGetSolutionStepValue(YCH4);
         //double Arr1 = C * exp(-E_over_R/(t1));

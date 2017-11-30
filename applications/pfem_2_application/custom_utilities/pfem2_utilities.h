@@ -657,7 +657,7 @@ public:
                         if(area_base >0.0000000001)
                             vol/= area_base;
                         else
-                            KRATOS_THROW_ERROR(std::logic_error,"error: BAse element has zero area","");
+                            KRATOS_ERROR<<"error: BAse element has zero area";
 
                         //vol/=area_base;
                         double length_measure1 = norm_2(vec2);
@@ -1277,7 +1277,7 @@ public:
             }
 
             if (n_int>n_nodes)
-                KRATOS_THROW_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
+                KRATOS_ERROR<<"Number of DISABLE flags cant exceed number of the element nodes.... ";
 
         }
 
