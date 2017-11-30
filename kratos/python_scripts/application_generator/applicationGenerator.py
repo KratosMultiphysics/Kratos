@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import difflib
 
 from classes.elementCreator import ElementCreator
 from classes.conditionCreator import ConditionCreator
@@ -21,6 +22,34 @@ class ApplicationGenerator(TemplateRule):
     def __init__(self, name):
 
         super(ApplicationGenerator, self).__init__()
+
+        appStrPos = name.lower().find('application')
+        maxi = 5
+        while appStrPos != -1 and maxi > 0:
+            oldname = name
+            name = name[0:appStrPos] + name[appStrPos+len('application'):len(name)]
+
+            msg = Formatc([
+                {'color': bcolors.WARNING, 'msg': '[WARNING]'},
+                {'color': bcolors.CYAN, 'msg': ' {}'.format(oldname)},
+                {'color': None, 'msg': ' already contains the substring "'},
+                {'color': bcolors.CYAN, 'msg': '{}'.format('Application')},
+                {'color': None, 'msg': '". Removing... : '+name},
+            ], sys.stderr)
+
+            print(msg, file=sys.stderr)
+            appStrPos = name.lower().find('application')
+            maxi = maxi -1
+
+        if difflib.SequenceMatcher(None, name.lower(), 'application').ratio() > 0.65:
+            msg = Formatc([
+                {'color': bcolors.WARNING, 'msg': '[WARNING]'},
+                {'color': None, 'msg': ' Your application name contains something wrong after automatic fix, please select another name.'},
+            ], sys.stderr)
+
+            print(msg, file=sys.stderr)
+            exit()
+
 
         self._appDir = GetApplicationsDirectory()
 
