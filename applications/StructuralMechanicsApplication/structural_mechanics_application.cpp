@@ -152,7 +152,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     mSurfaceLoadCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Condition::GeometryType::PointsArrayType( 6 ) ) ) ),
     mSurfaceLoadCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
     mSurfaceLoadCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9 ) ) ) ),
-    // Beam's point moment condition
+    // Adding point moment conditions
+    mPointMomentCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) )
 {}
 
@@ -413,7 +414,9 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D6N", mSurfaceLoadCondition3D6N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D8N", mSurfaceLoadCondition3D8N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D9N", mSurfaceLoadCondition3D9N )
-    // Beam's point moment condition
+
+    // Point moment
+    KRATOS_REGISTER_CONDITION( "PointMomentCondition2D1N", mPointMomentCondition2D1N );
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N );
 
     // For MPC implementations
@@ -424,10 +427,10 @@ void KratosStructuralMechanicsApplication::Register()
     Serializer::Register( "LinearElastic3DLaw", mElasticIsotropic3D );
     Serializer::Register( "LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain );
     Serializer::Register( "LinearElasticPlaneStress2DLaw", mLinearPlaneStress );
-    Serializer::Register( "LinearElasticAxisym2DLaw",  mAxisymElasticIsotropic);
-    Serializer::Register( "HyperElastic3DLaw",  mHyperElasticIsotropicNeoHookean3D);
-    Serializer::Register( "HyperElasticPlaneStrain2DLaw",  mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
-    Serializer::Register("LinearElasticOrthotropic2DLaw", mLinearElasticOrthotropic2DLaw);
+    Serializer::Register( "LinearElasticAxisym2DLaw",  mAxisymElasticIsotropic );
+    Serializer::Register( "HyperElastic3DLaw",  mHyperElasticIsotropicNeoHookean3D );
+    Serializer::Register( "HyperElasticPlaneStrain2DLaw",  mHyperElasticIsotropicNeoHookeanPlaneStrain2D );
+    Serializer::Register( "LinearElasticOrthotropic2DLaw", mLinearElasticOrthotropic2DLaw );
 }
 
 }  // namespace Kratos.

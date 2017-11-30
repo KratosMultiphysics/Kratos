@@ -60,7 +60,6 @@
 #include "custom_elements/axisym_updated_lagrangian.h"
 
 /* CONDITIONS */
-#include "custom_conditions/point_moment_3D_condition.h"
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
 #include "custom_conditions/point_contact_condition.h"
@@ -68,6 +67,7 @@
 #include "custom_conditions/line_load_condition_2d.h"
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
+#include "custom_conditions/point_moment_condition.h"
 
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/truss_constitutive_law.h"
@@ -364,8 +364,9 @@ private:
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D8N;
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D9N;
     
-    // Beam moment condition
-    const PointMoment3DCondition mPointMomentCondition3D1N;
+    // Point moment
+    const PointMomentCondition mPointMomentCondition2D1N;
+    const PointMomentCondition mPointMomentCondition3D1N;
     
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
@@ -377,7 +378,7 @@ private:
     const LinearPlaneStress  mLinearPlaneStress;
     const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
     const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
-	  const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
+    const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
 
     ///@}
     ///@name Private Operators
