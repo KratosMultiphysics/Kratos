@@ -9,8 +9,8 @@
 //  Main authors:    Philipp Bucher
 //
 
-#if !defined(KRATOS_POINT_MOMENT_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_MOMENT_CONDITION_H_INCLUDED
+#if !defined(KRATOS_POINT_MOMENT_CONDITION_3D_H_INCLUDED )
+#define  KRATOS_POINT_MOMENT_CONDITION_3D_H_INCLUDED
 
 // System includes
 
@@ -42,7 +42,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
     
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  PointMomentCondition
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  PointMomentCondition3D
     : public BaseLoadCondition
 {
 public:
@@ -50,27 +50,27 @@ public:
     ///@name Type Definitions
     ///@{
     
-    // Counted pointer of PointMomentCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointMomentCondition );
+    // Counted pointer of PointMomentCondition3D
+    KRATOS_CLASS_POINTER_DEFINITION( PointMomentCondition3D );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointMomentCondition( 
+    PointMomentCondition3D( 
         IndexType NewId, 
         GeometryType::Pointer pGeometry 
         );
     
-    PointMomentCondition( 
+    PointMomentCondition3D( 
         IndexType NewId, 
         GeometryType::Pointer pGeometry,  
         PropertiesType::Pointer pProperties 
         );
 
     /// Destructor.
-    ~PointMomentCondition() override;
+    ~PointMomentCondition3D() override;
 
     ///@}
     ///@name Operators
@@ -223,7 +223,7 @@ protected:
     ///@{
     
     // A protected default constructor necessary for serialization
-    PointMomentCondition() {};
+    PointMomentCondition3D() {};
 
 private:
     ///@name Static Member Variables
@@ -270,7 +270,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
     }
 
-}; // class PointMomentCondition.
+}; // class PointMomentCondition3D.
 
 ///@}
 ///@name Type Definitions
@@ -283,4 +283,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_POINT_MOMENT_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_POINT_MOMENT_CONDITION_3D_H_INCLUDED  defined 

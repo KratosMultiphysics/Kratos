@@ -67,7 +67,7 @@
 #include "custom_conditions/line_load_condition_2d.h"
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
-#include "custom_conditions/point_moment_condition.h"
+#include "custom_conditions/point_moment_condition_3d.h"
 
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/truss_constitutive_law.h"
@@ -365,8 +365,7 @@ private:
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D9N;
     
     // Point moment
-    const PointMomentCondition mPointMomentCondition2D1N;
-    const PointMomentCondition mPointMomentCondition3D1N;
+    const PointMomentCondition3D mPointMomentCondition3D1N;
     
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws

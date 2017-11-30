@@ -153,7 +153,6 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     mSurfaceLoadCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
     mSurfaceLoadCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9 ) ) ) ),
     // Adding point moment conditions
-    mPointMomentCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) )
 {}
 
@@ -416,7 +415,6 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D9N", mSurfaceLoadCondition3D9N )
 
     // Point moment
-    KRATOS_REGISTER_CONDITION( "PointMomentCondition2D1N", mPointMomentCondition2D1N );
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N );
 
     // For MPC implementations
