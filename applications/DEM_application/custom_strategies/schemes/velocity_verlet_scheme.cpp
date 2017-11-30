@@ -84,8 +84,10 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
 
-        array_1d<double, 3 > local_angular_velocity, local_angular_acceleration, local_torque, angular_acceleration;
+        array_1d<double, 3 >& local_angular_velocity = i.FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY);
 
+        array_1d<double, 3 > local_angular_acceleration, local_torque, angular_acceleration;
+        
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, torque, local_torque);
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
         CalculateLocalAngularAccelerationByEulerEquations(local_angular_velocity, moments_of_inertia, local_torque, moment_reduction_factor, local_angular_acceleration);                        
@@ -98,6 +100,7 @@ namespace Kratos {
         if (ang) {
             GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
         } //if ang
+        GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
     }
 
     void VelocityVerletScheme::UpdateRotationalVariables(
