@@ -87,6 +87,7 @@ namespace Kratos {
                 const bool Fix_Ang_vel[3]) {
 
         array_1d<double, 3 >& angular_momentum       = i.FastGetSolutionStepValue(ANGULAR_MOMENTUM);
+        array_1d<double, 3 >& local_angular_velocity = i.FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY);
         
         array_1d<double, 3 > angular_momentum_aux;
         angular_momentum_aux[0] = 0.0;
@@ -113,6 +114,7 @@ namespace Kratos {
             
             CalculateAngularVelocityRK(Orientation, moments_of_inertia, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
             UpdateRotationalVariables(moments_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
+            GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
         }
     }
 
