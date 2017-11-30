@@ -17,7 +17,7 @@
 
 
 // Project includes
-#include "custom_conditions/point_moment_3D_condition.hpp"
+#include "custom_conditions/point_moment_3D_condition.h"
 
 #include "structural_mechanics_application_variables.h"
 

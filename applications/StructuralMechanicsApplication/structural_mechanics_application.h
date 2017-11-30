@@ -60,7 +60,7 @@
 #include "custom_elements/axisym_updated_lagrangian.h"
 
 /* CONDITIONS */
-#include "custom_conditions/point_moment_3D_condition.hpp"
+#include "custom_conditions/point_moment_3D_condition.h"
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
 #include "custom_conditions/point_contact_condition.h"
