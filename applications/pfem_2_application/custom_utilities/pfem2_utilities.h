@@ -1243,7 +1243,7 @@ public:
 	    for (int i=0; i<n_nodes; i++)
         {
 	
-            if(im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)>0.5) n_int+=1.0;//im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);   
+            if(im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1) n_int+=1.0;//im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);   
 		}
         if (n_int==n_nodes)
         {

@@ -330,7 +330,7 @@ class FracStepSolver:
 	
         
         h_factor=0.1 
-        alpha_shape=1.2;
+        alpha_shape=1.4;
 
 
         for node in (self.model_part).Nodes:
@@ -352,6 +352,19 @@ class FracStepSolver:
         box_corner2[0]=0.015702
         box_corner2[1]=0.01189
         box_corner2[2]=10.0
+
+
+
+
+        box_corner1[0]=-10.0
+        box_corner1[1]=-10.0#0.31315#-0.1689
+        box_corner1[2]=-10.0
+        box_corner2[0]=10.0
+        box_corner2[1]=10.0
+        box_corner2[2]=10.0
+
+        for node in (self.model_part).Nodes: 
+            node.SetSolutionStepValue(NODAL_H,0,0.15) 
 
 
         self.box_corner1 = box_corner1

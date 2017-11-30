@@ -71,7 +71,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/pfem2_utilities.h"
 #include "custom_utilities/mark_outer_nodes_process.h"
 #include "custom_utilities/mark_fluid_process.h"
-#include "custom_utilities/save_lagrangian_surface_process.h"
+#include "custom_utilities/save_lagrangian_surface_process_p.h"
+#include "custom_utilities/enrichmentutilities.h"
+
+
 namespace Kratos
 {
 	
@@ -189,6 +192,13 @@ namespace Python
 	  .def("CalculateNormal", &ParticleUtils < 3 > ::CalculateNormal)	
 	  .def("MarkExcessivelyCloseNodes", &ParticleUtils < 3 > ::MarkExcessivelyCloseNodes)	
 	  .def("MoveLonelyNodes", &ParticleUtils < 3 > ::MoveLonelyNodes)	
+          .def("Calculate_Vol", &ParticleUtils < 3 > ::Calculate_Vol)	
+          .def("TransferToParticlesAirVelocity", &ParticleUtils < 3 > ::TransferToParticlesAirVelocity)	
+          .def("ComputedDragCoefficient", &ParticleUtils < 3 > ::ComputedDragCoefficient)	
+          .def("CalculateNewtonianDragCoefficient", &ParticleUtils < 3 > ::CalculateNewtonianDragCoefficient)	
+          .def("DetectAllOilClusters", &ParticleUtils < 3 > ::DetectAllOilClusters)	
+          .def("ColorOilClusters", &ParticleUtils < 3 > ::ColorOilClusters)	
+          .def("TransferToEulerianMesh_2", &ParticleUtils < 3 > ::TransferToEulerianMesh_2)	
 	  ;
 	
 	class_<Pfem2ApplyBCProcess, bases<Process> >("Pfem2ApplyBCProcess", init<ModelPart&>());
@@ -212,9 +222,20 @@ namespace Python
 	
  	class_<MarkFluidProcess, bases<Process> >("MarkFluidProcess", init<ModelPart&>());
 
-   	class_<SaveLagrangianSurfaceProcess, bases<Process> >("SaveLagrangianSurfaceProcess", init<> ())
-    	.def("SaveSurfaceConditions", &SaveLagrangianSurfaceProcess::SaveSurfaceConditions)
+
+
+   	class_<SaveLagrangianSurfaceProcess_p, bases<Process> >("SaveLagrangianSurfaceProcess_p", init<> ())
+    	.def("SaveSurfaceConditions_p", &SaveLagrangianSurfaceProcess_p::SaveSurfaceConditions_p)
     	;
+
+
+	class_<EnrichmentUtilitiesforPFEM2>("EnrichmentUtilitiesforPFEM2", init<> ())
+    	.def("CalculateEnrichedShapeFuncions", &EnrichmentUtilitiesforPFEM2::CalculateEnrichedShapeFuncions)
+	.def("CalculateEnrichedShapeFuncionsExtendedmodified", &EnrichmentUtilitiesforPFEM2::CalculateEnrichedShapeFuncionsExtendedmodified)
+    	.def("CalculateEnrichedShapeFuncionsExtendedmodified_gausspoints", &EnrichmentUtilitiesforPFEM2::CalculateEnrichedShapeFuncionsExtendedmodified_gausspoints)
+	.def("CalculateEnrichedShapeFuncions", &EnrichmentUtilitiesforPFEM2::CalculateEnrichedShapeFuncions)
+    	;
+
 
 
 	

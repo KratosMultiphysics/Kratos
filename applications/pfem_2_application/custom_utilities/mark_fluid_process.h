@@ -11,10 +11,10 @@
 //
 
 //
-//  this process puts a IS_FLUID flag on the nodes of fluid elements
+//  this process puts a IS_IS_FLUID flag on the nodes of fluid elements
 
-#if !defined(KRATOS_MARK_FLUID_PROCESS_INCLUDED )
-#define  KRATOS_MARK_FLUID_PROCESS_INCLUDED
+#if !defined(KRATOS_MARK_IS_FLUID_PROCESS_INCLUDED )
+#define  KRATOS_MARK_IS_FLUID_PROCESS_INCLUDED
 
 
 
@@ -130,11 +130,11 @@ public:
         			{
         				if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() != 0)
         					{
-        					in->FastGetSolutionStepValue(IS_FLUID) = 1.0;
+        					in->FastGetSolutionStepValue(IS_IS_FLUID) = 1.0;
 
         					}
         				else
-        							in->FastGetSolutionStepValue(IS_FLUID) = 0.0;
+        							in->FastGetSolutionStepValue(IS_IS_FLUID) = 0.0;
         			}*/
         KRATOS_CATCH("")
     }
@@ -291,6 +291,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MARK_FLUID_PROCESS_INCLUDED  defined 
+#endif // KRATOS_MARK_IS_FLUID_PROCESS_INCLUDED  defined 
 
 

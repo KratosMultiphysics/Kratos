@@ -28,6 +28,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
+#include "includes/kratos_flags.h"
 #include "utilities/geometry_utilities.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "pfem_2_application.h"
@@ -207,7 +208,7 @@ namespace Kratos
 	
 	for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin(); node_it != rEulerianModelPart.NodesEnd(); node_it++)
 	  {
-	    if( (node_it)->FastGetSolutionStepValue(IS_FREE_SURFACE)>0.5 or (node_it)->FastGetSolutionStepValue(IS_WATER)>0.5 ) 
+	    if( (node_it)->FastGetSolutionStepValue(IS_FREE_SURFACE)==true or (node_it)->FastGetSolutionStepValue(IS_WATER)==1 ) 
 	      { //IS_FREE_SURFACE
 		work_point.X() = node_it->X();
 		work_point.Y() = node_it->Y();
@@ -252,9 +253,7 @@ namespace Kratos
 		      }
 		  }
 	      }
-            else
-	      {
-	      }
+	    
 	  }
         KRATOS_CATCH("")
 	  }
@@ -339,7 +338,7 @@ namespace Kratos
 			double weight = SPHCubicKernel(sigma, distance, radius);
 			PointIterator it_found = Results.begin() + k;
 			//if((*it_found)->FastGetSolutionStepValue(IS_BOUNDARY)>0.5) //MATERIAL_VARIABLE
-			if((*it_found)->FastGetSolutionStepValue(IS_FREE_SURFACE) >0.5 or (*it_found)->FastGetSolutionStepValue(IS_WATER) >0.5  ) //MATERIAL_VARIABLE
+			if((*it_found)->FastGetSolutionStepValue(IS_FREE_SURFACE) ==1 or (*it_found)->FastGetSolutionStepValue(IS_WATER) ==1  ) //MATERIAL_VARIABLE
 			  {
 			    double tempp=0.0;
 			    tempp=(*it_found)->FastGetSolutionStepValue(YCH4);
@@ -368,7 +367,7 @@ namespace Kratos
 	      }
             else
 	      {
-		(node_it)->FastGetSolutionStepValue(FUEL)=(node_it)->FastGetSolutionStepValue(TEMPERATURE);
+		//(node_it)->FastGetSolutionStepValue(FUEL)=(node_it)->FastGetSolutionStepValue(TEMPERATURE);
 	      }
 	  }
         KRATOS_CATCH("")
@@ -741,7 +740,7 @@ namespace Kratos
 	  {
 	    //int substep = 0;
 	    int subdivisions = 5;
-	    double temperature=0.0;
+	    //double temperature=0.0;
 	    ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
 	    Node < 3 > ::Pointer pparticle = *(iparticle.base());
 	    //small_dt = dt / subdivisions;
@@ -778,7 +777,7 @@ namespace Kratos
 			Geometry< Node < 3 > >& geom = pelement->GetGeometry();
 			//int nn=0;
 			noalias(veulerian) = ZeroVector(3); //0.0;//N[0] * geom[0].FastGetSolutionStepValue(VELOCITY,1);  
-			temperature=0.0;//N[0] * geom[0].FastGetSolutionStepValue(TEMPERATURE);  
+			//temperature=0.0;//N[0] * geom[0].FastGetSolutionStepValue(TEMPERATURE);  
 			for (unsigned int k = 0; k < geom.size(); k++)
 			  {
 			    noalias(veulerian) += N[k] * geom[k].FastGetSolutionStepValue(VELOCITY,1);
@@ -884,24 +883,27 @@ namespace Kratos
 	KRATOS_WATCH("ENTERD Mark close nodes")
 	  //double fact2 = admissible_distance_factor*admissible_distance_factor;
 	  
-	  
 	  for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
 	    {
-	      if(in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) >0.5) //if it is not a wall node i can erase
+	      if(in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) ==1) //if it is not a wall node i can erase
 		{
+		  
 		  int nf=0;	
 		  //loop on neighbours and erase if they are too close
 		  for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin(); i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
 		    {
-		      
-		      if( i->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) <0.5 and i->FastGetSolutionStepValue(IS_FREE_SURFACE) >0.5) //we can erase the current node only if the neighb is not to be erased
+
+			//KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+		      if( /*i->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) ==1 and*/ i->FastGetSolutionStepValue(IS_FREE_SURFACE) ==1) //we can erase the current node only if the neighb is not to be erased
 			{
-		      
+			  //KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
 			  nf++;
 			  //KRATOS_WATCH(nf)
 			}
-		      if(nf>=2) in->FastGetSolutionStepValue(IS_WATER)= 1;
-		      
+		      if(nf>=2) {in->FastGetSolutionStepValue(IS_WATER)= 1;
+
+			//KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+		      }
 		    }
 		}
 	    }
@@ -909,22 +911,74 @@ namespace Kratos
 	KRATOS_CATCH("")
 	  }
       
-   double Calculate_Vol(ModelPart & rLagrangianModelPart)
-    {
+      void TransferToParticlesAirVelocity(ModelPart& rEulerianModelPart, ModelPart & rLagrangianModelPart, BinBasedFastPointLocator<TDim>& node_locator)
+      {
         KRATOS_TRY
-
-        //defintions for spatial search
-        typedef Node < 3 > PointType;
-        typedef Node < 3 > ::Pointer PointTypePointer;
-
-
-	//particles
-
-	for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin(); node_it != rLagrangianModelPart.NodesEnd(); node_it++)
+	  
+	  //defintions for spatial search
+	  //typedef Node < 3 > PointType;
+	  //typedef Node < 3 > ::Pointer PointTypePointer;
+	
+	
+        array_1d<double, TDim + 1 > N;
+        const int max_results = 1000;
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+        const int nparticles = rLagrangianModelPart.Nodes().size();
+	
+#pragma omp parallel for firstprivate(results,N)
+        for (int i = 0; i < nparticles; i++)
 	  {
-
-	   (node_it)->FastGetSolutionStepValue(NODAL_MASS) = 0.0;
+            ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
+	    
+            Node < 3 > ::Pointer pparticle = *(iparticle.base());
+            typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+	    
+            Element::Pointer pelement;
+	    
+            bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+	    
+            if (is_found == true)
+	      {
+                Geometry<Node<3> >& geom = pelement->GetGeometry();
+                
+                boost::numeric::ublas::bounded_matrix<double, 4, 3 > msDN_DX;
+		
+	    	array_1d<double, 4 > msN;
+		
+	    	double Area=0.0;
+	    	GeometryUtils::CalculateGeometryData(geom, msDN_DX, msN, Area);
+		
+		array_1d<double, 3 > velocity=ZeroVector(3);
+		
+		array_1d<double, 3 > temmp=ZeroVector(3);
+		//double temmp=0.0;
+		for (unsigned int jj = 0; jj < 3; jj++)
+		  {
+		    temmp=geom[jj].FastGetSolutionStepValue(VELOCITY);
+		    velocity =msN(jj) * temmp;
+		  }
+		//KRATOS_WATCH(qrad);
+        	//double faceheatflux=0.0;
+		(iparticle)->FastGetSolutionStepValue(ANGULAR_VELOCITY) = velocity;
+	      }
 	  }
+	KRATOS_CATCH("")
+	  }
+      
+      double Calculate_Vol(ModelPart & rLagrangianModelPart)
+      {
+        KRATOS_TRY
+	  
+	  //defintions for spatial search
+	  //typedef Node < 3 > PointType;
+	  //typedef Node < 3 > ::Pointer PointTypePointer;
+	  
+	  //particles
+	  for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin(); node_it != rLagrangianModelPart.NodesEnd(); node_it++)
+	    {
+	      if( node_it->GetValue(NEIGHBOUR_ELEMENTS).size() != 0) (node_it)->FastGetSolutionStepValue(K0) = 0.0;
+	      //if( node_it->FastGetSolutionStepValue(NODAL_MASS) == 0.0) KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+	    }
 	
 	for (ModelPart::ElementsContainerType::iterator el_it = rLagrangianModelPart.ElementsBegin();el_it != rLagrangianModelPart.ElementsEnd(); el_it++)
 	  {
@@ -946,26 +1000,538 @@ namespace Kratos
 
 	    area=CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 	    
+	    geom[0].FastGetSolutionStepValue(K0) += area * 0.25;
+            geom[1].FastGetSolutionStepValue(K0) += area * 0.25;
+            geom[2].FastGetSolutionStepValue(K0) += area * 0.25;
+	    geom[3].FastGetSolutionStepValue(K0) += area * 0.25;	
+	    
+	  }
+	
+	double sum=0.0;
+	
+	for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin(); node_it != rLagrangianModelPart.NodesEnd(); node_it++)
+	  {
+	    
+	    sum +=(node_it)->FastGetSolutionStepValue(K0) ;
+	  }
+	
+	return sum;
+	
+        KRATOS_CATCH("")
+	  }
+      
+      void DetectAllOilClusters(ModelPart & mp_local_model_part)
+      {
+	int mnumber_of_oil_clusters=0;
+	for (ModelPart::NodesContainerType::iterator inode = mp_local_model_part.NodesBegin(); inode != mp_local_model_part.NodesEnd(); inode++)
+	  {
+	    inode->FastGetSolutionStepValue(DIAMETER) = -1;  //OIL_CLUSTER
+	  }
+	
+	for (ModelPart::ElementsContainerType::iterator ielem = mp_local_model_part.ElementsBegin();ielem != mp_local_model_part.ElementsEnd(); ielem++)
+	  {
+	    Geometry< Node<3> >& geom = ielem->GetGeometry();
+	    if(geom.size()>1)
+	      {
+		ielem->GetValue(DIAMETER) = -1;
+	      }
+	  }
+	
+	
+	//fist we paint all the nodes connected to the outlet:
+	int color = 0;
+	for (ModelPart::NodesContainerType::iterator inode = mp_local_model_part.NodesBegin(); inode != mp_local_model_part.NodesEnd(); inode++)
+	  {
+	    if(inode->IsFixed(POROSITY) && inode->FastGetSolutionStepValue(DIAMETER)!=0) //nodes connected to the outlet are flagged as cluster zero. // if(inode->IsFixed(CONNECTED_TO_OUTLET) && inode->FastGetSolutionStepValue(OIL_CLUSTER)!=0)
+	      { 
+		ColorOilClusters(inode, 0); 
+	      }
+	  }
+	
+	//having painted those nodes, we proceed with the rest of the colours
+	for (ModelPart::NodesContainerType::iterator inode = mp_local_model_part.NodesBegin(); inode != mp_local_model_part.NodesEnd(); inode++)
+	  {
+	    if(inode->FastGetSolutionStepValue(DIAMETER) < 0 )
+	      {
+		color++;
+		ColorOilClusters(inode, color);
+	      }
+	  }
+	
+	for (ModelPart::ElementsContainerType::iterator ielem = mp_local_model_part.ElementsBegin(); ielem != mp_local_model_part.ElementsEnd(); ielem++)
+	  {
+	    Geometry< Node<3> >& geom = ielem->GetGeometry();
+	    if(geom.size()>1 && ielem->GetValue(DIAMETER) < 0 )
+	      {
+		color++;
+		ielem->GetValue(DIAMETER) = color;
+	      }
+	  }
+	
+	//finally we flag the nodes with cluster=0 as connected to outlet
+	for (ModelPart::NodesContainerType::iterator inode = mp_local_model_part.NodesBegin(); inode != mp_local_model_part.NodesEnd(); inode++)
+	  {
+	    if(inode->FastGetSolutionStepValue(DIAMETER) == 0)
+	      inode->FastGetSolutionStepValue(POROSITY)=1.0;
+	  }
+	
+	mnumber_of_oil_clusters = color;
+	
+	double area=0.0;
+	array_1d<double, 3 > velocity_a=ZeroVector(3);
+	array_1d<double, 3 > velocity_p=ZeroVector(3);
+	array_1d<double, 3 > temmp=ZeroVector(3);
+	array_1d<double, 3 > drag_coefficient=ZeroVector(3);
+	
+	//KRATOS_WATCH(mnumber_of_oil_clusters);
+	int zz= mnumber_of_oil_clusters + 1;
+	for(int jj=0; jj< zz; jj++ )
+	  {
+	    if(jj!=0)
+	      {
+		if(jj==0) KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+		//KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+		area=0.0;
+		velocity_a=ZeroVector(3);
+		velocity_p=ZeroVector(3);
+		drag_coefficient=ZeroVector(3);
+		int nn=0;
+		for (ModelPart::NodesContainerType::iterator inode = mp_local_model_part.NodesBegin(); inode != mp_local_model_part.NodesEnd(); inode++)
+		  {
+		    int colour_p = (inode)->FastGetSolutionStepValue(DIAMETER);
+		    if(colour_p==jj)
+		      {	
+			area += (inode)->FastGetSolutionStepValue(K0);
+			velocity_a += (inode)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+			velocity_p += (inode)->FastGetSolutionStepValue(VELOCITY);
+			nn++;
+		      }
+		  }
+		velocity_a *=(1.0/nn);
+		velocity_p *=(1.0/nn);
+		//KRATOS_WATCH("AREA_ANTES");
+		//KRATOS_WATCH("area");
+		ComputedDragCoefficient(area, velocity_a, velocity_p, drag_coefficient );
+		
+		for (ModelPart::NodesContainerType::iterator inode = mp_local_model_part.NodesBegin(); inode != mp_local_model_part.NodesEnd(); inode++)
+		  {
+		    int colour_p = (inode)->FastGetSolutionStepValue(DIAMETER);
+		    if(colour_p==jj)
+		      {
+			inode->FastGetSolutionStepValue(DRAG_FORCE_X)=drag_coefficient(0);
+			inode->FastGetSolutionStepValue(DRAG_FORCE_Y)=drag_coefficient(1);
+			inode->FastGetSolutionStepValue(DRAG_FORCE_Z)=drag_coefficient(2);
+		      }
+		  }
+		
+	      }
+	    
+	  }
+	
+      }
+      
+      void ComputedDragCoefficient(double nodal_mass, array_1d<double, 3> velocity_air, array_1d<double, 3> velocity_polymer, array_1d<double, 3> & drag_coefficient )
+      {
+	KRATOS_TRY
+	  
+	  double drag_coeff=0.0;
+	//array_1d<double, 3> drag_coefficient=ZeroVector(3);
+	//nodal_mass=0.0; 
+	array_1d<double, 3> vrelative;	
+	
+	//nodal_mass=(node_it)->FastGetSolutionStepValue(NODAL_MASS);
+	double aux=nodal_mass * 3.0/(3.0*3.1416);
+	double Radius= pow(aux, 0.3333333);
+	double area=4.0 * 3.1416 * Radius * Radius;
+	noalias(vrelative)=velocity_air-velocity_polymer;
+	double norm_u = norm_2(vrelative);
+	double reynolds = 2 * Radius * norm_u / 0.00001;  // 2 * mRadius * mNormOfSlipVel / mKinematicViscosity
+	if (reynolds < 0.01)
+	  {
+	    reynolds = 0.01;
+	  }
+	CalculateNewtonianDragCoefficient(reynolds, drag_coeff);
+	noalias(drag_coefficient) = 0.5 *  1.0 * area * drag_coeff * norm_u* vrelative * (1.0 / nodal_mass); //drag_coeff = 0.5 *  mFluidDensity * area * drag_coeff * mNormOfSlipVel;
+	KRATOS_CATCH("")
+	  }
+      
+      
+      
+      void CalculateNewtonianDragCoefficient(const double reynolds, double& drag_coeff)
+      {
+	KRATOS_TRY
+	  
+	  if (reynolds < 1){
+	    drag_coeff = 24.0; // Reynolds;
+	  }
+	  else {
+	    if (reynolds > 1000){
+	      drag_coeff = 0.44;
+	    }
+	    else{
+	      drag_coeff = 24.0 / reynolds * (1.0 + 0.15 * pow(reynolds, 0.687));
+	    }
+	  }
+	
+	KRATOS_CATCH("")
+	  }
+      
+      
+      void ColorOilClusters(ModelPart::NodesContainerType::iterator iNode, const int color)
+      {
+	if(iNode->GetSolutionStepValue(DIAMETER) < 0 )  // if(iNode->GetSolutionStepValue(OIL_CLUSTER) < 0 && ( water_fraction<0.99999999999999 || theta>1.57079632679) ) 
+	  iNode->GetSolutionStepValue(DIAMETER)=color;
+	
+	ModelPart::NodesContainerType front_nodes;
+	WeakPointerVector<Element >& r_neighbour_elements = iNode->GetValue(NEIGHBOUR_ELEMENTS);
+	for(WeakPointerVector<Element >::iterator i_neighbour_element = r_neighbour_elements.begin() ; i_neighbour_element != r_neighbour_elements.end() ; i_neighbour_element++)
+	  {
+	    if(i_neighbour_element->GetValue(DIAMETER) < 0 ) 
+	      {
+		i_neighbour_element->SetValue(DIAMETER, color);
+		
+		Element::GeometryType& p_geometry = i_neighbour_element->GetGeometry();
+		
+		for(unsigned int i = 0; i < p_geometry.size(); i++)
+		  {
+		    if(p_geometry[i].GetSolutionStepValue(DIAMETER) < 0 ) 
+		      {
+			p_geometry[i].GetSolutionStepValue(DIAMETER) = color;
+			front_nodes.push_back(p_geometry(i));
+		      }
+		  }
+	      }
+	  }
+	while(!front_nodes.empty())
+	  {
+	    ModelPart::NodesContainerType new_front_nodes;
+	    for(ModelPart::NodesContainerType::iterator i_node = front_nodes.begin() ; i_node != front_nodes.end() ; i_node++)
+	      {
+		WeakPointerVector<Element >& r_neighbour_elements = i_node->GetValue(NEIGHBOUR_ELEMENTS);
+		for(WeakPointerVector<Element >::iterator i_neighbour_element = r_neighbour_elements.begin() ; i_neighbour_element != r_neighbour_elements.end() ; i_neighbour_element++)
+		  {
+		    if(i_neighbour_element->GetValue(DIAMETER) < 0  ) 
+		      {
+			i_neighbour_element->SetValue(DIAMETER, color);
+			
+			Element::GeometryType& p_geometry = i_neighbour_element->GetGeometry();
+			
+			for(unsigned int i = 0; i < p_geometry.size(); i++)
+			  {
+			    if(p_geometry[i].GetSolutionStepValue(DIAMETER) < 0 )  
+			      {
+				p_geometry[i].GetSolutionStepValue(DIAMETER) = color;
+				new_front_nodes.push_back(p_geometry(i));
+			      }
+			  }
+		      }
+		  }
+	      }
+          front_nodes.clear();// (o resize ( 0 ), si clear no existe)
+	  for( ModelPart::NodesContainerType::iterator i_node = new_front_nodes.begin() ; i_node != new_front_nodes.end() ; i_node++)
+	    front_nodes.push_back(*(i_node.base()));
+	  
+	  }
+      }
+      
+      
+      void movethermocouples(ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, BinBasedFastPointLocator<TDim>& node_locator)
+      {
+        KRATOS_TRY
+	  array_1d<double, 3 > veulerian;
+        double temperature;
+        array_1d<double, TDim + 1 > N;
+        //double G;
+        const int max_results = 1000;
+	typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+        double dt =0.01;
+        const int nparticles = rLagrangianModelPart.Nodes().size();
+
+#pragma omp parallel for firstprivate(results,N,veulerian,temperature)
+        for (int i = 0; i < nparticles; i++)
+	  {
+            ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
+
+            int subdivisions=5.0;
+	    const double small_dt = dt / subdivisions;
+	    for (unsigned int substep = 0; substep < subdivisions; substep++)
+            {
+	      Node < 3 > ::Pointer pparticle = *(iparticle.base());
+	      typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+	      Element::Pointer pelement;
+	      bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+	      if (is_found == true)
+                {
+		  Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+		  
+		  //move according to the streamline
+		  noalias(veulerian) = N[0] * geom[0].FastGetSolutionStepValue(VELOCITY, 1);
+		  temperature = N[0] * geom[0].FastGetSolutionStepValue(YCH4);
+		  for (unsigned int k = 1; k < geom.size(); k++)
+		    {
+		      noalias(veulerian) += N[k] * geom[k].FastGetSolutionStepValue(VELOCITY, 1);
+		      temperature += N[k] * geom[k].FastGetSolutionStepValue(YCH4);
+		      //KRATOS_WATCH(geom[k].FastGetSolutionStepValue(YCH4));
+		    }
+		  double & temp = (iparticle)->FastGetSolutionStepValue(YCH4);
+		  temp =temperature;	
+		  veulerian(0) *=0.0;
+		  veulerian(2) *=0.0;
+		  array_1d<double, 3 > & disp = (iparticle)->FastGetSolutionStepValue(DISPLACEMENT);
+		  noalias(disp) += small_dt*veulerian;
+		  noalias(iparticle->Coordinates()) = iparticle->GetInitialPosition();
+		  noalias(iparticle->Coordinates()) += iparticle->FastGetSolutionStepValue(DISPLACEMENT);
+                }
+            }
+	  }
+	
+        KRATOS_CATCH("")
+	  }
+
+      void TransferToEulerianMesh_2(ModelPart& rEulerianModelPart, ModelPart & rLagrangianModelPart)
+      {
+	KRATOS_TRY
+	  
+	  //defintions for spatial search
+	  typedef Node < 3 > PointType;
+	typedef Node < 3 > ::Pointer PointTypePointer;
+	typedef std::vector<PointType::Pointer> PointVector;
+	typedef std::vector<PointType::Pointer>::iterator PointIterator;
+	typedef std::vector<double> DistanceVector;
+	typedef std::vector<double>::iterator DistanceIterator;
+	
+	//creating an auxiliary list for the new nodes
+	PointVector list_of_nodes;
+	
+      //*************
+      // Bucket types
+	typedef Bucket< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
+	
+	typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
+	
+	
+	//starting calculating time of construction of the kdtree
+	boost::timer kdtree_construction;
+	
+	for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
+	     node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
+	  {
+	    PointTypePointer pnode = *(node_it.base());
+	    
+	    //putting the nodes of the destination_model part in an auxiliary list
+	    list_of_nodes.push_back(pnode);
+	  }
+	
+	std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
+      
+	//create a spatial database with the list of new nodes
+	unsigned int bucket_size = 20;
+	tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
+	
+	//work arrays
+	Node < 3 > work_point(0, 0.0, 0.0, 0.0);
+	unsigned int MaximumNumberOfResults = 10000;
+	PointVector Results(MaximumNumberOfResults);
+	DistanceVector SquaredResultsDistances(MaximumNumberOfResults);
+	
+	
+	if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(NODAL_H) == false)
+	  KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+	
+	double sigma = 0.0;
+	
+	if (TDim == 2)
+	  sigma = 10.0 / (7.0 * 3.1415926);
+	else
+	  sigma = 1.0 / 3.1415926;
+	
+	for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin(); node_it != rEulerianModelPart.NodesEnd(); node_it++)
+	  {
+	  if((node_it)->Y()< -0.15102 ) 
+	    { 
+	      work_point.X() = node_it->X();
+	      work_point.Y() = node_it->Y();
+	      work_point.Z() = node_it->Z();
+	      
+	      double radius = 2.0 * node_it->FastGetSolutionStepValue(NODAL_H);
+	      
+	      //find all of the new nodes within the radius
+	      int number_of_points_in_radius;
+	      
+	      //look between the new nodes which of them is inside the radius of the circumscribed cyrcle
+	      number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(), SquaredResultsDistances.begin(), MaximumNumberOfResults);
+	      
+	      if (number_of_points_in_radius > 0)
+		{
+		  //double& temperature = (node_it)->FastGetSolutionStepValue(TEMPERATURE);
+		  double temperature_aux = 0.0;
+		  double tot_weight = 0.0;
+		  double C = 1.19e15; 
+		  double E_over_R = 24067.0;
+		  
+		  for (int k = 0; k < number_of_points_in_radius; k++)
+		    {
+		      double distance = sqrt(*(SquaredResultsDistances.begin() + k));
+		      double weight = SPHCubicKernel(sigma, distance, radius);
+		      PointIterator it_found = Results.begin() + k;
+		      
+		      if( (*it_found)->FastGetSolutionStepValue(DIAMETER) >0 && (*it_found)->FastGetSolutionStepValue(YN2) ==0.0) //MATERIAL_VARIABLE
+			{
+			  double tempp=0.0;
+			  tempp=(*it_found)->FastGetSolutionStepValue(YCH4);
+			  //if(tempp<298.0) tempp=298.0;
+			  //else tempp=(*it_found)->FastGetSolutionStepValue(YCH4);
+			  
+			  temperature_aux += weight * 27400.0 * 1.0 * C * exp(-E_over_R / tempp ) * 905.0 ;//temperature
+			  tot_weight += weight;
+			  
+			  
+			}
+		    }
+		  if(tot_weight>0.0)
+		    {
+		      //(node_it)->FastGetSolutionStepValue(FUEL)=1500.0;
+		      //double nodal_mass = node_it->FastGetSolutionStepValue(NODAL_MASS);
+		      //KRATOS_WATCH(node_it->FastGetSolutionStepValue(NODAL_MASS))
+		      //double& heat = node_it->FastGetSolutionStepValue(HEAT_FLUX);
+		      temperature_aux /= (tot_weight );
+		      //temperature= 1500.0;//temperature_aux;
+		      if(temperature_aux>1e9) (node_it)->FastGetSolutionStepValue(HEAT_FLUX) += 1e9;
+		      else (node_it)->FastGetSolutionStepValue(HEAT_FLUX) += temperature_aux;
+		    }
+		}
+            }
+	  }
+        KRATOS_CATCH("")
+	  }
+      
+      void TransferToEulerianMeshShapeBased(ModelPart& rEulerianModelPart, ModelPart & rLagrangianModelPart, BinBasedFastPointLocator<TDim>& node_locator)
+      {
+        KRATOS_TRY
+	  
+	  for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin(); node_it != rEulerianModelPart.NodesEnd(); node_it++)
+	    {
+	      (node_it)->GetValue(POISSON_RATIO) = 0.0;
+	      (node_it)->GetValue(YOUNG_MODULUS) = 0.0;
+	      (node_it)->GetValue(NODAL_MASS) = 0.0;
+	      (node_it)->GetValue(HEAT_FLUX) = 0.0;
+	    }
+	
+	for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();el_it != rEulerianModelPart.ElementsEnd(); el_it++)
+	  {
+            el_it->SetValue(YOUNG_MODULUS,0.0);
+	  }
+	array_1d<double, TDim + 1 > N;
+        const int max_results = 1000;
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+        const int nparticles = rLagrangianModelPart.Nodes().size();
+	
+        double C = 1.19e15; 
+        double E_over_R = 24067.0;
+        double A=0.0; 
+	
+#pragma omp parallel for firstprivate(results,N)
+        for (int i = 0; i < nparticles; i++)
+	  {
+            ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
+	    //KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+            Node < 3 > ::Pointer pparticle = *(iparticle.base());
+            typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+	    
+            Element::Pointer pelement;
+	    
+            bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+	    
+            if (is_found == true)
+	      {
+                Geometry<Node<3> >& geom = pelement->GetGeometry();
+                const array_1d<double, 3 > & vel_particle = (iparticle)->FastGetSolutionStepValue(VELOCITY);
+                double density_particle = (iparticle)->FastGetSolutionStepValue(DENSITY);
+                double Tp=(iparticle)->FastGetSolutionStepValue(YCH4);  //HEAT_FLUX
+                if(Tp>1000.0) Tp=1000.0;
+                double temperature = 0.3e+8;//1000000.0;//(iparticle)->FastGetSolutionStepValue(TEMPERATURE);
+                
+                temperature = 2e+7;
+                
+                if( (iparticle)->FastGetSolutionStepValue(DIAMETER)>0)//  ((iparticle)->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0)
+		  {
+		    (iparticle)->FastGetSolutionStepValue(YN2)=1.0; 
+		    // KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");	
+                    KRATOS_WATCH("aloneeeeeeeeeeeeeeeeeeeee");
+                    KRATOS_WATCH((iparticle)->FastGetSolutionStepValue(DIAMETER));
+                    for (unsigned int k = 0; k < geom.size(); k++)
+                    {
+		      
+		      //KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+		      geom[k].SetLock();
+		      geom[k].GetValue(YOUNG_MODULUS) += N[k] * 27400.0 * 1.0 * C * exp(-E_over_R/(Tp)) *905.0 * (iparticle)->FastGetSolutionStepValue(K0);//0.0001;
+		      
+		      KRATOS_WATCH("K0");
+		      KRATOS_WATCH((iparticle)->FastGetSolutionStepValue(K0));
+		      
+		      geom[k].GetValue(POISSON_RATIO) += N[k];
+		      
+		      geom[k].UnSetLock();
+                    }
+		  }
+	      }
+	  }
+	
+        for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();el_it != rEulerianModelPart.ElementsEnd(); el_it++)
+	  {
+	    
+            Geometry<Node < 3 > >& geom = el_it->GetGeometry();
+            double x0 = geom[0].X();
+            double y0 = geom[0].Y();
+            double z0 = geom[0].Z();
+            double x1 = geom[1].X();
+            double y1 = geom[1].Y();
+            double z1 = geom[1].Z();
+	    double x2 = geom[2].X();
+            double y2 = geom[2].Y();
+	    double z2 = geom[2].Z();
+	    double x3 = geom[3].X();
+            double y3 = geom[3].Y();
+	    double z3 = geom[3].Z();	
+	    double area=0.0;	
+	    //if(TDim==2) area=CalculateVol(x0, y0, x1, y1, x2, y2);
+            //else 
+	    area=CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+            
 	    geom[0].FastGetSolutionStepValue(NODAL_MASS) += area * 0.25;
             geom[1].FastGetSolutionStepValue(NODAL_MASS) += area * 0.25;
             geom[2].FastGetSolutionStepValue(NODAL_MASS) += area * 0.25;
-
 	    geom[3].FastGetSolutionStepValue(NODAL_MASS) += area * 0.25;	
-
-        }
-
-	double sum=0.0;
-
-	for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin(); node_it != rLagrangianModelPart.NodesEnd(); node_it++)
-	  {
-
-	   sum +=(node_it)->FastGetSolutionStepValue(NODAL_MASS) ;
+	    
 	  }
-
-	return sum;
-
+	
+	
+        for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin(); node_it != rEulerianModelPart.NodesEnd(); node_it++)
+	  {
+            const double NN = (node_it)->GetValue(POISSON_RATIO);
+            const double tt = (node_it)->GetValue(YOUNG_MODULUS);
+	    if (NN != 0.0)
+	      {
+		//KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+		//KRATOS_WATCH(tt);
+		//KRATOS_WATCH(NN);
+		double nodal_mass = node_it->FastGetSolutionStepValue(NODAL_MASS);
+		double& heat = node_it->FastGetSolutionStepValue(HEAT_FLUX);
+		double heat_value=tt/NN * (1.0/nodal_mass);
+		if (heat_value>1e9 /*0.5e+7*/) heat_value = 1e9 /*0.5e+7*/;   //0.5e+7;
+		heat= heat_value;
+		KRATOS_WATCH(heat);
+	      }
+            //}
+	  }
+	
+	
+	// Timer::Stop("Interpolacion");
+        //KRATOS_WATCH(time)
+	
         KRATOS_CATCH("")
-    }
+	  }
+      
     private:
       
       inline double SPHCubicKernel(const double sigma, const double r, const double hmax)

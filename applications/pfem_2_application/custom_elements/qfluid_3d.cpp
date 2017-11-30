@@ -110,7 +110,7 @@ namespace Kratos
       rRightHandSideVector.resize(matsize,false);
 
     GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Volume);
-
+    
     const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
     const double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);
     const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
@@ -647,13 +647,33 @@ namespace Kratos
 	Gaux += msDN_DX(2,0) * vel2[0] + msDN_DX(2,1) * vel2[1] + msDN_DX(2,2) * vel2[2];
 	Gaux += msDN_DX(3,0) * vel3[0] + msDN_DX(3,1) * vel3[1] + msDN_DX(3,2) * vel3[2];
 
-        GalerkinRHS[0] += bulk_modulus * Area * Gaux * 0.25;// + bulk_modulus * Area * Aver * 0.333 ;
+	 
+        double t1 = GetGeometry()[0].FastGetSolutionStepValue(YCH4);
 
-        GalerkinRHS[1] += bulk_modulus * Area * Gaux * 0.25;// + bulk_modulus * Area * Aver * 0.333 ;
+        double t2 = GetGeometry()[1].FastGetSolutionStepValue(YCH4);
 
-        GalerkinRHS[2] += bulk_modulus * Area * Gaux * 0.25;// + bulk_modulus * Area * Aver * 0.333 ;
+        double t3 = GetGeometry()[2].FastGetSolutionStepValue(YCH4);
 
-        GalerkinRHS[3] += bulk_modulus * Area * Gaux * 0.25;// + bulk_modulus * Area * Aver * 0.333 ;
+	double t4 = GetGeometry()[3].FastGetSolutionStepValue(YCH4);
+
+	double temp=t1 + t2 + t3 + t4;
+	temp *= 0.25;
+	if(temp>1000.0) temp=1000.0;
+
+	//double E_over_R = 28961.49;
+    	//double C = 1.19e15;
+
+	double E_over_R = 24400.0;//28961.49;
+    	double C = 2.18e12;//1.19e15;
+ 
+	//////////////
+        GalerkinRHS[0] += bulk_modulus * Area * Gaux * 0.25 + 1.0 * bulk_modulus * Area * C * exp(-E_over_R/(temp)) * 0.25 ;
+
+        GalerkinRHS[1] += bulk_modulus * Area * Gaux * 0.25 + 1.0 * bulk_modulus * Area * C * exp(-E_over_R/(temp)) * 0.25 ;
+
+        GalerkinRHS[2] += bulk_modulus * Area * Gaux * 0.25 + 1.0 * bulk_modulus * Area * C * exp(-E_over_R/(temp)) * 0.25 ;
+
+        GalerkinRHS[3] += bulk_modulus * Area * Gaux * 0.25 + 1.0 * bulk_modulus * Area * C * exp(-E_over_R/(temp)) * 0.25 ;
 
 	GetGeometry()[0].SetLock();
         double & rhs0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSUREAUX);
