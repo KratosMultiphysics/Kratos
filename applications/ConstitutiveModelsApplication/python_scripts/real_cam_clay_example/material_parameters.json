@@ -19,8 +19,8 @@
 		"KratosMultiphysics.OVER_CONSOLIDATION_RATIO": 4.0,
 		"KratosMultiphysics.SWELLING_SLOPE": 0.0078,
 		"KratosMultiphysics.NORMAL_COMPRESSION_SLOPE": 0.085,
-		"KratosMultiphysics.INITIAL_SHEAR_MODULUS": 0.0,
-		"KratosMultiphysics.ALPHA_SHEAR": 120.0,
+		"KratosMultiphysics.INITIAL_SHEAR_MODULUS": 1000.0,
+		"KratosMultiphysics.ALPHA_SHEAR": 0.0,
 		"KratosMultiphysics.CRITICAL_STATE_LINE": 0.90
             },
 	    "tables": {

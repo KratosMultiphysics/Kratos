@@ -224,6 +224,20 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
 
 
             plt.plot( Pressure, Deviatoric, 'ro-', [0.0, 60.0], [0.0, 0.9*60.0], 'b')
+            plt.show(block=False)
+
+            pc     = self.variables["KratosMultiphysics.PRE_CONSOLIDATION_STRESS"].GetDouble()
+            OCR    = self.variables["KratosMultiphysics.OVER_CONSOLIDATION_RATIO"].GetDouble()
+            kappa  = self.variables["KratosMultiphysics.SWELLING_SLOPE"].GetDouble()
+            landa = self.variables["KratosMultiphysics.NORMAL_COMPRESSION_SLOPE"].GetDouble()
+            M      = self.variables["KratosMultiphysics.CRITICAL_STATE_LINE"].GetDouble()
+
+            p0 = pc / OCR;
+            BigLambda = ( landa - kappa) / landa;
+            pressureFailure = p0 * (  (OCR / 2.0 ) ** BigLambda) 
+            UndrainedShearStrenght = 0.5*p0*M * ( (OCR/2.0)**BigLambda)
+
+            plt.plot( pressureFailure, 2.0*UndrainedShearStrenght, 'k*')
             plt.show()
             plt.show(block=False)
 
