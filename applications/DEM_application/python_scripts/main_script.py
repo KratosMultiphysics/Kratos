@@ -193,8 +193,11 @@ class Solution(object):
 
 
     def SetSolver(self):
-        #return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.DEM_parameters, self.procedures)
-        return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.DEM_parameters, self.procedures)
+        return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
+                                                     self.creator_destructor,
+                                                     self.dem_fem_search,
+                                                     self.DEM_parameters,
+                                                     self.procedures)
 
     def Run(self):
         self.Initialize()
