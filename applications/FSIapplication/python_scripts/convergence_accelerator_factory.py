@@ -2,11 +2,11 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 import KratosMultiphysics.FSIApplication as KratosFSI
-try:
-    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-    have_trilinos = True
-except ImportError:
-    have_trilinos = False
+# try:
+    # import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+    # have_trilinos = True
+# except ImportError:
+    # have_trilinos = False
 
 def CreateConvergenceAccelerator(configuration):
 

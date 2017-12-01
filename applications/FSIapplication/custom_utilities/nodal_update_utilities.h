@@ -125,15 +125,11 @@ public:
         {
             ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
 
-            array_1d<double, 3>& v_node = it_node->FastGetSolutionStepValue(VELOCITY);      // Current step interface velocity
-            array_1d<double, 3>& a_node = it_node->FastGetSolutionStepValue(ACCELERATION);  // Current step interface acceleration
-
-            noalias(v_node) = it_node->FastGetSolutionStepValue(MESH_VELOCITY);        // Set the current interface velocity as the mesh velocity;
-            noalias(a_node) = it_node->FastGetSolutionStepValue(MESH_ACCELERATION);    // Set the current interface acceleration as the mesh acceleration;
+            array_1d<double, 3>& v_node = it_node->FastGetSolutionStepValue(VELOCITY);  // Current step interface velocity
+            noalias(v_node) = it_node->FastGetSolutionStepValue(MESH_VELOCITY);         // Set the current interface velocity as the mesh velocity;
         }
 
         rInterfaceModelPart.GetCommunicator().SynchronizeVariable(VELOCITY);
-        rInterfaceModelPart.GetCommunicator().SynchronizeVariable(ACCELERATION);
     }
 
     /*@} */
