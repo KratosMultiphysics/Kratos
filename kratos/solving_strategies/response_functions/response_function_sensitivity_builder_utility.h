@@ -342,7 +342,7 @@ private:
 
     ///@}
 
-}; // class ResponseFunction
+};
 
 ///@} // Kratos Classes
 } /* namespace Kratos.*/
