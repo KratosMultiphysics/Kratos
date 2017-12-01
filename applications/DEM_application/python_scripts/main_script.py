@@ -61,16 +61,7 @@ class Solution(object):
 
         # Prepare modelparts
         self.CreateModelParts()        
-
-        mp_list = []
-        mp_list.append(self.spheres_model_part)
-        mp_list.append(self.rigid_face_model_part)
-        mp_list.append(self.cluster_model_part)
-        mp_list.append(self.DEM_inlet_model_part)
-        mp_list.append(self.mapping_model_part)
-        mp_list.append(self.contact_model_part)
-
-        self.all_model_parts = DEM_procedures.SetOfModelParts(mp_list)
+        
         self.solver = self.SetSolver()
         #self.final_time = DEM_parameters.FinalTime
         #self.dt = DEM_parameters.MaxTimeStep
@@ -84,6 +75,16 @@ class Solution(object):
         self.DEM_inlet_model_part  = ModelPart("DEMInletPart")
         self.mapping_model_part    = ModelPart("MappingPart")
         self.contact_model_part    = ModelPart("ContactPart")
+        
+        mp_list = []
+        mp_list.append(self.spheres_model_part)
+        mp_list.append(self.rigid_face_model_part)
+        mp_list.append(self.cluster_model_part)
+        mp_list.append(self.DEM_inlet_model_part)
+        mp_list.append(self.mapping_model_part)
+        mp_list.append(self.contact_model_part)
+
+        self.all_model_parts = DEM_procedures.SetOfModelParts(mp_list)
 
     def IsCountStep(self):
         self.step_count += 1
@@ -212,7 +213,7 @@ class Solution(object):
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
 
         # Adding dofs
-        self.DofsAddition()
+        self.AddAllDofs()
 
         os.chdir(self.main_path)
         self.KRATOSprint("\nInitializing Problem...")
@@ -266,7 +267,7 @@ class Solution(object):
         self.KRATOSprint(self.report.BeginReport(timer))
         os.chdir(self.main_path)
         
-    def DofsAddition(self):
+    def AddAllDofs(self):
         self.solver.AddDofs(self.spheres_model_part)
         self.solver.AddDofs(self.cluster_model_part)
         self.solver.AddDofs(self.DEM_inlet_model_part)
