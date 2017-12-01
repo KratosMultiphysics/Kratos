@@ -929,6 +929,24 @@ public:
 
     //METHODS TO BE CLEANED: DEPRECATED end
 
+    /**
+     * Calculate the transposed gradient of the condition's residual w.r.t. design variable.
+     */
+    virtual void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /**
+     * Calculate the transposed gradient of the condition's residual w.r.t. design variable.
+     */
+    virtual void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     ///@}
     ///@name Access
     ///@{

@@ -6,8 +6,8 @@
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
 
-#if !defined(KRATOS_DRAG_RESPONSE_FUNCTION)
-#define KRATOS_DRAG_RESPONSE_FUNCTION
+#if !defined(KRATOS_DRAG_RESPONSE_FUNCTION_H_INCLUDED)
+#define KRATOS_DRAG_RESPONSE_FUNCTION_H_INCLUDED
 
 // System includes
 #include <vector>
@@ -17,15 +17,11 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/element.h"
-#include "includes/process_info.h"
-#include "includes/model_part.h"
 #include "includes/ublas_interface.h"
 #include "includes/kratos_parameters.h"
-#include "utilities/openmp_utils.h"
-
-// Application includes
-#include "custom_utilities/response_function.h"
+#include "utilities/variable_utils.h"
+#include "solving_strategies/response_functions/response_function.h"
+#include "solving_strategies/response_functions/response_function_sensitivity_builder_utility.h"
 
 namespace Kratos
 {
@@ -36,8 +32,22 @@ namespace Kratos
 ///@{
 
 /// A response function for drag.
+/**
+ * The sensitivity of the response function is defined as:
+ *
+ * \f[
+ * d_{\mathbf{s}}\bar{J} = \Sigma_{n=1}^N
+ *   (\partial_{\mathbf{s}}J^n + \lambda^{nT}\partial_{\mathbf{s}}\mathbf{r}^n)
+ *    \Delta t
+ * \f]
+ *
+ * \f$J^n\f$ is the drag for the current step.
+ *
+ * \f$\mathbf{r}^n\f$ is the residual of the governing partial differential
+ * equation for the current step.
+ */
 template <unsigned int TDim>
-class DragResponseFunction : public ResponseFunction
+class DragResponseFunction : public ResponseFunction, protected ResponseFunctionSensitivityBuilderUtility
 {
 public:
     ///@name Type Definitions
@@ -45,36 +55,41 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(DragResponseFunction);
 
-    typedef ResponseFunction BaseType;
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    DragResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
-      : ResponseFunction(rModelPart, rParameters)
+    DragResponseFunction(Parameters& rParameters)
     {
         KRATOS_TRY;
 
         Parameters default_settings(R"(
         {
             "structure_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
+            "sensitivity_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
+            "nodal_sensitivity_variables": ["SHAPE_SENSITIVITY"],
             "drag_direction": [1.0, 0.0, 0.0]
         })");
 
         Parameters custom_settings = rParameters["custom_settings"];
         custom_settings.ValidateAndAssignDefaults(default_settings);
 
-        mStructureModelPartName = custom_settings["structure_model_part_name"].GetString();
+        mStructureModelPartName =
+            custom_settings["structure_model_part_name"].GetString();
+
+        mSensitivityModelPartName =
+            custom_settings["sensitivity_model_part_name"].GetString();
+
+        Parameters nodal_sensitivity_variables = custom_settings["nodal_sensitivity_variables"];
+        mNodalSensitivityVariables.resize(nodal_sensitivity_variables.size());
+        for (unsigned int i = 0; i < nodal_sensitivity_variables.size(); ++i)
+            mNodalSensitivityVariables[i] = nodal_sensitivity_variables[i].GetString();
 
         if (custom_settings["drag_direction"].IsArray() == false ||
             custom_settings["drag_direction"].size() != 3)
         {
-            KRATOS_THROW_ERROR(std::runtime_error,
-                               "drag_direction vector is not a vector or does "
-                               "not have size 3:",
-                               custom_settings.PrettyPrintJsonString())
+            KRATOS_ERROR << "Invalid \"drag_direction\"." << std::endl;
         }
 
         for (unsigned int d = 0; d < TDim; ++d)
@@ -84,13 +99,10 @@ public:
         {
             const double magnitude = norm_2(mDragDirection);
             if (magnitude == 0.0)
-                KRATOS_THROW_ERROR(std::runtime_error,
-                                   "drag_direction is not properly defined.",
-                                   "")
+                KRATOS_ERROR << "\"drag_direction\" is zero." << std::endl;
 
-            std::cout << "WARNING: non unit vector detected in \"drag_direction\": "
-                << custom_settings.PrettyPrintJsonString() << std::endl;
-            std::cout << "normalizing \"drag_direction\"..." << std::endl;
+            std::cout << "WARNING: Non unit magnitude in \"drag_direction\"." << std::endl;
+            std::cout << "WARNING: Normalizing ..." << std::endl;
 
             for (unsigned int d = 0; d < TDim; d++)
                 mDragDirection[d] /= magnitude;
@@ -112,98 +124,70 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize() override
+    void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
 
-        BaseType::Initialize();
+        Check(rModelPart);
 
-        ModelPart& r_model_part = this->GetModelPart();
+        for (const std::string& r_label : mNodalSensitivityVariables)
+            SetNodalSensitivityVariableToZero(r_label, rModelPart.Nodes());
 
-        if (r_model_part.HasSubModelPart(mStructureModelPartName) == false)
-            KRATOS_ERROR << "Invalid structure_model_part_name: \""
-                         << mStructureModelPartName << "\"." << std::endl;
+        VariableUtils().SetFlag(STRUCTURE, false, rModelPart.Nodes());
+        VariableUtils().SetFlag(
+            STRUCTURE, true, rModelPart.GetSubModelPart(mStructureModelPartName).Nodes());
 
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator nodes_begin;
-            ModelPart::NodeIterator nodes_end;
-            OpenMPUtils::PartitionedIterators(r_model_part.Nodes(), nodes_begin, nodes_end);
-
-            for (auto it = nodes_begin; it != nodes_end; ++it)
-                it->Set(STRUCTURE, false);
-        }
-
-        // mark structure
-        ModelPart& r_structure_model_part = r_model_part.GetSubModelPart(mStructureModelPartName);
-
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator nodes_begin;
-            ModelPart::NodeIterator nodes_end;
-            OpenMPUtils::PartitionedIterators(r_structure_model_part.Nodes(), nodes_begin, nodes_end);
-            for (auto it = nodes_begin; it != nodes_end; ++it)
-                it->Set(STRUCTURE, true);
-        }
+        VariableUtils().SetNonHistoricalVar(UPDATE_SENSITIVITIES, false,
+                                            rModelPart.Nodes());
+        VariableUtils().SetNonHistoricalVar(
+            UPDATE_SENSITIVITIES, true,
+            rModelPart.GetSubModelPart(mSensitivityModelPartName).Nodes());
 
         KRATOS_CATCH("");
     }
 
-    void InitializeSolutionStep() override
+    void Check(ModelPart const& rModelPart) override
     {
         KRATOS_TRY;
 
-        ModelPart& r_model_part = this->GetModelPart();
+        if (rModelPart.HasSubModelPart(mStructureModelPartName) == false)
+            KRATOS_ERROR << "No sub model part \"" << mStructureModelPartName
+                         << "\"" << std::endl;
 
-        // allocate auxiliary memory. this is done here instead of Initialize()
-        // in case of restart.
-        int num_threads = OpenMPUtils::GetNumThreads();
-        mElementIds.resize(num_threads);
-        mDragFlagVector.resize(num_threads);
-
-        // use first element to initialize drag flag vector
-        Element& r_elem = *std::begin(r_model_part.Elements());
-#pragma omp parallel
-        {
-            // initialize drag flag and element id vectors
-            int k = OpenMPUtils::ThisThread();
-            mElementIds[k] = r_elem.Id() + 1; // force initialization
-            this->GetDragFlagVector(r_elem);
-        }
+        if (rModelPart.HasSubModelPart(mSensitivityModelPartName) == false)
+            KRATOS_ERROR << "No sub model part \"" << mSensitivityModelPartName
+                         << "\"" << std::endl;
 
         KRATOS_CATCH("");
     }
 
-    void CalculateFirstDerivativesGradient(const Element& rAdjointElem,
-                                           const Matrix& rAdjointMatrix,
+    void UpdateSensitivities(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY;
+
+        double delta_time = -rModelPart.GetProcessInfo()[DELTA_TIME];
+        for (const std::string& r_label : mNodalSensitivityVariables)
+            BuildNodalSolutionStepSensitivities(r_label, rModelPart, delta_time);
+
+        KRATOS_CATCH("");
+    }
+
+    void CalculateFirstDerivativesGradient(Element const& rElement,
+                                           Matrix const& rAdjointMatrix,
                                            Vector& rResponseGradient,
-                                           ProcessInfo& rProcessInfo) override
+                                           ProcessInfo const& rProcessInfo) const override
     {
-        KRATOS_TRY;
-
-        if (rResponseGradient.size() != rAdjointMatrix.size1())
-            rResponseGradient.resize(rAdjointMatrix.size1(), false);
-
-        Vector& r_drag_flag_vector = this->GetDragFlagVector(rAdjointElem);
-        noalias(rResponseGradient) = prod(rAdjointMatrix, r_drag_flag_vector);
-
-        KRATOS_CATCH("");
+        CalculateDragContribution(
+            rAdjointMatrix, rElement.GetGeometry().Points(), rResponseGradient);
     }
 
-    void CalculateSecondDerivativesGradient(const Element& rAdjointElem,
-                                            const Matrix& rAdjointMatrix,
+    void CalculateSecondDerivativesGradient(Element const& rElement,
+                                            Matrix const& rAdjointMatrix,
                                             Vector& rResponseGradient,
-                                            ProcessInfo& rProcessInfo) override
+                                            ProcessInfo const& rProcessInfo) const override
     {
-        KRATOS_TRY;
-
-        if (rResponseGradient.size() != rAdjointMatrix.size1())
-            rResponseGradient.resize(rAdjointMatrix.size1(), false);
-
-        Vector& r_drag_flag_vector = this->GetDragFlagVector(rAdjointElem);
-        noalias(rResponseGradient) = prod(rAdjointMatrix, r_drag_flag_vector);
-
-        KRATOS_CATCH("");
+        CalculateDragContribution(
+            rAdjointMatrix, rElement.GetGeometry().Points(), rResponseGradient);
     }
 
     ///@}
@@ -220,21 +204,14 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateSensitivityGradient(const Element& rAdjointElem,
-                                      const Variable<array_1d<double,3>>& rVariable,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo) override
+    void CalculatePartialSensitivity(Variable<array_1d<double, 3>> const& rVariable,
+                                     Element const& rElement,
+                                     Matrix const& rSensitivityMatrix,
+                                     Vector& rPartialSensitivity,
+                                     ProcessInfo const& rProcessInfo) const override
     {
-        KRATOS_TRY;
-
-        if (rResponseGradient.size() != rDerivativesMatrix.size1())
-            rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-
-        Vector& r_drag_flag_vector = this->GetDragFlagVector(rAdjointElem);
-        noalias(rResponseGradient) = prod(rDerivativesMatrix, r_drag_flag_vector);
-
-        KRATOS_CATCH("");
+        CalculateDragContribution(
+            rSensitivityMatrix, rElement.GetGeometry().Points(), rPartialSensitivity);
     }
 
     ///@}
@@ -244,9 +221,9 @@ private:
     ///@{
 
     std::string mStructureModelPartName;
+    std::string mSensitivityModelPartName;
+    std::vector<std::string> mNodalSensitivityVariables;
     array_1d<double, TDim> mDragDirection;
-    std::vector<Vector> mDragFlagVector;
-    std::vector<unsigned int> mElementIds;
 
     ///@}
     ///@name Private Operators
@@ -256,41 +233,63 @@ private:
     ///@name Private Operations
     ///@{
 
-    Vector& GetDragFlagVector(const Element& rAdjointElement)
+    void CalculateDragContribution(const Matrix& rDerivativesOfResidual,
+                                   const Element::NodesArrayType& rNodes,
+                                   Vector& rDerivativesOfDrag) const
     {
-        int k = OpenMPUtils::ThisThread();
+        constexpr std::size_t max_size = 50;
+        boost::numeric::ublas::bounded_vector<double, max_size> drag_flag_vector(rDerivativesOfResi\
+dual.size2());
 
-        // if needed, compute the drag flag vector for this element
-        if (rAdjointElement.Id() != mElementIds[k])
+        const unsigned num_nodes = rNodes.size();
+        unsigned local_index = 0;
+        for (unsigned i_node = 0; i_node < num_nodes; ++i_node)
         {
-            const unsigned int num_nodes = rAdjointElement.GetGeometry().PointsNumber();
-            const unsigned int local_size = (TDim + 1) * num_nodes;
-
-            if (mDragFlagVector[k].size() != local_size)
-                mDragFlagVector[k].resize(local_size, false);
-
-            unsigned int local_index = 0;
-            for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
+            if (rNodes[i_node].Is(STRUCTURE))
             {
-                if (rAdjointElement.GetGeometry()[i_node].Is(STRUCTURE))
-                {
-                    for (unsigned int d = 0; d < TDim; d++)
-                        mDragFlagVector[k][local_index++] = mDragDirection[d];
-                }
-                else
-                {
-                    for (unsigned int d = 0; d < TDim; d++)
-                        mDragFlagVector[k][local_index++] = 0.0;
-                }
-
-                mDragFlagVector[k][local_index++] = 0.0; // pressure dof
+                for (unsigned d = 0; d < TDim; ++d)
+                    drag_flag_vector[local_index++] = mDragDirection[d];
+            }
+            else
+            {
+                for (unsigned int d = 0; d < TDim; ++d)
+                    drag_flag_vector[local_index++] = 0.0;
             }
 
-            mElementIds[k] = rAdjointElement.Id();
+            drag_flag_vector[local_index++] = 0.0; // pressure dof
         }
 
-        return mDragFlagVector[k];
+        if (rDerivativesOfDrag.size() != rDerivativesOfResidual.size1())
+            rDerivativesOfDrag.resize(rDerivativesOfResidual.size1(), false);
+
+        noalias(rDerivativesOfDrag) = prod(rDerivativesOfResidual, drag_flag_vector);
     }
+
+    void SetNodalSensitivityVariableToZero(std::string const& rVariableName,
+                                           NodesContainerType& rNodes)
+    {
+        KRATOS_TRY;
+
+        if (KratosComponents<Variable<double>>::Has(rVariableName) == true)
+        {
+            const Variable<double>& r_variable =
+                KratosComponents<Variable<double>>::Get(rVariableName);
+
+            VariableUtils().SetScalarVar(r_variable, r_variable.Zero(), rNodes);
+        }
+        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName) == true)
+        {
+            const Variable<array_1d<double, 3>>& r_variable =
+                KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
+
+            VariableUtils().SetVectorVar(r_variable, r_variable.Zero(), rNodes);
+        }
+        else
+            KRATOS_ERROR << "Unsupported variable: " << rVariableName << "." << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
 
     ///@}
 };
@@ -301,4 +300,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_DRAG_RESPONSE_FUNCTION defined */
+#endif /* KRATOS_DRAG_RESPONSE_FUNCTION_H_INCLUDED defined */

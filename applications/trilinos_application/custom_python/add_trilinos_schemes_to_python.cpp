@@ -61,7 +61,7 @@
 #include "custom_strategies/schemes/trilinos_gear_scheme.h"
 
 // AdjointFluidApplication
-#include "../../AdjointFluidApplication/custom_utilities/response_function.h"
+#include "solving_strategies/response_functions/response_function.h"
 #include "../../AdjointFluidApplication/custom_schemes/adjoint_steady_velocity_pressure_scheme.h"
 #include "../../AdjointFluidApplication/custom_schemes/adjoint_bossak_scheme.h"
 

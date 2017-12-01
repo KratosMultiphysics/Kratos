@@ -956,6 +956,8 @@ public:
 
     }
 
+    //METHODS TO BE CLEANED: DEPRECATED end
+
     /**
      * Calculate the transposed gradient of the element's residual w.r.t. design variable.
      */
@@ -973,9 +975,6 @@ public:
                                             const ProcessInfo& rCurrentProcessInfo)
     {
     }
-
-
-    //METHODS TO BE CLEANED: DEPRECATED end
 
     ///@}
     ///@name Access

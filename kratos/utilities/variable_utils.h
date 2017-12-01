@@ -133,6 +133,28 @@ public:
     }
 
     /**
+     * Sets the nodal value of a non-historical variable
+     * @param rVariable: reference to the variable to be set
+     * @param value: value to be set
+     * @param rNodes: reference to the objective node set
+     */
+    template <class TDataType>
+    void SetNonHistoricalVar(Variable<TDataType>& rVariable,
+                             const TDataType& rValue,
+                             ModelPart::NodesContainerType& rNodes)
+    {
+        KRATOS_TRY
+
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
+        {
+            ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+            i->SetValue(rVariable, rValue);
+        }
+        KRATOS_CATCH("")
+    }
+
+    /**
      * Sets a flag according to a given status over a given container
      * @param rFlag: flag to be set
      * @param rFlagValue: flag value to be set

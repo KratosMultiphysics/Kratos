@@ -26,9 +26,7 @@
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "containers/variable.h"
-
-// Application includes
-#include "../../AdjointFluidApplication/custom_utilities/response_function.h"
+#include "solving_strategies/response_functions/response_function.h"
 
 namespace Kratos
 {
@@ -164,7 +162,7 @@ public:
             }
         }
 
-        mpResponseFunction->Initialize();
+        mpResponseFunction->Initialize(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -211,7 +209,7 @@ public:
 
         rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
-        mpResponseFunction->InitializeSolutionStep();
+        mpResponseFunction->InitializeSolutionStep(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -324,7 +322,7 @@ public:
 
         rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_ACCELERATION);
 
-        mpResponseFunction->FinalizeSolutionStep();
+        mpResponseFunction->FinalizeSolutionStep(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -508,6 +506,8 @@ public:
 //         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_ACCELERATION);
+
+        mpResponseFunction->UpdateSensitivities(rModelPart);
 
         KRATOS_CATCH("");
     }

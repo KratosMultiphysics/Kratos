@@ -38,10 +38,10 @@
         },
         "response_function_settings" : {
             "response_type"            : "drag",
-            "sensitivity_model_part_name"  : "Boundary",
-            "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
             "custom_settings" : {
                 "structure_model_part_name" : "Structure",
+                "sensitivity_model_part_name"  : "Boundary",
+                "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
                 "drag_direction"            : [1.0, 0.0, 0.0]
             }
         },

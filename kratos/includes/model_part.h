@@ -1095,7 +1095,7 @@ public:
         return mpParentModelPart;
     }
 
-    bool HasSubModelPart(std::string const& ThisSubModelPartName)
+    bool HasSubModelPart(std::string const& ThisSubModelPartName) const
     {
         return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
     }

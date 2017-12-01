@@ -27,9 +27,7 @@
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "containers/variable.h"
-
-// Application includes
-#include "../../AdjointFluidApplication/custom_utilities/response_function.h"
+#include "solving_strategies/response_functions/response_function.h"
 
 namespace Kratos
 {
@@ -119,7 +117,7 @@ public:
         int num_threads = OpenMPUtils::GetNumThreads();
         mAdjointValues.resize(num_threads);
 
-        mpResponseFunction->Initialize();
+        mpResponseFunction->Initialize(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -153,7 +151,7 @@ public:
             }
         }
 
-        mpResponseFunction->InitializeSolutionStep();
+        mpResponseFunction->InitializeSolutionStep(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -167,7 +165,7 @@ public:
 
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
-        mpResponseFunction->FinalizeSolutionStep();
+        mpResponseFunction->FinalizeSolutionStep(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -212,6 +210,8 @@ public:
             // reduce communication here.
             r_comm.SynchronizeNodalSolutionStepsData();
         }
+
+        mpResponseFunction->UpdateSensitivities(rModelPart);
 
         KRATOS_CATCH("");
     }
