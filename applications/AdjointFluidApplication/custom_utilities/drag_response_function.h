@@ -33,18 +33,13 @@ namespace Kratos
 
 /// A response function for drag.
 /**
- * The sensitivity of the response function is defined as:
+ * The response function is defined as:
  *
  * \f[
- * d_{\mathbf{s}}\bar{J} = \Sigma_{n=1}^N
- *   (\partial_{\mathbf{s}}J^n + \lambda^{nT}\partial_{\mathbf{s}}\mathbf{r}^n)
- *    \Delta t
+ * \bar{D} = \Sigma_{n=1}^N D^n \Delta t
  * \f]
  *
- * \f$J^n\f$ is the drag for the current step.
- *
- * \f$\mathbf{r}^n\f$ is the residual of the governing partial differential
- * equation for the current step.
+ * if "integrate_in_time" is true.
  */
 template <unsigned int TDim>
 class DragResponseFunction : public ResponseFunction, protected ResponseFunctionSensitivityBuilderUtility
