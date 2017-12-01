@@ -54,6 +54,8 @@ proc ConstraintVectorTable {FileVar TableId TableDict CondName VarName} {
     }
 }
 
+# TODO: it may be dangerous to write Tables without format
+
 #-------------------------------------------------------------------------------
 
 proc PressureTable {FileVar TableId TableDict CondName VarName} {
