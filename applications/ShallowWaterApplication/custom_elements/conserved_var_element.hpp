@@ -26,6 +26,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
+#include "custom_elements/primitive_var_element.hpp"
 
 namespace Kratos
 {
@@ -53,7 +54,7 @@ namespace Kratos
 
 /// Implementation of a linear element for shallow water interpolating coserved variables
 template< unsigned int TNumNodes >
-class ConservedVarElement : public Element
+class ConservedVarElement : public PrimitiveVarElement<TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -62,27 +63,51 @@ public:
     /// Counted pointer of ConservedVarElement
     KRATOS_CLASS_POINTER_DEFINITION( ConservedVarElement );
 
+    typedef PrimitiveVarElement<TNumNodes>                             BaseType;
+
+    typedef typename BaseType::IndexType                              IndexType;
+
+    typedef typename BaseType::GeometryType                        GeometryType;
+
+    typedef typename BaseType::GeometryType::Pointer        GeometryPointerType;
+
+    typedef typename BaseType::PropertiesType                    PropertiesType;
+
+    typedef typename BaseType::PropertiesType::Pointer    PropertiesPointerType;
+
+    typedef typename BaseType::NodesArrayType                    NodesArrayType;
+
+    typedef typename BaseType::ElementVariables                ElementVariables;
+
+    typedef typename BaseType::EquationIdVectorType        EquationIdVectorType;
+
+    typedef typename BaseType::DofsVectorType                    DofsVectorType;
+
+    typedef typename BaseType::VectorType                            VectorType;
+
+    typedef typename BaseType::MatrixType                            MatrixType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
     ConservedVarElement() :
-        Element()
+        BaseType()
     {}
 
     /// Constructor using a Geometry instance
-    ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry) :
-        Element(NewId, pGeometry)
+    ConservedVarElement(IndexType NewId, GeometryPointerType pGeometry) :
+        BaseType(NewId, pGeometry)
     {}
 
     /// Constructor using geometry and properties
-    ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
-        Element(NewId, pGeometry, pProperties)
+    ConservedVarElement(IndexType NewId, GeometryPointerType pGeometry, PropertiesPointerType pProperties) :
+        BaseType(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
-    virtual ~ ConservedVarElement() {};
+    virtual ~ ConservedVarElement() override {};
 
     ///@}
     ///@name Operators
@@ -94,10 +119,17 @@ public:
     ///@{
 
     /// Create a new Primitive variables element and return a pointer to it
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesPointerType pProperties) const override
     {
         KRATOS_TRY
-        return Element::Pointer(new ConservedVarElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return boost::make_shared< ConservedVarElement < TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        KRATOS_CATCH("")
+    }
+
+    Element::Pointer Create(IndexType NewId, GeometryPointerType pGeom, PropertiesPointerType pProperties) const override
+    {
+        KRATOS_TRY
+        return boost::make_shared< ConservedVarElement < TNumNodes > >(NewId, pGeom, pProperties);
         KRATOS_CATCH("")
     }
 
@@ -105,17 +137,13 @@ public:
     /** 
      * @return 0 if no errors are detected.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -158,20 +186,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateGeometry(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea);
+    void GetNodalValues(ElementVariables& rVariables);
 
-    double ComputeElemSize(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX);
+    void GetElementValues(const bounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
 
-    void GetNodalValues(array_1d<double,TNumNodes*3>& rDepth, array_1d<double,TNumNodes*3>& rRain, array_1d<double,TNumNodes*3>& rUnkn, array_1d<double,TNumNodes*3>& rProj);
-
-    void GetElementValues(const boost::numeric::ublas::bounded_matrix<double,TNumNodes,2>& rDN_DX, const array_1d<double,TNumNodes*3>& rNodalVar, array_1d<double,2>& rMomentum, double& rDivU, double& rHeight, array_1d<double,2>& rHeightGrad);
-
-    void ComputeStabilizationParameters(const double& rHeight, const array_1d<double,2>& rHeightGrad, const double& rElemSize, double& rTauU, double& rTauH, double& rKdc, const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double, TNumNodes*3, TNumNodes*3>& rMassMatrix);
-
-    double mGravity;
-    double mHeightUnitConvert;
+    void CalculateLumpedMassMatrix(bounded_matrix<double, TNumNodes*3, TNumNodes*3>& rMassMatrix);
 
     ///@}
     ///@name Protected  Access
