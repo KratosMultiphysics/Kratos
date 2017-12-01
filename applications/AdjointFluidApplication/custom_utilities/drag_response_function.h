@@ -69,7 +69,8 @@ public:
             "structure_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "sensitivity_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "nodal_sensitivity_variables": ["SHAPE_SENSITIVITY"],
-            "drag_direction": [1.0, 0.0, 0.0]
+            "drag_direction": [1.0, 0.0, 0.0],
+            "integrate_in_time": true
         })");
 
         Parameters custom_settings = rParameters["custom_settings"];
@@ -107,6 +108,8 @@ public:
             for (unsigned int d = 0; d < TDim; d++)
                 mDragDirection[d] /= magnitude;
         }
+
+        mIntegrateInTime = custom_settings["integrate_in_time"].GetBool();
 
         KRATOS_CATCH("");
     }
@@ -165,7 +168,11 @@ public:
     {
         KRATOS_TRY;
 
-        double delta_time = -rModelPart.GetProcessInfo()[DELTA_TIME];
+        double delta_time;
+        if (mIntegrateInTime)
+            delta_time = -rModelPart.GetProcessInfo()[DELTA_TIME];
+        else
+            delta_time = 1.0;
         for (const std::string& r_label : mNodalSensitivityVariables)
             BuildNodalSolutionStepSensitivities(r_label, rModelPart, delta_time);
 
@@ -224,6 +231,7 @@ private:
     std::string mSensitivityModelPartName;
     std::vector<std::string> mNodalSensitivityVariables;
     array_1d<double, TDim> mDragDirection;
+    bool mIntegrateInTime;
 
     ///@}
     ///@name Private Operators

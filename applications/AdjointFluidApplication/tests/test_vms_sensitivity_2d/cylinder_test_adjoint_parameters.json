@@ -42,7 +42,8 @@
                 "structure_model_part_name" : "NoSlip2D_Cylinder",
                 "sensitivity_model_part_name" : "NoSlip2D_Cylinder",
                 "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
-                "drag_direction"            : [1.0, 0.0, 0.0]
+                "drag_direction"              : [1.0, 0.0, 0.0],
+                "integrate_in_time"           : true
             }
         },
         "dynamic_tau"                  : 1.0,

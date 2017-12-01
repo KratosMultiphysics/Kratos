@@ -129,11 +129,6 @@ public:
     {
         KRATOS_TRY;
 
-        // Sensitivities are generally computed as a time integral. For steady
-        // problems, we set the time step to -1.0 (minus because adjoint is
-        // backward in time).
-        rModelPart.GetProcessInfo()[DELTA_TIME] = -1.0;
-
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
         // initialize the variables to zero.
