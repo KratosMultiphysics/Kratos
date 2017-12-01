@@ -29,7 +29,9 @@ from test_patch_test_truss import TestTruss3D2N as TTestTruss3D2N
 from test_patch_test_cr_beam import TestCrBeam3D2N as TTestCrBeam3D2N
 from test_patch_test_cr_beam import TestCrBeam2D2N as TTestCrBeam2D2N
 # Test loading conditions
-from test_loading_conditions import TestLoadingConditions as TestLoadingConditions
+from test_loading_conditions_point import TestLoadingConditionsPoint as TestLoadingConditionsPoint
+from test_loading_conditions_line import TestLoadingConditionsLine as TestLoadingConditionsLine
+from test_loading_conditions_surface import TestLoadingConditionsSurface as TestLoadingConditionsSurface
 # Basic moving mesh test
 from SmallTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
 # Dynamic basic tests
@@ -151,7 +153,9 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam3D2N]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam2D2N]))
     # Test loading conditions
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingConditions]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingConditionsPoint]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingConditionsLine]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingConditionsSurface]))
     # Basic moving mesh test
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Dynamic basic tests

@@ -108,10 +108,7 @@ class MechanicalSolver(object):
             # Add specific variables for the problem (rotation dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOCAL_POINT_MOMENT)
-            # TODO: Can we combine POINT_TORQUE and POINT_MOMENT???
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_TORQUE)
         if self.settings["pressure_dofs"].GetBool(): # TODO: The creation of UP and USigma elements is pending
             # Add specific variables for the problem (pressure dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
