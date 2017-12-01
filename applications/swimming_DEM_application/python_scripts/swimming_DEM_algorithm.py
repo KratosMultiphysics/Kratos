@@ -361,6 +361,7 @@ class Algorithm(object):
 
         # setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean, dead_or_not)
         self.fluid_solve_counter          = self.GetFluidSolveCounter()
+        self.ALE_mesh_update_counter      = self.GetALEMeshUpdateCounter()
         #self.embedded_counter             = self.GetEmbeddedCounter()
         self.DEM_to_fluid_counter         = self.GetBackwardCouplingCounter()
         self.derivative_recovery_counter  = self.GetRecoveryCounter()
@@ -636,7 +637,14 @@ class Algorithm(object):
         self.fluid_model_part.CloneTimeStep(self.time)
 
     def DEMSolve(self, time = 'None'): # time is passed in case it is needed
+
+        if self.ALE_mesh_update_counter.Tick():
+            self.UpdateMeshVelocity(time)
+
         self.disperse_phase_solution.solver.Solve()
+
+    def UpdateMeshVelocity(self, time):
+        pass
 
     def FluidSolve(self, time = 'None', solve_system = True):
         Say('Solving Fluid... (', self.fluid_model_part.NumberOfElements(0), 'elements )\n')
@@ -700,6 +708,11 @@ class Algorithm(object):
 
     def GetFluidSolveCounter(self):
         return SDP.Counter(is_dead = (self.pp.CFD_DEM["drag_force_type"].GetInt() == 9))
+
+    def GetALEMeshUpdateCounter(self):
+        return SDP.Counter(steps_in_cycle = self.pp.CFD_DEM["ALE_update_time_steps_per_fluid_step"].GetInt(),
+                           beginning_step = 1,
+                           is_active = self.pp.CFD_DEM["ALE_option"].GetBool())
 
     def GetEmbeddedCounter(self):
         return SDP.Counter(1, 3, self.pp.CFD_DEM["embedded_option"].GetBool())  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
