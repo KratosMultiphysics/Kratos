@@ -175,6 +175,19 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("apply_time_filter_to_fluid_fraction_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("full_particle_history_watcher").SetString("Empty")
         self.pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").SetString("")
+        self.pp.CFD_DEM.AddEmptyValue("frame_of_reference_type").SetInt(0)
+        self.pp.CFD_DEM.AddEmptyValue("angular_velocity_of_frame_X").SetDouble(0.0)
+        self.pp.CFD_DEM.AddEmptyValue("angular_velocity_of_frame_Y").SetDouble(0.0)
+        self.pp.CFD_DEM.AddEmptyValue("angular_velocity_of_frame_Z").SetDouble(0.0)
+        self.pp.CFD_DEM.AddEmptyValue("angular_velocity_of_frame_old_X").SetDouble(0.0)
+        self.pp.CFD_DEM.AddEmptyValue("angular_velocity_of_frame_old_Y").SetDouble(0.0)
+        self.pp.CFD_DEM.AddEmptyValue("angular_velocity_of_frame_old_Z").SetDouble(0.0)        
+        self.pp.CFD_DEM.AddEmptyValue("acceleration_of_frame_origin_X").SetDouble(0.0)
+        self.pp.CFD_DEM.AddEmptyValue("acceleration_of_frame_origin_Y").SetDouble(0.0)
+        self.pp.CFD_DEM.AddEmptyValue("acceleration_of_frame_origin_Z").SetDouble(0.0)
+        self.pp.CFD_DEM.AddEmptyValue("angular_acceleration_of_frame_X").SetDouble(0.0)
+        self.pp.CFD_DEM.AddEmptyValue("angular_acceleration_of_frame_Y").SetDouble(0.0)
+        self.pp.CFD_DEM.AddEmptyValue("angular_acceleration_of_frame_Z").SetDouble(0.0)
         self.pp.CFD_DEM.print_DISPERSE_FRACTION_option = False
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
         self.pp.CFD_DEM.PostCationConcentration = False
