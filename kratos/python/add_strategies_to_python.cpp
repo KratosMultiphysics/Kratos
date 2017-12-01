@@ -40,6 +40,8 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.hpp"
+#include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -348,6 +350,17 @@ namespace Kratos
             (
                 "ResidualBasedNewmarkDisplacementScheme", init< >() )
             .def("Initialize", &ResidualBasedNewmarkDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            ;
+
+        typedef ResidualBasedAdjointStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointStaticSchemeType;
+        typedef ResidualBasedAdjointSteadyScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointSteadySchemeType;
+
+        class_<ResidualBasedAdjointStaticSchemeType, bases<BaseSchemeType>, boost::noncopyable>(
+            "ResidualBasedAdjointStaticScheme", init<ResponseFunction::Pointer>())
+            ;
+
+        class_<ResidualBasedAdjointSteadySchemeType, bases<ResidualBasedAdjointStaticSchemeType>, boost::noncopyable>(
+            "ResidualBasedAdjointSteadyScheme", init<ResponseFunction::Pointer>())
             ;
 
             //********************************************************************

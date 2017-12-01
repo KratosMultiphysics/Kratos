@@ -160,7 +160,7 @@ class AdjointVMSMonolithicMPISolver(adjoint_vmsmonolithic_solver.AdjointVMSMonol
         if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
             self.time_scheme = TrilinosApplication.TrilinosAdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
         elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
-            self.time_scheme = TrilinosApplication.TrilinosAdjointSteadyScheme(self.settings["scheme_settings"], self.response_function)
+            self.time_scheme = TrilinosApplication.TrilinosResidualBasedAdjointSteadyScheme(self.response_function)
         else:
             raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 

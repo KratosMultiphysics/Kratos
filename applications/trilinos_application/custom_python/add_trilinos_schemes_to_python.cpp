@@ -62,7 +62,8 @@
 
 // AdjointFluidApplication
 #include "solving_strategies/response_functions/response_function.h"
-#include "../../AdjointFluidApplication/custom_schemes/adjoint_steady_velocity_pressure_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
 #include "../../AdjointFluidApplication/custom_schemes/adjoint_bossak_scheme.h"
 
 //convergence criterias
@@ -251,15 +252,17 @@ void  AddSchemes()
             .def(init<const Variable<int>&>()) // constructor for periodic conditions
             ;
 
-    class_< AdjointSteadyVelocityPressureScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
-            bases<TrilinosBaseSchemeType>, boost::noncopyable >
-            ( "TrilinosAdjointSteadyVelocityPressureScheme", init<Parameters&, ResponseFunction::Pointer>() )
-            ;
+    typedef ResidualBasedAdjointStaticScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> ResidualBasedAdjointStaticSchemeType;
+    class_<ResidualBasedAdjointStaticSchemeType, bases<TrilinosBaseSchemeType>, boost::noncopyable>(
+        "TrilinosResidualBasedAdjointStaticScheme", init<ResponseFunction::Pointer>());
 
-    class_< AdjointBossakScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
-            bases<TrilinosBaseSchemeType>, boost::noncopyable >
-            ( "TrilinosAdjointBossakScheme", init<Parameters&, ResponseFunction::Pointer>() )
-            ;
+    class_<ResidualBasedAdjointSteadyScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+           bases<ResidualBasedAdjointStaticSchemeType>, boost::noncopyable>(
+        "TrilinosResidualBasedAdjointSteadyScheme", init<ResponseFunction::Pointer>());
+
+    class_<AdjointBossakScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+           bases<TrilinosBaseSchemeType>, boost::noncopyable>(
+        "TrilinosAdjointBossakScheme", init<Parameters&, ResponseFunction::Pointer>());
 }
 
 } // namespace Python.

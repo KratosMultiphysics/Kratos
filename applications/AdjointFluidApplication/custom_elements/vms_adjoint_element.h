@@ -219,7 +219,14 @@ public:
     }
 
     /// Returns the adjoint values stored in this element's nodes.
+    // TODO: REMOVE !!!!! use GetFirstDerivativesVector instead.
     void GetValuesVector(VectorType& rValues, int Step = 0) override
+    {
+        GetFirstDerivativesVector(rValues, Step);
+    }
+
+    /// Returns the adjoint velocity values stored in this element's nodes.
+    void GetFirstDerivativesVector(VectorType& rValues, int Step = 0) override
     {
         if (rValues.size() != TFluidLocalSize)
             rValues.resize(TFluidLocalSize, false);
