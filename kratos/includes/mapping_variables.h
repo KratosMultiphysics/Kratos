@@ -21,6 +21,7 @@
 // Project includes
 #include "includes/condition.h"
 #include "includes/define.h"
+#include "includes/key_hash.h"
 #include "containers/variable.h"
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
@@ -45,30 +46,6 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-    
-#if !defined(SHARED_POINTER_HASHER)
-#define SHARED_POINTER_HASHER
-    template<class TSharedPointer>
-    struct SharedPointerHasher
-    {
-        size_t operator()(const TSharedPointer& pCond) const
-        {
-            return reinterpret_cast<size_t>(pCond.get());
-        }
-    };
-#endif
-    
-#if !defined(SHARED_POINTER_COMPARATOR)
-#define SHARED_POINTER_COMPARATOR
-    template<class TSharedPointer>
-    struct SharedPointerComparator
-    {
-        bool operator()(const TSharedPointer& first, const TSharedPointer& second) const
-        {
-            return first.get() == second.get();
-        }
-    };
-#endif
     
 ///@}
 ///@name Kratos Classes
@@ -275,8 +252,8 @@ namespace Kratos
         ///@}
     }; // Class ConditionMap 
     
-    KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ConditionMap>, MAPPING_PAIRS ) // An unordened map of which contains the structure
-    KRATOS_DEFINE_VARIABLE( double, TANGENT_FACTOR )                         // The factor between the tangent and normal behaviour
+    KRATOS_DEFINE_VARIABLE( ConditionMap::Pointer, MAPPING_PAIRS ) // An unordened map of which contains the structure
+    KRATOS_DEFINE_VARIABLE( double, TANGENT_FACTOR )               // The factor between the tangent and normal behaviour
 
 } // namespace Kratos
 

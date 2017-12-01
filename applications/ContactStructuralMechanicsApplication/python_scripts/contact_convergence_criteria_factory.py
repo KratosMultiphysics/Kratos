@@ -14,7 +14,7 @@ KratosMultiphysics.CheckForPreviousImport()
 class convergence_criterion:
     def __init__(self, convergence_criterion_parameters):
         # Note that all the convergence settings are introduced via a Kratos parameters object.
-        
+        echo_level = convergence_criterion_parameters["echo_level"].GetInt()
         if "contact" in convergence_criterion_parameters["convergence_criterion"].GetString():
             D_RT = convergence_criterion_parameters["displacement_relative_tolerance"].GetDouble()
             D_AT = convergence_criterion_parameters["displacement_absolute_tolerance"].GetDouble()
@@ -29,7 +29,6 @@ class convergence_criterion:
             fancy_convergence_criterion = convergence_criterion_parameters["fancy_convergence_criterion"].GetBool()
             print_convergence_criterion = convergence_criterion_parameters["print_convergence_criterion"].GetBool()
             ensure_contact = convergence_criterion_parameters["ensure_contact"].GetBool()
-            echo_level = convergence_criterion_parameters["echo_level"].GetInt()
             
             if(echo_level >= 1):
                 print("::[Mechanical Solver]:: CONVERGENCE CRITERION : ", convergence_criterion_parameters["convergence_criterion"].GetString())

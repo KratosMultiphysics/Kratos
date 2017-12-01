@@ -53,7 +53,6 @@ class Solution(main_script.Solution):
 
     def __init__(self):
         super(Solution, self).__init__()
-        os.chdir('..')
         self.nodeplotter = False
         self.LoadParametersFile()
         self.main_path = os.getcwd()

@@ -53,7 +53,7 @@ public:
     
     // General type definitions
     typedef Node<3>                                              NodeType;
-    typedef Point                                            PointType;
+    typedef Point                                               PointType;
     typedef PointType::CoordinatesArrayType          CoordinatesArrayType;
     typedef Geometry<NodeType>                               GeometryType;
     typedef Geometry<PointType>                         GeometryPointType;
@@ -87,12 +87,12 @@ public:
 
     /**
      * Project a point over a line/plane following an arbitrary direction
-     * @param Geom: The geometry where to be projected
-     * @param PointDestiny: The point to be projected
-     * @param Normal: The normal of the geometry
-     * @param Vector: The direction to project
-     * @return PointProjected: The point pojected over the plane
-     * @return Distance: The distnace between surfaces
+     * @param Geom The geometry where to be projected
+     * @param PointDestiny The point to be projected
+     * @param Normal The normal of the geometry
+     * @param Vector The direction to project
+     * @return PointProjected The point pojected over the plane
+     * @return Distance The distnace between surfaces
      */
 
     static inline double FastProjectDirection(
@@ -135,10 +135,10 @@ public:
     
     /**
      * Project a point over a plane (avoiding some steps)
-     * @param PointOrigin: A point in the plane
-     * @param PointDestiny: The point to be projected
-     * @param Normal: The normal of the plane
-     * @return PointProjected: The point pojected over the plane
+     * @param PointOrigin A point in the plane
+     * @param PointDestiny The point to be projected
+     * @param Normal The normal of the plane
+     * @return PointProjected The point pojected over the plane
      */
     
     static inline PointType FastProject(
@@ -159,10 +159,10 @@ public:
     
     /**
      * Projects iteratively to get the coordinate
-     * @param GeomOrigin: The origin geometry
-     * @param PointDestiny: The destination point
-     * @return ResultingPoint: The distance between the point and the plane
-     * @return Inside: True is inside, false not
+     * @param GeomOrigin The origin geometry
+     * @param PointDestiny The destination point
+     * @param ResultingPoint The distance between the point and the plane
+     * @return Inside True is inside, false not
      */
     
     static inline bool ProjectIterativeLine2D(
@@ -255,8 +255,8 @@ public:
     
     /**
      * This functions checks if the length of the line is to short, with the potential of provoque ill condition in the dual LM formulation
-     * @param GeometryLine: The line to be checked
-     * @param Tolerance: The threshold length
+     * @param GeometryLine The line to be checked
+     * @param Tolerance The threshold length
      * @return True if the line is too short, false otherwise
      */
     
@@ -275,20 +275,20 @@ public:
     
     /**
      * This functions checks if the semiperimeter is smaller than any of the sides of the triangle
-     * @param GeometryTriangle: The triangle to be checked
+     * @param GeometryTriangle The triangle to be checked
      * @return True if the triangle is in bad shape, false otherwise
      */
     
-    static inline bool HeronCheck(const GeometryPointType GeometryTriangle)
+    static inline bool HeronCheck(const GeometryPointType& GeometryTriangle)
     {
         return HeronCheck(GeometryTriangle[0], GeometryTriangle[1], GeometryTriangle[2]);
     }
     
     /**
      * This functions checks if the semiperimeter is smaller than any of the sides of the triangle
-     * @param PointOrig1: The triangle first point
-     * @param PointOrig2: The triangle second point
-     * @param PointOrig3: The triangle third point
+     * @param PointOrig1 The triangle first point
+     * @param PointOrig2 The triangle second point
+     * @param PointOrig3 The triangle third point
      * @return True if the triangle is in bad shape, false otherwise
      */
     
@@ -320,20 +320,18 @@ public:
 
     /**
      * This function rotates to align the projected points to a parallel plane to XY
-     * @param PointToRotate: The points from the origin geometry
-     * @param PointReferenceRotation: The center point used as reference to rotate
-     * @param SlaveNormal: The normal vector of the slave condition
-     * @param SlaveTangentXi: The first tangent vector of the slave condition
-     * @param SlaveTangentEta: The second tangent vector of the slave condition
-     * @param Inversed: If we rotate to the XY or we recover from XY
-     * @return PointRotated: The point rotated 
+     * @param PointToRotate The points from the origin geometry and the the point rotated 
+     * @param PointReferenceRotation The center point used as reference to rotate
+     * @param SlaveTangentXi The first tangent vector of the slave condition
+     * @param SlaveTangentEta The second tangent vector of the slave condition
+     * @param Inversed If we rotate to the XY or we recover from XY
      */
     
     static inline void RotatePoint( 
         PointType& PointToRotate,
-        const PointType PointReferenceRotation,
-        const array_1d<double, 3> SlaveTangentXi,
-        const array_1d<double, 3> SlaveTangentEta,
+        const PointType& PointReferenceRotation,
+        const array_1d<double, 3>& SlaveTangentXi,
+        const array_1d<double, 3>& SlaveTangentEta,
         const bool Inversed
         )
     {                
@@ -365,8 +363,8 @@ public:
     
     /**
      * This function calculates the normal in a specific GP with a given shape function
-     * @param N: The shape function considered
-     * @param Geom: The geometry of condition of interest
+     * @param N The shape function considered
+     * @param Geom The geometry of condition of interest
      */
 
     static inline array_1d<double,3> GaussPointUnitNormal(
@@ -394,36 +392,36 @@ public:
     
     /**
      * This function gives you the indexes needed to order a vector 
-     * @param vect: The vector to order
-     * @return idx: The vector of indexes
+     * @param ThisVector The vector to order
+     * @return idx The vector of indexes
      */
     
     template <typename TType>
-    static inline std::vector<std::size_t> SortIndexes(const std::vector<TType> &vect) 
+    static std::vector<std::size_t> SortIndexes(const std::vector<TType> &ThisVector) 
     {
         // Initialize original index locations
-        std::vector<std::size_t> idx(vect.size());
+        std::vector<std::size_t> idx(ThisVector.size());
         iota(idx.begin(), idx.end(), 0);
 
-        // Sort indexes based on comparing values in vect
+        // Sort indexes based on comparing values in ThisVector
         std::sort(idx.begin(), idx.end(),
-            [&vect](std::size_t i1, std::size_t i2) {return vect[i1] < vect[i2];});
+            [&ThisVector](std::size_t i1, std::size_t i2) {return ThisVector[i1] < ThisVector[i2];});
 
         return idx;
     }
-    
+
     /**
      * It calculates the matrix of coordinates of a geometry
-     * @param nodes: The geometry to calculate
-     * @param current: If we calculate the current coordinates or the initial ones
-     * @return coordinates: The matrix containing the coordinates of the geometry
+     * @param ThisNodes The geometry to calculate
+     * @param Current If we calculate the Current coordinates or the initial ones
+     * @return coordinates The matrix containing the coordinates of the geometry
      */
     
     template< unsigned int TDim, unsigned int TNumNodes>
     static inline bounded_matrix<double, TNumNodes, TDim> GetCoordinates(
-        const GeometryType& nodes,
-        const bool current = true,
-        const unsigned int step = 0
+        const GeometryType& ThisNodes,
+        const bool Current = true,
+        const unsigned int Step = 0
         )
     {
         /* DEFINITIONS */            
@@ -433,17 +431,17 @@ public:
         {
             array_1d<double, 3> coord;
             
-            if (current == true)
+            if (Current == true)
             {
-                coord = nodes[i_node].Coordinates();
+                coord = ThisNodes[i_node].Coordinates();
             }
             else
             {
-                coord = nodes[i_node].GetInitialPosition();
+                coord = ThisNodes[i_node].GetInitialPosition();
                 
-                if (step > 0)
+                if (Step > 0)
                 {
-                    coord += nodes[i_node].FastGetSolutionStepValue(DISPLACEMENT, step);
+                    coord += ThisNodes[i_node].FastGetSolutionStepValue(DISPLACEMENT, Step);
                 }
             }
 
@@ -458,17 +456,17 @@ public:
 
     /**
      * It calculates the vector of an historical variable of a geometry
-     * @param nodes: The geometry to calculate
-     * @param rVariable: The name of the variable to calculate
-     * @param step: The step where calculate
-     * @return var_vector: The vector containing the variables of the geometry
+     * @param ThisNodes The geometry to calculate
+     * @param rVariable The name of the variable to calculate
+     * @param Step The step where calculate
+     * @return var_vector The vector containing the variables of the geometry
      */
     
     template< unsigned int TNumNodes, class TVarType = Variable<double>>
     static inline array_1d<double, TNumNodes> GetVariableVector(
-        const GeometryType& nodes,
+        const GeometryType& ThisNodes,
         const TVarType& rVariable,
-        const unsigned int step
+        const unsigned int Step
         )
     {
         /* DEFINITIONS */        
@@ -476,7 +474,7 @@ public:
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
-            var_vector[i_node] = nodes[i_node].FastGetSolutionStepValue(rVariable, step);
+            var_vector[i_node] = ThisNodes[i_node].FastGetSolutionStepValue(rVariable, Step);
         }
         
         return var_vector;
@@ -484,17 +482,17 @@ public:
     
     /**
      * It calculates the vector of an historical variable of a geometry
-     * @param nodes: The geometry to calculate
-     * @param rVariable: The name of the variable to calculate
-     * @param step: The step where calculate
-     * @return var_vector: The vector containing the variables of the geometry
+     * @param ThisNodes The geometry to calculate
+     * @param rVariable The name of the variable to calculate
+     * @param Step The step where calculate
+     * @return var_vector The vector containing the variables of the geometry
      */
         
     template< unsigned int TNumNodes, class TVarType = Variable<double> >
     static inline bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
-        const GeometryType& nodes,
+        const GeometryType& ThisNodes,
         const TVarType& rVariable,
-        const unsigned int step
+        const unsigned int Step
         )
     {
         /* DEFINITIONS */        
@@ -502,7 +500,7 @@ public:
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
-            var_vector(i_node, 0) = nodes[i_node].FastGetSolutionStepValue(rVariable, step);
+            var_vector(i_node, 0) = ThisNodes[i_node].FastGetSolutionStepValue(rVariable, Step);
         }
         
         return var_vector;
@@ -510,14 +508,14 @@ public:
 
     /**
      * It calculates the vector of a non-historical variable of a geometry
-     * @param nodes: The geometry to calculate
-     * @param rVariable: The name of the variable to calculate
-     * @return var_vector: The vector containing the variables of the geometry
+     * @param ThisNodes The geometry to calculate
+     * @param rVariable The name of the variable to calculate
+     * @return var_vector The vector containing the variables of the geometry
      */
         
     template< unsigned int TNumNodes, class TVarType = Variable<double> >
     static inline array_1d<double, TNumNodes> GetVariableVector(
-        const GeometryType& nodes,
+        const GeometryType& ThisNodes,
         const TVarType& rVariable
         )
     {
@@ -526,7 +524,7 @@ public:
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
-            var_vector[i_node] = nodes[i_node].GetValue(rVariable);
+            var_vector[i_node] = ThisNodes[i_node].GetValue(rVariable);
         }
         
         return var_vector;
@@ -534,14 +532,14 @@ public:
     
     /**
      * It calculates the vector of a non-historical variable of a geometry
-     * @param nodes: The geometry to calculate
-     * @param rVariable: The name of the variable to calculate
-     * @return var_vector: The vector containing the variables of the geometry
+     * @param ThisNodes The geometry to calculate
+     * @param rVariable The name of the variable to calculate
+     * @return var_vector The vector containing the variables of the geometry
      */
     
     template< unsigned int TNumNodes, class TVarType = Variable<double> >
     static inline bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
-        const GeometryType& nodes,
+        const GeometryType& ThisNodes,
         const TVarType& rVariable
         )
     {
@@ -550,7 +548,7 @@ public:
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
-            var_vector(i_node, 0) = nodes[i_node].GetValue(rVariable);
+            var_vector(i_node, 0) = ThisNodes[i_node].GetValue(rVariable);
         }
         
         return var_vector;
@@ -558,10 +556,10 @@ public:
     
     /**
      * It calculates the matrix of a variable of a geometry
-     * @param Nodes: The geometry to calculate
-     * @param rVariable: The name of the variable to calculate
-     * @param step: The step where calculate
-     * @return var_matrix: The matrix containing the variables of the geometry
+     * @param Nodes The geometry to calculate
+     * @param rVariable The name of the variable to calculate
+     * @param step The step where calculate
+     * @return var_matrix The matrix containing the variables of the geometry
      */
     
     template< unsigned int TDim, unsigned int TNumNodes>
@@ -588,9 +586,9 @@ public:
 
     /**
      * It calculates the matrix of a non-historical variable of a geometry
-     * @param Nodes: The geometry to calculate
-     * @param rVariable: The name of the variable to calculate
-     * @return var_matrix: The matrix containing the variables of the geometry
+     * @param Nodes The geometry to calculate
+     * @param rVariable The name of the variable to calculate
+     * @return var_matrix The matrix containing the variables of the geometry
      */
         
     template< unsigned int TDim, unsigned int TNumNodes>
@@ -616,12 +614,12 @@ public:
     
     /**
      * It calculates the matrix containing the absolute value of another matrix
-     * @param InputMatrix: The original matrix
-     * @return AbsMatrix: The matrix containing the absolute value of another matrix
+     * @param InputMatrix The original matrix
+     * @return AbsMatrix The matrix containing the absolute value of another matrix
      */
         
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline bounded_matrix<double, TNumNodes, TDim> GetAbsMatrix(const bounded_matrix<double, TNumNodes, TDim> InputMatrix)
+    static inline bounded_matrix<double, TNumNodes, TDim> GetAbsMatrix(const bounded_matrix<double, TNumNodes, TDim>& InputMatrix)
     {
         /* DEFINITIONS */        
         bounded_matrix<double, TNumNodes, TDim> AbsMatrix;
@@ -653,8 +651,9 @@ public:
     
     /**
      * This method resets the value
-     * @param ThisGeometry: The geometrty to update
-     * @param ThisVariable: The variable to set
+     * @param rThisModelPart The model part to update
+     * @param ThisVariable The variable to set
+     * @param InvertedPair If the master/slave follows the standard way 
      */
     template< class TVarType, HistoricalValues THist>
     static inline void ResetValue(
@@ -665,7 +664,7 @@ public:
     
     /**
      * This method resets the auxiliar value
-     * @param ThisGeometry: The geometrty to update
+     * @param rThisModelPart The model part to update
      */
     template< class TVarType>
     static inline void ResetAuxiliarValue(ModelPart& rThisModelPart);
@@ -687,8 +686,8 @@ public:
     
     /**
      * This method adds the value
-     * @param ThisGeometry: The geometrty to update
-     * @param ThisVariable: The variable to set
+     * @param ThisGeometry The geometrty to update
+     * @param ThisVariable The variable to set
      */
     template< class TVarType, HistoricalValues THist>
     static inline void MatrixValue(
@@ -699,9 +698,9 @@ public:
     
     /**
      * This method adds the value
-     * WARNING: This operation is not threadsafe
-     * @param ThisGeometry: The geometrty to update
-     * @param ThisVariable: The variable to set
+     * WARNING This operation is not threadsafe
+     * @param ThisGeometry The geometrty to update
+     * @param ThisVariable The variable to set
      */
     template< class TVarType, HistoricalValues THist>
     static inline void AddValue(
@@ -712,8 +711,8 @@ public:
     
     /**
      * This method adds the value
-     * @param ThisGeometry: The geometrty to update
-     * @param ThisVariable: The variable to set
+     * @param pThisNode The node to update
+     * @param ThisVariable The variable to set
      */
     template< class TVarType, HistoricalValues THist>
     static inline void AddAreaWeightedNodalValue(
@@ -723,11 +722,11 @@ public:
 
     /**
      * This method updates the database in the amster side
-     * @param rThisModelPart: The model part
-     * @param ThisVariable: The variable to set
-     * @param Dx: The vector with the increment of the value
-     * @param Index: The index used in the  case of a vector variable
-     * @param ConectivityDatabase: The database that will be used to assemble the system
+     * @param rThisModelPart The model part
+     * @param ThisVariable The variable to set
+     * @param Dx The vector with the increment of the value
+     * @param Index The index used in the  case of a vector variable
+     * @param ConectivityDatabase The database that will be used to assemble the system
      */
     template< class TVarType, HistoricalValues THist>
     static inline void UpdateDatabase(

@@ -22,6 +22,7 @@ from buoyancy_test import BuoyancyTest
 from volume_source_test import VolumeSourceTest
 from fluid_element_test import FluidElementTest
 from darcy_channel_test import DarcyChannelTest
+from embedded_ausas_couette_test import EmbeddedAusasCouetteTest
 
 ## NIGTHLY TESTS
 
@@ -56,6 +57,7 @@ def AssambleTestSuites():
     smallSuite.addTest(FluidElementTest('testCavity'))
     smallSuite.addTest(FluidElementTest('testCavityOSS'))
     smallSuite.addTest(DarcyChannelTest('testDarcyDensity'))
+    smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette2D'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
@@ -74,6 +76,7 @@ def AssambleTestSuites():
     allSuite.addTest(DarcyChannelTest('testDarcyNonLinear'))
     allSuite.addTest(TEmbeddedCouette3DTest('test_execution'))
     allSuite.addTest(TEmbeddedCouette3DImposedTest('test_execution'))
+    allSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette3D'))
 
     return suites
 
