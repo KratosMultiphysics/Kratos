@@ -81,7 +81,8 @@ class MechanicalSolver(object):
             },
             "bodies_list": [],
             "problem_domain_sub_model_part_list": ["solid"],
-            "processes_sub_model_part_list": [""]
+            "processes_sub_model_part_list": [""],
+            "auxiliary_variables_list" : []
         }
         """)
 
@@ -113,6 +114,11 @@ class MechanicalSolver(object):
             # Add specific variables for the problem (pressure dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESSURE_REACTION)
+        # Add variables that the user defined in the ProjectParameters
+        for i in range(self.settings["auxiliary_variables_list"].size()):
+            variable_name = self.settings["auxiliary_variables_list"][i].GetString()
+            variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+            self.main_model_part.AddNodalSolutionStepVariable(variable)
         print("::[MechanicalSolver]:: Variables ADDED")
 
     def GetMinimumBufferSize(self):
