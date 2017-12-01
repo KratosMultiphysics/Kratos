@@ -38,6 +38,8 @@
   #include "external_includes/pastix_solver.h"
   #include "external_includes/pastix_complex_solver.h"
 #endif
+
+#include "external_includes/eigen_solver.h"
   
 
 namespace Kratos
@@ -65,6 +67,9 @@ void  AddLinearSolversToPython()
     typedef IterativeSolver<SpaceType, LocalSpaceType> IterativeSolverType;
     typedef GMRESSolver<SpaceType, LocalSpaceType> GMRESSolverType;
     typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
+
+    typedef EigenSolver<EigenSolverTypes::SparseLU, SpaceType, LocalSpaceType> EigenSparseLUSolver;
+    typedef EigenSolver<EigenSolverTypes::ConjugateGradient, SpaceType, LocalSpaceType> EigenConjugateGradientSolver;
 
     using namespace boost::python;
 
@@ -113,7 +118,14 @@ void  AddLinearSolversToPython()
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
     .def(self_ns::str(self))
     ;
-
+    
+    class_<EigenSparseLUSolver, bases<DirectSolverType>, boost::noncopyable>
+    ("EigenSparseLUSolver", init<>())
+    .def(init<Parameters>());
+    
+    class_<EigenConjugateGradientSolver, bases<DirectSolverType>, boost::noncopyable>
+    ("EigenConjugateGradientSolver", init<>())
+    .def(init<Parameters>());
 }
 
 }  // namespace Python.

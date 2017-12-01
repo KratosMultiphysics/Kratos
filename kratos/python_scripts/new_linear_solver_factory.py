@@ -63,6 +63,12 @@ def ConstructSolver(configuration):
     elif(solver_type == "complex_pastix_solver"):
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.PastixComplexSolver(configuration)
+    elif(solver_type == "EigenSparseLUSolver"):
+        import KratosMultiphysics.ExternalSolversApplication
+        linear_solver = KratosMultiphysics.ExternalSolversApplication.EigenSparseLUSolver(configuration)
+    elif(solver_type == "EigenConjugateGradientSolver"):
+        import KratosMultiphysics.ExternalSolversApplication
+        linear_solver = KratosMultiphysics.ExternalSolversApplication.EigenConjugateGradientSolver(configuration)
  
     ################################## following solvers need importing the MKLSolversApplication
     elif (solver_type == "ParallelMKLPardisoSolver"):
