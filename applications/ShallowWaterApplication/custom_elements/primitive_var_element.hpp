@@ -204,7 +204,7 @@ protected:
     
     void GetNodalValues(ElementVariables& rVariables);
     
-    void GetElementValues(const ounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
+    void GetElementValues(const bounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
     
     void ComputeStabilizationParameters(const ElementVariables& rVariables,
                                         const double& rElemSize,

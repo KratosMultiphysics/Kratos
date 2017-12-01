@@ -139,14 +139,14 @@ namespace Kratos
         this-> InitializeElement(variables, rCurrentProcessInfo);
         
         // Compute the geometry
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2> DN_DX;
+        bounded_matrix<double,TNumNodes, 2> DN_DX;
         array_1d<double,TNumNodes> N;
         double Area;
         this-> CalculateGeometry(DN_DX,Area);
         double elem_length = this->ComputeElemSize(DN_DX);
         
         // Getting the values of shape functions on Integration Points
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;  // In this case, number of Gauss points and number of nodes coincides
+        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;  // In this case, number of Gauss points and number of nodes coincides
         const GeometryType& rGeom = this->GetGeometry();
         Ncontainer = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
         
@@ -165,13 +165,13 @@ namespace Kratos
         this-> ComputeStabilizationParameters(variables, elem_length, tau_u, tau_h, k_dc);
         
         // Some auxilary definitions
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_q= ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_w= ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_q_div_u  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_w_grad_h = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_u_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_h_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_q= ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_w= ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_q_div_u  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_w_grad_h = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_u_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_h_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
         
         this-> ComputeAuxMatrices(Ncontainer, DN_DX, variables, mass_matrix_q, mass_matrix_w, aux_w_grad_h, aux_q_div_u, aux_h_diffus, aux_u_diffus);
         
@@ -248,7 +248,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::CalculateGeometry(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea)
+    void PrimitiveVarElement<TNumNodes>::CalculateGeometry(bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea)
     {
         const GeometryType& rGeom = this->GetGeometry();
 
@@ -266,7 +266,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    double PrimitiveVarElement<TNumNodes>::ComputeElemSize(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX)
+    double PrimitiveVarElement<TNumNodes>::ComputeElemSize(const bounded_matrix<double, TNumNodes, 2>& rDN_DX)
     {
         double l = 0.0;
 
@@ -315,7 +315,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::GetElementValues(const boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX,
+    void PrimitiveVarElement<TNumNodes>::GetElementValues(const bounded_matrix<double,TNumNodes, 2>& rDN_DX,
                                                           ElementVariables& rVariables)
     {
         // Initialize outputs
@@ -379,15 +379,15 @@ namespace Kratos
 
     template< unsigned int TNumNodes >
     void PrimitiveVarElement<TNumNodes>::ComputeAuxMatrices(
-            const boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes>& rNcontainer,
-            const boost::numeric::ublas::bounded_matrix<double,TNumNodes,2>& rDN_DX,
+            const bounded_matrix<double,TNumNodes, TNumNodes>& rNcontainer,
+            const bounded_matrix<double,TNumNodes,2>& rDN_DX,
             const ElementVariables& rVariables,
-            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixScalar,
-            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixVector,
-            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarGrad,
-            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiv,
-            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarDiff,
-            boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiff )
+            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixScalar,
+            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixVector,
+            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarGrad,
+            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiv,
+            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarDiff,
+            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiff )
     {
         // Initialize solution
         noalias(rMassMatrixVector) = ZeroMatrix(TNumNodes*3, TNumNodes*3);
@@ -399,10 +399,10 @@ namespace Kratos
         
         // Some auxilary definitions
         array_1d<double,TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> N_vel        = ZeroMatrix(2,TNumNodes*3);  // Shape functions matrix (for velocity unknown)
-        boost::numeric::ublas::bounded_matrix<double,1,TNumNodes*3> N_height     = ZeroMatrix(1,TNumNodes*3);  // Shape functions vector (for height unknown)
-        boost::numeric::ublas::bounded_matrix<double,1,TNumNodes*3> DN_DX_vel    = ZeroMatrix(1,TNumNodes*3);  // Shape functions gradients vector (for velocity unknown)
-        boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> DN_DX_height = ZeroMatrix(2,TNumNodes*3);  // Shape functions gradients matrix (for height unknown)
+        bounded_matrix<double,2,TNumNodes*3> N_vel        = ZeroMatrix(2,TNumNodes*3);  // Shape functions matrix (for velocity unknown)
+        bounded_matrix<double,1,TNumNodes*3> N_height     = ZeroMatrix(1,TNumNodes*3);  // Shape functions vector (for height unknown)
+        bounded_matrix<double,1,TNumNodes*3> DN_DX_vel    = ZeroMatrix(1,TNumNodes*3);  // Shape functions gradients vector (for velocity unknown)
+        bounded_matrix<double,2,TNumNodes*3> DN_DX_height = ZeroMatrix(2,TNumNodes*3);  // Shape functions gradients matrix (for height unknown)
         
         // Loop on Gauss points. In this case, number of Gauss points and number of nodes coincides
         for(unsigned int igauss = 0; igauss < TNumNodes; igauss++)
