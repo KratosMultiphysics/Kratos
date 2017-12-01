@@ -182,59 +182,26 @@ namespace Kratos
         bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_m_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
         bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_h_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
 
+        // ComputeAuxMatrices loops the Gauss points and build the matrices
         this-> ComputeAuxMatrices(Ncontainer, DN_DX, variables, mass_matrix_q, mass_matrix_w, aux_w_grad_h, aux_q_div_m, aux_h_diffus, aux_m_diffus);
 
-        // Loop on Gauss points. In this case, number of Gauss points are equal to number of nodes
-        //~ for (unsigned int igauss = 0; igauss < TNumNodes; igauss++)
-        //~ {
-            //~ noalias(N) = row(Ncontainer, igauss);
-//~ 
-            //~ // Build shape and derivatives functions at Gauss points
-            //~ for (unsigned int nnode = 0; nnode < TNumNodes; nnode++)
-            //~ {
-                //~ // Height gradient
-                //~ DN_DX_height(0, 2+nnode*3) = DN_DX(nnode,0);
-                //~ DN_DX_height(1, 2+nnode*3) = DN_DX(nnode,1);
-                //~ // Momentum divergence
-                //~ DN_DX_mom(0,   nnode*3) = DN_DX(nnode,0);
-                //~ DN_DX_mom(0, 1+nnode*3) = DN_DX(nnode,1);
-                //~ // Momentum gradient
-                //~ grad_mom(0,   nnode*3) = DN_DX(nnode,0);
-                //~ grad_mom(0, 1+nnode*3) = DN_DX(nnode,0);
-                //~ grad_mom(1,   nnode*3) = DN_DX(nnode,1);
-                //~ grad_mom(1, 1+nnode*3) = DN_DX(nnode,1);
-                //~ // Height shape funtions
-                //~ N_height(0, 2+nnode*3) = N[nnode];
-                //~ // Momentum shape functions
-                //~ N_mom(0,   nnode*3) = N[nnode];
-                //~ N_mom(1, 1+nnode*3) = N[nnode];
-            //~ }
-            //~ N_height     *= mHeightUnitConvert;
-            //~ DN_DX_height *= mHeightUnitConvert;
-            //~ 
-            //~ noalias(mass_matrix_w)+= prod(trans(N_mom),N_mom);
-            //~ noalias(mass_matrix_q)+= prod(trans(N_height),N_height);
-            //~ 
-            //~ noalias(aux_q_div_m)  += prod(trans(N_height),DN_DX_mom);
-            //~ noalias(aux_w_grad_h) += prod(trans(N_mom),DN_DX_height);
-            //~ 
-            //~ noalias(aux_m_diffus) += prod(trans(DN_DX_mom),DN_DX_mom);
-            //~ noalias(aux_h_diffus) += prod(trans(DN_DX_height),DN_DX_height);
-        //~ }
         noalias(mass_matrix) = mass_matrix_w + mass_matrix_q;
 
         // Build LHS 
         // Cross terms 
-        noalias(rLeftHandSideMatrix)  = variables.gravity * variables.scalar * aux_w_grad_h; // Add <w,g*h*grad(h)> to Momentum Eq. 
+        //~ noalias(rLeftHandSideMatrix)  = aux_q_div_m;                                         // Add <q*div(hu)> to Mass Eq.
+        noalias(rLeftHandSideMatrix)  = variables.gravity * variables.scalar * aux_w_grad_h; // Add <w,g*h*grad(h)> to Momentum Eq.
 
         // Inertia terms 
-        noalias(rLeftHandSideMatrix) += variables.dt_inv * mass_matrix;           // Add <N,N> to both Eq's 
+        noalias(rLeftHandSideMatrix) += variables.dt_inv * mass_matrix;        // Add <N,N> to both Eq's
 
         // Non linear terms 
-        noalias(rLeftHandSideMatrix) += variables.vector_div * mass_matrix;       // Add <q,div(u)*h> to Mass Eq. and <w,div(u)*hu> to Momentum Eq. 
+        noalias(rLeftHandSideMatrix) += variables.vector_div * mass_matrix;    // Add <q,div(u)*h> to Mass Eq. and <w,div(u)*hu> to Momentum Eq.
+        //~ noalias(rLeftHandSideMatrix) += variables.vector_div * mass_matrix_w;  // Add <w,div(u)*hu> to Momentum Eq.
+        //~ noalias(rLeftHandSideMatrix) += aux_non_linear;                        // Add  and <w,hu*grad(u)> to Momentum Eq.
 
         // Stabilization terms 
-        noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;  // Add art. diff. to Mass Eq. 
+        noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;  // Add art. diff. to Mass Eq.
         noalias(rLeftHandSideMatrix) +=         tau_m  * aux_m_diffus;  // Add art. diff. to Momentum Eq.
 
         // Friction term
@@ -242,7 +209,7 @@ namespace Kratos
 
         // Build RHS 
         // Source terms (bathymetry contribution) 
-        noalias(rRightHandSideVector)  = -variables.gravity * variables.scalar * prod(aux_w_grad_h, variables.depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.) 
+        noalias(rRightHandSideVector)  = -variables.gravity * variables.scalar * prod(aux_w_grad_h, variables.depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
 
         // Source terms (rain contribution)
         noalias(rRightHandSideVector) += prod(mass_matrix, variables.rain);
@@ -284,6 +251,7 @@ namespace Kratos
             rVariables.rain[counter]  = rGeom[i].FastGetSolutionStepValue(RAIN);
             rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT);
             rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1);
+            //~ rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(HEIGHT,1);
             counter++;
         }
     }
