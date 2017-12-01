@@ -20,10 +20,9 @@ class TestLoadingConditionsPoint(KratosUnittest.TestCase):
         # ensure that the property 1 is created
         mp.GetProperties()[1]
 
-        for node in mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
         if Dimension == 2:
             cond = mp.CreateNewCondition("PointLoadCondition2D1N", 1, [1], mp.GetProperties()[1])
@@ -79,10 +78,9 @@ class TestLoadingConditionsPoint(KratosUnittest.TestCase):
         # ensure that the property 1 is created
         mp.GetProperties()[1]
 
-        for node in mp.Nodes:
-            node.AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X)
-            node.AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y)
-            node.AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
 
         cond = mp.CreateNewCondition("PointMomentCondition3D1N", 1, [1], mp.GetProperties()[1])
 
