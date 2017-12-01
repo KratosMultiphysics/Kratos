@@ -165,7 +165,12 @@ class Solution(object):
 
 
     def SetSolver(self):
-        return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.DEM_parameters, self.procedures)
+        return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
+                                                     self.creator_destructor,
+                                                     self.dem_fem_search, 
+                                                     self.scheme,
+                                                     self.DEM_parameters,
+                                                     self.procedures)
 
     def Run(self):
         self.Initialize()
@@ -193,7 +198,7 @@ class Solution(object):
         #self.analytic_model_part.AddElements(analytic_particle_ids)
 
     def Initialize(self):
-        
+
         self.AddVariables()
 
         self.ReadModelParts()
@@ -472,7 +477,7 @@ class Solution(object):
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()
         self.demio.CloseMultifiles()
-    
-    
+
+
 if __name__ == "__main__":
     Solution().Run()
