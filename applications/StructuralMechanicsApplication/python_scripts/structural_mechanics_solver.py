@@ -343,8 +343,7 @@ class MechanicalSolver(object):
         params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
         params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-        if( self.settings.Has("bodies_list") ):
-            params.AddValue("bodies_list",self.settings["bodies_list"])
+        params.AddValue("bodies_list",self.settings["bodies_list"])
         # Assign mesh entities from domain and process sub model parts to the computing model part.
         import check_and_prepare_model_process_structural
         check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
