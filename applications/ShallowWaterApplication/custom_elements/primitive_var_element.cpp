@@ -156,7 +156,7 @@ namespace Kratos
         // Get element values (this function inlcudes the units conversion)
         this-> GetElementValues(DN_DX, variables );
         double abs_vel = norm_2(variables.vector );
-        double height43 = pow(variables.scalar, 1.33333 );
+        double height43 = std::pow(variables.scalar, 1.33333 );
         
         // Compute stabilization and discontinuity capturing parameters
         double tau_u;
@@ -241,7 +241,7 @@ namespace Kratos
         rVariables.lumping_factor = 1.0 / static_cast<double>(TNumNodes);
         rVariables.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];
         rVariables.gravity = rCurrentProcessInfo[GRAVITY_Z];
-        rVariables.manning2 = pow( GetProperties()[MANNING], 2 );
+        rVariables.manning2 = std::pow( GetProperties()[MANNING], 2);
         rVariables.height_units = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
     }
 
@@ -279,7 +279,7 @@ namespace Kratos
             }
             l += 1.0 / l_inv;
         }
-        l = sqrt(l) / static_cast<double>(TNumNodes);
+        l = std::sqrt(l) / static_cast<double>(TNumNodes);
         return l;
     }
 
@@ -350,20 +350,20 @@ namespace Kratos
         rTauU = 0;
         rTauH = 0;
         rKdc  = 0;
-        
+
         // Get element values
         double height_grad_norm = norm_2(rVariables.scalar_grad);
-        
+
         // Compute stabilization parameters
         bool stabilization = true;
         double Ctau = rVariables.dyn_tau;  // 0.005 ~ 0.002  // 0.002; //
-        double fheight = fabs(rVariables.scalar);
-        if (stabilization && fheight > 1e-6)
+        double abs_height = std::abs(rVariables.scalar);
+        if (stabilization && abs_height > 1e-6)
         {
-            rTauU = Ctau/rElemSize*pow(rVariables.gravity/fheight,0.5);
-            rTauH = Ctau/rElemSize*pow(fheight/rVariables.gravity,0.5);
+            rTauU = Ctau/rElemSize*std::sqrt(rVariables.gravity/abs_height);
+            rTauH = Ctau/rElemSize*std::sqrt(abs_height/rVariables.gravity);
         }
-        
+
         // Compute discontinuity capturing parameters
         bool discontinuity_capturing = true;
         double gradient_threshold = 1e-6;
@@ -395,14 +395,14 @@ namespace Kratos
         noalias(rVectorDiv) = ZeroMatrix(TNumNodes*3, TNumNodes*3);
         noalias(rScalarDiff) = ZeroMatrix(TNumNodes*3, TNumNodes*3);
         noalias(rVectorDiff) = ZeroMatrix(TNumNodes*3, TNumNodes*3);
-        
+
         // Some auxilary definitions
         array_1d<double,TNumNodes> N;
         bounded_matrix<double,2,TNumNodes*3> N_vel        = ZeroMatrix(2,TNumNodes*3);  // Shape functions matrix (for velocity unknown)
         bounded_matrix<double,1,TNumNodes*3> N_height     = ZeroMatrix(1,TNumNodes*3);  // Shape functions vector (for height unknown)
         bounded_matrix<double,1,TNumNodes*3> DN_DX_vel    = ZeroMatrix(1,TNumNodes*3);  // Shape functions gradients vector (for velocity unknown)
         bounded_matrix<double,2,TNumNodes*3> DN_DX_height = ZeroMatrix(2,TNumNodes*3);  // Shape functions gradients matrix (for height unknown)
-        
+
         // Loop on Gauss points. In this case, number of Gauss points and number of nodes coincides
         for(unsigned int igauss = 0; igauss < TNumNodes; igauss++)
         {
@@ -425,13 +425,13 @@ namespace Kratos
             }
             N_height     *= rVariables.height_units;
             DN_DX_height *= rVariables.height_units;
-            
+
             noalias(rMassMatrixVector) += prod(trans(N_vel),N_vel);       // q * h
             noalias(rMassMatrixScalar) += prod(trans(N_height),N_height); // w * u
-            
+
             noalias(rVectorDiv)  += prod(trans(N_height),DN_DX_vel);       // q * div_u
             noalias(rScalarGrad) += prod(trans(N_vel),DN_DX_height);       // w * grad_h
-            
+
             noalias(rVectorDiff) += prod(trans(DN_DX_vel),DN_DX_vel);       // div_w * div_u
             noalias(rScalarDiff) += prod(trans(DN_DX_height),DN_DX_height); // grad_q * grad_h
         }

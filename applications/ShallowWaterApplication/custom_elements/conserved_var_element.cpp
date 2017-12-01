@@ -158,7 +158,7 @@ namespace Kratos
         // Get element values (this function inlcudes the units conversion)
         this-> GetElementValues(DN_DX, variables );
         double abs_mom = norm_2(variables.vector );
-        double height73 = pow(variables.scalar, 2.33333 );
+        double height73 = std::pow(variables.scalar, 2.33333 );
 
         // Compute stabilization and discontinuity capturing parameters
         double tau_m;

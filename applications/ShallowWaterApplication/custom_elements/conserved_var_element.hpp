@@ -139,10 +139,26 @@ public:
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+    /// Fill given vector with the linear system row index for the element's degrees of freedom
+    /**
+     * @param rResult
+     * @param rCurrentProcessInfo
+     */
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
+    /// Fill given array with containing the element's degrees of freedom
+    /**
+     * @param rElementalDofList
+     * @param rCurrentProcessInfo
+     */
     void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo) override;
 
+    /// Evaluate the elemental contribution to the problem for turbulent viscosity.
+    /**
+     * @param rLeftHandSideMatrix Elemental left hand side matrix
+     * @param rRightHandSideVector Elemental right hand side vector
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containg the element
+     */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
