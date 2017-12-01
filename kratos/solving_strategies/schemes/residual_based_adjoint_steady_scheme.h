@@ -106,6 +106,19 @@ public:
         KRATOS_CATCH("");
     }
 
+    void Calculate_LHS_Contribution(Element::Pointer pCurrentElement,
+                                    LocalSystemMatrixType& rLHS_Contribution,
+                                    Element::EquationIdVectorType& rEquationId,
+                                    ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+
+        pCurrentElement->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
+        pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
+
+        KRATOS_CATCH("");
+    }
+
     void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
                                                 LocalSystemMatrixType& rLHS_Contribution,
                                                 LocalSystemVectorType& rRHS_Contribution,
@@ -130,6 +143,19 @@ public:
         pCurrentCondition->GetFirstDerivativesVector(this->mAdjointValues[thread_id]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, this->mAdjointValues[thread_id]);
 
+        pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
+
+        KRATOS_CATCH("");
+    }
+
+    void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
+                                              LocalSystemMatrixType& rLHS_Contribution,
+                                              Condition::EquationIdVectorType& rEquationId,
+                                              ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+
+        pCurrentCondition->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
         pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
