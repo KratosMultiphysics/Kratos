@@ -86,6 +86,12 @@ class MechanicalSolver(object):
         }
         """)
 
+        # temporary warning, to be removed
+        if custom_settings.Has("bodies_list"):
+            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "bodies_list", '
+            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
+            print(warning)
+
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
