@@ -24,30 +24,59 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
-#include "includes/variables.h" 
+#include "includes/variables.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
+///@addtogroup ShallowWaterApplication
+///@{
 
-  template< unsigned int TNumNodes >
-  class ConservedVarElement : public Element
-  {
-  public:
-     
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Implementation of a linear element for shallow water interpolating coserved variables
+template< unsigned int TNumNodes >
+class ConservedVarElement : public Element
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
     /// Counted pointer of ConservedVarElement
     KRATOS_CLASS_POINTER_DEFINITION( ConservedVarElement );
 
-//----------------------------------------------------------------------
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     /// Default constructor.
     ConservedVarElement() :
         Element()
     {}
-    
+
+    /// Constructor using a Geometry instance
     ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry) :
         Element(NewId, pGeometry)
     {}
-    
+
+    /// Constructor using geometry and properties
     ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
         Element(NewId, pGeometry, pProperties)
     {}
@@ -55,8 +84,16 @@ namespace Kratos
     /// Destructor.
     virtual ~ ConservedVarElement() {};
 
-//----------------------------------------------------------------------
+    ///@}
+    ///@name Operators
+    ///@{
 
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// Create a new Primitive variables element and return a pointer to it
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
@@ -64,6 +101,10 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    /// Check that all required data containers are properly initialized and registered in Kratos
+    /** 
+     * @return 0 if no errors are detected.
+     */
     int Check(const ProcessInfo& rCurrentProcessInfo);
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
@@ -76,9 +117,46 @@ namespace Kratos
 
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-//----------------------------------------------------------------------
+    ///@}
+    ///@name Access
+    ///@{
 
-  protected:
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
     void CalculateGeometry(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea);
 
@@ -95,12 +173,81 @@ namespace Kratos
     double mGravity;
     double mHeightUnitConvert;
 
-  private:
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Serialization
+    ///@{
 
     friend class Serializer;
 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-  }; // Class ConservedVarElement
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
+
+
+}; // Class ConservedVarElement
+
+///@}
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+///@}
+
+///@} addtogroup block
 
 }  // namespace Kratos.
 
