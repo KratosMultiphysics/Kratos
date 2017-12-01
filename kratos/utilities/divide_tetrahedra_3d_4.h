@@ -109,6 +109,30 @@ public:
      */
     void GenerateIntersectionsSkin() override;
 
+    /**
+     * Generates a list containing the exterior (boundary) faces geometries for the positive element subdivisions.
+     */
+    std::vector < IndexedPointGeometryPointerType > GeneratePositiveExteriorFaces() override;
+
+    /**
+     * Generates a list containing the exterior (boundary) faces geometries for the negative element subdivisions.
+     */
+    std::vector < IndexedPointGeometryPointerType > GenerateNegativeExteriorFaces() override;
+
+    /**
+     * Given a father face id, generates a list containing the exterior (boundary)
+     * faces geometries belonging to the positive side of that that father face.
+     * @param FatherFaceId: Father face in where the positive exterior faces are to be obtained
+     */
+    std::vector < IndexedPointGeometryPointerType > GeneratePositiveExteriorFaces(const unsigned int FatherFaceId);
+
+    /**
+     * Given a father face id, generates a list containing the exterior (boundary)
+     * faces geometries belonging to the negative side of that that father face.
+     * @param FatherFaceId: Father face in where the negative exterior faces are to be obtained
+     */
+    std::vector < IndexedPointGeometryPointerType > GenerateNegativeExteriorFaces(const unsigned int FatherFaceId);
+
     ///@}
 
 private:
@@ -144,11 +168,11 @@ private:
     ///@{
 
     /// Assignment operator.
-    // DivideTetrahedra3D4& operator=(DivideTetrahedra3D4 const& rOther);
-    //
-    // /// Copy constructor.
-    // DivideTetrahedra3D4(DivideTetrahedra3D4 const& rOther)
-    //     : DivideGeometry(rOther.mrInputGeometry, rOther.mrNodalDistances) {};
+    DivideTetrahedra3D4& operator=(DivideTetrahedra3D4 const& rOther);
+
+    /// Copy constructor.
+    DivideTetrahedra3D4(DivideTetrahedra3D4 const& rOther)
+        : DivideGeometry(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {};
 
     ///@}
 

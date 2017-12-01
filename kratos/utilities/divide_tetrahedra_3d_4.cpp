@@ -154,7 +154,7 @@ namespace Kratos
         }
     };
 
-void DivideTetrahedra3D4::GenerateIntersectionsSkin() {
+    void DivideTetrahedra3D4::GenerateIntersectionsSkin() {
         // Set some geometry constant parameters
         const int n_nodes = 4;
         const unsigned int n_faces = 4;
@@ -228,6 +228,36 @@ void DivideTetrahedra3D4::GenerateIntersectionsSkin() {
         } else {
             KRATOS_ERROR << "Trying to generate the intersection skin in DivideTetrahedra3D4::GenerateIntersectionsSkin() for a non-split element.";
         }
+    };
+
+    std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > DivideTetrahedra3D4::GeneratePositiveExteriorFaces() {
+
+        std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > pos_exterior_faces;
+        
+        return pos_exterior_faces;
+    };
+
+    std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > DivideTetrahedra3D4::GenerateNegativeExteriorFaces() {
+
+        std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > neg_exterior_faces;
+
+        return neg_exterior_faces;
+    };
+
+
+    std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > DivideTetrahedra3D4::GeneratePositiveExteriorFaces(const unsigned int FatherFaceId) {
+
+        std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > pos_exterior_faces;
+        
+        return pos_exterior_faces;
+
+    };
+
+    std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > DivideTetrahedra3D4::GenerateNegativeExteriorFaces(const unsigned int FatherFaceId) {
+
+        std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > neg_exterior_faces;
+
+        return neg_exterior_faces;
     };
         
 };

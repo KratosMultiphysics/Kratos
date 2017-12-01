@@ -11,11 +11,11 @@
 //
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
 // Project includes
-
 #include "utilities/split_triangle.c"
 #include "utilities/divide_triangle_2d_3.h"
 
@@ -158,7 +158,7 @@ namespace Kratos
         }
     };
 
-void DivideTriangle2D3::GenerateIntersectionsSkin() {
+    void DivideTriangle2D3::GenerateIntersectionsSkin() {
         
         // Set some geometry constant parameters
         const int n_nodes = 3;
@@ -233,6 +233,92 @@ void DivideTriangle2D3::GenerateIntersectionsSkin() {
         } else {
             KRATOS_ERROR << "Trying to generate the intersection skin in DivideTriangle2D3::GenerateIntersectionsSkin() for a non-split element.";
         }
+    };
+
+    std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > DivideTriangle2D3::GeneratePositiveExteriorFaces() {
+
+        std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_exterior_faces;
+
+        // Set some geometry constant parameters
+        const int n_nodes = 3;
+        const unsigned int n_faces = 3;
+
+        // Clear the interfaces vectors
+        pos_exterior_faces.clear();
+        pos_exterior_faces.reserve(1);
+
+        if (mIsSplit) {
+
+            const unsigned int n_positive_subdivision = mPositiveSubdivisions.size();
+
+            // Create the unordered map
+            // The string key represents the nodes (real or auxiliar) that conform de subgeometry edge
+            // The integer value represents the parent geometry edge (0 for edge 01, 1 for edge 12 and 2 for edge 20)
+            std::unordered_map < std::string, unsigned int > ext_subedges_map = {
+                {"03",0},
+                {"13",0},
+                {"14",1},
+                {"24",1},
+                {"25",2},
+                {"05",2},
+            };
+            
+            // Compute the positive side exterior faces geometries
+            for (unsigned int i_subdivision = 0; i_subdivision < n_positive_subdivision; ++i_subdivision) {
+                // Get the subdivision geometry
+                const IndexedPointGeometryType& r_subdivision_geom = *mPositiveSubdivisions[i_subdivision];
+
+                // Faces iteration
+                for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
+                    // Get the subdivision face nodal keys
+                    int node_i_key = r_subdivision_geom[mEdgeNodeI[i_face]].Id();
+                    int node_j_key = r_subdivision_geom[mEdgeNodeJ[i_face]].Id();
+
+                    // Set the subface key
+                    std::string subedge_key;
+                    if (node_i_key < node_j_key) {
+                        subedge_key = std::to_string(node_i_key) + std::to_string(node_j_key);
+                    } else if (node_i_key > node_j_key) {
+                        subedge_key = std::to_string(node_j_key) + std::to_string(node_i_key);
+                    } else {
+                        KRATOS_ERROR << "Subdivision " << i_subdivision << " node I key is equal to node J key";
+                    }
+
+                    // Get the parent geometry face id
+                    const unsigned int parent_edge_id = ext_subedges_map[subedge_key];
+
+
+                }
+            }
+
+
+        } else {
+            KRATOS_ERROR << "Trying to generate the positive exterior faces in DivideTriangle2D3::GenerateIntersectionsSkin() for a non-split element.";
+        }
+        
+        return pos_exterior_faces;
+    };
+
+    std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > DivideTriangle2D3::GenerateNegativeExteriorFaces() {
+
+        std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_exterior_faces;
+
+        return neg_exterior_faces;
+    };
+
+    std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > DivideTriangle2D3::GeneratePositiveExteriorFaces(const unsigned int FatherFaceId) {
+
+        std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_exterior_faces;
+        
+        return pos_exterior_faces;
+
+    };
+
+    std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > DivideTriangle2D3::GenerateNegativeExteriorFaces(const unsigned int FatherFaceId) {
+
+        std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_exterior_faces;
+
+        return neg_exterior_faces;
     };
         
 };
