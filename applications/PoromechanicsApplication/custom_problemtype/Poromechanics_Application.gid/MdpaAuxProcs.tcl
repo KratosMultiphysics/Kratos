@@ -54,7 +54,7 @@ proc ConstraintVectorTable {FileVar TableId TableDict CondName VarName} {
     }
 }
 
-# TODO: it may be dangerous to write Tables without format
+# TODO: it may be dangerous to write Tables without format (puts -nonewline $FileVar [format  "%.10f" [lindex $Table $j]])
 
 #-------------------------------------------------------------------------------
 
