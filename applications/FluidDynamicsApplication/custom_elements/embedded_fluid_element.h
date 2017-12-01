@@ -17,11 +17,13 @@
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "geometries/geometry.h"
+#include "modified_shape_functions/modified_shape_functions.h"
 
 #include "includes/cfd_variables.h"
 #include "custom_elements/fluid_element.h"
 
 #include "custom_utilities/embedded_data.h"
+
 
 namespace Kratos
 {
@@ -61,9 +63,6 @@ public:
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
 
-    /// Geometry type (using with given NodeType)
-    typedef Geometry<NodeType> GeometryType;
-
     /// Definition of nodes container type, redefined from GeometryType
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
 
@@ -90,7 +89,7 @@ public:
     typedef Kratos::Matrix ShapeFunctionDerivativesType;
 
     /// Type for an array of shape function gradient matrices
-    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+    typedef Geometry<NodeType>::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
     constexpr static unsigned int Dim = TBaseElement::Dim;
     constexpr static unsigned int NumNodes = TBaseElement::NumNodes;
@@ -124,7 +123,7 @@ public:
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    EmbeddedFluidElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    EmbeddedFluidElement(IndexType NewId, Geometry<NodeType>::Pointer pGeometry);
 
     /// Constuctor using geometry and properties.
     /**
@@ -132,7 +131,7 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    EmbeddedFluidElement(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
+    EmbeddedFluidElement(IndexType NewId, Geometry<NodeType>::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
     ~EmbeddedFluidElement() override;
@@ -168,7 +167,7 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
+                            Geometry<NodeType>::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
@@ -218,6 +217,12 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+
+    void InitializeGeometryData(EmbeddedElementData& rData) const;
+
+    void DefineStandardGeometryData(EmbeddedElementData& rData) const;
+
+    void DefineCutGeometryData(EmbeddedElementData& rData) const;
 
 
     ///@}
@@ -294,6 +299,14 @@ private:
 
 
 }; // Class EmbeddedFluidElement
+
+namespace Internals {
+
+template <size_t TDim, size_t TNumNodes>
+ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator(
+    const Element& rElement, const Vector& rDistance);
+
+}
 
 ///@}
 

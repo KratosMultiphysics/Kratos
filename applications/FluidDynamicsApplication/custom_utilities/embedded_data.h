@@ -16,10 +16,6 @@
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
 
-#include "modified_shape_functions/modified_shape_functions.h"
-#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
-#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
-
 namespace Kratos {
 
 ///@addtogroup FluidDynamicsApplication
@@ -27,25 +23,6 @@ namespace Kratos {
 
 ///@name Kratos classes
 ///@{
-
-namespace Internals {
-
-template <size_t TDim, size_t TNumNodes>
-ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator(
-    const Element& rElement, const Vector& rDistance);
-
-template <>
-ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<2, 3>(
-    const Element& rElement, const Vector& rDistance) {
-    return ModifiedShapeFunctions::Pointer(new Triangle2D3ModifiedShapeFunctions(rElement.pGetGeometry(),rDistance));
-}
-
-template <>
-ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<3, 4>(
-    const Element& rElement, const Vector& rDistance) {
-    return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement.pGetGeometry(),rDistance));
-}
-}
 
 template< class TFluidData >
 class EmbeddedData : public TFluidData
@@ -88,27 +65,6 @@ void Initialize(
     TFluidData::Initialize(rElement, rProcessInfo);
     const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
     this->FillFromNodalData(Distance, DISTANCE, r_geometry);
-
-    // Auxiliary distance vector for the element subdivision utility
-    Vector distances = this->Distance;
-
-    ModifiedShapeFunctions::Pointer p_calculator =
-        Internals::GetShapeFunctionCalculator<TFluidData::Dim,
-            TFluidData::NumNodes>(rElement, distances);
-
-    // Fluid side
-    p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
-        PositiveSideN, PositiveSideDNDX, PositiveSideWeights,
-        GeometryData::GI_GAUSS_2);
-
-    // Fluid side interface
-    p_calculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
-        PositiveInterfaceN, PositiveInterfaceDNDX, PositiveInterfaceWeights,
-        GeometryData::GI_GAUSS_2);
-
-    // Fluid side interface normals
-    p_calculator->ComputePositiveSideInterfaceUnitNormals(
-        PositiveInterfaceUnitNormals, GeometryData::GI_GAUSS_2);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)

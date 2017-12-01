@@ -6,6 +6,9 @@
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 
+#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
+
 namespace Kratos {
 
 template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > >;
@@ -26,12 +29,12 @@ EmbeddedFluidElement<TBaseElement>::EmbeddedFluidElement(IndexType NewId, const 
 
 
 template< class TBaseElement >
-EmbeddedFluidElement<TBaseElement>::EmbeddedFluidElement(IndexType NewId, GeometryType::Pointer pGeometry):
+EmbeddedFluidElement<TBaseElement>::EmbeddedFluidElement(IndexType NewId, Geometry<NodeType>::Pointer pGeometry):
     TBaseElement(NewId,pGeometry)
 {}
 
 template< class TBaseElement >
-EmbeddedFluidElement<TBaseElement>::EmbeddedFluidElement(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
+EmbeddedFluidElement<TBaseElement>::EmbeddedFluidElement(IndexType NewId, Geometry<NodeType>::Pointer pGeometry, Properties::Pointer pProperties):
     TBaseElement(NewId,pGeometry,pProperties)
 {}
 
@@ -51,7 +54,7 @@ Element::Pointer EmbeddedFluidElement<TBaseElement>::Create(IndexType NewId,Node
 
 
 template< class TBaseElement >
-Element::Pointer EmbeddedFluidElement<TBaseElement>::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
+Element::Pointer EmbeddedFluidElement<TBaseElement>::Create(IndexType NewId,Geometry<NodeType>::Pointer pGeom,Properties::Pointer pProperties) const
 {
     return Element::Pointer(new EmbeddedFluidElement(NewId, pGeom, pProperties));
 }
@@ -94,51 +97,117 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
             this->AddTimeIntegratedSystem(
                 data, rLeftHandSideMatrix, rRightHandSideVector);
         }*/
-    }
+}
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // Inquiry
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Inquiry
 
-    template <class TBaseElement>
-    int EmbeddedFluidElement<TBaseElement>::Check(
-        const ProcessInfo& rCurrentProcessInfo) {
-        return TBaseElement::Check(rCurrentProcessInfo);
-    }
+template <class TBaseElement>
+int EmbeddedFluidElement<TBaseElement>::Check(
+    const ProcessInfo& rCurrentProcessInfo) {
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // Input and output
+    EmbeddedElementData::Check(*this,rCurrentProcessInfo);
+    return TBaseElement::Check(rCurrentProcessInfo);
+}
 
-    template <class TBaseElement>
-    std::string EmbeddedFluidElement<TBaseElement>::Info() const {
-        std::stringstream buffer;
-        buffer << "EmbeddedFluidElement #" << this->Id();
-        return buffer.str();
-    }
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Input and output
 
-    template <class TBaseElement>
-    void EmbeddedFluidElement<TBaseElement>::PrintInfo(std::ostream & rOStream)
-        const {
-        rOStream << "EmbeddedFluidElement" << Dim << "D" << NumNodes << "N"
-                 << std::endl
-                 << "on top of ";
-        TBaseElement::PrintInfo(rOStream);
-    }
+template <class TBaseElement>
+std::string EmbeddedFluidElement<TBaseElement>::Info() const {
+    std::stringstream buffer;
+    buffer << "EmbeddedFluidElement #" << this->Id();
+    return buffer.str();
+}
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // Private functions
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::PrintInfo(
+    std::ostream& rOStream) const {
+    rOStream << "EmbeddedFluidElement" << Dim << "D" << NumNodes << "N"
+             << std::endl
+             << "on top of ";
+    TBaseElement::PrintInfo(rOStream);
+}
 
-    // serializer
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Protected functions
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    template <class TBaseElement>
-    void EmbeddedFluidElement<TBaseElement>::save(Serializer & rSerializer)
-        const {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TBaseElement);
-    }
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Operations
 
-    template <class TBaseElement>
-    void EmbeddedFluidElement<TBaseElement>::load(Serializer & rSerializer) {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TBaseElement);
-    }
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::InitializeGeometryData(
+    EmbeddedElementData& rData) const {
+
+    
+
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::DefineStandardGeometryData(
+    EmbeddedElementData& rData) const {}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::DefineCutGeometryData(
+    EmbeddedElementData& rData) const {
+
+    // Auxiliary distance vector for the element subdivision utility
+    Vector distances = rData.Distance;
+
+    ModifiedShapeFunctions::Pointer p_calculator =
+        Internals::GetShapeFunctionCalculator<EmbeddedElementData::Dim,
+            EmbeddedElementData::NumNodes>(*this, distances);
+
+    // Fluid side
+    p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
+        rData.PositiveSideN, rData.PositiveSideDNDX, rData.PositiveSideWeights,
+        GeometryData::GI_GAUSS_2);
+
+    // Fluid side interface
+    p_calculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+        rData.PositiveInterfaceN, rData.PositiveInterfaceDNDX,
+        rData.PositiveInterfaceWeights, GeometryData::GI_GAUSS_2);
+
+    // Fluid side interface normals
+    p_calculator->ComputePositiveSideInterfaceUnitNormals(
+        rData.PositiveInterfaceUnitNormals, GeometryData::GI_GAUSS_2);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Private functions
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+// serializer
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::save(Serializer& rSerializer) const {
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TBaseElement);
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::load(Serializer& rSerializer) {
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TBaseElement);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Helper functions for template specialization
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace Internals {
+
+template <>
+ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<2, 3>(
+    const Element& rElement, const Vector& rDistance) {
+    return ModifiedShapeFunctions::Pointer(new Triangle2D3ModifiedShapeFunctions(rElement.pGetGeometry(),rDistance));
+}
+
+template <>
+ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<3, 4>(
+    const Element& rElement, const Vector& rDistance) {
+    return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement.pGetGeometry(),rDistance));
+}
+
+}
 
 }
