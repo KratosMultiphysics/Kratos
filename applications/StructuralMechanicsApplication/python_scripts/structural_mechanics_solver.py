@@ -266,13 +266,8 @@ class MechanicalSolver(object):
         if (materials_filename != ""):
             import read_materials_process
             # Create a dictionary of model parts.
-            Model = {self.main_model_part.Name : self.main_model_part}
-            for i in range(self.settings["problem_domain_sub_model_part_list"].size()):
-                part_name = self.settings["problem_domain_sub_model_part_list"][i].GetString()
-                Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-            for i in range(self.settings["processes_sub_model_part_list"].size()):
-                part_name = self.settings["processes_sub_model_part_list"][i].GetString()
-                Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+            Model = KratosMultiphysics.Model()
+            Model.AddModelPart(self.main_model_part)
             # Add constitutive laws and material properties from json file to model parts.
             read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
             materials_imported = True
