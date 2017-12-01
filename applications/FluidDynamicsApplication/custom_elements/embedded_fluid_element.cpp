@@ -140,13 +140,37 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::InitializeGeometryData(
     EmbeddedElementData& rData) const {
 
-    
+    rData.PositiveIndices.clear();
+    rData.NegativeIndices.clear();
 
+    // Number of positive and negative distance function values
+    for (size_t i = 0; i < EmbeddedElementData::NumNodes; ++i) {
+
+        if (rData.Distance[i] > 0.0) {
+            rData.NumPositiveNodes++;
+            rData.PositiveIndices.push_back(i);
+        }
+        else {
+            rData.NumNegativeNodes++;
+            rData.NegativeIndices.push_back(i);
+        }
+    }
+
+    if ( (rData.NumPositiveNodes > 0) && (rData.NumNegativeNodes > 0) ) {
+        this->DefineCutGeometryData(rData);
+    }
+    else {
+        this->DefineStandardGeometryData(rData);
+    }
 }
 
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::DefineStandardGeometryData(
-    EmbeddedElementData& rData) const {}
+    EmbeddedElementData& rData) const {
+
+    /*this->CalculateGeometryData(
+        rData.PositiveSideWeights, rData.PositiveSideN, rData.PositiveSideDNDX);*/
+}
 
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::DefineCutGeometryData(

@@ -65,6 +65,9 @@ void Initialize(
     TFluidData::Initialize(rElement, rProcessInfo);
     const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
     this->FillFromNodalData(Distance, DISTANCE, r_geometry);
+
+    NumPositiveNodes = 0;
+    NumNegativeNodes = 0;
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
