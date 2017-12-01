@@ -28,24 +28,24 @@ namespace Kratos {
 ///@name Kratos classes
 ///@{
 
-/*namespace Internals {
+namespace Internals {
 
 template <size_t TDim, size_t TNumNodes>
 ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator(
-    const Element& rElement, const FluidElementData<TDim,TNumNodes>::NodalScalarData& rDistance);
+    const Element& rElement, const Vector& rDistance);
 
 template <>
 ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<2, 3>(
-    const Element& rElement, const FluidElementData<2,3>::NodalScalarData& rDistance) {
-    return ModifiedShapeFunctions::Pointer(new Triangle2D3ModifiedShapeFunctions(rElement->pGetGeometry(),rDistance));
+    const Element& rElement, const Vector& rDistance) {
+    return ModifiedShapeFunctions::Pointer(new Triangle2D3ModifiedShapeFunctions(rElement.pGetGeometry(),rDistance));
 }
 
 template <>
 ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<3, 4>(
-    const Element& rElement, const FluidElementData<3,4>::NodalScalarData& rDistance) {
-    return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement->pGetGeometry(),rDistance));
+    const Element& rElement, const Vector& rDistance) {
+    return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement.pGetGeometry(),rDistance));
 }
-}*/
+}
 
 template< class TFluidData >
 class EmbeddedData : public TFluidData
@@ -88,24 +88,27 @@ void Initialize(
     TFluidData::Initialize(rElement, rProcessInfo);
     const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
     this->FillFromNodalData(Distance, DISTANCE, r_geometry);
-/*
-    ModifiedShapeFunctions::Pointer pCalculator =
-        GetShapeFunctionCalculator<TFluidData::Dim, TFluidData::NumNodes>(
-            rElement, Distance);
+
+    // Auxiliary distance vector for the element subdivision utility
+    Vector distances = this->Distance;
+
+    ModifiedShapeFunctions::Pointer p_calculator =
+        Internals::GetShapeFunctionCalculator<TFluidData::Dim,
+            TFluidData::NumNodes>(rElement, distances);
 
     // Fluid side
-    mCalculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
-        PositiveSideN, PositiveSideDNDX,
-        PositiveSideWeights, GeometryData::GI_GAUSS_2);
+    p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
+        PositiveSideN, PositiveSideDNDX, PositiveSideWeights,
+        GeometryData::GI_GAUSS_2);
 
     // Fluid side interface
-    mCalculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
-        PositiveInterfaceN, PositiveInterfaceDNDX,
-        PositiveInterfaceWeights, GeometryData::GI_GAUSS_2);
+    p_calculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+        PositiveInterfaceN, PositiveInterfaceDNDX, PositiveInterfaceWeights,
+        GeometryData::GI_GAUSS_2);
 
     // Fluid side interface normals
-    mCalculator->ComputePositiveSideInterfaceUnitNormals(
-        PositiveInterfaceUnitNormals, GeometryData::GI_GAUSS_2);*/
+    p_calculator->ComputePositiveSideInterfaceUnitNormals(
+        PositiveInterfaceUnitNormals, GeometryData::GI_GAUSS_2);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
