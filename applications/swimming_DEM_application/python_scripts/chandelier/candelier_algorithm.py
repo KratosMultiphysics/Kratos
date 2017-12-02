@@ -67,7 +67,8 @@ class Algorithm(BaseAlgorithm):
             self.error_time = time
 
     def PerformZeroStepInitializations(self):
-        # Impose initial velocity to be the terminal velocity
+        # Impose initial velocity to be that of the fluid for the x/y-components
+        # and the terminal velocity for the z-component
         ch.sim.CalculateNonDimensionalVars()
         terminal_velocity_z = 2. / 9 * 9.81 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p)
 
@@ -117,6 +118,8 @@ class Algorithm(BaseAlgorithm):
             if self.is_rotating_frame:
                 new_v = self.GetVelocityRelativeToMovingFrame(r_rel = r, v_glob = new_v)
 
+            # the current FLUID_VEL_PROJECTED is still needed and so we use
+            # SLIP_VELOCITY to store it.
             node.SetSolutionStepValue(SLIP_VELOCITY, new_v)
 
     def PerformFinalOperations(self, time = None):
