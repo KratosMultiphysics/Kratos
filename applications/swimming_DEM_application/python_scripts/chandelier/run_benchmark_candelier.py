@@ -53,7 +53,7 @@ def RunCase(varying_parameters, name):
     parameters = Parameters(json.dumps(varying_parameters))
     with script.Solution(candelier_algorithm, parameters) as test:
         error_names.append(name)
-        errors.append(test.alg.Run())
+        errors.append(test.Run())
 
 # No history force benchmark
 varying_parameters['basset_force_type'] = 0
