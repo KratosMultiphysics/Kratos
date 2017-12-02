@@ -6,15 +6,26 @@ import math
 import chandelier as ch
 import chandelier_parameters as ch_pp
 
-def SafeCrossProduct(a, b):
+def Cross(a, b):
     c0 = a[1]*b[2] - a[2]*b[1]
     c1 = a[2]*b[0] - a[0]*b[2]
     c2 = a[0]*b[1] - a[1]*b[0]
-    return c0, c1, c2
+    return Vector([c0, c1, c2])
+
 
 class Algorithm(BaseAlgorithm):
     def __init__(self, varying_parameters = Parameters("{}")):
         BaseAlgorithm.__init__(self, varying_parameters)
+
+    def GetVelocityRelativeToMovingFrame(self, r_rel, v_glob):
+        cross_omega_r = Cross(self.frame_angular_vel, r_rel)
+        return v_glob - cross_omega_r
+
+    def GetAccelerationRelativeToMovingFrame(self, r_rel, v_rel, a_glob):
+        cross_omega_r = Cross(self.frame_angular_vel, r_rel)
+        cross_omega_v = Cross(self.frame_angular_vel, v_rel)
+        cross_omega_omega_r = Cross(self.frame_angular_vel, cross_omega_r)
+        return a_glob - 2 * cross_omega_v - cross_omega_omega_r
 
     def GetFluidSolveCounter(self):
         return SDP.Counter(is_dead = True)
@@ -32,6 +43,8 @@ class Algorithm(BaseAlgorithm):
         BaseAlgorithm.SetCustomBetaParameters(self, custom_parameters)
         ch_pp.include_history_force = bool(self.pp.CFD_DEM["basset_force_type"].GetInt())
         ch.sim = ch.AnalyticSimulator(ch_pp)
+        self.frame_angular_vel = Vector([0, 0, self.pp.CFD_DEM["angular_velocity_of_frame_Z"].GetDouble()])
+        self.is_rotating_frame = self.pp.CFD_DEM["frame_of_reference_type"].GetInt()
 
     def SetUpResultsDatabase(self):
         import candelier_hdf5
@@ -39,15 +52,16 @@ class Algorithm(BaseAlgorithm):
 
     def DEMSolve(self, time = 'None'):
         self.disperse_phase_solution.solver.Solve()
-        is_rotating_frame = self.pp.CFD_DEM["frame_of_reference_type"].GetInt()
         omega = self.pp.CFD_DEM["angular_velocity_of_frame_Z"].GetDouble()
 
         for node in self.spheres_model_part.Nodes:
             coor_calculated = [node.X, node.Y, node.Z]
 
-            if is_rotating_frame:
-                coor_calculated[0] = node.X * math.cos(omega * time) - node.Y * math.sin(omega * time)
-                coor_calculated[1] = node.X * math.sin(omega * time) + node.Y * math.cos(omega * time)
+            if self.is_rotating_frame:
+                sin = math.sin(omega * time)
+                cos = math.cos(omega * time)
+                coor_calculated[0] = node.X * cos - node.Y * sin
+                coor_calculated[1] = node.X * sin + node.Y * cos
 
             self.radial_error = self.results_database.CalculateError(time, coor_calculated)
             self.error_time = time
@@ -55,31 +69,18 @@ class Algorithm(BaseAlgorithm):
     def PerformZeroStepInitializations(self):
         # Impose initial velocity to be the terminal velocity
         ch.sim.CalculateNonDimensionalVars()
-        terminal_velocity = ch.sim.NDw0 *  ch_pp.R *  ch_pp.omega
-
-        for node in self.spheres_model_part.Nodes:
-            node_to_follow_id = node.Id
-            node.SetSolutionStepValue(VELOCITY_Z, terminal_velocity)
-
         terminal_velocity_z = 2. / 9 * 9.81 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p)
 
         for node in self.spheres_model_part.Nodes:
-            r = [node.X, node.Y, node.Z]
-            v0 = [ch_pp.u0, ch_pp.v0, terminal_velocity_z]
-            cross_omega_r = [0.] * 3
+            r = Vector([node.X, node.Y, node.Z])
+            v0 = Vector([ch_pp.u0, ch_pp.v0, terminal_velocity_z])
 
-            if self.pp.CFD_DEM["frame_of_reference_type"].GetInt():
-                omega_frame = [0, 0, self.pp.CFD_DEM["angular_velocity_of_frame_Z"].GetDouble()]
-                cross_omega_r = list(SafeCrossProduct(omega_frame, r))
-                v0 = [v0[i] - cross_omega_r[i] for i in range(3)]
+            if self.is_rotating_frame:
+                v0 = self.GetVelocityRelativeToMovingFrame(r_rel = r, v_glob = v0)
 
-            node.SetSolutionStepValue(VELOCITY_X, v0[0])
-            node.SetSolutionStepValue(VELOCITY_Y, v0[1])
-            node.SetSolutionStepValue(VELOCITY_Z, v0[2])
+            node.SetSolutionStepValue(VELOCITY, v0)
             node.Fix(VELOCITY_Z)
-            node.SetSolutionStepValue(VELOCITY_OLD_X, v0[0])
-            node.SetSolutionStepValue(VELOCITY_OLD_Y, v0[1])
-            node.SetSolutionStepValue(VELOCITY_OLD_Z, v0[2])
+            node.SetSolutionStepValue(VELOCITY_OLD, v0)
             node.Fix(VELOCITY_OLD_Z)
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, v0[0])
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, v0[1])
@@ -87,52 +88,36 @@ class Algorithm(BaseAlgorithm):
 
     def ApplyForwardCoupling(self, alpha = 'None'):
         self.projection_module.ApplyForwardCoupling(alpha)
-        is_rotating_frame = self.pp.CFD_DEM["frame_of_reference_type"].GetInt()
+
         for node in self.spheres_model_part.Nodes:
             omega = ch_pp.omega
-            r = [node.X, node.Y, node.Z]
+            r = Vector([node.X, node.Y, node.Z])
             vx = - omega * r[1]
             vy =   omega * r[0]
-            v = [vx, vy, 0]
+            v = Vector([vx, vy, 0])
             ax = - r[0] * omega ** 2
             ay = - r[1] * omega ** 2
-            a = [ax, ay, 0]
-            cross_omega_r = [0.] * 3
-            cross_omega_v = [0.] * 3
-            cross_omega_omega_r = [0.] * 3
+            a = Vector([ax, ay, 0])
 
-            if is_rotating_frame:
-                omega_frame = [0, 0, self.pp.CFD_DEM["angular_velocity_of_frame_Z"].GetDouble()]
-                cross_omega_r = list(SafeCrossProduct(omega_frame, r))
-                cross_omega_omega_r = list(SafeCrossProduct(omega_frame, cross_omega_r))
-                v = [v[i] - cross_omega_r[i] for i in range(3)]
-                cross_omega_v = list(SafeCrossProduct(omega_frame, v))
-                a = [a[i] - 2 * cross_omega_v[i] - cross_omega_omega_r[i] for i in range(3)]
+            if self.is_rotating_frame:
+                v = self.GetVelocityRelativeToMovingFrame(r_rel = r, v_glob = v)
+                a = self.GetAccelerationRelativeToMovingFrame(r_rel = r, v_rel = v, a_glob = a)
 
-            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, v[0])
-            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, v[1])
-            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)
-            node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, a[0])
-            node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, a[1])
-            node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, 0.0)
+            node.SetSolutionStepValue(FLUID_VEL_PROJECTED, v)
+            node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED, a)
 
     def ApplyForwardCouplingOfVelocityOnly(self, time):
         for node in self.spheres_model_part.Nodes:
-            r = [node.X, node.Y, node.Z]
+            r = Vector([node.X, node.Y, node.Z])
             self.results_database.MakeReading(time, r)
             new_vx = - ch_pp.omega * r[1]
             new_vy =   ch_pp.omega * r[0]
-            new_v = [new_vx, new_vy, 0.]
+            new_v = Vector([new_vx, new_vy, 0.])
 
-            cross_omega_r = [0.] * 3
+            if self.is_rotating_frame:
+                new_v = self.GetVelocityRelativeToMovingFrame(r_rel = r, v_glob = new_v)
 
-            if self.pp.CFD_DEM["frame_of_reference_type"].GetInt():
-                omega_frame = [0, 0, self.pp.CFD_DEM["angular_velocity_of_frame_Z"].GetDouble()]
-                cross_omega_r = SafeCrossProduct(omega_frame, r)
-                new_v = [new_v[i] - cross_omega_r[i] for i in range(3)]
-
-            node.SetSolutionStepValue(SLIP_VELOCITY_X, new_v[0])
-            node.SetSolutionStepValue(SLIP_VELOCITY_Y, new_v[1])
+            node.SetSolutionStepValue(SLIP_VELOCITY, new_v)
 
     def PerformFinalOperations(self, time = None):
         self.results_database.WriteToHDF5()
