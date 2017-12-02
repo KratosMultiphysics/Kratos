@@ -33,6 +33,27 @@ namespace Kratos
 
         
     }
+    
+    std::unordered_map< std::string, KratosApplication::Pointer >& Kernel::GetApplicationsList()
+    {
+            static std::unordered_map< std::string, KratosApplication::Pointer > ApplicationsList;
+            return ApplicationsList;
+    }
+    
+    bool Kernel::HasApplication(std::string ApplicationName)
+    {
+        if(GetApplicationsList().find(ApplicationName) != GetApplicationsList().end())
+            return true;
+        else
+            return false;
+    }
+    
+    void Kernel::AddApplication(KratosApplication::Pointer pNewApplication)
+    {
+ 
+        pNewApplication->Register();
+        Kernel::GetApplicationsList()[pNewApplication->Name()] = pNewApplication;
+    }
 
     std::string Kernel::Info() const
     {
@@ -55,6 +76,13 @@ namespace Kratos
         rOStream << std::endl;
         rOStream << "Conditions:" << std::endl;
         KratosComponents<Condition>().PrintData(rOStream);
+        
+        rOStream << "Loaded applications:" << std::endl;
+        
+        auto& application_list = Kernel::GetApplicationsList();
+        rOStream << "number of loaded applications = " << application_list.size() << std::endl;
+        for(auto it = application_list.begin(); it != application_list.end(); ++it)
+            rOStream << it->first << std::endl;
     }
 }
 

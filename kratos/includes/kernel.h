@@ -99,53 +99,12 @@ public:
 
     @param NewApplication The application to be added and synchronized
     */
-    void AddApplication(KratosApplication::Pointer pNewApplication)
-    {
-        //typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
-
-        pNewApplication->Register();
-        mApplicationsList[pNewApplication->Name()] = pNewApplication;
-		
-		/*
-        KratosComponents<VariableData>::GetComponents().insert(NewApplication.GetVariables().begin(),NewApplication.GetVariables().end());
-		
-        KratosComponents<Variable<int> >::GetComponents().insert(NewApplication.GetComponents(Variable<int>("NONE")).begin(),
-                NewApplication.GetComponents(Variable<int>("NONE")).end());
-        KratosComponents<Variable<unsigned int> >::GetComponents().insert(NewApplication.GetComponents(Variable<unsigned int>("NONE")).begin(),
-               NewApplication.GetComponents(Variable<unsigned int>("NONE")).end());
-        KratosComponents<Variable<double> >::GetComponents().insert(NewApplication.GetComponents(Variable<double>("NONE")).begin(),
-                NewApplication.GetComponents(Variable<double>("NONE")).end());
-        KratosComponents<Variable<array_1d<double, 3> > >::GetComponents().insert(NewApplication.GetComponents(Variable<array_1d<double, 3> >("NONE")).begin(),
-                NewApplication.GetComponents(Variable<array_1d<double, 3> >("NONE")).end());
-        KratosComponents<Variable<Vector> >::GetComponents().insert(NewApplication.GetComponents(Variable<Vector>("NONE")).begin(),
-                NewApplication.GetComponents(Variable<Vector>("NONE")).end());
-        KratosComponents<Variable<Matrix> >::GetComponents().insert(NewApplication.GetComponents(Variable<Matrix>("NONE")).begin(),
-                NewApplication.GetComponents(Variable<Matrix>("NONE")).end());
-        
-		Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > temp_adaptor(DISPLACEMENT, 0); // the displacement is not important, only an array_1d variable is needed!
- KratosApplication() = delete;
-        KratosComponents<array_1d_component_type>::GetComponents().insert(NewApplication.GetComponents(array_1d_component_type("NONE", temp_adaptor)).begin(),				  
-				NewApplication.GetComponents(array_1d_component_type("NONE", temp_adaptor)).end());
-
-        KratosComponents<Element>::GetComponents().insert(NewApplication.GetElements().begin(),
-                NewApplication.GetElements().end());
-        KratosComponents<Condition>::GetComponents().insert(NewApplication.GetConditions().begin(),
-                NewApplication.GetConditions().end());
-
-//        KratosComponents<Variable<double> >::GetComponents().insert(NewApplication.GetComponents(Variable<double>("NONE")).begin(),
-//                NewApplication.GetComponents(Variable<double>("NONE")).end());
-
-
-        Serializer::GetRegisteredObjects().insert(NewApplication.GetRegisteredObjects().begin(), NewApplication.GetRegisteredObjects().end());
-        Serializer::GetRegisteredObjectsName().insert(NewApplication.GetRegisteredObjectsName().begin(), NewApplication.GetRegisteredObjectsName().end());
-		*/
-    }
-
+    void AddApplication(KratosApplication::Pointer pNewApplication);
+    
     /// Assign sequential key to the registered variables.
     /** This method assigns a sequential key to all registerd variables in kratos and all added applications.
         It is very important to call this function after adding ALL necessary applications using AddApplication
         methods before calling this function. Otherwise it leads to uninitialized variables with key 0!
-
         @see AddApplication
         @see InitializeApplication
     */
@@ -154,31 +113,21 @@ public:
         unsigned int j = 0;
         for(KratosComponents<VariableData>::ComponentsContainerType::iterator i = KratosComponents<VariableData>::GetComponents().begin() ;
                 i != KratosComponents<VariableData>::GetComponents().end() ; i++)
-            //const_cast<VariableData&>(i->second.get()).SetKey(++j);
             i->second->SetKey(++j);
     }
 
     /// Initializes and synchronizes the list of variables, elements and conditions in each application.
     /** This method gives the application the list of all variables, elements and condition which is registered
         by kratos and all other added applications.
-
-
         @see AddApplication
         @see Initialize
     */
     void InitializeApplication(KratosApplication& NewApplication)
     {
-        /*
-		NewApplication.SetComponents(KratosComponents<VariableData>::GetComponents());
-        NewApplication.SetComponents(KratosComponents<Element>::GetComponents());
-        NewApplication.SetComponents(KratosComponents<Condition>::GetComponents());
-
-        NewApplication.GetRegisteredObjects().insert(Serializer::GetRegisteredObjects().begin(), Serializer::GetRegisteredObjects().end());
-        NewApplication.GetRegisteredObjectsName().insert(Serializer::GetRegisteredObjectsName().begin(), Serializer::GetRegisteredObjectsName().end());
-		*/
     }
 
-
+    bool HasApplication(std::string ApplicationName);
+    
     ///@}
     ///@name Input and output
     ///@{
@@ -192,8 +141,11 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const;
 
-    ///@}
+    static std::unordered_map< std::string, KratosApplication::Pointer >& GetApplicationsList();
 
+    ///@}
+protected:
+    
 private:
     ///@name Static Member Variables
     ///@{
@@ -202,9 +154,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    std::unordered_map< std::string, KratosApplication::Pointer > mApplicationsList;
-//     KratosApplication mKratosApplication;
-
+    
 
     ///@}
     ///@name Private Operations
