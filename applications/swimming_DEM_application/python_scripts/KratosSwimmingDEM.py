@@ -31,7 +31,7 @@ class Solution:
             self.alg = algorithm.Algorithm(varying_parameters)
 
     def Run(self):
-        self.alg.Run()
+        return self.alg.Run()
 
 if __name__=="__main__":
     Solution().Run()
