@@ -99,11 +99,25 @@ class Algorithm(object):
         self.disperse_phase_solution = DEM_algorithm.Solution(self.pp)
 
     def SetCouplingParameters(self, varying_parameters):
+        # The parameters associated with the swimming_DEM_application only are added here
+
+        # First, read the parameters generated from the interface
         with open(self.main_path + '/ProjectParametersDEM.json', 'r') as parameters_file:
             self.pp.CFD_DEM = Parameters(parameters_file.read())
-        self.SetDoSolveDEMVariable()
+
+        # Second, set the default 'beta' parameters (candidates to be moved to the interface)
         self.SetBetaParameters()
+
+        # Third, set the parameters fed to the particular case that you are running
         self.SetCustomBetaParameters(varying_parameters)
+
+        # Finally adjust some of the paramters for consistency
+        #   This function should be reduced to a minimum since,
+        #   in principle, there should be no need to change the parameters
+        self.SetDerivedParameters()
+
+    def SetDerivedParameters(self):
+        self.SetDoSolveDEMVariable()
 
     def SetAllModelParts(self):
         self.all_model_parts = weakref.proxy(self.disperse_phase_solution.all_model_parts)
@@ -132,6 +146,7 @@ class Algorithm(object):
         ##############################################################################
 
         #G
+        self.pp.CFD_DEM.AddEmptyValue("do_solve_dem").SetBool(True)
         self.pp.CFD_DEM.AddEmptyValue("fluid_already_calculated").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("recovery_echo_level").SetInt(1)
         self.pp.CFD_DEM.AddEmptyValue("gradient_calculation_type").SetInt(1)
@@ -181,7 +196,7 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("angular_velocity_of_frame_Z").SetDouble(0.0)
         self.pp.CFD_DEM.AddEmptyValue("angular_velocity_of_frame_old_X").SetDouble(0.0)
         self.pp.CFD_DEM.AddEmptyValue("angular_velocity_of_frame_old_Y").SetDouble(0.0)
-        self.pp.CFD_DEM.AddEmptyValue("angular_velocity_of_frame_old_Z").SetDouble(0.0)        
+        self.pp.CFD_DEM.AddEmptyValue("angular_velocity_of_frame_old_Z").SetDouble(0.0)
         self.pp.CFD_DEM.AddEmptyValue("acceleration_of_frame_origin_X").SetDouble(0.0)
         self.pp.CFD_DEM.AddEmptyValue("acceleration_of_frame_origin_Y").SetDouble(0.0)
         self.pp.CFD_DEM.AddEmptyValue("acceleration_of_frame_origin_Z").SetDouble(0.0)
@@ -213,7 +228,10 @@ class Algorithm(object):
         self.pp.fluid_fraction_fields.append(field1)
 
     def SetDoSolveDEMVariable(self):
-        self.pp.do_solve_dem = not self.pp.CFD_DEM["flow_in_porous_DEM_medium_option"].GetBool()
+        self.do_solve_dem = self.pp.CFD_DEM["do_solve_dem"].GetBool()
+
+        if self.pp.CFD_DEM["flow_in_porous_DEM_medium_option"].GetBool():
+            self.do_solve_dem = False
 
     def SetCustomBetaParameters(self, custom_parameters): # this method is ugly. The way to go is to have all input parameters as a dictionary
         custom_parameters.ValidateAndAssignDefaults(self.pp.CFD_DEM)
@@ -577,10 +595,6 @@ class Algorithm(object):
                         if integration_scheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
                             self.DEMSolve(self.time_dem)
                             self.ApplyForwardCouplingOfVelocityOnly(self.time_dem)
-                        else:
-                            if basset_force_type > 0:
-                                node.SetSolutionStepValue(SLIP_VELOCITY_X, vx)
-                                node.SetSolutionStepValue(SLIP_VELOCITY_Y, vy)
 
                         if self.quadrature_counter.Tick():
                             self.AppendValuesForTheHistoryForce()
@@ -591,7 +605,7 @@ class Algorithm(object):
                 self.disperse_phase_solution.rigid_face_model_part.ProcessInfo[TIME] = self.time_dem
                 self.disperse_phase_solution.cluster_model_part.ProcessInfo[TIME]    = self.time_dem
 
-                if self.pp.do_solve_dem:
+                if self.do_solve_dem:
                     self.DEMSolve(self.time_dem)
 
                 self.disperse_phase_solution.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time_dem, self.Dt_DEM)

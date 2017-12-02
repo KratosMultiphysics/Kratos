@@ -36,4 +36,4 @@ class Algorithm(BaseAlgorithm):
         return SDP.Counter(self.pp.cation_concentration_frequence, 1)
 
     def DoSolveDEMVariable(self):
-        self.pp.do_solve_dem = False
+        self.do_solve_dem = False
