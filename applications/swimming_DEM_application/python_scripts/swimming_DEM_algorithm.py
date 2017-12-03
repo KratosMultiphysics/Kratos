@@ -539,13 +539,7 @@ class Algorithm(object):
             # printing if required
 
             if self.particles_results_counter.Tick():
-                # eliminating remote balls
-
-                #if self.pp.dem.BoundingBoxOption == "ON":
-                #    self.creator_destructor.DestroyParticlesOutsideBoundingBox(self.disperse_phase_solution.spheres_model_part)
-
                 self.io_tools.PrintParticlesResults(self.pp.variables_to_print_in_file, self.time, self.disperse_phase_solution.spheres_model_part)
-                #self.graph_printer.PrintGraphs(self.time) #MA: commented out because the constructor was already commented out
                 self.PrintDrag(self.drag_list, self.drag_file_output_list, self.fluid_model_part, self.time)
 
             if self.output_time <= self.out and self.pp.CFD_DEM["coupling_scheme_type"].GetString() == "UpdatedDEM":
@@ -590,13 +584,13 @@ class Algorithm(object):
                     else:
                         self.ApplyForwardCoupling((time_final_DEM_substepping - self.time_dem) / self.Dt)
 
+                        if self.quadrature_counter.Tick():
+                            self.AppendValuesForTheHistoryForce()
+
                         if integration_scheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
                             # Advance in space only
                             self.DEMSolve(self.time_dem)
                             self.ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self.time_dem)
-
-                        if self.quadrature_counter.Tick():
-                            self.AppendValuesForTheHistoryForce()
 
                 # performing the time integration of the DEM part
 
