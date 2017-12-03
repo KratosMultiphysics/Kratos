@@ -593,8 +593,9 @@ class Algorithm(object):
                         self.ApplyForwardCoupling((time_final_DEM_substepping - self.time_dem) / self.Dt)
 
                         if integration_scheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
+                            # Advance in space only
                             self.DEMSolve(self.time_dem)
-                            self.ApplyForwardCouplingOfVelocityOnly(self.time_dem)
+                            self.ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self.time_dem)
 
                         if self.quadrature_counter.Tick():
                             self.AppendValuesForTheHistoryForce()
@@ -789,8 +790,8 @@ class Algorithm(object):
     def ApplyForwardCoupling(self, alpha = 'None'):
         self.projection_module.ApplyForwardCoupling(alpha)
 
-    def ApplyForwardCouplingOfVelocityOnly(self, time = None):
-        self.projection_module.ApplyForwardCouplingOfVelocityOnly()
+    def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self, time = None):
+        self.projection_module.ApplyForwardCouplingOfVelocityToSlipVelocityOnly()
 
     def PerformFinalOperations(self, time = None):
         os.chdir(self.main_path)

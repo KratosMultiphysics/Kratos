@@ -949,7 +949,7 @@ while (time <= final_time):
                 if DEM_parameters["IntegrationScheme"].GetString() == 'Hybrid_Bashforth':
                     solver.Solve() # only advance in space
                 #projection_module.InterpolateVelocity()
-                projection_module.ImposeVelocityOnDEMFromField()
+                projection_module.ImposeVelocityOnDEMFromFieldToSlipVelocity()
                 #G
                 if quadrature_counter.Tick():
                     if pp.CFD_DEM.basset_force_type == 1 or pp.CFD_DEM.basset_force_type >= 3:

@@ -107,7 +107,7 @@ class Algorithm(BaseAlgorithm):
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED, v)
             node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED, a)
 
-    def ApplyForwardCouplingOfVelocityOnly(self, time):
+    def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self, time):
         for node in self.spheres_model_part.Nodes:
             r = Vector([node.X, node.Y, node.Z])
             self.results_database.MakeReading(time, r)
