@@ -515,7 +515,7 @@ protected:
         // Compute the element average values
         double avg_rho = 0.0;
         double avg_visc = 0.0;
-        array_1d<double, 3> avg_vel = ZeroVector(3);
+        array_1d<double, TDim> avg_vel = ZeroVector(TDim);
 
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             avg_rho += rData.rho(i_node);

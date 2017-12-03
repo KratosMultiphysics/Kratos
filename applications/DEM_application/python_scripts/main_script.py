@@ -60,13 +60,22 @@ class Solution(object):
         self.KRATOSprint   = self.procedures.KRATOSprint
 
         # Prepare modelparts
+        self.CreateModelParts()        
+        
+        self.solver = self.SetSolver()
+        #self.final_time = DEM_parameters.FinalTime
+        #self.dt = DEM_parameters.MaxTimeStep
+        self.Setdt()
+        self.SetFinalTime()
+        
+    def CreateModelParts(self):
         self.spheres_model_part    = ModelPart("SpheresPart")
         self.rigid_face_model_part = ModelPart("RigidFacePart")
         self.cluster_model_part    = ModelPart("ClusterPart")
         self.DEM_inlet_model_part  = ModelPart("DEMInletPart")
         self.mapping_model_part    = ModelPart("MappingPart")
         self.contact_model_part    = ModelPart("ContactPart")
-
+        
         mp_list = []
         mp_list.append(self.spheres_model_part)
         mp_list.append(self.rigid_face_model_part)
@@ -76,11 +85,6 @@ class Solution(object):
         mp_list.append(self.contact_model_part)
 
         self.all_model_parts = DEM_procedures.SetOfModelParts(mp_list)
-        self.solver = self.SetSolver()
-        #self.final_time = DEM_parameters.FinalTime
-        #self.dt = DEM_parameters.MaxTimeStep
-        self.Setdt()
-        self.SetFinalTime()
 
     def IsCountStep(self):
         self.step_count += 1
@@ -209,9 +213,7 @@ class Solution(object):
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
 
         # Adding dofs
-        self.solver.AddDofs(self.spheres_model_part)
-        self.solver.AddDofs(self.cluster_model_part)
-        self.solver.AddDofs(self.DEM_inlet_model_part)
+        self.AddAllDofs()
 
         os.chdir(self.main_path)
         self.KRATOSprint("\nInitializing Problem...")
@@ -219,8 +221,10 @@ class Solution(object):
         self.GraphicalOutputInitialize()
 
         # Perform a partition to balance the problem
-        self.solver.search_strategy = self.parallelutils.GetSearchStrategy(self.solver, self.spheres_model_part)
-        self.solver.BeforeInitialize()
+        self.SetSearchStrategy()        
+        
+        self.SolverBeforeInitialize()
+        
         self.parallelutils.Repart(self.spheres_model_part)
 
         #Setting up the BoundingBox
@@ -233,7 +237,8 @@ class Solution(object):
 
         #Strategy Initialization
         os.chdir(self.main_path)
-        self.solver.Initialize() # Possible modifications of number of elements and number of nodes
+        
+        self.SolverInitialize()        
 
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
         #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
@@ -261,6 +266,20 @@ class Solution(object):
         self.report.total_steps_expected = int(self.final_time / self.dt)
         self.KRATOSprint(self.report.BeginReport(timer))
         os.chdir(self.main_path)
+        
+    def AddAllDofs(self):
+        self.solver.AddDofs(self.spheres_model_part)
+        self.solver.AddDofs(self.cluster_model_part)
+        self.solver.AddDofs(self.DEM_inlet_model_part)
+        
+    def SetSearchStrategy(self):
+        self.solver.search_strategy = self.parallelutils.GetSearchStrategy(self.solver, self.spheres_model_part)
+        
+    def SolverBeforeInitialize(self):
+        self.solver.BeforeInitialize()
+        
+    def SolverInitialize(self):
+        self.solver.Initialize() # Possible modifications of number of elements and number of nodes
 
     def GetMpFilename(self):
         return self.DEM_parameters["problem_name"].GetString() + "DEM"
@@ -337,10 +356,8 @@ class Solution(object):
             self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time,self.dt,self.step)
 
             self.BeforeSolveOperations(self.time)
-
-            #### SOLVE #########################################
-            self.solver.Solve()
-            ####################################################
+           
+            self.SolverSolve()
 
             self.AfterSolveOperations()
 
@@ -379,7 +396,9 @@ class Solution(object):
 
             self.FinalizeTimeStep(self.time)
 
-
+    def SolverSolve(self):
+        self.solver.Solve()
+            
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
