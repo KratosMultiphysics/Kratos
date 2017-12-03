@@ -240,29 +240,24 @@ namespace Kratos
         std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_exterior_faces;
 
         // Set some geometry constant parameters
-        const int n_nodes = 3;
         const unsigned int n_faces = 3;
 
         // Clear the interfaces vectors
         pos_exterior_faces.clear();
-        pos_exterior_faces.reserve(1);
+        pos_exterior_faces.reserve(2);
 
         if (mIsSplit) {
 
             const unsigned int n_positive_subdivision = mPositiveSubdivisions.size();
 
             // Create the unordered map
-            // The string key represents the nodes (real or auxiliar) that conform de subgeometry edge
-            // The integer value represents the parent geometry edge (0 for edge 01, 1 for edge 12 and 2 for edge 20)
-            std::unordered_map < std::string, unsigned int > ext_subedges_map = {
-                {"03",0},
-                {"13",0},
-                {"14",1},
-                {"24",1},
-                {"25",2},
-                {"05",2},
-            };
-            
+            // The key represents the face id (0,1,2)
+            // The value represents the real and intersection nodes placed in that face edges
+            std::unordered_map<unsigned int, std::vector<int>> ext_subedges_map = {
+                {0, {0, 1, 3}},
+                {1, {1, 2, 4}},
+                {2, {2, 0, 5}}};
+
             // Compute the positive side exterior faces geometries
             for (unsigned int i_subdivision = 0; i_subdivision < n_positive_subdivision; ++i_subdivision) {
                 // Get the subdivision geometry
@@ -270,28 +265,24 @@ namespace Kratos
 
                 // Faces iteration
                 for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
-                    // Get the subdivision face nodal keys
+                    // Get the subdivision subface nodal keys
                     int node_i_key = r_subdivision_geom[mEdgeNodeI[i_face]].Id();
                     int node_j_key = r_subdivision_geom[mEdgeNodeJ[i_face]].Id();
 
-                    // Set the subface key
-                    std::string subedge_key;
-                    if (node_i_key < node_j_key) {
-                        subedge_key = std::to_string(node_i_key) + std::to_string(node_j_key);
-                    } else if (node_i_key > node_j_key) {
-                        subedge_key = std::to_string(node_j_key) + std::to_string(node_i_key);
-                    } else {
-                        KRATOS_ERROR << "Subdivision " << i_subdivision << " node I key is equal to node J key";
+                    // Get the subdivision face candidate keys
+                    std::unordered_map<unsigned int, std::vector<int>>::iterator got = ext_subedges_map.find(i_face);
+
+                    // Search the subface nodal keys into the candidate nodes
+                    if (std::find((got->second).begin(), (got->second).end(), node_i_key) != (got->second).end()) {
+                        if (std::find((got->second).begin(), (got->second).end(), node_i_key) != (got->second).end()) {
+                            // If both nodes are in the candidate nodes list, the subface is exterior
+                            IndexedPointGeometryPointerType p_subface_line = boost::make_shared<IndexedPointLineType>(mAuxPointsContainer(node_i_key),
+                                                                                                                      mAuxPointsContainer(node_j_key));
+                            pos_exterior_faces.push_back(p_subface_line);
+                        }
                     }
-
-                    // Get the parent geometry face id
-                    const unsigned int parent_edge_id = ext_subedges_map[subedge_key];
-
-
                 }
             }
-
-
         } else {
             KRATOS_ERROR << "Trying to generate the positive exterior faces in DivideTriangle2D3::GenerateIntersectionsSkin() for a non-split element.";
         }
@@ -303,6 +294,54 @@ namespace Kratos
 
         std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_exterior_faces;
 
+        // Set some geometry constant parameters
+        const unsigned int n_faces = 3;
+
+        // Clear the interfaces vectors
+        neg_exterior_faces.clear();
+        neg_exterior_faces.reserve(2);
+
+        if (mIsSplit) {
+
+            const unsigned int n_negative_subdivision = mPositiveSubdivisions.size();
+
+            // Create the unordered map
+            // The key represents the face id (0,1,2)
+            // The value represents the real and intersection nodes placed in that face edges
+            std::unordered_map<unsigned int, std::vector<int>> ext_subedges_map = {
+                {0, {0, 1, 3}},
+                {1, {1, 2, 4}},
+                {2, {2, 0, 5}}};
+
+            // Compute the negative side exterior faces geometries
+            for (unsigned int i_subdivision = 0; i_subdivision < n_negative_subdivision; ++i_subdivision) {
+                // Get the subdivision geometry
+                const IndexedPointGeometryType& r_subdivision_geom = *mNegativeSubdivisions[i_subdivision];
+
+                // Faces iteration
+                for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
+                    // Get the subdivision subface nodal keys
+                    int node_i_key = r_subdivision_geom[mEdgeNodeI[i_face]].Id();
+                    int node_j_key = r_subdivision_geom[mEdgeNodeJ[i_face]].Id();
+
+                    // Get the subdivision face candidate keys
+                    std::unordered_map<unsigned int, std::vector<int>>::iterator got = ext_subedges_map.find(i_face);
+
+                    // Search the subface nodal keys into the candidate nodes
+                    if (std::find((got->second).begin(), (got->second).end(), node_i_key) != (got->second).end()) {
+                        if (std::find((got->second).begin(), (got->second).end(), node_i_key) != (got->second).end()) {
+                            // If both nodes are in the candidate nodes list, the subface is exterior
+                            IndexedPointGeometryPointerType p_subface_line = boost::make_shared<IndexedPointLineType>(mAuxPointsContainer(node_i_key),
+                                                                                                                      mAuxPointsContainer(node_j_key));
+                            neg_exterior_faces.push_back(p_subface_line);
+                        }
+                    }
+                }
+            }
+        } else {
+            KRATOS_ERROR << "Trying to generate the negative exterior faces in DivideTriangle2D3::GenerateIntersectionsSkin() for a non-split element.";
+        }
+        
         return neg_exterior_faces;
     };
 
