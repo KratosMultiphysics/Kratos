@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="procs" pn="procs" includeContainer="No" >
+
+	<proc n='GetConstitutiveLaws' args='args'>
+	  <![CDATA[
+	  return [Numa::xml::ProcGetConstitutiveLaws $domNode $args]
+	  ]]>
+	</proc>
+	
+
+	<proc n='CheckNodalConditionState' args='args'>
+	  <![CDATA[
+	  # Overwritten the base function to add Solution Type restrictions
+		return [Numa::xml::ProcCheckNodalConditionState $domNode $args]
+
+	  ]]>
+	</proc>
+
+		<proc n='CheckGeometryStructural' args='args'>
+	<![CDATA[
+		  if {$::Model::SpatialDimension eq "3D"} {return surface,volume} {return surface}
+	]]>
+  </proc>
+
+
+		<proc n='ConditionState' args='args'>
+	  <![CDATA[
+	  return [Numa::xml::ProcCheckConditionState $domNode $args]
+	  ]]>
+	</proc>
+
+
+</container>

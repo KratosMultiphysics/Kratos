@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="Construction" pn="Construction" un="DamConstructionProcess" icon="solution16" help="Solution" state="normal" open_window="0">
+    <value n="Activate_construction" pn="Activate construction process" un="DamActivateConstruction" v="False" values="True,False" actualize_tree="1"/>
+    <value n="gravity_direction" pn="Gravity direction" v="Y" values="X,Y,Z"  state="[HideIfUniqueName DamActivateConstruction False]"/>
+    <value n="reservoir_bottom_coordinate_in_gravity_direction" pn="Reservoir Bottom Coordinate in Gravity Direction" v="0.0"  state="[HideIfUniqueName DamActivateConstruction False]"/>
+    <value n="height_dam" pn="Height Dam" v="0.0" help="Total height of dam" state="[HideIfUniqueName DamActivateConstruction False]"/>
+    <value n="number_of_phases" pn="Number of Divisions" v="0" help="Number of divisions" state="[HideIfUniqueName DamActivateConstruction False]"/>
+    <value n="h_0" pn="Heat Transfer Coefficient" v="1.0" help="W/(m^2 ºC)" state="[HideIfUniqueName DamActivateConstruction False]"/>
+    <value n="construction_input_file_name" pn="Name of Construction File" v="construction.txt" help="Please copy your file at current directory" state="[HideIfUniqueName DamActivateConstruction False]"/>
+    <value n="ambient_input_file_name" pn="Name of Ambient Temp File" v="ambient.txt" help="Please copy your file at current directory" state="[HideIfUniqueName DamActivateConstruction False]"/>
+    <value n="soil_part" pn="Soil part" v="" values="[GetParts]" help="Select the soil part" state="[HideIfUniqueName DamActivateConstruction False]"/>
+    <value n="source_type" pn="Source Type" un="DamSourceType" v="Adiabatic" values="Adiabatic,NonAdiabatic" state="[HideIfUniqueName DamActivateConstruction False]" actualize_tree="1"/>
+    <container n="noorzai" pn="Noorzai Parameters" un="DamNoorzaiData" state="[noorzaiState]"  open_window="0" >
+        <value n="density" pn="Density" v="2400.0" help="kg/m^3"/>
+        <value n="specific_heat" pn="Specific Heat" v="1000.0" help="J/(KgºC)" />
+        <value n="alpha" pn="Alpha" v="8.47e-6" help="1/s" />
+        <value n="tmax" pn="Maximum Temperature" v="18.0" help="The maximum temperature of concrete under adiabatic condition (ºC)" />
+    </container>
+    <container n="azenha" pn="Azenha Parameters" un="DamAzenhaData" state="[azenhaState]" actualize_tree="1" open_window="0" >
+        <value n="activation_energy" pn="Activation Energy" v="45507.0" help="J/mol"/>
+        <value n="gas_constant" pn="Universal Constant" v="8.314472" help="J/(mol ºC)" />
+        <value n="constant_rate" pn="Constant Rate" v="7.2237e10" help="W/m^3" />
+        <value n="alpha_initial" pn="Initial Alpha" v="0.015" />
+        <value n="q_total" pn="Q Total" v="6.7939e7" help="J/m^3"/>
+        <value n="aging" pn="Consider Aging" un="DamAging" v="No" values="Yes,No" help="If aging is considered, please select a nodal law"/>
+        <value n="young_inf" pn="Final Young Modulus" state="[checkStateByUniqueName DamAging Yes]" v="2.0e10" help="Young Modulus reached once the curing is completed"/>
+        <value n="A" pn="First Factor" v="0.4"/>
+        <value n="B" pn="Second Factor" v="6.9"/>
+        <value n="C" pn="Third Factor" v="27.0"/>
+        <value n="D" pn="Fourth Factor" v="10.0"/>
+    </container>
+</container>
+    

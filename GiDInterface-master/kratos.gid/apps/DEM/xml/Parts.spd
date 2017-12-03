@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<condition n="Parts" pn="Parts" ov="volume" ovm="element" icon="shells16" help="Select your group" un="DEMParts">
+	<value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements]" help="Select an element">
+		<dependencies node="../value" actualize="1" />
+	</value>
+	<value n="ConstitutiveLaw" pn="Constitutive law" v="" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]"  help="Select a constitutive law">
+		<dependencies node="../value" actualize="1"/>
+	</value>
+	<value n="Material" pn="Material" editable='0' help="Choose a material from the database" update_proc="CambioMat" values_tree='[give_materials_list]' v="Steel" actualize_tree="1" state="normal">
+		<edit_command n="Update material data" pn="Update material data" icon="refresh" proc='edit_database_list'/>
+		<dependencies node="../value" actualize="1"/>
+	</value>
+	<dynamicnode command="spdAux::injectPartInputs" args=""/>
+</condition>

@@ -60,9 +60,9 @@ laplacian_form = 2
 
 AutomaticDeltaTime = "Fixed"
 divergence_cleareance_step = 10
-Dt = 0.01
+Dt = 0.1
 Start_time = 0.0
-max_time = 2.00
+max_time = 1.00
 nsteps = 100
 
 use_dt_in_stabilization = 0.10
@@ -86,7 +86,7 @@ GiDWriteConditionsFlag = True
 GiDWriteParticlesFlag = False
 GiDMultiFileFlag = "Multiples"
 
-#problem_name="square_circ3"
-#problem_path="/home/alex/Examples_kratos/ALEX/channel30mm4_vms.gid"
+problem_name="square_circ3"
+problem_path="/home/elaf/Kratos/GiDInterface-master/channel30mm4_vms.gid"
 
 kratos_path="home/elaf/Kratos"

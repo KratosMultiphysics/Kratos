@@ -18,16 +18,17 @@ def AddDofs(model_part):
     print("variables for the mesh solver added correctly")
 
 
+
 class MeshSolver:
 
-    def __init__(self, model_part, domain_size, reform_dof_at_every_step):
+  def __init__(self, model_part, domain_size, reform_dof_at_every_step):
 
         # Assign parameters
         self.time_order = 2
         self.model_part = model_part
-        self.domain_size = domain_size
+        self.domain_size = domain_size 
         self.reform_dof_at_every_step = reform_dof_at_every_step
-
+        
         # neighbour search
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
@@ -36,23 +37,23 @@ class MeshSolver:
         # definition of the solvers
         pILUPrecond = ILU0Preconditioner()
         self.linear_solver = BICGSTABSolver(1e-9, 300)
-        # self.linear_solver =  DeflatedCGSolver(1e-6, 3000, True,1000)
-        # self.linear_solver = ScalingSolver( DeflatedCGSolver(1e-6, 3000, 1000) , True)
-        # self.linear_solver = ScalingSolver( DeflatedCGSolver(1e-6, 3000, True,1000) , True)
 
-    def Initialize(self):
+  def Initialize(self):
         (self.neighbour_search).Execute()
 
-        self.solver = LaplacianMeshMovingStrategy(self.model_part, self.linear_solver, self.domain_size, self.time_order, self.reform_dof_at_every_step)
+        self.solver = LaplacianMeshMovingStrategy(self.model_part, self.linear_solver, self.time_order, self.reform_dof_at_every_step)
         (self.solver).SetEchoLevel(0)
         print("finished moving the mesh")
 
-    def Solve(self):
+  def Solve(self):
         if(self.reform_dof_at_every_step):
             (self.neighbour_search).Execute()
 
         #(self.solver).Solve()
         (self.solver).MoveNodes()
 
-    def MoveNodes(self):
+  def MoveNodes(self):
         (self.solver).MoveNodes()
+        
+        
+        

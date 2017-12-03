@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="TemperatureDevice" pn="Temperature Device" un="NumaTempDevice" icon="analysis" open_window="0">
+	<value n="DeviceTemperatureState" pn="Device State" un="NumaTemperatureState" v="False" values="True,False" actualize_tree="1"/>
+	<blockdata n="device" pn="Device" name="Device 1" state="[HideIfUniqueName NumaTemperatureState False]" sequence="1" editable_name="unique" help="Interval">
+		<value n="is_fixed" pn="Imposed" actualize_tree="1" type="bool" v="true" values="true,false" /> 
+        <value n="value" pn="Value" type="double" v="0.0" />
+        <value n="table" pn="Temperature table filename" type="tablefile" v="" />
+		<value n="XPosition" pn="X Position" actualize_tree="1" type="double" v="0.0" /> 
+		<value n="YPosition" pn="Y Position" actualize_tree="1" type="double" v="0.0" /> 
+		<value n="ZPosition" pn="Z Position" actualize_tree="1" type="double" v="0.0" /> 
+	</blockdata>
+</container>

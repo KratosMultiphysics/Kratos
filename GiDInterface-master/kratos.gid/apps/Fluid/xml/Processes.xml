@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ProcessList>
+    
+    <Process n="ApplySlipProcess" pn="Scalar value" python_module="apply_slip_process"
+        kratos_module="KratosMultiphysics.FluidDynamicsApplication">
+		<inputs>
+		</inputs>
+    </Process>
+
+    <Process n="ApplyNoSlipProcess" pn="Scalar value" python_module="apply_noslip_process"
+        kratos_module="KratosMultiphysics.FluidDynamicsApplication">
+		<inputs>
+		</inputs>
+    </Process>
+
+    <Process n="ApplyInletProcess" pn="Assign automatic inlet process" python_module="apply_inlet_process"
+        kratos_module="KratosMultiphysics.FluidDynamicsApplication" help="" >
+        <inputs>
+            <parameter n="modulus" pn="Value" type="double" v="1.0" function="1" has_units="1"/>
+            <parameter n="direction" pn="Normal direction" type="combo" values="automatic_inwards_normal,automatic_outwards_normal" pvalues="Inwards,Outwards" v="automatic_inwards_normal" help=""/>
+        </inputs>
+    </Process>
+
+    <Process n="ApplyOutletProcess" pn="Assign outlet process" python_module="apply_outlet_process"
+        kratos_module="KratosMultiphysics.FluidDynamicsApplication" help="" >
+        <inputs>
+            <parameter n="constrained" pn="Imposed" type="bool" v="1" />
+            <parameter n="value" pn="Value" type="double" function="1" v="0.0" has_units="1"/>
+			<parameter n="hydrostatic_outlet" pn="Add hydrostatic contribution" type="bool" v="0" help="If true, adds the hydrostatic pressure component to the outlet pressure.">
+				<parameter parent="1" n="h_top" pn="Top height" type="double" v="0.0" unit_magnitude="L" units="m" help="Fluid height above the outlet. If equals 0.0 triangular distribution is considered."/>
+			</parameter>
+        </inputs>
+    </Process>
+
+</ProcessList>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Materials>
+    
+  <Material n="Concrete-Dam" MaterialType="Numa" help="">
+    <inputs>
+        <parameter n="DENSITY" pn="Density" v="2400" help="Mass density of the material" unit_magnitude="M/L^3" units="kg/m^3"/>
+        <parameter n="YOUNG_MODULUS" pn="Young Modulus" v="1.962e10" help="Elastic modulus of the material" unit_magnitude="F/L^2" units="N/m^2"/>
+        <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20" help="Poisson coefficient of the material"/>
+        <parameter n="THERMAL_EXPANSION" pn="Thermal Expansion" v="1e-05" help="Thermal expansion coefficient"/>
+    </inputs>
+  </Material>
+        
+  <Material n="Soil" MaterialType="Numa" help="">
+    <inputs>
+        <parameter n="DENSITY" pn="Density" v="3000" help="Mass density of the material" unit_magnitude="M/L^3" units="kg/m^3"/>
+        <parameter n="YOUNG_MODULUS" pn="Young Modulus" v="4.9e10" help="Elastic modulus of the material" unit_magnitude="F/L^2" units="N/m^2"/>
+        <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.25" help="Poisson coefficient of the material"/>
+        <parameter n="THERMAL_EXPANSION" pn="Thermal Expansion" v="1e-05" help="Thermal expansion coefficient"/>
+    </inputs>
+  </Material>
+  
+  <Material n="Strong-Joint" MaterialType="Numa" help="">
+    <inputs>
+        <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
+        <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="35.0e9" />
+        <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+        <parameter n="MINIMUM_JOINT_WIDTH" pn="Minimum Joint Width" v="3e-03"/>
+        <parameter n="CRITICAL_DISPLACEMENT" pn="Critical Displacement" v="0.05"/>
+        <parameter n="YIELD_STRESS" pn="Yield Stress" v="3.5e8"/>
+        <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold" v="0.04"/>
+        <parameter n="FRICTION_COEFFICIENT" pn="Friction Coefficient" v="0.4"/>
+    </inputs>
+  </Material>
+  
+    <Material n="Weak-Joint" MaterialType="Numa" help="">
+    <inputs>
+        <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
+        <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.0" />
+        <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+        <parameter n="MINIMUM_JOINT_WIDTH" pn="Minimum Joint Width" v="3e-03"/>
+        <parameter n="CRITICAL_DISPLACEMENT" pn="Critical Displacement" v="0.05"/>
+        <parameter n="YIELD_STRESS" pn="Yield Stress" v="1.0"/>
+        <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold" v="0.04"/>
+        <parameter n="FRICTION_COEFFICIENT" pn="Friction Coefficient" v="0.4"/>
+    </inputs>
+  </Material>
+    
+</Materials>

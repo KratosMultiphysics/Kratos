@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConditionList>
+  <ConditionItem n="ALEMeshDisplacementBC2D" pn="ALE mesh displacement BC" ImplementedInFile=".cpp" Interval="Total"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="False" VariableName="MESH_DISPLACEMENT" App="Fluid"
+	ElementType="Line" ProcessName="AssignVectorVariableProcess" help="Process to set custom mesh displacement conditions." >
+    <TopologyFeatures>
+    </TopologyFeatures>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+
+  <ConditionItem n="ALEMeshDisplacementBC3D" pn="ALE mesh displacement BC" ImplementedInFile=".cpp" Interval="Total"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="False" VariableName="MESH_DISPLACEMENT" App="Fluid"
+	ElementType="Surface" ProcessName="AssignVectorVariableProcess" help="Process to set custom mesh displacement conditions." >
+    <TopologyFeatures>
+    </TopologyFeatures>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+
+  <ConditionItem n="FluidNoSlipInterface2D" pn="FSI fluid interface" ImplementedInFile=".cpp" Interval="False"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" App="Fluid"
+	ElementType="Line" ProcessName="PythonProcess" help="Process to set the interface flag.">
+    <TopologyFeatures>
+      <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
+    </TopologyFeatures>
+    <inputs>
+      <parameter n="mapper_face" pn="Face" v="unique" values="Unique,Positive,Negative" type="combo"/>
+    </inputs>
+  </ConditionItem>
+
+  <ConditionItem n="StructureInterface2D" pn="FSI structure interface" ImplementedInFile=".cpp" Interval="False"
+	ImplementedInApplication="StructuralMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" App="Structural"
+	ElementType="Line" ProcessName="PythonProcess" help="Process to set the interface flag.">
+    <TopologyFeatures>
+      <item  GeometryType="Line" nodes="2" KratosName="LineCondition2D2N"/>
+    </TopologyFeatures>
+  </ConditionItem>
+
+  <ConditionItem n="FluidNoSlipInterface3D" pn="FSI fluid interface" ImplementedInFile=".cpp" Interval="False"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" App="Fluid"
+	ElementType="Surface" ProcessName="PythonProcess" help="Process to set the interface flag.">
+    <TopologyFeatures>
+      <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
+      <item  GeometryType="Quadrilateral" nodes="4" KratosName="WallCondition3D4N"/>
+    </TopologyFeatures>
+    <inputs>
+      <parameter n="mapper_face" pn="Face" v="unique" values="Unique,Positive,Negative" type="combo"/>
+    </inputs>
+  </ConditionItem>
+
+  <ConditionItem n="StructureInterface3D" pn="FSI structure interface" ImplementedInFile=".cpp" Interval="False"
+	ImplementedInApplication="StructuralMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" App="Structural"
+	ElementType="Surface" ProcessName="PythonProcess" help="Process to set the interface flag.">
+    <TopologyFeatures>
+      <item  GeometryType="Triangle" nodes="3" KratosName="SurfaceCondition3D3N"/>
+      <item  GeometryType="Quadrilateral" nodes="4" KratosName="SurfaceCondition3D4N"/>
+    </TopologyFeatures>
+  </ConditionItem>
+
+</ConditionList>

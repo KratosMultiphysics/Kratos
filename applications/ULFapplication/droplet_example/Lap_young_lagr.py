@@ -29,7 +29,7 @@ from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.StructuralApplication import *
-#from KratosMultiphysics.PFEMApplication import *
+#from KratosMultiphysics.PFEM2Application import *
 from KratosMultiphysics.ALEApplication import *
 
 
@@ -186,7 +186,7 @@ for node in lagrangian_model_part.Nodes:
 
 ##########################################################################################################
 Multifile = True
-# Initialize .post.list file (GiD postprocess list)
+#Initialize .post.list file (GiD postprocess list)
 f = open(ProjectParameters.problem_name+'.post.lst','w')
 f.write('Multiple\n')   
 
@@ -236,13 +236,13 @@ while(time <= final_time):
         gid_io.InitializeResults(time, (lagrangian_model_part).GetMesh());
     
         gid_io.WriteNodalResults(CURVATURE,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(DISPLACEMENT,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(IS_BOUNDARY,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(IS_FREE_SURFACE,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(IS_INTERFACE,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(FLAG_VARIABLE,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(FORCE,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(NORMAL,lagrangian_model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(DISPLACEMENT,lagrangian_model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(IS_BOUNDARY,lagrangian_model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(IS_FREE_SURFACE,lagrangian_model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(IS_INTERFACE,lagrangian_model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(FLAG_VARIABLE,lagrangian_model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(FORCE,lagrangian_model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(NORMAL,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(PRESSURE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(VELOCITY,lagrangian_model_part.Nodes,time,0)
         

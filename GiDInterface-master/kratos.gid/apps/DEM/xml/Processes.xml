@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProcessList>
+  <Process n="DEM-FEM-Wall-Process" pn="Impose vector value by direction process" python_module="assign_vector_by_direction_to_condition_process" kratos_module="KratosMultiphysics" help="This process fixes all the components of a given vector variable" check="DirectorVectorNonZero direction">
+    <inputs>
+      <parameter n="fixed_wall" pn="Update velocity, not displacements" type="bool" v="No" values="Yes,No" help="If activated, the wall will not move and will just have an imposed velocity field"/>
+      <parameter n="friction_coeff" pn="Friction angle (deg)" type="double" v="30.0" help="Coulomb friction coefficient" />
+      <parameter n="CohesiveWall" pn="Cohesive wall" type="bool" v="No" values="Yes,No" help="Specify if the wall presents a cohesive behaviour" />
+      <parameter n="DEM_Wear" pn="Compute Wear" type="bool" v="No" values="Yes,No" help="If activated, wear will be computed on this wall. It can increase computation time" />
+      <parameter n="K_Abrasion" pn="Severity of Abrasion" type="double" v="0.001" help="Archards abrasion K parameter" />
+      <parameter n="K_Impact" pn="Severity of Impact" type="double" v="0.001" help="Archards impact K parameter" />
+      <parameter n="H_Brinell" pn="Brinell Hardness (HB)" type="double" v="200.0" help="Brinell hardness value" />
+      <parameter n="RigidPlane" pn="Rigid Structure" type="bool" v="No" values="Yes,No" help="Give this DEM-FEM group an ideally rigid behaviour or an elastic response with a particular Young Modulus" />
+      <parameter n="YoungModulus" pn="Young Modulus (Pa)" type="double" dv="1e20" />
+      <parameter n="PoissonRatio" pn="Poisson Ratio" type="double" dv="0.25" />
+    </inputs>
+  </Process>
+</ProcessList>

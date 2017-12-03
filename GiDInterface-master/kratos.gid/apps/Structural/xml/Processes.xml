@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProcessList>
+ 
+  <!-- Processes for contact mechanics -->
+  <Process n="ALMContactProcess" pn="Consider contact between surfaces" python_module="alm_contact_process"
+	   kratos_module="KratosMultiphysics.ContactStructuralMechanicsApplication" help="This process computes the contact between different surfaces" > 
+    <inputs>
+      <parameter n="search_factor" pn="Search factor" type="double" v="1.5"/>
+      <parameter n="contact_type" pn="Contact type" type="combo" v="Frictionless" values="Frictionless"/>
+      <parameter n="active_check_factor" pn="Active check factor" type="double" v="0.01" />
+      <parameter n="max_number_results" pn="Max number of results" type="double" v="1000" />
+      <parameter n="normal_variation" pn="Normal variation" type="bool" v="false" />
+      <parameter n="type_search" pn="Type of search" type="combo" v="InRadius" values="InRadius" />
+      <parameter n="integration_order" pn="Integration order" type="double" v="2" />
+    </inputs>
+  </Process>
+
+ </ProcessList>
+

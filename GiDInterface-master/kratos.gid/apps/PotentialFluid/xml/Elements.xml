@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ElementList>
+  <ElementItem n="PotentialFlowElement2D" pn="Potential Flow Element 2D" ImplementedInFile=".cpp"
+	       ImplementedInApplication="CompressiblePotentialFlowApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
+	       ElementType="Fluid" help="This element implements a Potential Flow Element">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle" nodes="3" KratosName="Element2D3N"/>
+    </TopologyFeatures>
+	    <!-- here we add the block of features which we require from the constitutive law-->
+
+    <ConstitutiveLaw_FilterFeatures>
+	  <filter field="App" value="Fluid"/>
+	</ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of NodalConditions-->
+    <NodalConditions>
+      <NodalCondition n="POSITIVE_FACE_PRESSURE" v="No"/>
+      <NodalCondition n="NEGATIVE_FACE_PRESSURE" v="No"/>
+    </NodalConditions>
+    <inputs>
+    </inputs>
+    <outputs>
+      <parameter n="PRESSURE" pn="Pressure"  v="Yes"/>
+      <parameter n="VELOCITY" pn="Velocity"  v="Yes"/>
+    </outputs>
+  </ElementItem>
+
+  
+  <ElementItem n="PotentialFlowElement3D" pn="Potential Flow Element 3D" ImplementedInFile="fractional_step.cpp"
+	       ImplementedInApplication="CompressiblePotentialFlowApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3D" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False" MainDofsVariables="VELOCITY"
+	       ElementType="Fluid" help="This element implements a Potential Flow Element">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Tetrahedra" nodes="4" KratosName="Element3D4N"/>
+    </TopologyFeatures>
+    <ConstitutiveLaw_FilterFeatures>
+	  <filter field="App" value="Fluid"/>
+	</ConstitutiveLaw_FilterFeatures>
+    <!--define list of NodalConditions-->
+    <NodalConditions>
+      <NodalCondition n="POSITIVE_FACE_PRESSURE" v="No"/>
+      <NodalCondition n="NEGATIVE_FACE_PRESSURE" v="No"/>
+    </NodalConditions>
+    <inputs>
+    </inputs>
+    <outputs>
+      <parameter n="PRESSURE" pn="Pressure"  v="Yes"/>
+      <parameter n="VELOCITY" pn="Velocity"  v="Yes"/>
+    </outputs>
+  </ElementItem>
+</ElementList>

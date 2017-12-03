@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ProcessList>
+
+	<!--Kratos base process --> 
+	<Process n="PythonProcess" pn="Base Python process" python_module="python_process"
+				   kratos_module="KratosMultiphysics" help="Python processes empty base class which does nothing">
+		<inputs>
+		</inputs>
+	</Process>
+
+	<!--Processes for nodes --> 
+	<Process n="AssignScalarVariableProcess" pn="Assign scalar variable process" python_module="assign_scalar_variable_process"
+					 kratos_module="KratosMultiphysics" help="This process fixes the selected components of a given vector variable">
+		<inputs>
+			<parameter n="constrained" pn="Imposed" type="bool" v="1" />
+			<parameter n="value" pn="Value" type="double" function="1" v="0.0" has_units="1"/>
+		</inputs>
+	</Process>
+
+	<Process n="AssignVectorVariableProcess" pn="Assign vector variable process" python_module="assign_vector_variable_process"
+					 kratos_module="KratosMultiphysics" help="This process fixes the selected components of a given vector variable">
+		<inputs>
+			<parameter n="constrained" pn="Imposed" type="vector" vectorType="bool" v="1,1,1" />
+			<parameter n="value" pn="Value" type="vector" vectorType="double" function="1" v="0.0,0.0,0.0" has_units="1"/>
+		</inputs>
+	</Process>
+
+	<Process n="AssignAutomaticDirectionVectorProcess" pn="Assign automatic direction vector process" python_module="assign_vector_by_direction_process"
+				   kratos_module="KratosMultiphysics" help="" >
+		<inputs>
+      <parameter n="modulus" pn="Value" type="double" v="1.0" function="1" has_units="1"/>
+			<parameter n="direction" pn="Normal direction" type="combo" values="automatic_inwards_normal,automatic_outwards_normal" pvalues="Inwards,Outwards" v="automatic_inwards_normal" help=""/>
+		</inputs>
+	</Process>
+
+	<Process n="AssignVectorByDirectionProcess" pn="Assign vector by direction process" python_module="assign_vector_by_direction_process"
+				   kratos_module="KratosMultiphysics" help="This process sets a vector variable value over a condition according to a given modulus an direction"  check="DirectorVectorNonZero direction">
+		<inputs>
+      <parameter n="modulus" pn="Value" type="double" v="1.0" function="1" has_units="1"/>
+			<parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" help=""/>
+		</inputs>
+	</Process>
+
+	<!--Processes for conditions --> 
+	<Process n="AssignScalarVariableToConditionProcess" pn="Apply a scalar value over a condition" python_module="assign_scalar_variable_to_conditions_process" 
+			 kratos_module="KratosMultiphysics" help="This process sets a scalar variable value over a condition">
+		<inputs>
+			<parameter n="value" pn="Value" type="double" v="0.0" function="1" has_units="1"/>
+		</inputs>
+	</Process>
+
+	<Process n="AssignVectorVariableToConditionProcess" pn="Assign a vector variable over a condition " python_module="assign_vector_variable_to_condition_process" 
+			 kratos_module="KratosMultiphysics" help="This process sets a scalar variable value over a condition">
+		<inputs>
+			<parameter n="constrained" pn="Imposed" type="vector" vectorType="bool" v="1,1,1" />
+			<parameter n="value" pn="Value" type="vector" vectorType="double" function="1" v="0.0,0.0,0.0" has_units="1"/>
+		</inputs>
+	</Process>
+
+	<Process n="AssignVectorByDirectionToConditionProcess" pn="Assign a vector value on a condition" python_module="assign_vector_by_direction_to_condition_process" 
+			 kratos_module="KratosMultiphysics" help="This process sets a vector variable value over a condition according to a given modulus an direction" check="DirectorVectorNonZero direction">
+		<inputs>
+			<parameter n="modulus" pn="Modulus" type="double" v="1.0" function="1" has_units="1"/>
+			<parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" />
+		</inputs>
+	</Process>
+
+
+</ProcessList>

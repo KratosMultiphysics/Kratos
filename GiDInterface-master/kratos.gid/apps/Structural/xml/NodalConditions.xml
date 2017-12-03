@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NodalConditionList>
+  <NodalConditionItem n="DISPLACEMENT" pn="Displacement" ProcessName="AssignVectorVariableProcess" VariableName="DISPLACEMENT" ImplementedInApplication="StructuralMechanicsApplication"
+		      analysis_type="Static,Dynamic"  unit_magnitude="L" units="m" App="Structural" state="CheckNodalConditionStateSolid" Interval="Total">
+    <outputs>
+      <parameter n="REACTION" pn="Reaction" v="Yes"/>
+    </outputs>
+  </NodalConditionItem>
+  
+  <NodalConditionItem n="VELOCITY" pn="Velocity" ProcessName="AssignVectorVariableProcess" VariableName="VELOCITY" ImplementedInApplication="StructuralMechanicsApplication"
+		      analysis_type="Dynamic" unit_magnitude="Velocity" units="m/s" App="Structural" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+  
+  <NodalConditionItem  n="ACCELERATION" pn="Acceleration" ProcessName="AssignVectorVariableProcess" VariableName="ACCELERATION" ImplementedInApplication="StructuralMechanicsApplication"
+		       analysis_type="Dynamic" unit_magnitude="Acceleration" units="m/s^2" App="Structural" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+  
+  <NodalConditionItem  n="PRESSURE" pn="Pressure" ProcessName="AssignScalarVariableProcess" VariableName="PRESSURE" ImplementedInApplication="StructuralMechanicsApplication"
+		       analysis_type="Static,Dynamic"  unit_magnitude="P"  units="Pa" v="Yes" App="Structural" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+  <NodalConditionItem  n="CONTACT" pn="Contact" ProcessName="ALMContactProcess" VariableName="" ImplementedInApplication="ContactStructuralMechanicsApplication"
+		       analysis_type="Static,Dynamic"  App="Structural" state="" Interval="False"  ov="[CheckGeometry 2]"  ProductionReady="Developer">
+  </NodalConditionItem>
+  <NodalConditionItem n="ROTATION" pn="Rotation" ProcessName="AssignVectorVariableProcess" App="Structural" ImplementedInApplication="StructuralMechanicsApplication"
+					  analysis_type="Static,Dynamic" unit_magnitude="Angle" units="rad" VariableName="ROTATION" state="CheckNodalConditionStateSolid" Interval="Total">
+    <outputs>
+      <parameter n="TORQUE" pn="Torque" v="Yes"/>
+    </outputs>
+  </NodalConditionItem>
+  <NodalConditionItem n="ANGULAR_VELOCITY" pn="Angular Velocity" ProcessName="AssignVectorVariableProcess" state="CheckNodalConditionStateSolid" Interval="Total"
+					  analysis_type="Dynamic" unit_magnitude="Angle/T" units="rad/s" VariableName="ANGULAR_VELOCITY" App="Structural" ImplementedInApplication="StructuralMechanicsApplication">
+  </NodalConditionItem>
+  <NodalConditionItem n="ANGULAR_ACCELERATION" pn="Angular Acceleration" ProcessName="AssignVectorVariableProcess" state="CheckNodalConditionStateSolid" Interval="Total"
+					  analysis_type="Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"  VariableName="ANGULAR_ACCELERATION" App="Structural" ImplementedInApplication="StructuralMechanicsApplication">
+  </NodalConditionItem>
+</NodalConditionList>

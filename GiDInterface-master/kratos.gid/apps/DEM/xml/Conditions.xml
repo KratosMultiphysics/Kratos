@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConditionList>
+ 
+  <ConditionItem n="DEM-FEM-Wall" pn="Wall" Interval="Total"
+	ImplementedInApplication="DEMApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3D" LocalSpaceDimension="2" ElementType="Surface" 
+  ProcessName="DEM-FEM-Wall-Process" help="Load on surfaces, load vector referred to global axes"
+	VariableName="WALL">
+    <TopologyFeatures>
+      <item  GeometryType="Triangle"      nodes="3" KratosName="WallCondition3D3N"/>
+      <item  GeometryType="Triangle"      nodes="6" KratosName="WallCondition3D6N"/>
+    </TopologyFeatures>
+    <inputs>
+    </inputs>
+    <outputs>
+      <!--<parameter n="FORCE" pn="External Load" v="false"/>-->
+    </outputs>
+  </ConditionItem>
+    
+  <ConditionItem n="Inlet" pn="Inlet" Interval="Total"
+	ImplementedInApplication="DEMApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3D" LocalSpaceDimension="2" ElementType="Surface" 
+  ProcessName="AssignVectorVariableProcess" help=""
+	VariableName="INLET">
+    <TopologyFeatures>
+    </TopologyFeatures>
+    <inputs>
+    </inputs>
+    <outputs>
+      <!--<parameter n="FORCE" pn="External Load" v="false"/>-->
+    </outputs>
+  </ConditionItem>
+    
+</ConditionList>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Solvers>
+
+    <solver n="Relaxation" pn="Relaxation" SolverType="FSICoupling" Parallelism="OpenMP,MPI">
+        <inputs>
+            <parameter n="acceleration_type" pn="Acceleration type" type="combo" values="Aitken" v="Aitken" help="Type of acceleration."/>
+            <parameter n="w_0" pn="Initial relaxation parameter (w)" type="double" v="0.825" help="Initial relaxation parameter."/>
+        </inputs>
+    </solver>
+
+    <solver n="MVQN" pn="MultiVector Quasi-Newton method" SolverType="FSICoupling" Parallelism="OpenMP">
+        <inputs>
+            <parameter n="w_0" pn="Initial relaxation parameter" type="double" v="0.825" help="Relaxation parameter for the first fixed point iteration."/>
+        </inputs>
+    </solver>
+
+    <solver n="MVQN_recursive" pn="Recursive MultiVector Quasi-Newton method" SolverType="FSICoupling" Parallelism="OpenMP,MPI">
+        <inputs>
+            <parameter n="w_0" pn="Initial relaxation parameter" type="double" v="0.825" help="Relaxation parameter for the first fixed point iteration."/>
+            <parameter n="buffer_size" pn="Jacobian buffer size" type="integer" v="7" help="Size of the previous step Jacobian buffer."/>
+        </inputs>
+    </solver>
+
+</Solvers>

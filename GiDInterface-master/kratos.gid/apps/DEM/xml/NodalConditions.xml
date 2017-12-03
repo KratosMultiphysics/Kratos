@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NodalConditionList>
+  <NodalConditionItem n="VELOCITY" pn="Velocity" ProcessName="AssignDirectionVectorProcess" VariableName="VELOCITY" ImplementedInApplication="DEMApplication" analysis_type="Dynamic" unit_magnitude="Velocity" units="m/s" App="DEM" Interval="Total"></NodalConditionItem>
+  <NodalConditionItem n="ANGULAR_VELOCITY" pn="Angular Velocity" ProcessName="AssignVectorVariableProcess" VariableName="ANGULAR_VELOCITY" Interval="Total" analysis_type="Dynamic" unit_magnitude="Angle/T" units="rad/s" App="DEM" ImplementedInApplication="DEMApplication"></NodalConditionItem>
+</NodalConditionList>

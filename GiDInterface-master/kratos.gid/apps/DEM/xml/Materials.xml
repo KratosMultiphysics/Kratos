@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Materials>
+  <Material n="Default" MaterialType="DEM" help="">
+    <inputs>
+      <parameter n="PARTICLE_DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500.0" type="double"  help="Density of the material (not bulk density)"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.0e9" type="double"  help="The Youngs Modulus of the material (not bulk stiffness)"/>
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20" type="double"  help="The Poissons Ratio of the material (not bulk Ratio)"/>
+            <parameter n="ParticleSphericity" pn="Sphericity" v="1.0" help="Particle sphericity"/>
+            <parameter n="PARTICLE_COHESION" pn="Cohesion" v="0.0" unit_magnitude="P" units="Pa" type="double"  help="Particle cohesion (JKR or DMT)"/>
+            <parameter n="COEFFICIENT_OF_RESTITUTION" pn="Coefficient of restitution" v="0.2" type="double" help="Particle friction angle (for Coulombs friction)"/>
+            <parameter n="RollingFriction" pn="Rolling friction" v="0.01" type="double" help="Rolling friction"/>
+            <parameter n="RotationalDampingRatio" pn="Rotational damping ratio" v="0.5" type="double" help="Rotational damping ratio"/>
+            <parameter n="PARTICLE_MATERIAL" pn="Color" v="1" type="integer"/>
+            <parameter n="DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" pn="Discontinuous Contact Law" v="Hertz" type="combo" values="DEM_D_Hertz_viscous_Coulomb,DEM_D_Linear_viscous_Coulomb,DEM_D_Linear_Custom_Constants,DEM_D_Conical_damage" pvalues="Hertz,Linear,Linear custom,Conical" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD">
+                <parameter n="KNormal" pn="KNormal" parent="DEM_D_Linear_Custom_Constants" v="1e5" type="double" help="KNormal"/>
+                <parameter n="KTangential" pn="KTangential" parent="DEM_D_Linear_Custom_Constants" v="5e4" type="double" help="KTangential"/>
+                <parameter n="ContactRadius" pn="Contact Radius" parent="DEM_D_Conical_damage" v="4e-3" type="double" help="Contact Radius"/>
+                <parameter n="MaxStress" pn="Maximum Stress" parent="DEM_D_Conical_damage" v="2e8" type="double" help="Maximum Stress"/>
+                <parameter n="Alpha" pn="Alpha" parent="DEM_D_Conical_damage" v="81.0" type="double" unit_magnitude="Angle" units="deg" help="Alpha"/>
+                <parameter n="Gamma" pn="Gamma" parent="DEM_D_Conical_damage" v="-0.16" type="double" help="Gamma"/>
+            </parameter>
+            <parameter n="DEM_CohesionLaw" pn="Cohesion Law" v="None" values="None,JKR,DMT" type="combo" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones."/>
+        </inputs>
+  </Material>
+</Materials>

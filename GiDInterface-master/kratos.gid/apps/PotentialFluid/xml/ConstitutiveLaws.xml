@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ConstitutiveLaws>
+    <!--linear elastic laws-->
+	<CLaw n="Inviscid" pn="Inviscid fluid" ProductionReady="ProductionReady" help="Newtonian fluid" App="Fluid" ImplementedInApplication="FluidDynamicsApplication">
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="1.225"/>
+        </inputs>
+        <outputs>
+        </outputs>
+    </CLaw>
+</ConstitutiveLaws>

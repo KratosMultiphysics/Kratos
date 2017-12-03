@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="StageInfo" pn="Model information" help="Stage information" icon="analysis" state="normal" open_window="0">
+    <value n="SolutionType" pn="Solver Type" un="STSoluType" v="Static" values="Static,Dynamic" help="Solution type" actualize_tree="1"/>
+    <value n="SolStratCombo" pn="Time integration method" un="STSolStrat" v="implicit" values="implicit" dict="implicit,Implicit" actualize_tree="1" state="[getStateFromXPathValue {string(../value[@n='SolutionType']/@v)} Dynamic]"/>
+    <value n="Scheme" pn="Scheme" un="STScheme" v="" values="" dict="[GetSchemes]" state="[getStateFromXPathValue {string(../value[@n='SolutionType']/@v)} Dynamic]"  actualize_tree="1"/>
+    <value n="AnalysisType" pn="Analysis type" un="STAnalysisType" v="non_linear" values="linear,non_linear" dict="linear,Linear,non_linear,Nonlinear" help="Analysis type"/>
+</container>

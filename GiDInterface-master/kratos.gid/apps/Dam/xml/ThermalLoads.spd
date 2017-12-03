@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="ThermalLoads" pn="Thermal load conditions" un="DamThermalLoads" icon="loads" open_window="0">
+	  <dynamicnode command="spdAux::injectConditions" args="TypeofCondition Thermal"/>
+</container>

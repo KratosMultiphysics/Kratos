@@ -1,7 +1,5 @@
 domain_size = 2 #dimension of problem - 2 for 2D, 3 for 3D
 
-
-
 FSI = 0.00000e+00
 compute_reactions = 0.00000e+00
 Dt = 1.00000e-04

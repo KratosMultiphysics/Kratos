@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="procs" pn="procs" includeContainer="No" >
+
+	<proc n='GetElementsValues' args='args'>
+	  <![CDATA[
+	  return [Dam::xml::ProcGetElementsValues $domNode $args]
+	  ]]>
+	</proc>
+	<proc n='GetConstitutiveLaws' args='args'>
+	  <![CDATA[
+	  return [Dam::xml::ProcGetConstitutiveLaws $domNode $args]
+	  ]]>
+	</proc>
+	
+	 <!-- <proc n='SolStratParamState' args='args'>
+	  <![CDATA[
+		    
+			set resp [Dam::xml::SolStratParamState $domNode]
+			if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>-->
+	<proc n='GetSolutionStrategies' args='args'>
+	  <![CDATA[
+	  		return [Dam::xml::ProcGetSolutionStrategies $domNode $args]
+	  ]]>
+	</proc>
+		  			
+		  <proc n='CheckNodalConditionState' args='args'>
+	  <![CDATA[
+	  # Overwritten the base function to add Solution Type restrictions
+		return [Dam::xml::ProcCheckNodalConditionState $domNode $args]
+
+	  ]]>
+	</proc>		
+	 
+	          <proc n='CheckGeometryStructural' args='args'>
+          <![CDATA[                
+                if {$::Model::SpatialDimension eq "3D"} {return surface,volume} {return surface}                
+          ]]>
+        </proc>
+
+
+	    <proc n='GetSchemes' args='args'>
+	  <![CDATA[
+		return [Dam::xml::ProcGetSchemes $domNode $args]
+	  ]]>
+	</proc>
+		
+			<proc n='ConditionState' args='args'>
+	  <![CDATA[
+	  return [Dam::xml::ProcCheckConditionState $domNode $args]
+	  ]]>
+	</proc>
+			<proc n='noorzaiState' args='args'>
+	  <![CDATA[
+	  return [Dam::xml::ProcNoorzaiState $domNode $args]
+	  ]]>
+	</proc>
+			<proc n='azenhaState' args='args'>
+	  <![CDATA[
+	  return [Dam::xml::ProcAzenhaState $domNode $args]
+	  ]]>
+	</proc>
+
+</container>

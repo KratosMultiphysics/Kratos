@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="Preferences" pn="Model information" help="Stage information" icon="analysis" state="normal" open_window="0">
+    <value n="SolStratCombo" pn="Solution strategy" un="DEMSolStrat" v="" values="" dict="[GetSolutionStrategies]" actualize_tree="1"/>
+    <value n="Scheme" pn="Scheme" un="DEMScheme" v="" values="" dict="[GetSchemes]"  actualize_tree="1"/>
+</container>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="EmbeddedDrag" pn="Embedded drag" un="EMBFLEmbeddedDrag" icon="drag">
+    <value n="compute_embedded_drag" pn="Compute embedded drag" un="ComputeEmbeddedDrag" v="No" values="Yes,No"/>
+    <value n="write_drag_output_file" pn="Write drag output file" v="Yes" values="Yes,No" help="Print drag in a .drag file" state="[checkStateByUniqueName ComputeEmbeddedDrag Yes]" />
+    <value n="print_drag_to_screen" pn="Print drag to screen"  v="No" values="Yes,No" help="Print drag to screen" state="[checkStateByUniqueName ComputeEmbeddedDrag Yes]" />
+    <value n="Interval" pn="Time interval" v="Total" values="[getIntervals]" help="Time interval for drag computation" state="[checkStateByUniqueName ComputeEmbeddedDrag Yes]" />
+</container>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="materials" pn="Materials" un="DamMaterials" icon="material16" help="Materials database (2D)" open_window="0">
+    <dynamicnode command="spdAux::injectMaterials" args="MaterialType Dam"/>
+</container>  

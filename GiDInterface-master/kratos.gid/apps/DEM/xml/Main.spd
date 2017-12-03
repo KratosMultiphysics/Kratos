@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <container n="DEM" pn="DEM" icon="units" prefix="DEM" tree_state="open" open_window="0">
+    <include n="StageInfo" active="1" path="apps/DEM/xml/StageInfo.spd"/>
+    <include n="Parts" active="1" path="apps/DEM/xml/Parts.spd"/>
+    <include n="Intervals" active="1" path="apps/Common/xml/Intervals.spd"/>
+    <include n="BoundaryConditions" active="1" path="apps/DEM/xml/BoundaryConditions.spd"/>
+    <include n="Conditions" active="1" path="apps/DEM/xml/Conditions.spd"/>
+    <include n="SolutionStrategy" active="1" path="apps/DEM/xml/SolutionStrategy.spd"/>
+    <include n="Results" active="1" path="apps/Common/xml/Results.spd"/>
+    <include n="materials" active="1" path="apps/DEM/xml/Materials.spd"/>
+  </container>

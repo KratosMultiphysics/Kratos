@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="ModelInfo" pn="Model information" icon="information16" help="Model information" state="normal" open_window="0">
+    <value n="TypeofProblem" pn="Type of Problem" un="DamTypeofProblem" v="Mechanical" values="Mechanical,Thermo-Mechanical,UP_Mechanical,UP_Thermo-Mechanical,Acoustic,Modal-Analysis" help="Type of problem" actualize_tree="1"/>
+    <value n="SolStratCombo" pn="Strategy" un="DamSolStrat" v="" values="" dict="[GetSolutionStrategies Mechanic]" actualize_tree="1" state="normal"/>
+    <value n="MechanicalScheme" pn="Scheme" v=""    un="DamScheme" values="" dict="[GetSchemes]" actualize_tree="1"/>
+    
+    <container n="MechanicalProblem" pn="Mechanical Problem" un="DamMechanicalData" state="[checkStateByUniqueName DamTypeofProblem Mechanical]" actualize_tree="1" open_window="0">
+        <value n="SolutionType" pn="Solution type" v="Quasi-Static" un="DamMechaSoluType" values="Quasi-Static,Dynamic" help="Solution type" actualize_tree="1"/>
+        <value n="AnalysisType" pn="Analysis type" v="Linear"  un="DamMechaAnalysisType" values="Linear,Non-Linear" help="Analysis type" />
+        <value n="DamageType" pn="Damage type" v="Local" values="Local,NonLocal" dict="Local,Local,NonLocal,Non Local" un="DamMechaDamageType" state="[checkStateByUniqueName DamMechaAnalysisType Non-Linear]" actualize_tree="1"/>
+        <value n="CharacteristicLength" pn="Characteristic Length" v="0.05" un="DamMechaDamageTypeLength" state="[checkStateByUniqueName DamMechaDamageType NonLocal ]" help="" actualize_tree="1" />
+        <value n="SearchNeighboursStep" pn="Search Neighbours Step" v="false" values="true,false" un="DamMechaDamageTypeSearch"  state="[checkStateByUniqueName DamMechaDamageType NonLocal]" help="Using this option can increase the computational cost highly" actualize_tree="1" />
+        <container n="StratParams" pn="Strategy parameters" un="DamMechanicalDataParameters" icon="groupsTreeNew.gif"  state="normal" open_window="0">
+            <dynamicnode command="spdAux::injectSolStratParams" args=""/>
+            <dynamicnode command="spdAux::injectSolvers" args=""/>
+        </container>
+    </container>
+    
+    <container n="ThermoMechanicalProblem" pn="Thermo-Mechanical Problem"  un="DamThermo-MechanicalData" state="[checkStateByUniqueName DamTypeofProblem Thermo-Mechanical]"  actualize_tree="1" open_window="0">
+            <container n="MechanicalPartProblem" pn="Mechanical Problem" un="DamThermo-Mechanical-MechData" state="normal" actualize_tree="1" open_window="0">
+                <value n="SolutionType" pn="Solution type" un="DamThermoMechaSoluType" v="Quasi-Static" values="Quasi-Static,Dynamic" help="Solution type" state="readonly" actualize_tree="1"/>
+                <value n="AnalysisType" pn="Analysis type" un="DamThermoMechaAnalysisType" v="Linear" values="Linear,Non-Linear" state="readonly" help="Analysis type" />
+                <value n="DamageType" pn="Damage type" v="Local" values="Local,NonLocal" dict="Local,Local,NonLocal,Non Local" un="DamThermo-Mechanical-MechaDamageType" state="[checkStateByUniqueName DamThermoMechaAnalysisType Non-Linear]" actualize_tree="1" />
+                <value n="CharacteristicLength" pn="Characteristic Length" v="0.05" un="DamThermo-Mechanical-MechaDamageTypeLength" state="[checkStateByUniqueName DamThermo-Mechanical-MechaDamageType NonLocal]" help="" />
+                <value n="SearchNeighboursStep" pn="Search Neighbours Step" v="false" values="true,false" un="DamThermo-Mechanical-MechaDamageTypeSearch"  state="[checkStateByUniqueName DamThermo-Mechanical-MechaDamageType NonLocal]" help="Using this option can increase the computational cost highly" />
+                <container n="StratParams" pn="Strategy parameters" un="DamThermo-Mechanical-MechDataParameters" icon="groupsTreeNew.gif"  state="normal" open_window="0">
+                    <dynamicnode command="spdAux::injectSolStratParams" args=""/>
+                    <dynamicnode command="spdAux::injectSolvers" args=""/>
+                </container>
+            </container>
+            
+            <container n="ThermalProblem" pn="Thermal Problem" un="DamThermo-Mechanical-ThermData" state="normal" actualize_tree="1" open_window="0">
+                <value n="SolStratCombo" pn="Thermal strategy" un="DamSolStratTherm" v="" values="" dict="[GetSolutionStrategies Thermal]" actualize_tree="1" state="disabled"/>
+                <value n="ThermalScheme" pn="Theta Scheme" un="DamThermalScheme" v="1.0" actualize_tree="1" help= " 1.0 corresponds to backward Euler, 0.5 Cranck Nicolson and 0.0 Forward Euler"/>
+                <value n="ReferenceTemperature" pn="Reference Temeperature" un="DamThermalReferenceTemperature" type="double" v="10.0" actualize_tree="1"/>
+                <container n="ThermalStratParams" pn="Strategy parameters" un="DamThermo-Mechanical-ThermDataParameters" icon="groupsTreeNew.gif"  state="normal" open_window="0">
+                    <value n="thermal_echo_level" pn="Echo level" un="DamThermalEcholevel" v="1" values="0,1,2,3" state="readonly" help="" />
+                    <value n="thermal_reform_dofs_at_each_step" pn="Reforms steps" un="DamThermalReformsSteps" v="false" values="true,false" state="readonly" help="" />
+                    <value n="thermal_clear_storage" pn="Clear Storage" un="DamThermalClearStorage" v="false" values="true,false" state="readonly" help="" />
+                    <value n="thermal_compute_reactions" pn="Compute Reactions" un="DamThermalComputeReactions" v="false" values="true,false" state="readonly" help="" />
+                    <value n="thermal_move_mesh_flag" pn="Move Mesh" un="DamThermalMoveMeshFlag" v="false" values="true,false" state="readonly" help="" />
+                    <value n="thermal_compute_norm_dx_flag" pn="Compute Norm Dx" un="DamThermalComputeNormDx" v="false" values="true,false" state="readonly" help="" />
+                    <value n="thermal_block_builder" pn="Block Builder" un="DamThermalBlockBuilder" v="false" values="true,false" state="readonly" help="" />
+                    <dynamicnode command="spdAux::injectSolvers" args=""/>
+                </container>
+            </container>
+    </container> 
+
+    <container n="UP_MechanicalProblem" pn="UP Mechanical Problem" un="DamUP_MechanicalData" state="[checkStateByUniqueName DamTypeofProblem UP_Mechanical]" actualize_tree="1" open_window="0">
+        <value n="SolutionType" pn="Solution type" un="DamUPMechaSoluType" v="Dynamic" values="Dynamic" actualize_tree="1"/>
+        <value n="AnalysisType" pn="Analysis type" un="DamUPMechaAnalysisType" v="Linear" values="Linear,Non-Linear" help="Analysis type" state="readonly" />
+        <value n="DamageType" pn="Damage type" v="Local" values="Local,NonLocal" dict="Local,Local,NonLocal,Non Local" un="DamUPMechaDamageType" state="[checkStateByUniqueName DamUPMechaAnalysisType Non-Linear]" actualize_tree="1" />
+        <value n="CharacteristicLength" pn="Characteristic Length" v="0.05" un="DamUPMechaDamageTypeLength" state="[checkStateByUniqueName DamUPMechaDamageType NonLocal]" help="" />
+        <value n="SearchNeighboursStep" pn="Search Neighbours Step" v="false" values="true,false" un="DamUPMechaDamageTypeSearch"  state="[checkStateByUniqueName DamUPMechaDamageType NonLocal]" help="Using this option can increase the computational cost highly" />
+        <container n="StratParams" pn="Strategy parameters" un="DamUP_MechanicalDataParameters" icon="groupsTreeNew.gif"  state="normal" open_window="0">
+            <dynamicnode command="spdAux::injectSolStratParams" args=""/>
+            <dynamicnode command="spdAux::injectSolvers" args=""/>
+        </container>   
+    </container>
+    
+    <container n="UP_ThermoMechanicalProblem" pn="UP Thermo-Mechanical Problem"  un="DamUP_Thermo-MechanicalData" state="[checkStateByUniqueName DamTypeofProblem UP_Thermo-Mechanical]"  actualize_tree="1" open_window="0">
+            <container n="MechanicalPartProblem" pn="UP Mechanical Problem" un="DamUP_Thermo-Mechanical-MechData" state="normal" actualize_tree="1" open_window="0">
+                <value n="SolutionType" pn="Solution type" un="DamUPThermoMechaSoluType" v="Dynamic" values="Dynamic" actualize_tree="1"/>
+                <value n="AnalysisType" pn="Analysis type" un="DamUPThermoMechaAnalysisType" v="Linear" values="Linear,Non-Linear" state="readonly" help="Analysis type" />
+                <value n="DamageType" pn="Damage type" v="Local" values="Local,NonLocal" dict="Local,Local,NonLocal,Non Local" un="DamUPThermo-Mechanical-MechaDamageType" state="[checkStateByUniqueName DamUPThermoMechaAnalysisType Non-Linear]" actualize_tree="1" />
+                <value n="CharacteristicLength" pn="Characteristic Length" v="0.05" un="DamUPThermo-Mechanical-MechaDamageTypeLength" state="[checkStateByUniqueName DamUPThermo-Mechanical-MechaDamageType NonLocal]" help="" />
+                <value n="SearchNeighboursStep" pn="Search Neighbours Step" v="false" values="true,false" un="DamUPThermo-Mechanical-MechaDamageTypeSearch"  state="[checkStateByUniqueName DamUPThermo-Mechanical-MechaDamageType NonLocal]" help="Using this option can increase the computational cost highly" />
+                <container n="StratParams" pn="Strategy parameters" un="DamUP_Thermo-Mechanical-MechDataParameters" icon="groupsTreeNew.gif"  state="normal" open_window="0">
+                    <dynamicnode command="spdAux::injectSolStratParams" args=""/>
+                    <dynamicnode command="spdAux::injectSolvers" args=""/>
+                </container>
+            </container>
+            
+             <container n="ThermalProblem" pn="Thermal Problem" un="DamUP_Thermo-Mechanical-ThermData" state="normal" actualize_tree="1" open_window="0">
+                <value n="SolStratCombo" pn="Thermal strategy" un="DamSolStratThermUP" v="" values="" dict="[GetSolutionStrategies Thermal]" actualize_tree="1" state="disabled"/>
+                <value n="ThermalScheme" pn="Theta Scheme" un="DamThermalUPScheme" v="1.0" actualize_tree="1" help= " 1.0 corresponds to backward Euler, 0.5 Cranck Nicolson and 0.0 Forward Euler"/>
+                <value n="ReferenceTemperature" pn="Reference Temeperature" un="DamThermalUPReferenceTemperature" type="double" v="10.0" actualize_tree="1"/>
+                <container n="ThermalUPStratParams" pn="Strategy parameters" un="DamUP_Thermo-Mechanical-ThermDataParameters" icon="groupsTreeNew.gif"  state="normal" open_window="0">
+                    <value n="thermal_echo_level" pn="Echo level" un="DamThermalUPEcholevel" v="1" values="0,1,2,3" state="readonly" help="" />
+                    <value n="thermal_reform_dofs_at_each_step" pn="Reforms steps" un="DamThermalUPReformsSteps" v="false" values="true,false" state="readonly" help="" />
+                    <value n="thermal_clear_storage" pn="Clear Storage" un="DamThermalUPClearStorage" v="false" values="true,false" state="readonly" help="" />
+                    <value n="thermal_compute_reactions" pn="Compute Reactions" un="DamThermalUPComputeReactions" v="false" values="true,false" state="readonly" help="" />
+                    <value n="thermal_move_mesh_flag" pn="Move Mesh" un="DamThermalUPMoveMeshFlag" v="false" values="true,false" state="readonly" help="" />
+                    <value n="thermal_compute_norm_dx_flag" pn="Compute Norm Dx" un="DamThermalUPComputeNormDx" v="false" values="true,false" state="readonly" help="" />
+                    <value n="thermal_block_builder" pn="Block Builder" un="DamThermalUPBlockBuilder" v="false" values="true,false" state="readonly" help="" />
+                    <dynamicnode command="spdAux::injectSolvers" args=""/>
+                </container>
+            </container>       
+    </container> 
+
+    <container n="AcousticProblem" pn="Acoustic Problem" state="[checkStateByUniqueName DamTypeofProblem Acoustic]" un="DamUAcousticData"   actualize_tree="1" open_window="0">
+         <container n="StratParams" pn="Strategy parameters" un="DamAcousticStratParams" icon="groupsTreeNew.gif"  state="normal" open_window="0">
+            <value n="convergence_criterion" pn="Convergence criterion" un="DamAcousticConvergencecriterion" v="Residual_criterion" state="readonly" help="" />
+            <value n="residual_relative_tolerance" pn="Residual relative tolerance" un="DamAcousticRelTol" type="double" v="1e-4" help=""/> 
+            <value n="residual_absolute_tolerance" pn="Residual absolute tolerance" un="DamAcousticAbsTol" type="double" v="1e-9" help=""/>
+            <value n="max_iteration" pn="Maximum iterations" un="DamAcousticMaxIteration" type="integer" v="10" help="This number will break the iterative loop when reached"/> 
+            <value n="move_mesh_flag" pn="Move mesh flag" un="DamAcousticMoveMeshFlag" type="bool" v="false" values="false,true" help="Move the mesh"/>
+            <value n="echo_level" pn="Echo level" un="DamAcousticSolverEchoLevel" type="combo" v="0" values="0,1,2,3" help="Level of printing information"/> 
+            <container n="AcousticLinearSolver" pn="Linear Solver" un="DamAcousticLinearSolver" state="normal" open_window="0">
+                    <value n="solver_type" pn="Solver" un="DamAcousticSolver" v="AMGCL" state="readonly" help=""/>
+                    <value n="max_iteration" pn="Max iterations" un="DamAcousticMaxIter" type="integer" v="200" help=""/>
+                    <value n="tolerance" pn="Tolerance" un="DamAcousticTolerance" type="integer"  v="1e-7" help=""/>
+                    <value n="verbosity" pn="Verbosity" un="DamAcousticVerbosity" v="0" values="0,1,2" state="readonly" help="#0->shows no information, 1->some information, 2->all the information" />
+                    <value n="GMRES_size" pn="GMRES Size" un="DamAcousticGMRESSize" type="integer" v="50" help=""/>
+            </container>
+        </container>
+    </container> 
+    
+    <container n="ModalAnalysis" pn="Modal Analysis" state="[checkStateByUniqueName DamTypeofProblem Modal-Analysis]" un="DamUModalData"   actualize_tree="1" open_window="0">
+         <container n="StratParams" pn="Strategy parameters" un="DamModalStratParams" icon="groupsTreeNew.gif" state="normal" open_window="0">
+            <value n="SolutionType" pn="Solution type" v="Quasi-Static" un="DamModalSoluType" values="Dynamic" help="Solution type" actualize_tree="1"/>
+            <value n="AnalysisType" pn="Analysis type" v="Linear"  un="DamModalAnalysisType" values="Linear" help="Analysis type" />
+            <value n="echo_level" pn="Echo level" un="DamModalSolverEchoLevel" type="combo" v="0" values="0,1,2,3" help="Level of printing information"/> 
+            <container n="ModalLinearSolver" pn="Linear Solver" un="DamModalLinearSolver" state="normal" open_window="0">
+                    <value n="solver_type" pn="Solver" un="DamModalSolver" v="FEAST" state="readonly" help=""/>
+                    <value n="print_feast_output" pn="Feast output" un="DamModalfeastOutput" v="true" values="true,false" help=""/>
+                    <value n="perform_stochastic_estimate" pn="Stochastic Estimation" un="DamModalStochastic" v="false" values="true,false" help=""/>
+                    <value n="solve_eigenvalue_problem" pn="Solve Eigenvalue Problem" un="DamModalSolve" v="true" values="true,false" help="" />
+                    <value n="compute_modal_contribution" pn="Compute Modal Contribution" un="DamModalContribution" v="false" values="true,false" help="" />
+                    <value n="lambda_min" pn="Lambda Min" un="DamModalLambdaMin" type="double" v="0.0" help=""/>
+                    <value n="lambda_max" pn="Lambda Max" un="DamModalLambdaMax" type="double" v="1e3" help=""/>
+                    <value n="search_dimension" pn="Search Dimension" un="DamModalSearchDimension" type="interger" v="2" help=""/>
+            </container>
+        </container>
+    </container> 
+
+</container>  

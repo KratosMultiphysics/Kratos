@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StrategyList>
+  <StrategyItem n="potential_flow_solver" pn="Navier Stokes - Potential flow"
+		ImplementedInFile="navier_stokes_potential_flow_solver.py"
+		ImplementedInApplication="FluidDynamicsApplication"
+		ImplementedInPythonFile="Potential_flow"
+		MinimumKratosVersion="8500" App="Fluid"
+		ProductionReady="ProductionReady"
+		help="">
+
+    <!-- list of options to be filled -->
+    <parameter_list>
+			<parameter n="maximum_iterations" pn="Maximum iterations" type="integer" v="10" values="" help=""/>
+			<parameter n="echo_level" pn="Echo level" type="int" v="0" help=""/>
+    </parameter_list>
+
+    <linearSolvers>
+      <linearSolverItem n="linear_solver_settings" pn="Linear Solver" >
+        <filterFeatures>
+		      <filter field="SolverType" value="Standard"/>
+        </filterFeatures>
+		    <defaults>
+		    </defaults>
+      </linearSolverItem>
+    </linearSolvers>
+
+	  <schemes>
+	    <scheme n="MN" pn="Monolitic generic scheme" help="FilterElements" ProductionReady="ProductionReady">
+	      <parameter_list>
+		    </parameter_list>
+  		  <element_filters>
+		    </element_filters>
+	    </scheme>
+	  </schemes>
+
+  </StrategyItem>
+
+</StrategyList>

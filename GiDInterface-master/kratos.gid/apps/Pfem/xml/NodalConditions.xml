@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NodalConditionList>
+  <NodalConditionItem  n="PFEM_RIGID_BODY_ROTATION_2D" pn="Axis Rotation" ProcessName="ApplyRigidBodyRotationProcess2D" VariableName="VELOCITY" kratos_module="SolidMechanicsApplication" v="No"
+		       analysis_type="Dynamic" unit_magnitude="Angle" units="rad" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+  <NodalConditionItem  n="PFEM_RIGID_BODY_ROTATION_3D" pn="Axis Rotation" ProcessName="ApplyRigidBodyRotationProcess3D" VariableName="VELOCITY" kratos_module="SolidMechanicsApplication" v="No"
+		       analysis_type="Dynamic" unit_magnitude="Angle" units="rad" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+  <NodalConditionItem n="INLET" pn="Inlet" ProcessName="AssignInletProcess" VariableName="VELOCITY" Interval="Total"
+		      unit_magnitude="Velocity" units="m/s" App="Pfem" kratos_module="PFEMapplication" ov="[CheckGeometry 2]">
+  </NodalConditionItem>
+</NodalConditionList>

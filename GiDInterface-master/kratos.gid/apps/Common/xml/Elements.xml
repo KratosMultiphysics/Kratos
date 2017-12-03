@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ElementList>
+  <ElementItem n="GENERIC_ELEMENT" pn="GENERIC_ELEMENT" ProductionReady="Developer">
+    <TopologyFeatures>
+      <item GeometryType="Line"          nodes="2"  KratosName="Element2D2N"/>
+      <item GeometryType="Triangle"      nodes="3"  KratosName="Element2D3N"/>
+      <item GeometryType="Quadrilateral" nodes="4"  KratosName="Element2D4N"/>
+      <item GeometryType="Tetrahedra"    nodes="4"  KratosName="Element3D4N"/>
+      <item GeometryType="Tetrahedra"    nodes="10" KratosName="Element3D10N"/>
+      <item GeometryType="Hexahedra"     nodes="8"  KratosName="Element3D8N"/>
+      <item GeometryType="Prism"         nodes="6"  KratosName="Element3D6N"/>
+    </TopologyFeatures>
+  </ElementItem>
+</ElementList>

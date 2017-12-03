@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<condition n="GenericModelParts" pn="Add SubModelPart" un="GenericSubmodelPart" ov="point,line,surface,volume" icon="generic" state="[ShowInMode Developer]">
+      <value n="WriteElements" pn="Write elements" v="False" values="True,False"/>
+      <value n="WriteConditions" pn="Write conditions" v="True" values="True,False"/>
+</condition>

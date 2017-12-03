@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NodalConditionList>
+  <NodalConditionItem n="POSITIVE_FACE_PRESSURE" pn="Positive face pressure" ProcessName="PlaceholderProcess" VariableName="POSITIVE_FACE_PRESSURE" Interval="False"
+					  unit_magnitude="P" units="Pa" App="Fluid" ImplementedInApplication="CompressiblePotentialFlowApplication">
+  </NodalConditionItem>
+  <NodalConditionItem n="NEGATIVE_FACE_PRESSURE" pn="Negative face pressure" ProcessName="PlaceholderProcess" VariableName="NEGATIVE_FACE_PRESSURE" Interval="False"
+					  unit_magnitude="P" units="Pa" App="Fluid" ImplementedInApplication="CompressiblePotentialFlowApplication">
+  </NodalConditionItem>
+</NodalConditionList>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="Conditions" pn="Conditions" un="DEMConditions" icon="loads" open_window="0">
+	<dynamicnode command="spdAux::injectConditions" args=""/>
+</container>

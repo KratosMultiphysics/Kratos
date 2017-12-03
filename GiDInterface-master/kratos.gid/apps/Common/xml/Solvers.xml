@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Solvers>
+
+    <solver n="AutomaticOpenMP" pn="Automatic" SolverType="Standard" Parallelism="OpenMP" help="Let Kratos to automatically set the default solver according to the selected strategy.">
+        <inputs>
+        </inputs>
+    </solver>
+
+    <solver n="SuperLUSolver" pn="SuperLU" SolverType="Standard" Parallelism="OpenMP">
+        <inputs>
+            <parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
+        </inputs>
+    </solver>
+
+    <solver n="CGSolver" pn="Conjugate Gradients" SolverType="Standard" Parallelism="OpenMP">
+        <inputs>
+            <parameter n="max_iteration" pn="Max iterations" type="integer" v="200" help=""/>
+            <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-7" help=""/>
+			<parameter n="preconditioner_type" pn="Preconditioner" type="combo" values="None,DiagonalPreconditioner,ILU0Preconditioner" v="None" help=""/>
+			<parameter n="scaling" pn="Scaling" type="bool" v="False" help=""/>
+        </inputs>
+    </solver>
+
+    <solver n="GMRESSolver" pn="GMRES" SolverType="Standard" Parallelism="OpenMP">
+        <inputs>
+            <parameter n="max_iteration" pn="Max iterations" type="integer" v="200" help=""/>
+            <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-7" help=""/>
+			<parameter n="preconditioner_type" pn="Preconditioner" type="combo" values="None,DiagonalPreconditioner,ILU0Preconditioner" v="None" help=""/>
+			<parameter n="scaling" pn="Scaling" type="bool" v="False" help=""/>
+        </inputs>
+    </solver>
+
+    <solver n="BICGSTABSolver" pn="BiCGStab" SolverType="Standard" Parallelism="OpenMP">
+        <inputs>
+            <parameter n="max_iteration" pn="Max iterations" type="integer" v="200" help=""/>
+            <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-7" help=""/>
+            <parameter n="preconditioner_type" pn="Preconditioner" type="combo" values="None,DiagonalPreconditioner,ILU0Preconditioner" v="None" help=""/>
+            <parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
+        </inputs>
+    </solver>
+
+    <solver n="AMGCL" pn="AMGCL" SolverType="Standard" Parallelism="OpenMP">
+        <inputs>
+            <parameter n="max_iteration" pn="Max iterations" type="integer" v="200" help=""/>
+            <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-7" help=""/>
+            <parameter n="provide_coordinates" pn="Provide coordinates" type="bool" v="False"/>
+            <parameter n="smoother_type" pn="Smoother type" type="combo" values="ilu0,damped_jacobi,spai0,gauss_seidel,chebyshev" pvalues="ILU0,Damped Jacobi,SPAI0,Gauss Seidel,Chebyshev" v="ilu0" help=""/>
+            <parameter n="krylov_type" pn="Krylov type" type="combo" values="gmres,lgmres,bicgstab,cg,bicgstabl,bicgstab_with_gmres_fallback" v="lgmres" pvalues="GMRES,LGMRES,BICGSTAB,CG,BICGSTABL,BICGSTAB with GMRES fallback" help=""/>
+            <parameter n="coarsening_type" pn="Coarsening type" type="combo" values="aggregation,ruge_stuben,smoothed_aggregation,smoothed_aggr_emin" pvalues="Aggregation,Ruge-Stuben,Smoothed Aggregation,Smoothed Aggregation Emin" v="aggregation" help=""/>
+            <parameter n="scaling" pn="Scaling" type="bool" v="False" help="" />
+        </inputs>
+    </solver>
+
+    <!--
+    <solver n="Pastix_Direct" pn="Pastix Direct" SolverType="Standard" Parallelism="OpenMP">
+        <inputs>
+	    <parameter n="is_symmetric" pn="Symmetric" type="bool" v="True"  help=""/>
+            <parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
+        </inputs>
+    </solver>
+
+    <solver n="Pastix_Iterative" pn="Pastix Iterative" SolverType="Standard" Parallelism="OpenMP">
+        <inputs>
+			<parameter n="is_symmetric" pn="Symmetric" type="bool" v="True"  help=""/>
+			<parameter n="gmres_krylov_space_dimension" pn="krylovDimension" type="integer" v="100" help=""/>
+			<parameter n="ilu_level_of_fill" pn="IluFillLevel" type="combo" values="3,4,5" v="3" help=""/>
+			<parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
+        </inputs>
+    </solver>
+    -->
+    
+    <!--Trilinos Solvers-->
+    <solver n="AutomaticMPI" pn="Automatic" SolverType="Standard" Parallelism="MPI" help="Let Kratos to automatically set the default solver according to the selected strategy.">
+        <inputs>
+        </inputs>
+    </solver>
+
+    <solver n="MultiLevelSolver" pn="Multilevel Solver" SolverType="Standard" Parallelism="MPI">
+        <inputs>
+			<parameter n="max_iteration" pn="Max iterations" type="integer" v="200" help=""/>
+			<parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-7" help=""/>
+			<parameter n="max_levels" pn="Max. levels" type="integer" v="3"  help=""/>
+			<parameter n="symmetric" pn="Symmetric" type="bool" v="False"  help=""/>
+			<parameter n="reform_preconditioner_at_each_step" pn="Reform preconditioner at each step" type="bool" v="True"  help=""/>
+			<parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
+        </inputs>
+    </solver>
+
+    <solver n="AztecSolver" pn="Aztec Solver" SolverType="Standard" Parallelism="MPI">
+        <inputs>
+			<parameter n="max_iteration" pn="Max iterations" type="integer" v="200" help=""/>
+			<parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-7" help=""/>
+			<parameter n="preconditioner_type" pn="Preconditioner type" type="combo" values="None,DiagonalPreconditioner,ILU0,ILUT,ICC,AmesosPreconditioner" pvalues="None,Diagonal,ILU0,ILUT,ICC,Amesos" v="None"  help=""/>
+			<parameter n="overlap_level" pn="Overlap level" type="integer" v="1"  help=""/>
+			<parameter n="gmres_krylov_space_dimension" pn="krylovDimension" type="integer" v="100" help=""/>
+			<parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
+        </inputs>
+    </solver>
+
+    <solver n="AmgclMPISolver" pn="Trilinos AMGCL" SolverType="Standard" Parallelism="MPI">
+        <inputs>
+			<parameter n="max_iteration" pn="Max iterations" type="integer" v="200" help=""/>
+			<parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-7" help=""/>
+			<parameter n="krylov_type" pn="Krylov type" type="combo" values="gmres,bicgstab,cg,bicgstabl,lgmres,fgmres" pvalues="GMRES,BICGSTAB,CG,BICGSTABL,LGMRES,FGMRES" v="fgmres"  help=""/>
+			<parameter n="coarsening_type" pn="Coarsening type" type="combo" values="aggregation,ruge_stuben,smoothed_aggregation,smoothed_aggr_emin" pvalues="Aggregation,Ruge-Stuben,Smoothed Aggregation,Smoothed Aggregation Emin" v="aggregation" help=""/>
+			<parameter n="gmres_krylov_space_dimension" pn="krylovDimension" type="integer" v="100" help=""/>
+			<parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
+			<parameter n="use_block_matrices_if_possible" pn="Use block matrices if possible" type="bool" v="False"  help=""/>
+			<parameter n="direct_solver" pn="Direct solver" type="combo" values="skyline_lu,pastix" pvalues="Skyline LU,Pastix Direct" v="skyline_lu"  help=""/>
+        </inputs>
+    </solver>
+
+    <solver n="Klu" pn="KLU" SolverType="Standard" Parallelism="MPI">
+        <inputs>
+			<parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
+        </inputs>
+    </solver>
+
+</Solvers>

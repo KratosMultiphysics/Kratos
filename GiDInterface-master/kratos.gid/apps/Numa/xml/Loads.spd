@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="Loads" pn="Load conditions" un="NumaLoads" icon="loads" open_window="0">
+	  <dynamicnode command="spdAux::injectConditions" args="TypeofCondition Simulation"/>
+</container>

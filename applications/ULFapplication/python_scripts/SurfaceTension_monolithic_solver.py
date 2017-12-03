@@ -3,11 +3,10 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-#from KratosMultiphysics.PFEMApplication import PfemUtils
+#from KratosMultiphysics.PFEM2Application import Pfem2Utils
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.MeshingApplication import *
 import math
-
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
@@ -33,7 +32,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
     model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(Y_WALL)
-    #model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
+    model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
     model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
     
     #20150128 ajarauta: surface tension variables
@@ -93,7 +92,7 @@ def AddDofs(model_part, config=None):
     print("dofs for the surface tension monolithic solver added correctly")
 
 
-class STMonolithicSolver:
+class MonolithicSolver:
     def __init__(self, model_part, domain_size, eul_model_part, gamma, contact_angle):
         self.model_part = model_part
         self.domain_size = domain_size
@@ -101,6 +100,7 @@ class STMonolithicSolver:
         self.eul_model_part = eul_model_part
 
         self.alpha = -0.3
+        
         if(eul_model_part == 0):
             self.move_mesh_strategy = 2
         else:
@@ -147,14 +147,14 @@ class STMonolithicSolver:
 
         self.divergence_clearance_steps = 0
 
-        print("Construction STmonolithic solver finished")
+        print("Construction monolithic solver finished")
         
         print("after reading all the model contains:")
         print(self.model_part)
         
         if(self.eul_model_part == 0):
           self.UlfUtils = UlfUtils()
-          #self.PfemUtils = PfemUtils()
+          #self.Pfem2Utils = Pfem2Utils()
           self.mark_outer_nodes_process = MarkOuterNodesProcess(model_part);
           self.node_erase_process = NodeEraseProcess(model_part);
           self.add_nodes=True
@@ -176,16 +176,16 @@ class STMonolithicSolver:
           self.box_corner1 = box_corner1
           self.box_corner2 = box_corner2
 	  
-        if(domain_size == 2):
-          self.Mesher = TriGenPFEMModeler()            
-          self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+          if(domain_size == 2):
+              self.Mesher = TriGenPFEMModeler()            
+              self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
 	      #this is needed if we want to also store the conditions a node belongs to
-          self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
-        elif (domain_size == 3):
-          self.Mesher = TetGenPfemModeler()            
-          self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
-	      #this is needed if we want to also store the conditions a node belongs to
-          self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,3, 20)
+              self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
+          #elif (domain_size == 3):
+              #self.Mesher = TetGenPfemModeler()            
+              #self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
+	      ##this is needed if we want to also store the conditions a node belongs to
+              #self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,3, 20)
 	      #self.surf_neigh_finder = FindNodalNeighboursProcess(surface_part,20,30)
 	      #self.surf_cond_neigh_finder = FindConditionsNeighboursProcess(surface_part,3, 20)
 	      
@@ -254,16 +254,17 @@ class STMonolithicSolver:
 	    #(self.mark_fluid_process).Execute(); #we need this before saving the structrural elements
         
 	    #marking the fluid
-          (self.fluid_neigh_finder).Execute();
-          (self.ulf_apply_bc_process).Execute();  
+            (self.fluid_neigh_finder).Execute();
+            (self.ulf_apply_bc_process).Execute();  
 	    #(self.mark_fluid_process).Execute();
-        if (self.domain_size == 2):
-            FindTriplePoint().FindTriplePoint2D(self.model_part)
-            self.Remesh()
+          #if (self.domain_size == 2):
+            #FindTriplePoint().FindTriplePoint2D(self.model_part)
+            #self.Remesh()
 
-# print "Initialization STmonolithic solver finished"
+# print "Initialization monolithic solver finished"
     #
-    def Solve(self):   
+    def Solve(self):  
+        
       
         if self.divergence_clearance_steps > 0:
             print("Calculating divergence-free initial condition")
@@ -319,31 +320,31 @@ class STMonolithicSolver:
                node.SetSolutionStepValue(NORMAL_X,0,0.0)
                node.SetSolutionStepValue(NORMAL_Y,0,0.0)
                node.SetSolutionStepValue(NORMAL_Z,0,0.0)     
-            if (self.domain_size == 2):
-                FindTriplePoint().FindTriplePoint2D(self.model_part)
-                CalculateCurvature().CalculateCurvature2D(self.model_part)
-                CalculateNodalLength().CalculateNodalLength2D(self.model_part)
-                CalculateContactAngle().CalculateContactAngle2D(self.model_part)
-                self.cont_angle_cond()
-            elif (self.domain_size == 3):
-                FindTriplePoint().FindTriplePoint3D(self.model_part)
-                CalculateCurvature().CalculateCurvature3D(self.model_part)
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(CONTACT_ANGLE,0,0.0)
-            CalculateContactAngle().CalculateContactAngle3D(self.model_part)
-            CalculateNodalLength().CalculateNodalLength3D(self.model_part)
-            CalculateNormalEq().CalculateNormalEq3D(self.model_part)
-	  #CalculateAdhesionForce().CalculateAdhesionForce3D(self.model_part)
-            self.cont_angle_cond3D()
+        if (self.domain_size == 2):
+                #FindTriplePoint().FindTriplePoint2D(self.model_part)
+            CalculateCurvature().CalculateCurvature2D(self.model_part)
+            #CalculateNodalLength().CalculateNodalLength2D(self.model_part)
+            #CalculateContactAngle().CalculateContactAngle2D(self.model_part)
+            #self.cont_angle_cond()
+        #elif (self.domain_size == 3):
+            #FindTriplePoint().FindTriplePoint3D(self.model_part)
+            #CalculateCurvature().CalculateCurvature3D(self.model_part)
+            #for node in self.model_part.Nodes:
+            #node.SetSolutionStepValue(CONTACT_ANGLE,0,0.0)
+            #CalculateContactAngle().CalculateContactAngle3D(self.model_part)
+            #CalculateNodalLength().CalculateNodalLength3D(self.model_part)
+            #CalculateNormalEq().CalculateNormalEq3D(self.model_part)
+                ##CalculateAdhesionForce().CalculateAdhesionForce3D(self.model_part)
+            #self.cont_angle_cond3D()
 	  
         (self.solver).Solve() #it dumps in this line... 20151020
-        AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.model_part)
+        #AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.model_part)
         
         if(self.eul_model_part == 0):
-                (self.fluid_neigh_finder).Execute();
+            (self.fluid_neigh_finder).Execute();
 	    #(self.condition_neigh_finder).Execute(); #20160105 Commented because in 3D it dumps here
-                (self.fluid_neigh_finder).Execute();
-                self.Remesh();
+            (self.fluid_neigh_finder).Execute();
+            self.Remesh();
 
     #
     def SetEchoLevel(self, level):
@@ -413,82 +414,79 @@ class STMonolithicSolver:
     ##########################################
     def Remesh(self):
        
-        self.PfemUtils.MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
+        #self.Pfem2Utils.MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
 			
         ##erase all conditions and elements prior to remeshing
         ((self.model_part).Elements).clear();
         #((self.model_part).Conditions).clear();      
 
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
-        
+
         h_factor=0.25;
         #remesh CHECK for 3D or 2D
         if (self.domain_size == 2):
              (self.Mesher).ReGenerateMesh("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
         elif (self.domain_size == 3):
             (self.Mesher).ReGenerateMesh("SurfaceTension3D","Condition3D", self.model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)            
-        
+
         ##calculating fluid neighbours before applying boundary conditions
         (self.fluid_neigh_finder).Execute();
         (self.condition_neigh_finder).Execute();
-        
+
         #print "marking fluid" and applying fluid boundary conditions
         (self.ulf_apply_bc_process).Execute();  
         #(self.mark_fluid_process).Execute();
 	
         (self.UlfUtils).CalculateNodalArea(self.model_part,self.domain_size);
         self.UlfUtils.MarkLonelyNodesForErasing(self.model_part)
-        
+
         self.node_erase_process.Execute()
         #(self.mark_fluid_process).Execute();
-               
+
         self.UlfUtils.MarkLonelyNodesForErasing(self.model_part)#, self.domain_size)
         self.node_erase_process.Execute()
-             
-        
+
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
-       
 ######################################################################################################                
         #FOR PFEM
         NormalCalculationUtils().CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
         if (self.domain_size == 2):
-           for node in self.model_part.Nodes:
-               node.SetSolutionStepValue(FLAG_VARIABLE,0,0.0)
+          for node in self.model_part.Nodes:
+              node.SetSolutionStepValue(FLAG_VARIABLE,0,0.0)
 #
-           for node in self.model_part.Nodes:
-               if (node.GetSolutionStepValue(IS_FREE_SURFACE) > 0.99999999):
-                   node.SetSolutionStepValue(FLAG_VARIABLE, 0, 1.0)
-                   node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
-               else:
-                   node.SetSolutionStepValue(IS_INTERFACE, 0, 0.0)
-           for node in self.model_part.Nodes:
-               if (node.GetSolutionStepValue(IS_BOUNDARY) == 0.0):# and node.GetSolutionStepValue(TRIPLE_POINT) == 0):
+          for node in self.model_part.Nodes:
+              if (node.GetSolutionStepValue(IS_FREE_SURFACE) > 0.99999999):
+                  node.SetSolutionStepValue(FLAG_VARIABLE, 0, 1.0)
+                  node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
+              else:
+                    node.SetSolutionStepValue(IS_INTERFACE, 0, 0.0)
+          for node in self.model_part.Nodes:
+            if (node.GetSolutionStepValue(IS_BOUNDARY) == 0.0):# and node.GetSolutionStepValue(TRIPLE_POINT) == 0):
                   node.SetSolutionStepValue(NORMAL_X,0,0.0)
                   node.SetSolutionStepValue(NORMAL_Y,0,0.0)
                   node.SetSolutionStepValue(NORMAL_Z,0,0.0)	      
-
-                  AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.model_part)
-                  FindTriplePoint().FindTriplePoint2D(self.model_part)
-                  CalculateCurvature().CalculateCurvature2D(self.model_part)
-                  CalculateNodalLength().CalculateNodalLength2D(self.model_part)
-                  CalculateContactAngle().CalculateContactAngle2D(self.model_part)
-                  self.cont_angle_cond()
+           #AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.model_part)
+          #FindTriplePoint().FindTriplePoint2D(self.model_part)
+          CalculateCurvature().CalculateCurvature2D(self.model_part)
+          #CalculateNodalLength().CalculateNodalLength2D(self.model_part)
+          #CalculateContactAngle().CalculateContactAngle2D(self.model_part)
+          #self.cont_angle_cond()
 	  #self.print_pressure()
-        elif (self.domain_size == 3):
-          FindTriplePoint().FindTriplePoint3D(self.model_part)
+        #elif (self.domain_size == 3):
+          #FindTriplePoint().FindTriplePoint3D(self.model_part)
 	  #for node in self.model_part.Nodes:
 	    #if (node.GetSolutionStepValue(IS_BOUNDARY) > 0.99999999 and node.GetSolutionStepValue(IS_STRUCTURE) == 0.0):
-	      #node.SetSolutionStepValue(IS_FREE_SURFACE, 0, 1.0)
-	      #node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
-	  #AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.model_part)
-          CalculateCurvature().CalculateCurvature3D(self.model_part)
-          for node in self.model_part.Nodes:
-              node.SetSolutionStepValue(CONTACT_ANGLE,0,0.0)
-          CalculateContactAngle().CalculateContactAngle3D(self.model_part)
-          CalculateNodalLength().CalculateNodalLength3D(self.model_part)
-          CalculateNormalEq().CalculateNormalEq3D(self.model_part)
-	  #CalculateAdhesionForce().CalculateAdhesionForce3D(self.model_part)
-          self.cont_angle_cond3D()
+	      ##node.SetSolutionStepValue(IS_FREE_SURFACE, 0, 1.0)
+	      ##node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
+	  ##AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.model_part)
+          #CalculateCurvature().CalculateCurvature3D(self.model_part)
+          #for node in self.model_part.Nodes:
+              #node.SetSolutionStepValue(CONTACT_ANGLE,0,0.0)
+          #CalculateContactAngle().CalculateContactAngle3D(self.model_part)
+          #CalculateNodalLength().CalculateNodalLength3D(self.model_part)
+          #CalculateNormalEq().CalculateNormalEq3D(self.model_part)
+	  ##CalculateAdhesionForce().CalculateAdhesionForce3D(self.model_part)
+          #self.cont_angle_cond3D()
 
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
         print("end of remesh function")
@@ -548,7 +546,7 @@ class STMonolithicSolver:
                         node.Fix(VELOCITY_X)
                         node.Fix(VELOCITY_Y)
                     if (node.Z < -0.00000001):
-                        node.SetValue(ERASE_FLAG, 1.0)
+                        node.SetValue(TO_ERASE, true)
                 if ((node.GetSolutionStepValue(TRIPLE_POINT) == 0.0) and (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0)):
                         node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
                         node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
@@ -559,44 +557,44 @@ class STMonolithicSolver:
 
 
 def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle): #FOR 3D!!!!!!!!!!
-    ULF_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle)    
+    fluid_solver = MonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle)    
       
     if(hasattr(config, "alpha")):
-        ULF_solver.alpha = config.alpha
+        fluid_solver.alpha = config.alpha
 
     if(hasattr(config, "eul_model_part")):
-        ULF_solver.eulerian_model_part = config.eul_model_part
+        fluid_solver.eulerian_model_part = config.eul_model_part
     
         
     # definition of the convergence criteria
     if(hasattr(config, "velocity_relative_tolerance")):
-        ULF_solver.rel_vel_tol = config.velocity_relative_tolerance
+        fluid_solver.rel_vel_tol = config.velocity_relative_tolerance
     if(hasattr(config, "velocity_absolute_tolerance")):
-        ULF_solver.abs_vel_tol = config.velocity_absolute_tolerance
+        fluid_solver.abs_vel_tol = config.velocity_absolute_tolerance
     if(hasattr(config, "pressure_relative_tolerance")):
-        ULF_solver.rel_pres_tol = config.pressure_relative_tolerance
+        fluid_solver.rel_pres_tol = config.pressure_relative_tolerance
     if(hasattr(config, "pressure_absolute_tolerance")):
-        ULF_solver.abs_pres_tol = config.pressure_absolute_tolerance
+        fluid_solver.abs_pres_tol = config.pressure_absolute_tolerance
     if(hasattr(config, "dynamic_tau")):
-        ULF_solver.dynamic_tau = config.dynamic_tau
+        fluid_solver.dynamic_tau = config.dynamic_tau
     if(hasattr(config, "oss_switch")):
-        ULF_solver.oss_switch = config.oss_switch
+        fluid_solver.oss_switch = config.oss_switch
     if(hasattr(config, "max_iteration")):
-        ULF_solver.max_iter = config.max_iteration
+        fluid_solver.max_iter = config.max_iteration
     if(hasattr(config, "echo_level")):
-        ULF_solver.echo_level = config.echo_level
+        fluid_solver.echo_level = config.echo_level
     if(hasattr(config, "compute_reactions")):
-        ULF_solver.compute_reactions = config.compute_reactions
+        fluid_solver.compute_reactions = config.compute_reactions
     if(hasattr(config, "ReformDofSetAtEachStep")):
-        ULF_solver.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
+        fluid_solver.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
     if(hasattr(config, "divergence_cleareance_step")):
-        ULF_solver.divergence_clearance_steps = config.divergence_cleareance_step
+        fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
     if hasattr(config, "TurbulenceModel"):
         if config.TurbulenceModel == "Spalart-Allmaras":
-            ULF_solver.use_spalart_allmaras = True
+            fluid_solver.use_spalart_allmaras = True
         elif config.TurbulenceModel == "Smagorinsky-Lilly":
             if hasattr(config, "SmagorinskyConstant"):
-                ULF_solver.activate_smagorinsky(config.SmagorinskyConstant)
+                fluid_solver.activate_smagorinsky(config.SmagorinskyConstant)
             else:
                 msg = """Fluid solver error: Smagorinsky model requested, but
                          the value for the Smagorinsky constant is
@@ -605,7 +603,7 @@ def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle): #FOR
 
     import linear_solver_factory
     if(hasattr(config, "linear_solver_config")):
-        ULF_solver.linear_solver = linear_solver_factory.ConstructSolver(
+        fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(
             config.linear_solver_config)
 
-    return ULF_solver
+    return fluid_solver

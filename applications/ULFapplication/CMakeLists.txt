@@ -25,6 +25,7 @@ set( KRATOS_ULF_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/Point_Neumann2D.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/Point_Neumann3D.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/Point_Neumann_Axisym.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/Surface_Tension2D.cpp
 
 
 

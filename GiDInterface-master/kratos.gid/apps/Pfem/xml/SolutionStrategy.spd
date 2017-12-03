@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="SolStrat" pn="Solution" un="PFEM_StratSection" icon="settings" help="Solution Strategy" open_window="0">
+  <container n="StratParams" pn="Strategy parameters" un="PFEM_StratParams" icon="select"  state="normal" open_window="0">
+    <dynamicnode command="spdAux::injectSolStratParams" args=""/>
+  </container>
+  <include n="Parallelism" active="1"  icon="select" path="apps/Common/xml/Parallelism.spd"/> 
+  <dynamicnode command="spdAux::injectSolvers" args=""/>
+</container>

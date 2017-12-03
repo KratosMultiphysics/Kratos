@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConditionList>
+  <ConditionItem n="PotentialWallCondition2D" pn="Far field" ImplementedInFile=".cpp" Interval="False"
+	ImplementedInApplication="CompressiblePotentialFlowApplication" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="" App="Fluid"
+	ElementType="Line" ProcessName="FarFieldProcess" help="">
+    <TopologyFeatures>
+      <item  GeometryType="Line" nodes="2" KratosName="LineCondition2D2N"/>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+  <ConditionItem n="PotentialWallCondition3D" pn="Far field" ImplementedInFile=".cpp" Interval="False"
+	ImplementedInApplication="CompressiblePotentialFlowApplication" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3D" LocalSpaceDimension="2" SkinConditions="True" VariableName="" App="Fluid"
+	ElementType="Surface" ProcessName="FarFieldProcess" help="" >
+    <TopologyFeatures>
+      <item  GeometryType="Triangle" nodes="3" KratosName="SurfaceCondition3D3N"/>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+	<ConditionItem n="Wake2D" pn="Wake" ImplementedInFile=".cpp" Interval="False"
+	ImplementedInApplication="CompressiblePotentialFlowApplication" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="False" VariableName="" App="Fluid"
+	ElementType="Point" ProcessName="DefineWakeProcess" help="">
+    <TopologyFeatures>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+  <ConditionItem n="Wake3D" pn="Wake" ImplementedInFile=".cpp" Interval="False"
+	ImplementedInApplication="CompressiblePotentialFlowApplication" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3D" LocalSpaceDimension="2" SkinConditions="False" VariableName="" App="Fluid"
+	ElementType="Line" ProcessName="DefineWakeProcess" help="" >
+    <TopologyFeatures>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+  <ConditionItem n="Body2D" pn="Body" ImplementedInFile=".cpp" Interval="False"
+	ImplementedInApplication="CompressiblePotentialFlowApplication" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="" App="Fluid"
+	ElementType="Line" ProcessName="PlaceholderProcess" help="" >
+    <TopologyFeatures>
+      <item  GeometryType="Line" nodes="2" KratosName="LineCondition2D2N"/>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+  <ConditionItem n="Body3D" pn="Body" ImplementedInFile=".cpp" Interval="False"
+	ImplementedInApplication="CompressiblePotentialFlowApplication" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3D" LocalSpaceDimension="2" SkinConditions="True" VariableName="" App="Fluid"
+	ElementType="Surface" ProcessName="PlaceholderProcess" help="" >
+    <TopologyFeatures>
+      <item  GeometryType="Triangle" nodes="3" KratosName="SurfaceCondition3D3N"/>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+</ConditionList>

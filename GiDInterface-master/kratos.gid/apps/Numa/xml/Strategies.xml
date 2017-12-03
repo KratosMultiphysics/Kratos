@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StrategyList>
+  <StrategyItem n="Newton-Raphson" pn="Newton Raphson"
+                ImplementedInFile="residualbased_newton_raphson_strategy.h"
+                ImplementedInApplication="Dam"
+                ImplementedInPythonFile="dam_new_mechanical_solver"
+                MinimumKratosVersion="8500"
+                App="Numa"
+                ProductionReady=""
+                help="">
+    
+    <!-- list of options to be filled -->
+    <parameter_list>
+        <parameter n="convergence_criterion" pn="Convergence criterion" type="combo" v="And_criterion" 
+         values ="Residual_criterion,Displacement_criterion,And_criterion,Or_criterion" 
+         pvalues ="Residual criterion,Displacement criterion,And criterion,Or criterion" 
+		 help="These are the available convergence criteria for the nonlinear iteration">      
+		<parameter n="displacement_relative_tolerance" pn="Displacement relative tolerance" type="double" v="1e-4" parent="Displacement_criterion,And_criterion,Or_criterion" 
+		   help="Relative displacement tolerance employed in the nonlinear iteration"/>      
+		<parameter n="displacement_absolute_tolerance" pn="Displacement absolute tolerance" type="double" v="1e-9" parent="Displacement_criterion,And_criterion,Or_criterion" 
+		   help="Absolute displacement tolerance employed in the nonlinear iteration"/>      
+		<parameter n="residual_relative_tolerance" pn="Residual relative tolerance" type="double" v="1e-4" parent="Residual_criterion,And_criterion,Or_criterion" 
+		   help="Relative residual tolerance employed in the nonlinear iteration"/>      
+		<parameter n="residual_absolute_tolerance" pn="Residual absolute tolerance" type="double" v="1e-9" parent="Residual_criterion,And_criterion,Or_criterion" 
+		   help="Absolute residual tolerance employed in the nonlinear iteration"/>
+	  </parameter>
+      <parameter n="max_iteration" pn="Maximum iterations" type="integer" v="10" help="This number will break the iterative loop when reached"/> 
+      <parameter n="echo_level" pn="Echo level" type="combo" v="0" values="0,1,2,3" help="Level of printing information"/> 
+      <parameter n="buffer_size" pn="Buffer size" type="combo" v="2" values="1,2,3" help="Number of previous solutions"/>
+      <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="true" values="false,true" help="Compute the reactions"/> 
+      <parameter n="reform_dofs_at_each_step" pn="Reform Steps" type="bool" v="false" values="false,true" help="Reform the dofs at each iteration"/>
+      <parameter n="move_mesh_flag" pn="Move mesh flag" type="bool" v="true" values="false,true" help="Move the mesh"/>
+      <parameter n="block_builder" pn="Block Builder" type="bool" v="false" values="true,false" help="" />
+      <parameter n="clear_storage" pn="Clear Storage" type="bool" v="false" values="true,false" help="" />
+    </parameter_list>
+    
+    <linearSolvers>
+      <linearSolverItem n="linear_solver_settings" pn="Linear Solver" help="Default solver Super LU" >
+        <filterFeatures>
+	  <!--<filter field="n" value="BiConjugate"/>
+	      <filter field="symmetric" value="false"/>
+          <filter field="solver_type" value="Iterative"/>    -->
+        </filterFeatures>
+		<defaults>
+		  <solver n="AMGCL">
+			<!--Not ready yet-->
+			<!--<parameter n="verbosity" v="3"/>-->
+		  </solver>
+		</defaults>
+      </linearSolverItem>     
+    </linearSolvers>
+	
+	<schemes>
+	  <scheme n="Newmark" pn="Newmark" help="Scheme for dynamic problems" ProductionReady="ProductionReady">
+            <parameter_list>
+                <parameter n="rayleigh_m" pn="Mass Raylegh" type="double" v="0.0" help="Raylegh coefficient for mass contribution"/>
+                <parameter n="rayleigh_k" pn="Stiffness Raylegh" type="double" v="0.0" help="Raylegh coefficient for stiffness contribution"/>
+			</parameter_list>
+            <element_filters>
+            </element_filters>
+	  </scheme>
+	  <scheme n="Bossak" pn="Bossak" help="Scheme for dynamic problems with high frequency accelerations damping" ProductionReady="ProductionReady">
+            <parameter_list>
+                <parameter n="rayleigh_m" pn="Mass Raylegh" type="double" v="0.0" help="Raylegh coefficient for mass contribution"/>
+                <parameter n="rayleigh_k" pn="Stiffness Raylegh" type="double" v="0.0" help="Raylegh coefficient for stiffness contribution"/>
+			</parameter_list>
+            <element_filters>
+            </element_filters>
+	  </scheme>
+	</schemes>
+  
+  </StrategyItem>
+  
+</StrategyList>

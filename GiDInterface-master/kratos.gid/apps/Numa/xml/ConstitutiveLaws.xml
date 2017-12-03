@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ConstitutiveLaws>
+
+    <!--3D laws-->
+
+    <CLaw n="LinearElastic3DLaw" pn="Linear Elastic" ProductionReady="ProductionReady" Type="Linear3D" behaviour="Elastic" 
+    StrainSize="6" AnalysisType="Linear"
+	  help="Linear Elastic Behaviour in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+        </inputs>
+        <outputs>
+        </outputs>
+    </CLaw>
+
+    <CLaw n="ThermalLinearElastic3DLaw" pn="Thermal Linear Elastic" ProductionReady="ProductionReady" Type="Thermal3D" behaviour="Elastic" 
+    StrainSize="6"  AnalysisType="Linear,Non-Linear"
+	  help="Thermal Linear Elastic Behaviour in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+            <parameter n="THERMAL_EXPANSION" pn="Thermal Expansion" v="1e-05"/>
+        </inputs>
+        <outputs>
+            <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
+            <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
+            <parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
+        </outputs>
+    </CLaw>
+
+    <!--3D Nodal laws must be used when material variable changes according to its position-->
+
+    <CLaw n="LinearElastic3DLawNodal" pn="Linear Elastic Nodal" ProductionReady="ProductionReady" Type="Linear3D" behaviour="Elastic" 
+    StrainSize="6" AnalysisType="Linear"
+	  help="Linear Elastic Behaviour in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+        </inputs>
+        <outputs>
+        </outputs>
+    </CLaw>
+
+    <CLaw n="ThermalLinearElastic3DLawNodal" pn="Thermal Linear Elastic Nodal" ProductionReady="ProductionReady" Type="Thermal3D" behaviour="Elastic" 
+    StrainSize="6"  AnalysisType="Linear,Non-Linear"
+	  help="Thermal Linear Elastic Behaviour in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+            <parameter n="THERMAL_EXPANSION" pn="Thermal Expansion" v="1e-05"/>
+        </inputs>
+        <outputs>
+            <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
+            <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
+            <parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
+        </outputs>
+    </CLaw>
+    
+    <!--3D  Interface laws-->
+
+    <CLaw n="BilinearCohesive3DLaw" pn="Bilinear Cohesive 3D" ProductionReady="ProductionReady" Type="Interface3D" behaviour="Elastic" 
+    StrainSize="6"  AnalysisType="Linear,Non-Linear"
+	  help="Bilinear Cohesive law for problems in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False"   DamageType="Local,NonLocal" >
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+            <parameter n="MINIMUM_JOINT_WIDTH" pn="Minimum Joint Width" v="1e-03"/>
+            <parameter n="CRITICAL_DISPLACEMENT" pn="Critical Displacement" v="0.05"/>
+            <parameter n="YIELD_STRESS" pn="Yield Stress" v="3.5e06"/>
+            <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold" v="0.04"/>
+            <parameter n="FRICTION_COEFFICIENT" pn="Friction Coefficient" v="0.4"/>
+        </inputs>
+        <outputs>
+            <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />
+        </outputs>
+    </CLaw>
+    
+    <!--2D laws-->
+
+    <CLaw n="LinearElasticPlaneStrain2DLaw" pn="Linear Elastic Plane Strain" ProductionReady="ProductionReady" Type="PlaneStrain" behaviour="Elastic" StrainSize="3"
+          help="Linear Elastic Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"  AnalysisType="Linear">
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+        </inputs>
+        <outputs>
+        </outputs>
+    </CLaw>
+
+    <CLaw n="LinearElasticPlaneStress2DLaw" pn="Linear Elastic Plane Stress" ProductionReady="ProductionReady" Type="PlaneStress" behaviour="Elastic" StrainSize="3"
+          help="Linear Elastic Behaviour in 2D Plane Stress" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"  AnalysisType="Linear">
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+            <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />  
+        </inputs>
+        <outputs>
+        </outputs>
+    </CLaw>
+
+    <CLaw n="ThermalLinearElastic2DPlaneStrain" pn="Thermal Linear Elastic Plane Strain" ProductionReady="ProductionReady" Type="ThermalPlaneStrain" behaviour="Elastic" StrainSize="3"
+          help="Thermal Linear Elastic Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"  AnalysisType="Linear">
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+            <parameter n="THERMAL_EXPANSION" pn="Thermal Expansion" v="1e-05"/>
+        </inputs>
+        <outputs>
+            <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
+            <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
+            <parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
+        </outputs>
+    </CLaw>
+
+    <CLaw n="ThermalLinearElastic2DPlaneStress" pn="Thermal Linear Elastic Plane Stress" ProductionReady="ProductionReady" Type="ThermalPlaneStress" behaviour="Elastic" StrainSize="3"
+          help="Thermal Linear Elastic Behaviour in 2D Plane Stress" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"  AnalysisType="Linear">
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+            <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  /> 
+            <parameter n="THERMAL_EXPANSION" pn="Thermal Expansion" v="1e-05"/>
+        </inputs>
+        <outputs>
+            <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
+            <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
+            <parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
+        </outputs>
+    </CLaw>
+
+    <!--2D Nodal laws must be used when material variable changes according to its position-->
+
+    <CLaw n="LinearElastic2DPlaneStrainNodal" pn="Linear Elastic Plane Strain Nodal" ProductionReady="ProductionReady" Type="PlaneStrain" behaviour="Elastic" StrainSize="3"
+          help="Linear Elastic Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"  AnalysisType="Linear">
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+        </inputs>
+        <outputs>
+        </outputs>
+    </CLaw>
+
+    <CLaw n="LinearElastic2DPlaneStressNodal" pn="Linear Elastic Plane Stress Nodal" ProductionReady="ProductionReady" Type="PlaneStress" behaviour="Elastic" StrainSize="3"
+          help="Linear Elastic Behaviour in 2D Plane Stress" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"  AnalysisType="Linear">
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+            <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />  
+        </inputs>
+        <outputs>
+        </outputs>
+    </CLaw>
+
+    <CLaw n="ThermalLinearElastic2DPlaneStrainNodal" pn="Thermal Linear Elastic Plane Strain Nodal" ProductionReady="ProductionReady" Type="ThermalPlaneStrain" behaviour="Elastic" StrainSize="3"
+          help="Thermal Linear Elastic Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"  AnalysisType="Linear">
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+            <parameter n="THERMAL_EXPANSION" pn="Thermal Expansion" v="1e-05"/>
+        </inputs>
+        <outputs>
+            <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
+            <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
+            <parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
+        </outputs>
+    </CLaw>
+
+    <CLaw n="ThermalLinearElastic2DPlaneStressNodal" pn="Thermal Linear Elastic Plane Stress Nodal" ProductionReady="ProductionReady" Type="ThermalPlaneStress" behaviour="Elastic" StrainSize="3"
+          help="Thermal Linear Elastic Behaviour in 2D Plane Stress" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"  AnalysisType="Linear">
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+            <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  /> 
+            <parameter n="THERMAL_EXPANSION" pn="Thermal Expansion" v="1e-05"/>
+        </inputs>
+        <outputs>
+            <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
+            <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
+            <parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
+        </outputs>
+    </CLaw>
+
+    <!--2D  Interface laws-->
+
+    <CLaw n="BilinearCohesive2DPlaneStrain" pn="Bilinear Cohesive Plane Strain" ProductionReady="ProductionReady" Type="InterfaceStrain" behaviour="Elastic" StrainSize="3"   DamageType="Local,NonLocal"
+          help="Bilinear Cohesive law for Plane Strain problems" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"   AnalysisType="Linear,Non-Linear">
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+            <parameter n="MINIMUM_JOINT_WIDTH" pn="Minimum Joint Width" v="1e-03"/>
+            <parameter n="CRITICAL_DISPLACEMENT" pn="Critical Displacement" v="0.05"/>
+            <parameter n="YIELD_STRESS" pn="Yield Stress" v="3.5e06"/>
+            <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold" v="0.04"/>
+            <parameter n="FRICTION_COEFFICIENT" pn="Friction Coefficient" v="0.4"/>
+        </inputs>
+        <outputs>
+            <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />            
+        </outputs>
+    </CLaw>
+    
+    <CLaw n="BilinearCohesive2DPlaneStress" pn="Bilinear Cohesive Plane Stress" ProductionReady="ProductionReady" Type="InterfaceStress" behaviour="Elastic" StrainSize="3"  DamageType="Local,NonLocal"
+          help="Bilinear Cohesive law for Plane Stress problems" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"   AnalysisType="Linear,Non-Linear">
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2400"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="1.962e10" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
+            <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  /> 
+            <parameter n="MINIMUM_JOINT_WIDTH" pn="Minimum Joint Width" v="1e-03"/>
+            <parameter n="CRITICAL_DISPLACEMENT" pn="Critical Displacement" v="0.05"/>
+            <parameter n="YIELD_STRESS" pn="Yield Stress" v="3.5e06"/>
+            <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold" v="0.04"/>
+            <parameter n="FRICTION_COEFFICIENT" pn="Friction Coefficient" v="0.4"/>
+        </inputs>
+        <outputs>
+            <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />
+        </outputs>
+    </CLaw>
+    
+</ConstitutiveLaws>

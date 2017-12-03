@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="Calibration" pn="Calibration Parameters" un="NumaCalibration" icon="analysis" open_window="0">
+	  <dynamicnode command="spdAux::injectConditions" args="TypeofCondition Calibration"/>
+</container>

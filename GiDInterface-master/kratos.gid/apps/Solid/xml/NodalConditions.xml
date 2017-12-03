@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NodalConditionList>
+  <NodalConditionItem n="DISPLACEMENT" pn="Displacement" ProcessName="AssignVectorComponentsToNodesProcess" VariableName="DISPLACEMENT" kratos_module="SolidMechanicsApplication"
+		      analysis_type="Static,Dynamic"  unit_magnitude="L" units="m" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
+    <outputs>
+      <parameter n="REACTION" pn="Reaction" v="Yes"/>
+    </outputs>
+  </NodalConditionItem>
+  
+  <NodalConditionItem n="VELOCITY" pn="Velocity" ProcessName="AssignVectorComponentsToNodesProcess" VariableName="VELOCITY" kratos_module="SolidMechanicsApplication"
+		      analysis_type="Dynamic" unit_magnitude="Velocity" units="m/s" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+  
+  <NodalConditionItem  n="ACCELERATION" pn="Acceleration" ProcessName="AssignVectorComponentsToNodesProcess" VariableName="ACCELERATION" kratos_module="SolidMechanicsApplication"
+		       analysis_type="Dynamic" unit_magnitude="Acceleration" units="m/s^2" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+  
+  <NodalConditionItem  n="PRESSURE" pn="Pressure" ProcessName="AssignScalarToNodesProcess" VariableName="PRESSURE" kratos_module="SolidMechanicsApplication"
+		       analysis_type="Static,Dynamic"  unit_magnitude="P"  units="Pa" v="Yes" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+  
+  <NodalConditionItem  n="RIGID_BODY_ROTATION_2D" pn="Axis Rotation" ProcessName="ApplyRigidBodyRotationProcess2D" VariableName="DISPLACEMENT" kratos_module="SolidMechanicsApplication" v="No"
+		       analysis_type="Static,Dynamic" unit_magnitude="Angle" units="rad" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+  
+  <NodalConditionItem  n="RIGID_BODY_ANGULAR_VELOCITY_2D" pn="Axis Angular Velocity" ProcessName="ApplyRigidBodyRotationProcess2D" VariableName="VELOCITY" kratos_module="SolidMechanicsApplication" v="No"
+		       analysis_type="Dynamic" unit_magnitude="Angle/T" units="rad/s" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+  
+  <NodalConditionItem  n="RIGID_BODY_ANGULAR_ACCELERATION_2D" pn="Axis Angular Acceleration" ProcessName="ApplyRigidBodyRotationProcess2D" VariableName="ACCELERATION" kratos_module="SolidMechanicsApplication" v="No"
+		       analysis_type="Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+
+  <NodalConditionItem  n="RIGID_BODY_ROTATION_3D" pn="Axis Rotation" ProcessName="ApplyRigidBodyRotationProcess3D" VariableName="DISPLACEMENT" kratos_module="SolidMechanicsApplication" v="No"
+		       analysis_type="Static,Dynamic" unit_magnitude="Angle" units="rad" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+  
+  <NodalConditionItem  n="RIGID_BODY_ANGULAR_VELOCITY_3D" pn="Axis Angular Velocity" ProcessName="ApplyRigidBodyRotationProcess3D" VariableName="VELOCITY" kratos_module="SolidMechanicsApplication" v="No"
+		       analysis_type="Dynamic" unit_magnitude="Angle/T" units="rad/s" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+  
+  <NodalConditionItem  n="RIGID_BODY_ANGULAR_ACCELERATION_3D" pn="Axis Angular Acceleration" ProcessName="ApplyRigidBodyRotationProcess3D" VariableName="ACCELERATION" kratos_module="SolidMechanicsApplication" v="No"
+		       analysis_type="Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
+  </NodalConditionItem>
+
+  <NodalConditionItem n="ROTATION" pn="Rotation" ProcessName="AssignVectorComponentsToNodesProcess" App="Solid" kratos_module="SolidMechanicsApplication"
+			analysis_type="Static,Dynamic" unit_magnitude="Angle" units="rad" VariableName="ROTATION" state="CheckNodalConditionStateSolid" Interval="Total">
+    <outputs>
+      <parameter n="TORQUE" pn="Torque" v="Yes"/>
+    </outputs>
+   </NodalConditionItem>
+   
+  <NodalConditionItem n="ANGULAR_VELOCITY" pn="Angular Velocity" ProcessName="AssignVectorComponentsToNodesProcess" state="CheckNodalConditionStateSolid" Interval="Total"
+			analysis_type="Dynamic" unit_magnitude="Angle/T" units="rad/s" VariableName="ANGULAR_VELOCITY" App="Solid" kratos_module="SolidMechanicsApplication">
+  </NodalConditionItem>
+  
+  <NodalConditionItem n="ANGULAR_ACCELERATION" pn="Angular Acceleration" ProcessName="AssignVectorComponentsToNodesProcess" state="CheckNodalConditionStateSolid" Interval="Total"
+			 analysis_type="Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"  VariableName="ANGULAR_ACCELERATION" App="Solid" kratos_module="SolidMechanicsApplication">
+  </NodalConditionItem>  
+</NodalConditionList>

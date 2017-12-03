@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="SolStrat" pn="Solution" un="DEMStratSection" help="Solution Strategy" icon="solution" open_window="0">
+	<container n="TimeParameters" pn="Time parameters" un="DEMTimeParameters" help="Problem parameters" open_window="0">
+		<value n="StartTime" pn="Start time" v="0.0" help=""/>
+		<value n="EndTime" pn="End time" v="1.0" help=""/>
+		<value n="DeltaTime" pn="Delta time" v="0.1" help=""/>
+		<!--<value n="UseAutomaticDeltaTime" pn="Automatic Delta time" v="Fixed" values="Fixed,Automatic" help="Select the Delta time option to be used"/>-->
+	</container>
+	<container n="StratParams" pn="Strategy parameters" un="DEMStratParams" icon="groupsTreeNew.gif" state="normal" open_window="0">
+		<dynamicnode command="spdAux::injectSolStratParams" args=""/>
+	</container>
+	<include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/>
+	<dynamicnode command="spdAux::injectSolvers" args=""/>
+</container>

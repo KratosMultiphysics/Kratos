@@ -80,6 +80,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "includes/node.h"
 
+#include "custom_processes/calculate_normal_eq.h"
+#include "custom_processes/assign_surface_tension_conditions.h"
+
+
+
+
+
 namespace Kratos
 {
 
@@ -169,6 +176,16 @@ void  AddProcessesToPython()
     .def("CalculateCurvatureContactLine", &CalculateCurvature::CalculateCurvatureContactLine)
     .def("CalculatePrincipalDirections3D", &CalculateCurvature::CalculatePrincipalDirections3D)
     ;
+    
+    
+    class_<CalculateNormalEq > ("CalculateNormalEq", init<>())
+    .def("CalculateNormalEq3D", &CalculateNormalEq::CalculateNormalEq3D)
+    ;   
+    
+     class_<AssignSurfaceTensionConditions > ("AssignSurfaceTensionConditions", init<>())
+    .def("AssignSurfaceTensionConditions2D", &AssignSurfaceTensionConditions::AssignSurfaceTensionConditions2D)
+    ;
+    
 }
 
 }  // namespace Python.

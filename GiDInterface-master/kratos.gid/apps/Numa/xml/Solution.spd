@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="TimeParameters" pn="Time Parameters" un="NumaTimeParameters" icon="solution16" help="Solution" state="normal" open_window="0">
+        <value n="TimeScale" pn="Time Scale" un="NumaTimeScale" v="Seconds" values="Seconds,Hours,Days,Months" actualize_tree="1"/>
+        <value n="StartTime" pn="Start time" v="0.0" help="Units: provided by time scale"/>
+        <value n="EndTime" pn="Ending Time" un="NumaEndingTime" v="10" type="double" help="Units: provided by time scale"/>
+        <value n="DeltaTime" pn="Delta Time" un="NumaDeltaTime" v="1" type="double" help="Units: provided by time scale"/>
+</container>
+    

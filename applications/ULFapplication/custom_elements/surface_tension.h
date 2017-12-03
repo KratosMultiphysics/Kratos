@@ -37,14 +37,14 @@
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
+//#include "includes/ublas_interface.h"
 #include "includes/serializer.h"
 #include "includes/variables.h"
-#include "ULF_application.h"
+#include "ULF_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/deprecated_variables.h"
-#include "boost/make_shared.hpp"
+//#include "boost/make_shared.hpp"
 
 namespace Kratos
 {
@@ -226,17 +226,17 @@ public:
                             PropertiesType::Pointer pProperties) const
     {
 	
-        return boost::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+//         return boost::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
         
-        //return Element::Pointer(new SurfaceTension(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Element::Pointer(new SurfaceTension(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
     
-     Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const
-     {
-         return boost::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, pGeom, pProperties);
-     }
+//      Element::Pointer Create(IndexType NewId,
+//                             GeometryType::Pointer pGeom,
+//                             PropertiesType::Pointer pProperties) const
+//      {
+//          return boost::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, pGeom, pProperties);
+//      }
 
     /// Provides local contributions from body forces and OSS projection terms
     /**

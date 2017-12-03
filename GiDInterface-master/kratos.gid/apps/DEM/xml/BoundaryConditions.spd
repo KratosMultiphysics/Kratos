@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="Boundary Conditions" pn="Boundary conditions" un="DEMNodalConditions" icon="nodal" open_window="0">
+	  <dynamicnode command="spdAux::injectNodalConditions" args=""/>
+</container>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="SolutionStratFL" pn="Solution" help="Solution Strategy" icon="solution" open_window="0">
+    <!--<include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> -->
+    <dynamicnode command="spdAux::injectSolvers" args="ImplementedInApplication FluidDynamicsApplication"/>
+    <container n="StratParams" pn="Strategy parameters" un="FLStratParams" icon="groupsTreeNew.gif" state="normal" open_window="0">
+        <dynamicnode command="spdAux::injectSolStratParams" args="ImplementedInApplication FluidDynamicsApplication"/>
+    </container>
+    <container n="Gravity" pn="Gravity" un="FLGravity" help="Body forces" open_window="0" icon="gravity">
+        <value n="GravityValue" pn="Gravity value" v="0.0" help="Gravity value" unit_magnitude="Acceleration" units="m/s^2" />
+        <value n="Cx" pn="Cx" v="0.0" help="X Vector"/>
+        <value n="Cy" pn="Cy" v="-1.0" help="Y Vector"/>
+        <value n="Cz" pn="Cz" v="0.0" help="Z Vector" state="[CheckDimension 3D]"/>
+    </container>
+    <container n="TimeParameters" pn="Time parameters" un="FLTimeParameters" help="Time parameters" open_window="0" icon="time4">
+        <value n="StartTime" pn="Start time" v="0.0" help=""/>
+        <value n="EndTime" pn="End time" v="1" help=""/>
+        <value n="AutomaticDeltaTime" pn="Automatic delta time" un="FLAutomaticDeltaTime" v="No" values="Yes,No" help=""/>
+        <value n="DeltaTime" pn="Delta time" v="0.01" help="User-defined time step" state="[checkStateByUniqueName FLAutomaticDeltaTime No]"/>
+        <value n="CFLNumber" pn="CFL number" v="1" help="Desired CFL number for automatic time step computation" state="[checkStateByUniqueName FLAutomaticDeltaTime Yes]"/>
+        <value n="MinimumDeltaTime" pn="Minimum delta time" v="0.0001" help="Minimum delta time allowed" state="[checkStateByUniqueName FLAutomaticDeltaTime Yes]"/>
+        <value n="MaximumDeltaTime" pn="Maximum delta time" v="0.01" help="Maximum delta time allowed" state="[checkStateByUniqueName FLAutomaticDeltaTime Yes]"/>
+    </container>
+</container>

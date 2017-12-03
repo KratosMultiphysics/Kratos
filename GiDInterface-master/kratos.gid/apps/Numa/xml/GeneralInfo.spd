@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="GeneralInfo" pn="General Information" icon="information16" help="General information" state="normal" open_window="0">
+
+    <value n="TypeofProblem" pn="Type of Problem" un="NumaTypeofProblem" v="Mechanical" values="Mechanical,Thermo-Mechanical" help="Type of problem" actualize_tree="1"/>
+    <value n="SolStratCombo" pn="Strategy" un="NumaSolStrat" v="Newton-Raphson" state="disabled"/>
+    <value n="MechanicalScheme" pn="Scheme" v="Newmark" un="NumaScheme" state="disabled"/>
+    
+    <container n="MechanicalProblem" pn="Mechanical Problem" un="NumaMechanicalData" state="[checkStateByUniqueName NumaTypeofProblem Mechanical]" actualize_tree="1" open_window="0">
+        <value n="SolutionType" pn="Solution type" v="Quasi-Static" un="NumaMechaSoluType" values="Quasi-Static,Dynamic" help="Solution type" state="normal" actualize_tree="1"/>
+            <container n="Rayleigh" pn="Rayleigh Damping" un="NumaMechanicalDamping" icon="groupsTreeNew.gif" state="[checkStateByUniqueName NumaMechaSoluType Dynamic]" open_window="0">
+                <value n="stiffnessDamping" pn="Mass" v="0.0" un="NumaMechaDampStiff" help="Stiffness damping for dynamics problems" state="normal" actualize_tree="1"/>
+                <value n="massDamping" pn="Stiffness" v="0.0" un="NumaMechaDampMass" help="Mass damping for dynamics problems" state="normal" actualize_tree="1"/>
+            </container>
+        <value n="AnalysisType" pn="Analysis type" v="Linear"  un="NumaMechaAnalysisType" values="Linear" help="Analysis type" state="normal" />
+        <value n="SolverType" pn="Solver type" v="Iterative"  un="NumaMechaSolverType" values="Iterative,Direct" help="If the problem is not small, a direct solver can be too slow" state="normal" />
+    </container>
+    
+    <container n="ThermoMechanicalProblem" pn="Thermo-Mechanical Problem"  un="NumaThermo-MechanicalData" state="[checkStateByUniqueName NumaTypeofProblem Thermo-Mechanical]"  actualize_tree="1" open_window="0">   
+            <container n="MechanicalPartProblem" pn="Mechanical Problem" un="NumaThermo-Mechanical-MechData" state="normal" actualize_tree="1" open_window="0">
+                <value n="SolutionType" pn="Solution type" un="NumaThermoMechaSoluType" v="Quasi-Static" values="Quasi-Static,Dynamic" help="Solution type" state="normal" actualize_tree="1"/>
+                    <container n="Rayleigh" pn="Rayleigh Damping" un="NumaThermoMechanicalDamping" icon="groupsTreeNew.gif" state="[checkStateByUniqueName NumaThermoMechaSoluType Dynamic]" open_window="0">
+                        <value n="stiffnessDamping" pn="Mass" v="0.0" un="NumaThermoMechaDampStiff" help="Stiffness damping for dynamics problems" state="normal" actualize_tree="1"/>
+                        <value n="massDamping" pn="Stiffness" v="0.0" un="NumaThermoMechaDampMass" help="Mass damping for dynamics problems" state="normal" actualize_tree="1"/>
+                    </container>
+                <value n="AnalysisType" pn="Analysis type" un="NumaThermoMechaAnalysisType" v="Linear" values="Linear" state="normal" help="Analysis type" />
+                <value n="SolverType" pn="Solver type" v="Iterative"  un="NumaThermoMechaSolverType" values="Iterative,Direct" help="If the problem is not small, a direct solver can be too slow" state="normal" />
+            </container>
+            
+            <container n="ThermalProblem" pn="Thermal Problem" un="NumaThermo-Mechanical-ThermData" state="normal" actualize_tree="1" open_window="0">
+                <value n="ThermalScheme" pn="Theta Scheme" un="NumaThermalScheme" v="1.0" actualize_tree="1" help= " 1.0 corresponds to backward Euler, 0.5 Crank Nicolson and 0.0 Forward Euler"/>
+                <value n="ReferenceTemperature" pn="Reference Temeperature" un="NumaThermalReferenceTemperature" type="double" v="10.0" actualize_tree="1"/>
+            </container>
+    </container> 
+
+</container>  

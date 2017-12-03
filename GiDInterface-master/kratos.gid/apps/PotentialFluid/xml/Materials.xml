@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Materials>
+
+  <Material n="Water" MaterialType="PotentialFluid"  help="">
+    <inputs>
+        <parameter n="DENSITY" pn="Density" v="1000" unit_magnitude="Density" units="kg/m^3"/>
+        <parameter n="DYNAMIC_VISCOSITY" pn="Dynamic viscosity" v="0" unit_magnitude="M/L*T" units="kg/m*s"/>
+    </inputs>
+  </Material>
+  <Material n="Air" MaterialType="PotentialFluid" help="">
+    <inputs>
+        <parameter n="DENSITY" pn="Density" v="1.225" unit_magnitude="Density" units="kg/m^3"/>
+        <parameter n="DYNAMIC_VISCOSITY" pn="Dynamic viscosity" v="0" unit_magnitude="M/L*T" units="kg/m*s"/>
+    </inputs>
+  </Material>
+</Materials>

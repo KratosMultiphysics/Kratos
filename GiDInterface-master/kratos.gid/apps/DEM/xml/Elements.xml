@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ElementList>
+  <!--solid elements-->
+  <!--small displacements-->
+  <ElementItem n="SphericPartDEMElement3D" pn="Spheric Element" ImplementedInFile=".cpp" ImplementedInApplication="DEMApplication"  ProductionReady="ProductionReady" WorkingSpaceDimension="3D" ElementType="DEM" help="">
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Sphere" nodes="1" KratosName="SphericParticle3D"/>
+    </TopologyFeatures>
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+    </ConstitutiveLaw_FilterFeatures>
+    <NodalConditions>
+      <NodalCondition n="VELOCITY"/>
+      <NodalCondition n="ANGULAR_VELOCITY"/>
+    </NodalConditions>
+    <inputs></inputs>
+    <outputs>
+    </outputs>
+  </ElementItem>
+</ElementList>

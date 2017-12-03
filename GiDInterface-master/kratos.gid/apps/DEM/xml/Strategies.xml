@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StrategyList>
+    <StrategyItem n="Explicit" pn="Explicit" SolutionType="Dynamic" ImplementedInFile="mechanical_strategy.cpp" ImplementedInApplication="StructuralMechanicsApplication" ImplementedInPythonFile="structural_mechanics_explicit_dynamic_solver" MinimumKratosVersion="8500" App="DEM" help="Default solver Super LU">
+        <!-- list of options to be filled -->
+        <parameter_list></parameter_list>
+        <linearSolvers></linearSolvers>
+        <schemes>
+            <scheme n="Symplectic_Euler" pn="Symplectic Euler">
+                <parameter_list></parameter_list>
+                <element_filters></element_filters>
+            </scheme>
+        </schemes>
+    </StrategyItem>
+</StrategyList>

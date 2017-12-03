@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="AnalysisType" pn="Analysis Type" help="Analysis information" icon="analysis" state="normal">
+    <value n="SolStrat" pn="Solution Strategy" un="FSISolStrat" v="" values="" dict="[GetSolutionStrategies ImplementedInApplication FSIApplication]"  actualize_tree="1"/>
+    <value n="Scheme" pn="Scheme" un="FSIScheme" v="" values="" dict="[GetSchemes]" actualize_tree="1" state="disabled"/>
+</container>
+    

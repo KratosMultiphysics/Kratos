@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Materials>
+  <Material n="Steel" MaterialType="Structural" help="This element implements a Fractional Step Element">
+    <inputs>
+        <parameter n="DENSITY" pn="Density" v="7850" help="Density of the material" unit_magnitude="M/L^3" units="kg/m^3"/>
+        <parameter n="YOUNG_MODULUS" pn="Young Modulus" v="206.9e9" help="Elastic modulus of the material" unit_magnitude="F/L^2" units="N/m^2"/>
+        <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.29" help="Poisson coefficient of the material"/>
+    </inputs>
+  </Material>
+  <Material n="Aluminium" MaterialType="Structural" help="This element implements a Fractional Step Element">
+    <inputs>
+        <parameter n="DENSITY" pn="Density" v="2650" help="Mass density of the material" unit_magnitude="M/L^3" units="kg/m^3"/>
+        <parameter n="YOUNG_MODULUS" pn="Young Modulus" v="69e9" help="Elastic modulus of the material" unit_magnitude="F/L^2" units="N/m^2"/>
+        <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.22" help="Poisson coefficient of the material"/>
+    </inputs>
+  </Material>
+</Materials>
