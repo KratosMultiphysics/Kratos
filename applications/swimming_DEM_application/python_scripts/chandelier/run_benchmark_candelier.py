@@ -21,7 +21,7 @@ def PrintMessage(run_name, radial_error, tolerance):
         print(run_name)
         print(error_message)
 
-def PrintOutput(error_names, errors):
+def PrintOutput(error_names, errors, tolerance):
     width_buffer = 5
     width = max((len(name) + len(str(error)) for name, error in zip(error_names, errors))) + width_buffer
     thick_line = '=' * width
@@ -45,9 +45,6 @@ errors = []
 error_names = []
 varying_parameters = dict()
 varying_parameters['FinalTime'] = 1
-varying_parameters['time_steps_per_quadrature_step'] = 1
-varying_parameters['number_of_exponentials'] = 10
-varying_parameters['number_of_quadrature_steps_in_window'] = 10
 
 def RunCase(varying_parameters, name):
     parameters = Parameters(json.dumps(varying_parameters))
@@ -76,4 +73,4 @@ varying_parameters['basset_force_type'] = 2
 RunCase(varying_parameters, 'All forces, Daitche (rotating frame)')
 
 # Output
-PrintOutput(error_names, errors)
+PrintOutput(error_names, errors, tolerance)
