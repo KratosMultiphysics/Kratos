@@ -513,10 +513,8 @@ class Algorithm(object):
 
             self.time = self.time + self.Dt
             self.step += 1
-            self.TransferTimeToFluidSolver()
             self.CloneTimeStep()
             self.TellTime(self.time)
-
 
             if self.pp.CFD_DEM["coupling_scheme_type"].GetString() == "UpdatedDEM":
                 time_final_DEM_substepping = self.time + self.Dt
@@ -656,9 +654,6 @@ class Algorithm(object):
 
     def GetFirstStepForFluidComputation(self):
         return 3;
-
-    def TransferTimeToFluidSolver(self):
-        pass
 
     def CloneTimeStep(self):
         self.fluid_model_part.CloneTimeStep(self.time)
