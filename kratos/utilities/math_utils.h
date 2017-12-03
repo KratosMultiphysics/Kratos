@@ -887,11 +887,12 @@ public:
     
     template< class T1, class T2 , class T3>
     static inline void CrossProduct(T1& c, const T2& a, const T3& b ){
+        if (c.size() != 3) c.resize(3);
 #ifdef KRATOS_DEBUG
-        if (a.size() != 3 || b.size() != 3) 
-        {
-            KRATOS_ERROR << "The size of the vectors is different of 3: " << a << " and " << b << std::endl;
-        }
+        KRATOS_ERROR_IF(a.size() != 3 || b.size() != 3 || c.size() != 3) << "The size of the vectors is different of 3: " << a << ", " << b << " and " << c << std::endl;
+//         // If the direction is the same we have aliasing
+//         KRATOS_ERROR_IF(&c == &a) << "Aliasing between the output parameter and the first input parameter" << std::endl;
+//         KRATOS_ERROR_IF(&c == &b) << "Aliasing between the output parameter and the second input parameter"  << std::endl;
 #endif
         c[0] = a[1]*b[2] - a[2]*b[1];
         c[1] = a[2]*b[0] - a[0]*b[2];
