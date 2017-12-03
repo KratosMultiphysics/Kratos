@@ -41,7 +41,7 @@ class MeshSolver:
   def Initialize(self):
         (self.neighbour_search).Execute()
 
-        self.solver = LaplacianMeshMovingStrategy(self.model_part, self.linear_solver, self.time_order, self.reform_dof_at_every_step)
+        self.solver = LaplacianMeshMovingStrategy(self.model_part, self.linear_solver, self.domain_size, self.time_order, self.reform_dof_at_every_step)
         (self.solver).SetEchoLevel(0)
         print("finished moving the mesh")
 
