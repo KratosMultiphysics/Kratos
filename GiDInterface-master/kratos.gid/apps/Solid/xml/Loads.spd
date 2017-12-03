@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<container n="Loads" pn="Loads" un="SLLoads" icon="setLoad" open_window="0">
-	  <dynamicnode command="spdAux::injectConditions" args="kratos_module SolidMechanicsApplication"/>
-</container>

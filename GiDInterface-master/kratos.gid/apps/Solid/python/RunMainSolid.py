@@ -1,8 +1,0 @@
-import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
-import KratosMultiphysics.SolidMechanicsApplication
-import KratosMultiphysics.ConstitutiveModelsApplication
-import MainSolid
-
-MainSolid.Solution().Run()
-
