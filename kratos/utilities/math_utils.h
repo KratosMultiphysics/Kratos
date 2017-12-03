@@ -379,7 +379,7 @@ public:
             const Matrix aux = prod(InputMatrix, trans(InputMatrix));
             Matrix auxInv;
             InvertMatrix(aux, auxInv, InputMatrixDet);
-	    InputMatrixDet = std::sqrt(InputMatrixDet);
+            InputMatrixDet = std::sqrt(InputMatrixDet);
             noalias(InvertedMatrix) = prod(trans(InputMatrix), auxInv);
         }
         else // Left inverse
@@ -391,7 +391,7 @@ public:
             const Matrix aux = prod(trans(InputMatrix), InputMatrix);
             Matrix auxInv;
             InvertMatrix(aux, auxInv, InputMatrixDet);
-	    InputMatrixDet = std::sqrt(InputMatrixDet);
+            InputMatrixDet = std::sqrt(InputMatrixDet);
             noalias(InvertedMatrix) = prod(auxInv, trans(InputMatrix));
         }
     }
@@ -459,10 +459,7 @@ public:
                 InputMatrixDet *= std::pow(-1.0, ki) * A(i,i);
             }
             
-            if (singular == 1)
-            {
-                KRATOS_ERROR << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
-            }
+            KRATOS_ERROR_IF(singular == 1) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
         }
     }
 
@@ -874,9 +871,36 @@ public:
         cross[1] =  Tuple[2]*vec[0] - Tuple[0]*vec[2];
         cross[2] =  Tuple[0]*vec[1] - Tuple[1]*vec[0];
  
-	return cross;
+        return cross;
     }
 
+    /**
+     * This auxiliar struct helps to checl if the values have the same adress
+     * If the direction is the same we have aliasing
+     */
+    
+    /**
+    * Checks there is aliasing 
+    * @param value1 The first value 
+    * @param value2 The second value 
+    */
+    template< class T1, class T2>
+    static inline typename std::enable_if<std::is_same<T1, T2>::value, bool>::type CheckIsAlias(T1& value1, T2& value2)
+    {
+        return value1 == value2;
+    }
+
+    /**
+    * Checks there is aliasing 
+    * @param value1 The first value 
+    * @param value2 The second value 
+    */
+    template< class T1, class T2>
+    static inline typename std::enable_if<!std::is_same<T1, T2>::value, bool>::type CheckIsAlias(T1& value1, T2& value2)
+    {
+        return false;
+    }
+    
     /**
      * Performs the cross product of the two input vectors a,b
      * a,b are assumed to be of size 3 (check is only performed on vector sizes in debug mode)
@@ -890,9 +914,8 @@ public:
         if (c.size() != 3) c.resize(3);
 #ifdef KRATOS_DEBUG
         KRATOS_ERROR_IF(a.size() != 3 || b.size() != 3 || c.size() != 3) << "The size of the vectors is different of 3: " << a << ", " << b << " and " << c << std::endl;
-//         // If the direction is the same we have aliasing
-//         KRATOS_ERROR_IF(&c == &a) << "Aliasing between the output parameter and the first input parameter" << std::endl;
-//         KRATOS_ERROR_IF(&c == &b) << "Aliasing between the output parameter and the second input parameter"  << std::endl;
+        KRATOS_ERROR_IF(CheckIsAlias(c, a)) << "Aliasing between the output parameter and the first input parameter" << std::endl;
+        KRATOS_ERROR_IF(CheckIsAlias(c, b))  << "Aliasing between the output parameter and the second input parameter"  << std::endl;
 #endif
         c[0] = a[1]*b[2] - a[2]*b[1];
         c[1] = a[2]*b[0] - a[0]*b[2];
