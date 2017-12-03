@@ -213,10 +213,10 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassPlusUndisturbedFlo
     else {
         // Unperturbed flow force contribution
         const array_1d<double, 3>& fluid_acc = node.FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
-        
+
         // Virtual mass force contribution
         array_1d<double, 3> slip_acc;
-        
+
         if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
             const array_1d<double, 3>& particle_acc = 1 / GetMass() * GetForce();
             noalias(slip_acc) = fluid_acc / mFluidFraction - particle_acc;
@@ -693,7 +693,23 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, a
             const double sqrt_of_quad_h_q = std::sqrt(quadrature_delta_time);
             const double last_h_over_h = latest_quadrature_time_step / quadrature_delta_time;
 
-            CalculateExplicitFractionalDerivative(node, fractional_derivative_of_slip_vel, present_coefficient, historic_integrands, last_h_over_h, n_steps_per_quad_step);
+
+            CalculateExplicitFractionalDerivative(node,
+                                                  fractional_derivative_of_slip_vel,
+                                                  present_coefficient,
+                                                  historic_integrands,
+                                                  last_h_over_h,
+                                                  n_steps_per_quad_step);
+
+            if (r_current_process_info[FRAME_OF_REFERENCE_TYPE] >= 1){
+                const array_1d<double, 3>& displacement = node.FastGetSolutionStepValue(DISPLACEMENT);
+                const array_1d<double, 3>& displacement_old = node.FastGetSolutionStepValue(DISPLACEMENT_OLD);
+                array_1d<double, 3> aux = displacement - displacement_old;
+                const array_1d<double, 3>& omega_frame = r_current_process_info[ANGULAR_VELOCITY_MOVING_FRAME];
+                array_1d<double, 3> correction;
+                SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(omega_frame, aux, correction);
+                noalias(fractional_derivative_of_slip_vel) += present_coefficient * correction;
+            }
 
             if (mBassetForceType == 3){
                 AddHinsbergTailContribution(node, fractional_derivative_of_slip_vel, mQuadratureOrder, n_steps_per_quad_step, time, quadrature_delta_time, last_h_over_h, historic_integrands);
@@ -704,26 +720,31 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, a
             }
 
             array_1d<double, 3> basset_term    = fractional_derivative_of_slip_vel;
+            array_1d<double, 3> old_basset_term;
             const array_1d<double, 3>& vel     = node.FastGetSolutionStepValue(VELOCITY);
             const array_1d<double, 3>& old_vel = node.FastGetSolutionStepValue(VELOCITY_OLD);
-            noalias(fractional_derivative_of_slip_vel) -= mOldBassetTerm + mOldDaitchePresentCoefficient * (old_vel - vel); // the second term corresponds to the part that was treated implicitly in the last step minus a part that was added but did not correspond to the basset term
+            old_basset_term = mOldBassetTerm + mOldDaitchePresentCoefficient * (old_vel - vel); // the second term corresponds to the part that was treated implicitly in the last step minus a part that was added but did not correspond to the basset term
+            noalias(mOldBassetTerm) = basset_term;
 
-            if (r_current_process_info[FRAME_OF_REFERENCE_TYPE] == 1){
-                const array_1d<double, 3>& displacement = node.FastGetSolutionStepValue(DISPLACEMENT);
+            if (r_current_process_info[FRAME_OF_REFERENCE_TYPE] >= 1){
                 array_1d<double, 3>& displacement_old = node.FastGetSolutionStepValue(DISPLACEMENT_OLD);
-                noalias(displacement_old) -= displacement;
+                array_1d<double, 3>& displacement_old_old = node.FastGetSolutionStepValue(VELOCITY_OLD_OLD);
+                array_1d<double, 3> aux = mOldDaitchePresentCoefficient * (displacement_old_old - displacement_old);
                 const array_1d<double, 3>& omega_frame = r_current_process_info[ANGULAR_VELOCITY_MOVING_FRAME];
                 array_1d<double, 3> correction;
-                SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(omega_frame, displacement_old, correction);
-                noalias(fractional_derivative_of_slip_vel) -= mOldDaitchePresentCoefficient * correction;
-                noalias(displacement_old) = displacement;
+                SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(omega_frame, aux, correction);
+                noalias(displacement_old_old) = displacement_old;
+                noalias(displacement_old) = node.FastGetSolutionStepValue(DISPLACEMENT);
+                // correcting the old_basset_term for the velocities at different times being subtracted
+                noalias(old_basset_term) += correction;
+                noalias(aux) = delta_time * (1.5 * basset_term - 0.5 * old_basset_term);
+                SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(omega_frame, aux, correction);
+                // correcting the basset force for the discretization of the time derivative
+                noalias(fractional_derivative_of_slip_vel) += correction;
             }
 
-            else if (r_current_process_info[FRAME_OF_REFERENCE_TYPE] > 1){
+            noalias(fractional_derivative_of_slip_vel) -= old_basset_term;
 
-            }
-
-            mOldBassetTerm = basset_term;
             mOldDaitchePresentCoefficient = present_coefficient;
             mLastBassetForceAddedMass = basset_force_coeff * sqrt_of_quad_h_q * present_coefficient;
 
@@ -1073,7 +1094,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(
     int non_newtonian_option = 1;
     const double yield_stress                  = GetGeometry()[0].FastGetSolutionStepValue(YIELD_STRESS);
     const double power_law_n                   = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_N);
-    
+
     if (fabs(power_law_n - 1.0) < 0.00001  ||  fabs(yield_stress) < 0.00001) {
         non_newtonian_option = 0;
     }
@@ -1081,7 +1102,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(
     const double area                          = Globals::Pi * SWIMMING_POW_2(mRadius);
     const array_1d<double, 3> weight           = mRealMass * gravity;
     const array_1d<double, 3> buoyancy         = mFluidDensity / particle_density * weight; // hydrostatic case!! (only for Weatherford)
-    
+
     double reynolds;
     double drag_coeff;
 
@@ -1097,17 +1118,17 @@ double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(
     }
 
     else {
-        const double gel_strength                  = GetGeometry()[0].FastGetSolutionStepValue(YIELD_STRESS);       
+        const double gel_strength                  = GetGeometry()[0].FastGetSolutionStepValue(YIELD_STRESS);
         const double power_law_K                   = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_K);
-        
+
         double beta                                = 0.0;
         double F0                                  = 0.0;
         double regularization_v                    = 0.02 * mRadius;
         const double power_law_tol                 = r_current_process_info[POWER_LAW_TOLERANCE];
-        
+
         double shahs_term_vel = CalculateShahsTerm(power_law_n, power_law_K, power_law_tol, particle_density, mSphericity, drag_modifier_type);
 
-        if (!manually_imposed_drag_law_option){            
+        if (!manually_imposed_drag_law_option){
             F0 = 4.0 * gel_strength * area; //initial value
             beta = (SWIMMING_MODULUS_3(weight) - SWIMMING_MODULUS_3(buoyancy) - F0) / shahs_term_vel; //S
         }
@@ -1541,16 +1562,16 @@ void SphericSwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_proc
     mHasVirtualMassForceNodalVar = node.SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
     mHasBassetForceNodalVar      = node.SolutionStepsDataHas(BASSET_FORCE);
     mHasLiftForceNodalVar        = node.SolutionStepsDataHas(LIFT_FORCE);
-        
-    
-    if (node.SolutionStepsDataHas(PARTICLE_SPHERICITY)){ 
+
+
+    if (node.SolutionStepsDataHas(PARTICLE_SPHERICITY)){
         node.FastGetSolutionStepValue(PARTICLE_SPHERICITY) = this->GetProperties()[PARTICLE_SPHERICITY];
         mSphericity = node.FastGetSolutionStepValue(PARTICLE_SPHERICITY); //TODO: remove member var mSphericity from everywhere. Care with the occasions when PARTICLE_SPHERICITY is not added to the nodes!
     }
     else {
         mSphericity = 1.0;
     }
-    
+
     mHasDragCoefficientVar       = node.SolutionStepsDataHas(DRAG_COEFFICIENT);
     mHasOldAdditionalForceVar    = node.SolutionStepsDataHas(ADDITIONAL_FORCE_OLD);
     mLastVirtualMassAddedMass    = 0.0;
