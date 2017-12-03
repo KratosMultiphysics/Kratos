@@ -95,7 +95,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
 
     UpdateNodalValues(node, non_contact_force_not_altered, non_contact_moment, weight, buoyancy, drag_force, virtual_mass_plus_undisturbed_flow_force, basset_force, saffman_lift_force, magnus_lift_force, force_reduction_coeff, r_current_process_info);
     // The Basset force has a different temporal treatment, so first we apply the scheme to the rest of the forces
-    // and then we add the Basset force (minus the term proportional to the current acceleration, which is treted implicitly)
+    // and then we add the Basset force (minus the term proportional to the current acceleration, which is treated implicitly)
     noalias(non_contact_force) += basset_force;
     non_contact_force *= force_reduction_coeff; //TODO: put noalias here?
     mFirstStep = false;
@@ -440,7 +440,11 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, vector<double>& historic_integrands, const double last_h_over_h, const int n_steps_per_quad_step)
+void SphericSwimmingParticle<TBaseElement>::CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative,
+                                                                                  double& present_coefficient,
+                                                                                  vector<double>& historic_integrands,
+                                                                                  const double last_h_over_h,
+                                                                                  const int n_steps_per_quad_step)
 {
     const int N = historic_integrands.size() - 3;
     const int n = (int)N / 3;
@@ -669,7 +673,7 @@ void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContributionStrict(No
 template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info)
 {
-    if (mBassetForceType == 0 || node.IsNot(INSIDE) || node.Is(BLOCKED)){ // case of identically null virtual mass force
+    if (mBassetForceType == 0 || node.IsNot(INSIDE) || node.Is(BLOCKED)){ // case of identically null history force
         noalias(basset_force) = ZeroVector(3);
         return;
     }
