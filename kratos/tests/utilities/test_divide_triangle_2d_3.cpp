@@ -61,6 +61,12 @@ namespace Kratos
 			// Call the intersection generation method
 			triangle_splitter.GenerateIntersectionsSkin();
 
+			// Call the positive exterior faces generation method
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_ext_faces = triangle_splitter.GeneratePositiveExteriorFaces();
+
+			// Call the negative exterior faces generation method
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_ext_faces = triangle_splitter.GenerateNegativeExteriorFaces();
+
 			const double tolerance = 1e-10;
 
 			// Check general splitting values
@@ -103,6 +109,7 @@ namespace Kratos
 			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveInterfaces[0])[0].Y(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveInterfaces[0])[1].X(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveInterfaces[0])[1].Y(), 0.5, tolerance);
+
 			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeInterfaces[0])[0].X(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeInterfaces[0])[0].Y(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeInterfaces[0])[1].X(), 0.0, tolerance);
@@ -111,46 +118,81 @@ namespace Kratos
 			KRATOS_CHECK_EQUAL(triangle_splitter.mPositiveInterfacesParentIds[0], 0);
 			KRATOS_CHECK_EQUAL(triangle_splitter.mNegativeInterfacesParentIds[0], 0);
 
+			// Check exterior faces
+			KRATOS_CHECK_EQUAL(pos_ext_faces.size(), 2);
+			KRATOS_CHECK_EQUAL(neg_ext_faces.size(), 3);
+
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].Y(), 1.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[0].Y(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].Y(), 0.5, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].X(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].Y(), 0.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].X(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].Y(), 0.5, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].Y(), 0.0, tolerance);
+
 		}
-		
+
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3Vertical, KratosCoreFastSuite)
 		{
 			// Generate a model part with the previous
 			ModelPart base_model_part("Triangle");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
-			
+
 			// Fill the model part geometry data
 			base_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
 			base_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
 			base_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
 			Properties::Pointer p_properties(new Properties(0));
 			base_model_part.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties);
-			
+
 			// Set the DISTANCE field
 			base_model_part.Nodes()[1].FastGetSolutionStepValue(DISTANCE) = -1.0;
 			base_model_part.Nodes()[2].FastGetSolutionStepValue(DISTANCE) =  1.0;
 			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) = -1.0;
-			
+
 			// Set the elemental distances vector
 			Geometry < Node < 3 > >& r_geometry = base_model_part.Elements()[1].GetGeometry();
-			
+
 			array_1d<double, 3> distances_vector;
 			for (unsigned int i = 0; i < r_geometry.size(); ++i) {
 				distances_vector(i) = r_geometry[i].FastGetSolutionStepValue(DISTANCE);
 			}
-			
+
 			base_model_part.Elements()[1].SetValue(ELEMENTAL_DISTANCES, distances_vector);
-			
+
 			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
-			
+
 			// Build the triangle splitting utility
 			DivideTriangle2D3 triangle_splitter(r_geometry, r_elemental_distances);
-			
+
 			// Call the divide geometry method
 			triangle_splitter.GenerateDivision();
 
 			// Call the intersection generation method
 			triangle_splitter.GenerateIntersectionsSkin();
+
+			// Call the positive exterior faces generation method
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_ext_faces = triangle_splitter.GeneratePositiveExteriorFaces();
+
+			// Call the negative exterior faces generation method
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_ext_faces = triangle_splitter.GenerateNegativeExteriorFaces();
 
 			const double tolerance = 1e-10;
 
@@ -158,7 +200,7 @@ namespace Kratos
 			KRATOS_CHECK(triangle_splitter.mIsSplit);
 			KRATOS_CHECK_EQUAL(triangle_splitter.mDivisionsNumber, 3);
 			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdgesNumber, 2);
-			
+
 			// Check split edges
 			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[0],  0);
 			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[1],  1);
@@ -166,7 +208,7 @@ namespace Kratos
 			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[3],  3);
 			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[4],  4);
 			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[5], -1);
-			
+
 			// Check subdivisions
 			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveSubdivisions[0])[0].X(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveSubdivisions[0])[0].Y(), 0.5, tolerance);
@@ -174,14 +216,14 @@ namespace Kratos
 			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveSubdivisions[0])[1].Y(), 0.0, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveSubdivisions[0])[2].X(), 1.0, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveSubdivisions[0])[2].Y(), 0.0, tolerance);
-			
+
 			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeSubdivisions[0])[0].X(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeSubdivisions[0])[0].Y(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeSubdivisions[0])[1].X(), 0.0, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeSubdivisions[0])[1].Y(), 1.0, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeSubdivisions[0])[2].X(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeSubdivisions[0])[2].Y(), 0.0, tolerance);
-			
+
 			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeSubdivisions[1])[0].X(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeSubdivisions[1])[0].Y(), 0.0, tolerance);
 			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeSubdivisions[1])[1].X(), 0.0, tolerance);
@@ -201,9 +243,38 @@ namespace Kratos
 
 			KRATOS_CHECK_EQUAL(triangle_splitter.mPositiveInterfacesParentIds[0], 0);
 			KRATOS_CHECK_EQUAL(triangle_splitter.mNegativeInterfacesParentIds[0], 0);
-			
+
+			// Check exterior faces
+			KRATOS_CHECK_EQUAL(pos_ext_faces.size(), 2);
+			KRATOS_CHECK_EQUAL(neg_ext_faces.size(), 3);
+
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].X(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].Y(), 0.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[0].X(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].Y(), 0.5, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].Y(), 0.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].Y(), 1.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].Y(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].Y(), 0.0, tolerance);
+
 		}
-		
+
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3NoDivision, KratosCoreFastSuite)
 		{
 			// Generate a model part with the previous
