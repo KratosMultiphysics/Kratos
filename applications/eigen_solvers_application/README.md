@@ -28,7 +28,14 @@ SPD = symmetric positive definite
 
 3. Build Kratos
 
-4. Setup your `ProjectParameters.json`
+4. Add the MKL/TBB redistribution directories to your `%PATH%` or copy the containing .dlls to your Kratos `lib` directory:
+
+    ```
+    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2018.0.124\windows\redist\intel64_win\mkl\
+    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2018.0.124\windows\redist\intel64_win\tbb\vc_mt\
+    ```
+
+5. Setup your `ProjectParameters.json`
 
     ```json
     "linear_solver_settings": {
@@ -36,7 +43,7 @@ SPD = symmetric positive definite
     }
     ```
 
-5. Run your simulation
+6. Run your simulation
 
 ## Enable MKL (optional)
 
