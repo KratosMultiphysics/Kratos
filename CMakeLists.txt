@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 2.8.6)
 
+
+
 if(POLICY CMP0054)
   cmake_policy(SET CMP0054 OLD)
 endif(POLICY CMP0054)
@@ -24,6 +26,10 @@ SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
 SET( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
 SET( CMAKE_SHARED_LINKER_FLAGS_FULLDEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" )
 SET( CMAKE_EXE_LINKER_FLAGS_FULLDEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG}" )
+SET( CMAKE_C_FLAGS_CUSTOM "" )
+SET( CMAKE_CXX_FLAGS_CUSTOM "" )
+SET( CMAKE_SHARED_LINKER_FLAGS_CUSTOM "" )
+SET( CMAKE_EXE_LINKER_FLAGS_CUSTOM "" )
 
 # If build mode is not defined, assume Release
 if(NOT CMAKE_BUILD_TYPE)
@@ -157,6 +163,10 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
+if(USE_COTIRE MATCHES ON)
+    include(cotire)
+endif(USE_COTIRE MATCHES ON)
+
 ######################################################################################
 ######################################################################################
 ######################################################################################
@@ -236,6 +246,10 @@ if(${TRILINOS_APPLICATION} MATCHES ON )
   set(BLAS_INCLUDE_NEEDED ON)
 endif(${TRILINOS_APPLICATION} MATCHES ON )
 
+if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+  find_package(Tetgen REQUIRED)
+endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+
 # BLAS and LAPACK
 if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
@@ -303,6 +317,21 @@ if(${MPI_NEEDED} MATCHES ON )
   # find_package(Boost COMPONENTS mpi_python REQUIRED)
 endif(${MPI_NEEDED} MATCHES ON )
 
+# Find zlib (for gidpost)
+find_package(ZLIB)
+
+if( ZLIB_FOUND )
+  include_directories( ${ZLIB_INCLUDE_DIRS} )
+else( ZLIB_FOUND )
+  message( "-- Preparing local ZLIB compilation.")
+  include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
+  # Compile our own
+  add_subdirectory(external_libraries/zlib)
+  # we have to add this for zconf
+  include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
+  set( ZLIB_LIBRARIES zlib )
+endif( ZLIB_FOUND )
+  
 
 ##echo user options
 message( " ")
@@ -313,10 +342,6 @@ message( " ")
 ######################################################################################
 #include internal dependencies
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries )
-include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
-# we have to add this for zconf
-include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
-# include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/gidpost )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
@@ -326,10 +351,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 # include subdirectories
-add_subdirectory(external_libraries/zlib)
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 add_subdirectory(applications)
+
+#compiling the triangle library
+add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)
+
 
 # Embedded python - compiles "krun and packages the python lib needed"
 if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
@@ -350,8 +378,6 @@ else(DEFINED KRATOS_INSTALL_PREFIX)
   message("--------------------------------  standard install dir ${CMAKE_INSTALL_PREFIX}")
 endif(DEFINED KRATOS_INSTALL_PREFIX)
 
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("inc_dirs = ${inc_dirs}")
 
 ################################################################################
 # install core files for the KratosMultiphysics python module

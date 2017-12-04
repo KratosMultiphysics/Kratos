@@ -93,10 +93,10 @@ namespace Kratos
       	 "AssignScalarToNodesProcess", init<ModelPart&, Parameters>()
       	)
         .def(init< ModelPart&, Parameters& >())
-        .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, double, std::size_t>())
-        .def(init<ModelPart&, const Variable<double>&, double, std::size_t>())
-        .def(init<ModelPart&, const Variable<int>&, int, std::size_t>())
-        .def(init<ModelPart&, const Variable<bool>&, bool, std::size_t>())
+        .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, double>())
+        .def(init<ModelPart&, const Variable<double>&, double>())
+        .def(init<ModelPart&, const Variable<int>&, int>())
+        .def(init<ModelPart&, const Variable<bool>&, bool>())
         .def("Execute", &AssignScalarVariableToNodesProcess::Execute)
 
       	;
@@ -115,9 +115,9 @@ namespace Kratos
       	 "AssignScalarToConditionsProcess", init<ModelPart&, Parameters>()
       	)
         .def(init< ModelPart&, Parameters& >())
-        .def(init<ModelPart&, const Variable<double>&, double, std::size_t>())
-        .def(init<ModelPart&, const Variable<int>&, int, std::size_t>())
-        .def(init<ModelPart&, const Variable<bool>&, bool, std::size_t>())
+        .def(init<ModelPart&, const Variable<double>&, double>())
+        .def(init<ModelPart&, const Variable<int>&, int>())
+        .def(init<ModelPart&, const Variable<bool>&, bool>())
         .def("Execute", &AssignScalarVariableToConditionsProcess::Execute)
       	;
 
@@ -126,7 +126,7 @@ namespace Kratos
       	 "AssignVectorToConditionsProcess", init<ModelPart&, Parameters>()
       	)
         .def(init< ModelPart&, Parameters& >())
-        .def(init<ModelPart&, const Variable<array_1d<double,3> >&, array_1d<double,3>&, std::size_t>())
+        .def(init<ModelPart&, const Variable<array_1d<double,3> >&, array_1d<double,3>&>())
         .def("Execute", &AssignVectorVariableToConditionsProcess::Execute)
       	;
 
@@ -155,10 +155,10 @@ namespace Kratos
       	 "FixScalarDofProcess", init<ModelPart&, Parameters>()
       	)
         .def(init<ModelPart&, Parameters&>())
-        .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, std::size_t>())
-        .def(init<ModelPart&, const Variable<double>&, std::size_t>())
-        .def(init<ModelPart&, const Variable<int>&, std::size_t>())
-        .def(init<ModelPart&, const Variable<bool>&, std::size_t>())
+        .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&>())
+        .def(init<ModelPart&, const Variable<double>&>())
+        .def(init<ModelPart&, const Variable<int>&>())
+        .def(init<ModelPart&, const Variable<bool>&>())
         .def("Execute", &FixScalarDofProcess::Execute)
 
       	;
@@ -169,10 +169,10 @@ namespace Kratos
       	 "FreeScalarDofProcess", init<ModelPart&, Parameters>()
       	)
         .def(init<ModelPart&, Parameters&>())
-        .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, std::size_t>())
-        .def(init<ModelPart&, const Variable<double>&, std::size_t>())
-        .def(init<ModelPart&, const Variable<int>&, std::size_t>())
-        .def(init<ModelPart&, const Variable<bool>&, std::size_t>())
+        .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&>())
+        .def(init<ModelPart&, const Variable<double>&>())
+        .def(init<ModelPart&, const Variable<int>&>())
+        .def(init<ModelPart&, const Variable<bool>&>())
         .def("Execute", &FreeScalarDofProcess::Execute)
 
       	;

@@ -1,4 +1,4 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+ #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
@@ -189,13 +189,13 @@ class ULFFracStrategyPython:
 
         time_ln190 = time.time()
 
-        (self.builder_and_solver).SavePressureIteration(self.model_part);
+        #(self.builder_and_solver).SavePressureIteration(self.model_part);
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(IS_STRUCTURE) == 0):
                 if (node.GetSolutionStepValue(IS_FREE_SURFACE) == 1.0 and node.GetSolutionStepValue(IS_LAGRANGIAN_INLET) != 1.0):
 
                     # and node.X>0.5):
-                    # node.SetSolutionStepValue(PRESSURE,0,0.0)
+                    node.SetSolutionStepValue(PRESSURE,0,0.0)
                     # print "FIXING PRESSURE AT THE OUTLET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
                     node.Fix(PRESSURE)
             # if the problem involves FSI, then the pressure at the FSI interface should be fixed also
@@ -440,7 +440,7 @@ class ULFFracStrategyPython:
         self.builder_and_solver.CalculatePreconditionerDiagonalMatrix(self.D, self.MPinv, self.A, preconditioner)
 
         # for the add_GMinvD_prod function
-        WorkArray = Vector(self.space_utils.Size(self.b) / self.domain_size)
+        WorkArray = Vector(self.space_utils.Size(self.MPinv))
 
         # we are assuming that the initial guess for the unknown X is 0 vecotr, =>r(0) = b - Ax = b
         # x0 = 0. mult by b just to get teh right size

@@ -75,12 +75,20 @@ class EmbeddedArtificialCompressibilityTest(EmbeddedTestFactory):
     file_name = "EmbeddedArtificialCompressibilityTest/EmbeddedArtificialCompressibilityTest"
 
 
-class EmbeddedCouetteTest(EmbeddedTestFactory):
-    file_name = "EmbeddedCouetteTest/EmbeddedCouetteTest"
+class EmbeddedCouette2DTest(EmbeddedTestFactory):
+    file_name = "EmbeddedCouette2DTest/EmbeddedCouette2DTest"
 
 
-class EmbeddedCouetteImposedTest(EmbeddedTestFactory):
-    file_name = "EmbeddedCouetteImposedTest/EmbeddedCouetteImposedTest"
+class EmbeddedCouette3DTest(EmbeddedTestFactory):
+    file_name = "EmbeddedCouette3DTest/EmbeddedCouette3DTest"
+
+
+class EmbeddedCouette2DImposedTest(EmbeddedTestFactory):
+    file_name = "EmbeddedCouetteImposed2DTest/EmbeddedCouetteImposed2DTest"
+
+
+class EmbeddedCouette3DImposedTest(EmbeddedTestFactory):
+    file_name = "EmbeddedCouetteImposed3DTest/EmbeddedCouetteImposed3DTest"
 
 
 class EmbeddedReservoirTest(EmbeddedTestFactory):

@@ -10,11 +10,6 @@
 #include "shell_cross_section.hpp"
 #include "solid_mechanics_application.h"
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif // M_PI
-
-
 namespace Kratos
 {
 
@@ -343,7 +338,7 @@ namespace Kratos
 	{
 		// parameters initialization
 		ConstitutiveLaw::Parameters materialValues;
-		GeneralVariables variables;
+		ElementVariables variables;
 		InitializeParameters(rValues, materialValues, variables);
 
 		Flags& Options = rValues.GetOptions();
@@ -455,7 +450,7 @@ namespace Kratos
 				else
 				{
 					// get the angle in radians of this ply w.r.t the parent section
-					double alpha = M_PI / 180.0 * iPlyAngle;
+					double alpha = Globals::Pi / 180.0 * iPlyAngle;
 				
 					// make a copy of the generalized strain vector in section coordinate system
 					// and then rotate the (working) generalized strain vector in this ply coordinate system
@@ -678,7 +673,7 @@ namespace Kratos
 	void ShellCrossSection::FinalizeSectionResponse(Parameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure)
 	{
 		ConstitutiveLaw::Parameters materialValues;
-		GeneralVariables variables;
+		ElementVariables variables;
 		InitializeParameters(rValues, materialValues, variables);
 
 		for(PlyCollection::iterator ply_it = mStack.begin(); ply_it != mStack.end(); ++ply_it)
@@ -794,7 +789,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 	
-	void ShellCrossSection::InitializeParameters(Parameters& rValues, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables)
+	void ShellCrossSection::InitializeParameters(Parameters& rValues, ConstitutiveLaw::Parameters& rMaterialValues, ElementVariables& rVariables)
 	{
 		// share common data between section and materials
 		
@@ -845,7 +840,7 @@ namespace Kratos
 		rVariables.LT = ZeroMatrix(condensed_strain_size, strain_size);
 	}
 	
-	void ShellCrossSection::UpdateIntegrationPointParameters(IntegrationPoint& rPoint, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables)
+	void ShellCrossSection::UpdateIntegrationPointParameters(IntegrationPoint& rPoint, ConstitutiveLaw::Parameters& rMaterialValues, ElementVariables& rVariables)
 	{
 		if(rPoint.GetConstitutiveLaw()->GetStrainSize() == 3)
 		{
@@ -893,7 +888,7 @@ namespace Kratos
 	void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoint, 
 															  ConstitutiveLaw::Parameters& rMaterialValues,
 															  Parameters& rValues, 
-															  GeneralVariables& rVariables,
+															  ElementVariables& rVariables,
 															  const ConstitutiveLaw::StressMeasure& rStressMeasure)
 	{
 		// get some data/references...

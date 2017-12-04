@@ -9,6 +9,7 @@ from KratosMultiphysics.SwimmingDEMApplication import *
 import DEM_procedures
 import shutil
 import os
+import weakref
 
 def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, cluster_model_part, DEM_inlet_model_part):
 
@@ -85,12 +86,12 @@ def GetWordWithSpaces(word, total_length):
         word += ' '
 
     return word
-    
+
 def TransferFacePressuresToPressure(model_part):
-    
+
     for node in model_part.Nodes:
         total_pressure = node.GetSolutionStepValue(POSITIVE_FACE_PRESSURE) + node.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE)
-        node.SetSolutionStepValue(PRESSURE, total_pressure)         
+        node.SetSolutionStepValue(PRESSURE, total_pressure)
 
 def Norm(my_list):
     return math.sqrt(sum([value ** 2 for value in my_list]))
@@ -207,7 +208,7 @@ def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_ov
 
 def FindMaxNodeId(fluid_model_part):
     return max((node.Id for node in fluid_model_part.Nodes))
-    
+
 def FindMaxElementId(fluid_model_part):
     return max((element.Id for element in fluid_model_part.Elements))
 
@@ -248,9 +249,9 @@ class IOTools:
         for name in dir_names:
             dir_abs_path = main_path + '/' + name
             directories[name] = dir_abs_path
-        
+
             shutil.rmtree(main_path + '/' + name, ignore_errors = True)
-        
+
             if not os.path.isdir(dir_abs_path):
                 os.makedirs(str(dir_abs_path))
 
@@ -359,7 +360,7 @@ class Counter:
         self.accumulated_ticks = 0
 
     def Tick(self):
-        
+
         if self.is_dead:
             return False
 
@@ -388,11 +389,11 @@ class Counter:
     def SetActivation(self, is_active):
         self.is_active = is_active
 
-    def Activate(self, activate = True):
-        self.is_active = self.is_active or activate
+    def Activate(self, condition = True):
+        self.is_active |= condition
 
-    def Deactivate(self, deactivate = True):
-        self.is_active = self.is_active and not deactivate
+    def Deactivate(self, condition = True):
+        self.is_active &= not condition
 
     def Switch(self, condition = None):
         if condition == None:
@@ -405,7 +406,7 @@ class Counter:
 
     def GetStepInCycle(self):
         return self.step_in_cycle
-    
+
     def Kill(self):
         self.is_dead = True
 
@@ -456,7 +457,7 @@ class PostUtils:
                  rigid_faces_model_part,
                  mixed_model_part):
 
-        self.gid_io                 = gid_io
+        self.gid_io                 = weakref.proxy(gid_io)
         self.fluid_model_part       = fluid_model_part
         self.balls_model_part       = balls_model_part
         self.clusters_model_part    = clusters_model_part
@@ -479,7 +480,18 @@ class PostUtils:
             self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.rigid_faces_model_part)
             self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.fluid_model_part)
 
-        self.gid_io.write_swimming_DEM_results(time, self.fluid_model_part, self.balls_model_part, self.clusters_model_part, self.rigid_faces_model_part, self.mixed_model_part, self.pp.nodal_results, self.pp.dem_nodal_results, self.pp.clusters_nodal_results, self.pp.rigid_faces_nodal_results, self.pp.mixed_nodal_results, self.pp.gauss_points_results)
+        self.gid_io.write_swimming_DEM_results(time,
+                                               self.fluid_model_part,
+                                               self.balls_model_part,
+                                               self.clusters_model_part,
+                                               self.rigid_faces_model_part,
+                                               self.mixed_model_part,
+                                               self.pp.nodal_results,
+                                               self.pp.dem_nodal_results,
+                                               self.pp.clusters_nodal_results,
+                                               self.pp.rigid_faces_nodal_results,
+                                               self.pp.mixed_nodal_results,
+                                               self.pp.gauss_points_results)
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 
@@ -644,7 +656,7 @@ class StationarityAssessmentTool:
 
     def __init__(self, max_pressure_variation_rate_tol, custom_functions_tool):
         self.tol  = max_pressure_variation_rate_tol
-        self.tool = custom_functions_tool
+        self.tool = weakref.proxy(custom_functions_tool)
 
     def Assess(self, model_part): # in the first time step the 'old' pressure vector is created and filled
         stationarity = self.tool.AssessStationarity(model_part, self.tol)

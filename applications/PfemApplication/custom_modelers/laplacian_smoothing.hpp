@@ -127,15 +127,14 @@ namespace Kratos
     void ApplyMeshSmoothing(ModelPart& rModelPart,
 			    std::vector<int> & PreservedElements,
 			    const int* pElementsList,
-			    const int& NumberOfPoints,
-			    ModelPart::IndexType MeshId=0)
+			    const int& NumberOfPoints)
     {
       
       KRATOS_TRY
 
-      NodesContainerType& rNodes = rModelPart.Nodes(MeshId);
+      NodesContainerType& rNodes = rModelPart.Nodes();
 
-      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);
+      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();
 
       const unsigned int nds = element_begin->GetGeometry().size();
 
@@ -152,8 +151,6 @@ namespace Kratos
       //*******************************************************************
       //MOVE NODES: LAPLACIAN SMOOTHING:
 	 
-      if( GetEchoLevel() > 0 )
-	std::cout<<"   [ Apply Mesh Smoothing in Mesh ("<<MeshId<<") ]"<<std::endl;
 
       double convergence_tol  = 0.001;
       double smoothing_factor = 0.1;
@@ -172,7 +169,7 @@ namespace Kratos
 
       unsigned int number_of_nodes = 0;
       
-      ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin(MeshId);
+      ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin();
 
       while ( iters<smoothing_iters && converged==false ){ 
 
@@ -301,16 +298,16 @@ namespace Kratos
 
       //*******************************************************************
       //MOVE NODES: BOUNDARY SMOOTHING 
-      SetBoundarySmoothing (rModelPart, PreservedElements, pElementsList, NumberOfPoints, MeshId);
+      SetBoundarySmoothing (rModelPart, PreservedElements, pElementsList, NumberOfPoints);
 
 
       //*******************************************************************
       //MOVE NODES: BOUNDARY PROJECTION	 
-      //SetInsideProjection (rModelPart, out, NeighborNodesList, MeshId);
+      //SetInsideProjection (rModelPart, out, NeighborNodesList);
 
       //*******************************************************************
       //TRANSFER VARIABLES TO NEW NODES POSITION:
-      ProjectVariablesToNewPositions(rModelPart, MeshId);
+      ProjectVariablesToNewPositions(rModelPart);
 
       KRATOS_CATCH( "" )
 
@@ -320,16 +317,10 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void ProjectVariablesToNewPositions(ModelPart& rModelPart,
-					ModelPart::IndexType MeshId=0)
+    void ProjectVariablesToNewPositions(ModelPart& rModelPart)
     {
       
       KRATOS_TRY
-
-
-      // if( GetEchoLevel() > 0 )
-      // 	std::cout<<" Apply Projection Variables in Mesh "<<MeshId<<std::endl;
-
 
       bool transfer=true; //transfer active or inactive
 
@@ -339,7 +330,7 @@ namespace Kratos
 
 	std::vector<Node<3>::Pointer> list_of_nodes;	  
 	  
-	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
+	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin() ; i_node != rModelPart.NodesEnd() ; i_node++)
 	  {
 
 	    //std::cout<<" ID: "<<i_node->Id()<<" NODAL_H "<<i_node->FastGetSolutionStepValue(NODAL_H)<<std::endl;
@@ -372,14 +363,14 @@ namespace Kratos
 	//Find out where the new nodes belong to:
 	unsigned int number_of_nodes = list_of_nodes.size()+1;
 
-	ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);	  
+	ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();	  
 	const unsigned int nds = element_begin->GetGeometry().size();
 
 	std::vector<double> ShapeFunctionsN(nds);
 	
 
-	if( number_of_nodes < rModelPart.Nodes(MeshId).size()+1 ){
-	  number_of_nodes = rModelPart.Nodes(MeshId).size()+1;
+	if( number_of_nodes < rModelPart.Nodes().size()+1 ){
+	  number_of_nodes = rModelPart.Nodes().size()+1;
 	  std::cout<<" WARNING: ISOLATED NODES DELETED "<<std::endl;
 	}
 	  
@@ -406,8 +397,8 @@ namespace Kratos
 	std::fill( ElementPointCoordinates.begin(), ElementPointCoordinates.end(), PointCoordinates );
 	
 
-	for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(MeshId);
-	    ie != rModelPart.ElementsEnd(MeshId); ie++)
+	for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin();
+	    ie != rModelPart.ElementsEnd(); ie++)
 	  {
 	   
 	    for(unsigned int i=0; i<nds; i++)
@@ -479,14 +470,14 @@ namespace Kratos
 
 	
 	//the search moves the nodes order using its PreIds
-	rModelPart.Nodes(MeshId).Sort();
+	rModelPart.Nodes().Sort();
 
 
 	//*******************************************************************
 	//CREATE NEW NODE INFORMATION:
 
 	int id=0;
-	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
+	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin() ; i_node != rModelPart.NodesEnd() ; i_node++)
 	  {
 	   
 	    if( UniquePosition[i_node->Id()] && i_node->IsNot(TO_ERASE) ){
@@ -582,7 +573,7 @@ namespace Kratos
       }
       else{
 
-	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
+	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin() ; i_node != rModelPart.NodesEnd() ; i_node++)
 	  {
 		
 	    //recover the original position of the node
@@ -603,7 +594,6 @@ namespace Kratos
 	    
       }
 
-      //std::cout<<" Finalize Apply Projection Variables in Mesh "<<MeshId<<std::endl;
 
       KRATOS_CATCH( "" )
     }
@@ -616,14 +606,13 @@ namespace Kratos
     void SetBoundarySmoothing(ModelPart& rModelPart,
 			      std::vector<int> & PreservedElements,
 			      const int* pElementsList,
-			      const int& NumberOfPoints,
-			      ModelPart::IndexType MeshId=0)
+			      const int& NumberOfPoints)
     {
       KRATOS_TRY
       
-      NodesContainerType& rNodes = rModelPart.Nodes(MeshId);
+      NodesContainerType& rNodes = rModelPart.Nodes();
 
-      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);
+      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();
 
       const unsigned int nds = element_begin->GetGeometry().size();
 
@@ -640,9 +629,6 @@ namespace Kratos
       //*******************************************************************
       //MOVE BOUNDARY NODES: LAPLACIAN SMOOTHING:
 	 
-      if( GetEchoLevel() > 0 )
-	std::cout<<"   [ Apply Mesh Boundary Smoothing in Mesh ("<<MeshId<<") ]"<<std::endl;
-
       double convergence_tol =0.001;
       double smoothing_factor=0.1; //0.1
       double smoothing_iters =4; //3,4
@@ -656,7 +642,7 @@ namespace Kratos
 
       unsigned int number_of_nodes = 0;
 
-      ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin(MeshId);
+      ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin();
 
       while ( iters<smoothing_iters && converged==false ){ 
 
@@ -1008,8 +994,7 @@ namespace Kratos
 
     std::vector<double>  SetRanks (ModelPart& rModelPart,
 				   struct triangulateio &out,
-				   std::vector<std::vector<int> > & list_of_neighbor_nodes,
-				   ModelPart::IndexType MeshId=0)
+				   std::vector<std::vector<int> > & list_of_neighbor_nodes)
     {
 
       KRATOS_TRY
@@ -1018,7 +1003,7 @@ namespace Kratos
 	
       std::vector<double> nodes_ranks;
       nodes_ranks.resize(ModelerUtilities::GetMaxNodeId(rModelPart)+1);
-      //nodes_ranks.resize(rModelPart.NumberOfNodes(MeshId)+1); //mesh 0
+      //nodes_ranks.resize(rModelPart.NumberOfNodes()+1); //mesh 0
       std::fill( nodes_ranks.begin(), nodes_ranks.end(), 0 );
 	
 	
@@ -1027,16 +1012,16 @@ namespace Kratos
 	{
 	  bool contact_active = false;
 
-	  if( rModelPart.Nodes(MeshId)[in+1].SolutionStepsDataHas(CONTACT_FORCE) ){
-	    array_1d<double, 3 > & ContactForceNormal  = rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(CONTACT_FORCE);
+	  if( rModelPart.Nodes()[in+1].SolutionStepsDataHas(CONTACT_FORCE) ){
+	    array_1d<double, 3 > & ContactForceNormal  = rModelPart.Nodes()[in+1].FastGetSolutionStepValue(CONTACT_FORCE);
 	    if(norm_2(ContactForceNormal) !=0 )
 	      contact_active = true;
 	  }
 	  
-	  if( contact_active && rModelPart.Nodes(MeshId)[in+1].IsNot(BOUNDARY)){
+	  if( contact_active && rModelPart.Nodes()[in+1].IsNot(BOUNDARY)){
 	    nodes_ranks[in+1]=5;
 	  }	    
-	  // else if( norm_2(ContactForceNormal)==0 && rModelPart.Nodes(MeshId)[in+1].Is(BOUNDARY)){
+	  // else if( norm_2(ContactForceNormal)==0 && rModelPart.Nodes()[in+1].Is(BOUNDARY)){
 	  //   nodes_ranks[in+1]=1;
 	  // }
 	  
@@ -1081,8 +1066,7 @@ namespace Kratos
 
     std::vector<double>  SetFirstLayer (ModelPart& rModelPart,
 					struct triangulateio &out,
-					std::vector<std::vector<int> > & list_of_neighbor_nodes,
-					ModelPart::IndexType MeshId=0)
+					std::vector<std::vector<int> > & list_of_neighbor_nodes)
     {
       KRATOS_TRY
 	
@@ -1090,14 +1074,14 @@ namespace Kratos
 	
       std::vector<double> nodes_layer;
       nodes_layer.resize(ModelerUtilities::GetMaxNodeId(rModelPart)+1);
-      //nodes_layer.resize(rModelPart.NumberOfNodes(MeshId)+1); //mesh 0
+      //nodes_layer.resize(rModelPart.NumberOfNodes()+1); //mesh 0
       std::fill( nodes_layer.begin(), nodes_layer.end(), 0 );
 	
 	
       //initial assignation
       for(int in = 0; in<out.numberofpoints; in++)
 	{
-	  if(rModelPart.Nodes(MeshId)[in+1].IsNot(BOUNDARY)){
+	  if(rModelPart.Nodes()[in+1].IsNot(BOUNDARY)){
 	    nodes_layer[in+1]=2;
 	  }	    
  	    
@@ -1148,22 +1132,21 @@ namespace Kratos
 
     void SetInsideProjection (ModelPart& rModelPart,
 			      struct triangulateio &out,
-			      std::vector<std::vector<int> > & list_of_neighbor_nodes,
-			      ModelPart::IndexType MeshId=0)
+			      std::vector<std::vector<int> > & list_of_neighbor_nodes)
     {
 	
       KRATOS_TRY
 	
-      std::vector<double> nodes_ranks = SetRanks(rModelPart,out,list_of_neighbor_nodes,MeshId);
+      std::vector<double> nodes_ranks = SetRanks(rModelPart,out,list_of_neighbor_nodes);
 
-      std::vector<double> nodes_layer = SetFirstLayer(rModelPart,out,list_of_neighbor_nodes,MeshId);
+      std::vector<double> nodes_layer = SetFirstLayer(rModelPart,out,list_of_neighbor_nodes);
 
       double movement_factor = 1.2;
       double contact_factor  = 2.0;
       const array_1d<double,3> ZeroPoint(3,0.0);
 
       std::vector<array_1d<double,3> > initial_nodes_distances (ModelerUtilities::GetMaxNodeId(rModelPart)+1);
-      //std::vector<array_1d<double,3> > initial_nodes_distances (rModelPart.NumberOfNodes(MeshId)+1);
+      //std::vector<array_1d<double,3> > initial_nodes_distances (rModelPart.NumberOfNodes()+1);
       std::fill( initial_nodes_distances.begin(), initial_nodes_distances.end(), ZeroPoint );
 
       for(int in = 0; in<out.numberofpoints; in++)
@@ -1172,15 +1155,15 @@ namespace Kratos
 	  //if(nodes_ranks[in+1]<=1)
 	  if(nodes_ranks[in+1]<1)
 	    {
-	      array_1d<double, 3 >  DeltaDisplacement  = rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(DISPLACEMENT) - rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(DISPLACEMENT,1);
+	      array_1d<double, 3 >  DeltaDisplacement  = rModelPart.Nodes()[in+1].FastGetSolutionStepValue(DISPLACEMENT) - rModelPart.Nodes()[in+1].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-	      array_1d<double, 3>&  Normal= rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(NORMAL); //BOUNDARY_NORMAL must be set as nodal variable
+	      array_1d<double, 3>&  Normal= rModelPart.Nodes()[in+1].FastGetSolutionStepValue(NORMAL); //BOUNDARY_NORMAL must be set as nodal variable
 
 	      double projection=inner_prod(DeltaDisplacement,Normal);
 
 	      bool contact_active = false;
-	      if( rModelPart.Nodes(MeshId)[in+1].SolutionStepsDataHas(CONTACT_FORCE) ){
-		array_1d<double, 3 > & ContactForce = rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(CONTACT_FORCE);
+	      if( rModelPart.Nodes()[in+1].SolutionStepsDataHas(CONTACT_FORCE) ){
+		array_1d<double, 3 > & ContactForce = rModelPart.Nodes()[in+1].FastGetSolutionStepValue(CONTACT_FORCE);
 		if(norm_2(ContactForce)!=0)
 		  contact_active = true;
 	      }
@@ -1217,19 +1200,19 @@ namespace Kratos
 		{
 		  shared_node = list_of_neighbor_nodes[in+1][i];
 
-		  if(rModelPart.Nodes(MeshId)[shared_node].Is(BOUNDARY)){
+		  if(rModelPart.Nodes()[shared_node].Is(BOUNDARY)){
 
 		    //neighbour position
 		    Q[0] = out.pointlist[(list_of_neighbor_nodes[in+1][i]-1)*dimension];
 		    Q[1] = out.pointlist[(list_of_neighbor_nodes[in+1][i]-1)*dimension+1];
 		    Q[2] = 0;
-		    array_1d<double, 3>&  Normal= rModelPart.Nodes(MeshId)[shared_node].FastGetSolutionStepValue(NORMAL); //BOUNDARY_NORMAL must be set as nodal variable
+		    array_1d<double, 3>&  Normal= rModelPart.Nodes()[shared_node].FastGetSolutionStepValue(NORMAL); //BOUNDARY_NORMAL must be set as nodal variable
 			
 		    D = Q-P;
 
 		    double projection=inner_prod(D,Normal);
 
-		    array_1d<double, 3>& Offset = rModelPart.Nodes(MeshId)[shared_node].FastGetSolutionStepValue(OFFSET);
+		    array_1d<double, 3>& Offset = rModelPart.Nodes()[shared_node].FastGetSolutionStepValue(OFFSET);
 		    double offset = norm_2(Offset);
 			
 		    double secure_offset_factor = 1.1;
@@ -1323,7 +1306,7 @@ namespace Kratos
       for(int in = 0; in<out.numberofpoints; in++)
 	{
 	    
-	  // array_1d<double, 3>&  Projection= rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(FORCE_EXTERNAL); //BOUNDARY_NORMAL must be set as nodal variable
+	  // array_1d<double, 3>&  Projection= rModelPart.Nodes()[in+1].FastGetSolutionStepValue(FORCE_EXTERNAL); //BOUNDARY_NORMAL must be set as nodal variable
 	  // Projection = initial_nodes_distances[in+1];
 
 	  if(nodes_ranks[in+1]>0)	      

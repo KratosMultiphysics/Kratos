@@ -24,7 +24,6 @@
 
 
 /* Project includes */
-#include "includes/constant.h"
 #include "includes/kratos_config.h"
 #include "includes/kratos_export_api.h"
 #include "includes/exception.h"
@@ -358,6 +357,18 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
 
+    
+    
+    
+#ifdef __GNUC__
+#define KRATOS_DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#define KRATOS_DEPRECATED __declspec(deprecated)
+#else
+#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#define KRATOS_DEPRECATED
+#endif
+    
 
 namespace Kratos
 {

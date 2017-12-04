@@ -63,7 +63,7 @@ class NodalDampingTests(KratosUnittest.TestCase):
 
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
    
-    def test_execution(self):
+    def test_nodal_damping(self):
         mp = KratosMultiphysics.ModelPart("sdof")
         self._add_variables(mp)
 

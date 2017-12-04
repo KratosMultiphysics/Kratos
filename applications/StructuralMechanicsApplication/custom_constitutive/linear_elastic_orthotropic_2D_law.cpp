@@ -14,10 +14,9 @@
 #include <iostream>
 
 // External includes
-#include<cmath>
+// #include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "includes/checks.h"
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
 

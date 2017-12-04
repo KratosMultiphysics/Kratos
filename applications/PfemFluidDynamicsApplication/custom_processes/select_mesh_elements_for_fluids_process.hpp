@@ -71,8 +71,6 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-    
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -144,13 +142,13 @@ public:
 	  if( mEchoLevel > 1 )
 	    std::cout<<"   Start Element Selection "<<OutNumberOfElements<<std::endl;
 
-	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
 	  const unsigned int nds = element_begin->GetGeometry().size();
 	  const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
 
 	  int* OutElementList = mrRemesh.OutMesh.GetElementList();
 	 
-	  ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
+	  ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	  int el = 0;
 	  int number = 0;
@@ -355,39 +353,41 @@ public:
 	      	// }
 	      }
 	      
-	      //5.- to control that the element has a good shape
-	      if(accepted && (numfreesurf>0 || numrigid==nds))
-	      	{
-	      	  if(dimension==2 && nds==3){
+	      // //5.- to control that the element has a good shape
+	      // if(accepted && (numfreesurf>0 || numrigid==nds))
+	      // 	{
+	      // 	  if(dimension==2 && nds==3){
 
-	      	    Geometry<Node<3> >* triangle = new Triangle2D3<Node<3> > (vertices);
-	      	    double Area = triangle->Area();
-	      	    double CriticalArea=0.01*mrRemesh.Refine->MeanVolume;
-	      	    if(Area<CriticalArea){
-	      	      std::cout<<"SLIVER! Area= "<<Area<<" VS Critical Area="<<CriticalArea<<std::endl;
-	      	      accepted = false;
-	      	      number_of_slivers++;
-	      	    }
-	      	    delete triangle;
+	      // 	    Geometry<Node<3> >* triangle = new Triangle2D3<Node<3> > (vertices);
+	      // 	    double Area = triangle->Area();
+	      // 	    double CriticalArea=0.01*mrRemesh.Refine->MeanVolume;
+	      // 	    if(Area<CriticalArea){
+	      // 	      std::cout<<"SLIVER! Area= "<<Area<<" VS Critical Area="<<CriticalArea<<std::endl;
+	      // 	      accepted = false;
+	      // 	      number_of_slivers++;
+	      // 	    }
+	      // 	    delete triangle;
 
-	      	  }else if(dimension==3 && nds==4){
-	      	    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
-	      	    double Volume = tetrahedron->Volume();
-	      	    double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
-	      	    if(Volume<CriticalVolume){
-	      	      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
-	      	      // for( unsigned int n=0; n<nds; n++)
-	      	      // 	{
-	      	      // 	  vertices[n].Set(INTERFACE);
-	      	      // 	  sliverNodes++;
-       	      	      // 	}
-	      	      accepted = false;
-	      	      number_of_slivers++;
-	      	    }
-	      	    delete tetrahedron;
-	      	  }
+	      // 	  }else if(dimension==3 && nds==4){
+	      // 	    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
+	      // 	    double Volume = tetrahedron->Volume();
+	      // 	    double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
+	      // 	    if(Volume<CriticalVolume){
+	      // 	      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
+	      // 	      // for( unsigned int n=0; n<nds; n++)
+	      // 	      // 	{
+	      // 	      // 	  vertices[n].Set(INTERFACE);
+	      // 	      // 	  sliverNodes++;
+       	      // 	      // 	}
+	      // 	      accepted = false;
+	      // 	      number_of_slivers++;
+	      // 	    }
+	      // 	    delete tetrahedron;
+	      // 	  }
 
-	      	}
+	      // 	}
+
+
 	      // else{
 
 	      // 	if((numisolated+numrigid+numfreesurf)<3 && (numisolated+numfreesurf)<nds && (numisolated+numrigid)<nds && numfreesurf>0 && firstMesh==false){
@@ -423,12 +423,12 @@ public:
       if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::KEEP_ISOLATED_NODES)){
 
 
-	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
 	const unsigned int nds = (*element_begin).GetGeometry().size();
       
 	int* OutElementList = mrRemesh.OutMesh.GetElementList();
       
-	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
+	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	//check engaged nodes
 	for(int el=0; el<OutNumberOfElements; el++)
@@ -471,7 +471,7 @@ public:
       }
       else{
 	
-	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
+	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
 	  { 
@@ -482,7 +482,7 @@ public:
 
 
       mrRemesh.InputInitializedFlag = false;
-      // mModelerUtilities.SetNodes(mrModelPart,mrRemesh,mMeshId);
+      // mModelerUtilities.SetNodes(mrModelPart,mrRemesh);
       mModelerUtilities.SetNodes(mrModelPart,mrRemesh);
       mrRemesh.InputInitializedFlag = true;
 
@@ -587,8 +587,6 @@ private:
     ModelerUtilities::MeshingParameters& mrRemesh;
 
     ModelerUtilities mModelerUtilities;  
-
-    ModelPart::IndexType mMeshId; 
 
     int mEchoLevel;
 

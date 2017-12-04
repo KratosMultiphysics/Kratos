@@ -15,7 +15,7 @@
 #include "structural_mechanics_application_variables.h"
 
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
-
+#include "custom_utilities/shell_utilities.h"
 #include "geometries/quadrilateral_3d_4.h"
 
 #include <string>
@@ -59,122 +59,122 @@ Southern California, 2012.
 
 namespace Kratos
 {
-	namespace Utilities
-	{
-		template<class TVec>
-		inline void ShapeFunc(double xi, double eta, TVec & N)
-		{
-			N(0) = 0.25 * (1.0 - xi) * (1.0 - eta); // node 1
-			N(1) = 0.25 * (1.0 + xi) * (1.0 - eta); // node 2
-			N(2) = 0.25 * (1.0 + xi) * (1.0 + eta); // node 3
-			N(3) = 0.25 * (1.0 - xi) * (1.0 + eta); // node 4
-		}
-
-		template<class TMat>
-		inline void ShapeFunc_NaturalDerivatives(double xi, double eta,
-			TMat & dN)
-		{
-			dN(0, 0) = -(1.0 - eta) * 0.25;
-			dN(1, 0) = (1.0 - eta) * 0.25;
-			dN(2, 0) = (1.0 + eta) * 0.25;
-			dN(3, 0) = -(1.0 + eta) * 0.25;
-
-			dN(0, 1) = -(1.0 - xi)  * 0.25;
-			dN(1, 1) = -(1.0 + xi)  * 0.25;
-			dN(2, 1) = (1.0 + xi)  * 0.25;
-			dN(3, 1) = (1.0 - xi)  * 0.25;
-		}
-
-		inline double dN_seren_dxi(const int actualNodeNumber,const double xi,
-			const double eta)
-		{
-			// Natural derivatives of 8-node serendipity shape functions
-
-			double returnValue;
-			switch (actualNodeNumber)
-			{
-			case 1:
-				returnValue = -(-eta + 1.0)*(-0.25*xi + 0.25) -
-					0.25*(-eta + 1.0)*(-eta - xi - 1.0);
-				break;
-			case 2:
-				returnValue = (-eta + 1.0)*(0.25*xi + 0.25) +
-					0.25*(-eta + 1.0)*(-eta + xi - 1.0);
-				break;
-			case 3:
-				returnValue = (eta + 1.0)*(0.25*xi + 0.25) +
-					0.25*(eta + 1.0)*(eta + xi - 1.0);
-				break;
-			case 4:
-				returnValue = -(eta + 1.0)*(-0.25*xi + 0.25) -
-					0.25*(eta + 1.0)*(eta - xi - 1.0);
-				break;
-			case 5:
-				returnValue = -1.0*xi*(-eta + 1.0);
-				break;
-			case 6:
-				returnValue = -0.5*eta*eta + 0.5;
-				break;
-			case 7:
-				returnValue = -1.0*xi*(eta + 1.0);
-				break;
-			case 8:
-				returnValue = 0.5*eta*eta - 0.5;
-				break;
-			default:
-				KRATOS_ERROR <<
-					"Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
-					<< std::endl;
-			}
-
-			return returnValue;
-		}
-
-		inline double dN_seren_deta(const int actualNodeNumber,const double xi,
-			const double eta)
-		{
-			// Natural derivatives of 8-node serendipity shape functions
-
-			double returnValue;
-			switch (actualNodeNumber)
-			{
-			case 1:
-				returnValue = -(-eta + 1.0)*(-0.25*xi + 0.25) -
-					(-0.25*xi + 0.25)*(-eta - xi - 1.0);
-				break;
-			case 2:
-				returnValue = -(-eta + 1.0)*(0.25*xi + 0.25) -
-					(0.25*xi + 0.25)*(-eta + xi - 1.0);
-				break;
-			case 3:
-				returnValue = (eta + 1.0)*(0.25*xi + 0.25) +
-					(0.25*xi + 0.25)*(eta + xi - 1.0);
-				break;
-			case 4:
-				returnValue = (eta + 1.0)*(-0.25*xi + 0.25) +
-					(-0.25*xi + 0.25)*(eta - xi - 1.0);
-				break;
-			case 5:
-				returnValue = 0.5*xi*xi - 0.5;
-				break;
-			case 6:
-				returnValue = -1.0*eta*(xi + 1.0);
-				break;
-			case 7:
-				returnValue = -0.5*xi*xi + 0.5;
-				break;
-			case 8:
-				returnValue = -1.0*eta*(-xi + 1.0);
-				break;
-			default:
-				KRATOS_ERROR <<
-					"Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
-					<< std::endl;
-			}
-
-			return returnValue;
-		}
-	}
+// 	namespace Utilities
+// 	{
+// 		template<class TVec>
+// 		inline void ShapeFunc(double xi, double eta, TVec & N)
+// 		{
+// 			N(0) = 0.25 * (1.0 - xi) * (1.0 - eta); // node 1
+// 			N(1) = 0.25 * (1.0 + xi) * (1.0 - eta); // node 2
+// 			N(2) = 0.25 * (1.0 + xi) * (1.0 + eta); // node 3
+// 			N(3) = 0.25 * (1.0 - xi) * (1.0 + eta); // node 4
+// 		}
+// 
+// 		template<class TMat>
+// 		inline void ShapeFunc_NaturalDerivatives(double xi, double eta,
+// 			TMat & dN)
+// 		{
+// 			dN(0, 0) = -(1.0 - eta) * 0.25;
+// 			dN(1, 0) = (1.0 - eta) * 0.25;
+// 			dN(2, 0) = (1.0 + eta) * 0.25;
+// 			dN(3, 0) = -(1.0 + eta) * 0.25;
+// 
+// 			dN(0, 1) = -(1.0 - xi)  * 0.25;
+// 			dN(1, 1) = -(1.0 + xi)  * 0.25;
+// 			dN(2, 1) = (1.0 + xi)  * 0.25;
+// 			dN(3, 1) = (1.0 - xi)  * 0.25;
+// 		}
+// 
+// 		inline double dN_seren_dxi(const int actualNodeNumber,const double xi,
+// 			const double eta)
+// 		{
+// 			// Natural derivatives of 8-node serendipity shape functions
+// 
+// 			double returnValue;
+// 			switch (actualNodeNumber)
+// 			{
+// 			case 1:
+// 				returnValue = -(-eta + 1.0)*(-0.25*xi + 0.25) -
+// 					0.25*(-eta + 1.0)*(-eta - xi - 1.0);
+// 				break;
+// 			case 2:
+// 				returnValue = (-eta + 1.0)*(0.25*xi + 0.25) +
+// 					0.25*(-eta + 1.0)*(-eta + xi - 1.0);
+// 				break;
+// 			case 3:
+// 				returnValue = (eta + 1.0)*(0.25*xi + 0.25) +
+// 					0.25*(eta + 1.0)*(eta + xi - 1.0);
+// 				break;
+// 			case 4:
+// 				returnValue = -(eta + 1.0)*(-0.25*xi + 0.25) -
+// 					0.25*(eta + 1.0)*(eta - xi - 1.0);
+// 				break;
+// 			case 5:
+// 				returnValue = -1.0*xi*(-eta + 1.0);
+// 				break;
+// 			case 6:
+// 				returnValue = -0.5*eta*eta + 0.5;
+// 				break;
+// 			case 7:
+// 				returnValue = -1.0*xi*(eta + 1.0);
+// 				break;
+// 			case 8:
+// 				returnValue = 0.5*eta*eta - 0.5;
+// 				break;
+// 			default:
+// 				KRATOS_ERROR <<
+// 					"Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
+// 					<< std::endl;
+// 			}
+// 
+// 			return returnValue;
+// 		}
+// 
+// 		inline double dN_seren_deta(const int actualNodeNumber,const double xi,
+// 			const double eta)
+// 		{
+// 			// Natural derivatives of 8-node serendipity shape functions
+// 
+// 			double returnValue;
+// 			switch (actualNodeNumber)
+// 			{
+// 			case 1:
+// 				returnValue = -(-eta + 1.0)*(-0.25*xi + 0.25) -
+// 					(-0.25*xi + 0.25)*(-eta - xi - 1.0);
+// 				break;
+// 			case 2:
+// 				returnValue = -(-eta + 1.0)*(0.25*xi + 0.25) -
+// 					(0.25*xi + 0.25)*(-eta + xi - 1.0);
+// 				break;
+// 			case 3:
+// 				returnValue = (eta + 1.0)*(0.25*xi + 0.25) +
+// 					(0.25*xi + 0.25)*(eta + xi - 1.0);
+// 				break;
+// 			case 4:
+// 				returnValue = (eta + 1.0)*(-0.25*xi + 0.25) +
+// 					(-0.25*xi + 0.25)*(eta - xi - 1.0);
+// 				break;
+// 			case 5:
+// 				returnValue = 0.5*xi*xi - 0.5;
+// 				break;
+// 			case 6:
+// 				returnValue = -1.0*eta*(xi + 1.0);
+// 				break;
+// 			case 7:
+// 				returnValue = -0.5*xi*xi + 0.5;
+// 				break;
+// 			case 8:
+// 				returnValue = -1.0*eta*(-xi + 1.0);
+// 				break;
+// 			default:
+// 				KRATOS_ERROR <<
+// 					"Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
+// 					<< std::endl;
+// 			}
+// 
+// 			return returnValue;
+// 		}
+// 	}
 
 	// =========================================================================
 	//

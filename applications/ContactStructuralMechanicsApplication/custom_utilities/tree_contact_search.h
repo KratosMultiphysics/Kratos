@@ -15,11 +15,11 @@
 // System includes
 
 // External includes
-#include <omp.h>
 
 // Project includes
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/openmp_utils.h"
 
 /* Custom includes*/
 #include "custom_includes/point_item.h"
@@ -97,11 +97,14 @@ public:
     
     /**
      * The constructor of the search utility uses the following inputs:
-     * @param rMainModelPart: The model part to be considered
-     * @param AllocationSize: The allocation considered in the search
-     * @param ActiveCheckFactor: The factor considered to check if active or not
-     * @param IntegrationOrder: The integration order considered
-     * @param BucketSize: The size of the bucket
+     * @param rMainModelPart The model part to be considered
+     * @param ThisParameters The condiguration parameters, it includes:
+     *                       - The allocation considered in the search
+     *                       - The factor considered to check if active or not
+     *                       - The integration order considered
+     *                       - The size of the bucket
+     *                       - The proportion increased of the Radius/Bounding-box volume for the search
+     *                       - TypeSearch: 0 means search in radius, 1 means search in box // TODO: Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
      * NOTE: Use an InterfacePreprocess object to create such a model part from a regular one:
      * InterfaceMapper = InterfacePreprocess()
      * InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
@@ -110,53 +113,7 @@ public:
     TreeContactSearch(
         ModelPart & rMainModelPart,
         Parameters ThisParameters =  Parameters(R"({})")
-        )
-    :mrMainModelPart(rMainModelPart.GetSubModelPart("Contact")),
-     mDimension(rMainModelPart.GetProcessInfo()[DOMAIN_SIZE])
-    {        
-        Parameters DefaultParameters = Parameters(R"(
-        {
-            "allocation_size"                      : 1000, 
-            "bucket_size"                          : 4, 
-            "search_factor"                        : 2.0, 
-            "type_search"                          : "InRadius", 
-            "dual_search_check"                    : false,
-            "strict_search_check"                  : true,
-            "use_exact_integration"                : true
-        })" );
-        
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-
-        mAllocationSize = ThisParameters["allocation_size"].GetInt();
-        mSearchFactor = ThisParameters["search_factor"].GetDouble();
-        mDualSearchCheck = ThisParameters["dual_search_check"].GetBool();
-        mStrictSearchCheck = ThisParameters["strict_search_check"].GetBool();
-        mUseExactIntegration = ThisParameters["use_exact_integration"].GetBool();
-        mSearchTreeType = ConvertSearchTree(ThisParameters["type_search"].GetString());
-        mBucketSize = ThisParameters["bucket_size"].GetInt();
-        
-        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
-        
-        #pragma omp parallel for 
-        for(int i = 0; i < num_nodes; i++) 
-        {
-            auto it_node = nodes_array.begin() + i;
-            it_node->Set(ACTIVE, false);
-        }
-        
-        // Iterate in the conditions
-        ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
-        const int num_conditions = static_cast<int>(conditions_array.size());
-
-        #pragma omp parallel for 
-        for(int i = 0; i < num_conditions; i++) 
-        {
-            auto it_cond = conditions_array.begin() + i;
-            
-            it_cond->Set(ACTIVE, false);
-        }
-    }
+        );
     
     virtual ~TreeContactSearch()= default;;
 
@@ -224,9 +181,6 @@ public:
 
     /**
      * This function has as pourpose to find potential contact conditions and fill the mortar conditions with the necessary pointers
-     * @param Searchfactor: The proportion increased of the Radius/Bounding-box volume for the search
-     * @param TypeSearch: 0 means search in radius, 1 means search in box // TODO: Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
-     * @return The mortar conditions alreay created
      */
     
     void UpdateMortarConditions();
@@ -242,6 +196,24 @@ public:
      */
     
     void CheckMortarConditions();
+    
+    /**
+     * It sets if the search is inverted
+     */
+    
+    void InvertSearch();
+    
+    /**
+     * This resets the contact operators
+     */
+        
+    void ResetContactOperators();
+    
+    /**
+     * This resets all the contact operators
+     */
+        
+    void TotalResetContactOperators();
     
     ///@}
     ///@name Access
@@ -294,14 +266,16 @@ protected:
     /**
      * It check the conditions if they are correctly detected
      * @return ConditionPointers1: A vector containing the pointers to the conditions 
-     * @param pCond1: The pointer to the condition in the destination model part
-     * @param pCond2: The pointer to the condition in the destination model part  
+     * @param pCond1 The pointer to the condition in the destination model part
+     * @param pCond2 The pointer to the condition in the destination model part  
+     * @param InvertedSearch If the search is inverted
      */
     
     static inline CheckResult CheckCondition(
         ConditionMap::Pointer& ConditionPointers1,
         const Condition::Pointer& pCond1,
-        const Condition::Pointer& pCond2
+        const Condition::Pointer& pCond2,
+        const bool InvertedSearch = false
         );
     
     /**  
@@ -310,16 +284,10 @@ protected:
      */ 
     
     static inline double Radius(GeometryType& ThisGeometry);
-
-    /**
-     * This resets the contact operators
-     */
-        
-    void ResetContactOperators();
     
     /**
      * This converts the framework string to an enum
-     * @param str: The string
+     * @param str The string
      * @return SearchTreeType: The equivalent enum
      */
     
@@ -358,6 +326,7 @@ private:
     bool mDualSearchCheck;                    // The search is done reciprocally
     bool mStrictSearchCheck;                  // The search is done requiring IsInside as true
     bool mUseExactIntegration;                // The search filter the results with the exact integration
+    bool mInvertedSearch;                     // The search will be done inverting the way master and slave/master is assigned
     SearchTreeType mSearchTreeType;           // The search tree considered
     unsigned int mBucketSize;                 // Bucket size for kd-tree
     PointVector mPointListDestination;        // A list that contents the all the points (from nodes) from the modelpart 

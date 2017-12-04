@@ -89,7 +89,6 @@ namespace Kratos
 
 		void UpdateInternalForces(bounded_vector<double,msLocalSize>& rinternalForces);
 		void CreateTransformationMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rRotationMatrix);
-		double CalculateCurrentLength();
 
 		void CalculateOnIntegrationPoints(
 			const Variable<Vector>& rVariable,
@@ -148,6 +147,7 @@ namespace Kratos
 
 		double CalculateGreenLagrangeStrain();
 		double CalculateReferenceLength();
+		double CalculateCurrentLength();
 
 		bounded_vector<double,msLocalSize> CalculateBodyForces();  
 

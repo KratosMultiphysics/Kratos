@@ -104,7 +104,7 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphing( ModelPart& designSurface, Parameters& optimizationSettings )
+    MapperVertexMorphing( ModelPart& designSurface, Parameters optimizationSettings )
         : mrDesignSurface( designSurface ),
           mNumberOfDesignVariables(designSurface.Nodes().size()),
           mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
@@ -136,7 +136,7 @@ public:
     void CreateListOfNodesOfDesignSurface()
     {
         mListOfNodesOfDesignSurface.resize(mNumberOfDesignVariables);
-        std::size_t counter = 0;
+        int counter = 0;
         for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
         {
             NodeTypePointer pnode = *(node_it.base());

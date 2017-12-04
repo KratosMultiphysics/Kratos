@@ -163,12 +163,11 @@ namespace Kratos {
         ApplyInitialConditions();
 
         // Search Neighbours and related operations
-        SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE], 1.0);
+        SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
         SearchNeighbours();
-
         ComputeNewNeighboursHistoricalData();
-
-        SetSearchRadiiWithFemOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE], 1.0);
+        
+        SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
         SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
         ComputeNewRigidFaceNeighboursHistoricalData();
 
@@ -217,7 +216,7 @@ namespace Kratos {
 
         double critical_period = sqrt(max_across_threads);
         double beta = 0.03;
-        double critical_timestep = beta * KRATOS_M_PI / critical_period;
+        double critical_timestep = beta * Globals::Pi / critical_period;
 
         double t = CalculateMaxInletTimeStep();
         if (t<critical_timestep && t>0.0){critical_timestep = t;}
@@ -246,7 +245,7 @@ namespace Kratos {
                     if (smp_prop_id == inlet_prop_id) {
                         double radius = (*sub_model_part)[RADIUS];
                         double shear_modulus = young/(2.0*(1.0+poisson));
-                        double t = (KRATOS_M_PI*radius*sqrt(density/shear_modulus))/(0.1630*poisson+0.8766);
+                        double t = (Globals::Pi*radius*sqrt(density/shear_modulus))/(0.1630*poisson+0.8766);
                         return t;
                     }
                 }
@@ -371,9 +370,21 @@ namespace Kratos {
         int time_step = r_process_info[TIME_STEPS];
         const bool is_time_to_search_neighbours = (time_step + 1) % mNStepSearch == 0 && (time_step > 0); //Neighboring search. Every N times.
 
-        if (is_time_to_search_neighbours) {
+        if (is_time_to_search_neighbours) { // for the moment it is always true, until all issues have been solved
             SearchRigidFaceNeighbours();
             ComputeNewRigidFaceNeighboursHistoricalData();
+            mSearchControl = 2; // Search is active and has been performed during this time step
+        }
+
+        else {
+            ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();
+            const int number_of_conditions = (int) pTConditions.size();
+
+            if (number_of_conditions > 0) {
+                CheckHierarchyWithCurrentNeighbours();
+                ComputeNewRigidFaceNeighboursHistoricalData();
+                mSearchControl = 1; // Search is active but no search has been done this time step;
+            }
         }
         KRATOS_CATCH("")
     }//SearchFEMOperations
@@ -990,7 +1001,7 @@ namespace Kratos {
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         #pragma omp parallel for
         for (int i = 0; i < number_of_elements; i++) {
-            mListOfSphericParticles[i]->SetSearchRadiusWithFem(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
+            mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
         }
         KRATOS_CATCH("")
     }
@@ -1011,7 +1022,9 @@ namespace Kratos {
         GetResults().resize(number_of_elements);
         GetResultsDistances().resize(number_of_elements);
 
+        //SetSearchRadiiOnAllParticles(r_model_part, r_model_part.GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetArrayOfAmplifiedRadii(), this->GetResults(), this->GetResultsDistances());
+
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
         #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
@@ -1074,9 +1087,24 @@ namespace Kratos {
             this->GetRigidFaceResultsDistances().resize(number_of_particles);
 
             //Fast Bins Search
+            //SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
             mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
 
-            DoubleHierarchyMethod();
+            
+            #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
+            for (int i = 0; i < number_of_particles; i++) {
+                mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces.clear();
+                for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it) {
+                    Condition* p_neighbour_condition = (*neighbour_it).get();
+                    DEMWall* p_wall = dynamic_cast<DEMWall*> (p_neighbour_condition);               
+                    mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces.push_back(p_wall);
+                }//for results iterator
+                this->GetRigidFaceResults()[i].clear();
+                this->GetRigidFaceResultsDistances()[i].clear();
+            }
+                 
+            CheckHierarchyWithCurrentNeighbours();
+            //DoubleHierarchyMethod();
 
             //typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
             const int number_of_conditions = (int) pTConditions.size();
@@ -1109,23 +1137,37 @@ namespace Kratos {
         KRATOS_TRY
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
-        #pragma omp parallel for
+        #pragma omp parallel
+        {
+        std::vector< double > Distance_Array; //MACELI: reserve.. or take it out of the loop and have one for every thread
+        std::vector< array_1d<double, 3> > Normal_Array;
+        std::vector< array_1d<double, 4> > Weight_Array;
+        std::vector< int > Id_Array;
+        std::vector< int > ContactType_Array;
+        std::vector<DEMWall*> temporal_neigh;
+        std::vector< array_1d<double, 4> > temporal_contact_weights;
+        std::vector< int > temporal_contact_types;
+        
+        #pragma omp for
         for (int i = 0; i < number_of_particles; i++) {
+            SphericParticle* p_sphere_i = mListOfSphericParticles[i];
+            p_sphere_i->mNeighbourRigidFaces.resize(0);
+            p_sphere_i->mNeighbourPotentialRigidFaces.resize(0);
+            p_sphere_i->mContactConditionWeights.resize(0);
 
-            mListOfSphericParticles[i]->mNeighbourRigidFaces.resize(0);
-            mListOfSphericParticles[i]->mContactConditionWeights.resize(0);
+            Distance_Array.clear(); 
+            Normal_Array.clear();
+            Weight_Array.clear();
+            Id_Array.clear();
+            ContactType_Array.clear();
 
-            std::vector< double > Distance_Array; //MACELI: reserve.. or take it out of the loop and have one for every thread
-            std::vector< array_1d<double, 3> > Normal_Array;
-            std::vector< array_1d<double, 4> > Weight_Array;
-            std::vector< int > Id_Array;
-            std::vector< int > ContactType_Array;
+            std::vector<DEMWall*>& potential_neighbour_rigid_faces = p_sphere_i->mNeighbourPotentialRigidFaces;
 
             for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it) {
 
                 Condition* p_neighbour_condition = (*neighbour_it).get();
                 DEMWall* p_wall = dynamic_cast<DEMWall*> (p_neighbour_condition);
-                RigidFaceGeometricalConfigureType::DoubleHierarchyMethod(mListOfSphericParticles[i],
+                RigidFaceGeometricalConfigureType::DoubleHierarchyMethod(p_sphere_i,
                         p_wall,
                         Distance_Array,
                         Normal_Array,
@@ -1133,18 +1175,19 @@ namespace Kratos {
                         Id_Array,
                         ContactType_Array
                         );
+                potential_neighbour_rigid_faces.push_back(p_wall);
 
             }//for results iterator
 
-            std::vector<DEMWall*>& neighbour_rigid_faces = mListOfSphericParticles[i]->mNeighbourRigidFaces;
-            std::vector< array_1d<double, 4> >& neighbour_weights = mListOfSphericParticles[i]->mContactConditionWeights;
-            std::vector< int >& neighbor_contact_types = mListOfSphericParticles[i]->mContactConditionContactTypes;
+            std::vector<DEMWall*>& neighbour_rigid_faces = p_sphere_i->mNeighbourRigidFaces;
+            std::vector< array_1d<double, 4> >& neighbour_weights = p_sphere_i->mContactConditionWeights;
+            std::vector< int >& neighbor_contact_types = p_sphere_i->mContactConditionContactTypes;
 
             size_t neigh_size = neighbour_rigid_faces.size();
-
-            std::vector<DEMWall*> temporal_neigh(0);
-            std::vector< array_1d<double, 4> > temporal_contact_weights;
-            std::vector< int > temporal_contact_types;
+            
+            temporal_neigh.clear(); 
+            temporal_contact_weights.clear(); 
+            temporal_contact_types.clear(); 
 
             for (unsigned int n = 0; n < neigh_size; n++) {
 
@@ -1167,8 +1210,84 @@ namespace Kratos {
             this->GetRigidFaceResults()[i].clear();
             this->GetRigidFaceResultsDistances()[i].clear();
         }//for particles
+        } //parallel region
         KRATOS_CATCH("")
     }//DoubleHierarchyMethod
+
+    void ExplicitSolverStrategy::CheckHierarchyWithCurrentNeighbours()
+        {
+        KRATOS_TRY
+        const int number_of_particles = (int) mListOfSphericParticles.size();
+
+        #pragma omp parallel
+        {
+            std::vector< double > Distance_Array; //MACELI: reserve.. or take it out of the loop and have one for every thread
+            std::vector< array_1d<double, 3> > Normal_Array;
+            std::vector< array_1d<double, 4> > Weight_Array;
+            std::vector< int > Id_Array;
+            std::vector< int > ContactType_Array;
+
+            #pragma omp for schedule(dynamic, 100)
+            for (int i = 0; i < number_of_particles; i++) {
+                SphericParticle* p_sphere_i = mListOfSphericParticles[i];
+                p_sphere_i->mNeighbourRigidFaces.resize(0);
+                p_sphere_i->mContactConditionWeights.resize(0);
+
+                Distance_Array.clear();
+                Normal_Array.clear();
+                Weight_Array.clear();
+                Id_Array.clear();
+                ContactType_Array.clear();
+                std::vector<DEMWall*>& potential_neighbour_rigid_faces = p_sphere_i->mNeighbourPotentialRigidFaces;
+
+                for (unsigned int n = 0; n < potential_neighbour_rigid_faces.size(); ++n) {
+                    Condition* p_neighbour_condition = potential_neighbour_rigid_faces[n];
+                    DEMWall* p_wall = dynamic_cast<DEMWall*> (p_neighbour_condition);
+                    RigidFaceGeometricalConfigureType::DoubleHierarchyMethod(p_sphere_i,
+                            p_wall,
+                            Distance_Array,
+                            Normal_Array,
+                            Weight_Array,
+                            Id_Array,
+                            ContactType_Array
+                            );
+
+                }//loop over temporal neighbours
+
+                std::vector<DEMWall*>& neighbour_rigid_faces = p_sphere_i->mNeighbourRigidFaces;
+                std::vector< array_1d<double, 4> >& neighbour_weights = p_sphere_i->mContactConditionWeights;
+                std::vector< int >& neighbor_contact_types = p_sphere_i->mContactConditionContactTypes;
+
+                size_t neigh_size = neighbour_rigid_faces.size();
+
+                std::vector<DEMWall*> temporal_neigh(0);
+                std::vector< array_1d<double, 4> > temporal_contact_weights;
+                std::vector< int > temporal_contact_types;
+
+                for (unsigned int n = 0; n < neigh_size; n++) {
+
+                    if (ContactType_Array[n] != -1) //if(it is not a -1 contact neighbour, we copy it)
+                    {
+                        temporal_neigh.push_back(neighbour_rigid_faces[n]);
+                        temporal_contact_weights.push_back(Weight_Array[n]);
+                        temporal_contact_types.push_back(ContactType_Array[n]);
+
+                    }//if(it is not a -1 contact neighbour, we copy it)
+
+                }//loop over temporal neighbours
+
+                //swap
+
+                temporal_neigh.swap(neighbour_rigid_faces);
+                temporal_contact_weights.swap(neighbour_weights);
+                temporal_contact_types.swap(neighbor_contact_types);
+
+
+            }//for particles
+        }
+
+        KRATOS_CATCH("")
+        }//CheckHierarchyWithCurrentNeighbours
 
     void ExplicitSolverStrategy::CalculateInitialMaxIndentations(ProcessInfo& r_process_info) {
         KRATOS_TRY

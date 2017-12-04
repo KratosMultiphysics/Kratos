@@ -127,9 +127,9 @@ TotalUpdatedLagrangianUPElement::~TotalUpdatedLagrangianUPElement()
 //************************************************************************************
 
 
-void TotalUpdatedLagrangianUPElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void TotalUpdatedLagrangianUPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    LargeDisplacementUPElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
+    LargeDisplacementUPElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
     rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
@@ -145,7 +145,7 @@ void TotalUpdatedLagrangianUPElement::InitializeGeneralVariables (GeneralVariabl
 //************************************************************************************
 
 
-void TotalUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void TotalUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
 {
 
     //contributions to stiffness matrix calculated on the reference config
@@ -163,7 +163,7 @@ void TotalUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& 
 //************************************************************************************
 //************************************************************************************
 
-void TotalUpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void TotalUpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
 
     //contribution to external forces
@@ -180,7 +180,7 @@ void TotalUpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& 
 //************************************************************************************
 
 
-void TotalUpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVariables,
+void TotalUpdatedLagrangianUPElement::CalculateKinematics(ElementVariables& rVariables,
         const double& rPointNumber)
 
 {
@@ -300,7 +300,7 @@ void TotalUpdatedLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
 //************************************************************************************
 //************************************************************************************
 
-void TotalUpdatedLagrangianUPElement::CalculatePushForwardDN_DX(GeneralVariables& rVariables)
+void TotalUpdatedLagrangianUPElement::CalculatePushForwardDN_DX(ElementVariables& rVariables)
 {
     //SET DN_DX WITH THE NON LINEAR PART  = F^-1 * DN_DX
 
@@ -333,7 +333,7 @@ void TotalUpdatedLagrangianUPElement::CalculatePushForwardDN_DX(GeneralVariables
 //************************************************************************************
 //************************************************************************************
 
-void TotalUpdatedLagrangianUPElement::TransformGeneralVariables(GeneralVariables& rVariables, const double& rPointNumber)
+void TotalUpdatedLagrangianUPElement::TransformElementVariables(ElementVariables& rVariables, const double& rPointNumber)
 {
 
   // pull_back the stresses to last_known configuration
@@ -347,7 +347,7 @@ void TotalUpdatedLagrangianUPElement::TransformGeneralVariables(GeneralVariables
 //************************************************************************************
 //************************************************************************************
 
-void TotalUpdatedLagrangianUPElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
+void TotalUpdatedLagrangianUPElement::GetHistoricalVariables( ElementVariables& rVariables, const double& rPointNumber )
 {
     LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
 
@@ -359,7 +359,7 @@ void TotalUpdatedLagrangianUPElement::GetHistoricalVariables( GeneralVariables& 
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
 
-double& TotalUpdatedLagrangianUPElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
+double& TotalUpdatedLagrangianUPElement::CalculateVolumeChange( double& rVolumeChange, ElementVariables& rVariables )
 {
     KRATOS_TRY
       

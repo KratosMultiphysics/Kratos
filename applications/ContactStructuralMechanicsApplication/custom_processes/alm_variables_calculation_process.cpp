@@ -52,12 +52,10 @@ namespace Kratos
             GeometryType& r_this_geometry = it_cond->GetGeometry();
             const unsigned num_nodes_geometry = r_this_geometry.size();
             
-            // We get the values from the element
-            Element::Pointer p_elem = it_cond->GetValue(ELEMENT_POINTER);
-            
-            Kratos::Properties& this_properties = p_elem->GetProperties();
+            // We get the values from the condition
+            Kratos::Properties& this_properties = it_cond->GetProperties();
             const double& young_modulus = this_properties[YOUNG_MODULUS];
-            const double& element_volume = p_elem->GetGeometry().Area();
+            const double& element_volume = it_cond->GetGeometry().Area();
             
             // We get the values from the condition
             const double& condition_area = r_this_geometry.Area();

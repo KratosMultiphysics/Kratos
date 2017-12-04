@@ -252,6 +252,10 @@ def ConstructListsOfResultsToPrint(pp):
     if pp.CFD_DEM["embedded_option"].GetBool():
         pp.rigid_faces_nodal_results += ["POSITIVE_FACE_PRESSURE"]
         pp.rigid_faces_nodal_results += ["NEGATIVE_FACE_PRESSURE"]
+        
+    if pp.CFD_DEM["PostNonDimensionalVolumeWear"].GetBool(): 
+        pp.rigid_faces_nodal_results += ["IMPACT_WEAR"] 
+        pp.rigid_faces_nodal_results += ["NON_DIMENSIONAL_VOLUME_WEAR"]
 
     # changes on the fluid variables to print for the sake of consistency
     ChangeListOfFluidNodalResultsToPrint(pp)
@@ -459,10 +463,8 @@ def ChangeInputDataForConsistency(pp):
 
     pp.CFD_DEM.time_steps_per_stationarity_step = max( 1, int(pp.CFD_DEM["time_steps_per_stationarity_step"].GetInt()) ) # it should never be smaller than 1!
 
-    if pp.CFD_DEM["coupling_level_type"].GetInt() :
+    if pp.CFD_DEM["coupling_level_type"].GetInt() > 1:
         pp.CFD_DEM["stationary_problem_option"].SetBool(False)
-        pp.CFD_DEM.stationary_problem_option = False
-
 
 def EliminateRepeatedValuesFromList(redundant_list):
     clean_list = []
