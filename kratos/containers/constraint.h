@@ -60,8 +60,6 @@ class Constraint
     typedef std::vector<std::size_t> EquationIdVectorType;
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
-    typedef typename ConstraintData::MasterDofWeightMapType MasterDofWeightMapType;
-    typedef typename ConstraintData::SlavePairType SlavePairType;
     typedef typename ConstraintData::VariableDataType VariableDataType;
 
     ///@name Life Cycle
@@ -70,7 +68,7 @@ class Constraint
     /**
 	* Creates a Constraint object
 	*/
-    Constraint()
+    Constraint(std::string iName="default", bool iIsActive=true): mName(iName), mActive(iIsActive)
     {
     }
     /// Destructor.
@@ -93,9 +91,9 @@ class Constraint
 	* Get the MasterDOFs vector for this slave
 	* @return MasterDOFs vector for this slave
 	*/
-    virtual const MasterIdWeightMapType &GetMasterDataForSlave(DofType &SlaveDof)
+    virtual const SlaveData &GetSlaveData(DofType &SlaveDof)
     {
-        return mConstraintData.mEquationIdToWeightsMap[SlaveDof.EquationId()];
+        return mConstraintData.GetSlaveData(SlaveDof);
     }
 
     /**
@@ -103,11 +101,6 @@ class Constraint
 	*/
 
     // Takes in a slave dof equationId and a master dof equationId
-    virtual void AddConstraint(unsigned int SlaveDofEquationId, unsigned int MasterDofEquationId, double weight, double constant = 0.0)
-    {
-        mConstraintData.AddConstraint(SlaveDofEquationId, MasterDofEquationId, weight, constant);
-    }
-
     virtual void AddConstraint(DofType &SlaveDof, DofType &MasterDof, double weight, double constant = 0.0)
     {
         mConstraintData.AddConstraint(SlaveDof, MasterDof, weight, constant);
@@ -157,7 +150,7 @@ class Constraint
     {
     }
 
-    void Condition_ApplyConstraints(Condition& rCurrentCondition,
+    virtual void Condition_ApplyConstraints(Condition& rCurrentCondition,
                                               LocalSystemMatrixType &LHS_Contribution,
                                               LocalSystemVectorType &RHS_Contribution,
                                               EquationIdVectorType &EquationId,
@@ -171,7 +164,7 @@ class Constraint
 	*/
     virtual unsigned int GetNumbeOfMasterDofsForSlave(const DofType &SlaveDof)
     {
-        return 0;
+        return mConstraintData.GetNumbeOfMasterDofsForSlave(SlaveDof);
     }
 
     /**
@@ -231,6 +224,7 @@ class Constraint
     virtual void PrintInfo(std::ostream &rOStream) const
     {
         rOStream << " Constraint base class !" << std::endl;
+        mConstraintData.PrintInfo(rOStream);
     }
 
     ///@name Serialization

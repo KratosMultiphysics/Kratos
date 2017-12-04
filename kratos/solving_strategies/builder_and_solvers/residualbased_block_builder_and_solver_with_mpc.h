@@ -9,9 +9,6 @@
 //
 //  Main authors:    Aditya Ghantasala / Navaneeth K Narayanan
 //
-//  The modification of the element matrices follows the algorithm described in 
-//  "AN ALGQRITHM FOR MULTIPOINT CONSTRAINTS IN FINITE ELEMENT ANALYSIS"
-//   by John F. Abel and Mark S. Shephard
 //
 
 #ifndef KRATOS_SOLVING_STRATEGIES_BUILDER_AND_SOLVERS_RESIDUALBASED_BLOCK_BUILDER_AND_SOLVER_WITH_MPC_H_
@@ -141,14 +138,12 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
     typedef Dof<double> *DofPointerType;
     typedef Dof<double> DofType;
 
-    typedef typename Kratos::Constraint<TDenseSpace>::MasterIdWeightMapType MasterIdWeightMapType;
-    typedef typename Kratos::Constraint<TDenseSpace>::SlavePairType SlavePairType;
+
     typedef typename Kratos::Constraint<TDenseSpace>::VariableDataType VariableDataType;
-    typedef typename Kratos::Constraint<TDenseSpace>::MasterDofWeightMapType MasterDofWeightMapType;
     typedef Node<3> NodeType;
     typedef typename ModelPart::NodesContainerType NodesContainerType;
     typedef typename Constraint<TDenseSpace>::Pointer ConstraintPointerType;
-    typedef boost::shared_ptr<std::vector<ConstraintPointerType>> ConstraintSharedPointerVectorType;    
+    typedef boost::shared_ptr<std::vector<ConstraintPointerType>> ConstraintSharedPointerVectorType;
 
     typedef ProcessInfo ProcessInfoType;
 
@@ -163,6 +158,11 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
     {
+        std::cout << "###################################################" << std::endl;
+        std::cout << "#################%%%%%%%%%%%%%#####################" << std::endl;
+        std::cout << "#################%%%%%%%%%%%%%#####################" << std::endl;
+        std::cout << "###################################################" << std::endl;
+        std::cout << "###################################################" << std::endl;
     }
 
     /** Destructor.
@@ -192,15 +192,16 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
 
         ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
         UpdateConstraintEquationsAfterIteration(r_model_part, CurrentProcessInfo);
+
         Constraints_ExecuteBeforeBuilding(r_model_part, CurrentProcessInfo);
 
-        Build(pScheme, r_model_part, A, b);        
+        Build(pScheme, r_model_part, A, b);
 
         Timer::Stop("Build");
 
         this->ApplyDirichletConditions(pScheme, r_model_part, A, Dx, b);
 
-        Constraints_ExecuteAfterBuilding(r_model_part, CurrentProcessInfo);        
+        Constraints_ExecuteAfterBuilding(r_model_part, CurrentProcessInfo);
 
         if (this->GetEchoLevel() == 3)
         {
@@ -214,7 +215,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         Timer::Start("Solve");
 
         Constraints_ExecuteBeforeSolving(r_model_part, CurrentProcessInfo);
-        
+
         this->SystemSolveWithPhysics(A, Dx, b, r_model_part);
 
         Timer::Stop("Solve");
@@ -289,7 +290,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                     // Modifying the local contributions for MPC
-                    this->Element_ApplyConstraints(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    this->Element_ApplyConstraints(*(*(it.base())), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
                     this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mlock_array);
@@ -319,7 +320,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                     pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     // Modifying the local contributions for MPC
-                    this->Condition_ApplyConstraints(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    this->Condition_ApplyConstraints(*(*(it.base())), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
 //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -390,7 +391,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
             (i_element)->EquationIdVector(ids, CurrentProcessInfo);
 
             // Modifying the equation IDs of this element to suit MPCs
-            this->Element_ModifyEquationIdsForConstraints(*(i_element.base()), ids, CurrentProcessInfo);
+            this->Element_ModifyEquationIdsForConstraints(*(*(i_element.base())), ids, CurrentProcessInfo);
 
             for (std::size_t i = 0; i < ids.size(); i++)
             {
@@ -412,7 +413,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
             typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
             (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
             // Modifying the equation IDs of this element to suit MPCs
-            this->Condition_ModifyEquationIdsForConstraints(*(i_condition.base()), ids, CurrentProcessInfo);
+            this->Condition_ModifyEquationIdsForConstraints(*(*(i_condition.base())), ids, CurrentProcessInfo);
 
             for (std::size_t i = 0; i < ids.size(); i++)
             {
@@ -470,47 +471,53 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
     /*@{ */
 
     /*
-     * This function changes/extends the element LHS and RHS to apply MPC
+     * This function changes/extends the element LHS and RHS to apply constraints
      */
 
-    void Element_ApplyConstraints(Element::Pointer rCurrentElement,
-                                            LocalSystemMatrixType &LHS_Contribution,
-                                            LocalSystemVectorType &RHS_Contribution,
-                                            Element::EquationIdVectorType &EquationId,
-                                            ProcessInfo &CurrentProcessInfo)
+    void Element_ApplyConstraints(Element& rCurrentElement,
+                                  LocalSystemMatrixType &LHS_Contribution,
+                                  LocalSystemVectorType &RHS_Contribution,
+                                  Element::EquationIdVectorType &EquationId,
+                                  ProcessInfo &CurrentProcessInfo)
     {
 
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
+            std::cout<<"Element ID :: "<< rCurrentElement.Id()<<std::endl;
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto& constraint : (*constraintVector))
+            std::cout<<"####################### LENGTH :: "<<(*constraintVector).size()<<std::endl;
+            for (auto &constraint : (*constraintVector))
             {
                 if (constraint->IsActive())
                 {
-                    constraint->Element_ApplyConstraints(*rCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    std::cout<<"####################### 1.PROCESSING :: "<<std::endl;                    
+                    constraint->Element_ApplyConstraints(rCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                 }
             }
         }
 
     } // End of function
 
-    void Condition_ApplyConstraints(Condition::Pointer rCurrentElement,
-                                              LocalSystemMatrixType &LHS_Contribution,
-                                              LocalSystemVectorType &RHS_Contribution,
-                                              Element::EquationIdVectorType &EquationId,
-                                              ProcessInfo &CurrentProcessInfo)
+    /*
+     * This function changes/extends the condition LHS and RHS to apply constraints
+     */
+    void Condition_ApplyConstraints(Condition& rCurrentElement,
+                                    LocalSystemMatrixType &LHS_Contribution,
+                                    LocalSystemVectorType &RHS_Contribution,
+                                    Element::EquationIdVectorType &EquationId,
+                                    ProcessInfo &CurrentProcessInfo)
     {
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto& constraint : (*constraintVector))
+            for (auto &constraint : (*constraintVector))
             {
                 if (constraint->IsActive())
                 {
-                    constraint->Condition_ApplyConstraints(*rCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    constraint->Condition_ApplyConstraints(rCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                 }
             }
-        }        
+        }
 
     } // End of the function
 
@@ -525,46 +532,33 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         {
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
 
-            for (auto& constraint : (*constraintVector))
+            for (auto &constraint : (*constraintVector))
             {
                 if (constraint->IsActive())
                 {
-                    for (auto& slaveMasterDofMap : constraint->GetData().mDofConstraints)
+                    for (auto &slaveData : constraint->GetData())
                     {
-                        SlavePairType slaveDofMap = slaveMasterDofMap.first;
-                        MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
-                        unsigned int slaveNodeId = slaveDofMap.first;
-                        unsigned int slaveDofKey = slaveDofMap.second;
-                        NodeType &node = r_model_part.Nodes()[slaveNodeId];
-                        Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
-                        unsigned int slaveEquationId = it->EquationId();
+                        unsigned int slaveNodeId = slaveData->dofId;
+                        unsigned int slaveDofKey = slaveData->dofKey;
+                        unsigned int slaveEquationId = slaveData->equationId;
+                        double constant = slaveData->constant;
 
-                        for (auto& masterDofMapElem : masterDofMap)
+                        int index = 0;
+                        for (auto masterEquationId : slaveData->masterEquationIds)
                         {
-                            unsigned int masterNodeId;
-                            double constant;
-                            unsigned int masterEquationId;
-                            unsigned int masterDofKey;
-                            double weight = masterDofMapElem.second;
-                            std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
-                            NodeType &masterNode = r_model_part.Nodes()[masterNodeId];
-                            Node<3>::DofsContainerType::iterator it = masterNode.GetDofs().find(masterDofKey);
-                            masterEquationId = it->EquationId();
+                            double weight = slaveData->masterWeights[index];
 
                             Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + TSparseSpace::GetValue(Dx, masterEquationId) * weight;
                         }
 
-                        Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + constraint->GetData().mSlaveEquationIdConstantsUpdate[slaveEquationId];
-                        constraint->GetData().mSlaveEquationIdConstantsUpdate[slaveEquationId] = 0.0;
+                        Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + slaveData->constantUpdate;
+                        slaveData->constantUpdate = 0.0;
                     }
                 }
             }
         }
     }
 
-    /*
-     * This function Formulates the MPC data in equation ID terms
-     */
     void FormulateEquationIdRelationMap(ModelPart &r_model_part, ProcessInfo &CurrentProcessInfo)
     {
 
@@ -573,7 +567,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         if (info.Has(CONSTRAINTS_CONTAINER))
         {
             ConstraintSharedPointerVectorType constraintVector = info.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto& constraint : (*constraintVector))
+            for (auto &constraint : (*constraintVector))
             {
                 if (constraint->IsActive())
                 {
@@ -591,7 +585,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto& constraint : (*constraintVector))
+            for (auto &constraint : (*constraintVector))
             {
                 if (constraint->IsActive())
                 {
@@ -601,47 +595,53 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         }
     }
 
-    void Element_ModifyEquationIdsForConstraints(Element::Pointer rCurrentElement,
+    /*
+     * This function Formulates the constraint data in equation ID terms for formulate the sparsity pattern of the sparse matrix
+     */
+    void Element_ModifyEquationIdsForConstraints(Element& rCurrentElement,
                                                  Element::EquationIdVectorType &EquationId,
                                                  ProcessInfo &CurrentProcessInfo)
     {
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto& constraint : (*constraintVector))
+            for (auto &constraint : (*constraintVector))
             {
                 if (constraint->IsActive())
                 {
-                    constraint->Element_ModifyEquationIdsForConstraints(*rCurrentElement, EquationId, CurrentProcessInfo);
+                    constraint->Element_ModifyEquationIdsForConstraints(rCurrentElement, EquationId, CurrentProcessInfo);
                 }
             }
         }
     }
 
-
-    void Condition_ModifyEquationIdsForConstraints(Condition::Pointer rCurrentCondition,
-                                                 Condition::EquationIdVectorType &EquationId,
-                                                 ProcessInfo &CurrentProcessInfo)
+    /*
+     * This function Formulates the constraint data in equation ID terms for formulate the sparsity pattern of the sparse matrix
+     */
+    void Condition_ModifyEquationIdsForConstraints(Condition& rCurrentCondition,
+                                                   Condition::EquationIdVectorType &EquationId,
+                                                   ProcessInfo &CurrentProcessInfo)
     {
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto& constraint : (*constraintVector))
+            for (auto &constraint : (*constraintVector))
             {
                 if (constraint->IsActive())
                 {
-                    constraint->Condition_ModifyEquationIdsForConstraints(*rCurrentCondition, EquationId, CurrentProcessInfo);
+                    constraint->Condition_ModifyEquationIdsForConstraints(rCurrentCondition, EquationId, CurrentProcessInfo);
                 }
             }
         }
-    }    
+    }
 
-    void Constraints_ExecuteBeforeBuilding(ModelPart& model_part, ProcessInfo &CurrentProcessInfo){
+    void Constraints_ExecuteBeforeBuilding(ModelPart &model_part, ProcessInfo &CurrentProcessInfo)
+    {
 
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto& constraint : (*constraintVector))
+            for (auto &constraint : (*constraintVector))
             {
                 if (constraint->IsActive())
                 {
@@ -651,13 +651,13 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         }
     }
 
-
-    void Constraints_ExecuteAfterBuilding(ModelPart& model_part, ProcessInfo &CurrentProcessInfo){
+    void Constraints_ExecuteAfterBuilding(ModelPart &model_part, ProcessInfo &CurrentProcessInfo)
+    {
 
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto& constraint : (*constraintVector))
+            for (auto &constraint : (*constraintVector))
             {
                 if (constraint->IsActive())
                 {
@@ -667,12 +667,13 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         }
     }
 
-    void Constraints_ExecuteBeforeSolving(ModelPart& model_part, ProcessInfo &CurrentProcessInfo){
+    void Constraints_ExecuteBeforeSolving(ModelPart &model_part, ProcessInfo &CurrentProcessInfo)
+    {
 
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto& constraint : (*constraintVector))
+            for (auto &constraint : (*constraintVector))
             {
                 if (constraint->IsActive())
                 {
@@ -682,12 +683,13 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         }
     }
 
-    void Constraints_ExecuteAfterSolving(ModelPart& model_part, ProcessInfo &CurrentProcessInfo){
+    void Constraints_ExecuteAfterSolving(ModelPart &model_part, ProcessInfo &CurrentProcessInfo)
+    {
 
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto& constraint : (*constraintVector))
+            for (auto &constraint : (*constraintVector))
             {
                 if (constraint->IsActive())
                 {
@@ -695,9 +697,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                 }
             }
         }
-    }    
-    
-
+    }
 };
 }
 

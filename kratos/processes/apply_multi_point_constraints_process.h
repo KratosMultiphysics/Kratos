@@ -27,8 +27,6 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "spaces/ublas_space.h"
-
-// Application includes
 #include "containers/constraint.h"
 #include "containers/multipoint_constraint.h"
 
@@ -92,6 +90,15 @@ class ApplyMultipointConstraintsProcess : public Process
 
     ApplyMultipointConstraintsProcess(ModelPart &model_part, std::string name = "default") : Process(Flags()), mr_model_part(model_part), m_parameters("{}")
     {
+        Parameters default_parameters(R"(
+            {
+                "constraint_set_name":"default",
+                "master_sub_model_part_name":"default_master",
+                "slave_sub_model_part_name":"default_slave",                
+                "variable_names":[],
+                "reform_every_step":false   
+            }  )");
+        m_parameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
         // IMPORTANT : This constructor is not to be used when using this process in the normal KRATOS process_list of python script
         ProcessInfoPointerType info = mr_model_part.pGetProcessInfo();

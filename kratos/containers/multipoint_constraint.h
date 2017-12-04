@@ -9,8 +9,11 @@
 //
 //  Main authors:    Aditya Ghantasala
 //
+//  The modification of the element matrices follows the algorithm described in
+//  "AN ALGQRITHM FOR MULTIPOINT CONSTRAINTS IN FINITE ELEMENT ANALYSIS"
+//   by John F. Abel and Mark S. Shephard
 //
-
+//
 #if !defined(MULTIPOINT_CONSTRAINT_H)
 #define MULTIPOINT_CONSTRAINT_H
 // System includes
@@ -52,7 +55,6 @@ class MultipointConstraint : public Constraint<TDenseSpace>
     typedef Node<3> NodeType;
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
-    typedef typename BaseType::MasterDofWeightMapType MasterDofWeightMapType;
     typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
 
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
@@ -77,70 +79,69 @@ class MultipointConstraint : public Constraint<TDenseSpace>
 
     virtual void FormulateEquationIdRelationMap(NodesContainerType &Nodes) override
     {
-        for (auto slaveMasterDofMap : this->GetData().mDofConstraints)
+        for (const auto &slaveData : this->GetData())
         {
-            SlavePairType slaveDofMap = slaveMasterDofMap.first;
-            MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
-            unsigned int slaveNodeId = slaveDofMap.first;
-            unsigned int slaveDofKey = slaveDofMap.second;
+            unsigned int slaveNodeId = slaveData->dofId;
+            unsigned int slaveDofKey = slaveData->dofKey;
             NodeType &node = Nodes[slaveNodeId];
             Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
             unsigned int slaveEquationId = it->EquationId();
+            slaveData->SetEquationId(slaveEquationId);
 
-            for (auto masterDofMapElem : masterDofMap)
+            int index = 0;
+            for (auto masterDofId : slaveData->masterDofIds)
             {
-                unsigned int masterNodeId;
-                double constant;
                 unsigned int masterEquationId;
-                unsigned int masterDofKey;
-                double weight = masterDofMapElem.second;
-                std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
-                NodeType &masterNode = Nodes[masterNodeId];
+                unsigned int masterDofKey = slaveData->masterDofKeys[index];
+
+                NodeType &masterNode = Nodes[masterDofId];
                 Node<3>::DofsContainerType::iterator itMaster = masterNode.GetDofs().find(masterDofKey);
                 masterEquationId = itMaster->EquationId();
                 //
-                this->AddConstraint(slaveEquationId, masterEquationId, weight, constant);
+                slaveData->SetMasterEquationId(masterDofId, masterDofKey, masterEquationId);
+                index++;
             }
         }
+        for (auto &slaveData : this->GetData())
+        {
+                (*slaveData).PrintInfo();
+        }        
+
     }
 
     virtual void UpdateConstraintEquationsAfterIteration(NodesContainerType &Nodes) override
     {
-
-        for (auto slaveMasterDofMap : this->GetData().mDofConstraints)
+        for (auto &slaveData : this->GetData())
         {
-            SlavePairType slaveDofMap = slaveMasterDofMap.first;
-            MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
-            unsigned int slaveNodeId = slaveDofMap.first;
-            unsigned int slaveDofKey = slaveDofMap.second;
+            unsigned int slaveNodeId = slaveData->dofId;
+            unsigned int slaveDofKey = slaveData->dofKey;
             NodeType &node = Nodes[slaveNodeId];
             Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
-            unsigned int slaveEquationId = it->EquationId();
+            unsigned int slaveEquationId = slaveData->equationId;
             double slaveDofValue = it->GetSolutionStepValue();
             double slaveDofValueCalc = 0.0;
+            double constant = slaveData->constant;
 
-            for (auto masterDofMapElem : masterDofMap)
+            int index = 0;
+            for (auto masterDofId : slaveData->masterDofIds)
             {
-                unsigned int masterNodeId;
-                double constant;
-                unsigned int masterDofKey;
-                double weight = masterDofMapElem.second;
-                std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
-                NodeType &masterNode = Nodes[masterNodeId];
+                unsigned int masterDofKey = slaveData->masterDofKeys[index];
+                double weight = slaveData->masterWeights[index];
+                NodeType &masterNode = Nodes[masterDofId]; // DofId and nodeId are same
                 Node<3>::DofsContainerType::iterator itMaster = masterNode.GetDofs().find(masterDofKey);
 
                 slaveDofValueCalc += itMaster->GetSolutionStepValue() * weight;
             }
-            slaveDofValueCalc += (this->GetData()).mSlaveEquationIdConstantsMap[slaveEquationId];
+            slaveDofValueCalc += constant;
 
             double dConstant = slaveDofValueCalc - slaveDofValue;
-            (this->GetData()).mSlaveEquationIdConstantsUpdate[slaveEquationId] = dConstant;
+            slaveData->constantUpdate = dConstant;
         }
     }
 
-    virtual void Element_ModifyEquationIdsForMPC(Element &rCurrentElement,
-                                                 EquationIdVectorType &EquationId,
-                                                 ProcessInfo &CurrentProcessInfo)
+    virtual void Element_ModifyEquationIdsForConstraints(Element &rCurrentElement,
+                                                         EquationIdVectorType &EquationId,
+                                                         ProcessInfo &CurrentProcessInfo) override
     {
         const unsigned int number_of_nodes = rCurrentElement.GetGeometry().PointsNumber();
         // For each node check if it is a slave or not If it is .. we change the Transformation matrix
@@ -152,17 +153,16 @@ class MultipointConstraint : public Constraint<TDenseSpace>
             if (rCurrentElement.GetGeometry()[j].Is(SLAVE))
             { //temporary, will be checked once at the beginning only
                 // Necessary data for iterating and modifying the matrix
-                unsigned int slaveEquationId;
                 int startPositionNodeDofs = numDofsPerNode * (j);
                 for (int i = 0; i < numDofsPerNode; i++)
                 {
-                    slaveEquationId = elementDofs[startPositionNodeDofs + i]->EquationId();
-                    if (BaseType::GetData().mEquationIdToWeightsMap.count(slaveEquationId) > 0)
+                    if (this->GetData().GetNumbeOfMasterDofsForSlave(*(elementDofs[startPositionNodeDofs + i])) > 0)
                     {
-                        MasterIdWeightMapType &masterWeightsMap = BaseType::GetData().mEquationIdToWeightsMap[slaveEquationId];
-                        for (auto &master : masterWeightsMap)
+                        auto& slaveData = this->GetData().GetSlaveData(*(elementDofs[startPositionNodeDofs + i]));
+
+                        for (auto masterEqId : slaveData.masterEquationIds)
                         {
-                            EquationId.push_back(master.first);
+                            EquationId.push_back(masterEqId);
                         }
                     }
                 }
@@ -170,9 +170,9 @@ class MultipointConstraint : public Constraint<TDenseSpace>
         }
     }
 
-    virtual void Condition_ModifyEquationIdsForMPC(Condition &rCurrentCondition,
-                                                   EquationIdVectorType &EquationId,
-                                                   ProcessInfo &CurrentProcessInfo)
+    virtual void Condition_ModifyEquationIdsForConstraints(Condition &rCurrentCondition,
+                                                           EquationIdVectorType &EquationId,
+                                                           ProcessInfo &CurrentProcessInfo) override
     {
         const unsigned int number_of_nodes = rCurrentCondition.GetGeometry().PointsNumber();
         // For each node check if it is a slave or not If it is .. we change the Transformation matrix
@@ -184,17 +184,16 @@ class MultipointConstraint : public Constraint<TDenseSpace>
             if (rCurrentCondition.GetGeometry()[j].Is(SLAVE))
             { //temporary, will be checked once at the beginning only
                 // Necessary data for iterating and modifying the matrix
-                unsigned int slaveEquationId;
                 int startPositionNodeDofs = numDofsPerNode * (j);
                 for (int i = 0; i < numDofsPerNode; i++)
                 {
-                    slaveEquationId = elementDofs[startPositionNodeDofs + i]->EquationId();
-                    if (BaseType::GetData().mEquationIdToWeightsMap.count(slaveEquationId) > 0)
+                    if (this->GetData().GetNumbeOfMasterDofsForSlave(*(elementDofs[startPositionNodeDofs + i])) > 0)
                     {
-                        MasterIdWeightMapType &masterWeightsMap = BaseType::GetData().mEquationIdToWeightsMap[slaveEquationId];
-                        for (auto &master : masterWeightsMap)
+                        auto& slaveData = this->GetData().GetSlaveData(*(elementDofs[startPositionNodeDofs + i]));
+
+                        for (auto masterEqId : slaveData.masterEquationIds)
                         {
-                            EquationId.push_back(master.first);
+                            EquationId.push_back(masterEqId);
                         }
                     }
                 }
@@ -206,10 +205,10 @@ class MultipointConstraint : public Constraint<TDenseSpace>
                                           LocalSystemMatrixType &LHS_Contribution,
                                           LocalSystemVectorType &RHS_Contribution,
                                           EquationIdVectorType &EquationId,
-                                          ProcessInfo &CurrentProcessInfo)
+                                          ProcessInfo &CurrentProcessInfo) override
     {
 
-        KRATOS_TRY
+        //KRATOS_TRY
 
         bool slaveFound = false;
         Element::NodesArrayType nodesArray = rCurrentElement.GetGeometry();
@@ -227,6 +226,7 @@ class MultipointConstraint : public Constraint<TDenseSpace>
         {
             return;
         }
+         //std::cout << "####################### 2.PROCESSING :: " << std::endl;
         std::vector<std::size_t> localEquationIds;
         std::vector<std::size_t> localSlaveEquationIds;
         std::vector<std::size_t> localInternEquationIds;
@@ -237,7 +237,7 @@ class MultipointConstraint : public Constraint<TDenseSpace>
         for (unsigned int i = 0; i < EquationId.size(); ++i)
         {
             localEquationIds.push_back(i);
-            if (BaseType::GetData().mEquationIdToWeightsMap.count(EquationId[i]) > 0)
+            if (this->GetData().GetNumbeOfMasterDofsForSlave(EquationId[i]) > 0)
             {
                 localSlaveEquationIds.push_back(i);
             }
@@ -245,6 +245,7 @@ class MultipointConstraint : public Constraint<TDenseSpace>
         std::sort(localEquationIds.begin(), localEquationIds.end());
         std::sort(localSlaveEquationIds.begin(), localSlaveEquationIds.end());
         std::set_difference(localEquationIds.begin(), localEquationIds.end(), localSlaveEquationIds.begin(), localSlaveEquationIds.end(), std::back_inserter(localInternEquationIds));
+        //std::cout << "####################### 3.PROCESSING :: " << std::endl;
         for (unsigned int j = 0; j < number_of_nodes; ++j)
         { // Loop over the nodes
             std::vector<int> slaveEquationIds;
@@ -253,28 +254,29 @@ class MultipointConstraint : public Constraint<TDenseSpace>
             DofsVectorType elementDofs;
             rCurrentElement.GetDofList(elementDofs, CurrentProcessInfo);
             int numDofsPerNode = elementDofs.size() / number_of_nodes;
-
+            //std::cout << "####################### 3a.PROCESSING :: " << std::endl;
             if (rCurrentElement.GetGeometry()[j].Is(SLAVE))
-            { // If the node has a slave DOF
+            { // If the node has a slave DOF                
                 int startPositionNodeDofs = numDofsPerNode * (j);
                 unsigned int slaveEquationId;
                 for (int i = 0; i < numDofsPerNode; i++)
                 {
                     slaveEquationId = elementDofs[startPositionNodeDofs + i]->EquationId();
-                    if (BaseType::GetData().mEquationIdToWeightsMap.count(slaveEquationId) > 0)
+                    if (this->GetData().GetNumbeOfMasterDofsForSlave(EquationId[i]) > 0)
                     {
                         totalNumberOfSlaves++;
                         slaveEquationIds.push_back(slaveEquationId);
-                        MasterIdWeightMapType &masterWeightsMap = BaseType::GetData().mEquationIdToWeightsMap[slaveEquationId];
-
-                        totalNumberOfMasters += masterWeightsMap.size();
+                        int numMasters = this->GetData().GetNumbeOfMasterDofsForSlave(slaveEquationId);
+                        //std::cout << "####################### 3a.PROCESSING :: numMasters "<< numMasters << std::endl;
+                        totalNumberOfMasters += numMasters;
                     }
                 }
-
+                //std::cout << "####################### 3b.PROCESSING :: totalNumberOfMasters "<< totalNumberOfMasters << std::endl;
                 std::vector<std::size_t>::iterator it;
                 std::vector<std::size_t> localNodalSlaveEquationIds;
                 // We resize the LHS and RHS contribution with the master sizes
                 int currentSysSize = LHS_Contribution.size1();
+                //std::cout << "####################### 3b.PROCESSING :: currentSysSize "<< currentSysSize << std::endl;
                 int lhsSize1 = currentSysSize + totalNumberOfMasters;
                 int lhsSize2 = currentSysSize + totalNumberOfMasters;
                 LHS_Contribution.resize(lhsSize1, lhsSize2, true); //true for Preserving the data and resizing the matrix
@@ -289,6 +291,7 @@ class MultipointConstraint : public Constraint<TDenseSpace>
                     }
                     RHS_Contribution(m) = 0.0;
                 }
+                ///std::cout << "####################### 3c.PROCESSING :: " << std::endl;
                 // Formulating the local slave equationId vector
                 for (int slaveI = 0; slaveI < totalNumberOfSlaves; ++slaveI)
                 { // For each of the Slave DOF
@@ -303,20 +306,22 @@ class MultipointConstraint : public Constraint<TDenseSpace>
                     }
                     localNodalSlaveEquationIds.push_back(localSlaveEqId);
                 }
-
+                //std::cout << "####################### 3d.PROCESSING :: " << std::endl;
                 int currentNumberOfMastersProcessed = 0;
                 for (auto localSlaveEqId : localNodalSlaveEquationIds)
                 { // Loop over all the slaves for this node
                     it = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqId);
                     int slaveIndex = std::distance(localNodalSlaveEquationIds.begin(), it);
-                    MasterIdWeightMapType &masterWeightsMap = BaseType::GetData().mEquationIdToWeightsMap[slaveEquationIds[slaveIndex]];
-                    for (auto masterI : masterWeightsMap)
+                    auto& slaveData = this->GetData().GetSlaveData(slaveEquationIds[slaveIndex]);
+
+                    int index = 0;
+                    for (auto masterEqId : slaveData.masterEquationIds)
                     { // Loop over all the masters the slave has
 
                         int localMasterEqId = currentNumberOfMastersProcessed + currentSysSize;
                         ++currentNumberOfMastersProcessed;
-                        double weight = masterI.second;
-                        double constant = BaseType::GetData().mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndex]];
+                        double weight = slaveData.masterWeights[index];
+                        double constant = slaveData.constant;
                         for (auto &localInternEqId : localInternEquationIds)
                         {
                             RHS_Contribution(localInternEqId) += -LHS_Contribution(localInternEqId, localSlaveEqId) * constant;
@@ -334,11 +339,12 @@ class MultipointConstraint : public Constraint<TDenseSpace>
                         {
                             //std::vector<std::size_t>::iterator itOther = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqIdOther);
                             int slaveIndexOther = std::distance(localNodalSlaveEquationIds.begin(), it);
-                            double constantOther = BaseType::GetData().mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndexOther]];
+                            auto slaveDataOther = this->GetData().GetSlaveData(slaveEquationIds[slaveIndexOther]);
+                            double constantOther = slaveDataOther.constant;
                             RHS_Contribution(localMasterEqId) += LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) * weight * constantOther;
                         }
 
-                        EquationId.push_back(masterI.first);
+                        EquationId.push_back(masterEqId);
                         // Changing the RHS side of the equation
                         RHS_Contribution(localMasterEqId) += weight * RHS_Contribution(localSlaveEqId);
 
@@ -346,11 +352,12 @@ class MultipointConstraint : public Constraint<TDenseSpace>
                         WeightsCorrespondingToMasters.push_back(weight);
                         SlavesCorrespondingToMasters.push_back(localSlaveEqId);
 
+                        index++;
                     } // Loop over all the masters the slave has
 
                     RHS_Contribution(localSlaveEqId) = 0.0;
                 } // Loop over all the slaves for this node
-
+                //std::cout << "####################### 3e.PROCESSING :: " << std::endl;
                 //Adding contribution from slave to Kmm
                 for (unsigned int localMasterIndex = 0; localMasterIndex < localMasterEquationIds.size(); localMasterIndex++)
                 {
@@ -360,9 +367,11 @@ class MultipointConstraint : public Constraint<TDenseSpace>
                                                                                                                                      LHS_Contribution(SlavesCorrespondingToMasters[localMasterIndex], SlavesCorrespondingToMasters[localMasterIndexOther]) * WeightsCorrespondingToMasters[localMasterIndexOther];
                     }
                 }
+                //std::cout << "####################### 3f.PROCESSING :: " << std::endl;
             } // If the node has a slave DOF
         }     // Loop over the nodes
 
+        //std::cout << "####################### 4.PROCESSING :: " << std::endl;
         // For K(u,s) and K(s,u)
         for (auto &localSlaveEqId : localSlaveEquationIds)
         { // Loop over all the slaves for this node
@@ -372,15 +381,15 @@ class MultipointConstraint : public Constraint<TDenseSpace>
                 LHS_Contribution(localInternEqId, localSlaveEqId) = 0.0;
             }
         } // Loop over all the slaves for this node
-
-        KRATOS_CATCH("Applying Multipoint constraints failed ..");
+        //std::cout << "####################### 5.PROCESSING :: " << std::endl;
+        //KRATOS_CATCH("Applying Multipoint constraints failed ..");
     }
-
-    void Condition_ApplyMultipointConstraints(Condition &rCurrentCondition,
+    /*
+    void Condition_ApplyConstraints(Condition &rCurrentCondition,
                                               LocalSystemMatrixType &LHS_Contribution,
                                               LocalSystemVectorType &RHS_Contribution,
                                               EquationIdVectorType &EquationId,
-                                              ProcessInfo &CurrentProcessInfo)
+                                              ProcessInfo &CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -411,7 +420,7 @@ class MultipointConstraint : public Constraint<TDenseSpace>
         for (unsigned int i = 0; i < EquationId.size(); ++i)
         {
             localEquationIds.push_back(i);
-            if (constraint->GetData().mEquationIdToWeightsMap.count(EquationId[i]) > 0)
+            if (BaseType::GetData().mEquationIdToWeightsMap.count(EquationId[i]) > 0)
             {
                 localSlaveEquationIds.push_back(i);
             }
@@ -435,12 +444,12 @@ class MultipointConstraint : public Constraint<TDenseSpace>
                 for (int i = 0; i < numDofsPerNode; i++)
                 {
                     slaveEquationId = elementDofs[startPositionNodeDofs + i]->EquationId();
-                    if (constraint->GetData().mEquationIdToWeightsMap.count(slaveEquationId) > 0)
-                        if (constraint->GetData().mEquationIdToWeightsMap.count(slaveEquationId) > 0)
+                    if (BaseType::GetData().mEquationIdToWeightsMap.count(slaveEquationId) > 0)
+                        if (BaseType::GetData().mEquationIdToWeightsMap.count(slaveEquationId) > 0)
                         {
                             totalNumberOfSlaves++;
                             slaveEquationIds.push_back(slaveEquationId);
-                            MasterIdWeightMapType &masterWeightsMap = constraint->GetData().mEquationIdToWeightsMap[slaveEquationId];
+                            MasterIdWeightMapType &masterWeightsMap = BaseType::GetData().mEquationIdToWeightsMap[slaveEquationId];
 
                             totalNumberOfMasters += masterWeightsMap.size();
                         }
@@ -484,14 +493,14 @@ class MultipointConstraint : public Constraint<TDenseSpace>
                 { // Loop over all the slaves for this node
                     it = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqId);
                     int slaveIndex = std::distance(localNodalSlaveEquationIds.begin(), it);
-                    MasterIdWeightMapType &masterWeightsMap = constraint->GetData().mEquationIdToWeightsMap[slaveEquationIds[slaveIndex]];
+                    MasterIdWeightMapType &masterWeightsMap = BaseType::GetData().mEquationIdToWeightsMap[slaveEquationIds[slaveIndex]];
                     for (auto &masterI : masterWeightsMap)
                     { // Loop over all the masters the slave has
 
                         int localMasterEqId = currentNumberOfMastersProcessed + currentSysSize;
                         ++currentNumberOfMastersProcessed;
                         double weight = masterI.second;
-                        double constant = constraint->GetData().mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndex]];
+                        double constant = BaseType::GetData().mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndex]];
                         for (auto &localInternEqId : localInternEquationIds)
                         {
                             RHS_Contribution(localInternEqId) += -LHS_Contribution(localInternEqId, localSlaveEqId) * constant;
@@ -509,7 +518,7 @@ class MultipointConstraint : public Constraint<TDenseSpace>
                         {
                             //std::vector<std::size_t>::iterator itOther = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqIdOther);
                             int slaveIndexOther = std::distance(localNodalSlaveEquationIds.begin(), it);
-                            double constantOther = constraint->GetData().mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndexOther]];
+                            double constantOther = BaseType::GetData().mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndexOther]];
                             RHS_Contribution(localMasterEqId) += LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) * weight * constantOther;
                         }
 
@@ -551,16 +560,6 @@ class MultipointConstraint : public Constraint<TDenseSpace>
         KRATOS_CATCH("Applying Multipoint constraints failed ..");
     }
 
-    /**
-		Get the Total number of MasterDOFs for a given slave dof
-		@return Total number of MasterDOFs for a given slave dof
-		 */
-    unsigned int
-    GetNumbeOfMasterDofsForSlave(const DofType &SlaveDof)
-    {
-        return (this->GetData()).mDofConstraints[std::make_pair(SlaveDof.Id(), SlaveDof.GetVariable().Key())].size();
-    }
-
     ///@}
     virtual void PrintInfo(std::ostream &rOStream) const
     {
@@ -575,7 +574,7 @@ class MultipointConstraint : public Constraint<TDenseSpace>
     ///@name Serialization
     ///@{
 
-    ///@}
+    ///@}*/
 };
 
 ///@name Input/Output funcitons
