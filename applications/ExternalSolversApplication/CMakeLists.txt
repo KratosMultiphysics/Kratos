@@ -98,5 +98,3 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ExternalSolversApplication.py" DESTIN
 #if(${INCLUDE_PASTIX} MATCHES ON)
 #	install( TARGETS kratos_pastix DESTINATION libs)
 #endif(${INCLUDE_PASTIX} MATCHES ON)
-
-include_directories(${EIGEN_ROOT}) 
