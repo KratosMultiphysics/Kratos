@@ -24,7 +24,7 @@
 // #include "includes/kratos_application.h"
 // #include "includes/model_part.h"
 //#include "structural_mechanics_application.h"
-#include "custom_utilities/multipoint_constraint_data.hpp"
+
 #include "custom_utilities/shell_cross_section.hpp"
 #include "includes/mat_variables.h"
 
