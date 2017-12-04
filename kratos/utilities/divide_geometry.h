@@ -247,28 +247,19 @@ public:
     virtual void GenerateIntersectionsSkin() = 0;
 
     /**
-     * Generates a list containing the exterior (boundary) faces geometries for the positive element subdivisions.
+     * Generates a list containing the exterior (boundary) faces geometries for either the positive or the negative element subdivisions.
      */
-    virtual std::vector < IndexedPointGeometryPointerType > GeneratePositiveExteriorFaces() = 0;
-
-    /**
-     * Generates a list containing the exterior (boundary) faces geometries for the negative element subdivisions.
-     */
-    virtual std::vector < IndexedPointGeometryPointerType > GenerateNegativeExteriorFaces() = 0;
+    virtual std::vector < IndexedPointGeometryPointerType > GenerateExteriorFaces(
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer) = 0;
 
     /**
      * Given a father face id, generates a list containing the exterior (boundary)
-     * faces geometries belonging to the positive side of that that father face.
+     * faces geometries belonging to either the positive or negative side of that that father face.
      * @param FatherFaceId: Father face in where the positive exterior faces are to be obtained
      */
-    virtual std::vector < IndexedPointGeometryPointerType > GeneratePositiveExteriorFaces(const unsigned int FatherFaceId) = 0;
-
-    /**
-     * Given a father face id, generates a list containing the exterior (boundary)
-     * faces geometries belonging to the negative side of that that father face.
-     * @param FatherFaceId: Father face in where the negative exterior faces are to be obtained
-     */
-    virtual std::vector < IndexedPointGeometryPointerType > GenerateNegativeExteriorFaces(const unsigned int FatherFaceId) = 0;
+    virtual std::vector < IndexedPointGeometryPointerType > GenerateExteriorFaces(
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
+        const unsigned int FatherFaceId) = 0;
 
     ///@}
 

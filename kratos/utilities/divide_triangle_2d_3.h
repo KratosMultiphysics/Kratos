@@ -109,28 +109,22 @@ public:
     void GenerateIntersectionsSkin() override;
 
     /**
-     * Generates a list containing the exterior (boundary) faces geometries for the positive element subdivisions.
+     * Generates a list containing all the exterior (boundary) faces geometries 
+     * for either the positive or the negative element subdivisions.
+     * @param rSubdivisionsContainer: Geometry subdivisions container
      */
-    std::vector < IndexedPointGeometryPointerType > GeneratePositiveExteriorFaces() override;
-
-    /**
-     * Generates a list containing the exterior (boundary) faces geometries for the negative element subdivisions.
-     */
-    std::vector < IndexedPointGeometryPointerType > GenerateNegativeExteriorFaces() override;
+    virtual std::vector < IndexedPointGeometryPointerType > GenerateExteriorFaces(
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer) override;
 
     /**
      * Given a father face id, generates a list containing the exterior (boundary)
-     * faces geometries belonging to the positive side of that that father face.
+     * faces geometries belonging to either the positive or negative side of that that father face.
+     * @param rSubdivisionsContainer: Geometry subdivisions container
      * @param FatherFaceId: Father face in where the positive exterior faces are to be obtained
      */
-    std::vector < IndexedPointGeometryPointerType > GeneratePositiveExteriorFaces(const unsigned int FatherFaceId);
-
-    /**
-     * Given a father face id, generates a list containing the exterior (boundary)
-     * faces geometries belonging to the negative side of that that father face.
-     * @param FatherFaceId: Father face in where the negative exterior faces are to be obtained
-     */
-    std::vector < IndexedPointGeometryPointerType > GenerateNegativeExteriorFaces(const unsigned int FatherFaceId);
+    virtual std::vector < IndexedPointGeometryPointerType > GenerateExteriorFaces(
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
+        const unsigned int FatherFaceId) override;
 
     ///@}
 

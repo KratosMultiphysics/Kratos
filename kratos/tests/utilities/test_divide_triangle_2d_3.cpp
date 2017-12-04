@@ -62,10 +62,12 @@ namespace Kratos
 			triangle_splitter.GenerateIntersectionsSkin();
 
 			// Call the positive exterior faces generation method
-			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_ext_faces = triangle_splitter.GeneratePositiveExteriorFaces();
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_ext_faces = 
+				triangle_splitter.GenerateExteriorFaces(triangle_splitter.mPositiveSubdivisions);
 
 			// Call the negative exterior faces generation method
-			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_ext_faces = triangle_splitter.GenerateNegativeExteriorFaces();
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_ext_faces = 
+				triangle_splitter.GenerateExteriorFaces(triangle_splitter.mNegativeSubdivisions);
 
 			const double tolerance = 1e-10;
 
@@ -189,10 +191,12 @@ namespace Kratos
 			triangle_splitter.GenerateIntersectionsSkin();
 
 			// Call the positive exterior faces generation method
-			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_ext_faces = triangle_splitter.GeneratePositiveExteriorFaces();
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_ext_faces = 
+				triangle_splitter.GenerateExteriorFaces(triangle_splitter.mPositiveSubdivisions);
 
 			// Call the negative exterior faces generation method
-			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_ext_faces = triangle_splitter.GenerateNegativeExteriorFaces();
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_ext_faces = 
+				triangle_splitter.GenerateExteriorFaces(triangle_splitter.mNegativeSubdivisions);
 
 			const double tolerance = 1e-10;
 

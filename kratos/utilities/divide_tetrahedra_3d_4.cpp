@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
@@ -230,34 +231,85 @@ namespace Kratos
         }
     };
 
-    std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > DivideTetrahedra3D4::GeneratePositiveExteriorFaces() {
+    std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > DivideTetrahedra3D4::GenerateExteriorFaces(
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer) {
 
-        std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > pos_exterior_faces;
-        
-        return pos_exterior_faces;
+        // Set some geometry constant parameters
+        const unsigned int n_faces = 4;
+
+        // Set the exterior faces vector
+        std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > exterior_faces;
+        exterior_faces.clear();
+
+        // Iterate the triangle faces
+        for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
+            std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > aux_ext_faces = DivideTetrahedra3D4::GenerateExteriorFaces(rSubdivisionsContainer, i_face);
+            exterior_faces.insert(exterior_faces.end(), aux_ext_faces.begin(), aux_ext_faces.end());
+        }
+
+        return exterior_faces;
     };
 
-    std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > DivideTetrahedra3D4::GenerateNegativeExteriorFaces() {
+    std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > DivideTetrahedra3D4::GenerateExteriorFaces(
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
+        const unsigned int FatherFaceId) {
 
-        std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > neg_exterior_faces;
+        // Set some geometry constant parameters
+        const unsigned int n_faces = 4;
 
-        return neg_exterior_faces;
-    };
+        // Set the exterior faces vector
+        std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > exterior_faces;
+        exterior_faces.clear();
 
+        if (mIsSplit) {
+            // Create the unordered map
+            // The key represents the parent geometry face id
+            // The value represents the real and intersection nodes in that face edges
+            std::unordered_map<unsigned int, std::vector<int>> edges_map = {
+                {0, {0, 2, 1, 4, 5, 7}},     // Face 0
+                {1, {0, 2, 3, 5, 6, 9}},     // Face 1
+                {2, {0, 1, 3, 4, 6, 8}},     // Face 2
+                {3, {2, 3, 1, 7, 8, 9}}};    // Face 3
 
-    std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > DivideTetrahedra3D4::GeneratePositiveExteriorFaces(const unsigned int FatherFaceId) {
+            // Compute the side exterior faces geometries
+            const unsigned int n_subdivision = rSubdivisionsContainer.size();
+            for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
+                // Get the subdivision faces
+                const IndexedPointGeometryPointerType p_subdivision_geom = rSubdivisionsContainer[i_subdivision];
+                GeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
 
-        std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > pos_exterior_faces;
-        
-        return pos_exterior_faces;
+                // Subdivision geometry subfaces iteration
+                for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
+                    IndexedPointGeometryType r_face = subdivision_faces[i_face];
 
-    };
+                    // Get the subdivision face nodal keys
+                    int node_i_key = r_face[0].Id();
+                    int node_j_key = r_face[1].Id();
+                    int node_k_key = r_face[2].Id();
 
-    std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > DivideTetrahedra3D4::GenerateNegativeExteriorFaces(const unsigned int FatherFaceId) {
+                    // Get the parent geometry face key value (candidate nodes)
+                    std::unordered_map<unsigned int, std::vector<int>>::iterator got = edges_map.find(FatherFaceId);
 
-        std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > neg_exterior_faces;
+                    // Search the subdivision nodal keys into the parent geometry face key value
+                    if (std::find((got->second).begin(), (got->second).end(), node_i_key) != (got->second).end()) {
+                        if (std::find((got->second).begin(), (got->second).end(), node_j_key) != (got->second).end()) {
+                            if (std::find((got->second).begin(), (got->second).end(), node_k_key) != (got->second).end()) {
+                                // If both nodes are in the candidate nodes list, the subface is exterior
+                                IndexedPointGeometryPointerType p_subface_triang = boost::make_shared<IndexedPointTriangleType>(
+                                    mAuxPointsContainer(node_i_key),
+                                    mAuxPointsContainer(node_j_key),
+                                    mAuxPointsContainer(node_k_key));
+                                exterior_faces.push_back(p_subface_triang);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            KRATOS_ERROR << "Trying to generate the exterior faces in DivideTetrahedra3D4::GenerateExteriorFaces() for a non-split element.";
+        }
 
-        return neg_exterior_faces;
+        return exterior_faces;
     };
         
 };
