@@ -231,26 +231,37 @@ namespace Kratos
         }
     };
 
-    std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > DivideTetrahedra3D4::GenerateExteriorFaces(
+    void DivideTetrahedra3D4::GenerateExteriorFaces(
+        std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
+        std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
         const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer) {
 
         // Set some geometry constant parameters
         const unsigned int n_faces = 4;
 
-        // Set the exterior faces vector
-        std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > exterior_faces;
-        exterior_faces.clear();
+        // Set the exterior faces vectors
+        rExteriorFacesVector.clear();
+        rExteriorFacesParentSubdivisionsIdsVector.clear();
 
         // Iterate the triangle faces
         for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
-            std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > aux_ext_faces = DivideTetrahedra3D4::GenerateExteriorFaces(rSubdivisionsContainer, i_face);
-            exterior_faces.insert(exterior_faces.end(), aux_ext_faces.begin(), aux_ext_faces.end());
-        }
+            std::vector < unsigned int > aux_ext_faces_parent_ids;
+            std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > aux_ext_faces;
 
-        return exterior_faces;
+            DivideTetrahedra3D4::GenerateExteriorFaces(
+                aux_ext_faces,
+                aux_ext_faces_parent_ids,
+                rSubdivisionsContainer, 
+                i_face);
+            
+            rExteriorFacesVector.insert(rExteriorFacesVector.end(), aux_ext_faces.begin(), aux_ext_faces.end());
+            rExteriorFacesParentSubdivisionsIdsVector.insert(rExteriorFacesParentSubdivisionsIdsVector.end(), aux_ext_faces_parent_ids.begin(), aux_ext_faces_parent_ids.end());
+        }
     };
 
-    std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > DivideTetrahedra3D4::GenerateExteriorFaces(
+    void DivideTetrahedra3D4::GenerateExteriorFaces(
+        std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
+        std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
         const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
         const unsigned int FatherFaceId) {
 
@@ -258,8 +269,8 @@ namespace Kratos
         const unsigned int n_faces = 4;
 
         // Set the exterior faces vector
-        std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > exterior_faces;
-        exterior_faces.clear();
+        rExteriorFacesVector.clear();
+        rExteriorFacesParentSubdivisionsIdsVector.clear();
 
         if (mIsSplit) {
             // Create the unordered map
@@ -299,7 +310,8 @@ namespace Kratos
                                     mAuxPointsContainer(node_i_key),
                                     mAuxPointsContainer(node_j_key),
                                     mAuxPointsContainer(node_k_key));
-                                exterior_faces.push_back(p_subface_triang);
+                                rExteriorFacesVector.push_back(p_subface_triang);
+                                rExteriorFacesParentSubdivisionsIdsVector.push_back(i_subdivision);
                             }
                         }
                     }
@@ -308,8 +320,6 @@ namespace Kratos
         } else {
             KRATOS_ERROR << "Trying to generate the exterior faces in DivideTetrahedra3D4::GenerateExteriorFaces() for a non-split element.";
         }
-
-        return exterior_faces;
     };
         
 };

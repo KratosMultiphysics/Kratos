@@ -235,27 +235,39 @@ namespace Kratos
         }
     };
 
-    std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > DivideTriangle2D3::GenerateExteriorFaces(
+    void DivideTriangle2D3::GenerateExteriorFaces(
+        std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
+        std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
         const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer) {
 
         // Set some geometry constant parameters
         const unsigned int n_faces = 3;
 
         // Set the exterior faces vector
-        std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > exterior_faces;
-        exterior_faces.clear();
-        exterior_faces.reserve(3);
+        rExteriorFacesVector.clear();
+        rExteriorFacesVector.reserve(3);
+        rExteriorFacesParentSubdivisionsIdsVector.clear();
+        rExteriorFacesParentSubdivisionsIdsVector.reserve(3);
 
         // Iterate the triangle faces
         for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
-            std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > aux_ext_faces = DivideTriangle2D3::GenerateExteriorFaces(rSubdivisionsContainer, i_face);
-            exterior_faces.insert(exterior_faces.end(), aux_ext_faces.begin(), aux_ext_faces.end());
-        }
+            std::vector < unsigned int > aux_ext_faces_parent_ids;
+            std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > aux_ext_faces;
 
-        return exterior_faces;
+            DivideTriangle2D3::GenerateExteriorFaces(
+                aux_ext_faces,
+                aux_ext_faces_parent_ids,
+                rSubdivisionsContainer, 
+                i_face);
+
+            rExteriorFacesVector.insert(rExteriorFacesVector.end(), aux_ext_faces.begin(), aux_ext_faces.end());
+            rExteriorFacesParentSubdivisionsIdsVector.insert(rExteriorFacesParentSubdivisionsIdsVector.end(), aux_ext_faces_parent_ids.begin(), aux_ext_faces_parent_ids.end());
+        }
     };
 
-    std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > DivideTriangle2D3::GenerateExteriorFaces(
+    void DivideTriangle2D3::GenerateExteriorFaces(
+        std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
+        std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
         const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
         const unsigned int FatherFaceId) {
 
@@ -263,18 +275,18 @@ namespace Kratos
         const unsigned int n_faces = 3;
 
         // Set the exterior faces vector
-        std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > exterior_faces;
-        exterior_faces.clear();
-        exterior_faces.reserve(2);
+        rExteriorFacesVector.clear();
+        rExteriorFacesVector.reserve(2);
+        rExteriorFacesParentSubdivisionsIdsVector.clear();
+        rExteriorFacesParentSubdivisionsIdsVector.reserve(2);
 
         if (mIsSplit) {
-            // Create the unordered map
-            // The key represents the parent geometry face id
-            // The value represents the real and intersection nodes in that face edges
-            std::unordered_map<unsigned int, std::vector<int>> edges_map = {
-                {0, {0, 1, 3}},     // Face 0
-                {1, {1, 2, 4}},     // Face 1
-                {2, {2, 0, 5}}};    // Face 2
+            // Create the face nodes data
+            // The position represents the face while the value real and intersection nodes in that face edges
+            std::vector < std::vector < unsigned int > > edges_map = 
+                {{0, 1, 3},     // Face 0
+                 {1, 2, 4},     // Face 1
+                 {2, 0, 5}};    // Face 2
 
             // Compute the side exterior faces geometries
             const unsigned int n_subdivision = rSubdivisionsContainer.size();
@@ -288,17 +300,19 @@ namespace Kratos
                     int node_i_key = r_subdivision_geom[mEdgeNodeI[i_face]].Id();
                     int node_j_key = r_subdivision_geom[mEdgeNodeJ[i_face]].Id();
 
-                    // Get the parent geometry face key value (candidate nodes)
-                    std::unordered_map<unsigned int, std::vector<int>>::iterator got = edges_map.find(FatherFaceId);
+                    // Get the candidate nodes
+                    std::vector< unsigned int > faces_edge_nodes = edges_map[FatherFaceId];
 
                     // Search the subdivision nodal keys into the parent geometry face key value
-                    if (std::find((got->second).begin(), (got->second).end(), node_i_key) != (got->second).end()) {
-                        if (std::find((got->second).begin(), (got->second).end(), node_j_key) != (got->second).end()) {
+                    if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_i_key) != faces_edge_nodes.end()) {
+                        if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_j_key) != faces_edge_nodes.end()) {
                             // If both nodes are in the candidate nodes list, the subface is exterior
                             IndexedPointGeometryPointerType p_subface_line = boost::make_shared<IndexedPointLineType>(
                                 mAuxPointsContainer(node_i_key),
                                 mAuxPointsContainer(node_j_key));
-                            exterior_faces.push_back(p_subface_line);
+
+                            rExteriorFacesVector.push_back(p_subface_line);
+                            rExteriorFacesParentSubdivisionsIdsVector.push_back(i_subdivision);
                         }
                     }
                 }
@@ -306,8 +320,6 @@ namespace Kratos
         } else {
             KRATOS_ERROR << "Trying to generate the exterior faces in DivideTriangle2D3::GenerateExteriorFaces() for a non-split element.";
         }
-
-        return exterior_faces;
     };
     
 };

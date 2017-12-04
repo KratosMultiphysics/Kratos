@@ -62,12 +62,20 @@ namespace Kratos
 			triangle_splitter.GenerateIntersectionsSkin();
 
 			// Call the positive exterior faces generation method
-			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_ext_faces = 
-				triangle_splitter.GenerateExteriorFaces(triangle_splitter.mPositiveSubdivisions);
+			std::vector < unsigned int > pos_ext_faces_parent_ids;
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_ext_faces;
+			triangle_splitter.GenerateExteriorFaces(
+				pos_ext_faces,
+				pos_ext_faces_parent_ids,
+				triangle_splitter.mPositiveSubdivisions);
 
 			// Call the negative exterior faces generation method
-			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_ext_faces = 
-				triangle_splitter.GenerateExteriorFaces(triangle_splitter.mNegativeSubdivisions);
+			std::vector < unsigned int > neg_ext_faces_parent_ids;
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_ext_faces;
+			triangle_splitter.GenerateExteriorFaces(
+				neg_ext_faces,
+				neg_ext_faces_parent_ids,
+				triangle_splitter.mNegativeSubdivisions);
 
 			const double tolerance = 1e-10;
 
@@ -123,6 +131,13 @@ namespace Kratos
 			// Check exterior faces
 			KRATOS_CHECK_EQUAL(pos_ext_faces.size(), 2);
 			KRATOS_CHECK_EQUAL(neg_ext_faces.size(), 3);
+
+			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[0], 0);
+			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[1], 0);
+
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[0], 1);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[1], 0);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[2], 1);
 
 			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].X(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].Y(), 0.5, tolerance);
@@ -191,13 +206,21 @@ namespace Kratos
 			triangle_splitter.GenerateIntersectionsSkin();
 
 			// Call the positive exterior faces generation method
-			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_ext_faces = 
-				triangle_splitter.GenerateExteriorFaces(triangle_splitter.mPositiveSubdivisions);
-
+			std::vector < unsigned int > pos_ext_faces_parent_ids;
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_ext_faces;
+			triangle_splitter.GenerateExteriorFaces(
+				pos_ext_faces,
+				pos_ext_faces_parent_ids,
+				triangle_splitter.mPositiveSubdivisions);
+		
 			// Call the negative exterior faces generation method
-			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_ext_faces = 
-				triangle_splitter.GenerateExteriorFaces(triangle_splitter.mNegativeSubdivisions);
-
+			std::vector < unsigned int > neg_ext_faces_parent_ids;
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_ext_faces;
+			triangle_splitter.GenerateExteriorFaces(
+				neg_ext_faces,
+				neg_ext_faces_parent_ids,
+				triangle_splitter.mNegativeSubdivisions);
+		
 			const double tolerance = 1e-10;
 
 			// Check general splitting values
@@ -251,6 +274,13 @@ namespace Kratos
 			// Check exterior faces
 			KRATOS_CHECK_EQUAL(pos_ext_faces.size(), 2);
 			KRATOS_CHECK_EQUAL(neg_ext_faces.size(), 3);
+
+			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[0], 0);
+			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[1], 0);
+
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[0], 1);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[1], 0);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[2], 1);
 
 			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].X(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].Y(), 0.0, tolerance);
