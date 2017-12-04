@@ -65,7 +65,7 @@ bool Tetrahedra3D4ModifiedShapeFunctions::IsSplit() {
 // Internally computes the splitting pattern and returns all the shape function values for the positive side.
 void Tetrahedra3D4ModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAndGradientsValues(
     Matrix &rPositiveSideShapeFunctionsValues,
-    ModifiedShapeFunctions::ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
+    ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
     Vector &rPositiveSideWeightsValues,
     const IntegrationMethodType IntegrationMethod) {
 
