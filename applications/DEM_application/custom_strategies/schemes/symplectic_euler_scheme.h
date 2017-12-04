@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class SymplecticEulerScheme : public DEMIntegrationScheme {
+    class KRATOS_API(DEM_APPLICATION) SymplecticEulerScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
@@ -111,7 +111,7 @@ namespace Kratos {
 
         /// Turn back information as a string.
 
-        virtual std::string Info() const override{
+        virtual std::string Info() const override {
             std::stringstream buffer;
             buffer << "SymplecticEulerScheme";
             return buffer.str();
@@ -119,13 +119,13 @@ namespace Kratos {
 
         /// Print information about this object.
 
-        virtual void PrintInfo(std::ostream& rOStream) const override{
+        virtual void PrintInfo(std::ostream& rOStream) const override {
             rOStream << "SymplecticEulerScheme";
         }
 
         /// Print object's data.
 
-        virtual void PrintData(std::ostream& rOStream) const override{
+        virtual void PrintData(std::ostream& rOStream) const override {
         }
 
 
@@ -134,7 +134,7 @@ namespace Kratos {
 
     private:
 
-        /// Assignment operator.
+    /// Assignment operator.
 
         SymplecticEulerScheme& operator=(SymplecticEulerScheme const& rOther) {
             return *this;
@@ -146,11 +146,9 @@ namespace Kratos {
             *this = rOther;
         }
 
-
         ///@}
 
     }; // Class SymplecticEulerScheme
-
 
     inline std::istream& operator>>(std::istream& rIStream,
             SymplecticEulerScheme& rThis) {

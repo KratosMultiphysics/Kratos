@@ -214,7 +214,7 @@ namespace Kratos {
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque, 
                 const double moment_reduction_factor,
-                array_1d<double, 3 >& angular_acceleration){
+                array_1d<double, 3 >& angular_acceleration) {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateLocalAngularAcceleration) shouldn't be accessed, use derived class instead", 0);            
     }
     
@@ -223,7 +223,7 @@ namespace Kratos {
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque, 
                 const double moment_reduction_factor,
-                array_1d<double, 3 >& local_angular_acceleration){
+                array_1d<double, 3 >& local_angular_acceleration) {
             KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateLocalAngularAccelerationByEulerEquations) shouldn't be accessed, use derived class instead", 0);                        
     }
 
