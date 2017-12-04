@@ -151,6 +151,7 @@ class ExplicitStrategy:
 
 
         self.SetContinuumType()
+        self.do_search_neighbours = True # Hard-coded until needed as an option
 
     def SetContinuumType(self):
         self.continuum_type = False
@@ -209,8 +210,7 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
 
         # SEARCH-RELATED
-        self.search_increment_for_walls = self.search_increment # for the moment, until all bugs have been removed
-        self.do_search_neighbours = True # Hard-coded until needed as an option
+        self.search_increment_for_walls = self.search_increment # for the moment, until all bugs have been removed        
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
         self.spheres_model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
@@ -223,7 +223,6 @@ class ExplicitStrategy:
         # TIME RELATED PARAMETERS
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
 
-        os.chdir("..")
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
 

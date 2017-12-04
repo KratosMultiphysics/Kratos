@@ -399,6 +399,7 @@ namespace Kratos
       mpProperties->SetValue(PENALTY_PARAMETER, CustomProperties["PENALTY_PARAMETER"].GetDouble());
       mpProperties->SetValue(TANGENTIAL_PENALTY_RATIO, CustomProperties["TANGENTIAL_PENALTY_RATIO"].GetDouble());
       mpProperties->SetValue(TAU_STAB, CustomProperties["TAU_STAB"].GetDouble());
+      mpProperties->SetValue(THICKNESS, 1.0);
 
       mrMainModelPart.AddProperties(mpProperties, NumberOfProperties);
 
@@ -426,6 +427,9 @@ namespace Kratos
       }
       else if(  ConditionName == "AxisymPointContactPenaltyCondition2D1N" ){
       	return ConditionType::Pointer(new AxisymPointRigidContactPenalty2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
+      } else {
+        std::cout << ConditionName << std::endl;
+        KRATOS_ERROR << "the specified contact condition does not exist " << std::endl;
       }
       // else if(  ConditionName == "AxisymPointWaterContactPenaltyCondition2D1N" ){
       // 	return ConditionType::Pointer(new AxisymPointRigidContactPenaltyWater2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
