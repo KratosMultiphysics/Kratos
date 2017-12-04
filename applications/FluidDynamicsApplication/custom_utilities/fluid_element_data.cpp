@@ -94,6 +94,13 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromElemen
     rData = rElement.GetValue(rVariable);
 }
 
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromProperties(double& rData,
+    const Variable<double>& rVariable, const Element& rElement)
+{
+    rData = rElement.GetProperties().GetValue(rVariable);
+}
+
 template class FluidElementData<2,3,false>;
 template class FluidElementData<2,3,true>;
 template class FluidElementData<3,4,false>;

@@ -110,6 +110,8 @@ protected:
 
     void FillFromElementData(double& rData, const Variable<double>& rVariable, const Element& rElement);
 
+    void FillFromProperties(double& rData, const Variable<double>& rVariable, const Element& rElement);
+
     ///@}
 };
 
