@@ -47,7 +47,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
 
         self.assertAlmostEqual(Pressure, pressureFailure)
-        self.assertAlmostEqual(UndrainedShearStrenght, 0.5* DeviatoricQ)
+        self.assertAlmostEqual(0.5*DeviatoricQ, UndrainedShearStrenght)
 
     def test_IsotropicLoading(self):
         import math
@@ -59,8 +59,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         OCR = self.variables["KratosMultiphysics.OVER_CONSOLIDATION_RATIO"].GetDouble()
         kappa = self.variables["KratosMultiphysics.SWELLING_SLOPE"].GetDouble()
         landa = self.variables["KratosMultiphysics.NORMAL_COMPRESSION_SLOPE"].GetDouble()
-        M = self.variables["KratosMultiphysics.CRITICAL_STATE_LINE"].GetDouble()
-        alphaS = self.variables["KratosMultiphysics.ALPHA_SHEAR"].GetDouble()
         p0 = pc0 / OCR
 
 
@@ -73,17 +71,18 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             self._compute_strain_driven_problem(IncrementalF, 1)
             Pressure, DeviatoricQ = self._calculate_invariants()
 
+            #Analytical solution
             epsi_v = math.log(self.detF)
             p = p0 * math.exp(- epsi_v / kappa)
-            if (p < pc0):
-                pass
-            else:
+            if ( p > pc0):
                 lnp = epsi_v - kappa * math.log(p0) - ( landa - kappa) * math.log(pc0)
                 lnp = -lnp / landa
                 p = math.exp(lnp)
 
             self.assertAlmostEqual(Pressure, p)
             self.assertAlmostEqual(DeviatoricQ, 0.0)
+            for i in range(3,6):
+                self.assertAlmostEqual( self.stress[i], 0.0)
 
     def _compute_strain_driven_problem(self, IncrF, nIncr):
 
@@ -280,6 +279,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             return getattr(module,splitted[-1]) 
 
     def _calculate_invariants(self):
+
         import math
 
         #Compute invariants
