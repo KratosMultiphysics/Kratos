@@ -181,7 +181,7 @@ namespace Kratos
                     }
                 }
 
-                rShapeFunctionsGradientsValues[i_gauss] = trans(prod(sh_func_gradients_mat, rPmatrix));
+                rShapeFunctionsGradientsValues[i_subdivision*n_int_pts + i_gauss] = trans(prod(sh_func_gradients_mat, rPmatrix));
             }
         }
     };
@@ -294,7 +294,7 @@ namespace Kratos
                 }
 
                 aux_grad_sh_func_cond = prod(aux_grad_sh_func_exp, rPmatrix);
-                rInterfaceShapeFunctionsGradientsValues[i_gauss] = trans(aux_grad_sh_func_cond);
+                rInterfaceShapeFunctionsGradientsValues[i_interface*n_int_pts + i_gauss] = trans(aux_grad_sh_func_cond);
             }
         }
     };
