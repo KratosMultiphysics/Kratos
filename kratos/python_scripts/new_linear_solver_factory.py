@@ -63,17 +63,25 @@ def ConstructSolver(configuration):
     elif(solver_type == "complex_pastix_solver"):
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.PastixComplexSolver(configuration)
-    elif(solver_type == "EigenSparseLUSolver"):
-        import KratosMultiphysics.ExternalSolversApplication
-        linear_solver = KratosMultiphysics.ExternalSolversApplication.EigenSparseLUSolver(configuration)
-    elif(solver_type == "EigenConjugateGradientSolver"):
-        import KratosMultiphysics.ExternalSolversApplication
-        linear_solver = KratosMultiphysics.ExternalSolversApplication.EigenConjugateGradientSolver(configuration)
  
     ################################## following solvers need importing the MKLSolversApplication
     elif (solver_type == "ParallelMKLPardisoSolver"):
         import KratosMultiphysics.MKLSolversApplication
         linear_solver = KratosMultiphysics.MKLSolversApplication.ParallelMKLPardisoSolver(configuration)
+    
+    ################################## following solvers need importing the EigenSolversApplication
+    elif(solver_type == "Eigen_SparseLU"):
+        import KratosMultiphysics.EigenSolversApplication
+        linear_solver = KratosMultiphysics.EigenSolversApplication.SparseLUSolver(configuration)
+    elif(solver_type == "Eigen_PardisoLLT"): # needs Intel MKL
+        import KratosMultiphysics.EigenSolversApplication
+        linear_solver = KratosMultiphysics.EigenSolversApplication.PardisoLLTSolver(configuration)
+    elif(solver_type == "Eigen_PardisoLDLT"): # needs Intel MKL
+        import KratosMultiphysics.EigenSolversApplication
+        linear_solver = KratosMultiphysics.EigenSolversApplication.PardisoLDLTSolver(configuration)
+    elif(solver_type == "Eigen_PardisoLU"): # needs Intel MKL
+        import KratosMultiphysics.EigenSolversApplication
+        linear_solver = KratosMultiphysics.EigenSolversApplication.PardisoLUSolver(configuration)
 
     ###################################### FAILED TO FIND solver_type
     else:
