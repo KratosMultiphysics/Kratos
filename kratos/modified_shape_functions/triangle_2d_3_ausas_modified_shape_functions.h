@@ -110,7 +110,7 @@ public:
     */
     void ComputePositiveSideShapeFunctionsAndGradientsValues(
         Matrix &rPositiveSideShapeFunctionsValues,
-        std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
         Vector &rPositiveSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override;
 
@@ -123,7 +123,7 @@ public:
     */
     void ComputeNegativeSideShapeFunctionsAndGradientsValues(
         Matrix &rNegativeSideShapeFunctionsValues,
-        std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rNegativeSideShapeFunctionsGradientsValues,
         Vector &rNegativeSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override;
 
@@ -138,7 +138,7 @@ public:
     */
     void ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
         Matrix &rInterfacePositiveSideShapeFunctionsValues,
-        std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rInterfacePositiveSideShapeFunctionsGradientsValues,
         Vector &rInterfacePositiveSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override;
 
@@ -151,7 +151,7 @@ public:
     */
     void ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
         Matrix &rInterfaceNegativeSideShapeFunctionsValues,
-        std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rInterfaceNegativeSideShapeFunctionsGradientsValues,
         Vector &rInterfaceNegativeSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override;
 

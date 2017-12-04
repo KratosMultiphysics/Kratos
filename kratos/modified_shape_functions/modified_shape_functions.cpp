@@ -102,7 +102,7 @@ namespace Kratos
     // Given the subdivision pattern of either the positive or negative side, computes the shape function values.
     void ModifiedShapeFunctions::ComputeValuesOnOneSide(
         Matrix &rShapeFunctionsValues,
-        std::vector<Matrix> &rShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rShapeFunctionsGradientsValues,
         Vector &rWeightsValues,
         const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
         const Matrix &rPmatrix,
@@ -132,10 +132,6 @@ namespace Kratos
         if (rWeightsValues.size() != n_total_int_pts) {
             rWeightsValues.resize(n_total_int_pts, false);
         }
-
-        // Clear the gradients vector
-        rShapeFunctionsGradientsValues.clear();
-        rShapeFunctionsGradientsValues.reserve(n_total_int_pts);
 
         // Compute each Gauss pt. shape functions values
         for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
@@ -180,7 +176,7 @@ namespace Kratos
                     }
                 }
 
-                rShapeFunctionsGradientsValues.push_back(trans(prod(sh_func_gradients_mat, rPmatrix)));
+                noalias(rShapeFunctionsGradientsValues[i_gauss]) = trans(prod(sh_func_gradients_mat, rPmatrix));
             }
         }
     };
@@ -188,7 +184,7 @@ namespace Kratos
     // Given the interfaces pattern of either the positive or negative interface side, computes the shape function values.
     void ModifiedShapeFunctions::ComputeInterfaceValuesOnOneSide(
         Matrix &rInterfaceShapeFunctionsValues,
-        std::vector<Matrix> &rInterfaceShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rInterfaceShapeFunctionsGradientsValues,
         Vector &rInterfaceWeightsValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const std::vector<IndexedPointGeometryPointerType> &rParentGeometriesVector,
@@ -217,10 +213,6 @@ namespace Kratos
         if (rInterfaceWeightsValues.size() != n_total_int_pts) {
             rInterfaceWeightsValues.resize(n_total_int_pts, false);
         }
-
-        // Clear the gradients vector
-        rInterfaceShapeFunctionsGradientsValues.clear();
-        rInterfaceShapeFunctionsGradientsValues.reserve(n_total_int_pts);
 
         // Compute each Gauss pt. shape functions values
         for (unsigned int i_interface = 0; i_interface < n_interfaces; ++i_interface) {
@@ -292,7 +284,7 @@ namespace Kratos
                 }
 
                 aux_grad_sh_func_cond = prod(aux_grad_sh_func_exp, rPmatrix);
-                rInterfaceShapeFunctionsGradientsValues.push_back(trans(aux_grad_sh_func_cond));
+                noalias(rInterfaceShapeFunctionsGradientsValues[i_gauss]) = trans(aux_grad_sh_func_cond);
             }
         }
     };
