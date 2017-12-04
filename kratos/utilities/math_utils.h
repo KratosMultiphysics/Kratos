@@ -18,7 +18,7 @@
 
 
 /* System includes */
-
+#include <type_traits>
 
 /* External includes */
 #include <cmath>
@@ -67,6 +67,8 @@ public:
     typedef std::size_t SizeType;
     
     typedef unsigned int IndexType;
+
+    typedef boost::numeric::ublas::indirect_array<boost::numeric::ublas::vector<std::size_t>> IndirectArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -182,20 +184,21 @@ public:
      * @return DetA: The determinant of the matrix
      */
 
-    template<unsigned int TDim>
-    static inline TDataType DetMat(const boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim>& InputMatrix)
+    template<class TMatrixType>
+    static inline TDataType DetMat(const TMatrixType& InputMatrix)
     {
+        static_assert(std::is_same<typename TMatrixType::value_type, TDataType>::value, "Bad value type.");
         TDataType InputMatrixDet;
-        
-        if (TDim == 1)
+
+        if (InputMatrix.size1() == 1)
         {
             InputMatrixDet = InputMatrix(0, 0);
         }
-        else if (TDim == 2)
+        else if (InputMatrix.size1() == 2)
         {
             InputMatrixDet = InputMatrix(0, 0) * InputMatrix(1, 1) - InputMatrix(0, 1) * InputMatrix(1, 0);
         }
-        else if (TDim == 3)
+        else if (InputMatrix.size1() == 3)
         {
             InputMatrixDet = InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 2)
                            + InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(0, 2)
@@ -210,6 +213,50 @@ public:
         }
         
         return InputMatrixDet;
+    }
+
+    template<class TMatrixType>
+    static TDataType Cofactor(const TMatrixType& rMat, IndexType i, IndexType j)
+    {
+        static_assert(std::is_same<typename TMatrixType::value_type, TDataType>::value, "Bad value type.");
+
+        KRATOS_ERROR_IF(rMat.size1() != rMat.size2() || rMat.size1() == 0) << "Bad matrix dimensions." << std::endl;
+        
+        if (rMat.size1() == 1)
+            return 1;
+
+        IndirectArrayType ia1(rMat.size1() - 1), ia2(rMat.size2() - 1);
+
+        // Construct the submatrix structure for the first minor.
+        unsigned i_sub = 0;
+        for (unsigned k = 0; k < rMat.size1(); ++k)
+            if (k != i)
+                ia1(i_sub++) = k;
+
+        unsigned j_sub = 0;
+        for (unsigned k = 0; k < rMat.size2(); ++k)
+            if (k != j)
+                ia2(j_sub++) = k;
+
+        boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+        const TDataType first_minor = DetMat(sub_mat);
+
+        return ((i + j) % 2) ? -first_minor : first_minor;
+    }
+
+    template<class TMatrixType>
+    static MatrixType CofactorMatrix(const TMatrixType& rMat)
+    {
+        static_assert(std::is_same<TDataType, double>::value, "Bad value type.");
+        static_assert(std::is_same<typename TMatrixType::value_type, double>::value, "Bad value type.");
+
+        MatrixType cofactor_matrix(rMat.size1(), rMat.size2());
+
+        for (unsigned i = 0; i < rMat.size1(); ++i)
+            for (unsigned j = 0; j < rMat.size2(); ++j)
+                cofactor_matrix(i, j) = Cofactor(rMat, i, j);
+
+        return cofactor_matrix;
     }
     
     /**
@@ -228,7 +275,7 @@ public:
         boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim> InvertedMatrix;
         
         /* Compute Determinant of the matrix */
-        InputMatrixDet = DetMat<TDim>(InputMatrix);
+        InputMatrixDet = DetMat(InputMatrix);
         
         if (std::abs(InputMatrixDet) < Tolerance)
         {

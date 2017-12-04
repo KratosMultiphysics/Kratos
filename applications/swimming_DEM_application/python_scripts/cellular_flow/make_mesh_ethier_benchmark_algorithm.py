@@ -19,7 +19,7 @@ class Algorithm(BaseAlgorithm):
     def ReadFluidModelParts(self):
         from meshing import meshing_utilities
         self.mesh_generator = meshing_utilities.ParallelepipedRegularMesher(
-                                                model_part_to_be_filled = self.fluid_algorithm.fluid_model_part,
+                                                model_part_to_be_filled = self.fluid_solution.fluid_model_part,
                                                 lower_corner_coordinates = [0.0, 0.0, 0.0],
                                                 higher_corner_coordinates = [0.1, 0.1, 0.1],
                                                 number_of_divisions_per_dimension = 10)

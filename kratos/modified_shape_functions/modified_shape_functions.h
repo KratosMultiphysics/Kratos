@@ -123,7 +123,7 @@ public:
     */
     virtual void ComputePositiveSideShapeFunctionsAndGradientsValues(
         Matrix &rPositiveSideShapeFunctionsValues,
-        std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
         Vector &rPositiveSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) = 0;
 
@@ -136,7 +136,7 @@ public:
     */
     virtual void ComputeNegativeSideShapeFunctionsAndGradientsValues(
         Matrix &rNegativeSideShapeFunctionsValues,
-        std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rNegativeSideShapeFunctionsGradientsValues,
         Vector &rNegativeSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) = 0;
 
@@ -149,7 +149,7 @@ public:
     */
     virtual void ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
         Matrix &rInterfacePositiveSideShapeFunctionsValues,
-        std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rInterfacePositiveSideShapeFunctionsGradientsValues,
         Vector &rInterfacePositiveSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) = 0;
 
@@ -162,7 +162,7 @@ public:
     */
     virtual void ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
         Matrix &rInterfaceNegativeSideShapeFunctionsValues,
-        std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rInterfaceNegativeSideShapeFunctionsGradientsValues,
         Vector &rInterfaceNegativeSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) = 0;
         
@@ -233,7 +233,7 @@ protected:
     */
     virtual void ComputeValuesOnOneSide(
         Matrix &rShapeFunctionsValues,
-        std::vector<Matrix> &rShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rShapeFunctionsGradientsValues,
         Vector &rWeightsValues,
         const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
         const Matrix &rPmatrix,
@@ -252,7 +252,7 @@ protected:
     */
     virtual void ComputeInterfaceValuesOnOneSide(
         Matrix &rInterfaceShapeFunctionsValues,
-        std::vector<Matrix> &rInterfaceShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rInterfaceShapeFunctionsGradientsValues,
         Vector &rInterfaceWeightsValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const std::vector<IndexedPointGeometryPointerType> &rParentGeometriesVector,
