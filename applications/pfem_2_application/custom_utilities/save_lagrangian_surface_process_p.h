@@ -10,11 +10,10 @@
 //  Main authors:    Author Julio Marti.
 //
 
-//
-//  this process puts a IS_IS_FLUID flag on the nodes of fluid elements
+//  this process saves the boundary of a Lagrangian part for EMBEDDED technique
 
-#if !defined(KRATOS_MARK_IS_FLUID_PROCESS_INCLUDED )
-#define  KRATOS_MARK_IS_FLUID_PROCESS_INCLUDED
+#if !defined(KRATOS_SAVE_LAGRANGIAN_SURFACE_PROCESS_P_INCLUDED )
+#define  KRATOS_SAVE_LAGRANGIAN_SURFACE_PROCESS_P_INCLUDED
 
 
 
@@ -30,13 +29,10 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/node.h"
-#include "includes/element.h"
+#include "includes/condition.h"
 #include "includes/model_part.h"
-//#include "custom_utilities/geometry_utilities2D.h"
-//#include "custom_elements/updated_lagrangian_fluid.h"
-//#include "custom_elements/updated_lagrangian_fluid3D.h"
-//#include "custom_elements/updated_lagrangian_fluid_inc.h"
-//#include "custom_elements/updated_lagrangian_fluid3D_inc.h"
+#include "includes/deprecated_variables.h"
+
 
 
 namespace Kratos
@@ -69,7 +65,7 @@ namespace Kratos
 
 */
 
-class MarkFluidProcess
+class SaveLagrangianSurfaceProcess_p
     : public Process
 {
 public:
@@ -77,20 +73,19 @@ public:
     ///@{
 
     /// Pointer definition of PushStructureProcess
-    KRATOS_CLASS_POINTER_DEFINITION(MarkFluidProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(SaveLagrangianSurfaceProcess_p);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MarkFluidProcess(ModelPart& model_part)
-        : mr_model_part(model_part)
+    SaveLagrangianSurfaceProcess_p()
     {
     }
 
     /// Destructor.
-    virtual ~MarkFluidProcess()
+    virtual ~SaveLagrangianSurfaceProcess_p()
     {
     }
 
@@ -99,45 +94,58 @@ public:
     ///@name Operators
     ///@{
 
-    void operator()()
-    {
-        Execute();
-    }
+//		void operator()()
+//		{
+//			SaveStructure();
+//		}
 
 
     ///@}
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+	//FLUID_MODEL_PART is the whole Lagrangian fluid domain, surface model_part is its boundary
+    void  SaveSurfaceConditions_p(ModelPart& lagrangian_model_part, ModelPart& surface_model_part)
     {
         KRATOS_TRY
+        surface_model_part.Elements().clear();
+        surface_model_part.Conditions().clear();
+        surface_model_part.Nodes().clear();
 
-        ProcessInfo& proc_info = mr_model_part.GetProcessInfo();
-        double temp;
+	KRATOS_WATCH("SaveSurfaceConditions");
+	
+        //ModelPart::IndexType default_index = 0;
 
-        for(ModelPart::NodesContainerType::iterator in = mr_model_part.NodesBegin(); in!=mr_model_part.NodesEnd(); in++)
-        {
-            in->FastGetSolutionStepValue(IS_FLUID) = 0.0;
+	for(ModelPart::NodesContainerType::iterator in = lagrangian_model_part.NodesBegin() ;
+                in != lagrangian_model_part.NodesEnd() ; ++in)
+        {          
+	    if (in->FastGetSolutionStepValue(IS_BOUNDARY)==1.0 && in->GetValue(NEIGHBOUR_CONDITIONS).size()!=0)
+		    surface_model_part.Nodes().push_back(*(in.base()));
+
         }
-        //set to 1 all the nodes surrounded by at least one fluid element
-        for(ModelPart::ElementsContainerType::iterator ie = mr_model_part.ElementsBegin(); ie!=mr_model_part.ElementsEnd(); ie++)
-        {
-            ie->Calculate(IS_FLUID,temp,proc_info);
+	int id = 1;
+	Properties::Pointer properties = lagrangian_model_part.GetMesh().pGetProperties(1);
+        for(ModelPart::ConditionsContainerType::iterator ic = lagrangian_model_part.ConditionsBegin() ; ic != lagrangian_model_part.ConditionsEnd() ; ++ic)
+        {          
+	    //surface_model_part.Conditions().push_back(*(ic.base()));
+	    Geometry< Node<3> >& geom = ic->GetGeometry();
+      
+            std::vector<std::size_t> NodeIds(3);
+
+	    for(int i=0; i<3; i++) NodeIds[i]= geom[i].Id();
+		
+	    surface_model_part.CreateNewElement("Element3D3N",id, NodeIds,0);//,default_index);	
+	
+	    id = id + 1;
         }
 
-        /*		for(ModelPart::NodesContainerType::const_iterator in = mr_model_part.NodesBegin(); in!=mr_model_part.NodesEnd(); in++)
-        			{
-        				if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() != 0)
-        					{
-        					in->FastGetSolutionStepValue(IS_IS_FLUID) = 1.0;
 
-        					}
-        				else
-        							in->FastGetSolutionStepValue(IS_IS_FLUID) = 0.0;
-        			}*/
+
+
+
         KRATOS_CATCH("")
     }
+
 
 
     ///@}
@@ -157,13 +165,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "MarkFluidProcess";
+        return "SaveLagrangianSurfaceProcess_p";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "MarkFluidProcess";
+        rOStream << "SaveLagrangianSurfaceProcess_p";
     }
 
     /// Print object's data.
@@ -224,7 +232,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mr_model_part;
+    //ModelPart& mr_fluid_model_part;
+    //ModelPart& mr_structure_model_part;
 
     ///@}
     ///@name Private Operators
@@ -251,15 +260,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//		MarkFluidProcess& operator=(MarkFluidProcess const& rOther);
+//		SaveLagrangianSurfaceProcess& operator=(SaveLagrangianSurfaceProcess const& rOther);
 
     /// Copy constructor.
-//		MarkFluidProcess(MarkFluidProcess const& rOther);
+//		SaveLagrangianSurfaceProcess(SaveLagrangianSurfaceProcess const& rOther);
 
 
     ///@}
 
-}; // Class MarkFluidProcess
+}; // Class SaveLagrangianSurfaceProcess
 
 ///@}
 
@@ -274,11 +283,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  MarkFluidProcess& rThis);
+                                  SaveLagrangianSurfaceProcess_p& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const MarkFluidProcess& rThis)
+                                  const SaveLagrangianSurfaceProcess_p& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -291,6 +300,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MARK_IS_FLUID_PROCESS_INCLUDED  defined 
+#endif // KRATOS_SAVE_LAGRANGIAN_SURFACE_PROCESS_INCLUDED  defined 
 
 
