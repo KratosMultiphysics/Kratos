@@ -15,7 +15,7 @@ namespace Kratos {
 
     void VelocityVerletScheme::UpdateTranslationalVariables(
             int StepFlag,
-            Node < 3 > & i,
+            Node < 3 >& i,
             array_1d<double, 3 >& coor,
             array_1d<double, 3 >& displ,
             array_1d<double, 3 >& delta_displ,
@@ -68,7 +68,7 @@ namespace Kratos {
         array_1d<double, 3 > angular_acceleration;
         CalculateLocalAngularAcceleration(moment_of_inertia, torque, moment_reduction_factor, angular_acceleration);
  
-        UpdateRotationalVariables(StepFlag, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
+        UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
     }
 
     void VelocityVerletScheme::CalculateNewRotationalVariablesofClusters(
@@ -93,7 +93,7 @@ namespace Kratos {
         CalculateLocalAngularAccelerationByEulerEquations(local_angular_velocity, moments_of_inertia, local_torque, moment_reduction_factor, local_angular_acceleration);                        
         GeometryFunctions::QuaternionVectorLocal2Global(Orientation, local_angular_acceleration, angular_acceleration);
                     
-        UpdateRotationalVariables(StepFlag, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
+        UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
 
         double ang = DEM_MODULUS_3(delta_rotation);
               
@@ -105,6 +105,7 @@ namespace Kratos {
 
     void VelocityVerletScheme::UpdateRotationalVariables(
                 int StepFlag,
+                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,

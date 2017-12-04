@@ -7,7 +7,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <cfloat>
 
 // Project includes
@@ -33,12 +33,12 @@ namespace Kratos {
 
         /// Destructor.
         virtual ~SymplecticEulerScheme() {}
-        
+
         DEMIntegrationScheme* CloneRaw() const override {
             DEMIntegrationScheme* cloned_scheme(new SymplecticEulerScheme(*this));
             return cloned_scheme;
         }
-        
+
         DEMIntegrationScheme::Pointer CloneShared() const override {
             DEMIntegrationScheme::Pointer cloned_scheme(new SymplecticEulerScheme(*this));
             return cloned_scheme;
@@ -49,7 +49,7 @@ namespace Kratos {
         
         void UpdateTranslationalVariables(
                 int StepFlag,
-                Node < 3 > & i,
+                Node < 3 >& i,
                 array_1d<double, 3 >& coor,
                 array_1d<double, 3 >& displ,
                 array_1d<double, 3 >& delta_displ,
@@ -88,6 +88,7 @@ namespace Kratos {
 
         void UpdateRotationalVariables(
                 int StepFlag,
+                Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,

@@ -15,7 +15,7 @@ namespace Kratos {
 
     void RungeKuttaScheme::UpdateTranslationalVariables(
             int StepFlag,
-            Node < 3 > & i,
+            Node < 3 >& i,
             array_1d<double, 3 >& coor,
             array_1d<double, 3 >& displ,
             array_1d<double, 3 >& delta_displ,
@@ -69,7 +69,7 @@ namespace Kratos {
             }
             
             CalculateAngularVelocityRK(Orientation, moment_of_inertia, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
-            UpdateRotationalVariables(moment_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
+            UpdateRotationalVariables(StepFlag, i, moment_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
         }
     }
     
@@ -113,12 +113,14 @@ namespace Kratos {
             }
             
             CalculateAngularVelocityRK(Orientation, moments_of_inertia, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
-            UpdateRotationalVariables(moments_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
+            UpdateRotationalVariables(StepFlag, i, moments_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
             GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
         }
     }
 
     void RungeKuttaScheme::UpdateRotationalVariables(
+                int StepFlag,
+                Node < 3 >& i,
                 const double& moment_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -147,6 +149,8 @@ namespace Kratos {
     }
     
     void RungeKuttaScheme::UpdateRotationalVariables(
+                int StepFlag,
+                Node < 3 >& i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
