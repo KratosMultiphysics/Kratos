@@ -133,6 +133,11 @@ namespace Kratos
             rWeightsValues.resize(n_total_int_pts, false);
         }
 
+        // Resize the shape function gradients vector
+        if (rShapeFunctionsGradientsValues.size() != n_total_int_pts) {
+            rShapeFunctionsGradientsValues.resize(n_total_int_pts, false);
+        }
+
         // Compute each Gauss pt. shape functions values
         for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
 
@@ -212,6 +217,11 @@ namespace Kratos
         // Resize the weights vector
         if (rInterfaceWeightsValues.size() != n_total_int_pts) {
             rInterfaceWeightsValues.resize(n_total_int_pts, false);
+        }
+
+        // Resize the shape functions gradients
+        if (rInterfaceShapeFunctionsGradientsValues.size() != n_total_int_pts) {
+            rInterfaceShapeFunctionsGradientsValues.resize(n_total_int_pts, false);
         }
 
         // Compute each Gauss pt. shape functions values
