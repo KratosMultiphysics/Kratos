@@ -57,9 +57,29 @@ class TestGidIO(KratosUnittest.TestCase):
         return model_part
 
     def __Check(self,output_file,reference_file):
-        import filecmp
-        self.assertTrue( filecmp.cmp(os.path.dirname(os.path.realpath(__file__)) + "/" 
-            +output_file, os.path.dirname(os.path.realpath(__file__)) + "/" +reference_file))
+        import compare_two_files_check_process
+
+        ## Settings string in json format
+        params = KratosMultiphysics.Parameters("""
+            {
+                "file_name_1"            : "",
+                "file_name_2"            : "",
+                "deterministic"          : true
+            }
+        """)
+
+        params["file_name_1"].SetString(output_file)
+        params["file_name_2"].SetString(reference_file)
+
+        cmp_process = compare_two_files_check_process.CompareTwoFilesCheckProcess(KratosMultiphysics.ModelPart(), params)
+
+        cmp_process.ExecuteInitialize()
+        cmp_process.ExecuteBeforeSolutionLoop()
+        cmp_process.ExecuteInitializeSolutionStep()
+        cmp_process.ExecuteFinalizeSolutionStep()
+        cmp_process.ExecuteBeforeOutputStep()
+        cmp_process.ExecuteAfterOutputStep()
+        cmp_process.ExecuteFinalize()
 
     def test_gid_io_all(self):
         model_part = self.__InitialRead()
