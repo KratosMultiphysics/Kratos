@@ -125,7 +125,7 @@ namespace Kratos
 	bool& LinearElasticOrthotropic2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
 	{
 		// This Constitutive Law has been checked with Stenberg Stabilization
-		if (rThisVariable == STENBERG_STABILIZATION_SUITABLE)
+		if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE)
 			rValue = true;
 		
 		return rValue;
