@@ -123,7 +123,6 @@ public:
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                      r_model_part.GetProcessInfo() );
-
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
