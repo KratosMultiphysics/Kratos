@@ -281,7 +281,7 @@ ShellThickElement3D4N::EASOperator::EASOperator(const ShellQ4_LocalCoordinateSys
     double eta(0.0);
 
     Matrix dN(4, 2);
-    Utilities::ShapeFunc_NaturalDerivatives(xi, eta, dN);
+    ShellUtilities::ShapeFunc_NaturalDerivatives(xi, eta, dN);
 
     Matrix Jac0(2, 2);
     Jac0(0, 0) = dN(0, 0) * LCS.X1() + dN(1, 0) * LCS.X2() + dN(2, 0) * LCS.X3() + dN(3, 0) * LCS.X4();
@@ -465,10 +465,6 @@ void ShellThickElement3D4N::Initialize()
 			// make new instance of shell cross section
 			theSection =
 				ShellCrossSection::Pointer(new ShellCrossSection());
-
-			// // Assign orthotropic material law for entire element
-			// LinearElasticOrthotropic2DLaw OrthoLaw;
-			// props.SetValue(CONSTITUTIVE_LAW, OrthoLaw.Clone());
 
 			// Parse material properties for each layer
 			theSection->ParseOrthotropicPropertyMatrix(this->pGetProperties());

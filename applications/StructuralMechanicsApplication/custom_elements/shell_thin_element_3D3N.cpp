@@ -48,7 +48,7 @@
 #ifdef OPT_USES_INTERIOR_GAUSS_POINTS
 #define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X)
 #else
-#define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X) Utilities::InterpToStandardGaussPoints(X)
+#define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X) ShellUtilities::InterpToStandardGaussPoints(X)
 #endif // OPT_USES_INTERIOR_GAUSS_POINTS
 #endif // OPT_1_POINT_INTEGRATION
 
@@ -219,10 +219,6 @@ void ShellThinElement3D3N::Initialize()
 			// make new instance of shell cross section
 			theSection =
 				ShellCrossSection::Pointer(new ShellCrossSection());
-
-			// // Assign orthotropic material law for entire element
-			// LinearElasticOrthotropic2DLaw OrthoLaw;
-			// props.SetValue(CONSTITUTIVE_LAW, OrthoLaw.Clone());
 
 			// Parse material properties for each layer
 			theSection->ParseOrthotropicPropertyMatrix(this->pGetProperties());

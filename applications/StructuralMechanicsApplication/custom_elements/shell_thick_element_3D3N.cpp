@@ -7,14 +7,13 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Peter Wilson
-//       contact:    A.Winterstein@tum.de
+//       contact:    A.Winterstein [at] tum.de
 //
 
 #include "shell_thick_element_3D3N.hpp"
 #include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
 
-#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
 #include "custom_utilities/shell_utilities.h"
 #include "geometries/triangle_3d_3.h"
 
@@ -146,7 +145,7 @@ namespace Kratos
 	#ifdef OPT_USES_INTERIOR_GAUSS_POINTS
 	#define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X)
 	#else
-	#define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X) Utilities::InterpToStandardGaussPoints(X)
+	#define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X) ShellUtilities::InterpToStandardGaussPoints(X)
 	#endif // OPT_USES_INTERIOR_GAUSS_POINTS
 	#endif // OPT_1_POINT_INTEGRATION
 
@@ -258,10 +257,6 @@ namespace Kratos
 			{
 				// make new instance of shell cross section
 				theSection = ShellCrossSection::Pointer(new ShellCrossSection());
-
-				// // Assign orthotropic material law for entire element
-				// LinearElasticOrthotropic2DLaw OrthoLaw;
-				// props.SetValue(CONSTITUTIVE_LAW, OrthoLaw.Clone());
 
 				// Parse material properties for each layer
 				theSection->ParseOrthotropicPropertyMatrix(this->pGetProperties());

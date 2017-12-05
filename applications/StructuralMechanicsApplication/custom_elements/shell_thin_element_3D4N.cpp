@@ -14,7 +14,6 @@
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
 
-#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
 #include "custom_utilities/shell_utilities.h"
 #include "geometries/quadrilateral_3d_4.h"
 
@@ -319,10 +318,6 @@ namespace Kratos
 				// make new instance of shell cross section
 				theSection =
 					ShellCrossSection::Pointer(new ShellCrossSection());
-
-				// // Assign orthotropic material law for entire element
-				// LinearElasticOrthotropic2DLaw OrthoLaw;
-				// props.SetValue(CONSTITUTIVE_LAW, OrthoLaw.Clone());
 
 				// Parse material properties for each layer
 				theSection->ParseOrthotropicPropertyMatrix(this->pGetProperties());
@@ -1656,7 +1651,7 @@ namespace Kratos
 			data.s_eta.clear();
 
 			//set values of SFs to xi = 1 and eta = 0
-			Utilities::ShapeFunc(1, 0, data.N);
+			ShellUtilities::ShapeFunc(1, 0, data.N);
 			for (int i = 0; i < 4; i++)
 			{
 				data.s_xi(0) += data.r_cartesian[i][0] * data.N(i);
@@ -1667,7 +1662,7 @@ namespace Kratos
 
 			//set values of SFs to xi = 0 and eta = 1
 			data.N.clear();
-			Utilities::ShapeFunc(0, 1, data.N);
+			ShellUtilities::ShapeFunc(0, 1, data.N);
 			for (int i = 0; i < 4; i++)
 			{
 				data.s_eta(0) += data.r_cartesian[i][0] * data.N(i);
@@ -2245,7 +2240,7 @@ namespace Kratos
 			Matrix dN(4, 2, 0.0);
 
 			// dN/dxi and dN/deta
-			Utilities::ShapeFunc_NaturalDerivatives(xi, eta, dN);
+			ShellUtilities::ShapeFunc_NaturalDerivatives(xi, eta, dN);
 			Matrix temp = Matrix(prod(data.DKQ_invJac[data.gpIndex], trans(dN)));
 
 			// dN/dx and dN/dy
@@ -2329,59 +2324,59 @@ namespace Kratos
 			// d( ) / dxi
 			// Compute vector of dPsi_x/dxi
 			dpsiX_dxi[3 * node] = 1.5 *
-				(ar*Utilities::dN_seren_dxi(r, xi, eta) -
-					as*Utilities::dN_seren_dxi(s, xi, eta));
+				(ar*ShellUtilities::dN_seren_dxi(r, xi, eta) -
+					as*ShellUtilities::dN_seren_dxi(s, xi, eta));
 
-			dpsiX_dxi[3 * node + 1] = br*Utilities::dN_seren_dxi(r, xi, eta) +
-				bs*Utilities::dN_seren_dxi(s, xi, eta);
+			dpsiX_dxi[3 * node + 1] = br*ShellUtilities::dN_seren_dxi(r, xi, eta) +
+				bs*ShellUtilities::dN_seren_dxi(s, xi, eta);
 
 			dpsiX_dxi[3 * node + 2] =
-				Utilities::dN_seren_dxi(node + 1, xi, eta) -
-				cr*Utilities::dN_seren_dxi(r, xi, eta) -
-				cs*Utilities::dN_seren_dxi(s, xi, eta);
+				ShellUtilities::dN_seren_dxi(node + 1, xi, eta) -
+				cr*ShellUtilities::dN_seren_dxi(r, xi, eta) -
+				cs*ShellUtilities::dN_seren_dxi(s, xi, eta);
 
 			// Compute vector of dPsi_y/dxi
 			dpsiY_dxi[3 * node] = 1.5 *
-				(dr*Utilities::dN_seren_dxi(r, xi, eta) -
-					ds*Utilities::dN_seren_dxi(s, xi, eta));
+				(dr*ShellUtilities::dN_seren_dxi(r, xi, eta) -
+					ds*ShellUtilities::dN_seren_dxi(s, xi, eta));
 
 			dpsiY_dxi[3 * node + 1] = -1.0 *
-				Utilities::dN_seren_dxi(node + 1, xi, eta) +
-				er*Utilities::dN_seren_dxi(r, xi, eta) +
-				es*Utilities::dN_seren_dxi(s, xi, eta);
+				ShellUtilities::dN_seren_dxi(node + 1, xi, eta) +
+				er*ShellUtilities::dN_seren_dxi(r, xi, eta) +
+				es*ShellUtilities::dN_seren_dxi(s, xi, eta);
 
 			dpsiY_dxi[3 * node + 2] = -1.0 * br*
-				Utilities::dN_seren_dxi(r, xi, eta) -
-				bs*Utilities::dN_seren_dxi(s, xi, eta);
+				ShellUtilities::dN_seren_dxi(r, xi, eta) -
+				bs*ShellUtilities::dN_seren_dxi(s, xi, eta);
 
 			// d( ) / deta
 			// Compute vector of dPsi_x/deta
 			dpsiX_deta[3 * node] = 1.5 *
-				(ar*Utilities::dN_seren_deta(r, xi, eta) -
-					as*Utilities::dN_seren_deta(s, xi, eta));
+				(ar*ShellUtilities::dN_seren_deta(r, xi, eta) -
+					as*ShellUtilities::dN_seren_deta(s, xi, eta));
 
 			dpsiX_deta[3 * node + 1] = br*
-				Utilities::dN_seren_deta(r, xi, eta) +
-				bs*Utilities::dN_seren_deta(s, xi, eta);
+				ShellUtilities::dN_seren_deta(r, xi, eta) +
+				bs*ShellUtilities::dN_seren_deta(s, xi, eta);
 
 			dpsiX_deta[3 * node + 2] =
-				Utilities::dN_seren_deta(node + 1, xi, eta) -
-				cr*Utilities::dN_seren_deta(r, xi, eta) -
-				cs*Utilities::dN_seren_deta(s, xi, eta);
+				ShellUtilities::dN_seren_deta(node + 1, xi, eta) -
+				cr*ShellUtilities::dN_seren_deta(r, xi, eta) -
+				cs*ShellUtilities::dN_seren_deta(s, xi, eta);
 
 			// Compute vector of dPsi_y/deta
 			dpsiY_deta[3 * node] = 1.5 *
-				(dr*Utilities::dN_seren_deta(r, xi, eta) -
-					ds*Utilities::dN_seren_deta(s, xi, eta));
+				(dr*ShellUtilities::dN_seren_deta(r, xi, eta) -
+					ds*ShellUtilities::dN_seren_deta(s, xi, eta));
 
 			dpsiY_deta[3 * node + 1] = -1.0 *
-				Utilities::dN_seren_deta(node + 1, xi, eta) +
-				er*Utilities::dN_seren_deta(r, xi, eta) +
-				es*Utilities::dN_seren_deta(s, xi, eta);
+				ShellUtilities::dN_seren_deta(node + 1, xi, eta) +
+				er*ShellUtilities::dN_seren_deta(r, xi, eta) +
+				es*ShellUtilities::dN_seren_deta(s, xi, eta);
 
 			dpsiY_deta[3 * node + 2] = -1.0 * br*
-				Utilities::dN_seren_deta(r, xi, eta) -
-				bs*Utilities::dN_seren_deta(s, xi, eta);
+				ShellUtilities::dN_seren_deta(r, xi, eta) -
+				bs*ShellUtilities::dN_seren_deta(s, xi, eta);
 		}
 
 		double j11, j12, j21, j22;

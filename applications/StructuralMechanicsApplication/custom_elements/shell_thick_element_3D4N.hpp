@@ -22,7 +22,6 @@
 #include "includes/element.h"
 #include "custom_utilities/shell_cross_section.hpp"
 #include "utilities/quaternion.h"
-#include "custom_utilities/shell_utilities.hpp"
 
 namespace Kratos
 {
