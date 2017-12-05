@@ -665,9 +665,9 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& r
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-	if (rVariable == LOCAL_AXIS_VECTOR_1)
+	if (rVariable == LOCAL_AXIS_1)
 	{
-		// LOCAL_AXIS_VECTOR_1 output DOES NOT include the effect of section
+		// LOCAL_AXIS_1 output DOES NOT include the effect of section
 		// orientation, which rotates the entrire element section in-plane
 		// and is used in element stiffness calculation.
 
@@ -682,9 +682,9 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& r
 			rValues[GP] = localCoordinateSystem.Vx();
 		}
 	}
-	else if (rVariable == ORTHOTROPIC_FIBER_ORIENTATION_1)
+	else if (rVariable == MATERIAL_ORIENTATION_VECTOR_1)
 	{
-		// ORTHOTROPIC_FIBER_ORIENTATION_1 output DOES include the effect of 
+		// MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of 
 		// section orientation, which rotates the entrire element section 
 		// in-plane and is used in the element stiffness calculation.
 
@@ -1146,10 +1146,10 @@ void ShellThinElement3D3N::DecimalCorrection(Vector& a)
 
 void ShellThinElement3D3N::SetupOrientationAngles()
 {
-    if (this->Has(FIBER_ORIENTATION_ANGLE)) 
+    if (this->Has(MATERIAL_ORIENTATION_ANGLE)) 
     { 
         for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) 
-        (*it)->SetOrientationAngle(this->GetValue(FIBER_ORIENTATION_ANGLE)); 
+        (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE)); 
     } 
     else 
     { 
