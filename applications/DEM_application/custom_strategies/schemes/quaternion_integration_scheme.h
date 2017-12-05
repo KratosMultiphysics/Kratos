@@ -1,13 +1,13 @@
 //
-// Author: Miquel Santasusana msantasusana@cimne.upc.edu
+// Author: Joaquin Irazabal, jirazabal@cimne.upc.edu
 //
 
-#if !defined(KRATOS_FORWARD_EULER_SCHEME_H_INCLUDED )
-#define  KRATOS_FORWARD_EULER_SCHEME_H_INCLUDED
+#if !defined(KRATOS_QUATERNION_INTEGRATION_SCHEME_H_INCLUDED )
+#define  KRATOS_QUATERNION_INTEGRATION_SCHEME_H_INCLUDED
 
 // System includes
 #include <string>
-#include <iostream>
+#include <iostream> 
 #include <cfloat>
 
 // Project includes
@@ -20,27 +20,27 @@
 
 namespace Kratos {
 
-    class ForwardEulerScheme : public DEMIntegrationScheme {
+    class QuaternionIntegrationScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
 
-        /// Pointer definition of ForwardEulerScheme
-        KRATOS_CLASS_POINTER_DEFINITION(ForwardEulerScheme);
+        /// Pointer definition of QuaternionIntegrationScheme
+        KRATOS_CLASS_POINTER_DEFINITION(QuaternionIntegrationScheme);
 
         /// Default constructor.
-        ForwardEulerScheme() {}
+        QuaternionIntegrationScheme() {}
 
         /// Destructor.
-        virtual ~ForwardEulerScheme() {}
-
+        virtual ~QuaternionIntegrationScheme() {}
+        
         DEMIntegrationScheme* CloneRaw() const override {
-            DEMIntegrationScheme* cloned_scheme(new ForwardEulerScheme(*this));
+            DEMIntegrationScheme* cloned_scheme(new QuaternionIntegrationScheme(*this));
             return cloned_scheme;
         }
-
+        
         DEMIntegrationScheme::Pointer CloneShared() const override {
-            DEMIntegrationScheme::Pointer cloned_scheme(new ForwardEulerScheme(*this));
+            DEMIntegrationScheme::Pointer cloned_scheme(new QuaternionIntegrationScheme(*this));
             return cloned_scheme;
         }
 
@@ -86,15 +86,11 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
 
-        void UpdateRotationalVariables(
-                int StepFlag,
-                Node < 3 >& i,
+        void UpdateRotatedAngle(
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
-                array_1d<double, 3 >& angular_velocity,
-                array_1d<double, 3 >& angular_acceleration,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) override;
+                const array_1d<double, 3 >& angular_velocity,
+                const double delta_t) override;
 
         void CalculateLocalAngularAcceleration(
                 const double moment_of_inertia,
@@ -113,14 +109,14 @@ namespace Kratos {
 
         virtual std::string Info() const override{
             std::stringstream buffer;
-            buffer << "ForwardEulerScheme";
+            buffer << "QuaternionIntegrationScheme";
             return buffer.str();
         }
 
         /// Print information about this object.
 
         virtual void PrintInfo(std::ostream& rOStream) const override{
-            rOStream << "ForwardEulerScheme";
+            rOStream << "QuaternionIntegrationScheme";
         }
 
         /// Print object's data.
@@ -136,29 +132,29 @@ namespace Kratos {
 
         /// Assignment operator.
 
-        ForwardEulerScheme& operator=(ForwardEulerScheme const& rOther) {
+        QuaternionIntegrationScheme& operator=(QuaternionIntegrationScheme const& rOther) {
             return *this;
         }
 
         /// Copy constructor.
 
-        ForwardEulerScheme(ForwardEulerScheme const& rOther) {
+        QuaternionIntegrationScheme(QuaternionIntegrationScheme const& rOther) {
             *this = rOther;
         }
 
 
         ///@}
 
-    }; // Class ForwardEulerScheme
+    }; // Class QuaternionIntegrationScheme
 
 
     inline std::istream& operator>>(std::istream& rIStream,
-            ForwardEulerScheme& rThis) {
+            QuaternionIntegrationScheme& rThis) {
         return rIStream;
     }
 
     inline std::ostream& operator<<(std::ostream& rOStream,
-            const ForwardEulerScheme& rThis) {
+            const QuaternionIntegrationScheme& rThis) {
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
         rThis.PrintData(rOStream);
@@ -168,4 +164,4 @@ namespace Kratos {
 
 } // namespace Kratos.
 
-#endif // KRATOS_FORWARD_EULER_SCHEME_H_INCLUDED  defined
+#endif // KRATOS_QUATERNION_INTEGRATION_SCHEME_H_INCLUDED  defined
