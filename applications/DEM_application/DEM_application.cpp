@@ -800,8 +800,6 @@ namespace Kratos
     Serializer::Register("VelocityVerletScheme", VelocityVerletScheme());
     Serializer::Register("RungeKuttaScheme", RungeKuttaScheme());
     Serializer::Register("QuaternionIntegrationScheme", QuaternionIntegrationScheme());
-//     Serializer::Register("ConstAverageAccelerationScheme", ConstAverageAccelerationScheme());
-//     Serializer::Register("MidPointScheme", MidPointScheme());
     Serializer::Register("DEMIntegrationScheme", DEMIntegrationScheme());
     
     std::cout << " done."                                  << std::endl;
