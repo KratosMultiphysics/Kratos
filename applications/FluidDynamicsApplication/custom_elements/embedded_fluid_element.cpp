@@ -203,7 +203,7 @@ void EmbeddedFluidElement<TBaseElement>::DefineCutGeometryData(
         rData.PositiveInterfaceUnitNormals, GeometryData::GI_GAUSS_2);
 
     // Normalize the normals
-    const double tolerance = std::pow(1e-3 * this->ElementSize(),Dimension-1);
+    const double tolerance = std::pow(1e-3 * this->ElementSize(),Dim-1);
     this->NormalizeInterfaceNormals(rData.PositiveInterfaceUnitNormals, tolerance);
 }
 
