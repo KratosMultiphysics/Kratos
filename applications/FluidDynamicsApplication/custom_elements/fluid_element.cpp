@@ -458,7 +458,7 @@ array_1d<double, 3> FluidElement<TElementData>::Interpolate(
 template< class TElementData >
 void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
                                       Matrix &rNContainer,
-                                      ShapeFunctionDerivativesArrayType &rDN_DX)
+                                      ShapeFunctionDerivativesArrayType &rDN_DX) const
 {
     const GeometryData::IntegrationMethod IntMethod = this->GetIntegrationMethod();
     const GeometryType& r_geometry = this->GetGeometry();

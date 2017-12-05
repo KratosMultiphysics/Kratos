@@ -325,7 +325,7 @@ protected:
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
     virtual void CalculateGeometryData(Vector& rGaussWeights,
                                        Matrix& rNContainer,
-                                       ShapeFunctionDerivativesArrayType& rDN_DX);
+                                       ShapeFunctionDerivativesArrayType& rDN_DX) const;
 
 
     /// Characteristic element size h to be used in stabilization parameters.
