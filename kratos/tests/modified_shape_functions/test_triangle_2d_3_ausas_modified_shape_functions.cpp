@@ -56,7 +56,7 @@ namespace Kratos
 			// Call the modified shape functions calculator
 			Triangle2D3AusasModifiedShapeFunctions triangle_ausas_shape_functions(p_geometry, r_elemental_distances);
 			Matrix positive_side_sh_func, negative_side_sh_func;
-			std::vector<Matrix> positive_side_sh_func_gradients, negative_side_sh_func_gradients;
+			ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients, negative_side_sh_func_gradients;
 			Vector positive_side_weights, negative_side_weights;
 
 			triangle_ausas_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
@@ -73,7 +73,7 @@ namespace Kratos
 
 			// Call the interface modified shape functions calculator
 			Matrix positive_interface_side_sh_func, negative_interface_side_sh_func;
-			std::vector<Matrix> positive_interface_side_sh_func_gradients, negative_interface_side_sh_func_gradients;
+			ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_interface_side_sh_func_gradients, negative_interface_side_sh_func_gradients;
 			Vector positive_interface_side_weights, negative_interface_side_weights;
 
 			triangle_ausas_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
@@ -213,7 +213,7 @@ namespace Kratos
 			// Call the modified shape functions calculator
 			Triangle2D3AusasModifiedShapeFunctions triangle_ausas_shape_functions(p_geometry, r_elemental_distances);
 			Matrix positive_side_sh_func, negative_side_sh_func;
-			std::vector<Matrix> positive_side_sh_func_gradients, negative_side_sh_func_gradients;
+			ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients, negative_side_sh_func_gradients;
 			Vector positive_side_weights, negative_side_weights;
 
 			triangle_ausas_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
@@ -230,7 +230,7 @@ namespace Kratos
 
 			// Call the interface modified shape functions calculator
 			Matrix positive_interface_side_sh_func, negative_interface_side_sh_func;
-			std::vector<Matrix> positive_interface_side_sh_func_gradients, negative_interface_side_sh_func_gradients;
+			ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_interface_side_sh_func_gradients, negative_interface_side_sh_func_gradients;
 			Vector positive_interface_side_weights, negative_interface_side_weights;
 
 			triangle_ausas_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(

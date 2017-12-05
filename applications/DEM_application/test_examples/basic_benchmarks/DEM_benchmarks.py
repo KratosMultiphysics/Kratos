@@ -53,7 +53,6 @@ class Solution(main_script.Solution):
 
     def __init__(self):
         super(Solution, self).__init__()
-        os.chdir('..')
         self.nodeplotter = False
         self.LoadParametersFile()
         self.main_path = os.getcwd()
@@ -85,7 +84,11 @@ class Solution(main_script.Solution):
         return SolverStrategy
 
     def SetSolver(self):
-        return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.DEM_parameters, self.procedures)
+        return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
+                                                     self.creator_destructor,
+                                                     self.dem_fem_search,
+                                                     self.DEM_parameters,
+                                                     self.procedures)
 
     def SetFinalTime(self):
         self.final_time = final_time

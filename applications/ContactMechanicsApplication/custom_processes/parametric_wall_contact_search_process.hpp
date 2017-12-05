@@ -427,6 +427,9 @@ namespace Kratos
       }
       else if(  ConditionName == "AxisymPointContactPenaltyCondition2D1N" ){
       	return ConditionType::Pointer(new AxisymPointRigidContactPenalty2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
+      } else {
+        std::cout << ConditionName << std::endl;
+        KRATOS_ERROR << "the specified contact condition does not exist " << std::endl;
       }
       // else if(  ConditionName == "AxisymPointWaterContactPenaltyCondition2D1N" ){
       // 	return ConditionType::Pointer(new AxisymPointRigidContactPenaltyWater2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
