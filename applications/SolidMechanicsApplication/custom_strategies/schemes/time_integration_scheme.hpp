@@ -47,14 +47,19 @@ namespace Kratos
   /** Detail class definition.     
    * This class performs predict and update of dofs variables, their time derivatives and time integrals      
    */
+  template<class TVariableType>
   class KRATOS_API(SOLID_MECHANICS_APPLICATION) TimeIntegrationScheme
   {
   public:
  
     ///@name Type Definitions
     ///@{
-
+    
+    /// NodeType
     typedef Node<3> NodeType;
+
+    /// KratosVariable or KratosVariableComponent
+    typedef const TVariableType*     VariablePointer;
     
     KRATOS_CLASS_POINTER_DEFINITION( TimeIntegrationScheme );
 
@@ -64,10 +69,23 @@ namespace Kratos
 
     
     /// Default Constructor.
-    TimeIntegrationScheme() {}
+    TimeIntegrationScheme()
+    {
+      mpVariable = nullptr;
+      mpFirstDerivative = nullptr;
+      mpSecondDerivative = nullptr;
+
+      mpInputVariable = nullptr;
+    }
 
     /// Copy Constructor.
-    TimeIntegrationScheme(TimeIntegrationScheme& rOther) {}
+    TimeIntegrationScheme(TimeIntegrationScheme& rOther)
+      :mpVariable(rOther.mpVariable)
+      ,mpFirstDerivative(rOther.mpFirstDerivative)
+      ,mpSecondDerivative(rOther.mpSecondDerivative)
+      ,mpInputVariable(rOther.mpInputVariable)
+    {
+    }
 
     /// Clone
     TimeIntegrationScheme::Pointer Clone()
@@ -85,7 +103,86 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
- 
+
+    // set parameters
+    virtual void SetParameters(const ProcessInfo& rCurrentProcessInfo)
+    {
+    
+    }
+
+    // get parameters
+    virtual double& GetFirstDerivativeParameter(double& rParameter)
+    {
+      return mNewmark.c1;
+    }
+
+    virtual double& GetSecondDerivativeParameter(double& rParameter)
+    {
+      return mNewmark.c0;
+    }
+
+    
+    // set time integration scheme variables
+    void SetVariables(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative)
+    {
+      mpVariable = &rVariable;
+
+      mpFirstDerivative = &rFirstDerivative;
+
+      mpSecondDerivative = &rSecondDerivative;
+    }
+
+    // set input variable (constrained variable)
+    void SetInputVariable(const TVariableType& rVariable)
+    {
+      mpInputVariable = &rVariable;
+    }
+
+    // predict
+    
+    virtual void Predict(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict from time integration base class " <<std::endl;
+    }
+
+    virtual void PredictVariable(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict variable from time integration base class " <<std::endl;
+    }
+
+    virtual void PredictFirstDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict first derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void PredictSecondDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict second derivative from time integration base class " <<std::endl;
+    }
+
+    
+    // update
+    
+    virtual void Update(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling update from time integration base class " <<std::endl;
+    }
+
+    virtual void UpdateVariable(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling update variable from time integration base class " <<std::endl;
+    }
+
+    virtual void UpdateFirstDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling update first derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void UpdateSecondDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling update second derivative from time integration base class " <<std::endl;
+    }
+    
     ///@}
     ///@name Access
     ///@{
@@ -136,7 +233,21 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-     ///@}
+    // scheme variables and derivatives
+    
+    VariablePointer mpVariable;
+
+    VariablePointer mpFirstDerivative;
+
+    VariablePointer mpSecondDerivative;
+
+    
+    // input variable
+    
+    VariablePointer mpInputVariable;
+
+    
+    ///@}
     ///@name Protected Operators
     ///@{
 

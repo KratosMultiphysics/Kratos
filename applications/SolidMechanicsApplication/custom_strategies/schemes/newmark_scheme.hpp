@@ -47,7 +47,8 @@ namespace Kratos
   /** Detail class definition.     
    * This class performs predict and update of dofs variables, their time derivatives and time integrals      
    */
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) NewmarkScheme
+  template<class TVariableType>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) NewmarkScheme : public IntegrationScheme<TVariablesType>
   {
   protected:
     
@@ -56,6 +57,8 @@ namespace Kratos
       double beta;
       double gamma;
 
+      double delta_time;
+      
       //system constants
       double c0;
       double c1;
@@ -63,13 +66,40 @@ namespace Kratos
       double c3;
       double c4;
       double c5;
-      double c6;
+
+      void SetParameters(const double& rbeta,
+			 const double& rgamma,
+			 const double& rdelta_time)
+      {
+	beta  = rbeta;
+	gamma = rgamma;
+
+	delta_time = rdelta_time;
+	
+	c0 = ( 1.0 / (beta * delta_time * delta_time) );
+        c1 = ( gamma / (beta * delta_time) );
+        c2 = ( 1.0 / (beta * delta_time) );
+        c3 = ( 0.5 / (beta) - 1.0 );
+        c4 = ( (gamma / beta) - 1.0  );
+        c5 = ( delta_time * 0.5 * ( ( gamma / beta ) - 2.0 ) );
+      }
+      
     };
     
   public:
  
     ///@name Type Definitions
     ///@{
+
+    /// BaseType
+    typedef TimeIntegrationScheme<TVariableType>   BaseType;
+
+    /// NodeType
+    typedef BaseType::NodeType                     NodeType;
+    
+    /// KratosVariable or KratosVariableComponent    
+    typedef BaseType::VariablePointer       VariablePointer;
+    
     KRATOS_CLASS_POINTER_DEFINITION( NewmarkScheme );
 
     ///@}
@@ -78,12 +108,12 @@ namespace Kratos
 
     
     /// Default Constructor.
-    NewmarkScheme() {}
+    NewmarkScheme() : TimeIntegrationScheme() {}
 
     /// Copy Constructor.
-    NewmarkScheme(NewmarkScheme& rOther) {}
+    NewmarkScheme(NewmarkScheme& rOther) : TimeIntegrationScheme(rOther) {}
 
-    /// Clone
+    /// Clone.
     NewmarkScheme::Pointer Clone()
     {
       return NewmarkScheme::Pointer( new NewmarkScheme(*this) );
@@ -100,116 +130,108 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    
-    void PredictVariable(NodeType& rNode, const Variable<array_1d<double, 3> >& rVariable)
+    // set parameters
+    void SetParameters(const ProcessInfo& rCurrentProcessInfo)
     {
      KRATOS_TRY
        
-     if( rVariable == DISPLACEMENT )	
-       this->PredictVariable(rNode);
-     else if( rVariable == VELOCITY )
-       this->PredictFirstDerivative(rNode);
-     else if( rVariables == ACCELERATION )
-       this->PredictSecondDerivative(rNode);
-     else
-       KRATOS_ERROR << "This integration scheme not applies to " << rVariable << std::endl;
+     double delta_time = rCurrentProcessInfo[DELTA_TIME];
+
+     if (delta_time < 1.0e-24)
+        {
+	  KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part " << std::endl;
+        }
+     
+     double beta = 0.25;
+     if (rCurrentProcessInfo.Has(NEWMARK_BETA))
+       {
+	 beta = rCurrentProcessInfo[NEWMARK_BETA];
+       }
+     double gamma = 0.5;
+     if (rCurrentProcessInfo.Has(NEWMARK_GAMMA))
+       {
+	 gamma = rCurrentProcessInfo[NEWMARK_GAMMA];
+       }
+     
+     mNewmark.SetParameters(beta,gamma,delta_time);
+     
+     KRATOS_CATCH( "" )
+    }     
+
+    // get parameters
+    double& GetFirstDerivativeParameter(double& rParameter)
+    {
+      rParameter = mNewmark.c1;
+      return rParameter;
+    }
+
+    double& GetSecondDerivativeParameter(double& rParameter)
+    {
+      rParameters = mNewmark.c0
+      return rParameter;
+    }
+    
+    // predict
+ 
+    void Predict(NodeType& rNode)
+    {
+     KRATOS_TRY
+     
+     if( mpInputVariable != nullptr ){ 
+
+       if( *mpInputVariable == *mpVariable ){
+	 UpdateFirstDerivative(rNode);
+	 UpdateSecondDerivative(rNode);
+       }
+
+       if( *mpInputVariable == *mpFirstDerivative ){
+	 PredictSecondDerivative(rNode);
+	 PredictVariable(rNode);
+       }
+       
+       if( *mpInputVariable == *mpSecondDerivative ){
+	 PredictFirstDerivative(rNode);
+	 PredictVariable(rNode);
+       }
+       
+     }
 	
      KRATOS_CATCH( "" )
     }
 
-    void PredictVariable(NodeType& rNode, const VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > >& rComponent)
-    {
-      KRATOS_TRY
-	
-      if( rComponent == DISPLACEMENT_X )
-	this->PredictVariable(rNode,0);
-      else if( rComponent == DISPLACEMENT_Y )	
-	this->PredictVariable(rNode,1);
-      else if( rComponent == DISPLACEMENT_Z )	
-	this->PredictVariable(rNode,2);
-      else if( rComponent == VELOCITY_X)
-	this->PredictFirstDerivative(rNode,0);
-      else if( rComponent == VELOCITY_Y )
-	this->PredictFirstDerivative(rNode,1);
-      else if( rComponent == VELOCITY_Z )
-	this->PredictFirstDerivative(rNode,2);
-      else if( rComponent == ACCELERATION_X )
-	this->PredictSecondDerivative(rNode,0);    
-      else if( rComponent == ACCELERATION_Y )
-	this->PredictSecondDerivative(rNode,1);
-      else if( rComponent == ACCELERATION_Z )
-	this->PredictSecondDerivative(rNode,2);
-      else
-	KRATOS_ERROR << "This integration scheme not applies to " << rComponent << std::endl;      
-      	
-      KRATOS_CATCH( "" )
-    }
-    
-    void UpdateVariable(NodeType& rNode, const Variable<array_1d<double, 3> >& rVariable)
-    {
-      KRATOS_TRY
-
-      if( rVariable == DISPLACEMENT )	
-	this->UpdateVariable(rNode);
-      else if( rVariable == VELOCITY )
-	this->UpdateFirstDerivative(rNode);
-      else if( rVariables == ACCELERATION )
-	this->UpdateSecondDerivative(rNode);
-      else
-	KRATOS_ERROR << "This integration scheme not applies to " << rVariable << std::endl;
-	      
-      KRATOS_CATCH( "" )
-    }
-
-    void UpdateVariable(NodeType& rNode, const VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > >& rComponent)
-    {
-      KRATOS_TRY
-
-      if( rComponent == DISPLACEMENT_X )
-	this->UpdateVariable(rNode,0);
-      else if( rComponent == DISPLACEMENT_Y )	
-	this->UpdateVariable(rNode,1);
-      else if( rComponent == DISPLACEMENT_Z )	
-	this->UpdateVariable(rNode,2);
-      else if( rComponent == VELOCITY_X)
-	this->UpdateFirstDerivative(rNode,0);
-      else if( rComponent == VELOCITY_Y )
-	this->UpdateFirstDerivative(rNode,1);
-      else if( rComponent == VELOCITY_Z )
-	this->UpdateFirstDerivative(rNode,2);
-      else if( rComponent == ACCELERATION_X )
-	this->UpdateSecondDerivative(rNode,0);    
-      else if( rComponent == ACCELERATION_Y )
-	this->UpdateSecondDerivative(rNode,1);
-      else if( rComponent == ACCELERATION_Z )
-	this->UpdateSecondDerivative(rNode,2);
-      else
-	KRATOS_ERROR << "This integration scheme not applies to " << rComponent << std::endl;      
-      
-      KRATOS_CATCH( "" )
-    }
-
-    // predict
-    
     void PredictVariable(NodeType& rNode)
     {
       KRATOS_TRY
+
+      // predict variable from first and second derivative
+      array_1d<double,3>& CurrentVariable          = rNode.FastGetSolutionStepValue(*mpVariable,         0);
+      array_1d<double,3>& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*mpFirstDerivative,  0);
+      array_1d<double,3>& CurrentSecondDerivative  = rNode.FastGetSolutionStepValue(*mpSecondDerivative, 0);
+ 
+
+      array_1d<double,3>& PreviousVariable         = rNode.FastGetSolutionStepValue(*mpVariable,         1);
+      array_1d<double,3>& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*mpFirstDerivative,  1);
+      array_1d<double,3>& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*mpSecondDerivative, 1);
+
       
+      CurrentVariable = PreviousVariable + mNewmark.delta_time * PreviousFirstDerivative + mNewmark.delta_time * mNewmark.delta_time * ( 0.5 * ( 1.0 - 2.0 * mNewmark.beta ) * CurrentSecondDerivative + mNewmark.beta * CurrentSecondDerivative );
+	
       KRATOS_CATCH( "" )
     }
 
     void PredictFirstDerivative(NodeType& rNode)
     {
       KRATOS_TRY
+	
+      // predict variable from second derivative
+      array_1d<double,3>& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*mpFirstDerivative,  0);
+      array_1d<double,3>& CurrentSecondDerivative  = rNode.FastGetSolutionStepValue(*mpSecondDerivative, 0);
+       
+      array_1d<double,3>& PreviousVariable         = rNode.FastGetSolutionStepValue(*mpVariable,         1);
+      array_1d<double,3>& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*mpFirstDerivative,  1);
+      array_1d<double,3>& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*mpSecondDerivative, 1);
 
-      array_1d<double,3> & CurrentDisplacement  = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
-      array_1d<double,3> & CurrentVelocity      = rNode.FastGetSolutionStepValue(VELOCITY,     0);
- 	          
-      array_1d<double,3> & PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-      array_1d<double,3> & PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
-      array_1d<double,3> & PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
-
-      noalias(CurrentVelocity) = (mNewmark.c1 * (CurrentDisplacement-PreviousDisplacement) - mNewmark.c4 * PreviousVelocity - mNewmark.c5 * PreviousAcceleration);
+      CurrentFirstDerivative = PreviousFirstDerivative + mNewmark.delta_time * ( ( 1.0 - mNewmark.gamma ) * PreviousSecondDerivative +  mNewmark.gamma * CurrentSecondDerivative );
       
       KRATOS_CATCH( "" )      
     }
@@ -217,63 +239,33 @@ namespace Kratos
     void PredictSecondDerivative(NodeType& rNode)
     {
       KRATOS_TRY
+	
+      // predict second derivativ from first derivative
+      array_1d<double,3>& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*mpFirstDerivative,  0);
+      array_1d<double,3>& CurrentSecondDerivative  = rNode.FastGetSolutionStepValue(*mpSecondDerivative, 0);
+       
+      array_1d<double,3>& PreviousVariable         = rNode.FastGetSolutionStepValue(*mpVariable,         1);
+      array_1d<double,3>& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*mpFirstDerivative,  1);
+      array_1d<double,3>& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*mpSecondDerivative, 1);
 
-      array_1d<double,3> & CurrentDisplacement  = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
-      array_1d<double,3> & CurrentAcceleration  = rNode.FastGetSolutionStepValue(ACCELERATION, 0);
-      
-      array_1d<double,3> & PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-      array_1d<double,3> & PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
-      array_1d<double,3> & PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
-
-      noalias(CurrentAcceleration) = (mNewmark.c0 * (CurrentDisplacement-PreviousDisplacement) - mNewmark.c2 * PreviousVelocity - mNewmark.c3 * PreviousAcceleration);
-      
-      KRATOS_CATCH( "" )              
-    }
-
-
-    void PredictVariable(NodeType& rNode, const unsigned int c)
-    {
-      KRATOS_TRY
-      
-      KRATOS_CATCH( "" )
-    }
-
-    
-    void PredictFirstDerivative(NodeType& rNode, const unsigned int c)
-    {
-      KRATOS_TRY
-
-      array_1d<double,3> & CurrentDisplacement  = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
-      array_1d<double,3> & CurrentVelocity      = rNode.FastGetSolutionStepValue(VELOCITY,     0); 
-      
-      array_1d<double,3> & PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-      array_1d<double,3> & PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
-      array_1d<double,3> & PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
-
-      CurrentVelocity[c] =  (mNewmark.c1 * (CurrentDisplacement[c]-PreviousDisplacement[c]) - mNewmark.c4 * PreviousVelocity[c] - mNewmark.c5 * PreviousAcceleration[c]);
+      CurrentSecondDerivative = ( (CurrentFirstDerivative - PreviousFirstDerivative) + mNewmark.delta_time * ( ( 1.0 - mNewmark.gamma ) * PreviousSecondDerivative ) ) * ( 1.0 / ( mNewmark.gamma * mNewmark.delta_time ) );
       
       KRATOS_CATCH( "" )      
     }
-
-    void PredictSecondDerivative(NodeType& rNode, const unsigned int c)
-    {
-      KRATOS_TRY
-
-      array_1d<double,3> & CurrentDisplacement  = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
-      array_1d<double,3> & CurrentAcceleration  = rNode.FastGetSolutionStepValue(ACCELERATION, 0);
-      
-      array_1d<double,3> & PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-      array_1d<double,3> & PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
-      array_1d<double,3> & PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
-
-      CurrentAcceleration[c] = (mNewmark.c0 * (CurrentDisplacement[c]-PreviousDisplacement[c]) - mNewmark.c2 * PreviousVelocity[c] - mNewmark.c3 * PreviousAcceleration[c]);
-      
-      KRATOS_CATCH( "" )              
-    }
     
-
     // update
-    
+ 
+    void Update(NodeType& rNode)
+    {
+     KRATOS_TRY
+
+     UpdateVariable(rNode);
+     UpdateFirstDerivative(rNode);
+     UpdateSecondDerivative(rNode);
+	
+     KRATOS_CATCH( "" )
+    }
+   
     void UpdateVariable(NodeType& rNode)
     {
       KRATOS_TRY
@@ -284,15 +276,15 @@ namespace Kratos
     void UpdateFirstDerivative(NodeType& rNode)
     {
       KRATOS_TRY
+	
+      array_1d<double,3>& CurrentVariable          = rNode.FastGetSolutionStepValue(*mpVariable,         0);
+      array_1d<double,3>& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*mpFirstDerivative,  0);
+ 	          
+      array_1d<double,3>& PreviousVariable         = rNode.FastGetSolutionStepValue(*mpVariable,         1);
+      array_1d<double,3>& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*mpFirstDerivative,  1);
+      array_1d<double,3>& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*mpSecondDerivative, 1);
 
-      array_1d<double,3> & CurrentDisplacement  = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
-      array_1d<double,3> & CurrentVelocity      = rNode.FastGetSolutionStepValue(VELOCITY,     0);
-      
-      array_1d<double,3> & PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-      array_1d<double,3> & PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
-      array_1d<double,3> & PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
-
-      noalias(CurrentVelocity) =  (mNewmark.c1 * (CurrentDisplacement-PreviousDisplacement) - mNewmark.c4 * PreviousVelocity - mNewmark.c5 * PreviousAcceleration);
+      CurrentFirstDerivative = (mNewmark.c1 * (CurrentVariable-PreviousVariable) - mNewmark.c4 * PreviousFirstDerivative - mNewmark.c5 * PreviousSecondDerivative);
       
       KRATOS_CATCH( "" )      
     }
@@ -301,59 +293,17 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      array_1d<double,3> & CurrentDisplacement  = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
-      array_1d<double,3> & CurrentAcceleration  = rNode.FastGetSolutionStepValue(ACCELERATION, 0);
+      array_1d<double,3>& CurrentVariable          = rNode.FastGetSolutionStepValue(*mpVariable,         0);
+      array_1d<double,3>& CurrentSecondDerivative  = rNode.FastGetSolutionStepValue(*mpSecondDerivative, 0);
+ 	          
+      array_1d<double,3>& PreviousVariable         = rNode.FastGetSolutionStepValue(*mpVariable,         1);
+      array_1d<double,3>& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*mpFirstDerivative,  1);
+      array_1d<double,3>& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*mpSecondDerivative, 1);
       
-      array_1d<double,3> & PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-      array_1d<double,3> & PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
-      array_1d<double,3> & PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
-
-      noalias(CurrentAcceleration) = (mNewmark.c0 * (CurrentDisplacement-PreviousDisplacement) - mNewmark.c2 * PreviousVelocity - mNewmark.c3 * PreviousAcceleration);
-      
-      KRATOS_CATCH( "" )              
-    }
-
-
-    void UpdateVariable(NodeType& rNode, const unsigned int c)
-    {
-      KRATOS_TRY
-      
-      KRATOS_CATCH( "" )
-    }
-
-    
-    void UpdateFirstDerivative(NodeType& rNode, const unsigned int c)
-    {
-      KRATOS_TRY
-
-      array_1d<double,3> & CurrentDisplacement  = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
-      array_1d<double,3> & CurrentVelocity      = rNode.FastGetSolutionStepValue(VELOCITY,     0);
-       
-      array_1d<double,3> & PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-      array_1d<double,3> & PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
-      array_1d<double,3> & PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
-
-      CurrentVelocity[c] =  (mNewmark.c1 * (CurrentDisplacement[c]-PreviousDisplacement[c]) - mNewmark.c4 * PreviousVelocity[c] - mNewmark.c5 * PreviousAcceleration[c]);
-      
-      KRATOS_CATCH( "" )      
-    }
-
-    void UpdateSecondDerivative(NodeType& rNode, const unsigned int c)
-    {
-      KRATOS_TRY
-
-      array_1d<double,3> & CurrentDisplacement  = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
-      array_1d<double,3> & CurrentAcceleration  = rNode.FastGetSolutionStepValue(ACCELERATION, 0);
-      
-      array_1d<double,3> & PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-      array_1d<double,3> & PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
-      array_1d<double,3> & PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
-
-      CurrentAcceleration[c] = (mNewmark.c0 * (CurrentDisplacement[c]-PreviousDisplacement[c]) - mNewmark.c2 * PreviousVelocity[c] - mNewmark.c3 * PreviousAcceleration[c]);
+      CurrentSecondDerivative = (mNewmark.c0 * (CurrentVariable-PreviousVariable) - mNewmark.c2 * PreviousFirstDerivative - mNewmark.c3 * PreviousSecondDerivative);
       
       KRATOS_CATCH( "" )              
     }
-    
 
     
     ///@}
