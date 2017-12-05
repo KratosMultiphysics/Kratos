@@ -50,7 +50,7 @@ public:
 
     /// Default constructor.
     KratosFSIApplication():
-        KratosApplication("KratosFSIApplication")
+        KratosApplication("FSIApplication")
         {}
 
     /// Destructor.

@@ -72,7 +72,7 @@ namespace Kratos
 //
 
 KratosALEApplication::KratosALEApplication():
-    KratosApplication("KratosALEApplication"),
+    KratosApplication("ALEApplication"),
     mLaplacianMeshMovingElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mLaplacianMeshMovingElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     mLaplacianMeshMovingElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),

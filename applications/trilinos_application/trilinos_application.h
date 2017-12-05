@@ -72,7 +72,7 @@ public:
 
     /// Default constructor.
     KratosTrilinosApplication():
-        KratosApplication("KratosTrilinosApplication")
+        KratosApplication("TrilinosApplication")
         {}
 
     /// Destructor.

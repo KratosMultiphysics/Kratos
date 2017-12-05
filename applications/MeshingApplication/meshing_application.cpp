@@ -43,7 +43,7 @@ KRATOS_CREATE_VARIABLE(Vector,  AUXILIAR_HESSIAN);   // An auxiliar hessian need
 KRATOS_CREATE_VARIABLE(Vector,  MMG_METRIC);         // The condensed metric used to remesh with MMG utility
 
 KratosMeshingApplication::KratosMeshingApplication():
-    KratosApplication("KratosMeshingApplication"),
+    KratosApplication("MeshingApplication"),
     mTestElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTestElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
 {}

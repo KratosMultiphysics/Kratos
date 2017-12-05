@@ -69,7 +69,7 @@ public:
 
     /// Default constructor.
     KratosExternalSolversApplication():
-        KratosApplication("KratosExternalSolversApplication")
+        KratosApplication("ExternalSolversApplication")
     {};
     
     /// Destructor.
