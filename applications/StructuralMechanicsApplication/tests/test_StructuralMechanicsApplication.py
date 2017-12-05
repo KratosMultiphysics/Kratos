@@ -154,19 +154,13 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
     ## Shells
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShells]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic]))
     ## Trusses
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     ## Beams
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam3D2N]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam2D2N]))
-    smallSuite.addTest(TTestPatchTestShellsStressRec('test_thin_shell_triangle'))
-    smallSuite.addTest(TTestPatchTestShellsStressRec('test_thick_shell_triangle'))
-    smallSuite.addTest(TTestPatchTestShellsStressRec('test_thin_shell_quadrilateral'))
-    smallSuite.addTest(TTestPatchTestShellsStressRec('test_thick_shell_quadrilateral'))
-    smallSuite.addTest(TTestPatchTestShellsOrthotropic('test_thin_shell_triangle'))
-    smallSuite.addTest(TTestPatchTestShellsOrthotropic('test_thick_shell_triangle'))
-    smallSuite.addTest(TTestPatchTestShellsOrthotropic('test_thin_shell_quadrilateral'))
-    smallSuite.addTest(TTestPatchTestShellsOrthotropic('test_thick_shell_quadrilateral'))
     # Test loading conditions
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingConditionsPoint]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingConditionsLine]))

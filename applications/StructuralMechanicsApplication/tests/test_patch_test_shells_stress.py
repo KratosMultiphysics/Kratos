@@ -132,12 +132,12 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         ##check that the results are exact on the first gauss point
         ##only upper triangle of stresses are checked due to symmetry
         stress = element.CalculateOnIntegrationPoints(stress_variable, processInfo)[0]
-        self.assertAlmostEqual(stress[0,0], reference_stress_results[0], 10)
-        self.assertAlmostEqual(stress[0,1], reference_stress_results[1], 10)
-        self.assertAlmostEqual(stress[0,2], reference_stress_results[2], 10)
-        self.assertAlmostEqual(stress[1,1], reference_stress_results[3], 10)
-        self.assertAlmostEqual(stress[1,2], reference_stress_results[4], 10)
-        self.assertAlmostEqual(stress[2,2], reference_stress_results[5], 10)
+        self.assertAlmostEqual(stress[0,0], reference_stress_results[0])
+        self.assertAlmostEqual(stress[0,1], reference_stress_results[1])
+        self.assertAlmostEqual(stress[0,2], reference_stress_results[2])
+        self.assertAlmostEqual(stress[1,1], reference_stress_results[3])
+        self.assertAlmostEqual(stress[1,2], reference_stress_results[4])
+        self.assertAlmostEqual(stress[2,2], reference_stress_results[5])
 
 
     def execute_shell_test(self, element_name, displacement_results, rotation_results, shell_stress_middle_surface_results, shell_stress_top_surface_results, shell_stress_bottom_surface_results, shell_von_mises_result,do_post_processing):
