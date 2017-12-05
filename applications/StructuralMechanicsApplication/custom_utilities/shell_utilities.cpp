@@ -279,9 +279,9 @@ namespace Kratos
             {
                 //Check constitutive law has been verified with Stenberg stabilization
                 //applicable for 5-parameter shells only.
-                ConstitutiveLaw::Features pclFeatures;
-                claw->GetLawFeatures(pclFeatures);
-                if (pclFeatures.mOptions.IsNot(ConstitutiveLaw::STENBERG_STABILIZATION_SUITABLE))
+				bool stenberg_stabilization_suitable = false;
+				claw->GetValue(STENBERG_STABILIZATION_SUITABLE, stenberg_stabilization_suitable);
+                if (!stenberg_stabilization_suitable)
                 {
                     std::cout << "\nWARNING:\nThe current constitutive law has not been checked with Stenberg shear stabilization."
                         << "\nPlease check results carefully."
