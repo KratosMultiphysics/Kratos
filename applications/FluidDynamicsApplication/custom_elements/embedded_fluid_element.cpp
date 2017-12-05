@@ -75,28 +75,31 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
     EmbeddedElementData data;
-    this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
+    data.Initialize(*this, rCurrentProcessInfo);
+    this->InitializeGeometryData(data);
 
-/*
-        // Get Shape function data
-        Vector gauss_weights;
-        Matrix shape_functions;
-        ShapeFunctionDerivativesArrayType shape_derivatives;
-        this->CalculateGeometryData(
-            gauss_weights, shape_functions, shape_derivatives);
-        const unsigned int number_of_gauss_points = gauss_weights.size();
+    // Iterate over integration points on the volume
+    const unsigned int number_of_positive_gauss_points =
+        data.PositiveSideWeights.size();
+    for (unsigned int g = 0; g < number_of_positive_gauss_points; g++) {
+        data.UpdateGeometryValues(data.PositiveSideWeights[g],
+            row(data.PositiveSideN, g), data.PositiveSideDNDX[g]);
 
-        TElementData data;
-        data.Initialize(*this, rCurrentProcessInfo);
+        this->AddTimeIntegratedSystem(
+            data, rLeftHandSideMatrix, rRightHandSideVector);
+    }
 
-        // Iterate over integration points to evaluate local contribution
-        for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
-                shape_derivatives[g]);
+    // Iterate over integration points on the boundary
+    const unsigned int number_of_interface_gauss_points = data.PositiveInterfaceWeights.size();
+    for (unsigned int g = 0; g < number_of_interface_gauss_points; g++) {
+        data.UpdateGeometryValues(data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN,g), data.PositiveSideDNDX[g]);
 
-            this->AddTimeIntegratedSystem(
-                data, rLeftHandSideMatrix, rRightHandSideVector);
-        }*/
+        // Set the normal too?
+        // Actually add the terms
+    }
+
+    // Add terms specific of this embedded formulation
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,8 +171,10 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::DefineStandardGeometryData(
     EmbeddedElementData& rData) const {
 
-    /*this->CalculateGeometryData(
-        rData.PositiveSideWeights, rData.PositiveSideN, rData.PositiveSideDNDX);*/
+    this->CalculateGeometryData(
+        rData.PositiveSideWeights, rData.PositiveSideN, rData.PositiveSideDNDX);
+    rData.NumPositiveNodes = NumNodes;
+    rData.NumNegativeNodes = 0;
 }
 
 template <class TBaseElement>
@@ -195,7 +200,21 @@ void EmbeddedFluidElement<TBaseElement>::DefineCutGeometryData(
 
     // Fluid side interface normals
     p_calculator->ComputePositiveSideInterfaceAreaNormals(
-        rData.PositiveInterfaceUnitNormals, GeometryData::GI_GAUSS_2); // This name needs to change? (JC)
+        rData.PositiveInterfaceUnitNormals, GeometryData::GI_GAUSS_2);
+
+    // Normalize the normals
+    const double tolerance = std::pow(1e-3 * this->ElementSize(),Dimension-1);
+    this->NormalizeInterfaceNormals(rData.PositiveInterfaceUnitNormals, tolerance);
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::NormalizeInterfaceNormals(
+    typename EmbeddedElementData::InterfaceNormalsType& rNormals,
+    double Tolerance) const {
+    for (unsigned int i = 0; i < rNormals.size(); ++i) {
+        double norm = norm_2(rNormals[i]);
+        rNormals[i] /= std::max(norm,Tolerance);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

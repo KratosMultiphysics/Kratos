@@ -482,10 +482,10 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
  * @return Minimum element height
  */
 template< class TElementData >
-double FluidElement<TElementData>::ElementSize()
+double FluidElement<TElementData>::ElementSize() const
 {
     KRATOS_TRY;
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     GeometryData::KratosGeometryFamily GeoFamily = rGeom.GetGeometryFamily();
 
     switch (GeoFamily)
@@ -643,7 +643,7 @@ double FluidElement<TElementData>::ElementSize()
     }
     default:
     {
-        KRATOS_THROW_ERROR(std::invalid_argument,"FluidElement::ElementSize not implemented for this geometry type","");
+        KRATOS_ERROR << "FluidElement::ElementSize not implemented for this geometry type" << std::endl;
         return 0;
     }
     }

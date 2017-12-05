@@ -224,6 +224,7 @@ protected:
 
     void DefineCutGeometryData(EmbeddedElementData& rData) const;
 
+    void NormalizeInterfaceNormals(typename EmbeddedElementData::InterfaceNormalsType& rNormals, double Tolerance) const;
 
     ///@}
     ///@name Protected Operations

@@ -329,7 +329,7 @@ protected:
 
 
     /// Characteristic element size h to be used in stabilization parameters.
-    virtual double ElementSize();
+    virtual double ElementSize() const;
 
     /**
      * @brief Write the convective operator evaluated at this point (for each nodal funciton) to an array
