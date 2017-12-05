@@ -102,23 +102,23 @@ public:
         // Splitted element geometry data containers
         // Positive side geometry data
         MatrixType                  N_pos_side;             // Positive distance element side shape functions values
-        std::vector<MatrixType>     DN_DX_pos_side;         // Positive distance element side shape functions gradients values
+        ShapeFunctionsGradientsType DN_DX_pos_side;         // Positive distance element side shape functions gradients values
         VectorType                  w_gauss_pos_side;       // Positive distance element side Gauss pts. weights
 
         // Negative side geometry data
         MatrixType                  N_neg_side;             // Negative distance element side shape functions values
-        std::vector<MatrixType>     DN_DX_neg_side;         // Negative distance element side shape functions gradients values
+        ShapeFunctionsGradientsType DN_DX_neg_side;         // Negative distance element side shape functions gradients values
         VectorType                  w_gauss_neg_side;       // Negative distance element side Gauss pts. weights
 
         // Positive interface geometry data
         MatrixType                  N_pos_int;              // Positive interface Gauss pts. shape functions values
-        std::vector<MatrixType>     DN_DX_pos_int;          // Positive interface Gauss pts. shape functions gradients values
+        ShapeFunctionsGradientsType DN_DX_pos_int;          // Positive interface Gauss pts. shape functions gradients values
         VectorType                  w_gauss_pos_int;        // Positive interface Gauss pts. weights
         std::vector<VectorType>     pos_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
 
         // Negative interface geometry data
         MatrixType                  N_neg_int;              // Positive interface Gauss pts. shape functions values
-        std::vector<MatrixType>     DN_DX_neg_int;          // Positive interface Gauss pts. shape functions gradients values
+        ShapeFunctionsGradientsType DN_DX_neg_int;          // Positive interface Gauss pts. shape functions gradients values
         VectorType                  w_gauss_neg_int;        // Positive interface Gauss pts. weights
         std::vector<VectorType>     neg_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
 
@@ -1270,7 +1270,7 @@ protected:
         // Compute the element average values
         double avg_rho = 0.0;
         double avg_visc = 0.0;
-        array_1d<double, 3> avg_vel = ZeroVector(3);
+        array_1d<double, TDim> avg_vel = ZeroVector(TDim);
 
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             avg_rho += rData.rho(i_node);

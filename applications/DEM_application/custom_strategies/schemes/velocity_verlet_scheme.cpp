@@ -1,19 +1,19 @@
 // Project includes
-#include "newmark_beta_scheme.h"
+#include "velocity_verlet_scheme.h"
 
 namespace Kratos {
 
-    void NewmarkBetaScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-//         if(verbose) std::cout << "\nAssigning NewmarkBetaScheme to properties " << pProp->Id() << std::endl;
+    void VelocityVerletScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+//         if(verbose) std::cout << "\nAssigning VelocityVerletScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
-
-    void NewmarkBetaScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-//         if(verbose) std::cout << "\nAssigning NewmarkBetaScheme to properties " << pProp->Id() << std::endl;
+    
+    void VelocityVerletScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+//         if(verbose) std::cout << "\nAssigning VelocityVerletScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
-    
-    void NewmarkBetaScheme::UpdateTranslationalVariables(
+
+    void VelocityVerletScheme::UpdateTranslationalVariables(
             int StepFlag,
             Node < 3 >& i,
             array_1d<double, 3 >& coor,
@@ -27,25 +27,33 @@ namespace Kratos {
             const double delta_t,
             const bool Fix_vel[3]) {
 
-        const array_1d<double, 3 >& old_force = i.FastGetSolutionStepValue(TOTAL_FORCES);
         double mass_inv = 1.0 / mass;
-        for (int k = 0; k < 3; k++) {
-            if (Fix_vel[k] == false) {
-                double old_acceleration = mass_inv * old_force[k];
-                double acceleration = force_reduction_factor * mass_inv * force[k];
-                delta_displ[k] = delta_t * vel[k] + delta_t * delta_t * ((0.5 - mBeta) * acceleration + mBeta * old_acceleration);
-                displ[k] += delta_displ[k];
-                coor[k] = initial_coor[k] + displ[k];
-                vel[k] += 0.5 * delta_t * (acceleration + old_acceleration);
-            } else {
-                delta_displ[k] = delta_t * vel[k];
-                displ[k] += delta_displ[k];
-                coor[k] = initial_coor[k] + displ[k];
+        if(StepFlag == 1) //PREDICT
+        {
+            for (int k = 0; k < 3; k++) {
+                if (Fix_vel[k] == false) {
+                    delta_displ[k] = vel[k] * delta_t + 0.5 * force[k] * mass_inv * delta_t * delta_t ;
+                    displ[k] += delta_displ[k];
+                    coor[k] = initial_coor[k] + displ[k];
+                    vel[k] += 0.5 * force_reduction_factor * force[k] * mass_inv * delta_t ;
+                } else {
+                    delta_displ[k] = delta_t * vel[k];
+                    displ[k] += delta_displ[k];
+                    coor[k] = initial_coor[k] + displ[k];
+                }
+            }  
+        }
+        else if(StepFlag == 2) //CORRECT
+        {
+            for (int k = 0; k < 3; k++) {
+                if (Fix_vel[k] == false) {
+                    vel[k] += 0.5 * force_reduction_factor * force[k] * mass_inv * delta_t ;
+                }
             }
         } // dimensions
     }
 
-    void NewmarkBetaScheme::CalculateNewRotationalVariablesOfSpheres(
+    void VelocityVerletScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
                 Node < 3 >& i,
                 const double moment_of_inertia,
@@ -63,7 +71,7 @@ namespace Kratos {
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
     }
 
-    void NewmarkBetaScheme::CalculateNewRotationalVariablesOfClusters(
+    void VelocityVerletScheme::CalculateNewRotationalVariablesOfClusters(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,
@@ -95,7 +103,7 @@ namespace Kratos {
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
     }
 
-    void NewmarkBetaScheme::UpdateRotationalVariables(
+    void VelocityVerletScheme::UpdateRotationalVariables(
                 int StepFlag,
                 Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
@@ -104,20 +112,32 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_acceleration,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-
-        for (int k = 0; k < 3; k++) {
-            if (Fix_Ang_vel[k] == false) {
-                delta_rotation[k] = angular_velocity[k] * delta_t;
-                rotated_angle[k] += delta_rotation[k];
-                angular_velocity[k] += delta_t * angular_acceleration[k];
-            } else {
-                delta_rotation[k] = angular_velocity[k] * delta_t;
-                rotated_angle[k] += delta_rotation[k];
+        
+        if (StepFlag == 1) //PREDICT
+        {
+             for (int k = 0; k < 3; k++) {
+                 if (Fix_Ang_vel[k] == false) {
+                     delta_rotation[k] = angular_velocity[k] * delta_t + 0.5 * delta_t * delta_t * angular_acceleration[k];
+                     rotated_angle[k] += delta_rotation[k];
+                     angular_velocity[k] += 0.5 * angular_acceleration[k] * delta_t;
+                } else {
+                     delta_rotation[k] = angular_velocity[k] * delta_t;
+                     rotated_angle[k] += delta_rotation[k];
+                }
             }
         }
+
+        else if(StepFlag == 2) //CORRECT
+        {
+            for (int k = 0; k < 3; k++) {
+                if (Fix_Ang_vel[k] == false) {
+                    angular_velocity[k] += 0.5 * angular_acceleration[k] * delta_t;
+                }
+            }
+        }//CORRECT
     }
 
-    void NewmarkBetaScheme::CalculateLocalAngularAcceleration(
+    void VelocityVerletScheme::CalculateLocalAngularAcceleration(
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
@@ -129,7 +149,7 @@ namespace Kratos {
         }
     }
 
-    void NewmarkBetaScheme::CalculateLocalAngularAccelerationByEulerEquations(
+    void VelocityVerletScheme::CalculateLocalAngularAccelerationByEulerEquations(
                 const array_1d<double, 3 >& local_angular_velocity,
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,
