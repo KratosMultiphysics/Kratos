@@ -283,10 +283,10 @@ namespace Kratos
         if (mIsSplit) {
             // Create the face nodes data
             // The position represents the face while the value real and intersection nodes in that face edges
-            std::vector < std::vector < unsigned int > > edges_map = 
-                {{0, 1, 3},     // Face 0
-                 {1, 2, 4},     // Face 1
-                 {2, 0, 5}};    // Face 2
+            std::vector < std::vector < unsigned int > > edges_map = {
+                {0, 1, 3},     // Face 0
+                {1, 2, 4},     // Face 1
+                {2, 0, 5}};    // Face 2
 
             // Compute the side exterior faces geometries
             const unsigned int n_subdivision = rSubdivisionsContainer.size();

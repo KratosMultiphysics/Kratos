@@ -273,14 +273,13 @@ namespace Kratos
         rExteriorFacesParentSubdivisionsIdsVector.clear();
 
         if (mIsSplit) {
-            // Create the unordered map
-            // The key represents the parent geometry face id
-            // The value represents the real and intersection nodes in that face edges
-            std::unordered_map<unsigned int, std::vector<int>> edges_map = {
-                {0, {0, 2, 1, 4, 5, 7}},     // Face 0
-                {1, {0, 2, 3, 5, 6, 9}},     // Face 1
-                {2, {0, 1, 3, 4, 6, 8}},     // Face 2
-                {3, {2, 3, 1, 7, 8, 9}}};    // Face 3
+            // Create the face nodes data
+            // The position represents the face while the value real and intersection nodes in that face edges
+            std::vector < std::vector < unsigned int > > edges_map = {
+                {0, 2, 1, 4, 5, 7},     // Face 0
+                {0, 2, 3, 5, 6, 9},     // Face 1
+                {0, 1, 3, 4, 6, 8},     // Face 2
+                {2, 3, 1, 7, 8, 9}};    // Face 3
 
             // Compute the side exterior faces geometries
             const unsigned int n_subdivision = rSubdivisionsContainer.size();
@@ -299,12 +298,12 @@ namespace Kratos
                     int node_k_key = r_face[2].Id();
 
                     // Get the parent geometry face key value (candidate nodes)
-                    std::unordered_map<unsigned int, std::vector<int>>::iterator got = edges_map.find(FatherFaceId);
+                    std::vector< unsigned int > faces_edge_nodes = edges_map[FatherFaceId];
 
                     // Search the subdivision nodal keys into the parent geometry face key value
-                    if (std::find((got->second).begin(), (got->second).end(), node_i_key) != (got->second).end()) {
-                        if (std::find((got->second).begin(), (got->second).end(), node_j_key) != (got->second).end()) {
-                            if (std::find((got->second).begin(), (got->second).end(), node_k_key) != (got->second).end()) {
+                    if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_i_key) != faces_edge_nodes.end()) {
+                        if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_j_key) != faces_edge_nodes.end()) {
+                            if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_k_key) != faces_edge_nodes.end()) {
                                 // If both nodes are in the candidate nodes list, the subface is exterior
                                 IndexedPointGeometryPointerType p_subface_triang = boost::make_shared<IndexedPointTriangleType>(
                                     mAuxPointsContainer(node_i_key),
