@@ -57,8 +57,6 @@ namespace Kratos
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOTROPIC,                   8 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ANISOTROPIC,                 9 );
 
-	KRATOS_CREATE_LOCAL_FLAG(ConstitutiveLaw, STENBERG_STABILIZATION_SUITABLE,	10);
-
 /**
  * Constructor.
  */
