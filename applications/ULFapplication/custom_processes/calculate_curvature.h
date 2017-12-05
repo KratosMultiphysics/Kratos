@@ -179,7 +179,7 @@ namespace Kratos
 		      Vector2D(x0,y0,x2,y2,struct_dist);
 		      dist_struct = Norm2D(struct_dist);
 		      if (dist_struct < 1.0e-5)
-			neighb[i].GetValue(ERASE_FLAG) = 1.0;
+			neighb[i].Set(TO_ERASE,true);
 		  }
 		}
 		array_1d<double,2> ds_vec = ZeroVector(2);

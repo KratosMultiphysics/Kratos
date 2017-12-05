@@ -1,4 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -7,6 +7,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.MeshingApplication import *
 import math
+import time
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
@@ -100,7 +101,6 @@ class MonolithicSolver:
         self.eul_model_part = eul_model_part
 
         self.alpha = -0.3
-        
         if(eul_model_part == 0):
             self.move_mesh_strategy = 2
         else:
@@ -246,7 +246,7 @@ class MonolithicSolver:
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch)
         self.model_part.ProcessInfo.SetValue(M, self.regularization_coef)
         
-        self.model_part.ProcessInfo.SetValue(CONTACT_ANGLE_STATIC, self.contact_angle)
+        #self.model_part.ProcessInfo.SetValue(CONTACT_ANGLE_STATIC, self.contact_angle)
         self.model_part.ProcessInfo.SetValue(SURFTENS_COEFF, self.gamma)
         
         if(self.eul_model_part == 0):
@@ -257,9 +257,9 @@ class MonolithicSolver:
             (self.fluid_neigh_finder).Execute();
             (self.ulf_apply_bc_process).Execute();  
 	    #(self.mark_fluid_process).Execute();
-          #if (self.domain_size == 2):
-            #FindTriplePoint().FindTriplePoint2D(self.model_part)
-            #self.Remesh()
+            #if (self.domain_size == 2):
+                #FindTriplePoint().FindTriplePoint2D(self.model_part)
+            self.Remesh()
 
 # print "Initialization monolithic solver finished"
     #
@@ -415,19 +415,21 @@ class MonolithicSolver:
     def Remesh(self):
        
         #self.Pfem2Utils.MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
-			
+        
         ##erase all conditions and elements prior to remeshing
         ((self.model_part).Elements).clear();
         #((self.model_part).Conditions).clear();      
 
+
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
 
         h_factor=0.25;
+        
         #remesh CHECK for 3D or 2D
         if (self.domain_size == 2):
              (self.Mesher).ReGenerateMesh("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
-        elif (self.domain_size == 3):
-            (self.Mesher).ReGenerateMesh("SurfaceTension3D","Condition3D", self.model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)            
+        #elif (self.domain_size == 3):
+            #(self.Mesher).ReGenerateMesh("SurfaceTension3D","Condition3D", self.model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)            
 
         ##calculating fluid neighbours before applying boundary conditions
         (self.fluid_neigh_finder).Execute();
@@ -489,71 +491,71 @@ class MonolithicSolver:
           #self.cont_angle_cond3D()
 
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
-        print("end of remesh function")
-    ######################################################################
-    def FindNeighbours(self):
-        (self.neigh_finder).Execute();
+        #print("end of remesh function")
+    #######################################################################
+    #def FindNeighbours(self):
+        #(self.neigh_finder).Execute();
         
-    def cont_angle_cond(self):
-        theta_adv = 105
-        theta_rec = 70
-	#theta_adv = self.contact_angle + 0.5
-	#theta_rec = self.contact_angle - 0.5
-        time = self.model_part.ProcessInfo.GetValue(TIME)
-        dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
-	#x_mean = 0.0
-	#found_tp = 0
-	################## For sessile drop examples
-        for node in self.model_part.Nodes:
-            if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
-                if ((node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec)):
-                    node.Free(VELOCITY_X)
-                else:
-                    node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                    node.Fix(VELOCITY_X)
-            if ((node.GetSolutionStepValue(TRIPLE_POINT) == 0.0) and (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0)):
-                    node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                    node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-                    node.Fix(VELOCITY_X)
-                    node.Fix(VELOCITY_Y)     
+    #def cont_angle_cond(self):
+        #theta_adv = 105
+        #theta_rec = 70
+	##theta_adv = self.contact_angle + 0.5
+	##theta_rec = self.contact_angle - 0.5
+        #time = self.model_part.ProcessInfo.GetValue(TIME)
+        #dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
+	##x_mean = 0.0
+	##found_tp = 0
+	################### For sessile drop examples
+        #for node in self.model_part.Nodes:
+            #if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
+                #if ((node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec)):
+                    #node.Free(VELOCITY_X)
+                #else:
+                    #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                    #node.Fix(VELOCITY_X)
+            #if ((node.GetSolutionStepValue(TRIPLE_POINT) == 0.0) and (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0)):
+                    #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                    #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                    #node.Fix(VELOCITY_X)
+                    #node.Fix(VELOCITY_Y)     
  
-    def cont_angle_cond3D(self):
-        theta_adv = self.contact_angle + 5.0
-        theta_rec = self.contact_angle - 5.0
-        time = self.model_part.ProcessInfo.GetValue(TIME)
-        dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
-	################## For sessile drop examples
-        if (time < 2*dt):
-            for node in self.model_part.Nodes:
-                if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
-                    node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                    node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-                    node.SetSolutionStepValue(VELOCITY_Z,0, 0.0)
-                    node.Fix(VELOCITY_X)
-                    node.Fix(VELOCITY_Y)
-                    node.Fix(VELOCITY_Z)	  
-        else:
-            for node in self.model_part.Nodes:
-                if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
-                    node.SetSolutionStepValue(VELOCITY_Z,0,0.0)
-                    node.Fix(VELOCITY_Z)
-                    if ((node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec)):		  
-                        node.Free(VELOCITY_X)
-                        node.Free(VELOCITY_Y)
-                    else:
-                        node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                        node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-                        node.Fix(VELOCITY_X)
-                        node.Fix(VELOCITY_Y)
-                    if (node.Z < -0.00000001):
-                        node.SetValue(TO_ERASE, true)
-                if ((node.GetSolutionStepValue(TRIPLE_POINT) == 0.0) and (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0)):
-                        node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                        node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-                        node.SetSolutionStepValue(VELOCITY_Z,0, 0.0)
-                        node.Fix(VELOCITY_X)
-                        node.Fix(VELOCITY_Y)
-                        node.Fix(VELOCITY_Z)
+    #def cont_angle_cond3D(self):
+        #theta_adv = self.contact_angle + 5.0
+        #theta_rec = self.contact_angle - 5.0
+        #time = self.model_part.ProcessInfo.GetValue(TIME)
+        #dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
+	################### For sessile drop examples
+        #if (time < 2*dt):
+            #for node in self.model_part.Nodes:
+                #if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
+                    #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                    #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                    #node.SetSolutionStepValue(VELOCITY_Z,0, 0.0)
+                    #node.Fix(VELOCITY_X)
+                    #node.Fix(VELOCITY_Y)
+                    #node.Fix(VELOCITY_Z)	  
+        #else:
+            #for node in self.model_part.Nodes:
+                #if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
+                    #node.SetSolutionStepValue(VELOCITY_Z,0,0.0)
+                    #node.Fix(VELOCITY_Z)
+                    #if ((node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec)):		  
+                        #node.Free(VELOCITY_X)
+                        #node.Free(VELOCITY_Y)
+                    #else:
+                        #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                        #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                        #node.Fix(VELOCITY_X)
+                        #node.Fix(VELOCITY_Y)
+                    #if (node.Z < -0.00000001):
+                        #node.SetValue(TO_ERASE, true)
+                #if ((node.GetSolutionStepValue(TRIPLE_POINT) == 0.0) and (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0)):
+                        #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                        #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                        #node.SetSolutionStepValue(VELOCITY_Z,0, 0.0)
+                        #node.Fix(VELOCITY_X)
+                        #node.Fix(VELOCITY_Y)
+                        #node.Fix(VELOCITY_Z)
 
 
 def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle): #FOR 3D!!!!!!!!!!
