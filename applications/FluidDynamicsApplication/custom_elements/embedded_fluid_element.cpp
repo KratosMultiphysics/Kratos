@@ -11,7 +11,7 @@
 
 namespace Kratos {
 
-template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > >;
+//template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > >;
 template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,12 +90,13 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
     }
 
     // Iterate over integration points on the boundary
-    const unsigned int number_of_interface_gauss_points = data.PositiveInterfaceWeights.size();
+    const unsigned int number_of_interface_gauss_points =
+        data.PositiveInterfaceWeights.size();
     for (unsigned int g = 0; g < number_of_interface_gauss_points; g++) {
-        data.UpdateGeometryValues(data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN,g), data.PositiveSideDNDX[g]);
-
-        // Set the normal too?
-        // Actually add the terms
+        data.UpdateGeometryValues(data.PositiveInterfaceWeights[g],
+            row(data.PositiveInterfaceN, g), data.PositiveSideDNDX[g]);
+        this->AddBoundaryIntegral(data, data.PositiveInterfaceUnitNormals[g],
+            rLeftHandSideMatrix, rRightHandSideVector);
     }
 
     // Add terms specific of this embedded formulation

@@ -139,6 +139,14 @@ void SymbolicNavierStokes<TElementData>::AddTimeIntegratedRHS(
     this->ComputeGaussPointRHSContribution(rData, rRHS);
 }
 
+template <class TElementData>
+void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
+    TElementData& rData, const Vector& rUnitNormal, MatrixType& rLHS,
+    VectorType& rRHS) {
+
+    
+}
+
 template <>
 void SymbolicNavierStokes< SymbolicNavierStokesData<2,3> >::ComputeGaussPointLHSContribution(
     SymbolicNavierStokesData<2,3>& rData, MatrixType& rLHS) {

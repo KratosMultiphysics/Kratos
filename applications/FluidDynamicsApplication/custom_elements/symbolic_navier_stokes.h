@@ -219,6 +219,9 @@ protected:
         TElementData& rData,
         VectorType& rRHS) override;
 
+    virtual void AddBoundaryIntegral(TElementData& rData,
+        const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS);
+
     void ComputeGaussPointLHSContribution(
         TElementData& rData,
         MatrixType& rLHS);
