@@ -90,6 +90,79 @@ namespace Kratos
 				negative_interface_side_weights,
 				GeometryData::GI_GAUSS_1);
 
+			// Call the external face modified shape functions calculator
+			Matrix pos_ext_face_sh_func_0, neg_ext_face_sh_func_0,
+				   pos_ext_face_sh_func_1, neg_ext_face_sh_func_1,
+				   pos_ext_face_sh_func_2, neg_ext_face_sh_func_2,
+				   pos_ext_face_sh_func_3, neg_ext_face_sh_func_3;
+
+			ModifiedShapeFunctions::ShapeFunctionsGradientsType 
+				pos_ext_face_sh_func_gradients_0, neg_ext_face_sh_func_gradients_0,
+				pos_ext_face_sh_func_gradients_1, neg_ext_face_sh_func_gradients_1,
+				pos_ext_face_sh_func_gradients_2, neg_ext_face_sh_func_gradients_2,
+				pos_ext_face_sh_func_gradients_3, neg_ext_face_sh_func_gradients_3;
+
+			Vector pos_ext_face_weights_0, neg_ext_face_weights_0, 
+				   pos_ext_face_weights_1, neg_ext_face_weights_1, 
+				   pos_ext_face_weights_2, neg_ext_face_weights_2,
+				   pos_ext_face_weights_3, neg_ext_face_weights_3;
+
+			tetrahedra_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+				pos_ext_face_sh_func_0,
+				pos_ext_face_sh_func_gradients_0,
+				pos_ext_face_weights_0,
+				0,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+				neg_ext_face_sh_func_0,
+				neg_ext_face_sh_func_gradients_0,
+				neg_ext_face_weights_0,
+				0,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+				pos_ext_face_sh_func_1,
+				pos_ext_face_sh_func_gradients_1,
+				pos_ext_face_weights_1,
+				1,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+				neg_ext_face_sh_func_1,
+				neg_ext_face_sh_func_gradients_1,
+				neg_ext_face_weights_1,
+				1,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+				pos_ext_face_sh_func_2,
+				pos_ext_face_sh_func_gradients_2,
+				pos_ext_face_weights_2,
+				2,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+				neg_ext_face_sh_func_2,
+				neg_ext_face_sh_func_gradients_2,
+				neg_ext_face_weights_2,
+				2,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+				pos_ext_face_sh_func_3,
+				pos_ext_face_sh_func_gradients_3,
+				pos_ext_face_weights_3,
+				3,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+				neg_ext_face_sh_func_3,
+				neg_ext_face_sh_func_gradients_3,
+				neg_ext_face_weights_3,
+				3,
+				GeometryData::GI_GAUSS_1);
+
 			// Call the interface outwards normal unit vector calculator
 			std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
 
@@ -221,6 +294,192 @@ namespace Kratos
             KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[0](3,1),  0.0, tolerance);
             KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[0](3,2),  1.0, tolerance);
 
+			// Check face 0 values
+			KRATOS_CHECK_EQUAL(pos_ext_face_weights_0.size(), 0);
+			KRATOS_CHECK_EQUAL(pos_ext_face_sh_func_0.size1(), 0);
+			KRATOS_CHECK_EQUAL(pos_ext_face_sh_func_0.size2(), 4);
+			KRATOS_CHECK_EQUAL(pos_ext_face_sh_func_gradients_0.size(), 0);
+			
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,0), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,1), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,2), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,3),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_weights_0(0), 0.5, tolerance);
+
+			// Check face 1 values
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_1(0,0), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_1(0,1),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_1(0,2), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_1(0,3), 2.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_weights_1(0), 0.125, tolerance);
+			
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(0,0),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(0,1),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(0,2), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(0,3), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(1,0), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(1,1),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(1,2),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(1,3), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_weights_1(0),  0.25, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_weights_1(1), 0.125, tolerance);
+
+			// Check face 2 values
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_2(0,0), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_2(0,1), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_2(0,2),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_2(0,3), 2.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_weights_2(0), 0.125, tolerance);
+			
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_2(0,0),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_2(0,1), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_2(0,2),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_2(0,3), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_2(1,0), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_2(1,1),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_2(1,2),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_2(1,3), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[1](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[1](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[1](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[1](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[1](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[1](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[1](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[1](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[1](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[1](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[1](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[1](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_weights_2(0),  0.25, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_weights_2(1), 0.125, tolerance);
+
+			// Check face 3 values
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_3(0,0),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_3(0,1), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_3(0,2), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_3(0,3), 2.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_weights_3(0), 0.216506, 10e-5);
+			
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_3(0,0),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_3(0,1),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_3(0,2), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_3(0,3), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_3(1,0),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_3(1,1), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_3(1,2),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_3(1,3), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[1](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[1](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[1](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[1](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[1](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[1](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[1](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[1](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[1](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[1](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[1](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[1](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_weights_3(0), 0.433013, 10e-5);
+			KRATOS_CHECK_NEAR(neg_ext_face_weights_3(1), 0.216506, 10e-5);
+
 			// Check Gauss pts. outwards unit normal values
 			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0),  0.0, tolerance);
 			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1),  0.0, tolerance);
@@ -296,6 +555,79 @@ namespace Kratos
 				negative_interface_side_sh_func,
 				negative_interface_side_sh_func_gradients,
 				negative_interface_side_weights,
+				GeometryData::GI_GAUSS_1);
+
+            // Call the external face modified shape functions calculator
+			Matrix pos_ext_face_sh_func_0, neg_ext_face_sh_func_0,
+				   pos_ext_face_sh_func_1, neg_ext_face_sh_func_1,
+				   pos_ext_face_sh_func_2, neg_ext_face_sh_func_2,
+				   pos_ext_face_sh_func_3, neg_ext_face_sh_func_3;
+
+			ModifiedShapeFunctions::ShapeFunctionsGradientsType 
+				pos_ext_face_sh_func_gradients_0, neg_ext_face_sh_func_gradients_0,
+				pos_ext_face_sh_func_gradients_1, neg_ext_face_sh_func_gradients_1,
+				pos_ext_face_sh_func_gradients_2, neg_ext_face_sh_func_gradients_2,
+				pos_ext_face_sh_func_gradients_3, neg_ext_face_sh_func_gradients_3;
+
+			Vector pos_ext_face_weights_0, neg_ext_face_weights_0, 
+				   pos_ext_face_weights_1, neg_ext_face_weights_1, 
+				   pos_ext_face_weights_2, neg_ext_face_weights_2,
+				   pos_ext_face_weights_3, neg_ext_face_weights_3;
+
+			tetrahedra_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+				pos_ext_face_sh_func_0,
+				pos_ext_face_sh_func_gradients_0,
+				pos_ext_face_weights_0,
+				0,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+				neg_ext_face_sh_func_0,
+				neg_ext_face_sh_func_gradients_0,
+				neg_ext_face_weights_0,
+				0,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+				pos_ext_face_sh_func_1,
+				pos_ext_face_sh_func_gradients_1,
+				pos_ext_face_weights_1,
+				1,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+				neg_ext_face_sh_func_1,
+				neg_ext_face_sh_func_gradients_1,
+				neg_ext_face_weights_1,
+				1,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+				pos_ext_face_sh_func_2,
+				pos_ext_face_sh_func_gradients_2,
+				pos_ext_face_weights_2,
+				2,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+				neg_ext_face_sh_func_2,
+				neg_ext_face_sh_func_gradients_2,
+				neg_ext_face_weights_2,
+				2,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+				pos_ext_face_sh_func_3,
+				pos_ext_face_sh_func_gradients_3,
+				pos_ext_face_weights_3,
+				3,
+				GeometryData::GI_GAUSS_1);
+
+			tetrahedra_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+				neg_ext_face_sh_func_3,
+				neg_ext_face_sh_func_gradients_3,
+				neg_ext_face_weights_3,
+				3,
 				GeometryData::GI_GAUSS_1);
 
 			// Call the interface outwards normal unit vector calculator
@@ -503,6 +835,222 @@ namespace Kratos
             KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[1](3,0),  0.0, tolerance);
             KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[1](3,1),  0.0, tolerance);
             KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[1](3,2),  1.0, tolerance);
+
+            // Check face 0 values	
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_0(0,0), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_0(0,1), 2.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_0(0,2), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_0(0,3),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_weights_0(0), 0.125, tolerance);
+			
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,0),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,1), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,2), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,3),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(1,0), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(1,1), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(1,2),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(1,3),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[1](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[1](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[1](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[1](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[1](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[1](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[1](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[1](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[1](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[1](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[1](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[1](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_weights_0(0), 0.250, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_weights_0(1), 0.125, tolerance);
+
+			// Check face 1 values
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_1(0,0), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_1(0,1),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_1(0,2), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_1(0,3), 2.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_1[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_weights_1(0), 0.125, tolerance);
+			
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(0,0),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(0,1),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(0,2), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(0,3), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(1,0), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(1,1),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(1,2),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_1(1,3), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[1](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_weights_1(0), 0.250, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_weights_1(1), 0.125, tolerance);
+
+			// Check face 2 values
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_2(0,0), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_2(0,1), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_2(0,2),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_2(0,3),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_2(1,0), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_2(1,1),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_2(1,2),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_2(1,3), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_2[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_weights_2(0), 0.125, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_weights_2(1), 0.250, tolerance);
+			
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_2(0,0), 2.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_2(0,1), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_2(0,2),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_2(0,3), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_2[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_weights_2(0), 0.125, tolerance);
+
+			// Check face 3 values
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_3(0,0),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_3(0,1), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_3(0,2), 1.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_3(0,3),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_3(1,0),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_3(1,1),     0.5, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_3(1,2), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_3(1,3), 2.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[1](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[1](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[1](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[1](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[1](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[1](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[1](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[1](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[1](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[1](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[1](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_3[1](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(pos_ext_face_weights_3(0), 0.216506, 10e-5);
+			KRATOS_CHECK_NEAR(pos_ext_face_weights_3(1), 0.433013, 10e-5);
+			
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_3(0,0),     0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_3(0,1), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_3(0,2), 2.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_3(0,3), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](0,0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](0,1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](0,2), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](1,0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](1,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](1,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](2,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](2,1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](2,2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](3,0),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](3,1),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_3[0](3,2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(neg_ext_face_weights_3(0), 0.216506, 10e-5);
 
 			// Check Gauss pts. outwards unit normal values
 			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0), -0.707107, 1e-6);
