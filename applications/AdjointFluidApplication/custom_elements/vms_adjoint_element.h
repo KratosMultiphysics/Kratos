@@ -334,7 +334,7 @@ public:
 				       ProcessInfo& rCurrentProcessInfo) override
     {
       this->CalculateVMSMassMatrix(rLeftHandSideMatrix,rCurrentProcessInfo);
-      rLeftHandSideMatrix = trans(rLeftHandSideMatrix); // transpose
+      rLeftHandSideMatrix = -trans(rLeftHandSideMatrix); // transpose
     }
 
     void CalculateMassMatrix(MatrixType& rMassMatrix,

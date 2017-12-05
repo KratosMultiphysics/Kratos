@@ -85,6 +85,9 @@ class TestCase(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[DELTA_TIME] =-self.delta_time
         mass2_trans = Matrix(9,9)
         self.adjoint_element.CalculateSecondDerivativesLHS(mass2_trans,self.model_part.ProcessInfo)
+        for i in range(mass2_trans.Size1()):
+            for j in range(mass2_trans.Size2()):
+                mass2_trans[i,j] = -mass2_trans[i,j]
         self._assert_matrix_almost_equal(Mass1, self._transpose(mass2_trans))
 
     def test_CalculateFirstDerivativesLHS1(self):

@@ -252,7 +252,7 @@ public:
             {
                 // Calculate transposed gradient of element residual w.r.t. acceleration.
                 it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], r_current_process_info);
-                mAdjointMassMatrix[k] = -mAlphaBossak * mAdjointMassMatrix[k];
+                mAdjointMassMatrix[k] = mAlphaBossak * mAdjointMassMatrix[k];
 
                 // Calculate transposed gradient of response function on element w.r.t. acceleration.
                 mpResponseFunction->CalculateSecondDerivativesGradient(
@@ -290,7 +290,7 @@ public:
 //             {
 //                 // Calculate transposed gradient of condition residual w.r.t. acceleration.
 //                 it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], r_current_process_info);
-//                 mAdjointMassMatrix[k] = -mAlphaBossak * mAdjointMassMatrix[k];
+//                 mAdjointMassMatrix[k] = mAlphaBossak * mAdjointMassMatrix[k];
 
 //                 // Calculate transposed gradient of response function on condition w.r.t. acceleration.
 //                 mpResponseFunction->CalculateSecondDerivativesGradient(
@@ -438,7 +438,7 @@ public:
             {
                 // Calculate transposed gradient of element residual w.r.t. second derivatives.
                 it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], r_current_process_info);
-                mAdjointMassMatrix[k] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[k];
+                mAdjointMassMatrix[k] = (1.0 - mAlphaBossak) * mAdjointMassMatrix[k];
 
                 // Calculate transposed gradient of response function on element w.r.t. acceleration.
                 mpResponseFunction->CalculateSecondDerivativesGradient(
@@ -475,7 +475,7 @@ public:
 //             {
 //                 // Calculate transposed gradient of condition residual w.r.t. second derivatives.
 //                 it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], r_current_process_info);
-//                 mAdjointMassMatrix[k] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[k];
+//                 mAdjointMassMatrix[k] = (1.0 - mAlphaBossak) * mAdjointMassMatrix[k];
 
 //                 // Calculate transposed gradient of response function on condition w.r.t. acceleration.
 //                 mpResponseFunction->CalculateSecondDerivativesGradient(
@@ -575,7 +575,7 @@ public:
 
         // Calculate transposed gradient of element residual w.r.t. acceleration.
         pCurrentElement->CalculateSecondDerivativesLHS(mAdjointMassMatrix[thread_id], rCurrentProcessInfo);
-        mAdjointMassMatrix[thread_id] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[thread_id];
+        mAdjointMassMatrix[thread_id] = (1.0 - mAlphaBossak) * mAdjointMassMatrix[thread_id];
 
         // Calculate transposed gradient of response function on element w.r.t. acceleration.
         mpResponseFunction->CalculateSecondDerivativesGradient(
@@ -632,7 +632,7 @@ public:
 
     //     // Calculate transposed gradient of condition residual w.r.t. acceleration.
     //     pCurrentCondition->CalculateSecondDerivativesLHS(mAdjointMassMatrix[thread_id], rCurrentProcessInfo);
-    //     mAdjointMassMatrix[thread_id] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[thread_id];
+    //     mAdjointMassMatrix[thread_id] = (1.0 - mAlphaBossak) * mAdjointMassMatrix[thread_id];
 
     //     // Calculate transposed gradient of response function on condition w.r.t. acceleration.
     //     mpResponseFunction->CalculateSecondDerivativesGradient(
