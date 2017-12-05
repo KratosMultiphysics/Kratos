@@ -35,6 +35,8 @@ public:
 using NodalScalarData = typename TFluidData::NodalScalarData;
 using NodalVectorData = typename TFluidData::NodalVectorData;
 
+typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+
 ///@}
 ///@name Public Members
 ///@{
@@ -42,11 +44,11 @@ using NodalVectorData = typename TFluidData::NodalVectorData;
 NodalScalarData Distance;
 
 Matrix PositiveSideN;
-std::vector< Matrix > PositiveSideDNDX;
+ShapeFunctionsGradientsType PositiveSideDNDX;
 Vector PositiveSideWeights;
 
 Matrix PositiveInterfaceN;
-std::vector< Matrix > PositiveInterfaceDNDX;
+ShapeFunctionsGradientsType PositiveInterfaceDNDX;
 Vector PositiveInterfaceWeights;
 std::vector< Vector > PositiveInterfaceUnitNormals;
 
