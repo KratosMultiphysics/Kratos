@@ -17,6 +17,7 @@
 // Project includes
 #include "custom_models/plasticity_models/yield_surfaces/yield_surface.hpp"
 #include "custom_utilities/stress_invariants_utilities.hpp"
+#include "custom_utilities/shape_deviatoric_plane_mcc_utilities.hpp"
 
 namespace Kratos
 {
@@ -116,6 +117,7 @@ namespace Kratos
       // Material Parameters
       const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
       const double& rShearM = rMaterialProperties[CRITICAL_STATE_LINE];
+      const double & rFriction = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
 
 
       // compute something with the hardening rule
@@ -130,7 +132,12 @@ namespace Kratos
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, DeviatoricQ, LodeAngle);
       DeviatoricQ *= sqrt(3.0);
 
+      for (double aLodeAngle = -0.54; aLodeAngle < 0.54 ; aLodeAngle += 0.02) {
+         double Effect =  ShapeAtDeviatoricPlaneMCCUtility::EvaluateEffectDueToThirdInvariant( Effect, aLodeAngle, 20.0);
+         std::cout << Effect << " , " <<  aLodeAngle << " , " << LodeAngle <<  std::endl;
+      }
 
+      KRATOS_ERROR << " END END " << std::endl;
       rYieldCondition  = pow( DeviatoricQ/rShearM, 2);
       rYieldCondition += (MeanStress * (MeanStress - PreconsolidationStress) );
 
