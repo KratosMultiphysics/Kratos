@@ -241,8 +241,7 @@ private:
                                    Vector& rDerivativesOfDrag) const
     {
         constexpr std::size_t max_size = 50;
-        boost::numeric::ublas::bounded_vector<double, max_size> drag_flag_vector(rDerivativesOfResi\
-dual.size2());
+        boost::numeric::ublas::bounded_vector<double, max_size> drag_flag_vector(rDerivativesOfResidual.size2());
 
         const unsigned num_nodes = rNodes.size();
         unsigned local_index = 0;
