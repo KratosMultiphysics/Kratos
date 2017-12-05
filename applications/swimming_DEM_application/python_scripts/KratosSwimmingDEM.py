@@ -23,6 +23,7 @@ class Solution:
         pass
 
     def __init__(self, algorithm = None, varying_parameters = Parameters("{}")):
+
         if algorithm == None:
             import swimming_DEM_algorithm
             self.alg = swimming_DEM_algorithm.Algorithm(varying_parameters)

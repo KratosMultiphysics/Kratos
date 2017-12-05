@@ -61,7 +61,7 @@ class FluidHDF5Loader:
 
         if pp.CFD_DEM["store_fluid_pressure_option"].GetBool():
             number_of_variables += 1
-        if self.load_derivatives:
+        if self.load_derivatives or self.store_gradient:
             number_of_variables += 9
 
         self.extended_shape = self.shape + (number_of_variables, )
