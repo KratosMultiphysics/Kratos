@@ -36,10 +36,42 @@ namespace Kratos
         if( search == mflat_map.end())
         {
             mflat_map[pmodel_part->Name()] = pmodel_part.get();
+            
+            //walk the submodelparts
+            for(auto& part : pmodel_part->SubModelParts())
+                AddModelPartRawPointer(&part);
         }
         else
         {
             if(&(*search->second) != &*(pmodel_part.get()))
+                KRATOS_ERROR << "trying to add to the Model two DISTINCT model parts with the same name. This should be possible (and it will be in the future) if they belong to two different root model_parts, but it is currently disallowed";
+                
+        }
+        
+        //add the root model part to the list
+        ModelPart& root_model_part = pmodel_part->GetRootModelPart();
+        mroot_map[root_model_part.Name()] = &root_model_part;
+        
+        KRATOS_CATCH("")
+    }
+
+    void Model::AddModelPartRawPointer( ModelPart* pmodel_part) //TODO: DEPRECATED. to be removed. this is TEMPORARY
+    {
+        KRATOS_TRY
+        
+        //TODO: flat map should disappear in the future!!
+        auto search = mflat_map.find(pmodel_part->Name());
+        if( search == mflat_map.end())
+        {
+            mflat_map[pmodel_part->Name()] = pmodel_part;
+            
+            //walk the submodelparts
+            for(auto& part : pmodel_part->SubModelParts())
+                AddModelPartRawPointer(&part);
+        }
+        else
+        {
+            if(&(*search->second) != &*(pmodel_part))
                 KRATOS_ERROR << "trying to add to the Model two DISTINCT model parts with the same name. This should be possible (and it will be in the future) if they belong to two different root model_parts, but it is currently disallowed";
                 
         }

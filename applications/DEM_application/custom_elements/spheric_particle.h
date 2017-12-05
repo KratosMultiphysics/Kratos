@@ -153,8 +153,9 @@ virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info);
 
 virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme); 
-virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
+virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
+virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
+virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
 
 virtual void ComputeConditionRelativeData(int rigid_neighbour_index,
                                           DEMWall* const wall,
@@ -337,15 +338,6 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(do
                                                                               const array_1d<double, 3>& ang_vel,
                                                                               SphericParticle* p_neighbour);
 
-virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationQuat(const double indentation,
-                                                                            double DeltDesp[3],
-                                                                            double RelVel[3],
-                                                                            const double OldLocalCoordSystem[3][3],
-                                                                            const double &other_radius,
-                                                                            const double &dt,
-                                                                            const array_1d<double, 3> &angl_vel,
-                                                                            SphericParticle* neighbour_iterator);
-
 virtual void ComputeMoments(double normalLocalContactForce,
                             double GlobalElasticContactForces[3],
                             double& RollingResistance,
@@ -436,7 +428,8 @@ double mRealMass;
 PropertiesProxy* mFastProperties;
 int mClusterId;
 double mBoundDeltaDispSq;
-DEMIntegrationScheme* mpIntegrationScheme;
+DEMIntegrationScheme* mpTranslationalIntegrationScheme;
+DEMIntegrationScheme* mpRotationalIntegrationScheme;
 double mGlobalDamping;
 
 private:

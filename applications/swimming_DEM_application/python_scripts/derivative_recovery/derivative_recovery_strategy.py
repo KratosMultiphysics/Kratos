@@ -12,12 +12,19 @@ from . import zhang_guo_recoverer
 from . import L2_projection_recoverer
 from . import pouliot_2012_recoverer
 from . import pouliot_2012_edge_recoverer
+import weakref
 
 class DerivativeRecoveryStrategy:
     def __init__(self, pp, fluid_model_part, derivative_recovery_tool = None, custom_functions_tool = None):
         self.fluid_model_part = fluid_model_part
-        self.derivative_recovery_tool = derivative_recovery_tool
-        self.custom_functions_tool = custom_functions_tool
+        if derivative_recovery_tool is not None:
+            self.derivative_recovery_tool = weakref.proxy(derivative_recovery_tool)
+        else:
+            self.derivative_recovery_tool = None
+        if custom_functions_tool is not None:
+            self.custom_functions_tool = weakref.proxy(custom_functions_tool)
+        else:
+            self.custom_functions_tool = None
         self.pp = pp
         self.store_full_gradient = self.pp.CFD_DEM["store_full_gradient_option"].GetBool()
         self.mat_deriv_type = pp.CFD_DEM["material_acceleration_calculation_type"].GetInt()
@@ -43,28 +50,28 @@ class DerivativeRecoveryStrategy:
 
     def GetMatDerivTool(self):
         if self.pre_computed_derivatives:
-            return recoverer.MaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return recoverer.MaterialAccelerationRecoverer(self.pp, self.fluid_model_part)
         elif self.mat_deriv_type == 0:
-            return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part)
         elif self.mat_deriv_type == 1:
-            return standard_recoverer.StandardMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return standard_recoverer.StandardMaterialAccelerationRecoverer(self.pp, self.fluid_model_part)
         elif self.mat_deriv_type == 2:
             if self.laplacian_type == 2:
-                return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+                return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part)
             else:
-                return zhang_guo_recoverer.ZhangGuoMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+                return zhang_guo_recoverer.ZhangGuoMaterialAccelerationRecoverer(self.pp, self.fluid_model_part)
         elif self.mat_deriv_type == 3:
-            return L2_projection_recoverer.L2ProjectionDirectMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return L2_projection_recoverer.L2ProjectionDirectMaterialAccelerationRecoverer(self.pp, self.fluid_model_part)
         elif self.mat_deriv_type == 4:
-            return L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer(self.pp, self.fluid_model_part)
         elif self.mat_deriv_type == 5:
-            return L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer(self.pp, self.fluid_model_part)
         elif self.mat_deriv_type == 6:
-            return pouliot_2012_edge_recoverer.Pouliot2012EdgeMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
-            #return pouliot_2012_recoverer.Pouliot2012MaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool, self.do_pre_recovery)
+            return pouliot_2012_edge_recoverer.Pouliot2012EdgeMaterialAccelerationRecoverer(self.pp, self.fluid_model_part)
+            #return pouliot_2012_recoverer.Pouliot2012MaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.do_pre_recovery)
         elif self.mat_deriv_type == 7:
             if self.store_full_gradient:
-                return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+                return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part)
             else:
                 raise Exception('The value of material_acceleration_calculation_type is ' + str(self.mat_deriv_type) + ' , which is only compatible with store_full_gradient = 1. Instead it is store_full_gradient = ' + str(self.store_full_gradient) + '.')
         else:
@@ -72,22 +79,22 @@ class DerivativeRecoveryStrategy:
 
     def GetLaplacianTool(self):
         if self.laplacian_type == 0 or self.pre_computed_derivatives:
-            return recoverer.EmptyLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return recoverer.EmptyLaplacianRecoverer(self.pp, self.fluid_model_part)
         elif self.laplacian_type == 1:
-            return standard_recoverer.StandardLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return standard_recoverer.StandardLaplacianRecoverer(self.pp, self.fluid_model_part)
         elif self.laplacian_type == 2:
             if self.mat_deriv_type == 2:
-                return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+                return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part)
             else:
-                return zhang_guo_recoverer.ZhangGuoDirectLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+                return zhang_guo_recoverer.ZhangGuoDirectLaplacianRecoverer(self.pp, self.fluid_model_part)
         elif self.laplacian_type in {3, 4, 5, 6}:
             if self.store_full_gradient:
-                return L2_projection_recoverer.L2ProjectionLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+                return L2_projection_recoverer.L2ProjectionLaplacianRecoverer(self.pp, self.fluid_model_part)
             else:
                 raise Exception('The value of laplacian_calculation_type is ' + str(self.laplacian_type) + ' , which is only compatible with store_full_gradient = 1. Instead it is store_full_gradient = ' + str(self.store_full_gradient) + '.')
         elif self.laplacian_type == 7:
             if self.store_full_gradient:
-                return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+                return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part)
             else:
                 raise Exception('The value of laplacian_calculation_type is ' + str(self.mat_deriv_type) + ' , which is only compatible with store_full_gradient = 1. Instead it is store_full_gradient = ' + str(self.store_full_gradient) + '.')
         else:
@@ -95,43 +102,43 @@ class DerivativeRecoveryStrategy:
 
     def GetVorticityTool(self):
         if self.pre_computed_derivatives:
-            return recoverer.VorticityRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return recoverer.VorticityRecoverer(self.pp, self.fluid_model_part)
         if self.vorticity_type == 0:
-            return recoverer.EmptyVorticityRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return recoverer.EmptyVorticityRecoverer(self.pp, self.fluid_model_part)
         elif self.vorticity_type == 5: # NOT WORKING YET WITH VECTORS
-            return recoverer.EmptyVorticityRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return recoverer.EmptyVorticityRecoverer(self.pp, self.fluid_model_part)
         else:
             raise Exception('The value of vorticity_calculation_type is ' + str(self.vorticity_type) + ' , which does not correspond to any valid option.')
 
     def GetVelocityGradTool(self):
         if self.pre_computed_derivatives:
-            return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part)
         if self.must_reconstruct_gradient:
             if self.mat_deriv_tool == 6:
-                return pouliot_2012_edge_recoverer.Pouliot2012EdgeGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
-                # return pouliot_2012_recoverer.Pouliot2012GradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+                return pouliot_2012_edge_recoverer.Pouliot2012EdgeGradientRecoverer(self.pp, self.fluid_model_part)
+                # return pouliot_2012_recoverer.Pouliot2012GradientRecoverer(self.pp, self.fluid_model_part)
             else:
-                return L2_projection_recoverer.L2ProjectionGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+                return L2_projection_recoverer.L2ProjectionGradientRecoverer(self.pp, self.fluid_model_part)
         else:
-            return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part)
 
     def GetPressureGradTool(self):
         if self.pressure_grad_type == 0:
-            return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part)
         elif self.pressure_grad_type == 1:
-            return standard_recoverer.StandardGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return standard_recoverer.StandardGradientRecoverer(self.pp, self.fluid_model_part)
         elif self.pressure_grad_type == 2:
-            return zhang_guo_recoverer.ZhangGuoGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return zhang_guo_recoverer.ZhangGuoGradientRecoverer(self.pp, self.fluid_model_part)
         else:
             raise Exception('The value of pressure_grad_recovery_type is ' + str(self.pressure_grad_type) + ' , which does not correspond to any valid option.')
 
     def GetFluidFractionGradTool(self):
         if self.fluid_fraction_grad_type == 0:
-            return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part)
         elif self.fluid_fraction_grad_type == 1:
-            return standard_recoverer.StandardGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return standard_recoverer.StandardGradientRecoverer(self.pp, self.fluid_model_part)
         elif self.fluid_fraction_grad_type == 2:
-            return zhang_guo_recoverer.ZhangGuoGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return zhang_guo_recoverer.ZhangGuoGradientRecoverer(self.pp, self.fluid_model_part)
         else:
             raise Exception('The value of fluid_fraction_grad_type is ' + str(self.fluid_fraction_grad_type) + ' , which does not correspond to any valid option.')
 

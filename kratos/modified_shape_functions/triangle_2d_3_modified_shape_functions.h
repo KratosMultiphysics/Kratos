@@ -110,7 +110,7 @@ public:
     */
     void ComputePositiveSideShapeFunctionsAndGradientsValues(
         Matrix &rPositiveSideShapeFunctionsValues,
-        std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
         Vector &rPositiveSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override;
 
@@ -123,7 +123,7 @@ public:
     */
     void ComputeNegativeSideShapeFunctionsAndGradientsValues(
         Matrix &rNegativeSideShapeFunctionsValues,
-        std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rNegativeSideShapeFunctionsGradientsValues,
         Vector &rNegativeSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override;
 
@@ -138,7 +138,7 @@ public:
     */
     void ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
         Matrix &rInterfacePositiveSideShapeFunctionsValues,
-        std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rInterfacePositiveSideShapeFunctionsGradientsValues,
         Vector &rInterfacePositiveSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override;
 
@@ -151,26 +151,26 @@ public:
     */
     void ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
         Matrix &rInterfaceNegativeSideShapeFunctionsValues,
-        std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rInterfaceNegativeSideShapeFunctionsGradientsValues,
         Vector &rInterfaceNegativeSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override;
 
     /**
-    * Returns the positive side outwards unit normal vector values for the Gauss pts. of given quadrature.
-    * @return rPositiveSideInterfaceUnitNormal: Outwards unit normal vector list.
+    * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
+    * @return rPositiveSideInterfaceAreaNormal: Outwards area normal vector list.
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    void ComputePositiveSideInterfaceUnitNormals(
-        std::vector<Vector> &rPositiveSideInterfaceUnitNormal,
+    void ComputePositiveSideInterfaceAreaNormals(
+        std::vector<Vector> &rPositiveSideInterfaceAreaNormal,
         const IntegrationMethodType IntegrationMethod) override;
 
     /**
-    * Returns the positive side outwards unit normal vector values for the Gauss pts. of given quadrature.
-    * @return rNegativeSideInterfaceUnitNormal: Outwards unit normal vector list.
+    * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
+    * @return rNegativeSideInterfaceAreaNormal: Outwards area normal vector list.
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    void ComputeNegativeSideInterfaceUnitNormals(
-        std::vector<Vector> &rNegativeSideInterfaceUnitNormal,
+    void ComputeNegativeSideInterfaceAreaNormals(
+        std::vector<Vector> &rNegativeSideInterfaceAreaNormal,
         const IntegrationMethodType IntegrationMethod) override;
 
     /**

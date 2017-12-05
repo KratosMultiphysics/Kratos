@@ -7,7 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author Julio Marti
+//  Main authors:    Author Julio Marti.
 //
 
 #if !defined(KRATOS_GLS_STRATEGY)
@@ -189,7 +189,7 @@ namespace Kratos
 	
 	  //computation of the fractional vel velocity (first step)
 	  //3 dimensional case
-	  typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3 > > > VarComponent;
+	  //typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3 > > > VarComponent;
 	  typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 	  typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 	
@@ -241,7 +241,7 @@ namespace Kratos
 	
 	double Dp_norm = 1.00;
 	int iteration = 0;
-	int MaxPressureIterations = this->mMaxPressIterations;
+	//int MaxPressureIterations = this->mMaxPressIterations;
 	Dp_norm = IterativeSolve();
 #endif
 	//this->Clear();
@@ -254,7 +254,7 @@ namespace Kratos
       {
 	KRATOS_TRY
 	
-	  ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+	//ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 	this->SolveStep7(); //pold=pn+1
 	double Dp_norm = this->SolveStep2();
       	return Dp_norm;
@@ -286,13 +286,13 @@ namespace Kratos
 #else
 	this->SolveStep3();
 #endif
-      
+        //double p_norm=0.0;
 #if defined(QCOMP)
       
 	//polimero
 	this->SolveStepaux();
-	int MaxPressureIterations = this->mMaxPressIterations;
-	int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+	//int MaxPressureIterations = this->mMaxPressIterations;
+	//int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 	double p_norm = SavePressureIteration();
 	Dp_norm = 1.0;
 	//Timer::Stop("Solve_ambos");
@@ -381,7 +381,7 @@ namespace Kratos
         bool is_converged = false;
 	int iteration = 0;
         //double iteration = 1;
-	ModelPart& model_part=BaseType::GetModelPart();
+	//ModelPart& model_part=BaseType::GetModelPart();
 	
 	while (is_converged == false && iteration++<3)
 	  {
@@ -413,18 +413,19 @@ namespace Kratos
         Timer::Start("paso_4");
 	
         array_1d<double, 3 > zero = ZeroVector(3);
-	
+
+	int number_of_threads=0;
 #ifdef _OPENMP
-        int number_of_threads = omp_get_max_threads();
+        number_of_threads = omp_get_max_threads();
 #else
-        int number_of_threads = 1;
+        number_of_threads = 1;
 #endif
 	
-	number_of_threads = 1;
-        ModelPart& model_part=BaseType::GetModelPart();
+	//number_of_threads = 1;
+        //ModelPart& model_part=BaseType::GetModelPart();
 	
-        double dt = model_part.GetProcessInfo()[DELTA_TIME];
-	dt=0.005;
+        //double dt = model_part.GetProcessInfo()[DELTA_TIME];
+	//dt=0.005;
 	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
 	  {
 	    array_1d<double, 3 > zero = ZeroVector(3);
@@ -494,8 +495,8 @@ namespace Kratos
 	int number_of_threads = 1;
 #endif
 	
-	ModelPart& model_part=BaseType::GetModelPart();
-	const double dt = model_part.GetProcessInfo()[DELTA_TIME];
+	//ModelPart& model_part=BaseType::GetModelPart();
+	//const double dt = model_part.GetProcessInfo()[DELTA_TIME];
 	vector<unsigned int> partition;
 	CreatePartition(number_of_threads, BaseType::GetModelPart().Nodes().size(), partition);
 
@@ -596,7 +597,7 @@ namespace Kratos
 		
                 force_temp *=(1.0/ i->FastGetSolutionStepValue(NODAL_MASS));
 		
-		array_1d<double,3>& vel = i->FastGetSolutionStepValue(VELOCITY);
+		//array_1d<double,3>& vel = i->FastGetSolutionStepValue(VELOCITY);
  		i->FastGetSolutionStepValue(VELOCITY) = i->FastGetSolutionStepValue(VELOCITY,1) + dt * force_temp;
 	      }
 	  }
@@ -611,8 +612,8 @@ namespace Kratos
 	  Timer time;
 	Timer::Start("SolveStepaux");
 	
-	ModelPart& model_part=BaseType::GetModelPart();
-	const double dt = model_part.GetProcessInfo()[DELTA_TIME];
+	//ModelPart& model_part=BaseType::GetModelPart();
+	//const double dt = model_part.GetProcessInfo()[DELTA_TIME];
 	
 #ifdef _OPENMP
 	int number_of_threads = omp_get_max_threads();

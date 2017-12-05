@@ -90,9 +90,11 @@ public:
     /**
      * @param DispRatioTolerance Relative tolerance for displacement residual error
      * @param DispAbsTolerance Absolute tolerance for displacement residual error
-     * @param lm_ratioTolerance Relative tolerance for lagrange multiplier residual  error
-     * @param lm_absTolerance Absolute tolerance for lagrange multiplier residual error
-     * @param EnsureContact: To check if the contact is lost
+     * @param LMRatioTolerance Relative tolerance for lagrange multiplier residual  error
+     * @param LMAbsTolerance Absolute tolerance for lagrange multiplier residual error
+     * @param EnsureContact To check if the contact is lost
+     * @param pTable The pointer to the output table
+     * @param PrintingOutput If the output is going to be printed in a txt file
      */
     
     DisplacementLagrangeMultiplierMixedContactCriteria(  

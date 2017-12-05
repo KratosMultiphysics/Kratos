@@ -14,15 +14,15 @@
 #define KRATOS_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED
 
 // System includes
-#include <map>
-#include <string>
+// #include <map>
+// #include <string>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "includes/kratos_application.h"
-#include "includes/model_part.h"
+// #include "includes/kratos_application.h"
+// #include "includes/model_part.h"
 //#include "structural_mechanics_application.h"
 #include "custom_utilities/multipoint_constraint_data.hpp"
 #include "custom_utilities/shell_cross_section.hpp"
@@ -122,9 +122,6 @@ typedef std::vector<MpcDataPointerType>
     // CONDITIONS
     /* Beam conditions */
     KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(STRUCTURAL_MECHANICS_APPLICATION, POINT_MOMENT )
-    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(STRUCTURAL_MECHANICS_APPLICATION, LOCAL_POINT_MOMENT )
-    /* Torque conditions */
-    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(STRUCTURAL_MECHANICS_APPLICATION, POINT_TORQUE )
 
     // Adding the SPRISM EAS variables
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION,double, ALPHA_EAS);
@@ -152,6 +149,9 @@ typedef std::vector<MpcDataPointerType>
     // Rayleigh variables
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, double, RAYLEIGH_ALPHA )
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, double, RAYLEIGH_BETA )
+
+    // System damping
+    KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, double, SYSTEM_DAMPING_RATIO )
 
     // Nodal load variables
     KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( STRUCTURAL_MECHANICS_APPLICATION, POINT_LOAD )

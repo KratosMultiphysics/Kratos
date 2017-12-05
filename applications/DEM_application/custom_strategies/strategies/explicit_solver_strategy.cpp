@@ -1137,15 +1137,17 @@ namespace Kratos {
         KRATOS_TRY
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
-        #pragma omp parallel 
+        #pragma omp parallel
         {
-            
         std::vector< double > Distance_Array; //MACELI: reserve.. or take it out of the loop and have one for every thread
         std::vector< array_1d<double, 3> > Normal_Array;
         std::vector< array_1d<double, 4> > Weight_Array;
         std::vector< int > Id_Array;
         std::vector< int > ContactType_Array;
-            
+        std::vector<DEMWall*> temporal_neigh;
+        std::vector< array_1d<double, 4> > temporal_contact_weights;
+        std::vector< int > temporal_contact_types;
+        
         #pragma omp for
         for (int i = 0; i < number_of_particles; i++) {
             SphericParticle* p_sphere_i = mListOfSphericParticles[i];
@@ -1182,10 +1184,10 @@ namespace Kratos {
             std::vector< int >& neighbor_contact_types = p_sphere_i->mContactConditionContactTypes;
 
             size_t neigh_size = neighbour_rigid_faces.size();
-
-            std::vector<DEMWall*> temporal_neigh(0);
-            std::vector< array_1d<double, 4> > temporal_contact_weights;
-            std::vector< int > temporal_contact_types;
+            
+            temporal_neigh.clear(); 
+            temporal_contact_weights.clear(); 
+            temporal_contact_types.clear(); 
 
             for (unsigned int n = 0; n < neigh_size; n++) {
 

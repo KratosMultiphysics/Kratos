@@ -70,6 +70,9 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 # ###############################################################
 add_library(KratosTrilinosApplication SHARED ${KRATOS_TRILINOS_APPLICATION_SOURCES})
 
+
+
+
 if (HAVE_PASTIX)
         target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES} )
         install(FILES ${PASTIX_LIBRARIES} DESTINATION libs )
@@ -91,6 +94,10 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosTrilinosApplication)
+endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosTrilinosApplication DESTINATION libs )
 
