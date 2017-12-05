@@ -1217,32 +1217,23 @@ namespace Kratos
 			rOutput.resize(write_points_number);
 		}
 
-
-		this->UpdateIncrementDeformation();
-		//calculate Transformation Matrix
-		bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = ZeroMatrix(msElementSize);
-		this->CalculateTransformationMatrix(TransformationMatrix);
-		//deformation modes
-		bounded_vector<double,msLocalSize> elementForces_t = ZeroVector(msLocalSize);
-		elementForces_t = this->CalculateElementForces();
-		Vector Stress = ZeroVector(msElementSize);
-		bounded_matrix<double,msElementSize,msLocalSize>  TransformationMatrixS = ZeroMatrix(msElementSize, msLocalSize);
-		TransformationMatrixS = this->CalculateTransformationS();
-		Stress = prod(TransformationMatrixS, elementForces_t);
+		bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = this->mRotationMatrix;
+		// Stress = ZeroVector(msElementSize);
+		Vector Stress = this->mNodalForces;
+		Stress = prod(Matrix(trans(TransformationMatrix)),Stress);
 
 		//LINEAR BEAM ELEMENT
 		if (this->mIsLinearElement)
 		{
-			Matrix LeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
-			LeftHandSideMatrix = this->mLHS;
+			Matrix LeftHandSideMatrix = CreateElementStiffnessMatrix_Material();
 
 			Vector NodalDeformation = ZeroVector(msElementSize);
 			this->GetValuesVector(NodalDeformation);
-			Stress = ZeroVector(msElementSize);
-			Stress = prod(LeftHandSideMatrix, NodalDeformation);
-			bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = ZeroMatrix(msElementSize);
+
 			TransformationMatrix = this->mRotationMatrix0;
-			Stress = prod(Matrix(trans(TransformationMatrix)), Stress);
+			NodalDeformation = prod(Matrix(trans(TransformationMatrix)),NodalDeformation);
+
+			Stress = prod(LeftHandSideMatrix, NodalDeformation); 
 		}
 
 
