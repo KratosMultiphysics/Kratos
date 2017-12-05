@@ -174,6 +174,90 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFu
     }
 };
 
+// Given a face id, computes the positive side subdivision shape function values in that face.
+void Triangle2D3AusasModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+    Matrix &rPositiveExteriorFaceShapeFunctionsValues,
+    ShapeFunctionsGradientsType &rPositiveExteriorFaceShapeFunctionsGradientsValues,
+    Vector &rPositiveExteriorFaceWeightsValues,
+    const unsigned int FaceId,
+    const IntegrationMethodType IntegrationMethod
+) {
+    if (this->IsSplit()) {
+        // Get the condensation matrix
+        Matrix p_matrix_pos_side;
+        this->SetPositiveSideCondensationMatrix(
+            p_matrix_pos_side,
+            mpTriangleSplitter->mEdgeNodeI,
+            mpTriangleSplitter->mEdgeNodeJ,
+            mpTriangleSplitter->mSplitEdges);
+        
+        // Get the external faces
+        std::vector < unsigned int > exterior_faces_parent_ids_vector;
+        std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
+        mpTriangleSplitter->GenerateExteriorFaces(
+            exterior_faces_vector,
+            exterior_faces_parent_ids_vector,
+            mpTriangleSplitter->mPositiveSubdivisions,
+            FaceId);
+        
+        // Compute the positive side external face values
+        this->ComputeInterfaceValuesOnOneSide(
+            rPositiveExteriorFaceShapeFunctionsValues,
+            rPositiveExteriorFaceShapeFunctionsGradientsValues,
+            rPositiveExteriorFaceWeightsValues,
+            exterior_faces_vector,
+            mpTriangleSplitter->mPositiveSubdivisions,
+            exterior_faces_parent_ids_vector,
+            p_matrix_pos_side,
+            IntegrationMethod);
+
+    } else {
+        KRATOS_ERROR << "Using the ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues method for a non divided geometry.";
+    }
+};
+
+// Given a face id, computes the positive side subdivision shape function values in that face.
+void Triangle2D3AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+    Matrix &rNegativeExteriorFaceShapeFunctionsValues,
+    ShapeFunctionsGradientsType &rNegativeExteriorFaceShapeFunctionsGradientsValues,
+    Vector &rNegativeExteriorFaceWeightsValues,
+    const unsigned int FaceId,
+    const IntegrationMethodType IntegrationMethod
+) {
+    if (this->IsSplit()) {
+        // Get the condensation matrix
+        Matrix p_matrix_neg_side;
+        this->SetNegativeSideCondensationMatrix(
+            p_matrix_neg_side,
+            mpTriangleSplitter->mEdgeNodeI,
+            mpTriangleSplitter->mEdgeNodeJ,
+            mpTriangleSplitter->mSplitEdges);
+
+        // Get the external faces
+        std::vector < unsigned int > exterior_faces_parent_ids_vector;
+        std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
+        mpTriangleSplitter->GenerateExteriorFaces(
+            exterior_faces_vector,
+            exterior_faces_parent_ids_vector,
+            mpTriangleSplitter->mNegativeSubdivisions,
+            FaceId);
+        
+        // Compute the positive side external face values
+        this->ComputeInterfaceValuesOnOneSide(
+            rNegativeExteriorFaceShapeFunctionsValues,
+            rNegativeExteriorFaceShapeFunctionsGradientsValues,
+            rNegativeExteriorFaceWeightsValues,
+            exterior_faces_vector,
+            mpTriangleSplitter->mNegativeSubdivisions,
+            exterior_faces_parent_ids_vector,
+            p_matrix_neg_side,
+            IntegrationMethod);
+
+    } else {
+        KRATOS_ERROR << "Using the ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues method for a non divided geometry.";
+    }
+};
+
 // Compute the positive side interface outwards area normal vector values.
 void Triangle2D3AusasModifiedShapeFunctions::ComputePositiveSideInterfaceAreaNormals(
     std::vector<Vector> &rPositiveSideInterfaceAreaNormal,

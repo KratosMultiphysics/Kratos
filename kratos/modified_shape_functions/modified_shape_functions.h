@@ -165,6 +165,34 @@ public:
         ShapeFunctionsGradientsType &rInterfaceNegativeSideShapeFunctionsGradientsValues,
         Vector &rInterfaceNegativeSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) = 0;
+
+    /**
+    * Given a face id, returns the shape function values in the positive split element exterior face side for a given quadrature.
+    * @return rInterfacePositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
+    * @return rInterfacePositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
+    * @return rInterfacePositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    virtual void ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+        Matrix &rPositiveExteriorFaceShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rPositiveExteriorFaceShapeFunctionsGradientsValues,
+        Vector &rPositiveExteriorFaceWeightsValues,
+        const unsigned int FaceId,
+        const IntegrationMethodType IntegrationMethod) = 0;
+
+    /**
+    * Given a face id, returns the shape function values in the negative split element exterior face side for a given quadrature.
+    * @return rInterfaceNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
+    * @return rInterfaceNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
+    * @return rInterfaceNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    virtual void ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+        Matrix &rNegativeExteriorFaceShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rNegativeExteriorFaceShapeFunctionsGradientsValues,
+        Vector &rNegativeExteriorFaceWeightsValues,
+        const unsigned int FaceId,
+        const IntegrationMethodType IntegrationMethod) = 0;
         
     /**
     * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
