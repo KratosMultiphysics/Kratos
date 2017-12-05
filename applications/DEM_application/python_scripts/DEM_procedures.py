@@ -280,14 +280,13 @@ class DEMEnergyCalculator(object):
 
     def CalculateEnergyAndPlot(self, time):
         if self.calculate_option:
-            #if not "TestType" in self.DEM_parameters.keys():
-                if (self.energy_graph_counter == self.graph_frequency):
-                    self.energy_graph_counter = 0
+            if (self.energy_graph_counter == self.graph_frequency):
+                self.energy_graph_counter = 0
 
-                    self.CalculateEnergy()
-                    self.PlotEnergyGraph(time)
+                self.CalculateEnergy()
+                self.PlotEnergyGraph(time)
 
-                self.energy_graph_counter += 1
+            self.energy_graph_counter += 1
 
     def CalculateEnergy(self):
 

@@ -4,12 +4,12 @@
 namespace Kratos {
 
     void QuaternionIntegrationScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) std::cout << "\nAssigning QuaternionIntegrationScheme to properties " << pProp->Id() << std::endl;
+//         if(verbose) std::cout << "\nAssigning QuaternionIntegrationScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
     
     void QuaternionIntegrationScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) std::cout << "\nAssigning QuaternionIntegrationScheme to properties " << pProp->Id() << std::endl;
+//         if(verbose) std::cout << "\nAssigning QuaternionIntegrationScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 

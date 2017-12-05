@@ -36,7 +36,6 @@
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "custom_constitutive/DEM_ExponentialHC_CL.h"
 
-#include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
 #include "custom_strategies/schemes/symplectic_euler_scheme.h"
