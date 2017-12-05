@@ -530,6 +530,14 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
+    virtual bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue);
+
+    /**
+     * returns the value of a specified variable
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
     virtual int& GetValue(const Variable<int>& rThisVariable, int& rValue);
 
     /**
@@ -632,15 +640,6 @@ public:
     virtual void SetValue(const Variable<array_1d<double, 6 > >& rVariable,
                           const array_1d<double, 6 > & rValue,
                           const ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * calculates the value of a specified variable
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */    
-    virtual bool& CalculateValue(Parameters& rParameterValues, const Variable<bool>& rThisVariable, bool& rValue);
 
     /**
      * calculates the value of a specified variable

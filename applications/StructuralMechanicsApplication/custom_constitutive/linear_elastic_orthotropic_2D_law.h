@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Peter Wilson
-//       Contact:    A.Winterstein at tum.de
+//       Contact:    A.Winterstein [at] tum.de
 //
 
 #if !defined (KRATOS_LINEAR_ELASTIC_ORTHOTROPIC_2D_LAW_H_INCLUDED)
@@ -98,6 +98,14 @@ namespace Kratos
 		* @see   Parameters
 		*/
 		void CalculateMaterialResponsePK2(Parameters & rValues) override;
+
+		/**
+		 * returns the value of a specified variable
+		 * @param rThisVariable the variable to be returned
+		 * @param rValue a reference to the returned value
+		 * @param rValue output: the value of the specified variable
+		 */
+		bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
 
 		/**
 		* This function is designed to be called once to perform all the checks needed

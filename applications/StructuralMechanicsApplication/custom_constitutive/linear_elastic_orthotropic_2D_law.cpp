@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
 
 #include "structural_mechanics_application_variables.h"
 
@@ -118,6 +118,18 @@ namespace Kratos
 			this->CalculateLinearElasticMatrix(ConstitutiveMatrix, MaterialProperties);
 		}
 	}
+
+	//************************************************************************************
+	//************************************************************************************
+
+	bool& LinearElasticOrthotropic2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+	{
+		// This Constitutive Law has been checked with Stenberg Stabilization
+		if (rThisVariable == STENBERG_STABILIZATION_SUITABLE)
+			rValue = true;
+		
+		return rValue;
+	}
 	
 	//***********************COMPUTE TOTAL STRAIN*****************************************
 	//************************************************************************************
@@ -192,7 +204,6 @@ namespace Kratos
 
 	//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 	//************************************************************************************
-
 	
 	void LinearElasticOrthotropic2DLaw::GetLawFeatures(Features& rFeatures)
 	{
@@ -200,7 +211,6 @@ namespace Kratos
 		rFeatures.mOptions.Set(PLANE_STRESS_LAW);
 		rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
 		rFeatures.mOptions.Set(ANISOTROPIC);
-		rFeatures.mOptions.Set(STENBERG_STABILIZATION_SUITABLE);
 
 		//Set strain measure required by the consitutive law
 		rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);

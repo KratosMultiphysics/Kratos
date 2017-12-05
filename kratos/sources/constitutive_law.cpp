@@ -163,6 +163,17 @@ bool ConstitutiveLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
  * @param rValue a reference to the returned value
  * @param rValue output: the value of the specified variable
  */
+bool& ConstitutiveLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+{
+    return rValue;
+}
+
+/**
+ * returns the value of a specified variable
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @param rValue output: the value of the specified variable
+ */
 int& ConstitutiveLaw::GetValue(const Variable<int>& rThisVariable, int& rValue)
 {
     return rValue;
@@ -299,7 +310,6 @@ void ConstitutiveLaw::SetValue(const Variable<array_1d<double, 6 > >& rVariable,
 {
     KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
 }
-
 
 
 /**

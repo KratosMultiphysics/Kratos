@@ -17,6 +17,9 @@
 // Project includes
 #include "custom_constitutive/linear_plane_stress.h"
 
+#include "structural_mechanics_application_variables.h"
+
+
 namespace Kratos
 {
 
@@ -158,6 +161,18 @@ void LinearPlaneStress::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
+bool& LinearPlaneStress::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+{
+    // This Constitutive Law has been checked with Stenberg Stabilization
+    if (rThisVariable == STENBERG_STABILIZATION_SUITABLE)
+        rValue = true;
+    
+    return rValue;
+}
+
+//************************************************************************************
+//************************************************************************************
+
 double& LinearPlaneStress::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
 {
     const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();
@@ -186,7 +201,6 @@ void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
     rFeatures.mOptions.Set( PLANE_STRESS_LAW );
     rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
     rFeatures.mOptions.Set( ISOTROPIC );
-	rFeatures.mOptions.Set(STENBERG_STABILIZATION_SUITABLE);
 
     //Set strain measure required by the consitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
