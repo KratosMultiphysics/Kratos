@@ -232,6 +232,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSui
     Element& r_element = *(empty_model_part.ElementsBegin());
     ProcessInfo& r_process_info = empty_model_part.GetProcessInfo();
 
+    // historical data container should not work with variables not added to model part
     int out;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         out = TestNodalScalarData::Check(r_element, r_process_info),
@@ -239,12 +240,28 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSui
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
     out = TestNodalVectorData::Check(r_element, r_process_info),
         "Missing VELOCITY variable in solution step data for node 1.");
+
+    // Other containers can work with non-initialized variables, but should return 0 
     out = TestElementData::Check(r_element,r_process_info);
     KRATOS_CHECK_EQUAL(out,0);
     out = TestPropertiesData::Check(r_element,r_process_info);
     KRATOS_CHECK_EQUAL(out,0);
     out = TestProcessInfoData::Check(r_element,r_process_info);
     KRATOS_CHECK_EQUAL(out,0);
+
+    TestElementData element_data;
+    TestPropertiesData properties_data;
+    TestProcessInfoData process_info_data;
+    
+    element_data.Initialize(r_element,r_process_info);
+    KRATOS_CHECK_EQUAL(element_data.CSmagorinsky, 0.0);
+
+    properties_data.Initialize(r_element,r_process_info);
+    KRATOS_CHECK_EQUAL(properties_data.KinematicViscosity, 0.0);
+
+    process_info_data.Initialize(r_element,r_process_info);
+    KRATOS_CHECK_EQUAL(process_info_data.UseOSS, 0.0);
+    KRATOS_CHECK_EQUAL(process_info_data.DeltaTime, 0.0);
 }
 
 }  // namespace Testing
