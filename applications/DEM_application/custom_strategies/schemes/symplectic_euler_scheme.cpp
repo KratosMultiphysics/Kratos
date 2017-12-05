@@ -7,12 +7,12 @@
 namespace Kratos {
 
     void SymplecticEulerScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) std::cout << "\nAssigning SymplecticEulerScheme to properties " << pProp->Id() << std::endl;
+//         if(verbose) std::cout << "\nAssigning SymplecticEulerScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
     void SymplecticEulerScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) std::cout << "\nAssigning SymplecticEulerScheme to properties " << pProp->Id() << std::endl;
+//         if(verbose) std::cout << "\nAssigning SymplecticEulerScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
@@ -45,7 +45,7 @@ namespace Kratos {
         } // dimensions
     }
 
-    void SymplecticEulerScheme::CalculateNewRotationalVariablesofSpheres(
+    void SymplecticEulerScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
                 Node < 3 >& i,
                 const double moment_of_inertia,
@@ -63,7 +63,7 @@ namespace Kratos {
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
     }
 
-    void SymplecticEulerScheme::CalculateNewRotationalVariablesofClusters(
+    void SymplecticEulerScheme::CalculateNewRotationalVariablesOfClusters(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,
@@ -87,7 +87,7 @@ namespace Kratos {
                     
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
 
-        double ang = DEM_MODULUS_3(delta_rotation);
+        double ang = DEM_INNER_PRODUCT_3(delta_rotation, delta_rotation);
               
         if (ang) {
             GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);

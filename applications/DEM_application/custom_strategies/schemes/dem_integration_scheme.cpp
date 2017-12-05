@@ -83,7 +83,7 @@ namespace Kratos {
         Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
         Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
         
-        CalculateNewRotationalVariablesofSpheres(StepFlag, i, moment_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, delta_t, Fix_Ang_vel);
+        CalculateNewRotationalVariablesOfSpheres(StepFlag, i, moment_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, delta_t, Fix_Ang_vel);
     }
     
     void DEMIntegrationScheme::CalculateRotationalMotionOfClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
@@ -105,7 +105,7 @@ namespace Kratos {
         Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
         Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
         
-        CalculateNewRotationalVariablesofClusters(StepFlag, i, moments_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, Orientation, delta_t, Fix_Ang_vel);
+        CalculateNewRotationalVariablesOfClusters(StepFlag, i, moments_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, Orientation, delta_t, Fix_Ang_vel);
     }
            
     void DEMIntegrationScheme::UpdateTranslationalVariables(
@@ -125,7 +125,7 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateTranslationalVariables) shouldn't be accessed, use derived class instead", 0);
     }
     
-    void DEMIntegrationScheme::CalculateNewRotationalVariablesofSpheres(
+    void DEMIntegrationScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
                 Node < 3 >& i,
                 const double moment_of_inertia,
@@ -136,10 +136,10 @@ namespace Kratos {
                 array_1d<double, 3 >& delta_rotation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateNewRotationalVariablesofSpheres) shouldn't be accessed, use derived class instead", 0);            
+        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateNewRotationalVariablesOfSpheres) shouldn't be accessed, use derived class instead", 0);            
     }
     
-    void DEMIntegrationScheme::CalculateNewRotationalVariablesofClusters(
+    void DEMIntegrationScheme::CalculateNewRotationalVariablesOfClusters(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,
@@ -151,7 +151,7 @@ namespace Kratos {
                 Quaternion<double  >& Orientation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateNewRotationalVariablesofClusters) shouldn't be accessed, use derived class instead", 0);            
+        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateNewRotationalVariablesOfClusters) shouldn't be accessed, use derived class instead", 0);            
     }
 
     void DEMIntegrationScheme::UpdateRotationalVariables(

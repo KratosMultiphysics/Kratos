@@ -4,12 +4,12 @@
 namespace Kratos {
 
     void RungeKuttaScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) std::cout << "\nAssigning RungeKuttaScheme to properties " << pProp->Id() << std::endl;
+//         if(verbose) std::cout << "\nAssigning RungeKuttaScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
     
     void RungeKuttaScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) std::cout << "\nAssigning RungeKuttaScheme to properties " << pProp->Id() << std::endl;
+//         if(verbose) std::cout << "\nAssigning RungeKuttaScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
@@ -30,7 +30,7 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error, "This scheme (RungeKuttaScheme) should not calculate translational motion, so the function (RungeKuttaScheme::UpdateTranslationalVariables) shouldn't be accessed", 0);
     }
 
-    void RungeKuttaScheme::CalculateNewRotationalVariablesofSpheres(
+    void RungeKuttaScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
                 Node < 3 >& i,
                 const double moment_of_inertia,
@@ -73,7 +73,7 @@ namespace Kratos {
         }
     }
     
-    void RungeKuttaScheme::CalculateNewRotationalVariablesofClusters(
+    void RungeKuttaScheme::CalculateNewRotationalVariablesOfClusters(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,

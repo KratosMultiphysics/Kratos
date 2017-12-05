@@ -42,7 +42,7 @@ namespace Kratos {
         } // dimensions
     }
 
-    void ForwardEulerScheme::CalculateNewRotationalVariablesofSpheres(
+    void ForwardEulerScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
                 Node < 3 >& i,
                 const double moment_of_inertia,
@@ -60,7 +60,7 @@ namespace Kratos {
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
     }
 
-    void ForwardEulerScheme::CalculateNewRotationalVariablesofClusters(
+    void ForwardEulerScheme::CalculateNewRotationalVariablesOfClusters(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,
@@ -84,7 +84,7 @@ namespace Kratos {
                     
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
 
-        double ang = DEM_MODULUS_3(delta_rotation);
+        double ang = DEM_INNER_PRODUCT_3(delta_rotation, delta_rotation);
               
         if (ang) {
             GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);

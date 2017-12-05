@@ -61,7 +61,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_vel[3]) override;
 
-        void CalculateNewRotationalVariablesofSpheres(
+        void CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
                 Node < 3 >& i,
                 const double moment_of_inertia,
@@ -73,7 +73,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
     
-        void CalculateNewRotationalVariablesofClusters(
+        void CalculateNewRotationalVariablesOfClusters(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,
