@@ -402,7 +402,7 @@ virtual void Update(ModelPart& r_model_part,
       KRATOS_TRY
       ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
       NodesArrayType& pNodes            = r_model_part.Nodes();
-
+      const double numerical_limit = std::numeric_limits<double>::epsilon();
       //Step Update
       mTime.Current   = rCurrentProcessInfo[TIME];  //the first step is time = initial_time ( 0.0) + delta time
       mTime.Delta     = rCurrentProcessInfo[DELTA_TIME];
@@ -439,7 +439,8 @@ virtual void Update(ModelPart& r_model_part,
           array_1d<double,3>& current_acceleration    = i->FastGetSolutionStepValue(ACCELERATION);
 
           //Solution of the explicit equation:
-          current_acceleration = current_residual/nodal_mass;
+          if (nodal_mass > numerical_limit)  current_acceleration = current_residual/nodal_mass;
+          else current_acceleration = ZeroVector(3);
 
           int DoF = 2;
           bool Fix_displ[3] = {false, false, false};
@@ -482,7 +483,11 @@ virtual void Update(ModelPart& r_model_part,
             array_1d<double,3>& middle_angular_velocity          = i->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
             array_1d<double,3>& current_angular_acceleration     = i->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
-            for (int kk = 0; kk<3; ++kk) current_angular_acceleration[kk] = current_residual_moment[kk] / nodal_inertia[kk];
+            for (int kk = 0; kk<3; ++kk)
+            {         
+              if (nodal_inertia[kk] > numerical_limit)  current_angular_acceleration[kk] = current_residual_moment[kk] / nodal_inertia[kk];
+              else current_angular_acceleration[kk] = 0.00;
+            }
             
 
             DoF = 2;
@@ -523,7 +528,7 @@ virtual void Update(ModelPart& r_model_part,
     {
       KRATOS_TRY
       NodesArrayType& pNodes            = r_model_part.Nodes();
-
+      const double numerical_limit = std::numeric_limits<double>::epsilon();
   #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
   #else
@@ -555,7 +560,8 @@ virtual void Update(ModelPart& r_model_part,
 
 
           //Solution of the explicit equation:
-          current_acceleration = current_residual/nodal_mass;
+          if (nodal_mass > numerical_limit)  current_acceleration = current_residual/nodal_mass;
+          else current_acceleration = ZeroVector(3);
 
           int DoF = 2;
           bool Fix_displ[3] = {false, false, false};
@@ -598,8 +604,12 @@ virtual void Update(ModelPart& r_model_part,
             array_1d<double,3>& middle_angular_velocity          = i->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
             array_1d<double,3>& current_angular_acceleration     = i->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
-
-            for (int kk = 0; kk<3; ++kk) current_angular_acceleration[kk] = current_residual_moment[kk] / nodal_inertia[kk];
+            
+            for (int kk = 0; kk<3; ++kk)
+            {         
+              if (nodal_inertia[kk] > numerical_limit)  current_angular_acceleration[kk] = current_residual_moment[kk] / nodal_inertia[kk];
+              else current_angular_acceleration[kk] = 0.00;
+            }
 
             DoF = 2;
             bool Fix_rot[3] = {false, false, false};

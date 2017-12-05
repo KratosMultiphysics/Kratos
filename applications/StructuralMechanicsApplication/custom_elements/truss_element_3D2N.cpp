@@ -665,6 +665,30 @@ namespace Kratos
 				GetGeometry()[i].UnSetLock();
 			}
 		}
+		
+		if (rDestinationVariable == NODAL_INERTIA)
+		{
+
+			Matrix ElementMassMatrix = ZeroMatrix(msLocalSize,msLocalSize);
+			ProcessInfo TempInfo;
+			this->CalculateMassMatrix(ElementMassMatrix,TempInfo);
+
+			for (int i = 0; i< msNumberOfNodes; ++i)
+			{
+				GetGeometry()[i].SetLock();
+				double& nodal_mass = GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS);
+				array_1d<double,msDimension>& nodal_inertia = GetGeometry()[i].FastGetSolutionStepValue(NODAL_INERTIA); 
+				int index = i*msDimension;
+
+				for (int j = 0; j<msLocalSize; ++j)
+				{
+					nodal_mass += ElementMassMatrix(index, j);
+				}
+				for (int k = 0;k<msDimension; ++k) nodal_inertia[k] += 0.00;
+						
+				GetGeometry()[i].UnSetLock();
+			}
+		}
 		KRATOS_CATCH("")
 	}
 

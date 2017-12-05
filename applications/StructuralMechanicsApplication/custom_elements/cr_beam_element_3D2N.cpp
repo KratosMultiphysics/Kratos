@@ -1623,6 +1623,34 @@ namespace Kratos
 			}
 		}
 
+		if (rDestinationVariable == NODAL_INERTIA)
+		{
+
+			Matrix ElementMassMatrix = ZeroMatrix(msElementSize,msElementSize);
+			ProcessInfo TempInfo;
+			this->CalculateMassMatrix(ElementMassMatrix,TempInfo);
+
+			for (int i = 0; i< msNumberOfNodes; ++i)
+			{
+				GetGeometry()[i].SetLock();
+				double& nodal_mass = GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS);
+				array_1d<double,msDimension>& nodal_inertia = GetGeometry()[i].FastGetSolutionStepValue(NODAL_INERTIA); 
+				int index = i*msLocalSize;
+
+				for (int j = 0; j<msElementSize; ++j)
+				{
+					nodal_mass += ElementMassMatrix(index, j);
+					
+					for (int k = 0;k<msDimension; ++k)
+					{
+						nodal_inertia[k] += ElementMassMatrix(index+msDimension+k,j);
+					}
+				}
+				for (int k = 0;k<msDimension; ++k) nodal_inertia[k] = std::abs(nodal_inertia[k]);
+						
+				GetGeometry()[i].UnSetLock();
+			}
+		}
 		KRATOS_CATCH("")
 	}
 
