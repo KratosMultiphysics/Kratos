@@ -204,7 +204,8 @@ namespace Kratos
         const unsigned int split_edges_size = n_edges + n_nodes;                                             // Split edges vector size
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
         const unsigned int n_dim = (*rParentGeometriesVector[0]).Dimension();                                // Number of dimensions
-        const unsigned int n_int_pts = (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per interface
+        const unsigned int n_int_pts = 
+            n_interfaces > 0 ? (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod) : 0;       // Number of Gauss pts. per interface
         const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
 
         // Resize the shape function values matrix
