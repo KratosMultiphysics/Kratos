@@ -36,13 +36,13 @@ class TestImporting(KratosUnittest.TestCase):
         model_part.Nodes[1].SetSolutionStepValue(VELOCITY_Y,0,2.0)        
         
     def test_has_application(self):
-        self.assertTrue(Kernel().HasApplication("KratosMultiphysics"))
+        self.assertTrue(Kernel().IsImported("KratosMultiphysics"))
         
         try:
             import KratosMultiphysics.ExternalSolversApplication
-            self.assertTrue(Kernel().HasApplication("ExternalSolversApplication"))
+            self.assertTrue(Kernel().IsImported("ExternalSolversApplication"))
         except:
-            self.assertFalse(Kernel().HasApplication("ExternalSolversApplication"))
+            self.assertFalse(Kernel().IsImported("ExternalSolversApplication"))
 
 if __name__ == '__main__':
     KratosUnittest.main()

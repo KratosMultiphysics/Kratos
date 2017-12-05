@@ -40,7 +40,7 @@ namespace Kratos
             return ApplicationsList;
     }
     
-    bool Kernel::HasApplication(std::string ApplicationName)
+    bool Kernel::IsImported(std::string ApplicationName)
     {
         if(GetApplicationsList().find(ApplicationName) != GetApplicationsList().end())
             return true;

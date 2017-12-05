@@ -71,7 +71,7 @@ void  AddKernelToPython()
     .def("AddApplication",&Kernel::AddApplication,with_custodian_and_ward<1,2>()) // Note: custodian and ward to be checked. Pooyan.
     .def("InitializeApplication",&Kernel::InitializeApplication,with_custodian_and_ward<1,2>()) // Note: custodian and ward to be checked. Pooyan.
     //.def(""A,&Kernel::Initialize)
-    .def("HasApplication",&Kernel::HasApplication)
+    .def("IsImported",&Kernel::IsImported)
     .def("HasBoolVariable",HasVariable< Variable<bool> >)
     .def("GetBoolVariable",GetVariable< Variable<bool> >,return_internal_reference<>())
     .def("HasIntVariable",HasVariable< Variable<int> >)
