@@ -338,6 +338,7 @@ KRATOS_CREATE_VARIABLE( double, JACOBIAN_0 )
 //  KRATOS_CREATE_VARIABLE(int, ACTIVATION_LEVEL)
 
 KratosStructuralApplication::KratosStructuralApplication():
+    KratosApplication("StructuralApplication"),
     mCrisfieldTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     mCrisfieldTrussElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),

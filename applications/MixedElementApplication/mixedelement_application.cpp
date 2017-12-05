@@ -39,6 +39,7 @@ KRATOS_CREATE_VARIABLE(double, SYZ)
 //
 
 KratosMixedElementApplication::KratosMixedElementApplication():
+    KratosApplication("MixedElementApplication"),
     mSigmaUElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mIrriducibleElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mSigmaUElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),

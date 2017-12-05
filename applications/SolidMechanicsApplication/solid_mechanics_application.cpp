@@ -60,6 +60,7 @@ namespace Kratos
   //Application Constructor:
 
   KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
+    KratosApplication("SolidMechanicsApplication"),
     mLinearSolidElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mLinearSolidElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     mLinearSolidElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),

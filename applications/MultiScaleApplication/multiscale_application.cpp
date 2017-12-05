@@ -41,7 +41,9 @@
 namespace Kratos
 {
 KratosMultiScaleApplication::KratosMultiScaleApplication()
-	: mSmallDisplacementInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
+	: 
+	 KratosApplication("MultiScaleApplication"),
+	 mSmallDisplacementInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
     , mSmallDisplacementInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) )
     , mSmallDisplacementInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) )
 	, mShellThickInterfaceElement3D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
