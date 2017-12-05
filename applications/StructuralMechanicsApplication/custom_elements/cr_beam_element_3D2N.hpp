@@ -224,18 +224,13 @@ namespace Kratos
 		
 	public:
 		Orientation(array_1d<double, msDimension>& v1, const double theta = 0.00);
-		Orientation(array_1d<double, msDimension>& v1, array_1d<double, msDimension>& v2);
-
 
 		void CalculateRotationMatrix(Matrix& R);
 		void CalculateBasisVectors(array_1d<double, msDimension>& v1,
 								   array_1d<double, msDimension>& v2,
 								   array_1d<double, msDimension>& v3);
 
-		Quaternion<double>& GetQuaternion() { return morientation; }
-
 	private:
-		Quaternion<double> morientation;
 		Matrix MemberRotationMatrix;
 	};
 

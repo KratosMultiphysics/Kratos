@@ -1752,9 +1752,6 @@ namespace Kratos
 			if (VectorNorm > numerical_limit) v3 /= VectorNorm;
 		}
 
-
-
-
 		//manual rotation around the beam axis
 		if (std::abs(theta) > numerical_limit) {
 			const Vector nz_temp = v3;
@@ -1779,39 +1776,6 @@ namespace Kratos
 		}
 		this->MemberRotationMatrix = ZeroMatrix(msDimension);
 		this->MemberRotationMatrix = RotationMatrix;
-		this->GetQuaternion() = Quaternion<double>::FromRotationMatrix(RotationMatrix);
-
-		KRATOS_CATCH("")
-	}
-
-	Orientation::Orientation(array_1d<double, Orientation::msDimension>& v1, array_1d<double, Orientation::msDimension>& v2) {
-
-		KRATOS_TRY
-		//If the user defines an aditional direction v2
-		const double numerical_limit = std::numeric_limits<double>::epsilon();
-		array_1d<double, msDimension> v3 = ZeroVector(msDimension);
-
-		double VectorNorm;
-		VectorNorm = MathUtils<double>::Norm(v1);
-		if (VectorNorm > numerical_limit) v1 /= VectorNorm;
-
-		VectorNorm = MathUtils<double>::Norm(v2);
-		if (VectorNorm > numerical_limit) v2 /= VectorNorm;
-
-		v3 = MathUtils<double>::CrossProduct(v2, v1);
-		VectorNorm = MathUtils<double>::Norm(v3);
-		if (VectorNorm > numerical_limit) v3 /= VectorNorm;
-
-
-		Matrix RotationMatrix = ZeroMatrix(msDimension);
-		for (int i = 0; i < msDimension; ++i) {
-			RotationMatrix(i, 0) = v1[i];
-			RotationMatrix(i, 1) = v2[i];
-			RotationMatrix(i, 2) = v3[i];
-		}
-
-		this->GetQuaternion() = Quaternion<double>::FromRotationMatrix(RotationMatrix);
-
 		KRATOS_CATCH("")
 	}
 
@@ -1828,9 +1792,7 @@ namespace Kratos
 		array_1d<double, Orientation::msDimension>& v3) {
 
 		KRATOS_TRY
-		const Quaternion<double> q = this->GetQuaternion();
 		Matrix R = ZeroMatrix(msDimension);
-		q.ToRotationMatrix(R);
 
 		if (v1.size() != msDimension) v1.resize(msDimension, false);
 		if (v2.size() != msDimension) v2.resize(msDimension, false);
