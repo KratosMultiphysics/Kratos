@@ -2,6 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ShapeOptimizationApplication as ShapeOptimizationApplication
 
 import numpy as np
+import json
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -23,8 +24,9 @@ class SVDSensitivitiesProcess(KratosMultiphysics.Process):
         
     # --------------------------------------------------------------------------
     def ExecuteInitialize(self):
-        self.svd_file = open(self.svd_file_name, 'w')
-        self.svd_file.write("#Output svd results\n")
+        open(self.svd_file_name, 'w').close()
+        self.svd_file = open(self.svd_file_name, 'ab')
+        #self.svd_file.write("#Output svd results\n")
         #self.__getAdjointDisplacements()
         
     # --------------------------------------------------------------------------
@@ -32,12 +34,18 @@ class SVDSensitivitiesProcess(KratosMultiphysics.Process):
         #self.__test_np_svd()
         #self.__svdAdjointDisplacements()
         #self.__svdElementalSensitivities_IY()
-        self.__svdElementalSensitivities_IZ()
+        self.__svdElementalSensitivities()
 
     # --------------------------------------------------------------------------
     # svd Elemental Sensitivities
-    def __svdElementalSensitivities_IZ(self):
-        
+    def __svdElementalSensitivities(self):
+    
+    # The decomposition is performed using LAPACK routine _gesdd
+    # The SVD is commonly written as a = U S V.H. The v returned by this function is V.H and
+    # and u = U_x
+    # If U is a unitary matrix, it means that it satifsfies U.H = inv(U).
+    # The rows of v are the eigenvectors of a.H a. The columns of u are the eigenvectors of a a.H
+     
         numElement = len(self.model_part.Elements)
         
         elemsensi_1 = np.empty(numElement)
@@ -63,6 +71,13 @@ class SVDSensitivitiesProcess(KratosMultiphysics.Process):
         # SVD for IY_SENSITIVITY_1
         sensi_matrix = np.stack((elemsensi_1,elemsensi_2))
         
+        open("sensi_matrix.txt", 'w').close()
+        open("sensi_matrix_t.txt", 'w').close()
+        sensi_matrix_transpose = sensi_matrix.transpose()
+        np.savetxt("sensi_matrix_t.txt",sensi_matrix_transpose)
+        np.savetxt("sensi_matrix.txt",sensi_matrix)
+        
+        
         U,s,V = np.linalg.svd(sensi_matrix, full_matrices = True)
         
         print("singular values are:")
@@ -72,10 +87,25 @@ class SVDSensitivitiesProcess(KratosMultiphysics.Process):
         print("input modes are:")
         print(V)
         
+        #self.svd_file.write("singular values are\n")
+        np.savetxt(self.svd_file, s)
+        #self.svd_file.write("U matrix is\n")
+        np.savetxt(self.svd_file, U)
+        
+        open("V.txt", 'w').close()
+        open("V_t.txt", 'w').close()
+        V_t = V.transpose()
+        np.savetxt("V.txt", V)
+        np.savetxt("V_t.txt", V_t)
+        
+        
+        #dataU = json.dumps(U)
+        #self.svd_file.write(data)
+        
         # set input modes to the elements
         for elem in self.model_part.Elements:
-            elem.SetValue(ShapeOptimizationApplication.IZ_SENSITIVITY_1, V[(elem.Id - 1),0])
-            elem.SetValue(ShapeOptimizationApplication.IZ_SENSITIVITY_2, V[(elem.Id - 1),1])
+            elem.SetValue(variable_1, V[0,(elem.Id - 1)])
+            elem.SetValue(variable_2, V[1,(elem.Id - 1)])
             #print(elem)        
     # --------------------------------------------------------------------------
     # svd Elemental Sensitivities
@@ -110,8 +140,8 @@ class SVDSensitivitiesProcess(KratosMultiphysics.Process):
         
         # set input modes to the elements
         for elem in self.model_part.Elements:
-            elem.SetValue(ShapeOptimizationApplication.IY_SENSITIVITY_1, V[(elem.Id - 1),0])
-            elem.SetValue(ShapeOptimizationApplication.IY_SENSITIVITY_2, V[(elem.Id - 1),1])
+            elem.SetValue(ShapeOptimizationApplication.IY_SENSITIVITY_1, V[0,(elem.Id - 1)])
+            elem.SetValue(ShapeOptimizationApplication.IY_SENSITIVITY_2, V[1,(elem.Id - 1)])
             #print(elem)
     # --------------------------------------------------------------------------
     # svd adjoint displacements 

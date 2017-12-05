@@ -1,55 +1,33 @@
-// ==============================================================================
-/*
-TRUSS_ELEMENT_3D2N
-Main author: Klaus B. Sautter
-klaus.sautter@tum.de
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:     BSD License
+//           license: structural_mechanics_application/license.txt
+//
+//  Main authors: Long Chen
+//                   
+//                   
+//
 
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
 
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-//==============================================================================
-
-/* ****************************************************************************
-*  Projectname:         $TRUSS_ELEMENT_3D2N
-*  Last Modified by:    $Author: klaus.sautter@tum.de $
-*  Date:                $Date: April 2017 $
-*  Revision:            $Revision: 1.0 $
-* ***************************************************************************/
-
-#if !defined(KRATOS_TRUSS_ELEMENT_3D2N_H_INCLUDED )
-#define  KRATOS_TRUSS_ELEMENT_3D2N_H_INCLUDED
+#if !defined(KRATOS_TRUSS_ADJOINT_ELEMENT_3D2N_H_INCLUDED )
+#define  KRATOS_TRUSS_ADJOINT_ELEMENT_3D2N_H_INCLUDED
 
 
 #include "includes/element.h"
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "custom_elements/truss_element_3D2N.hpp"
 
 namespace Kratos
 {
 
-	class TrussElement3D2N : public Element
+	class TrussAdjointElement3D2N : public TrussElement3D2N
 	{
 	public:
-		KRATOS_CLASS_POINTER_DEFINITION(TrussElement3D2N);
+		KRATOS_CLASS_POINTER_DEFINITION(TrussAdjointElement3D2N);
 
 
 		typedef Element BaseType;
@@ -64,22 +42,26 @@ namespace Kratos
 		typedef BaseType::DofsVectorType DofsVectorType;
 
 
-		TrussElement3D2N(IndexType NewId, 
+        TrussAdjointElement3D2N(IndexType NewId,
 						GeometryType::Pointer pGeometry,
 						bool rLinear = false);
-		TrussElement3D2N(IndexType NewId,
+        TrussAdjointElement3D2N(IndexType NewId,
 						GeometryType::Pointer pGeometry,
 						PropertiesType::Pointer pProperties,
 						bool rLinear = false);
 
 
-		~TrussElement3D2N() override;
+		~TrussAdjointElement3D2N() override;
 
 
 		BaseType::Pointer Create(
 			IndexType NewId,
 			NodesArrayType const& rThisNodes,
 			PropertiesType::Pointer pProperties) const override;
+
+        BaseType::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
+            PropertiesType::Pointer pProperties) const override;
+
 
 		void EquationIdVector(
 			EquationIdVectorType& rResult,
@@ -89,6 +71,60 @@ namespace Kratos
 			DofsVectorType& rElementalDofList,
 			ProcessInfo& rCurrentProcessInfo) override;
 
+        // adjoint element functions
+
+        void CalculateRightHandSideUnDist(
+            VectorType& rRightHandSideVector,
+            ProcessInfo& rCurrentProcessInfo);
+
+        void CalculateRightHandSideDist(
+            VectorType& rRightHandSideVector,
+            ProcessInfo& rCurrentProcessInfo);
+
+
+        double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rDesignVariable);
+
+        double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double, 3>>& rDesignVariable);
+
+        void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
+        void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rDesignVariable, Matrix& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
+        void Calculate(const Variable<Vector >& rVariable,
+            Vector& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
+        void Calculate(const Variable<Matrix >& rVariable,
+            Matrix& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
+        void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable, Matrix& rOutput,
+            const ProcessInfo& rCurrentProcessInfo);
+
+        void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable,
+            const Variable<Vector>& rStressVariable, Matrix& rOutput,
+            const ProcessInfo& rCurrentProcessInfo);
+
+        void CalculateStressDesignVariableDerivative(const Variable<array_1d<double, 3>>& rDesignVariable,
+            const Variable<Vector>& rStressVariable,
+            Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
+
+        void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+            std::vector<double>& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
+        void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+            std::vector<double>& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
+        void GetValuesVector(Vector& rValues, int Step = 0);
+
+        int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
+
+
+        /*
 		void Initialize() override;
 
 		MatrixType CreateElementStiffnessMatrix();
@@ -170,17 +206,17 @@ namespace Kratos
 		VectorType CalculateBodyForces();  
 
 		bool ReturnIfIsCable();
-
-        std::string Info() const override; //chen needed for sensitivity analysis
+        */
 
     protected:
+        TrussAdjointElement3D2N():TrussElement3D2N()
+        {}
 
-        TrussElement3D2N() {};
 
 	private:
 		bool mIsCompressed;
 		bool mIsLinearElement = false;
-
+        
 
 		friend class Serializer;
 		void save(Serializer& rSerializer) const override;

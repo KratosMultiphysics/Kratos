@@ -49,6 +49,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/shell_thin_adjoint_element_3D3N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/cr_beam_element_3D2N_for_SA.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/cr_beam_adjoint_element_3D2N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/truss_adjoint_element_3D2N.cpp
 
   # Solid elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp

@@ -696,12 +696,51 @@ namespace Kratos
 		Vector GlobalZ = ZeroVector(dimension);
 		GlobalZ[2] = 1.0;
 
-		ReferenceCoordinates[0] = this->GetGeometry()[0].X();
-		ReferenceCoordinates[1] = this->GetGeometry()[0].Y();
-		ReferenceCoordinates[2] = this->GetGeometry()[0].Z();
-		ReferenceCoordinates[3] = this->GetGeometry()[1].X();
-		ReferenceCoordinates[4] = this->GetGeometry()[1].Y();
-		ReferenceCoordinates[5] = this->GetGeometry()[1].Z();
+		//ReferenceCoordinates[0] = this->GetGeometry()[0].X();
+		//ReferenceCoordinates[1] = this->GetGeometry()[0].Y();
+		//ReferenceCoordinates[2] = this->GetGeometry()[0].Z();
+		//ReferenceCoordinates[3] = this->GetGeometry()[1].X();
+		//ReferenceCoordinates[4] = this->GetGeometry()[1].Y();
+		//ReferenceCoordinates[5] = this->GetGeometry()[1].Z();
+
+  //      KRATOS_WATCH(ReferenceCoordinates);
+
+        ReferenceCoordinates[0] = this->GetGeometry()[0].X0();
+        ReferenceCoordinates[1] = this->GetGeometry()[0].Y0();
+        ReferenceCoordinates[2] = this->GetGeometry()[0].Z0();
+        ReferenceCoordinates[3] = this->GetGeometry()[1].X0();
+        ReferenceCoordinates[4] = this->GetGeometry()[1].Y0();
+        ReferenceCoordinates[5] = this->GetGeometry()[1].Z0();
+
+
+        const double u1 = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+        const double v1 = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        const double w1 = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+        const double u2 = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X);
+        const double v2 = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        const double w2 = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+        ReferenceCoordinates[0] += u1;
+        ReferenceCoordinates[1] += v1;
+        ReferenceCoordinates[2] += w1;
+        ReferenceCoordinates[3] += u2;
+        ReferenceCoordinates[4] += v2;
+        ReferenceCoordinates[5] += w2;
+
+        KRATOS_WATCH(ReferenceCoordinates);
+
+
+
+
+
+
+
+
+
+
+        //KRATOS_WATCH(ReferenceCoordinates);
+
 
 		for (int i = 0; i < dimension; ++i)
 		{
@@ -797,7 +836,10 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-
+    std::string TrussElement3D2N::Info() const
+    {
+        return "TrussElement3D2N";
+    }
 
 	void TrussElement3D2N::save(Serializer& rSerializer) const
 	{
