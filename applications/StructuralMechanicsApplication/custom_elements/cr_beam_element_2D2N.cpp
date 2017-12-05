@@ -247,6 +247,8 @@ namespace Kratos
 		Variable<array_1d<double, 3> >& rDestinationVariable,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
+
+		//FORCE- & Moment- Residual is 3D vector
 		KRATOS_TRY;
 		if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL)
 		{
@@ -260,10 +262,12 @@ namespace Kratos
 				array_1d<double, 3> &ForceResidual =
 					GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-				for (int j = 0; j< 3; ++j)
+				for (int j = 0; j< msDimension; ++j)
 				{
 					ForceResidual[j] += rRHSVector[index + j];
 				}
+
+				ForceResidual[msDimension] = 0.00;
 				GetGeometry()[i].UnSetLock();
 			}
 		}
@@ -274,17 +278,18 @@ namespace Kratos
 
 			for (int i = 0; i< msNumberOfNodes; ++i)
 			{
-				int index = (msLocalSize * i) + 3;
+				int index = (msLocalSize * i) + msDimension;
 
 				GetGeometry()[i].SetLock();
 
 				array_1d<double, 3> &MomentResidual =
 					GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
 
-				for (int j = 0; j< 3; ++j)
+				for (int j = 0; j< msDimension; ++j)
 				{
-					MomentResidual[j] += rRHSVector[index + j];
+					MomentResidual[j] = 0.00;
 				}			
+				MomentResidual[msDimension] += rRHSVector[index];
 				GetGeometry()[i].UnSetLock();
 			}
 		}
