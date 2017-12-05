@@ -46,11 +46,9 @@ for radius in set_of_inlet_radii:
         varying_parameters["material_acceleration_calculation_type"] = material_acceleration_calculation_type
         parameters = Parameters(json.dumps(varying_parameters))
 
-        with pre_calculated_fluid_algorithm.Algorithm(parameters) as algorithm:
-            test = script.Solution(algorithm, parameters)
+        with script.Solution(pre_calculated_fluid_algorithm, parameters) as test:
             test.alg.Run()
-            del test.alg
-            del test
+
         # try:
         #     test = script.Solution(algorithm, parameters)
         #     test.alg.Run()

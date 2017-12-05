@@ -65,7 +65,7 @@ bool Triangle2D3ModifiedShapeFunctions::IsSplit() {
 // Internally computes the splitting pattern and returns all the shape function values for the positive side.
 void Triangle2D3ModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAndGradientsValues(
     Matrix &rPositiveSideShapeFunctionsValues,
-    std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
+    ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
     Vector &rPositiveSideWeightsValues,
     const IntegrationMethodType IntegrationMethod) {
 
@@ -92,7 +92,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAndGrad
 // Internally computes the splitting pattern and returns all the shape function values for the negative side.
 void Triangle2D3ModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAndGradientsValues(
     Matrix &rNegativeSideShapeFunctionsValues,
-    std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
+    ShapeFunctionsGradientsType &rNegativeSideShapeFunctionsGradientsValues,
     Vector &rNegativeSideWeightsValues,
     const IntegrationMethodType IntegrationMethod) {
 
@@ -119,7 +119,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAndGrad
 // Internally computes the splitting pattern and returns all the shape function values for the positive interface side.
 void Triangle2D3ModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
     Matrix &rInterfacePositiveSideShapeFunctionsValues,
-    std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
+    ShapeFunctionsGradientsType &rInterfacePositiveSideShapeFunctionsGradientsValues,
     Vector &rInterfacePositiveSideWeightsValues,
     const IntegrationMethodType IntegrationMethod) {
 
@@ -148,7 +148,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunctio
 // Internally computes the splitting pattern and returns all the shape function values for the negative interface side.
 void Triangle2D3ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
     Matrix &rInterfaceNegativeSideShapeFunctionsValues,
-    std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
+    ShapeFunctionsGradientsType &rInterfaceNegativeSideShapeFunctionsGradientsValues,
     Vector &rInterfaceNegativeSideWeightsValues,
     const IntegrationMethodType IntegrationMethod) {
 
