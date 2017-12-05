@@ -277,11 +277,11 @@ namespace Kratos
             
             if(IsThickShell)
             {
-                //Check constitutive law has been verified with Stenberg stabilization
-                //applicable for 5-parameter shells only.
-				bool STENBERG_SHEAR_STABILIZATION_SUITABLE = false;
-				claw->GetValue(STENBERG_SHEAR_STABILIZATION_SUITABLE, STENBERG_SHEAR_STABILIZATION_SUITABLE);
-                if (!STENBERG_SHEAR_STABILIZATION_SUITABLE)
+                // Check constitutive law has been verified with Stenberg stabilization
+                // applicable for 5-parameter shells only.
+				bool stenberg_stabilization_suitable = false;
+				claw->GetValue(STENBERG_SHEAR_STABILIZATION_SUITABLE, stenberg_stabilization_suitable);
+                if (!stenberg_stabilization_suitable)
                 {
                     std::cout << "\nWARNING:\nThe current constitutive law has not been checked with Stenberg shear stabilization."
                         << "\nPlease check results carefully."
