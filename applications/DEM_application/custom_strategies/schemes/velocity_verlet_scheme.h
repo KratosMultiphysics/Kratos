@@ -2,12 +2,12 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-#if !defined(KRATOS_FORWARD_EULER_SCHEME_H_INCLUDED )
-#define  KRATOS_FORWARD_EULER_SCHEME_H_INCLUDED
+#if !defined(KRATOS_VERLET_VELOCITY_SCHEME_H_INCLUDED )
+#define  KRATOS_VERLET_VELOCITY_SCHEME_H_INCLUDED
 
 // System includes
 #include <string>
-#include <iostream>
+#include <iostream> 
 #include <cfloat>
 
 // Project includes
@@ -20,27 +20,27 @@
 
 namespace Kratos {
 
-    class ForwardEulerScheme : public DEMIntegrationScheme {
+    class VelocityVerletScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
 
-        /// Pointer definition of ForwardEulerScheme
-        KRATOS_CLASS_POINTER_DEFINITION(ForwardEulerScheme);
+        /// Pointer definition of VelocityVerletScheme
+        KRATOS_CLASS_POINTER_DEFINITION(VelocityVerletScheme);
 
         /// Default constructor.
-        ForwardEulerScheme() {}
+        VelocityVerletScheme() {}
 
         /// Destructor.
-        virtual ~ForwardEulerScheme() {}
-
+        virtual ~VelocityVerletScheme() {}
+        
         DEMIntegrationScheme* CloneRaw() const override {
-            DEMIntegrationScheme* cloned_scheme(new ForwardEulerScheme(*this));
+            DEMIntegrationScheme* cloned_scheme(new VelocityVerletScheme(*this));
             return cloned_scheme;
         }
-
+        
         DEMIntegrationScheme::Pointer CloneShared() const override {
-            DEMIntegrationScheme::Pointer cloned_scheme(new ForwardEulerScheme(*this));
+            DEMIntegrationScheme::Pointer cloned_scheme(new VelocityVerletScheme(*this));
             return cloned_scheme;
         }
 
@@ -113,14 +113,14 @@ namespace Kratos {
 
         virtual std::string Info() const override{
             std::stringstream buffer;
-            buffer << "ForwardEulerScheme";
+            buffer << "VelocityVerletScheme";
             return buffer.str();
         }
 
         /// Print information about this object.
 
         virtual void PrintInfo(std::ostream& rOStream) const override{
-            rOStream << "ForwardEulerScheme";
+            rOStream << "VelocityVerletScheme";
         }
 
         /// Print object's data.
@@ -136,29 +136,29 @@ namespace Kratos {
 
         /// Assignment operator.
 
-        ForwardEulerScheme& operator=(ForwardEulerScheme const& rOther) {
+        VelocityVerletScheme& operator=(VelocityVerletScheme const& rOther) {
             return *this;
         }
 
         /// Copy constructor.
 
-        ForwardEulerScheme(ForwardEulerScheme const& rOther) {
+        VelocityVerletScheme(VelocityVerletScheme const& rOther) {
             *this = rOther;
         }
 
 
         ///@}
 
-    }; // Class ForwardEulerScheme
+    }; // Class VelocityVerletScheme
 
 
     inline std::istream& operator>>(std::istream& rIStream,
-            ForwardEulerScheme& rThis) {
+            VelocityVerletScheme& rThis) {
         return rIStream;
     }
 
     inline std::ostream& operator<<(std::ostream& rOStream,
-            const ForwardEulerScheme& rThis) {
+            const VelocityVerletScheme& rThis) {
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
         rThis.PrintData(rOStream);
@@ -168,4 +168,4 @@ namespace Kratos {
 
 } // namespace Kratos.
 
-#endif // KRATOS_FORWARD_EULER_SCHEME_H_INCLUDED  defined
+#endif // KRATOS_VERLET_VELOCITY_SCHEME_H_INCLUDED  defined

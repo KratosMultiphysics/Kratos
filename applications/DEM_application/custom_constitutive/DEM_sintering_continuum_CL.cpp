@@ -69,8 +69,8 @@ namespace Kratos {
 		double actual_neck_radius = 1.43 * std::sqrt(geo_a*geo_a - geo_aproj*geo_aproj);
 		double dihedral_angle = element1->GetProperties()[DIHEDRAL_ANGLE];
 		dihedral_angle = dihedral_angle * (Globals::Pi / 180); //// ZMIANY
-		//double final_neck_radius = minimal_radius * sin((dihedral_angle * (Globals::Pi / 180)) / 2);
-		double final_neck_radius = minimal_radius * sin(dihedral_angle / 2); //// ZMIANY
+		//double final_neck_radius = minimal_radius * std::sin((dihedral_angle * (Globals::Pi / 180)) / 2);
+		double final_neck_radius = minimal_radius * std::sin(dihedral_angle / 2); //// ZMIANY
 		//KRATOS_WATCH(indentation);
 		//KRATOS_WATCH(actual_neck_radius);
 		//KRATOS_WATCH(final_neck_radius);
@@ -106,7 +106,7 @@ namespace Kratos {
 			//KRATOS_WATCH(D_eff);
 			double visco_coeff = (Globals::Pi * actual_neck_radius*actual_neck_radius*actual_neck_radius*actual_neck_radius) / (8 * D_eff);
 			//KRATOS_WATCH(visco_coeff);
-			sinter_driv_force = Globals::Pi*surface_energy*(4 * minimal_radius*(1 - cos(dihedral_angle / 2)) + actual_neck_radius * sin(dihedral_angle / 2));
+			sinter_driv_force = Globals::Pi*surface_energy*(4 * minimal_radius*(1 - std::cos(dihedral_angle / 2)) + actual_neck_radius * std::sin(dihedral_angle / 2));
 			//KRATOS_WATCH(sinter_driv_force);
 			elastic_contact_force = elastic_contact_force_old *(1 / kn - delta_time * 0.5 / visco_coeff) + rel_vel * delta_time;
 			elastic_contact_force = elastic_contact_force / (1 / kn + delta_time * 0.5 / visco_coeff);
