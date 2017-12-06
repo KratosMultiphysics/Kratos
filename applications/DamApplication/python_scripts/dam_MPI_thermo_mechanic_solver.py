@@ -58,7 +58,8 @@ class DamMPIThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSol
                     "preconditioner_type": "None",
                     "krylov_type": "fgmres"
                 },
-                "problem_domain_sub_model_part_list": [""]
+                "problem_domain_sub_model_part_list": [""],
+                "thermal_loads_sub_model_part_list": []
             },
             "mechanical_solver_settings":{
                 "echo_level": 0,
@@ -95,6 +96,7 @@ class DamMPIThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSol
                 },
                 "problem_domain_sub_model_part_list": [""],
                 "body_domain_sub_model_part_list": [],
+                "mechanical_loads_sub_model_part_list": [],
                 "loads_sub_model_part_list": [],
                 "loads_variable_list": []
             }

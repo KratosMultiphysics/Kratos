@@ -63,7 +63,7 @@ namespace Kratos {
         mTotalNumberOfParticlesInjected = 0;
         mTotalMassInjected = 0.0;
         SetNormalizedMaxIndentationForRelease(0.0);
-        SetNormalizedMaxIndentationForNewParticleCreation(0.05);
+        SetNormalizedMaxIndentationForNewParticleCreation(0.0);
         
         mWarningTooSmallInlet = false;
         mWarningTooSmallInletForMassFlow = false;
@@ -360,7 +360,7 @@ namespace Kratos {
                 if(mass_flow) {
                     const double mean_radius = mp[RADIUS];
                     const double density = mInletModelPart.GetProperties(mp[PROPERTIES_ID])[PARTICLE_DENSITY];
-                    const double estimated_mass_of_a_particle = density * 4.0/3.0 * KRATOS_M_PI * mean_radius * mean_radius * mean_radius;                               
+                    const double estimated_mass_of_a_particle = density * 4.0/3.0 * Globals::Pi * mean_radius * mean_radius * mean_radius;                               
                     const double maximum_time_until_release = estimated_mass_of_a_particle * mesh_size_elements / mass_flow;
                     const double minimum_velocity = mean_radius * 3.0 / maximum_time_until_release; //The distance necessary to get out of the injector, over the time.
                     array_1d<double, 3> & proposed_velocity = mp[VELOCITY];
@@ -398,13 +398,14 @@ namespace Kratos {
                     } // (push_back) //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.
                 }
                 
-                if (valid_elements_length < number_of_particles_to_insert) {                                                
+                 if (valid_elements_length < number_of_particles_to_insert) {                                                
                     number_of_particles_to_insert = valid_elements_length;
+                    if(!imposed_mass_flow_option){
+                        ThrowWarningTooSmallInlet(mp);
+                    }
                 }
                 
-                if(!imposed_mass_flow_option){    
-                    ThrowWarningTooSmallInlet(mp);                                                      
-                }
+
                
                 PropertiesProxy* p_fast_properties = NULL;
                 int general_properties_id = mInletModelPart.GetProperties(mp[PROPERTIES_ID]).Id();  
@@ -558,7 +559,7 @@ namespace Kratos {
         //CrossProduct(NormalDirection,Vector0,Vector1);
         DEM_SET_TO_CROSS_OF_FIRST_TWO_3(unitary_vector, normal_1, normal_2)
 
-        const double angle_in_radians = angle_in_degrees * KRATOS_M_PI / 180;
+        const double angle_in_radians = angle_in_degrees * Globals::Pi / 180;
         const double radius = tan(angle_in_radians) * vector_modulus;
         const double radius_square = radius * radius;
         double local_added_vector_modulus_square = radius_square + 1.0; //just greater than the radius, to get at least one iteration of the while

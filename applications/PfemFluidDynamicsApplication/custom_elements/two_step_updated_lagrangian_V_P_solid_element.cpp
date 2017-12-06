@@ -28,23 +28,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   // return Element::Pointer( BaseType::Clone(NewId,rThisNodes) );
   TwoStepUpdatedLagrangianVPSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
-
-  if ( NewElement.mCurrentFgrad.size() != this->mCurrentFgrad.size() )
-    NewElement.mCurrentFgrad.resize(this->mCurrentFgrad.size());
-
-  for(unsigned int i=0; i<this->mCurrentFgrad.size(); i++)
-    {
-      NewElement.mCurrentFgrad[i] = this->mCurrentFgrad[i];
-    }
-
-  if ( NewElement.mUpdatedFgrad.size() != this->mUpdatedFgrad.size() )
-    NewElement.mUpdatedFgrad.resize(this->mUpdatedFgrad.size());
-
-  for(unsigned int i=0; i<this->mUpdatedFgrad.size(); i++)
-    {
-      NewElement.mUpdatedFgrad[i] = this->mUpdatedFgrad[i];
-    }
-
   if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
     NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
 
@@ -96,14 +79,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
     const GeometryType& rGeom = this->GetGeometry();
     SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
     // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4);
-    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
-
-    if ( this->mCurrentFgrad.size() != integration_points_number )
-      this->mCurrentFgrad.resize( integration_points_number );
-
-    if ( this->mUpdatedFgrad.size() != integration_points_number )
-      this->mUpdatedFgrad.resize( integration_points_number );
-
     if ( this->mCurrentTotalCauchyStress.size() != integration_points_number )
       this->mCurrentTotalCauchyStress.resize( integration_points_number );
     
@@ -123,9 +98,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
       }
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
-        // this->mOldFgrad[PointNumber] = identity_matrix<double> (dimension);
-	this->mCurrentFgrad[PointNumber] = identity_matrix<double> (dimension);
-        this->mUpdatedFgrad[PointNumber] = identity_matrix<double> (dimension);
 	this->mCurrentTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mCurrentDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mUpdatedTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
@@ -163,7 +135,8 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeMaterialParameters(double& Density,
 									       double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
-									       double timeStep)
+									       double timeStep,
+									       ElementalVariables& rElementalVariables)
   {
 
     Density=this->GetProperties()[DENSITY];
@@ -186,6 +159,11 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
     DeviatoricCoeff = timeStep*YoungModulus/(1.0+PoissonRatio)*0.5;
     // BulkModulus = FirstLame + 2.0*SecondLame/3.0;
     VolumetricCoeff = timeStep*PoissonRatio*YoungModulus/((1.0+PoissonRatio)*(1.0-2.0*PoissonRatio)) + 2.0*DeviatoricCoeff/3.0;
+
+    this->mMaterialDeviatoricCoefficient=DeviatoricCoeff;
+    this->mMaterialVolumetricCoefficient=VolumetricCoeff;
+    this->mMaterialDensity=Density;
+
   }
 
 
@@ -212,14 +190,8 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
       KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check that the application was correctly registered.","");
     if(VISCOSITY.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check that the application was correctly registered.","");
-    if(NODAL_AREA.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,"NODAL_AREA Key is 0. Check that the application was correctly registered.","");
-    if(BDF_COEFFICIENTS.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,"BDF_COEFFICIENTS Key is 0. Check that the application was correctly registered.","");
     if(DELTA_TIME.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check that the application was correctly registered.","");
-    if(DYNAMIC_TAU.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_TAU Key is 0. Check that the application was correctly registered.","");
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
@@ -234,8 +206,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing DENSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(VISCOSITY) == false)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(NODAL_AREA) == false)
-	  KRATOS_THROW_ERROR(std::invalid_argument,"missing NODAL_AREA variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
            this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
            this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
@@ -319,20 +289,19 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
  
 
 
-template< unsigned int TDim>
-bool TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
-									const ProcessInfo& rCurrentProcessInfo,
-									const ShapeFunctionDerivativesType& rDN_DX,
-									unsigned int g)
-{
+// template< unsigned int TDim>
+// bool TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+// 									const ProcessInfo& rCurrentProcessInfo,
+// 									const ShapeFunctionDerivativesType& rDN_DX,
+// 									unsigned int g)
+// {
 
-  bool computeElement=false;
-  double theta=this->GetThetaMomentum();
-  computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-  const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-  this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
-  return computeElement;
-} 
+//   double theta=this->GetThetaMomentum();
+//   bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+//   const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+//   this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
+//   return computeElement;
+// } 
 
 
   template<>
@@ -394,6 +363,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: InitializeElementalVariables
     rElementalVariables.DetFgrad=1;
     rElementalVariables.DetFgradVel=1;
     rElementalVariables.DeviatoricInvariant=1;
+    rElementalVariables.EquivalentStrainRate=1;
     rElementalVariables.VolumetricDefRate=1;
     rElementalVariables.SpatialDefRate.resize(voigtsize);
     rElementalVariables.MDGreenLagrangeMaterial.resize(voigtsize);
@@ -413,18 +383,15 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: InitializeElementalVariables
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g)
+void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
 {
 
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
   rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
-  double Density  = 0;
-  double CurrSecondLame  = 0;
-  double CurrBulkModulus = 0;
+  double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
+  double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
 
-  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
- 
   double CurrFirstLame  = 0;
   CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
 
@@ -481,12 +448,9 @@ void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitte
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
   rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
-  double Density  = 0;
-  double CurrSecondLame  = 0;
-  double CurrBulkModulus = 0;
+  double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
+  double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
 
-  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
- 
   double CurrFirstLame   = 0;
   CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
   
@@ -562,7 +526,8 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
   VectorType GaussWeights;
   this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
   const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-  bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+  // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+  bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
   const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
   if(computeElement==true){
     this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
@@ -648,16 +613,15 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
     this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
     const unsigned int NumGauss = GaussWeights.size();
 
-    const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+    // const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
     double theta=this->GetThetaContinuity();
 
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
  
-    double Density  = 0;
-    double DeviatoricCoeff = 0;
-    double VolumetricCoeff = 0;   
-    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep);
+    // double Density  = mMaterialDensity;
+    // double DeviatoricCoeff = mMaterialVolumetricCoefficient;
+    double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
     
     double totalVolume=0;
 
@@ -668,7 +632,8 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
 	totalVolume+=GaussWeight;
 	const ShapeFunctionsType& N = row(NContainer,g);
 	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-	bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+	// bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+	bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
 	if(computeElement==true){
 	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
 	  // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);

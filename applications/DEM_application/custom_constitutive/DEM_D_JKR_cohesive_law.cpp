@@ -38,7 +38,7 @@ namespace Kratos {
         const double radius_sum_inv = 1.0 / radius_sum;
         const double equiv_radius   = my_radius * other_radius * radius_sum_inv;
         const double contact_radius = sqrt(equiv_radius * indentation);
-        const double cohesive_force = equiv_young * sqrt(8.0 * equiv_cohesion * KRATOS_M_PI * contact_radius * contact_radius * contact_radius / equiv_young);
+        const double cohesive_force = equiv_young * sqrt(8.0 * equiv_cohesion * Globals::Pi * contact_radius * contact_radius * contact_radius / equiv_young);
         
         return cohesive_force;
     }
@@ -57,7 +57,7 @@ namespace Kratos {
         //const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
         //const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);        
         const double contact_radius = sqrt(equiv_radius * indentation);
-        const double cohesive_force = equiv_young * sqrt(8.0 * equiv_cohesion * KRATOS_M_PI * contact_radius * contact_radius * contact_radius / equiv_young);
+        const double cohesive_force = equiv_young * sqrt(8.0 * equiv_cohesion * Globals::Pi * contact_radius * contact_radius * contact_radius / equiv_young);
        
         return cohesive_force;
     }

@@ -19,7 +19,7 @@ END MATERIAL
 MATERIAL: Damage
 QUESTION: Type#CB#(Damage)
 VALUE: Damage
-QUESTION: CONSTITUTIVE_LAW_NAME#CB#(IsotropicDamageSimoJu3DLaw, IsotropicDamageSimoJuPlaneStrain2DLaw, IsotropicDamageSimoJuPlaneStress2DLaw)
+QUESTION: CONSTITUTIVE_LAW_NAME#CB#(IsotropicDamageSimoJu3DLaw,IsotropicDamageSimoJuPlaneStrain2DLaw,IsotropicDamageSimoJuPlaneStress2DLaw)
 VALUE: IsotropicDamageSimoJu3DLaw
 QUESTION: DENSITY
 VALUE: 2500
@@ -42,12 +42,13 @@ END MATERIAL
 MATERIAL: Plastic
 QUESTION: Type#CB#(Plastic)
 VALUE: Plastic
-QUESTION: CONSTITUTIVE_LAW_NAME#CB#(HyperElasticPlasticJ23DLaw,HyperElasticPlasticJ2PlaneStrain2DLaw,HyperElasticPlasticUPJ2PlaneStrain2DLaw,HyperElasticPlasticJ2Axisym2DLaw,HenckyTrescaPlasticPlaneStrain2DLaw,HenckyTrescaPlasticAxisym2DLaw,HenckyPlasticUPTrescaPlaneStrain2DLaw,HenckyPlasticUPTrescaAxisym2DLaw,HenckyMohrCoulombPlasticPlaneStrain2DLaw,HenckyMohrCoulombPlasticAxisym2DLaw)
+QUESTION: CONSTITUTIVE_LAW_NAME#CB#(HyperElasticPlasticJ23DLaw,HyperElasticPlasticJ2PlaneStrain2DLaw,HyperElasticPlasticUPJ2PlaneStrain2DLaw,HyperElasticPlasticJ2Axisym2DLaw,HenckyTresca3DLaw,HenckyTrescaPlasticPlaneStrain2DLaw,HenckyTrescaPlasticAxisym2DLaw,HenckyPlasticUPTrescaPlaneStrain2DLaw,HenckyPlasticUPTrescaAxisym2DLaw,HenckyMohrCoulombPlasticPlaneStrain2DLaw,HenckyMohrCoulombPlasticAxisym2DLaw)
 VALUE: HyperElasticPlasticJ23DLaw
 DEPENDENCIES:(HyperElasticPlasticJ23DLaw,HIDE,HARDENING_MODEL,SIMO)
 DEPENDENCIES:(HyperElasticPlasticJ2PlaneStrain2DLaw,HIDE,HARDENING_MODEL,SIMO)
 DEPENDENCIES:(HyperElasticPlasticUPJ2PlaneStrain2DLaw,HIDE,HARDENING_MODEL,SIMO)
 DEPENDENCIES:(HyperElasticPlasticJ2Axisym2DLaw,HIDE,HARDENING_MODEL,SIMO)
+DEPENDENCIES:(HenckyTresca3DLaw,HIDE,HARDENING_MODEL,BASIC_TRESCA)
 DEPENDENCIES:(HenckyTrescaPlasticPlaneStrain2DLaw,HIDE,HARDENING_MODEL,BASIC_TRESCA)
 DEPENDENCIES:(HenckyTrescaPlasticAxisym2DLaw,HIDE,HARDENING_MODEL,BASIC_TRESCA)
 DEPENDENCIES:(HenckyPlasticUPTrescaPlaneStrain2DLaw,HIDE,HARDENING_MODEL,BASIC_TRESCA)
@@ -82,7 +83,7 @@ VALUE: 30.0
 QUESTION: COHESION
 VALUE: 10.0
 QUESTION: WATER_DENSITY
-VALUE: 1.0
+VALUE: 0.0
 QUESTION: WATER_BULK_MODULUS
 VALUE: 1.0e+7
 QUESTION: PERMEABILITY

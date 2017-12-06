@@ -82,7 +82,7 @@ namespace Kratos {
 			auto repeat_number = 10;
 			std::stringstream buffer;
 #pragma omp parallel for
-			for (auto i_repeat = 0; (i_repeat < repeat_number) ; i_repeat++)
+			for (auto i_repeat = 0; i_repeat < repeat_number; i_repeat++)
 			{
 				try {
 					Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);

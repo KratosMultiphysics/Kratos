@@ -3,23 +3,23 @@
         "problem_name"    : "PlaneStress_FourPointShear_test",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 2.0,
         "start_time"      : 0.0,
         "end_time"        : 200.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
+        "solver_type"                        : "Static",
         "echo_level"                         : 0,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test",
             "input_file_label" : 0
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "And_criterion",
+        "convergence_criterion"              : "and_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
@@ -55,11 +55,9 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module" : "assign_modulus_and_direction_to_nodes_process",
+        "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
-        "help"          : "This process sets a vector variable value over a condition",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToNodesProcess",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
@@ -68,11 +66,9 @@
             "direction"       : [0.0,-1.0,0.0]
         }
     },{
-        "python_module" : "assign_modulus_and_direction_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
-        "help"          : "This process sets a vector variable value over a condition",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToNodesProcess",
+        "python_module": "assign_vector_by_direction_to_condition_process",
+        "kratos_module": "KratosMultiphysics.StructuralMechanicsApplication",
+        "process_name": "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto2",
@@ -83,29 +79,29 @@
     }],
     "json_check_process" : [
     {
-        "python_module"   : "from_json_check_result_process",
+        "python_module" : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test_results.json",
-            "model_part_name"      : "Parts_Parts_Auto1",
-            "time_frequency"       : 20.00
+        "help"          : "",
+        "process_name"  : "FromJsonCheckResultProcess",
+        "Parameters"    : {
+            "check_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "input_file_name" : "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test_results.json",
+            "model_part_name" : "Parts_Parts_Auto1",
+            "time_frequency"  : 20.00
         }
     }
     ],
     "_json_output_process" : [
     {
-        "python_module"   : "json_output_process",
+        "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name"     : "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test_results.json",
-            "model_part_name"      : "Parts_Parts_Auto1",
-            "time_frequency"       : 20.00
+        "help"          : "",
+        "process_name"  : "JsonOutputProcess",
+        "Parameters"    : {
+            "output_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_file_name" : "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test_results.json",
+            "model_part_name"  : "Parts_Parts_Auto1",
+            "time_frequency"   : 20.00
         }
     }
     ],

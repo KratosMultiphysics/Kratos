@@ -20,11 +20,9 @@
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
 #include "includes/define.h"
-#include "custom_utilities/bprinter_utility.h"
+#include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#if !defined(_WIN32)
-    #include "custom_utilities/color_utilities.h"
-#endif
+#include "utilities/color_utilities.h"
 
 namespace Kratos
 {
@@ -66,23 +64,23 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementLagrangeMultiplierMixedContactCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >  BaseType;
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >     BaseType;
 
-    typedef TSparseSpace                               SparseSpaceType;
+    typedef TSparseSpace                                  SparseSpaceType;
 
-    typedef typename BaseType::TDataType                     TDataType;
+    typedef typename BaseType::TDataType                        TDataType;
 
-    typedef typename BaseType::DofsArrayType             DofsArrayType;
+    typedef typename BaseType::DofsArrayType                DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType     TSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixType        TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType     TSystemVectorType;
+    typedef typename BaseType::TSystemVectorType        TSystemVectorType;
 
-    typedef OpenMPUtils::PartitionVector               PartitionVector;
+    typedef OpenMPUtils::PartitionVector                  PartitionVector;
 
-    typedef std::size_t                                        KeyType;
+    typedef std::size_t                                           KeyType;
     
-    typedef boost::shared_ptr<BprinterUtility> TablePrinterPointerType;
+    typedef boost::shared_ptr<TableStreamUtility> TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -92,29 +90,33 @@ public:
     /**
      * @param DispRatioTolerance Relative tolerance for displacement residual error
      * @param DispAbsTolerance Absolute tolerance for displacement residual error
-     * @param lm_ratioTolerance Relative tolerance for lagrange multiplier residual  error
-     * @param lm_absTolerance Absolute tolerance for lagrange multiplier residual error
-     * @param EnsureContact: To check if the contact is lost
+     * @param LMRatioTolerance Relative tolerance for lagrange multiplier residual  error
+     * @param LMAbsTolerance Absolute tolerance for lagrange multiplier residual error
+     * @param EnsureContact To check if the contact is lost
+     * @param pTable The pointer to the output table
+     * @param PrintingOutput If the output is going to be printed in a txt file
      */
     
     DisplacementLagrangeMultiplierMixedContactCriteria(  
         TDataType DispRatioTolerance,
         TDataType DispAbsTolerance,
-        TDataType lm_ratioTolerance,
-        TDataType lm_absTolerance,
+        TDataType LMRatioTolerance,
+        TDataType LMAbsTolerance,
         bool EnsureContact = false,
-        TablePrinterPointerType pTable = nullptr
+        TablePrinterPointerType pTable = nullptr,
+        const bool PrintingOutput = false 
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mEnsureContact(EnsureContact),
           mpTable(pTable),
+          mPrintingOutput(PrintingOutput),
           mTableIsInitialized(false)
     {
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
 
-        mLMRatioTolerance = lm_ratioTolerance;
-        mLMAbsTolerance = lm_absTolerance;
+        mLMRatioTolerance = LMRatioTolerance;
+        mLMAbsTolerance = LMAbsTolerance;
         
         mInitialResidualIsSet = false;
     }
@@ -129,6 +131,9 @@ public:
       ,mDispCurrentResidualNorm(rOther.mDispCurrentResidualNorm)
       ,mLMRatioTolerance(rOther.mLMRatioTolerance)
       ,mLMAbsTolerance(rOther.mLMAbsTolerance)
+      ,mpTable(rOther.mpTable)
+      ,mPrintingOutput(rOther.mPrintingOutput)
+      ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
     }
     
@@ -258,15 +263,18 @@ public:
                 else
                 {
                     std::cout.precision(4);
-                #if !defined(_WIN32)
-                    std::cout << BOLDFONT("MIXED CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
-                    std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << residual_disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << residual_disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
-                    std::cout << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << lm_ratio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << lm_abs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
-                #else
-                    std::cout << "MIXED CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
-                    std::cout << "\tDISPLACEMENT: RATIO = " << residual_disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << residual_disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
-                    std::cout << "\tLAGRANGE MUL: RATIO = " << lm_ratio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << lm_abs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
-                #endif
+                    if (mPrintingOutput == false)
+                    {
+                        std::cout << BOLDFONT("MIXED CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+                        std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << residual_disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << residual_disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                        std::cout << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << lm_ratio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << lm_abs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
+                    }
+                    else
+                    {
+                        std::cout << "MIXED CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+                        std::cout << "\tDISPLACEMENT: RATIO = " << residual_disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << residual_disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                        std::cout << "\tLAGRANGE MUL: RATIO = " << lm_ratio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << lm_abs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
+                    }
                 }
             }
 
@@ -280,20 +288,26 @@ public:
                 {
                     if (mpTable != nullptr)
                     {
-                        auto& Table = mpTable->GetTable();
-                    #if !defined(_WIN32)
-                        Table << BOLDFONT(FGRN("       Achieved"));
-                    #else
-                        Table << "Achieved";
-                    #endif
+                        auto& table = mpTable->GetTable();
+                        if (mPrintingOutput == false)
+                        {
+                            table << BOLDFONT(FGRN("       Achieved"));
+                        }
+                        else
+                        {
+                            table << "Achieved";
+                        }
                     }
                     else
                     {
-                    #if !defined(_WIN32)
-                        std::cout << BOLDFONT("\tConvergence") << " is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                    #else
-                        std::cout << "\tConvergence is achieved" << std::endl;
-                    #endif
+                        if (mPrintingOutput == false)
+                        {
+                            std::cout << BOLDFONT("\tConvergence") << " is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                        }
+                        else
+                        {
+                            std::cout << "\tConvergence is achieved" << std::endl;
+                        }
                     }
                 }
                 return true;
@@ -304,20 +318,26 @@ public:
                 {
                     if (mpTable != nullptr)
                     {
-                        auto& Table = mpTable->GetTable();
-                    #if !defined(_WIN32)
-                        Table << BOLDFONT(FRED("   Not achieved"));
-                    #else
-                        Table << "Not achieved";
-                    #endif
+                        auto& table = mpTable->GetTable();
+                        if (mPrintingOutput == false)
+                        {
+                            table << BOLDFONT(FRED("   Not achieved"));
+                        }
+                        else
+                        {
+                            table << "Not achieved";
+                        }
                     }
                     else
                     {
-                    #if !defined(_WIN32)
-                        std::cout << BOLDFONT("\tConvergence") << " is " << BOLDFONT(FRED(" not achieved")) << std::endl;
-                    #else
-                        std::cout << "\tConvergence is not achieved" << std::endl;
-                    #endif
+                        if (mPrintingOutput == false)
+                        {
+                            std::cout << BOLDFONT("\tConvergence") << " is " << BOLDFONT(FRED(" not achieved")) << std::endl;
+                        }
+                        else
+                        {
+                            std::cout << "\tConvergence is not achieved" << std::endl;
+                        }
                     }
                 }
                 return false;
@@ -340,16 +360,16 @@ public:
         
         if (mpTable != nullptr && mTableIsInitialized == false)
         {
-            auto& Table = mpTable->GetTable();
-            Table.AddColumn("DP RATIO", 10);
-            Table.AddColumn("EXP. RAT", 10);
-            Table.AddColumn("ABS", 10);
-            Table.AddColumn("EXP. ABS", 10);
-            Table.AddColumn("LM RATIO", 10);
-            Table.AddColumn("EXP. RAT", 10);
-            Table.AddColumn("ABS", 10);
-            Table.AddColumn("EXP. ABS", 10);
-            Table.AddColumn("CONVERGENCE", 15);
+            auto& table = mpTable->GetTable();
+            table.AddColumn("DP RATIO", 10);
+            table.AddColumn("EXP. RAT", 10);
+            table.AddColumn("ABS", 10);
+            table.AddColumn("EXP. ABS", 10);
+            table.AddColumn("LM RATIO", 10);
+            table.AddColumn("EXP. RAT", 10);
+            table.AddColumn("ABS", 10);
+            table.AddColumn("EXP. ABS", 10);
+            table.AddColumn("CONVERGENCE", 15);
             mTableIsInitialized = true;
         }
     }
@@ -453,6 +473,7 @@ private:
     const bool mEnsureContact;
     
     TablePrinterPointerType mpTable; // Pointer to the fancy table 
+    bool mPrintingOutput;            // If the colors and bold are printed
     bool mTableIsInitialized;        // If the table is already initialized
     
     TDataType mDispRatioTolerance;

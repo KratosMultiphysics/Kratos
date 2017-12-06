@@ -9,25 +9,25 @@ import sys
 
 class ProjectionModule:
 
-    def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, dimension, pp, flow_field = None):
+    def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, pp, flow_field = None):
 
         self.fluid_model_part            = fluid_model_part
         self.particles_model_part        = balls_model_part
         self.FEM_DEM_model_part          = FEM_DEM_model_part
-        self.dimension                   = dimension
-        self.min_fluid_fraction          = pp.CFD_DEM.min_fluid_fraction
-        self.coupling_type               = pp.CFD_DEM.coupling_weighing_type
-        self.time_averaging_type         = pp.CFD_DEM.time_averaging_type
-        self.viscosity_modification_type = pp.CFD_DEM.viscosity_modification_type
+        self.dimension                   = pp.domain_size
+        self.min_fluid_fraction          = pp.CFD_DEM["min_fluid_fraction"].GetDouble()
+        self.coupling_type               = pp.CFD_DEM["coupling_weighing_type"].GetInt()
+        self.time_averaging_type         = pp.CFD_DEM["time_averaging_type"].GetInt()
+        self.viscosity_modification_type = pp.CFD_DEM["viscosity_modification_type"].GetInt()
         self.n_particles_in_depth        = pp.CFD_DEM.n_particles_in_depth
-        self.meso_scale_length           = pp.CFD_DEM.meso_scale_length
-        self.shape_factor                = pp.CFD_DEM.shape_factor
-        self.do_impose_flow_from_field   = pp.CFD_DEM.do_impose_flow_from_field
+        self.meso_scale_length           = pp.CFD_DEM["meso_scale_length"].GetDouble()
+        self.shape_factor                = pp.CFD_DEM["shape_factor"].GetDouble()
+        self.do_impose_flow_from_field   = pp.CFD_DEM["do_impose_flow_from_field_option"].GetBool()
         self.flow_field                  = flow_field
 
         if self.dimension == 3:
 
-            if pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
+            if pp.CFD_DEM["ElementType"].GetString() == "SwimmingNanoParticle":
                 self.projector = BinBasedNanoDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type, self.time_averaging_type , self.viscosity_modification_type)
 
             else:
@@ -35,7 +35,7 @@ class ProjectionModule:
             self.bin_of_objects_fluid = BinBasedFastPointLocator3D(fluid_model_part)
 
         else:
-            if pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
+            if pp.CFD_DEM["ElementType"].GetString() == "SwimmingNanoParticle":
                 self.projector = BinBasedNanoDEMFluidCoupledMapping2D(self.min_fluid_fraction, self.coupling_type, self.time_averaging_type , self.viscosity_modification_type, self.n_particles_in_depth)
 
             else:
@@ -75,10 +75,11 @@ class ProjectionModule:
     def ApplyForwardCoupling(self, alpha = None):
         if self.do_impose_flow_from_field:
             self.ImposeFluidFlowOnParticles()
-        if alpha == None:
-            self.ProjectFromNewestFluid()
         else:
-            self.ProjectFromFluid(alpha)
+            if alpha == None:
+                self.ProjectFromNewestFluid()
+            else:
+                self.ProjectFromFluid(alpha)
 
     def ApplyForwardCouplingOfVelocityOnly(self):
         if self.do_impose_flow_from_field:

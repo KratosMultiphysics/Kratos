@@ -58,7 +58,7 @@ class Procedures(DEM_procedures.Procedures):
     def PreProcessModel(self, DEM_parameters):
         if (mpi.rank == 0):
             print("Creating MPIer...")
-            #MPIClassObject = MPIer.MPIerClass(str(DEM_parameters.problem_name) + "DEM.mdpa")
+            #MPIClassObject = MPIer.MPIerClass(str(DEM_parameters["problem_name"].GetString()) + "DEM.mdpa")
             print("done.")
         mpi.world.barrier() #TODO: maybe not necessary (debugging)
             
@@ -112,7 +112,7 @@ class MaterialTest(DEM_procedures.MaterialTest):
     # Important: This has to be defined here as the imports from
     # the superclase and the derived clase are different
     def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part):
-        self.TestType = DEM_parameters.TestType
+        self.TestType = DEM_parameters["TestType"].GetString()
 
         if (self.TestType != "None"):
             self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part)

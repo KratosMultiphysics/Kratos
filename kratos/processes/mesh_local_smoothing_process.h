@@ -57,7 +57,7 @@ namespace Kratos
 
 	  typedef WeakPointerVector< Node<3> > NeighboursVectorType;
 
-	  typedef std::vector<Point<3> > PointsVectorType;
+	  typedef std::vector<Point > PointsVectorType;
   
 	  ///@}
 	  ///@name Flags 
@@ -190,9 +190,9 @@ namespace Kratos
 
 		void PerformSmoothing();
 
-		void InterpolateNodeOptimumPosition(PointsVectorType const& rOptimumPoints, Vector const& rWeights, Point<3>& OptimumPosition);
+		void InterpolateNodeOptimumPosition(PointsVectorType const& rOptimumPoints, Vector const& rWeights, Point& OptimumPosition);
 
-		void MoveNodeIfImprovesMinimumQuality(NodeType& rNode, Point<3> const& OptimumPosition);
+		void MoveNodeIfImprovesMinimumQuality(NodeType& rNode, Point const& OptimumPosition);
 
 
 		///@} 

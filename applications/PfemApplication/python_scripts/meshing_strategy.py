@@ -43,12 +43,9 @@ class MeshingStrategy(object):
         #print("::[Modeler_Strategy]:: Construction of Mesh Strategy finished")
         
     #
-    def Initialize(self,meshing_parameters,domain_size):
+    def Initialize(self,meshing_parameters,dimension):
         
         print("::[Meshing Strategy]:: -START-")
-
-        #parameters
-        self.mesh_id = meshing_parameters.GetMeshId()
         
         #meshing parameters
         self.MeshingParameters = meshing_parameters  
@@ -92,7 +89,7 @@ class MeshingStrategy(object):
 
         for mesher in self.mesh_modelers:
             mesher.SetEchoLevel(self.echo_level)
-            mesher.Initialize(domain_size)
+            mesher.Initialize(dimension)
 
         self.number_of_nodes      = 0
         self.number_of_elements   = 0
@@ -130,9 +127,9 @@ class MeshingStrategy(object):
         
         info_parameters = self.MeshingParameters.GetInfoParameters()
       
-        number_of_new_nodes = self.main_model_part.NumberOfNodes(self.mesh_id) - info_parameters.GetNumberOfNodes()
-        number_of_new_elements = self.main_model_part.NumberOfElements(self.mesh_id) - info_parameters.GetNumberOfElements()
-        number_of_new_conditions = self.main_model_part.NumberOfConditions(self.mesh_id) - info_parameters.GetNumberOfConditions()
+        number_of_new_nodes = self.main_model_part.NumberOfNodes() - info_parameters.GetNumberOfNodes()
+        number_of_new_elements = self.main_model_part.NumberOfElements() - info_parameters.GetNumberOfElements()
+        number_of_new_conditions = self.main_model_part.NumberOfConditions() - info_parameters.GetNumberOfConditions()
 
         if( number_of_new_nodes > 0 ):
             info_parameters.SetNumberOfNewNodes(number_of_new_nodes)
@@ -150,9 +147,9 @@ class MeshingStrategy(object):
             info_parameters.SetNumberOfNewConditions(0)
 
 
-        info_parameters.SetNumberOfNodes(self.main_model_part.NumberOfNodes(self.mesh_id))
-        info_parameters.SetNumberOfElements(self.main_model_part.NumberOfElements(self.mesh_id))
-        info_parameters.SetNumberOfConditions(self.main_model_part.NumberOfConditions(self.mesh_id))
+        info_parameters.SetNumberOfNodes(self.main_model_part.NumberOfNodes())
+        info_parameters.SetNumberOfElements(self.main_model_part.NumberOfElements())
+        info_parameters.SetNumberOfConditions(self.main_model_part.NumberOfConditions())
 
         
 
@@ -166,7 +163,7 @@ class MeshingStrategy(object):
 
         if( self.global_transfer == True ):
             print(" global transfer ")
-            self.MeshDataTransfer.TransferElementalValuesToNodes(self.TransferParameters,self.model_part,self.mesh_id)
+            self.MeshDataTransfer.TransferElementalValuesToNodes(self.TransferParameters,self.model_part)
 
     #
     def FinalizeMeshGeneration(self):
@@ -179,17 +176,17 @@ class MeshingStrategy(object):
         refining_parameters = self.MeshingParameters.GetRefiningParameters()
 
         if( self.global_transfer == True ):
-            self.MeshDataTransfer.TransferNodalValuesToElements(self.TransferParameters,self.model_part,self.mesh_id)
+            self.MeshDataTransfer.TransferNodalValuesToElements(self.TransferParameters,self.model_part)
         
     #        if( self.global_transfer == True ):
     #            if(smoothing_required):
     #                #smooth only on selected part based on a threshold variable
     #                print(" smooth only on threshold ")
-    #                self.MeshDataTransfer.TransferNodalValuesToElementsOnThreshold(self.TransferParameters,refining_parameters,self.model_part,self.mesh_id)                
+    #                self.MeshDataTransfer.TransferNodalValuesToElementsOnThreshold(self.TransferParameters,refining_parameters,self.model_part)                
     #            else:
     #                #smooth all domain
     #                print(" smooth all domain ")
-    #                self.MeshDataTransfer.TransferNodalValuesToElements(self.TransferParameters,self.model_part,self.mesh_id)                  
+    #                self.MeshDataTransfer.TransferNodalValuesToElements(self.TransferParameters,self.model_part)                  
     
          
 

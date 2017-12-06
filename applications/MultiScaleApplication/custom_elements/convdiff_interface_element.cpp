@@ -13,10 +13,6 @@
 #include <iomanip>
 #include "custom_utilities/math_helpers.h"
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif // !M_PI
-
 #define K_GET_SIGN(X) return X < 0.0 ? -1.0 : 1.0
 
 namespace Kratos

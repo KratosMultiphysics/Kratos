@@ -31,8 +31,8 @@
 #include "custom_elements/truss_element_3D2N.hpp"
 
 /* Adding beam element */
-#include "custom_elements/small_displacement_beam_element_3D2N.hpp"
 #include "custom_elements/cr_beam_element_3D2N.hpp"
+#include "custom_elements/cr_beam_element_2D2N.hpp"
 
 
 /* Adding shells and membranes elements */
@@ -40,7 +40,9 @@
 #include "custom_elements/membrane_element.hpp"
 #include "custom_elements/prestress_membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
+#include "custom_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
+#include "custom_elements/shell_thick_element_3D3N.hpp"
 #include "custom_elements/nodal_concentrated_element.hpp"
 
 /* Adding the spring damper element */
@@ -58,24 +60,30 @@
 #include "custom_elements/axisym_updated_lagrangian.h"
 
 /* CONDITIONS */
-#include "custom_conditions/point_moment_3D_condition.hpp"
-#include "custom_conditions/point_torque_3D_condition.hpp"
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
+#include "custom_conditions/point_contact_condition.h"
 #include "custom_conditions/axisym_point_load_condition.h"
 #include "custom_conditions/line_load_condition_2d.h"
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
+#include "custom_conditions/point_moment_condition_3d.h"
 
 /* CONSTITUTIVE LAWS */
+#include "custom_constitutive/truss_constitutive_law.h"
+#include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
+#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
 
 /* UTILITIES */
 // Cross sections
-#include "custom_utilities/shell_cross_section.hpp"
+// #include "custom_utilities/shell_cross_section.hpp"
+// #include "custom_utilities/multipoint_constraint_data.hpp"
 
 namespace Kratos
 {
@@ -235,22 +243,25 @@ private:
 
     /* ELEMENTS */
 
-	// Adding the truss element
-	const TrussElement3D2N mTrussElement3D2N; 
-	const TrussElement3D2N mTrussLinearElement3D2N;
+    // Adding the truss element
+    const TrussElement3D2N mTrussElement3D2N; 
+    const TrussElement3D2N mTrussLinearElement3D2N;
 
     // Adding the beam element 
-    const SmallDisplacementBeamElement3D2N mSmallDisplacementBeamElement3D2N;
     const CrBeamElement3D2N mCrBeamElement3D2N;
     const CrBeamElement3D2N mCrLinearBeamElement3D2N;
+    const CrBeamElement2D2N mCrBeamElement2D2N;
+    const CrBeamElement2D2N mCrLinearBeamElement2D2N;
 
 
     // Adding the shells elements 
     const IsotropicShellElement mIsotropicShellElement3D3N;
     const ShellThickElement3D4N mShellThickElement3D4N;
     const ShellThickElement3D4N mShellThickCorotationalElement3D4N;
+    const ShellThinElement3D4N   mShellThinCorotationalElement3D4N;
     const ShellThinElement3D3N mShellThinElement3D3N;
     const ShellThinElement3D3N mShellThinCorotationalElement3D3N;
+	const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
 
     // Adding the membrane element 
     const MembraneElement mMembraneElement3D3N;
@@ -334,6 +345,8 @@ private:
     // Point load
     const PointLoadCondition mPointLoadCondition2D1N;
     const PointLoadCondition mPointLoadCondition3D1N;
+    const PointContactCondition mPointContactCondition2D1N;
+    const PointContactCondition mPointContactCondition3D1N;
     
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
     
@@ -351,17 +364,20 @@ private:
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D8N;
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D9N;
     
-    // Beam moment condition
-    const PointMoment3DCondition mPointMomentCondition3D1N;
-    // Torque condition
-    const PointTorque3DCondition mPointTorqueCondition3D1N;
+    // Point moment
+    const PointMomentCondition3D mPointMomentCondition3D1N;
     
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
+    const TrussConstitutiveLaw mTrussConstitutiveLaw;
+    const BeamConstitutiveLaw mBeamConstitutiveLaw;
     const ElasticIsotropic3D mElasticIsotropic3D;
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
+    const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
+    const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
+    const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
 
     ///@}
     ///@name Private Operators

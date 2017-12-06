@@ -82,7 +82,7 @@ public:
 	///@{
 
 	/// Default constructor.
-	StrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
+	StrainEnergyResponseFunction(ModelPart& model_part, Parameters responseSettings)
 	: mr_model_part(model_part)
 	{
 		// Set gradient mode
@@ -102,7 +102,7 @@ public:
 
 		// Throw error message in case of wrong specification
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: analytic , semi_analytic. Specified gradient_mode: ", gradientMode);
+			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: analytic , semi_analytic. Specified gradient_mode: " << gradientMode << std::endl;
 
 		mConsiderDiscretization =  responseSettings["discretization_weighting"].GetBool();
 
@@ -126,7 +126,7 @@ public:
 	///@{
 
 	// ==============================================================================
-	void initialize()
+	void Initialize()
 	{
 		// In case of analytic sensitivity analysis, check if specified elements in model_part provide necessary sensitivity information.
 		// To check, we compare if the class type of all the given elements in the model_part is among the elements
@@ -151,12 +151,12 @@ public:
 			}
 
 			if (!sensitivity_analysis_implemented)
-				KRATOS_THROW_ERROR(std::logic_error, "Analytic sensitivity analysis for given element type not implemented. Please choose for complete model part elements that support an analytic sensitivity analysis", "");
+				KRATOS_ERROR << "Analytic sensitivity analysis for given element type not implemented. Please choose for complete model part elements that support an analytic sensitivity analysis" << std::endl;
 		}
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_value()
+	void CalculateValue()
 	{
 		KRATOS_TRY;
 
@@ -190,7 +190,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_gradient()
+	void CalculateGradient()
 	{
 		KRATOS_TRY;
 
@@ -224,40 +224,40 @@ public:
 			std::cout << "WARNING: in StrainEnergyResponseFunction::calculate_gradient()!!!! No variation of external force considerd yet in analytical sensitivity analysis" << std::endl;
 
 			// calculate_response_derivative_part_analytically();
-			calculate_adjoint_field();
-			calculate_state_derivative_part_analytically();
+			CalculateAdjointField();
+			CalculateStateDerivativePartAnalytically();
 			break;
 		}
 		// Semi analytic sensitivities
 		case 2:
 		{
-			calculate_response_derivative_part_by_finite_differencing();
-			calculate_adjoint_field();
-			calculate_state_derivative_part_by_finite_differencing();
+			CalculateResponseDerivativePartByFiniteDifferencing();
+			CalculateAdjointField();
+			CalculateStateDerivativePartByFiniteDifferencing();
 			break;
 		}
 		}
 
 		if (mConsiderDiscretization)
-			this->consider_discretization();
+			this->ConsiderDiscretization();
 
 		KRATOS_CATCH("");
 	}
 	// --------------------------------------------------------------------------
-	double get_initial_value()
+	double GetInitialValue()
 	{
 		KRATOS_TRY;
 
 		if(!m_initial_value_defined)
-			KRATOS_THROW_ERROR(std::logi:error, "Initial value not yet defined! First compute it by calling \"calculate_value()\"", m_initial_value_defined);
-
+		KRATOS_ERROR << "Initial value not yet defined! First compute it by calling \"calculate_value()\"!" << std::endl;
+		
 		return m_initial_value;
 
 		KRATOS_CATCH("");
 	}
 
 	// --------------------------------------------------------------------------
-	double get_value()
+	double GetValue()
 	{
 		KRATOS_TRY;
 
@@ -267,7 +267,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	boost::python::dict get_gradient()
+	boost::python::dict GetGradient()
 	{
 		KRATOS_TRY;
 
@@ -337,7 +337,7 @@ protected:
 	///@{
 
 	// ==============================================================================
-	void calculate_adjoint_field()
+	void CalculateAdjointField()
 	{
 		KRATOS_TRY;
 
@@ -347,7 +347,7 @@ protected:
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_state_derivative_part_analytically()
+	void CalculateStateDerivativePartAnalytically()
 	{
 		KRATOS_TRY;
 
@@ -389,7 +389,7 @@ protected:
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_state_derivative_part_by_finite_differencing()
+	void CalculateStateDerivativePartByFiniteDifferencing()
 	{
 		KRATOS_TRY;
 
@@ -509,7 +509,7 @@ protected:
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_response_derivative_part_by_finite_differencing()
+	void CalculateResponseDerivativePartByFiniteDifferencing()
 	{
 		KRATOS_TRY;
 
@@ -577,7 +577,7 @@ protected:
 	}
 
 	// --------------------------------------------------------------------------
-  	virtual void consider_discretization(){
+  	virtual void ConsiderDiscretization(){
 
 
 		// Start process to identify element neighbors for every node

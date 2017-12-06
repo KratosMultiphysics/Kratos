@@ -23,18 +23,24 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
+
 #include "spaces/ublas_space.h"
 
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
+#include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
+
+// Builder and solvers
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_mpc.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -45,6 +51,7 @@
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
+
 
 namespace Kratos
 {
@@ -72,6 +79,7 @@ void  AddCustomStrategiesToPython()
     // Custom strategy types
     typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
+    typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
     typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
 
     // Custom scheme types
@@ -112,6 +120,15 @@ void  AddCustomStrategiesToPython()
         .def("SetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::SetInitializePerformedFlag)
         .def("GetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::GetInitializePerformedFlag)
         ;
+
+    // harmonic Analysis Strategy
+    class_< HarmonicAnalysisStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
+            (
+                "HarmonicAnalysisStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
+            // .def(init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer >())
+            .def("SetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::SetUseMaterialDampingFlag)
+            .def("GetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::GetUseMaterialDampingFlag)
+            ;
 
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
@@ -157,8 +174,10 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
-
-            
+    class_< ResidualBasedBlockBuilderAndSolverWithMpc< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+                bases< ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >,
+                boost::noncopyable >
+                ("ResidualBasedBlockBuilderAndSolverWithMpc", init<LinearSolverType::Pointer>());
 }
 
 }  // namespace Python.

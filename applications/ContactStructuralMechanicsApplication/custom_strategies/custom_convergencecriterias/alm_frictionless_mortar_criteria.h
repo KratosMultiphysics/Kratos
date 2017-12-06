@@ -18,13 +18,9 @@
 
 /* Project includes */
 #include "custom_utilities/contact_utilities.h"
-#include "custom_utilities/bprinter_utility.h"
+#include "utilities/table_stream_utility.h"
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
-#if !defined(_WIN32)
-    #include "custom_utilities/color_utilities.h"
-//#else
-//     #include "custom_external_libraries/colorwin/colorwin.hpp"
-#endif
+#include "utilities/color_utilities.h"
 
 namespace Kratos
 {
@@ -79,7 +75,7 @@ public:
     
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
     
-    typedef boost::shared_ptr<BprinterUtility>                   TablePrinterPointerType;
+    typedef boost::shared_ptr<TableStreamUtility>                TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -88,10 +84,12 @@ public:
     /// Default constructors
     ALMFrictionlessMortarConvergenceCriteria(
         double Tolerance = std::numeric_limits<double>::epsilon(),
-        TablePrinterPointerType pTable = nullptr
+        TablePrinterPointerType pTable = nullptr,
+        const bool PrintingOutput = false 
         ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(),
         mTolerance(Tolerance),
         mpTable(pTable),
+        mPrintingOutput(PrintingOutput),
         mTableIsInitialized(false)
     {
     }
@@ -99,6 +97,9 @@ public:
     ///Copy constructor 
     ALMFrictionlessMortarConvergenceCriteria( ALMFrictionlessMortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
+      ,mpTable(rOther.mpTable)
+      ,mPrintingOutput(rOther.mPrintingOutput)
+      ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
     }
 
@@ -108,7 +109,7 @@ public:
     ///@}
     ///@name Operators
     ///@{
-        
+    
     /**
      * Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
@@ -127,7 +128,8 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
+        // We call the base class
+        BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
         
         // Defining the convergence
         unsigned int is_converged = 0;
@@ -169,8 +171,6 @@ public:
                 }
                 else
                 {
-                    (it_node)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0; // NOTE: To clear the value (can affect future iterations)
-                    
                     if ((it_node)->Is(ACTIVE) == true )
                     {
                         (it_node)->Set(ACTIVE, false);
@@ -188,42 +188,46 @@ public:
                 auto& table = mpTable->GetTable();
                 if (is_converged == 0)
                 {
-                    #if !defined(_WIN32)
+                    if (mPrintingOutput == false)
+                    {
                         table << BOLDFONT(FGRN("       Achieved"));
-                    #else
+                    }
+                    else
+                    {
                         table << "Achieved";
-                        //const std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::green) << "Achieved";
-                        //Table << &ThisStream;
-                    #endif
+                    }
                 }
                 else
                 {
-                    #if !defined(_WIN32)
+                    if (mPrintingOutput == false)
+                    {
                         table << BOLDFONT(FRED("   Not achieved"));
-                    #else
+                    }
+                    else
+                    {
                         table << "Not achieved";
-                        //std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::red) << "   Not achieved";
-                        //Table << (&ThisStream);
-                    #endif
+                    }
                 }
             }
             else
             {
                 if (is_converged == 0)
                 {
-                    #if !defined(_WIN32)
+                    if (mPrintingOutput == false)
+                    {
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                    #else
-                        std::cout << "\tActive set convergence is achieved" << std::endl;
-                    #endif
+                    }
                 }
                 else
                 {
-                    #if !defined(_WIN32)
+                    if (mPrintingOutput == false)
+                    {
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
-                    #else
+                    }
+                    else
+                    {
                         std::cout << "\tActive set convergence is not achieved" << std::endl;
-                    #endif
+                    }
                 }
             }
         }
@@ -233,7 +237,7 @@ public:
     
     /**
      * This function initialize the convergence criteria
-     * @param rModelPart: The model part of interest
+     * @param rModelPart The model part of interest
      */ 
     
     void Initialize(ModelPart& rModelPart) override
@@ -383,6 +387,7 @@ private:
     double mTolerance;               // Tolerance considered in contact check
     
     TablePrinterPointerType mpTable; // Pointer to the fancy table 
+    bool mPrintingOutput;            // If the colors and bold are printed
     bool mTableIsInitialized;        // If the table is already initialized
     
     ///@}

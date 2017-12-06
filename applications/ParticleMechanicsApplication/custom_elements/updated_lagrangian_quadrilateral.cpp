@@ -521,102 +521,21 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
     //{
     //std::cout<<"density "<<this->Id() << GetProperties()[DENSITY]<<std::endl;
     //}
-
-        //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         
-       
-        //set constitutive law flags:
-        Flags &ConstitutiveLawOptions=Values.GetOptions();
-        
-        //std::cout<<"in CalculateElementalSystem 5"<<std::endl;
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-        
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-        
-        
-        //auxiliary terms
-        Vector VolumeForce;
-        
-        
-        //compute element kinematics B, F, DN_DX ...
-        //if (this->Id() == 541 || this->Id() == 534 || this->Id() == 538)
-        //{
-			//std::cout<<" in calculate elemental system "<<std::endl;
-		//}
-        this->CalculateKinematics(Variables,rCurrentProcessInfo);
-        
-        //set general variables to constitutivelaw parameters
-        this->SetGeneralVariables(Variables,Values);
-        
-        mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
-        
-        //double TraceStress = 0;
-        //Matrix I=identity_matrix<double>( dimension );
-        //Matrix StressTensor = MathUtils<double>::StressVectorToTensor( Variables.StressVector );
-        //for( unsigned int i=0; i<StressTensor.size1(); i++)
-		//{
-        //TraceStress += StressTensor( i , i );
-		//}
-        //double Pressure = TraceStress/StressTensor.size1();
-        
-        //Matrix IsoStressTensor = MathUtils<double>::StressVectorToTensor( Variables.IsoStressVector );
-        //IsoStressTensor = StressTensor - Pressure * I;
-        
-        //double IsoStressNorm = 0;
-        ////IsoStressNorm = sqrt((IsoStressTensor(0,0)*IsoStressTensor(0,0))+(IsoStressTensor(1,1)*IsoStressTensor(1,1))+(IsoStressTensor(2,2)*IsoStressTensor(2,2))+
-		           ////(IsoStressTensor(0,1)*IsoStressTensor(0,1))+(IsoStressTensor(0,2)*IsoStressTensor(0,2))+(IsoStressTensor(1,2)*IsoStressTensor(1,2))+
-		           ////(IsoStressTensor(1,0)*IsoStressTensor(1,0))+(IsoStressTensor(2,0)*IsoStressTensor(2,0))+(IsoStressTensor(2,1)*IsoStressTensor(2,1)));
-		           
-		//IsoStressNorm = sqrt((IsoStressTensor(0,0)*IsoStressTensor(0,0))+(IsoStressTensor(1,1)*IsoStressTensor(1,1))+
-		           //(IsoStressTensor(0,1)*IsoStressTensor(0,1))+(IsoStressTensor(1,0)*IsoStressTensor(1,0)));           
-		//Variables.Normal =  IsoStressTensor / IsoStressNorm;  
-		//if (IsoStressTensor(0,0) == 0 || IsoStressTensor(1,1) == 0 || IsoStressTensor(0,1) == 0 || IsoStressTensor(1,0))
-			//{
-				//Variables.Normal = ZeroMatrix(dimension);
-			//}
-		           
-		    
-		//std::cout<<"IsoStressTensor "<<IsoStressTensor<<std::endl;
-		//std::cout<<"IsoStressNorm "<<IsoStressNorm<<std::endl;
-		//std::cout<<"Variables.Normal "<<Variables.Normal<<std::endl;
-        
-        //this->SetValue(MP_CAUCHY_STRESS_VECTOR, Variables.StressVector);
-        //std::cout<<"AAAAAAAAAAAAAAAAAAAAAAAAAA"<<std::endl;
-        //std::cout<<"Variables.StressVector in the element "<<Variables.StressVector<<std::endl;
-        
-        //this->SetValue(MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
-        //double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue( PLASTIC_STRAIN, EquivalentPlasticStrain );
-        //this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain);
-        //at the first iteration I recover the previous state of stress and strain
-        if(rCurrentProcessInfo[NL_ITERATION_NUMBER] == 1)
-        {
-            this->SetValue(PREVIOUS_MP_CAUCHY_STRESS_VECTOR, Variables.StressVector);
-            this->SetValue(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
-        }
-        //the MP density is updated
-        double MP_Density = (GetProperties()[DENSITY]) / Variables.detFT;
-        //if(this->Id() == 1786 || this->Id() == 1836)
-            //{
-                //std::cout<<"density "<<this->Id() << GetProperties()[DENSITY]<<std::endl;
-            //}
-        
-        //the integration weight is evaluated
-        double MP_Volume = this->GetValue(MP_MASS)/this->GetValue(MP_DENSITY);
-        
-        this->SetValue(MP_DENSITY, MP_Density);
-        this->SetValue(MP_VOLUME, MP_Volume);
-        
-        
-        
-        
-        if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangianQuadrilateral::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-        {
-        
-        //contributions to stiffness matrix calculated on the reference config
-        this->CalculateAndAddLHS ( rLocalSystem, Variables, MP_Volume );
+    //the integration weight is evaluated
+    double MP_Volume = this->GetValue(MP_MASS)/this->GetValue(MP_DENSITY);
+    
+    this->SetValue(MP_DENSITY, MP_Density);
+    this->SetValue(MP_VOLUME, MP_Volume);
+    
+    
+    
+    
+    if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangianQuadrilateral::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+    {
+    
+    //contributions to stiffness matrix calculated on the reference config
+    this->CalculateAndAddLHS ( rLocalSystem, Variables, MP_Volume );
 
     }
 
@@ -628,8 +547,6 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
         this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, MP_Volume );
 
     }
-
-
 
     KRATOS_CATCH( "" )
 }
@@ -1634,11 +1551,8 @@ void UpdatedLagrangianQuadrilateral::FinalizeSolutionStep( ProcessInfo& rCurrent
     //create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-        //ConstitutiveLawOptions.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY);
-        //compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematics(Variables, rCurrentProcessInfo);
+    //set constitutive law flags:
+    Flags &ConstitutiveLawOptions=Values.GetOptions();
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);

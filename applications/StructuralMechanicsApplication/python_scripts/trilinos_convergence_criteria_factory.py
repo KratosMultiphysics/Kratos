@@ -26,15 +26,15 @@ class convergence_criterion:
         if(echo_level >= 1):
             print("::[Mechanical Solver]:: MPI CONVERGENCE CRITERION : ", convergence_criterion_parameters["convergence_criterion"].GetString())
 
-        if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criterion"):
+        if(convergence_criterion_parameters["convergence_criterion"].GetString() == "displacement_criterion"):
             self.mechanical_convergence_criterion = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT)
             self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
             
-        elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Residual_criterion"):
+        elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "residual_criterion"):
             self.mechanical_convergence_criterion = TrilinosApplication.TrilinosResidualCriteria(R_RT, R_AT)
             self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
                 
-        elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "And_criterion"):
+        elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "and_criterion"):
             Displacement = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
 
@@ -42,7 +42,7 @@ class convergence_criterion:
             Residual.SetEchoLevel(echo_level)
             self.mechanical_convergence_criterion = TrilinosApplication.TrilinosAndCriteria(Residual, Displacement)
             
-        elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Or_criterion"):
+        elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "or_criterion"):
             Displacement = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
 

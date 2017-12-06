@@ -15,13 +15,9 @@
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
 // Project includes
 #include "includes/define.h"
-#include "includes/serializer.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -219,6 +215,29 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+
+    /**
+     * Check if Rotational Dof existant
+     */
+    bool HasRotDof(){return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);};
+    
+    unsigned int GetBlockSize()
+    {
+        unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        if( HasRotDof() ) // if it has rotations
+        {
+            if(dim == 2)
+                return 3;
+            else if(dim == 3)
+                return 6;
+            else
+                KRATOS_ERROR << "the conditions only works for 2D and 3D elements";
+        }
+        else
+        {
+            return dim;
+        }
+    }
     
     ///@}
     ///@name Access

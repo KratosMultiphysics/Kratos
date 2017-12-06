@@ -103,7 +103,7 @@ namespace Kratos
 	}
 
 	double MeshNodeCollapsingProcess::CalculateQualityIfNodeCollapses(Node<3>& rThisNode, Node<3> const& rCoarseNode) {
-		Point<3> original_coordinates = rThisNode;
+		Point original_coordinates = rThisNode;
 		rThisNode.Coordinates() = rCoarseNode.Coordinates();
 		double min_quality = CalculateMinQualityOfNeighbourElements(rThisNode, rCoarseNode);
 		rThisNode.Coordinates() = original_coordinates;

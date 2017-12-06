@@ -73,7 +73,7 @@ Element::Pointer SmallDisplacementAnalyticSensitivityElement::Clone( IndexType N
 		NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 
 		if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-			KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+			KRATOS_ERROR << "Constitutive law not has the correct size. Size is: " << NewElement.mConstitutiveLawVector.size() << std::endl;
 	}
 
 
@@ -123,9 +123,6 @@ void SmallDisplacementAnalyticSensitivityElement::Calculate(const Variable<Vecto
         // Displacements vector
         Vector displacements;
         GetValuesVector(displacements);
-
-        // Contribution to external forces
-        const Vector body_force = this->GetBodyForce();
         
 		//ask for node for which DKDXU shall be computed
 		int active_node_index = this->GetValue(ACTIVE_NODE_INDEX);
@@ -234,7 +231,7 @@ void SmallDisplacementAnalyticSensitivityElement::CalculateDerivedDeformationMat
         }
     }
     else
-        KRATOS_THROW_ERROR( std::invalid_argument, "Wrong dimension specified.", "" )
+        KRATOS_ERROR << "Wrong dimension specified." << std::endl;
 		
     KRATOS_CATCH( "" )
 }
