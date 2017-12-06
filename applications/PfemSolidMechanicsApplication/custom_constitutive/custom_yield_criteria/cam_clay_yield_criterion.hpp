@@ -133,7 +133,8 @@ class CamClayYieldCriterion
         ///@}
         ///@name Protected Operators
         ///@{
-        double EvaluateThirdInvariantEffect(const Vector& rStressVector);
+        //double EvaluateThirdInvariantEffect(const Vector& rStressVector);
+        double EvaluateThirdInvariantEffect( const double & rLodeAngle );
 
         void CalculateAndAddThirdInvDerivative(const Vector& rStressVector, Vector& rYieldFunctionD);
         ///@}
@@ -176,7 +177,6 @@ class CamClayYieldCriterion
         ///@}
         ///@name Private Operations
         ///@{
-        void CalculateInvariants(const Vector& rStressVector, double& rMeanStress, double& rDeviatoricQ);
 
         double GetPI();
 

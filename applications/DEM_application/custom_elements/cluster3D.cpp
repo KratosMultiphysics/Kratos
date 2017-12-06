@@ -27,17 +27,20 @@ namespace Kratos {
             
     Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
+        mpRotationalIntegrationScheme = NULL;
     }
       
     Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
+        mpRotationalIntegrationScheme = NULL;
     }
       
     Cluster3D::Cluster3D(IndexType NewId, NodesArrayType const& ThisNodes)
     : Element(NewId, ThisNodes) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
+        mpRotationalIntegrationScheme = NULL;
     }
     
     Element::Pointer Cluster3D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
@@ -66,9 +69,13 @@ namespace Kratos {
         mListOfCoordinates.clear();  
         mListOfRadii.clear();  
         
-        if (mpIntegrationScheme!=NULL) {
-            delete mpIntegrationScheme;
-        }        
+        if (mpTranslationalIntegrationScheme!=NULL) {
+            delete mpTranslationalIntegrationScheme;
+        }
+        
+        if (mpRotationalIntegrationScheme!=NULL) {
+            delete mpRotationalIntegrationScheme;
+        }
 
     }
 
@@ -90,14 +97,15 @@ namespace Kratos {
 
         CustomInitialize(r_process_info);
         
-        DEMIntegrationScheme::Pointer& integration_scheme = GetProperties()[DEM_INTEGRATION_SCHEME_POINTER];
-        SetIntegrationScheme(integration_scheme);
+        DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
+        DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
+        SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
     }
     
+    void Cluster3D::SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme){
     
-    void Cluster3D::SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme){
-    
-        mpIntegrationScheme = integration_scheme->CloneRaw();
+        mpTranslationalIntegrationScheme = translational_integration_scheme->CloneRaw();
+        mpRotationalIntegrationScheme = rotational_integration_scheme->CloneRaw();
     }
     
     void Cluster3D::CustomInitialize(ProcessInfo& r_process_info) {
@@ -330,7 +338,7 @@ namespace Kratos {
     }
     
     
-    void Cluster3D::UpdatePositionOfSpheres() {
+    void Cluster3D::UpdateAngularDisplacementAndVelocityOfSpheres() {
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
         array_1d<double, 3> global_relative_coordinates;      
@@ -345,17 +353,9 @@ namespace Kratos {
         for (unsigned int i = 0; i < mListOfCoordinates.size(); i++) {
             
             GeometryFunctions::QuaternionVectorLocal2Global(Orientation, mListOfCoordinates[i], global_relative_coordinates);
-            Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0]; 
-            array_1d<double, 3>& sphere_position = sphere_node.Coordinates();
-            array_1d<double, 3>& delta_displacement = sphere_node.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-            noalias(previous_position) = sphere_position;
-            noalias(sphere_position)= central_node.Coordinates() + global_relative_coordinates;
-            noalias(delta_displacement) = sphere_position - previous_position;
-            
+            Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0];
             GeometryFunctions::CrossProduct( cluster_angular_velocity, global_relative_coordinates, linear_vel_due_to_rotation );
-            
             array_1d<double, 3>& velocity = sphere_node.FastGetSolutionStepValue(VELOCITY);
-            
             noalias(velocity) = cluster_velocity + linear_vel_due_to_rotation;                                    
             noalias(sphere_node.FastGetSolutionStepValue(ANGULAR_VELOCITY)) = cluster_angular_velocity;
             noalias(sphere_node.FastGetSolutionStepValue(DELTA_ROTATION)) = cluster_delta_rotation;
@@ -441,7 +441,7 @@ namespace Kratos {
     
     int Cluster3D::SlowGetParticleMaterial() { return GetProperties()[PARTICLE_MATERIAL];}
     
-    void Cluster3D::SetInitialNeighbours(const double search_tolerance) {
+    void Cluster3D::SetInitialNeighbours(const double search_increment) {
         if(!mListOfSphericParticles.size() ) return;
         /*for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
             SphericContinuumParticle* p_continuum_particle_i = dynamic_cast<SphericContinuumParticle*> (mListOfSphericParticles[i]);
@@ -464,7 +464,7 @@ namespace Kratos {
                 double distance = DEM_MODULUS_3(other_to_me_vect);
                 double radius_sum = p_continuum_particle_i->GetRadius() + p_continuum_particle_j->GetRadius();
                 
-                if(distance < radius_sum + search_tolerance) {                                                        
+                if(distance < radius_sum + search_increment) {
                     double initial_delta = radius_sum - distance;
                     
                     p_continuum_particle_i->mNeighbourElements.push_back(p_continuum_particle_j);
@@ -490,7 +490,10 @@ namespace Kratos {
     }
     
     void Cluster3D::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag ) {
-        GetIntegrationScheme().MoveCluster(this, GetGeometry()[0], delta_t, rotation_option, force_reduction_factor, StepFlag);            
+        GetTranslationalIntegrationScheme().MoveCluster(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
+        if (rotation_option) {
+            GetRotationalIntegrationScheme().RotateCluster(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
+        }
     }
     
     

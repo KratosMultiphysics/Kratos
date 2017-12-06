@@ -117,14 +117,12 @@ class AssignVectorByDirectionToConditionProcess(KratosMultiphysics.Process):
             z_params.AddEmptyValue("value").SetString("("+str(unit_direction[2])+")*("+modulus+")")
 
         # Construct a AssignScalarToNodesProcess for each component
-        import assign_scalar_to_conditions_process
+        import assign_scalar_variable_to_conditions_process
 
         self.aux_processes = []
-        self.aux_processes.append( assign_scalar_to_conditions_process.AssignScalarToConditionsProcess(Model, x_params) )
-        self.aux_processes.append( assign_scalar_to_conditions_process.AssignScalarToConditionsProcess(Model, y_params) )
-        self.aux_processes.append( assign_scalar_to_conditions_process.AssignScalarToConditionsProcess(Model, z_params) )
-
-        # print("Finished construction of AssignVectorByDirectionToConditionProcess")
+        self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(Model, x_params) )
+        self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(Model, y_params) )
+        self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(Model, z_params) )
 
     def ExecuteInitializeSolutionStep(self):
         for process in self.aux_processes:

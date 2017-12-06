@@ -37,7 +37,7 @@ class FluidMeshModeler(mesh_modeler.MeshModeler):
         self.MeshingParameters.SetExecutionOptions(execution_options)
         
         # set modeler flags: to set options for the mesher (triangle 2D, tetgen 3D)
-        if( self.domain_size == 2 ):
+        if( self.dimension == 2 ):
             pass
             #REFINE
             #ADD NODES
@@ -69,7 +69,7 @@ class FluidMeshModeler(mesh_modeler.MeshModeler):
             #to get conectivities, boundaries and neighbours only
             #modeler_flags = "ncEBQ" 
             
-        if( self.domain_size == 3 ):
+        if( self.dimension == 3 ):
             #other flags
             pass
   

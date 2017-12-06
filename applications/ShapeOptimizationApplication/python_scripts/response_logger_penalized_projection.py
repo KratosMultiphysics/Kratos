@@ -38,98 +38,138 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         self.onlyConstraint = self.optimizationSettings["constraints"][0]["identifier"].GetString()  
         self.typOfOnlyConstraint = self.optimizationSettings["constraints"][0]["type"].GetString()
             
-        self.completeResponseLogFileName = self.__createCompleteResponseLogFilename( optimizationSettings )
+        self.completeResponseLogFileName = self.__CreateCompleteResponseLogFilename( optimizationSettings )
 
         self.objectiveValueHistory = {}
         self.constraintValueHistory = {}
-        self.constraintReferenceValueHistory = {}
+        self.objectiveReferenceValue = None
+        self.constraintReferenceValue = None        
         self.absoluteChangeOfObjectiveValueHistory = {}
         self.relativeChangeOfObjectiveValueHistory = {}
+        self.absoluteChangeOfConstraintValueHistory = {}
+        self.relativeChangeOfConstraintValueHistory = {}        
 
         self.currentOptimizationIteration = 0
         self.previousOptimizationIteration = 0
         self.initialOptimizationIteration = 0
 
     # --------------------------------------------------------------------------
-    def __createCompleteResponseLogFilename( self, optimizationSettings ):
+    def __CreateCompleteResponseLogFilename( self, optimizationSettings ):
         resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
         responseLogFilename = optimizationSettings["output"]["response_log_filename"].GetString()
         completeResponseLogFilename = resultsDirectory+"/"+responseLogFilename+".csv"
         return completeResponseLogFilename     
 
     # --------------------------------------------------------------------------
-    def initializeLogging( self ):
+    def InitializeLogging( self ):
         with open(self.completeResponseLogFileName, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
-            row.append("itr\t")
-            row.append("\tf\t")
-            row.append("\tdf_absolute[%]\t")
-            row.append("\tdf_relative[%]\t")
-            row.append("\tc["+self.onlyConstraint+"]: "+self.typOfOnlyConstraint+"\t")    
-            row.append("\tc["+self.onlyConstraint+"] / reference_value[%]"+"\t")        
-            row.append("\tcorrection_scaling[-]\t")
-            row.append("\tstep_size[-]\t")
-            row.append("\tt_iteration[s]\t")
-            row.append("\tt_total[s]") 
-            row.append("\ttime_stamp") 
+            row.append("{:<6s}".format("itr"))
+            row.append("{:>20s}".format("f"))
+            row.append("{:>12s}".format("df_abs[%]"))
+            row.append("{:>12s}".format("df_rel[%]"))
+            row.append("{:>20s}".format("c["+self.onlyConstraint+"]: "+self.typOfOnlyConstraint))
+            row.append("{:>20s}".format("c["+self.onlyConstraint+"]_ref"))
+            row.append("{:>11s}".format("dc_abs[%]"))    
+            row.append("{:>13s}".format("c_scaling[-]"))
+            row.append("{:>13s}".format("step_size[-]"))
+            row.append("{:>12s}".format("t_itr[s]"))
+            row.append("{:>16s}".format("t_total[s]"))
+            row.append("{:>25s}".format("time_stamp"))
             historyWriter.writerow(row)      
                       
     # --------------------------------------------------------------------------
-    def logCurrentResponses( self, optimizationIteration ):
+    def LogCurrentResponses( self, optimizationIteration ):
 
         self.currentOptimizationIteration = optimizationIteration
 
-        self.__addCurrentResponseValuesToHistory()
-        if self.__isFirstLog():
+        if self.__IsFirstLog():
             self.initialOptimizationIteration = optimizationIteration        
-            self.__initializeChangeOfObjectiveValueHistory()
+            self.__AddObjectiveValueToHistory()
+            self.__AddConstraintValueToHistory()
+            self.__DetermineObjectiveReferenceValue()
+            self.__DetermineConstraintReferenceValue()
+            self.__InitializeChangeOfObjectiveValueHistory()
+            self.__InitializeChangeOfConstraintValueHistory()            
         else:
-            self.__addChangeOfObjectiveValueToHistory()
-        self.__printInfoAboutResponseFunctionValues()
-        self.__writeDataToLogFile()
+            self.__AddObjectiveValueToHistory()
+            self.__AddConstraintValueToHistory()   
+            self.__DetermineObjectiveReferenceValue()
+            self.__DetermineConstraintReferenceValue()                  
+            self.__AddChangeOfObjectiveValueToHistory()
+            self.__AddChangeOfConstraintValueToHistory()            
+        self.__PrintInfoAboutResponseFunctionValues()
+        self.__WriteDataToLogFile()
 
         self.previousOptimizationIteration = optimizationIteration
 
-    # --------------------------------------------------------------------------
-    def __addCurrentResponseValuesToHistory( self ):
-        self.__addObjectiveValuesToHistory()
-        self.__addConstraintValuesToHistory()
+    # -------------------------------------------------------------------------
+    def __IsFirstLog( self ):
+        if len(self.objectiveValueHistory) == 0:
+            return True
+        else:
+            return False           
 
     # --------------------------------------------------------------------------
-    def __addObjectiveValuesToHistory( self ):
+    def __AddObjectiveValueToHistory( self ):
         objectiveValue = self.communicator.getReportedFunctionValueOf ( self.onlyObjective )
         self.objectiveValueHistory[self.currentOptimizationIteration] = objectiveValue
 
     # --------------------------------------------------------------------------
-    def __addConstraintValuesToHistory( self ):
+    def __AddConstraintValueToHistory( self ):
         constraintValue = self.communicator.getReportedFunctionValueOf ( self.onlyConstraint )
-        constraintReferenceValue = self.communicator.getReportedFunctionReferenceValueOf ( self.onlyConstraint )
         self.constraintValueHistory[self.currentOptimizationIteration] = constraintValue
-        self.constraintReferenceValueHistory[self.currentOptimizationIteration] = constraintReferenceValue
-
-    # -------------------------------------------------------------------------
-    def __isFirstLog( self ):
-        if len(self.objectiveValueHistory) < 2:
-            return True
-        else:
-            return False        
 
     # --------------------------------------------------------------------------
-    def __initializeChangeOfObjectiveValueHistory( self ):
+    def __DetermineObjectiveReferenceValue( self ):
+        self.objectiveReferenceValue = self.communicator.getReportedFunctionReferenceValueOf ( self.onlyObjective )
+        if not self.objectiveReferenceValue:
+            self.objectiveReferenceValue = self.objectiveValueHistory[self.initialOptimizationIteration]
+        if abs(self.objectiveReferenceValue)<1e-12:
+            print("\n> WARNING: Objective reference value < 1e-12!!:")
+            print("> WARNING: I.e. either initial objective value is zero and no reference value is specified in the analyzer or specified reference value is zero.")
+            print("> WARNING: Standard reference value of 1 is assumed.")
+            self.objectiveReferenceValue = 1.0     
+        
+    # --------------------------------------------------------------------------
+    def __DetermineConstraintReferenceValue( self ):
+        self.constraintReferenceValue = self.communicator.getReportedFunctionReferenceValueOf ( self.onlyConstraint )  
+        if not self.constraintReferenceValue:
+            self.constraintReferenceValue = self.constraintValueHistory[self.initialOptimizationIteration]
+        if abs(self.constraintReferenceValue)<1e-12:
+            self.constraintReferenceValue = 1.0     
+
+    # --------------------------------------------------------------------------
+    def __InitializeChangeOfObjectiveValueHistory( self ):
         self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 0.0
         self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 0.0
 
     # --------------------------------------------------------------------------
-    def __addChangeOfObjectiveValueToHistory( self ):
+    def __InitializeChangeOfConstraintValueHistory( self ):
+        self.absoluteChangeOfConstraintValueHistory[self.currentOptimizationIteration] = 0.0
+        self.relativeChangeOfConstraintValueHistory[self.currentOptimizationIteration] = 0.0        
+
+    # --------------------------------------------------------------------------
+    def __AddChangeOfObjectiveValueToHistory( self ):
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
         previousObjectiveValue = self.objectiveValueHistory[self.previousOptimizationIteration]
         initialObjectiveValue = self.objectiveValueHistory[self.initialOptimizationIteration]
-        self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 100*(objectiveValue-initialObjectiveValue) / initialObjectiveValue
-        self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 100*(objectiveValue-previousObjectiveValue) / initialObjectiveValue
+
+        self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 100*(objectiveValue-initialObjectiveValue) / self.objectiveReferenceValue
+        self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 100*(objectiveValue-previousObjectiveValue) / self.objectiveReferenceValue
 
     # --------------------------------------------------------------------------
-    def __printInfoAboutResponseFunctionValues( self ):
+    def __AddChangeOfConstraintValueToHistory( self ):
+        constraintValue = self.constraintValueHistory[self.currentOptimizationIteration]
+        previousConstraintValue = self.constraintValueHistory[self.previousOptimizationIteration]
+        initialConstraintValue = self.constraintValueHistory[self.initialOptimizationIteration]
+
+        self.absoluteChangeOfConstraintValueHistory[self.currentOptimizationIteration] = 100*(constraintValue-initialConstraintValue) / self.constraintReferenceValue
+        self.relativeChangeOfConstraintValueHistory[self.currentOptimizationIteration] = 100*(constraintValue-previousConstraintValue) / self.constraintReferenceValue        
+
+    # --------------------------------------------------------------------------
+    def __PrintInfoAboutResponseFunctionValues( self ):
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
         constraintValue = self.constraintValueHistory[self.currentOptimizationIteration]
         absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration]
@@ -140,43 +180,41 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         print("\n> Current value of constraint function = ", round(constraintValue,12))
 
     # --------------------------------------------------------------------------
-    def __writeDataToLogFile( self ):
+    def __WriteDataToLogFile( self ):
 
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
         constraintValue = self.constraintValueHistory[self.currentOptimizationIteration]
-        constraintReferenceValue = self.constraintReferenceValueHistory[self.currentOptimizationIteration]
+
         absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration]
-        relativeChangeOfObjectiveValue = self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration]             
+        relativeChangeOfObjectiveValue = self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration]
+        absoluteChangeOfConstraintValue = self.absoluteChangeOfConstraintValueHistory[self.currentOptimizationIteration]
+        relativeChangeOfConstraintValue = self.relativeChangeOfConstraintValueHistory[self.currentOptimizationIteration]                         
 
         with open(self.completeResponseLogFileName, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
-            row.append(str(self.currentOptimizationIteration)+"\t")
-            row.append("\t"+str("%.12f"%(objectiveValue))+"\t")
-            row.append("\t"+str("%.2f"%(absoluteChangeOfObjectiveValue))+"\t")
-            row.append("\t"+str("%.6f"%(relativeChangeOfObjectiveValue))+"\t")
-            row.append("\t"+str("%.12f"%(constraintValue))+"\t")
-            if not constraintReferenceValue:
-                row.append("\t"+str("-\t"))
-            else: 
-                percentageOfReference = 100*(constraintValue / constraintReferenceValue)
-                row.append("\t"+str("%.6f"%(percentageOfReference)))
-            row.append("\t"+str("%.6f"%(self.optimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble()))+"\t")
-            row.append("\t"+str(self.optimizationSettings["line_search"]["step_size"].GetDouble())+"\t")
-            row.append("\t"+str("%.1f"%(self.timer.getLapTime()))+"\t")
-            row.append("\t"+str("%.1f"%(self.timer.getTotalTime()))+"\t")
-            row.append("\t"+str(self.timer.getTimeStamp()))
+            row.append("{:<6s}".format(str(self.currentOptimizationIteration)))
+            row.append(str("{:>20f}".format(objectiveValue)))
+            row.append(str("{:>12f}".format(absoluteChangeOfObjectiveValue)))
+            row.append(str("{:>12f}".format(relativeChangeOfObjectiveValue)))
+            row.append(str("{:>20f}".format(constraintValue)))
+            row.append(str("{:>20f}".format(self.constraintReferenceValue)))
+            row.append(str("{:>11f}".format(absoluteChangeOfConstraintValue)))
+            row.append(str("{:>13f}".format(self.optimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble())))
+            row.append(str("{:>13f}".format(self.optimizationSettings["line_search"]["step_size"].GetDouble())))
+            row.append(str("{:>12f}".format(self.timer.GetLapTime())))
+            row.append(str("{:>16f}".format(self.timer.GetTotalTime())))
+            row.append("{:>25}".format(self.timer.GetTimeStamp()))
             historyWriter.writerow(row)   
 
     # --------------------------------------------------------------------------
-    def finalizeLogging( self ):      
+    def FinalizeLogging( self ):      
         pass # No finalization necessary here
 
     # --------------------------------------------------------------------------
-    def getValue( self, variableKey ):
-        
+    def GetValue( self, variableKey ):
         if variableKey=="RELATIVE_CHANGE_OF_OBJECTIVE_VALUE":
-            if self.__isFirstLog():
+            if self.__IsFirstLog():
                 raise RuntimeError("Relative change of objective function can not be computed since only one logged value is existing!")
             else:
                 return self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration]

@@ -5,4 +5,3 @@ def ConstructSolver(configuration):
     import KratosMultiphysics
     return KratosMultiphysics.LinearSolverFactoryBase().CreateSolver(configuration)
     
- 

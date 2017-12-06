@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "*tcl(file tail [GiD_Info Project ModelName])",
         "model_part_name" : "Main_Domain",
-        "domain_size"     : *GenData(DOMAIN_SIZE,INT),
+        "dimension"       : *GenData(DIMENSION,INT),
 	"time_step"       : *GenData(Time_Step),
         "start_time"      : *GenData(Start_Time),
         "end_time"        : *GenData(End_Time),
@@ -19,17 +19,23 @@
         "time_integration_method"            : "Explicit",
         "scheme_type"                        : "CentralDifferences",        
 *elseif(strcmp(GenData(Time_Integration_Method),"Implicit")==0)
+*if(strcmp(GenData(DOFS),"U-W")==0)
+        "solver_type"                        : "pfem_solid_mechanics_implicit_dynamic_solver",
+        "time_integration_method"            : "Implicit",
+        "scheme_type"                        : "Bossak",
+*else
         "solver_type"                        : "solid_mechanics_implicit_dynamic_solver",
         "time_integration_method"            : "Implicit",
         "scheme_type"                        : "Bossak",
 *endif
+*endif
 *else
-        "solver_type"                        : "solid_mechanics_static_solver",
+        "solver_type"                        : "pfem_solid_mechanics_static_solver",
         "solution_type"                      : "Static",
 *if(strcmp(GenData(Solver_Type),"StaticSolver")==0)
-        "analysis_type"                      : "Linear",
+        "scheme_type"                        : "Linear",
 *elseif(strcmp(GenData(Solver_Type),"QuasiStaticSolver")==0)
-        "analysis_type"                      : "Non-Linear",
+        "scheme_type"                        : "Non-Linear",
 *endif
 *endif
         "model_import_settings"              : {
@@ -48,15 +54,26 @@
         "compute_reactions"                  : *tcl(string tolower *GenData(Write_Reactions)),
 	"compute_contact_forces"             : *tcl(string tolower *GenData(Write_Contact_Forces)),
         "convergence_criterion"              : "*GenData(Convergence_Criteria)",
-*if(strcmp(GenData(DOFS),"ROTATIONS")==0)
-        "rotation_dofs"                      : true,
-*endif
-*if(strcmp(GenData(DOFS),"U-P")==0)
-        "pressure_dofs"                      : true,
-*endif
 *if( strcmp(GenData(DOFS),"U-P")==0 || strcmp(GenData(DOFS),"U-wP")==0)
         "stabilization_factor"               : *GenData(Stabilization_Factor),
 *endif
+        "dofs"                               : [
+*if(strcmp(GenData(DOFS),"ROTATIONS")==0)
+                                                "ROTATION",
+*endif
+*if(strcmp(GenData(DOFS),"U-P")==0)
+                                                "PRESSURE",
+*endif
+*if(strcmp(GenData(DOFS),"U-wP")==0 || strcmp(GenData(DOFS),"U-J-wP")==0 )
+                                                "WATER_PRESSURE",
+*endif
+*if(strcmp(GenData(DOFS),"U-J-wP")==0 || strcmp(GenData(DOFS),"U-J")==0 )
+						"JACOBIAN",
+*endif
+*if(strcmp(GenData(DOFS),"U-W")==0)
+						"WATER_DISPLACEMENT"
+*endif
+					       ],
         "reform_dofs_at_each_step"           : true,
         "displacement_relative_tolerance"    : *GenData(Convergence_Tolerance),
         "displacement_absolute_tolerance"    : *GenData(Absolute_Tolerance),
@@ -121,6 +138,8 @@
 *add cond group_SURFACE_PRESSURE *groups
 *add cond group_POINT_MOMENT *groups
 *add cond group_VOLUME_ACCELERATION *groups
+*add cond group_WATER_PRESSURE *groups
+*add cond group_WATER_MOVEMENT *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
 *loop groups *OnlyInCond
@@ -160,7 +179,6 @@
 *set var Counter=operation(Counter+1)
             {
 		"python_module": "meshing_domain",
-		"mesh_id": 0,
 		"model_part_name": "*cond(Structural_Type)_*GroupName",
 		"alpha_shape": 2.4,
 		"offset_factor": *GenData(Offset_Factor),
@@ -175,10 +193,10 @@
 		    "mesh_smoothing": *tcl(string tolower *cond(MeshSmoothing)),
 		    "variables_smoothing": *tcl(string tolower *cond(JacobiSmoothing)),
 		    "elemental_variables_to_smooth":[ "DETERMINANT_F" ],
-*if(GenData(DOMAIN_SIZE,INT)==2)
+*if(GenData(DIMENSION,INT)==2)
 		    "reference_element_type": "Element2D3N",
 		    "reference_condition_type": "CompositeCondition2D2N"
-*elseif(GenData(DOMAIN_SIZE,INT)==3)
+*elseif(GenData(DIMENSION,INT)==3)
 		    "reference_element_type": "Element3D4N" ,
 		    "reference_condition_type": "CompositeCondition3D3N"
 *endif
@@ -243,7 +261,6 @@
         "python_module"    : "contact_domain_process",
         "process_name"     : "ContactDomainProcess",
         "Parameters"       : {
-            "mesh_id"               : 0,
 	    "model_part_name"       : "Main_Domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 0.0,
@@ -321,7 +338,6 @@
 *set var Counter=operation(Counter+1)
 		{
 		    "python_module": "parametric_wall",
-		    "mesh_id": 0,
 		    "model_part_name" : "*cond(Structural_Type)_*GroupName",
 		    "rigid_body_settings":{
 			"rigid_body_element_type": "*cond(Rigid_Element)",
@@ -487,14 +503,20 @@
     }],
     "constraints_process_list" : [
 *set var numberconstraints= 0
-*set cond group_LINEAR_MOVEMENT *groups
+*set cond group_WATER_MOVEMENT *groups 
+*add cond group_LINEAR_MOVEMENT *groups
 *add cond group_ANGULAR_MOVEMENT *groups
+*add cond group_WATER_PRESSURE *groups
 *loop groups *OnlyInCond
 *set var numberconstraints(int)=Operation(numberconstraints(int)+1)
 *end groups
 *set var Counter = 0
 *set cond group_LINEAR_MOVEMENT *groups
 *add cond group_ANGULAR_MOVEMENT *groups
+*add cond group_WATER_MOVEMENT *groups
+*if(strcmp(GenData(Set_initial_state),"True")==0)
+*set var numberconstraints(int)=Operation(numberconstraints(int)+1)
+*endif
 *loop groups *OnlyInCond
 *set var Counter=operation(Counter+1)
      	{
@@ -503,7 +525,6 @@
         "python_module"   : "assign_vector_components_to_nodes_process",
         "process_name"    : "AssignVectorComponentsToNodesProcess",
         "Parameters"      : {
-            "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
             "variable_name"   : "*cond(Variable)",
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
@@ -549,6 +570,55 @@
 	},
 *endif
 *end groups
+*set cond group_WATER_PRESSURE *groups
+*loop groups *OnlyInCond
+*set var Counter=operation(Counter+1)
+        {
+        "help"            : "This process tries to fix water pressure",
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "assign_scalar_to_nodes_process",
+        "process_name"    : "AssignScalarToNodesProcess",
+	"Parameters"      : {
+	   "variable_name":    "WATER_PRESSURE",
+           "model_part_name":  "*GroupName",
+*if(strcmp(cond(Time_Evolution),"INITIAL")==0)
+	    "interval"        : [*GenData(Start_Time), *GenData(Start_Time)],
+*elseif(strcmp(cond(Time_Evolution),"FULL")==0)
+	    "interval"        : [*GenData(Start_Time), "End"],
+*elseif(strcmp(cond(Time_Evolution),"INTERVAL")==0)
+	    "interval"        : [*cond(Time_Interval,1), *cond(Time_Interval,2)],
+*endif
+*if(strcmp(cond(by_function),"True")==0 )
+	    "value"           :	"*cond(Function)"
+*else
+	    "value"           :	*cond(Value)
+*endif			
+	    }
+*if( Counter == numberconstraints )
+        }
+*else
+	},
+*endif
+*end groups
+*if(strcmp(GenData(Set_initial_state),"True")==0)
+        {
+        "help"            : "This process tries to set the initial state of the soil",
+        "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",
+        "python_module"   : "assign_initial_HM_state_process",
+        "process_name"    : "SetInitialStateProcess",
+        "Parameters"      : {
+             "model_part_name": "Main_Domain",
+*if(strcmp(GenData(Constant_weight),"True")==0)
+             "gravity_active":              false,
+             "constant_horizontal_stress":  *GenData(SX), 
+             "constant_vertical_stress":    *GenData(SY),
+             "constant_water_pressure":     *GenData(WP)
+*else 
+             "gravity_active":   true
+*endif
+             }
+         }
+*endif
     ],
     "loads_process_list"       : [
 *set var numberloads= 0
@@ -573,7 +643,6 @@
         "python_module"   : "assign_modulus_and_direction_to_conditions_process",
         "process_name"    : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"      : {
-            "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
             "variable_name"   : "*cond(Variable)",
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
@@ -606,10 +675,9 @@
         "python_module"   : "assign_modulus_and_direction_to_conditions_process",
         "process_name"    : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"      : {
-            "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
 *if(strcmp(cond(by_function),"True")==0 )	    
-            "variable_name"   : "*cond(Variable)S_VECTOR",
+            "variable_name"   : "*cond(Variable)_VECTOR",
 *else
             "variable_name"   : "*cond(Variable)",
 *endif	
@@ -642,7 +710,6 @@
         "python_module"   : "assign_modulus_and_direction_to_nodes_process",
         "process_name"    : "AssignModulusAndDirectionToNodesProcess",
         "Parameters"      : {
-            "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
             "variable_name"   : "*cond(Variable)",
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
@@ -675,10 +742,9 @@
         "python_module"   : "assign_scalar_to_conditions_process",
         "process_name"    : "AssignScalarToConditionsProcess",
         "Parameters"      : {
-            "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
 *if(strcmp(cond(by_function),"True")==0 )	    
-            "variable_name"   : "*cond(Variable)S_VECTOR",
+            "variable_name"   : "*cond(Variable)_VECTOR",
 *else
             "variable_name"   : "*cond(Variable)",
 *endif	    
@@ -748,6 +814,11 @@
 *if(strcmp(GenData(Solver_Type),"DynamicSolver")==0)
                                       "VELOCITY",
 				      "ACCELERATION",
+*if(strcmp(GenData(DOFS),"U-W")==0)
+                                      "WATER_DISPLACEMENT",
+                                      "WATER_VELOCITY",
+				      "WATER_ACCELERATION",
+*endif
 *endif
 *if(strcmp(GenData(Write_Reactions),"True")==0)
 				      "REACTION",
@@ -759,6 +830,10 @@
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
 				      "PRESSURE",
+*endif
+*if(strcmp(GenData(DOFS),"U-J-wP")==0)
+				      "WATER_PRESSURE",
+				      "JACOBIAN",
 *endif
 *if(strcmp(GenData(DOFS),"U-wP")==0)
 				      "WATER_PRESSURE",
@@ -773,6 +848,9 @@
 *if(strcmp(GenData(Problem_Type),"mechanical")==0)
 				      "CAUCHY_STRESS_TENSOR",
 				      "GREEN_LAGRANGE_STRAIN_TENSOR",
+*endif
+*if(strcmp(GenData(DOFS),"U-W")==0)
+				      "WATER_PRESSURE",
 *endif
 				      "VON_MISES_STRESS"
 				    ],

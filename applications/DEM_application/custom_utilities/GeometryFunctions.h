@@ -17,11 +17,13 @@
 namespace Kratos {
     
     namespace GeometryFunctions {
+        
+    typedef Geometry<Node < 3 > > GeometryType;
     
     static inline void RotateAVectorAGivenAngleAroundAUnitaryVector(const array_1d<double, 3>& old_vec, const array_1d<double, 3>& axis,
                                                                     const double ang, array_1d<double, 3>& new_vec) {
-        double cang = cos(ang);
-        double sang = sin(ang);
+        double cang = std::cos(ang);
+        double sang = std::sin(ang);
             
         new_vec[0] = axis[0] * (axis[0] * old_vec[0] + axis[1] * old_vec[1] + axis[2] * old_vec[2]) * (1 - cang) + old_vec[0] * cang + (-axis[2] * old_vec[1] + axis[1] * old_vec[2]) * sang;
         new_vec[1] = axis[1] * (axis[0] * old_vec[0] + axis[1] * old_vec[1] + axis[2] * old_vec[2]) * (1 - cang) + old_vec[1] * cang + ( axis[2] * old_vec[0] - axis[0] * old_vec[2]) * sang;
@@ -39,10 +41,10 @@ namespace Kratos {
             linear_velocity_changed = ZeroVector(3);
         } else {
             if (linear_period > 0.0) {
-                double linear_omega = 2.0 * KRATOS_M_PI / linear_period;
+                double linear_omega = 2.0 * Globals::Pi / linear_period;
                 double inv_linear_omega = 1.0 / linear_omega;
-                noalias(center_position) = initial_center + linear_velocity * sin(linear_omega * time) * inv_linear_omega;
-                noalias(linear_velocity_changed) = linear_velocity * cos(linear_omega * time);
+                noalias(center_position) = initial_center + linear_velocity * std::sin(linear_omega * (time - velocity_start_time)) * inv_linear_omega;
+                noalias(linear_velocity_changed) = linear_velocity * std::cos(linear_omega * (time - velocity_start_time));
                 noalias(previous_displ) = center_position - initial_center;
             } else {
                 center_position[0] = initial_center[0] + previous_displ[0] + dt * linear_velocity[0];
@@ -281,6 +283,21 @@ namespace Kratos {
         ProductMatrices3X3(Temp, RT, GlobalTensor);
     }
 
+    static inline void ConstructLocalTensor(const double moment_of_inertia, double LocalTensor[3][3])
+    {
+        LocalTensor[0][0] = moment_of_inertia; LocalTensor[0][1] = 0.0; LocalTensor[0][2] = 0.0;
+        LocalTensor[1][0] = 0.0; LocalTensor[1][1] = moment_of_inertia; LocalTensor[1][2] = 0.0;
+        LocalTensor[2][0] = 0.0; LocalTensor[2][1] = 0.0; LocalTensor[2][2] = moment_of_inertia;
+    }
+    
+    static inline void ConstructInvLocalTensor(const double moment_of_inertia, double LocalTensorInv[3][3])
+    {
+        double moment_of_inertia_inv = 1/moment_of_inertia;
+        LocalTensorInv[0][0] = moment_of_inertia_inv; LocalTensorInv[0][1] = 0.0; LocalTensorInv[0][2] = 0.0;
+        LocalTensorInv[1][0] = 0.0; LocalTensorInv[1][1] = moment_of_inertia_inv; LocalTensorInv[1][2] = 0.0;
+        LocalTensorInv[2][0] = 0.0; LocalTensorInv[2][1] = 0.0; LocalTensorInv[2][2] = moment_of_inertia_inv;
+    }
+    
     static inline void ConstructLocalTensor(const array_1d<double, 3 >& moments_of_inertia, double LocalTensor[3][3])
     {
         LocalTensor[0][0] = moments_of_inertia[0]; LocalTensor[0][1] = 0.0; LocalTensor[0][2] = 0.0;
@@ -373,11 +390,11 @@ namespace Kratos {
         else if (((time - angular_velocity_start_time) > 0.0) && ((time - angular_velocity_stop_time) < 0.0)) {
 
             if (angular_period > 0.0) {
-                double angular_omega = 2.0 * KRATOS_M_PI / angular_period;
+                double angular_omega = 2.0 * Globals::Pi / angular_period;
                 double inv_angular_omega = 1.0 / angular_omega;
-                noalias(angle) = angular_velocity * sin(angular_omega * (time - angular_velocity_start_time)) * inv_angular_omega;
-                sign_angle = sin(angular_omega * (time - angular_velocity_start_time)) / fabs(sin(angular_omega * (time - angular_velocity_start_time)));
-                noalias(angular_velocity_changed) = angular_velocity * cos(angular_omega * (time - angular_velocity_start_time));
+                noalias(angle) = angular_velocity * std::sin(angular_omega * (time - angular_velocity_start_time)) * inv_angular_omega;
+                sign_angle = std::sin(angular_omega * (time - angular_velocity_start_time)) / fabs(sin(angular_omega * (time - angular_velocity_start_time)));
+                noalias(angular_velocity_changed) = angular_velocity * std::cos(angular_omega * (time - angular_velocity_start_time));
                 noalias(final_angle) = angle;
             } else {
                 noalias(angle) = angular_velocity * (time - angular_velocity_start_time);
@@ -387,9 +404,9 @@ namespace Kratos {
             noalias(angular_velocity_changed) = ZeroVector(3);
 
             if (angular_period > 0.0) {
-                double angular_omega = 2.0 * KRATOS_M_PI / angular_period;
+                double angular_omega = 2.0 * Globals::Pi / angular_period;
                 double inv_angular_omega = 1.0 / angular_omega;
-                noalias(angle) = angular_velocity * sin(angular_omega * (angular_velocity_stop_time - angular_velocity_start_time)) * inv_angular_omega;
+                noalias(angle) = angular_velocity * std::sin(angular_omega * (angular_velocity_stop_time - angular_velocity_start_time)) * inv_angular_omega;
             } else {
                 noalias(angle) = angular_velocity * (angular_velocity_stop_time - angular_velocity_start_time);
             }
@@ -729,9 +746,10 @@ namespace Kratos {
         }
         else
         {
-        TargetPoint[0] = ((a*(v*v+w*w)-u*(b*v+c*w-u*x-v*y-w*z))*(1-cos(O))+L*x*cos(O)+sqrt(L)*(-c*w+b*w-w*y+v*z)*sin(O))*(1/L);
-        TargetPoint[1] = ((b*(u*u+w*w)-v*(a*u+c*w-u*x-v*y-w*z))*(1-cos(O))+L*y*cos(O)+sqrt(L)*(c*u-a*w+w*x-u*z)*sin(O))*(1/L);
-        TargetPoint[2] = ((c*(u*u+v*v)-w*(a*u+b*v-u*x-v*y-w*z))*(1-cos(O))+L*z*cos(O)+sqrt(L)*(-b*u+a*v-v*x+u*y)*sin(O))*(1/L);
+            const double inv_L = 1.0 / L;
+        TargetPoint[0] = ((a*(v*v+w*w)-u*(b*v+c*w-u*x-v*y-w*z))*(1-cos(O))+L*x*cos(O)+sqrt(L)*(-c*w+b*w-w*y+v*z)*sin(O))* inv_L;
+        TargetPoint[1] = ((b*(u*u+w*w)-v*(a*u+c*w-u*x-v*y-w*z))*(1-cos(O))+L*y*cos(O)+sqrt(L)*(c*u-a*w+w*x-u*z)*sin(O))* inv_L;
+        TargetPoint[2] = ((c*(u*u+v*v)-w*(a*u+b*v-u*x-v*y-w*z))*(1-cos(O))+L*z*cos(O)+sqrt(L)*(-b*u+a*v-v*x+u*y)*sin(O))* inv_L;
         }
     }
 
@@ -779,29 +797,7 @@ namespace Kratos {
         GlobalTensor[1][0] = GlobalTensorTraspC2[0]; GlobalTensor[1][1] = GlobalTensorTraspC2[1]; GlobalTensor[1][2] = GlobalTensorTraspC2[2];
         GlobalTensor[2][0] = GlobalTensorTraspC3[0]; GlobalTensor[2][1] = GlobalTensorTraspC3[1]; GlobalTensor[2][2] = GlobalTensorTraspC3[2];
     }
-    
-    static inline void UpdateOrientation(array_1d<double, 3>& EulerAngles, const array_1d<double, 3>& RotatedAngle)
-    {
-        Quaternion<double> Orientation = Quaternion<double>::Identity();
-                        
-        array_1d<double, 3 > theta = RotatedAngle;
-        DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
-
-        double thetaMag = DEM_MODULUS_3(theta);
-                    
-        const double epsilon = std::numeric_limits<double>::epsilon();
-                    
-        if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
-            double aux = (1 - thetaMag * thetaMag / 6);
-            Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-        }
-        else {
-            double aux = sin(thetaMag)/thetaMag;
-            Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-        }
-        Orientation.ToEulerAngles(EulerAngles);
-    }
-    
+       
     static inline void UpdateOrientation(array_1d<double, 3>& EulerAngles, Quaternion<double>& Orientation, const array_1d<double, 3>& DeltaRotation)
     {
         Quaternion<double> DeltaOrientation = Quaternion<double>::Identity();
@@ -815,10 +811,12 @@ namespace Kratos {
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
             DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         else {
-            double aux = sin(thetaMag)/thetaMag;
+            double aux = std::sin(thetaMag)/thetaMag;
             DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         Orientation = DeltaOrientation * Orientation;
         Orientation.ToEulerAngles(EulerAngles);
@@ -836,11 +834,13 @@ namespace Kratos {
                   
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
-            DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag * 0.5), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         else {
-            double aux = sin(thetaMag)/thetaMag;
+            double aux = std::sin(thetaMag)/thetaMag;
             DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         Orientation = DeltaOrientation * Orientation;
     }
@@ -857,13 +857,59 @@ namespace Kratos {
                   
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
-            DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag * 0.5), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         else {
-            double aux = sin(thetaMag)/thetaMag;
+            double aux = std::sin(thetaMag)/thetaMag;
             DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         NewOrientation = DeltaOrientation * Orientation;
+    }
+    
+    static inline void EulerAnglesFromRotationAngle(array_1d<double, 3>& EulerAngles, const array_1d<double, 3>& RotatedAngle)
+    {
+        Quaternion<double> Orientation = Quaternion<double>::Identity();
+                        
+        array_1d<double, 3 > theta = RotatedAngle;
+        DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
+
+        double thetaMag = DEM_MODULUS_3(theta);
+                    
+        const double epsilon = std::numeric_limits<double>::epsilon();
+                    
+        if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
+            double aux = (1 - thetaMag * thetaMag / 6);
+            Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            Orientation.normalize();
+        }
+        else {
+            double aux = std::sin(thetaMag)/thetaMag;
+            Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            Orientation.normalize();
+        }
+        Orientation.ToEulerAngles(EulerAngles);
+    }
+    
+    static inline void OrientationFromRotationAngle(Quaternion<double>& DeltaOrientation, const array_1d<double, 3>& DeltaRotation)
+    {
+        array_1d<double, 3 > theta = DeltaRotation;
+        DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
+
+        double thetaMag = DEM_MODULUS_3(theta);
+        const double epsilon = std::numeric_limits<double>::epsilon();
+                  
+        if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
+            double aux = (1 - thetaMag * thetaMag / 6);
+            DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
+        }
+        else {
+            double aux = std::sin(thetaMag)/thetaMag;
+            DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -891,7 +937,11 @@ namespace Kratos {
 
     }*/
    
-    static inline  bool InsideOutside(const array_1d<double, 3>& Coord1, const array_1d<double, 3> &Coord2, const array_1d<double, 3>& JudgeCoord,  const array_1d<double, 3>& normal_element, double& area){
+    static inline  bool InsideOutside(const array_1d<double, 3>& Coord1,
+                                      const array_1d<double, 3>& Coord2,
+                                      const array_1d<double, 3>& JudgeCoord,
+                                      const array_1d<double, 3>& normal_element,
+                                      double& area){
 
         //NOTE:: Normal_out here has to be the normal of the element orientation (not pointing particle)
         double b[3];
@@ -914,7 +964,10 @@ namespace Kratos {
 
     }//InsideOutside
     
-    static inline bool InsideOutside(const array_1d<double, 3> &Coord1, const array_1d<double, 3>& Coord2, const array_1d<double, 3>& JudgeCoord, const array_1d<double, 3>& normal_element) {
+    static inline bool InsideOutside(const array_1d<double, 3> &Coord1,
+                                     const array_1d<double, 3>& Coord2,
+                                     const array_1d<double, 3>& JudgeCoord,
+                                     const array_1d<double, 3>& normal_element) {
 
         //NOTE:: Normal_out here has to be the normal of the element orientation (not pointing particle)
         array_1d<double, 3> cp1;
@@ -940,18 +993,20 @@ namespace Kratos {
         unsigned int facet_size = Area.size();
         if (facet_size == 3)
         {
-            double total_area = Area[0]+Area[1]+Area[2];
+            const double total_area = Area[0]+Area[1]+Area[2];
+            const double inv_total_area = 1.0 / total_area;
             for (unsigned int i = 0; i< 3; i++)
             {
-                Weight[i] = Area[(i+1)%facet_size]/total_area;
+                Weight[i] = Area[(i+1)%facet_size] * inv_total_area;
             }
         }
         else if (facet_size == 4)
         {
-            double total_discriminant = Area[0]*Area[1]+Area[1]*Area[2]+Area[2]*Area[3]+Area[3]*Area[0]; //(Zhong et al 1993)
+            const double total_discriminant = Area[0]*Area[1]+Area[1]*Area[2]+Area[2]*Area[3]+Area[3]*Area[0]; //(Zhong et al 1993)
+            const double inv_total_discriminant = 1.0 / total_discriminant;
             for (unsigned int i = 0; i< 4; i++)
             {
-                Weight[i] = (Area[(i+1)%facet_size]*Area[(i+2)%facet_size])/total_discriminant;
+                Weight[i] = (Area[(i+1)%facet_size]*Area[(i+2)%facet_size]) * inv_total_discriminant;
             }
         }
         else {
@@ -959,7 +1014,7 @@ namespace Kratos {
         }
     }//WeightsCalculation
     
-    static inline bool FastFacetCheck(std::vector< array_1d <double,3> >Coord, double Particle_Coord[3], double rad, double &DistPToB, unsigned int &current_edge_index) 
+    static inline bool FastFacetCheck(const std::vector< array_1d <double,3> >& Coord, const array_1d <double,3>& Particle_Coord, double rad, double &DistPToB, unsigned int &current_edge_index) 
     { 
         double A[3];
         double B[3];
@@ -1024,7 +1079,7 @@ namespace Kratos {
         return false;
     }//FastFacetCheck
         
-    static inline bool FacetCheck(std::vector< array_1d <double,3> >Coord, double Particle_Coord[3], double rad,
+    static inline bool FacetCheck(const GeometryType&  Coord, const array_1d <double,3>& Particle_Coord, double rad,
                                   double LocalCoordSystem[3][3], double& DistPToB, std::vector<double>& Weight, unsigned int& current_edge_index) 
     {
         int facet_size = Coord.size();
@@ -1037,9 +1092,9 @@ namespace Kratos {
       
         for (unsigned int i = 0; i<3; i++)
         {
-            A[i] = Coord[2][i]-Coord[1][i];
-            B[i] = Coord[0][i]-Coord[1][i];
-            PC[i] = Particle_Coord[i]-Coord[1][i];
+            A[i] = Coord[2].Coordinates()[i]-Coord[1].Coordinates()[i];
+            B[i] = Coord[0].Coordinates()[i]-Coord[1].Coordinates()[i];
+            PC[i] = Particle_Coord[i]-Coord[1].Coordinates()[i];
         }
   
         N[0] = A[1]*B[2] - A[2]*B[1];
@@ -1082,7 +1137,11 @@ namespace Kratos {
             for (int i = 0; i<facet_size; i++)
             {
                 double this_area = 0.0;
-                if (InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, normal_flag*N, this_area) == false)
+                if (InsideOutside(Coord[i],
+                                  Coord[(i+1)%facet_size],
+                                  IntersectionCoord,
+                                  normal_flag*N,
+                                  this_area) == false)
                 {
                     current_edge_index = i;
                     return false;
@@ -1114,7 +1173,7 @@ namespace Kratos {
 
     } //FacetCheck   
     
-    static inline bool FastEdgeVertexCheck(const array_1d<double,3>& Coord1, const array_1d<double,3>& Coord2, double Particle_Coord[3], double Radius)
+    static inline bool FastEdgeVertexCheck(const array_1d<double,3>& Coord1, const array_1d<double,3>& Coord2, const array_1d<double,3>& Particle_Coord, double Radius)
     {
         double IntersectionCoordEdge[3];
         double normal_unit_vector[3];
@@ -1187,7 +1246,7 @@ namespace Kratos {
       
     }//FastEdgeVertexCheck;     
     
-    static inline bool EdgeCheck(const array_1d<double,3>& Coord1, const array_1d<double,3>& Coord2, double Particle_Coord[3], double Radius,
+    static inline bool EdgeCheck(const array_1d<double,3>& Coord1, const array_1d<double,3>& Coord2, const array_1d<double,3>& Particle_Coord, double Radius,
                                   double LocalCoordSystem[3][3], double& DistParticleToEdge, double& eta) 
     {
         double IntersectionCoordEdge[3];
@@ -1239,7 +1298,7 @@ namespace Kratos {
 
     }//EdgeCheck
 
-    static inline bool VertexCheck(const array_1d<double,3>& Coord, double Particle_Coord[3], double Radius, double LocalCoordSystem[3][3], double& DistParticleToVertex)
+    static inline bool VertexCheck(const array_1d<double,3>& Coord, const array_1d<double,3>& Particle_Coord, double Radius, double LocalCoordSystem[3][3], double& DistParticleToVertex)
     {
         double dist_sq = 0.0;
         array_1d<double, 3> normal_v;
@@ -1469,7 +1528,7 @@ namespace Kratos {
             {
                 // Not a unique solution: thetaZ1 - thetaZ0 = atan2(-r01,r00)
                 EulerAngles[0] = -atan2(-rotation_matrix[0][1], rotation_matrix[0][0]);
-                EulerAngles[1] = KRATOS_M_PI;
+                EulerAngles[1] = Globals::Pi;
                 EulerAngles[2] = 0;
             }
         }
@@ -1575,7 +1634,7 @@ namespace Kratos {
 
         double cos_alpha = dot_product/norm_a;
         double alpha = acos(cos_alpha);
-        double sin_alpha = sin(alpha);
+        double sin_alpha = std::sin(alpha);
 
         Area = Radius*Radius*alpha;
         double dist = 0.66666666666666*(Radius*sin_alpha/alpha);
@@ -1648,7 +1707,7 @@ namespace Kratos {
 
                 double cos_alpha = GeometryFunctions::DotProduct(a,normal_outwards)/(GeometryFunctions::module(a)*GeometryFunctions::module(normal_outwards));
                 double alpha = acos(cos_alpha);
-                double sin_alpha = sin(alpha);
+                double sin_alpha = std::sin(alpha);
 
                 AreaSegC = Radius_SQ*(alpha-sin_alpha*cos_alpha);
 

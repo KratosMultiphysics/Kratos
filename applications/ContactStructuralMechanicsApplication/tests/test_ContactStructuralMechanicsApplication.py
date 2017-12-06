@@ -11,6 +11,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 ## SMALL TESTS
 # Exact integration tests
 from test_double_curvature_integration import TestDoubleCurvatureIntegration as TTestDoubleCurvatureIntegration
+from test_mortar_mapper import TestMortarMapping as TTestMortarMapping
 
 # Mesh tying tests
 from SmallTests import SimplePatchTestTwoDMeshTying      as TSimplePatchTestTwoDMeshTying
@@ -49,6 +50,9 @@ from NightlyTests import ALMHertzCompleteTestContact         as TALMHertzComplet
 # ALM frictionless tests
 from ValidationTests import ALMIroningTestContact    as TALMIroningTestContact
 from ValidationTests import ALMIroningDieTestContact as TALMIroningDieTestContact
+from ValidationTests import LargeDisplacementPatchTestHexa as TLargeDisplacementPatchTestHexa
+from ValidationTests import ALMLargeDisplacementPatchTestTetra as TALMLargeDisplacementPatchTestTetra
+from ValidationTests import ALMLargeDisplacementPatchTestHexa as TALMLargeDisplacementPatchTestHexa
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -67,7 +71,18 @@ def AssambleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
     # Exact integration tests
-    smallSuite.addTest(TTestDoubleCurvatureIntegration('test_double_curvature_integration'))
+    smallSuite.addTest(TTestDoubleCurvatureIntegration('test_double_curvature_integration_triangle'))
+    smallSuite.addTest(TTestDoubleCurvatureIntegration('test_double_curvature_integration_quad'))
+    smallSuite.addTest(TTestDoubleCurvatureIntegration('test_moving_mesh_integration_quad'))
+    
+    # Mortar mapping
+    smallSuite.addTest(TTestMortarMapping('test_basic_mortar_mapping_triangle'))
+    smallSuite.addTest(TTestMortarMapping('test_basic_mortar_mapping_quad'))
+    smallSuite.addTest(TTestMortarMapping('test_less_basic_mortar_mapping_triangle'))
+    smallSuite.addTest(TTestMortarMapping('test_less_basic_2_mortar_mapping_triangle'))
+    smallSuite.addTest(TTestMortarMapping('test_simple_curvature_mortar_mapping_triangle'))
+    smallSuite.addTest(TTestMortarMapping('test_mortar_mapping_triangle'))
+    smallSuite.addTest(TTestMortarMapping('test_mortar_mapping_quad'))
     
     # Mesh tying tests 
     smallSuite.addTest(TSimplePatchTestTwoDMeshTying('test_execution'))
@@ -108,13 +123,17 @@ def AssambleTestSuites():
     validationSuite.addTests(nightSuite)
     #validationSuite.addTest(TALMIroningTestContact('test_execution'))
     #validationSuite.addTest(TALMIroningDieTestContact('test_execution'))
-
+    validationSuite.addTest(TLargeDisplacementPatchTestHexa('test_execution'))
+    validationSuite.addTest(TALMLargeDisplacementPatchTestTetra('test_execution'))
+    validationSuite.addTest(TALMLargeDisplacementPatchTestHexa('test_execution'))
+    
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             ## SMALL
             TTestDoubleCurvatureIntegration,
+            TTestMortarMapping,
             TSimplePatchTestTwoDMeshTying,
             TSimpleSlopePatchTestTwoDMeshTying,
             TSimplestPatchTestThreeDMeshTying,
@@ -137,7 +156,7 @@ def AssambleTestSuites():
             TALMMeshMovingMatchingTestContact,
             TALMMeshMovingNotMatchingTestContact,
             TALMTaylorPatchTestContact,
-            TALMTaylorPatchDynamicTestContact, # NOTE: Check that in debug dynamic gives an error
+            TALMTaylorPatchDynamicTestContact,
             TALMHertzSimpleTestContact,
             TALMHertzSimpleSphereTestContact,
             ##TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
@@ -145,6 +164,9 @@ def AssambleTestSuites():
             ## VALIDATION
             ##TALMIroningTestContact,
             ##TALMIroningDieTestContact,
+            TLargeDisplacementPatchTestHexa,
+            TALMLargeDisplacementPatchTestTetra,
+            TALMLargeDisplacementPatchTestHexa,
         ])
     )
 

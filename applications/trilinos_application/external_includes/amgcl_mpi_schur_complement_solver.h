@@ -372,7 +372,9 @@ public:
             mPressureMask.resize( rA.NumMyRows(), false );
 
         int counter = 0;
+#ifdef KRATOS_DEBUG
         int npressures = 0;
+#endif
         for (ModelPart::DofsArrayType::iterator it = rDofSet.begin(); it!=rDofSet.end(); it++)
         {
             if( it->GetSolutionStepValue ( PARTITION_INDEX ) == my_pid )

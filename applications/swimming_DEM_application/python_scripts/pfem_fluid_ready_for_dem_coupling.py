@@ -12,13 +12,13 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication    as KratosSolvers
-import KratosMultiphysics.PfemApplication           as KratosPfem
-import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
+import KratosMultiphysics.PfemApplication               as KratosPfem
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
 import KratosMultiphysics.PfemFluidDynamicsApplication  as KratosPfemFluid
-import KratosPfemFluid
+import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
+import MainFluidPFEM
 
-class Solution(KratosPfemFluid.Solution):    
+class Solution(MainFluidPFEM.Solution):    
 
     def __init__(self):   
         self.pp = self.ProblemParameters()
@@ -62,13 +62,14 @@ class Solution(KratosPfemFluid.Solution):
         # Add variables (always before importing the model part)
         self.solver.AddVariables()
         self.AddFluidVariablesBySwimmingDEMAlgorithm()
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
 
         # Add PfemSolidMechanicsApplication Variables
         import pfem_solid_variables  
         pfem_solid_variables.AddVariables(self.main_model_part) 
         
     def AddFluidVariablesBySwimmingDEMAlgorithm(self):
-        self.vars_man.AddExtraProcessInfoVariablesToFluidModelPart(self.pp, self.main_model_part)
+        self.AddExtraProcessInfoVariablesToFluid()
         self.vars_man.AddNodalVariables(self.main_model_part, self.pp.fluid_vars) 
         
     def GetDeltaTimeFromParameters(self):

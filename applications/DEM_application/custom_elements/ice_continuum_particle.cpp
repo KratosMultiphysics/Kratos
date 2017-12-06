@@ -27,7 +27,7 @@ namespace Kratos {
         
         // IN CASE OF A SINUSOIDAL WATER LEVEL IN XZ:
         // double amplitude = 1.0; double wave_celerity = 1.0; double wavelength = 8.0;
-        // water_level = amplitude * sin ((2.0 * KRATOS_M_PI * ((this->GetGeometry()[0].Coordinates()[0]) - wave_celerity * r_process_info[TIME])) / wavelength);
+        // water_level = amplitude * sin ((2.0 * Globals::Pi * ((this->GetGeometry()[0].Coordinates()[0]) - wave_celerity * r_process_info[TIME])) / wavelength);
         
         // Adding buoyancy and drag. Now a linear (with the velocity) drag law is implemented
         if (this->GetGeometry()[0].Coordinates()[2] < water_level) { // Water level is measured in Z axis

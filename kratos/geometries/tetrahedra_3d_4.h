@@ -226,11 +226,11 @@ public:
     /// Destructor. Does nothing!!!
     ~Tetrahedra3D4() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() override
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Tetrahedra;
     }
-    GeometryData::KratosGeometryType GetGeometryType() override
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Tetrahedra3D4;
     }
@@ -285,21 +285,21 @@ public:
         return typename BaseType::Pointer(new Tetrahedra3D4(ThisPoints));
     }
 
-    Geometry< Point<3> >::Pointer Clone() const override
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    // Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
-        }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //     }
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Tetrahedra3D4< Point<3> >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Tetrahedra3D4< Point<3> >( NewPoints ) );
 
-        return p_clone;
-    }
+    //     return p_clone;
+    // }
 
     //lumping factors for the calculation of the lumped mass matrix
     Vector& LumpingFactors(Vector& rResult) const override
@@ -523,10 +523,12 @@ public:
       const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
       const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
 
-      auto c012 = MathUtils<double>::CrossProduct(rP1-rP0, rP2-rP0);
-      auto c013 = MathUtils<double>::CrossProduct(rP1-rP0, rP3-rP0);
-      auto c023 = MathUtils<double>::CrossProduct(rP2-rP0, rP3-rP0);
-      auto c123 = MathUtils<double>::CrossProduct(rP2-rP1, rP3-rP1);
+      array_1d<double, 3> c012, c013, c023, c123;
+
+      MathUtils<double>::CrossProduct(c012, rP2-rP0, rP1-rP0);
+      MathUtils<double>::CrossProduct(c013, rP3-rP0, rP1-rP0);
+      MathUtils<double>::CrossProduct(c023, rP3-rP0, rP2-rP0);
+      MathUtils<double>::CrossProduct(c123, rP3-rP1, rP2-rP1);
 
       double n012 = std::sqrt(c012[0]*c012[0] + c012[1]*c012[1] + c012[2]*c012[2]);
       double n013 = std::sqrt(c013[0]*c013[0] + c013[1]*c013[1] + c013[2]*c013[2]);
@@ -1129,9 +1131,25 @@ public:
     }
 
 
-    bool HasIntersection(const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint) override
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
     {
-        return true;
+        using Triangle3D3Type = Triangle3D3<TPointType>;
+        // Check if faces have intersection
+        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(2), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(3), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Triangle3D3Type(this->pGetPoint(2),this->pGetPoint(3), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        
+        CoordinatesArrayType local_coordinates;
+        // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
+        if(IsInside(rLowPoint,local_coordinates))
+            return true;
+
+        return false;
     }
 
 
@@ -1297,12 +1315,10 @@ public:
         array_1d<double, 3> edge21 = geom_1[2].Coordinates() - geom_1[1].Coordinates();
         array_1d<double, 3> edge31 = geom_1[3].Coordinates() - geom_1[1].Coordinates();
 
-
-        plane[0].mNormal = MathUtils<double>::UnitCrossProduct(edge20,edge10);  // <v0,v2,v1>
-        plane[1].mNormal = MathUtils<double>::UnitCrossProduct(edge10,edge30);  // <v0,v1,v3>
-        plane[2].mNormal = MathUtils<double>::UnitCrossProduct(edge30,edge20);  // <v0,v3,v2>
-        plane[3].mNormal = MathUtils<double>::UnitCrossProduct(edge21,edge31);  // <v1,v2,v3>
-
+        MathUtils<double>::UnitCrossProduct(plane[0].mNormal, edge10, edge20);  // <v0,v2,v1>
+        MathUtils<double>::UnitCrossProduct(plane[1].mNormal, edge30, edge10);  // <v0,v1,v3>
+        MathUtils<double>::UnitCrossProduct(plane[2].mNormal, edge20, edge30);  // <v0,v3,v2>
+        MathUtils<double>::UnitCrossProduct(plane[3].mNormal, edge31, edge21);  // <v1,v2,v3>
 
         double det = inner_prod(edge10, plane[3].mNormal);
         if (det < 0.00)

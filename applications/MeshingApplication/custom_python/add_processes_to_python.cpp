@@ -31,7 +31,7 @@
 // #include "custom_processes/embedded_mesh_locator_process.h"
 
 #ifdef INCLUDE_MMG
-    #include "custom_processes/mmg_process.h"
+#include "custom_processes/mmg_process.h"
 #endif
 
 namespace Kratos
@@ -39,7 +39,7 @@ namespace Kratos
 
 namespace Python
 {
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
         
 void  AddProcessesToPython()
 {
@@ -106,14 +106,14 @@ void  AddProcessesToPython()
         ;
         
         // HESSIAN ARRAY 1D
-        class_<ComputeHessianSolMetricProcess<2, component_type>, bases<Process> >("ComputeHessianSolMetricProcessComp2D", init<ModelPart&, component_type&>())
-        .def(init<ModelPart&, component_type&, Parameters>())
-        .def("Execute",&ComputeHessianSolMetricProcess<2, component_type>::Execute)
+        class_<ComputeHessianSolMetricProcess<2, ComponentType>, bases<Process> >("ComputeHessianSolMetricProcessComp2D", init<ModelPart&, ComponentType&>())
+        .def(init<ModelPart&, ComponentType&, Parameters>())
+        .def("Execute",&ComputeHessianSolMetricProcess<2, ComponentType>::Execute)
         ;
         
-        class_<ComputeHessianSolMetricProcess<3, component_type>, bases<Process> >("ComputeHessianSolMetricProcessComp3D", init<ModelPart&, component_type&>())
-        .def(init<ModelPart&, component_type&, Parameters>())
-        .def("Execute",&ComputeHessianSolMetricProcess<3, component_type>::Execute)
+        class_<ComputeHessianSolMetricProcess<3, ComponentType>, bases<Process> >("ComputeHessianSolMetricProcessComp3D", init<ModelPart&, ComponentType&>())
+        .def(init<ModelPart&, ComponentType&, Parameters>())
+        .def("Execute",&ComputeHessianSolMetricProcess<3, ComponentType>::Execute)
         ;
         
         // ERROR
@@ -128,21 +128,21 @@ void  AddProcessesToPython()
         ;
         
         /* MMG PROCESS */
-        #ifdef INCLUDE_MMG
-            // 2D
-            class_<MmgProcess<2>, boost::noncopyable >
-            ("MmgProcess2D", init<ModelPart&>())
-            .def(init<ModelPart&, Parameters>())
-            .def("Execute", &MmgProcess<2>::Execute)
-            ;
-            
-            // 3D
-            class_<MmgProcess<3>, boost::noncopyable >
-            ("MmgProcess3D", init<ModelPart&>())
-            .def(init<ModelPart&, Parameters>())
-            .def("Execute", &MmgProcess<3>::Execute)
-            ;
-        #endif  
+    #ifdef INCLUDE_MMG
+        // 2D
+        class_<MmgProcess<2>, boost::noncopyable >
+        ("MmgProcess2D", init<ModelPart&>())
+        .def(init<ModelPart&, Parameters>())
+        .def("Execute", &MmgProcess<2>::Execute)
+        ;
+        
+        // 3D
+        class_<MmgProcess<3>, boost::noncopyable >
+        ("MmgProcess3D", init<ModelPart&>())
+        .def(init<ModelPart&, Parameters>())
+        .def("Execute", &MmgProcess<3>::Execute)
+        ;
+    #endif  
 }
 
 }  // namespace Python.

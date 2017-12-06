@@ -339,7 +339,7 @@ int main() {
     
     double diameter = 2 * Radius;
     
-    double characteristic_size = 2 * std::pow(3 * total_volume / (4 * M_PI), 0.33333333333333333);
+    double characteristic_size = 2 * std::pow(3 * total_volume / (4 * Globals::Pi), 0.33333333333333333);
     
     std::cout << "\nThe diameter is: " << diameter << "\n\n";
     
@@ -445,7 +445,7 @@ void Diagonalize(const double (&A)[3][3], double (&Q)[3][3], double (&D)[3][3]) 
         if (c == 1.0) break;  // No room for improvement, reached machine precision.
         
         jr[0 ]  = jr[1] = jr[2] = jr[3] = 0.0;
-        jr[k0]  = sgn * sqrt((1.0-c)/2.0);  // using 1/2 angle identity sin(a/2) = sqrt((1-cos(a))/2)
+        jr[k0]  = sgn * sqrt((1.0-c)/2.0);  // using 1/2 angle identity std::sin(a/2) = sqrt((1-cos(a))/2)
         jr[k0] *= -1.0; // since our quat-to-matrix convention was for v*M instead of M*v
         jr[3 ]  = sqrt(1.0f - jr[k0] * jr[k0]);
         

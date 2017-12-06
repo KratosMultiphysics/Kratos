@@ -34,6 +34,7 @@
 #include "utilities/iso_printer.h"
 #include "utilities/activation_utilities.h"
 #include "utilities/convect_particles_utilities.h"
+#include "utilities/condition_number_utility.h"
 
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
@@ -49,6 +50,7 @@
 
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/interval_utility.h"
+#include "utilities/table_stream_utility.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos
@@ -82,6 +84,9 @@ void AddUtilitiesToPython()
     .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
     ;
 
+    class_<ConditionNumberUtility>("ConditionNumberUtility", init<>())
+    .def("GetConditionNumber",&ConditionNumberUtility::GetConditionNumber)
+    ;
 
     class_<VariableUtils > ("VariableUtils", init<>())
     .def("SetVectorVar", &VariableUtils::SetVectorVar)
@@ -268,7 +273,6 @@ void AddUtilitiesToPython()
     .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabase)
     .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
     .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
-    .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
     ;
 
     class_< BinBasedFastPointLocator < 3 > > ("BinBasedFastPointLocator3D", init<ModelPart&  >())
@@ -315,6 +319,11 @@ void AddUtilitiesToPython()
     .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
     .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
     .def("IsInInterval", &IntervalUtility ::IsInInterval)
+    ;
+    
+    // Adding table from table stream to python
+    class_<TableStreamUtility>("TableStreamUtility", init<>())
+    .def(init< bool >())
     ;
     
     // Exact integration (for testing)

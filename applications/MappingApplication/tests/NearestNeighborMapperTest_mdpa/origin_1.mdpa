@@ -1,0 +1,337 @@
+Begin ModelPartData
+
+End ModelPartData
+Begin Properties 0
+End Properties
+Begin Properties 2
+    DENSITY   7.85000E+03 
+    VISCOSITY   1.00000E-06 
+End Properties
+Begin Nodes 
+34	0.01401	-0.35733	0.00000
+29	0.01262	-0.04000	0.00000
+7	0.19212	-0.17700	0.00000
+30	0.13799	-0.03012	0.10978
+24	-0.15559	0.35500	0.00000
+45	-0.03937	0.10915	0.16297
+59	-0.00052	-0.01962	0.25000
+14	0.03398	0.21551	0.00000
+1	0.19244	0.10660	0.00000
+42	0.18428	-0.19133	0.25000
+2	0.32613	0.01200	0.00000
+26	-0.18994	0.24946	0.25000
+4	0.27504	0.07646	0.10536
+6	0.19885	0.29804	0.00000
+3	0.34366	0.15961	0.00000
+70	0.07538	0.35755	0.13463
+15	0.18912	0.19512	0.25000
+54	0.15200	0.50000	0.00000
+5	0.50000	0.19874	0.00000
+46	0.33769	0.30627	0.13691
+71	-0.00077	0.50000	0.25000
+10	0.50000	-0.00077	0.25000
+53	0.33210	0.50000	0.00000
+12	0.50000	0.30456	0.00000
+48	0.27488	0.50000	0.25000
+13	0.50000	0.27488	0.25000
+63	0.50000	0.50000	0.00000
+47	0.50000	0.50000	0.25000
+End Nodes
+Begin Elements Element3D4N
+1	2	1	2	3	4	
+2	2	2	3	4	5	
+3	2	3	1	4	6	
+4	2	1	2	4	7	
+9	2	3	5	12	13	
+10	2	1	6	14	15	
+14	2	3	4	5	13	
+16	2	29	7	1	30	
+23	2	14	29	1	30	
+28	2	7	1	30	4	
+29	2	1	30	4	15	
+30	2	30	4	15	42	
+31	2	4	1	15	6	
+32	2	29	7	30	34	
+36	2	4	2	5	10	
+47	2	4	3	6	46	
+48	2	4	3	46	13	
+49	2	3	6	46	12	
+50	2	46	3	12	13	
+51	2	12	46	13	47	
+52	2	46	13	47	48	
+59	2	53	54	6	48	
+74	2	29	14	45	30	
+76	2	30	45	59	15	
+79	2	29	30	59	34	
+80	2	59	30	15	42	
+82	2	30	45	15	14	
+92	2	63	53	12	47	
+104	2	46	4	13	15	
+105	2	46	4	15	6	
+113	2	1	30	15	14	
+116	2	14	6	54	70	
+117	2	14	6	70	15	
+118	2	6	70	15	46	
+119	2	6	54	70	48	
+120	2	70	15	46	48	
+122	2	70	14	15	45	
+123	2	15	70	45	26	
+131	2	13	46	15	48	
+140	2	6	46	12	53	
+141	2	6	70	46	48	
+144	2	6	46	53	48	
+145	2	70	15	48	71	
+146	2	48	70	71	54	
+147	2	70	71	54	24	
+148	2	47	46	48	53	
+153	2	46	12	53	47	
+154	2	70	14	45	26	
+157	2	70	15	71	26	
+167	2	54	14	70	24	
+168	2	14	70	24	26	
+169	2	5	4	10	13	
+173	2	4	13	15	10	
+174	2	15	4	10	42	
+End Elements
+Begin Conditions Condition3D
+1	0	63	53	12	
+18	0	29	34	7	
+21	0	29	7	1	
+26	0	7	2	1	
+27	0	1	2	3	
+28	0	3	2	5	
+29	0	3	5	12	
+30	0	3	12	6	
+31	0	1	3	6	
+32	0	6	12	53	
+33	0	1	6	14	
+34	0	14	29	1	
+36	0	24	14	54	
+46	0	53	54	6	
+52	0	14	6	54	
+End Conditions
+Begin SubModelPart Parts_vol_orig_fluid
+Begin SubModelPartNodes 
+34
+29
+7
+30
+24
+45
+59
+14
+1
+42
+2
+26
+4
+6
+3
+70
+15
+54
+5
+46
+71
+10
+53
+12
+48
+13
+63
+47
+End SubModelPartNodes
+Begin SubModelPartElements 
+1
+2
+3
+4
+9
+10
+14
+16
+23
+28
+29
+30
+31
+32
+36
+47
+48
+49
+50
+51
+52
+59
+74
+76
+79
+80
+82
+92
+104
+105
+113
+116
+117
+118
+119
+120
+122
+123
+131
+140
+141
+144
+145
+146
+147
+148
+153
+154
+157
+167
+168
+169
+173
+174
+End SubModelPartElements
+Begin SubModelPartConditions 
+End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart FluidNoSlipInterface3D_interface_orig_fluid
+Begin SubModelPartNodes 
+34
+29
+7
+24
+14
+1
+2
+6
+3
+54
+5
+53
+12
+63
+End SubModelPartNodes
+Begin SubModelPartElements 
+End SubModelPartElements
+Begin SubModelPartConditions 
+1
+18
+21
+26
+27
+28
+29
+30
+31
+32
+33
+34
+36
+46
+52
+End SubModelPartConditions
+End SubModelPart
+Begin NodalData PARTITION_INDEX
+1  0  1
+2  0  0
+3  0  1
+4  0  1
+5  0  1
+6  0  1
+7  0  0
+10  0  0
+12  0  1
+13  0  1
+14  0  1
+15  0  1
+24  0  2
+26  0  3
+29  0  1
+30  0  1
+34  0  2
+42  0  0
+45  0  3
+46  0  1
+47  0  1
+48  0  1
+53  0  1
+54  0  1
+59  0  3
+63  0  1
+70  0  1
+71  0  2
+End NodalData 
+Begin CommunicatorData 
+NEIGHBOURS_INDICES    [8](0,3,2,-1,-1,-1,-1,-1)
+NUMBER_OF_COLORS    3
+    Begin LocalNodes 0
+    1
+    3
+    4
+    5
+    6
+    12
+    13
+    14
+    15
+    29
+    30
+    46
+    47
+    48
+    53
+    54
+    63
+    70
+    End LocalNodes 
+    Begin LocalNodes 1
+    4
+    5
+    30
+    End LocalNodes 
+    Begin LocalNodes 2
+    14
+    15
+    29
+    30
+    End LocalNodes 
+    Begin LocalNodes 3
+    29
+    54
+    70
+    End LocalNodes 
+    Begin GhostNodes 1
+    2
+    7
+    10
+    42
+    End GhostNodes 
+    Begin GhostNodes 2
+    26
+    45
+    59
+    End GhostNodes 
+    Begin GhostNodes 3
+    24
+    34
+    71
+    End GhostNodes 
+    Begin GhostNodes 0
+    2
+    7
+    10
+    24
+    26
+    34
+    42
+    45
+    59
+    71
+    End GhostNodes 
+End CommunicatorData 
