@@ -23,7 +23,7 @@ else()
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3" )
 endif()
 
-add_definitions( -DNDEBUG -DEIGEN_DEFAULT_TO_ROW_MAJOR )
+add_definitions( -DNDEBUG -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
 
 include_directories(
 	${CMAKE_SOURCE_DIR}/kratos
