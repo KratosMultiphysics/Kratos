@@ -288,4 +288,54 @@ void Triangle2D3ModifiedShapeFunctions::ComputeNegativeSideInterfaceAreaNormals(
     }
 };
 
+// For a given face, computes the positive side face outwards area normal vector values.
+void Triangle2D3ModifiedShapeFunctions::ComputePositiveExteriorFaceAreaNormals(
+    std::vector<Vector> &rPositiveExteriorFaceAreaNormal,
+    const unsigned int FaceId,
+    const IntegrationMethodType IntegrationMethod) {
+
+    if (this->IsSplit()) {
+        // Get the external faces
+        std::vector<unsigned int> exterior_faces_parent_ids_vector;
+        std::vector<IndexedPointGeometryPointerType> exterior_faces_vector;
+        mpTriangleSplitter->GenerateExteriorFaces(
+            exterior_faces_vector,
+            exterior_faces_parent_ids_vector,
+            mpTriangleSplitter->mPositiveSubdivisions,
+            FaceId);
+        
+        // Compute the positive side interface outwars area normal values
+        this->ComputeInterfaceNormalOnOneSide(rPositiveExteriorFaceAreaNormal,
+                                              exterior_faces_vector,
+                                              IntegrationMethod);
+    } else {
+        KRATOS_ERROR << "Using the ComputePositiveExteriorFaceAreaNormals method for a non divided geometry.";
+    }
+};
+
+// For a given face, computes the positive side face outwards area normal vector values.
+void Triangle2D3ModifiedShapeFunctions::ComputeNegativeExteriorFaceAreaNormals(
+    std::vector<Vector> &rNegativeExteriorFaceAreaNormal,
+    const unsigned int FaceId,
+    const IntegrationMethodType IntegrationMethod) {
+
+    if (this->IsSplit()) {
+        // Get the external faces
+        std::vector<unsigned int> exterior_faces_parent_ids_vector;
+        std::vector<IndexedPointGeometryPointerType> exterior_faces_vector;
+        mpTriangleSplitter->GenerateExteriorFaces(
+            exterior_faces_vector,
+            exterior_faces_parent_ids_vector,
+            mpTriangleSplitter->mNegativeSubdivisions,
+            FaceId);
+
+        // Compute the positive side interface outwars area normal values
+        this->ComputeInterfaceNormalOnOneSide(rNegativeExteriorFaceAreaNormal,
+                                              exterior_faces_vector,
+                                              IntegrationMethod);
+    } else {
+        KRATOS_ERROR << "Using the ComputeNegativeExteriorFaceAreaNormals method for a non divided geometry.";
+    }
+};
+
 }; //namespace Kratos

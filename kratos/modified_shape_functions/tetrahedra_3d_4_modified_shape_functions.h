@@ -202,6 +202,26 @@ public:
         const IntegrationMethodType IntegrationMethod) override;
 
     /**
+    * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
+    * @return rPositiveExteriorFaceAreaNormal: Outwards area normal vector list.
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    void ComputePositiveExteriorFaceAreaNormals(
+        std::vector<Vector> &rPositiveExteriorFaceAreaNormal,
+        const unsigned int FaceId,
+        const IntegrationMethodType IntegrationMethod) override;
+
+    /**
+    * Returns the negative side outwards area normal vector values for the Gauss pts. of given quadrature.
+    * @return rNegativeExteriorFaceAreaNormal: Outwards area normal vector list.
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    void ComputeNegativeExteriorFaceAreaNormals(
+        std::vector<Vector> &rNegativeExteriorFaceAreaNormal,
+        const unsigned int FaceId,
+        const IntegrationMethodType IntegrationMethod) override;
+
+    /**
     * Returns true if the element is split and false otherwise.
     */
     bool IsSplit() override;
