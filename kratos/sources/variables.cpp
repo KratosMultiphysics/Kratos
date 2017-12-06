@@ -61,6 +61,8 @@
 
 #include "includes/kratos_flags.h"
 
+#include "includes/linear_solver_factory.h"
+
 namespace Kratos
 {
   typedef array_1d<double,3> Vector3;
@@ -581,7 +583,8 @@ namespace Kratos
 
   void KratosApplication::RegisterVariables()
   {
-
+        RegisterLinearSolvers();
+        RegisterPreconditioners();
       KratosApplication::RegisterDeprecatedVariables();
       KratosApplication::RegisterC2CVariables(); //TODO: move to application
       KratosApplication::RegisterCFDVariables(); //TODO: move to application
