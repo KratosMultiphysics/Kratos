@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela
+//  Main author:     Ruben Zorrilla
+//  Co-authors:      Jordi Cotela
 //
 
 #ifndef KRATOS_EMBEDDED_FLUID_ELEMENT_H
