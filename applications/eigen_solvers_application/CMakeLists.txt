@@ -1,13 +1,13 @@
-#
+# 
 #   KRATOS _______
 #         / ____(_)___ ____  ____
 #        / __/ / / __ `/ _ \/ __ \
 #       / /___/ / /_/ /  __/ / / /
 #      /_____/_/\__, /\___/_/ /_/ SolversApplication
 #              /____/
-#
+# 
 #   Author: Thomas Oberbichler
-#
+# 
 
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
@@ -20,10 +20,10 @@ endif()
 if( MSVC )
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox" )
 else()
-	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_rt -lpthread -lm -ldl" )
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3" )
 endif()
 
-add_definitions( -DNDEBUG -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY)
+add_definitions( -DNDEBUG -DEIGEN_DEFAULT_TO_ROW_MAJOR )
 
 include_directories(
 	${CMAKE_SOURCE_DIR}/kratos
@@ -39,8 +39,8 @@ else()
 endif()
 
 ## generate variables with the sources
-set( KRATOS_EIGENSOLVERS_APPLICATION_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/eigen_solvers_application.cpp
+set( KRATOS_EIGENSOLVERS_APPLICATION_SOURCES     
+	${CMAKE_CURRENT_SOURCE_DIR}/eigen_solvers_application.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/eigen_solvers_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )
@@ -51,20 +51,18 @@ add_library( KratosEigenSolversApplication SHARED ${KRATOS_EIGENSOLVERS_APPLICAT
 target_link_libraries( KratosEigenSolversApplication KratosCore )
 
 if( DEFINED ENV{MKLROOT} )
-	if( MSVC )
-		target_link_libraries( KratosEigenSolversApplication
-			mkl_intel_lp64_dll.lib
-			mkl_tbb_thread_dll.lib
-			mkl_core_dll.lib
-			tbb.lib
-		)
-	endif()
-endif()
-
+	target_link_libraries( KratosEigenSolversApplication 
+		mkl_intel_lp64_dll.lib
+		mkl_tbb_thread_dll.lib
+		mkl_core_dll.lib
+		tbb.lib
+	)
+endif ()
+	
 set_target_properties( KratosEigenSolversApplication PROPERTIES PREFIX "" )
 install( TARGETS KratosEigenSolversApplication DESTINATION libs )
 
-# changing the .dll suffix to .pyd
+# changing the .dll suffix to .pyd 
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 	set_target_properties( KratosEigenSolversApplication PROPERTIES SUFFIX .pyd )
 endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
