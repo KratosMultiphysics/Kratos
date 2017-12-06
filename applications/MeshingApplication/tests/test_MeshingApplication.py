@@ -33,7 +33,6 @@ from SmallTests  import ThreeDDynamicBeamTest               as TThreeDDynamicBea
 from SmallTests  import TwoDDynamicPlasticBeamTest          as TTwoDDynamicPlasticBeamTest
 
 ## NIGHTLY TESTS
-from NightlyTests import StanfordBunnyTest                  as TStanfordBunnyTest
 
 ## VALIDATION TESTS 
 from ValidationTests import TwoDSphereRemeshedChannelTest   as TTwoDSphereRemeshedChannelTest
@@ -78,11 +77,11 @@ def AssambleTestSuites():
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        if (missing_external_fluid_dependencies == False):
-            nightSuite.addTest(TStanfordBunnyTest('test_execution'))
-    else:
-        print("MMG process is not compiled and the corresponding tests will not be executed")
+    #if( hasattr(MeshingApplication,  "MmgProcess2D") ):
+        #if (missing_external_fluid_dependencies == False):
+            #nightSuite.addTest()
+    #else:
+        #print("MMG process is not compiled and the corresponding tests will not be executed")
     
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
@@ -112,7 +111,6 @@ def AssambleTestSuites():
                     TThreeDHessianTest,
                     TTwoDCavityTest,
                     TTestRemeshMMG,
-                    #TStanfordBunnyTest,
                     #TTwoDSphereRemeshedChannelTest,
                     #TThreeDSphereRemeshedChannelTest,
                 ])
