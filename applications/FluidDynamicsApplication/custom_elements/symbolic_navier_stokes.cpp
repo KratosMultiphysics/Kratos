@@ -144,7 +144,44 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
     TElementData& rData, const Vector& rUnitNormal, MatrixType& rLHS,
     VectorType& rRHS) {
 
+    // Set the current Gauss pt. Voigt notation normal projection matrix
+    bounded_matrix<double, Dim, (Dim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(Dim, (Dim-1)*3);
+    this->SetVoigtNormalProjectionMatrix(rUnitNormal, voigt_normal_projection_matrix);
+
+    // Set the current Gauss pt. strain matrix
+    bounded_matrix<double, (Dim-1)*3, LocalSize> B_matrix = ZeroMatrix((Dim-1)*3, LocalSize);
+    this->SetInterfaceStrainMatrix(rData.DN_DX, B_matrix);
     
+    // Compute some Gauss pt. auxiliar matrices
+    const bounded_matrix<double, Dim, (Dim-1)*3> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
+    const bounded_matrix<double, (Dim-1)*3, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
+
+    // Fill the pressure to Voigt notation operator matrix
+    bounded_matrix<double, (Dim-1)*3, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix((Dim-1)*3, LocalSize);
+    for (unsigned int i=0; i<NumNodes; ++i) {
+        for (unsigned int comp=0; comp<Dim; ++comp) {
+            pres_to_voigt_matrix_op(comp, i*BlockSize+Dim) = aux_N(i);
+        }
+    }
+
+    // Set the shape functions auxiliar transpose matrix
+    bounded_matrix<double, LocalSize, Dim> N_aux_trans = ZeroMatrix(LocalSize, Dim);
+    for (unsigned int i=0; i<NumNodes; ++i) {
+        for (unsigned int comp=0; comp<TDim; ++comp) {
+            N_aux_trans(i*BlockSize+comp, comp) = aux_N(i);
+        }
+    }
+
+    // Contribution coming fron the shear stress operator
+    noalias(rData.lhs) = prod(N_aux_trans, aux_matrix_ACB);
+
+    // Contribution coming from the pressure terms
+    const bounded_matrix<double, MatrixSize, (Dim-1)*3> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
+    noalias(rData.lhs) -= prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
+    
+    rData.lhs *= rData.Weight;
+    noalias(rLHS) -= rData.lhs;
+    noalias(rRHS) += prod(rData.lhs,Values);
 }
 
 template <>
