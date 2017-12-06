@@ -20,7 +20,7 @@ endif()
 if( MSVC )
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox" )
 else()
-	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3" )
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_rt -lpthread -lm -ldl" )
 endif()
 
 add_definitions( -DNDEBUG -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
