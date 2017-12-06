@@ -122,11 +122,11 @@ class EigenDirectSolver
             index2_vector[i] = (int)rA.index2_data()[i];
         }
 
-        Eigen::Map< typename TSolver::TSparseMatrix> a(rA.size1(), rA.size2(), rA.nnz(), index1_vector.data(), index2_vector.data(), rA.value_data().begin());
+        Eigen::Map<TSolver::TSparseMatrix> a(rA.size1(), rA.size2(), rA.nnz(), index1_vector.data(), index2_vector.data(), rA.value_data().begin());
         Eigen::Map<Eigen::VectorXd> x(rX.data().begin(), rX.size());
         Eigen::Map<Eigen::VectorXd> b(rB.data().begin(), rB.size());
 
-        typename TSolver::TSolver solver;
+        TSolver::TSolver solver;
         solver.compute(a);
         x = solver.solve(b);
 
