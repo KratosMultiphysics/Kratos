@@ -132,7 +132,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunctio
                                     mpTriangleSplitter->mSplitEdges);
 
         // Compute the positive side interface values
-        this->ComputeInterfaceValuesOnOneSide(rInterfacePositiveSideShapeFunctionsValues,
+        this->ComputeFaceValuesOnOneSide(rInterfacePositiveSideShapeFunctionsValues,
                                               rInterfacePositiveSideShapeFunctionsGradientsValues,
                                               rInterfacePositiveSideWeightsValues,
                                               mpTriangleSplitter->mPositiveInterfaces,
@@ -161,7 +161,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunctio
                                     mpTriangleSplitter->mSplitEdges);
 
         // Compute the positive side interface values
-        this->ComputeInterfaceValuesOnOneSide(rInterfaceNegativeSideShapeFunctionsValues,
+        this->ComputeFaceValuesOnOneSide(rInterfaceNegativeSideShapeFunctionsValues,
                                               rInterfaceNegativeSideShapeFunctionsGradientsValues,
                                               rInterfaceNegativeSideWeightsValues,
                                               mpTriangleSplitter->mNegativeInterfaces,
@@ -201,7 +201,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFunction
             FaceId);
         
         // Compute the positive side external face values
-        this->ComputeInterfaceValuesOnOneSide(
+        this->ComputeFaceValuesOnOneSide(
             rPositiveExteriorFaceShapeFunctionsValues,
             rPositiveExteriorFaceShapeFunctionsGradientsValues,
             rPositiveExteriorFaceWeightsValues,
@@ -243,7 +243,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeFunction
             FaceId);
         
         // Compute the positive side external face values
-        this->ComputeInterfaceValuesOnOneSide(
+        this->ComputeFaceValuesOnOneSide(
             rNegativeExteriorFaceShapeFunctionsValues,
             rNegativeExteriorFaceShapeFunctionsGradientsValues,
             rNegativeExteriorFaceWeightsValues,
@@ -265,7 +265,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputePositiveSideInterfaceAreaNormals(
 
     if (this->IsSplit()) {
         // Compute the positive side interface outwars area normal values
-        this->ComputeInterfaceNormalOnOneSide(rPositiveSideInterfaceAreaNormal,
+        this->ComputeFaceNormalOnOneSide(rPositiveSideInterfaceAreaNormal,
                                               mpTriangleSplitter->mPositiveInterfaces,
                                               IntegrationMethod);
     } else {
@@ -280,7 +280,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeNegativeSideInterfaceAreaNormals(
 
     if (this->IsSplit()) {
         // Compute the positive side interface outwars area normal values
-        this->ComputeInterfaceNormalOnOneSide(rNegativeSideInterfaceAreaNormal,
+        this->ComputeFaceNormalOnOneSide(rNegativeSideInterfaceAreaNormal,
                                               mpTriangleSplitter->mNegativeInterfaces,
                                               IntegrationMethod);
     } else {
@@ -305,7 +305,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputePositiveExteriorFaceAreaNormals(
             FaceId);
         
         // Compute the positive side interface outwars area normal values
-        this->ComputeInterfaceNormalOnOneSide(rPositiveExteriorFaceAreaNormal,
+        this->ComputeFaceNormalOnOneSide(rPositiveExteriorFaceAreaNormal,
                                               exterior_faces_vector,
                                               IntegrationMethod);
     } else {
@@ -330,7 +330,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeNegativeExteriorFaceAreaNormals(
             FaceId);
 
         // Compute the positive side interface outwars area normal values
-        this->ComputeInterfaceNormalOnOneSide(rNegativeExteriorFaceAreaNormal,
+        this->ComputeFaceNormalOnOneSide(rNegativeExteriorFaceAreaNormal,
                                               exterior_faces_vector,
                                               IntegrationMethod);
     } else {

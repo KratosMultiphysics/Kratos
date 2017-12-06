@@ -298,7 +298,7 @@ protected:
     * @param rPmatrix: reference to the interface interpolation matrix
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void ComputeInterfaceValuesOnOneSide(
+    virtual void ComputeFaceValuesOnOneSide(
         Matrix &rInterfaceShapeFunctionsValues,
         ShapeFunctionsGradientsType &rInterfaceShapeFunctionsGradientsValues,
         Vector &rInterfaceWeightsValues,
@@ -314,7 +314,7 @@ protected:
     * @param rInterfacesVector: std::vector of intersection point based geometries where the values are to be computed.
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void ComputeInterfaceNormalOnOneSide(
+    virtual void ComputeFaceNormalOnOneSide(
         std::vector<Vector> &rInterfaceAreaNormalValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const IntegrationMethodType IntegrationMethod);
