@@ -23,21 +23,37 @@ class Solution(BaseAlgorithm):
         return self.solver_strategy.SwimmingStrategy(self.all_model_parts,
                                                      self.creator_destructor,
                                                      self.dem_fem_search,
-                                                     self.scheme,
                                                      self.pp.CFD_DEM,
                                                      self.procedures)
 
-    def SelectScheme(self):
-        scheme = BaseAlgorithm.SelectScheme(self)
-        if scheme == None:
-            if self.pp.CFD_DEM["IntegrationScheme"].GetString() == 'Hybrid_Bashforth':
+    def SelectTranslationalScheme(self):
+        translational_scheme = BaseAlgorithm.SelectTranslationalScheme(self)
+        if translational_scheme == None:
+            if (self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString() == 'Hybrid_Bashforth'):
                 return HybridBashforthScheme()
-            elif self.pp.CFD_DEM["IntegrationScheme"].GetString() == "TerminalVelocityScheme":
+            elif (self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString() == "TerminalVelocityScheme"):
                 return TerminalVelocityScheme()
             else:
                 return None
         else:
-            return scheme
+            return translational_scheme
+        
+    def SelectRotationalScheme(self):
+        rotational_scheme = BaseAlgorithm.SelectRotationalScheme(self)
+        if rotational_scheme == None:
+            if (self.pp.CFD_DEM["RotationalIntegrationScheme"].GetString() == 'Direct_Integration'):
+                if (self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString() == 'Hybrid_Bashforth'):
+                    return HybridBashforthScheme()
+                elif (self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString() == 'TerminalVelocityScheme'):
+                    return TerminalVelocityScheme()
+            elif (self.pp.CFD_DEM["RotationalIntegrationScheme"].GetString() == 'Runge_Kutta'):
+                return RungeKuttaScheme()
+            elif (self.pp.CFD_DEM["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration'):
+                return QuaternionIntegrationScheme()
+            else:
+                return None
+        else:
+            return rotational_scheme
 
     def BaseReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
         super(Solution, self).ReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
