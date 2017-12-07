@@ -132,6 +132,7 @@ void PrestressMembraneElement::Initialize()
     // Initialize Variables
     mdensity = GetProperties()[DENSITY];
     mThickness = 0.00;
+    mAnisotropicPrestress = GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL) && GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL);
 
     mTotalDomainInitialSize = 0.00;
    
@@ -883,20 +884,38 @@ void PrestressMembraneElement::CalculateAll(
 
         StrainDeformation = prod(trans(D), CartesianStrainVector);
 
-        array_1d<double,3> pre_stress_tensor;   // Vector with the Cauchy Pre-Stress components in local cartesian frame
+        array_1d<double,3> pre_stress_tensor;          // Vector with the global Cauchy Pre-Stress components 
+        array_1d<double,3> pre_stress_axis_global_1;   // Global prestress axis 1
+        array_1d<double,3> pre_stress_axis_global_2;   // Global prestress axis     
         
-        // Getting the prestress values
+        // Getting the prestress values and global prestress axes
 
-        pre_stress_tensor(0) = GetProperties()[MEMBRANE_PRESTRESS](0);
-        pre_stress_tensor(1) = GetProperties()[MEMBRANE_PRESTRESS](1);
-        pre_stress_tensor(2) = GetProperties()[MEMBRANE_PRESTRESS](2);
+        //pre_stress_tensor(0) = GetProperties()[MEMBRANE_PRESTRESS](0);
+        //pre_stress_tensor(1) = GetProperties()[MEMBRANE_PRESTRESS](1);
+        //pre_stress_tensor(2) = GetProperties()[MEMBRANE_PRESTRESS](2);
+        for (unsigned int i=0; i<3; i++){
+            pre_stress_tensor(i) = GetProperties()[MEMBRANE_PRESTRESS](i);
+            if(mAnisotropicPrestress == true){
+                pre_stress_axis_global_1(i) = GetProperties()[PRESTRESS_AXIS_1_GLOBAL](i);
+                pre_stress_axis_global_2(i) = GetProperties()[PRESTRESS_AXIS_2_GLOBAL](i);
+            }
+            
+        }
+        // in case of anisotropic prestress: hardcode the prestress direction
+        if (mAnisotropicPrestress == false){
+            pre_stress_axis_global_1(0) = 1;
+            pre_stress_axis_global_1(1) = 0;
+            pre_stress_axis_global_1(2) = 0;
 
+            pre_stress_axis_global_1(0) = 0;
+            pre_stress_axis_global_1(1) = 1;
+            pre_stress_axis_global_1(2) = 0;
+        }
+        //array_1d<double, 2> par_g1_1;
+        //par_g1_1(0) = 0.0;
+        //par_g1_1(1) = 1.0;
 
-        array_1d<double, 2> par_g1_1;
-        par_g1_1(0) = 0.0;
-        par_g1_1(1) = 1.0;
-
-        CalculateTransMatrixToLocalCartesian(PointNumber, g1, g2, g3, gab, pre_stress_tensor, par_g1_1);
+        CalculateTransMatrixToLocalCartesian(PointNumber, g1, g2, g3, gab, pre_stress_tensor,pre_stress_axis_global_1,pre_stress_axis_global_2 );
 
         // taking out the pre-stress
         // Adding the pre-stress values as forces over length
@@ -1000,6 +1019,7 @@ void PrestressMembraneElement::CalculateAll(
 //
 //    return v;
 //}
+
 
 //************************************************************************************
 //************************************************************************************
@@ -1146,8 +1166,9 @@ void PrestressMembraneElement::CalculateTransMatrixToLocalCartesian(
     array_1d<double, 3>& g2,
     array_1d<double, 3>& g3,
     array_1d<double, 3>& gab,
-    array_1d<double, 3> prestress,
-    array_1d<double, 2> par_g1_1)
+    array_1d<double, 3>& prestress,
+    array_1d<double, 3> GlobalPrestressAxis1,
+    array_1d<double, 3> GlobalPrestressAxis2)
 {
     //if (this->GetId() == 42 && PointNumber == 1)
     //{
@@ -1167,18 +1188,18 @@ void PrestressMembraneElement::CalculateTransMatrixToLocalCartesian(
     array_1d<double, 3> t1; // T1 vector
     array_1d<double, 3> t2; // T2 vector
     array_1d<double, 3> t3; // T3 vector
-    array_1d<double, 3> a;  // A vector for the plane definition
-    array_1d<double, 3> b;  // B vector for the plane definition
+    //array_1d<double, 3> a;  // A vector for the plane definition
+    //array_1d<double, 3> b;  // B vector for the plane definition
     boost::numeric::ublas::bounded_matrix<double, 3, 3> Tm; // Transformation matrix
 
-    // Hardcode the direction vector a, b
-    a(0) = 1.0;
-    a(1) = 0.0;
-    a(2) = 0.0;
+    // in case of isotropic prestress: Hardcode the direction vector a, b
+    //a(0) = 1.0;
+    //a(1) = 0.0;
+    //a(2) = 0.0;
 
-    b(0) = 0.0;
-    b(1) = 1.0;
-    b(2) = 0.0;
+    //b(0) = 0.0;
+    //b(1) = 1.0;
+    //b(2) = 0.0;
 
     //array_1d<double, 3> g1;
     //array_1d<double, 3> g2;
@@ -1211,7 +1232,7 @@ void PrestressMembraneElement::CalculateTransMatrixToLocalCartesian(
     // the Pre-Stress tensor is defined according to the projection definition proposed by Dr. W�chner
 
     // creation of T1 ==> Projection of A on the tangential plane
-    CrossProduct(t1, b, g3);
+    CrossProduct(t1, GlobalPrestressAxis1, g3);
 
     //if (this->GetId() == 42 && PointNumber == 1)
     //    KRATOS_WATCH(t1);

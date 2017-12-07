@@ -136,6 +136,7 @@ namespace Kratos
     std::vector< array_1d<double, 3> > mG1;
     std::vector< array_1d<double, 3> > mG2;
 
+    bool mAnisotropicPrestress;             // determines if isotropic or anisotropic prestress is applied
     array_1d<double, 3> mPreStress;         // Pre-Stress which cannot be read through mpda file. this is a temporary solution
 
 
@@ -282,8 +283,9 @@ namespace Kratos
         array_1d<double, 3>& g2,
         array_1d<double, 3>& g3,
         array_1d<double, 3>& gab,
-        array_1d<double, 3> prestress,
-        array_1d<double, 2> par_g1_1);
+        array_1d<double, 3>& prestress,
+        array_1d<double, 3> GlobalPrestressAxis1,
+        array_1d<double, 3> GlobalPrestressAxis2);
 
 
     int  Check(const ProcessInfo& rCurrentProcessInfo) override;
