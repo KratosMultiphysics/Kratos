@@ -25,6 +25,12 @@ class Solution(object):
     def LoadParametersFile(self):
         parameters_file = open("ProjectParametersDEM.json",'r')
         self.DEM_parameters = Parameters(parameters_file.read())
+        default_input_parameters = self.GetDefaultInputParameters()
+        self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters);
+        
+    def GetDefaultInputParameters(self):
+        import dem_default_input_parameters
+        return dem_default_input_parameters.GetDefaultInputParameters()
 
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
