@@ -14,10 +14,10 @@ class FluidSolverConfiguration:
         scaling = False
     
     #convergence criteria settings
-    velocity_relative_tolerance = 1E-4
-    velocity_absolute_tolerance = 1E-6
-    pressure_relative_tolerance = 1E-4
-    pressure_absolute_tolerance = 1E-6
+    velocity_relative_tolerance = 1E-2
+    velocity_absolute_tolerance = 1E-4
+    pressure_relative_tolerance = 1E-2
+    pressure_absolute_tolerance = 1E-4
     divergence_cleareance_step = 1
     
     #other solver settings
@@ -26,7 +26,7 @@ class FluidSolverConfiguration:
     time_order = 2
     predictor_corrector = False
     dynamic_tau = 0.1
-    max_iteration = 20
+    max_iteration = 2000
     laplacian_form = 2
     
     eulerian_model_part = 0
@@ -34,7 +34,7 @@ class FluidSolverConfiguration:
 # Monolithic solver
 Monolithic_Linear_Solver ="MixedUP"#"BiConjugate gradient stabilized"#
 Monolithic_Iterative_Tolerance = 1E-4
-Monolithic_Solver_Max_Iteration = 5000
+Monolithic_Solver_Max_Iteration = 50000
 Monolithic_Preconditioner_type = "ILU0"#"Diagonal"
 
 Velocity_Linear_Solver="BiConjugate gradient stabilized"
@@ -43,15 +43,15 @@ Velocity_Preconditioner_type="ILU0"
 Pressure_Preconditioner_type="ILU0"
 Velocity_Iterative_Tolerance=1E-6
 Pressure_Iterative_Tolerance=1E-3
-Velocity_Solver_Max_Iteration = 5000
-Pressure_Solver_Max_Iteration = 1000
+Velocity_Solver_Max_Iteration = 50000
+Pressure_Solver_Max_Iteration = 10000
 
 TurbulenceModel = "None"
 
-velocity_relative_tolerance = 1E-3
-velocity_absolute_tolerance = 1E-5
-pressure_relative_tolerance = 1E-2
-pressure_absolute_tolerance = 1E-4
+velocity_relative_tolerance = 1E-4
+velocity_absolute_tolerance = 1E-6
+pressure_relative_tolerance = 1E-4
+pressure_absolute_tolerance = 1E-6
 
 time_order = 2
 predictor_corrector = False

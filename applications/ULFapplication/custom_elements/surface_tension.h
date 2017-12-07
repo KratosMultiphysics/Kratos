@@ -44,7 +44,7 @@
 #include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/deprecated_variables.h"
-//#include "boost/make_shared.hpp"
+#include "boost/make_shared.hpp"
 
 namespace Kratos
 {
@@ -155,8 +155,8 @@ public:
 
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
-//     typedef array_1d<double, TNumNodes> ShapeFunctionsType;
-//     typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
+     typedef array_1d<double, TNumNodes> ShapeFunctionsType;
+     typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
 
     ///@}
     ///@name Life Cycle
@@ -226,17 +226,17 @@ public:
                             PropertiesType::Pointer pProperties) const
     {
 	
-//         return boost::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return boost::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
         
-        return Element::Pointer(new SurfaceTension(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        //return Element::Pointer(new SurfaceTension(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
     
-//      Element::Pointer Create(IndexType NewId,
-//                             GeometryType::Pointer pGeom,
-//                             PropertiesType::Pointer pProperties) const
-//      {
-//          return boost::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, pGeom, pProperties);
-//      }
+      Element::Pointer Create(IndexType NewId,
+                             GeometryType::Pointer pGeom,
+                             PropertiesType::Pointer pProperties) const
+      {
+          return boost::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, pGeom, pProperties);
+      }
 
     /// Provides local contributions from body forces and OSS projection terms
     /**

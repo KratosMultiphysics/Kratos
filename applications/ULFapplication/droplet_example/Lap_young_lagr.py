@@ -57,7 +57,7 @@ SolverType=problem_settings.SolverType
 if (SolverType=="Incompressible_Modified_FracStep"):
     fluid_only_model_part = ModelPart("FluidOnlyPart");
 
-lagrangian_model_part.AddNodalSolutionStepVariable(CURVATURE)
+#lagrangian_model_part.AddNodalSolutionStepVariable(CURVATURE)
 lagrangian_model_part.AddNodalSolutionStepVariable(DISTANCE)
 lagrangian_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
 lagrangian_model_part.AddNodalSolutionStepVariable(VELOCITY)
@@ -68,7 +68,7 @@ lagrangian_model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
 lagrangian_model_part.AddNodalSolutionStepVariable(VISCOUS_STRESSX)
 lagrangian_model_part.AddNodalSolutionStepVariable(VISCOUS_STRESSY)
 lagrangian_model_part.AddNodalSolutionStepVariable(AUX_VEL)
-lagrangian_model_part.AddNodalSolutionStepVariable(CONTACT_ANGLE)
+#lagrangian_model_part.AddNodalSolutionStepVariable(CONTACT_ANGLE)
 lagrangian_model_part.AddNodalSolutionStepVariable(IS_WATER)
 
 
@@ -155,9 +155,11 @@ eul_model_part = 0
 gamma = 1.0 		#surface tension coefficient [N m-1]
 contact_angle = 130 	#contact angle [deg]
 lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle)
+#lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings)
 # Mesh solver:
 reform_dofs_at_each_step = False
 mesh_solver= mesh_solver.MeshSolver(lagrangian_model_part, 2, reform_dofs_at_each_step)
+#mesh_solver= mesh_solver.MeshSolver(lagrangian_model_part, reform_dofs_at_each_step)
 pDiagPrecond = DiagonalPreconditioner()
 mesh_solver.linear_solver = CGSolver(1e-3, 300, pDiagPrecond)
 mesh_solver.time_order = 2
@@ -239,10 +241,12 @@ while(time <= final_time):
         #gid_io.WriteNodalResults(DISPLACEMENT,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(IS_BOUNDARY,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(IS_FREE_SURFACE,lagrangian_model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(IS_FLUID,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(IS_INTERFACE,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(FLAG_VARIABLE,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(FORCE,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(NORMAL,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(NODAL_H,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(PRESSURE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(VELOCITY,lagrangian_model_part.Nodes,time,0)
         
