@@ -47,6 +47,7 @@ endif(${INCLUDE_FEAST} MATCHES ON)
 ## generate variables with the sources
 set( KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES    
 	${CMAKE_CURRENT_SOURCE_DIR}/externalsolvers_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/register_linear_solvers.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_linear_solvers_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/externalsolvers_python_application.cpp 
 )

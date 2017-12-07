@@ -39,6 +39,7 @@
   #include "external_includes/pastix_complex_solver.h"
 #endif
 #include "includes/linear_solver_factory.h"  
+#include "custom_utilities/register_linear_solvers.h"
 
 namespace Kratos
 {
@@ -75,8 +76,8 @@ void  AddLinearSolversToPython()
 #ifdef INCLUDE_FEAST
     typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;
     class_<FEASTSolverType, FEASTSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >
-        ( "FEASTSolver", init<Parameters::Pointer>() )
-        .def(init<Parameters::Pointer, TLinearSolverType<std::complex<double>>::Pointer>())
+        ( "FEASTSolver", init<Parameters>() )
+        .def(init<Parameters, TLinearSolverType<std::complex<double>>::Pointer>())
         ;
 #endif    
           
@@ -116,33 +117,51 @@ void  AddLinearSolversToPython()
     
     
     
-    //REGISTERING SOLVERS
-    typedef LinearSolverFactoryBase<SpaceType,  LocalSpaceType> LinearSolverFactoryBaseType;
-    
-    static auto GMRESSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,GMRESSolverType>();
-    static auto SuperLUSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,SuperLUSolverType>();
-    static auto SuperLUIterativeSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,SuperLUIterativeSolverType>();
-        
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("GMRESSolver"), GMRESSolverFactory);
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SuperLUSolver"), SuperLUSolverFactory);
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SuperLUIterativeSolver"), SuperLUIterativeSolverFactory);
-       
-#ifdef INCLUDE_PASTIX
-    static auto PastixSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,PastixSolverType>();
-//     static auto PastixComplexSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,PastixComplexSolverType>();
-    
-     KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("PastixSolver"), PastixSolverFactory);
-//     KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("PastixComplexSolver"), PastixComplexSolverFactory);
-#endif
-    
-#ifdef INCLUDE_FEAST
-    static auto FEASTSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,FEASTSolverType>();
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("FEASTSolver"), FEASTSolverFactory);
-#endif   
+//     RegisterLinearSolvers();
     
 }
 
+    
+
 }  // namespace Python.
 
+
+
+
+//Must put this definition here to avoid a problem with multiply defined symbols when including the external C libraries
+RegisterLinearSolvers::RegisterLinearSolvers()
+    {
+        typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
+        typedef SuperLUSolver<SpaceType,  LocalSpaceType> SuperLUSolverType;
+        typedef SuperLUIterativeSolver<SpaceType,  LocalSpaceType> SuperLUIterativeSolverType;
+        typedef GMRESSolver<SpaceType, LocalSpaceType> GMRESSolverType;
+
+        //REGISTERING SOLVERS
+        typedef LinearSolverFactoryBase<SpaceType,  LocalSpaceType> LinearSolverFactoryBaseType;
+        
+        static auto GMRESSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,GMRESSolverType>();
+        static auto SuperLUSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,SuperLUSolverType>();
+        static auto SuperLUIterativeSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,SuperLUIterativeSolverType>();
+            
+        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("GMRESSolver"), GMRESSolverFactory);
+        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SuperLUSolver"), SuperLUSolverFactory);
+        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SuperLUIterativeSolver"), SuperLUIterativeSolverFactory);
+        
+    #ifdef INCLUDE_PASTIX
+        typedef PastixSolver<SpaceType,  LocalSpaceType> PastixSolverType;
+        static auto PastixSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,PastixSolverType>();    
+        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("PastixSolver"), PastixSolverFactory);
+    //     KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("PastixComplexSolver"), PastixComplexSolverFactory);
+    #endif
+        
+    #ifdef INCLUDE_FEAST
+        typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;
+        static auto FEASTSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,FEASTSolverType>();
+        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("FEASTSolver"), FEASTSolverFactory);
+    #endif  
+    }
+    
 } // Namespace Kratos
 

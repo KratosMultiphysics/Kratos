@@ -13,6 +13,8 @@
 //   Revision:            $Revision:                0.0 $
 //
 //
+#if !defined(KRATOS_FEAST_SOLVER)
+#define  KRATOS_FEAST_SOLVER
 
 // System includes
 #include <iostream>
@@ -36,8 +38,6 @@ extern "C" {
 #include "includes/ublas_complex_interface.h"
 #include "spaces/ublas_space.h"
 
-#if !defined(KRATOS_FEAST_SOLVER)
-#define  KRATOS_FEAST_SOLVER
 
 namespace Kratos {
 
@@ -103,11 +103,7 @@ public:
 
         mParam.RecursivelyValidateAndAssignDefaults(default_params);
 
-<<<<<<< HEAD
         if (mParam.GetValue("linear_solver_settings")["solver_type"].GetString() != "skyline_lu")
-=======
-        if (mpParam->GetValue("linear_solver_settings")["solver_type"].GetString() != "complex_skyline_lu_solver")
->>>>>>> 2915c100243bdde0302b67ee4324ae966dcffbf1
             KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
             
         mpLinearSolver = boost::make_shared<SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
@@ -265,7 +261,7 @@ private:
 
         this->InitializeFEASTSystemMatrix(rMassMatrix, rStiffnessMatrix, Az);
 
-        Parameters& FEAST_Settings = *mParam;
+        Parameters FEAST_Settings = mParam;
 
         // initialize FEAST eigenvalue solver (see FEAST documentation for details)
         feastinit(FEAST_Params);
