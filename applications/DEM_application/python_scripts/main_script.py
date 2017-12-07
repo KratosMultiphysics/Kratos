@@ -39,7 +39,9 @@ class Solution(object):
         self.SetAnalyticParticleWatcher()
         self.PreUtilities = PreUtilities()
 
-
+        # Set the print function TO_DO: do this better...
+        self.KRATOSprint   = self.procedures.KRATOSprint
+        
         # Creating necessary directories:
         self.main_path = os.getcwd()
         problem_name = self.GetProblemTypeFilename()
@@ -56,9 +58,6 @@ class Solution(object):
         self.p_frequency = 100   # activate every 100 steps
         self.step_count = 0
         self.p_count = self.p_frequency
-
-        # Set the print function TO_DO: do this better...
-        self.KRATOSprint   = self.procedures.KRATOSprint
 
         # Prepare modelparts
         self.CreateModelParts()        
