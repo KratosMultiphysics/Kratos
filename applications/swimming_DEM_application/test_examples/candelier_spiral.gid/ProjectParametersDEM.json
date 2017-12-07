@@ -35,7 +35,8 @@
 "OutputFileType"                   : "Binary",
 "Multifile"                        : "multiple_files",
 
-"IntegrationScheme"                : "Hybrid_Bashforth",
+"TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
+"RotationalIntegrationScheme"      : "Direct_Integration",
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
 "MaxTimeStep"                      : 0.01,
@@ -63,7 +64,7 @@
 "virtual_mass_force_type"                : 10,
 "virtual_mass_force_type_comment"        : "null virtual mass force (0)",
 "lift_force_type"                        : 0,
-"lift_force_type_comment"                        : "# null lift force (0), Saffman (1)",
+"lift_force_type_comment"                : "# null lift force (0), Saffman (1)",
 "magnus_force_type"                      : 0,
 "magnus_force_type_comment"              : " null magnus force (0), Rubinow and Keller (1), Oesterle and Bui Dihn (2)",
 "hydro_torque_type"                      : 0,
