@@ -69,8 +69,8 @@ namespace Kratos
     {
         typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
-        typedef IterativeSolver<SpaceType,  LocalSpaceType> IterativeSolverType;
+//         typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
+//         typedef IterativeSolver<SpaceType,  LocalSpaceType> IterativeSolverType;
         typedef CGSolver<SpaceType,  LocalSpaceType> CGSolverType;
         typedef DeflatedCGSolver<SpaceType,  LocalSpaceType> DeflatedCGSolverType;
 //         typedef MixedUPLinearSolver<SpaceType,  LocalSpaceType> MixedUPLinearSolverType;
