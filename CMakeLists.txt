@@ -216,6 +216,7 @@ message("Boostlib used: ${Boost_LIBRARIES}")
 # Finding and including PYTHON
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
+list(REMOVE_ITEM PYTHON_LIBRARIES "debug" "optimized")
 link_directories(${PYTHON_LIBRARIES})
 
 # Follow the symbolic links for the python lib only if needed

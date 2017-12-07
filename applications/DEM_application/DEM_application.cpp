@@ -36,15 +36,14 @@
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "custom_constitutive/DEM_ExponentialHC_CL.h"
 
-#include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
-#include "custom_strategies/schemes/mid_point_scheme.h"
-#include "custom_strategies/schemes/newmark_beta_scheme.h"
 #include "custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "custom_strategies/schemes/taylor_scheme.h"
-#include "custom_strategies/schemes/verlet_velocity_scheme.h"
-
+#include "custom_strategies/schemes/newmark_beta_scheme.h"
+#include "custom_strategies/schemes/velocity_verlet_scheme.h"
+#include "custom_strategies/schemes/runge_kutta_scheme.h"
+#include "custom_strategies/schemes/quaternion_integration_scheme.h"
 
 namespace Kratos
 {
@@ -58,9 +57,11 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(DEMContinuumConstitutiveLaw::Pointer, DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
           
   //scheme
-  KRATOS_CREATE_VARIABLE(std::string, DEM_INTEGRATION_SCHEME_NAME)
-  KRATOS_CREATE_VARIABLE(DEMIntegrationScheme::Pointer, DEM_INTEGRATION_SCHEME_POINTER)
-          
+  KRATOS_CREATE_VARIABLE(std::string, DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME)
+  KRATOS_CREATE_VARIABLE(std::string, DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME)
+  KRATOS_CREATE_VARIABLE(DEMIntegrationScheme::Pointer, DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER)
+  KRATOS_CREATE_VARIABLE(DEMIntegrationScheme::Pointer, DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER)
+  
   //Probability distribution
   KRATOS_CREATE_VARIABLE(std::string, PROBABILITY_DISTRIBUTION)        
   KRATOS_CREATE_VARIABLE(std::string, EXCENTRICITY_PROBABILITY_DISTRIBUTION)        
@@ -205,11 +206,9 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(bool, DOMAIN_IS_PERIODIC)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MIN_CORNER)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MAX_CORNER)
+  KRATOS_CREATE_VARIABLE(Quaternion<double>, ORIENTATION)
   KRATOS_CREATE_VARIABLE(double, ORIENTATION_REAL) // JIG: SHOULD BE REMOVED IN THE FUTURE
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ORIENTATION_IMAG) // JIG: SHOULD BE REMOVED IN THE FUTURE
-  KRATOS_CREATE_VARIABLE(Quaternion<double>, ORIENTATION)
-  KRATOS_CREATE_VARIABLE(Quaternion<double>, AUX_ORIENTATION)
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_AUX_ANGULAR_VELOCITY)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DELTA_DISPLACEMENT)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DELTA_ROTA_DISPLACEMENT)
   KRATOS_CREATE_VARIABLE(double, VELOCITY_START_TIME)
@@ -217,6 +216,10 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, ANGULAR_VELOCITY_START_TIME)
   KRATOS_CREATE_VARIABLE(double, ANGULAR_VELOCITY_STOP_TIME)
   KRATOS_CREATE_VARIABLE(int, RIGID_BODY_MOTION)
+  // ****************** Quaternion Integration BEGIN ******************
+  KRATOS_CREATE_VARIABLE(Quaternion<double>, AUX_ORIENTATION)
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_AUX_ANGULAR_VELOCITY)
+  // ******************* Quaternion Integration END *******************
 
   // FORCE AND MOMENTUM
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_MOMENT)
@@ -435,9 +438,11 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
             
     //scheme
-    KRATOS_REGISTER_VARIABLE(DEM_INTEGRATION_SCHEME_NAME)
-    KRATOS_REGISTER_VARIABLE(DEM_INTEGRATION_SCHEME_POINTER)
-           
+    KRATOS_REGISTER_VARIABLE(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME)
+    KRATOS_REGISTER_VARIABLE(DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME)
+    KRATOS_REGISTER_VARIABLE(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER)
+    KRATOS_REGISTER_VARIABLE(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER)
+    
     KRATOS_REGISTER_VARIABLE(PROBABILITY_DISTRIBUTION)        
     KRATOS_REGISTER_VARIABLE(EXCENTRICITY_PROBABILITY_DISTRIBUTION)        
 
@@ -581,12 +586,9 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(DOMAIN_IS_PERIODIC)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MIN_CORNER)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MAX_CORNER)
-
+    KRATOS_REGISTER_VARIABLE(ORIENTATION)
     KRATOS_REGISTER_VARIABLE(ORIENTATION_REAL) // JIG: SHOULD BE REMOVED IN THE FUTURE
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ORIENTATION_IMAG) // JIG: SHOULD BE REMOVED IN THE FUTURE
-    KRATOS_REGISTER_VARIABLE(ORIENTATION)
-    KRATOS_REGISTER_VARIABLE(AUX_ORIENTATION)
-    KRATOS_REGISTER_VARIABLE(LOCAL_AUX_ANGULAR_VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DELTA_DISPLACEMENT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DELTA_ROTA_DISPLACEMENT)
     KRATOS_REGISTER_VARIABLE(VELOCITY_START_TIME)
@@ -594,6 +596,10 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(ANGULAR_VELOCITY_START_TIME)
     KRATOS_REGISTER_VARIABLE(ANGULAR_VELOCITY_STOP_TIME)
     KRATOS_REGISTER_VARIABLE(RIGID_BODY_MOTION)
+    // ****************** Quaternion Integration BEGIN ******************
+    KRATOS_REGISTER_VARIABLE(AUX_ORIENTATION)
+    KRATOS_REGISTER_VARIABLE(LOCAL_AUX_ANGULAR_VELOCITY)
+    // ******************* Quaternion Integration END *******************
 
     // FORCE AND MOMENTUM
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_MOMENT)
@@ -787,13 +793,13 @@ namespace Kratos
     Serializer::Register("DEM_KDEM2D", DEM_KDEM2D());
     Serializer::Register("DEM_ExponentialHC", DEM_ExponentialHC());
     
-    Serializer::Register("ConstAverageAccelerationScheme", ConstAverageAccelerationScheme());
     Serializer::Register("ForwardEulerScheme", ForwardEulerScheme());
-    Serializer::Register("MidPointScheme", MidPointScheme());
-    Serializer::Register("NewmarkBetaScheme", NewmarkBetaScheme());
     Serializer::Register("SymplecticEulerScheme", SymplecticEulerScheme());
     Serializer::Register("TaylorScheme", TaylorScheme());
-    Serializer::Register("VerletVelocityScheme", VerletVelocityScheme());
+    Serializer::Register("NewmarkBetaScheme", NewmarkBetaScheme());
+    Serializer::Register("VelocityVerletScheme", VelocityVerletScheme());
+    Serializer::Register("RungeKuttaScheme", RungeKuttaScheme());
+    Serializer::Register("QuaternionIntegrationScheme", QuaternionIntegrationScheme());
     Serializer::Register("DEMIntegrationScheme", DEMIntegrationScheme());
     
     std::cout << " done."                                  << std::endl;
