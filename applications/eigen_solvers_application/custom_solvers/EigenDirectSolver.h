@@ -105,10 +105,6 @@ class EigenDirectSolver
      */
     bool Solve(SparseMatrixType &rA, VectorType &rX, VectorType &rB) override
     {
-        // --- begin time measure code
-        high_resolution_clock::time_point t1 = high_resolution_clock::now();
-        // --- end time measure code
-
         std::vector<int> index1_vector(rA.index1_data().size());
         std::vector<int> index2_vector(rA.index2_data().size());
 
@@ -127,14 +123,6 @@ class EigenDirectSolver
         typename TSolver::TSolver solver;
         solver.compute(a);
         x = solver.solve(b);
-
-        // --- begin time measure code
-        high_resolution_clock::time_point t2 = high_resolution_clock::now();
-
-        double solver_time = duration_cast<microseconds>(t2 - t1).count() / 1000000.0;
-
-        KRATOS_WATCH(solver_time);
-        // --- end time measure code
 
         bool success = (solver.info() == Eigen::Success);
 
