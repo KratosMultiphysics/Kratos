@@ -35,8 +35,6 @@ from SmallTests  import TwoDDynamicPlasticBeamTest          as TTwoDDynamicPlast
 ## NIGHTLY TESTS
 
 ## VALIDATION TESTS 
-from ValidationTests import TwoDSphereRemeshedChannelTest   as TTwoDSphereRemeshedChannelTest
-from ValidationTests import ThreeDSphereRemeshedChannelTest as TThreeDSphereRemeshedChannelTest
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -111,8 +109,6 @@ def AssambleTestSuites():
                     TThreeDHessianTest,
                     TTwoDCavityTest,
                     TTestRemeshMMG,
-                    #TTwoDSphereRemeshedChannelTest,
-                    #TThreeDSphereRemeshedChannelTest,
                 ])
             )
         if (missing_external_solid_dependencies == False):
