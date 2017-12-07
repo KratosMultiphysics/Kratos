@@ -406,9 +406,9 @@ namespace Kratos
                   MatrixType StressMatrix;
                   this->mElasticityModel.CalculateStressTensor( rValues, StressMatrix);
 
-                  double & plasticVolDef = rVariables.Internal.Variables[1]; 
+                  double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
                   for (unsigned int i = 0; i < 3; i++)
-                     plasticVolDef += DeltaGamma * DeltaStressYieldCondition(i);
+                     rPlasticVolDef += DeltaGamma * DeltaStressYieldCondition(i);
 
                   YieldSurface = this->mYieldSurface.CalculateYieldCondition( rVariables, YieldSurface);
 
@@ -714,7 +714,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-                  MatrixType HenckyTensor;
+               MatrixType HenckyTensor;
                HenckyTensor.clear();
 
                ConstitutiveModelUtilities::StrainVectorToTensor( rHenckyVector, HenckyTensor);
@@ -895,7 +895,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-               for ( unsigned int i = 0; i < 2; i++) {
+               for (unsigned int i = 0; i < 2; i++) {
                   double & plasticVolDefNew = rVariables.Internal.Variables[i]; 
                   double & plasticVolDef    = mInternal.Variables[i];
 
