@@ -51,7 +51,7 @@ SPD = symmetric positive definite
 
 In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can also use the Pardiso solvers.
 
-1. run the MKL setup script
+1. Run the MKL setup script
 
     **Windows:** before cmake in `configure.bat`
 
