@@ -83,12 +83,11 @@ def AssambleTestSuites():
     
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
-    if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        if (missing_external_fluid_dependencies == False):
-            validationSuite.addTest(TTwoDSphereRemeshedChannelTest('test_execution'))
-            validationSuite.addTest(TThreeDSphereRemeshedChannelTest('test_execution'))
-    else:
-        print("MMG process is not compiled and the corresponding tests will not be executed")
+    #if( hasattr(MeshingApplication,  "MmgProcess2D") ):
+        #if (missing_external_fluid_dependencies == False):
+            #validationSuite.addTest()
+    #else:
+        #print("MMG process is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
@@ -117,7 +116,7 @@ def AssambleTestSuites():
                     TTwoDDynamicBeamTest,
                     TTwoDDynamicBeamLineLoadTest,
                     TThreeDDynamicBeamTest,
-                    ##TTwoDDynamicPlasticBeamTest,
+                    #TTwoDDynamicPlasticBeamTest,
                 ])
             )
     else:

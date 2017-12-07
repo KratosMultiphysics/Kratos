@@ -56,52 +56,21 @@
         "relative_pressure_tolerance"  : 0.001,
         "absolute_pressure_tolerance"  : 1e-5,
         "volume_model_part_name"       : "Parts_Parts_Auto1",
-        "skin_parts"                   : ["Inlet2D_Inlet_velocity_Auto1","NoSlip2D_No_Slip_Auto1"],
+        "skin_parts"                   : ["Parts_Parts_Auto1","Inlet2D_Inlet_velocity_Auto1","NoSlip2D_No_Slip_Auto1"],
         "no_skin_parts"                : []
     },
     "initial_conditions_process_list"  : [],
-    "boundary_conditions_process_list" : [{
-        "python_module" : "assign_vector_by_direction_process",
+    "boundary_conditions_process_list" : [],
+    "gravity" : [],
+    "list_other_processes" :[{
+        "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorByDirectionProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Inlet2D_Inlet_velocity_Auto1",
-            "variable_name"   : "VELOCITY",
-            "modulus"         : 1.0,
-            "direction"       : [1,0.0,0.0]
-        }
-    },{
-        "python_module" : "apply_noslip_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyNoSlipProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "NoSlip2D_No_Slip_Auto1"
-        }
-    }],
-    "gravity" : [{
-        "python_module" : "assign_vector_by_direction_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorByDirectionProcess",
+        "process_name"  : "AssignScalarVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Parts_Parts_Auto1",
-            "variable_name"   : "BODY_FORCE",
-            "modulus"         : 0.0,
-            "constrained"     : false,
-            "direction"       : [0.0,-1.0,0.0]
-        }
-    }],
-    "list_other_processes" :[
-    {
-        "python_module" : "test_local_process",
-        "kratos_module" : "KratosMultiphysics.MeshingApplication",
-        "help"          : "",
-        "process_name"  : "ApplyLocalProcess",
-        "Parameters"    : {
-            "model_part_name"  : "Parts_Parts_Auto1",
-            "test_name"        : "2D_hessian_test"
+            "variable_name"   : "DISTANCE",
+            "value"           : "((x - 0.5)**2+(y - 0.5)**2)**0.5 - 0.25"
         }
     }],
     "adaptative_loop"           : 6,

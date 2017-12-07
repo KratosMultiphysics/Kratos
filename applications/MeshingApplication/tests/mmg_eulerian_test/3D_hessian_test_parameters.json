@@ -56,24 +56,23 @@
         "relative_pressure_tolerance"  : 0.001,
         "absolute_pressure_tolerance"  : 1e-5,
         "volume_model_part_name"          : "Parts_Parts_Auto1",
-        "skin_parts"                      : [],
+        "skin_parts"                      : ["Parts_Parts_Auto1"],
         "no_skin_parts"                   : []
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [],
     "gravity"                          : [],
-    "list_other_processes" :[
-    {
-        "python_module"   : "test_local_process",
-        "kratos_module" : "KratosMultiphysics.MeshingApplication",
-        "help"                  : "",
-        "process_name"          : "ApplyLocalProcess",
-        "Parameters"            : {
-            "model_part_name"  : "MainModelPart",
-            "test_name"        : "3D_hessian_test"
+    "list_other_processes" :[{
+        "python_module" : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignScalarVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Parts_Parts_Auto1",
+            "variable_name"   : "DISTANCE",
+            "value"           : "((x - 0.5)**2+(y - 0.5)**2+(z - 0.5)**2)**0.5 - 0.25"
         }
-    }
-    ],
+    }],
     "adaptative_loop"           : 5,
     "initial_remeshing_process" :[
     {
