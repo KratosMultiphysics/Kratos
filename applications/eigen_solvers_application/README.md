@@ -62,7 +62,7 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
     **Linux:** before cmake in `configure.sh`
 
     ```batch
-    source "~/intel/mkl_2018/mkl/bin/mklvars.sh" intel64 lp64
+    source "~/intel/mkl/bin/mklvars.sh" intel64 lp64
     ```
 
 2. Build Kratos
@@ -78,7 +78,7 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
     **Linux:**
 
     ```
-    ~/intel/mkl_2018/mkl/lib/intel64_lin/libmkl_rt.so
+    ~/intel/mkl/lib/intel64/libmkl_rt.so
     ```
 
     or add the folder to your `PATH`/`LD_LIBRARY_PATH` variable.
