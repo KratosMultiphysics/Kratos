@@ -138,9 +138,7 @@ class EigenDirectSolver
      */
     bool Solve(SparseMatrixType &rA, DenseMatrixType &rX, DenseMatrixType &rB) override
     {
-        bool is_solved = true;
-
-        return is_solved;
+        return false;
     }
 
     /**
