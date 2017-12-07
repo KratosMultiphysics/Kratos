@@ -69,16 +69,16 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
 
 3. Copy the required MKL library to the Kratos `lib`
     
-    **Windows:** `mkl_rt.dll` from
+    **Windows:**
 
     ```
-    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\
+    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_rt.dll
     ```
 
-    **Linux** `libmkl_rt.so` from
+    **Linux**
 
     ```
-    ~/intel/mkl_2018/mkl/lib/intel64_lin
+    ~/intel/mkl_2018/mkl/lib/intel64_lin/libmkl_rt.so
     ```
 
     or add the folder to your `PATH`/`LD_LIBRARY_PATH` variable.
