@@ -97,9 +97,7 @@ class EigenDirectSolver
     ~EigenDirectSolver() override {}
 
     /**
-     * Normal solve method.
-     * Solves the linear system Ax=b and puts the result on SystemVector& rX.
-     * rX is also th initial guess for iterative methods.
+     * Solves the linear system Ax=b
      * @param rA System matrix
      * @param rX Solution vector
      * @param rB Right hand side vector
@@ -144,9 +142,7 @@ class EigenDirectSolver
     }
 
     /**
-     * Multi solve method for solving a set of linear systems with same coefficient matrix.
-     * Solves the linear system Ax=b and puts the result on SystemVector& rX.
-     * rX is also th initial guess for iterative methods.
+     * Solves the linear system Ax=b
      * @param rA System matrix
      * @param rX Solution matrix
      * @param rB Right hand side matrix
