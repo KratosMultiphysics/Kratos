@@ -53,6 +53,8 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
                 "search_dimension": 7
         }
         """)
+        if not (hasattr(KratosMultiphysics.ExternalSolversApplication,"PastixComplexSolver")):
+            self.skipTest('"PastixComplexSolver" not available')
 
         feast_system_solver = ExternalSolversApplication.PastixComplexSolver(feast_system_solver_settings)
         eigen_solver = ExternalSolversApplication.FEASTSolver(eigensolver_settings, feast_system_solver)
