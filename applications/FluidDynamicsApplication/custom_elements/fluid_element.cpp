@@ -725,7 +725,7 @@ void FluidElement<TElementData>::AddMassLHS(
 
 template <class TElementData>
 void FluidElement<TElementData>::GetCurrentValuesVector(
-    TElementData& rData,
+    const TElementData& rData,
     array_1d<double,LocalSize>& rValues) const {
         
     int local_index = 0;

@@ -365,7 +365,7 @@ protected:
         MatrixType& rMassMatrix);
 
     void GetCurrentValuesVector(
-        TElementData& rData,
+        const TElementData& rData,
         array_1d<double,LocalSize>& rValues) const;
 
     void IntegrationPointVorticity(
