@@ -42,6 +42,7 @@ endif()
 set( KRATOS_EIGENSOLVERS_APPLICATION_SOURCES     
 	${CMAKE_CURRENT_SOURCE_DIR}/eigen_solvers_application.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/eigen_solvers_python_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_solvers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )
 

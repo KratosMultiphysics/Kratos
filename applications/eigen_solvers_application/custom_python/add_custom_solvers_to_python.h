@@ -9,17 +9,15 @@
 //  Author: Thomas Oberbichler
 */
 
+#if !defined(KRATOS_ADD_SOLVERS_TO_PYTHON_H_INCLUDED)
+#define KRATOS_ADD_SOLVERS_TO_PYTHON_H_INCLUDED
+
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
-#include "custom_python/add_custom_utilities_to_python.h"
-
-#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -27,14 +25,10 @@ namespace Kratos
 namespace Python
 {
 
-void AddCustomUtilitiesToPython()
-{
-	using namespace boost::python;
-
-	typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-	typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-}
+void AddCustomSolversToPython();
 
 } // namespace Python
 
 } // namespace Kratos
+
+#endif // defined(KRATOS_ADD_SOLVERS_TO_PYTHON_H_INCLUDED)
