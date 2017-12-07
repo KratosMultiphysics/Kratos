@@ -275,15 +275,11 @@ class ExplicitStrategy:
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              #self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
                                                               self.search_strategy, self.do_search_neighbours)
-                                                              #TODO: remove time_integration_scheme. no longer necessary and maybe safety_factor
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                             #self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
                                                              self.search_strategy, self.do_search_neighbours)
-                                                             #TODO: remove time_integration_scheme. no longer necessary
 
     def BeforeInitialize(self):
         self.CreateCPlusPlusStrategy()
