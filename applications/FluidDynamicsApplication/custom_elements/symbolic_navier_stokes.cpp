@@ -160,15 +160,15 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
     bounded_matrix<double, (Dim-1)*3, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix((Dim-1)*3, LocalSize);
     for (unsigned int i=0; i<NumNodes; ++i) {
         for (unsigned int comp=0; comp<Dim; ++comp) {
-            pres_to_voigt_matrix_op(comp, i*BlockSize+Dim) = aux_N(i);
+            pres_to_voigt_matrix_op(comp, i*BlockSize+Dim) = rData.N[i];
         }
     }
 
     // Set the shape functions auxiliar transpose matrix
     bounded_matrix<double, LocalSize, Dim> N_aux_trans = ZeroMatrix(LocalSize, Dim);
     for (unsigned int i=0; i<NumNodes; ++i) {
-        for (unsigned int comp=0; comp<TDim; ++comp) {
-            N_aux_trans(i*BlockSize+comp, comp) = aux_N(i);
+        for (unsigned int comp=0; comp<Dim; ++comp) {
+            N_aux_trans(i*BlockSize+comp, comp) = rData.N[i];
         }
     }
 
@@ -176,12 +176,78 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
     noalias(rData.lhs) = prod(N_aux_trans, aux_matrix_ACB);
 
     // Contribution coming from the pressure terms
-    const bounded_matrix<double, MatrixSize, (Dim-1)*3> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
+    const bounded_matrix<double, LocalSize, (Dim-1)*3> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
     noalias(rData.lhs) -= prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
+
+    array_1d<double,LocalSize> values;
+    this->GetCurrentValuesVector(rData,values);
     
     rData.lhs *= rData.Weight;
     noalias(rLHS) -= rData.lhs;
-    noalias(rRHS) += prod(rData.lhs,Values);
+    noalias(rRHS) += prod(rData.lhs,values);
+}
+
+template <class TElementData>
+void SymbolicNavierStokes<TElementData>::SetVoigtNormalProjectionMatrix(
+    const array_1d<double, 3>& rUnitNormal,
+    bounded_matrix<double, 2, 3>& rVoigtNormProjMatrix) const {
+
+    rVoigtNormProjMatrix.clear();
+    
+    rVoigtNormProjMatrix(0,0) = rUnitNormal(0);
+    rVoigtNormProjMatrix(0,2) = rUnitNormal(1);
+    rVoigtNormProjMatrix(1,1) = rUnitNormal(1);
+    rVoigtNormProjMatrix(1,2) = rUnitNormal(0);
+}
+
+
+template <class TElementData>
+void SymbolicNavierStokes<TElementData>::SetVoigtNormalProjectionMatrix(
+    const array_1d<double, 3>& rUnitNormal,
+    bounded_matrix<double, 3, 6>& rVoigtNormProjMatrix) const {
+
+    rVoigtNormProjMatrix.clear();
+    rVoigtNormProjMatrix(0,0) = rUnitNormal(0);
+    rVoigtNormProjMatrix(0,3) = rUnitNormal(1);
+    rVoigtNormProjMatrix(0,5) = rUnitNormal(2);
+    rVoigtNormProjMatrix(1,1) = rUnitNormal(1);
+    rVoigtNormProjMatrix(1,3) = rUnitNormal(0);
+    rVoigtNormProjMatrix(1,4) = rUnitNormal(2);
+    rVoigtNormProjMatrix(2,2) = rUnitNormal(2);
+    rVoigtNormProjMatrix(2,4) = rUnitNormal(1);
+    rVoigtNormProjMatrix(2,5) = rUnitNormal(0);
+}
+
+
+template <class TElementData>
+void SymbolicNavierStokes<TElementData>::SetInterfaceStrainMatrix(
+    const bounded_matrix<double, NumNodes, 2>& rDN_DX,
+    bounded_matrix<double, 3, NumNodes*3>& rB_matrix) const {
+    rB_matrix.clear();
+    for (unsigned int i=0; i<NumNodes; i++) {
+        rB_matrix(0,i*BlockSize)   = rDN_DX(i,0);
+        rB_matrix(1,i*BlockSize+1) = rDN_DX(i,1);
+        rB_matrix(2,i*BlockSize)   = rDN_DX(i,1);
+        rB_matrix(2,i*BlockSize+1) = rDN_DX(i,0);
+    }
+}
+
+template <class TElementData>
+void SymbolicNavierStokes<TElementData>::SetInterfaceStrainMatrix(
+    const bounded_matrix<double, NumNodes, 3>& rDN_DX,
+    bounded_matrix<double, 6, NumNodes*4>& rB_matrix) const {
+    rB_matrix.clear();
+    for (unsigned int i=0; i<NumNodes; i++) {
+        rB_matrix(0,i*BlockSize)   = rDN_DX(i,0);
+        rB_matrix(1,i*BlockSize+1) = rDN_DX(i,1);
+        rB_matrix(2,i*BlockSize+2) = rDN_DX(i,2);
+        rB_matrix(3,i*BlockSize)   = rDN_DX(i,1);
+        rB_matrix(3,i*BlockSize+1) = rDN_DX(i,0);
+        rB_matrix(4,i*BlockSize+1) = rDN_DX(i,2);
+        rB_matrix(4,i*BlockSize+2) = rDN_DX(i,1);
+        rB_matrix(5,i*BlockSize)   = rDN_DX(i,2);
+        rB_matrix(5,i*BlockSize+2) = rDN_DX(i,0);
+    }
 }
 
 template <>

@@ -94,6 +94,8 @@ public:
 
     constexpr static unsigned int Dim = FluidElement<TElementData>::Dim;
     constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
+    constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
+    constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
 
     constexpr static unsigned int StrainSize = (Dim*3)-3;
 
@@ -233,6 +235,47 @@ protected:
     void ComputeConstitutiveResponse(TElementData& rData);
 
     void ComputeStrain(TElementData& rData);
+
+    /**
+    * This functions sets the auxiliar matrix to compute the normal projection in Voigt notation.
+    * 2D version.
+    * @param rUnitNormal: reference to Gauss pt. unit normal vector
+    * @param rVoigtNormProjMatrix: reference to the computed normal projection auxiliar matrix
+    */
+    void SetVoigtNormalProjectionMatrix(
+        const array_1d<double, 3>& rUnitNormal,
+        bounded_matrix<double, 2, 3>& rVoigtNormProjMatrix) const;
+        
+     
+    /**
+    * This functions sets the auxiliar matrix to compute the normal projection in Voigt notation.
+    * 3D version
+    * @param rUnitNormal: reference to Gauss pt. unit normal vector
+    * @param rVoigtNormProjMatrix: reference to the computed normal projection auxiliar matrix
+    */ 
+    void SetVoigtNormalProjectionMatrix(
+        const array_1d<double, 3>& rUnitNormal,
+        bounded_matrix<double, 3, 6>& rVoigtNormProjMatrix) const;  
+
+    /**
+    * This functions sets the B strain matrix (pressure columns are set to zero).
+    * 2D version.
+    * @param rDN_DX: reference to the current Gauss pt. shape function gradients
+    * @param rB_matrix: reference to the computed B strain matrix
+    */
+    void SetInterfaceStrainMatrix(
+        const bounded_matrix<double, NumNodes, 2>& rDN_DX,
+        bounded_matrix<double, 3, NumNodes*3>& rB_matrix) const;
+        
+    /**
+    * This functions sets the B strain matrix (pressure columns are set to zero).
+    * 3D version.
+    * @param rDN_DX: reference to the current Gauss pt. shape function gradients
+    * @param rB_matrix: reference to the computed B strain matrix
+    */
+    void SetInterfaceStrainMatrix(
+        const bounded_matrix<double, NumNodes, 3>& rDN_DX,
+        bounded_matrix<double, 6, NumNodes*4>& rB_matrix) const;
 
     ///@}
     ///@name Protected  Access
