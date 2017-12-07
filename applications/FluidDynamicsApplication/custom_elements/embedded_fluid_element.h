@@ -227,6 +227,46 @@ protected:
 
     void NormalizeInterfaceNormals(typename EmbeddedElementData::InterfaceNormalsType& rNormals, double Tolerance) const;
 
+    /**
+    * This functions adds the penalty extra term level set contribution.
+    * @param rLHS: reference to the LHS matrix
+    * @param rRHS: reference to the RHS vector
+    * @param rData: reference to element data structure
+    */
+    void AddBoundaryConditionPenaltyContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedElementData& rData) const;
+    
+    /**
+     * This function computes the penalty coefficient for the level set BC imposition
+     * @param rLeftHandSideMatrix: reference to the LHS matrix
+     * @param rData: reference to element data structure
+     */
+    double ComputePenaltyCoefficient(const EmbeddedElementData& rData) const;
+
+    /**
+    * This drops the outer nodes velocity constributions in both LHS and RHS matrices.
+    * @param rLHS: reference to the LHS matrix
+    * @param rRHS: reference to the RHS vector
+    * @param rData: reference to element data structure
+    */
+    void DropOuterNodesVelocityContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedElementData& rData) const;
+
+    /**
+    * This functions adds the level set strong boundary condition imposition contribution.
+    * @param rLHS: reference to the LHS matrix
+    * @param rRHS: reference to the RHS vector
+    * @param rData: reference to element data structure
+    */
+    void AddBoundaryConditionModifiedNitscheContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedElementData& rData) const;
+
     ///@}
     ///@name Protected Operations
     ///@{
