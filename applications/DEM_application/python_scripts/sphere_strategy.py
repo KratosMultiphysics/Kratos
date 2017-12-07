@@ -194,12 +194,11 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(PRINT_STRESS_TENSOR_OPTION, self.print_stress_tensor_option)
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_OPTION, self.continuum_type)
 
-        # GLOBAL PHYSICAL ASPECTS
+        self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 0) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
         if "PeriodicDomainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PeriodicDomainOption"].GetBool():
                 self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 1) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
-        else:
-            self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 0)
+                
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MIN_CORNER, self.bottom_corner)
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MAX_CORNER, self.top_corner)
         self.spheres_model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
