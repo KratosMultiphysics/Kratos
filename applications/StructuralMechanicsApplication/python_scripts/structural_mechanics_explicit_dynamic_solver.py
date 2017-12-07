@@ -98,6 +98,6 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                             self.settings["reform_dofs_at_each_step"].GetBool(), 
                                             self.settings["move_mesh_flag"].GetBool())
 
-        mechanical_solver.SetRebuildLevel(0)   
+        mechanical_solver.SetRebuildLevel(1)   
         return mechanical_solver
    

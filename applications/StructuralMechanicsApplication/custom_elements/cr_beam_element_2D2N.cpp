@@ -160,7 +160,7 @@ namespace Kratos
 		}
 		rMassMatrix = ZeroMatrix(msElementSize, msElementSize);
 
-		const double L = this->CalculateCurrentLength();
+		const double L = this->CalculateReferenceLength();
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double rho = this->GetProperties()[DENSITY];
 
@@ -194,6 +194,8 @@ namespace Kratos
 		rMassMatrix(5, 2) = pre_beam * (-3.00) * L * L;
 		rMassMatrix(5, 4) = pre_beam * (-22.00) * L;
 		rMassMatrix(5, 5) = pre_beam * (4.00) * L * L;		
+
+		this->GlobalizeMatrix(rMassMatrix);
 		KRATOS_CATCH("")
 	}
 

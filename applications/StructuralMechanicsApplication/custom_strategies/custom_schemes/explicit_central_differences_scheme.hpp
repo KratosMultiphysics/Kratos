@@ -442,6 +442,7 @@ virtual void Update(ModelPart& r_model_part,
           if (nodal_mass > numerical_limit)  current_acceleration = current_residual/nodal_mass;
           else current_acceleration = ZeroVector(3);
 
+
           int DoF = 2;
           bool Fix_displ[3] = {false, false, false};
 
@@ -663,7 +664,10 @@ virtual void Update(ModelPart& r_model_part,
     int thread = OpenMPUtils::ThisThread();
 
     //basic operations for the element considered
-    (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+    Matrix DummyLHS;
+    rCurrentElement -> CalculateLocalSystem(DummyLHS,RHS_Contribution,rCurrentProcessInfo);
+    //(rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+
 
     if(mRayleighDamping)
     {

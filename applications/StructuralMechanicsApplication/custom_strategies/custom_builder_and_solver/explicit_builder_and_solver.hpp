@@ -188,11 +188,14 @@ public:
                 //Getting nodal mass and inertia from element
                 Vector Testtemp;
                 itElem->AddExplicitContribution(Testtemp,RESIDUAL_VECTOR,NODAL_INERTIA,rCurrentProcessInfo);
+/*                 Matrix TestLHS;
+                Vector TestRHS;
+                itElem->CalculateLocalSystem(TestLHS,TestRHS,rCurrentProcessInfo); */
 
                 for (int i = 0;i<2;++i)
                 {
-                    KRATOS_WATCH(geometry[i].FastGetSolutionStepValue(NODAL_MASS));
-                    KRATOS_WATCH(geometry[i].FastGetSolutionStepValue(NODAL_INERTIA));
+/*                     KRATOS_WATCH(geometry[i].FastGetSolutionStepValue(NODAL_MASS));
+                    KRATOS_WATCH(geometry[i].FastGetSolutionStepValue(NODAL_INERTIA)); */
                 }
              }
          }
