@@ -364,8 +364,13 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix);
 
-    void IntegrationPointVorticity(const ShapeFunctionDerivativesType& rDN_DX,
-                                   array_1d<double,3> &rVorticity) const;
+    void GetCurrentValuesVector(
+        TElementData& rData,
+        array_1d<double,LocalSize>& rValues) const;
+
+    void IntegrationPointVorticity(
+        const ShapeFunctionDerivativesType& rDN_DX,
+        array_1d<double,3> &rVorticity) const;
 
 
     ///@}

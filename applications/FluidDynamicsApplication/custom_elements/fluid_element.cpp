@@ -221,17 +221,8 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
         }
 
         // Rewrite local contribution into residual form (A*dx = b - A*x)
-        VectorType values = ZeroVector(LocalSize);
-        int LocalIndex = 0;
-
-        const auto& r_velocities = data.Velocity;
-        const auto& r_pressures = data.Pressure;
-
-        for (unsigned int i = 0; i < NumNodes; ++i) {
-            for (unsigned int d = 0; d < Dim; ++d)  // Velocity Dofs
-                values[LocalIndex++] = r_velocities(i, d);
-            values[LocalIndex++] = r_pressures[i];  // Pressure Dof
-        }
+        array_1d<double,LocalSize> values;
+        this->GetCurrentValuesVector(data,values);
 
         noalias(rRightHandSideVector) -= prod(rDampMatrix, values);
     }
@@ -730,6 +721,23 @@ void FluidElement<TElementData>::AddMassLHS(
                  << std::endl;
 
     KRATOS_CATCH("");
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::GetCurrentValuesVector(
+    TElementData& rData,
+    array_1d<double,LocalSize>& rValues) const {
+        
+    int local_index = 0;
+
+    const auto& r_velocities = rData.Velocity;
+    const auto& r_pressures = rData.Pressure;
+
+    for (unsigned int i = 0; i < NumNodes; ++i) {
+        for (unsigned int d = 0; d < Dim; ++d)  // Velocity Dofs
+            rValues[++local_index] = r_velocities(i, d);
+        rValues[++local_index] = r_pressures[i];  // Pressure Dof
+    }
 }
 
 template <class TElementData>
