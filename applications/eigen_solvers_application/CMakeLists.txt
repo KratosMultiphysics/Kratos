@@ -20,7 +20,7 @@ endif()
 if( MSVC )
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox" )
 else()
-	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_rt -lpthread -lm -ldl" )
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
 endif()
 
 add_definitions( -DNDEBUG -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
@@ -33,7 +33,7 @@ include_directories(
 if( DEFINED ENV{MKLROOT} )
 	message( "MKLROOT = $ENV{MKLROOT}" )
 	include_directories( $ENV{MKLROOT}/include )
-	add_definitions( -DMKL_LP64 -DEIGEN_USE_MKL_ALL )
+	add_definitions( -DEIGEN_USE_MKL_ALL )
 else()
 	message( "MKLROOT not defined" )
 endif()
@@ -52,13 +52,8 @@ add_library( KratosEigenSolversApplication SHARED ${KRATOS_EIGENSOLVERS_APPLICAT
 target_link_libraries( KratosEigenSolversApplication KratosCore )
 
 if( DEFINED ENV{MKLROOT} )
-	target_link_libraries( KratosEigenSolversApplication 
-		mkl_intel_lp64_dll.lib
-		mkl_tbb_thread_dll.lib
-		mkl_core_dll.lib
-		tbb.lib
-	)
-endif ()
+	target_link_libraries( KratosEigenSolversApplication mkl_rt )
+endif()
 	
 set_target_properties( KratosEigenSolversApplication PROPERTIES PREFIX "" )
 install( TARGETS KratosEigenSolversApplication DESTINATION libs )
