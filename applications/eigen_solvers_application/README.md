@@ -13,29 +13,31 @@ It provides the following direct sparse solvers:
 
 SPD = symmetric positive definite
 
-## Windows instructions
+## Build instructions
 
-1. Download an unpack [Eigen](http://bitbucket.org/eigen/eigen/get/3.3.4.zip)
+1. Download and unpack [Eigen](http://eigen.tuxfamily.org/)
 
-2. Add the following definitions to your Kratos `configure.bat`:
+2. Set the required definitions for cmake
+
+    **Windows:** in `configure.bat`
 
     ```batch
     -DEIGEN_SOLVERS_APPLICATION=ON ^
     -DEIGEN_ROOT="<path to eigen>" ^
     ```
 
+    **Linux:** in `configure.sh`
+
+    ```bash
+    -DEIGEN_SOLVERS_APPLICATION=ON \
+    -DEIGEN_ROOT="<path to eigen>" \
+    ```
+
     > **Hint:** The `EIGEN_ROOT` directory should contain a file called `README.md`.
 
 3. Build Kratos
 
-4. Add the MKL/TBB redistribution directories to your `%PATH%` or copy the containing .dlls to your Kratos `lib` directory:
-
-    ```
-    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2018.0.124\windows\redist\intel64_win\mkl\
-    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2018.0.124\windows\redist\intel64_win\tbb\vc_mt\
-    ```
-
-5. Setup your `ProjectParameters.json`
+4. Setup the `ProjectParameters.json`
 
     ```json
     "linear_solver_settings": {
@@ -43,14 +45,40 @@ SPD = symmetric positive definite
     }
     ```
 
-6. Run your simulation
+5. Run the simulation
 
 ## Enable MKL (optional)
 
-In case your have installed [MKL](https://software.intel.com/en-us/mkl), you can also use the Pardiso solvers by running the MKL setup script at the beginning of your `configure.bat`.
+In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can also use the Pardiso solvers.
 
-For example:
+1. run the MKL setup script
 
-```batch
-call "C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\mkl\bin\mklvars.bat" intel64
-```
+    **Windows:** before cmake in `configure.bat`
+
+    ```batch
+    call "C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\mkl\bin\mklvars.bat" intel64 lp64
+    ```
+    
+    **Linux:** before cmake in `configure.sh`
+
+    ```batch
+    source "~/intel/mkl_2018/mkl/bin/mklvars.sh" intel64 lp64
+    ```
+
+2. Build Kratos
+
+3. Copy the required MKL library to the Kratos `lib`
+    
+    **Windows:** `mkl_rt.dll` from
+
+    ```
+    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\
+    ```
+
+    **Linux** `libmkl_rt.so` from
+
+    ```
+    ~/intel/mkl_2018/mkl/lib/intel64_lin
+    ```
+
+    or add the folder to your `PATH`/`LD_LIBRARY_PATH` variable.
