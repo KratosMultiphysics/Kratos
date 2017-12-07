@@ -31,6 +31,7 @@ class TestParticleCreatorDestructor(KratosUnittest.TestCase):
 
         scheme = SymplecticEulerScheme()        
         scheme.SetTranslationalIntegrationSchemeInProperties(properties, False)
+        scheme.SetRotationalIntegrationSchemeInProperties(properties, False)
 
     def test_CreateSphericParticle1(self):
         
