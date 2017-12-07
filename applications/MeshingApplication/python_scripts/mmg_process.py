@@ -287,6 +287,9 @@ class MmgProcess(KratosMultiphysics.Process):
 
         if (self.strategy == "LevelSet"):
             self.local_gradient.Execute() # Recalculate gradient after remeshing
+            
+        # Recalculate NODAL_H
+        self.find_nodal_h.Execute()
 
         # We need to set that the model part has been modified (later on we will act in consequence)
         self.Model[self.model_part_name].Set(KratosMultiphysics.MODIFIED, True)

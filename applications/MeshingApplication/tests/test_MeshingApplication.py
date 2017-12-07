@@ -24,9 +24,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 ## SMALL TESTS 
 from test_refine import TestRedistance                      as TTestRedistance
 from test_remesh_sphere import TestRemeshMMG                as TTestRemeshMMG
-from SmallTests  import TwoDHessianTest                     as TTwoDHessianTest
-from SmallTests  import ThreeDHessianTest                   as TThreeDHessianTest
-from SmallTests  import TwoDCavityTest                      as TTwoDCavityTest
 from SmallTests  import TwoDDynamicBeamTest                 as TTwoDDynamicBeamTest
 from SmallTests  import TwoDDynamicBeamLineLoadTest         as TTwoDDynamicBeamLineLoadTest
 from SmallTests  import ThreeDDynamicBeamTest               as TThreeDDynamicBeamTest
@@ -60,9 +57,6 @@ def AssambleTestSuites():
         print("TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
         if (missing_external_fluid_dependencies == False):
-            smallSuite.addTest(TTwoDHessianTest('test_execution'))
-            smallSuite.addTest(TThreeDHessianTest('test_execution'))
-            smallSuite.addTest(TTwoDCavityTest('test_execution'))
             smallSuite.addTest(TTestRemeshMMG('test_remesh_sphere'))
         if (missing_external_solid_dependencies == False):
             smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
@@ -104,9 +98,6 @@ def AssambleTestSuites():
         if (missing_external_fluid_dependencies == False):
             allSuite.addTests(
                 KratosUnittest.TestLoader().loadTestsFromTestCases([
-                    TTwoDHessianTest,
-                    TThreeDHessianTest,
-                    TTwoDCavityTest,
                     TTestRemeshMMG,
                 ])
             )
