@@ -81,6 +81,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/inlets/bentonite_force_based_inlet.h"
 #include "custom_utilities/swimming_dem_in_pfem_utils.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
+#include "custom_utilities/mesh_rotation_utility.h"
 
 namespace Kratos{
 
@@ -445,7 +446,13 @@ using namespace boost::python;
         .def("TransferWalls", &SwimmingDemInPfemUtils::TransferWalls)
         ;
 
+    class_<MeshRotationUtility >("MeshRotationUtility", init<Kratos::Parameters&>())
+        .def("RotateMesh", &MeshRotationUtility::RotateMesh)
+        .def("RotateDEMMesh", &MeshRotationUtility::RotateDEMMesh)
+        ;
+
     }
+
 }  // namespace Python.
 
 } // Namespace Kratos

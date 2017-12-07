@@ -1,6 +1,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
+from DEM_procedures import KratosPrint as Say
 import t_junction_algorithm
 BaseAlgorithm = t_junction_algorithm.Algorithm
 import h5py
@@ -20,12 +21,14 @@ class Rotator:
 
     def CalculateRodriguesMatrices(self, axis):
         self.I = np.identity(3)
-        self.UU = np.array([[a * axis] for a in axis])
+        self.UU = np.array([a * axis for a in axis])
         self.Ux = np.array([[0, - axis[2], axis[1]], 
-                             [axis[2], 0., -axis[0]], 
-                             [-axis[1], axis[0], 0.]])
+                            [axis[2], 0., -axis[0]], 
+                            [-axis[1], axis[0], 0.]])
 
-    def Rotate(self, node, time):
+    def Rotate(self, model_part, time):
+        Say('Starting mesh movement...')
+
         sin = math.sin(self.omega * time)
         cos = math.cos(self.omega * time)
 
@@ -35,17 +38,20 @@ class Rotator:
         # Rotation matrix' (derivative of R with respect to time)
         Rp = - self.omega * sin * self.I + self.omega * cos * self.Ux + self.omega * sin * self.UU
 
-        P0 = Vector([node.X0, node.Y0, node.Z0])
-        P = Vector(list(self.a_init + R.dot(P0 - self.a_init)))
+        for node in model_part.Nodes:
+            P0 = np.array([node.X0, node.Y0, node.Z0])
 
-        Displacement = Vector(P - P0)
-        Velocity = Vector(list(Rp.dot(P0 - self.a_init)))
+            P = self.a_init + R.dot(P0 - self.a_init)
 
-        node.X, node.Y, node.Z = P[0], P[1], P[2]
+            Displacement = P - P0
+            Velocity = Rp.dot(P0 - self.a_init)
 
-        node.SetSolutionStepValue(MESH_VELOCITY, Velocity)
+            node.X, node.Y, node.Z = P[0], P[1], P[2]
 
-        node.SetSolutionStepValue(DISPLACEMENT, Displacement)
+            node.SetSolutionStepValue(DISPLACEMENT, Vector(list(Displacement)))
+            node.SetSolutionStepValue(MESH_VELOCITY, Vector(list(Velocity)))
+
+        Say('Mesh movement finshed.')
 
     def Normalize(self, v):
         mod_2 = sum([x ** 2 for x in v])
@@ -62,18 +68,13 @@ class Algorithm(BaseAlgorithm):
         self.SetRotator()
 
     def SetRotator(self):
-        a_init = self.pp.CFD_DEM.AddEmptyValue("frame_rotation_axis_initial_point").GetVector()
-        a_final = self.pp.CFD_DEM.AddEmptyValue("frame_rotation_axis_final_point").GetVector()
-        omega = self.pp.CFD_DEM.AddEmptyValue("angular_velocity_magnitude").GetDouble()
-        self.rotator = Rotator(a_init, a_final, omega)
-
-    def UpdateMeshMovement(self, time):
-      
-        for node in self.fluid_model_part.Nodes:
-            self.rotator.Rotate(node, time)
+        # a_init = self.pp.CFD_DEM.AddEmptyValue("frame_rotation_axis_initial_point").GetVector()
+        # a_final = self.pp.CFD_DEM.AddEmptyValue("frame_rotation_axis_final_point").GetVector()
+        # omega = self.pp.CFD_DEM.AddEmptyValue("angular_velocity_magnitude").GetDouble()
+        self.rotator = MeshRotationUtility(self.pp.CFD_DEM)
 
     def FluidSolve(self, time = 'None', solve_system = True):
-        self.UpdateMeshMovement(time)
+        self.rotator.RotateMesh(self.fluid_model_part, time)
         BaseAlgorithm.FluidSolve(self, time, solve_system)
     
     def SetBetaParameters(self):
