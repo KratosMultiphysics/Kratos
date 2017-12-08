@@ -85,6 +85,7 @@ class Algorithm(BaseAlgorithm):
             print(" [STEP:",self.step," TIME:",self.time,"]")
 
     def CloneTimeStep(self):
+        self.TransferTimeToFluidSolver()
 
         if self.step < self.GetFirstStepForFluidComputation() or self.stationarity:
             self.fluid_solution.main_model_part.CloneTimeStep(self.time)

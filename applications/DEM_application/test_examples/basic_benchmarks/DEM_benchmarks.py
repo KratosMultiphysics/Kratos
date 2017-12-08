@@ -27,29 +27,31 @@ listDISclRK   = [31,33]
 class Solution(main_script.Solution):
 
     def LoadParametersFile(self):
+        file_name = None
         if benchmark_number in listDISCONT:
             self.nodeplotter = True
-            parameters_file = open("ProjectParametersDISCONT.json",'r')
+            file_name = "ProjectParametersDISCONT.json"
         elif benchmark_number in listROLLFR:
-            parameters_file = open("ProjectParametersROLLFR.json",'r')
+            file_name = "ProjectParametersROLLFR.json"
         elif benchmark_number in listDEMFEM:
-            parameters_file = open("ProjectParametersDEMFEM.json",'r')
+            file_name = "ProjectParametersDEMFEM.json"
         elif benchmark_number in listCONT:
-            parameters_file = open("ProjectParametersDEMCONT.json",'r')
+            file_name = "ProjectParametersDEMCONT.json"
         elif benchmark_number == 27:
-            parameters_file = open("ProjectParametersUCS.json",'r')
+            file_name = "ProjectParametersUCS.json"
         #elif benchmark_number == 28:
         #    import DEM_explicit_solver_var_PENDULO3D as DEM_parameters  #disappeared?
         #    parameters_file = open("ProjectParametersDEM.json",'r')
         elif benchmark_number in listDISclZHAO:
-            parameters_file = open("ProjectParametersDISclZHAO.json",'r')
+            file_name = "ProjectParametersDISclZHAO.json"
         elif benchmark_number in listDISclRK:
-            parameters_file = open("ProjectParametersDISclRK.json",'r')
+            file_name = "ProjectParametersDISclRK.json"
         else:
             print('Benchmark number does not exist')
             sys.exit()
-        self.DEM_parameters = Parameters(parameters_file.read())
 
+        with open(file_name, 'r') as parameters_file:
+            self.DEM_parameters = Parameters(parameters_file.read())
 
     def __init__(self):
         super(Solution, self).__init__()
