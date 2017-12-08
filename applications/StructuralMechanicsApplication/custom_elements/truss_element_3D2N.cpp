@@ -417,50 +417,52 @@ namespace Kratos
 		{
 		if (rVariable == FORCE)
 				{
-					Vector Truss_forces = ZeroVector(msDimension);
-					Truss_forces[2] = 0.00;
-					Truss_forces[1] = 0.00;
+					Vector truss_forces = ZeroVector(msDimension);
+					truss_forces[2] = 0.00;
+					truss_forces[1] = 0.00;
 
-					const double InternalStrainGL = this->CalculateGreenLagrangeStrain();
+					const double internal_strain_gl = this->CalculateGreenLagrangeStrain();
 
 					const double L0 = this->CalculateReferenceLength();
 					const double l = this->CalculateCurrentLength();
 					const double E = this->GetProperties()[YOUNG_MODULUS];
 					const double A = this->GetProperties()[CROSS_AREA];
 
-					double S_pre = 0.00;
+					double s_pre = 0.00;
 					if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-						S_pre = this->GetProperties()[TRUSS_PRESTRESS_PK2];
+						s_pre = this->GetProperties()[TRUSS_PRESTRESS_PK2];
 					}
 
-					Truss_forces[0] = ((E*InternalStrainGL + S_pre) * l * A) / L0;
+					truss_forces[0] = ((E*internal_strain_gl + s_pre) * l * A) / L0;
 
 
 					if (this->mIsLinearElement)
 					{
-					Matrix LeftHandSideMatrix = ZeroMatrix(msLocalSize, msLocalSize);
-					ProcessInfo DummyInfo;
-					this->CalculateLeftHandSide(LeftHandSideMatrix, DummyInfo);
-					Vector NodalDeformation = ZeroVector(msLocalSize);
-					this->GetValuesVector(NodalDeformation);
+					Matrix left_hand_side_matrix = ZeroMatrix(msLocalSize, msLocalSize);
+					ProcessInfo dummy_info; //CalculateLeftHandSide does not take const ProcessInfo
+					this->CalculateLeftHandSide(left_hand_side_matrix, dummy_info);
+					Vector nodal_deformation = ZeroVector(msLocalSize);
+					this->GetValuesVector(nodal_deformation);
 					bounded_matrix<double,msLocalSize,msLocalSize>
-					TransformationMatrix = ZeroMatrix(msLocalSize, msLocalSize);
-					this->CreateTransformationMatrix(TransformationMatrix);
-					Vector f_int = prod(LeftHandSideMatrix, NodalDeformation);
-					f_int = prod(Matrix(trans(TransformationMatrix)),f_int);
-					Truss_forces[0] = f_int[3] + S_pre*A;
+					transformation_matrix = ZeroMatrix(msLocalSize, msLocalSize);
+					this->CreateTransformationMatrix(transformation_matrix);
+					Vector f_int = prod(left_hand_side_matrix, nodal_deformation);
+					f_int = prod(Matrix(trans(transformation_matrix)),f_int);
+					truss_forces[0] = f_int[3] + s_pre*A;
 					}
 
-					rOutput[0] = Truss_forces;
+					rOutput[0] = truss_forces;
 				}
 		}
+
+
 
 	void TrussElement3D2N::AddPrestressLinear(VectorType& rRightHandSideVector)
 	{
 		KRATOS_TRY;
 		bounded_matrix<double,msLocalSize,msLocalSize>
-		 TransformationMatrix = ZeroMatrix(msLocalSize, msLocalSize);
-		this->CreateTransformationMatrix(TransformationMatrix);
+		 transformation_matrix = ZeroMatrix(msLocalSize, msLocalSize);
+		this->CreateTransformationMatrix(transformation_matrix);
 		double S_pre = 0.00;
 		if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
 			S_pre = this->GetProperties()[TRUSS_PRESTRESS_PK2];
@@ -472,7 +474,7 @@ namespace Kratos
 		bounded_vector<double,msLocalSize> f_local = ZeroVector(msLocalSize);
 		f_local[0] = -1.00 * N;
 		f_local[3] = 1.00 * N;
-		rRightHandSideVector -= prod(TransformationMatrix, f_local);
+		rRightHandSideVector -= prod(transformation_matrix, f_local);
 		KRATOS_CATCH("")
 	}
 
