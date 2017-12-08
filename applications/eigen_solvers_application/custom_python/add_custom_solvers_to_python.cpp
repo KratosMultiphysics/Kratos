@@ -16,12 +16,14 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_solvers/EigenDirectSolver.h"
+#include "custom_solvers/SpectraEigenValueSolver.h"
 
 namespace Kratos
 {
@@ -59,6 +61,11 @@ void AddCustomSolversToPython()
 		("PardisoLUSolver", init<>())
 		.def(init<Parameters>());
 	#endif
+
+	using SpectraEigenValueSolver = SpectraEigenValueSolver<SparseSpaceType, LocalSpaceType>;
+	class_<SpectraEigenValueSolver, bases<LinearSolverType>, boost::noncopyable>
+		("SpectraEigenValueSolver", init<Parameters::Pointer>())
+		.def(init<Parameters::Pointer>());
 }
 
 } // namespace Python
