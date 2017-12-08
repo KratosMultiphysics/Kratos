@@ -17,13 +17,11 @@ if( NOT DEFINED EIGEN_ROOT )
 	message( FATAL_ERROR "EIGEN_ROOT not defined" )
 endif()
 
-if( MSVC )
-	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox" )
-else()
-	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
+if( NOT MSVC )
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
 endif()
 
-add_definitions( -DNDEBUG -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
+add_definitions( -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
 
 include_directories(
 	${CMAKE_SOURCE_DIR}/kratos
