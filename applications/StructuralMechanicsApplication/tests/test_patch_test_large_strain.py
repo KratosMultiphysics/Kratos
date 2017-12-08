@@ -275,10 +275,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         tl_mp.CreateNewNode(3, 1.0, 1.0, 0.0)
         tl_mp.CreateNewNode(4, 0.0, 1.0, 0.0)
         
-        for node in tl_mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,tl_mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,tl_mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,tl_mp)
             
         # Create a submodelpart for boundary conditions
         tl_bcs = tl_mp.CreateSubModelPart("BoundaryCondtions")
@@ -308,10 +307,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         ul_mp.CreateNewNode(3, 1.0, 1.0, 0.0)
         ul_mp.CreateNewNode(4, 0.0, 1.0, 0.0)
         
-        for node in ul_mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,ul_mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,ul_mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,ul_mp)
             
         # Create a submodelpart for boundary conditions
         ul_bcs = ul_mp.CreateSubModelPart("BoundaryCondtions")
@@ -402,10 +400,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.CreateNewNode(4,0.3,0.7,0.0)
         mp.CreateNewNode(5,0.6,0.6,0.0)
         
-        for node in mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
             
         #create a submodelpart for boundary conditions
         bcs = mp.CreateSubModelPart("BoundaryCondtions")
@@ -442,10 +439,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.CreateNewNode(7,2.00,0.75,0.00)
         mp.CreateNewNode(8,3.00,0.00,0.00)
         
-        for node in mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
             
         #create a submodelpart for boundary conditions
         bcs = mp.CreateSubModelPart("BoundaryCondtions")
@@ -491,10 +487,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.CreateNewNode(15, 1.00000,  0.00000,  1.00000)
         mp.CreateNewNode(16, 1.00000,  0.00000,  0.00000)       
         
-        for node in mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
             
         #create a submodelpart for boundary conditions
         bcs = mp.CreateSubModelPart("BoundaryCondtions")
@@ -532,10 +527,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.CreateNewNode(4,0.3,0.7,0.0)
         mp.CreateNewNode(5,0.6,0.6,0.0)
         
-        for node in mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
             
         #create a submodelpart for boundary conditions
         bcs = mp.CreateSubModelPart("BoundaryCondtions")
@@ -573,10 +567,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.CreateNewNode(7,2.00,0.75,0.00)
         mp.CreateNewNode(8,3.00,0.00,0.00)
         
-        for node in mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
             
         #create a submodelpart for boundary conditions
         bcs = mp.CreateSubModelPart("BoundaryCondtions")
@@ -623,10 +616,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.CreateNewNode(15, 1.00000,  0.00000,  1.00000)
         mp.CreateNewNode(16, 1.00000,  0.00000,  0.00000)       
         
-        for node in mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
             
         #create a submodelpart for boundary conditions
         bcs = mp.CreateSubModelPart("BoundaryCondtions")

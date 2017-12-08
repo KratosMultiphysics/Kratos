@@ -100,14 +100,14 @@ elif (DEM_parameters["IntegrationScheme"].GetString() == 'Taylor_Scheme'):
     scheme = TaylorScheme()
 elif (DEM_parameters["IntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
     scheme = NewmarkBetaScheme(0.5, 0.25)
-elif (DEM_parameters["IntegrationScheme"].GetString() == 'Verlet_Velocity'):
-    scheme = VerletVelocityScheme()
+elif (DEM_parameters["IntegrationScheme"].GetString() == 'Velocity_Verlet'):
+    scheme = VelocityVerletScheme()
 else:
     KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
 
 
 # Creating a solver object and set the search strategy
-solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)

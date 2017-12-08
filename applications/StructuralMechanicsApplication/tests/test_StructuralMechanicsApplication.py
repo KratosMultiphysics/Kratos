@@ -27,8 +27,11 @@ from test_quadratic_elements import TestQuadraticElements as TTestQuadraticEleme
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
 from test_patch_test_truss import TestTruss3D2N as TTestTruss3D2N
 from test_patch_test_cr_beam import TestCrBeam3D2N as TTestCrBeam3D2N
+from test_patch_test_cr_beam import TestCrBeam2D2N as TTestCrBeam2D2N
 # Test loading conditions
-from test_loading_conditions import TestLoadingConditions as TestLoadingConditions
+from test_loading_conditions_point import TestLoadingConditionsPoint as TestLoadingConditionsPoint
+from test_loading_conditions_line import TestLoadingConditionsLine as TestLoadingConditionsLine
+from test_loading_conditions_surface import TestLoadingConditionsSurface as TestLoadingConditionsSurface
 # Basic moving mesh test
 from SmallTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
 # Dynamic basic tests
@@ -80,6 +83,7 @@ from SmallTests import Simple3D2NTrussDynamicTest as T3D2NTrussDynamicTest
 from SmallTests import Simple3D2NBeamCrTest as T3D2NBeamCrTest
 from SmallTests import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
 from SmallTests import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
+from SmallTests import Simple2D2NBeamCrTest as T2D2NBeamCrTest
 
 # Multipoint constraint tests
 from test_multipoint_contstraints import TestMultipointConstraints as TTestMultipointConstraints
@@ -147,8 +151,11 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     ## Beams
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam3D2N]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam2D2N]))
     # Test loading conditions
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingConditions]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingConditionsPoint]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingConditionsLine]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingConditionsSurface]))
     # Basic moving mesh test
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Dynamic basic tests
@@ -196,6 +203,7 @@ def AssambleTestSuites():
     smallSuite.addTest(T3D2NBeamCrTest('test_execution'))
     smallSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
     smallSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
+    smallSuite.addTest(T2D2NBeamCrTest('test_execution'))
     # Nodal damping test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests]))
 
@@ -209,7 +217,7 @@ def AssambleTestSuites():
             # Element damping test
             smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests]))
             # Harmonic analysis test
-            smallSuite.addTest(THarmonicAnalysisTests('test_execution'))
+            smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTests]))
         else:
             print(
                 "FEASTSolver solver is not included in the compilation of the External Solvers Application"

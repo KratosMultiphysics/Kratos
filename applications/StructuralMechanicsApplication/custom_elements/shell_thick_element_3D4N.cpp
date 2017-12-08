@@ -12,7 +12,7 @@
 #include "shell_thick_element_3D4N.hpp"
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
-
+#include "custom_utilities/shell_utilities.h"
 #include "geometries/quadrilateral_3d_4.h"
 
 #include <string>
@@ -27,56 +27,56 @@ namespace Kratos
 //
 // =====================================================================================
 
-namespace Utilities
-{
-
-template<class TVec>
-inline void ShapeFunc(double xi, double eta, TVec & N)
-{
-    N(0) = 0.25 * (1.0 - xi) * (1.0 - eta); // node 1
-    N(1) = 0.25 * (1.0 + xi) * (1.0 - eta); // node 2
-    N(2) = 0.25 * (1.0 + xi) * (1.0 + eta); // node 3
-    N(3) = 0.25 * (1.0 - xi) * (1.0 + eta); // node 4
-}
-
-template<class TVec>
-inline void ShapeFuncSerendipity(double xi, double eta, TVec & N)
-{
-    N(0) = 0.5 * (1.0 - xi * xi) * (1.0 - eta);  // node 5
-    N(1) = 0.5 * (1.0 + xi) * (1.0 - eta * eta); // node 6
-    N(2) = 0.5 * (1.0 - xi * xi) * (1.0 + eta);  // node 7
-    N(3) = 0.5 * (1.0 - xi) * (1.0 - eta * eta); // node 8
-}
-
-template<class TMat>
-inline void ShapeFunc_NaturalDerivatives(double xi, double eta, TMat & dN)
-{
-    dN(0, 0) = -(1.0 - eta) * 0.25;
-    dN(1, 0) =  (1.0 - eta) * 0.25;
-    dN(2, 0) =  (1.0 + eta) * 0.25;
-    dN(3, 0) = -(1.0 + eta) * 0.25;
-
-    dN(0, 1) = -(1.0 - xi)  * 0.25;
-    dN(1, 1) = -(1.0 + xi)  * 0.25;
-    dN(2, 1) =  (1.0 + xi)  * 0.25;
-    dN(3, 1) =  (1.0 - xi)  * 0.25;
-}
-
-template<class TMat>
-inline void ShapeFuncSerendipity_NaturalDerivatives(double xi, double eta, TMat & dN)
-{
-    dN(0, 0) = -xi * (1.0 - eta);
-    dN(1, 0) =  0.5 * (1.0 - eta * eta);
-    dN(2, 0) = -xi * (1.0 - eta);
-    dN(3, 0) = -0.5 * (1.0 - eta * eta);
-
-    dN(0, 1) = -0.5 * (1.0 - xi * xi);
-    dN(1, 1) = -eta * (1.0 + xi);
-    dN(2, 1) =  0.5 * (1.0 - xi * xi);
-    dN(3, 1) = -eta * (1.0 + xi);
-}
-
-}
+// namespace Utilities
+// {
+// 
+// template<class TVec>
+// inline void ShapeFunc(double xi, double eta, TVec & N)
+// {
+//     N(0) = 0.25 * (1.0 - xi) * (1.0 - eta); // node 1
+//     N(1) = 0.25 * (1.0 + xi) * (1.0 - eta); // node 2
+//     N(2) = 0.25 * (1.0 + xi) * (1.0 + eta); // node 3
+//     N(3) = 0.25 * (1.0 - xi) * (1.0 + eta); // node 4
+// }
+// 
+// template<class TVec>
+// inline void ShapeFuncSerendipity(double xi, double eta, TVec & N)
+// {
+//     N(0) = 0.5 * (1.0 - xi * xi) * (1.0 - eta);  // node 5
+//     N(1) = 0.5 * (1.0 + xi) * (1.0 - eta * eta); // node 6
+//     N(2) = 0.5 * (1.0 - xi * xi) * (1.0 + eta);  // node 7
+//     N(3) = 0.5 * (1.0 - xi) * (1.0 - eta * eta); // node 8
+// }
+// 
+// template<class TMat>
+// inline void ShapeFunc_NaturalDerivatives(double xi, double eta, TMat & dN)
+// {
+//     dN(0, 0) = -(1.0 - eta) * 0.25;
+//     dN(1, 0) =  (1.0 - eta) * 0.25;
+//     dN(2, 0) =  (1.0 + eta) * 0.25;
+//     dN(3, 0) = -(1.0 + eta) * 0.25;
+// 
+//     dN(0, 1) = -(1.0 - xi)  * 0.25;
+//     dN(1, 1) = -(1.0 + xi)  * 0.25;
+//     dN(2, 1) =  (1.0 + xi)  * 0.25;
+//     dN(3, 1) =  (1.0 - xi)  * 0.25;
+// }
+// 
+// template<class TMat>
+// inline void ShapeFuncSerendipity_NaturalDerivatives(double xi, double eta, TMat & dN)
+// {
+//     dN(0, 0) = -xi * (1.0 - eta);
+//     dN(1, 0) =  0.5 * (1.0 - eta * eta);
+//     dN(2, 0) = -xi * (1.0 - eta);
+//     dN(3, 0) = -0.5 * (1.0 - eta * eta);
+// 
+//     dN(0, 1) = -0.5 * (1.0 - xi * xi);
+//     dN(1, 1) = -eta * (1.0 + xi);
+//     dN(2, 1) =  0.5 * (1.0 - xi * xi);
+//     dN(3, 1) = -eta * (1.0 + xi);
+// }
+// 
+// }
 
 // =====================================================================================
 //

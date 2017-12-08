@@ -160,8 +160,7 @@ def ConstructListsOfVariables(pp):
     if pp.CFD_DEM["frame_of_reference_type"].GetInt() and pp.CFD_DEM["basset_force_type"].GetInt() > 0:
         pp.dem_vars += [DISPLACEMENT_OLD]
         pp.dem_vars += [VELOCITY_OLD_OLD]
-
-    if pp.CFD_DEM["IntegrationScheme"].GetString() in {'Hybrid_Bashforth', 'TerminalVelocityScheme'} or pp.CFD_DEM["basset_force_type"].GetInt() > 0:
+    if pp.CFD_DEM["TranslationalIntegrationScheme"].GetString() in {'Hybrid_Bashforth', 'TerminalVelocityScheme'} or pp.CFD_DEM["basset_force_type"].GetInt() > 0:
         pp.dem_vars += [VELOCITY_OLD]
         pp.dem_vars += [ADDITIONAL_FORCE_OLD]
         pp.dem_vars += [SLIP_VELOCITY]
@@ -282,6 +281,10 @@ def ConstructListsOfResultsToPrint(pp):
     if pp.CFD_DEM["embedded_option"].GetBool():
         pp.rigid_faces_nodal_results += ["POSITIVE_FACE_PRESSURE"]
         pp.rigid_faces_nodal_results += ["NEGATIVE_FACE_PRESSURE"]
+        
+    if pp.CFD_DEM["PostNonDimensionalVolumeWear"].GetBool(): 
+        pp.rigid_faces_nodal_results += ["IMPACT_WEAR"] 
+        pp.rigid_faces_nodal_results += ["NON_DIMENSIONAL_VOLUME_WEAR"]
 
     # changes on the fluid variables to print for the sake of consistency
     ChangeListOfFluidNodalResultsToPrint(pp)
