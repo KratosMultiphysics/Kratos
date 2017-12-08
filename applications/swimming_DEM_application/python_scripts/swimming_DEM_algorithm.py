@@ -541,7 +541,7 @@ class Algorithm(object):
             coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
             project_at_every_substep_option = self.pp.CFD_DEM["project_at_every_substep_option"].GetBool()
             coupling_scheme_type = self.pp.CFD_DEM["coupling_scheme_type"].GetString()
-            integration_scheme = self.pp.CFD_DEM["IntegrationScheme"].GetString()
+            integration_scheme = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
             basset_force_type = self.pp.CFD_DEM["basset_force_type"].GetInt()
             dem_inlet_option = self.pp.CFD_DEM["dem_inlet_option"].GetBool()
 
