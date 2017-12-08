@@ -68,7 +68,7 @@ class MmgProcess(KratosMultiphysics.Process):
             },
             "save_external_files"              : false,
             "max_number_of_searchs"            : 1000,
-            "debug_mode"                  : false,
+            "debug_mode"                       : false,
             "echo_level"                       : 3
         }
         """)
