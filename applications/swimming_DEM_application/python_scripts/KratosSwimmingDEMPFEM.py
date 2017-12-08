@@ -28,5 +28,8 @@ class Solution:
             import swimming_DEM_PFEM_algorithm
             self.alg = swimming_DEM_PFEM_algorithm.Algorithm(varying_parameters)
 
+    def Run(self):
+        return self.alg.Run()
+
 if __name__=="__main__":
-    Solution().alg.Run()
+    Solution().Run()

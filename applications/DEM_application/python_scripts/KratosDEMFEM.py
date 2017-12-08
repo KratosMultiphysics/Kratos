@@ -107,7 +107,7 @@ else:
 
 
 # Creating a solver object and set the search strategy
-solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
