@@ -160,6 +160,7 @@ def ConstructListsOfVariables(pp):
     if pp.CFD_DEM["frame_of_reference_type"].GetInt() and pp.CFD_DEM["basset_force_type"].GetInt() > 0:
         pp.dem_vars += [DISPLACEMENT_OLD]
         pp.dem_vars += [VELOCITY_OLD_OLD]
+
     if pp.CFD_DEM["TranslationalIntegrationScheme"].GetString() in {'Hybrid_Bashforth', 'TerminalVelocityScheme'} or pp.CFD_DEM["basset_force_type"].GetInt() > 0:
         pp.dem_vars += [VELOCITY_OLD]
         pp.dem_vars += [ADDITIONAL_FORCE_OLD]
