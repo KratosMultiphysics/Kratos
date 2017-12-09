@@ -22,7 +22,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 "direction"                 : [1.0,0.0,0.0],
                 "stl_filename"              : "please specify name of stl file",
                 "epsilon"    : 1e-9,
-                "AOAdeg" : 10
+                "AOAdeg" : 3
             }
             """)
 
@@ -49,7 +49,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.direction[0] /= dnorm
         self.direction[1] /= dnorm
         self.direction[2] /= dnorm
-        print(self.direction)
+        print('wake direction =', self.direction)
         
         self.epsilon = settings["epsilon"].GetDouble()
 
@@ -181,7 +181,9 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             
         else: #3D case
             import numpy
+            print('\nImporting wake ...')
             from stl import mesh #this requires numpy-stl
+            print('\nWake has been imported')
 
             #initialize the distances to zero on all elements
             zero = KratosMultiphysics.Vector(4)
@@ -223,8 +225,10 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 
             representation_mp = KratosMultiphysics.ModelPart("representation_mp")
             
+            print('\nComputing distance ...')
             distance_calculator = KratosMultiphysics.CalculateSignedDistanceTo3DSkinProcess(wake_mp, self.fluid_model_part)
             distance_calculator.Execute()
+            print('\nDistance has been computed')
             
             for elem in self.fluid_model_part.Elements:
                 if(elem.Is(KratosMultiphysics.TO_SPLIT)):
@@ -258,18 +262,22 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     #elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, d)
                     #elem.Set(KratosMultiphysics.MARKER,True)
                     
-            KratosMultiphysics.CompressiblePotentialFlowApplication.KuttaConditionProcess(self.fluid_model_part).Execute()
+            '''
+            print('\nExecuiting Kutta Condition Process')
+            KratosMultiphysics.CompressiblePotentialFlowApplication.KuttaConditionProcess(self.fluid_model_part).Execute()            
+            print('\nKutta Condition Process ended')
             
             for elem in self.fluid_model_part.Elements:
                 d = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
                 for i in range(len(d)):
                     if(abs(d[i]) < self.epsilon ):
-                        if(d[i] < 0):
-                            d[i] = -self.epsilon
-                        else:
-                            d[i] = self.epsilon
+                        d[i] = self.epsilon
+                        #if(d[i] < 0):
+                        #    d[i] = -self.epsilon
+                        #else:
+                        #    d[i] = self.epsilon
                 elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,d)
-                       
+            '''           
 
                 #if(len(d) == 4):
                     #npos = 0
@@ -372,6 +380,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             gid_output.PrintOutput()
             gid_output.ExecuteFinalizeSolutionStep()
             gid_output.ExecuteFinalize()
+            
+            print('Wake Process Done')
 
 
                     

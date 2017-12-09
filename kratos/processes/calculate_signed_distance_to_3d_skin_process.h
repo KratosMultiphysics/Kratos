@@ -324,6 +324,8 @@ public:
     {
         KRATOS_TRY;
 
+        std::cout << "I enter this function execute!" << std::endl;
+
         GenerateOctree();
 
         //DistanceFluidStructure();

@@ -343,6 +343,7 @@ namespace Kratos
 
 	void CalculateDistanceToSkinProcess::Execute()
 	{
+		std::cout << "Entering CalculateDistanceToSkinProcess 2" << std::endl;
 		this->Initialize();
 		this->FindIntersections();
 		this->CalculateDistances(this->GetIntersections());

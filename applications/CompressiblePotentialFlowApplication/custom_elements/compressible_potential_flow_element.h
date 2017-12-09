@@ -291,6 +291,8 @@ public:
 
         ElementalData<NumNodes,Dim> data;
 
+        //std::cout << "i am this element "  << std::endl;
+
         //calculate shape functions
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
@@ -468,23 +470,6 @@ public:
 //                 bounded_matrix<double,NumNodes,NumNodes> tangent_constraint = /*1e3**/data.vol*prod(tmp, trans(data.DN_DX));
                 if(kutta_element == true || this->Is(BOUNDARY))
                 {
-                    // if(this->Is(BOUNDARY))
-                    // {
-                    //     std::cout << ""   << std::endl;
-                    //     std::cout << "BOUNDARY ELEMENT = " << GetGeometry()  << std::endl;
-                    //     std::cout << ""   << std::endl;
-                    // }
-
-                    // if(kutta_element == true)
-                    // {
-                    //     std::cout << ""   << std::endl;
-                    //     std::cout << "KUTTA ELEMENT = " << GetGeometry()  << std::endl;
-                    //     std::cout << ""   << std::endl;
-                    // }
-                        
-
-                    // std::cout << "KUTTA ELEMENT = " << this->Id()  << std::endl;
-                    // std::cout << "X = " << GetGeometry()  << std::endl;
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)
@@ -1072,6 +1057,7 @@ protected:
         double v_norm2 = inner_prod(velocity,velocity);
         if(v_norm2/a > 0.94)
         {
+            //std::cout << "Local mach larger than 0.94. Using density correction" << std::endl;
             v_norm2 = 0.94*a;
         }
 
@@ -1084,6 +1070,7 @@ protected:
         }
         else
         {
+            std::cout << "Base smaller than 0. Using density correction" << std::endl;
             std::cout << "vinfinity_norm2 =" << vinfinity_norm2 << std::endl;
             std::cout << "v_norm2 =" << v_norm2 << std::endl;
             std::cout << "base =" << base << std::endl;

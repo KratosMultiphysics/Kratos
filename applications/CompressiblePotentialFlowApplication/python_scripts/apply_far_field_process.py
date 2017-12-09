@@ -20,7 +20,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "density_infinity"  : 1.225,
                 "gamma"                 : 1.4,
                 "speed_sound_infinity"  : 340,
-                "AOAdeg" : 10
+                "AOAdeg" : 3
             }  """ );
         
             
@@ -38,19 +38,26 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.speed_sound_infinity   = settings["speed_sound_infinity"].GetDouble()
         self.AOAdeg                 = settings["AOAdeg"].GetDouble()
         
-        
+
         #convert angle to radians
         self.AOArad = self.AOAdeg*pi/180
         
         self.velocity_infinity[0]   = settings["velocity_infinity"][0].GetDouble()*cos(self.AOArad)
         self.velocity_infinity[1]   = settings["velocity_infinity"][0].GetDouble()*sin(self.AOArad)
         self.velocity_infinity[2]   = settings["velocity_infinity"][2].GetDouble()
+                
+        from numpy import linalg as LA
+        velocity_norm = LA.norm(self.velocity_infinity)
         
-        print(self.velocity_infinity)
-        print(self.AOAdeg)
-        print(self.AOArad)
-        print(sin(self.AOArad))
+        self.mach                   = velocity_norm/self.speed_sound_infinity
         
+        print('\nAngle of attack   =  \t'   , self.AOAdeg)
+        print('\nvelocity_infinity =  \t'   , self.velocity_infinity)
+        print('\nvelocity_norm     =  \t'   , velocity_norm)
+        print('\nmach =               \t'   , self.mach)
+        print('\ndensity_infinity =   \t'   , self.density_infinity)
+        print('\nspeed_sound_infinity =\t'  , self.speed_sound_infinity)
+        print('\ngamma =              \t'   , self.gamma)
         
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.VELOCITY,       self.velocity_infinity)
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY,        self.density_infinity)
@@ -59,13 +66,15 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,0)
         
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part,self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        print(self.model_part.ProcessInfo.GetValue(KratosMultiphysics.IS_RESTARTED))
         
+        if(self.model_part.ProcessInfo.GetValue(KratosMultiphysics.IS_RESTARTED)):
+            print('\nComputing Compressible Flow\n')
+        else:
+            print('\nComputing Incompressible Flow\n')
         
-                
-        
-        
-        
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part,self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])   
+
     def Execute(self):
         for cond in self.model_part.Conditions:
             cond.SetValue(KratosMultiphysics.VELOCITY, self.velocity_infinity)
