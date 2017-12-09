@@ -684,8 +684,6 @@ protected:
 		return mpParentElement.lock();
 	}
 
-    void CalculateNormal(array_1d<double,3>& An);
-
     void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ConditionDataStruct& data);
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
     
