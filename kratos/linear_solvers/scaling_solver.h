@@ -18,6 +18,8 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <cmath>
+#include <complex>
 
 
 // External includes
@@ -228,7 +230,7 @@ public:
         {
             #pragma omp parallel for
             for(int i=0; i< static_cast<int>(scaling_vector.size()); i++)
-                scaling_vector[i] = sqrt(scaling_vector[i]);
+                scaling_vector[i] = sqrt(std::abs(scaling_vector[i]));
 
             SymmetricScaling(rA,scaling_vector);
 
@@ -462,11 +464,11 @@ private:
         {
             row_size= *(row_it+1)-*row_it;
             row_it++;
-            double t = typename TDenseSpaceType::DataType();
+            double t = 0.0;
 
             for(int i = 0; i<row_size; i++)
             {
-                double tmp = *value_begin;
+                double tmp = std::abs(*value_begin);
                 t += tmp*tmp;
                 value_begin++;
             }
