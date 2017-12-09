@@ -32,31 +32,31 @@ namespace Kratos
 {
 
 
-template <typename TSparseSpace, typename TlocalSpace, typename TLinearSolverType>
-class LinearSolverFactory : public LinearSolverFactoryBase<TSparseSpace,TlocalSpace>
+template <typename TSparseSpace, typename TLocalSpace, typename TLinearSolverType>
+class LinearSolverFactory : public LinearSolverFactoryBase<TSparseSpace,TLocalSpace>
 {
 protected:
 
-    typename LinearSolver<TSparseSpace,TlocalSpace>::Pointer CreateHelper(Kratos::Parameters settings) const
+    typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer CreateHelper(Kratos::Parameters settings) const
     {
 
         if(settings.Has("scaling") && settings["scaling"].GetBool() == true)
         {
-            auto pinner_solver = typename LinearSolver<TSparseSpace,TlocalSpace>::Pointer(new TLinearSolverType(settings));
+            auto pinner_solver = typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer(new TLinearSolverType(settings));
 
-            return typename LinearSolver<TSparseSpace,TlocalSpace>::Pointer(
-                       new ScalingSolver<TSparseSpace,TlocalSpace>(pinner_solver, true));
+            return typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer(
+                       new ScalingSolver<TSparseSpace,TLocalSpace>(pinner_solver, true));
 
         }
         else
-            return typename LinearSolver<TSparseSpace,TlocalSpace>::Pointer(new TLinearSolverType(settings));
+            return typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer(new TLinearSolverType(settings));
     }
 };
 
 /// output stream function
-template <typename TSparseSpace, typename TlocalSpace, typename TLinearSolverType>
+template <typename TSparseSpace, typename TLocalSpace, typename TLinearSolverType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const LinearSolverFactory<TSparseSpace,TlocalSpace,TLinearSolverType>& rThis)
+                                  const LinearSolverFactory<TSparseSpace,TLocalSpace,TLinearSolverType>& rThis)
 {
     rOStream << "LinearSolverFactory" << std::endl;
     return rOStream;
