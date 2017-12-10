@@ -3,5 +3,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 def ConstructSolver(configuration):
     import KratosMultiphysics
-    return KratosMultiphysics.LinearSolverFactoryBase().CreateSolver(configuration)
+    if KratosMultiphysics.ComplexLinearSolverFactoryBase().Has(configuration["solver_type"].GetString()):
+        return KratosMultiphysics.ComplexLinearSolverFactoryBase().CreateSolver(configuration)
+    else:
+        return KratosMultiphysics.LinearSolverFactoryBase().CreateSolver(configuration)
     

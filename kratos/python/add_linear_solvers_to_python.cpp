@@ -53,18 +53,16 @@ namespace Kratos
 namespace Python
 {
     template <class TDataType>
-    using TSpaceType = UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+    using TLinearSolverType = LinearSolver<TUblasSparseSpace<TDataType>, TUblasDenseSpace<TDataType>>;
     template <class TDataType>
-    using TLocalSpaceType = UblasSpace<TDataType, boost::numeric::ublas::matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
-    template <class TDataType>
-    using TLinearSolverType = LinearSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
-    template <class TDataType>
-    using TDirectSolverType = DirectSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
+    using TDirectSolverType = DirectSolver<TUblasSparseSpace<TDataType>, TUblasDenseSpace<TDataType>>;
 
 void  AddLinearSolversToPython()
 {
-    typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TUblasSparseSpace<double> SpaceType;
+    typedef TUblasDenseSpace<double> LocalSpaceType;
+    typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
+    typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
     typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
     typedef IterativeSolver<SpaceType,  LocalSpaceType> IterativeSolverType;
     typedef CGSolver<SpaceType,  LocalSpaceType> CGSolverType;
@@ -91,6 +89,14 @@ void  AddLinearSolversToPython()
      .def("CreateSolver",&LinearSolverFactoryBase< SpaceType, LocalSpaceType>::CreateSolver)
      .def("Has",&LinearSolverFactoryBase< SpaceType, LocalSpaceType>::Has)
     ;
+
+    class_<LinearSolverFactoryBase< ComplexSpaceType, ComplexLocalSpaceType >,
+            LinearSolverFactoryBase< ComplexSpaceType, ComplexLocalSpaceType >::Pointer,
+            boost::noncopyable >("ComplexLinearSolverFactoryBase")
+     .def( init< >() )
+     .def("CreateSolver",&LinearSolverFactoryBase< ComplexSpaceType, ComplexLocalSpaceType>::CreateSolver)
+     .def("Has",&LinearSolverFactoryBase< ComplexSpaceType, ComplexLocalSpaceType>::Has)
+    ;
     
     class_<PreconditionerFactoryBase< SpaceType, LocalSpaceType >,
             PreconditionerFactoryBase< SpaceType, LocalSpaceType >::Pointer,
@@ -99,11 +105,9 @@ void  AddLinearSolversToPython()
      .def("CreatePreconditioner",&PreconditionerFactoryBase< SpaceType, LocalSpaceType>::CreatePreconditioner)
     ;   
 
-    typedef TSpaceType<std::complex<double>> ComplexSparseSpaceType;
-    typedef TLocalSpaceType<std::complex<double>> ComplexDenseSpaceType;
     typedef TLinearSolverType<std::complex<double>> ComplexLinearSolverType;
     typedef TDirectSolverType<std::complex<double>> ComplexDirectSolverType;
-    typedef SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexSkylineLUSolverType;
+    typedef SkylineLUCustomScalarSolver<ComplexSpaceType, ComplexLocalSpaceType> ComplexSkylineLUSolverType;
 
 
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;

@@ -30,6 +30,7 @@
 #include "linear_solvers/amgcl_solver.h"
 #include "linear_solvers/amgcl_ns_solver.h"
 #include "linear_solvers/scaling_solver.h"
+#include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/preconditioner.h"
@@ -41,8 +42,8 @@ namespace Kratos
 {
     void RegisterPreconditioners()
     {
-        typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef TUblasSparseSpace<double> SpaceType;
+        typedef TUblasDenseSpace<double> LocalSpaceType;
         
         typedef PreconditionerFactoryBase<SpaceType,  LocalSpaceType> PreconditionerFactoryBaseType;
         
@@ -67,8 +68,10 @@ namespace Kratos
     
     void RegisterLinearSolvers()
     {
-        typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef TUblasSparseSpace<double> SpaceType;
+        typedef TUblasDenseSpace<double> LocalSpaceType;
+        typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
+        typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
 //         typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
 //         typedef IterativeSolver<SpaceType,  LocalSpaceType> IterativeSolverType;
         typedef CGSolver<SpaceType,  LocalSpaceType> CGSolverType;
@@ -79,11 +82,12 @@ namespace Kratos
         typedef SkylineLUFactorizationSolver<SpaceType,  LocalSpaceType> SkylineLUFactorizationSolverType;
         typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
         typedef AMGCL_NS_Solver<SpaceType,  LocalSpaceType> AMGCL_NS_SolverType;
-        
+        typedef SkylineLUCustomScalarSolver<ComplexSpaceType, ComplexLocalSpaceType> SkylineLUComplexSolverType;
         
         typedef ScalingSolver<SpaceType,  LocalSpaceType> ScalingSolverType;
        
         typedef LinearSolverFactoryBase<SpaceType,  LocalSpaceType> LinearSolverFactoryBaseType;
+        typedef LinearSolverFactoryBase<ComplexSpaceType,  ComplexLocalSpaceType> ComplexLinearSolverFactoryBaseType;
         
         //NOTE: here we must create persisting objects for the linear solvers
         static auto CGSolverFactory = LinearSolverFactory<SpaceType,LocalSpaceType,CGSolverType>();
@@ -95,7 +99,8 @@ namespace Kratos
         static auto AMGCLSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,AMGCLSolverType>();
         static auto AMGCL_NS_SolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,AMGCL_NS_SolverType>();
         static auto ScalingSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,ScalingSolverType>();
-        
+        static auto SkylineLUComplexSolverFactory = LinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, SkylineLUComplexSolverType>();
+
         //registration of linear solvers
 //         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("LinearSolver"), LinearSolverFactory<SpaceType,LocalSpaceType,LinearSolverType>());
         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("CGSolver"), CGSolverFactory);
@@ -107,6 +112,7 @@ namespace Kratos
         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("AMGCLSolver"), AMGCLSolverFactory); //registered with two different names
         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("AMGCL_NS_Solver"),AMGCL_NS_SolverFactory );
         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("ScalingSolver"),ScalingSolverFactory );
+        KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("SkylineLUComplexSolver"), SkylineLUComplexSolverFactory);
 
     };
     
