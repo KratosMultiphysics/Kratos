@@ -204,4 +204,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif KRATOS_REGISTER_LINEAR_SOLVERS
+#endif // KRATOS_REGISTER_LINEAR_SOLVERS
