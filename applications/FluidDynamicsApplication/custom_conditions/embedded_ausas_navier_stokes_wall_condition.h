@@ -108,10 +108,10 @@ public:
         // double delta;                  // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
 
         // Data required in the RHS and LHS calculation
-        double wGauss;                 // Gauss point weight
-        array_1d<double, 3> Normal;    // Condition normal
-        array_1d<double, TNumNodes> N; // Gauss point shape functions values
-        bounded_matrix<double, TNumNodes, TDim> v; // Current step velocity
+        double wGauss;                              // Gauss point weight
+        array_1d<double, 3> Normal;                 // Condition normal
+        array_1d<double, TNumNodes> N;              // Gauss point shape functions values
+        bounded_matrix<double, TNumNodes, TDim> v;  // Current step velocity
 
         // Data containers for no-split faces
         MatrixType N_container;
@@ -246,7 +246,7 @@ public:
      * Note that this needs to be done at each time step for that cases 
      * in where the distance function varies.
      */
-    void InitializeSolutionStep() {
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override {
         KRATOS_TRY;
 
         // Set a reference to the current condition geometry
@@ -302,7 +302,24 @@ public:
 
                 // Check if the current condition ids are included in the iterated candidate element nodal ids 
                 if (std::includes(element_nodes_ids.begin(), element_nodes_ids.end(), node_ids.begin(), node_ids.end())) {
+                    // Save a pointer to the parent element
                     mpParentElement = element_candidates(i_candidate);
+
+                    // Save the parent element local ids. corresponding to the condition nodes
+                    mParentElementIds.resize(TNumNodes);
+
+                    std::vector<unsigned int > aux_elem_ids(n_elem_nodes);
+                    for (unsigned int j = 0; j < n_elem_nodes; ++j) {
+                        aux_elem_ids[j] = r_elem_geom[j].Id();
+                    }
+
+                    for (unsigned int i = 0; i < TNumNodes; ++i) {
+                        const unsigned int aux_id = r_geometry[i].Id();
+                        const std::vector<unsigned int >::iterator aux_it = std::find(aux_elem_ids.begin(), aux_elem_ids.end(), aux_id);
+                        mParentElementIds[i] = std::distance(aux_elem_ids.begin(), aux_it);
+                    }
+
+                    // Leave the parent element search
                     return;
                 }
             }
@@ -353,11 +370,15 @@ public:
 
         // Loop on gauss points
         if (this->Is(TO_SPLIT)) {
+
             // Positive side Gauss pts. loop
             const unsigned int n_gauss_pos = (data.w_gauss_pos_face).size();
             for (unsigned int i_gauss = 0; i_gauss < n_gauss_pos; ++i_gauss) {
-
-                data.N = row(data.N_pos_face, i_gauss);
+                
+                Vector aux_N = row(data.N_pos_face, i_gauss);
+                for (unsigned int i = 0; i < TNumNodes; ++i) {
+                    data.N(i) = aux_N(mParentElementIds[i]);
+                }
                 data.wGauss = data.w_gauss_pos_face(i_gauss);
                 data.Normal = data.pos_face_area_normals[i_gauss];
                 data.Normal /= norm_2(data.Normal); // Normalize the area normal
@@ -368,11 +389,15 @@ public:
                 noalias(rLeftHandSideMatrix) += lhs_gauss;
                 noalias(rRightHandSideVector) += rhs_gauss;
             }
+
             // Negative side Gauss pts. loop
             const unsigned int n_gauss_neg = (data.w_gauss_neg_face).size();
             for (unsigned int i_gauss = 0; i_gauss < n_gauss_neg; ++i_gauss) {
-
-                data.N = row(data.N_neg_face, i_gauss);
+                
+                Vector aux_N = row(data.N_neg_face, i_gauss);
+                for (unsigned int i = 0; i < TNumNodes; ++i) {
+                    data.N(i) = aux_N(mParentElementIds[i]);
+                }
                 data.wGauss = data.w_gauss_neg_face(i_gauss);
                 data.Normal = data.neg_face_area_normals[i_gauss];
                 data.Normal /= norm_2(data.Normal); // Normalize the area normal
@@ -431,11 +456,15 @@ public:
 
         // Loop on gauss points
         if (this->Is(TO_SPLIT)) {
+
             // Positive side Gauss pts. loop
             const unsigned int n_gauss_pos = (data.w_gauss_pos_face).size();
             for (unsigned int i_gauss = 0; i_gauss < n_gauss_pos; ++i_gauss) {
 
-                data.N = row(data.N_pos_face, i_gauss);
+                Vector aux_N = row(data.N_pos_face, i_gauss);
+                for (unsigned int i = 0; i < TNumNodes; ++i) {
+                    data.N(i) = aux_N(mParentElementIds[i]);
+                }
                 data.wGauss = data.w_gauss_pos_face(i_gauss);
                 data.Normal = data.pos_face_area_normals[i_gauss];
                 data.Normal /= norm_2(data.Normal); // Normalize the area normal
@@ -444,11 +473,15 @@ public:
 
                 noalias(rLeftHandSideMatrix) += lhs_gauss;
             }
+
             // Negative side Gauss pts. loop
             const unsigned int n_gauss_neg = (data.w_gauss_neg_face).size();
             for (unsigned int i_gauss = 0; i_gauss < n_gauss_neg; ++i_gauss) {
 
-                data.N = row(data.N_neg_face, i_gauss);
+                Vector aux_N = row(data.N_neg_face, i_gauss);
+                for (unsigned int i = 0; i < TNumNodes; ++i) {
+                    data.N(i) = aux_N(mParentElementIds[i]);
+                }
                 data.wGauss = data.w_gauss_neg_face(i_gauss);
                 data.Normal = data.neg_face_area_normals[i_gauss];
                 data.Normal /= norm_2(data.Normal); // Normalize the area normal
@@ -508,11 +541,15 @@ public:
 
         // Loop on gauss points
         if (this->Is(TO_SPLIT)) {
+
             // Positive side Gauss pts. loop
             const unsigned int n_gauss_pos = (data.w_gauss_pos_face).size();
             for (unsigned int i_gauss = 0; i_gauss < n_gauss_pos; ++i_gauss) {
 
-                data.N = row(data.N_pos_face, i_gauss);
+                Vector aux_N = row(data.N_pos_face, i_gauss);
+                for (unsigned int i = 0; i < TNumNodes; ++i) {
+                    data.N(i) = aux_N(mParentElementIds[i]);
+                }
                 data.wGauss = data.w_gauss_pos_face(i_gauss);
                 data.Normal = data.pos_face_area_normals[i_gauss];
                 data.Normal /= norm_2(data.Normal); // Normalize the area normal
@@ -521,11 +558,15 @@ public:
 
                 noalias(rRightHandSideVector) += rhs_gauss;
             }
+
             // Negative side Gauss pts. loop
             const unsigned int n_gauss_neg = (data.w_gauss_neg_face).size();
             for (unsigned int i_gauss = 0; i_gauss < n_gauss_neg; ++i_gauss) {
 
-                data.N = row(data.N_neg_face, i_gauss);
+                Vector aux_N = row(data.N_neg_face, i_gauss);
+                for (unsigned int i = 0; i < TNumNodes; ++i) {
+                    data.N(i) = aux_N(mParentElementIds[i]);
+                }
                 data.wGauss = data.w_gauss_neg_face(i_gauss);
                 data.Normal = data.neg_face_area_normals[i_gauss];
                 data.Normal /= norm_2(data.Normal); // Normalize the area normal
@@ -642,17 +683,15 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
+    std::string Info() const override {
         std::stringstream buffer;
         buffer << "EmbeddedAusasNavierStokesWallCondition" << TDim << "D";
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "EmbeddedAusasNavierStokesWallCondition";
+    void PrintInfo(std::ostream& rOStream) const override {
+        rOStream << Info() << "\nCondition id: " << Id();
     }
 
     /// Print object's data.
@@ -683,6 +722,10 @@ protected:
     Element::Pointer pGetElement() {
 		return mpParentElement.lock();
 	}
+
+    std::vector<unsigned int > GetParentElementIds() {
+        return mParentElementIds;
+    }
 
     void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ConditionDataStruct& data);
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
@@ -716,10 +759,11 @@ protected:
             }
 
             // Get the current condition global ids
-            std::vector<unsigned int> cond_ids;
+            std::vector<unsigned int> cond_ids(TNumNodes);
             for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
                 cond_ids[i_node] = r_geometry[i_node].Id();
             }
+            std::sort(cond_ids.begin(), cond_ids.end());
 
             matrix<unsigned int> elem_face_loc_ids;
             vector<unsigned int> elem_nodes_in_face;
@@ -743,9 +787,10 @@ protected:
                 // Get the element face global nodal ids
                 std::vector<unsigned int> face_glob_ids(n_face_nodes);
                 for (unsigned int i_node = 0; i_node < n_face_nodes; ++i_node) {
-                    const int aux_loc_id = face_loc_ids[i_node];
+                    const int aux_loc_id = face_loc_ids[i_node+1];
                     face_glob_ids[i_node] = (*p_parent_geometry)[aux_loc_id].Id();
                 }
+                std::sort(face_glob_ids.begin(), face_glob_ids.end());
 
                 // Check if the element face global ids correspond with the current condition ones
                 if (std::includes(face_glob_ids.begin(), face_glob_ids.end(), cond_ids.begin(), cond_ids.end())) {
@@ -842,8 +887,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    
     ElementWeakPointerType mpParentElement;
+    std::vector<unsigned int> mParentElementIds;
 
     ///@}
     ///@name Serialization
