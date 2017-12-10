@@ -60,6 +60,8 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         ## dynamic variables
         self.LinearDynamicVariables  = ["ACCELERATION","VELOCITY"]
         self.AngularDynamicVariables = ["ANGULAR_ACCELERATION","ANGULAR_VELOCITY"]
+
+        self.TimeIntegrationMethod   = self.model_part.ProcessInfo[KratosSolid.TIME_INTEGRATION_METHOD]
         
         ## set the interval
         self.finalized = False
@@ -129,6 +131,9 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         if ( self.IsInsideInterval() and self.interval_string == "initial" ):
             self.AssignValueProcess.Execute()
 
+            if( self.fix_derivated_variable ):
+                self.TimeIntegrationMethod.Predict()
+
             
     def ExecuteInitializeSolutionStep(self):
 
@@ -140,6 +145,8 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
             self.AssignValueProcess.Execute()
 
+            if( self.fix_derivated_variable ):
+                self.TimeIntegrationMethod.Predict()
                                         
     def ExecuteFinalizeSolutionStep(self):
 
@@ -171,6 +178,10 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             if dynamic_variable in self.variable_name[:-2]:
                 self.derivated_variable_name = "ROTATION" + self.variable_name[-2:]
                 self.fix_derivated_variable = True
+                variable          = KratosMultiphysics.KratosGlobals.GetVariable("ROTATION" + self.variable_name[-2:])
+                first_derivative  = KratosMultiphysics.KratosGlobals.GetVariable("ANGULAR_VELOCITY" + self.variable_name[-2:])
+                second_derivative = KratosMultiphysics.KratosGlobals.GetVariable("ANGULAR_ACCELERATION" + self.variable_name[-2:])
+                self.TimeIntegrationMethod.SetVariables(variable, first_derivative, second_derivative)                   
                 break
 
         if( self.fix_derivated_variable == False ):
@@ -178,8 +189,15 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                 if dynamic_variable == self.variable_name[:-2]:
                     self.derivated_variable_name = "DISPLACEMENT" + self.variable_name[-2:]
                     self.fix_derivated_variable = True
+                    variable          = KratosMultiphysics.KratosGlobals.GetVariable("DISPLACEMENT" + self.variable_name[-2:])
+                    first_derivative  = KratosMultiphysics.KratosGlobals.GetVariable("VELOCITY" + self.variable_name[-2:])
+                    second_derivative = KratosMultiphysics.KratosGlobals.GetVariable("ACCELERATION" + self.variable_name[-2:])
+                    self.TimeIntegrationMethod.SetVariables(variable, first_derivative, second_derivative)                   
                     break
-                    
+
+        input_variable = KratosMultiphysics.KratosGlobals.GetVariable(self.variable_name)
+        self.TimeIntegrationMethod.SetInputVariable(input_variable)
+                
         if( self.fix_derivated_variable ):
             params["variable_name"].SetString(self.derivated_variable_name)
             fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
@@ -201,7 +219,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             else: 
                 self.AssignValueProcess = KratosSolid.AssignScalarFieldToNodesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
 
-            
+        
     #
     def IsInsideInterval(self):
         

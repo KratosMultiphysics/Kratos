@@ -41,6 +41,7 @@
 #include "custom_strategies/convergence_criteria/component_wise_residual_convergence_criterion.hpp"
 
 //schemes
+#include "custom_strategies/schemes/residual_based_displacement_newmark_scheme.hpp"
 #include "custom_strategies/schemes/component_wise_bossak_scheme.hpp"
 #include "custom_strategies/schemes/eigensolver_dynamic_scheme.hpp" 
  
@@ -49,6 +50,10 @@
 #include "custom_strategies/schemes/residual_based_rotation_simo_scheme.hpp"
 #include "custom_strategies/schemes/residual_based_rotation_emc_scheme.hpp"
 #include "custom_strategies/schemes/explicit_hamilton_scheme.hpp"
+
+//integration methods
+#include "custom_strategies/time_integration_methods/newmark_method.hpp"
+
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -90,6 +95,8 @@ namespace Kratos
       typedef ExplicitHamiltonBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitHamiltonBuilderAndSolverType;
 
       //custom scheme types
+      //typedef ResidualBasedDisplacementBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementBossakSchemeType;
+      typedef ResidualBasedDisplacementNewmarkScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementNewmarkSchemeType;     
       typedef ComponentWiseBossakScheme< SparseSpaceType, LocalSpaceType >  ComponentWiseBossakSchemeType;     
       typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
       typedef ResidualBasedRotationNewmarkScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationNewmarkSchemeType;
@@ -102,6 +109,20 @@ namespace Kratos
       typedef DisplacementConvergenceCriterion< SparseSpaceType,  LocalSpaceType > DisplacementConvergenceCriterionType;
       typedef ComponentWiseResidualConvergenceCriterion< SparseSpaceType,  LocalSpaceType > ComponentWiseResidualConvergenceCriterionType;
 
+
+      //custom integration methods by 3D variable
+      typedef TimeIntegrationMethod<Variable< array_1d<double, 3 > >, array_1d<double, 3 >  >  IntegrationMethodVariableType;
+      typedef NewmarkMethod<Variable< array_1d<double, 3 > >, array_1d<double, 3 >  >              NewmarkMethodVariableType;
+
+
+      //custom integration methods by components
+      typedef VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >                      VariableComponentType;
+      typedef TimeIntegrationMethod<VariableComponentType, double>                        TimeIntegrationMethodComponentType;
+      typedef NewmarkMethod<VariableComponentType, double>                                        NewmarkMethodComponentType;
+
+      
+
+      
       //********************************************************************
       //*************************STRATEGY CLASSES***************************
       //********************************************************************
@@ -214,7 +235,22 @@ namespace Kratos
       //*************************SHCHEME CLASSES****************************
       //********************************************************************
 
+      // Residual Based Bossak Scheme Type
+      // class_< ResidualBasedDisplacementBossakSchemeType,
+      // 	      bases< BaseSchemeType >,  boost::noncopyable >
+      // 	(
+      // 	 "ResidualBasedDisplacementBossakScheme", init< double >() )
+      // 	.def("Initialize", &ResidualBasedDisplacementBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      // 	;
 
+      // Residual Based Newmark Scheme Type
+      class_< ResidualBasedDisplacementNewmarkSchemeType,
+	      bases< BaseSchemeType >,  boost::noncopyable >
+	(
+	 "ResidualBasedDisplacementNewmarkScheme", init< IntegrationMethodVariableType::Pointer >() )
+	.def("Initialize", &ResidualBasedDisplacementNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	;
+	    
       // Component Wise Bossak Scheme Type
       class_< ComponentWiseBossakSchemeType,
 	      bases< BaseSchemeType >,  boost::noncopyable >
@@ -280,7 +316,6 @@ namespace Kratos
 	(
 	 "DisplacementConvergenceCriterion", 
 	 init<double, double >())
-	.def(init<double, double >())
 	.def("SetEchoLevel", &DisplacementConvergenceCriterionType::SetEchoLevel)
 	;
 
@@ -291,7 +326,6 @@ namespace Kratos
 	(
 	 "ComponentWiseResidualConvergenceCriterion", 
 	 init<double, double >())
-	.def(init<double, double >())
 	.def("SetEchoLevel", &ComponentWiseResidualConvergenceCriterionType::SetEchoLevel)
 	;
 
@@ -303,6 +337,52 @@ namespace Kratos
 	 "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
 	;
 
+
+
+      //********************************************************************
+      //*******************TIME INTEGRATION METHODS*************************
+      //********************************************************************
+
+      //Time Integration Method
+      class_< TimeIntegrationMethodVariableType, boost::noncopyable >
+      	(
+      	 "SchemeTimeIntegrationMethod", init<>())
+      	.def("SetVariables", &TimeIntegrationMethodVariableType::SetVariables)
+      	.def("SetInputVariable", &TimeIntegrationMethodVariableType::SetInputVariable)
+      	.def("SetParameters", &TimeIntegrationMethodVariableType::SetParameters)
+      	.def("Predict", &TimeIntegrationMethodVariableType::Predict)
+      	;
+      
+      class_< TimeIntegrationMethodComponentType, boost::noncopyable >
+      	(
+      	 "TimeIntegrationMethod", init<>())
+      	.def("SetVariables", &TimeIntegrationMethodComponentType::SetVariables)
+      	.def("SetInputVariable", &TimeIntegrationMethodComponentType::SetInputVariable)
+      	.def("SetParameters", &TimeIntegrationMethodComponentType::SetParameters)
+      	.def("Predict", &TimeIntegrationMethodComponentType::Predict)
+      	;
+  
+      //Newmark Method
+      class_< NewmarkMethodVariableType,
+      	      bases< TimeIntegrationMethodVariableType >, boost::noncopyable >
+      	(
+      	 "SchemeNewmarkMethod", init<>())
+      	.def("SetVariables", &NewmarkMethodVariableType::SetVariables)
+      	.def("SetInputVariable", &NewmarkMethodVariableType::SetInputVariable)
+      	.def("SetParameters", &NewmarkMethodVariableType::SetParameters)
+      	.def("Predict", &NewmarkMethodVariableType::Predict)
+      	;
+      
+      class_< NewmarkMethodComponentType,
+      	      bases< TimeIntegrationMethodComponentType >, boost::noncopyable >
+      	(
+      	 "NewmarkMethod", init<>())
+      	.def("SetVariables", &NewmarkMethodComponentType::SetVariables)
+      	.def("SetInputVariable", &NewmarkMethodComponentType::SetInputVariable)
+      	.def("SetParameters", &NewmarkMethodComponentType::SetParameters)
+      	.def("Predict", &NewmarkMethodComponentType::Predict)
+      	;
+      
     }
 
   }  // namespace Python.

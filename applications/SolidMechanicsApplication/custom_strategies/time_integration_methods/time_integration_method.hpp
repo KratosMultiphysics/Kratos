@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_TIME_INTEGRATION_SCHEME )
-#define  KRATOS_TIME_INTEGRATION_SCHEME
+#if !defined(KRATOS_TIME_INTEGRATION_METHOD )
+#define  KRATOS_TIME_INTEGRATION_METHOD
 
 // System includes
 
@@ -47,8 +47,8 @@ namespace Kratos
   /** Detail class definition.     
    * This class performs predict and update of dofs variables, their time derivatives and time integrals      
    */
-  template<class TVariableType>
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) TimeIntegrationScheme
+  template<class TVariableType, class TValueType>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) TimeIntegrationMethod
   {
   public:
  
@@ -60,8 +60,10 @@ namespace Kratos
 
     /// KratosVariable or KratosVariableComponent
     typedef const TVariableType*     VariablePointer;
+
+    typedef const TValueType*           ValuePointer;
     
-    KRATOS_CLASS_POINTER_DEFINITION( TimeIntegrationScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( TimeIntegrationMethod );
 
     ///@}
     ///@name Life Cycle
@@ -69,7 +71,7 @@ namespace Kratos
 
     
     /// Default Constructor.
-    TimeIntegrationScheme()
+    TimeIntegrationMethod()
     {
       mpVariable = nullptr;
       mpFirstDerivative = nullptr;
@@ -79,7 +81,7 @@ namespace Kratos
     }
 
     /// Copy Constructor.
-    TimeIntegrationScheme(TimeIntegrationScheme& rOther)
+    TimeIntegrationMethod(TimeIntegrationMethod& rOther)
       :mpVariable(rOther.mpVariable)
       ,mpFirstDerivative(rOther.mpFirstDerivative)
       ,mpSecondDerivative(rOther.mpSecondDerivative)
@@ -88,13 +90,13 @@ namespace Kratos
     }
 
     /// Clone
-    TimeIntegrationScheme::Pointer Clone()
+    TimeIntegrationMethod::Pointer Clone()
     {
-      return TimeIntegrationScheme::Pointer( new TimeIntegrationScheme(*this) );
+      return TimeIntegrationMethod::Pointer( new TimeIntegrationMethod(*this) );
     }
 
     /// Destructor.
-    ~TimeIntegrationScheme(){}
+    ~TimeIntegrationMethod(){}
 
     ///@}
     ///@name Operators
@@ -113,16 +115,18 @@ namespace Kratos
     // get parameters
     virtual double& GetFirstDerivativeParameter(double& rParameter)
     {
-      return mNewmark.c1;
+      rParameter = 1.0;
+      return rParameter;
     }
 
     virtual double& GetSecondDerivativeParameter(double& rParameter)
     {
-      return mNewmark.c0;
+      rParameter = 1.0;
+      return rParameter;
     }
 
     
-    // set time integration scheme variables
+    // set time integration nodal variables
     void SetVariables(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative)
     {
       mpVariable = &rVariable;
@@ -200,20 +204,20 @@ namespace Kratos
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "TimeIntegrationScheme";
+        buffer << "TimeIntegrationMethod";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "TimeIntegrationScheme";
+        rOStream << "TimeIntegrationMethod";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-      rOStream << "TimeIntegrationScheme Data";     
+      rOStream << "TimeIntegrationMethod Data";     
     }
 
     
@@ -233,7 +237,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-    // scheme variables and derivatives
+    // method variables and derivatives
     
     VariablePointer mpVariable;
 
@@ -293,7 +297,23 @@ namespace Kratos
     ///@}
     ///@name Serialization
     ///@{
-  
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+      // rSerializer.save("Variable", mpVariable);
+      // rSerializer.save("FirstDerivative", mpFirstDerivative);
+      // rSerializer.save("SecondDerivative", mpSecondDerivative);
+      // rSerializer.save("InputVariable", mpInputVariable);
+    };
+
+    virtual void load(Serializer& rSerializer)
+    {
+      // rSerializer.load("Variable", mpVariable);
+      // rSerializer.load("FirstDerivative", mpFirstDerivative);
+      // rSerializer.load("SecondDerivative", mpSecondDerivative);
+      // rSerializer.load("InputVariable", mpInputVariable);
+    };
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -304,7 +324,7 @@ namespace Kratos
   
     ///@}
   
-  }; // Class TimeIntegrationScheme
+  }; // Class TimeIntegrationMethod
   
   ///@}
 
@@ -316,25 +336,11 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-                                    TimeIntegrationScheme& rThis);
-
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-                                    const TimeIntegrationScheme& rThis)
-  {
-    rThis.PrintInfo(rOStream);
-    rOStream <<" : " << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-  }
+  
   ///@}
 
   ///@} addtogroup block
   
 }  // namespace Kratos.
 
-#endif // KRATOS_TIME_INTEGRATION_SCHEME defined
+#endif // KRATOS_TIME_INTEGRATION_METHOD defined
