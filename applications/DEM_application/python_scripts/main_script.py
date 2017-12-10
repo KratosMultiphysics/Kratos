@@ -374,7 +374,7 @@ class Solution(object):
 
             #### PRINTING GRAPHS ####
             os.chdir(self.graphs_path)
-            self.post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", self.time)
+            self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time)
 
             self.materialTest.MeasureForcesAndPressure()
             self.materialTest.PrintGraph(self.time)

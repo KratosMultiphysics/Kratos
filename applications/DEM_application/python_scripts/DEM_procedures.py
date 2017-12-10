@@ -183,10 +183,10 @@ class PostUtils(object):
     def Flush(self,a):
         a.flush()
 
-    def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
+    def ComputeMeanVelocitiesInTrap(self, file_name, time_dem):
 
         if self.DEM_parameters["VelocityTrapOption"].GetBool():
-            compute_flow = False
+            compute_flow = True
 
             self.vel_trap_graph_counter += 1
 
@@ -231,7 +231,6 @@ class PostUtils(object):
 
                     self.previous_time = self.spheres_model_part.ProcessInfo.GetValue(TIME)
                     self.previous_vector_of_inner_nodes = vector_of_inner_nodes
-
 
                 f = open(file_name, 'a')
                 tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2])
