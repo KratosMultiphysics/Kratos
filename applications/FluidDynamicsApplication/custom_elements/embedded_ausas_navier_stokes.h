@@ -312,16 +312,18 @@ public:
 
     /// Turn back information as a string.
     std::string Info() const override {
-        return "EmbeddedAusasNavierStokes";
+        std::stringstream buffer;
+        buffer << "EmbeddedAusasNavierStokesElement" << TDim << "D" << TNumNodes << "N";
+        return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override {
-        rOStream << Info() << Id();
+        rOStream << Info() << "\nElement id: " << Id();
     }
 
     /// Print object's data.
-    // virtual void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
     ///@}
     ///@name Friends
