@@ -68,17 +68,20 @@ class Solution(object):
         self.model.SetVariables(solver_variables)
 
         # Start processes
-        self.processes = self._get_processes()
+        #self.processes = self._get_processes()
         
-        processes_variables = self.processes.GetVariables()
-        self.model.SetVariables(processes_variables)
+        #processes_variables = self.processes.GetVariables()
+        #self.model.SetVariables(processes_variables)
         
         self.process_info = self.model.GetProcessInfo()
-        print("::[KSM Simulation]:: [Time Step:", self.process_info[TIME_STEP]," echo:", self.echo_level,"]")
+        print("::[KSM Simulation]:: [Time Step:", self.process_info[KratosMultiphysics.DELTA_TIME]," echo:", self.echo_level,"]")
         
         # Read model
         self.model.ImportModel()
 
+        # Start processes
+        self.processes = self._get_processes()
+        
         sys.stdout.flush()
 
         # Initialize solver times and buffer
@@ -268,13 +271,6 @@ class Solution(object):
             
            
     def _get_processes(self):
-        # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
-        ## Get the list of the submodel part in the object Model
-        for i in range(self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
-            part_name = self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-            if( self.main_model_part.HasSubModelPart(part_name) ):
-                self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-        
         # Obtain the list of the processes to be applied
         import process_handler
 
@@ -287,7 +283,8 @@ class Solution(object):
         if( self.ProjectParameters.Has("output_process_list") ):
             process_parameters.AddValue("output_process_list", self.ProjectParameters["output_process_list"])
 
-        return (process_handler.ProcessHandler(self.model, process_parameters))
+        domain_model = self.model.GetModel()
+        return (process_handler.ProcessHandler(domain_model, process_parameters))
         
     def _get_graphical_output(self, output_model_part):
         import gid_output_process

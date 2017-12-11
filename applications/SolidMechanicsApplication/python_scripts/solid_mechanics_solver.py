@@ -45,7 +45,7 @@ class MechanicalSolver(object):
                 "time_step": 1.0,
                 "start_time": 0.0,
                 "end_time": 1.0
-            }
+            },
             "time_integration_settings":{ 
                 "solution_type": "Dynamic",
   	        "analysis_type": "Non-Linear",
@@ -63,23 +63,21 @@ class MechanicalSolver(object):
                 "clear_storage": false,
                 "reform_dofs_at_each_step": false,
                 "axisymmetric": false,
-                "stabilization_factor": null
-            } 
+                "stabilization_factor": null,
+                "convergence_criterion": "Residual_criterion",
+                "variable_relative_tolerance": 1.0e-4,
+                "variable_absolute_tolerance": 1.0e-9,
+                "residual_relative_tolerance": 1.0e-4,
+                "residual_absolute_tolerance": 1.0e-9,
+                "max_iteration": 10
+            },
             "linear_solver_settings":{
                 "solver_type": "SuperLUSolver",
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false,
                 "verbosity": 1
-            },
-            "convergence_criterion":{
-                "criterion": "Residual_criterion",
-                "variable_relative_tolerance": 1.0e-4,
-                "variable_absolute_tolerance": 1.0e-9,
-                "residual_relative_tolerance": 1.0e-4,
-                "residual_absolute_tolerance": 1.0e-9
             }
-
         }
         """)
 
@@ -122,10 +120,9 @@ class MechanicalSolver(object):
         print("::[Mechanical_Solver]:: -START-")
         
         # The mechanical solver is created here if it does not already exist.
-        if self.settings["clear_storage"].GetBool():
+        if self.solving_strategy_settings["clear_storage"].GetBool():
             self.Clear()
         mechanical_solver = self._get_mechanical_solver()
-        mechanical_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
         if (self.process_info[KratosMultiphysics.IS_RESTARTED] == False):
             mechanical_solver.Initialize()
         else:
@@ -137,6 +134,10 @@ class MechanicalSolver(object):
 
         print("::[Mechanical_Solver]:: -END-")        
         
+
+    def GetVariables(self):
+        nodal_variables = []
+        return nodal_variables
         
     def GetOutputVariables(self):
         pass
@@ -157,7 +158,7 @@ class MechanicalSolver(object):
     #### Solve loop methods ####
     
     def Solve(self):
-        if self.settings["clear_storage"].GetBool():
+        if self.solver_strategy_settings["clear_storage"].GetBool():
             self.Clear()
         self._get_mechanical_solver().Solve()
 
@@ -257,8 +258,8 @@ class MechanicalSolver(object):
                             raise Exception('Unsupported parameter type.')
                 elif dest_value.IsSubParameter() and orig_value.IsSubParameter():
                     self._validate_and_transfer_matching_settings(orig_value, dest_value)
-                    if len(orig_value.items()) != 0:
-                        raise Exception('Json settings not found in default settings: ' + orig_value.PrettyPrintJsonString())
+                    #if len(orig_value.items()) != 0:
+                    #    raise Exception('Json settings not found in default settings: ' + orig_value.PrettyPrintJsonString())
                 else:
                     raise Exception('Unsupported parameter type.')
                 origin_settings.RemoveValue(name)
@@ -267,7 +268,7 @@ class MechanicalSolver(object):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
-        buffer_size = self.settings["buffer_size"].GetInt()
+        buffer_size = self.solving_strategy_settings["buffer_size"].GetInt()
         if buffer_size < self.GetMinimumBufferSize():
             buffer_size = self.GetMinimumBufferSize()
         self.model_part.SetBufferSize(buffer_size)
@@ -291,14 +292,18 @@ class MechanicalSolver(object):
     def _create_convergence_criterion(self):
         # Creation of an auxiliar Kratos parameters object to store the convergence settings
         conv_params = KratosMultiphysics.Parameters("{}")
-        conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
-        conv_params.AddEmptyValue("rotation_dofs").SetBool(self._check_input_dof("ROTATION"))
-        conv_params.AddValue("echo_level",self.settings["echo_level"])
-        conv_params.AddValue("component_wise",self.settings["component_wise"])
-        conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
-        conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
-        conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
-        conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
+        conv_params.AddValue("convergence_criterion",self.solving_strategy_settings["convergence_criterion"])
+        # conv_params.AddEmptyValue("rotation_dofs").SetBool(self._check_input_dof("ROTATION"))
+        conv_params.AddValue("echo_level",self.solving_strategy_settings["echo_level"])
+        is_component_wise = False
+        if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
+            is_component_wise = True
+        conv_params.AddEmptyValue("component_wise").SetBool(is_component_wise)
+        conv_params.AddValue("component_wise",self.solving_strategy_settings["component_wise"])
+        conv_params.AddValue("displacement_relative_tolerance",self.solving_strategy_settings["variable_relative_tolerance"])
+        conv_params.AddValue("displacement_absolute_tolerance",self.solving_strategy_settings["variable_absolute_tolerance"])
+        conv_params.AddValue("residual_relative_tolerance",self.solving_strategy_settings["residual_relative_tolerance"])
+        conv_params.AddValue("residual_absolute_tolerance",self.solving_strategy_settings["residual_absolute_tolerance"])
         
         # Construction of the class convergence_criterion
         import convergence_criteria_factory

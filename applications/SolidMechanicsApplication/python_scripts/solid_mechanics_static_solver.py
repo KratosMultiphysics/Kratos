@@ -32,14 +32,15 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
 
          # Validate and transfer settings
         self._validate_and_transfer_matching_settings(custom_settings, static_settings)
+        time_integration_settings = custom_settings["time_integration_settings"]
         
         # Validate the remaining settings in the base class.
-        if not custom_settings.Has("solution_type"): 
-            custom_settings.AddEmptyValue("solution_type")
-            custom_settings["solution_type"].SetString("Static") # Override defaults in the base class.
-        if not custom_settings.Has("integration_method"): 
-            custom_settings.AddEmptyValue("integration_method")
-            custom_settings["integration_method"].SetString("Non-Linear") # Override defaults in the base class.
+        if not time_integration_settings.Has("solution_type"): 
+            time_integration_settings.AddEmptyValue("solution_type")
+            time_integration_settings["solution_type"].SetString("Static") # Override defaults in the base class.
+        if not time_integration_settings.Has("integration_method"): 
+            time_integration_settings.AddEmptyValue("integration_method")
+            time_integration_settings["integration_method"].SetString("Non-Linear") # Override defaults in the base class.
 
         # Construct the base solver.
         super(StaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
@@ -55,7 +56,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
         if(integration_method == "Linear"):
             mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         elif(integration_method == "Non-Linear" ):
-            if(self.settings["component_wise"].GetBool() == True):
+            if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
                 dynamic_factor = 0.0
                 damp_factor_m  = 0.0
                 mechanical_scheme = KratosSolid.ComponentWiseBossakScheme(damp_factor_m, dynamic_factor)

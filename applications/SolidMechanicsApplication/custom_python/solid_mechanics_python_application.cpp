@@ -54,7 +54,7 @@ BOOST_PYTHON_MODULE(KratosSolidMechanicsApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( EIGENVECTOR_MATRIX )
 
     //For process information
-
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TIME_INTEGRATION_METHOD )
       
    
     //For explicit schemes

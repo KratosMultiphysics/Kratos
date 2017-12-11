@@ -24,10 +24,11 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
     """
     def __init__(self, main_model_part, custom_settings): 
 
-         # Set defaults and validate custom settings.
+        # Set defaults and validate custom settings.
+        ##TODO : solving_strategy_settings must be time_integration_settings (GiD interface changes needed)        
         explicit_solver_settings = KratosMultiphysics.Parameters("""
         {
-           "time_integration_settings":{ 
+           "solving_strategy_settings":{ 
                "time_step_prediction_level": 0, 
                "max_delta_time": 1.0e-5, 
                "fraction_delta_time": 0.9, 
@@ -41,12 +42,12 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
 
         # Validate and transfer settings
         self._validate_and_transfer_matching_settings(custom_settings, explicit_solver_settings)
-        self.explicit_solver_settings = explicit_solver_settings["time_integration_settings"]
+        self.explicit_solver_settings = explicit_solver_settings["solving_strategy_settings"]
         
         # Validate the remaining settings in the base class.
-        if not custom_settings["time_integration_settings"].Has("integration_method"): # Override defaults in the base class.
-            custom_settings["time_integration_settings"].AddEmptyValue("integration_method")
-            custom_settings["time_integration_settings"]["integration_method"].SetString("CentralDifferences")
+        if not custom_settings["solving_strategy_settings"].Has("integration_method"): # Override defaults in the base class.
+            custom_settings["solving_strategy_settings"].AddEmptyValue("integration_method")
+            custom_settings["solving_strategy_settings"]["integration_method"].SetString("CentralDifferences")
         
         # Construct the base solver.
         super(ExplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
@@ -54,17 +55,17 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         print("::[Explicit Dynamics Solver]:: Constructed")       
    
 
-    def SetVariables(self):
+    def GetVariables(self):
 
-        BaseSolver.MechanicalSolver.SetVariables(self)
+        nodal_variables = BaseSolver.MechanicalSolver.GetVariables(self)
 
         time_integration = self.time_integration_settings["time_integration"].GetString()
         # Add specific variables for the explicit time integration scheme
         if(time_integration == "Explicit"):
-            self.nodal_variables = self.nodal_variables + ['NODAL_MASS','MIDDLE_VELOCITY','FORCE_RESIDUAL']
+            nodal_variables = nodal_variables + ['NODAL_MASS','MIDDLE_VELOCITY','FORCE_RESIDUAL']
             # Add specific variables for the explicit time integration scheme in rotations
-            if(self._check_input_dof("ROTATION") == True):
-                self.nodal_variables = self.nodal_variables + ['INERTIA_DYADIC','MOMENT_RESIDUAL','POSITION_MOMENTUM','ROTATION_MOMENTUM', 'RESIDUAL_LYAPUNOV', 'TANGENT_LYAPUNOV']
+            #if(self._check_input_dof("ROTATION") == True):
+            #    nodal_variables = nodal_variables + ['INERTIA_DYADIC','MOMENT_RESIDUAL','POSITION_MOMENTUM','ROTATION_MOMENTUM', 'RESIDUAL_LYAPUNOV', 'TANGENT_LYAPUNOV']
                 
         print("::[Explicit_Mechanical_Solver]:: Explicit Variables ADDED")
 

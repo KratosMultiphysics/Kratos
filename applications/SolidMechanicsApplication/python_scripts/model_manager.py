@@ -1,4 +1,4 @@
-`2from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import sys
 import os
 #import kratos core and applications
@@ -47,15 +47,18 @@ class ModelManager(object):
 
         #TODO: replace this "model" for real one once available in kratos core
         self.model = {self.settings["model_name"].GetString() : self.main_model_part}
-
-        # Get the list of the model_part's in the object Model
-        for i in range(self.settings["domain_parts_list"].size()):
-            part_name = self.settings["domain_parts_list"][i].GetString()
-            if( self.main_model_part.HasSubModelPart(part_name) ):
-                self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-
+        
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, self.settings["dimension"].GetInt())
 
+        computing_model_part = self.settings["computing_model_part_name"].GetString()
+        self.main_model_part.CreateSubModelPart(computing_model_part)
+        self.model.update({computing_model_part: self.main_model_part.GetSubModelPart(computing_model_part)})
+
+        #output_model_part = self.settings["output_model_part_name"].GetString()
+        #self.main_model_part.CreateSubModelPart(output_model_part)
+        #self.model.update({output_model_part: self.main_model_part.GetSubModelPart(output_model_part)})
+
+        
         # Legacy
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.settings["dimension"].GetInt())
 
@@ -71,9 +74,9 @@ class ModelManager(object):
                 
         print("::[Model]:: Importing model part.")
         problem_path = os.getcwd()
-        input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
+        input_filename = self.settings["import_settings"]["input_filename"].GetString()
         
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):            
+        if(self.settings["import_settings"]["input_type"].GetString() == "mdpa"):            
             # Import model part from mdpa file.
             print("   Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa ")
             sys.stdout.flush()
@@ -85,9 +88,9 @@ class ModelManager(object):
 
             self._add_dofs()
             
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
+        elif(self.settings["import_settings"]["input_type"].GetString() == "rest"):
             # Import model part from restart file.
-            restart_path = os.path.join(problem_path, self.settings["model_import_settings"]["input_filename"].GetString() + "__" + self.settings["model_import_settings"]["input_file_label"].GetString() )
+            restart_path = os.path.join(problem_path, self.settings["import_settings"]["input_filename"].GetString() + "__" + self.settings["import_settings"]["input_file_label"].GetString() )
             if(os.path.exists(restart_path+".rest") == False):
                 raise Exception("Restart file not found: " + restart_path + ".rest")
             print("   Loading Restart file: ", restart_path + ".rest ")
@@ -112,7 +115,7 @@ class ModelManager(object):
         print ("::[Model]:: Finished importing model part.")
             
     def ExportModel(self):
-        name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
+        name_out_file = self.settings["import_settings"]["input_filename"].GetString()+".out"
         file = open(name_out_file + ".mdpa","w")
         file.close()
         # Model part writing
@@ -132,7 +135,8 @@ class ModelManager(object):
         return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
 
     def GetOutputModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.settings["output_model_part_name"].GetString())
+        #return self.main_model_part.GetSubModelPart(self.settings["output_model_part_name"].GetString())
+        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
         
     def SaveRestart(self):
         pass #one should write the restart file here
@@ -171,9 +175,7 @@ class ModelManager(object):
         self.dof_reactions = self.dof_reactions + ['REACTION'] 
         
         # Add dynamic variables
-        if(self.settings["solution_type"].GetString() == "Dynamic" or (self.settings["scheme_type"].GetString() != "Linear")):
-            self.dof_variables = self.dof_variables + ['VELOCITY','ACCELERATION']
-            self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
+        self.nodal_variables = self.nodal_variables + ['VELOCITY','ACCELERATION']
         
         # Add specific variables for the problem conditions
         self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD']
@@ -188,9 +190,8 @@ class ModelManager(object):
             # Add specific variables for the problem (rotation dofs)
             self.dof_variables = self.dof_variables + ['ROTATION']
             self.dof_reactions = self.dof_reactions + ['TORQUE']
-            if(self.settings["solution_type"].GetString() == "Dynamic" or (self.settings["scheme_type"].GetString() != "Linear")):
-                self.dof_variables = self.dof_variables + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
-                self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
+
+            self.nodal_variables = self.nodal_variables + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
             # Add specific variables for the problem conditions
             self.nodal_variables = self.nodal_variables + ['POINT_MOMENT']
             # Add large rotation variables
@@ -202,8 +203,8 @@ class ModelManager(object):
             # Add specific variables for the problem (pressure dofs)
             self.dof_variables = self.dof_variables + ['PRESSURE']
             self.dof_reactions = self.dof_reactions + ['PRESSURE_REACTION']
-            if not self.settings["stabilization_factor"].IsNull():
-                self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
+            #if not self.settings["stabilization_factor"].IsNull():
+            #    self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
 
         # Add contat variables
         if self._check_input_dof("LAGRANGE_MULTIPLIER"):
@@ -224,7 +225,7 @@ class ModelManager(object):
 
         # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
         params = KratosMultiphysics.Parameters("{}")
-        params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
+        params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
         params.AddValue("problem_domain_sub_model_part_list",self.settings["domain_parts_list"])
         params.AddValue("processes_sub_model_part_list",self.settings["processes_parts_list"])
        
@@ -235,3 +236,13 @@ class ModelManager(object):
         import check_and_prepare_model_process_solid
         check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
+        # Get the list of the model_part's in the object Model
+        for i in range(self.settings["domain_parts_list"].size()):
+            part_name = self.settings["domain_parts_list"][i].GetString()
+            if( self.main_model_part.HasSubModelPart(part_name) ):
+                self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+                
+        for i in range(self.settings["processes_parts_list"].size()):
+            part_name = self.settings["processes_parts_list"][i].GetString()
+            if( self.main_model_part.HasSubModelPart(part_name) ):
+                self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})

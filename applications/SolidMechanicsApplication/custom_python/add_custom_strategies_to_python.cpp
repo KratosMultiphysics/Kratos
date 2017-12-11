@@ -111,14 +111,15 @@ namespace Kratos
 
 
       //custom integration methods by 3D variable
-      typedef TimeIntegrationMethod<Variable< array_1d<double, 3 > >, array_1d<double, 3 >  >  IntegrationMethodVariableType;
-      typedef NewmarkMethod<Variable< array_1d<double, 3 > >, array_1d<double, 3 >  >              NewmarkMethodVariableType;
+      typedef Variable< array_1d<double, 3 >  >                                                                 VariableType;
+      typedef TimeIntegrationMethod<VariableType, array_1d<double, 3 >  >                      IntegrationMethodVariableType;
+      typedef NewmarkMethod<VariableType, array_1d<double, 3 >  >                                  NewmarkMethodVariableType;
 
 
       //custom integration methods by components
-      typedef VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >                      VariableComponentType;
-      typedef TimeIntegrationMethod<VariableComponentType, double>                        TimeIntegrationMethodComponentType;
-      typedef NewmarkMethod<VariableComponentType, double>                                        NewmarkMethodComponentType;
+      typedef VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >                              ComponentType;
+      typedef TimeIntegrationMethod<ComponentType, double>                                    IntegrationMethodComponentType;
+      typedef NewmarkMethod<ComponentType, double>                                                NewmarkMethodComponentType;
 
       
 
@@ -245,11 +246,11 @@ namespace Kratos
 
       // Residual Based Newmark Scheme Type
       class_< ResidualBasedDisplacementNewmarkSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
-	(
-	 "ResidualBasedDisplacementNewmarkScheme", init< IntegrationMethodVariableType::Pointer >() )
-	.def("Initialize", &ResidualBasedDisplacementNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementNewmarkScheme", init< IntegrationMethodVariableType::Pointer >() )
+      	.def("Initialize", &ResidualBasedDisplacementNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
 	    
       // Component Wise Bossak Scheme Type
       class_< ComponentWiseBossakSchemeType,
@@ -344,27 +345,27 @@ namespace Kratos
       //********************************************************************
 
       //Time Integration Method
-      class_< TimeIntegrationMethodVariableType, boost::noncopyable >
+      class_< IntegrationMethodVariableType, IntegrationMethodVariableType::Pointer, boost::noncopyable >
       	(
       	 "SchemeTimeIntegrationMethod", init<>())
-      	.def("SetVariables", &TimeIntegrationMethodVariableType::SetVariables)
-      	.def("SetInputVariable", &TimeIntegrationMethodVariableType::SetInputVariable)
-      	.def("SetParameters", &TimeIntegrationMethodVariableType::SetParameters)
-      	.def("Predict", &TimeIntegrationMethodVariableType::Predict)
+      	.def("SetVariables", &IntegrationMethodVariableType::SetVariables)
+      	.def("SetInputVariable", &IntegrationMethodVariableType::SetInputVariable)
+      	.def("SetParameters", &IntegrationMethodVariableType::SetParameters)
+      	.def("Predict", &IntegrationMethodVariableType::Predict)
       	;
       
-      class_< TimeIntegrationMethodComponentType, boost::noncopyable >
+      class_< IntegrationMethodComponentType, IntegrationMethodComponentType::Pointer, boost::noncopyable >
       	(
       	 "TimeIntegrationMethod", init<>())
-      	.def("SetVariables", &TimeIntegrationMethodComponentType::SetVariables)
-      	.def("SetInputVariable", &TimeIntegrationMethodComponentType::SetInputVariable)
-      	.def("SetParameters", &TimeIntegrationMethodComponentType::SetParameters)
-      	.def("Predict", &TimeIntegrationMethodComponentType::Predict)
+      	.def("SetVariables", &IntegrationMethodComponentType::SetVariables)
+      	.def("SetInputVariable", &IntegrationMethodComponentType::SetInputVariable)
+      	.def("SetParameters", &IntegrationMethodComponentType::SetParameters)
+      	.def("Predict", &IntegrationMethodComponentType::Predict)
       	;
   
       //Newmark Method
-      class_< NewmarkMethodVariableType,
-      	      bases< TimeIntegrationMethodVariableType >, boost::noncopyable >
+      class_< NewmarkMethodVariableType, NewmarkMethodVariableType::Pointer,
+      	      bases< IntegrationMethodVariableType >, boost::noncopyable >
       	(
       	 "SchemeNewmarkMethod", init<>())
       	.def("SetVariables", &NewmarkMethodVariableType::SetVariables)
@@ -373,8 +374,8 @@ namespace Kratos
       	.def("Predict", &NewmarkMethodVariableType::Predict)
       	;
       
-      class_< NewmarkMethodComponentType,
-      	      bases< TimeIntegrationMethodComponentType >, boost::noncopyable >
+      class_< NewmarkMethodComponentType, NewmarkMethodComponentType::Pointer,
+      	      bases< IntegrationMethodComponentType >, boost::noncopyable >
       	(
       	 "NewmarkMethod", init<>())
       	.def("SetVariables", &NewmarkMethodComponentType::SetVariables)

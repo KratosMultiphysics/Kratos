@@ -25,9 +25,10 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
     def __init__(self, main_model_part, custom_settings): 
         
         # Set defaults and validate custom settings.
+        ##TODO : solving_strategy_settings must be time_integration_settings (GiD interface changes needed)
         implicit_solver_settings = KratosMultiphysics.Parameters("""
         {
-            "time_integration_settings":{ 
+            "solving_strategy_settings":{ 
                 "bossak_factor" :-0.3,
                 "dynamic_factor": 1.0,
                 "lumped_mass_matrix" : true,
@@ -41,7 +42,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
 
         # Validate and transfer settings
         self._validate_and_transfer_matching_settings(custom_settings, implicit_solver_settings)
-        self.implicit_solver_settings = implicit_solver_settings["time_integration_settings"]
+        self.implicit_solver_settings = implicit_solver_settings["solving_strategy_settings"]
         
         # Construct the base solver.
         super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
@@ -81,8 +82,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             self.process_info[KratosSolid.TIME_INTEGRATION_METHOD] = time_integration_method
             # integration method for the solving scheme
             scheme_time_integration_method = KratosSolid.SchemeNewmarkMethod()
-            mechanical_scheme  = KratosSolid.ResidualBasedDisplacementNewmarkScheme(scheme_time_integration_method)
-            
+            mechanical_scheme  = KratosSolid.ResidualBasedDisplacementNewmarkScheme(scheme_time_integration_method)            
         elif(integration_method == "Bossak"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
