@@ -196,7 +196,7 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
     def checkResults(self):
         with WorkFolderScope(self.work_folder):
             ## 2D results check
-            if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3): 
+            if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): 
                 if self.print_reference_values:
                     with open(self.reference_file+'.csv','w') as ref_file:
                         ref_file.write("#ID, VELOCITY_X, VELOCITY_Y\n")
