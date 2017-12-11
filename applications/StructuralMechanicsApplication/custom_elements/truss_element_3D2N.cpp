@@ -566,11 +566,13 @@ namespace Kratos
 
 		KRATOS_TRY
 		//1st calculate transformation matrix
-		bounded_vector<double,msDimension> DirectionVectorX = ZeroVector(msDimension);
-		bounded_vector<double,msDimension> DirectionVectorY = ZeroVector(msDimension);
-		bounded_vector<double,msDimension> DirectionVectorZ = ZeroVector(msDimension);
-		bounded_vector<double,msLocalSize> ReferenceCoordinates = ZeroVector(msLocalSize);
-		bounded_vector<double,msDimension> GlobalZ = ZeroVector(msDimension);
+		typedef bounded_vector<double,msDimension> arraydim;
+		typedef bounded_vector<double,msLocalSize> arraylocal;
+		arraydim DirectionVectorX = ZeroVector(msDimension);
+		arraydim DirectionVectorY = ZeroVector(msDimension);
+		arraydim DirectionVectorZ = ZeroVector(msDimension);
+		arraylocal ReferenceCoordinates = ZeroVector(msLocalSize);
+		arraydim GlobalZ = ZeroVector(msDimension);
 		GlobalZ[2] = 1.0;
 
 		ReferenceCoordinates[0] = this->GetGeometry()[0].X();
@@ -601,16 +603,8 @@ namespace Kratos
 		}
 
 		if (fabs(DirectionVectorX[2]) != 1.00) {
-
-			DirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ,
-				DirectionVectorX);
-			VectorNorm = MathUtils<double>::Norm(DirectionVectorY);
-			if (VectorNorm != 0) DirectionVectorY /= VectorNorm;
-
-			DirectionVectorZ = MathUtils<double>::CrossProduct(DirectionVectorX,
-				DirectionVectorY);
-			VectorNorm = MathUtils<double>::Norm(DirectionVectorZ);
-			if (VectorNorm != 0) DirectionVectorZ /= VectorNorm;
+                    MathUtils<double>::UnitCrossProduct(DirectionVectorY, DirectionVectorX, GlobalZ);
+                    MathUtils<double>::UnitCrossProduct(DirectionVectorZ, DirectionVectorY, DirectionVectorX);
 		}
 
 		//2nd fill big rotation matrix
