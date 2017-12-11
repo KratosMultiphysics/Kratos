@@ -135,8 +135,8 @@ namespace Kratos
 			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[0], 0);
 			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[1], 0);
 
-			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[0], 1);
-			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[1], 0);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[0], 0);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[1], 1);
 			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[2], 1);
 
 			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].X(), 0.5, tolerance);
@@ -149,21 +149,20 @@ namespace Kratos
 			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].X(), 0.0, tolerance);
 			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].Y(), 0.5, tolerance);
 
-			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].X(), 1.0, tolerance);
 			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].Y(), 0.0, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].X(), 1.0, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].Y(), 0.5, tolerance);
 
-			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].X(), 1.0, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].Y(), 0.0, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].X(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].Y(), 0.0, tolerance);
 
 			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].X(), 0.0, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].Y(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].X(), 1.0, tolerance);
 			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].Y(), 0.0, tolerance);
-
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3Vertical, KratosCoreFastSuite)
@@ -278,35 +277,34 @@ namespace Kratos
 			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[0], 0);
 			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[1], 0);
 
-			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[0], 1);
-			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[1], 0);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[0], 0);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[1], 1);
 			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[2], 1);
 
-			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].X(), 1.0, tolerance);
 			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].Y(), 0.0, tolerance);
-			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].X(), 1.0, tolerance);
-			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].Y(), 0.5, tolerance);
 
-			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[0].X(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[0].X(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[0].Y(), 0.0, tolerance);
-			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].X(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].X(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].Y(), 0.0, tolerance);
 
-			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].X(), 0.0, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].Y(), 0.0, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].X(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].Y(), 1.0, tolerance);
 
-			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].X(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].Y(), 1.0, tolerance);
 			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].X(), 0.0, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].Y(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].Y(), 0.0, tolerance);
 
 			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].X(), 0.0, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].Y(), 1.0, tolerance);
-			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].X(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].Y(), 0.0, tolerance);
-
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3NoDivision, KratosCoreFastSuite)
