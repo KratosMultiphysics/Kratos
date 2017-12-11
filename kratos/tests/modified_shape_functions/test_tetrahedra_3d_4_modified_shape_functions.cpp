@@ -547,12 +547,12 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(area_normals_neg_face_3[0](2), -1.0, tolerance);
 
 			// Check Gauss pts. outwards unit normal values
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), -1.0, tolerance);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1),  0.0, tolerance);
-            KRATOS_CHECK_NEAR(negative_side_area_normals[0](2),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), -0.25, tolerance);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1), 0.0, tolerance);
+            KRATOS_CHECK_NEAR(negative_side_area_normals[0](2), 0.25, tolerance);
 		}
 
 
@@ -1190,19 +1190,19 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(area_normals_neg_face_3[1](2), -1.0, tolerance);
 
 			// Check Gauss pts. outwards unit normal values
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0), -0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1),       0.0, 1e-6);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), -0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[1](0), -0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[1](1),       0.0, 1e-6);
-            KRATOS_CHECK_NEAR(positive_side_area_normals[1](2), -0.707107, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0), -0.25, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1), 0.0, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), -0.25, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[1](0), -0.25, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[1](1),  0.0, 1e-6);
+            KRATOS_CHECK_NEAR(positive_side_area_normals[1](2), -0.25, 1e-6);
 
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0),  0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1),       0.0, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](2),  0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[1](0),  0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[1](1),       0.0, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[1](2),  0.707107, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0), 0.25, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1), 0.0, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](2), 0.25, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[1](0), 0.25, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[1](1), 0.0, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[1](2), 0.25, 1e-6);
 		}
 
 

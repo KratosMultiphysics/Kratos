@@ -90,8 +90,8 @@ namespace Kratos
 
 			// Call the external face modified shape functions calculator
 			Matrix pos_ext_face_sh_func_0, neg_ext_face_sh_func_0,
-				   pos_ext_face_sh_func_1, neg_ext_face_sh_func_1,
-				   pos_ext_face_sh_func_2, neg_ext_face_sh_func_2;
+		         pos_ext_face_sh_func_1, neg_ext_face_sh_func_1,
+				     pos_ext_face_sh_func_2, neg_ext_face_sh_func_2;
 
 			ModifiedShapeFunctions::ShapeFunctionsGradientsType 
 				pos_ext_face_sh_func_gradients_0, neg_ext_face_sh_func_gradients_0,
@@ -99,8 +99,8 @@ namespace Kratos
 				pos_ext_face_sh_func_gradients_2, neg_ext_face_sh_func_gradients_2;
 
 			Vector pos_ext_face_weights_0, neg_ext_face_weights_0, 
-				   pos_ext_face_weights_1, neg_ext_face_weights_1, 
-				   pos_ext_face_weights_2, neg_ext_face_weights_2;
+				     pos_ext_face_weights_1, neg_ext_face_weights_1, 
+				     pos_ext_face_weights_2, neg_ext_face_weights_2;
 
 			triangle_ausas_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
 				pos_ext_face_sh_func_0,
@@ -184,7 +184,7 @@ namespace Kratos
 			// Check shape functions values
 			KRATOS_CHECK_NEAR(positive_side_sh_func(0,0), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(positive_side_sh_func(0,1), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(positive_side_sh_func(0,2), 1.0, tolerance);
+      KRATOS_CHECK_NEAR(positive_side_sh_func(0,2), 1.0, tolerance);
 
 			KRATOS_CHECK_NEAR(negative_side_sh_func(0,0), 1.0/3.0, tolerance);
 			KRATOS_CHECK_NEAR(negative_side_sh_func(0,1), 2.0/3.0, tolerance);
@@ -250,12 +250,12 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[0](2,1),  0.0, tolerance);
 
 			// Check Gauss pts. outwards unit normal values
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1), -1.0, tolerance);
-            KRATOS_CHECK_NEAR(positive_side_area_normals[0](2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1), -0.5, tolerance);
+            KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), 0.0, tolerance);
 
 			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1),  0.5, tolerance);
 			KRATOS_CHECK_NEAR(negative_side_area_normals[0](2),  0.0, tolerance);
 
 			// Check face 0 values
@@ -409,8 +409,8 @@ namespace Kratos
 			
 			// Call the external face modified shape functions calculator
 			Matrix pos_ext_face_sh_func_0, neg_ext_face_sh_func_0,
-				   pos_ext_face_sh_func_1, neg_ext_face_sh_func_1,
-				   pos_ext_face_sh_func_2, neg_ext_face_sh_func_2;
+				     pos_ext_face_sh_func_1, neg_ext_face_sh_func_1,
+				     pos_ext_face_sh_func_2, neg_ext_face_sh_func_2;
 
 			ModifiedShapeFunctions::ShapeFunctionsGradientsType 
 				pos_ext_face_sh_func_gradients_0, neg_ext_face_sh_func_gradients_0,
@@ -418,8 +418,8 @@ namespace Kratos
 				pos_ext_face_sh_func_gradients_2, neg_ext_face_sh_func_gradients_2;
 
 			Vector pos_ext_face_weights_0, neg_ext_face_weights_0, 
-				   pos_ext_face_weights_1, neg_ext_face_weights_1, 
-				   pos_ext_face_weights_2, neg_ext_face_weights_2;
+				     pos_ext_face_weights_1, neg_ext_face_weights_1, 
+				     pos_ext_face_weights_2, neg_ext_face_weights_2;
 
 			triangle_ausas_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
 				pos_ext_face_sh_func_0,
@@ -569,11 +569,11 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[0](2,1),  2.0, tolerance);
 
 			// Check Gauss pts. outwards unit normal values
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0), -1.0, tolerance);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1),  0.0, tolerance);
-            KRATOS_CHECK_NEAR(positive_side_area_normals[0](2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0), -0.5, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1), 0.0, tolerance);
+            KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), 0.0, tolerance);
 
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0),  1.0, tolerance);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0),  0.5, tolerance);
 			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1),  0.0, tolerance);
 			KRATOS_CHECK_NEAR(negative_side_area_normals[0](2),  0.0, tolerance);
 
