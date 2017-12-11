@@ -19,6 +19,8 @@ from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.PfemSolidMechanicsApplication import *
 from KratosMultiphysics.PfemFluidDynamicsApplication import *
 from KratosMultiphysics.ContactMechanicsApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
+
 
 class Solution:
     def __init__(self, algorithm = None, varying_parameters = Parameters("{}")):
