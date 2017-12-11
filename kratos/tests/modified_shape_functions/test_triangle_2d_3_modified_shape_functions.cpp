@@ -164,12 +164,12 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[0](2,1),  1.0, tolerance);
 
 			// Check Gauss pts. outwards unit normal values
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1), -1.0, tolerance);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](2),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1),  1.0, tolerance);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1), -0.5, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](2), 0.0, tolerance);
 		}
 
 
@@ -314,12 +314,12 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[0](2,1),  1.0, tolerance);
 
 			// Check Gauss pts. outwards unit normal values
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0), -1.0, tolerance);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](2),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0),  1.0, tolerance);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](2),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0), -0.5, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](2), 0.0, tolerance);
 		}
 
 
