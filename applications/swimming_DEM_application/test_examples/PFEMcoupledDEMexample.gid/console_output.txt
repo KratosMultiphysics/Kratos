@@ -1,0 +1,1210 @@
+Importing    KratosExternalSolversApplication
+Mon Dec 11 16:51:05 2017
+ 
+::[KPFEM Simulation]:: [OMP USING 1 THREADS ]
+ 
+::[KPFEM Simulation]:: [Time Step: 0.0025  echo: 0 ]
+Construction of 2-step Pfem Fluid Solver finished.
+Running under OpenMP........
+
+Global Damping parameter not found! No damping will be applied...
+
+
+Initializing Problem...
+
+::[Pfem Fluid Solver]:: Variables ADDED
+::[Pfem Extra Vars]:: Variables ADDED
+::[Pfem Fluid Solver]:: Model reading starts.
+    Importing input model part...
+    Import input model part.
+Execute check_and_prepare_model_process_fluid
+[Model_Prepare]::Body Creation Body1
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. for node in part.Nodes  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.01 s 1. part.Elements  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Conditions  ] 
+ Bodies Appended 
+[Model_Prepare]::Body Creation Body2
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. for node in part.Nodes  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Elements  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Conditions  ] 
+ Bodies Appended 
+[Model_Prepare]::Body Creation Body3
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. for node in part.Nodes  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Elements  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Conditions  ] 
+ Bodies Appended 
+[Model_Prepare]::Body Creation Body4
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. for node in part.Nodes  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Elements  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Conditions  ] 
+ Bodies Appended 
+::[PFEM_FLUID_MODEL]:: [ 0.10 s 1.rigid_body_model_parts  part.Nodes  ] 
+::[Model_Prepare]::Body Part Removed: Parts_Parts_Auto1
+::[Model_Prepare]::Body Part Removed: Parts_Parts_Auto5
+::[Model_Prepare]::Body Part Removed: Parts_Parts_Auto3
+::[Model_Prepare]::Body Part Removed: Parts_Parts_Auto4
+ Main Model Part -Main Domain- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 6
+    Current solution step index : 0
+    SPACE_DIMENSION : 3
+    DOMAIN_SIZE : 3
+    DELTA_TIME : 0.0025
+    TIME : 0
+    GRAVITY : [3](0,-9.81,0)
+
+    Mesh 0 : 
+        Number of Nodes      : 3901
+        Number of Properties : 5
+        Number of Elements   : 19469
+        Number of Conditions : 0
+
+    -fluid_computing_domain- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 3901
+            Number of Properties : 5
+            Number of Elements   : 19469
+            Number of Conditions : 0
+    -Body4- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 40
+            Number of Properties : 5
+            Number of Elements   : 76
+            Number of Conditions : 0
+    -Body3- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 60
+            Number of Properties : 5
+            Number of Elements   : 190
+            Number of Conditions : 0
+    -Body2- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 1123
+            Number of Properties : 5
+            Number of Elements   : 2174
+            Number of Conditions : 0
+    -VELOCITY_Velocity_Auto1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 1123
+            Number of Properties : 0
+            Number of Elements   : 0
+            Number of Conditions : 0
+    -Body1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 3881
+            Number of Properties : 5
+            Number of Elements   : 17029
+            Number of Conditions : 0
+
+::[Pfem Fluid Solver]:: Model reading finished.
+::[Pfem Fluid Solver]:: DOF's ADDED
+::[Process_Handler]:: Create Process List -START-
+::[Meshing_Domain]:: ( Body1  ) -BUILT-
+::[Meshing_Domain]:: ( Body2  ) -BUILT-
+::[Meshing_Domain]:: ( Body3  ) -BUILT-
+::[Meshing_Domain]:: ( Body4  ) -BUILT-
+::[Restart]:: -BUILT-
+::[Process_Handler]:: Create Process List -END-
+::[Domain_Utilities]:: Nodal Search executed 
+::[Meshing Domain]:: -START-
+::[Meshing Strategy]:: -START-
+::[Fluid Meshing Strategy]:: SET MESH MODELER
+Construction of the Pre Refining Modeler finished
+::[Meshing Strategy]:: -END-
+::[Meshing Domain]:: -END- 
+the mean_nodal_h is   0.017094521054812656
+::[Meshing Domain]:: -START-
+::[Meshing Strategy]:: -START-
+::[Fluid Meshing Strategy]:: SET MESH MODELER
+::[Meshing Strategy]:: -END-
+::[Meshing Domain]:: -END- 
+::[Meshing Domain]:: -START-
+::[Meshing Strategy]:: -START-
+::[Fluid Meshing Strategy]:: SET MESH MODELER
+::[Meshing Strategy]:: -END-
+::[Meshing Domain]:: -END- 
+::[Meshing Domain]:: -START-
+::[Meshing Strategy]:: -START-
+::[Fluid Meshing Strategy]:: SET MESH MODELER
+::[Meshing Strategy]:: -END-
+::[Meshing Domain]:: -END- 
+ ::[Restart]:: Remove Previous Files
+::[Pfem Fluid Solver]:: -START-
+::[Pfem Fluid Solver]:: -END- 
+ 
+::[KPFEM Simulation]:: Analysis -START- 
+DOFs for the DEM solution added correctly
+DOFs for the DEM solution added correctly
+DOFs for the DEM solution added correctly
+
+Initializing Problem...
+self.DEM_parameters.TranslationalIntegrationScheme Symplectic_Euler
+self.DEM_parameters.do_search_neighbours True
+Initialization Complete
+
+Main loop starting...
+Total number of TIME STEPs expected in the calculation: 20000
+
+Initialization Complete
+
+Main loop starting...
+Total number of TIME STEPs expected in the calculation: 20000
+
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.0025
+ELAPSED TIME =  1.6726794242858887 
+
+ [STEP: 1  TIME: 0.002500000000000001 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.005
+ELAPSED TIME =  23.586299657821655 
+
+ [STEP: 2  TIME: 0.005 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.0075
+ELAPSED TIME =  47.95051050186157 
+
+ [STEP: 3  TIME: 0.0075 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.01
+ELAPSED TIME =  70.99036073684692 
+
+ [STEP: 4  TIME: 0.01 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.0125
+ELAPSED TIME =  94.98826909065247 
+
+ [STEP: 5  TIME: 0.0125 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.015000000000000001
+ELAPSED TIME =  117.99385213851929 
+
+ [STEP: 6  TIME: 0.015000000000000001 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.0175
+ELAPSED TIME =  143.31452918052673 
+
+ [STEP: 7  TIME: 0.0175 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.02
+ELAPSED TIME =  166.93239617347717 
+
+ [STEP: 8  TIME: 0.020000000000000004 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.0225
+ELAPSED TIME =  188.12125515937805 
+
+ [STEP: 9  TIME: 0.0225 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.024999999999999998
+ELAPSED TIME =  213.81752920150757 
+
+ [STEP: 10  TIME: 0.024999999999999998 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.027499999999999997
+ELAPSED TIME =  237.4474391937256 
+
+ [STEP: 11  TIME: 0.0275 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.029999999999999995
+ELAPSED TIME =  254.09383368492126 
+
+ [STEP: 12  TIME: 0.03 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.032499999999999994
+ELAPSED TIME =  271.28047370910645 
+
+ [STEP: 13  TIME: 0.0325 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.034999999999999996
+ELAPSED TIME =  288.65731024742126 
+
+ [STEP: 14  TIME: 0.035 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.0375
+ELAPSED TIME =  305.3776042461395 
+
+ [STEP: 15  TIME: 0.037500000000000006 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.04
+ELAPSED TIME =  322.74352741241455 
+
+ [STEP: 16  TIME: 0.04 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.0425
+ELAPSED TIME =  338.9629409313202 
+
+ [STEP: 17  TIME: 0.0425 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.045000000000000005
+ELAPSED TIME =  351.73334431648254 
+
+ [STEP: 18  TIME: 0.045000000000000005 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.04750000000000001
+ELAPSED TIME =  363.683073759079 
+
+ [STEP: 19  TIME: 0.0475 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.05000000000000001
+ELAPSED TIME =  375.42417669296265 
+
+ [STEP: 20  TIME: 0.05 ]
+Solving DEM... ( 534 elements )
+
+TIME =  0.05250000000000001
+ELAPSED TIME =  387.2522566318512 
+
+ [STEP: 21  TIME: 0.052500000000000005 ]
+Solving DEM... (Importing    KratosExternalSolversApplication
+Mon Dec 11 17:06:25 2017
+ 
+::[KPFEM Simulation]:: [OMP USING 1 THREADS ]
+ 
+::[KPFEM Simulation]:: [Time Step: 0.0025  echo: 0 ]
+Construction of 2-step Pfem Fluid Solver finished.
+Running under OpenMP........
+
+Global Damping parameter not found! No damping will be applied...
+
+
+Initializing Problem...
+
+::[Pfem Fluid Solver]:: Variables ADDED
+::[Pfem Extra Vars]:: Variables ADDED
+::[Pfem Fluid Solver]:: Model reading starts.
+    Importing input model part...
+    Import input model part.
+Execute check_and_prepare_model_process_fluid
+[Model_Prepare]::Body Creation Body1
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. for node in part.Nodes  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.01 s 1. part.Elements  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Conditions  ] 
+ Bodies Appended 
+[Model_Prepare]::Body Creation Body2
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. for node in part.Nodes  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Elements  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Conditions  ] 
+ Bodies Appended 
+[Model_Prepare]::Body Creation Body3
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. for node in part.Nodes  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Elements  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Conditions  ] 
+ Bodies Appended 
+[Model_Prepare]::Body Creation Body4
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. for node in part.Nodes  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Elements  ] 
+::[PFEM_FLUID_MODEL]:: [ 0.00 s 1. part.Conditions  ] 
+ Bodies Appended 
+::[PFEM_FLUID_MODEL]:: [ 0.06 s 1.rigid_body_model_parts  part.Nodes  ] 
+::[Model_Prepare]::Body Part Removed: Parts_Parts_Auto1
+::[Model_Prepare]::Body Part Removed: Parts_Parts_Auto5
+::[Model_Prepare]::Body Part Removed: Parts_Parts_Auto3
+::[Model_Prepare]::Body Part Removed: Parts_Parts_Auto4
+ Main Model Part -Main Domain- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 6
+    Current solution step index : 0
+    SPACE_DIMENSION : 3
+    DOMAIN_SIZE : 3
+    DELTA_TIME : 0.0025
+    TIME : 0
+    GRAVITY : [3](0,-9.81,0)
+
+    Mesh 0 : 
+        Number of Nodes      : 3901
+        Number of Properties : 5
+        Number of Elements   : 19469
+        Number of Conditions : 0
+
+    -fluid_computing_domain- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 3901
+            Number of Properties : 5
+            Number of Elements   : 19469
+            Number of Conditions : 0
+    -Body4- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 40
+            Number of Properties : 5
+            Number of Elements   : 76
+            Number of Conditions : 0
+    -Body3- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 60
+            Number of Properties : 5
+            Number of Elements   : 190
+            Number of Conditions : 0
+    -Body2- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 1123
+            Number of Properties : 5
+            Number of Elements   : 2174
+            Number of Conditions : 0
+    -VELOCITY_Velocity_Auto1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 1123
+            Number of Properties : 0
+            Number of Elements   : 0
+            Number of Conditions : 0
+    -Body1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 3881
+            Number of Properties : 5
+            Number of Elements   : 17029
+            Number of Conditions : 0
+
+::[Pfem Fluid Solver]:: Model reading finished.
+::[Pfem Fluid Solver]:: DOF's ADDED
+::[Process_Handler]:: Create Process List -START-
+::[Meshing_Domain]:: ( Body1  ) -BUILT-
+::[Meshing_Domain]:: ( Body2  ) -BUILT-
+::[Meshing_Domain]:: ( Body3  ) -BUILT-
+::[Meshing_Domain]:: ( Body4  ) -BUILT-
+::[Restart]:: -BUILT-
+::[Process_Handler]:: Create Process List -END-
+::[Domain_Utilities]:: Nodal Search executed 
+::[Meshing Domain]:: -START-
+::[Meshing Strategy]:: -START-
+::[Fluid Meshing Strategy]:: SET MESH MODELER
+Construction of the Pre Refining Modeler finished
+::[Meshing Strategy]:: -END-
+::[Meshing Domain]:: -END- 
+the mean_nodal_h is   0.017094521054812656
+::[Meshing Domain]:: -START-
+::[Meshing Strategy]:: -START-
+::[Fluid Meshing Strategy]:: SET MESH MODELER
+::[Meshing Strategy]:: -END-
+::[Meshing Domain]:: -END- 
+::[Meshing Domain]:: -START-
+::[Meshing Strategy]:: -START-
+::[Fluid Meshing Strategy]:: SET MESH MODELER
+::[Meshing Strategy]:: -END-
+::[Meshing Domain]:: -END- 
+::[Meshing Domain]:: -START-
+::[Meshing Strategy]:: -START-
+::[Fluid Meshing Strategy]:: SET MESH MODELER
+::[Meshing Strategy]:: -END-
+::[Meshing Domain]:: -END- 
+ ::[Restart]:: Remove Previous Files
+::[Pfem Fluid Solver]:: -START-
+::[Pfem Fluid Solver]:: -END- 
+ 
+::[KPFEM Simulation]:: Analysis -START- 
+DOFs for the DEM solution added correctly
+DOFs for the DEM solution added correctly
+DOFs for the DEM solution added correctly
+
+Initializing Problem...
+self.DEM_parameters.TranslationalIntegrationScheme Symplectic_Euler
+self.DEM_parameters.do_search_neighbours True
+Initialization Complete
+
+Main loop starting...
+Total number of TIME STEPs expected in the calculation: 20000
+
+Initialization Complete
+
+Main loop starting...
+Total number of TIME STEPs expected in the calculation: 20000
+
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.0025
+ELAPSED TIME =  1.490797758102417 
+
+ [STEP: 1  TIME: 0.002500000000000001 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.005
+ELAPSED TIME =  23.11707329750061 
+
+ [STEP: 2  TIME: 0.005 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.0075
+ELAPSED TIME =  46.78789949417114 
+
+ [STEP: 3  TIME: 0.0075 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.01
+ELAPSED TIME =  71.0326898097992 
+
+ [STEP: 4  TIME: 0.01 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.0125
+ELAPSED TIME =  95.62943744659424 
+
+ [STEP: 5  TIME: 0.0125 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.015000000000000001
+ELAPSED TIME =  119.7722008228302 
+
+ [STEP: 6  TIME: 0.015000000000000001 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.0175
+ELAPSED TIME =  143.60237455368042 
+
+ [STEP: 7  TIME: 0.0175 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.02
+ELAPSED TIME =  168.3988335132599 
+
+ [STEP: 8  TIME: 0.020000000000000004 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.0225
+ELAPSED TIME =  192.84550094604492 
+
+ [STEP: 9  TIME: 0.0225 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.024999999999999998
+ELAPSED TIME =  216.70527982711792 
+
+ [STEP: 10  TIME: 0.024999999999999998 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.027499999999999997
+ELAPSED TIME =  241.65555906295776 
+
+ [STEP: 11  TIME: 0.0275 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.029999999999999995
+ELAPSED TIME =  257.76970529556274 
+
+ [STEP: 12  TIME: 0.03 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.032499999999999994
+ELAPSED TIME =  273.75872254371643 
+
+ [STEP: 13  TIME: 0.0325 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.034999999999999996
+ELAPSED TIME =  290.33069229125977 
+
+ [STEP: 14  TIME: 0.035 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.0375
+ELAPSED TIME =  308.06126856803894 
+
+ [STEP: 15  TIME: 0.037500000000000006 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.04
+ELAPSED TIME =  324.9539849758148 
+
+ [STEP: 16  TIME: 0.04 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.0425
+ELAPSED TIME =  339.4405062198639 
+
+ [STEP: 17  TIME: 0.0425 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.045000000000000005
+ELAPSED TIME =  356.51111459732056 
+
+ [STEP: 18  TIME: 0.045000000000000005 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.04750000000000001
+ELAPSED TIME =  373.4829156398773 
+
+ [STEP: 19  TIME: 0.0475 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.05000000000000001
+ELAPSED TIME =  390.45210909843445 
+
+ [STEP: 20  TIME: 0.05 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.05250000000000001
+ELAPSED TIME =  408.040403842926 
+
+ [STEP: 21  TIME: 0.052500000000000005 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.055000000000000014
+ELAPSED TIME =  417.2114164829254 
+
+ [STEP: 22  TIME: 0.055 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.057500000000000016
+ELAPSED TIME =  426.92839312553406 
+
+ [STEP: 23  TIME: 0.0575 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.06000000000000002
+ELAPSED TIME =  435.8901090621948 
+
+ [STEP: 24  TIME: 0.060000000000000005 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.06250000000000001
+ELAPSED TIME =  445.66366481781006 
+
+ [STEP: 25  TIME: 0.0625 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.06500000000000002
+ELAPSED TIME =  455.19462060928345 
+
+ [STEP: 26  TIME: 0.065 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.06750000000000002
+ELAPSED TIME =  464.82486867904663 
+
+ [STEP: 27  TIME: 0.0675 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.07000000000000002
+ELAPSED TIME =  473.53670620918274 
+
+ [STEP: 28  TIME: 0.07 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.07250000000000002
+ELAPSED TIME =  480.7912564277649 
+
+ [STEP: 29  TIME: 0.07250000000000001 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.07500000000000002
+ELAPSED TIME =  487.25419330596924 
+
+ [STEP: 30  TIME: 0.075 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.07750000000000003
+ELAPSED TIME =  493.7244625091553 
+
+ [STEP: 31  TIME: 0.07749999999999999 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.08000000000000003
+ELAPSED TIME =  500.2429928779602 
+
+ [STEP: 32  TIME: 0.07999999999999997 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.08250000000000003
+ELAPSED TIME =  511.85307335853577 
+
+ [STEP: 33  TIME: 0.08124999999999996 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.08500000000000003
+ELAPSED TIME =  518.2055833339691 
+
+ [STEP: 34  TIME: 0.0825 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.08750000000000004
+ELAPSED TIME =  530.371312379837 
+
+ [STEP: 35  TIME: 0.085 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.09000000000000004
+ELAPSED TIME =  537.1553173065186 
+
+ [STEP: 36  TIME: 0.08750000000000001 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.09250000000000004
+ELAPSED TIME =  543.9885334968567 
+
+ [STEP: 37  TIME: 0.09000000000000001 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.09500000000000004
+ELAPSED TIME =  550.5478076934814 
+
+ [STEP: 38  TIME: 0.0925 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.09750000000000004
+ELAPSED TIME =  558.7607064247131 
+
+ [STEP: 39  TIME: 0.095 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.10000000000000005
+ELAPSED TIME =  568.3196301460266 
+
+ [STEP: 40  TIME: 0.0975 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.10250000000000005
+ELAPSED TIME =  578.1602323055267 
+
+ [STEP: 41  TIME: 0.1 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.10500000000000005
+ELAPSED TIME =  587.5481901168823 
+
+ [STEP: 42  TIME: 0.10250000000000001 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.10750000000000005
+ELAPSED TIME =  597.2131197452545 
+
+ [STEP: 43  TIME: 0.10500000000000001 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.11000000000000006
+ELAPSED TIME =  604.6505422592163 
+
+ [STEP: 44  TIME: 0.1075 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.11250000000000006
+ELAPSED TIME =  613.767792224884 
+
+ [STEP: 45  TIME: 0.11 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.11500000000000006
+ELAPSED TIME =  623.5386230945587 
+
+ [STEP: 46  TIME: 0.1125 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.11750000000000006
+ELAPSED TIME =  633.8344945907593 
+
+ [STEP: 47  TIME: 0.115 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.12000000000000006
+ELAPSED TIME =  643.1798756122589 
+
+ [STEP: 48  TIME: 0.11750000000000001 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.12250000000000007
+ELAPSED TIME =  652.3236858844757 
+
+ [STEP: 49  TIME: 0.12000000000000001 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.12500000000000006
+ELAPSED TIME =  661.7639663219452 
+
+ [STEP: 50  TIME: 0.1225 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.12750000000000006
+ELAPSED TIME =  670.7042529582977 
+
+ [STEP: 51  TIME: 0.125 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.13000000000000006
+ELAPSED TIME =  679.9958367347717 
+
+ [STEP: 52  TIME: 0.1275 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.13250000000000006
+ELAPSED TIME =  688.552127122879 
+
+ [STEP: 53  TIME: 0.13 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.13500000000000006
+ELAPSED TIME =  696.1144578456879 
+
+ [STEP: 54  TIME: 0.1325 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.13750000000000007
+ELAPSED TIME =  705.6806697845459 
+
+ [STEP: 55  TIME: 0.135 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.14000000000000007
+ELAPSED TIME =  715.0016107559204 
+
+ [STEP: 56  TIME: 0.1375 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.14250000000000007
+ELAPSED TIME =  724.4903244972229 
+
+ [STEP: 57  TIME: 0.14 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.14500000000000007
+ELAPSED TIME =  733.7132306098938 
+
+ [STEP: 58  TIME: 0.14250000000000002 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.14750000000000008
+ELAPSED TIME =  742.776741027832 
+
+ [STEP: 59  TIME: 0.14500000000000002 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.15000000000000008
+ELAPSED TIME =  752.2256002426147 
+
+ [STEP: 60  TIME: 0.1475 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.15250000000000008
+ELAPSED TIME =  761.5988273620605 
+
+ [STEP: 61  TIME: 0.14999999999999997 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.15500000000000008
+ELAPSED TIME =  771.0548391342163 
+
+ [STEP: 62  TIME: 0.15249999999999994 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.15750000000000008
+ELAPSED TIME =  781.2097709178925 
+
+ [STEP: 63  TIME: 0.15499999999999992 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.1600000000000001
+ELAPSED TIME =  790.4163770675659 
+
+ [STEP: 64  TIME: 0.1574999999999999 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.1625000000000001
+ELAPSED TIME =  799.9846830368042 
+
+ [STEP: 65  TIME: 0.15999999999999986 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.1650000000000001
+ELAPSED TIME =  809.469334602356 
+
+ [STEP: 66  TIME: 0.16249999999999984 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.1675000000000001
+ELAPSED TIME =  818.3767499923706 
+
+ [STEP: 67  TIME: 0.1649999999999998 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.1700000000000001
+ELAPSED TIME =  825.755478143692 
+
+ [STEP: 68  TIME: 0.1674999999999998 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.1725000000000001
+ELAPSED TIME =  834.8944923877716 
+
+ [STEP: 69  TIME: 0.16999999999999976 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.1750000000000001
+ELAPSED TIME =  844.8866369724274 
+
+ [STEP: 70  TIME: 0.17249999999999974 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.1775000000000001
+ELAPSED TIME =  855.0859746932983 
+
+ [STEP: 71  TIME: 0.1749999999999997 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.1800000000000001
+ELAPSED TIME =  865.7676813602448 
+
+ [STEP: 72  TIME: 0.17749999999999969 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.1825000000000001
+ELAPSED TIME =  875.3595633506775 
+
+ [STEP: 73  TIME: 0.17999999999999966 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.1850000000000001
+ELAPSED TIME =  884.9111182689667 
+
+ [STEP: 74  TIME: 0.18249999999999963 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.1875000000000001
+ELAPSED TIME =  894.6382927894592 
+
+ [STEP: 75  TIME: 0.1849999999999996 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.1900000000000001
+ELAPSED TIME =  903.8959486484528 
+
+ [STEP: 76  TIME: 0.18749999999999958 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.19250000000000012
+ELAPSED TIME =  912.913241147995 
+
+ [STEP: 77  TIME: 0.18999999999999956 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.19500000000000012
+ELAPSED TIME =  922.7885007858276 
+
+ [STEP: 78  TIME: 0.19249999999999953 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.19750000000000012
+ELAPSED TIME =  932.6467740535736 
+
+ [STEP: 79  TIME: 0.1949999999999995 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.20000000000000012
+ELAPSED TIME =  942.8925614356995 
+
+ [STEP: 80  TIME: 0.19749999999999948 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.20250000000000012
+ELAPSED TIME =  952.3199906349182 
+
+ [STEP: 81  TIME: 0.19999999999999946 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.20500000000000013
+ELAPSED TIME =  960.2903833389282 
+
+ [STEP: 82  TIME: 0.20249999999999943 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.20750000000000013
+ELAPSED TIME =  969.363226890564 
+
+ [STEP: 83  TIME: 0.2049999999999994 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.21000000000000013
+ELAPSED TIME =  979.2322990894318 
+
+ [STEP: 84  TIME: 0.20749999999999938 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.21250000000000013
+ELAPSED TIME =  988.6619787216187 
+
+ [STEP: 85  TIME: 0.20999999999999935 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.21500000000000014
+ELAPSED TIME =  998.3322961330414 
+
+ [STEP: 86  TIME: 0.21249999999999933 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.21750000000000014
+ELAPSED TIME =  1008.0906569957733 
+
+ [STEP: 87  TIME: 0.2149999999999993 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.22000000000000014
+ELAPSED TIME =  1017.5945932865143 
+
+ [STEP: 88  TIME: 0.21749999999999928 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.22250000000000014
+ELAPSED TIME =  1027.4346859455109 
+
+ [STEP: 89  TIME: 0.21999999999999925 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.22500000000000014
+ELAPSED TIME =  1037.1315529346466 
+
+ [STEP: 90  TIME: 0.22249999999999923 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.22750000000000015
+ELAPSED TIME =  1046.8237373828888 
+
+ [STEP: 91  TIME: 0.2249999999999992 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.23000000000000015
+ELAPSED TIME =  1056.7922554016113 
+
+ [STEP: 92  TIME: 0.22749999999999918 ]
+Solving DEM... ( 534 elements )
+
+*******************  PRINTING RESULTS FOR GID  ***************************
+
+TIME =  0.23250000000000015
+ELAPSED TIME = 
