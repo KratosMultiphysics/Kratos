@@ -19,7 +19,6 @@
 #include "includes/define.h"
 #include "eigen_solvers_application.h"
 #include "custom_python/add_custom_solvers_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
 
 namespace Kratos
 {
@@ -37,7 +36,6 @@ BOOST_PYTHON_MODULE(KratosEigenSolversApplication)
 		   bases<KratosApplication>, boost::noncopyable>("KratosEigenSolversApplication");
 
 	AddCustomSolversToPython();
-	AddCustomUtilitiesToPython();
 }
 
 } // namespace Python
