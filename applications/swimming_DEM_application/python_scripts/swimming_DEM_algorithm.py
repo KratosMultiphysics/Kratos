@@ -99,10 +99,20 @@ class Algorithm(object):
         self.disperse_phase_solution = DEM_algorithm.Solution(self.pp)
         
     def ReadDispersePhaseAndCouplingParameters(self):
+        
         with open(self.main_path + '/ProjectParametersDEM.json', 'r') as parameters_file:
             self.pp.CFD_DEM = Parameters(parameters_file.read())
+            
         import dem_default_input_parameters
-        dem_default_input_parameters.GetDefaultInputParameters()
+        dem_defaults = dem_default_input_parameters.GetDefaultInputParameters()
+    
+        import swimming_dem_default_input_parameters
+        only_swimming_defaults = swimming_dem_default_input_parameters.GetDefaultInputParameters()
+        
+        for key in only_swimming_defaults.keys():
+            dem_defaults.AddValue(key,only_swimming_defaults[key])
+            
+        self.pp.CFD_DEM.ValidateAndAssignDefaults(dem_defaults)        
 
     def SetCouplingParameters(self, varying_parameters):
         
