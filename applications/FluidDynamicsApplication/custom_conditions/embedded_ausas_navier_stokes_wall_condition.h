@@ -271,6 +271,7 @@ public:
 
         // If the condition is split, save a pointer to its parent element
         if (this->Is(TO_SPLIT)) {
+
             // Get all the possible element candidates
             WeakPointerVector<Element> element_candidates;
             for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -279,6 +280,11 @@ public:
                     element_candidates.push_back(r_node_element_candidates(j));
                 }
             }
+
+            // Check that the condition has candidate parent elements
+            KRATOS_ERROR_IF(element_candidates.size() == 0) << 
+                "Condition " << this->Id() << " has no candidate parent elements.\n" << 
+                "Check that the FindNodalNeighboursProcess has been executed.";
 
             // Get a sort array with the current condition nodal ids 
             std::vector<unsigned int> node_ids(TNumNodes), element_nodes_ids;
@@ -324,7 +330,7 @@ public:
                 }
             }
 
-            KRATOS_ERROR << "Error in condition: Condition " << this->Id() << " cannot find parent element.";
+            KRATOS_ERROR << "Condition " << this->Id() << " cannot find parent element.";
         }
 
         KRATOS_CATCH("Error in EmbeddedAusasNavierStokesWallCondition InitializeSolutionStep() method.");
@@ -780,14 +786,14 @@ protected:
                 // Note that the first index represent the node out of the face
                 // (check this in case quads or tetras are used).
                 std::vector<unsigned int> face_loc_ids(n_face_nodes);
-                for (unsigned int i_node = 1; i_node <= n_face_nodes; ++i_node) {
-                    face_loc_ids[i_node] = elem_face_loc_ids(i_node, i_face);
+                for (unsigned int i_node = 0; i_node < n_face_nodes; ++i_node) {
+                    face_loc_ids[i_node] = elem_face_loc_ids(i_node + 1, i_face);
                 }
                 
                 // Get the element face global nodal ids
                 std::vector<unsigned int> face_glob_ids(n_face_nodes);
                 for (unsigned int i_node = 0; i_node < n_face_nodes; ++i_node) {
-                    const int aux_loc_id = face_loc_ids[i_node+1];
+                    const int aux_loc_id = face_loc_ids[i_node];
                     face_glob_ids[i_node] = (*p_parent_geometry)[aux_loc_id].Id();
                 }
                 std::sort(face_glob_ids.begin(), face_glob_ids.end());
@@ -799,9 +805,8 @@ protected:
                 }
             }
 
-            if (face_id == n_elem_faces + 1) {
-                KRATOS_ERROR << "No parent element face found for condition " << this->Id() << " and parent element " << p_parent_element->Id();
-            }
+            KRATOS_ERROR_IF(face_id == n_elem_faces + 1) << 
+                "No parent element face found for condition " << this->Id() << " and parent element " << p_parent_element->Id();
 
             // Call the positive and negative sides modified shape functions face utilities
             p_ausas_modified_sh_func->ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
