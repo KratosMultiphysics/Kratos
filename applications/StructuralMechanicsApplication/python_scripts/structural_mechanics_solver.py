@@ -55,6 +55,7 @@ class MechanicalSolver(object):
             "material_import_settings" :{
                 "materials_filename": ""
             },
+            "internal_force_dofs": false,
             "rotation_dofs": false,
             "pressure_dofs": false,
             "reform_dofs_at_each_step": false,
@@ -116,6 +117,12 @@ class MechanicalSolver(object):
             # Add specific variables for the problem (pressure dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESSURE_REACTION)
+        if self.settings["internal_force_dofs"].GetBool(): # A.Kayis
+            # Add specific variable for the problem (internal force dofs).
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FORCES_VECTOR)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.TOTAL_NODAL_DEFORMATION)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.QUATERNION_VECTOR)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.QUATERNION_SCALAR_VECTOR)
         print("::[MechanicalSolver]:: Variables ADDED")
 
     def GetMinimumBufferSize(self):

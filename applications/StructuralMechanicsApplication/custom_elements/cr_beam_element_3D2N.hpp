@@ -206,10 +206,10 @@ namespace Kratos
 		Matrix mLHS, mRotationMatrix;
 		bounded_matrix<double,msElementSize,msElementSize> mRotationMatrix0;
 		Vector mNX0, mNY0, mNZ0;
-		Vector mQuaternionVEC_A, mQuaternionVEC_B;
-		double mQuaternionSCA_A, mQuaternionSCA_B;
+		//Vector mQuaternionVEC_A, mQuaternionVEC_B;
+		//double mQuaternionSCA_A, mQuaternionSCA_B;
 		Vector mPhiS, mPhiA;
-		Vector mNodalForces;
+		//Vector mNodalForces = ZeroVector(msElementSize);
 
 		int mIterationCount = 0;
 		bool mIsLinearElement = false;

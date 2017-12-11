@@ -105,7 +105,7 @@ namespace Kratos
 		KRATOS_TRY;
 		if (this->mIterationCount == 0)
 		{
-			this->mNodalForces = ZeroVector(msElementSize);
+			//this->mNodalForces = ZeroVector(msElementSize);
 			this->CalculateInitialLocalCS();
 		}
 		KRATOS_CATCH("")
@@ -213,10 +213,10 @@ namespace Kratos
 		nodalForcesLocal_qe = prod(TransformationMatrixS, elementForces_t);
 
 		//save local nodal forces
-		this->mNodalForces = ZeroVector(msElementSize);
-		this->mNodalForces = nodalForcesLocal_qe;
-
-
+		subrange(this->GetGeometry()[0].FastGetSolutionStepValue(INTERNAL_FORCES_VECTOR,0), 0, 6) = subrange(nodalForcesLocal_qe, 0, 6);
+		subrange(this->GetGeometry()[1].FastGetSolutionStepValue(INTERNAL_FORCES_VECTOR,0), 6, 12) = subrange(nodalForcesLocal_qe, 6, 12);
+		//this->mNodalForces = ZeroVector(msElementSize);
+		//this->mNodalForces = nodalForcesLocal_qe;
 
 		const double N = nodalForcesLocal_qe[6];
 		const double Mt = nodalForcesLocal_qe[9];
@@ -339,7 +339,7 @@ namespace Kratos
 	bounded_matrix<double,CrBeamElement3D2N::msLocalSize,CrBeamElement3D2N::msLocalSize>  
 	CrBeamElement3D2N::CalculateDeformationStiffness() {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		bounded_matrix<double,msLocalSize,msLocalSize>
 		 Kd = ZeroMatrix(msLocalSize, msLocalSize);
 		const double E = this->GetProperties()[YOUNG_MODULUS];
@@ -376,14 +376,17 @@ namespace Kratos
 		if (this->mIsLinearElement == false)
 		{
 			const double l = this->CalculateCurrentLength();
-			const double N = this->mNodalForces[6];
-
-			const double Qy = -1.00 * (this->mNodalForces[5] +
-				this->mNodalForces[11]) / l;
-
-			const double Qz = 1.00 * (this->mNodalForces[4] +
-				this->mNodalForces[10]) / l;
-
+			/*bounded_vector<double,msDimension*2>*/ Vector internal_forces_vector_a = subrange(this->GetGeometry()[0].FastGetSolutionStepValue(INTERNAL_FORCES_VECTOR, 0), 0, 6);
+			/*bounded_vector<double,msDimension*2>*/ Vector internal_forces_vector_b = subrange(this->GetGeometry()[1].FastGetSolutionStepValue(INTERNAL_FORCES_VECTOR, 0), 6, 12);
+			const double N = internal_forces_vector_b[0];  //this->mNodalForces[6];
+			/*const double Qy = -1.00 * (this->mNodalForces[5] +
+				this->mNodalForces[11]) / l;*/
+			const double Qy = -1.00 * (internal_forces_vector_a[5] + 
+				internal_forces_vector_b[5]) / l;
+			/*const double Qz = 1.00 * (this->mNodalForces[4] +
+				this->mNodalForces[10]) / l;*/
+			const double Qz = 1.00 * (internal_forces_vector_a[4] + 
+				internal_forces_vector_b[4]) / l;
 			const double N1 = l*N / 12.00;
 			const double N2 = l*N / 20.00;
 			const double Qy1 = -l*Qy / 6.00;
@@ -406,7 +409,7 @@ namespace Kratos
 
 	void CrBeamElement3D2N::CalculateInitialLocalCS() {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		array_1d<double, msDimension> DirectionVectorX = ZeroVector(msDimension);
 		array_1d<double, msDimension> DirectionVectorY = ZeroVector(msDimension);
 		array_1d<double, msDimension> DirectionVectorZ = ZeroVector(msDimension);
@@ -455,7 +458,7 @@ namespace Kratos
 	void CrBeamElement3D2N::CalculateTransformationMatrix(bounded_matrix<double,
 		CrBeamElement3D2N::msElementSize,CrBeamElement3D2N::msElementSize>& rRotationMatrix) {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		//initialize local CS
 		if (this->mIterationCount == 0) this->CalculateInitialLocalCS();
 
@@ -472,7 +475,7 @@ namespace Kratos
 	bounded_matrix<double,CrBeamElement3D2N::msElementSize,CrBeamElement3D2N::msLocalSize>
 	CrBeamElement3D2N::CalculateTransformationS() {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		const double L = this->CalculateCurrentLength();
 		bounded_matrix<double,msElementSize,msLocalSize> S = ZeroMatrix(msElementSize, msLocalSize);
 		S(0, 3) = -1.00;
@@ -499,7 +502,7 @@ namespace Kratos
 	bounded_matrix<double,CrBeamElement3D2N::msDimension,CrBeamElement3D2N::msDimension>
 	CrBeamElement3D2N::UpdateRotationMatrixLocal() {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		bounded_vector<double,msDimension> dPhiA = ZeroVector(msDimension);
 		bounded_vector<double,msDimension> dPhiB = ZeroVector(msDimension);
 		bounded_vector<double,msElementSize>  IncrementDeformation = ZeroVector(msElementSize);
@@ -531,49 +534,49 @@ namespace Kratos
 		drB_sca = sqrt(drB_sca);
 
 
-		//1st solution step
+		/*//1st solution step
 		if (mIterationCount == 0) {
 			this->mQuaternionVEC_A = ZeroVector(msDimension);
 			this->mQuaternionVEC_B = ZeroVector(msDimension);
 			this->mQuaternionSCA_A = 1.00;
 			this->mQuaternionSCA_B = 1.00;
-		}
+		}*/
 
 		Vector tempVec = ZeroVector(msDimension);
 		double tempSca = 0.00;
 
 		//Node A
-		tempVec = this->mQuaternionVEC_A;
-		tempSca = this->mQuaternionSCA_A;
+		tempVec = subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 0, 3); //this->mQuaternionVEC_A;
+		tempSca = subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR,0), 0, 1)[0];//this->mQuaternionSCA_A;
 
-		this->mQuaternionSCA_A = drA_sca *tempSca;
+		/*this->mQuaternionSCA_A*/ subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR, 0), 0, 1)[0] = drA_sca *tempSca;
 		for (unsigned int i = 0; i < msDimension; ++i) {
-			this->mQuaternionSCA_A -= drA_vec[i] * tempVec[i];
+			/*this->mQuaternionSCA_A*/ subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR, 0), 0, 1)[0] -= drA_vec[i] * tempVec[i];
 		}
-		this->mQuaternionVEC_A = drA_sca*tempVec;
-		this->mQuaternionVEC_A += tempSca * drA_vec;
-		this->mQuaternionVEC_A += MathUtils<double>::CrossProduct(drA_vec, tempVec);
+		/*this->mQuaternionVEC_A*/ subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 0, 3) = drA_sca*tempVec;
+		/*this->mQuaternionVEC_A*/ subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 0, 3) += tempSca * drA_vec;
+		/*this->mQuaternionVEC_A*/ subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 0, 3) += MathUtils<double>::CrossProduct(drA_vec, tempVec);
 
 		//Node B
-		tempVec = this->mQuaternionVEC_B;
-		tempSca = this->mQuaternionSCA_B;
+		tempVec = subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 3, 6); //this->mQuaternionVEC_B;
+		tempSca = subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR,0), 1, 2)[0]; //this->mQuaternionSCA_B;
 
-		this->mQuaternionSCA_B = drB_sca *tempSca;
+		/*this->mQuaternionSCA_B*/ subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR, 0), 1, 2)[0] = drB_sca *tempSca;
 		for (unsigned int i = 0; i < msDimension; ++i) {
-			this->mQuaternionSCA_B -= drB_vec[i] * tempVec[i];
+			/*this->mQuaternionSCA_B*/ subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR, 0), 1, 2)[0] -= drB_vec[i] * tempVec[i];
 		}
 
-		this->mQuaternionVEC_B = drB_sca*tempVec;
-		this->mQuaternionVEC_B += tempSca * drB_vec;
-		this->mQuaternionVEC_B += MathUtils<double>::CrossProduct(drB_vec, tempVec);
+		/*this->mQuaternionVEC_B*/ subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 3, 6) = drB_sca*tempVec;
+		/*this->mQuaternionVEC_B*/ subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 3, 6) += tempSca * drB_vec;
+		/*this->mQuaternionVEC_B*/ subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 3, 6) += MathUtils<double>::CrossProduct(drB_vec, tempVec);
 
 
 		//scalar part of difference quaternion
 		double scalar_diff;
-		scalar_diff = (this->mQuaternionSCA_A + this->mQuaternionSCA_B) *
-			(this->mQuaternionSCA_A + this->mQuaternionSCA_B);
+		scalar_diff = (subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR,0), 0, 1)[0] + subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR, 0), 1, 2)[0]) * //(this->mQuaternionSCA_A + this->mQuaternionSCA_B) *
+			                           (subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR,0), 0, 1)[0] + subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR, 0), 1, 2)[0]); //(this->mQuaternionSCA_A + this->mQuaternionSCA_B);
 
-		tempVec = this->mQuaternionVEC_A + this->mQuaternionVEC_B;
+		tempVec = subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 0, 3) + subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 3, 6);//this->mQuaternionVEC_A + this->mQuaternionVEC_B;
 		scalar_diff += MathUtils<double>::Norm(tempVec) *
 			MathUtils<double>::Norm(tempVec);
 
@@ -581,19 +584,18 @@ namespace Kratos
 
 		//mean rotation quaternion
 		double meanRotationScalar;
-		meanRotationScalar = (this->mQuaternionSCA_A + this->mQuaternionSCA_B) * 0.50;
+		meanRotationScalar = (subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR,0), 0, 1)[0] + subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR, 0), 1, 2)[0]) * 0.50;//(this->mQuaternionSCA_A + this->mQuaternionSCA_B) * 0.50;
 		meanRotationScalar = meanRotationScalar / scalar_diff;
 
 		bounded_vector<double,msDimension>  meanRotationVector = ZeroVector(msDimension);
-		meanRotationVector = (this->mQuaternionVEC_A + this->mQuaternionVEC_B) * 0.50;
+		meanRotationVector = (subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 0, 3) + subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 3, 6)) * 0.50;//(this->mQuaternionVEC_A + this->mQuaternionVEC_B) * 0.50;
 		meanRotationVector = meanRotationVector / scalar_diff;
 
 		//vector part of difference quaternion
 		bounded_vector<double,msDimension>  vector_diff = ZeroVector(msDimension);
-		vector_diff = this->mQuaternionSCA_A * this->mQuaternionVEC_B;
-		vector_diff -= this->mQuaternionSCA_B * this->mQuaternionVEC_A;
-		vector_diff += MathUtils<double>::CrossProduct(this->mQuaternionVEC_A,
-			this->mQuaternionVEC_B);
+		vector_diff = subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR,0), 0, 1)[0] * subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 3, 6);//this->mQuaternionSCA_A * this->mQuaternionVEC_B;
+		vector_diff -= subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_SCALAR_VECTOR,0), 1, 2)[0] * subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 0, 3);//this->mQuaternionSCA_B * this->mQuaternionVEC_A;
+		vector_diff += MathUtils<double>::CrossProduct(subrange(this->GetGeometry()[0].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 0, 3), subrange(this->GetGeometry()[1].FastGetSolutionStepValue(QUATERNION_VECTOR,0), 3, 6));//(this->mQuaternionVEC_A, this->mQuaternionVEC_B);
 
 		vector_diff = 0.50 * vector_diff / scalar_diff;
 
@@ -673,18 +675,18 @@ namespace Kratos
 		this->mPhiA = prod(Matrix(trans(n_xyz)), tempVec);
 		this->mPhiA *= 4.00;
 
-		if (this->mIterationCount == 0)
+		/*if (this->mIterationCount == 0)
 		{
 			this->mPhiS = ZeroVector(msDimension);
 			this->mPhiA = ZeroVector(msDimension);
-		}
+		}*/
 		return n_xyz;
 		KRATOS_CATCH("")
 	}
 
 	void CrBeamElement3D2N::GetValuesVector(Vector& rValues, int Step) {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		if (rValues.size() != msElementSize) rValues.resize(msElementSize, false);
 
 		for (int i = 0; i < msNumberOfNodes; ++i)
@@ -710,7 +712,7 @@ namespace Kratos
 	void CrBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
 	{
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		if (rValues.size() != msElementSize) rValues.resize(msElementSize, false);
 
 		for (int i = 0; i < msNumberOfNodes; ++i)
@@ -737,7 +739,7 @@ namespace Kratos
 	void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
 	{
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		if (rValues.size() != msElementSize) rValues.resize(msElementSize, false);
 
 		for (int i = 0; i < msNumberOfNodes; ++i)
@@ -808,7 +810,7 @@ namespace Kratos
 	void CrBeamElement3D2N::CalculateDampingMatrix(MatrixType& rDampingMatrix,
 		ProcessInfo& rCurrentProcessInfo) {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		if (rDampingMatrix.size1() != msElementSize)
 		{
 			rDampingMatrix.resize(msElementSize, msElementSize, false);
@@ -853,7 +855,7 @@ namespace Kratos
 
 	bounded_vector<double,CrBeamElement3D2N::msElementSize> CrBeamElement3D2N::CalculateBodyForces()
 	{
-		KRATOS_TRY
+		KRATOS_TRY;
 		//getting shapefunctionvalues for linear SF
 		const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues(
 			GeometryData::GI_GAUSS_1);
@@ -976,14 +978,17 @@ namespace Kratos
 		VectorType& rRightHandSideVector,
 		ProcessInfo& rCurrentProcessInfo) {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
-
 		//Nodal element forces global
 		bounded_vector<double,msElementSize> nodalForcesGlobal_q = ZeroVector(msElementSize);
+		Vector nodalForcesLocal_qe = ZeroVector(msElementSize);
+		subrange(nodalForcesLocal_qe, 0, 6) = subrange(this->GetGeometry()[0].FastGetSolutionStepValue(INTERNAL_FORCES_VECTOR, 0), 0, 6);
+		subrange(nodalForcesLocal_qe, 6, 12) = subrange(this->GetGeometry()[1].FastGetSolutionStepValue(INTERNAL_FORCES_VECTOR, 0), 6, 12);
+		/*nodalForcesGlobal_q = prod(this->mRotationMatrix,
+			this->mNodalForces);*/
 		nodalForcesGlobal_q = prod(this->mRotationMatrix,
-			this->mNodalForces);
-
+			nodalForcesLocal_qe);
 		//create+compute RHS
 		//update Residual
 		rRightHandSideVector = ZeroVector(msElementSize);
@@ -1009,6 +1014,7 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
+		this->CalculateInitialLocalCS();
 		rRightHandSideVector = ZeroVector(msElementSize);
 
 		if (this->mIsLinearElement == false)
@@ -1024,8 +1030,10 @@ namespace Kratos
 			nodalForcesLocal_qe = prod(TransformationMatrixS,
 				elementForces_t);
 			//save local nodal forces
-			this->mNodalForces = ZeroVector(msElementSize);
-			this->mNodalForces = nodalForcesLocal_qe;
+			subrange(this->GetGeometry()[0].FastGetSolutionStepValue(INTERNAL_FORCES_VECTOR,0), 0, 6) = subrange(nodalForcesLocal_qe, 0, 6);
+			subrange(this->GetGeometry()[1].FastGetSolutionStepValue(INTERNAL_FORCES_VECTOR,0), 6, 12) = subrange(nodalForcesLocal_qe, 6, 12);
+			//this->mNodalForces = ZeroVector(msElementSize);
+			//this->mNodalForces = nodalForcesLocal_qe;
 
 			bounded_vector<double,msElementSize> nodalForcesGlobal_q = ZeroVector(msElementSize);
 			nodalForcesGlobal_q = prod(TransformationMatrix, nodalForcesLocal_qe);
@@ -1053,6 +1061,7 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo) {
 
 		KRATOS_TRY;
+		this->CalculateInitialLocalCS();
 		//update displacement_delta
 		this->UpdateIncrementDeformation();
 
@@ -1072,6 +1081,7 @@ namespace Kratos
 		rLeftHandSideMatrix +=
 			this->CreateElementStiffnessMatrix_Geometry();
 
+		
 
 		bounded_matrix<double,msElementSize,msElementSize> aux_matrix = ZeroMatrix(msElementSize);
 		aux_matrix = prod(TransformationMatrix, rLeftHandSideMatrix);
@@ -1093,6 +1103,7 @@ namespace Kratos
 		}
 		//assign global element variables
 		this->mLHS = rLeftHandSideMatrix;
+
 		KRATOS_CATCH("")
 	}
 
@@ -1109,7 +1120,7 @@ namespace Kratos
 		//calculate element forces
 		bounded_vector<double,msLocalSize> element_forces_t = ZeroVector(msLocalSize);
 		bounded_matrix<double,msLocalSize,msLocalSize> deformation_stiffness_Kd = ZeroMatrix(msLocalSize);
-
+		
 		deformation_stiffness_Kd = this->CalculateDeformationStiffness();
 		element_forces_t = prod(deformation_stiffness_Kd,
 			deformation_modes_total_V);
@@ -1167,19 +1178,26 @@ namespace Kratos
 
 	void CrBeamElement3D2N::UpdateIncrementDeformation() {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		Vector actualDeformation = ZeroVector(msElementSize);
 		this->mIncrementDeformation = ZeroVector(msElementSize);
 
-		if (mIterationCount == 0) this->mTotalNodalDeformation = ZeroVector(msElementSize);
+		//if (mIterationCount == 0) this->mTotalNodalDeformation = ZeroVector(msElementSize);
+		Vector total_nodal_deformation = ZeroVector(msElementSize);
+		subrange(total_nodal_deformation, 0, 6) = subrange(this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_NODAL_DEFORMATION,0), 0, 6);
+		subrange(total_nodal_deformation, 6, 12) = subrange(this->GetGeometry()[1].FastGetSolutionStepValue(TOTAL_NODAL_DEFORMATION,0), 6, 12);
+		
 		this->GetValuesVector(actualDeformation, 0);
 
 		this->mIncrementDeformation = actualDeformation
-			- this->mTotalNodalDeformation;
+			- total_nodal_deformation;//this->mTotalNodalDeformation;
 
-		this->mTotalNodalDeformation = ZeroVector(msElementSize);
-		this->mTotalNodalDeformation = actualDeformation;
+		//this->mTotalNodalDeformation = ZeroVector(msElementSize);
+		//this->mTotalNodalDeformation = actualDeformation;
 
+		subrange(this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_NODAL_DEFORMATION,0), 0, 6) = subrange(actualDeformation, 0, 6);
+		subrange(this->GetGeometry()[1].FastGetSolutionStepValue(TOTAL_NODAL_DEFORMATION,0), 6, 12) = subrange(actualDeformation, 6, 12);
+		
 		this->mTotalNodalPosistion = ZeroVector(msLocalSize);
 		this->mTotalNodalPosistion[0] = this->GetGeometry()[0].X0()
 			+ actualDeformation[0];
@@ -1202,7 +1220,7 @@ namespace Kratos
 		std::vector< array_1d<double, 3 > >& rOutput,
 		const ProcessInfo& rCurrentProcessInfo) {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		//element with two nodes can only represent results at one node 
 		const unsigned int&  write_points_number = GetGeometry()
 			.IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
@@ -1328,7 +1346,7 @@ namespace Kratos
 		bounded_matrix<double,
 		CrBeamElement3D2N::msElementSize,CrBeamElement3D2N::msElementSize>& BigMatrix) {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		for (unsigned int kk = 0; kk < msElementSize; kk += msDimension)
 		{
 			for (int i = 0; i<msDimension; ++i)
@@ -1621,7 +1639,7 @@ namespace Kratos
 
 	int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	{
-		KRATOS_TRY
+		KRATOS_TRY;
 
 			if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
 			{
@@ -1729,7 +1747,7 @@ namespace Kratos
 
 	Orientation::Orientation(array_1d<double, Orientation::msDimension>& v1, const double theta) {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		//!!!!!!!!!! if crossproduct with array_1d type switch input order !!!!!!!
 		//If only direction of v1 is given -> Default case
 		array_1d<double, msDimension> GlobalZ = ZeroVector(msDimension);
@@ -1793,7 +1811,7 @@ namespace Kratos
 
 	Orientation::Orientation(array_1d<double, Orientation::msDimension>& v1, array_1d<double, Orientation::msDimension>& v2) {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 		//If the user defines an aditional direction v2
 		array_1d<double, msDimension> v3 = ZeroVector(msDimension);
 
@@ -1823,7 +1841,7 @@ namespace Kratos
 
 	void Orientation::CalculateRotationMatrix(Matrix& R) {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 			if (R.size1() != msDimension || R.size2() != msDimension) R.resize(msDimension, msDimension, false);
 		const Quaternion<double> q = this->GetQuaternion();
 		q.ToRotationMatrix(R);
@@ -1834,7 +1852,7 @@ namespace Kratos
 		array_1d<double, Orientation::msDimension>& v2,
 		array_1d<double, Orientation::msDimension>& v3) {
 
-		KRATOS_TRY
+		KRATOS_TRY;
 			const Quaternion<double> q = this->GetQuaternion();
 		Matrix R = ZeroMatrix(msDimension);
 		q.ToRotationMatrix(R);
@@ -1878,7 +1896,7 @@ namespace Kratos
 		rSerializer.save("NodalPosition", this->mTotalNodalPosistion);
 		rSerializer.save("NodalDeformation", this->mTotalNodalDeformation);
 		rSerializer.save("IterationCounter", this->mIterationCount);
-		rSerializer.save("NodalForces", this->mNodalForces);
+		//rSerializer.save("NodalForces", this->mNodalForces);
 
 
 		rSerializer.save("LocalInitalAxisX", this->mNX0);
@@ -1886,10 +1904,10 @@ namespace Kratos
 		rSerializer.save("LocalInitalAxisZ", this->mNZ0);
 
 
-		rSerializer.save("QuaternionVecA", this->mQuaternionVEC_A);
-		rSerializer.save("QuaternionVecB", this->mQuaternionVEC_B);
-		rSerializer.save("QuaternionScaA", this->mQuaternionSCA_A);
-		rSerializer.save("QuaternionScaB", this->mQuaternionSCA_B);
+		//rSerializer.save("QuaternionVecA", this->mQuaternionVEC_A);
+		//rSerializer.save("QuaternionVecB", this->mQuaternionVEC_B);
+		//rSerializer.save("QuaternionScaA", this->mQuaternionSCA_A);
+		//rSerializer.save("QuaternionScaB", this->mQuaternionSCA_B);
 
 		rSerializer.save("mIsLumpedMassMatrix", this->mIsLumpedMassMatrix);
 	}
@@ -1901,17 +1919,18 @@ namespace Kratos
 		rSerializer.load("NodalPosition", this->mTotalNodalPosistion);
 		rSerializer.load("NodalDeformation", this->mTotalNodalDeformation);
 		rSerializer.load("IterationCounter", this->mIterationCount);
-		rSerializer.load("NodalForces", this->mNodalForces);
+		//rSerializer.load("NodalForces", this->mNodalForces);
 
 		rSerializer.load("LocalInitalAxisX", this->mNX0);
 		rSerializer.load("LocalInitalAxisY", this->mNY0);
 		rSerializer.load("LocalInitalAxisZ", this->mNZ0);
 
 
-		rSerializer.load("QuaternionVecA", this->mQuaternionVEC_A);
-		rSerializer.load("QuaternionVecB", this->mQuaternionVEC_B);
-		rSerializer.load("QuaternionScaA", this->mQuaternionSCA_A);
-		rSerializer.load("QuaternionScaB", this->mQuaternionSCA_B);
+		//rSerializer.load("QuaternionVecA", this->mQuaternionVEC_A);
+		//rSerializer.load("QuaternionVecB", this->mQuaternionVEC_B);
+		//rSerializer.load("QuaternionScaA", this->mQuaternionSCA_A);
+		//rSerializer.load("QuaternionScaB", this->mQuaternionSCA_B);
+
 		rSerializer.load("mIsLumpedMassMatrix", this->mIsLumpedMassMatrix);
 	}
 

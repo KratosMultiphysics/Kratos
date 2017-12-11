@@ -280,7 +280,7 @@ namespace Kratos
 				// disturb the design variable
 				this->GetGeometry()[j].X0() += delta;
 				// Update CS and transformation matrix after geometry change
-				this->CalculateInitialLocalCS();
+				//this->CalculateInitialLocalCS();
 
 				// compute RHS after disturbance
 				this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
@@ -290,12 +290,18 @@ namespace Kratos
 				RHS_dist /= delta;
 				for(unsigned int i = 0; i < RHS_dist.size(); i++)  
 					rOutput( (0 + j*dimension), i) = RHS_dist[i]; 
-
+				
 				// Reset pertubed vector
 				RHS_dist = Vector(0);
-
+				
 				// undisturb the design variable
 				this->GetGeometry()[j].X0() -= delta;
+
+				// Update CS and transformation matrix after geometry change
+				//this->CalculateInitialLocalCS();
+				
+				// Compute RHS again in order to ensure that changed member variables like mLHS get back their origin values
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
 
 				//end: derive w.r.t. x-coordinate-----------------------------------------------------
 
@@ -304,7 +310,7 @@ namespace Kratos
 				// disturb the design variable
 				this->GetGeometry()[j].Y0() += delta;
                 // Update CS and transformation matrix after geometry change
-				this->CalculateInitialLocalCS();
+				//this->CalculateInitialLocalCS();
 
 				// compute RHS after disturbance
 				this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
@@ -314,13 +320,20 @@ namespace Kratos
 				RHS_dist /= delta;
 				for(unsigned int i = 0; i < RHS_dist.size(); i++) 
 					rOutput((1 + j*dimension),i) = RHS_dist[i]; 
-
+				
 				// Reset pertubed vector
 				RHS_dist = Vector(0);
-
+				
 				// undisturb the design variable
 				this->GetGeometry()[j].Y0() -= delta;
 
+				// Update CS and transformation matrix after geometry change
+				//this->CalculateInitialLocalCS();
+				
+				// Compute RHS again in order to ensure that changed member variables like mLHS get back their origin values
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+
+				
 				//end: derive w.r.t. y-coordinate-----------------------------------------------------
 
 				//begin: derive w.r.t. z-coordinate---------------------------------------------------
@@ -328,7 +341,7 @@ namespace Kratos
 				// disturb the design variable
 				this->GetGeometry()[j].Z0() += delta;
 				// Update CS and transformation matrix after geometry change
-				this->CalculateInitialLocalCS();
+				//this->CalculateInitialLocalCS();
 
 				// compute RHS after disturbance
 				this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
@@ -341,11 +354,12 @@ namespace Kratos
 
 				// Reset pertubed vector
 				RHS_dist = Vector(0);
-
+				
 				// undisturb the design variable
 				this->GetGeometry()[j].Z0() -= delta;
+				
 				// Update CS and transformation matrix after geometry change
-				this->CalculateInitialLocalCS();
+				//this->CalculateInitialLocalCS();
 
 				// Compute RHS again in order to ensure that changed member variables like mLHS get back their origin values
 				this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
