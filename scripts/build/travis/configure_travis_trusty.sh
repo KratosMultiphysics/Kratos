@@ -157,6 +157,9 @@ CMAKE_BUILD=(
 # Set additional arguments ( for example trillinos etc....)
 
 CMAKE_EXTRA=(
+  # Skip problems
+  -DCMAKE_SKIP_RPATH=ON
+
   # Runkratos
   -DINSTALL_EMBEDDED_PYTHON=ON
 

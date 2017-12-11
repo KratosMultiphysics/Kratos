@@ -65,7 +65,7 @@ bool Tetrahedra3D4AusasModifiedShapeFunctions::IsSplit() {
 // Internally computes the splitting pattern and returns all the shape function values for the positive side.
 void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAndGradientsValues(
     Matrix &rPositiveSideShapeFunctionsValues,
-    std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
+    ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
     Vector &rPositiveSideWeightsValues,
     const IntegrationMethodType IntegrationMethod) {
 
@@ -92,7 +92,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveSideShapeFunctions
 // Internally computes the splitting pattern and returns all the shape function values for the negative side.
 void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAndGradientsValues(
     Matrix &rNegativeSideShapeFunctionsValues,
-    std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
+    ShapeFunctionsGradientsType &rNegativeSideShapeFunctionsGradientsValues,
     Vector &rNegativeSideWeightsValues,
     const IntegrationMethodType IntegrationMethod) {
 
@@ -119,7 +119,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeSideShapeFunctions
 // Internally computes the splitting pattern and returns all the shape function values for the positive interface side.
 void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
     Matrix &rInterfacePositiveSideShapeFunctionsValues,
-    std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
+    ShapeFunctionsGradientsType &rInterfacePositiveSideShapeFunctionsGradientsValues,
     Vector &rInterfacePositiveSideWeightsValues,
     const IntegrationMethodType IntegrationMethod) {
 
@@ -148,7 +148,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeInterfacePositiveSideShape
 // Internally computes the splitting pattern and returns all the shape function values for the negative interface side.
 void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
     Matrix &rInterfaceNegativeSideShapeFunctionsValues,
-    std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
+    ShapeFunctionsGradientsType &rInterfaceNegativeSideShapeFunctionsGradientsValues,
     Vector &rInterfaceNegativeSideWeightsValues,
     const IntegrationMethodType IntegrationMethod) {
 

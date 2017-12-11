@@ -58,7 +58,7 @@ namespace Kratos
 			// Call the modified shape functions calculator
 			Tetrahedra3D4AusasModifiedShapeFunctions tetrahedra_ausas_shape_functions(p_geometry, r_elemental_distances);
 			Matrix positive_side_sh_func, negative_side_sh_func;
-			std::vector<Matrix> positive_side_sh_func_gradients, negative_side_sh_func_gradients;
+			ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients, negative_side_sh_func_gradients;
 			Vector positive_side_weights, negative_side_weights;
 
 			tetrahedra_ausas_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
@@ -75,7 +75,7 @@ namespace Kratos
 
 			// Call the interface modified shape functions calculator
 			Matrix positive_interface_side_sh_func, negative_interface_side_sh_func;
-			std::vector<Matrix> positive_interface_side_sh_func_gradients, negative_interface_side_sh_func_gradients;
+			ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_interface_side_sh_func_gradients, negative_interface_side_sh_func_gradients;
 			Vector positive_interface_side_weights, negative_interface_side_weights;
 
 			tetrahedra_ausas_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
@@ -228,11 +228,11 @@ namespace Kratos
 			// Check Gauss pts. outwards unit normal values
 			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0),  0.0, tolerance);
 			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1),  0.0, tolerance);
-            KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), -1.0, tolerance);
+            KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), -0.25, tolerance);
 
 			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0),  0.0, tolerance);
 			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1),  0.0, tolerance);
-            KRATOS_CHECK_NEAR(negative_side_area_normals[0](2),  1.0, tolerance);
+            KRATOS_CHECK_NEAR(negative_side_area_normals[0](2),  0.25, tolerance);
 		}
 
 
@@ -271,7 +271,7 @@ namespace Kratos
 			// Call the modified shape functions calculator
 			Tetrahedra3D4AusasModifiedShapeFunctions tetrahedra_ausas_shape_functions(p_geometry, r_elemental_distances);
 			Matrix positive_side_sh_func, negative_side_sh_func;
-			std::vector<Matrix> positive_side_sh_func_gradients, negative_side_sh_func_gradients;
+			ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients, negative_side_sh_func_gradients;
 			Vector positive_side_weights, negative_side_weights;
 
 			tetrahedra_ausas_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
@@ -288,7 +288,7 @@ namespace Kratos
 
 			// Call the interface modified shape functions calculator
 			Matrix positive_interface_side_sh_func, negative_interface_side_sh_func;
-			std::vector<Matrix> positive_interface_side_sh_func_gradients, negative_interface_side_sh_func_gradients;
+			ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_interface_side_sh_func_gradients, negative_interface_side_sh_func_gradients;
 			Vector positive_interface_side_weights, negative_interface_side_weights;
 
 			tetrahedra_ausas_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
@@ -510,19 +510,19 @@ namespace Kratos
             KRATOS_CHECK_NEAR(negative_interface_side_sh_func_gradients[1](3,2),  0.0, tolerance);
 
 			// Check Gauss pts. outwards unit normal values
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0), -0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1),       0.0, 1e-6);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), -0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[1](0), -0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(positive_side_area_normals[1](1),       0.0, 1e-6);
-            KRATOS_CHECK_NEAR(positive_side_area_normals[1](2), -0.707107, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](0), -0.25, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](1),  0.0, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[0](2), -0.25, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[1](0), -0.25, 1e-6);
+			KRATOS_CHECK_NEAR(positive_side_area_normals[1](1),  0.0, 1e-6);
+            KRATOS_CHECK_NEAR(positive_side_area_normals[1](2), -0.25, 1e-6);
 
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0),  0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1),       0.0, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[0](2),  0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[1](0),  0.707107, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[1](1),       0.0, 1e-6);
-			KRATOS_CHECK_NEAR(negative_side_area_normals[1](2),  0.707107, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](0), 0.25, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](1), 0.0, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[0](2), 0.25, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[1](0), 0.25, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[1](1), 0.0, 1e-6);
+			KRATOS_CHECK_NEAR(negative_side_area_normals[1](2), 0.25, 1e-6);
 		}
 
 
@@ -561,7 +561,7 @@ namespace Kratos
 			// Call the modified shape functions calculator
 			Tetrahedra3D4AusasModifiedShapeFunctions tetrahedra_ausas_shape_functions(p_geometry, r_elemental_distances);
 			Matrix positive_side_sh_func, negative_side_sh_func;
-			std::vector<Matrix> positive_side_sh_func_gradients, negative_side_sh_func_gradients;
+			ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients, negative_side_sh_func_gradients;
 			Vector positive_side_weights, negative_side_weights;
 
 			tetrahedra_ausas_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
