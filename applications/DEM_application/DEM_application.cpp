@@ -777,7 +777,7 @@ namespace Kratos
     Serializer::Register("DEM_D_DMT_Cohesive_Law", DEM_D_DMT_Cohesive_Law());
     Serializer::Register("DEM_D_Linear_Custom_Constants", DEM_D_Linear_Custom_Constants());
     Serializer::Register("DEM_D_Hertz_dependent_friction", DEM_D_Hertz_dependent_friction());
-    Serializer::Register("DEM_D_Hertz_viscous_Coulomb_nestle", DEM_D_Hertz_dependent_friction());
+    Serializer::Register("DEM_D_Hertz_viscous_Coulomb_nestle", DEM_D_Hertz_viscous_Coulomb_nestle());
     
     Serializer::Register("DEM_Dempack", DEM_Dempack());
     Serializer::Register("DEM_Dempack2D", DEM_Dempack2D());    

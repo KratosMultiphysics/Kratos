@@ -16,11 +16,15 @@ namespace Kratos {
 
         DEM_D_Hertz_viscous_Coulomb_nestle() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
-
         ~DEM_D_Hertz_viscous_Coulomb_nestle() {}
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
+        
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        
+        void CalculateViscoDampingForce(double LocalRelVel[3], double ViscoDampingLocalContactForce[3], SphericParticle* const element1, SphericParticle* const element2);
+
+        void CalculateViscoDampingForceWithFEM(double LocalRelVel[3], double ViscoDampingLocalContactForce[3], SphericParticle* const element, DEMWall* const wall);
     };
 } // namespace Kratos
 
