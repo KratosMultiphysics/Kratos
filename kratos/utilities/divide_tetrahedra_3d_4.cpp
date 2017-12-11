@@ -11,7 +11,6 @@
 //
 
 // System includes
-#include <unordered_map>
 
 // External includes
 
@@ -274,11 +273,11 @@ namespace Kratos
         if (mIsSplit) {
             // Create the face nodes data
             // The position represents the face while the value the real and intersection nodes in that face edges
-            std::vector < std::vector < unsigned int > > edges_map = {
-                {2, 3, 1, 7, 8, 9},     // Face 0
-                {0, 2, 3, 5, 6, 9},     // Face 1
-                {0, 1, 3, 4, 6, 8},     // Face 2
-                {0, 2, 1, 4, 5, 7}};    // Face 3
+            std::array < std::array< unsigned int, 6 >, 4> edges_map = {{
+                {{2, 3, 1, 7, 8, 9}},     // Face 0
+                {{0, 2, 3, 5, 6, 9}},     // Face 1
+                {{0, 1, 3, 4, 6, 8}},     // Face 2
+                {{0, 2, 1, 4, 5, 7}}}};   // Face 3
 
             // Compute the side exterior faces geometries
             const unsigned int n_subdivision = rSubdivisionsContainer.size();
@@ -297,7 +296,7 @@ namespace Kratos
                     int node_k_key = r_face[2].Id();
 
                     // Get the parent geometry face key value (candidate nodes)
-                    std::vector< unsigned int > faces_edge_nodes = edges_map[FatherFaceId];
+                    std::array< unsigned int, 6 > faces_edge_nodes = edges_map[FatherFaceId];
 
                     // Search the subdivision nodal keys into the parent geometry face key value
                     if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_i_key) != faces_edge_nodes.end()) {
