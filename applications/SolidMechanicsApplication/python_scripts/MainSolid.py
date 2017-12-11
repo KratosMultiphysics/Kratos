@@ -103,7 +103,7 @@ class Solution(object):
 
                
         # Start graphical output (GiD)
-        output_model_part = self.solver.GetOutputModelPart()
+        output_model_part = self.model.GetOutputModelPart()
         self.output = self._get_graphical_output(output_model_part)
         self.output.ExecuteInitialize()
 
@@ -150,7 +150,8 @@ class Solution(object):
         self.time = self.time + self.delta_time
         self.step = self.step + 1
 
-        self.pocess_info[KratosMultiphysics.STEP] = self.step
+        self.process_info[KratosMultiphysics.STEP] = self.step
+        
         self.main_model_part.CloneTimeStep(self.time) 
 
         print(" [STEP:",self.step," TIME:","{0:1.{1}f}".format(self.time,6),"]")
@@ -225,7 +226,10 @@ class Solution(object):
         if( self.process_info.Has(KratosMultiphysics.IS_RESTARTED) ):
             if( self.process_info[KratosMultiphysics.IS_RESTARTED] == False ):
                 return True
-            return False
+            else:
+                return False
+        else:
+            return True
         
     def _get_model(self):            
         import model_manager

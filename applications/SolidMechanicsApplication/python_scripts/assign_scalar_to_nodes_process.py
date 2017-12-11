@@ -61,7 +61,8 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         self.LinearDynamicVariables  = ["ACCELERATION","VELOCITY"]
         self.AngularDynamicVariables = ["ANGULAR_ACCELERATION","ANGULAR_VELOCITY"]
 
-        self.TimeIntegrationMethod   = self.model_part.ProcessInfo[KratosSolid.TIME_INTEGRATION_METHOD]
+        time_integration_method = KratosSolid.TimeIntegrationMethod()
+        self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo)
         
         ## set the interval
         self.finalized = False
@@ -122,7 +123,8 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         params = KratosMultiphysics.Parameters("{}")           
         params.AddValue("model_part_name", self.settings["model_part_name"])
         params.AddValue("variable_name", self.settings["variable_name"])
-        
+
+        self.fix_derivated_variable = False
         if( self.interval_string != "initial" and self.constrained == True ):
             self.SetFixAndFreeProcesses(params)                                            
                 
@@ -172,8 +174,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         self.FixDofsProcesses.append(fix_dof_process)
         free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
         self.FreeDofsProcesses.append(free_dof_process)
-        
-        self.fix_derivated_variable = False
+                
         for dynamic_variable in self.AngularDynamicVariables:
             if dynamic_variable in self.variable_name[:-2]:
                 self.derivated_variable_name = "ROTATION" + self.variable_name[-2:]

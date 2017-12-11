@@ -72,7 +72,7 @@ class ModelManager(object):
 
         self._add_variables()
                 
-        print("::[Model]:: Importing model part.")
+        print("::[Model_Manager]:: Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["import_settings"]["input_filename"].GetString()
         
@@ -112,7 +112,7 @@ class ModelManager(object):
             raise Exception("Other input options are not yet implemented.")
 
         
-        print ("::[Model]:: Finished importing model part.")
+        print ("::[Model_Manager]:: Finished importing model part.")
             
     def ExportModel(self):
         name_out_file = self.settings["import_settings"]["input_filename"].GetString()+".out"
@@ -159,14 +159,14 @@ class ModelManager(object):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
             #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
             
-        print("::[Model]:: General Variables ADDED")
+        print("::[Model_Manager]:: General Variables ADDED")
                                                               
         
     def _add_dofs(self):
         AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
         AddDofsProcess.Execute()
                 
-        print("::[Model]:: DOF's ADDED")
+        print("::[Model_Manager]:: DOF's ADDED")
 
     def _set_variables(self):
                 

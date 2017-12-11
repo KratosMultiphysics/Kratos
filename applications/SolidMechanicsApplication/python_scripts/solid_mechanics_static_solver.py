@@ -96,7 +96,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosSolid.ComponentWiseNewtonRaphsonStrategy(self.computing_model_part, 
+        return KratosSolid.ComponentWiseNewtonRaphsonStrategy(self.model_part, 
                                                               mechanical_scheme, 
                                                               linear_solver, 
                                                               mechanical_convergence_criterion, 
@@ -112,7 +112,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
         # KratosMultiphysics.LineSearchStrategy (alternative to test)
-        return KratosSolid.ResidualBasedNewtonRaphsonLineSearchStrategy(self.computing_model_part, 
+        return KratosSolid.ResidualBasedNewtonRaphsonLineSearchStrategy(self.model_part, 
                                                                         mechanical_scheme, 
                                                                         linear_solver, 
                                                                         mechanical_convergence_criterion, 
@@ -127,7 +127,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosSolid.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(self.computing_model_part, 
+        return KratosSolid.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(self.model_part, 
                                                                               mechanical_scheme, 
                                                                               linear_solver, 
                                                                               mechanical_convergence_criterion, 
@@ -142,7 +142,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
         mechanical_scheme = self._get_solution_scheme()
         linear_solver = self._get_linear_solver()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosMultiphysics.ResidualBasedLinearStrategy(self.computing_model_part, 
+        return KratosMultiphysics.ResidualBasedLinearStrategy(self.model_part, 
                                                               mechanical_scheme, 
                                                               linear_solver, 
                                                               builder_and_solver, 
@@ -157,7 +157,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part, 
+        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.model_part, 
                                                                      mechanical_scheme, 
                                                                      linear_solver, 
                                                                      mechanical_convergence_criterion, 

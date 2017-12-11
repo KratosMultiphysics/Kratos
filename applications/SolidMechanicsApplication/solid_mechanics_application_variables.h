@@ -40,7 +40,7 @@ namespace Kratos
   typedef array_1d<double,3> Vector3;
   typedef array_1d<double,6> Vector6;
   typedef VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >   VariableComponentType;
-  typedef TimeIntegrationMethod<VariableComponentType, double>              TimeIntegrationMethodType;
+  typedef TimeIntegrationMethod<VariableComponentType, double>     TimeIntegrationMethodComponentType;
   ///@}
 
   ///@name Kratos Globals
@@ -55,7 +55,7 @@ namespace Kratos
 
 
   //for explicit schemes
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, TimeIntegrationMethodType::Pointer, TIME_INTEGRATION_METHOD )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, TimeIntegrationMethodComponentType::Pointer, TIME_INTEGRATION_METHOD )       
   KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, MIDDLE_VELOCITY )
 
   //solution

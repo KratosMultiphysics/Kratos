@@ -93,20 +93,21 @@ namespace Kratos
 
     typedef typename BaseType::Pointer                     BaseTypePointer;
    
-    typedef TimeIntegrationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >  IntegrationType;
+    typedef NewmarkMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >  IntegrationType;
 
-    typedef typename IntegrationType::Pointer                       IntegrationTypePointer;
+    typedef typename IntegrationType::Pointer       IntegrationTypePointer;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default Constructor.
-    ResidualBasedDisplacementNewmarkScheme(const IntegrationTypePointer& rIntegrationMethod)
+    ResidualBasedDisplacementNewmarkScheme()
       :Scheme<TSparseSpace,TDenseSpace>()
     {
+
       // Set scheme variables
-      mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
+      mIntegrationMethod.SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
       
       // Allocate auxiliary memory
       const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
@@ -122,7 +123,7 @@ namespace Kratos
     /// Copy Constructor.
     ResidualBasedDisplacementNewmarkScheme(ResidualBasedDisplacementNewmarkScheme& rOther)
       :BaseType(rOther)
-      ,mpIntegrationMethod(rOther.mpIntegrationMethod)
+      ,mIntegrationMethod(rOther.mIntegrationMethod)
       ,mMatrix(rOther.mMatrix)
       ,mVector(rOther.mVector)
     {
@@ -196,7 +197,7 @@ namespace Kratos
         {
 	  NodesArrayType::iterator itNode = NodeBegin + i;
 
-	  mpIntegrationMethod->Update(*itNode);
+	  mIntegrationMethod.Update(*itNode);
         }
 
       KRATOS_CATCH( "" );
@@ -235,7 +236,7 @@ namespace Kratos
         {
 	  NodesArrayType::iterator itNode = NodeBegin + i;
 
-	  mpIntegrationMethod->Predict(*itNode);
+	  mIntegrationMethod.Predict(*itNode);
         }
 
       KRATOS_CATCH( "" );
@@ -325,7 +326,7 @@ namespace Kratos
       Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
 
 
-      mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
+      mIntegrationMethod.SetParameters(rCurrentProcessInfo);
 
 
       KRATOS_CATCH( "" );
@@ -739,7 +740,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-    IntegrationTypePointer  mpIntegrationMethod;
+    IntegrationType     mIntegrationMethod;
 
     GeneralMatrices     mMatrix;
 
@@ -771,14 +772,14 @@ namespace Kratos
       // Adding mass contribution to the dynamic stiffness
       if (M.size1() != 0) // if M matrix declared
         {
-	  parameter = mpIntegrationMethod->GetSecondDerivativeParameter(parameter);
+	  parameter = mIntegrationMethod.GetSecondDerivativeParameter(parameter);
 	  noalias(LHS_Contribution) += M * parameter;
         }
 
       // Adding  damping contribution
       if (D.size1() != 0) // if D matrix declared
         {
-	  parameter = mpIntegrationMethod->GetFirstDerivativeParameter(parameter);
+	  parameter = mIntegrationMethod.GetFirstDerivativeParameter(parameter);
 	  noalias(LHS_Contribution) += D * parameter;
         }
     }

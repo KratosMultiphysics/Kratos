@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/process_info.h"
 #include "includes/variables.h"
+#include "custom_utilities/process_info_extensions.hpp"
 
 namespace Kratos
 {
@@ -323,6 +324,12 @@ namespace Kratos
     ///@{
   
     ///@}
+    
+  public:
+
+    DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO
+    DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO
+    
   
   }; // Class TimeIntegrationMethod
   
@@ -336,7 +343,17 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
+  template<class TVariableType, class TValueType>
+  inline std::istream & operator >> (std::istream & rIStream, TimeIntegrationMethod<TVariableType,TValueType>& rThis)
+  {
+  }
+
+  template<class TVariableType, class TValueType>
+  inline std::ostream & operator << (std::ostream & rOStream, const TimeIntegrationMethod<TVariableType,TValueType>& rThis)
+  {
+    return rOStream << rThis.Info();
+  }
+
   ///@}
 
   ///@} addtogroup block

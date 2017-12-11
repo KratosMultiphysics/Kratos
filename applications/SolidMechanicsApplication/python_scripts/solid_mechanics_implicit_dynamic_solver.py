@@ -41,7 +41,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         """)
 
         # Validate and transfer settings
-        self._validate_and_transfer_matching_settings(custom_settings, implicit_solver_settings)
+        self._validate_and_transfer_matching_settings(custom_settings["solving_strategy_settings"], implicit_solver_settings["solving_strategy_settings"])
         self.implicit_solver_settings = implicit_solver_settings["solving_strategy_settings"]
         
         # Construct the base solver.
@@ -52,7 +52,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
     #### Solver internal methods ####
     
     def _create_solution_scheme(self):
-       
+
         integration_method   = self.time_integration_settings["integration_method"].GetString()
         
         if( self.implicit_solver_settings["rayleigh_damping"].GetBool() == True ):
@@ -77,12 +77,12 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         elif(integration_method == "Newmark"):
             #damp_factor_m = 0.0
             #mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+            
             # integration method for the integration of the imposed variable components
-            time_integration_method = KratosSolid.NewmakMethod()
-            self.process_info[KratosSolid.TIME_INTEGRATION_METHOD] = time_integration_method
-            # integration method for the solving scheme
-            scheme_time_integration_method = KratosSolid.SchemeNewmarkMethod()
-            mechanical_scheme  = KratosSolid.ResidualBasedDisplacementNewmarkScheme(scheme_time_integration_method)            
+            time_integration_method = KratosSolid.NewmarkMethod()
+            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)           
+            mechanical_scheme = KratosSolid.ResidualBasedDisplacementNewmarkScheme()
+            
         elif(integration_method == "Bossak"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
@@ -121,7 +121,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosSolid.ComponentWiseNewtonRaphsonStrategy(self.computing_model_part, 
+        return KratosSolid.ComponentWiseNewtonRaphsonStrategy(self.model_part, 
                                                               mechanical_scheme, 
                                                               linear_solver, 
                                                               mechanical_convergence_criterion, 
@@ -137,7 +137,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
         # KratosMultiphysics.LineSearchStrategy (alternative -> to test)
-        return KratosSolid.ResidualBasedNewtonRaphsonLineSearchStrategy(self.computing_model_part, 
+        return KratosSolid.ResidualBasedNewtonRaphsonLineSearchStrategy(self.model_part, 
                                                                         mechanical_scheme, 
                                                                         linear_solver, 
                                                                         mechanical_convergence_criterion, 
@@ -152,7 +152,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosSolid.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(self.computing_model_part, 
+        return KratosSolid.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(self.model_part, 
                                                                               mechanical_scheme, 
                                                                               linear_solver, 
                                                                               mechanical_convergence_criterion, 
@@ -167,7 +167,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part, 
+        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.model_part, 
                                                                      mechanical_scheme, 
                                                                      linear_solver, 
                                                                      mechanical_convergence_criterion, 

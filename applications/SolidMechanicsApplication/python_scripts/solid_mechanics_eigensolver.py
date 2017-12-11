@@ -94,7 +94,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         eigen_scheme = self._get_solution_scheme() # The scheme defines the matrices of the eigenvalue problem.
         builder_and_solver = self._get_builder_and_solver() # The eigensolver is created here.
 
-        return KratosSolid.EigensolverStrategy(self.computing_model_part,
+        return KratosSolid.EigensolverStrategy(self.model_part,
                                                eigen_scheme,
                                                builder_and_solver,
                                                self.compute_modal_contribution)

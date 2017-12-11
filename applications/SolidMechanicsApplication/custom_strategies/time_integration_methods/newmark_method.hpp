@@ -15,8 +15,6 @@
 // External includes
 
 // Project includes
-#include "includes/process_info.h"
-#include "includes/variables.h"
 #include "custom_strategies/time_integration_methods/time_integration_method.hpp"
 
 namespace Kratos
@@ -474,7 +472,17 @@ namespace Kratos
   ///@}
   ///@name Input and output
   ///@{
+  
+  template<class TVariableType, class TValueType>
+  inline std::istream & operator >> (std::istream & rIStream, NewmarkMethod<TVariableType,TValueType>& rThis)
+  {
+  }
 
+  template<class TVariableType, class TValueType>
+  inline std::ostream & operator << (std::ostream & rOStream, const NewmarkMethod<TVariableType,TValueType>& rThis)
+  {
+    return rOStream << rThis.Info();
+  }
   
   ///@}
 

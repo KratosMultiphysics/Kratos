@@ -98,7 +98,7 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
     def _create_explicit_strategy(self):
         mechanical_scheme = self._get_solution_scheme()
         linear_solver = self._get_linear_solver()
-        return KratosSolid.ExplicitStrategy(self.computing_model_part,
+        return KratosSolid.ExplicitStrategy(self.model_part,
                                             mechanical_scheme, 
                                             linear_solver, 
                                             self.solving_strategy_settings["compute_reactions"].GetBool(), 

@@ -38,7 +38,7 @@ class MechanicalSolver(object):
     settings -- Kratos parameters containing solver settings.
     model_part -- the model part used to construct the solver (computing_model_part).
     """
-    def __init__(self, model_part, custom_settings):         
+    def __init__(self, model_part, custom_settings): 
         default_settings = KratosMultiphysics.Parameters("""
         {
             "time_settings":{
@@ -80,17 +80,19 @@ class MechanicalSolver(object):
             }
         }
         """)
-
-
+       
         #trick to allow null value in a stabilization_factor variable
-        if(custom_settings.Has("stabilization_factor")):
-            if(custom_settings["stabilization_factor"].IsDouble()):
-                default_settings["stabilization_factor"].SetDouble(0.0)
+        if(custom_settings["solving_strategy_settings"].Has("stabilization_factor")):
+            if(custom_settings["solving_strategy_settings"]["stabilization_factor"].IsDouble()):
+                default_settings["solving_strategy_settings"]["stabilization_factor"].SetDouble(0.0)
 
         
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
+        self.settings["time_settings"].ValidateAndAssignDefaults(default_settings["time_settings"])
+        self.settings["time_integration_settings"].ValidateAndAssignDefaults(default_settings["time_integration_settings"])
+        self.settings["solving_strategy_settings"].ValidateAndAssignDefaults(default_settings["solving_strategy_settings"])
 
         self.time_integration_settings = self.settings["time_integration_settings"]
         self.solving_strategy_settings = self.settings["solving_strategy_settings"]
@@ -101,7 +103,12 @@ class MechanicalSolver(object):
    
         # Process Information
         self.process_info = self.model_part.ProcessInfo
-        
+
+        # Create integration information (needed in other processes)
+        self._get_solution_scheme()    
+
+        # Echo level
+        self.echo_level = 0
         
     def GetMinimumBufferSize(self):
         return 2;       
@@ -158,7 +165,7 @@ class MechanicalSolver(object):
     #### Solve loop methods ####
     
     def Solve(self):
-        if self.solver_strategy_settings["clear_storage"].GetBool():
+        if self.solving_strategy_settings["clear_storage"].GetBool():
             self.Clear()
         self._get_mechanical_solver().Solve()
 
@@ -258,8 +265,8 @@ class MechanicalSolver(object):
                             raise Exception('Unsupported parameter type.')
                 elif dest_value.IsSubParameter() and orig_value.IsSubParameter():
                     self._validate_and_transfer_matching_settings(orig_value, dest_value)
-                    #if len(orig_value.items()) != 0:
-                    #    raise Exception('Json settings not found in default settings: ' + orig_value.PrettyPrintJsonString())
+                    if len(orig_value.items()) != 0:
+                        raise Exception('Json settings not found in default settings: ' + orig_value.PrettyPrintJsonString())
                 else:
                     raise Exception('Unsupported parameter type.')
                 origin_settings.RemoveValue(name)
@@ -268,10 +275,11 @@ class MechanicalSolver(object):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
-        buffer_size = self.solving_strategy_settings["buffer_size"].GetInt()
+        main_model_part = self.model_part.GetRootModelPart()
+        buffer_size = self.time_integration_settings["buffer_size"].GetInt()
         if buffer_size < self.GetMinimumBufferSize():
             buffer_size = self.GetMinimumBufferSize()
-        self.model_part.SetBufferSize(buffer_size)
+        main_model_part.SetBufferSize(buffer_size)
         # Cycle the buffer. This sets all historical nodal solution step data to
         # the current value and initializes the time stepping in the process info.
         delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
@@ -283,7 +291,7 @@ class MechanicalSolver(object):
             step = step + 1
             time = time + delta_time
             self.process_info.SetValue(KratosMultiphysics.STEP, step)
-            self.model_part.CloneTimeStep(time)
+            main_model_part.CloneTimeStep(time)
         self.process_info[KratosMultiphysics.IS_RESTARTED] = False
         
     def _create_solution_scheme(self):
@@ -294,12 +302,11 @@ class MechanicalSolver(object):
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.solving_strategy_settings["convergence_criterion"])
         # conv_params.AddEmptyValue("rotation_dofs").SetBool(self._check_input_dof("ROTATION"))
-        conv_params.AddValue("echo_level",self.solving_strategy_settings["echo_level"])
+        conv_params.AddEmptyValue("echo_level").SetDouble(self.echo_level)
         is_component_wise = False
         if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
             is_component_wise = True
         conv_params.AddEmptyValue("component_wise").SetBool(is_component_wise)
-        conv_params.AddValue("component_wise",self.solving_strategy_settings["component_wise"])
         conv_params.AddValue("displacement_relative_tolerance",self.solving_strategy_settings["variable_relative_tolerance"])
         conv_params.AddValue("displacement_absolute_tolerance",self.solving_strategy_settings["variable_absolute_tolerance"])
         conv_params.AddValue("residual_relative_tolerance",self.solving_strategy_settings["residual_relative_tolerance"])
@@ -318,10 +325,10 @@ class MechanicalSolver(object):
     
     def _create_builder_and_solver(self):
         linear_solver = self._get_linear_solver()
-        if(self.settings["component_wise"].GetBool() == True):
+        if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
             builder_and_solver = KratosSolid.ComponentWiseBuilderAndSolver(linear_solver)
         else:
-            if(self.settings["block_builder"].GetBool() == True):
+            if(self.solving_strategy_settings["builder_type"].GetString() == "block_builder"):
                 # To keep matrix blocks in builder
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
