@@ -50,10 +50,24 @@ class SlaveData
         SetConstant(0.0);
         SetConstantUpdate(0.0);
     }
-    SlaveData(unsigned int iEquationId) : equationId(iEquationId)
+    SlaveData(unsigned int iDofId, std::size_t iDofKey, unsigned int iEquationId) : dofId(iDofId), dofKey(iDofKey), equationId(iEquationId)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
+    }
+
+    SlaveData(const SlaveData &iOther)
+    {
+        this->dofId = iOther.dofId;
+        this->dofKey = iOther.dofKey;
+        this->equationId = iOther.equationId;
+        this->constant = iOther.constant;
+        this->constantUpdate = iOther.constant;
+
+        this->masterDofIds = std::move(iOther.masterDofIds);
+        this->masterDofKeys = std::move(iOther.masterDofKeys);
+        this->masterWeights = std::move(iOther.masterWeights);
+        this->masterEquationIds = std::move(iOther.masterEquationIds);
     }
 
     void SetConstant(double iConstant) { constant = iConstant; }
@@ -114,14 +128,8 @@ class SlaveData
 
     // Get number of masters for this slave
     int NumberOfMasters()
-    {       
-        std::cout << ":::::::::::::::::::::: In Number of Masters Slave data :::::::::::::::::::::::::::::::::::::::::::::: "<< std::endl;       
-        int index = 0;
-        for (auto &master : masterDofIds)
-        {
-            index++;
-        }
-        return index;
+    {
+        return masterDofIds.size();
     }
 
     void PrintInfo()
@@ -242,6 +250,15 @@ class ConstraintData
         return *(pos->get());
     }
 
+    void AddEquationIdToSlave(const DofType &SlaveDof, unsigned int iEquationId)
+    {
+        auto &index = mDataContainer.get<SlaveDofId_Key>();
+        auto pos = index.find(boost::make_tuple(SlaveDof.Id(), SlaveDof.GetVariable().Key()));
+		SlaveDataPointerType dummy11 = SlaveDataPointerType(new SlaveData(*(*pos)));
+        dummy11->equationId = iEquationId;
+        index.replace(pos,dummy11); 
+    }    
+
     /**
 		Get the Total number of MasterDOFs for a given slave dof
 		@return Total number of MasterDOFs for a given slave dof
@@ -250,23 +267,19 @@ class ConstraintData
     {
         auto &index = mDataContainer.get<SlaveDofId_Key>();
         auto pos = index.find(boost::make_tuple(SlaveDof.Id(), SlaveDof.GetVariable().Key()));
-        std::cout << "555555555555555555555555 mDataContainer size :: " << mDataContainer.size() << std::endl;        
-        std::cout << "555555555555555555555555 index size :: " << index.size() << std::endl;
-        std::cout << "555555555555555555555555 index pos :: " << (pos->get())->NumberOfMasters() << std::endl;
         int numMasters = -1;
         numMasters = (pos->get())->NumberOfMasters();
         return numMasters;
     }
     unsigned int GetNumbeOfMasterDofsForSlave(unsigned int slaveEqutionId)
     {
-        std::cout << "#################### slaveEqutionId :: " << slaveEqutionId << std::endl;        
         auto &index = mDataContainer.get<SlaveEquationId>();
-        auto pos = index.find(11);
-        std::cout << "#################### mDataContainer size :: " << mDataContainer.size() << std::endl;
-        std::cout << "#################### index size :: " << index.size() << std::endl;
-        std::cout << "#################### index pos :: "<< (*pos)->NumberOfMasters() << std::endl;
+        auto pos = index.find(slaveEqutionId);
         int numMasters = -1;
-        numMasters = (*pos)->NumberOfMasters();
+        if(pos != index.end())
+            numMasters = (*pos)->NumberOfMasters();
+        else 
+            numMasters = 0;
         return numMasters;
     }
 

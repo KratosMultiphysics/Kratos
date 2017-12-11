@@ -483,14 +483,11 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
 
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
-            std::cout<<"Element ID :: "<< rCurrentElement.Id()<<std::endl;
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            std::cout<<"####################### LENGTH :: "<<(*constraintVector).size()<<std::endl;
             for (auto &constraint : (*constraintVector))
             {
                 if (constraint->IsActive())
                 {
-                    std::cout<<"####################### 1.PROCESSING :: "<<std::endl;                    
                     constraint->Element_ApplyConstraints(rCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                 }
             }
@@ -547,7 +544,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                         for (auto masterEquationId : slaveData->masterEquationIds)
                         {
                             double weight = slaveData->masterWeights[index];
-
                             Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + TSparseSpace::GetValue(Dx, masterEquationId) * weight;
                         }
 
