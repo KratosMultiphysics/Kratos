@@ -274,12 +274,12 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](2,1),  1.0, tolerance);
 			KRATOS_CHECK_NEAR(neg_ext_face_weights_0(0), 0.5*std::sqrt(2.0), tolerance);
 
-			KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](0), 0.5 * std::sqrt(2), tolerance);
-			KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](1), 0.5 * std::sqrt(2), tolerance);
-			KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](2), 				0.0, tolerance);
-			KRATOS_CHECK_NEAR(area_normals_neg_face_0[0](0), 0.5 * std::sqrt(2), tolerance);
-			KRATOS_CHECK_NEAR(area_normals_neg_face_0[0](1), 0.5 * std::sqrt(2), tolerance);
-			KRATOS_CHECK_NEAR(area_normals_neg_face_0[0](2), 				0.0, tolerance);
+			KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](0), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](1), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](2), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(area_normals_neg_face_0[0](0), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(area_normals_neg_face_0[0](1), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(area_normals_neg_face_0[0](2), 0.0, tolerance);
 
 			// Check face 1 values
 			KRATOS_CHECK_NEAR(pos_ext_face_sh_func_1(0,0), 0.25, tolerance);
@@ -304,10 +304,10 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_1[0](2,1),  1.0, tolerance);
 			KRATOS_CHECK_NEAR(neg_ext_face_weights_1(0), 0.5, tolerance);
 
-			KRATOS_CHECK_NEAR(area_normals_pos_face_1[0](0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(area_normals_pos_face_1[0](0), -0.5, tolerance);
 			KRATOS_CHECK_NEAR(area_normals_pos_face_1[0](1),  0.0, tolerance);
 			KRATOS_CHECK_NEAR(area_normals_pos_face_1[0](2),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(area_normals_neg_face_1[0](0), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(area_normals_neg_face_1[0](0), -0.5, tolerance);
 			KRATOS_CHECK_NEAR(area_normals_neg_face_1[0](1),  0.0, tolerance);
 			KRATOS_CHECK_NEAR(area_normals_neg_face_1[0](2),  0.0, tolerance);
 
@@ -586,11 +586,11 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(neg_ext_face_sh_func_gradients_0[0](2,1),  1.0, tolerance);
 			KRATOS_CHECK_NEAR(neg_ext_face_weights_0(0), 0.5*std::sqrt(2.0), tolerance);
 
-			KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](0), 0.5 * std::sqrt(2), tolerance);
-			KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](1), 0.5 * std::sqrt(2), tolerance);
+			KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](0), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](1), 0.5, tolerance);
 			KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](2), 0.0, tolerance);
-			KRATOS_CHECK_NEAR(area_normals_neg_face_0[0](0), 0.5 * std::sqrt(2), tolerance);
-			KRATOS_CHECK_NEAR(area_normals_neg_face_0[0](1), 0.5 * std::sqrt(2), tolerance);
+			KRATOS_CHECK_NEAR(area_normals_neg_face_0[0](0), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(area_normals_neg_face_0[0](1), 0.5, tolerance);
 			KRATOS_CHECK_NEAR(area_normals_neg_face_0[0](2), 0.0, tolerance);
 
 			// Check face 1 values
@@ -639,10 +639,10 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(neg_ext_face_weights_2(0), 0.5, tolerance);
 
 			KRATOS_CHECK_NEAR(area_normals_pos_face_2[0](0), 0.0, tolerance);
-			KRATOS_CHECK_NEAR(area_normals_pos_face_2[0](1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(area_normals_pos_face_2[0](1), -0.5, tolerance);
 			KRATOS_CHECK_NEAR(area_normals_pos_face_2[0](2), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(area_normals_neg_face_2[0](0), 0.0, tolerance);
-			KRATOS_CHECK_NEAR(area_normals_neg_face_2[0](1), -1.0, tolerance);
+			KRATOS_CHECK_NEAR(area_normals_neg_face_2[0](1), -0.5, tolerance);
 			KRATOS_CHECK_NEAR(area_normals_neg_face_2[0](2), 0.0, tolerance);
 		}
 
