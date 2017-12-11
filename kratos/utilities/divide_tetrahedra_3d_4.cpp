@@ -175,7 +175,7 @@ namespace Kratos
             for (unsigned int i_subdivision = 0; i_subdivision < n_positive_subdivision; ++i_subdivision) {
                 // Get the subdivision geometry faces
                 const IndexedPointGeometryPointerType p_subdivision_geom = mPositiveSubdivisions[i_subdivision];
-                GeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
+                IndexedGeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
 
                 // Faces iteration
                 for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
@@ -203,7 +203,7 @@ namespace Kratos
             for (unsigned int i_subdivision = 0; i_subdivision < n_negative_subdivision; ++i_subdivision) {
                 // Get the subdivision geometry
                 const IndexedPointGeometryPointerType p_subdivision_geom = mNegativeSubdivisions[i_subdivision];
-                GeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
+                IndexedGeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
 
                 // Faces iteration
                 for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
@@ -264,7 +264,6 @@ namespace Kratos
         std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
         const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
         const unsigned int FatherFaceId) {
-
         // Set some geometry constant parameters
         const unsigned int n_faces = 4;
 
@@ -274,19 +273,19 @@ namespace Kratos
 
         if (mIsSplit) {
             // Create the face nodes data
-            // The position represents the face while the value real and intersection nodes in that face edges
+            // The position represents the face while the value the real and intersection nodes in that face edges
             std::vector < std::vector < unsigned int > > edges_map = {
-                {0, 2, 1, 4, 5, 7},     // Face 0
+                {2, 3, 1, 7, 8, 9},     // Face 0
                 {0, 2, 3, 5, 6, 9},     // Face 1
                 {0, 1, 3, 4, 6, 8},     // Face 2
-                {2, 3, 1, 7, 8, 9}};    // Face 3
+                {0, 2, 1, 4, 5, 7}};    // Face 3
 
             // Compute the side exterior faces geometries
             const unsigned int n_subdivision = rSubdivisionsContainer.size();
             for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
                 // Get the subdivision faces
                 const IndexedPointGeometryPointerType p_subdivision_geom = rSubdivisionsContainer[i_subdivision];
-                GeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
+                IndexedGeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
 
                 // Subdivision geometry subfaces iteration
                 for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {

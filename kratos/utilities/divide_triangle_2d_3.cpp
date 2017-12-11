@@ -270,7 +270,6 @@ namespace Kratos
         std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
         const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
         const unsigned int FatherFaceId) {
-
         // Set some geometry constant parameters
         const unsigned int n_faces = 3;
 
@@ -284,9 +283,9 @@ namespace Kratos
             // Create the face nodes data
             // The position represents the face while the value real and intersection nodes in that face edges
             std::vector < std::vector < unsigned int > > edges_map = {
-                {0, 1, 3},     // Face 0
-                {1, 2, 4},     // Face 1
-                {2, 0, 5}};    // Face 2
+                {1, 2, 4},     // Face 0
+                {2, 0, 5},     // Face 1
+                {0, 1, 3}};    // Face 2
 
             // Compute the side exterior faces geometries
             const unsigned int n_subdivision = rSubdivisionsContainer.size();

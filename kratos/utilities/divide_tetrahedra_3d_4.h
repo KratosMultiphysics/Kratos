@@ -49,7 +49,7 @@ public:
     typedef DivideGeometry                                              BaseType;
     typedef BaseType::GeometryType                                      GeometryType;
     typedef BaseType::IndexedPointType                                  IndexedPointType;
-    typedef BaseType::IndexedPointGeometryType::GeometriesArrayType     GeometriesArrayType;
+    typedef BaseType::IndexedPointGeometryType::GeometriesArrayType     IndexedGeometriesArrayType;
     typedef Triangle3D3 < IndexedPointType >                            IndexedPointTriangleType;
     typedef Tetrahedra3D4 < IndexedPointType >                          IndexedPointTetrahedraType;
 
