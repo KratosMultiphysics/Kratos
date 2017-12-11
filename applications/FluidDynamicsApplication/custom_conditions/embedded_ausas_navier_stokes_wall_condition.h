@@ -138,33 +138,25 @@ public:
 
     /// Default constructor.
     /** Admits an Id as a parameter.
-      @param NewId Index for the new         // Struct to pass around the data
-        ConditionDataStruct data;
-        this->FillElementData(data, rCurrentProcessInfo);condition
-      */
-    EmbeddedAusasNavierStokesWallCondition(IndexType NewId = 0):Condition(NewId)
-    {
-    }
+     @param NewId Index for the new         
+     */
+    EmbeddedAusasNavierStokesWallCondition(IndexType NewId = 0) : Condition(NewId) {}
 
     /// Constructor using an array of nodes
     /**
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    EmbeddedAusasNavierStokesWallCondition(IndexType NewId, const NodesArrayType& ThisNodes):
-        Condition(NewId,ThisNodes)
-    {
-    }
+    EmbeddedAusasNavierStokesWallCondition(IndexType NewId, const NodesArrayType& ThisNodes) :
+        Condition(NewId,ThisNodes) {}
 
     /// Constructor using Geometry
     /**
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    EmbeddedAusasNavierStokesWallCondition(IndexType NewId, GeometryType::Pointer pGeometry):
-        Condition(NewId,pGeometry)
-    {
-    }
+    EmbeddedAusasNavierStokesWallCondition(IndexType NewId, GeometryType::Pointer pGeometry) :
+        Condition(NewId,pGeometry) {}
 
     /// Constructor using Properties
     /**
@@ -172,16 +164,12 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    EmbeddedAusasNavierStokesWallCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
-        Condition(NewId,pGeometry,pProperties)
-    {
-    }
+    EmbeddedAusasNavierStokesWallCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
+        Condition(NewId,pGeometry,pProperties) {}
 
     /// Copy constructor.
-    EmbeddedAusasNavierStokesWallCondition(EmbeddedAusasNavierStokesWallCondition const& rOther):
-        Condition(rOther)
-    {
-    }
+    EmbeddedAusasNavierStokesWallCondition(EmbeddedAusasNavierStokesWallCondition const& rOther) :
+        Condition(rOther) {}
 
     /// Destructor.
     ~EmbeddedAusasNavierStokesWallCondition() override {}
@@ -192,8 +180,7 @@ public:
     ///@{
 
     /// Assignment operator
-    EmbeddedAusasNavierStokesWallCondition & operator=(EmbeddedAusasNavierStokesWallCondition const& rOther)
-    {
+    EmbeddedAusasNavierStokesWallCondition & operator=(EmbeddedAusasNavierStokesWallCondition const& rOther) {
         Condition::operator=(rOther);
         return *this;
     }
@@ -208,8 +195,7 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
-    {
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override {
         return Condition::Pointer(new EmbeddedAusasNavierStokesWallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
@@ -219,8 +205,7 @@ public:
       @param pGeom A pointer to the condition's geometry
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
-    {
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
         return boost::make_shared< EmbeddedAusasNavierStokesWallCondition >(NewId, pGeom, pProperties);
     }
 
@@ -230,8 +215,7 @@ public:
      * @param ThisNodes: the nodes of the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
-    {
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override {
         Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
         pNewCondition->SetData(this->GetData());
@@ -359,7 +343,7 @@ public:
 
         // Struct to pass around the data
         ConditionDataStruct data;
-        this->FillElementData(data);
+        this->FillConditionData(data);
 
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_gauss;
@@ -452,7 +436,7 @@ public:
 
         // Struct to pass around the data
         ConditionDataStruct data;
-        this->FillElementData(data);
+        this->FillConditionData(data);
 
         // Allocate memory needed
         bounded_matrix<double, MatrixSize, MatrixSize> lhs_gauss;
@@ -532,7 +516,7 @@ public:
 
         // Struct to pass around the data
         ConditionDataStruct data;
-        this->FillElementData(data);
+        this->FillConditionData(data);
 
         // Allocate memory needed
         array_1d<double,MatrixSize> rhs_gauss;
@@ -740,7 +724,7 @@ protected:
     // void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
     // Auxiliar function to fill the element data structure
-    void FillElementData(ConditionDataStruct &rData)
+    void FillConditionData(ConditionDataStruct &rData)
     {
         const GeometryType& r_geometry = this->GetGeometry();
 
