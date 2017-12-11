@@ -21,7 +21,7 @@
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
-#include "custom_solvers/EigenDirectSolver.h"
+#include "custom_solvers/eigen_direct_solver.h"
 
 namespace Kratos
 {
