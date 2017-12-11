@@ -124,8 +124,8 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             number_of_avg_elems = 10
             number_of_avg_nodes = 10
             self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part, 
-                                                                                            number_of_avg_elems, 
-                                                                                            number_of_avg_nodes)
+                                                                                               number_of_avg_elems, 
+                                                                                               number_of_avg_nodes)
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
                                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
@@ -205,10 +205,9 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
 
 
     def Solve(self):
-        self.DivergenceClearance()
-        #(self.bdf_process).Execute()
-        #if (self.settings["solver_type"].GetString() == "EmbeddedAusas"):
-        #    (self.find_nodal_neighbours_process).Execute()
+        (self.bdf_process).Execute()
+        if (self.settings["solver_type"].GetString() == "EmbeddedAusas"):
+            (self.find_nodal_neighbours_process).Execute()
         (self.solver).Solve()
 
     def _ExecuteAfterReading(self):
