@@ -259,7 +259,7 @@ private:
     // Adding adjoint elements
     const ShellThinAdjointElement3D3N mShellThinAdjointElement3D3N;
     const CrBeamAdjointElement3D2N mCrLinearBeamAdjointElement3D2N;
-
+    const CrBeamAdjointElement3D2N mCrBeamAdjointElement3D2N;
 
     // Adding the shells elements 
     const IsotropicShellElement mIsotropicShellElement3D3N;

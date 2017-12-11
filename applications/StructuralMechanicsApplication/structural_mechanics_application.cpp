@@ -64,7 +64,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     // Addint the adjoint elements
     mShellThinAdjointElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ), false ),
     mCrLinearBeamAdjointElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ), true ),
-
+    mCrBeamAdjointElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ), false ),
     // Adding the shells elements
     mIsotropicShellElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), false ),
@@ -312,6 +312,12 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(POSITIVE_FACE_PRESSURES_VECTOR )
     KRATOS_REGISTER_VARIABLE(NEGATIVE_FACE_PRESSURES_VECTOR )
 
+    //Quaternion variables
+    KRATOS_REGISTER_VARIABLE(QUATERNION_VECTOR)
+    KRATOS_REGISTER_VARIABLE(QUATERNION_SCALAR_VECTOR)
+
+    //Total nodal variables
+    KRATOS_REGISTER_VARIABLE(TOTAL_NODAL_DEFORMATION)
 
 
     //Register the truss element
@@ -325,6 +331,7 @@ void KratosStructuralMechanicsApplication::Register()
     //Register the adjoint elements
     KRATOS_REGISTER_ELEMENT( "ShellThinAdjointElement3D3N", mShellThinAdjointElement3D3N )
     KRATOS_REGISTER_ELEMENT( "CrLinearBeamAdjointElement3D2N", mCrLinearBeamAdjointElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "CrBeamAdjointElement3D2N", mCrBeamAdjointElement3D2N )
 
     //Register the shells elements
     KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N", mIsotropicShellElement3D3N )
