@@ -40,9 +40,10 @@ class TestImporting(KratosUnittest.TestCase):
         
         try:
             import KratosMultiphysics.ExternalSolversApplication
-            self.assertTrue(Kernel().IsImported("ExternalSolversApplication"))
         except:
-            self.assertFalse(Kernel().IsImported("ExternalSolversApplication"))
-
+            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
+            
+        self.assertTrue(Kernel().IsImported("ExternalSolversApplication"))
+        
 if __name__ == '__main__':
     KratosUnittest.main()
