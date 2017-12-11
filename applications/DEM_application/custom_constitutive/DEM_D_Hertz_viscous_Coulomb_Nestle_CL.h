@@ -8,15 +8,15 @@ namespace Kratos {
     
     class SphericParticle;
 
-    class DEM_D_Hertz_viscous_Coulomb_nestle : public DEM_D_Hertz_viscous_Coulomb {
+    class DEM_D_Hertz_viscous_Coulomb_Nestle : public DEM_D_Hertz_viscous_Coulomb {
     
     public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Hertz_viscous_Coulomb_nestle);
+        KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Hertz_viscous_Coulomb_Nestle);
 
-        DEM_D_Hertz_viscous_Coulomb_nestle() {}
+        DEM_D_Hertz_viscous_Coulomb_Nestle() {}
 
-        ~DEM_D_Hertz_viscous_Coulomb_nestle() {}
+        ~DEM_D_Hertz_viscous_Coulomb_Nestle() {}
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
         
