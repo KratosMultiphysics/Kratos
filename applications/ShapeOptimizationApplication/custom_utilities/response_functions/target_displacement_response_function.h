@@ -136,29 +136,6 @@ public:
 					 << "\"" << std::endl;
 
 		ModelPart& r_sub_model_part = r_model_part.GetSubModelPart(mStockSensitivityModelPartName);
-		
-
-		// // Set sensitivity variables to zero.
-        // for (auto label : mNodalStockSensitivityVariables)
-        // {
-        //     if (KratosComponents<Variable<array_1d<double, 3>>>::Has(label) == true)
-        //     {
-        //         const Variable<array_1d<double, 3>>& r_variable =
-        //             KratosComponents<Variable<array_1d<double, 3>>>::Get(label);
-
-		// #pragma omp parallel
-        //         {
-        //             ModelPart::NodeIterator nodes_begin;
-        //             ModelPart::NodeIterator nodes_end;
-        //             OpenMPUtils::PartitionedIterators(r_model_part.Nodes(),
-        //                                               nodes_begin, nodes_end);
-        //             for (auto it = nodes_begin; it != nodes_end; ++it)
-        //                 it->FastGetSolutionStepValue(r_variable) = r_variable.Zero();
-        //         }
-        //     }
-        //     else
-        //         KRATOS_ERROR << "Unsupported variable: " << label << "." << std::endl;
-        // }
 
 		//getting the array of the conditions
 		const int nconditions = static_cast<int>(r_model_part.Conditions().size());
@@ -175,7 +152,7 @@ public:
 			ConditionsIds.push_back(nconditions + index);
 			unsigned int elem_id = nconditions + index;
 			unsigned int prop_id = 0;
-			/*ConditionType::Pointer p_condition = */r_model_part.CreateNewCondition(m_condition_name,elem_id,nodeIds,r_model_part.pGetProperties(prop_id));
+			r_model_part.CreateNewCondition(m_condition_name,elem_id,nodeIds,r_model_part.pGetProperties(prop_id));
 			r_sub_model_part.AddConditions(ConditionsIds);
 			index++;
 		}
