@@ -238,7 +238,7 @@ while time < DEM_parameters["FinalTime"].GetDouble():
     
     #### PRINTING GRAPHS ####
     os.chdir(graphs_path)
-    post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
+    post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", time)
 
     materialTest.MeasureForcesAndPressure()
     materialTest.PrintGraph(time)
