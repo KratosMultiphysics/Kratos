@@ -424,7 +424,7 @@ namespace Kratos
 
 		if (rVariable == FORCE)
 				{
-					Vector truss_forces = ZeroVector(msDimension);
+					bounded_vector<double,msDimension> truss_forces = ZeroVector(msDimension);
 					truss_forces[2] = 0.00;
 					truss_forces[1] = 0.00;
 					const double A = this->GetProperties()[CROSS_AREA];

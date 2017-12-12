@@ -223,10 +223,10 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         P_i = ((EA/(2*L3))*(disp_temp*disp_temp +2*1*disp_temp)*(disp_temp+1))
         self.assertAlmostEqual(P_i,Force_i,1)
 
-    def _check_pre_stress_output(self,mp,force,tollerance=9):
+    def _check_pre_stress_output(self,mp,force,tolerance=9):
         for element in mp.Elements:
             out = element.CalculateOnIntegrationPoints(KratosMultiphysics.FORCE,mp.ProcessInfo)
-            self.assertAlmostEqual(out[0][0],force,tollerance)
+            self.assertAlmostEqual(out[0][0],force,tolerance)
             self.assertAlmostEqual(out[0][1],0.00)
             self.assertAlmostEqual(out[0][2],0.00)
 
