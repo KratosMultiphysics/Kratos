@@ -21,6 +21,7 @@ from SmallTests import NavierStokesWallConditionTest as TNavierStokesWallConditi
 from buoyancy_test import BuoyancyTest
 from volume_source_test import VolumeSourceTest
 from fluid_element_test import FluidElementTest
+from time_integrated_fluid_element_test import TimeIntegratedFluidElementTest
 from darcy_channel_test import DarcyChannelTest
 from embedded_ausas_couette_test import EmbeddedAusasCouetteTest
 
@@ -56,6 +57,8 @@ def AssambleTestSuites():
     smallSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))
     smallSuite.addTest(FluidElementTest('testCavity'))
     smallSuite.addTest(FluidElementTest('testCavityOSS'))
+    smallSuite.addTest(TimeIntegratedFluidElementTest('testCavity'))
+    smallSuite.addTest(TimeIntegratedFluidElementTest('testSymbolic'))
     smallSuite.addTest(DarcyChannelTest('testDarcyDensity'))
     smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette2D'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.

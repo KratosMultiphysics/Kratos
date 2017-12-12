@@ -23,7 +23,7 @@ class FluidElementTest(UnitTest.TestCase):
         self.work_folder = "FluidElementTest"
 
         self.dt = 0.1
-        self.nsteps = 100
+        self.nsteps = 10
 
         self.check_tolerance = 1e-6
         self.print_output = False
@@ -160,7 +160,6 @@ class FluidElementTest(UnitTest.TestCase):
                     temp = node.GetSolutionStepValue(PRESSURE,0)
                     ref_file.write("{0}, {1}, {2}, {3}\n".format(node.Id, vel[0], vel[1], temp))
         else:
-            return
             with open(self.reference_file+'.csv','r') as reference_file:
                 reference_file.readline() # skip header
                 line = reference_file.readline()

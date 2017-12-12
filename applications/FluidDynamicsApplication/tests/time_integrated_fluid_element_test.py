@@ -14,13 +14,16 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
-class FluidElementTest(UnitTest.TestCase):
+class TimeIntegratedFluidElementTest(UnitTest.TestCase):
 
     def setUp(self):
         self.domain_size = 2
         self.input_file = "cavity10"
-        self.reference_file = "reference10_symbolic"
+        self.reference_file = "reference10_time_integrated"
         self.work_folder = "FluidElementTest"
+
+        self.element_name = "TimeIntegratedQSVMS2D3N"
+        self.condition_name ="Condition2D3N"
 
         self.dt = 0.1
         self.nsteps = 10
@@ -52,6 +55,11 @@ class FluidElementTest(UnitTest.TestCase):
             if self.print_output:
                 self.printOutput()
 
+    def testSymbolic(self):
+        self.element_name = "SymbolicNavierStokes2D3N"
+        self.reference_file = "reference10_symbolic"
+        self.testCavity()
+
     def setUpModel(self):
         self.fluid_model_part = ModelPart("Fluid")
 
@@ -75,15 +83,12 @@ class FluidElementTest(UnitTest.TestCase):
         self.fluid_model_part.ProcessInfo.SetValue(SOUND_VELOCITY,1e12)
         self.fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH,0)
 
-        ## Replace element and conditions
-        #replace_settings = Parameters("""{
-        #    "element_name":"TimeIntegratedQSVMS2D3N",
-        #    "condition_name": "NavierStokesWallCondition2D"
-        #}""")
         replace_settings = Parameters("""{
-            "element_name":"SymbolicNavierStokes2D3N",
-            "condition_name": "NavierStokesWallCondition2D"
+            "element_name": "",
+            "condition_name": ""
         }""")
+        replace_settings["element_name"].SetString(self.element_name)
+        replace_settings["condition_name"].SetString(self.condition_name)
 
         ReplaceElementsAndConditionsProcess(self.fluid_model_part, replace_settings).Execute()
 
@@ -229,9 +234,9 @@ class FluidElementTest(UnitTest.TestCase):
         gid_io.FinalizeResults()
 
 if __name__ == '__main__':
-    test = FluidElementTest()
+    test = TimeIntegratedFluidElementTest()
     test.setUp()
     test.print_reference_values = True
     test.print_output = True
-    test.testCavity()
+    test.testSymbolic()
     test.tearDown()
