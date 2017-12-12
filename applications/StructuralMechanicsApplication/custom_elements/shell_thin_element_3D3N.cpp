@@ -682,9 +682,9 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& r
 			rValues[GP] = localCoordinateSystem.Vx();
 		}
 	}
-	else if (rVariable == MATERIAL_ORIENTATION_VECTOR_1)
+	else if (rVariable == LOCAL_MATERIAL_ORIENTATION_VECTOR_1)
 	{
-		// MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of 
+		// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of 
 		// section orientation, which rotates the entrire element section 
 		// in-plane and is used in the element stiffness calculation.
 
