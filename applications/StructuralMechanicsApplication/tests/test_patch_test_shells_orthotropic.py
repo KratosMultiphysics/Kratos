@@ -1,11 +1,11 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics 
+import KratosMultiphysics
+from KratosMultiphysics import * 
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-
-class TestPatchTestShells(KratosUnittest.TestCase):
+class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
     def setUp(self):
         pass
     
@@ -74,15 +74,45 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
     def _apply_material_properties(self,mp):
         #define properties
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,100e3)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,1.0)
+        orthotropic_props = Matrix(4,16)
         
+        # Orthotropic mechanical moduli
+        orthotropic_props[0,0] = 0.5 #lamina thickness
+        orthotropic_props[0,1] = 0.0 #lamina rotation (deg)
+        orthotropic_props[0,2] = 7850 #density
+        orthotropic_props[0,3] = 7500 #E1
+        orthotropic_props[0,4] = 2000 #E2
+        orthotropic_props[0,5] = 0.25 #nu_12
+        orthotropic_props[0,6] = 1250 #G_12
+        orthotropic_props[0,7] = 625 #G_13
+        orthotropic_props[0,8] = 625 #G_23
+        
+        # Orthotropic mechanical strengths. (T)ensile, (C)ompression, (S)hear
+        # along 1, 2, 3 lamina directions
+        orthotropic_props[0,9] = 800 #T1
+        orthotropic_props[0,10] = 500 #C1
+        orthotropic_props[0,11] = 40 #T2
+        orthotropic_props[0,12] = 300 #C2
+        orthotropic_props[0,13] = 60 #S12
+        orthotropic_props[0,14] = 60 #S13
+        orthotropic_props[0,15] = 60 #S23
+
+        for row in range(1,4):
+            for col in range(16):
+                orthotropic_props[row,col] = orthotropic_props[0,col]
+        orthotropic_props[1,1] = 90
+        orthotropic_props[2,1] = 90
+
+        mp.GetProperties()[1].SetValue(
+            KratosMultiphysics.StructuralMechanicsApplication.SHELL_ORTHOTROPIC_LAYERS,orthotropic_props)
+
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,2)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,2.5)
+
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
         
-        cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
+        cl = StructuralMechanicsApplication.LinearElasticOrthotropic2DLaw()
 
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
         
@@ -93,20 +123,22 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
+        convergence_criterion.SetEchoLevel(0)
         
         max_iters = 20
         compute_reactions = True
         reform_step_dofs = True
         calculate_norm_dx = False
         move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp, 
-                                                                  scheme, 
-                                                                  linear_solver, 
-                                                                  builder_and_solver, 
-                                                                  compute_reactions, 
-                                                                  reform_step_dofs, 
-                                                                  calculate_norm_dx,
-                                                                  move_mesh_flag)
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
+                                                                        scheme, 
+                                                                        linear_solver, 
+                                                                        convergence_criterion, 
+                                                                        builder_and_solver, 
+                                                                        max_iters, 
+                                                                        compute_reactions, 
+                                                                        reform_step_dofs, 
+                                                                        move_mesh_flag)
         strategy.SetEchoLevel(0)
         
         strategy.Check()
@@ -114,7 +146,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         
     
     def _check_results(self,node,displacement_results, rotation_results):
-        #check that the results are exact on the node
+        ##check that the results are exact on the node
         disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
         self.assertAlmostEqual(disp[0], displacement_results[0], 10)
         self.assertAlmostEqual(disp[1], displacement_results[1], 10)
@@ -124,9 +156,21 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         self.assertAlmostEqual(rot[0], rotation_results[0], 10)
         self.assertAlmostEqual(rot[1], rotation_results[1], 10)
         self.assertAlmostEqual(rot[2], rotation_results[2], 10)
+        
+        
+    def _check_results_stress(self,element,stress_variable,reference_stress_results,processInfo):
+        ##check that the results are exact on the first gauss point
+        ##only upper triangle of stresses are checked due to symmetry
+        stress = element.CalculateOnIntegrationPoints(stress_variable, processInfo)[0]
+        self.assertAlmostEqual(stress[0,0], reference_stress_results[0], 10)
+        self.assertAlmostEqual(stress[0,1], reference_stress_results[1], 10)
+        self.assertAlmostEqual(stress[0,2], reference_stress_results[2], 10)
+        self.assertAlmostEqual(stress[1,1], reference_stress_results[3], 10)
+        self.assertAlmostEqual(stress[1,2], reference_stress_results[4], 10)
+        self.assertAlmostEqual(stress[2,2], reference_stress_results[5], 10)
 
 
-    def execute_shell_test(self, element_name, displacement_results, rotation_results, do_post_processing):
+    def execute_shell_test(self, element_name, displacement_results, rotation_results, shell_stress_top_surface_results, shell_stress_bottom_surface_results, tsai_wu_result,do_post_processing):
         mp = KratosMultiphysics.ModelPart("solid_part")
         mp.SetBufferSize(2)
 
@@ -147,8 +191,21 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         self._apply_dirichlet_BCs(bcs_dirichlet)
         self._apply_neumann_BCs(bcs_neumann)
         self._solve(mp)
-
+        
+        # Check displacements
         self._check_results(mp.Nodes[3],displacement_results, rotation_results)
+        
+        # Check stresses at each surface
+        self._check_results_stress(mp.Elements[1],
+                                   StructuralMechanicsApplication.SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE,
+                                   shell_stress_top_surface_results,mp.ProcessInfo)
+        self._check_results_stress(mp.Elements[1],
+                                   StructuralMechanicsApplication.SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE,
+                                   shell_stress_bottom_surface_results,mp.ProcessInfo)
+        
+        # Check results of doubles on 2nd element @ Gauss Point [0] only
+        self.assertAlmostEqual(mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.TSAI_WU_RESERVE_FACTOR, 
+                               mp.ProcessInfo)[0], tsai_wu_result, 9)
                     
         if do_post_processing:
             self.__post_process(mp)
@@ -156,45 +213,69 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
     def test_thin_shell_triangle(self):
         element_name = "ShellThinElementCorotational3D3N"
-        displacement_results = [0.0002324779832 , -0.0002233435997 , 0.0002567143455]
-        rotation_results     = [0.0003627433341 , -0.0001926662603 , -0.0004682681704]
+        displacement_results = [0.0028456068244 , -0.0021804536526 , 0.0014855251225]
+        rotation_results     = [0.0028315743508 , -0.000450044246 , -0.0055701845132]
+        shell_stress_top_surface_results    = [0.9088110489672 , -0.0570461205561 , 0.0 , 1.7678124328652 , 0.0 , 0.0]
+        shell_stress_bottom_surface_results = [-0.4936295259123 , 0.2914348407351 , 0.0 , -0.5256560385672 , 0.0 , 0.0]
+        tsai_wu_result = 39.6023549141987
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
-                                rotation_results, 
+                                rotation_results,
+                                shell_stress_top_surface_results,
+                                shell_stress_bottom_surface_results,
+                                tsai_wu_result,
                                 False) # Do PostProcessing for GiD?
 
 
     def test_thick_shell_triangle(self):
         element_name = "ShellThickElementCorotational3D3N"
-        displacement_results = [7.18997182e-05 , -0.0001572802804 , 0.0005263940488]
-        rotation_results     = [0.0003316612014 , -0.0002798472414 , 5.141506e-07]
+        displacement_results = [0.0004043490308 , -0.0016074440019 , 0.0092911008314]
+        rotation_results     = [0.0021176894774 , -0.0005954288823 , -0.0015930914838]
+        shell_stress_top_surface_results    = [3.4555559859345 , 3.6328430864296 , 0.2347447591457 , 0.1945591765769 , -1.5033148859134 , 0.0]
+        shell_stress_bottom_surface_results = [-0.5442976284974 , -0.1011836349433 , 0.2347447591457 , -2.8139010064313 , -1.5033148859134 , 0.0]
+        tsai_wu_result = 15.0065495746848
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
-                                rotation_results, 
+                                rotation_results,
+                                shell_stress_top_surface_results,
+                                shell_stress_bottom_surface_results,
+                                tsai_wu_result,
                                 False) # Do PostProcessing for GiD?
 
 
     def test_thin_shell_quadrilateral(self):
         element_name = "ShellThinElementCorotational3D4N"
-        displacement_results = [0.0021909310921 , -0.0021683746759 , 0.0007191338749]
-        rotation_results     = [0.0028191154606 , 0.0008171818407 , -0.0069146010725]
+        displacement_results = [0.0225804891311 , -0.0233155244988 , 0.0048050841112]
+        rotation_results     = [0.0248341724156 , 0.0105468617083 , -0.0691658930497]
+        shell_stress_top_surface_results    = [0.284184788186 , -12.2844786822622 , 0.0 , 4.3796427631839 , 0.0 , 0.0]
+        shell_stress_bottom_surface_results = [10.340621141106 , 5.6934270260323 , 0.0 , -2.973608875272 , 0.0 , 0.0]
+        tsai_wu_result = 3.828332205752
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
                                 rotation_results, 
+                                shell_stress_top_surface_results,
+                                shell_stress_bottom_surface_results,
+                                tsai_wu_result,
                                 False) # Do PostProcessing for GiD?
 
 
     def test_thick_shell_quadrilateral(self):
         element_name = "ShellThickElementCorotational3D4N"
-        displacement_results = [0.0003572969872 , -0.0006341259132 , 0.00127807995001]
-        rotation_results     = [0.0012082600485 , -0.0004098356773 , -0.0011673798349]
+        displacement_results = [0.0035689894826 , -0.0094851917758 , 0.0191734998621]
+        rotation_results     = [0.009933211939  , 0.0006068078079  , -0.0174332051568]
+        shell_stress_top_surface_results    = [-3.9178477532111 , -4.1074850572552 , -2.4426862077188 , 10.3723187292559 , 1.6354826554283 , 0.0]
+        shell_stress_bottom_surface_results = [5.2113212123242 , -0.2324161069908 , -2.4426862077188 , -11.6664322521041 , 1.6354826554283 , 0.0]
+        tsai_wu_result = 3.4966651118454
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
-                                rotation_results, 
+                                rotation_results,
+                                shell_stress_top_surface_results,
+                                shell_stress_bottom_surface_results,
+                                tsai_wu_result,
                                 False) # Do PostProcessing for GiD?
 
         
