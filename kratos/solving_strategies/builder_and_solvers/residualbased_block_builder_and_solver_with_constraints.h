@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_SOLVING_STRATEGIES_BUILDER_AND_SOLVERS_RESIDUALBASED_BLOCK_BUILDER_AND_SOLVER_WITH_MPC_H_
-#define KRATOS_SOLVING_STRATEGIES_BUILDER_AND_SOLVERS_RESIDUALBASED_BLOCK_BUILDER_AND_SOLVER_WITH_MPC_H_
+#ifndef KRATOS_SOLVING_STRATEGIES_BUILDER_AND_SOLVERS_RESIDUALBASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS_H_
+#define KRATOS_SOLVING_STRATEGIES_BUILDER_AND_SOLVERS_RESIDUALBASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS_H_
 
 /* System includes */
 
@@ -101,13 +101,13 @@ template <class TSparseSpace,
           class TDenseSpace,  //= DenseSpace<double>,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-class ResidualBasedBlockBuilderAndSolverWithMpc
+class ResidualBasedBlockBuilderAndSolverWithConstraints
     : public ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
 {
   public:
     /**@name Type Definitions */
     /*@{ */
-    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverWithMpc);
+    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverWithConstraints);
 
     typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -138,11 +138,9 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
     typedef Dof<double> *DofPointerType;
     typedef Dof<double> DofType;
 
-
-    typedef typename Kratos::Constraint<TDenseSpace>::VariableDataType VariableDataType;
     typedef Node<3> NodeType;
     typedef typename ModelPart::NodesContainerType NodesContainerType;
-    typedef typename Constraint<TDenseSpace>::Pointer ConstraintPointerType;
+    typedef typename Constraint<TSparseSpace, TDenseSpace>::Pointer ConstraintPointerType;
     typedef boost::shared_ptr<std::vector<ConstraintPointerType>> ConstraintSharedPointerVectorType;
 
     typedef ProcessInfo ProcessInfoType;
@@ -154,29 +152,25 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
 
     /** Constructor.
 	 */
-    ResidualBasedBlockBuilderAndSolverWithMpc(
+    ResidualBasedBlockBuilderAndSolverWithConstraints(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
-    {
-        std::cout << "###################################################" << std::endl;
-        std::cout << "#################%%%%%%%%%%%%%#####################" << std::endl;
-        std::cout << "#################%%%%%%%%%%%%%#####################" << std::endl;
-        std::cout << "###################################################" << std::endl;
-        std::cout << "###################################################" << std::endl;
-    }
-
-    /** Destructor.
-	 */
-    virtual ~ResidualBasedBlockBuilderAndSolverWithMpc()
     {
     }
 
     void SetUpSystem(
-        ModelPart &r_model_part) override
+    ModelPart& r_model_part
+    ) override
     {
         BaseType::SetUpSystem(r_model_part);
         ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
-        FormulateEquationIdRelationMap(r_model_part, CurrentProcessInfo);
+        Constraints_ExecuteBeforeBuilding(r_model_part, CurrentProcessInfo);
+    }
+
+    /** Destructor.
+	 */
+    virtual ~ResidualBasedBlockBuilderAndSolverWithConstraints()
+    {
     }
 
     void BuildAndSolve(
@@ -191,7 +185,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         Timer::Start("Build");
 
         ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
-        UpdateConstraintEquationsAfterIteration(r_model_part, CurrentProcessInfo);
 
         Constraints_ExecuteBeforeBuilding(r_model_part, CurrentProcessInfo);
 
@@ -214,7 +207,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
 
-        Constraints_ExecuteBeforeSolving(r_model_part, CurrentProcessInfo);
+        Constraints_ExecuteBeforeSolving(A, Dx, b, r_model_part, CurrentProcessInfo);
 
         this->SystemSolveWithPhysics(A, Dx, b, r_model_part);
 
@@ -231,8 +224,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
             std::cout << "RHS vector = " << b << std::endl;
         }
 
-        Constraints_ExecuteAfterSolving(r_model_part, CurrentProcessInfo);
-        ReconstructSlaveDofForIterationStep(r_model_part, A, Dx, b); // Reconstructing the slave dofs from master solutions
+        Constraints_ExecuteAfterSolving(A, Dx, b, r_model_part, CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -474,7 +466,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
      * This function changes/extends the element LHS and RHS to apply constraints
      */
 
-    void Element_ApplyConstraints(Element& rCurrentElement,
+    void Element_ApplyConstraints(Element &rCurrentElement,
                                   LocalSystemMatrixType &LHS_Contribution,
                                   LocalSystemVectorType &RHS_Contribution,
                                   Element::EquationIdVectorType &EquationId,
@@ -498,7 +490,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
     /*
      * This function changes/extends the condition LHS and RHS to apply constraints
      */
-    void Condition_ApplyConstraints(Condition& rCurrentElement,
+    void Condition_ApplyConstraints(Condition &rCurrentElement,
                                     LocalSystemMatrixType &LHS_Contribution,
                                     LocalSystemVectorType &RHS_Contribution,
                                     Element::EquationIdVectorType &EquationId,
@@ -518,83 +510,10 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
 
     } // End of the function
 
-    void ReconstructSlaveDofForIterationStep(
-        ModelPart &r_model_part,
-        TSystemMatrixType &A,
-        TSystemVectorType &Dx,
-        TSystemVectorType &b)
-    {
-        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
-        if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
-        {
-            ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-
-            for (auto &constraint : (*constraintVector))
-            {
-                if (constraint->IsActive())
-                {
-                    for (auto &slaveData : constraint->GetData())
-                    {
-                        unsigned int slaveNodeId = slaveData->dofId;
-                        unsigned int slaveDofKey = slaveData->dofKey;
-                        unsigned int slaveEquationId = slaveData->equationId;
-                        double constant = slaveData->constant;
-
-                        int index = 0;
-                        for (auto masterEquationId : slaveData->masterEquationIds)
-                        {
-                            double weight = slaveData->masterWeights[index];
-                            Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + TSparseSpace::GetValue(Dx, masterEquationId) * weight;
-                        }
-
-                        Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + slaveData->constantUpdate;
-                        slaveData->constantUpdate = 0.0;
-                    }
-                }
-            }
-        }
-    }
-
-    void FormulateEquationIdRelationMap(ModelPart &r_model_part, ProcessInfo &CurrentProcessInfo)
-    {
-
-        ProcessInfoType info = r_model_part.GetProcessInfo();
-
-        if (info.Has(CONSTRAINTS_CONTAINER))
-        {
-            ConstraintSharedPointerVectorType constraintVector = info.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto &constraint : (*constraintVector))
-            {
-                if (constraint->IsActive())
-                {
-                    constraint->FormulateEquationIdRelationMap(r_model_part.Nodes());
-                }
-            }
-        }
-    }
-
-    void UpdateConstraintEquationsAfterIteration(
-        ModelPart &r_model_part,
-        ProcessInfo &CurrentProcessInfo)
-    {
-
-        if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
-        {
-            ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto &constraint : (*constraintVector))
-            {
-                if (constraint->IsActive())
-                {
-                    constraint->UpdateConstraintEquationsAfterIteration(r_model_part.Nodes());
-                }
-            }
-        }
-    }
-
     /*
      * This function Formulates the constraint data in equation ID terms for formulate the sparsity pattern of the sparse matrix
      */
-    void Element_ModifyEquationIdsForConstraints(Element& rCurrentElement,
+    void Element_ModifyEquationIdsForConstraints(Element &rCurrentElement,
                                                  Element::EquationIdVectorType &EquationId,
                                                  ProcessInfo &CurrentProcessInfo)
     {
@@ -614,7 +533,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
     /*
      * This function Formulates the constraint data in equation ID terms for formulate the sparsity pattern of the sparse matrix
      */
-    void Condition_ModifyEquationIdsForConstraints(Condition& rCurrentCondition,
+    void Condition_ModifyEquationIdsForConstraints(Condition &rCurrentCondition,
                                                    Condition::EquationIdVectorType &EquationId,
                                                    ProcessInfo &CurrentProcessInfo)
     {
@@ -663,7 +582,11 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         }
     }
 
-    void Constraints_ExecuteBeforeSolving(ModelPart &model_part, ProcessInfo &CurrentProcessInfo)
+    void Constraints_ExecuteBeforeSolving(TSystemMatrixType &A,
+                                          TSystemVectorType &Dx,
+                                          TSystemVectorType &b,
+                                          ModelPart &r_model_part,
+                                          ProcessInfo &CurrentProcessInfo)
     {
 
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
@@ -673,13 +596,17 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
             {
                 if (constraint->IsActive())
                 {
-                    constraint->ExecuteBeforeSolving(model_part.Nodes());
+                    constraint->ExecuteBeforeSolving(A, Dx, b);
                 }
             }
         }
     }
 
-    void Constraints_ExecuteAfterSolving(ModelPart &model_part, ProcessInfo &CurrentProcessInfo)
+    void Constraints_ExecuteAfterSolving(TSystemMatrixType &A,
+                                         TSystemVectorType &Dx,
+                                         TSystemVectorType &b,
+                                         ModelPart &r_model_part,
+                                         ProcessInfo &CurrentProcessInfo)
     {
 
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
@@ -689,7 +616,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
             {
                 if (constraint->IsActive())
                 {
-                    constraint->ExecuteAfterSolving(model_part.Nodes());
+                    constraint->ExecuteAfterSolving(A, Dx, b);
                 }
             }
         }

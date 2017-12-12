@@ -479,8 +479,9 @@ namespace Kratos
 //     KRATOS_DEFINE_VARIABLE(double,TEMPERATURES_US)
 //     KRATOS_DEFINE_VARIABLE(double,FRONT_MEETING)
 
+typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-typedef Constraint<LocalSpaceType>::Pointer ConstraintPointerType;
+typedef Constraint<SparseSpaceType,LocalSpaceType>::Pointer ConstraintPointerType;
 typedef boost::shared_ptr<std::vector<ConstraintPointerType>>ConstraintSharedPointerVectorType;
 KRATOS_DEFINE_VARIABLE(ConstraintSharedPointerVectorType, CONSTRAINTS_CONTAINER)
 

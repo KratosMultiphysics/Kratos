@@ -32,14 +32,26 @@
 #include "includes/define.h"
 #include "includes/dof.h"
 #include "includes/node.h"
-#include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 
 namespace Kratos
 {
 
 // SlaveData class start
+/*
+*   This class stores the information regarding the constraint equation. Naming convenction is defined like this.
+*   (each object of this class will store one equation in the given form)
+*
+*   slaveDOF = w_1*masterDOF_1 + w_2*masterDOF_2 + ..... + w_n*masterDOF_n
+*   
+*   each slaveDOF and each of its masterDOF have the following attributes 
+*   a. dof ID
+*   b. dof KEY
+*   c. equation ID
+*
+*   one should be able to access the constraint equation both with (dofID , dofKEY) pair and/or equationID of the slave.
+*   This equation is imposed on the linear system of equations either element wise or on the global system.
+*
+*/
 class SlaveData
 {
   public:
@@ -160,9 +172,18 @@ class SlaveData
     std::vector<unsigned int> masterEquationIds;
 }; // End of SlaveData class
 
-/** \brief MpcData
-	* A class that implements the data structure needed for applying constraints.
-    */
+/** \brief ConstraintData
+ * 
+ *  Each object of this class stores a set of constraint equations
+ * 
+ *  These constraint equations are of the form :
+ *  
+ *  slaveDOF = w_1*masterDOF_1 + w_2*masterDOF_2 + ..... + w_n*masterDOF_n
+ * 
+ *  It contains a boost multi index which will allow to access the constraint equations stored either with (dofID , dofKEY) pair or equationID of the slaveDOF.
+ *  This class also provides interface to access the data of the constraint equations.
+ *  
+ */
 class ConstraintData
 {
 
@@ -171,17 +192,9 @@ class ConstraintData
     KRATOS_CLASS_POINTER_DEFINITION(ConstraintData);
 
     typedef Dof<double> DofType;
-    typedef VariableData VariableDataType;
-    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
     typedef unsigned int IndexType;
-    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
-    typedef std::unordered_map<unsigned int, double> MasterIdWeightMapType;
-    typedef std::pair<unsigned int, unsigned int> SlavePairType;
-    typedef std::tuple<unsigned int, unsigned int, double> key_tupple;
-    typedef Kratos::Variable<double> VariableType;
     typedef Node<3> NodeType;
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
-    typedef std::pair<unsigned int, unsigned int> MasterIdKeyPairType;
 
     typedef SlaveData::Pointer SlaveDataPointerType;
     struct SlaveDofId_Key
@@ -254,10 +267,10 @@ class ConstraintData
     {
         auto &index = mDataContainer.get<SlaveDofId_Key>();
         auto pos = index.find(boost::make_tuple(SlaveDof.Id(), SlaveDof.GetVariable().Key()));
-		SlaveDataPointerType dummy11 = SlaveDataPointerType(new SlaveData(*(*pos)));
+        SlaveDataPointerType dummy11 = SlaveDataPointerType(new SlaveData(*(*pos)));
         dummy11->equationId = iEquationId;
-        index.replace(pos,dummy11); 
-    }    
+        index.replace(pos, dummy11);
+    }
 
     /**
 		Get the Total number of MasterDOFs for a given slave dof
@@ -276,9 +289,9 @@ class ConstraintData
         auto &index = mDataContainer.get<SlaveEquationId>();
         auto pos = index.find(slaveEqutionId);
         int numMasters = -1;
-        if(pos != index.end())
+        if (pos != index.end())
             numMasters = (*pos)->NumberOfMasters();
-        else 
+        else
             numMasters = 0;
         return numMasters;
     }

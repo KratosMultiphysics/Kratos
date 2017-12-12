@@ -25,35 +25,15 @@
 
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
-#include "custom_utilities/eigenvector_to_solution_step_variable_transfer_utility.hpp"
 
 //Processes
-//#include "custom_processes/apply_multi_point_constraints_process.h"
+#include "custom_processes/postprocess_eigenvalues_process.h"
 
 
 namespace Kratos
 {
 namespace Python
 {
-
-inline
-void TransferEigenvector1(
-        EigenvectorToSolutionStepVariableTransferUtility& rThisUtil,
-        ModelPart& rModelPart,
-        int iEigenMode)
-{
-    rThisUtil.Transfer(rModelPart,iEigenMode);
-}
-
-inline
-void TransferEigenvector2(
-        EigenvectorToSolutionStepVariableTransferUtility& rThisUtil,
-        ModelPart& rModelPart,
-        int iEigenMode,
-        int step)
-{
-    rThisUtil.Transfer(rModelPart,iEigenMode,step);
-}
 
 void  AddCustomUtilitiesToPython()
 {
@@ -66,12 +46,6 @@ void  AddCustomUtilitiesToPython()
     class_<SprismNeighbours>("SprismNeighbours", init<ModelPart&>())
     .def("Execute",&SprismNeighbours::Execute)
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
-    ;
-
-    class_<EigenvectorToSolutionStepVariableTransferUtility>(
-                "EigenvectorToSolutionStepVariableTransferUtility")
-    .def("Transfer",TransferEigenvector1)
-    .def("Transfer",TransferEigenvector2)
     ;
 
 }

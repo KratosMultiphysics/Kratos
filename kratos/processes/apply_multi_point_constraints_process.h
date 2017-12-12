@@ -39,9 +39,10 @@ class ApplyMultipointConstraintsProcess : public Process
     /// Pointer definition of ApplyMultipointConstraintsProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyMultipointConstraintsProcess);
 
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType; // TODO: pass them also as templates
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef Constraint<LocalSpaceType>::Pointer ConstraintPointerType;
-    typedef MultipointConstraint<LocalSpaceType>::Pointer MpcPointerType;
+    typedef Constraint<SparseSpaceType, LocalSpaceType>::Pointer ConstraintPointerType;
+    typedef MultipointConstraint<SparseSpaceType, LocalSpaceType>::Pointer MpcPointerType;
     typedef Dof<double> *DofPointerType;
     typedef Dof<double> DofType;
     typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
@@ -75,7 +76,7 @@ class ApplyMultipointConstraintsProcess : public Process
         if (info->GetValue(CONSTRAINTS_CONTAINER) == nullptr)
             info->SetValue(CONSTRAINTS_CONTAINER, ConstraintSharedPointerVectorType(new std::vector<ConstraintPointerType>()));
 
-        pMpc = MpcPointerType(new MultipointConstraint<LocalSpaceType>());
+        pMpc = MpcPointerType(new MultipointConstraint<SparseSpaceType,LocalSpaceType>());
         std::string name = m_parameters["constraint_set_name"].GetString();
         pMpc->SetName(name);
         pMpc->SetActive(true);
@@ -105,7 +106,7 @@ class ApplyMultipointConstraintsProcess : public Process
         if (info->GetValue(CONSTRAINTS_CONTAINER) == nullptr)
             info->SetValue(CONSTRAINTS_CONTAINER, ConstraintSharedPointerVectorType(new std::vector<ConstraintPointerType>()));
 
-        pMpc = MpcPointerType(new MultipointConstraint<LocalSpaceType>());
+        pMpc = MpcPointerType(new MultipointConstraint<SparseSpaceType, LocalSpaceType>());
         pMpc->SetName(name);
         pMpc->SetActive(true);
 

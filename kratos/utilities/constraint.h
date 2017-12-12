@@ -44,7 +44,9 @@ class ProcessInfo;
 class Element;
 class Condition;
 
-template <class TDenseSpace>
+template <class TSparseSpace,
+          class TDenseSpace //= DenseSpace<double>
+          >
 class Constraint
 {
 
@@ -53,14 +55,15 @@ class Constraint
     KRATOS_CLASS_POINTER_DEFINITION(Constraint);
 
     typedef Dof<double> DofType;
-    typedef std::unordered_map<unsigned int, double> MasterIdWeightMapType;
     typedef Node<3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     typedef std::vector<std::size_t> EquationIdVectorType;
+
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
-    typedef typename ConstraintData::VariableDataType VariableDataType;
+    typedef typename TSparseSpace::DataType TDataType;
+    typedef typename TSparseSpace::MatrixType TSystemMatrixType;
+    typedef typename TSparseSpace::VectorType TSystemVectorType;
 
     ///@name Life Cycle
     ///@{
@@ -68,7 +71,7 @@ class Constraint
     /**
 	* Creates a Constraint object
 	*/
-    Constraint(std::string iName="default", bool iIsActive=true): mName(iName), mActive(iIsActive)
+    Constraint(std::string iName = "default", bool iIsActive = true) : mActive(iIsActive), mName(iName)
     {
     }
     /// Destructor.
@@ -114,47 +117,43 @@ class Constraint
     {
     }
 
-    virtual void ExecuteBeforeSolving(NodesContainerType &Nodes)
+    virtual void ExecuteBeforeSolving(TSystemMatrixType &A,
+                                      TSystemVectorType &Dx,
+                                      TSystemVectorType &b)
     {
     }
 
-    virtual void ExecuteAfterSolving(NodesContainerType &Nodes)
+    virtual void ExecuteAfterSolving(TSystemMatrixType &A,
+                                     TSystemVectorType &Dx,
+                                     TSystemVectorType &b)
     {
     }
 
-    virtual void FormulateEquationIdRelationMap(NodesContainerType &Nodes)
+    virtual void Element_ModifyEquationIdsForConstraints(Element &rCurrentElement,
+                                                         EquationIdVectorType &EquationId,
+                                                         ProcessInfo &CurrentProcessInfo)
     {
     }
 
-    virtual void UpdateConstraintEquationsAfterIteration(NodesContainerType &Nodes)
+    virtual void Condition_ModifyEquationIdsForConstraints(Condition &rCurrentCondition,
+                                                           EquationIdVectorType &EquationId,
+                                                           ProcessInfo &CurrentProcessInfo)
     {
     }
 
-    virtual void Element_ModifyEquationIdsForConstraints(Element& rCurrentElement,
-                                                 EquationIdVectorType &EquationId,
-                                                 ProcessInfo &CurrentProcessInfo)
+    virtual void Element_ApplyConstraints(Element &rCurrentElement,
+                                          LocalSystemMatrixType &LHS_Contribution,
+                                          LocalSystemVectorType &RHS_Contribution,
+                                          EquationIdVectorType &EquationId,
+                                          ProcessInfo &CurrentProcessInfo)
     {
     }
 
-    virtual void Condition_ModifyEquationIdsForConstraints(Condition& rCurrentCondition,
-                                                   EquationIdVectorType &EquationId,
-                                                   ProcessInfo &CurrentProcessInfo)
-    {
-    }
-
-    virtual void Element_ApplyConstraints(Element& rCurrentElement,
-                                                    LocalSystemMatrixType &LHS_Contribution,
-                                                    LocalSystemVectorType &RHS_Contribution,
-                                                    EquationIdVectorType &EquationId,
-                                                    ProcessInfo &CurrentProcessInfo)
-    {
-    }
-
-    virtual void Condition_ApplyConstraints(Condition& rCurrentCondition,
-                                              LocalSystemMatrixType &LHS_Contribution,
-                                              LocalSystemVectorType &RHS_Contribution,
-                                              EquationIdVectorType &EquationId,
-                                              ProcessInfo &CurrentProcessInfo)
+    virtual void Condition_ApplyConstraints(Condition &rCurrentCondition,
+                                            LocalSystemMatrixType &LHS_Contribution,
+                                            LocalSystemVectorType &RHS_Contribution,
+                                            EquationIdVectorType &EquationId,
+                                            ProcessInfo &CurrentProcessInfo)
     {
     }
 
