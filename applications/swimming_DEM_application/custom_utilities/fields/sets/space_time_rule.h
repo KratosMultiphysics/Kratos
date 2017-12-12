@@ -243,7 +243,7 @@ bool CheckIfRuleIsMet(const double time, const double coor_x, const double coor_
     return !(high || low);
 }
 
-virtual std::string Info() const
+virtual std::string Info() const override
 {
     std::ostringstream os;
     os << "Bounding box limits : "  << std::endl
@@ -325,7 +325,7 @@ MoreThanRule(RealField::Pointer field_high, RealField::Pointer field_low)
 
 ~MoreThanRule(){}
 
-bool CheckIfRuleIsMet(const double time, const double coor_x, const double coor_y, const double coor_z)
+bool CheckIfRuleIsMet(const double time, const double coor_x, const double coor_y, const double coor_z) override
 {
     array_1d<double, 3> coor;
     coor[0] = coor_x;
@@ -385,7 +385,7 @@ EqualToRule(RealField::Pointer field_1, RealField::Pointer field_2, const double
 
 ~EqualToRule(){}
 
-bool CheckIfRuleIsMet(const double time, const double coor_x, const double coor_y, const double coor_z)
+bool CheckIfRuleIsMet(const double time, const double coor_x, const double coor_y, const double coor_z) override
 {
     array_1d<double, 3> coor;
     coor[0] = coor_x;

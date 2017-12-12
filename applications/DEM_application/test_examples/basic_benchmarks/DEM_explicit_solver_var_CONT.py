@@ -36,7 +36,7 @@ Multifile                        = "multiple_files"
 
 # Solution Strategy
 
-IntegrationScheme                = "Forward_Euler" #"Verlet_Velocity"   #"Symplectic_Euler" Forward_Euler
+IntegrationScheme                = "Forward_Euler" #"Velocity_Verlet"   #"Symplectic_Euler" Forward_Euler
 AutomaticTimestep                = "OFF"
 DeltaTimeSafetyFactor            = 1.0
 MaxTimeStep                      = 1e-5

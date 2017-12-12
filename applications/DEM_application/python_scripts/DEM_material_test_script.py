@@ -5,13 +5,6 @@ import datetime
 import shutil
 import weakref
 
-#import string
-#import matplotlib
-#import matplotlib.pyplot as plt
-#from numpy import *
-#from pylab import *
-#import plot_settings
-
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 

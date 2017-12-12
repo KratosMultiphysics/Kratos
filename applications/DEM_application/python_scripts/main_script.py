@@ -25,6 +25,12 @@ class Solution(object):
     def LoadParametersFile(self):
         parameters_file = open("ProjectParametersDEM.json",'r')
         self.DEM_parameters = Parameters(parameters_file.read())
+        default_input_parameters = self.GetDefaultInputParameters()
+        self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters);
+        
+    def GetDefaultInputParameters(self):
+        import dem_default_input_parameters
+        return dem_default_input_parameters.GetDefaultInputParameters()
 
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
@@ -39,7 +45,9 @@ class Solution(object):
         self.SetAnalyticParticleWatcher()
         self.PreUtilities = PreUtilities()
 
-
+        # Set the print function TO_DO: do this better...
+        self.KRATOSprint   = self.procedures.KRATOSprint
+        
         # Creating necessary directories:
         self.main_path = os.getcwd()
         problem_name = self.GetProblemTypeFilename()
@@ -49,15 +57,13 @@ class Solution(object):
         self.report        = DEM_procedures.Report()
         self.parallelutils = DEM_procedures.ParallelUtils()
         self.materialTest  = DEM_procedures.MaterialTest()
-        self.scheme = self.SetScheme()
+        self.translational_scheme = self.SetTranslationalScheme()
+        self.rotational_scheme    = self.SetRotationalScheme()
 
         # Define control variables
         self.p_frequency = 100   # activate every 100 steps
         self.step_count = 0
         self.p_count = self.p_frequency
-
-        # Set the print function TO_DO: do this better...
-        self.KRATOSprint   = self.procedures.KRATOSprint
 
         # Prepare modelparts
         self.CreateModelParts()        
@@ -124,27 +130,45 @@ class Solution(object):
         else:
             return ParticleCreatorDestructor(self.watcher)
 
-    def SelectScheme(self):
-        if (self.DEM_parameters["IntegrationScheme"].GetString() == 'Forward_Euler'):
+    def SelectTranslationalScheme(self):
+        if   (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler'):
             return ForwardEulerScheme()
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Symplectic_Euler'):
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
             return SymplecticEulerScheme()
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Taylor_Scheme'):
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
             return TaylorScheme()
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-            return NewmarkBetaScheme(0.5, 0.25)
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Verlet_Velocity'):
-            return VerletVelocityScheme()
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
+            return NewmarkBetaScheme
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+            return VelocityVerletScheme()
+        else:
+            return None
+    
+    def SelectRotationalScheme(self):
+        if (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Direct_Integration'):
+            return self.SelectTranslationalScheme()
+        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Runge_Kutta'):
+            return RungeKuttaScheme()
+        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration'):
+            return QuaternionIntegrationScheme()
         else:
             return None
 
-    def SetScheme(self):
-        scheme = self.SelectScheme()
+    def SetTranslationalScheme(self):
+        translational_scheme = self.SelectTranslationalScheme()
 
-        if scheme == None:
-            self.KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
+        if translational_scheme == None:
+            self.KRATOSprint('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
-        return scheme
+        return translational_scheme
+    
+    def SetRotationalScheme(self):
+        rotational_scheme = self.SelectRotationalScheme()
+
+        if rotational_scheme == None:
+            self.KRATOSprint('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            sys.exit("\nExecution was aborted.\n")
+        return rotational_scheme
 
     def SetSolverStrategy(self):
 
@@ -171,8 +195,7 @@ class Solution(object):
     def SetSolver(self):
         return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
                                                      self.creator_destructor,
-                                                     self.dem_fem_search, 
-                                                     self.scheme,
+                                                     self.dem_fem_search,
                                                      self.DEM_parameters,
                                                      self.procedures)
 
@@ -186,7 +209,7 @@ class Solution(object):
         self.CleanUpOperations()
 
     def AddVariables(self):
-        self.procedures.AddAllVariablesInAllModelParts(self.solver, self.scheme, self.all_model_parts, self.DEM_parameters)
+        self.procedures.AddAllVariablesInAllModelParts(self.solver, self.translational_scheme, self.rotational_scheme, self.all_model_parts, self.DEM_parameters)
 
     def FillAnalyticSubModelParts(self):
         if not self.spheres_model_part.HasSubModelPart("AnalyticParticlesPart"):
@@ -374,7 +397,7 @@ class Solution(object):
 
             #### PRINTING GRAPHS ####
             os.chdir(self.graphs_path)
-            self.post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", self.time)
+            self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time)
 
             self.materialTest.MeasureForcesAndPressure()
             self.materialTest.PrintGraph(self.time)
@@ -471,7 +494,6 @@ class Solution(object):
 
         os.chdir(self.post_path)
         self.demio.InitializeMesh(self.all_model_parts)
-        os.chdir(self.main_path)
 
     def PrintResultsForGid(self, time):
         if self.solver.poisson_ratio_option:
@@ -496,7 +518,7 @@ class Solution(object):
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()
         self.demio.CloseMultifiles()
-
-
+    
+    
 if __name__ == "__main__":
     Solution().Run()
