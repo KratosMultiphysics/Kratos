@@ -735,8 +735,8 @@ void FluidElement<TElementData>::GetCurrentValuesVector(
 
     for (unsigned int i = 0; i < NumNodes; ++i) {
         for (unsigned int d = 0; d < Dim; ++d)  // Velocity Dofs
-            rValues[++local_index] = r_velocities(i, d);
-        rValues[++local_index] = r_pressures[i];  // Pressure Dof
+            rValues[local_index++] = r_velocities(i, d);
+        rValues[local_index++] = r_pressures[i];  // Pressure Dof
     }
 }
 
