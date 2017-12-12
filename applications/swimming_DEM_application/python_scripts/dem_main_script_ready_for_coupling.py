@@ -14,6 +14,18 @@ class Solution(BaseAlgorithm):
     def __init__(self, pp):
         self.pp = pp
         super(Solution, self).__init__()
+        
+    def GetDefaultInputParameters(self):
+        import dem_default_input_parameters
+        dem_defaults = dem_default_input_parameters.GetDefaultInputParameters()
+    
+        import swimming_dem_default_input_parameters
+        only_swimming_defaults = swimming_dem_default_input_parameters.GetDefaultInputParameters()
+        
+        for key in only_swimming_defaults.keys():
+            dem_defaults.AddValue(key,only_swimming_defaults[key])
+            
+        return dem_defaults
 
     def SetSolverStrategy(self):
         import swimming_sphere_strategy as SolverStrategy
