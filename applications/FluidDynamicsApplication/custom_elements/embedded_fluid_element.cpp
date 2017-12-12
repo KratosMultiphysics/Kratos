@@ -306,10 +306,11 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
         avg_visc += rData.DynamicViscosity[i];
         avg_vel += row(rData.Velocity, i);
     }
-
-    avg_rho /= NumNodes;
-    avg_visc /= NumNodes;
-    avg_vel /= NumNodes;
+    
+    constexpr double weight = 1./double(NumNodes);
+    avg_rho *= weight;
+    avg_visc *= weight;
+    avg_vel *= weight;
 
     const double v_norm = norm_2(avg_vel);
 
