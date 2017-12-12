@@ -1749,11 +1749,12 @@ namespace Kratos
 		//!!!!!!!!!! if crossproduct with array_1d type switch input order !!!!!!!
 		//If only direction of v1 is given -> Default case
 		const double numerical_limit = std::numeric_limits<double>::epsilon();
-		array_1d<double, msDimension> GlobalZ = ZeroVector(msDimension);
+                typedef array_1d<double, msDimension> arraydim;
+		arraydim GlobalZ = ZeroVector(msDimension);
 		GlobalZ[2] = 1.0;
 
-		array_1d<double, msDimension> v2 = ZeroVector(msDimension);
-		array_1d<double, msDimension> v3 = ZeroVector(msDimension);
+		arraydim v2 = ZeroVector(msDimension);
+		arraydim v3 = ZeroVector(msDimension);
 
 		double VectorNorm;
 		VectorNorm = MathUtils<double>::Norm(v1);
@@ -1770,14 +1771,8 @@ namespace Kratos
 		}
 
 		if (fabs(v1[2]) != 1.00) {
-
-			v2 = MathUtils<double>::CrossProduct(v1, GlobalZ);
-			VectorNorm = MathUtils<double>::Norm(v2);
-			if (VectorNorm > numerical_limit) v2 /= VectorNorm;
-
-			v3 = MathUtils<double>::CrossProduct(v2, v1);
-			VectorNorm = MathUtils<double>::Norm(v3);
-			if (VectorNorm > numerical_limit) v3 /= VectorNorm;
+                    MathUtils<double>::UnitCrossProduct(v2, GlobalZ, v1);
+                    MathUtils<double>::UnitCrossProduct(v3, v1, v2);
 		}
 
 		//manual rotation around the beam axis
@@ -1813,7 +1808,8 @@ namespace Kratos
 		KRATOS_TRY
 		//If the user defines an aditional direction v2
 		const double numerical_limit = std::numeric_limits<double>::epsilon();
-		array_1d<double, msDimension> v3 = ZeroVector(msDimension);
+                typedef array_1d<double, msDimension> arraydim;
+		arraydim v3 = ZeroVector(msDimension);
 
 		double VectorNorm;
 		VectorNorm = MathUtils<double>::Norm(v1);
@@ -1822,10 +1818,7 @@ namespace Kratos
 		VectorNorm = MathUtils<double>::Norm(v2);
 		if (VectorNorm > numerical_limit) v2 /= VectorNorm;
 
-		v3 = MathUtils<double>::CrossProduct(v2, v1);
-		VectorNorm = MathUtils<double>::Norm(v3);
-		if (VectorNorm > numerical_limit) v3 /= VectorNorm;
-
+                MathUtils<double>::UnitCrossProduct(v3, v1, v2);
 
 		Matrix RotationMatrix = ZeroMatrix(msDimension);
 		for (int i = 0; i < msDimension; ++i) {

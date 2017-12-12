@@ -90,9 +90,9 @@ public:
     
     /**
      * This function calculates the number of elements between first and last.
-     * @param rFirstData: First element
-     * @param rSecondData: Second element
-     * @return Distance: Number of elements
+     * @param rFirstData First element
+     * @param rSecondData Second element
+     * @return Distance Number of elements
      */
     
     static TDataType Distance(
@@ -105,9 +105,9 @@ public:
 
     /**
      * In geometry, Heron's formula (sometimes called Hero's formula), named after Hero of Alexandria, gives the area of a triangle by requiring no arbitrary choice of side as base or vertex as origin, contrary to other formulas for the area of a triangle, such as half the base times the height or half the norm of a cross product of two sides.
-     * @param a: First length
-     * @param b: Second length
-     * @param c: Third length
+     * @param a First length
+     * @param b Second length
+     * @param c Third length
      * @return Heron solution: Heron's formula states that the area of a triangle whose sides have lengths a, b, and c
      */
     
@@ -139,7 +139,7 @@ public:
 
     /**
      * It gives you the absolute value of a given value
-     * @param rData: The value to compute the absolute value
+     * @param rData The value to compute the absolute value
      * @return The absolute value of rData
      */
     
@@ -150,8 +150,8 @@ public:
 
     /**
      * It gives you the minimum value between two values
-     * @param rValue1: The first value
-     * @param rValue2: The second value
+     * @param rValue1 The first value
+     * @param rValue2 The second value
      * @return The minimum value
      */
         
@@ -165,8 +165,8 @@ public:
 
     /**
      * It gives you the maximum value between two values
-     * @param rValue1: The first value
-     * @param rValue2: The second value
+     * @param rValue1 The first value
+     * @param rValue2 The second value
      * @return The maximum value
      */
         
@@ -180,7 +180,7 @@ public:
 
     /**
      * Calculates the determinant of a 2x2, 3x3 and 4x4 matrix (using bounded matrix for performance) 
-     * @param A: The matrix to calculate
+     * @param InputMatrix The matrix to calculate
      * @return DetA: The determinant of the matrix
      */
 
@@ -261,18 +261,18 @@ public:
     
     /**
      * Calculates the inverse of a 2x2, 3x3 and 4x4 matrices (using bounded matrix for performance) 
-     * @param InputMatrix: The matrix to invert
+     * @param InputMatrix The matrix to invert
      * @return InvertMatrix: The inverted matrix
      */
 
     template<unsigned int TDim>
-    static inline boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim> InvertMatrix(
-            const boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim>& InputMatrix,
+    static inline bounded_matrix<TDataType, TDim, TDim> InvertMatrix(
+            const bounded_matrix<TDataType, TDim, TDim>& InputMatrix,
             TDataType& InputMatrixDet,
             const TDataType Tolerance = std::numeric_limits<double>::epsilon()
             )
     {
-        boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim> InvertedMatrix;
+        bounded_matrix<TDataType, TDim, TDim> InvertedMatrix;
         
         /* Compute Determinant of the matrix */
         InputMatrixDet = DetMat(InputMatrix);
@@ -352,9 +352,9 @@ public:
     
     /**
      * It inverts non square matrices (https://en.wikipedia.org/wiki/Inverse_element#Matrices)
-     * @param InputMatrix: Is the input matrix (unchanged at output)
-     * @return InvertedMatrix: Is the inverse of the input matrix
-     * @return InputMatrixDet: Is the determinant of the input matrix
+     * @param InputMatrix Is the input matrix (unchanged at output)
+     * @param InvertedMatrix Is the inverse of the input matrix
+     * @param InputMatrixDet Is the determinant of the input matrix
      */
 
     static void GeneralizedInvertMatrix(
@@ -379,7 +379,7 @@ public:
             const Matrix aux = prod(InputMatrix, trans(InputMatrix));
             Matrix auxInv;
             InvertMatrix(aux, auxInv, InputMatrixDet);
-	    InputMatrixDet = std::sqrt(InputMatrixDet);
+            InputMatrixDet = std::sqrt(InputMatrixDet);
             noalias(InvertedMatrix) = prod(trans(InputMatrix), auxInv);
         }
         else // Left inverse
@@ -391,16 +391,16 @@ public:
             const Matrix aux = prod(trans(InputMatrix), InputMatrix);
             Matrix auxInv;
             InvertMatrix(aux, auxInv, InputMatrixDet);
-	    InputMatrixDet = std::sqrt(InputMatrixDet);
+            InputMatrixDet = std::sqrt(InputMatrixDet);
             noalias(InvertedMatrix) = prod(auxInv, trans(InputMatrix));
         }
     }
     
     /**
      * It inverts matrices of order 2, 3 and 4
-     * @param InputMatrix: Is the input matrix (unchanged at output)
-     * @return InvertedMatrix: Is the inverse of the input matrix
-     * @return InputMatrixDet: Is the determinant of the input matrix
+     * @param InputMatrix Is the input matrix (unchanged at output)
+     * @param InvertedMatrix Is the inverse of the input matrix
+     * @param InputMatrixDet Is the determinant of the input matrix
      */
 
     static void InvertMatrix(
@@ -459,18 +459,15 @@ public:
                 InputMatrixDet *= std::pow(-1.0, ki) * A(i,i);
             }
             
-            if (singular == 1)
-            {
-                KRATOS_ERROR << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
-            }
+            KRATOS_ERROR_IF(singular == 1) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
         }
     }
 
     /**
      * It inverts matrices of order 2 //VERIFIED!!!
-     * @param InputMatrix: Is the input matrix (unchanged at output)
-     * @return InvertedMatrix: Is the inverse of the input matrix
-     * @return InputMatrixDet: Is the determinant of the input matrix
+     * @param InputMatrix Is the input matrix (unchanged at output)
+     * @param InvertedMatrix Is the inverse of the input matrix
+     * @param InputMatrixDet Is the determinant of the input matrix
      */
     
     static void InvertMatrix2(
@@ -500,9 +497,9 @@ public:
     
     /**
      * It inverts matrices of order 3 //VERIFIED!!!
-     * @param InputMatrix: Is the input matrix (unchanged at output)
-     * @return InvertedMatrix: Is the inverse of the input matrix
-     * @return InputMatrixDet: Is the determinant of the input matrix
+     * @param InputMatrix Is the input matrix (unchanged at output)
+     * @param InvertedMatrix Is the inverse of the input matrix
+     * @param InputMatrixDet Is the determinant of the input matrix
      */
     
     static void InvertMatrix3(
@@ -545,9 +542,9 @@ public:
     
     /**
      * It inverts matrices of order 4
-     * @param InputMatrix: Is the input matrix (unchanged at output)
-     * @return InvertedMatrix: Is the inverse of the input matrix
-     * @return InputMatrixDet: Is the determinant of the input matrix
+     * @param InputMatrix Is the input matrix (unchanged at output)
+     * @param InvertedMatrix Is the inverse of the input matrix
+     * @param InputMatrixDet Is the determinant of the input matrix
      */
     
     static void InvertMatrix4(
@@ -599,7 +596,7 @@ public:
 
     /**
      * Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
-     * @param A: Is the input matrix
+     * @param A Is the input matrix
      * @return The determinant of the 2x2 matrix
      */
         
@@ -646,7 +643,7 @@ public:
     
     /**
      * Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
-     * @param A: Is the input matrix
+     * @param A Is the input matrix
      * @return The determinant of the 2x2 matrix
      */
         
@@ -674,7 +671,7 @@ public:
     
     /**
      * Calculates the determinant of a matrix of dimension 2x2 (no check performed on matrix size)
-     * @param A: Is the input matrix
+     * @param A Is the input matrix
      * @return The determinant of the 2x2 matrix
      */
     
@@ -685,7 +682,7 @@ public:
 
     /**
      * Calculates the determinant of a matrix of dimension 3*3 (no check performed on matrix size)
-     * @param A: Is the input matrix
+     * @param A Is the input matrix
      * @return The determinant of the 3x3 matrix
      */
     
@@ -701,7 +698,7 @@ public:
     
     /**
      * Calculates the determinant of a matrix of dimension 4*4 (no check performed on matrix size)
-     * @param A: Is the input matrix
+     * @param A Is the input matrix
      * @return The determinant of the 4x4 matrix
      */
     
@@ -715,22 +712,22 @@ public:
 
     /**
      * Calculates the determinant of a matrix of dimension 2x2 (in this case for a bounded matrix)
-     * @param A: Is the input matrix
+     * @param A Is the input matrix
      * @return The determinant of the matrix
      */
     
-    static inline TDataType Det(const boost::numeric::ublas::bounded_matrix<double,2,2>& A)
+    static inline TDataType Det(const bounded_matrix<double,2,2>& A)
     {
         return (A(0,0)*A(1,1)-A(0,1)*A(1,0));
     }
     
     /**
      * Calculates the determinant of a matrix of dimension 3x3 (in this case for a bounded matrix)
-     * @param A: Is the input matrix
+     * @param A Is the input matrix
      * @return The determinant of the matrix
      */
     
-    static inline TDataType Det(const boost::numeric::ublas::bounded_matrix<double,3,3>& A)
+    static inline TDataType Det(const bounded_matrix<double,3,3>& A)
     {
         // Calculating the algebraic complements to the first line
         const double a = A(1,1)*A(2,2) - A(1,2)*A(2,1);
@@ -743,8 +740,8 @@ public:
     /**
      * Performs the dot product of two vectors of dimension 3
      * (no check performed on vector sizes)
-     * @param a: First input vector
-     * @param b: Second input vector
+     * @param a First input vector
+     * @param b Second input vector
      * @return The resulting norm
      */
     
@@ -759,8 +756,8 @@ public:
     /**
      * Performs the dot product of two vectors of arbitrary size
      * (no check performed on vector sizes)
-     * @param FirstVector: First input vector
-     * @param SecondVector: Second input vector
+     * @param FirstVector First input vector
+     * @param SecondVector Second input vector
      * @return The resulting norm
      */
     
@@ -783,7 +780,7 @@ public:
     /**
      * Calculates the norm of vector "a" which is assumed to be of size 3
      * (no check is performed on the vector's size)
-     * @param a: Input vector
+     * @param a Input vector
      * @return The resulting norm
      */
     
@@ -803,7 +800,7 @@ public:
 
     /**
      * Calculates the norm of vector "a"
-     * @param a: Input vector
+     * @param a Input vector
      * @return The resulting norm
      */
     
@@ -822,8 +819,8 @@ public:
     /**
      * Performs the vector product of the two input vectors a,b
      * a,b are assumed to be of size 3 (no check is performed on vector sizes)
-     * @param a: First input vector
-     * @param b: Second input vector
+     * @param a First input vector
+     * @param b Second input vector
      * @return The resulting vector
      */
     
@@ -874,39 +871,69 @@ public:
         cross[1] =  Tuple[2]*vec[0] - Tuple[0]*vec[2];
         cross[2] =  Tuple[0]*vec[1] - Tuple[1]*vec[0];
  
-	return cross;
+        return cross;
+    }
+
+    /**
+     * This auxiliar struct helps to checl if the values have the same adress
+     * If the direction is the same we have aliasing
+     */
+    
+    /**
+    * Checks there is aliasing 
+    * @param value1 The first value 
+    * @param value2 The second value 
+    */
+    template< class T1, class T2>
+    static inline typename std::enable_if<std::is_same<T1, T2>::value, bool>::type CheckIsAlias(T1& value1, T2& value2)
+    {
+        return value1 == value2;
+    }
+
+    /**
+    * Checks there is aliasing 
+    * @param value1 The first value 
+    * @param value2 The second value 
+    */
+    template< class T1, class T2>
+    static inline typename std::enable_if<!std::is_same<T1, T2>::value, bool>::type CheckIsAlias(T1& value1, T2& value2)
+    {
+        return false;
     }
     
     /**
-     * Identical but it assumes that the output vector is given already the correct size
-     * @param a: First input vector
-     * @param b: Second input vector
-     * @return c: The resulting vector
+     * Performs the cross product of the two input vectors a,b
+     * a,b are assumed to be of size 3 (check is only performed on vector sizes in debug mode)
+     * @param a First input vector
+     * @param b Second input vector
+     * @param c The resulting vector
      */
     
-    static inline void CrossProduct(
-        array_1d<double, 3>& c, 
-        const array_1d<double, 3>& a, 
-        const array_1d<double, 3>& b
-        )
-    {
-        c[0] = a[1]*b[2] - a[2]*b[1];
-        c[1] = a[2]*b[0] - a[0]*b[2];
-        c[2] = a[0]*b[1] - a[1]*b[0];
-    }
-    
-    //general version    
-    template< class T1, class T2, class T3 >
+    template< class T1, class T2 , class T3>
     static inline void CrossProduct(T1& c, const T2& a, const T3& b ){
+        if (c.size() != 3) c.resize(3);
+#ifdef KRATOS_DEBUG
+        KRATOS_ERROR_IF(a.size() != 3 || b.size() != 3 || c.size() != 3) << "The size of the vectors is different of 3: " << a << ", " << b << " and " << c << std::endl;
+        KRATOS_ERROR_IF(CheckIsAlias(c, a)) << "Aliasing between the output parameter and the first input parameter" << std::endl;
+        KRATOS_ERROR_IF(CheckIsAlias(c, b))  << "Aliasing between the output parameter and the second input parameter"  << std::endl;
+#endif
         c[0] = a[1]*b[2] - a[2]*b[1];
         c[1] = a[2]*b[0] - a[0]*b[2];
         c[2] = a[0]*b[1] - a[1]*b[0];
     }
 
-    template< class T1, class T2, class T3 >
+    /**
+     * Performs the unitary cross product of the two input vectors a,b
+     * a,b are assumed to be of size 3 (no check is performed on vector sizes)
+     * @param a First input vector
+     * @param b Second input vector
+     * @param c The resulting vector
+     */
+    
+    template< class T1, class T2 , class T3>
     static inline void UnitCrossProduct(T1& c, const T2& a, const T3& b ){
         CrossProduct(c,a,b);
-        double norm = norm_2(c);
+        const double norm = norm_2(c);
 #ifdef KRATOS_DEBUG
         if(norm < 1000.0*std::numeric_limits<double>::epsilon())
             KRATOS_ERROR << "norm is 0 when making the UnitCrossProduct of the vectors " << a << " and " << b << std::endl;
@@ -918,8 +945,8 @@ public:
      * Returns a matrix :
      * A = a.tensorproduct.b
      * a,b are assumed to be of order 3, no check is performed on the size of the vectors
-     * @param a: First input vector
-     * @param b: Second input vector
+     * @param a First input vector
+     * @param b Second input vector
      */
     
     static inline MatrixType TensorProduct3(
@@ -947,10 +974,10 @@ public:
      * InitialRow and InitialCol of the destination matrix
      * "Destination" is assumed to be able to contain the "input matrix"
      * (no check is performed on the bounds)
-     * @return Destination: The matric destination
-     * @param InputMatrix: The input matrix to be computed
-     * @param InitialRow: The initial row to compute
-     * @param InitialCol: The initial column to compute
+     * @param Destination The matric destination
+     * @param InputMatrix The input matrix to be computed
+     * @param InitialRow The initial row to compute
+     * @param InitialCol The initial column to compute
      */
     
     static inline void  AddMatrix(
@@ -976,10 +1003,10 @@ public:
      * InitialRow and InitialCol of the destination matrix
      * "Destination" is assumed to be able to contain the "input matrix"
      * (no check is performed on the bounds)
-     * @return Destination: The matric destination
-     * @param InputMatrix: The input matrix to be computed
-     * @param InitialRow: The initial row to compute
-     * @param InitialCol: The initial column to compute
+     * @param Destination The matric destination
+     * @param InputMatrix The input matrix to be computed
+     * @param InitialRow The initial row to compute
+     * @param InitialCol The initial column to compute
      */
         
     static inline void  SubtractMatrix(
@@ -1008,10 +1035,10 @@ public:
      * "Destination" is assumed to be able to contain the "input matrix"
      * (no check is performed on the bounds)
      * ATTENTION: Destination is overwritten!!
-     * @return Destination: The matric destination
-     * @param InputMatrix: The input matrix to be computed
-     * @param InitialRow: The initial row to compute
-     * @param InitialCol: The initial column to compute
+     * @param Destination The matric destination
+     * @param InputMatrix The input matrix to be computed
+     * @param InitialRow The initial row to compute
+     * @param InitialCol The initial column to compute
      */
         
     static inline void  WriteMatrix(
@@ -1036,9 +1063,9 @@ public:
 
     /**
      * Performs the Kroneker product of the Reduced Matrix with the identity matrix of size "dimension"
-     * @return Destination: The matric destination
-     * @param ReducedMatrix: The reduced matrix to be computed
-     * @param dimension: The dimension where we work
+     * @param Destination The matric destination
+     * @param ReducedMatrix The reduced matrix to be computed
+     * @param dimension The dimension where we work
      */
     
     static inline void  ExpandReducedMatrix(
@@ -1069,9 +1096,9 @@ public:
 
     /**
      * Performs the Kroneker product of the Reduced Matrix with the identity matrix of size "dimension" ADDING to the destination matrix
-     * @return Destination: The matric destination
-     * @param ReducedMatrix: The reduced matrix to be added
-     * @param dimension: The dimension where we work
+     * @param Destination The matric destination
+     * @param ReducedMatrix The reduced matrix to be added
+     * @param dimension The dimension where we work
      */
         
     static inline void  ExpandAndAddReducedMatrix(
@@ -1104,9 +1131,9 @@ public:
 
     /**
      * Performs x += coeff*y. no check on bounds is performed
-     * @return x: The vector destination
-     * @param y: The vector to be added
-     * @param coeff: The proportion to be added
+     * @param x The vector destination
+     * @param y The vector to be added
+     * @param coeff The proportion to be added
      */
         
     static inline void  VecAdd(
@@ -1237,7 +1264,7 @@ public:
     
     /**
      * Sign function
-     * @param ThisDataType: The value to extract the sign
+     * @param ThisDataType The value to extract the sign
      * @return The sign of the value
      */
     static inline int Sign(const TDataType& ThisDataType)
@@ -1497,31 +1524,31 @@ public:
     /**
      * Calculates the eigenvectors and eigenvalues of given symmetric TDimxTDim matrix
      * The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method
-     * @param A: The given symmetric matrix the eigenvectors are to be calculated.
-     * @return eigen_vector_matrix: The result matrix (will be overwritten with the eigenvectors)
-     * @return eigen_values_matrix: The result diagonal matrix with the eigenvalues
-     * @param tolerance: The largest value considered to be zero
-     * @param max_iterations: Maximum number of iterations
+     * @param A The given symmetric matrix the eigenvectors are to be calculated.
+     * @param eigen_vector_matrix The result matrix (will be overwritten with the eigenvectors)
+     * @param eigen_values_matrix The result diagonal matrix with the eigenvalues
+     * @param tolerance The largest value considered to be zero
+     * @param max_iterations Maximum number of iterations
      */
 
     template<unsigned int TDim>  
     static inline bool EigenSystem(
-            const boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim>& A,
-            boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim>& eigen_vector_matrix,
-            boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim>& eigen_values_matrix,
+            const bounded_matrix<TDataType, TDim, TDim>& A,
+            bounded_matrix<TDataType, TDim, TDim>& eigen_vector_matrix,
+            bounded_matrix<TDataType, TDim, TDim>& eigen_values_matrix,
             const TDataType tolerance = 1.0e-18,
             const unsigned int max_iterations = 20
             )
     {
         bool is_converged = false;
         eigen_values_matrix = ZeroMatrix(TDim);
-        boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim> TempMat = A;
-        boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim> AuxA;
+        bounded_matrix<TDataType, TDim, TDim> TempMat = A;
+        bounded_matrix<TDataType, TDim, TDim> AuxA;
 
-        const boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim> Indentity = IdentityMatrix(TDim, TDim);
-        boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim> V = Indentity;
-        boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim> Vaux;
-        boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim> Rotation;
+        const bounded_matrix<TDataType, TDim, TDim> Indentity = IdentityMatrix(TDim, TDim);
+        bounded_matrix<TDataType, TDim, TDim> V = Indentity;
+        bounded_matrix<TDataType, TDim, TDim> Vaux;
+        bounded_matrix<TDataType, TDim, TDim> Rotation;
 
         for(unsigned int iterations = 0; iterations < max_iterations; iterations++)
         {

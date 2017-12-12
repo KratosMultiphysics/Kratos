@@ -5,7 +5,7 @@
         "parallel_type"   : "OpenMP",
         "domain_size"     : 3,
         "start_step"      : 0.0,
-        "end_time"        : 5.0
+        "end_time"        : 10.0
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -51,7 +51,7 @@
         "relative_pressure_tolerance"  : 1e-5,
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
-            "solver_type": "AMGCL_NS_Solver",
+            "solver_type": "SuperLUSolver",
             "verbosity": 0
         },
         "volume_model_part_name"       : "Parts_Fluid",
