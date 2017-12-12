@@ -15,12 +15,19 @@
 #ifndef KRATOS_TABLE_STREAM_H_INCLUDED
 #define KRATOS_TABLE_STREAM_H_INCLUDED
 
+// System includes
 #include <iostream>
 #include <iomanip>
 #include <vector>
 #include <string>
 #include <sstream>
 #include <cmath>
+
+// External includes
+
+// Project includes
+#include "includes/exception.h"
+#include "includes/define.h"
 
 namespace Kratos 
 {
@@ -51,26 +58,39 @@ class endl{};
 /** \class TableStream
   This is a fancy table to stream data in a fancy way
   */
-class TableStream
+class KRATOS_API(KRATOS_CORE) TableStream
 {
 public:
     
     ///@name Type Definitions
     ///@{
     
+    /// Counted pointer of TableStream
+    KRATOS_CLASS_POINTER_DEFINITION( TableStream );
+    
     ///@}
     ///@name Life Cycle
     ///@{
     
     /// Default constructor.
+    TableStream() 
+        : mOutStream(&std::cout),
+        mSeparator("|"),
+        mBoldFont(true){
+        // Initialize values
+        mIndexRow    = 0;
+        mIndexColumn = 0;
+        mTableWidth  = 0;
+        mFlushLeft = false;
+    }
+    
     TableStream(
         std::ostream * Output, 
         const std::string Separator = "|", 
         const bool UseBoldFont = true
         ) : mOutStream(Output),
             mSeparator(Separator),
-            mBoldFont(UseBoldFont)
-    {
+            mBoldFont(UseBoldFont){
         // Initialize values
         mIndexRow    = 0;
         mIndexColumn = 0;
@@ -87,46 +107,34 @@ public:
 
     /**
      * This is the operator << for any kind of input
-     * @param Input: The input considered
+     * @param Input The input considered
      * @return The updated table stream
      */
     template<typename TClass> 
-    TableStream& operator<<(TClass Input)
-    {
-        if (typeid(TClass) == typeid(endl))
-        {
-            while (mIndexColumn != 0)
-            {
+    TableStream& operator<<(TClass Input){
+        if (typeid(TClass) == typeid(endl)){
+            while (mIndexColumn != 0){
                 *this << "";
             }
         }
-        else
-        {
+        else{
             if (mIndexColumn == 0)
-            {
                 *mOutStream << "|";
-            }
             
             if(mFlushLeft)
-            {
                 *mOutStream << std::left;
-            }
             else
-            {
                 *mOutStream << std::right; 
-            }
-
+            
             // Leave 3 extra space: One for negative sign, one for zero, one for decimal
             *mOutStream << std::setw(mColumnWidths.at(mIndexColumn)) << Input;
 
-            if (mIndexColumn == GetNumColumns()-1)
-            {
+            if (mIndexColumn == GetNumColumns() - 1){
                 *mOutStream << "|\n";
                 mIndexRow = mIndexRow + 1;
                 mIndexColumn = 0;
             } 
-            else 
-            {
+            else{
                 *mOutStream << mSeparator;
                 mIndexColumn = mIndexColumn + 1;
             }
@@ -137,22 +145,20 @@ public:
     
     /**
      * This is the operator << just for floats
-     * @param Input: The float considered
+     * @param Input The float considered
      * @return The updated table stream
      */
-    TableStream& operator<<(float Input)
-    {
+    TableStream& operator<<(float Input){
         OutputDecimalNumber<float>(Input);
         return *this;
     }
     
     /**
      * This is the operator << just for doubles
-     * @param Input: The double considered
+     * @param Input The double considered
      * @return The updated table stream
      */
-    TableStream& operator<<(double Input)
-    {
+    TableStream& operator<<(double Input){
         OutputDecimalNumber<double>(Input);
         return *this;
     }
@@ -165,8 +171,7 @@ public:
      * It returns the number of columns 
      * @return The size of mColumnHeaders (the column headers)
      */
-    unsigned int GetNumColumns() const
-    {
+    unsigned int GetNumColumns() const{
         return mColumnHeaders.size();
     }
 
@@ -174,56 +179,47 @@ public:
      * It returns the table width
      * @return mTableWidth: The table width
      */
-    unsigned int GetTableWidth() const
-    {
+    unsigned int GetTableWidth() const{
         return mTableWidth;
     }
     
     /**
      * Set the separator used for the table
      */
-    void SetSeparator(const std::string& Separator)
-    {
+    void SetSeparator(const std::string& Separator){
         mSeparator = Separator;
     }
     
     /**
      * Set if the bold fonts are used for the table
      */
-    void SetBold(const bool& UseBoldFont)
-    {
+    void SetBold(const bool& UseBoldFont){
         mBoldFont = UseBoldFont;
     }
     
     /**
      * Set the flush orientation to the left
      */
-    void SetFlushLeft()
-    {
+    void SetFlushLeft(){
         mFlushLeft = true;
     }
     
     /**
      * Set the flush orientation to the right
      */
-    void SetFlushRight()
-    {
+    void SetFlushRight(){
         mFlushLeft = false;
     }
 
     /** Add a column to our table
-     * @param HeaderName: Name to be print for the header
-     * @param ColumnWidth: The width of the column must be at least 4 spaces
+     * @param HeaderName Name to be print for the header
+     * @param ColumnWidth The width of the column must be at least 4 spaces
      */
     void AddColumn(
         const std::string& HeaderName, 
         const int ColumnWidth
-        )
-    {
-        if (ColumnWidth < 4)
-        {
-            KRATOS_ERROR << "Column size has to be >= 4" << std::endl;
-        }
+        ){
+        KRATOS_ERROR_IF(ColumnWidth < 4) << "Column size has to be >= 4" << std::endl;
 
         mColumnHeaders.push_back(HeaderName);
         mColumnWidths.push_back(ColumnWidth);
@@ -233,12 +229,10 @@ public:
     /**
      * This function prints the header of the stream
      */
-    void PrintHeader()
-    {
+    void PrintHeader(){
         PrintHorizontalLine();
         
-        if (mBoldFont == true)
-        {
+        if (mBoldFont){
         #if !defined(_WIN32)
             *mOutStream << "\e[1m";
         #endif
@@ -246,29 +240,21 @@ public:
 
         *mOutStream << "|";
             
-        for (unsigned int i = 0; i < GetNumColumns(); ++i)
-        {
+        for (unsigned int i = 0; i < GetNumColumns(); ++i){
             if(mFlushLeft)
-            {
                 *mOutStream << std::left;
-            }
             else
-            {
                 *mOutStream << std::right; 
-            }
 
             *mOutStream << std::setw(mColumnWidths.at(i)) << mColumnHeaders.at(i).substr(0, mColumnWidths.at(i));
             
             if (i != GetNumColumns()-1)
-            {
                 *mOutStream << mSeparator;
-            }
         }
 
         *mOutStream << "|";
 
-        if (mBoldFont == true)
-        {
+        if (mBoldFont){
         #if !defined(_WIN32)
             *mOutStream << "\e[0m";
         #endif
@@ -282,9 +268,25 @@ public:
     /**
      * This function prints the footer of the stream
      */
-    void PrintFooter()
-    {
+    void PrintFooter(){
         PrintHorizontalLine();
+    }
+  
+    /**
+     * This function sets the current stream
+     * @param Stream The std::string to set
+     */
+    void SetCurrentStream(const std::string& Stream) {
+        *mOutStream << Stream;
+    }
+    
+    /**
+     * This function gets the current stream
+     */
+    std::string GetCurrentStream() const {
+        std::ostringstream string_stream;
+        string_stream << (*mOutStream).rdbuf();
+        return string_stream.str();
     }
   
     ///@}
@@ -380,29 +382,25 @@ private:
     /**
      * This functions prints an horizontal line
      */
-    void PrintHorizontalLine()
-    {
+    void PrintHorizontalLine(){
         *mOutStream << "+"; // the left bar
 
         for (unsigned int i = 0; i< mTableWidth-1; ++i)
-        {
             *mOutStream << "-";
-        }
-
+        
         *mOutStream << "+"; // the right bar
         *mOutStream << "\n";
     }
     
     /**
      * This functions prints into the stream a double or float value with scientific notation (respeting the spaces asigned)
-     * @param Input: The double or float to print
+     * @param Input The double or float to print
      */
     template<typename TClass> 
     void OutputDecimalNumber(TClass Input)
     {
         // If we cannot handle this number, indicate so
-        if (Input < 10*(mColumnWidths.at(mIndexColumn)-1) || Input > 10*mColumnWidths.at(mIndexColumn))
-        {
+        if (Input < 10*(mColumnWidths.at(mIndexColumn)-1) || Input > 10*mColumnWidths.at(mIndexColumn)){
             std::stringstream string_out;
             string_out 
             << std::setiosflags(std::ios::scientific)
@@ -415,8 +413,7 @@ private:
 
             *mOutStream << string_to_print;
         } 
-        else 
-        {
+        else{
             *mOutStream 
             << std::setiosflags(std::ios::scientific)
             << std::setprecision(3)
@@ -425,14 +422,12 @@ private:
             << Input;
         }
 
-        if (mIndexColumn == GetNumColumns()-1)
-        {
+        if (mIndexColumn == GetNumColumns() - 1){
             *mOutStream << "|\n";
             mIndexRow = mIndexRow + 1;
             mIndexColumn = 0;
         } 
-        else 
-        {
+        else{
             *mOutStream << mSeparator;
             mIndexColumn = mIndexColumn + 1;
         }
