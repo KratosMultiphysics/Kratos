@@ -335,7 +335,6 @@ namespace Kratos {
                 SphericParticle* p_neighbour);
 
         virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationQuat(
-                const double indentation, 
                 double DeltDesp[3], 
                 double RelVel[3], 
                 const double OldLocalCoordSystem[3][3], 

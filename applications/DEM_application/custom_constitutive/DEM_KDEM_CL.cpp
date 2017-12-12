@@ -51,10 +51,14 @@ namespace Kratos {
 
     void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double current_distance, double equiv_young,
                                              double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
- 
+        
+        KRATOS_TRY
+        
         const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson)); // TODO: Is this correct? SLS
         kn_el = equiv_young * calculation_area / current_distance;
         kt_el = equiv_shear * calculation_area / current_distance;
+
+        KRATOS_CATCH("")  
     }
                         
     void DEM_KDEM::CalculateViscoDampingCoeff(double& equiv_visco_damp_coeff_normal,
@@ -63,7 +67,9 @@ namespace Kratos {
                                               SphericContinuumParticle* element2,
                                               const double kn_el,
                                               const double kt_el) {
-        
+
+        KRATOS_TRY
+
 //         double aux_norm_to_tang = sqrt(kt_el / kn_el);
 //         const double mRealMass = element1->GetMass();
 //         const double other_real_mass = element2->GetMass();
@@ -76,15 +82,16 @@ namespace Kratos {
         
         const double my_mass    = element1->GetMass(); 
         const double other_mass = element2->GetMass(); 
-                 
+
         const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);         
-         
+
         const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA]; 
         const double other_gamma = element2->GetProperties()[DAMPING_GAMMA]; 
         const double equiv_gamma = 0.5 * (my_gamma + other_gamma); 
- 
+
         equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn_el); 
-        equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * kt_el); 
+        equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * kt_el);       
+        KRATOS_CATCH("")  
     }
 
     double DEM_KDEM::LocalMaxSearchDistance(const int i,
@@ -356,27 +363,26 @@ namespace Kratos {
         //GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mContactMoment, LocalRotationalMoment);
 
         const double equivalent_radius = sqrt(calculation_area / Globals::Pi);
-        const double Inertia_I = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
-        const double Inertia_J = 2.0 * Inertia_I; // This is the polar inertia
-
-//         const double debugging_rotational_factor = 1.0; //1.0; // Hardcoded only for testing purposes. Obviously, this parameter should be always 1.0
-
 //         const double element_mass  = element->GetMass();
 //         const double neighbor_mass = neighbor->GetMass();
 //         const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
+        const double equiv_shear   = equiv_young / (2.0 * (1 + equiv_poisson)); // TODO: Is this correct? SLS
+        const double Inertia_I     = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
+        const double Inertia_J     = 2.0 * Inertia_I; // This is the polar inertia
 
-//         Viscous parameter taken from J.S.Marshall, 'Discrete-element modeling of particle aerosol flows', section 4.3. Twisting resistance
-        const double alpha = 0.0; // TODO: Hardcoded only for testing purposes. This value depends on the restitution coefficient and goes from 0.1 to 1.0
+        const double my_gamma    = element->GetProperties()[DAMPING_GAMMA]; 
+        const double other_gamma = neighbor->GetProperties()[DAMPING_GAMMA]; 
+        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+        
+        //Viscous parameter taken from J.S.Marshall, 'Discrete-element modeling of particle aerosol flows', section 4.3. Twisting resistance
+//         const double alpha = 0.1; // TODO: Hardcoded only for testing purposes. This value depends on the restitution coefficient and goes from 0.1 to 1.0
 //         const double visc_param = 0.5 * equivalent_radius * equivalent_radius * alpha * sqrt(1.33333333333333333 * equiv_mass * equiv_young * equivalent_radius);
 //         const double visc_param = 2.0 * alpha * sqrt(equiv_young * Inertia_I * element->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA)); // WENSRICH
+
         array_1d<double, 3> visc_param;
-        visc_param[0] = alpha * equiv_young * Inertia_I / distance; // OLMEDO
-        visc_param[1] = alpha * equiv_young * Inertia_I / distance; // OLMEDO
-        visc_param[2] = alpha * equiv_young * Inertia_J / distance; // OLMEDO
-
-        //equiv_young or G in torsor (LocalRotationalMoment[2]) ///////// TODO
-
-        const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson)); // TODO: Is this correct? SLS
+        visc_param[0] = equiv_gamma * equivalent_radius * equiv_young * Inertia_I / distance; // OLMEDO
+        visc_param[1] = equiv_gamma * equivalent_radius * equiv_young * Inertia_I / distance; // OLMEDO
+        visc_param[2] = equiv_gamma * equivalent_radius * equiv_shear * Inertia_J / distance; // OLMEDO
 
         double aux = ((element->GetRadius() + neighbor->GetRadius()) / distance) * ((element->GetRadius() + neighbor->GetRadius()) / distance);
 
@@ -390,11 +396,9 @@ namespace Kratos {
         LocalEffDeltaAngularVelocity[1] = LocalDeltaAngularVelocity[1] * aux;
         LocalEffDeltaAngularVelocity[2] = LocalDeltaAngularVelocity[2] * aux;
 
-        ElasticLocalRotationalMoment[0] = -/*debugging_rotational_factor * */equiv_young * Inertia_I * LocalEffDeltaRotatedAngle[0] / distance;
-        ///- debugging_rotational_factor * equiv_shear * (calculation_area / distance) * (OtherWeightedRadius * MyLocalDeltaDisplacement[0] - MyWeightedRadius * OtherLocalDeltaDisplacement[0]);
-        ElasticLocalRotationalMoment[1] = -/*debugging_rotational_factor * */equiv_young * Inertia_I * LocalEffDeltaRotatedAngle[1] / distance;
-        ///- debugging_rotational_factor * equiv_shear * (calculation_area / distance) * (OtherWeightedRadius * MyLocalDeltaDisplacement[1] - MyWeightedRadius * OtherLocalDeltaDisplacement[1]);
-        ElasticLocalRotationalMoment[2] = -/*debugging_rotational_factor * */equiv_shear * Inertia_J * LocalEffDeltaRotatedAngle[2] / distance;
+        ElasticLocalRotationalMoment[0] = -equiv_young * Inertia_I * LocalEffDeltaRotatedAngle[0] / distance;
+        ElasticLocalRotationalMoment[1] = -equiv_young * Inertia_I * LocalEffDeltaRotatedAngle[1] / distance;
+        ElasticLocalRotationalMoment[2] = -equiv_shear * Inertia_J * LocalEffDeltaRotatedAngle[2] / distance;
 
         ViscoLocalRotationalMoment[0] = -visc_param[0] * LocalEffDeltaAngularVelocity[0];
         ViscoLocalRotationalMoment[1] = -visc_param[1] * LocalEffDeltaAngularVelocity[1];

@@ -574,8 +574,7 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
         DeltDisp[2] += (new_axes1[2] - new_axes2[2]) + (e2[2] - e1[2]);
 }
 
-void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotationQuat(const double indentation, 
-                                                double RelDeltDisp[3], 
+void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotationQuat(double RelDeltDisp[3], 
                                                 double RelVel[3], 
                                                 const double OldLocalCoordSystem[3][3], 
                                                 const double& other_radius, 
@@ -594,6 +593,14 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
     array_1d<double, 3> other_vel_at_contact_point_due_to_rotation;
     const double other_young = p_neighbour->GetYoung();
     const double my_young = GetYoung();
+    
+    const array_1d<double, 3>& coors = this->GetGeometry()[0].Coordinates();
+    array_1d<double, 3> neigh_coors = p_neighbour->GetGeometry()[0].Coordinates();
+    
+    const array_1d<double, 3> other_to_me_vect = coors - neigh_coors;
+    const double distance            = DEM_MODULUS_3(other_to_me_vect);
+    const double radius_sum          = GetInteractionRadius() + other_radius;
+    const double indentation         = radius_sum - distance;
  
     const double my_arm_length = GetInteractionRadius() - indentation * other_young / (other_young + my_young);
     const double other_arm_length  = other_radius - indentation * my_young / (other_young + my_young);
@@ -746,7 +753,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, velocity, delta_displ);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                RelativeDisplacementAndVelocityOfContactPointDueToRotationQuat(data_buffer.mIndentation, DeltDisp, RelVel, LocalCoordSystem, data_buffer.mOtherRadius, data_buffer.mDt, ang_velocity, data_buffer.mpOtherParticle);
+                RelativeDisplacementAndVelocityOfContactPointDueToRotationQuat(DeltDisp, RelVel, LocalCoordSystem, data_buffer.mOtherRadius, data_buffer.mDt, ang_velocity, data_buffer.mpOtherParticle);
             }
 
             RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, data_buffer.mpOtherParticle);
