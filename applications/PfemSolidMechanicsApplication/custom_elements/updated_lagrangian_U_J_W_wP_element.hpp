@@ -296,6 +296,30 @@ protected:
           double& rIntegrationWeight
           );
 
+    /**
+     * Part of the damping matrix due to the high order terms
+     */
+    virtual void CalculateAndAddHighOrderDampingMatrix(MatrixType& rDampingMatrix,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          );
+
+    /**
+     * Calculation and addition of the KPP due to high order terms
+     */
+    virtual void CalculateAndAddHighOrderKPP(MatrixType& rK,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          );
+
+    /**
+     * Calculation of the Internal Forces due to high order terms
+     */
+    virtual void CalculateAndAddHighOrderRHS(VectorType& rRightHandSideVector,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          );
+
 
     /**
      * Initialize Element General Variables

@@ -519,6 +519,15 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
+   // **********************************************************************************
+   //          Matrix that may appear due to the high order terms
+   void UpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderKPP( MatrixType & rLeftHandSideMatrix,ElementVariables & rVariables, double & rIntegrationWeight)
+   {
+      KRATOS_TRY
+
+      KRATOS_CATCH("")
+   }
+
    //************************************************************************************
    //         Matrix due to the the water pressure contribution to the internal forces   
    void UpdatedLagrangianUJWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementVariables & rVariables, double & rIntegrationWeight)
@@ -657,6 +666,15 @@ namespace Kratos
    // *********************************************************************************
    //    part of the RHS that goes directly to the RHS
    void UpdatedLagrangianUJWwPElement::CalculateAndAddStabilizationRHS( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   {
+      KRATOS_TRY
+
+      KRATOS_CATCH("")
+   }
+
+   // *********************************************************************************
+   //    High order part of the RHS that goes directly to the RHS
+   void UpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderRHS( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -868,6 +886,15 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
+   // ********************************************************************************
+   //      part of the damping matrix coming from the high order terms
+   void UpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderDampingMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   {
+      KRATOS_TRY
+
+      KRATOS_CATCH("")
+   }
+
    // *********************************************************************************
    //         Calculate the Damping matrix
    void UpdatedLagrangianUJWwPElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
@@ -1046,8 +1073,10 @@ namespace Kratos
 
       rStabFactor = 2.0 / ConstrainedModulus - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
 
-      if ( rStabFactor < 0.0)
+      if ( rStabFactor < 0.0){
+         std::cout << "stab 1= " <<  2.0 / ConstrainedModulus << " stab 2= " << 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2) << std::endl;
          rStabFactor = 0.0; 
+      }
       rStabFactor *=  StabilizationFactor;
 
       return rStabFactor; 
