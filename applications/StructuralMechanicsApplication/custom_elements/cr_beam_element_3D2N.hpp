@@ -231,7 +231,7 @@ namespace Kratos
 								   array_1d<double, msDimension>& v3);
 
 	private:
-		Matrix MemberRotationMatrix;
+		Matrix mRotationMatrix;
 	};
 
 

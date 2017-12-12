@@ -1767,8 +1767,8 @@ namespace Kratos
 			RotationMatrix(i, 1) = v2[i];
 			RotationMatrix(i, 2) = v3[i];
 		}
-		this->MemberRotationMatrix = ZeroMatrix(msDimension);
-		this->MemberRotationMatrix = RotationMatrix;
+		this->mRotationMatrix = ZeroMatrix(msDimension);
+		this->mRotationMatrix = RotationMatrix;
 		KRATOS_CATCH("")
 	}
 
@@ -1776,7 +1776,7 @@ namespace Kratos
 
 		KRATOS_TRY
 			if (R.size1() != msDimension || R.size2() != msDimension) R.resize(msDimension, msDimension, false);
-		R = this->MemberRotationMatrix;
+		R = this->mRotationMatrix;
 		KRATOS_CATCH("")
 	}
 
@@ -1792,9 +1792,9 @@ namespace Kratos
 		if (v3.size() != msDimension) v3.resize(msDimension, false);
 
 		for (int i = 0; i < msDimension; ++i) {
-			v1[i] = this->MemberRotationMatrix(i, 0);
-			v2[i] = this->MemberRotationMatrix(i, 1);
-			v3[i] = this->MemberRotationMatrix(i, 2);
+			v1[i] = this->mRotationMatrix(i, 0);
+			v2[i] = this->mRotationMatrix(i, 1);
+			v3[i] = this->mRotationMatrix(i, 2);
 		}
 		KRATOS_CATCH("")
 	}
