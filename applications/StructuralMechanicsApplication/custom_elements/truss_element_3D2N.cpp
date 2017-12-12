@@ -415,28 +415,36 @@ namespace Kratos
 		std::vector< array_1d<double, 3 > >& rOutput,
 		const ProcessInfo& rCurrentProcessInfo) 
 		{
+
+		const GeometryType::IntegrationPointsArrayType& integration_points =
+			GetGeometry().IntegrationPoints();
+		if (rOutput.size() != integration_points.size()) {
+			rOutput.resize(integration_points.size());
+		}
+
 		if (rVariable == FORCE)
 				{
 					Vector truss_forces = ZeroVector(msDimension);
 					truss_forces[2] = 0.00;
 					truss_forces[1] = 0.00;
-
-					const double internal_strain_gl = this->CalculateGreenLagrangeStrain();
-
-					const double L0 = this->CalculateReferenceLength();
-					const double l = this->CalculateCurrentLength();
-					const double E = this->GetProperties()[YOUNG_MODULUS];
 					const double A = this->GetProperties()[CROSS_AREA];
 
-					double s_pre = 0.00;
+					double prestress = 0.00;
 					if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-						s_pre = this->GetProperties()[TRUSS_PRESTRESS_PK2];
+						prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
 					}
 
-					truss_forces[0] = ((E*internal_strain_gl + s_pre) * l * A) / L0;
+					if (!this->mIsLinearElement)
+					{					
+						const double internal_strain_gl = this->CalculateGreenLagrangeStrain();
+						const double L0 = this->CalculateReferenceLength();
+						const double l = this->CalculateCurrentLength();
+						const double E = this->GetProperties()[YOUNG_MODULUS];
+						
+						truss_forces[0] = ((E*internal_strain_gl + prestress) * l * A) / L0;
+					}
 
-
-					if (this->mIsLinearElement)
+					else 
 					{
 					Matrix left_hand_side_matrix = ZeroMatrix(msLocalSize, msLocalSize);
 					ProcessInfo dummy_info; //CalculateLeftHandSide does not take const ProcessInfo
@@ -448,8 +456,9 @@ namespace Kratos
 					this->CreateTransformationMatrix(transformation_matrix);
 					Vector f_int = prod(left_hand_side_matrix, nodal_deformation);
 					f_int = prod(Matrix(trans(transformation_matrix)),f_int);
-					truss_forces[0] = f_int[3] + s_pre*A;
+					truss_forces[0] = f_int[3] + prestress*A;
 					}
+
 
 					rOutput[0] = truss_forces;
 				}
@@ -463,12 +472,12 @@ namespace Kratos
 		bounded_matrix<double,msLocalSize,msLocalSize>
 		 transformation_matrix = ZeroMatrix(msLocalSize, msLocalSize);
 		this->CreateTransformationMatrix(transformation_matrix);
-		double S_pre = 0.00;
+		double prestress = 0.00;
 		if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-			S_pre = this->GetProperties()[TRUSS_PRESTRESS_PK2];
+			prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
 		}
 		const double A = this->GetProperties()[CROSS_AREA];
-		const double N = S_pre * A;
+		const double N = prestress * A;
 
 		//internal force vectors
 		bounded_vector<double,msLocalSize> f_local = ZeroVector(msLocalSize);
@@ -518,6 +527,7 @@ namespace Kratos
 		return IsCable;
 		KRATOS_CATCH("")
 	}
+
 
 	int  TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo){
 		KRATOS_TRY
@@ -622,12 +632,12 @@ namespace Kratos
 		const double E = this->GetProperties()[YOUNG_MODULUS];
 		const double A = this->GetProperties()[CROSS_AREA];
 
-		double S_pre = 0.00;
+		double prestress = 0.00;
 		if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-			S_pre = this->GetProperties()[TRUSS_PRESTRESS_PK2];
+			prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
 		}
 
-		const double N = ((E*InternalStrainGL + S_pre) * l * A) / L0;
+		const double N = ((E*InternalStrainGL + prestress) * l * A) / L0;
 
 		if (N < 0.00) this->mIsCompressed = true;
 		else this->mIsCompressed = false;
@@ -751,9 +761,9 @@ namespace Kratos
 		const double E = this->GetProperties()[YOUNG_MODULUS];
 		double A = this->GetProperties()[CROSS_AREA];
 
-		double S_pre = 0.00;
+		double prestress = 0.00;
 		if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-			S_pre = this->GetProperties()[TRUSS_PRESTRESS_PK2];
+			prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
 		}
 
 		rGeometricStiffnessMatrix = ZeroMatrix(msLocalSize,msLocalSize);
@@ -780,7 +790,7 @@ namespace Kratos
 		const double L3 = L * L * L;
 
 
-		const double K_sigma = ((E*A*e_gL) / L) + ((S_pre*A) / L);
+		const double K_sigma = ((E*A*e_gL) / L) + ((prestress*A) / L);
 		const double K_uij = (E*A) / L3;
 
 		rGeometricStiffnessMatrix(0, 0) = K_sigma + K_uij * (2 * du*dx + du*du);

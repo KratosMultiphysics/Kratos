@@ -163,7 +163,7 @@ namespace Kratos
 
 		bool ReturnIfIsCable();
 		
-		void AddPrestressLinear(VectorType& RHS);
+		void AddPrestressLinear(VectorType& rRightHandSideVector);
 
 		void CalculateGeometricStiffnessMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rGeometricStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
