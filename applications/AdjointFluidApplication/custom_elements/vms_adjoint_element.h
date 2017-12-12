@@ -149,17 +149,17 @@ public:
         int ReturnValue = Element::Check(UnusedProcessInfo);
 
         // Check if adjoint and fluid variables are defined.
-        if (ADJOINT_VELOCITY.Key() == 0)
+        if (ADJOINT_FLUID_VECTOR_1.Key() == 0)
             KRATOS_THROW_ERROR(std::invalid_argument,
-                    "ADJOINT_VELOCITY Key is 0. "
+                    "ADJOINT_FLUID_VECTOR_1 Key is 0. "
                     "Check if the application was correctly registered.","");
-        if (ADJOINT_ACCELERATION.Key() == 0)
+        if (ADJOINT_FLUID_VECTOR_3.Key() == 0)
             KRATOS_THROW_ERROR(std::invalid_argument,
-                    "ADJOINT_ACCELERATION Key is 0. "
+                    "ADJOINT_FLUID_VECTOR_3 Key is 0. "
                     "Check if the application was correctly registered.","");
-        if (ADJOINT_PRESSURE.Key() == 0)
+        if (ADJOINT_FLUID_SCALAR_1.Key() == 0)
             KRATOS_THROW_ERROR(std::invalid_argument,
-                    "ADJOINT_PRESSURE Key is 0. "
+                    "ADJOINT_FLUID_SCALAR_1 Key is 0. "
                     "Check if the application was correctly registered.","");
         if (VELOCITY.Key() == 0)
             KRATOS_THROW_ERROR(std::invalid_argument,
@@ -177,17 +177,17 @@ public:
         // Check if the nodes have adjoint and fluid variables and adjoint dofs.
         for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
         {
-            if (this->GetGeometry()[iNode].SolutionStepsDataHas(ADJOINT_VELOCITY) == false)
+            if (this->GetGeometry()[iNode].SolutionStepsDataHas(ADJOINT_FLUID_VECTOR_1) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,
-                        "missing ADJOINT_VELOCITY variable on solution step data for node ",
+                        "missing ADJOINT_FLUID_VECTOR_1 variable on solution step data for node ",
                         this->GetGeometry()[iNode].Id());
-            if (this->GetGeometry()[iNode].SolutionStepsDataHas(ADJOINT_ACCELERATION) == false)
+            if (this->GetGeometry()[iNode].SolutionStepsDataHas(ADJOINT_FLUID_VECTOR_3) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,
-                        "missing ADJOINT_ACCELERATION variable on solution step data for node ",
+                        "missing ADJOINT_FLUID_VECTOR_3 variable on solution step data for node ",
                         this->GetGeometry()[iNode].Id());
-            if (this->GetGeometry()[iNode].SolutionStepsDataHas(ADJOINT_PRESSURE) == false)
+            if (this->GetGeometry()[iNode].SolutionStepsDataHas(ADJOINT_FLUID_SCALAR_1) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,
-                        "missing ADJOINT_PRESSURE variable on solution step data for node ",
+                        "missing ADJOINT_FLUID_SCALAR_1 variable on solution step data for node ",
                         this->GetGeometry()[iNode].Id());
             if (this->GetGeometry()[iNode].SolutionStepsDataHas(VELOCITY) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,
@@ -201,15 +201,15 @@ public:
                 KRATOS_THROW_ERROR(std::invalid_argument,
                         "missing PRESSURE variable on solution step data for node ",
                         this->GetGeometry()[iNode].Id());
-            if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_VELOCITY_X) == false
-                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_VELOCITY_Y) == false
-                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_VELOCITY_Z) == false)
+            if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_FLUID_VECTOR_1_X) == false
+                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_FLUID_VECTOR_1_Y) == false
+                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_FLUID_VECTOR_1_Z) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,
-                        "missing ADJOINT_VELOCITY component degree of freedom on node ",
+                        "missing ADJOINT_FLUID_VECTOR_1 component degree of freedom on node ",
                         this->GetGeometry()[iNode].Id());
-            if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_PRESSURE) == false)
+            if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_FLUID_SCALAR_1) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,
-                        "missing ADJOINT_PRESSURE component degree of freedom on node ",
+                        "missing ADJOINT_FLUID_SCALAR_1 component degree of freedom on node ",
                         this->GetGeometry()[iNode].Id());
         }
 
@@ -236,11 +236,11 @@ public:
         for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
         {
             const array_1d< double, 3 >& rVel =
-                    rGeom[iNode].FastGetSolutionStepValue(ADJOINT_VELOCITY,Step);
+                    rGeom[iNode].FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1,Step);
             for (IndexType d=0; d < TDim; d++)
                 rValues[LocalIndex++] = rVel[d];
             rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-                    ADJOINT_PRESSURE,Step);
+                    ADJOINT_FLUID_SCALAR_1,Step);
         }
     }
 
@@ -255,7 +255,7 @@ public:
         for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
         {
             const array_1d< double, 3 >& rAccel =
-                    rGeom[iNode].FastGetSolutionStepValue(ADJOINT_ACCELERATION,Step);
+                    rGeom[iNode].FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3,Step);
             for (IndexType d=0; d < TDim; d++)
                 rValues[LocalIndex++] = rAccel[d];
             rValues[LocalIndex++] = 0.0; // pressure dof

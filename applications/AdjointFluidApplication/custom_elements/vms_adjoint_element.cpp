@@ -19,11 +19,11 @@ void VMSAdjointElement<2>::GetDofList(DofsVectorType& rElementalDofList,
   for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
   {
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        ADJOINT_VELOCITY_X);
+        ADJOINT_FLUID_VECTOR_1_X);
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        ADJOINT_VELOCITY_Y);
+        ADJOINT_FLUID_VECTOR_1_Y);
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        ADJOINT_PRESSURE);
+        ADJOINT_FLUID_SCALAR_1);
   }
 }
 
@@ -41,13 +41,13 @@ void VMSAdjointElement<3>::GetDofList(DofsVectorType& rElementalDofList,
   for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
   {
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        ADJOINT_VELOCITY_X);
+        ADJOINT_FLUID_VECTOR_1_X);
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        ADJOINT_VELOCITY_Y);
+        ADJOINT_FLUID_VECTOR_1_Y);
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        ADJOINT_VELOCITY_Z);
+        ADJOINT_FLUID_VECTOR_1_Z);
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        ADJOINT_PRESSURE);
+        ADJOINT_FLUID_SCALAR_1);
   }
 }
 
@@ -65,11 +65,11 @@ void VMSAdjointElement<2>::EquationIdVector(
 
   for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
   {
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_VELOCITY_X)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_X)
         .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_VELOCITY_Y)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Y)
         .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_PRESSURE)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_SCALAR_1)
         .EquationId();
   }
 }
@@ -88,13 +88,13 @@ void VMSAdjointElement<3>::EquationIdVector(
 
   for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
   {
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_VELOCITY_X)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_X)
         .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_VELOCITY_Y)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Y)
         .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_VELOCITY_Z)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Z)
         .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_PRESSURE)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_SCALAR_1)
         .EquationId();
   }
 }

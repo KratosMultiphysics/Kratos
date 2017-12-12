@@ -155,10 +155,10 @@ public:
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
             for (auto it = nodes_begin; it != nodes_end; ++it)
             {
-                noalias(it->FastGetSolutionStepValue(ADJOINT_VELOCITY)) = ADJOINT_VELOCITY.Zero();
-                it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
-                noalias(it->FastGetSolutionStepValue(ADJOINT_ACCELERATION)) = ADJOINT_ACCELERATION.Zero();
-                noalias(it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION)) = AUX_ADJOINT_ACCELERATION.Zero();
+                noalias(it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1)) = ADJOINT_FLUID_VECTOR_1.Zero();
+                it->FastGetSolutionStepValue(ADJOINT_FLUID_SCALAR_1) = ADJOINT_FLUID_SCALAR_1.Zero();
+                noalias(it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3)) = ADJOINT_FLUID_VECTOR_3.Zero();
+                noalias(it->FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1)) = AUX_ADJOINT_FLUID_VECTOR_1.Zero();
             }
         }
 
@@ -230,8 +230,8 @@ public:
             ModelPart::NodeIterator nodes_end;
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
             for (auto it = nodes_begin; it != nodes_end; ++it)
-                noalias(it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION)) =
-                    AUX_ADJOINT_ACCELERATION.Zero();
+                noalias(it->FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1)) =
+                    AUX_ADJOINT_FLUID_VECTOR_1.Zero();
         }
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -269,7 +269,7 @@ public:
                 for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
                 {
                     array_1d<double, 3>& r_aux_adjoint_acceleration =
-                        it->GetGeometry()[i_node].FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION);
+                        it->GetGeometry()[i_node].FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1);
                     it->GetGeometry()[i_node].SetLock();
                     for (unsigned int d = 0; d < domain_size; ++d)
                         r_aux_adjoint_acceleration[d] += mAdjointAcceleration[k][local_index++];
@@ -310,7 +310,7 @@ public:
 //                 for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
 //                 {
 //                     array_1d<double, 3>& r_aux_adjoint_acceleration =
-//                         it->GetGeometry()[i_node].FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION);
+//                         it->GetGeometry()[i_node].FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1);
 //                     it->GetGeometry()[i_node].SetLock();
 //                     for (unsigned int d = 0; d < domain_size; ++d)
 //                         r_aux_adjoint_acceleration[d] += mAdjointAcceleration[k][local_index++];
@@ -320,7 +320,7 @@ public:
 //             }
 //         }
 
-        rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_ACCELERATION);
+        rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_FLUID_VECTOR_1);
 
         mpResponseFunction->FinalizeSolutionStep(rModelPart);
 
@@ -364,11 +364,11 @@ public:
                 for (auto it = nodes_begin; it != nodes_end; ++it)
                 {
                     array_1d<double, 3>& r_current_adjoint_acceleration =
-                        it->FastGetSolutionStepValue(ADJOINT_ACCELERATION);
+                        it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
                     const array_1d<double, 3>& r_old_adjoint_acceleration =
-                        it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
+                        it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3, 1);
                     const array_1d<double, 3>& r_aux_adjoint_acceleration =
-                        it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION, 1);
+                        it->FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1, 1);
                     for (unsigned int d = 0; d < domain_size; ++d)
                         r_current_adjoint_acceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
                             (r_old_adjoint_acceleration[d] + mInvDt * r_aux_adjoint_acceleration[d]);
@@ -403,16 +403,16 @@ public:
                 for (auto it = nodes_begin; it != nodes_end; ++it)
                 {
                     array_1d<double, 3>& r_current_adjoint_acceleration =
-                        it->FastGetSolutionStepValue(ADJOINT_ACCELERATION);
+                        it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
 
                     // In the end we need to assemble so we only compute this part
                     // on the process that owns the node.
                     if (it->FastGetSolutionStepValue(PARTITION_INDEX) == r_comm.MyPID())
                     {
                         const array_1d<double, 3>& r_old_adjoint_acceleration =
-                            it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
+                            it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3, 1);
                         const array_1d<double, 3>& r_aux_adjoint_acceleration =
-                            it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION, 1);
+                            it->FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1, 1);
                         for (unsigned int d = 0; d < domain_size; ++d)
                             r_current_adjoint_acceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
                                 (r_old_adjoint_acceleration[d] + mInvDt * r_aux_adjoint_acceleration[d]);
@@ -455,7 +455,7 @@ public:
                 for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
                 {
                     array_1d<double, 3>& r_current_adjoint_acceleration =
-                        it->GetGeometry()[i_node].FastGetSolutionStepValue(ADJOINT_ACCELERATION);
+                        it->GetGeometry()[i_node].FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
                     it->GetGeometry()[i_node].SetLock();
                     for (unsigned int d = 0; d < domain_size; ++d)
                         r_current_adjoint_acceleration[d] += mAdjointAcceleration[k][local_index++];
@@ -495,7 +495,7 @@ public:
 //                 for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
 //                 {
 //                     array_1d<double, 3>& r_current_adjoint_acceleration =
-//                         it->GetGeometry()[i_node].FastGetSolutionStepValue(ADJOINT_ACCELERATION);
+//                         it->GetGeometry()[i_node].FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
 //                     it->GetGeometry()[i_node].SetLock();
 //                     for (unsigned int d = 0; d < domain_size; ++d)
 //                         r_current_adjoint_acceleration[d] += mAdjointAcceleration[k][local_index++];
@@ -505,7 +505,7 @@ public:
 //             }
 //         }
 
-        rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_ACCELERATION);
+        rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_FLUID_VECTOR_3);
 
         mpResponseFunction->UpdateSensitivities(rModelPart);
 
@@ -528,17 +528,17 @@ public:
         if (domain_size != working_space_dimension)
             KRATOS_ERROR << "DOMAIN_SIZE != WorkingSpaceDimension()" << std::endl;
 
-        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_VELOCITY) == false)
-            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_VELOCITY << std::endl;
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_FLUID_VECTOR_1) == false)
+            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_FLUID_VECTOR_1 << std::endl;
         
-        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_PRESSURE) == false)
-            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_PRESSURE << std::endl;
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_FLUID_SCALAR_1) == false)
+            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_FLUID_SCALAR_1 << std::endl;
         
-        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_ACCELERATION) == false)
-            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_ACCELERATION << std::endl;
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_FLUID_VECTOR_3) == false)
+            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_FLUID_VECTOR_3 << std::endl;
 
-        if (rModelPart.NodesBegin()->SolutionStepsDataHas(AUX_ADJOINT_ACCELERATION) == false)
-            KRATOS_ERROR << "Nodal solution steps data missing variable: " << AUX_ADJOINT_ACCELERATION << std::endl;
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(AUX_ADJOINT_FLUID_VECTOR_1) == false)
+            KRATOS_ERROR << "Nodal solution steps data missing variable: " << AUX_ADJOINT_FLUID_VECTOR_1 << std::endl;
 
         return BaseType::Check(rModelPart); // Check elements and conditions.
         KRATOS_CATCH("");
@@ -562,7 +562,7 @@ public:
         for (unsigned int i_node = 0; i_node < pCurrentElement->GetGeometry().PointsNumber(); ++i_node)
         {
             const array_1d<double, 3>& r_aux_adjoint_acceleration =
-                        pCurrentElement->GetGeometry()[i_node].FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION, 1);
+                        pCurrentElement->GetGeometry()[i_node].FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1, 1);
             double weight = 1.0 / pCurrentElement->GetGeometry()[i_node].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
             for (unsigned int d = 0; d < domain_size; ++d)
             {

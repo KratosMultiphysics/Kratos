@@ -57,10 +57,10 @@ class AdjointVMSMonolithicSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_ADJOINT_ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_FLUID_VECTOR_1)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_FLUID_VECTOR_3)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_ADJOINT_FLUID_VECTOR_1)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_FLUID_SCALAR_1)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
@@ -127,10 +127,10 @@ class AdjointVMSMonolithicSolver:
 
         for node in self.main_model_part.Nodes:
             # adding dofs
-            node.AddDof(KratosMultiphysics.ADJOINT_PRESSURE)
-            node.AddDof(KratosMultiphysics.ADJOINT_VELOCITY_X)
-            node.AddDof(KratosMultiphysics.ADJOINT_VELOCITY_Y)
-            node.AddDof(KratosMultiphysics.ADJOINT_VELOCITY_Z)
+            node.AddDof(KratosMultiphysics.ADJOINT_FLUID_SCALAR_1)
+            node.AddDof(KratosMultiphysics.ADJOINT_FLUID_VECTOR_1_X)
+            node.AddDof(KratosMultiphysics.ADJOINT_FLUID_VECTOR_1_Y)
+            node.AddDof(KratosMultiphysics.ADJOINT_FLUID_VECTOR_1_Z)
 
         print("DOFs for the VMS adjoint solver added correctly.")
 
