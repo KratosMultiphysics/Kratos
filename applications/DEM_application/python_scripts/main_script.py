@@ -26,7 +26,7 @@ class Solution(object):
         parameters_file = open("ProjectParametersDEM.json",'r')
         self.DEM_parameters = Parameters(parameters_file.read())
         default_input_parameters = self.GetDefaultInputParameters()
-        self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters);
+        self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
         
     def GetDefaultInputParameters(self):
         import dem_default_input_parameters
