@@ -54,15 +54,12 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         ##check if variable type is a scalar or a vector component
         self.CheckVariableType(self.settings["variable_name"].GetString())
 
-        self.model_part    = Model[self.settings["model_part_name"].GetString()]
+        self.model         = Model
         self.variable_name = self.settings["variable_name"].GetString()
 
         ## dynamic variables
         self.LinearDynamicVariables  = ["ACCELERATION","VELOCITY"]
         self.AngularDynamicVariables = ["ANGULAR_ACCELERATION","ANGULAR_VELOCITY"]
-
-        time_integration_method = KratosSolid.TimeIntegrationMethod()
-        self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo)
         
         ## set the interval
         self.finalized = False
@@ -77,9 +74,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         elif( self.settings["interval"][1].IsDouble() or  self.settings["interval"][1].IsInt() ):
             self.interval.append(self.settings["interval"][1].GetDouble());
 
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):            
-            self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
-
+            
         self.interval_string = "custom"
         if( self.interval[0] == 0.0 and self.interval[1] == 0.0 ):
             self.interval_string = "initial"
@@ -113,9 +108,21 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                     
         self.constrained = self.settings["constrained"].GetBool()
         
-       
+    def GetVariables(self):
+        nodal_variables = [self.settings["variable_name"].GetString()]
+        return nodal_variables
+    
     def ExecuteInitialize(self):
 
+        # set model part
+        self.model_part = self.model[self.settings["model_part_name"].GetString()]
+           
+        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):            
+            self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
+
+        time_integration_method = KratosSolid.TimeIntegrationMethod()
+        self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo)
+        
         # set processes
         self.FixDofsProcesses     = []
         self.FreeDofsProcesses    = []

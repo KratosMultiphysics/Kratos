@@ -107,6 +107,11 @@ class MechanicalSolver(object):
         time_settings = self.settings["time_settings"]
         self.process_info.SetValue(KratosMultiphysics.DELTA_TIME, time_settings["time_step"].GetDouble())
         self.process_info.SetValue(KratosMultiphysics.TIME, time_settings["start_time"].GetDouble())
+
+
+        if not self.solving_strategy_settings["stabilization_factor"].IsNull():
+            self.process_info.SetValue(KratosMultiphysics.STABILIZATION_FACTOR, self.solving_strategy_settings["stabilization_factor"].GetDouble() )
+
         
         # Create integration information (needed in other processes)
         self._get_solution_scheme()    
@@ -115,7 +120,6 @@ class MechanicalSolver(object):
         self.echo_level = 0
 
         print("  [Time Step:", self.process_info[KratosMultiphysics.DELTA_TIME]," End_time:", time_settings["end_time"].GetDouble(),"]")
-        print(" ")
 
         
     def GetMinimumBufferSize(self):
@@ -129,7 +133,7 @@ class MechanicalSolver(object):
         
     def Initialize(self):
 
-        print("::[Mechanical_Solver]:: -START-")
+        #print("::[Mechanical_Solver]:: -START-")
         
         # The mechanical solver is created here if it does not already exist.
         if self.solving_strategy_settings["clear_storage"].GetBool():
@@ -145,10 +149,11 @@ class MechanicalSolver(object):
                 mechanical_solver.SetInitializePerformedFlag(True)
         self.Check()
 
-        print("::[Mechanical_Solver]:: -END-")        
-        
+        #print("::[Mechanical_Solver]:: -END-")        
+        print("::[Mechanical_Solver]:: Solver Ready")  
 
     def GetVariables(self):
+        
         nodal_variables = []
         return nodal_variables
         

@@ -112,8 +112,14 @@ namespace Kratos
     {
     
     }
-
+    
     // get parameters
+    virtual double& GetMethodParameter(double& rParameter)
+    {
+      rParameter = 0.0;
+      return rParameter;
+    }
+
     virtual double& GetFirstDerivativeParameter(double& rParameter)
     {
       rParameter = 1.0;

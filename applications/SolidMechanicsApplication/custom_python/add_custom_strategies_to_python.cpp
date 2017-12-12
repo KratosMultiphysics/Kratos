@@ -40,7 +40,7 @@
 #include "custom_strategies/convergence_criteria/component_wise_residual_convergence_criterion.hpp"
 
 //schemes
-#include "custom_strategies/schemes/residual_based_displacement_newmark_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_displacement_bossak_scheme.hpp"
 #include "custom_strategies/schemes/component_wise_bossak_scheme.hpp"
 #include "custom_strategies/schemes/eigensolver_dynamic_scheme.hpp" 
  
@@ -51,7 +51,7 @@
 #include "custom_strategies/schemes/explicit_hamilton_scheme.hpp"
 
 //integration methods
-#include "custom_strategies/time_integration_methods/newmark_method.hpp"
+#include "custom_strategies/time_integration_methods/bossak_method.hpp"
 
 
 //linear solvers
@@ -94,7 +94,7 @@ namespace Kratos
       typedef ExplicitHamiltonBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitHamiltonBuilderAndSolverType;
 
       //custom scheme types
-      //typedef ResidualBasedDisplacementBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementBossakSchemeType;
+      typedef ResidualBasedDisplacementBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementBossakSchemeType;
       typedef ResidualBasedDisplacementNewmarkScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementNewmarkSchemeType;     
       typedef ComponentWiseBossakScheme< SparseSpaceType, LocalSpaceType >  ComponentWiseBossakSchemeType;     
       typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
@@ -113,10 +113,10 @@ namespace Kratos
       typedef VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >                     ComponentType;
       typedef TimeIntegrationMethod<ComponentType, double>                                    IntegrationMethodType;
       typedef NewmarkMethod<ComponentType, double>                                                NewmarkMethodType;
+      typedef BossakMethod<ComponentType, double>                                                  BossakMethodType;
 
-      
 
-      
+     
       //********************************************************************
       //*************************STRATEGY CLASSES***************************
       //********************************************************************
@@ -230,12 +230,12 @@ namespace Kratos
       //********************************************************************
 
       // Residual Based Bossak Scheme Type
-      // class_< ResidualBasedDisplacementBossakSchemeType,
-      // 	      bases< BaseSchemeType >,  boost::noncopyable >
-      // 	(
-      // 	 "ResidualBasedDisplacementBossakScheme", init< double >() )
-      // 	.def("Initialize", &ResidualBasedDisplacementBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-      // 	;
+      class_< ResidualBasedDisplacementBossakSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementBossakScheme", init<>() )
+      	.def("Initialize", &ResidualBasedDisplacementBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
 
       // Residual Based Newmark Scheme Type
       class_< ResidualBasedDisplacementNewmarkSchemeType,
@@ -362,6 +362,17 @@ namespace Kratos
       	.def("SetInputVariable", &NewmarkMethodType::SetInputVariable)
       	.def("SetParameters", &NewmarkMethodType::SetParameters)
       	.def("Predict", &NewmarkMethodType::Predict)
+	.def(self_ns::str(self))
+      	;
+
+      class_< BossakMethodType, BossakMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "BossakMethod", init<>())
+      	.def("SetVariables", &BossakMethodType::SetVariables)
+      	.def("SetInputVariable", &BossakMethodType::SetInputVariable)
+      	.def("SetParameters", &BossakMethodType::SetParameters)
+      	.def("Predict", &BossakMethodType::Predict)
 	.def(self_ns::str(self))
       	;
       

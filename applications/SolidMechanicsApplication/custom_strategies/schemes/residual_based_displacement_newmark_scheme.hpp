@@ -93,7 +93,7 @@ namespace Kratos
 
     typedef typename BaseType::Pointer                     BaseTypePointer;
    
-    typedef NewmarkMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >  IntegrationType;
+    typedef TimeIntegrationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >  IntegrationType;
 
     typedef typename IntegrationType::Pointer       IntegrationTypePointer;
 
@@ -106,8 +106,11 @@ namespace Kratos
       :Scheme<TSparseSpace,TDenseSpace>()
     {
 
+      // Set integration method
+      this->SetIntegrationMethod();
+      
       // Set scheme variables
-      mIntegrationMethod.SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
+      mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
       
       // Allocate auxiliary memory
       const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
@@ -123,7 +126,7 @@ namespace Kratos
     /// Copy Constructor.
     ResidualBasedDisplacementNewmarkScheme(ResidualBasedDisplacementNewmarkScheme& rOther)
       :BaseType(rOther)
-      ,mIntegrationMethod(rOther.mIntegrationMethod)
+      ,mpIntegrationMethod(rOther.mpIntegrationMethod)
       ,mMatrix(rOther.mMatrix)
       ,mVector(rOther.mVector)
     {
@@ -197,7 +200,7 @@ namespace Kratos
         {
 	  NodesArrayType::iterator itNode = NodeBegin + i;
 
-	  mIntegrationMethod.Update(*itNode);
+	  mpIntegrationMethod->Update(*itNode);
         }
 
       KRATOS_CATCH( "" );
@@ -236,7 +239,7 @@ namespace Kratos
         {
 	  NodesArrayType::iterator itNode = NodeBegin + i;
 
-	  mIntegrationMethod.Predict(*itNode);
+	  mpIntegrationMethod->Predict(*itNode);
         }
 
       KRATOS_CATCH( "" );
@@ -326,7 +329,7 @@ namespace Kratos
       Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
 
 
-      mIntegrationMethod.SetParameters(rCurrentProcessInfo);
+      mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
 
 
       KRATOS_CATCH( "" );
@@ -654,7 +657,7 @@ namespace Kratos
      * @return Zero means  all ok
      */
 
-    int Check(ModelPart& rModelPart) override
+    virtual int Check(ModelPart& rModelPart) override
     {
       KRATOS_TRY;
 
@@ -740,7 +743,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-    IntegrationType     mIntegrationMethod;
+    IntegrationTypePointer    mpIntegrationMethod;
 
     GeneralMatrices     mMatrix;
 
@@ -754,6 +757,11 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
+    virtual void SetIntegrationMethod()
+    {
+      this->mpIntegrationMethod = IntegrationTypePointer( new NewmarkMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+    }
+    
     /**
      * It adds the dynamic LHS contribution of the elements: M*c0 + D*c1 + K
      * @param LHS_Contribution: The dynamic contribution for the LHS
@@ -762,24 +770,24 @@ namespace Kratos
      * @param rCurrentProcessInfo: The current process info instance
      */
 
-    void AddDynamicsToLHS(LocalSystemMatrixType& LHS_Contribution,
-			  LocalSystemMatrixType& D,
-			  LocalSystemMatrixType& M,
-			  ProcessInfo& rCurrentProcessInfo)
+    virtual void AddDynamicsToLHS(LocalSystemMatrixType& LHS_Contribution,
+				  LocalSystemMatrixType& D,
+				  LocalSystemMatrixType& M,
+				  ProcessInfo& rCurrentProcessInfo)
     {
 
       double parameter = 0;
       // Adding mass contribution to the dynamic stiffness
       if (M.size1() != 0) // if M matrix declared
         {
-	  parameter = mIntegrationMethod.GetSecondDerivativeParameter(parameter);
+	  parameter = mpIntegrationMethod->GetSecondDerivativeParameter(parameter);
 	  noalias(LHS_Contribution) += M * parameter;
         }
 
       // Adding  damping contribution
       if (D.size1() != 0) // if D matrix declared
         {
-	  parameter = mIntegrationMethod.GetFirstDerivativeParameter(parameter);
+	  parameter = mpIntegrationMethod->GetFirstDerivativeParameter(parameter);
 	  noalias(LHS_Contribution) += D * parameter;
         }
     }
@@ -793,11 +801,11 @@ namespace Kratos
      * @param rCurrentProcessInfo: The current process info instance
      */
 
-    void AddDynamicsToRHS(Element::Pointer rCurrentElement,
-			  LocalSystemVectorType& RHS_Contribution,
-			  LocalSystemMatrixType& D,
-			  LocalSystemMatrixType& M,
-			  ProcessInfo& rCurrentProcessInfo)
+    virtual void AddDynamicsToRHS(Element::Pointer rCurrentElement,
+				  LocalSystemVectorType& RHS_Contribution,
+				  LocalSystemMatrixType& D,
+				  LocalSystemMatrixType& M,
+				  ProcessInfo& rCurrentProcessInfo)
     {
       int thread = OpenMPUtils::ThisThread();
 
@@ -827,11 +835,11 @@ namespace Kratos
      * @param rCurrentProcessInfo: The current process info instance
      */
 
-    void AddDynamicsToRHS(Condition::Pointer rCurrentCondition,
-			  LocalSystemVectorType& RHS_Contribution,
-			  LocalSystemMatrixType& D,
-			  LocalSystemMatrixType& M,
-			  ProcessInfo& rCurrentProcessInfo)
+    virtual void AddDynamicsToRHS(Condition::Pointer rCurrentCondition,
+				  LocalSystemVectorType& RHS_Contribution,
+				  LocalSystemMatrixType& D,
+				  LocalSystemMatrixType& M,
+				  ProcessInfo& rCurrentProcessInfo)
     {
       int thread = OpenMPUtils::ThisThread();
 

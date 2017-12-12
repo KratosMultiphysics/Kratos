@@ -47,8 +47,17 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         # Construct the base solver.
         super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
         
-        print("::[Implicit_Dynamic_Solver]:: Build")
+        print("::[Implicit_Scheme]:: Scheme Ready")
 
+
+    def GetVariables(self):
+
+        nodal_variables = super(ImplicitMechanicalSolver, self).GetVariables()
+        if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
+            nodal_variables = nodal_variables + ['INTERNAL_FORCE','EXTERNAL_FORCE']
+                
+        return nodal_variables
+        
     #### Solver internal methods ####
     
     def _create_solution_scheme(self):
@@ -84,7 +93,11 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         elif(integration_method == "Bossak"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
-            mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(bossak_factor)
+            # integration method for the integration of the imposed variable components
+            time_integration_method = KratosSolid.BossakMethod()
+            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
+            #mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(bossak_factor)
+            mechanical_scheme = KratosSolid.ResidualBasedDisplacementBossakScheme()
         elif(integration_method == "RotationNewmark"):
             dynamic_factor = self.implicit_solver_settings["dynamic_factor"].GetDouble() # 0,1 
             damp_factor_m = self.implicit_solver_settings["bossak_factor"].GetDouble()

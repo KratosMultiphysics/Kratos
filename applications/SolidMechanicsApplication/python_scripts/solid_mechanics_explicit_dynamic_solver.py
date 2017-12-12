@@ -52,23 +52,22 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         # Construct the base solver.
         super(ExplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
-        print("::[Explicit Dynamics Solver]:: Constructed")       
+        print("::[Explicit_Scheme]:: Scheme Ready")       
    
 
     def GetVariables(self):
 
-        nodal_variables = BaseSolver.MechanicalSolver.GetVariables(self)
+        nodal_variables = super(ExplicitMechanicalSolver, self).GetVariables()
 
         time_integration = self.time_integration_settings["time_integration"].GetString()
         # Add specific variables for the explicit time integration scheme
         if(time_integration == "Explicit"):
             nodal_variables = nodal_variables + ['NODAL_MASS','MIDDLE_VELOCITY','FORCE_RESIDUAL']
             # Add specific variables for the explicit time integration scheme in rotations
-            #if(self._check_input_dof("ROTATION") == True):
+            #if(self.time_integration_settings["integration_method"].GetString() == "ExplicitRotation"):
             #    nodal_variables = nodal_variables + ['INERTIA_DYADIC','MOMENT_RESIDUAL','POSITION_MOMENTUM','ROTATION_MOMENTUM', 'RESIDUAL_LYAPUNOV', 'TANGENT_LYAPUNOV']
                 
-        print("::[Explicit_Mechanical_Solver]:: Explicit Variables ADDED")
-
+        return nodal_variables
 
     #### Specific internal functions ####
     def _create_solution_scheme(self):

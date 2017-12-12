@@ -68,19 +68,16 @@ class Solution(object):
         self.model.SetVariables(solver_variables)
 
         # Start processes
-        #self.processes = self._get_processes()
+        self.processes = self._get_processes()
         
-        #processes_variables = self.processes.GetVariables()
-        #self.model.SetVariables(processes_variables)
+        processes_variables = self.processes.GetVariables()
+        self.model.SetVariables(processes_variables)
         
         self.process_info = self.model.GetProcessInfo()
         
         # Read model
         self.model.ImportModel()
-
-        # Start processes
-        self.processes = self._get_processes()
-        
+       
         sys.stdout.flush()
 
         # Initialize solver buffer
@@ -88,12 +85,13 @@ class Solution(object):
             self.solver.SetBuffer()       
             
         # Import materials
-        self.main_model_part = self.model.GetMainModelPart() 
         self._import_materials()
-        
-        self.processes.ExecuteInitialize()
 
+        # Initiliaze processes
+        self.processes.ExecuteInitialize()
+        
         # Print model_part and properties
+        self.main_model_part = self.model.GetMainModelPart() 
         if(self.echo_level>0):
             print("")
             print(self.main_model_part)
@@ -106,8 +104,6 @@ class Solution(object):
         self.output = self._get_graphical_output(output_model_part)
         self.output.ExecuteInitialize()
 
-        print(" ")
-        print("::[KSM Simulation]:: Analysis -START- ")
 
         # First execution before solution loop
         self.processes.ExecuteBeforeSolutionLoop()
@@ -119,7 +115,10 @@ class Solution(object):
         # Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self.processes.ExecuteInitializeSolutionStep() #trick to use elimintation builder
         self.solver.Initialize()
-       
+
+        print(" ")
+        print("::[KSM Simulation]:: Analysis -START- ")
+        
         # Set time settings
         self.step       = self.process_info[KratosMultiphysics.STEP]
         self.time       = self.process_info[KratosMultiphysics.TIME]

@@ -45,7 +45,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
         # Construct the base solver.
         super(StaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
-        print("::[Static_Mechanical_Solver]:: Build")        
+        print("::[Static_Scheme]:: Scheme Ready")        
  
     #### Solver internal methods ####
         

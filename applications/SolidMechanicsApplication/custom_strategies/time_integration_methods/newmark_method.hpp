@@ -144,7 +144,11 @@ namespace Kratos
     NewmarkMethod() : BaseType() {}
 
     /// Copy Constructor.
-    NewmarkMethod(NewmarkMethod& rOther) : BaseType(rOther) {}
+    NewmarkMethod(NewmarkMethod& rOther)
+      :BaseType(rOther)
+      ,mNewmark(rOther.mNewmark)
+    {
+    }
 
     /// Clone.
     BaseTypePointer Clone()
@@ -164,7 +168,7 @@ namespace Kratos
     ///@{
     
     // set parameters
-    void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
+    virtual void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY
        
@@ -192,21 +196,20 @@ namespace Kratos
     }     
 
     // get parameters
-    double& GetFirstDerivativeParameter(double& rParameter) override
+    virtual double& GetFirstDerivativeParameter(double& rParameter) override
     {
       rParameter = mNewmark.c1;
       return rParameter;
     }
 
-    double& GetSecondDerivativeParameter(double& rParameter) override
+    virtual double& GetSecondDerivativeParameter(double& rParameter) override
     {
       rParameter = mNewmark.c0;
       return rParameter;
     }
     
     // predict
- 
-    void Predict(NodeType& rNode) override
+    virtual void Predict(NodeType& rNode) override
     {
      KRATOS_TRY
      
@@ -239,7 +242,7 @@ namespace Kratos
      KRATOS_CATCH( "" )
     }
 
-    void PredictVariable(NodeType& rNode) override
+    virtual void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -259,7 +262,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    void PredictFirstDerivative(NodeType& rNode) override
+    virtual void PredictFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -275,7 +278,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    void PredictSecondDerivative(NodeType& rNode) override
+    virtual void PredictSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -293,7 +296,7 @@ namespace Kratos
     
     // update
  
-    void Update(NodeType& rNode) override
+    virtual void Update(NodeType& rNode) override
     {
      KRATOS_TRY
        
@@ -304,7 +307,7 @@ namespace Kratos
      KRATOS_CATCH( "" )
     }
    
-    void UpdateVariable(NodeType& rNode) override
+    virtual void UpdateVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -318,7 +321,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    void UpdateFirstDerivative(NodeType& rNode) override
+    virtual void UpdateFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -334,7 +337,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    void UpdateSecondDerivative(NodeType& rNode) override
+    virtual void UpdateSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 

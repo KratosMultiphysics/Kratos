@@ -40,7 +40,15 @@ class ProcessHandler(KratosMultiphysics.Process):
         if(self.echo_level>1):
             for process in self.list_of_processes:
                 print(process)
-                        
+
+    #
+    def GetVariables(self):
+        nodal_variables = []
+        for process in self.list_of_processes:
+            nodal_variables = nodal_variables + process.GetVariables()
+
+        return nodal_variables
+            
     #
     def ExecuteInitialize(self):
         for process in self.list_of_processes:
@@ -75,7 +83,7 @@ class ProcessHandler(KratosMultiphysics.Process):
     #
     def Sort(self):
 
-        print("::[Process_Handler]:: Create Process List -START-")
+        #print("::[Process_Handler]:: Create Process List -START-")
         #build sorted list of processes
 
         # Assumptions: (a) each supplied list is separated and has no intersections
@@ -111,7 +119,8 @@ class ProcessHandler(KratosMultiphysics.Process):
         self.list_of_processes += self.ConstructList( self.settings["output_process_list"] )
 
 
-        print("::[Process_Handler]:: Create Process List -END-")
+        #print("::[Process_Handler]:: Create Process List -END-")
+        print("::[Process_Handler]:: Process List Ready")
         
     #
     def ConstructList(self, process_list):

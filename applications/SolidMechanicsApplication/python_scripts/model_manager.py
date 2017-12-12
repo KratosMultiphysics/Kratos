@@ -72,7 +72,7 @@ class ModelManager(object):
 
         self._add_variables()
                 
-        print("::[Model_Manager]:: Importing model part.")
+        #print("::[Model_Manager]:: Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["import_settings"]["input_filename"].GetString()
         
@@ -113,8 +113,9 @@ class ModelManager(object):
             raise Exception("Other input options are not yet implemented.")
 
         
-        print ("::[Model_Manager]:: Finished importing model part.")
-            
+        #print ("::[Model_Manager]:: Finished importing model part")
+        print ("::[Model_Manager]:: Model Ready")
+          
     def ExportModel(self):
         name_out_file = self.settings["import_settings"]["input_filename"].GetString()+".out"
         file = open(name_out_file + ".mdpa","w")
@@ -153,21 +154,24 @@ class ModelManager(object):
         self._set_variables()
         
         self.nodal_variables = self.nodal_variables + self.dof_variables + self.dof_reactions 
-
+        self.nodal_variables = list(set(self.nodal_variables))
+        
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
 
         for variable in self.nodal_variables:            
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
             #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
-            
-        print("::[Model_Manager]:: General Variables ADDED")
+
+        #print(self.nodal_variables)
+        #print("::[Model_Manager]:: General Variables ADDED")
                                                               
         
     def _add_dofs(self):
         AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
         AddDofsProcess.Execute()
-                
-        print("::[Model_Manager]:: DOF's ADDED")
+
+        #print(self.dof_variables + self.dof_reactions)
+        #print("::[Model_Manager]:: DOF's ADDED")
 
     def _set_variables(self):
                 
@@ -179,15 +183,11 @@ class ModelManager(object):
         self.nodal_variables = self.nodal_variables + ['VELOCITY','ACCELERATION']
         
         # Add specific variables for the problem conditions
-        self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION']
+        # self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION']
         # they must be added by the process
         # self.nodal_variables = self.nodal_variables + ['POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD','POINT_STIFFNESS','LINE_STIFFNESS','SURFACE_STIFFNESS','BALLAST_COEFFICIENT']
         
-        # Add nodal force variables for component wise calculation (they must be added by the solver)
-        if( self.settings.Has("component_wise") ):
-            if self.settings["component_wise"].GetBool():
-                self.nodal_variables = self.nodal_variables + ['INTERNAL_FORCE','EXTERNAL_FORCE']
- 
+
         # Add rotational variables
         if self._check_input_dof("ROTATION"):                    
             # Add specific variables for the problem (rotation dofs)
@@ -198,21 +198,20 @@ class ModelManager(object):
             # Add large rotation variables
             self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT','STEP_ROTATION','DELTA_ROTATION']
             # Add specific variables for the problem conditions
-            self.nodal_variables = self.nodal_variables + ['POINT_MOMENT','LINE_MOMENT','SURFACE_MOMENT','PLANE_POINT_MOMENT','PLANE_LINE_MOMENT']
+            # self.nodal_variables = self.nodal_variables + ['POINT_MOMENT','LINE_MOMENT','SURFACE_MOMENT','PLANE_POINT_MOMENT','PLANE_LINE_MOMENT']
             
         # Add pressure variables
         if self._check_input_dof("PRESSURE"):
             # Add specific variables for the problem (pressure dofs)
             self.dof_variables = self.dof_variables + ['PRESSURE']
             self.dof_reactions = self.dof_reactions + ['PRESSURE_REACTION']
-            #if not self.settings["stabilization_factor"].IsNull():
-            #    self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
 
         # Add contat variables
         if self._check_input_dof("LAGRANGE_MULTIPLIER"):
             # Add specific variables for the problem (contact dofs)
             self.dof_variables = self.dof_variables + ['LAGRANGE_MULTIPLIER_NORMAL']
-            self.dof_reactions = self.dof_reactions + ['LAGRANGE_MULTIPLIER_NORMAL_REACTION']        
+            self.dof_reactions = self.dof_reactions + ['LAGRANGE_MULTIPLIER_NORMAL_REACTION']
+            
             
     def _check_input_dof(self, variable):
         dofs_list = self.settings["dofs"]
