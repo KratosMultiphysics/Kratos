@@ -95,7 +95,7 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
         data.PositiveInterfaceWeights.size();
     for (unsigned int g = 0; g < number_of_interface_gauss_points; g++) {
         data.UpdateGeometryValues(data.PositiveInterfaceWeights[g],
-            row(data.PositiveInterfaceN, g), data.PositiveSideDNDX[g]);
+            row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
         this->AddBoundaryIntegral(data, data.PositiveInterfaceUnitNormals[g],
             rLeftHandSideMatrix, rRightHandSideVector);
     }
@@ -306,7 +306,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
         avg_visc += rData.DynamicViscosity[i];
         avg_vel += row(rData.Velocity, i);
     }
-    
+
     constexpr double weight = 1./double(NumNodes);
     avg_rho *= weight;
     avg_visc *= weight;
@@ -360,21 +360,21 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
     this->GetCurrentValuesVector(rData, values);
 
     // Compute the BCs imposition matrices
-    MatrixType M_gamma = ZeroMatrix(rData.NumNegativeNodes, rData.NumNegativeNodes);  // Outside nodes matrix (Nitche contribution)
-    MatrixType N_gamma = ZeroMatrix(rData.NumPositiveNodes, rData.NumPositiveNodes);  // Interior nodes matrix (Nitche contribution)
-    MatrixType f_gamma = ZeroMatrix(rData.NumPositiveNodes, NumNodes);    // Matrix to compute the RHS (Nitche contribution)
+    MatrixType M_gamma = ZeroMatrix(rData.NumNegativeNodes, rData.NumNegativeNodes);  // Outside nodes matrix (Nitsche contribution)
+    MatrixType N_gamma = ZeroMatrix(rData.NumNegativeNodes, rData.NumPositiveNodes);  // Interior nodes matrix (Nitsche contribution)
+    MatrixType f_gamma = ZeroMatrix(rData.NumNegativeNodes, NumNodes);    // Matrix to compute the RHS (Nitsche contribution)
 
     VectorType aux_out(rData.NumNegativeNodes);
     VectorType aux_int(rData.NumPositiveNodes);
 
     const unsigned int number_of_integration_points = rData.PositiveInterfaceWeights.size();
 
-    for (unsigned int g = 0; g < number_of_integration_points; ++g) {
+    for (unsigned int g = 0; g < number_of_integration_points; g++) {
         const double weight = rData.PositiveInterfaceWeights[g];
 
         const auto aux_cut = row(rData.PositiveInterfaceN, g);
 
-        for (unsigned int i_out = 0; i_out < rData.NumNegativeNodes; ++i_out) {
+        for (unsigned int i_out = 0; i_out < rData.NumNegativeNodes; i_out++) {
             const unsigned int i_out_nodeid = rData.NegativeIndices[i_out];
             aux_out(i_out) = aux_cut(i_out_nodeid);
         }
