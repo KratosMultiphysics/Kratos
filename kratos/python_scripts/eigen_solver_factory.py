@@ -25,6 +25,9 @@ def ConstructSolver(settings):
     elif(solver_type == "SpectraEigenValueSolver"): # needs Eigen and Spectra
         import KratosMultiphysics.EigenSolversApplication
         eigen_solver = KratosMultiphysics.EigenSolversApplication.SpectraEigenValueSolver(settings)
+    elif(solver_type == "KrylovSchurEigenValueSolver"):
+        import KratosMultiphysics.EigenSolversApplication
+        eigen_solver = KratosMultiphysics.EigenSolversApplication.KrylovSchurEigenValueSolver(settings, linear_solver)
     else:
         raise Exception("Solver type not found. Asking for :" + solver_type)
 

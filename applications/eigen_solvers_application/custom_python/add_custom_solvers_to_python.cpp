@@ -22,8 +22,10 @@
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+#include "linear_solvers/iterative_solver.h"
 #include "custom_solvers/EigenDirectSolver.h"
 #include "custom_solvers/SpectraEigenValueSolver.h"
+#include "custom_solvers/KrylovSchurEigenValueSolver.h"
 
 namespace Kratos
 {
@@ -39,6 +41,7 @@ void AddCustomSolversToPython()
 	typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 	typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 	typedef DirectSolver<SparseSpaceType, LocalSpaceType> DirectSolverType;
+	typedef IterativeSolver<SparseSpaceType,  LocalSpaceType> IterativeSolverType;
 
 	using SparseLUSolver = EigenDirectSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
 	class_<SparseLUSolver, bases<DirectSolverType>, boost::noncopyable>
@@ -66,6 +69,11 @@ void AddCustomSolversToPython()
 	class_<SpectraEigenValueSolver, bases<LinearSolverType>, boost::noncopyable>
 		("SpectraEigenValueSolver", init<Parameters::Pointer>())
 		.def(init<Parameters::Pointer>());
+
+	using KrylovSchurEigenValueSolver = KrylovSchurEigenValueSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+	class_<KrylovSchurEigenValueSolver, bases<LinearSolverType>, boost::noncopyable>
+	 	("KrylovSchurEigenValueSolver", init<Parameters::Pointer, LinearSolverType::Pointer>())
+	 	.def(init<Parameters::Pointer, LinearSolverType::Pointer>());
 }
 
 } // namespace Python
