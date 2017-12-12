@@ -273,36 +273,27 @@ class FracStepSolver:
     def Solve(self):
 	
 
-        self.timer.Start("Update Fixed Velocity Values")
         (self.solver).Solve()
 
     def solve3(self):
 	
-        self.timer.Start("primero")
 
         (self.solver).SolveStep3(1.0)
-        self.timer.Stop("primero")
 
     def solve5(self):
 	
-        self.timer.Start("primero")
 
         (self.solver).SolveStep5(1.0)
-        self.timer.Stop("primero")   
 
     def solve4(self):
 	
-        self.timer.Start("segundo")
 
         (self.solver).SolveStep4(1.0)
-        self.timer.Stop("segundo")
 
     def solve5(self):
 	
-        self.timer.Start("segundo")
 
         (self.solver).SolveStep5(1.0)
-        self.timer.Stop("segundo")
 
 
     def Projections(self):
@@ -311,11 +302,8 @@ class FracStepSolver:
 
     def Reactions(self):
 
-        self.timer.Start("reactions")
-        # sssssssssss
 
         (self.solver).Compute()
-        self.timer.Stop("reactions")
 
 
     def Clear(self):
@@ -341,47 +329,43 @@ class FracStepSolver:
     def RemeshAux(self):
 	
         
-        h_factor=0.1 ##para este caso
-        h_factor=0.3 ##para este caso
-        h_factor=0.1 ##para este caso
-        
-
-        alpha_shape=1.2;
+        h_factor=0.1 
+        alpha_shape=1.4;
 
 
         for node in (self.model_part).Nodes:
             node.Set(TO_ERASE, False)
         #dambreak
         for node in (self.model_part).Nodes: 
-            node.SetSolutionStepValue(NODAL_H,0,0.0008)
-            node.SetSolutionStepValue(NODAL_H,0,0.003)
-            node.SetSolutionStepValue(NODAL_H,0,0.0028)
-            node.SetSolutionStepValue(NODAL_H,0,0.0025)
-            node.SetSolutionStepValue(NODAL_H,0,0.0019)
-        
+            node.SetSolutionStepValue(NODAL_H,0,0.0011) 
+
         self.node_erase_process = NodeEraseProcess(self.model_part);
         box_corner1 = Vector(3); 
         box_corner2 = Vector(3); 
 
         
-        ###NUEVA GEOMETRIA
 
         box_corner1[0]=-0.014653
         box_corner1[1]=-0.16#0.31315#-0.1689
+        box_corner1[1]=-0.15#0.31315#-0.1689
         box_corner1[2]=-10.0
         box_corner2[0]=0.015702
         box_corner2[1]=0.01189
         box_corner2[2]=10.0
 
-        #box_corner1[0]=-1.0
-        #box_corner1[1]=-1.0#-0.1689
-        #box_corner1[2]=-1.0
-        #box_corner2[0]=1.0
-        #box_corner2[1]=1.0
-        #box_corner2[2]=1.0
 
 
-        ##ejemplo 2d
+
+        box_corner1[0]=-10.0
+        box_corner1[1]=-10.0#0.31315#-0.1689
+        box_corner1[2]=-10.0
+        box_corner2[0]=10.0
+        box_corner2[1]=10.0
+        box_corner2[2]=10.0
+
+        for node in (self.model_part).Nodes: 
+            node.SetSolutionStepValue(NODAL_H,0,0.15) 
+
 
         self.box_corner1 = box_corner1
         self.box_corner2 = box_corner2

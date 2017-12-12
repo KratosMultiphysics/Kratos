@@ -99,7 +99,6 @@ private:
     const SinteringSphericContinuumParticle mSinteringSphericContinuumParticle3D;
     const BondingSphericContinuumParticle mBondingSphericContinuumParticle3D;
     const ParticleContactElement mParticleContactElement;
-    const VariablesList mVariablesList;
     const SolidFace3D  mSolidFace3D3N;
     const SolidFace3D  mSolidFace3D4N;
     const RigidFace3D  mRigidFace3D3N;

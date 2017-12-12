@@ -176,8 +176,8 @@ void InterfacePreprocessCondition::CreateNewCondition(
 /***********************************************************************************/
 
 void InterfacePreprocessCondition::PrintNodesAndConditions(
-        const int& NodesCounter,
-        const int& CondCounter
+        const int NodesCounter,
+        const int CondCounter
         )
 {
     std::cout << "\t" << NodesCounter << " nodes ";
@@ -221,7 +221,7 @@ inline void InterfacePreprocessCondition::GenerateEdgeCondition(
     GeometryType& EdgeGeometry,
     const std::string& ConditionName,
     const std::string& FinalString,
-    const bool& SimplestGeometry,
+    const bool SimplestGeometry,
     unsigned int& CondCounter,
     unsigned int& CondId,
     const bool IsMortar
@@ -304,7 +304,7 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
     GeometryType& FaceGeometry,
     const std::string& ConditionName,
     const std::string& FinalString,
-    const bool& SimplestGeometry,
+    const bool SimplestGeometry,
     unsigned int& CondCounter,
     unsigned int& CondId,
     const bool IsMortar

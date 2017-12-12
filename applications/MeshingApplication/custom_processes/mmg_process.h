@@ -22,6 +22,7 @@
 
 // Project includes
 #include "processes/process.h"
+#include "includes/key_hash.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "containers/variables_list.h"
@@ -81,78 +82,6 @@ namespace Kratos
     typedef MeshType::NodeConstantIterator                 NodeConstantIterator;
     typedef MeshType::ConditionConstantIterator       ConditionConstantIterator;
     typedef MeshType::ElementConstantIterator           ElementConstantIterator;
-    
-    #if !defined(HASH_COMBINE)
-    #define HASH_COMBINE
-    template <class TClassType>
-    inline void HashCombine(std::size_t& Seed, const TClassType& Value)
-    {
-        std::hash<TClassType> hasher;
-        Seed ^= hasher(Value) + 0x9e3779b9 + (Seed<<6) + (Seed>>2);
-    }
-    #endif
-    
-    #if !defined(HASH_RANGE)
-    #define HASH_RANGE
-    template <class TClassType>
-    inline std::size_t HashRange(TClassType First, TClassType Last)
-    {
-        std::size_t seed = 0;
-
-        while (First!=Last)
-        {
-            HashCombine(seed, *First);
-            ++First;
-        }
-        
-        return seed;
-    }
-    #endif
-    
-    #if !defined(KEY_COMPAROR_RANGE)
-    #define KEY_COMPAROR_RANGE
-    template<class TClassType>
-    struct KeyComparorRange
-    {
-        bool operator()(const TClassType& lhs, const TClassType& rhs) const
-        {
-            if(lhs.size() != rhs.size())
-            {
-                return false;
-            }
-
-            auto it_lhs = lhs.begin();
-            auto it_rhs = rhs.begin();
-
-            while(it_lhs != lhs.end()) // NOTE: We already checked that are same size
-            {
-                if(*it_lhs != *it_rhs) 
-                {
-                    return false;
-                }
-                if(it_lhs != lhs.end())
-                {
-                    ++it_lhs;
-                    ++it_rhs;
-                }
-            }
-
-            return true;
-        }
-    };
-    #endif
-    
-    #if !defined(KEY_HASHER_RANGE)
-    #define KEY_HASHER_RANGE
-    template<class TClassType>
-    struct KeyHasherRange
-    {
-        std::size_t operator()(const TClassType& rRange) const
-        {
-            return HashRange(rRange.begin(), rRange.end());
-        }
-    };
-    #endif
 
 ///@}
 ///@name  Enum's
@@ -205,11 +134,14 @@ public:
     
     /**
      * This is the default constructor, which is used to read the input files 
-     * @param rThisModelPart: The model part
-     * @param ThisParameters: The parameters
+     * @param rThisModelPart The model part
+     * @param ThisParameters The parameters
      */
     
-    MmgProcess(ModelPart& rThisModelPart, Parameters ThisParameters = Parameters(R"({})"));
+    MmgProcess(
+        ModelPart& rThisModelPart, 
+        Parameters ThisParameters = Parameters(R"({})")
+        );
 
     /// Destructor.
     ~MmgProcess() override = default;
@@ -401,17 +333,17 @@ private:
     
     /**
      * It blocks certain nodes before remesh the model
-     * @param iNode: The index of the noode
+     * @param iNode The index of the noode
      */
     
     void BlockNode(unsigned int iNode);
     
     /**
      * It creates the new node
-     * @param iNode: The index of the new noode
-     * @param Ref: The submodelpart id
-     * @param IsRequired: MMG value (I don't know that it does)
-     * @return pNode: The pointer to the new node created
+     * @param iNode The index of the new noode
+     * @param Ref The submodelpart id
+     * @param IsRequired MMG value (I don't know that it does)
+     * @return pNode The pointer to the new node created
      */
     
     NodeType::Pointer CreateNode(
@@ -422,10 +354,10 @@ private:
     
     /**
      * It creates the new condition
-     * @param CondId: The id of the condition
-     * @param PropId: The submodelpart id
-     * @param IsRequired: MMG value (I don't know that it does)
-     * @return pCondition: The pointer to the new condition created
+     * @param CondId The id of the condition
+     * @param PropId The submodelpart id
+     * @param IsRequired MMG value (I don't know that it does)
+     * @return pCondition The pointer to the new condition created
      */
     
     ConditionType::Pointer CreateCondition0(
@@ -434,6 +366,14 @@ private:
         int& IsRequired,
         bool SkipCreation
         );
+    
+    /**
+     * It creates the new condition
+     * @param CondId The id of the condition
+     * @param PropId The submodelpart id
+     * @param IsRequired MMG value (I don't know that it does)
+     * @return pCondition The pointer to the new condition created
+     */
     
     ConditionType::Pointer CreateCondition1(
         const unsigned int CondId,
@@ -444,10 +384,10 @@ private:
     
     /**
      * It creates the new element
-     * @param CondId: The id of the element
-     * @param PropId: The submodelpart id
-     * @param IsRequired: MMG value (I don't know that it does)
-     * @return pElement: The pointer to the new condition created
+     * @param CondId The id of the element
+     * @param PropId The submodelpart id
+     * @param IsRequired MMG value (I don't know that it does)
+     * @return pElement The pointer to the new condition created
      */
     
     ElementType::Pointer CreateElement0(
@@ -456,6 +396,14 @@ private:
         int& IsRequired,
         bool SkipCreation
         );
+    
+    /**
+     * It creates the new element
+     * @param CondId The id of the element
+     * @param PropId The submodelpart id
+     * @param IsRequired MMG value (I don't know that it does)
+     * @return pElement The pointer to the new condition created
+     */
     
     ElementType::Pointer CreateElement1(
         const unsigned int ElemId,
@@ -466,7 +414,7 @@ private:
     
     /**
      * It saves the solution and mesh to files (for debugging pourpose g.e)
-     * @param PostOutput: If the file to save is after or before remeshing
+     * @param PostOutput If the file to save is after or before remeshing
      */
     
     void SaveSolutionToFile(const bool PostOutput);
@@ -479,11 +427,11 @@ private:
     
     /** 
      * Initialisation of mesh and sol structures args of InitMesh:
-     * @param MMG5_ARG_start: we start to give the args of a variadic func
-     * @param MMG5_ARG_ppMesh: next arg will be a pointer over a MMG5_pMesh
-     * @param &mmgMesh: pointer toward your MMG5_pMesh (that store your mesh)
-     * @param MMG5_ARG_ppMet: next arg will be a pointer over a MMG5_pSol storing a metric
-     * @param &mmgSol: pointer toward your MMG5_pSol (that store your metric) 
+     * MMG5_ARG_start we start to give the args of a variadic func
+     * MMG5_ARG_ppMesh next arg will be a pointer over a MMG5_pMesh
+     * &mmgMesh pointer toward your MMG5_pMesh (that store your mesh)
+     * MMG5_ARG_ppMet next arg will be a pointer over a MMG5_pSol storing a metric
+     * &mmgSol pointer toward your MMG5_pSol (that store your metric) 
      */
     
     void InitMesh();
@@ -496,16 +444,16 @@ private:
     
     /** 
      * Here the verbosity is set using the API
-     * @param verbosityMMG: The equivalent verbosity level in the MMG API
+     * @param verbosityMMG The equivalent verbosity level in the MMG API
      */
         
     void InitVerbosityParameter(const int& VerbosityMMG);
     
     /**
      * This sets the size of the mesh
-     * @param NumNodes: Number of nodes
-     * @param NumElements: Number of Elements
-     * @param NumConditions: Number of Conditions
+     * @param NumNodes Number of nodes
+     * @param NumElements Number of Elements
+     * @param NumConditions Number of Conditions
      */
     
     void SetMeshSize(
@@ -516,7 +464,7 @@ private:
     
     /**
      * This sets the size of the solution for the scalar case
-     * @param NumNodes: Number of nodes
+     * @param NumNodes Number of nodes
      */
     
     void SetSolSizeScalar(const int NumNodes);
@@ -530,7 +478,7 @@ private:
     
     /**
      * This sets the size of the solution for the tensor case
-     * @param NumNodes: Number of nodes
+     * @param NumNodes Number of nodes
      */
     
     void SetSolSizeTensor(const int NumNodes);
@@ -543,8 +491,8 @@ private:
     
     /**
      * This sets the output mesh
-     * @param PostOutput: If the ouput file is the solution after take into account the metric or not
-     * @param step: The step to postprocess
+     * @param PostOutput If the ouput file is the solution after take into account the metric or not
+     * @param step The step to postprocess
      */
     
     void OutputMesh(
@@ -559,8 +507,8 @@ private:
 
     /**
      * This sets the output sol
-     * @param PostOutput: If the ouput file is the solution after take into account the metric or not
-     * @param step: The step to postprocess
+     * @param PostOutput If the ouput file is the solution after take into account the metric or not
+     * @param step The step to postprocess
      */
     
     void OutputSol(
@@ -582,11 +530,11 @@ private:
     
     /**
      * This sets the nodes of the mesh
-     * @param X: Coordinate X
-     * @param Y: Coordinate Y
-     * @param Z: Coordinate Z
-     * @param Color: Reference of the node(submodelpart)
-     * @param Index: The index number of the node 
+     * @param X Coordinate X
+     * @param Y Coordinate Y
+     * @param Z Coordinate Z
+     * @param Color Reference of the node(submodelpart)
+     * @param Index The index number of the node 
      */
     
     void SetNodes(
@@ -599,9 +547,9 @@ private:
     
     /**
      * This sets the conditions of the mesh
-     * @param Geom: The geometry of the condition
-     * @param Color: Reference of the node(submodelpart)
-     * @param Index: The index number of the node 
+     * @param Geom The geometry of the condition
+     * @param Color Reference of the node(submodelpart)
+     * @param Index The index number of the node 
      */
     
     void SetConditions(
@@ -612,9 +560,9 @@ private:
     
     /**
      * This sets elements of the mesh
-     * @param Geom: The geometry of the element
-     * @param Color: Reference of the node(submodelpart)
-     * @param Index: The index number of the node 
+     * @param Geom The geometry of the element
+     * @param Color Reference of the node(submodelpart)
+     * @param Index The index number of the node 
      */
     
     void SetElements(
@@ -625,9 +573,9 @@ private:
     
     /**
      * This functions gets the "colors", parts of a model part to process
-     * @param NodeColors: Map where the submodelparts and nodes are stored
-     * @param CondColors: Map where the submodelparts and conditions are stored
-     * @param ElemColors: Map where the submodelparts and elements are stored
+     * @param NodeColors Map where the submodelparts and nodes are stored
+     * @param CondColors Map where the submodelparts and conditions are stored
+     * @param ElemColors Map where the submodelparts and elements are stored
      */
     
     void ComputeColors(
@@ -638,7 +586,7 @@ private:
 
     /**
      * This function is used to compute the metric scalar
-     * @param Metric: The inverse of the size node
+     * @param Metric The inverse of the size node
      */
 
     void SetMetricScalar(
@@ -648,7 +596,7 @@ private:
     
     /**
      * This function is used to compute the metric vector (x, y, z)
-     * @param Metric: This array contains the components of the metric vector
+     * @param Metric This array contains the components of the metric vector
      */
 
     void SetMetricVector(
@@ -658,7 +606,7 @@ private:
     
     /**
      * This function is used to compute the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
-     * @param Metric: This array contains the components of the metric tensor in the MMG defined order
+     * @param Metric This array contains the components of the metric tensor in the MMG defined order
      */
 
     void SetMetricTensor(
@@ -668,7 +616,7 @@ private:
     
     /**
      * This converts the framework string to an enum
-     * @param Str: The string
+     * @param Str The string
      * @return FrameworkEulerLagrange: The equivalent enum
      */
         

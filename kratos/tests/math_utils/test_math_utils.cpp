@@ -85,7 +85,7 @@ namespace Kratos
             boost::numeric::ublas::bounded_matrix<double, 1, 1> mat11 = ZeroMatrix(1, 1);
             mat11(0,0) = 1.0;
             
-            double det = MathUtils<double>::DetMat<1>(mat11);
+            double det = MathUtils<double>::DetMat(mat11);
 
             KRATOS_CHECK_NEAR(det, 1.0, tolerance);
             
@@ -93,7 +93,7 @@ namespace Kratos
             mat22(0,0) = 1.0;
             mat22(1,1) = 1.0;
             
-            det = MathUtils<double>::DetMat<2>(mat22);
+            det = MathUtils<double>::DetMat(mat22);
 
             KRATOS_CHECK_NEAR(det, 1.0, tolerance);
             
@@ -102,7 +102,7 @@ namespace Kratos
             mat33(1,1) = 1.0;
             mat33(2,2) = 1.0;
             
-            det = MathUtils<double>::DetMat<3>(mat33);
+            det = MathUtils<double>::DetMat(mat33);
 
             KRATOS_CHECK_NEAR(det, 1.0, tolerance);
             
@@ -112,9 +112,59 @@ namespace Kratos
             mat44(2,2) = 1.0;
             mat44(3,3) = 1.0;
             
-            det = MathUtils<double>::DetMat<4>(mat44);
+            det = MathUtils<double>::DetMat(mat44);
 
             KRATOS_CHECK_NEAR(det, 1.0, tolerance);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsCofactorTest, KratosCoreMathUtilsFastSuite) 
+        {
+            constexpr double tolerance = 1e-6;
+            
+            boost::numeric::ublas::bounded_matrix<double, 1, 1> mat11 = ZeroMatrix(1, 1);
+            mat11(0,0) = 2.0;
+            
+            double cofactor = MathUtils<double>::Cofactor(mat11, 0, 0);
+
+            KRATOS_CHECK_EQUAL(cofactor, 1.0);
+            
+            boost::numeric::ublas::bounded_matrix<double, 2, 2> mat22 = ZeroMatrix(2, 2);
+            mat22(0,0) = -2.0; mat22(0,1) = 2.0;
+            mat22(1,0) = -1.0; mat22(1,1) = 1.0;
+            
+            cofactor = MathUtils<double>::Cofactor(mat22, 1, 1);
+            KRATOS_CHECK_EQUAL(cofactor, -2.0);
+
+            cofactor = MathUtils<double>::Cofactor(mat22, 0, 1);
+            KRATOS_CHECK_EQUAL(cofactor, 1.0);
+            
+            boost::numeric::ublas::bounded_matrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
+            mat33(0,0) = -2.0; mat33(0,1) = 2.0; mat33(0,2) = -3.0;
+            mat33(1,0) = -1.0; mat33(1,1) = 1.0; mat33(1,2) = 3.0;
+            mat33(2,0) = 2.0; mat33(2,1) = 0.0; mat33(2,2) = -1.0;
+            
+            cofactor = MathUtils<double>::Cofactor(mat33, 2, 1);
+            KRATOS_CHECK_NEAR(cofactor, 9.0, tolerance);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsCofactorMatrixTest, KratosCoreMathUtilsFastSuite) 
+        {
+            constexpr double tolerance = 1e-6;
+            
+            boost::numeric::ublas::bounded_matrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
+            mat33(0,0) = 2.0; mat33(0,1) = 0.0; mat33(0,2) = 2.0;
+            mat33(1,0) = 2.0; mat33(1,1) = 0.0; mat33(1,2) =-2.0;
+            mat33(2,0) = 0.0; mat33(2,1) = 1.0; mat33(2,2) = 1.0;
+
+            boost::numeric::ublas::bounded_matrix<double, 3, 3> ref33 = ZeroMatrix(3, 3);
+            ref33(0,0) = 2.0; ref33(0,1) =-2.0; ref33(0,2) = 2.0;
+            ref33(1,0) = 2.0; ref33(1,1) = 2.0; ref33(1,2) =-2.0;
+            ref33(2,0) = 0.0; ref33(2,1) = 8.0; ref33(2,2) = 0.0;
+            
+            MathUtils<double>::MatrixType cof_mat = MathUtils<double>::CofactorMatrix(mat33);
+            for (unsigned i = 0; i < ref33.size1(); ++i)
+                for (unsigned j = 0; j < ref33.size2(); ++j)
+                    KRATOS_CHECK_NEAR(cof_mat(i,j), ref33(i,j), tolerance);
         }
         
         /** Checks if it calculates the generalized determinant of a non-square matrix
@@ -595,8 +645,10 @@ namespace Kratos
             array_1d<double, 3> b = ZeroVector(3);
             b[0] = 1.0;
 
-            const array_1d<double, 3>  c = MathUtils<double>::CrossProduct(a, b);
-            const array_1d<double, 3>  d = MathUtils<double>::UnitCrossProduct(a, b);
+            array_1d<double, 3>  c, d;
+
+            MathUtils<double>::CrossProduct(c, b, a);
+            MathUtils<double>::UnitCrossProduct(d, b, a);
             
             KRATOS_CHECK_EQUAL(c[2], 2.0);
             KRATOS_CHECK_EQUAL(d[2], 1.0);

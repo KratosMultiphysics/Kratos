@@ -21,11 +21,12 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+// #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/cfd_variables.h"
 #include "processes/find_nodal_h_process.h"
 #include "utilities/openmp_utils.h"
+#include "includes/kratos_parameters.h"
 
 // Application includes
 
@@ -73,11 +74,40 @@ public:
     ///@{
 
     /// Constructor.
-    DistanceModificationProcess(ModelPart& rModelPart, const bool& rCheckAtEachStep, const bool& rRecoverOriginalDistance): mrModelPart(rModelPart)
-    {
+    DistanceModificationProcess(
+        ModelPart& rModelPart, 
+        const bool CheckAtEachStep, 
+        const bool NegElemDeactivation,
+        const bool RecoverOriginalDistance)
+        : Process(), mrModelPart(rModelPart) {
+
         mFactorCoeff = 2.0;
-        mrCheckAtEachStep = rCheckAtEachStep;
-        mrRecoverOriginalDistance = rRecoverOriginalDistance;
+        mCheckAtEachStep = CheckAtEachStep;
+        mNegElemDeactivation = NegElemDeactivation;
+        mRecoverOriginalDistance = RecoverOriginalDistance;
+    }
+
+    DistanceModificationProcess(
+        ModelPart& rModelPart,
+        Parameters& rParameters)
+        : Process(), mrModelPart(rModelPart) {
+
+        Parameters default_parameters( R"(
+        {
+            "mesh_id"                                : 0,
+            "model_part_name"                        : "default_model_part_name",
+            "distance_factor"                        : 2.0,
+            "check_at_each_time_step"                : false,
+            "deactivate_full_negative_elements"      : true,
+            "recover_original_distance_at_each_step" : false
+        }  )" );
+
+        rParameters.ValidateAndAssignDefaults(default_parameters);
+
+        mFactorCoeff = rParameters["distance_factor"].GetDouble();
+        mCheckAtEachStep = rParameters["check_at_each_time_step"].GetBool();
+        mNegElemDeactivation = rParameters["deactivate_full_negative_elements"].GetBool();
+        mRecoverOriginalDistance = rParameters["recover_original_distance_at_each_step"].GetBool();
     }
 
     /// Destructor.
@@ -123,7 +153,9 @@ public:
             counter++;
         }
 
-        this->DeactivateFullNegativeElements();
+        if (mNegElemDeactivation) {
+            this->DeactivateFullNegativeElements();
+        }
 
         KRATOS_CATCH("");
     }
@@ -131,7 +163,7 @@ public:
 
     void ExecuteInitializeSolutionStep() override
     {
-        if(mrCheckAtEachStep == true)
+        if(mCheckAtEachStep == true)
         {
             ExecuteBeforeSolutionLoop();
         }
@@ -140,7 +172,7 @@ public:
 
     void ExecuteFinalizeSolutionStep() override
     {
-        if(mrRecoverOriginalDistance == true)
+        if(mRecoverOriginalDistance == true)
         {
             RecoverOriginalDistance();
         }
@@ -186,8 +218,9 @@ protected:
 
     ModelPart&                                              mrModelPart;
     double                                                 mFactorCoeff;
-    bool                                              mrCheckAtEachStep;
-    bool                                      mrRecoverOriginalDistance;
+    bool                                               mCheckAtEachStep;
+    bool                                           mNegElemDeactivation;
+    bool                                       mRecoverOriginalDistance;
     std::vector<std::vector<unsigned int>>        mModifiedDistancesIDs;
     std::vector<std::vector<double>>           mModifiedDistancesValues;
 
@@ -208,7 +241,7 @@ protected:
             KRATOS_ERROR << "Nodes do not have NODAL_H variable!";
 
         // Distance modification
-        if (mrRecoverOriginalDistance == false) // Case in where the original distance does not need to be preserved (e.g. CFD)
+        if (mRecoverOriginalDistance == false) // Case in where the original distance does not need to be preserved (e.g. CFD)
         {
             #pragma omp parallel for
             for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)

@@ -8,6 +8,7 @@ import DEM_material_test_script
 import os
 import shutil
 import sys
+import weakref
 from glob import glob
 
 def Flush(a):
@@ -182,10 +183,13 @@ class PostUtils(object):
     def Flush(self,a):
         a.flush()
 
-    def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
+    def ComputeMeanVelocitiesInTrap(self, file_name, time_dem):
 
         if self.DEM_parameters["VelocityTrapOption"].GetBool():
-            compute_flow = False
+            if "ComputeFlow" in self.DEM_parameters.keys() and self.DEM_parameters["ComputeFlow"].GetBool():
+                compute_flow = True
+            else:
+                compute_flow = False
 
             self.vel_trap_graph_counter += 1
 
@@ -204,7 +208,7 @@ class PostUtils(object):
 
                 average_velocity = self.post_utilities.VelocityTrap(self.spheres_model_part, low_point, high_point)
 
-                if compute_flow == True:
+                if compute_flow:
                     vector_of_inner_nodes = []
                     for node in self.spheres_model_part.Nodes:
                         if (node.X > low_point[0]) & (node.Y > low_point[1]) & (node.Z > low_point[2]) & (node.X < high_point[0]) & (node.Y < high_point[1]) & (node.Z < high_point[2]) :
@@ -231,10 +235,9 @@ class PostUtils(object):
                     self.previous_time = self.spheres_model_part.ProcessInfo.GetValue(TIME)
                     self.previous_vector_of_inner_nodes = vector_of_inner_nodes
 
-
                 f = open(file_name, 'a')
                 tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2])
-                if compute_flow == True:
+                if compute_flow:
                     tmp = tmp + "   " + str(net_volume_flow)  + "   " + str(number_of_spheres_flow)
                 tmp = tmp + "\n"
 
@@ -252,7 +255,7 @@ class DEMEnergyCalculator(object):
         self.calculate_option = False
         
         if "EnergyCalculationOption" in DEM_parameters.keys():
-            if DEM_parameters["EnergyCalculationOption"].GetBool(): 
+            if DEM_parameters["EnergyCalculationOption"].GetBool():
                 self.calculate_option = True
                 self.DEM_parameters = DEM_parameters
                 self.SpheresModelPart = spheres_model_part
@@ -279,14 +282,13 @@ class DEMEnergyCalculator(object):
 
     def CalculateEnergyAndPlot(self, time):
         if self.calculate_option:
-            if not "TestType" in self.DEM_parameters.keys():
-                if (self.energy_graph_counter == self.graph_frequency):
-                    self.energy_graph_counter = 0
+            if (self.energy_graph_counter == self.graph_frequency):
+                self.energy_graph_counter = 0
 
-                    self.CalculateEnergy()
-                    self.PlotEnergyGraph(time)
+                self.CalculateEnergy()
+                self.PlotEnergyGraph(time)
 
-                self.energy_graph_counter += 1
+            self.energy_graph_counter += 1
 
     def CalculateEnergy(self):
 
@@ -349,31 +351,53 @@ class Procedures(object):
         self.domain_size = self.DEM_parameters["Dimension"].GetInt()
         self.aux = AuxiliaryUtilities()
         
-    def SetScheme(self):
-        if (self.DEM_parameters["IntegrationScheme"].GetString() == 'Forward_Euler'):
-            scheme = ForwardEulerScheme()
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Symplectic_Euler'):
-            scheme = SymplecticEulerScheme()
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Taylor_Scheme'):
-            scheme = TaylorScheme()
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-            scheme = NewmarkBetaScheme(0.5, 0.25)
-        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Verlet_Velocity'):
-            scheme = VerletVelocityScheme()
+    def SetTranslationalScheme(self):
+        if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler'):
+            translational_scheme = ForwardEulerScheme()
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
+            translational_scheme = SymplecticEulerScheme()
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
+            translational_scheme = TaylorScheme()
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
+            translational_scheme = NewmarkBetaScheme(0.5, 0.25)
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+            translational_scheme = VelocityVerletScheme()
         else:
-            self.KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
+            self.KRATOSprint('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
-        return scheme
+        return translational_scheme
+    
+    def SetRotationalScheme(self):
+        if (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Direct_Integration'):
+            if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler'):
+                rotational_scheme = ForwardEulerScheme()
+            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
+                rotational_scheme = SymplecticEulerScheme()
+            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
+                rotational_scheme = TaylorScheme()
+            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
+                rotational_scheme = NewmarkBetaScheme(0.5, 0.25)
+            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+                rotational_scheme = VelocityVerletScheme()
+        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Runge_Kutta'):
+            rotational_scheme = RungeKuttaScheme()
+        elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration'):
+            rotational_scheme = QuaternionIntegrationScheme()
+        else:
+            self.KRATOSprint('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            sys.exit("\nExecution was aborted.\n")
+        return rotational_scheme
         
-    def AddAllVariablesInAllModelParts(self, solver, scheme, all_model_parts, DEM_parameters):
+    def AddAllVariablesInAllModelParts(self, solver, translational_scheme, rotational_scheme, all_model_parts, DEM_parameters):
         
         spheres_model_part = all_model_parts.Get('SpheresPart')
         cluster_model_part = all_model_parts.Get('ClusterPart')
         DEM_inlet_model_part = all_model_parts.Get('DEMInletPart')
         rigid_face_model_part = all_model_parts.Get('RigidFacePart')
         
-        self.solver=solver
-        self.scheme=scheme
+        self.solver = weakref.proxy(solver) 
+        self.translational_scheme = weakref.proxy(translational_scheme) 
+        self.rotational_scheme=weakref.proxy(rotational_scheme)
         self.AddCommonVariables(spheres_model_part, DEM_parameters)
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
         self.AddMpiVariables(spheres_model_part)      
@@ -402,9 +426,17 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)  #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_IMPACT_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(ORIENTATION)  #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
+        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL) # JIG: SHOULD BE REMOVED IN THE FUTURE
+        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG) # JIG: SHOULD BE REMOVED IN THE FUTURE
+        model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)  #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(FACE_NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(FACE_TANGENTIAL_IMPACT_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(LINEAR_IMPULSE)        
+        model_part.AddNodalSolutionStepVariable(LINEAR_IMPULSE)
+        # ****************** Quaternion Integration BEGIN ******************
+        model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY)  #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
+        model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION)  #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
+        # ******************* Quaternion Integration END *******************
 
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
@@ -447,7 +479,7 @@ class Procedures(object):
         if "PostStressStrainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
-        
+
         if (self.solver.poisson_ratio_option):
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
 
@@ -479,17 +511,19 @@ class Procedures(object):
 
     def AddClusterVariables(self, model_part, DEM_parameters):
         # KINEMATIC
-        model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
         model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(ORIENTATION)
         model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL) # JIG: SHOULD BE REMOVED IN THE FUTURE
         model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG) # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION)
-        model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
+        # ****************** Quaternion Integration BEGIN ******************
+        model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION)
+        # ******************* Quaternion Integration END *******************
+        
 
         # FORCES
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
@@ -1285,7 +1319,6 @@ class MaterialTest(object):
 class MultifileList(object):
 
     def __init__(self, post_path, name, step, which_folder):
-        os.chdir(post_path)
         self.index = 0
         self.step = step
         self.name = name
@@ -1561,7 +1594,9 @@ class DEMIo(object):
                             self.deformed_mesh_flag,
                             self.write_conditions)
 
+
         self.post_utility = PostUtilities()
+
 
     def SetOutputName(self,name):
         self.gid_io.ChangeOutputName(name)

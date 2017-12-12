@@ -32,8 +32,8 @@
 "ContactMeshOption"                : true,
 "OutputFileType"                   : "Binary",
 "Multifile"                        : "multiple_files",
-
-"IntegrationScheme"                : "Forward_Euler",
+"TranslationalIntegrationScheme"   : "Forward_Euler",
+"RotationalIntegrationScheme"      : "Direct_Integration",
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
 "MaxTimeStep"                      : 1e-5,
