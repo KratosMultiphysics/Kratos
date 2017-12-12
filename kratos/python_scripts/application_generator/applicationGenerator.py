@@ -497,8 +497,6 @@ class ApplicationGenerator(TemplateRule):
             prepareBlockContent
         )
 
-        # This line deletes the last \n
-        fileStruct['initializeBlock'] = fileStruct['initializeBlock'][:-1]
         fileStruct['initializeBlock'].append([
             ptab + 'if(Import_' + self._nameCamel + 'Application):\n',
             ptab * 2 + 'kernel.InitializeApplication(' + self._nameLower + '_application)\n'
