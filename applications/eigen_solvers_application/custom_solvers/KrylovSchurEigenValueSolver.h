@@ -86,11 +86,10 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
             VectorType& rEigenvalues,
             DenseMatrixType& rEigenvectors) override
     {
+        std::cout << "Start solving for eigen values."  << std::endl;
+
         // settings
         Parameters& settings = *mpParam;
-
-        //KRATOS_WATCH(rK);
-        //KRATOS_WATCH(rM);
 
         const int verbosity = settings["verbosity"].GetInt();
         int NITEM = settings["max_iteration"].GetInt();
@@ -244,7 +243,7 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
                     tt(k-1) = r(k-1,j-1);
 
                 // K*temp_tt = tt
-                if (verbosity>1) std::cout << "Start linear solve." << std::endl;
+                if (verbosity>1) std::cout << "Backsubstitute using initialized linear solver." << std::endl;
                 mpLinearSolver->PerformSolutionStep(rK, temp_tt, tt);
                 for(int k=1; k<=nn; k++) tt(k-1) = temp_tt(k-1);
 
@@ -361,7 +360,7 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
                 if (rtolv(i-1) > RTOL) goto label400 ;
             }
 
-            std::cout << "Convergence reached after " << nite << " iterations for Rel_Tolerance= " << RTOL << std::endl;
+            std::cout << "Convergence reached after " << nite << " iterations within a relative tolerance: " << RTOL << std::endl;
 
             break;
 
