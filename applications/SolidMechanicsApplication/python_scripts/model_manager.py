@@ -78,7 +78,8 @@ class ModelManager(object):
         
         if(self.settings["import_settings"]["input_type"].GetString() == "mdpa"):            
             # Import model part from mdpa file.
-            print("   Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa ")
+            print("  (reading file: "+ input_filename + ".mdpa)")
+            #print("   " + os.path.join(problem_path, input_filename) + ".mdpa ")
             sys.stdout.flush()
           
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
@@ -178,9 +179,11 @@ class ModelManager(object):
         self.nodal_variables = self.nodal_variables + ['VELOCITY','ACCELERATION']
         
         # Add specific variables for the problem conditions
-        self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD']
+        self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION']
+        # they must be added by the process
+        # self.nodal_variables = self.nodal_variables + ['POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD','POINT_STIFFNESS','LINE_STIFFNESS','SURFACE_STIFFNESS','BALLAST_COEFFICIENT']
         
-        # Add nodal force variables for component wise calculation
+        # Add nodal force variables for component wise calculation (they must be added by the solver)
         if( self.settings.Has("component_wise") ):
             if self.settings["component_wise"].GetBool():
                 self.nodal_variables = self.nodal_variables + ['INTERNAL_FORCE','EXTERNAL_FORCE']
@@ -192,11 +195,10 @@ class ModelManager(object):
             self.dof_reactions = self.dof_reactions + ['TORQUE']
 
             self.nodal_variables = self.nodal_variables + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
-            # Add specific variables for the problem conditions
-            self.nodal_variables = self.nodal_variables + ['POINT_MOMENT']
             # Add large rotation variables
             self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT','STEP_ROTATION','DELTA_ROTATION']
-
+            # Add specific variables for the problem conditions
+            self.nodal_variables = self.nodal_variables + ['POINT_MOMENT','LINE_MOMENT','SURFACE_MOMENT','PLANE_POINT_MOMENT','PLANE_LINE_MOMENT']
             
         # Add pressure variables
         if self._check_input_dof("PRESSURE"):

@@ -39,7 +39,6 @@ class Solution(object):
 
         print(" ")
         print("::[KSM Simulation]:: [OMP USING",num_threads,"THREADS ]")
-        print(" ")
 
         # Output settings start
         self.problem_path = os.getcwd()
@@ -63,7 +62,8 @@ class Solution(object):
         # Start solver
         computing_model_part = self.model.GetComputingModelPart()
         self.solver = self._get_solver(computing_model_part)
-        
+
+        self.solver.SetEchoLevel(self.echo_level)
         solver_variables = self.solver.GetVariables()
         self.model.SetVariables(solver_variables)
 
@@ -74,7 +74,6 @@ class Solution(object):
         #self.model.SetVariables(processes_variables)
         
         self.process_info = self.model.GetProcessInfo()
-        print("::[KSM Simulation]:: [Time Step:", self.process_info[KratosMultiphysics.DELTA_TIME]," echo:", self.echo_level,"]")
         
         # Read model
         self.model.ImportModel()
@@ -84,10 +83,10 @@ class Solution(object):
         
         sys.stdout.flush()
 
-        # Initialize solver times and buffer
+        # Initialize solver buffer
         if( self._is_not_restarted() ):
-            self.solver.SetTimeParameters()
-        
+            self.solver.SetBuffer()       
+            
         # Import materials
         self.main_model_part = self.model.GetMainModelPart() 
         self._import_materials()

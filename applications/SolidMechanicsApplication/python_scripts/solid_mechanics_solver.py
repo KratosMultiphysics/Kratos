@@ -85,7 +85,6 @@ class MechanicalSolver(object):
         if(custom_settings["solving_strategy_settings"].Has("stabilization_factor")):
             if(custom_settings["solving_strategy_settings"]["stabilization_factor"].IsDouble()):
                 default_settings["solving_strategy_settings"]["stabilization_factor"].SetDouble(0.0)
-
         
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
@@ -96,27 +95,33 @@ class MechanicalSolver(object):
 
         self.time_integration_settings = self.settings["time_integration_settings"]
         self.solving_strategy_settings = self.settings["solving_strategy_settings"]
-
         
-        # Computing model part
-        self.model_part = model_part
-   
-        # Process Information
-        self.process_info = self.model_part.ProcessInfo
+        # Main model part and computing model part
+        self.main_model_part = model_part.GetRootModelPart()             
+        self.model_part      = model_part
+        
+        # Process information
+        self.process_info = self.main_model_part.ProcessInfo
 
+        # Set time parameters
+        time_settings = self.settings["time_settings"]
+        self.process_info.SetValue(KratosMultiphysics.DELTA_TIME, time_settings["time_step"].GetDouble())
+        self.process_info.SetValue(KratosMultiphysics.TIME, time_settings["start_time"].GetDouble())
+        
         # Create integration information (needed in other processes)
         self._get_solution_scheme()    
 
         # Echo level
         self.echo_level = 0
+
+        print("  [Time Step:", self.process_info[KratosMultiphysics.DELTA_TIME]," End_time:", time_settings["end_time"].GetDouble(),"]")
+        print(" ")
+
         
     def GetMinimumBufferSize(self):
         return 2;       
 
-    def SetTimeParameters(self):
-        time_settings = self.settings["time_settings"]
-        self.process_info.SetValue(KratosMultiphysics.DELTA_TIME, time_settings["time_step"].GetInt())
-        self.process_info.SetValue(KratosMultiphysics.TIME, time_settings["start_time"].GetInt())
+    def SetBuffer(self):
         self._set_and_fill_buffer()
 
     def GetEndTime(self):
@@ -130,6 +135,7 @@ class MechanicalSolver(object):
         if self.solving_strategy_settings["clear_storage"].GetBool():
             self.Clear()
         mechanical_solver = self._get_mechanical_solver()
+        mechanical_solver.SetEchoLevel(self.echo_level)
         if (self.process_info[KratosMultiphysics.IS_RESTARTED] == False):
             mechanical_solver.Initialize()
         else:
@@ -153,8 +159,9 @@ class MechanicalSolver(object):
         pass
 
     def SetEchoLevel(self, level):
-        self._get_mechanical_solver().SetEchoLevel(level)
-
+        #self._get_mechanical_solver().SetEchoLevel(level)
+        self.echo_level = level
+        
     def Clear(self):
         self._get_mechanical_solver().Clear()
 
@@ -175,7 +182,8 @@ class MechanicalSolver(object):
         self._get_mechanical_solver().InitializeSolutionStep()
 
     def Predict(self):
-        self._get_mechanical_solver().Predict()                                            
+        self._get_mechanical_solver().Predict()
+        
     def SolveSolutionStep(self):
         is_converged = self._get_mechanical_solver().SolveSolutionStep()
         return is_converged
@@ -275,11 +283,10 @@ class MechanicalSolver(object):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
-        main_model_part = self.model_part.GetRootModelPart()
         buffer_size = self.time_integration_settings["buffer_size"].GetInt()
         if buffer_size < self.GetMinimumBufferSize():
             buffer_size = self.GetMinimumBufferSize()
-        main_model_part.SetBufferSize(buffer_size)
+        self.main_model_part.SetBufferSize(buffer_size)
         # Cycle the buffer. This sets all historical nodal solution step data to
         # the current value and initializes the time stepping in the process info.
         delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
@@ -291,7 +298,7 @@ class MechanicalSolver(object):
             step = step + 1
             time = time + delta_time
             self.process_info.SetValue(KratosMultiphysics.STEP, step)
-            main_model_part.CloneTimeStep(time)
+            self.main_model_part.CloneTimeStep(time)
         self.process_info[KratosMultiphysics.IS_RESTARTED] = False
         
     def _create_solution_scheme(self):
@@ -301,8 +308,8 @@ class MechanicalSolver(object):
         # Creation of an auxiliar Kratos parameters object to store the convergence settings
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.solving_strategy_settings["convergence_criterion"])
-        # conv_params.AddEmptyValue("rotation_dofs").SetBool(self._check_input_dof("ROTATION"))
-        conv_params.AddEmptyValue("echo_level").SetDouble(self.echo_level)
+        # conv_params.AddEmptyValue("rotation_dofs").SetBool(self._check_input_dof("ROTATION"))        
+        conv_params.AddEmptyValue("echo_level").SetInt(self.echo_level)
         is_component_wise = False
         if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
             is_component_wise = True

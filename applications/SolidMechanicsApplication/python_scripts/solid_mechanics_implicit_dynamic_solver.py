@@ -74,15 +74,13 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             dynamic_factor = self.implicit_solver_settings["dynamic_factor"].GetDouble()        
             damp_factor_m  = self.implicit_solver_settings["bossak_factor"].GetDouble()
             mechanical_scheme = KratosSolid.ComponentWiseBossakScheme(damp_factor_m, dynamic_factor)
-        elif(integration_method == "Newmark"):
-            #damp_factor_m = 0.0
-            #mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-            
+        elif(integration_method == "Newmark"):           
             # integration method for the integration of the imposed variable components
             time_integration_method = KratosSolid.NewmarkMethod()
-            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)           
-            mechanical_scheme = KratosSolid.ResidualBasedDisplacementNewmarkScheme()
-            
+            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
+            #damp_factor_m = 0.0
+            #mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+            mechanical_scheme = KratosSolid.ResidualBasedDisplacementNewmarkScheme()            
         elif(integration_method == "Bossak"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
