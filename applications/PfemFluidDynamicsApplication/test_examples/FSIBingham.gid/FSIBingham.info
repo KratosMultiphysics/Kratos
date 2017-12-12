@@ -1,0 +1,125 @@
+ |  /           |             
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 5.1.0-0-RelWithDebInfo
+Initializing KratosExternalSolversApplication... 
+            ___  __                     
+     KRATOS| _ \/ _|___ _ __            
+           |  _/  _/ -_) '  \            
+           |_| |_| \___|_|_|_|APPLICATION 
+Initializing KratosPfemApplication    ...        
+            ___  __           ___ _      _    _          
+     KRATOS| _ \/ _|___ _ __ | __| |_  _(_)__| |         
+           |  _/  _/ -_) '  \| _|| | || | / _` |         
+           |_| |_| \___|_|_|_|_| |_|\_,_|_\__,_|DYNAMICS 
+Initializing KratosPfemFluidDynamicsApplication...       
+            ___      _ _    _          
+     KRATOS/ __| ___| (_)__| |         
+           \__ \/ _ \ | / _` |         
+           |___/\___/_|_\__,_|MECHANICS
+Initializing KratosSolidMechanicsApplication...  
+  [Reading Nodes    : 6199 nodes read]
+  [Reading Elements : 10834 elements read] [Type: TwoStepUpdatedLagrangianVPFluidElement2D]
+  [Reading Elements : 641 elements read] [Type: Element2D2N]
+  [Reading Elements : 216 elements read] [Type: UpdatedLagrangianVSolidElement2D]
+  [Reading Elements : 58 elements read] [Type: Element2D2N]
+  [Total Lines Read : 36843]
+ inlet_management CONSTRUCTOR 
+ remove_mesh_nodes_process_for_fluids 
+ GaussSeidelLinearStrategy
+ GaussSeidelLinearStrategy
+ Execute() in AdaptiveTimeIntervalProcess
+-------- m o m e n t u m   e q u a t i o n s ----------
+Gauss-Seidel VP Strategy,  CurrentTime: 0.0005
+Velocity error: 1 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+Gauss-Seidel VP Strategy,  CurrentTime: 0.0005
+         Pressure error: 1 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.478759 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.0315627 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.182106 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.0180813 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.0723273 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.00856694 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.0379871 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.0054687 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.0237924 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.00336153 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.0163087 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.00215683 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.0118197 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.00141196 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.00891213 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.000950249 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.00692739 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.000656924 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.00551791 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.000467128 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.00448467 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.000341831 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.00370705 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.000257375 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.00310861 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.000199194 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.00263919 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.000158173 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.00226491 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.000128513 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.00196223 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 0.000106497 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.00171441 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 8.97292e-05 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.00150929 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 7.6647e-05 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.00133782 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 6.62132e-05 presTol: 1e-05
+-------- m o m e n t u m   e q u a t i o n s ----------
+Velocity error: 0.00119321 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+         Pressure error: 5.77232e-05 presTol: 1e-05
+solve_step_time : 7.31832
+ Execute() in AdaptiveTimeIntervalProcess
+-------- m o m e n t u m   e q u a t i o n s ----------
+Gauss-Seidel VP Strategy,  CurrentTime: 0.001
+Velocity error: 0.638979 velTol: 1e-05
+          -------- c o n t i n u i t y   e q u a t i o n ----------
+Gauss-Seidel VP Strategy,  CurrentTime: 0.001
