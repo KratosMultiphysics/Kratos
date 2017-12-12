@@ -1982,17 +1982,15 @@ namespace Kratos
 			r_eta /= 2.0;
 			double l_xi = std::sqrt(inner_prod(r_xi, r_xi));
 			double l_eta = std::sqrt(inner_prod(r_eta, r_eta));
-
+                        
 			for (int i = 0; i < 4; i++)
 			{
 				//eqn 5.2.29
-				Vector vec1 = Vector(MathUtils<double>::CrossProduct
-				(data.r_cartesian[i], s_xi));
+                                const Vector vec1 = MathUtils<double>::CrossProduct(data.r_cartesian[i], s_xi);
 				d_xi_i[i] = std::sqrt(inner_prod(vec1, vec1));
 				chi_xi_i[i] = d_xi_i[i] / l_xi;
 
-				Vector vec2 = Vector(MathUtils<double>::CrossProduct
-				(data.r_cartesian[i], s_eta));
+				const Vector vec2 = MathUtils<double>::CrossProduct(data.r_cartesian[i], s_eta);
 				d_eta_i[i] = std::sqrt(inner_prod(vec2, vec2));
 				chi_eta_i[i] = d_eta_i[i] / l_eta;
 			}
@@ -2003,18 +2001,19 @@ namespace Kratos
 			double l_13 = std::sqrt(inner_prod(r_13, r_13));
 
 			Vector e_24 = Vector(r_24 / l_24);
-			Vector vec1 = Vector(MathUtils<double>::CrossProduct(r_13*-1.0, e_24));
-			Vector vec2 = Vector(MathUtils<double>::CrossProduct(r_13, e_24));
-			double d_24 = std::sqrt(inner_prod(vec1, vec2));
-			double d_13 = std::sqrt(inner_prod(vec1, vec2));
-			double chi_24 = d_24 / 2.0 / l_24;
-			double chi_13 = d_13 / 2.0 / l_13;
+			const Vector vec1 = Vector(MathUtils<double>::CrossProduct(r_13*-1.0, e_24)); // NOTE: This operation is marked as deprecated by the compiler, but it is not deprecated...not my fault
+                        const Vector vec2 = Vector(MathUtils<double>::CrossProduct(r_13, e_24));
+                        
+			const double d_24 = std::sqrt(inner_prod(vec1, vec2));
+			const double d_13 = std::sqrt(inner_prod(vec1, vec2));
+			const double chi_24 = d_24 / 2.0 / l_24;
+			const double chi_13 = d_13 / 2.0 / l_13;
 
-			double chi_xi_t = l_eta / l_xi;
-			double chi_eta_t = l_xi / l_eta;
+			const double chi_xi_t = l_eta / l_xi;
+			const double chi_eta_t = l_xi / l_eta;
 
-			double chi_xi_hat = 0.0;
-			double chi_eta_hat = 0.0;
+                        double chi_xi_hat = 0.0;
+                        double chi_eta_hat = 0.0;
 			for (int i = 0; i < 4; i++)
 			{
 				chi_xi_hat += chi_xi_i[i];

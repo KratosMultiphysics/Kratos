@@ -35,6 +35,7 @@
 #include "custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "custom_constitutive/DEM_ExponentialHC_CL.h"
+#include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.h"
 
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
@@ -782,6 +783,7 @@ namespace Kratos
     Serializer::Register("DEM_D_DMT_Cohesive_Law", DEM_D_DMT_Cohesive_Law());
     Serializer::Register("DEM_D_Linear_Custom_Constants", DEM_D_Linear_Custom_Constants());
     Serializer::Register("DEM_D_Hertz_dependent_friction", DEM_D_Hertz_dependent_friction());
+    Serializer::Register("DEM_D_Hertz_viscous_Coulomb_Nestle", DEM_D_Hertz_viscous_Coulomb_Nestle());
     
     Serializer::Register("DEM_Dempack", DEM_Dempack());
     Serializer::Register("DEM_Dempack2D", DEM_Dempack2D());    

@@ -8,11 +8,17 @@ from classes.variableCreator import VariableCreator
 
 from applicationGenerator import ApplicationGenerator
 
+if len(sys.argv) != 2:
+    print("Error: Invalid usage.\nPlease call this script with your application name (in camelCase) like this: ")
+    print("python createApplication.py MyNewApplication")
+    exit()
+
 # Read the application name and generate Camel, Caps and Low
 appNameCamel = sys.argv[1]
 
 # Fetch the applications directory
 debugApp = ApplicationGenerator(appNameCamel)
+
 
 # Add KratosVariables
 debugApp.AddVariables([

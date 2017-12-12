@@ -107,7 +107,7 @@ else:
 
 
 # Creating a solver object and set the search strategy
-solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
@@ -385,7 +385,7 @@ while time < DEM_parameters["FinalTime"].GetDouble():
     # measuring mean velocities in a certain control volume (the 'velocity trap')
     if DEM_parameters["VelocityTrapOption"].GetBool():
         compute_flow = False
-        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
+        post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", time)
 
     #### MATERIAL TEST GRAPHS ############################
     materialTest.MeasureForcesAndPressure()
