@@ -362,10 +362,10 @@ namespace Kratos {
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalDeltaAngularVelocity, LocalDeltaAngularVelocity);
         //GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mContactMoment, LocalRotationalMoment);
 
-        const double equivalent_radius = sqrt(calculation_area / Globals::Pi);
-//         const double element_mass  = element->GetMass();
-//         const double neighbor_mass = neighbor->GetMass();
-//         const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
+        const double equivalent_radius = std::sqrt(calculation_area / Globals::Pi);
+        const double element_mass  = element->GetMass();
+        const double neighbor_mass = neighbor->GetMass();
+        const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
         const double equiv_shear   = equiv_young / (2.0 * (1 + equiv_poisson)); // TODO: Is this correct? SLS
         const double Inertia_I     = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J     = 2.0 * Inertia_I; // This is the polar inertia
@@ -380,9 +380,9 @@ namespace Kratos {
 //         const double visc_param = 2.0 * alpha * sqrt(equiv_young * Inertia_I * element->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA)); // WENSRICH
 
         array_1d<double, 3> visc_param;
-        visc_param[0] = equiv_gamma * equivalent_radius * equiv_young * Inertia_I / distance; // OLMEDO
-        visc_param[1] = equiv_gamma * equivalent_radius * equiv_young * Inertia_I / distance; // OLMEDO
-        visc_param[2] = equiv_gamma * equivalent_radius * equiv_shear * Inertia_J / distance; // OLMEDO
+        visc_param[0] = 2.0 * equiv_gamma * std::sqrt(equiv_mass * equiv_young * Inertia_I / distance); // OLMEDO
+        visc_param[1] = 2.0 * equiv_gamma * std::sqrt(equiv_mass * equiv_young * Inertia_I / distance); // OLMEDO
+        visc_param[2] = 2.0 * equiv_gamma * std::sqrt(equiv_mass * equiv_shear * Inertia_J / distance); // OLMEDO
 
         double aux = ((element->GetRadius() + neighbor->GetRadius()) / distance) * ((element->GetRadius() + neighbor->GetRadius()) / distance);
 
