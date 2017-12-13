@@ -23,6 +23,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(mpipython PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+if(USE_COTIRE MATCHES ON)
+    cotire(mpipython)
+endif(USE_COTIRE MATCHES ON)
 # Install library and Python file
 install(TARGETS mpipython DESTINATION libs )
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/mpi.py" DESTINATION KratosMultiphysics )

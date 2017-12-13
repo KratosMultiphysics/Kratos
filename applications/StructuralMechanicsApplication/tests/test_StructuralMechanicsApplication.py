@@ -28,6 +28,8 @@ from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
 from test_patch_test_truss import TestTruss3D2N as TTestTruss3D2N
 from test_patch_test_cr_beam import TestCrBeam3D2N as TTestCrBeam3D2N
 from test_patch_test_cr_beam import TestCrBeam2D2N as TTestCrBeam2D2N
+from test_patch_test_shells_stress import TestPatchTestShellsStressRec as TTestPatchTestShellsStressRec
+from test_patch_test_shells_orthotropic import TestPatchTestShellsOrthotropic as TTestPatchTestShellsOrthotropic
 # Test loading conditions
 from test_loading_conditions_point import TestLoadingConditionsPoint as TestLoadingConditionsPoint
 from test_loading_conditions_line import TestLoadingConditionsLine as TestLoadingConditionsLine
@@ -95,23 +97,28 @@ from test_spring_damper_element import SpringDamperElementTests as TSpringDamper
 # Harmonic analysis tests
 from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
 
-## NIGTHLY TESTS
+## NIGHTLY TESTS
 # Shell test
 from NightlyTests import ShellQ4ThickBendingRollUpTests as TShellQ4ThickBendingRollUpTests
 from NightlyTests import ShellQ4ThickDrillingRollUpTests as TShellQ4ThickDrillingRollUpTests
+from NightlyTests import ShellQ4ThickOrthotropicLaminateLinearStaticTests as TShellQ4ThickOrthotropicLaminateLinearStaticTests
+
 from NightlyTests import ShellT3ThinBendingRollUpTests as TShellT3ThinBendingRollUpTests
 from NightlyTests import ShellT3ThinDrillingRollUpTests as TShellT3ThinDrillingRollUpTests
 from NightlyTests import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
+from NightlyTests import ShellT3ThinOrthotropicLaminateLinearStaticTests as TShellT3ThinOrthotropicLaminateLinearStaticTests
 
 from NightlyTests import ShellT3ThickLinearStaticTests as TShellT3ThickLinearStaticTests
 from NightlyTests import ShellT3ThickNonLinearStaticTests as TShellT3ThickNonLinearStaticTests
 from NightlyTests import ShellT3ThickLinearDynamicTests as TShellT3ThickLinearDynamicTests
 from NightlyTests import ShellT3ThickNonLinearDynamicTests as TShellT3ThickNonLinearDynamicTests
+from NightlyTests import ShellT3ThickOrthotropicLaminateLinearStaticTests as TShellT3ThickOrthotropicLaminateLinearStaticTests
 
 from NightlyTests import ShellQ4ThinLinearStaticTests as TShellQ4ThinLinearStaticTests
 from NightlyTests import ShellQ4ThinNonLinearStaticTests as TShellQ4ThinNonLinearStaticTests
 from NightlyTests import ShellQ4ThinLinearDynamicTests as TShellQ4ThinLinearDynamicTests
 from NightlyTests import ShellQ4ThinNonLinearDynamicTests as TShellQ4ThinNonLinearDynamicTests
+from NightlyTests import ShellQ4ThinOrthotropicLaminateLinearStaticTests as TShellQ4ThinOrthotropicLaminateLinearStaticTests
 
 # CL tests
 ##from NightlyTests import IsotropicDamageSimoJuPSTest    as TIsotropicDamageSimoJuPSTest
@@ -147,6 +154,8 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
     ## Shells
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShells]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic]))
     ## Trusses
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     ## Beams
@@ -223,26 +232,30 @@ def AssambleTestSuites():
                 "FEASTSolver solver is not included in the compilation of the External Solvers Application"
             )
 
-    # Multipoint tests
-    smallSuite.addTest(TTestMultipointConstraints('test_MPC_Constraints'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     # Shell tests
     nightSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
-    # nightSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution')) # FIXME: Needs get up to date
+    nightSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
+    nightSuite.addTest(TShellQ4ThickOrthotropicLaminateLinearStaticTests('test_execution'))
+
     nightSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
+    nightSuite.addTest(TShellT3ThinOrthotropicLaminateLinearStaticTests('test_execution'))
 
     nightSuite.addTest(TShellT3ThickLinearStaticTests('test_execution'))
     nightSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution'))
     nightSuite.addTest(TShellT3ThickLinearDynamicTests('test_execution'))
     nightSuite.addTest(TShellT3ThickNonLinearDynamicTests('test_execution'))
+    nightSuite.addTest(TShellT3ThickOrthotropicLaminateLinearStaticTests('test_execution'))
 
     nightSuite.addTest(TShellQ4ThinLinearStaticTests('test_execution'))
     nightSuite.addTest(TShellQ4ThinNonLinearStaticTests('test_execution'))
     nightSuite.addTest(TShellQ4ThinLinearDynamicTests('test_execution'))
     nightSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
+    nightSuite.addTest(TShellQ4ThinOrthotropicLaminateLinearStaticTests('test_execution'))
+	
     # CL tests
     ##nightSuite.addTest(TIsotropicDamageSimoJuPSTest('test_execution')) # FIXME: Needs get up to date
 
