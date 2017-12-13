@@ -183,10 +183,13 @@ class PostUtils(object):
     def Flush(self,a):
         a.flush()
 
-    def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
+    def ComputeMeanVelocitiesInTrap(self, file_name, time_dem):
 
         if self.DEM_parameters["VelocityTrapOption"].GetBool():
-            compute_flow = False
+            if "ComputeFlow" in self.DEM_parameters.keys() and self.DEM_parameters["ComputeFlow"].GetBool():
+                compute_flow = True
+            else:
+                compute_flow = False
 
             self.vel_trap_graph_counter += 1
 
@@ -205,7 +208,7 @@ class PostUtils(object):
 
                 average_velocity = self.post_utilities.VelocityTrap(self.spheres_model_part, low_point, high_point)
 
-                if compute_flow == True:
+                if compute_flow:
                     vector_of_inner_nodes = []
                     for node in self.spheres_model_part.Nodes:
                         if (node.X > low_point[0]) & (node.Y > low_point[1]) & (node.Z > low_point[2]) & (node.X < high_point[0]) & (node.Y < high_point[1]) & (node.Z < high_point[2]) :
@@ -232,10 +235,9 @@ class PostUtils(object):
                     self.previous_time = self.spheres_model_part.ProcessInfo.GetValue(TIME)
                     self.previous_vector_of_inner_nodes = vector_of_inner_nodes
 
-
                 f = open(file_name, 'a')
                 tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2])
-                if compute_flow == True:
+                if compute_flow:
                     tmp = tmp + "   " + str(net_volume_flow)  + "   " + str(number_of_spheres_flow)
                 tmp = tmp + "\n"
 
