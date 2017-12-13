@@ -137,8 +137,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( ALPHA_SHEAR )
     KRATOS_REGISTER_VARIABLE( INITIAL_POROSITY )
     KRATOS_REGISTER_VARIABLE( VOID_RATIO )
-    KRATOS_REGISTER_VARIABLE( COHESION )
-    KRATOS_REGISTER_VARIABLE( INTERNAL_DILATANCY_ANGLE ) 
 
     //element
     KRATOS_REGISTER_VARIABLE( TOTAL_CAUCHY_STRESS )
@@ -153,7 +151,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( ELASTIC_LEFT_CAUCHY_GREEN_TENSOR )
     KRATOS_REGISTER_VARIABLE( ELASTIC_LEFT_CAUCHY_GREEN_VECTOR )
 
-    KRATOS_REGISTER_VARIABLE( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS )
     KRATOS_REGISTER_VARIABLE( INVERSE_DEFORMATION_GRADIENT )
 
     //thermal
@@ -244,8 +241,6 @@ namespace Kratos
     Serializer::Register("HenckyTrescaPlasticAxisym2DLaw", mHenckyTrescaPlasticAxisym2DLaw);
     Serializer::Register("HenckyTrescaPlasticPlaneStrain2DLaw", mHenckyTrescaPlasticPlaneStrain2DLaw);
     Serializer::Register("HenckyTresca3DLaw", mHenckyTresca3DLaw);
-    //Serializer::Register("HenckyMohrCoulombPlasticAxisym2DLaw", mHenckyMohrCoulombPlasticAxisym2DLaw);
-    //Serializer::Register("HenckyMohrCoulombPlasticPlaneStrain2DLaw", mHenckyMohrCoulombPlasticPlaneStrain2DLaw);
 
     Serializer::Register("HenckyPlasticUPJ2Axisym2DLaw", mHenckyPlasticUPJ2Axisym2DLaw);
     Serializer::Register("HenckyPlasticUPJ2PlaneStrain2DLaw", mHenckyPlasticUPJ2PlaneStrain2DLaw);
@@ -255,17 +250,15 @@ namespace Kratos
     //Register Flow Rules
     Serializer::Register("TrescaExplicitFlowRule", mTrescaExplicitFlowRule);
     Serializer::Register("J2ExplicitFlowRule", mJ2ExplicitFlowRule);
-    //Serializer::Register("MohrCoulombExplicitFlowRule", mMohrCoulombExplicitFlowRule);
     Serializer::Register("BorjaCamClayExplicitFlowRule", mBorjaCamClayExplicitFlowRule);
 
     //Register Yield Criterion
     Serializer::Register("J2YieldCriterion", mJ2YieldCriterion);
     Serializer::Register("TrescaYieldCriterion", mTrescaYieldCriterion);
-    //Serializer::Register("MohrCoulombYieldCriterion", mMohrCoulombYieldCriterion);
     Serializer::Register("CamClayYieldCriterion", mCamClayYieldCriterion);
 
     //Register Hardening Laws
-    Serializer::Register("CamClayKinematicHardeningLaw", mCamClayKinematicHardeningLaw);
+    Serializer::Register("CamClayHardeningLaw", mCamClayHardeningLaw);
 
   }
   
