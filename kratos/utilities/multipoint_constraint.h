@@ -180,7 +180,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                 {
                     if (this->GetData().GetNumbeOfMasterDofsForSlave(*(elementDofs[startPositionNodeDofs + i])) > 0)
                     {
-                        auto &slaveData = this->GetData().GetSlaveData(*(elementDofs[startPositionNodeDofs + i]));
+                        auto &slaveData = this->GetData().GetConstraintEquation(*(elementDofs[startPositionNodeDofs + i]));
 
                         for (auto masterEqId : slaveData.masterEquationIds)
                         {
@@ -211,7 +211,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                 {
                     if (this->GetData().GetNumbeOfMasterDofsForSlave(*(elementDofs[startPositionNodeDofs + i])) > 0)
                     {
-                        auto &slaveData = this->GetData().GetSlaveData(*(elementDofs[startPositionNodeDofs + i]));
+                        auto &slaveData = this->GetData().GetConstraintEquation(*(elementDofs[startPositionNodeDofs + i]));
 
                         for (auto masterEqId : slaveData.masterEquationIds)
                         {
@@ -328,7 +328,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                 { // Loop over all the slaves for this node
                     it = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqId);
                     int slaveIndex = std::distance(localNodalSlaveEquationIds.begin(), it);
-                    auto &slaveData = this->GetData().GetSlaveData(slaveEquationIds[slaveIndex]);
+                    auto &slaveData = this->GetData().GetConstraintEquation(slaveEquationIds[slaveIndex]);
 
                     int index = 0;
                     for (auto masterEqId : slaveData.masterEquationIds)
@@ -355,7 +355,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                         {
                             //std::vector<std::size_t>::iterator itOther = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqIdOther);
                             int slaveIndexOther = std::distance(localNodalSlaveEquationIds.begin(), it);
-                            auto slaveDataOther = this->GetData().GetSlaveData(slaveEquationIds[slaveIndexOther]);
+                            auto slaveDataOther = this->GetData().GetConstraintEquation(slaveEquationIds[slaveIndexOther]);
                             double constantOther = slaveDataOther.constant;
                             RHS_Contribution(localMasterEqId) += LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) * weight * constantOther;
                         }
@@ -502,7 +502,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                 { // Loop over all the slaves for this node
                     it = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqId);
                     int slaveIndex = std::distance(localNodalSlaveEquationIds.begin(), it);
-                    auto &slaveData = this->GetData().GetSlaveData(slaveEquationIds[slaveIndex]);
+                    auto &slaveData = this->GetData().GetConstraintEquation(slaveEquationIds[slaveIndex]);
 
                     int index = 0;
                     for (auto masterEqId : slaveData.masterEquationIds)
@@ -529,7 +529,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                         {
                             //std::vector<std::size_t>::iterator itOther = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqIdOther);
                             int slaveIndexOther = std::distance(localNodalSlaveEquationIds.begin(), it);
-                            auto slaveDataOther = this->GetData().GetSlaveData(slaveEquationIds[slaveIndexOther]);
+                            auto slaveDataOther = this->GetData().GetConstraintEquation(slaveEquationIds[slaveIndexOther]);
                             double constantOther = slaveDataOther.constant;
                             RHS_Contribution(localMasterEqId) += LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) * weight * constantOther;
                         }

@@ -36,7 +36,7 @@
 namespace Kratos
 {
 
-// SlaveData class start
+// ConstraintEquation class start
 /*
 *   This class stores the information regarding the constraint equation. Naming convenction is defined like this.
 *   (each object of this class will store one equation in the given form)
@@ -52,23 +52,23 @@ namespace Kratos
 *   This equation is imposed on the linear system of equations either element wise or on the global system.
 *
 */
-class SlaveData
+class ConstraintEquation
 {
   public:
-    KRATOS_CLASS_POINTER_DEFINITION(SlaveData);
+    KRATOS_CLASS_POINTER_DEFINITION(ConstraintEquation);
 
-    SlaveData(unsigned int iDofId, std::size_t iDofKey) : dofId(iDofId), dofKey(iDofKey)
+    ConstraintEquation(unsigned int iDofId, std::size_t iDofKey) : dofId(iDofId), dofKey(iDofKey)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
     }
-    SlaveData(unsigned int iDofId, std::size_t iDofKey, unsigned int iEquationId) : dofId(iDofId), dofKey(iDofKey), equationId(iEquationId)
+    ConstraintEquation(unsigned int iDofId, std::size_t iDofKey, unsigned int iEquationId) : dofId(iDofId), dofKey(iDofKey), equationId(iEquationId)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
     }
 
-    SlaveData(const SlaveData &iOther)
+    ConstraintEquation(const ConstraintEquation &iOther)
     {
         this->dofId = iOther.dofId;
         this->dofKey = iOther.dofKey;
@@ -170,9 +170,9 @@ class SlaveData
     std::vector<std::size_t> masterDofKeys;
     std::vector<double> masterWeights;
     std::vector<unsigned int> masterEquationIds;
-}; // End of SlaveData class
+}; // End of ConstraintEquation class
 
-/** \brief ConstraintData
+/** \brief ConstraintEquationContainer
  * 
  *  Each object of this class stores a set of constraint equations
  * 
@@ -184,19 +184,19 @@ class SlaveData
  *  This class also provides interface to access the data of the constraint equations.
  *  
  */
-class ConstraintData
+class ConstraintEquationContainer
 {
 
   public:
-    /// Pointer definition of ConstraintData
-    KRATOS_CLASS_POINTER_DEFINITION(ConstraintData);
+    /// Pointer definition of ConstraintEquationContainer
+    KRATOS_CLASS_POINTER_DEFINITION(ConstraintEquationContainer);
 
     typedef Dof<double> DofType;
     typedef unsigned int IndexType;
     typedef Node<3> NodeType;
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
 
-    typedef SlaveData::Pointer SlaveDataPointerType;
+    typedef ConstraintEquation::Pointer ConstraintEquationPointerType;
     struct SlaveDofId_Key
     {
     };
@@ -204,16 +204,16 @@ class ConstraintData
     {
     };
     typedef boost::multi_index_container<
-        SlaveDataPointerType, boost::multi_index::indexed_by<
+        ConstraintEquationPointerType, boost::multi_index::indexed_by<
                                   boost::multi_index::hashed_unique<
                                       boost::multi_index::tag<SlaveDofId_Key>, boost::multi_index::composite_key<
-                                                                                   SlaveData, boost::multi_index::member<SlaveData, unsigned int, &SlaveData::dofId>, boost::multi_index::member<SlaveData, std::size_t, &SlaveData::dofKey>>>,
+                                                                                   ConstraintEquation, boost::multi_index::member<ConstraintEquation, unsigned int, &ConstraintEquation::dofId>, boost::multi_index::member<ConstraintEquation, std::size_t, &ConstraintEquation::dofKey>>>,
                                   boost::multi_index::hashed_non_unique<
-                                      boost::multi_index::tag<SlaveEquationId>, boost::multi_index::member<SlaveData, unsigned int, &SlaveData::equationId>>>>
-        SlaveDataMultiMapType;
+                                      boost::multi_index::tag<SlaveEquationId>, boost::multi_index::member<ConstraintEquation, unsigned int, &ConstraintEquation::equationId>>>>
+        ConstraintEquationMultiMapType;
 
-    typedef SlaveDataMultiMapType::iterator iterator;
-    typedef SlaveDataMultiMapType::const_iterator const_iterator;
+    typedef ConstraintEquationMultiMapType::iterator iterator;
+    typedef ConstraintEquationMultiMapType::const_iterator const_iterator;
 
     ///@name Life Cycle
     ///@{
@@ -221,11 +221,11 @@ class ConstraintData
     /**
 		Creates a MPC data object
 		*/
-    ConstraintData() : mDataContainer()
+    ConstraintEquationContainer() : mDataContainer()
     {
     }
     /// Destructor.
-    virtual ~ConstraintData(){};
+    virtual ~ConstraintEquationContainer(){};
 
     ///@}
 
@@ -249,14 +249,14 @@ class ConstraintData
 		Get the Data for this slave
 		@return Data vector for this slave
 		*/
-    const SlaveData &GetSlaveData(DofType &SlaveDof)
+    const ConstraintEquation &GetConstraintEquation(DofType &SlaveDof)
     {
         auto &index = mDataContainer.get<SlaveDofId_Key>();
         auto pos = index.find(boost::make_tuple(SlaveDof.Id(), SlaveDof.GetVariable().Key()));
         return *(pos->get());
     }
 
-    const SlaveData &GetSlaveData(const unsigned int slaveEqutionId)
+    const ConstraintEquation &GetConstraintEquation(const unsigned int slaveEqutionId)
     {
         auto &index = mDataContainer.get<SlaveEquationId>();
         auto pos = index.find(slaveEqutionId);
@@ -267,7 +267,7 @@ class ConstraintData
     {
         auto &index = mDataContainer.get<SlaveDofId_Key>();
         auto pos = index.find(boost::make_tuple(SlaveDof.Id(), SlaveDof.GetVariable().Key()));
-        SlaveDataPointerType dummy11 = SlaveDataPointerType(new SlaveData(*(*pos)));
+        ConstraintEquationPointerType dummy11 = ConstraintEquationPointerType(new ConstraintEquation(*(*pos)));
         dummy11->equationId = iEquationId;
         index.replace(pos, dummy11);
     }
@@ -300,7 +300,7 @@ class ConstraintData
 		Get the Data for this slave
 		@return Data vector for this slave
 		*/
-    const SlaveDataMultiMapType &GetData()
+    const ConstraintEquationMultiMapType &GetData()
     {
         return mDataContainer;
     }
@@ -318,13 +318,13 @@ class ConstraintData
         unsigned int MasterVariableKey = (MasterDof).GetVariable().Key();
         unsigned int slaveVariableKey = SlaveDof.GetVariable().Key();
 
-        SlaveDataPointerType dummy = SlaveDataPointerType(new SlaveData(SlaveDof.Id(), slaveVariableKey));
+        ConstraintEquationPointerType dummy = ConstraintEquationPointerType(new ConstraintEquation(SlaveDof.Id(), slaveVariableKey));
         dummy->SetConstant(constant);
         dummy->AddMasterData(MasterNodeId, MasterVariableKey, weight);
         dummy->SetEquationId(0);
 
-        std::pair<SlaveDataMultiMapType::iterator, bool> ret = mDataContainer.insert(dummy);
-        SlaveDataMultiMapType::iterator pos = ret.first;
+        std::pair<ConstraintEquationMultiMapType::iterator, bool> ret = mDataContainer.insert(dummy);
+        ConstraintEquationMultiMapType::iterator pos = ret.first;
         if (!ret.second)
         {
             (pos->get())->AddMasterData(MasterNodeId, MasterVariableKey, weight);
@@ -405,7 +405,7 @@ class ConstraintData
   private:
     ///@name Member Variables
     ///@{
-    SlaveDataMultiMapType mDataContainer;
+    ConstraintEquationMultiMapType mDataContainer;
     std::string mName;
     ///@}
 };

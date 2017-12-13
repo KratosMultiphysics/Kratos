@@ -32,7 +32,7 @@
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
 #include "containers/periodic_variables_container.h"
-#include "containers/constraint.h"
+#include "utilities/constraint.h"
 #include "spaces/ublas_space.h"
 
 #undef  KRATOS_EXPORT_MACRO

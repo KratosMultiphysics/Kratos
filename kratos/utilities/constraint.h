@@ -26,9 +26,6 @@
 #include "includes/dof.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
-/* //#include "includes/process_info.h"
-#include "includes/element.h"
-#include "includes/condition.h" */
 #include "containers/constraint_data.h"
 #include "containers/variable.h"
 #include "containers/variable_component.h"
@@ -87,16 +84,16 @@ class Constraint
 	*/
     void Clear()
     {
-        mConstraintData.Clear();
+        mConstraintEquationContainer.Clear();
     }
 
     /**
 	* Get the MasterDOFs vector for this slave
 	* @return MasterDOFs vector for this slave
 	*/
-    virtual const SlaveData &GetSlaveData(DofType &SlaveDof)
+    virtual const ConstraintEquation &GetConstraintEquation(DofType &SlaveDof)
     {
-        return mConstraintData.GetSlaveData(SlaveDof);
+        return mConstraintEquationContainer.GetConstraintEquation(SlaveDof);
     }
 
     /**
@@ -106,7 +103,7 @@ class Constraint
     // Takes in a slave dof equationId and a master dof equationId
     virtual void AddConstraint(DofType &SlaveDof, DofType &MasterDof, double weight, double constant = 0.0)
     {
-        mConstraintData.AddConstraint(SlaveDof, MasterDof, weight, constant);
+        mConstraintEquationContainer.AddConstraint(SlaveDof, MasterDof, weight, constant);
     }
 
     virtual void ExecuteBeforeBuilding(NodesContainerType &Nodes)
@@ -163,7 +160,7 @@ class Constraint
 	*/
     virtual unsigned int GetNumbeOfMasterDofsForSlave(const DofType &SlaveDof)
     {
-        return mConstraintData.GetNumbeOfMasterDofsForSlave(SlaveDof);
+        return mConstraintEquationContainer.GetNumbeOfMasterDofsForSlave(SlaveDof);
     }
 
     /**
@@ -208,9 +205,9 @@ class Constraint
 	* Returns the constraint data object of this constraint object object.
 	* @return the string with informations
 	*/
-    virtual ConstraintData &GetData()
+    virtual ConstraintEquationContainer &GetData()
     {
-        return mConstraintData;
+        return mConstraintEquationContainer;
     }
 
     ///@
@@ -223,7 +220,7 @@ class Constraint
     virtual void PrintInfo(std::ostream &rOStream) const
     {
         rOStream << " Constraint base class !" << std::endl;
-        mConstraintData.PrintInfo(rOStream);
+        mConstraintEquationContainer.PrintInfo(rOStream);
     }
 
     ///@name Serialization
@@ -234,14 +231,14 @@ class Constraint
     {
         rSerializer.save("MpcDataName", mName);
         rSerializer.save("isActive", mActive);
-        this->mConstraintData.save(rSerializer);
+        this->mConstraintEquationContainer.save(rSerializer);
     }
 
     virtual void load(Serializer &rSerializer)
     {
         rSerializer.load("MpcDataName", mName);
         rSerializer.load("isActive", mActive);
-        this->mConstraintData.load(rSerializer);
+        this->mConstraintEquationContainer.load(rSerializer);
     }
 
   private:
@@ -250,7 +247,7 @@ class Constraint
     bool mActive;
     std::string mName;
 
-    ConstraintData mConstraintData;
+    ConstraintEquationContainer mConstraintEquationContainer;
     ///@}
 
     ///@}

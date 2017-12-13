@@ -27,8 +27,8 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "spaces/ublas_space.h"
-#include "containers/constraint.h"
-#include "containers/multipoint_constraint.h"
+#include "utilities/constraint.h"
+#include "utilities/multipoint_constraint.h"
 
 namespace Kratos
 {

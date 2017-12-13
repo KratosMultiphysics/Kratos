@@ -23,8 +23,8 @@
 #include "boost/smart_ptr.hpp"
 
 #include "utilities/timer.h"
-#include "containers/constraint.h"
-#include "containers/multipoint_constraint.h"
+#include "utilities/constraint.h"
+#include "utilities/multipoint_constraint.h"
 
 /* Project includes */
 #include "includes/define.h"
