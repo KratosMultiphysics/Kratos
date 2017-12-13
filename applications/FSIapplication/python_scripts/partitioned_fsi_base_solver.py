@@ -231,10 +231,20 @@ class PartitionedFSIBaseSolver:
 
     def _GetNodalUpdateUtilities(self):
 
-        if (self.domain_size == 2):
-            return KratosFSI.NodalUpdateNewmark2D(self.settings["fluid_solver_settings"]["alpha"].GetDouble())
+        structure_time_scheme = self.structure_solver.settings["scheme_type"].GetString()
+        if (structure_time_scheme == "newmark"):
+            damp_factor_m = 0.0
+        elif (structure_time_scheme == "bossak"):
+            damp_factor_m = -0.3
         else:
-            return KratosFSI.NodalUpdateNewmark3D(self.settings["fluid_solver_settings"]["alpha"].GetDouble())
+            err_msg =  "Requested structure time scheme type \"" + structure_time_scheme + "\" is not available!\n"
+            err_msg += "Available options are: \"newmark\", \"bossak\", \"relaxation\""
+            raise Exception(err_msg)
+
+        if (self.domain_size == 2):
+            return KratosFSI.NodalUpdateNewmark2D(damp_factor_m)
+        else:
+            return KratosFSI.NodalUpdateNewmark3D(damp_factor_m)
 
 
     def _GetPartitionedFSIUtilities(self):
