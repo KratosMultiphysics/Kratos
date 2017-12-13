@@ -105,7 +105,7 @@ public:
                 
                 noalias(Coordinates) = it->Coordinates();
 
-                double pressure = mspecific_weight*( mreference_coordinate - Coordinates[mgravity_direction] );
+                const double pressure = mspecific_weight*( mreference_coordinate - Coordinates[mgravity_direction] );
                 
                 if(pressure > 0.0) 
                 {
