@@ -78,7 +78,7 @@
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
-#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
 
 /* UTILITIES */
 // Cross sections

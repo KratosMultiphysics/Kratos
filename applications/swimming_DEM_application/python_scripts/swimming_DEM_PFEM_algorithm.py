@@ -23,7 +23,7 @@ class Algorithm(BaseAlgorithm):
     def SetCouplingParameters(self, varying_parameters):
 
         super(Algorithm,self).SetCouplingParameters(varying_parameters)
-        self.pp.domain_size = self.fluid_solution.ProjectParameters["problem_data"]["domain_size"].GetInt()
+        self.pp.domain_size = self.fluid_solution.ProjectParameters["problem_data"]["dimension"].GetInt()
 
     def SetBetaParameters(self):
 
@@ -85,11 +85,12 @@ class Algorithm(BaseAlgorithm):
             print(" [STEP:",self.step," TIME:",self.time,"]")
 
     def CloneTimeStep(self):
+        self.TransferTimeToFluidSolver()
 
         if self.step < self.GetFirstStepForFluidComputation() or self.stationarity:
             self.fluid_solution.main_model_part.CloneTimeStep(self.time)
 
-    def FluidSolve(self, time = 'None'):
+    def FluidSolve(self, time = 'None', solve_system = True):
 
         self.fluid_solution.InitializeSolutionStep()
         self.fluid_solution.SolveSolutionStep()
