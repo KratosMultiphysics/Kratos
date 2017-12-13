@@ -78,7 +78,10 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
 
 
     /**
-     * Solve the generalized eigenvalue problem.
+     * Solve the generalized eigenvalue problem using an eigen subspace iteration method
+     * The implementation follows the code from
+     * K. J. Bathe, Finite Element Procedures second Edition, ISBN-13: 978-0979004957
+     * page 954 and following
      * K is a symmetric matrix. M is a symmetric positive-definite matrix.
      */
     void Solve(
@@ -162,67 +165,74 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
         // mass/stiffness.
         //------------------------------------------------------------------------------------
 
-        // Alternative B: Approach according to oofem:
-        //--------------------------------------------
-        VectorType h = ZeroVector(nn);   //not used in bathe, only at ooofem
-        for (int i=0; i<nn; i++)
-            h(i) = 1.0;
+        //Alternative A: Approach according to Bathe:
+        //-------------------------------------------
 
-        //compute mass/stiffness ratio of main diag. elements
-        for (int i = 0; i< nn ; i++)
+        // case: mass matrix is a diagonal matrix (lumped)
+        if(int(rM.nnz()) == nn)
         {
-            w(i) = rM(i,i)/rK(i,i);
-        //     modfied, 19thMay2015:
-        //     if CroutSkyline-Subsolver is used, matrix A may contain the LDL informtaion, not the mstrix itself.
-        }
-
-        //COMPUTE AND SET PHI_1
-        TSparseSpaceType::Mult(rM, h, tt);
-        for (int i = 0; i< nn ; i++)
-            r(i,0) = tt(i);
-
-        for (int j = 2; j<= nc ; j++)  //loop the remaining eigen vecs
-        {
-            rt = 0.0;
+            int j=0;
             for (int i = 1; i<= nn ; i++)
             {
-                if (fabs(w(i-1)) >= rt)
+                r(i-1,0)=rM(i-1,i-1);  // first vector is diagonal of mass matrix
+                if(rM(i-1,i-1)>0.0)
+                    j++;
+                w(i-1) = rM(i-1,i-1)/rK(i-1,i-1);
+            }
+            if(nc>j)
+            {
+                KRATOS_ERROR <<"Number of needed iteration vectors (nc) is larger than number of mass DOF." << std::endl;
+            }
+        }
+        else // case: mass matrix is not a diagonal matrix
+        {
+            for (int i = 1; i<= nn ; i++)
+            {
+                r(i-1,0)=rM(i-1,i-1);  // first vector is diagonal of mass matrix
+                w(i-1) = rM(i-1,i-1)/rK(i-1,i-1);
+            }
+        }
+
+        // For the computation of large systems, suitable distances between the unity entries
+        // are needed in the starting iteration vectors in r. This is taken into account via
+        // variable l.
+        int nd = nn/nc;
+        int l = nn - nd;
+
+        for (int j = 2; j<= nc ; j++)
+        {
+            rt = 0.0;
+            for (int i = 1; i<= l ; i++)
+            {
+                if (w(i-1) >= rt)
                 {
-                    rt = fabs(w(i-1));
+                    rt = w(i-1);
                     ij = i;
                 }
             }
-
-            //---
-            //now rt contains the entry of w with the highest abs. ammount,
-            //and ij is its index.
-            //----
-
-            //what is the sense of this line?
-            tt(j-1) = ij; //gets the equation-nrs of excited DOFs
-
-            //----
-            //set the corresponding entry of the ratio vector to zero
-            // --> for the next eigen vector the entry with the 2nd highest abs. ammount
-            //     will be used etc.
-            //----
+            for (int i = l; i<= nn ; i++)
+            {
+                if (w(i-1) > rt)
+                {
+                    rt = w(i-1);
+                    ij = i;
+                }
+            }
+            tt(j-1) = double(ij); //gets the equation-nrs of excited DOFs
             w(ij-1) = 0.0;
 
-            //----
-            //update the vector which will be multiplied to the mass mtx.
-            //----
-            for (int i = 1; i<= nn ; i++)
-                if (i==ij) h(i-1) = 1.0; else h(i-1) = 0.0;
+            l -= nd;
 
-            //----
-            //compute and set starting vector j
-            //----
-            TSparseSpaceType::Mult(rM, h, tt);
-            for (int i = 1; i<= nn ; i++)
-                r(i-1,j-1) = tt(i-1);
+            r(ij-1,j-1) = 1.0;
+        }
+        if (verbosity>1) {
+            std::cout << "Degrees of freedom excited by unit starting iteration vectors:" << std::endl;
+            for (int j = 2; j <= nc; j++)
+                std::cout << tt(j-1) << std::endl << std::endl;
         }
         // r has now the initial values for the eigenvectors
 
+        // TODO add random numbers to last column of r(:,nc) -> Bathe SSP00131
 
         if (verbosity>1) std::cout << "Initialize linear solver." << std::endl;
         mpLinearSolver->InitializeSolutionStep(rK, temp_tt, tt);
@@ -248,7 +258,7 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
                 mpLinearSolver->PerformSolutionStep(rK, temp_tt, tt);
                 for(int k=1; k<=nn; k++) tt(k-1) = temp_tt(k-1);
 
-                for (int i = j; i<= nc; i++)
+                for (int i = j; i<= nc; i++) //SSP00161
                 {
                     art = 0.;
                     for (int k = 1; k<= nn; k++)
@@ -261,25 +271,25 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
             }
 
             // compute projection br of matrix casted_B
-            for (int j = 1; j<= nc; j++)
+            for (int j = 1; j<= nc; j++) //SSP00170
             {
-                for (int k = 1; k<= nn ; k++)  // tt gets an iteration eigenvector
-                    tt(k-1)=r(k-1,j-1);
+                for (int k = 1; k<= nn ; k++)  // temp gets an iteration eigenvector
+                    temp(k-1)=r(k-1,j-1);
 
-                // temp = rM*tt
-                TSparseSpaceType::Mult(rM, tt, temp);
+                // tt = rM*temp
+                TSparseSpaceType::Mult(rM, temp, tt);
 
                 for (int i = j; i<= nc; i++)
                 {
                     brt = 0.;
                     for (int k = 1; k<= nn; k++)
-                        brt += r(k-1,i-1)*temp(k-1);
+                        brt += r(k-1,i-1)*tt(k-1);
                     br(j-1,i-1) = brt;
                     br(i-1,j-1) = brt;
                 }                         // label 180
 
                 for (int k = 1; k<= nn; k++)
-                    r(k-1,j-1)=temp(k-1); // (r=zbar)
+                    r(k-1,j-1)=tt(k-1);
 
             }                           // label 160
 
@@ -340,21 +350,34 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
             // compute eigenvectors
             for (int i = 1; i<= nn; i++)  // label 375
             {
-                for (int j = 1; j<= nc; j++) tt(j-1) = r(i-1,j-1) ;
+                for (int j = 1; j<= nc; j++)
+                    tt(j-1) = r(i-1,j-1);
                 for (int k = 1; k<= nc; k++)
                 {
                     rt = 0.0;
-                    for (int j = 1; j<= nc; j++) rt += tt(j-1)*vec(j-1,k-1) ;
+                    for (int j = 1; j<= nc; j++)
+                        rt += tt(j-1)*vec(j-1,k-1) ;
                     r(i-1,k-1) = rt ;
                 }
             }                           // label 420   (r = z)
 
-            // convergency check
+            // convergency check alternative A:
             for (int i = 1; i<= nc; i++)
             {
                 dif = (eigv(i-1) - d(i-1));
                 rtolv(i-1) = fabs(dif / eigv(i-1));
             }
+
+            // convergency check alternative B: according to BATHE (more restrictive)
+            // for (int i = 1; i<=nc; i++)
+            // {
+            //     double vdot = 0.0;
+            //     for (int j=1; j<=nc; j++)
+            //         vdot += vec(j-1,i-1);
+            //     double eigv2 = eigv(i-1) * eigv(i-1);
+            //     dif = vdot-eigv2;
+            //     rtolv(i-1) = sqrt(std::max(dif, 1e-24*eigv2)/vdot);
+            // }
 
             for (int i = 1; i<= _NROOT; i++)
             {
@@ -414,6 +437,7 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
         // 1. make vectors M-normalized
         // 2. orient vectors
         // 3. speed up
+        // 4. sturm sequence check
         }
         else{
             KRATOS_ERROR << "Solution failed!" <<std::endl;
