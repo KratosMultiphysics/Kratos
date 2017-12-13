@@ -68,8 +68,8 @@ void  AddKernelToPython()
 //  ;
     class_<Kernel, Kernel::Pointer, boost::noncopyable >("Kernel")
     .def("Initialize",&Kernel::Initialize)
-    .def("AddApplication",&Kernel::AddApplication,with_custodian_and_ward<1,2>()) // Note: custodian and ward to be checked. Pooyan.
-    .def("InitializeApplication",&Kernel::InitializeApplication,with_custodian_and_ward<1,2>()) // Note: custodian and ward to be checked. Pooyan.
+    .def("ImportApplication",&Kernel::ImportApplication)
+    .def("InitializeApplication",&Kernel::InitializeApplication) 
     //.def(""A,&Kernel::Initialize)
     .def("IsImported",&Kernel::IsImported)
     .def("HasBoolVariable",HasVariable< Variable<bool> >)

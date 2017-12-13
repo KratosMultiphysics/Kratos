@@ -42,13 +42,13 @@ namespace Kratos
     application in time of calling InitializeApplication method for each of them.
     The sequence of using Kernel is as follow:
 1. Creating the Kernel using its default constructor
-2. Adding applications to Kernel using AddApplication method
+2. Adding applications to Kernel using ImportApplication method
 3. Initializing the Kernel using Initialize method
 4. Initializing the applications using InitializeApplication method
 
     It is very important to perform all this step exactly in the same order as described above.
 
-    @see AddApplication
+    @see ImportApplication
     @see Initialize
     @see InitializeApplication
     @see KratosApplication
@@ -99,13 +99,13 @@ public:
 
     @param NewApplication The application to be added and synchronized
     */
-    void AddApplication(KratosApplication::Pointer pNewApplication);
+    void ImportApplication(KratosApplication::Pointer pNewApplication);
     
     /// Assign sequential key to the registered variables.
     /** This method assigns a sequential key to all registerd variables in kratos and all added applications.
-        It is very important to call this function after adding ALL necessary applications using AddApplication
+        It is very important to call this function after adding ALL necessary applications using ImportApplication
         methods before calling this function. Otherwise it leads to uninitialized variables with key 0!
-        @see AddApplication
+        @see ImportApplication
         @see InitializeApplication
     */
     void Initialize()
@@ -119,7 +119,7 @@ public:
     /// Initializes and synchronizes the list of variables, elements and conditions in each application.
     /** This method gives the application the list of all variables, elements and condition which is registered
         by kratos and all other added applications.
-        @see AddApplication
+        @see ImportApplication
         @see Initialize
     */
     void InitializeApplication(KratosApplication& NewApplication)

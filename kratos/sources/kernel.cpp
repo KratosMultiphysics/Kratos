@@ -29,7 +29,7 @@ namespace Kratos
     
         KratosApplication::Pointer pKratosApplication = boost::make_shared<KratosApplication>(std::string("KratosMultiphysics"));
         pKratosApplication->RegisterVariables();
-        this->AddApplication(pKratosApplication);
+        this->ImportApplication(pKratosApplication);
 
         
     }
@@ -48,7 +48,7 @@ namespace Kratos
             return false;
     }
     
-    void Kernel::AddApplication(KratosApplication::Pointer pNewApplication)
+    void Kernel::ImportApplication(KratosApplication::Pointer pNewApplication)
     {
  
         pNewApplication->Register();
