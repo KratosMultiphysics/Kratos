@@ -346,8 +346,8 @@ class ConstraintEquationContainer
     ///@}
     virtual void PrintInfo(std::ostream &rOStream) const
     {
-        rOStream << " MpcData object " << std::endl;
-        rOStream << " Number of slaves : " << mDataContainer.size() << std::endl;
+        rOStream << " ConstraintEquationContainer object " << std::endl;
+        rOStream << " Number of constraint equations : " << mDataContainer.size() << std::endl;
     }
 
     ///@name Serialization

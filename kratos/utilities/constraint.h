@@ -99,45 +99,66 @@ class Constraint
     /**
     * Adds a constraints between the given slave and master with a weight. 		
 	*/
-
     // Takes in a slave dof equationId and a master dof equationId
     virtual void AddConstraint(DofType &SlaveDof, DofType &MasterDof, double weight, double constant = 0.0)
     {
         mConstraintEquationContainer.AddConstraint(SlaveDof, MasterDof, weight, constant);
     }
 
+    /**
+     *  Does necessary operations on the constraint before the build of master stiffness matrix is commenced
+     */
     virtual void ExecuteBeforeBuilding(NodesContainerType &Nodes)
     {
     }
-
+    /**
+     *  Does necessary operations on the constraint after the build of master stiffness matrix is commenced
+     */
     virtual void ExecuteAfterBuilding(NodesContainerType &Nodes)
     {
     }
 
+    /**
+     *  Does necessary operations on global symtem Ax=b on the constraint before they are solved.
+     */    
     virtual void ExecuteBeforeSolving(TSystemMatrixType &A,
                                       TSystemVectorType &Dx,
                                       TSystemVectorType &b)
     {
     }
 
+    /**
+     *  Does necessary operations on global symtem Ax=b on the constraint after they are solved.
+     */    
     virtual void ExecuteAfterSolving(TSystemMatrixType &A,
                                      TSystemVectorType &Dx,
                                      TSystemVectorType &b)
     {
     }
 
+    /**
+     *  Does necessary operations on the element freedom table so as to construct the global stiffness matrix.
+     *  Mainly to build the sparsity pattern for the global stiffness matrix.
+     */        
     virtual void Element_ModifyEquationIdsForConstraints(Element &rCurrentElement,
                                                          EquationIdVectorType &EquationId,
                                                          ProcessInfo &CurrentProcessInfo)
     {
     }
 
+    /**
+     *  Does necessary operations on the element freedom table of condition so as to construct the global stiffness matrix.
+     *  Mainly to build the sparsity pattern for the global stiffness matrix.
+     */            
     virtual void Condition_ModifyEquationIdsForConstraints(Condition &rCurrentCondition,
                                                            EquationIdVectorType &EquationId,
                                                            ProcessInfo &CurrentProcessInfo)
     {
     }
 
+    /**
+     *  Does necessary operations on the element stiffness matrix and element rhs to apply the constraints.
+     */    
     virtual void Element_ApplyConstraints(Element &rCurrentElement,
                                           LocalSystemMatrixType &LHS_Contribution,
                                           LocalSystemVectorType &RHS_Contribution,
@@ -146,6 +167,9 @@ class Constraint
     {
     }
 
+    /**
+     *  Does necessary operations on the condition stiffness matrix and element rhs to apply the constraints.
+     */        
     virtual void Condition_ApplyConstraints(Condition &rCurrentCondition,
                                             LocalSystemMatrixType &LHS_Contribution,
                                             LocalSystemVectorType &RHS_Contribution,
@@ -229,14 +253,14 @@ class Constraint
 
     virtual void save(Serializer &rSerializer) const
     {
-        rSerializer.save("MpcDataName", mName);
+        rSerializer.save("ConstraintName", mName);
         rSerializer.save("isActive", mActive);
         this->mConstraintEquationContainer.save(rSerializer);
     }
 
     virtual void load(Serializer &rSerializer)
     {
-        rSerializer.load("MpcDataName", mName);
+        rSerializer.load("ConstraintName", mName);
         rSerializer.load("isActive", mActive);
         this->mConstraintEquationContainer.load(rSerializer);
     }
