@@ -9,6 +9,7 @@
 //  Author: Armin Geiser
 */
 
+// TODO check naming: is this really a Krylov-Schur algorithm?
 #if !defined(KRATOS_KRYLOV_SCHUR_EIGEN_VALUE_SOLVER_H_INCLUDED)
 #define KRATOS_KRYLOV_SCHUR_EIGEN_VALUE_SOLVER_H_INCLUDED
 
