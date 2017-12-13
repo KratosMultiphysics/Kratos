@@ -96,9 +96,9 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
         Parameters& settings = *mpParam;
 
         const int verbosity = settings["verbosity"].GetInt();
-        int NITEM = settings["max_iteration"].GetInt();
-        int _NROOT = settings["number_of_eigenvalues"].GetInt(); // number of eigenvalues requested
-        double RTOL = settings["tolerance"].GetDouble();
+        int nitem = settings["max_iteration"].GetInt();
+        int nroot = settings["number_of_eigenvalues"].GetInt(); // number of eigenvalues requested
+        double rtol = settings["tolerance"].GetDouble();
 
         int nn;  // size of problem (order of stiffness and mass matrix)
         int nc;  // number of iteration vectors used (automatically computed)
@@ -114,10 +114,10 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
         bool eigen_solver_successful = true;
 
         nn = rK.size1();
-        nc = std::min(2*_NROOT,_NROOT+8);
-        if (nc > nn ) nc = nn;  //nc cannot be larger than number of mass degree of freedom
+        nc = std::min(2*nroot,nroot+8);
+        if (nc > nn)
+            nc = nn;  //nc cannot be larger than number of mass degree of freedom
         nc1 = nc - 1 ;
-
 
         // ar: working matrix storing projection of rK
         DenseMatrixType ar = ZeroMatrix(nc,nc);
@@ -228,7 +228,7 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
         if (verbosity>1) {
             std::cout << "Degrees of freedom excited by unit starting iteration vectors:" << std::endl;
             for (int j = 2; j <= nc; j++)
-                std::cout << tt(j-1) << std::endl << std::endl;
+                std::cout << tt(j-1) << std::endl;
         }
         // r has now the initial values for the eigenvectors
 
@@ -319,6 +319,7 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
                 }
             }
 
+
             if(!eigen_solver_successful)
             {
                 std::cout << "Eigen solution was not successful!" << std::endl;
@@ -379,19 +380,19 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
             //     rtolv(i-1) = sqrt(std::max(dif, 1e-24*eigv2)/vdot);
             // }
 
-            for (int i = 1; i<= _NROOT; i++)
+            for (int i = 1; i<= nroot; i++)
             {
-                if (rtolv(i-1) > RTOL) goto label400 ;
+                if (rtolv(i-1) > rtol) goto label400 ;
             }
 
-            std::cout << "Convergence reached after " << nite << " iterations within a relative tolerance: " << RTOL << std::endl;
+            std::cout << "Convergence reached after " << nite << " iterations within a relative tolerance: " << rtol << std::endl;
 
             break;
 
             label400:      // "not converged so far"
-            if (nite >= NITEM)
+            if (nite >= nitem)
             {
-                std::cout << "Convergence not reached in " << NITEM << " iterations." << std::endl;
+                std::cout << "Convergence not reached in " << nitem << " iterations." << std::endl;
                 break;
             }
 
@@ -422,9 +423,9 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
             }
 
             // copy results to function parameters
-            rEigenvalues.resize(_NROOT);
-            rEigenvectors.resize(_NROOT, nn);
-            for (int i = 0; i< _NROOT; i++)
+            rEigenvalues.resize(nroot);
+            rEigenvectors.resize(nroot, nn);
+            for (int i = 0; i< nroot; i++)
             {
                 rEigenvalues(i) = eigv(i);
                 for (int j=0; j< nn; j++)
