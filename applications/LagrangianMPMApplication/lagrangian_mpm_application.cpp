@@ -26,6 +26,7 @@ namespace Kratos
 {
 
 KratosLagrangianMPMApplication::KratosLagrangianMPMApplication():
+    KratosApplication("LagrangianMPMApplication"),
     mMeshlessBaseElement(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mUpdatedLagrangianMPMElement(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(4))))
 {}
