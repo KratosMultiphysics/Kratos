@@ -149,39 +149,39 @@ namespace Kratos
       Matrix NodalWaterVelocities = ZeroMatrix(dimension*number_of_nodes,1); 
       Matrix WaterVelocity = ZeroMatrix(dimension,1);
 
-         for (unsigned int i = 0; i < number_of_nodes; i++) {
-            for (unsigned int j = 0; j < dimension; j++) {
-               ShapeFunction(j,i*dimension+j)=rVariables.N[i];
-	       Divergence(1,i*dimension+j)=rVariables.DN_DX(i,j);
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int j = 0; j < dimension; j++) {
+            ShapeFunction(j,i*dimension+j)=rVariables.N[i];
+            Divergence(0,i*dimension+j)=rVariables.DN_DX(i,j);
+         }
+      }
+
+      Vector WaterVelocityAux = ZeroVector(3);
+      for (unsigned int i = 0; i < number_of_nodes; i++){
+         const array_1d<double, 3> &  rWaterVelocity = GetGeometry()[i].FastGetSolutionStepValue( WATER_VELOCITY );
+         WaterVelocityAux += rVariables.N[i] * rWaterVelocity;
+      }
+
+      for (unsigned int j = 0; j < dimension; j++)
+         WaterVelocity(j,0)=WaterVelocityAux(j);
+
+      Matrix SmallMatrix = prod( Matrix(prod( trans(ShapeFunction),WaterVelocity)), Divergence);
+      SmallMatrix *= WaterDensity*rIntegrationWeight/porosity;
+
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int j = 0; j < number_of_nodes; j++) {
+            for ( unsigned int iDim = 0; iDim < dimension; iDim++ ){
+               for ( unsigned int jDim = 0; jDim < dimension; jDim++ ){
+                  rDampingMatrix( i*dofs_per_node+iDim, j*dofs_per_node+jDim) += porosity*SmallMatrix(i*dimension+iDim,j*dimension+jDim);
+                  rDampingMatrix( i*dofs_per_node+(dimension+1)+iDim, j*dofs_per_node+jDim) += SmallMatrix(i*dimension+iDim,j*dimension+jDim);
+                  rDampingMatrix( i*dofs_per_node+iDim, j*dofs_per_node+(dimension+1)+jDim) += SmallMatrix(i*dimension+iDim,j*dimension+jDim);
+                  rDampingMatrix( i*dofs_per_node+(dimension+1)+iDim, j*dofs_per_node+(dimension+1)+jDim) += SmallMatrix(i*dimension+iDim,j*dimension+jDim)/porosity;
+               }
             }
          }
+      }
 
-	Vector WaterVelocityAux = ZeroVector(3);
-	for (unsigned int i = 0; i < number_of_nodes; i++){
-		const array_1d<double, 3> &  rWaterVelocity = GetGeometry()[i].FastGetSolutionStepValue( WATER_VELOCITY );
-		WaterVelocityAux += rVariables.N[i] * rWaterVelocity;
-	}
-
-	for (unsigned int j = 0; j < dimension; j++)
-		WaterVelocity(j,1)=WaterVelocityAux(j);
-
-	Matrix SmallMatrix = prod( Matrix(prod( trans(ShapeFunction),WaterVelocity)), Divergence);
-	SmallMatrix *= WaterDensity*rIntegrationWeight/porosity;
-
-         for (unsigned int i = 0; i < number_of_nodes; i++) {
-            for (unsigned int j = 0; j < number_of_nodes; j++) {
-		for ( unsigned int iDim = 0; iDim < dimension; iDim++ ){
-		    for ( unsigned int jDim = 0; jDim < dimension; jDim++ ){
-               		rDampingMatrix( i*dofs_per_node+iDim, j*dofs_per_node+jDim) += porosity*SmallMatrix(i*dimension+iDim,j*dimension+jDim);
-			rDampingMatrix( i*dofs_per_node+(dimension+1)+iDim, j*dofs_per_node+jDim) += SmallMatrix(i*dimension+iDim,j*dimension+jDim);
-               		rDampingMatrix( i*dofs_per_node+iDim, j*dofs_per_node+(dimension+1)+jDim) += SmallMatrix(i*dimension+iDim,j*dimension+jDim);
-			rDampingMatrix( i*dofs_per_node+(dimension+1)+iDim, j*dofs_per_node+(dimension+1)+jDim) += SmallMatrix(i*dimension+iDim,j*dimension+jDim)/porosity;
-		    }
-		}
-            }
-         }
-
-   KRATOS_CATCH("")
+      KRATOS_CATCH("")
 
    }
 
@@ -201,38 +201,38 @@ namespace Kratos
       double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0; 
       const double & rWaterBulk = GetProperties()[WATER_BULK_MODULUS];
 
-      Matrix ShapeFunction = ZeroMatrix(dimension,dimension*number_of_nodes);
+      Matrix ShapeFunction = ZeroMatrix(1,number_of_nodes);
       Matrix Gradient  = ZeroMatrix(dimension,number_of_nodes);
       Matrix NodalWaterVelocities = ZeroMatrix(dimension*number_of_nodes,1); 
       Matrix WaterVelocity = ZeroMatrix(1,dimension);
 
-         for (unsigned int i = 0; i < number_of_nodes; i++) {
-            ShapeFunction(1,i)=rVariables.N[i];
-            for (unsigned int j = 0; j < dimension; j++)
-	       Gradient(j,i)=rVariables.DN_DX(i,j);
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         ShapeFunction(0,i)=rVariables.N[i];
+         for (unsigned int j = 0; j < dimension; j++)
+            Gradient(j,i)=rVariables.DN_DX(i,j);
+      }
+
+      Vector WaterVelocityAux = ZeroVector(3);
+      for (unsigned int i = 0; i < number_of_nodes; i++){
+         const array_1d<double, 3> &  rWaterVelocity = GetGeometry()[i].FastGetSolutionStepValue( WATER_VELOCITY );
+         WaterVelocityAux += rVariables.N[i] * rWaterVelocity;
+      }
+
+      for (unsigned int j = 0; j < dimension; j++)
+         WaterVelocity(0,j)=WaterVelocityAux(j);
+
+      Matrix SmallMatrix = prod( Matrix(prod( trans(ShapeFunction),WaterVelocity)), Gradient);
+      SmallMatrix *= rIntegrationWeight/porosity/rWaterBulk;    
+
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int j = 0; j < number_of_nodes; j++) {
+            rLeftHandSide( (i+1)*dofs_per_node-1, (j+1)*dofs_per_node-1) += SmallMatrix(i,j);
          }
-
-	Vector WaterVelocityAux = ZeroVector(3);
-	for (unsigned int i = 0; i < number_of_nodes; i++){
-		const array_1d<double, 3> &  rWaterVelocity = GetGeometry()[i].FastGetSolutionStepValue( WATER_VELOCITY );
-		WaterVelocityAux += rVariables.N[i] * rWaterVelocity;
-	}
-
-	for (unsigned int j = 0; j < dimension; j++)
-		WaterVelocity(1,j)=WaterVelocityAux(j);
-
-	Matrix SmallMatrix = prod( Matrix(prod( trans(ShapeFunction),WaterVelocity)), Gradient);
-	SmallMatrix *= rIntegrationWeight/porosity/rWaterBulk;
-
-         for (unsigned int i = 0; i < number_of_nodes; i++) {
-            for (unsigned int j = 0; j < number_of_nodes; j++) {
-               rLeftHandSide( (i+1)*dofs_per_node-1, (j+1)*dofs_per_node-1) += SmallMatrix(i,j);
-            }
-         }
+      }
 
       KRATOS_CATCH("")
    }
- 
+
    // ****************************************************************************
    //     Right hand side part due to the stabilization technique
    void UpdatedLagrangianUJWwPHOElement::CalculateAndAddHighOrderRHS(VectorType& rRightHandSideVector,
@@ -250,35 +250,35 @@ namespace Kratos
       double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0; 
       const double & rWaterBulk = GetProperties()[WATER_BULK_MODULUS];
 
-      Matrix ShapeFunction = ZeroMatrix(dimension,dimension*number_of_nodes);
+      Matrix ShapeFunction = ZeroMatrix(1,number_of_nodes);
       Matrix Gradient  = ZeroMatrix(dimension,number_of_nodes);
       Matrix NodalWaterVelocities = ZeroMatrix(dimension*number_of_nodes,1); 
       Matrix WaterVelocity = ZeroMatrix(1,dimension);
 
-         for (unsigned int i = 0; i < number_of_nodes; i++) {
-            ShapeFunction(1,i)=rVariables.N[i];
-            for (unsigned int j = 0; j < dimension; j++)
-	       Gradient(j,i)=rVariables.DN_DX(i,j);
-         }
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         ShapeFunction(0,i)=rVariables.N[i];
+         for (unsigned int j = 0; j < dimension; j++)
+            Gradient(j,i)=rVariables.DN_DX(i,j);
+      }
 
-	Vector WaterVelocityAux = ZeroVector(3);
-	Vector WaterPressure = ZeroVector(number_of_nodes);
-	for (unsigned int i = 0; i < number_of_nodes; i++){
-		const array_1d<double, 3> &  rWaterVelocity = GetGeometry()[i].FastGetSolutionStepValue( WATER_VELOCITY );
-		const double & rWaterPressure = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
-		WaterVelocityAux += rVariables.N[i] * rWaterVelocity;
-		WaterPressure(i) = rWaterPressure;
-	}
+      Vector WaterVelocityAux = ZeroVector(3);
+      Vector WaterPressure = ZeroVector(number_of_nodes);
+      for (unsigned int i = 0; i < number_of_nodes; i++){
+         const array_1d<double, 3> &  rWaterVelocity = GetGeometry()[i].FastGetSolutionStepValue( WATER_VELOCITY );
+         const double & rWaterPressure = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
+         WaterVelocityAux += rVariables.N[i] * rWaterVelocity;
+         WaterPressure(i) = rWaterPressure;
+      }
 
-	for (unsigned int j = 0; j < dimension; j++)
-		WaterVelocity(1,j)=WaterVelocityAux(j);
+      for (unsigned int j = 0; j < dimension; j++)
+         WaterVelocity(0,j)=WaterVelocityAux(j);
 
-	Vector SmallRHS = prod(Matrix(prod( Matrix(prod( trans(ShapeFunction),WaterVelocity)), Gradient)),WaterPressure);
-	SmallRHS *= rIntegrationWeight/porosity/rWaterBulk;
+      Vector SmallRHS = prod(Matrix(prod( Matrix(prod( trans(ShapeFunction),WaterVelocity)), Gradient)),WaterPressure);
+      SmallRHS *= rIntegrationWeight/porosity/rWaterBulk;
 
-      	for (unsigned int i = 0; i < number_of_nodes; i++) {
-            rRightHandSideVector((i+1)*dofs_per_node-1 ) -= SmallRHS(i);
-      	}
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         rRightHandSideVector((i+1)*dofs_per_node-1 ) -= SmallRHS(i);
+      }
 
       KRATOS_CATCH("")
 

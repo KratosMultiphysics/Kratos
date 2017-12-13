@@ -503,6 +503,8 @@ namespace Kratos
       this->CalculateAndAddKUwP( rLeftHandSideMatrix, rVariables, rIntegrationWeight);
 
       this->CalculateAndAddKPPStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+      
+      this->CalculateAndAddHighOrderKPP( rLeftHandSideMatrix, rVariables, rIntegrationWeight);
 
       rVariables.detF = DeterminantF;
       rVariables.detF0 /= rVariables.detF;
@@ -653,6 +655,7 @@ namespace Kratos
       CalculateAndAddMassBalanceEquation( rRightHandSideVector, rVariables, rIntegrationWeight);
 
       this->CalculateAndAddStabilizationRHS( rRightHandSideVector, rVariables, rIntegrationWeight);
+      this->CalculateAndAddHighOrderRHS( rRightHandSideVector, rVariables, rIntegrationWeight);
 
 
 
@@ -989,6 +992,7 @@ namespace Kratos
          }
 
          this->CalculateAndAddDampingStabilizationMatrix(rDampingMatrix, Variables, IntegrationWeight);
+         this->CalculateAndAddHighOrderDampingMatrix(rDampingMatrix, Variables, IntegrationWeight);
 
 
       } // end point
