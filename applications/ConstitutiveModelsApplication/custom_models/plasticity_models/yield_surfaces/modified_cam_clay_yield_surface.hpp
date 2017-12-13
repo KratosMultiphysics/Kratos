@@ -84,9 +84,9 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual BaseTypePointer Clone() const //do no override -> windows compilation error
+    virtual BaseTypePointer Clone() const override
     {
-      return (ModifiedCamClayYieldSurface::Pointer(new ModifiedCamClayYieldSurface(*this)));
+      return BaseTypePointer(new ModifiedCamClayYieldSurface(*this));
     }
 
     /// Destructor.
@@ -111,7 +111,9 @@ namespace Kratos
       KRATOS_TRY
 
       // Material Parameters
-      const double ShearM = 1.0;
+      const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
+      const double& rShearM = rMaterialProperties[CRITICAL_STATE_LINE];
+      //const double & rFriction = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
 
       // compute something with the hardening rule
       double PreconsolidationStress;
