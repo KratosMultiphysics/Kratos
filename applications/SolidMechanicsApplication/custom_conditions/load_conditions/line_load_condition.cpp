@@ -246,6 +246,7 @@ namespace Kratos
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
+     counter = 3*i;
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    {
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoads[counter];

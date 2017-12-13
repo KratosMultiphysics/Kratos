@@ -8,6 +8,8 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import sys
 from math import *
 
+import numpy
+
 class compiled_time_spatial_function:
     def __init__(self, compiled_function ):
         self.compiled_function = compiled_function
