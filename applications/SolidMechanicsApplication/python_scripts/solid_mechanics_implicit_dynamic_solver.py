@@ -47,7 +47,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         # Construct the base solver.
         super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
         
-        print("::[Implicit_Scheme]:: Scheme Ready")
+        print("::[Implicit_Scheme]:: "+self.time_integration_settings["integration_method"].GetString()+" Scheme Ready")
 
 
     def GetVariables(self):

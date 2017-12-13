@@ -45,7 +45,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
         # Construct the base solver.
         super(StaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
-        print("::[Static_Scheme]:: Scheme Ready")        
+        print("::[Static_Scheme]:: +self.time_integration_settings["integration_method"].GetString()+" Scheme Ready")        
  
     #### Solver internal methods ####
         

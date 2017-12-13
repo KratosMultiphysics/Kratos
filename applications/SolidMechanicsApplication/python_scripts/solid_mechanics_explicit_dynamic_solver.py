@@ -52,7 +52,7 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         # Construct the base solver.
         super(ExplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
-        print("::[Explicit_Scheme]:: Scheme Ready")       
+        print("::[Explicit_Scheme]:: "+self.time_integration_settings["integration_method"].GetString()+" Scheme Ready")       
    
 
     def GetVariables(self):

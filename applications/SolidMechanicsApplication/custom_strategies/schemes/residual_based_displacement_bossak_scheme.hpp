@@ -178,7 +178,7 @@ namespace Kratos
 
 	  (this->mVector.a[thread]) *= (1.00 - parameter);
 	   
-	  rCurrentElement->GetSecondDerivativesVector(this->mVector.a[thread], 1);
+	  rCurrentElement->GetSecondDerivativesVector(this->mVector.ap[thread], 1);
 
 	  noalias(this->mVector.a[thread]) += parameter * this->mVector.ap[thread];
 
@@ -221,7 +221,7 @@ namespace Kratos
 
 	  (this->mVector.a[thread]) *= (1.00 - parameter);
 	   
-	  rCurrentCondition->GetSecondDerivativesVector(this->mVector.a[thread], 1);
+	  rCurrentCondition->GetSecondDerivativesVector(this->mVector.ap[thread], 1);
 
 	  noalias(this->mVector.a[thread]) += parameter * this->mVector.ap[thread];
 
