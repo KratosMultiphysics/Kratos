@@ -423,7 +423,7 @@ private:
       //*******************************************************************************************
     //*******************************************************************************************
 
-    virtual bool SetNewNodeVariables(ModelPart& rModelPart, NodeType::Pointer& pNode)
+    virtual void SetNewNodeVariables(ModelPart& rModelPart, NodeType::Pointer& pNode)
     {
       KRATOS_TRY
 	           	      
