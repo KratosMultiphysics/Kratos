@@ -184,25 +184,6 @@ void PartitionedModelPartIO::ReadModelPart(ModelPart& rModelPart)
     KRATOS_CATCH("");
 }
 
-void PartitionedModelPartIO::WriteModelPart(ModelPart& rModelPart)
-{
-    KRATOS_TRY;
-
-    Internals::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
-    nodal_variables_io.WriteVariablesList(rModelPart);
-    nodal_variables_io.WriteBufferSize(rModelPart.GetBufferSize());
-    WriteProperties(rModelPart.rProperties());
-    Internals::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
-    process_info_io.WriteDataValueContainer(rModelPart.GetProcessInfo());
-    rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through
-                               // the writing process.
-    WriteNodes(rModelPart.Nodes());
-    WriteElements(rModelPart.Elements());
-    WriteConditions(rModelPart.Conditions());
-
-    KRATOS_CATCH("");
-}
-
 void PartitionedModelPartIO::Check()
 {
     if (GetFile().GetTotalProcesses() == 1)

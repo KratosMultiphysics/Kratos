@@ -62,9 +62,7 @@ public:
 
     void WriteProperties(PropertiesContainerType const& rThisProperties) override;
 
-    // void ReadModelPart(ModelPart& rModelPart) override;
-
-    // void WriteModelPart(ModelPart& rModelPart) override;
+    void WriteModelPart(ModelPart& rModelPart) override;
 
     ///@}
 

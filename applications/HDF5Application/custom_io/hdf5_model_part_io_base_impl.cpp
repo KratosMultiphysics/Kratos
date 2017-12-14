@@ -1,8 +1,8 @@
 #include "custom_io/hdf5_model_part_io_base_impl.h"
 
 #include "custom_io/hdf5_properties_io.h"
-//#include "custom_io/hdf5_nodal_solution_step_variables_io.h"
-//#include "custom_io/hdf5_data_value_container_io.h"
+#include "custom_io/hdf5_nodal_solution_step_variables_io.h"
+#include "custom_io/hdf5_data_value_container_io.h"
 
 namespace Kratos
 {
@@ -65,41 +65,24 @@ void ModelPartIOBaseImpl::WriteProperties(PropertiesContainerType const& rProper
     prop_io.WriteProperties(rProperties);
 }
 
-// void ModelPartIOBaseImpl::ReadModelPart(ModelPart& rModelPart)
-// {
-//     KRATOS_TRY;
+void ModelPartIOBaseImpl::WriteModelPart(ModelPart& rModelPart)
+{
+    KRATOS_TRY;
 
-//     ReadProperties(rModelPart.rProperties());
-//     Internals::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
-//     process_info_io.ReadDataValueContainer(rModelPart.GetProcessInfo());
-//     ReadNodes(rModelPart.Nodes());
-//     ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
-//     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
-//     Internals::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
-//     nodal_variables_io.ReadAndAssignVariablesList(rModelPart);
-//     nodal_variables_io.ReadAndAssignBufferSize(rModelPart);
+    Internals::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
+    nodal_variables_io.WriteVariablesList(rModelPart);
+    nodal_variables_io.WriteBufferSize(rModelPart.GetBufferSize());
+    WriteProperties(rModelPart.rProperties());
+    Internals::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
+    process_info_io.WriteDataValueContainer(rModelPart.GetProcessInfo());
+    rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through
+                               // the writing process.
+    WriteNodes(rModelPart.Nodes());
+    WriteElements(rModelPart.Elements());
+    WriteConditions(rModelPart.Conditions());
 
-//     KRATOS_CATCH("");
-// }
-
-// void ModelPartIOBaseImpl::WriteModelPart(ModelPart& rModelPart)
-// {
-//     KRATOS_TRY;
-
-//     Internals::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
-//     nodal_variables_io.WriteVariablesList(rModelPart);
-//     nodal_variables_io.WriteBufferSize(rModelPart.GetBufferSize());
-//     WriteProperties(rModelPart.rProperties());
-//     Internals::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
-//     process_info_io.WriteDataValueContainer(rModelPart.GetProcessInfo());
-//     rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through
-//                                // the writing process.
-//     WriteNodes(rModelPart.Nodes());
-//     WriteElements(rModelPart.Elements());
-//     WriteConditions(rModelPart.Conditions());
-
-//     KRATOS_CATCH("");
-// }
+    KRATOS_CATCH("");
+}
 
 File& ModelPartIOBaseImpl::GetFile() const
 {
