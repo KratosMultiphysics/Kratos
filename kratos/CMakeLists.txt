@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/global_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/deprecated_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/c2c_variables.cpp;
@@ -130,20 +130,29 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define library KratosCore to be included in all of the others
-add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_SOURCES} ${KRATOS_TESTING_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES})
-
-
+add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES})
 target_link_libraries(KratosCore ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
-install(TARGETS KratosCore DESTINATION libs )
+
+## Define library KratosTests if enabled
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    add_library(KratosTests SHARED ${KRATOS_TESTING_SOURCES})
+    target_link_libraries(KratosTests KratosCore)
+    set_target_properties(KratosTests PROPERTIES PREFIX "")
+    set(KRATOS_TEST_LIBRARIES KratosTests)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define library Kratos which defines the basic python interface
 add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
-target_link_libraries(Kratos KratosCore)
+target_link_libraries(Kratos ${KRATOS_TEST_LIBRARIES} KratosCore)
 set_target_properties(Kratos PROPERTIES PREFIX "")
 
+
 if(USE_COTIRE MATCHES ON)
-    ## KratosCore its ok
+    ## KratosCore and KratosTests are ok
+    if(${KRATOS_BUILD_TESTING} MATCHES ON)
+        cotire(KratosTests)
+    endif(${KRATOS_BUILD_TESTING} MATCHES ON)
     cotire(KratosCore)
 
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
@@ -152,21 +161,32 @@ if(USE_COTIRE MATCHES ON)
     ## This soruces in particular take too much ram by their own
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    
     cotire(Kratos)
 endif(USE_COTIRE MATCHES ON)
 
 ## Changing the .dll suffix to .pyd (For Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set_target_properties(Kratos PROPERTIES SUFFIX .pyd)
+    if(${KRATOS_BUILD_TESTING} MATCHES ON)
+        set_target_properties(KratosTests PROPERTIES SUFFIX .pyd)
+    endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+    set_target_properties(Kratos PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 ## Changing the .dylib suffix to .so (For MacOS)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set_target_properties(Kratos PROPERTIES SUFFIX .so)
+    if(${KRATOS_BUILD_TESTING} MATCHES ON)
+        set_target_properties(KratosTests PROPERTIES SUFFIX .so)
+    endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+    set_target_properties(Kratos PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 install(TARGETS Kratos DESTINATION libs )
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    install(TARGETS KratosTests DESTINATION libs)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 install(TARGETS KratosCore DESTINATION libs)
+
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
 	get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION kratos/ FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
