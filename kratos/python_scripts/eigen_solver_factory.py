@@ -22,14 +22,11 @@ def ConstructSolver(settings):
     elif(solver_type == "FEAST" or solver_type == "feast"):
         import KratosMultiphysics.ExternalSolversApplication
         eigen_solver = KratosMultiphysics.ExternalSolversApplication.FEASTSolver(settings, linear_solver)
-    elif(solver_type == "SpectraEigenValueSolver"): # needs Eigen and Spectra
-        import KratosMultiphysics.EigenSolversApplication
-        eigen_solver = KratosMultiphysics.EigenSolversApplication.SpectraEigenValueSolver(settings)
-    elif(solver_type == "subspace_iteration_eigenvalue_solver"): # needs Eigen
-        import KratosMultiphysics.EigenSolversApplication
+    elif(solver_type == "subspace_iteration_eigenvalue_solver"):
         eigen_sub_solver_settings = settings["eigen_sub_solver_settings"]
         eigen_sub_solver_type = eigen_sub_solver_settings["solver_type"].GetString()
-        if eigen_sub_solver_type == "GeneralizedSelfAdjointEigenSolver":
+        if eigen_sub_solver_type == "generalized_self_adjoint_eigenvalue_solver": # needs Eigen at the moment
+            import KratosMultiphysics.EigenSolversApplication
             eigen_sub_solver = KratosMultiphysics.EigenSolversApplication.GeneralizedSelfAdjointEigenSolver(eigen_sub_solver_settings)
         else:
             raise Exception("Eigen Sub Solver type not found. Asking for :" + eigen_sub_solver_type)

@@ -23,8 +23,8 @@ else()
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
 endif()
 
-#add_definitions( -DNDEBUG -DEIGEN_INTERNAL_DEBUGGING -DEIGEN_DEFAULT_TO_ROW_MAJOR) #TODO SPECTRA NEEDS SPARSE CHOLESKY: -DEIGEN_MPL2_ONLY )
-add_definitions( -DNDEBUG -DEIGEN_INTERNAL_DEBUGGING) #TODO SPECTRA NEEDS SPARSE CHOLESKY: -DEIGEN_MPL2_ONLY )
+add_definitions( -DNDEBUG -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
+#add_definitions( -DEIGEN_INTERNAL_DEBUGGING )
 
 include_directories(
 	${CMAKE_SOURCE_DIR}/kratos
@@ -37,13 +37,6 @@ if( DEFINED ENV{MKLROOT} )
 	add_definitions( -DEIGEN_USE_MKL_ALL )
 else()
 	message( "MKLROOT not defined" )
-endif()
-
-if( DEFINED SPECTRA_ROOT )
-	message( "SPECTRA_ROOT = ${SPECTRA_ROOT}" )
-	include_directories( ${SPECTRA_ROOT}/include )
-else()
-	message( "SPECTRA_ROOT not defined" )
 endif()
 
 ## generate variables with the sources

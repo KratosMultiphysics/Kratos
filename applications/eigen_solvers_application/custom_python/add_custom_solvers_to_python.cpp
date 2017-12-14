@@ -24,7 +24,6 @@
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/iterative_solver.h"
 #include "custom_solvers/EigenDirectSolver.h"
-#include "custom_solvers/SpectraEigenValueSolver.h"
 #include "custom_solvers/EigenGeneralizedEigenSolver.h"
 
 namespace Kratos
@@ -64,11 +63,6 @@ void AddCustomSolversToPython()
 		("PardisoLUSolver", init<>())
 		.def(init<Parameters>());
 	#endif
-
-	using SpectraEigenValueSolver = SpectraEigenValueSolver<SparseSpaceType, LocalSpaceType>;
-	class_<SpectraEigenValueSolver, bases<LinearSolverType>, boost::noncopyable>
-		("SpectraEigenValueSolver", init<Parameters::Pointer>())
-		.def(init<Parameters::Pointer>());
 
 	using GeneralizedSelfAdjointEigenSolver = EigenGeneralizedEigenSolver<SparseSpaceType, LocalSpaceType>;
 	class_<GeneralizedSelfAdjointEigenSolver, bases<LinearSolverType>, boost::noncopyable>
