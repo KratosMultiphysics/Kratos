@@ -32,17 +32,15 @@ class Solution(object):
         self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         # Set echo level
-        self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
+        self.echo_level = 0
+        if( self.ProjectParameters["problem_data"].Has("echo_level") ):
+            self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
 
         # Defining the number of threads
         num_threads =  self._get_parallel_size()
 
         print(" ")
         print("::[KSM Simulation]:: [OMP USING",num_threads,"THREADS ]")
-
-        # Output settings start
-        self.problem_path = os.getcwd()
-        self.problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()     
 
    
     def Run(self):
@@ -277,21 +275,30 @@ class Solution(object):
         import process_handler
 
         process_parameters = KratosMultiphysics.Parameters("{}") 
-        process_parameters.AddValue("echo_level", self.ProjectParameters["problem_data"]["echo_level"])
+        process_parameters.AddEmptyValue("echo_level").SetInt(self.echo_level)
         process_parameters.AddValue("constraints_process_list", self.ProjectParameters["constraints_process_list"])
         process_parameters.AddValue("loads_process_list", self.ProjectParameters["loads_process_list"])
         if( self.ProjectParameters.Has("problem_process_list") ):
             process_parameters.AddValue("problem_process_list", self.ProjectParameters["problem_process_list"])
         if( self.ProjectParameters.Has("output_process_list") ):
             process_parameters.AddValue("output_process_list", self.ProjectParameters["output_process_list"])
-
+        if( self.ProjectParameters.Has("check_process_list") ):
+            process_parameters.AddValue("check_process_list", self.ProjectParameters["check_process_list"])
+            
         domain_model = self.model.GetModel()
         return (process_handler.ProcessHandler(domain_model, process_parameters))
         
     def _get_graphical_output(self, output_model_part):
+        # Output settings start
         import gid_output_process
         self.output_settings = self.ProjectParameters["output_configuration"]
-        return (gid_output_process.GiDOutputProcess(output_model_part,self.problem_name,self.output_settings))
+        problem_name = "results_output"
+        if( self.ProjectParameters["problem_data"].Has("problem_name") ):
+            problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()
+        else:
+            print(" problem name not supplied -> generic name used : results_output ")
+        print("::[KSM Simulation]:: Output Ready [File: "+problem_name+".*.post.* ]")
+        return (gid_output_process.GiDOutputProcess(output_model_part,problem_name,self.output_settings))
                      
     def _set_parallel_size(self, num_threads):
         parallel = KratosMultiphysics.OpenMPUtils()

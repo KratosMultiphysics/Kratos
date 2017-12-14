@@ -41,10 +41,10 @@ class ModelManager(object):
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-
+        self.settings["import_settings"].ValidateAndAssignDefaults(default_settings["import_settings"])
+        
         # Defining the model_part
         self.main_model_part = KratosMultiphysics.ModelPart(self.settings["model_name"].GetString())   
-
         #TODO: replace this "model" for real one once available in kratos core
         self.model = {self.settings["model_name"].GetString() : self.main_model_part}
         

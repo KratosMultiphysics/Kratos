@@ -41,7 +41,8 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         """)
 
         # Validate and transfer settings
-        self._validate_and_transfer_matching_settings(custom_settings, explicit_solver_settings)
+        if( custom_settings.Has("solving_strategy_settings") ):
+            self._validate_and_transfer_matching_settings(custom_settings["solving_strategy_settings"], explicit_solver_settings["solving_strategy_settings"])
         self.explicit_solver_settings = explicit_solver_settings["solving_strategy_settings"]
         
         # Validate the remaining settings in the base class.

@@ -80,16 +80,28 @@ class MechanicalSolver(object):
             }
         }
         """)
-       
+
         #trick to allow null value in a stabilization_factor variable
-        if(custom_settings["solving_strategy_settings"].Has("stabilization_factor")):
-            if(custom_settings["solving_strategy_settings"]["stabilization_factor"].IsDouble()):
-                default_settings["solving_strategy_settings"]["stabilization_factor"].SetDouble(0.0)
+        if( custom_settings.Has("solving_strategy_settings") ):
+            if(custom_settings["solving_strategy_settings"].Has("stabilization_factor")):
+                if(custom_settings["solving_strategy_settings"]["stabilization_factor"].IsDouble()):
+                    default_settings["solving_strategy_settings"]["stabilization_factor"].SetDouble(0.0)
+                else:
+                    self.settings["solving_strategy_settings"].RemoveValue("stabilization_factor")
+
         
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        self.settings["time_settings"].ValidateAndAssignDefaults(default_settings["time_settings"])
+
+        #trick to allow null value in a stabilization_factor variable
+        if( custom_settings.Has("solving_strategy_settings") ):
+            if(custom_settings["solving_strategy_settings"].Has("stabilization_factor")):
+                if(custom_settings["solving_strategy_settings"]["stabilization_factor"].IsNull()):
+                    self.settings["solving_strategy_settings"].RemoveValue("stabilization_factor")
+                    
+        #validate and assign other values            
+        self.settings["time_settings"].ValidateAndAssignDefaults(default_settings["time_settings"])           
         self.settings["time_integration_settings"].ValidateAndAssignDefaults(default_settings["time_integration_settings"])
         self.settings["solving_strategy_settings"].ValidateAndAssignDefaults(default_settings["solving_strategy_settings"])
 
