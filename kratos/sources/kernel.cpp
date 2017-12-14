@@ -27,9 +27,12 @@ namespace Kratos
         std::cout << "           Multi-Physics "<< KRATOS_VERSION << std::endl;
     
     
-        KratosApplication::Pointer pKratosApplication = boost::make_shared<KratosApplication>(std::string("KratosMultiphysics"));
-        pKratosApplication->RegisterVariables();
-        this->ImportApplication(pKratosApplication);
+        if(!IsImported("KratosMultiphysics"))
+        {
+            KratosApplication::Pointer pKratosApplication = boost::make_shared<KratosApplication>(std::string("KratosMultiphysics"));
+            pKratosApplication->RegisterVariables();
+            this->ImportApplication(pKratosApplication);
+        }
 
         
     }
@@ -50,7 +53,7 @@ namespace Kratos
     
     void Kernel::ImportApplication(KratosApplication::Pointer pNewApplication)
     {
-        if(IsImported(pNewApplication->Name());
+        if(IsImported(pNewApplication->Name()))
            KRATOS_ERROR << "importing more than once the application : " << pNewApplication->Name() << std::endl;
 
         pNewApplication->Register();
