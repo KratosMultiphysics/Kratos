@@ -33,11 +33,11 @@ namespace Kratos
 /// Adapter Eigen generalized eigenvalue problem solvers.
 template<class TSparseSpaceType, class TDenseSpaceType,
         class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class EigenGeneralizedEigenSolver: public LinearSolver<TSparseSpaceType, TDenseSpaceType,
+class EigenGeneralizedEigenvalueSolver: public LinearSolver<TSparseSpaceType, TDenseSpaceType,
         TReordererType> {
 
   public:
-    KRATOS_CLASS_POINTER_DEFINITION(EigenGeneralizedEigenSolver);
+    KRATOS_CLASS_POINTER_DEFINITION(EigenGeneralizedEigenvalueSolver);
 
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 
@@ -47,7 +47,7 @@ class EigenGeneralizedEigenSolver: public LinearSolver<TSparseSpaceType, TDenseS
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    EigenGeneralizedEigenSolver(Parameters param) : mParam(param)
+    EigenGeneralizedEigenvalueSolver(Parameters param) : mParam(param)
     {
 
         Parameters default_params(R"(
@@ -60,7 +60,7 @@ class EigenGeneralizedEigenSolver: public LinearSolver<TSparseSpaceType, TDenseS
         mParam.ValidateAndAssignDefaults(default_params);
     }
 
-    ~EigenGeneralizedEigenSolver() override {}
+    ~EigenGeneralizedEigenvalueSolver() override {}
 
 
     /**
@@ -78,7 +78,7 @@ class EigenGeneralizedEigenSolver: public LinearSolver<TSparseSpaceType, TDenseS
 
         if (rA.size1() > 100)
         {
-            std::cout << "WARNING: EigenGeneralizedEigenSolver solves for all "<<
+            std::cout << "WARNING: EigenGeneralizedEigenvalueSolver solves for all "<<
                         "eigen values of a dense matrix. "<<
                         "This might take long for large matrices!" << std::endl;
         }
@@ -130,7 +130,7 @@ class EigenGeneralizedEigenSolver: public LinearSolver<TSparseSpaceType, TDenseS
      */
     void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << "EigenGeneralizedEigenSolver.";
+        rOStream << "EigenGeneralizedEigenvalueSolver.";
     }
 
     /**
@@ -150,7 +150,7 @@ class EigenGeneralizedEigenSolver: public LinearSolver<TSparseSpaceType, TDenseS
 
     ///@}
 
-}; // class EigenGeneralizedEigenSolver
+}; // class EigenGeneralizedEigenvalueSolver
 
 
 /**
@@ -158,7 +158,7 @@ class EigenGeneralizedEigenSolver: public LinearSolver<TSparseSpaceType, TDenseS
  */
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::istream& operator >>(std::istream& rIStream,
-        EigenGeneralizedEigenSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis) {
+        EigenGeneralizedEigenvalueSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis) {
     return rIStream;
 }
 
@@ -167,7 +167,7 @@ inline std::istream& operator >>(std::istream& rIStream,
  */
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::ostream& operator <<(std::ostream& rOStream,
-        const EigenGeneralizedEigenSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis) {
+        const EigenGeneralizedEigenvalueSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis) {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);

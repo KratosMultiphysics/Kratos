@@ -23,8 +23,8 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/iterative_solver.h"
-#include "custom_solvers/EigenGeneralizedEigenSolver.h"
 #include "custom_solvers/eigen_direct_solver.h"
+#include "custom_solvers/eigen_generalized_eigenvalue_solver.h"
 
 namespace Kratos
 {
@@ -64,7 +64,7 @@ void AddCustomSolversToPython()
 		.def(init<Parameters>());
 	#endif
 
-	using GeneralizedSelfAdjointEigenSolver = EigenGeneralizedEigenSolver<SparseSpaceType, LocalSpaceType>;
+	using GeneralizedSelfAdjointEigenSolver = EigenGeneralizedEigenvalueSolver<SparseSpaceType, LocalSpaceType>;
 	class_<GeneralizedSelfAdjointEigenSolver, bases<LinearSolverType>, boost::noncopyable>
 	 	("GeneralizedSelfAdjointEigenSolver", init<Parameters>())
 	 	.def(init<Parameters>());
