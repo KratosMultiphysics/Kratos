@@ -428,10 +428,10 @@ protected:
         const PointType& PointDest2
         )
     {
-        const double s_orig1_orig2_x = PointOrig2.Coordinate(1) - PointOrig1.Coordinate(1);
-        const double s_orig1_orig2_y = PointOrig2.Coordinate(2) - PointOrig1.Coordinate(2);
-        const double s_dest1_dest2_x = PointDest2.Coordinate(1) - PointDest1.Coordinate(1);
-        const double s_dest1_dest2_y = PointDest2.Coordinate(2) - PointDest1.Coordinate(2);
+        const double s_orig1_orig2_x = PointOrig2.X() - PointOrig1.X();
+        const double s_orig1_orig2_y = PointOrig2.Y() - PointOrig1.Y();
+        const double s_dest1_dest2_x = PointDest2.X() - PointDest1.X();
+        const double s_dest1_dest2_y = PointDest2.Y() - PointDest1.Y();
         
         const double denom = s_orig1_orig2_x * s_dest1_dest2_y - s_dest1_dest2_x * s_orig1_orig2_y;
     
@@ -443,8 +443,8 @@ protected:
             return false;
         }
         
-        const double s_orig1_dest1_x = PointOrig1.Coordinate(1) - PointDest1.Coordinate(1);
-        const double s_orig1_dest1_y = PointOrig1.Coordinate(2) - PointDest1.Coordinate(2);
+        const double s_orig1_dest1_x = PointOrig1.X() - PointDest1.X();
+        const double s_orig1_dest1_y = PointOrig1.Y() - PointDest1.Y();
         
         const double s = (s_orig1_orig2_x * s_orig1_dest1_y - s_orig1_orig2_y * s_orig1_dest1_x)/denom;
         
@@ -452,8 +452,8 @@ protected:
         
         if (s >= -tolerance && s <= (1.0 + tolerance) && t >= -tolerance && t <= (1.0 + tolerance))
         {
-            PointIntersection.Coordinate(1) = PointOrig1.Coordinate(1) + t * s_orig1_orig2_x; 
-            PointIntersection.Coordinate(2) = PointOrig1.Coordinate(2) + t * s_orig1_orig2_y; 
+            PointIntersection.X() = PointOrig1.X() + t * s_orig1_orig2_x; 
+            PointIntersection.Y() = PointOrig1.Y() + t * s_orig1_orig2_y; 
             
             return true;
         }
