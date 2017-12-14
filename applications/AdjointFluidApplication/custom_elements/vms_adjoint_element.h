@@ -153,6 +153,10 @@ public:
             KRATOS_THROW_ERROR(std::invalid_argument,
                     "ADJOINT_FLUID_VECTOR_1 Key is 0. "
                     "Check if the application was correctly registered.","");
+        if (ADJOINT_FLUID_VECTOR_2.Key() == 0)
+            KRATOS_THROW_ERROR(std::invalid_argument,
+                    "ADJOINT_FLUID_VECTOR_2 Key is 0. "
+                    "Check if the application was correctly registered.","");
         if (ADJOINT_FLUID_VECTOR_3.Key() == 0)
             KRATOS_THROW_ERROR(std::invalid_argument,
                     "ADJOINT_FLUID_VECTOR_3 Key is 0. "
@@ -180,6 +184,10 @@ public:
             if (this->GetGeometry()[iNode].SolutionStepsDataHas(ADJOINT_FLUID_VECTOR_1) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,
                         "missing ADJOINT_FLUID_VECTOR_1 variable on solution step data for node ",
+                        this->GetGeometry()[iNode].Id());
+            if (this->GetGeometry()[iNode].SolutionStepsDataHas(ADJOINT_FLUID_VECTOR_2) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,
+                        "missing ADJOINT_FLUID_VECTOR_2 variable on solution step data for node ",
                         this->GetGeometry()[iNode].Id());
             if (this->GetGeometry()[iNode].SolutionStepsDataHas(ADJOINT_FLUID_VECTOR_3) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,
@@ -219,14 +227,7 @@ public:
     }
 
     /// Returns the adjoint values stored in this element's nodes.
-    // TODO: REMOVE !!!!! use GetFirstDerivativesVector instead.
     void GetValuesVector(VectorType& rValues, int Step = 0) override
-    {
-        GetFirstDerivativesVector(rValues, Step);
-    }
-
-    /// Returns the adjoint velocity values stored in this element's nodes.
-    void GetFirstDerivativesVector(VectorType& rValues, int Step = 0) override
     {
         if (rValues.size() != TFluidLocalSize)
             rValues.resize(TFluidLocalSize, false);
@@ -242,6 +243,13 @@ public:
             rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
                     ADJOINT_FLUID_SCALAR_1,Step);
         }
+    }
+
+    /// Returns the adjoint velocity values stored in this element's nodes.
+    void GetFirstDerivativesVector(VectorType& rValues, int Step = 0) override
+    {
+    // TODO: REMOVE !!!!! Replace with ADJOINT_FLUID_VECTOR_2
+        GetValuesVector(rValues, Step);
     }
 
     /// Returns the adjoint acceleration values stored in this element's nodes.

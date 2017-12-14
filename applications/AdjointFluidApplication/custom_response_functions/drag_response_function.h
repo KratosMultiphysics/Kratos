@@ -174,6 +174,15 @@ public:
         KRATOS_CATCH("");
     }
 
+    void CalculateGradient(Element const& rElement,
+                           Matrix const& rAdjointMatrix,
+                           Vector& rResponseGradient,
+                           ProcessInfo const& rProcessInfo) const override
+    {
+        CalculateDragContribution(
+            rAdjointMatrix, rElement.GetGeometry().Points(), rResponseGradient);
+    }
+
     void CalculateFirstDerivativesGradient(Element const& rElement,
                                            Matrix const& rAdjointMatrix,
                                            Vector& rResponseGradient,
