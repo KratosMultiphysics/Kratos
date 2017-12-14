@@ -32,11 +32,11 @@ namespace Kratos
 template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType,
          class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
          class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
+class SubspaceIterationEigenSolver: public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
 {
 
   public:
-    KRATOS_CLASS_POINTER_DEFINITION(KrylovSchurEigenValueSolver);
+    KRATOS_CLASS_POINTER_DEFINITION(SubspaceIterationEigenSolver);
 
     typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
 
@@ -46,7 +46,7 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    KrylovSchurEigenValueSolver(Parameters::Pointer pParam,
+    SubspaceIterationEigenSolver(Parameters::Pointer pParam,
         typename TLinearSolverType::Pointer pLinearSolver,
         typename TLinearSolverType::Pointer pEigenValueSolver) : mpParam(pParam),
                                                                  mpLinearSolver(pLinearSolver),
@@ -56,7 +56,7 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
 
         Parameters default_params(R"(
         {
-            "solver_type": "KrylovSchurEigenValueSolver",
+            "solver_type": "SubspaceIterationEigenSolver",
             "number_of_eigenvalues": 1,
             "max_iteration": 1000,
             "tolerance": 1e-6,
@@ -74,7 +74,7 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
 
     }
 
-    ~KrylovSchurEigenValueSolver() override {}
+    ~SubspaceIterationEigenSolver() override {}
 
 
     /**
@@ -434,7 +434,7 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
      */
     void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << "KrylovSchurEigenValueSolver.";
+        rOStream << "SubspaceIterationEigenSolver.";
     }
 
     /**
@@ -456,7 +456,7 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
 
     ///@}
 
-}; // class KrylovSchurEigenValueSolver
+}; // class SubspaceIterationEigenSolver
 
 
 /**
@@ -464,7 +464,7 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
  */
 template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType, class TReordererType>
 inline std::istream& operator >>(std::istream& rIStream,
-        KrylovSchurEigenValueSolver<TSparseSpaceType, TDenseSpaceType,  TLinearSolverType, TReordererType>& rThis) {
+        SubspaceIterationEigenSolver<TSparseSpaceType, TDenseSpaceType,  TLinearSolverType, TReordererType>& rThis) {
     return rIStream;
 }
 
@@ -473,7 +473,7 @@ inline std::istream& operator >>(std::istream& rIStream,
  */
 template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType, class TReordererType>
 inline std::ostream& operator <<(std::ostream& rOStream,
-        const KrylovSchurEigenValueSolver<TSparseSpaceType, TDenseSpaceType, TLinearSolverType, TReordererType>& rThis) {
+        const SubspaceIterationEigenSolver<TSparseSpaceType, TDenseSpaceType, TLinearSolverType, TReordererType>& rThis) {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);
