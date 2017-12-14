@@ -371,7 +371,7 @@ public:
                         it->FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1, 1);
                     for (unsigned int d = 0; d < domain_size; ++d)
                         r_current_adjoint_acceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
-                            (r_old_adjoint_acceleration[d] + mInvDt * r_aux_adjoint_acceleration[d]);
+                            (r_old_adjoint_acceleration[d] + r_aux_adjoint_acceleration[d]);
                 }
             }
         }
@@ -415,7 +415,7 @@ public:
                             it->FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1, 1);
                         for (unsigned int d = 0; d < domain_size; ++d)
                             r_current_adjoint_acceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
-                                (r_old_adjoint_acceleration[d] + mInvDt * r_aux_adjoint_acceleration[d]);
+                                (r_old_adjoint_acceleration[d] + r_aux_adjoint_acceleration[d]);
                     }
                     else
                     {
@@ -447,7 +447,7 @@ public:
                 // Get adjoint vector.
                 it->GetValuesVector(mAdjointValues[k]);
 
-                mAdjointAcceleration[k] = (mGammaNewmark - 1.0) * mInvGamma * mInvDt *
+                mAdjointAcceleration[k] = (mGammaNewmark - 1.0) * mInvGamma *
                     (prod(mAdjointMassMatrix[k], mAdjointValues[k]) + mResponseGradient[k]);
                 
                 // Assemble contributions to adjoint acceleration.
@@ -566,8 +566,8 @@ public:
             double weight = 1.0 / pCurrentElement->GetGeometry()[i_node].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
             for (unsigned int d = 0; d < domain_size; ++d)
             {
-                rRHS_Contribution[local_index] = mInvGamma * weight *
-                    (mInvGammaMinusOne * rRHS_Contribution[local_index] - mInvDt * r_aux_adjoint_acceleration[d]);
+                rRHS_Contribution[local_index] = mInvGamma * mInvDt * weight *
+                    (mInvGammaMinusOne * rRHS_Contribution[local_index] - r_aux_adjoint_acceleration[d]);
                 ++local_index;
             }
             ++local_index; // pressure dof
