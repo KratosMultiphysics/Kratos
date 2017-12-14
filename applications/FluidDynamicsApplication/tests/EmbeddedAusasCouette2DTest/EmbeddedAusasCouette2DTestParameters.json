@@ -44,7 +44,6 @@
         "echo_level"                   : 0,
         "time_order"                   : 2,
         "compute_reactions"            : false,
-        "divergence_clearance_steps"   : 0,
         "reform_dofs_at_each_step"     : false,
         "relative_velocity_tolerance"  : 1e-5,
         "absolute_velocity_tolerance"  : 1e-7,
