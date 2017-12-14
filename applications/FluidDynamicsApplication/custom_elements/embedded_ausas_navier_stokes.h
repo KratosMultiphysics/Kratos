@@ -193,12 +193,6 @@ public:
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
 
-        // Set the elemental distances vector variable
-        Vector& elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
-        for (unsigned int i = 0; i < TNumNodes; i++) {
-            elemental_distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-        }
-
         // Decides if the element is split and fills data structure accordingly
         EmbeddedAusasElementDataStruct data;
         this->FillEmbeddedAusasElementData(data, rCurrentProcessInfo);
@@ -224,12 +218,6 @@ public:
 
         // Initialize RHS
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-
-        // Set the elemental distances vector variable
-        Vector& elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
-        for (unsigned int i = 0; i < TNumNodes; i++) {
-            elemental_distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-        }
 
         // Decides if the element is split and fills data structure accordingly
         EmbeddedAusasElementDataStruct data;
@@ -312,16 +300,18 @@ public:
 
     /// Turn back information as a string.
     std::string Info() const override {
-        return "EmbeddedAusasNavierStokes";
+        std::stringstream buffer;
+        buffer << "EmbeddedAusasNavierStokesElement" << TDim << "D" << TNumNodes << "N";
+        return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override {
-        rOStream << Info() << Id();
+        rOStream << Info() << "\nElement id: " << Id();
     }
 
     /// Print object's data.
-    // virtual void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
     ///@}
     ///@name Friends

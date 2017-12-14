@@ -24,20 +24,14 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 ## SMALL TESTS 
 from test_refine import TestRedistance                      as TTestRedistance
 from test_remesh_sphere import TestRemeshMMG                as TTestRemeshMMG
-from SmallTests  import TwoDHessianTest                     as TTwoDHessianTest
-from SmallTests  import ThreeDHessianTest                   as TThreeDHessianTest
-from SmallTests  import TwoDCavityTest                      as TTwoDCavityTest
 from SmallTests  import TwoDDynamicBeamTest                 as TTwoDDynamicBeamTest
 from SmallTests  import TwoDDynamicBeamLineLoadTest         as TTwoDDynamicBeamLineLoadTest
 from SmallTests  import ThreeDDynamicBeamTest               as TThreeDDynamicBeamTest
 from SmallTests  import TwoDDynamicPlasticBeamTest          as TTwoDDynamicPlasticBeamTest
 
 ## NIGHTLY TESTS
-from NightlyTests import StanfordBunnyTest                  as TStanfordBunnyTest
 
 ## VALIDATION TESTS 
-from ValidationTests import TwoDSphereRemeshedChannelTest   as TTwoDSphereRemeshedChannelTest
-from ValidationTests import ThreeDSphereRemeshedChannelTest as TThreeDSphereRemeshedChannelTest
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -63,9 +57,6 @@ def AssambleTestSuites():
         print("TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
         if (missing_external_fluid_dependencies == False):
-            smallSuite.addTest(TTwoDHessianTest('test_execution'))
-            smallSuite.addTest(TThreeDHessianTest('test_execution'))
-            smallSuite.addTest(TTwoDCavityTest('test_execution'))
             smallSuite.addTest(TTestRemeshMMG('test_remesh_sphere'))
         if (missing_external_solid_dependencies == False):
             smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
@@ -78,20 +69,19 @@ def AssambleTestSuites():
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        if (missing_external_fluid_dependencies == False):
-            nightSuite.addTest(TStanfordBunnyTest('test_execution'))
-    else:
-        print("MMG process is not compiled and the corresponding tests will not be executed")
+    #if( hasattr(MeshingApplication,  "MmgProcess2D") ):
+        #if (missing_external_fluid_dependencies == False):
+            #nightSuite.addTest()
+    #else:
+        #print("MMG process is not compiled and the corresponding tests will not be executed")
     
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
-    if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        if (missing_external_fluid_dependencies == False):
-            validationSuite.addTest(TTwoDSphereRemeshedChannelTest('test_execution'))
-            validationSuite.addTest(TThreeDSphereRemeshedChannelTest('test_execution'))
-    else:
-        print("MMG process is not compiled and the corresponding tests will not be executed")
+    #if( hasattr(MeshingApplication,  "MmgProcess2D") ):
+        #if (missing_external_fluid_dependencies == False):
+            #validationSuite.addTest()
+    #else:
+        #print("MMG process is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
@@ -108,13 +98,7 @@ def AssambleTestSuites():
         if (missing_external_fluid_dependencies == False):
             allSuite.addTests(
                 KratosUnittest.TestLoader().loadTestsFromTestCases([
-                    TTwoDHessianTest,
-                    TThreeDHessianTest,
-                    TTwoDCavityTest,
                     TTestRemeshMMG,
-                    #TStanfordBunnyTest,
-                    #TTwoDSphereRemeshedChannelTest,
-                    #TThreeDSphereRemeshedChannelTest,
                 ])
             )
         if (missing_external_solid_dependencies == False):
@@ -123,7 +107,7 @@ def AssambleTestSuites():
                     TTwoDDynamicBeamTest,
                     TTwoDDynamicBeamLineLoadTest,
                     TThreeDDynamicBeamTest,
-                    ##TTwoDDynamicPlasticBeamTest,
+                    #TTwoDDynamicPlasticBeamTest,
                 ])
             )
     else:

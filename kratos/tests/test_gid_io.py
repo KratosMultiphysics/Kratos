@@ -68,8 +68,8 @@ class TestGidIO(KratosUnittest.TestCase):
             }
         """)
 
-        params["file_name_1"].SetString(output_file)
-        params["file_name_2"].SetString(reference_file)
+        params["file_name_1"].SetString(GetFilePath(output_file))
+        params["file_name_2"].SetString(GetFilePath(reference_file))
 
         cmp_process = compare_two_files_check_process.CompareTwoFilesCheckProcess(KratosMultiphysics.ModelPart(), params)
 

@@ -215,8 +215,6 @@ namespace Kratos
 		this->mNodalForces = ZeroVector(msElementSize);
 		this->mNodalForces = nodalForcesLocal_qe;
 
-
-
 		const double N = nodalForcesLocal_qe[6];
 		const double Mt = nodalForcesLocal_qe[9];
 		const double my_A = nodalForcesLocal_qe[4];
@@ -423,7 +421,6 @@ namespace Kratos
 			DirectionVectorX[i] = (ReferenceCoordinates[i + msDimension]
 				- ReferenceCoordinates[i]);
 		}
-
 		Matrix Temp = ZeroMatrix(msDimension);
 		this->mRotationMatrix0 = ZeroMatrix(msElementSize);
 
@@ -458,6 +455,7 @@ namespace Kratos
 			if (this->GetProperties().Has(ANG_ROT)) theta_costum = this->GetProperties()[ANG_ROT];
 			
 			Orientation element_axis(DirectionVectorX, theta_costum);
+
 			element_axis.CalculateBasisVectors(DirectionVectorX, DirectionVectorY,
 				DirectionVectorZ);
 			element_axis.CalculateRotationMatrix(Temp);
@@ -529,6 +527,7 @@ namespace Kratos
 		bounded_vector<double,msElementSize>  IncrementDeformation = ZeroVector(msElementSize);
 		IncrementDeformation = this->mIncrementDeformation;
 
+
 		for (unsigned int i = 0; i < msDimension; ++i) {
 			dPhiA[i] = IncrementDeformation[i + 3];
 			dPhiB[i] = IncrementDeformation[i + 9];
@@ -591,7 +590,6 @@ namespace Kratos
 		this->mQuaternionVEC_B += tempSca * drB_vec;
 		this->mQuaternionVEC_B += MathUtils<double>::CrossProduct(drB_vec, tempVec);
 
-
 		//scalar part of difference quaternion
 		double scalar_diff;
 		scalar_diff = (this->mQuaternionSCA_A + this->mQuaternionSCA_B) *
@@ -612,6 +610,7 @@ namespace Kratos
 		meanRotationVector = (this->mQuaternionVEC_A + this->mQuaternionVEC_B) * 0.50;
 		meanRotationVector = meanRotationVector / scalar_diff;
 
+
 		//vector part of difference quaternion
 		bounded_vector<double,msDimension>  vector_diff = ZeroVector(msDimension);
 		vector_diff = this->mQuaternionSCA_A * this->mQuaternionVEC_B;
@@ -621,11 +620,13 @@ namespace Kratos
 
 		vector_diff = 0.50 * vector_diff / scalar_diff;
 
+
 		//rotate inital element basis
 		const double r0 = meanRotationScalar;
 		const double r1 = meanRotationVector[0];
 		const double r2 = meanRotationVector[1];
 		const double r3 = meanRotationVector[2];
+
 
 		Quaternion<double> q(r0, r1, r2, r3);
 		Vector rotatedNX0 = this->mNX0;
@@ -634,6 +635,7 @@ namespace Kratos
 		q.RotateVector3(rotatedNX0);
 		q.RotateVector3(rotatedNY0);
 		q.RotateVector3(rotatedNZ0);
+
 
 		bounded_matrix<double,msDimension,msDimension> RotatedCS = ZeroMatrix(msDimension, msDimension);
 		for (unsigned int i = 0; i < msDimension; ++i) {
@@ -671,7 +673,6 @@ namespace Kratos
 		Identity -= 2.0 * outer_prod(n_bisectrix, n_bisectrix);
 		n_xyz = prod(Identity, n_xyz);
 
-
 		//save current CS for GID OUTPUT
 		this->mNX = ZeroVector(msDimension);
 		this->mNY = ZeroVector(msDimension);
@@ -683,6 +684,7 @@ namespace Kratos
 			this->mNZ[i] = n_xyz(i, 2);
 		}
 
+		
 		//calculating deformation modes
 		this->mPhiS = ZeroVector(msDimension);
 		this->mPhiA = ZeroVector(msDimension);
@@ -701,6 +703,7 @@ namespace Kratos
 			this->mPhiS = ZeroVector(msDimension);
 			this->mPhiA = ZeroVector(msDimension);
 		}
+
 		return n_xyz;
 		KRATOS_CATCH("")
 	}
@@ -809,7 +812,6 @@ namespace Kratos
 		else
 		{
 			this->CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
-			//KRATOS_WATCH(rMassMatrix);
 			bounded_matrix<double,msElementSize,msElementSize> RotationMatrix = ZeroMatrix(msElementSize,msElementSize);
 			bounded_matrix<double,msElementSize,msElementSize> aux_matrix = ZeroMatrix(msElementSize,msElementSize);
 
@@ -1001,6 +1003,9 @@ namespace Kratos
 		nodalForcesGlobal_q = prod(this->mRotationMatrix,
 			this->mNodalForces);
 
+		this->mNodalForces = ZeroVector(msElementSize);
+		this->mNodalForces = nodalForcesGlobal_q;
+
 		//create+compute RHS
 		//update Residual
 		rRightHandSideVector = ZeroVector(msElementSize);
@@ -1030,24 +1035,7 @@ namespace Kratos
 
 		if (this->mIsLinearElement == false)
 		{
-			this->UpdateIncrementDeformation();
-			bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = ZeroMatrix(msElementSize);
-			this->CalculateTransformationMatrix(TransformationMatrix);
-			
-			bounded_vector<double,msLocalSize> elementForces_t = ZeroVector(msLocalSize);
-			elementForces_t = this->CalculateElementForces();
-			bounded_vector<double,msElementSize> nodalForcesLocal_qe = ZeroVector(msElementSize);
-			bounded_matrix<double,msElementSize,msLocalSize>  TransformationMatrixS = ZeroMatrix(msElementSize, msLocalSize);
-			TransformationMatrixS = this->CalculateTransformationS();
-			nodalForcesLocal_qe = prod(TransformationMatrixS,
-				elementForces_t);
-			//save local nodal forces
-			this->mNodalForces = ZeroVector(msElementSize);
-			this->mNodalForces = nodalForcesLocal_qe;
-
-			bounded_vector<double,msElementSize> nodalForcesGlobal_q = ZeroVector(msElementSize);
-			nodalForcesGlobal_q = prod(TransformationMatrix, nodalForcesLocal_qe);
-			rRightHandSideVector -= nodalForcesGlobal_q;
+			rRightHandSideVector -= this->mNodalForces;
 		}
 
 		//LINEAR BEAM ELEMENT
@@ -1123,6 +1111,7 @@ namespace Kratos
 		deformation_modes_total_V[3] = l - L;
 		for (int i = 0; i < 3; ++i) deformation_modes_total_V[i] = this->mPhiS[i];
 		for (int i = 0; i < 2; ++i) deformation_modes_total_V[i + 4] = this->mPhiA[i + 1];
+
 		//calculate element forces
 		bounded_vector<double,msLocalSize> element_forces_t = ZeroVector(msLocalSize);
 		bounded_matrix<double,msLocalSize,msLocalSize> deformation_stiffness_Kd = ZeroMatrix(msLocalSize);
@@ -1228,32 +1217,23 @@ namespace Kratos
 			rOutput.resize(write_points_number);
 		}
 
-
-		this->UpdateIncrementDeformation();
-		//calculate Transformation Matrix
-		bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = ZeroMatrix(msElementSize);
-		this->CalculateTransformationMatrix(TransformationMatrix);
-		//deformation modes
-		bounded_vector<double,msLocalSize> elementForces_t = ZeroVector(msLocalSize);
-		elementForces_t = this->CalculateElementForces();
-		Vector Stress = ZeroVector(msElementSize);
-		bounded_matrix<double,msElementSize,msLocalSize>  TransformationMatrixS = ZeroMatrix(msElementSize, msLocalSize);
-		TransformationMatrixS = this->CalculateTransformationS();
-		Stress = prod(TransformationMatrixS, elementForces_t);
+		bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = this->mRotationMatrix;
+		// Stress = ZeroVector(msElementSize);
+		Vector Stress = this->mNodalForces;
+		Stress = prod(Matrix(trans(TransformationMatrix)),Stress);
 
 		//LINEAR BEAM ELEMENT
 		if (this->mIsLinearElement)
 		{
-			Matrix LeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
-			LeftHandSideMatrix = this->mLHS;
+			Matrix LeftHandSideMatrix = CreateElementStiffnessMatrix_Material();
 
 			Vector NodalDeformation = ZeroVector(msElementSize);
 			this->GetValuesVector(NodalDeformation);
-			Stress = ZeroVector(msElementSize);
-			Stress = prod(LeftHandSideMatrix, NodalDeformation);
-			bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = ZeroMatrix(msElementSize);
+
 			TransformationMatrix = this->mRotationMatrix0;
-			Stress = prod(Matrix(trans(TransformationMatrix)), Stress);
+			NodalDeformation = prod(Matrix(trans(TransformationMatrix)),NodalDeformation);
+
+			Stress = prod(LeftHandSideMatrix, NodalDeformation); 
 		}
 
 
@@ -1766,42 +1746,35 @@ namespace Kratos
 	Orientation::Orientation(array_1d<double, Orientation::msDimension>& v1, const double theta) {
 
 		KRATOS_TRY
-		//!!!!!!!!!! if crossproduct with array_1d type switch input order !!!!!!!
-		//If only direction of v1 is given -> Default case
 		const double numerical_limit = std::numeric_limits<double>::epsilon();
-		array_1d<double, msDimension> GlobalZ = ZeroVector(msDimension);
+                typedef array_1d<double, msDimension> arraydim;
+		arraydim GlobalZ = ZeroVector(msDimension);
 		GlobalZ[2] = 1.0;
 
-		array_1d<double, msDimension> v2 = ZeroVector(msDimension);
-		array_1d<double, msDimension> v3 = ZeroVector(msDimension);
+		arraydim v2 = ZeroVector(msDimension);
+		arraydim v3 = ZeroVector(msDimension);
 
 		double VectorNorm;
 		VectorNorm = MathUtils<double>::Norm(v1);
 		if (VectorNorm > numerical_limit) v1 /= VectorNorm;
 
-		if (v1[2] == 1.00) {
+		if (std::abs(v1[2]-1.00) < numerical_limit) {
 			v2[1] = 1.0;
 			v3[0] = -1.0;
 		}
 
-		if (v1[2] == -1.00) {
+		else if (std::abs(v1[2]+1.00) < numerical_limit) {
 			v2[1] = 1.0;
 			v3[0] = 1.0;
 		}
 
-		if (fabs(v1[2]) != 1.00) {
-
-			v2 = MathUtils<double>::CrossProduct(v1, GlobalZ);
-			VectorNorm = MathUtils<double>::Norm(v2);
-			if (VectorNorm > numerical_limit) v2 /= VectorNorm;
-
-			v3 = MathUtils<double>::CrossProduct(v2, v1);
-			VectorNorm = MathUtils<double>::Norm(v3);
-			if (VectorNorm > numerical_limit) v3 /= VectorNorm;
+		else {
+			MathUtils<double>::UnitCrossProduct(v2, GlobalZ, v1);
+			MathUtils<double>::UnitCrossProduct(v3, v1, v2);
 		}
 
 		//manual rotation around the beam axis
-		if (theta != 0) {
+		if (std::abs(theta) > numerical_limit) {
 			const Vector nz_temp = v3;
 			const Vector ny_temp = v2;
 			const double CosTheta = std::cos(theta);
@@ -1813,7 +1786,7 @@ namespace Kratos
 
 			v3 = nz_temp * CosTheta - ny_temp * SinTheta;
 			VectorNorm = MathUtils<double>::Norm(v3);
-			if (VectorNorm > numerical_limit) v3 /= VectorNorm;
+			if (VectorNorm > numerical_limit) v3 /= VectorNorm;			
 		}
 
 		Matrix RotationMatrix = ZeroMatrix(msDimension);
@@ -1822,40 +1795,8 @@ namespace Kratos
 			RotationMatrix(i, 1) = v2[i];
 			RotationMatrix(i, 2) = v3[i];
 		}
-
-		this->GetQuaternion() = Quaternion<double>::FromRotationMatrix(RotationMatrix);
-
-		KRATOS_CATCH("")
-	}
-
-	Orientation::Orientation(array_1d<double, Orientation::msDimension>& v1, array_1d<double, Orientation::msDimension>& v2) {
-
-		KRATOS_TRY
-		//If the user defines an aditional direction v2
-		const double numerical_limit = std::numeric_limits<double>::epsilon();
-		array_1d<double, msDimension> v3 = ZeroVector(msDimension);
-
-		double VectorNorm;
-		VectorNorm = MathUtils<double>::Norm(v1);
-		if (VectorNorm > numerical_limit) v1 /= VectorNorm;
-
-		VectorNorm = MathUtils<double>::Norm(v2);
-		if (VectorNorm > numerical_limit) v2 /= VectorNorm;
-
-		v3 = MathUtils<double>::CrossProduct(v2, v1);
-		VectorNorm = MathUtils<double>::Norm(v3);
-		if (VectorNorm > numerical_limit) v3 /= VectorNorm;
-
-
-		Matrix RotationMatrix = ZeroMatrix(msDimension);
-		for (int i = 0; i < msDimension; ++i) {
-			RotationMatrix(i, 0) = v1[i];
-			RotationMatrix(i, 1) = v2[i];
-			RotationMatrix(i, 2) = v3[i];
-		}
-
-		this->GetQuaternion() = Quaternion<double>::FromRotationMatrix(RotationMatrix);
-
+		this->mRotationMatrix = ZeroMatrix(msDimension);
+		this->mRotationMatrix = RotationMatrix;
 		KRATOS_CATCH("")
 	}
 
@@ -1863,8 +1804,7 @@ namespace Kratos
 
 		KRATOS_TRY
 			if (R.size1() != msDimension || R.size2() != msDimension) R.resize(msDimension, msDimension, false);
-		const Quaternion<double> q = this->GetQuaternion();
-		q.ToRotationMatrix(R);
+		R = this->mRotationMatrix;
 		KRATOS_CATCH("")
 	}
 
@@ -1873,17 +1813,16 @@ namespace Kratos
 		array_1d<double, Orientation::msDimension>& v3) {
 
 		KRATOS_TRY
-			const Quaternion<double> q = this->GetQuaternion();
 		Matrix R = ZeroMatrix(msDimension);
-		q.ToRotationMatrix(R);
+
 		if (v1.size() != msDimension) v1.resize(msDimension, false);
 		if (v2.size() != msDimension) v2.resize(msDimension, false);
 		if (v3.size() != msDimension) v3.resize(msDimension, false);
 
 		for (int i = 0; i < msDimension; ++i) {
-			v1[i] = R(i, 0);
-			v2[i] = R(i, 1);
-			v3[i] = R(i, 2);
+			v1[i] = this->mRotationMatrix(i, 0);
+			v2[i] = this->mRotationMatrix(i, 1);
+			v3[i] = this->mRotationMatrix(i, 2);
 		}
 		KRATOS_CATCH("")
 	}
