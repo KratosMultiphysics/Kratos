@@ -25,7 +25,6 @@
 #include "linear_solvers/iterative_solver.h"
 #include "custom_solvers/EigenDirectSolver.h"
 #include "custom_solvers/SpectraEigenValueSolver.h"
-#include "custom_solvers/SubspaceIterationEigenSolver.h"
 #include "custom_solvers/EigenGeneralizedEigenSolver.h"
 
 namespace Kratos
@@ -70,11 +69,6 @@ void AddCustomSolversToPython()
 	class_<SpectraEigenValueSolver, bases<LinearSolverType>, boost::noncopyable>
 		("SpectraEigenValueSolver", init<Parameters::Pointer>())
 		.def(init<Parameters::Pointer>());
-
-	using SubspaceIterationEigenSolver = SubspaceIterationEigenSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
-	class_<SubspaceIterationEigenSolver, bases<LinearSolverType>, boost::noncopyable>
-	 	("SubspaceIterationEigenSolver", init<Parameters::Pointer, LinearSolverType::Pointer, LinearSolverType::Pointer>())
-	 	.def(init<Parameters::Pointer, LinearSolverType::Pointer, LinearSolverType::Pointer>());
 
 	using GeneralizedSelfAdjointEigenSolver = EigenGeneralizedEigenSolver<SparseSpaceType, LocalSpaceType>;
 	class_<GeneralizedSelfAdjointEigenSolver, bases<LinearSolverType>, boost::noncopyable>

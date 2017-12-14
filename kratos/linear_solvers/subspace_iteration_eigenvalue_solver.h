@@ -1,13 +1,15 @@
-/*
-//  KRATOS _______
-//        / ____(_)___ ____  ____
-//       / __/ / / __ `/ _ \/ __ \
-//      / /___/ / /_/ /  __/ / / /
-//     /_____/_/\__, /\___/_/ /_/ SolversApplication
-//             /____/
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  Author: Armin Geiser
-*/
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Armin Geiser
+//
+//
 
 #if !defined(KRATOS_SUBSPACE_ITERATION_EIGEN_VALUE_SOLVER_H_INCLUDED)
 #define KRATOS_SUBSPACE_ITERATION_EIGEN_VALUE_SOLVER_H_INCLUDED
@@ -24,18 +26,38 @@
 namespace Kratos
 {
 
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
 ///@name Kratos Classes
 ///@{
 
-/// Adapter TODO
+/// This class uses the subspace iteration method to obtain the n lowest eigenvalues of a system
 template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType,
          class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
          class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class SubspaceIterationEigenSolver: public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
+class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
 {
 
   public:
-    KRATOS_CLASS_POINTER_DEFINITION(SubspaceIterationEigenSolver);
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of SubspaceIterationEigenvalueSolver
+    KRATOS_CLASS_POINTER_DEFINITION(SubspaceIterationEigenvalueSolver);
 
     typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
 
@@ -45,9 +67,13 @@ class SubspaceIterationEigenSolver: public IterativeSolver<TSparseSpaceType, TDe
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    SubspaceIterationEigenSolver(Parameters::Pointer pParam,
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    SubspaceIterationEigenvalueSolver(Parameters param,
         typename TLinearSolverType::Pointer pLinearSolver,
-        typename TLinearSolverType::Pointer pEigenValueSolver) : mpParam(pParam),
+        typename TLinearSolverType::Pointer pEigenValueSolver) : mParam(param),
                                                                  mpLinearSolver(pLinearSolver),
                                                                  mpEigenValueSolver(pEigenValueSolver)
 
@@ -55,7 +81,7 @@ class SubspaceIterationEigenSolver: public IterativeSolver<TSparseSpaceType, TDe
 
         Parameters default_params(R"(
         {
-            "solver_type": "SubspaceIterationEigenSolver",
+            "solver_type": "SubspaceIterationEigenvalueSolver",
             "number_of_eigenvalues": 1,
             "max_iteration": 1000,
             "tolerance": 1e-6,
@@ -64,17 +90,25 @@ class SubspaceIterationEigenSolver: public IterativeSolver<TSparseSpaceType, TDe
             "eigen_sub_solver_settings" :{}
         })");
 
-        // don't validate linear_solver_settings here
-        mpParam->ValidateAndAssignDefaults(default_params);
+        // don't validate linear_solver_settings and eigen_sub_solver_settings here
+        mParam.ValidateAndAssignDefaults(default_params);
 
-        Parameters& settings = *mpParam;
-        BaseType::SetTolerance( settings["tolerance"].GetDouble() );
-        BaseType::SetMaxIterationsNumber( settings["max_iteration"].GetInt() );
+        BaseType::SetTolerance( mParam["tolerance"].GetDouble() );
+        BaseType::SetMaxIterationsNumber( mParam["max_iteration"].GetInt() );
 
     }
 
-    ~SubspaceIterationEigenSolver() override {}
+    /// Destructor.
+    ~SubspaceIterationEigenvalueSolver() override {}
 
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
      * Solve the generalized eigenvalue problem using an eigen subspace iteration method
@@ -91,13 +125,10 @@ class SubspaceIterationEigenSolver: public IterativeSolver<TSparseSpaceType, TDe
     {
         std::cout << "Start solving for eigen values."  << std::endl;
 
-        // settings
-        Parameters& settings = *mpParam;
-
-        const int verbosity = settings["verbosity"].GetInt();
-        int nitem = settings["max_iteration"].GetInt();
-        int nroot = settings["number_of_eigenvalues"].GetInt(); // number of eigenvalues requested
-        double rtol = settings["tolerance"].GetDouble();
+        const int verbosity = mParam["verbosity"].GetInt();
+        int nroot = mParam["number_of_eigenvalues"].GetInt(); // number of eigenvalues requested
+        int nitem = BaseType::GetMaxIterationsNumber();
+        const double rtol = BaseType::GetTolerance();
 
         int nn;  // size of problem (order of stiffness and mass matrix)
         int nc;  // number of iteration vectors used (automatically computed)
@@ -425,6 +456,16 @@ class SubspaceIterationEigenSolver: public IterativeSolver<TSparseSpaceType, TDe
     }
 
     ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -433,7 +474,7 @@ class SubspaceIterationEigenSolver: public IterativeSolver<TSparseSpaceType, TDe
      */
     void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << "SubspaceIterationEigenSolver.";
+        rOStream << "SubspaceIterationEigenvalueSolver.";
     }
 
     /**
@@ -449,13 +490,13 @@ class SubspaceIterationEigenSolver: public IterativeSolver<TSparseSpaceType, TDe
     ///@name Member Variables
     ///@{
 
-    Parameters::Pointer mpParam;
+    Parameters mParam;
     typename TLinearSolverType::Pointer mpLinearSolver;
     typename TLinearSolverType::Pointer mpEigenValueSolver;
 
     ///@}
 
-}; // class SubspaceIterationEigenSolver
+}; // class SubspaceIterationEigenvalueSolver
 
 
 /**
@@ -463,7 +504,7 @@ class SubspaceIterationEigenSolver: public IterativeSolver<TSparseSpaceType, TDe
  */
 template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType, class TReordererType>
 inline std::istream& operator >>(std::istream& rIStream,
-        SubspaceIterationEigenSolver<TSparseSpaceType, TDenseSpaceType,  TLinearSolverType, TReordererType>& rThis) {
+        SubspaceIterationEigenvalueSolver<TSparseSpaceType, TDenseSpaceType,  TLinearSolverType, TReordererType>& rThis) {
     return rIStream;
 }
 
@@ -472,7 +513,7 @@ inline std::istream& operator >>(std::istream& rIStream,
  */
 template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType, class TReordererType>
 inline std::ostream& operator <<(std::ostream& rOStream,
-        const SubspaceIterationEigenSolver<TSparseSpaceType, TDenseSpaceType, TLinearSolverType, TReordererType>& rThis) {
+        const SubspaceIterationEigenvalueSolver<TSparseSpaceType, TDenseSpaceType, TLinearSolverType, TReordererType>& rThis) {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);

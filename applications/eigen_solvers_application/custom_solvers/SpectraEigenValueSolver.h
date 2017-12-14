@@ -134,7 +134,7 @@ class SpectraEigenValueSolver: public LinearSolver<TSparseSpaceType, TDenseSpace
 
         // Initialize and compute
         geigs.init();
-        int nconv = geigs.compute();
+        geigs.compute();
 
         // Retrieve results
         Eigen::VectorXd evalues;

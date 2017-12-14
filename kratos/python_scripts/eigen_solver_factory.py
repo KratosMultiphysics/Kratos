@@ -25,7 +25,7 @@ def ConstructSolver(settings):
     elif(solver_type == "SpectraEigenValueSolver"): # needs Eigen and Spectra
         import KratosMultiphysics.EigenSolversApplication
         eigen_solver = KratosMultiphysics.EigenSolversApplication.SpectraEigenValueSolver(settings)
-    elif(solver_type == "SubspaceIterationEigenSolver"):
+    elif(solver_type == "subspace_iteration_eigenvalue_solver"): # needs Eigen
         import KratosMultiphysics.EigenSolversApplication
         eigen_sub_solver_settings = settings["eigen_sub_solver_settings"]
         eigen_sub_solver_type = eigen_sub_solver_settings["solver_type"].GetString()
@@ -33,7 +33,7 @@ def ConstructSolver(settings):
             eigen_sub_solver = KratosMultiphysics.EigenSolversApplication.GeneralizedSelfAdjointEigenSolver(eigen_sub_solver_settings)
         else:
             raise Exception("Eigen Sub Solver type not found. Asking for :" + eigen_sub_solver_type)
-        eigen_solver = KratosMultiphysics.EigenSolversApplication.SubspaceIterationEigenSolver(settings, linear_solver, eigen_sub_solver)
+        eigen_solver = KratosMultiphysics.SubspaceIterationEigenvalueSolver(settings, linear_solver, eigen_sub_solver)
     else:
         raise Exception("Solver type not found. Asking for :" + solver_type)
 
