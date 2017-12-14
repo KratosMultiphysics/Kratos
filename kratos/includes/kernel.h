@@ -126,7 +126,7 @@ public:
     {
     }
 
-    bool IsImported(std::string ApplicationName);
+    bool IsImported(std::string ApplicationName) const;
     
     ///@}
     ///@name Input and output
