@@ -489,8 +489,11 @@ public:
         int thread_id = OpenMPUtils::ThisThread();
 
         // Calculate contribution from old adjoint acceleration.
-        pCurrentElement->GetSecondDerivativesVector(rRHS_Contribution, 1);
-        const unsigned int domain_size = static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
+        pCurrentElement->GetSecondDerivativesVector(mAdjointSecondDerivsVector[thread_id], 1);
+        if (rRHS_Contribution.size() != mAdjointSecondDerivsVector[thread_id].size())
+            rRHS_Contribution.resize(mAdjointSecondDerivsVector[thread_id].size(), false);
+        const unsigned int domain_size =
+            static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
         unsigned int local_index = 0;
         for (unsigned int i_node = 0; i_node < pCurrentElement->GetGeometry().PointsNumber(); ++i_node)
         {
@@ -500,10 +503,10 @@ public:
             for (unsigned int d = 0; d < domain_size; ++d)
             {
                 rRHS_Contribution[local_index] = mInvGamma * mInvDt * weight *
-                    (mInvGammaMinusOne * rRHS_Contribution[local_index] - r_adjoint_aux_fluid_vector_1[d]);
+                    (mInvGammaMinusOne * mAdjointSecondDerivsVector[thread_id][local_index] - r_adjoint_aux_fluid_vector_1[d]);
                 ++local_index;
             }
-            ++local_index; // pressure dof
+            rRHS_Contribution[local_index++] = 0.0; // pressure dof
         }
 
         // Calculate transposed gradient of element residual w.r.t. acceleration.
