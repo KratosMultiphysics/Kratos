@@ -14,7 +14,7 @@ sys.stdout.flush()
 
 class Solution(object):
 
-    def __init__(self):
+    def __init__(self, file_name = None):
         
         # Time control starts        
         print(timer.ctime())
@@ -31,6 +31,9 @@ class Solution(object):
         parameter_file = open("ProjectParameters.json",'r')
         self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
+        if( file_name is not None ):
+            self.ProjectParameters["problem_data"]["problem_name"].SetString(file_name)
+            self.ProjectParameters["model_settings"]["input_file_settings"]["name"].SetString(file_name)         
         # Set echo level
         self.echo_level = 0
         if( self.ProjectParameters["problem_data"].Has("echo_level") ):
@@ -42,7 +45,7 @@ class Solution(object):
         print(" ")
         print("::[KSM Simulation]:: [OMP USING",num_threads,"THREADS ]")
 
-   
+        
     def Run(self):
 
         self.Initialize()

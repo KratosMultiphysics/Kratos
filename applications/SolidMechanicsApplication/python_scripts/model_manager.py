@@ -27,10 +27,10 @@ class ModelManager(object):
            "processes_parts_list": [],
            "output_model_part_name": "output_domain", 
            "computing_model_part_name": "computing_domain",
-           "import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "input_file_label": 0
+           "input_file_settings": {
+                "type" : "mdpa",
+                "name" : "unknown_name",
+                "label": 0
            },
            "variables":[],
            "dofs": []
@@ -41,7 +41,7 @@ class ModelManager(object):
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        self.settings["import_settings"].ValidateAndAssignDefaults(default_settings["import_settings"])
+        self.settings["input_file_settings"].ValidateAndAssignDefaults(default_settings["input_file_settings"])
         
         # Defining the model_part
         self.main_model_part = KratosMultiphysics.ModelPart(self.settings["model_name"].GetString())   
@@ -74,9 +74,9 @@ class ModelManager(object):
                 
         #print("::[Model_Manager]:: Importing model part.")
         problem_path = os.getcwd()
-        input_filename = self.settings["import_settings"]["input_filename"].GetString()
+        input_filename = self.settings["input_file_settings"]["name"].GetString()
         
-        if(self.settings["import_settings"]["input_type"].GetString() == "mdpa"):            
+        if(self.settings["input_file_settings"]["type"].GetString() == "mdpa"):            
             # Import model part from mdpa file.
             print("  (reading file: "+ input_filename + ".mdpa)")
             #print("   " + os.path.join(problem_path, input_filename) + ".mdpa ")
@@ -89,9 +89,9 @@ class ModelManager(object):
 
             self._add_dofs()
             
-        elif(self.settings["import_settings"]["input_type"].GetString() == "rest"):
+        elif(self.settings["input_file_settings"]["type"].GetString() == "rest"):
             # Import model part from restart file.
-            restart_path = os.path.join(problem_path, self.settings["import_settings"]["input_filename"].GetString() + "__" + self.settings["import_settings"]["input_file_label"].GetString() )
+            restart_path = os.path.join(problem_path, self.settings["input_file_settings"]["name"].GetString() + "__" + self.settings["input_file_settings"]["label"].GetString() )
             if(os.path.exists(restart_path+".rest") == False):
                 raise Exception("Restart file not found: " + restart_path + ".rest")
             print("   Loading Restart file: ", restart_path + ".rest ")
@@ -117,7 +117,7 @@ class ModelManager(object):
         print ("::[Model_Manager]:: Model Ready")
           
     def ExportModel(self):
-        name_out_file = self.settings["import_settings"]["input_filename"].GetString()+".out"
+        name_out_file = self.settings["input_file_settings"]["name"].GetString()+".out"
         file = open(name_out_file + ".mdpa","w")
         file.close()
         # Model part writing
