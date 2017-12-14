@@ -36,8 +36,8 @@ namespace Kratos
     
     std::unordered_map< std::string, KratosApplication::Pointer >& Kernel::GetApplicationsList()
     {
-            static std::unordered_map< std::string, KratosApplication::Pointer > ApplicationsList;
-            return ApplicationsList;
+            static std::unordered_map< std::string, KratosApplication::Pointer > application_list;
+            return application_list;
     }
     
     bool Kernel::IsImported(std::string ApplicationName)
@@ -50,7 +50,9 @@ namespace Kratos
     
     void Kernel::ImportApplication(KratosApplication::Pointer pNewApplication)
     {
- 
+        if(IsImported(pNewApplication->Name());
+           KRATOS_ERROR << "importing more than once the application : " << pNewApplication->Name() << std::endl;
+
         pNewApplication->Register();
         Kernel::GetApplicationsList()[pNewApplication->Name()] = pNewApplication;
     }
@@ -82,7 +84,7 @@ namespace Kratos
         auto& application_list = Kernel::GetApplicationsList();
         rOStream << "number of loaded applications = " << application_list.size() << std::endl;
         for(auto it = application_list.begin(); it != application_list.end(); ++it)
-            rOStream << it->first << std::endl;
+            rOStream << "  " << it->first << std::endl;
     }
 }
 

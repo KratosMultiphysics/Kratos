@@ -17,7 +17,6 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <memory>
 
 // Project includes
 #include "includes/define.h"
@@ -105,7 +104,7 @@ public:
     void RegisterMATVariables(); //TODO: move to application
     void RegisterLegacyStructuralAppVariables(); //TODO: move to application
 
-    std::string Name(){return mApplicationName;}
+    const std::string& Name() const {return mApplicationName;}
     
     ///@}
     ///@name Access
