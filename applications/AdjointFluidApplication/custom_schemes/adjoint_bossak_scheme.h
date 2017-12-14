@@ -141,8 +141,10 @@ public:
 
         // Allocate auxiliary memory.
         int num_threads = OpenMPUtils::GetNumThreads();
-        mAdjointValues.resize(num_threads);
-        mAdjointAcceleration.resize(num_threads);
+        mAdjointValuesVector.resize(num_threads);
+        mAdjointFirstDerivsVector.resize(num_threads);
+        mAdjointSecondDerivsVector.resize(num_threads);
+        mAdjointAuxVector.resize(num_threads);
         mResponseGradient.resize(num_threads);
         mFirstDerivsResponseGradient.resize(num_threads);
         mSecondDerivsResponseGradient.resize(num_threads);
@@ -263,20 +265,20 @@ public:
                     *it, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], r_current_process_info);
 
                 // Get adjoint vector.
-                it->GetValuesVector(mAdjointValues[k]);
+                it->GetValuesVector(mAdjointValuesVector[k]);
 
-                mAdjointAcceleration[k] =
-                    prod(mSecondDerivsLHS[k], mAdjointValues[k]) + mSecondDerivsResponseGradient[k];
+                mAdjointAuxVector[k] =
+                    prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]) + mSecondDerivsResponseGradient[k];
 
                 // Assemble.
                 unsigned int local_index = 0;
                 for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
                 {
-                    array_1d<double, 3>& r_aux_adjoint_acceleration =
+                    array_1d<double, 3>& r_adjoint_aux_fluid_vector_1 =
                         it->GetGeometry()[i_node].FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1);
                     it->GetGeometry()[i_node].SetLock();
                     for (unsigned int d = 0; d < domain_size; ++d)
-                        r_aux_adjoint_acceleration[d] += mAdjointAcceleration[k][local_index++];
+                        r_adjoint_aux_fluid_vector_1[d] += mAdjointAuxVector[k][local_index++];
                     it->GetGeometry()[i_node].UnSetLock();
                     ++local_index; // pressure dof
                 }
@@ -330,15 +332,15 @@ public:
                 OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
                 for (auto it = nodes_begin; it != nodes_end; ++it)
                 {
-                    array_1d<double, 3>& r_current_adjoint_acceleration =
+                    array_1d<double, 3>& r_adjoint_fluid_vector_3 =
                         it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
-                    const array_1d<double, 3>& r_old_adjoint_acceleration =
+                    const array_1d<double, 3>& r_old_adjoint_fluid_vector_3 =
                         it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3, 1);
-                    const array_1d<double, 3>& r_aux_adjoint_acceleration =
+                    const array_1d<double, 3>& r_adjoint_aux_fluid_vector_1 =
                         it->FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1, 1);
                     for (unsigned int d = 0; d < domain_size; ++d)
-                        r_current_adjoint_acceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
-                            (r_old_adjoint_acceleration[d] + r_aux_adjoint_acceleration[d]);
+                        r_adjoint_fluid_vector_3[d] = (mGammaNewmark - 1.0) * mInvGamma *
+                            (r_old_adjoint_fluid_vector_3[d] + r_adjoint_aux_fluid_vector_1[d]);
                 }
             }
         }
@@ -369,25 +371,25 @@ public:
                 OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
                 for (auto it = nodes_begin; it != nodes_end; ++it)
                 {
-                    array_1d<double, 3>& r_current_adjoint_acceleration =
+                    array_1d<double, 3>& r_adjoint_fluid_vector_3 =
                         it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
 
                     // In the end we need to assemble so we only compute this part
                     // on the process that owns the node.
                     if (it->FastGetSolutionStepValue(PARTITION_INDEX) == r_comm.MyPID())
                     {
-                        const array_1d<double, 3>& r_old_adjoint_acceleration =
+                        const array_1d<double, 3>& r_old_adjoint_fluid_vector_3 =
                             it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3, 1);
-                        const array_1d<double, 3>& r_aux_adjoint_acceleration =
+                        const array_1d<double, 3>& r_adjoint_aux_fluid_vector_1 =
                             it->FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1, 1);
                         for (unsigned int d = 0; d < domain_size; ++d)
-                            r_current_adjoint_acceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
-                                (r_old_adjoint_acceleration[d] + r_aux_adjoint_acceleration[d]);
+                            r_adjoint_fluid_vector_3[d] = (mGammaNewmark - 1.0) * mInvGamma *
+                                (r_old_adjoint_fluid_vector_3[d] + r_adjoint_aux_fluid_vector_1[d]);
                     }
                     else
                     {
                         for (unsigned int d = 0; d < domain_size; ++d)
-                            r_current_adjoint_acceleration[d] = 0.0;
+                            r_adjoint_fluid_vector_3[d] = 0.0;
                     }
                 }
             }
@@ -412,20 +414,20 @@ public:
                     *it, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], r_current_process_info);
 
                 // Get adjoint vector.
-                it->GetValuesVector(mAdjointValues[k]);
+                it->GetValuesVector(mAdjointValuesVector[k]);
 
-                mAdjointAcceleration[k] = (mGammaNewmark - 1.0) * mInvGamma *
-                    (prod(mSecondDerivsLHS[k], mAdjointValues[k]) + mSecondDerivsResponseGradient[k]);
+                mAdjointSecondDerivsVector[k] = (mGammaNewmark - 1.0) * mInvGamma *
+                    (prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]) + mSecondDerivsResponseGradient[k]);
                 
                 // Assemble contributions to adjoint acceleration.
                 unsigned int local_index = 0;
                 for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
                 {
-                    array_1d<double, 3>& r_current_adjoint_acceleration =
+                    array_1d<double, 3>& r_adjoint_fluid_vector_3 =
                         it->GetGeometry()[i_node].FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
                     it->GetGeometry()[i_node].SetLock();
                     for (unsigned int d = 0; d < domain_size; ++d)
-                        r_current_adjoint_acceleration[d] += mAdjointAcceleration[k][local_index++];
+                        r_adjoint_fluid_vector_3[d] += mAdjointSecondDerivsVector[k][local_index++];
                     it->GetGeometry()[i_node].UnSetLock();
                     ++local_index; // pressure dof
                 }
@@ -492,13 +494,13 @@ public:
         unsigned int local_index = 0;
         for (unsigned int i_node = 0; i_node < pCurrentElement->GetGeometry().PointsNumber(); ++i_node)
         {
-            const array_1d<double, 3>& r_aux_adjoint_acceleration =
+            const array_1d<double, 3>& r_adjoint_aux_fluid_vector_1 =
                         pCurrentElement->GetGeometry()[i_node].FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1, 1);
             double weight = 1.0 / pCurrentElement->GetGeometry()[i_node].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
             for (unsigned int d = 0; d < domain_size; ++d)
             {
                 rRHS_Contribution[local_index] = mInvGamma * mInvDt * weight *
-                    (mInvGammaMinusOne * rRHS_Contribution[local_index] - r_aux_adjoint_acceleration[d]);
+                    (mInvGammaMinusOne * rRHS_Contribution[local_index] - r_adjoint_aux_fluid_vector_1[d]);
                 ++local_index;
             }
             ++local_index; // pressure dof
@@ -526,8 +528,8 @@ public:
         noalias(rLHS_Contribution) = mFirstDerivsLHS[thread_id] + mInvGamma * mInvDt * mSecondDerivsLHS[thread_id];
 
         // Calculate system contributions in residual form.
-        pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
-        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
+        pCurrentElement->GetValuesVector(mAdjointValuesVector[thread_id]);
+        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValuesVector[thread_id]);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -641,8 +643,10 @@ private:
     double mInvGamma;
     double mInvGammaMinusOne;
     ResponseFunction::Pointer mpResponseFunction;
-    std::vector<LocalSystemVectorType> mAdjointValues;
-    std::vector<LocalSystemVectorType> mAdjointAcceleration;
+    std::vector<LocalSystemVectorType> mAdjointValuesVector;
+    std::vector<LocalSystemVectorType> mAdjointFirstDerivsVector;
+    std::vector<LocalSystemVectorType> mAdjointSecondDerivsVector;
+    std::vector<LocalSystemVectorType> mAdjointAuxVector;
     std::vector<LocalSystemVectorType> mResponseGradient;
     std::vector<LocalSystemVectorType> mFirstDerivsResponseGradient;
     std::vector<LocalSystemVectorType> mSecondDerivsResponseGradient;
