@@ -62,7 +62,7 @@ void AddCustomIOToPython()
     ;
     
     class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, bases<IO>, boost::noncopyable>(
-        "HDF5ModelPartIO", init<Parameters&, HDF5::File::Pointer>())
+        "HDF5ModelPartIO", init<Parameters, HDF5::File::Pointer>())
     ;
 
     class_<HDF5::NodalSolutionStepDataIO, HDF5::NodalSolutionStepDataIO::Pointer, boost::noncopyable>(
@@ -79,7 +79,7 @@ void AddCustomIOToPython()
     ;
 
     class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, bases<IO>, boost::noncopyable>(
-        "HDF5PartitionedModelPartIO", init<Parameters&, HDF5::File::Pointer>())
+        "HDF5PartitionedModelPartIO", init<Parameters, HDF5::File::Pointer>())
     ;
 #endif
     

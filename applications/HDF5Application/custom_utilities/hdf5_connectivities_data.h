@@ -73,15 +73,15 @@ public:
 
     void WriteData(File& rFile, std::string Path);
 
-    void CreateElements(ElementType const& rElementType,
+    void CreateEntities(ElementType const& rElementType,
                         NodesContainerType& rNodes,
                         PropertiesContainerType& rProperties,
                         ElementsContainerType& rElements);
 
-    void CreateConditions(ConditionType const& rConditionType,
-                          NodesContainerType& rNodes,
-                          PropertiesContainerType& rProperties,
-                          ConditionsContainerType& rConditions);
+    void CreateEntities(ConditionType const& rConditionType,
+                        NodesContainerType& rNodes,
+                        PropertiesContainerType& rProperties,
+                        ConditionsContainerType& rConditions);
 
     // Fill data from elements of a single element type.
     void SetData(ConstElementsContainerType const& rElements);

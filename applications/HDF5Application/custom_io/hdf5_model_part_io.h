@@ -14,20 +14,16 @@
 #define KRATOS_HDF5_MODEL_PART_IO_H_INCLUDED
 
 // System includes
-#include <vector>
-#include <string>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/io.h"
-#include "includes/kratos_parameters.h"
-#include "includes/model_part.h"
 
 // Application includes
 #include "hdf5_application_define.h"
-#include "custom_io/hdf5_file.h"
+#include "custom_io/hdf5_model_part_io_base_impl.h"
 
 namespace Kratos
 {
@@ -39,7 +35,7 @@ namespace HDF5
 ///@{
 
 /// A class for serial IO of a model part in HDF5.
-class ModelPartIO : public IO
+class ModelPartIO : public virtual IO, public ModelPartIOBaseImpl
 {
 public:
     ///@name Type Definitions
@@ -53,22 +49,14 @@ public:
     ///@{
 
     /// Constructor.
-    ModelPartIO(Parameters& rParams, File::Pointer pFile);
+    ModelPartIO(Parameters Settings, File::Pointer pFile);
 
     ///@}
     ///@name Operations
     ///@{
     bool ReadNodes(NodesContainerType& rNodes) override;
 
-    std::size_t ReadNodesNumber() override;
-
     void WriteNodes(NodesContainerType const& rNodes) override;
-
-    void ReadProperties(PropertiesContainerType& rThisProperties) override;
-
-    void WriteProperties(Properties const& rThisProperties) override;
-
-    void WriteProperties(PropertiesContainerType const& rThisProperties) override;
 
     void ReadElements(NodesContainerType& rNodes,
                       PropertiesContainerType& rProperties,
@@ -92,8 +80,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    File& GetFile() const;
-
     void Check();
 
     ///@}
@@ -101,13 +87,6 @@ protected:
 private:
     ///@name Member Variables
     ///@{
-
-    File::Pointer mpFile;
-    std::string mPrefix;
-    std::vector<std::string> mElementNames;
-    std::vector<const Element*> mElementPointers;
-    std::vector<std::string> mConditionNames;
-    std::vector<const Condition*> mConditionPointers;
 
     ///@}
 

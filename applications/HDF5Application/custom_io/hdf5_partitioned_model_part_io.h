@@ -14,8 +14,6 @@
 #define KRATOS_HDF5_PARTITIONED_MODEL_PART_IO_H_INCLUDED
 
 // System includes
-#include <vector>
-#include <string>
 #include <tuple>
 
 // External includes
@@ -23,12 +21,10 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/io.h"
-#include "includes/kratos_parameters.h"
-#include "includes/model_part.h"
 
 // Application includes
 #include "hdf5_application_define.h"
-#include "custom_io/hdf5_file.h"
+#include "custom_io/hdf5_model_part_io_base_impl.h"
 
 namespace Kratos
 {
@@ -40,7 +36,7 @@ namespace HDF5
 ///@{
 
 /// A class for partitioned IO of a model part in HDF5.
-class PartitionedModelPartIO : public IO
+class PartitionedModelPartIO : public virtual IO, public ModelPartIOBaseImpl
 {
 public:
     ///@name Type Definitions
@@ -54,22 +50,14 @@ public:
     ///@{
 
     /// Constructor.
-    PartitionedModelPartIO(Parameters& rParams, File::Pointer pFile);
+    PartitionedModelPartIO(Parameters Settings, File::Pointer pFile);
 
     ///@}
     ///@name Operations
     ///@{
     bool ReadNodes(NodesContainerType& rNodes) override;
 
-    std::size_t ReadNodesNumber() override;
-
     void WriteNodes(NodesContainerType const& rNodes) override;
-
-    void ReadProperties(PropertiesContainerType& rProperties) override;
-    
-    void WriteProperties(Properties const& rProperties) override;
-    
-    void WriteProperties(PropertiesContainerType const& rProperties) override;
 
     void ReadElements(NodesContainerType& rNodes,
                       PropertiesContainerType& rProperties,
@@ -93,8 +81,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    File& GetFile() const;
-
     void Check();
 
     ///@}
@@ -102,13 +88,6 @@ protected:
 private:
     ///@name Member Variables
     ///@{
-
-    File::Pointer mpFile;
-    std::string mPrefix;
-    std::vector<std::string> mElementNames;
-    std::vector<const Element*> mElementPointers;
-    std::vector<std::string> mConditionNames;
-    std::vector<const Condition*> mConditionPointers;
 
     ///@}
 

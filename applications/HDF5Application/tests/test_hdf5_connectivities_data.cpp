@@ -172,7 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateElements, KratosHDF5TestS
     HDF5::Internals::ConnectivitiesData data;
     data.ReadData(test_file, "/Elements", 0, ids.size());
     HDF5::ElementsContainerType new_elements;
-    data.CreateElements(Element2D3N, nodes, properties, new_elements);
+    data.CreateEntities(Element2D3N, nodes, properties, new_elements);
 
     KRATOS_CHECK(new_elements.size() == elements.size());
     for (Element& r_new_elem : new_elements)
@@ -211,7 +211,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateConditions, KratosHDF5Tes
     HDF5::Internals::ConnectivitiesData data;
     data.ReadData(test_file, "/Conditions", 0, ids.size());
     HDF5::ConditionsContainerType new_conditions;
-    data.CreateConditions(SurfaceCondition3D3N, nodes, properties, new_conditions);
+    data.CreateEntities(SurfaceCondition3D3N, nodes, properties, new_conditions);
 
     KRATOS_CHECK(new_conditions.size() == conditions.size());
     for (Condition& r_new_cond : new_conditions)
