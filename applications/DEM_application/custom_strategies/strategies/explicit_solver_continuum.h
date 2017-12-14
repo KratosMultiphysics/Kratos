@@ -49,9 +49,8 @@ namespace Kratos {
                 const int delta_option,
                 ParticleCreatorDestructor::Pointer p_creator_destructor,
                 DEM_FEM_Search::Pointer p_dem_fem_search,
-                DEMIntegrationScheme::Pointer pScheme,
                 SpatialSearch::Pointer pSpSearch)
-        : ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch) {
+        : ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pSpSearch) {
             BaseType::GetParticleCreatorDestructor() = p_creator_destructor;
         }
 

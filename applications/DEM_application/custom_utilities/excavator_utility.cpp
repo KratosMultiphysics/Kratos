@@ -81,8 +81,8 @@ namespace Kratos {
         const double current_angle1 = initial_angle + rotated_angle1;
         array_1d<double,3> vector_to_rotor_center;
         vector_to_rotor_center[0] = 0.0;
-        vector_to_rotor_center[1] = mEccentricity * cos(current_angle1);
-        vector_to_rotor_center[2] = mEccentricity * sin(current_angle1);
+        vector_to_rotor_center[1] = mEccentricity * std::cos(current_angle1);
+        vector_to_rotor_center[2] = mEccentricity * std::sin(current_angle1);
         const array_1d<double,3> current_rotor_position = mCoordinatesOfStatorCenter + vector_to_rotor_center;
         noalias(mrModelPart[ROTATION_CENTER]) = current_rotor_position;
         //UPDATE VELOCITY OF ROTOR AXIS:

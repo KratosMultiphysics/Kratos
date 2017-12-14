@@ -38,7 +38,6 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
             "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
-            "divergence_clearance_steps": 0,
             "reform_dofs_at_each_step": false,
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "AMGCL",

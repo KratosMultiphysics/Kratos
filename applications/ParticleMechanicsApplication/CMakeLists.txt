@@ -40,6 +40,9 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
         ###flow rules
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/MPM_flow_rule.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/mc_plastic_flow_rule.cpp
+
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_line_load_2D_condition.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_line_load_3D_condition.cpp
 )
 
 ###############################################################
