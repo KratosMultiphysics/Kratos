@@ -57,7 +57,9 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     // Adding the beam element
     mCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), false),
     mCrLinearBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
-    // Adding the shells elements
+    mCrBeamElement2D2N(0, Element::GeometryType::Pointer(new Line2D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), false),
+    mCrLinearBeamElement2D2N(0, Element::GeometryType::Pointer(new Line2D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
+   // Adding the shells elements
     mIsotropicShellElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), false ),
     mShellThickCorotationalElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), true ),
@@ -151,10 +153,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     mSurfaceLoadCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Condition::GeometryType::PointsArrayType( 6 ) ) ) ),
     mSurfaceLoadCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
     mSurfaceLoadCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9 ) ) ) ),
-    // Beam's point moment condition
-    mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
-    // Torque's point condition
-    mPointTorqueCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) )
+    // Adding point moment conditions
+    mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) )
 {}
 
 void KratosStructuralMechanicsApplication::Register()
@@ -181,10 +181,9 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( MEAN_RADIUS )
     KRATOS_REGISTER_VARIABLE( SECTION_SIDES )
     KRATOS_REGISTER_VARIABLE( GEOMETRIC_STIFFNESS )
-    KRATOS_REGISTER_VARIABLE(LOCAL_AXIS_VECTOR_1)
-    KRATOS_REGISTER_VARIABLE(LOCAL_ELEMENT_ORIENTATION)
-    KRATOS_REGISTER_VARIABLE(ORTHOTROPIC_ORIENTATION_ASSIGNMENT)
-    KRATOS_REGISTER_VARIABLE(ORTHOTROPIC_FIBER_ORIENTATION_1)
+	KRATOS_REGISTER_VARIABLE(LOCAL_ELEMENT_ORIENTATION)
+	KRATOS_REGISTER_VARIABLE(MATERIAL_ORIENTATION_ANGLE)
+	KRATOS_REGISTER_VARIABLE(LOCAL_MATERIAL_ORIENTATION_VECTOR_1)
 
     // Truss generalized variables
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_PK2)
@@ -203,6 +202,7 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(I33)
 
     //  Shell generalized variables
+    KRATOS_REGISTER_VARIABLE( STENBERG_SHEAR_STABILIZATION_SUITABLE )
     KRATOS_REGISTER_VARIABLE( SHELL_STRAIN )
     KRATOS_REGISTER_VARIABLE( SHELL_FORCE )
     KRATOS_REGISTER_VARIABLE( SHELL_STRAIN_GLOBAL )
@@ -252,9 +252,6 @@ void KratosStructuralMechanicsApplication::Register()
     // CONDITIONS
     /* Moment condition */
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_MOMENT )
-    /* Torque condition */
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
 
     // Adding the SPRISM EAS variables
     KRATOS_REGISTER_VARIABLE(ALPHA_EAS);
@@ -303,6 +300,9 @@ void KratosStructuralMechanicsApplication::Register()
     // Register the beam element
     KRATOS_REGISTER_ELEMENT( "CrBeamElement3D2N", mCrBeamElement3D2N)
     KRATOS_REGISTER_ELEMENT( "CrLinearBeamElement3D2N", mCrLinearBeamElement3D2N)
+    KRATOS_REGISTER_ELEMENT( "CrBeamElement2D2N", mCrBeamElement2D2N)
+    KRATOS_REGISTER_ELEMENT( "CrLinearBeamElement2D2N", mCrLinearBeamElement2D2N)
+
 
     //Register the shells elements
     KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N", mIsotropicShellElement3D3N )
@@ -414,10 +414,9 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D6N", mSurfaceLoadCondition3D6N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D8N", mSurfaceLoadCondition3D8N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D9N", mSurfaceLoadCondition3D9N )
-    // Beam's point moment condition
+
+    // Point moment
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N );
-    // Torque moment condition
-    KRATOS_REGISTER_CONDITION( "PointTorqueCondition3D1N", mPointTorqueCondition3D1N );
 
     // For MPC implementations
     KRATOS_REGISTER_VARIABLE(MPC_DATA_CONTAINER)
@@ -427,10 +426,10 @@ void KratosStructuralMechanicsApplication::Register()
     Serializer::Register( "LinearElastic3DLaw", mElasticIsotropic3D );
     Serializer::Register( "LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain );
     Serializer::Register( "LinearElasticPlaneStress2DLaw", mLinearPlaneStress );
-    Serializer::Register( "LinearElasticAxisym2DLaw",  mAxisymElasticIsotropic);
-    Serializer::Register( "HyperElastic3DLaw",  mHyperElasticIsotropicNeoHookean3D);
-    Serializer::Register( "HyperElasticPlaneStrain2DLaw",  mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
-    Serializer::Register("LinearElasticOrthotropic2DLaw", mLinearElasticOrthotropic2DLaw);
+    Serializer::Register( "LinearElasticAxisym2DLaw",  mAxisymElasticIsotropic );
+    Serializer::Register( "HyperElastic3DLaw",  mHyperElasticIsotropicNeoHookean3D );
+    Serializer::Register( "HyperElasticPlaneStrain2DLaw",  mHyperElasticIsotropicNeoHookeanPlaneStrain2D );
+    Serializer::Register( "LinearElasticOrthotropic2DLaw", mLinearElasticOrthotropic2DLaw );
 }
 
 }  // namespace Kratos.

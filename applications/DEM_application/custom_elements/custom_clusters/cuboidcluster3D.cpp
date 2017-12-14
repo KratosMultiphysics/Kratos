@@ -78,25 +78,25 @@ namespace Kratos {
             
                 mListOfRadii[i + number_of_spheres_per_pass * j]= 0.1 * cl;
                 
-                mListOfCoordinates[i + number_of_spheres_per_pass * j][0] = cl * a * cos(v) * cos(u) / 
+                mListOfCoordinates[i + number_of_spheres_per_pass * j][0] = cl * a * std::cos(v) * std::cos(u) / 
                     pow(pow(sin(v), 6) * (pow(sin(u), 6) + pow(cos(u), 6)) + pow(cos(v), 6), 0.166666667); 
-                mListOfCoordinates[i + number_of_spheres_per_pass * j][1] = cl * b * cos(v) * sin(u) / 
+                mListOfCoordinates[i + number_of_spheres_per_pass * j][1] = cl * b * std::cos(v) * std::sin(u) / 
                     pow(pow(sin(v), 6) * (pow(sin(u), 6) + pow(cos(u), 6)) + pow(cos(v), 6), 0.166666667); 
-                mListOfCoordinates[i + number_of_spheres_per_pass * j][2] = cl * c * sin(v) / 
+                mListOfCoordinates[i + number_of_spheres_per_pass * j][2] = cl * c * std::sin(v) / 
                     pow(pow(sin(v), 6) * (pow(sin(u), 6) + pow(cos(u), 6)) + pow(cos(v), 6), 0.166666667);
 //                mListOfCoordinates[i + number_of_spheres_per_pass * j][0] =
 //                    
-//                    cl * 0.5 * sin(u) * cos(v) / 
+//                    cl * 0.5 * std::sin(u) * std::cos(v) / 
 //                    pow(pow(sin(u), 6) * (pow(sin(v), 6) + pow(cos(v), 6)) + pow(cos(u), 6), 0.166666667); 
 //                
 //                mListOfCoordinates[i + number_of_spheres_per_pass * j][1] = 
 //                        
-//                    cl * 0.375 * sin(u) * sin(v) / 
+//                    cl * 0.375 * std::sin(u) * std::sin(v) / 
 //                    pow(pow(sin(u), 6) * (pow(sin(v), 6) + pow(cos(v), 6)) + pow(cos(u), 6), 0.166666667); 
 //                
 //                mListOfCoordinates[i + number_of_spheres_per_pass * j][2] = 
 //                        
-//                    cl * 0.25 * cos(u) / 
+//                    cl * 0.25 * std::cos(u) / 
 //                    pow(pow(sin(u), 6) * (pow(sin(v), 6) + pow(cos(v), 6)) + pow(cos(u), 6), 0.166666667);
 
                 //double y = pow(8, 0.33333333333333);

@@ -48,9 +48,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication       as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication      as KratosSolvers
-import KratosMultiphysics.PfemApplication             as KratosPfem
-import KratosMultiphysics.ContactMechanicsApplication     as KratosContact
-import KratosMultiphysics.PfemSolidMechanicsApplication   as KratosPfemSolid
+import KratosMultiphysics.PfemApplication                 as KratosPfem
 import KratosMultiphysics.PfemFluidDynamicsApplication    as KratosPfemFluid
 import KratosMultiphysics.ConvectionDiffusionApplication  as KratosConvDiff
 
@@ -105,8 +103,8 @@ solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_s
 solver.AddVariables()
 
 # Add PfemSolidMechanicsApplication Variables
-import pfem_solid_variables  
-pfem_solid_variables.AddVariables(main_model_part) 
+import pfem_variables  
+pfem_variables.AddVariables(main_model_part) 
 
 #thermal thing:
 import eulerian_convection_diffusion_solver as convection_diffusion_solver_scripts

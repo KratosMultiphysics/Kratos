@@ -29,7 +29,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef Point                                  PointType;
+    typedef Point                                     PointType;
     typedef Node<3>                                    NodeType;
     typedef Geometry<NodeType>                     GeometryType;
     typedef Geometry<PointType>               GeometryPointType;
@@ -91,7 +91,7 @@ public:
     
     typedef typename std::vector<array_1d<PointType,2>>                                   ConditionArrayListType;
     
-    typedef Line2D2<Point>                                                                  DecompositionType;
+    typedef Line2D2<Point>                                                                     DecompositionType;
     
     typedef DerivativeDataFrictional<2, TNumNodes>                                            DerivativeDataType;
     
@@ -135,9 +135,9 @@ public:
    
     /**
      * Creates a new element pointer from an arry of nodes
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId The ID of the new element
+     * @param ThisNodes The nodes of the new element
+     * @param pProperties The properties assigned to the new element
      * @return a Pointer to the new element
      */
     
@@ -149,9 +149,9 @@ public:
     
     /**
      * Creates a new element pointer from an existing geometry
-     * @param NewId: the ID of the new element
-     * @param pGeom: the  geometry taken to create the condition
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId The ID of the new element
+     * @param pGeom The  geometry taken to create the condition
+     * @param pProperties The properties assigned to the new element
      * @return a Pointer to the new element
      */
     
@@ -167,22 +167,17 @@ public:
 
     /**
      * This functions computes the integration weight to consider
-     * @param ThisIntegrationMethod: The array containing the integration points
-     * @param PointNumber: The id of the integration point considered
+     * @param rVariables The kinematic variables
      */
-    double GetIntegrationWeight(
-        GeneralVariables& rVariables,
-        const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
-        const unsigned int& PointNumber
-        ) override;
+    double GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const override;
     
     /**
      * Calculates the radius of axisymmetry
-     * @param rVariables: Internal values
-     * @return Radius: The radius of axisymmetry
+     * @param rVariables Internal values
+     * @return Radius The radius of axisymmetry
      */
     
-    double CalculateRadius(GeneralVariables& rVariables);
+    double CalculateRadius(const GeneralVariables& rVariables) const;
     
     ///@}
     ///@name Access
