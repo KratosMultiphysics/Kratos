@@ -248,8 +248,10 @@ public:
     /// Returns the adjoint velocity values stored in this element's nodes.
     void GetFirstDerivativesVector(VectorType& rValues, int Step = 0) override
     {
-    // TODO: REMOVE !!!!! Replace with ADJOINT_FLUID_VECTOR_2
-        GetValuesVector(rValues, Step);
+        if (rValues.size() != TFluidLocalSize)
+            rValues.resize(TFluidLocalSize, false);
+
+        rValues.clear();
     }
 
     /// Returns the adjoint acceleration values stored in this element's nodes.
