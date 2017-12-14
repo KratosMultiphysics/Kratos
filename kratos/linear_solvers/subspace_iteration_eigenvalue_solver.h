@@ -46,6 +46,7 @@ namespace Kratos
 ///@{
 
 /// This class uses the subspace iteration method to obtain the n lowest eigenvalues of a system
+/// Gives slightly different results the e.g. scipys geigs function
 template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType,
          class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
          class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
@@ -160,8 +161,6 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         // declaration and initialization of vectors
         VectorType w = ZeroVector(nn);                  // working vector
 
-        VectorType d = ZeroVector(nc);                  // working vector
-
         VectorType tt = ZeroVector(nn);                 // working vector
 
         VectorType temp_tt(nn);                         // working vector (contains the exited DOF on exit)
@@ -173,11 +172,13 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         // vec: eigenvectors for reduced problem
         DenseMatrixType vec = ZeroMatrix(nc,nc);        // working matrix
 
-        // TODO here maybe teh rEigenvAlue... can be used
+        // TODO here maybe the rEigenvalue... can be used
         // create working arrays for eigenvectors and eigenvalues
         DenseMatrixType r = ZeroMatrix(nn,nc);          // storage for eigenvectors
 
         VectorType eigv = ZeroVector(nc);               // storage for eigenvalues
+
+        VectorType prev_eigv = ZeroVector(nc);                  // working vector
 
         //------------------------------------------------------------------------------------
         // establish starting iteration vectors (column-wise in matrix r):
@@ -370,10 +371,10 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
                 }
             }                           // label 420   (r = z)
 
-            // convergency check alternative A:
+            // convergency check alternative A: change in eigenvalues
             for (int i = 1; i<= nc; i++)
             {
-                dif = (eigv(i-1) - d(i-1));
+                dif = (eigv(i-1) - prev_eigv(i-1));
                 rtolv(i-1) = fabs(dif / eigv(i-1));
             }
 
@@ -405,7 +406,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             }
 
             for (int i = 1; i<= nc ; i++)
-                d(i-1) = eigv(i-1); // label 410 and 440
+                prev_eigv(i-1) = eigv(i-1); // label 410 and 440
 
             //GramSchmidt Orthogonalization
             // GramSchmidt(r);
