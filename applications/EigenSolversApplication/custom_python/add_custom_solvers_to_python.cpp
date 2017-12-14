@@ -66,8 +66,8 @@ void AddCustomSolversToPython()
 
 	using GeneralizedSelfAdjointEigenSolver = EigenGeneralizedEigenSolver<SparseSpaceType, LocalSpaceType>;
 	class_<GeneralizedSelfAdjointEigenSolver, bases<LinearSolverType>, boost::noncopyable>
-	 	("GeneralizedSelfAdjointEigenSolver", init<Parameters::Pointer>())
-	 	.def(init<Parameters::Pointer>());
+	 	("GeneralizedSelfAdjointEigenSolver", init<Parameters>())
+	 	.def(init<Parameters>());
 
 }
 
