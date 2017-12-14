@@ -30,7 +30,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Adapter Eigen generalized eigenvalue problem solvers.
+/// This solver solves the generalized eigenvalue problem using Eigen.
+/// it solves for all eigenvalues
 template<class TSparseSpaceType, class TDenseSpaceType,
         class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
 class EigenGeneralizedEigenvalueSolver: public LinearSolver<TSparseSpaceType, TDenseSpaceType,
@@ -83,6 +84,7 @@ class EigenGeneralizedEigenvalueSolver: public LinearSolver<TSparseSpaceType, TD
                         "This might take long for large matrices!" << std::endl;
         }
 
+        if (verbosity>1) std::cout << "Start solving for eigenvalues" << evalues << std::endl;
         // create Eigen matrix A
         Eigen::MatrixXd A(rA.size1(),rA.size2());
         Eigen::MatrixXd B(rA.size1(),rA.size2());
