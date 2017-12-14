@@ -70,6 +70,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    ~ModelPartIOBaseImpl() = default;
+
     File& GetFile() const;
 
     ///@}
