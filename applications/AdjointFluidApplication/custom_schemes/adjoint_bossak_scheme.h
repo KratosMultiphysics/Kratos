@@ -144,7 +144,11 @@ public:
         mAdjointValues.resize(num_threads);
         mAdjointAcceleration.resize(num_threads);
         mResponseGradient.resize(num_threads);
-        mAdjointMassMatrix.resize(num_threads);
+        mFirstDerivsResponseGradient.resize(num_threads);
+        mSecondDerivsResponseGradient.resize(num_threads);
+        mLeftHandSide.resize(num_threads);
+        mFirstDerivsLHS.resize(num_threads);
+        mSecondDerivsLHS.resize(num_threads);
 
         // Initialize the adjoint variables to zero (adjoint initial conditions
         // are always zero).
@@ -251,18 +255,18 @@ public:
             for (auto it = elements_begin; it != elements_end; ++it)
             {
                 // Calculate transposed gradient of element residual w.r.t. acceleration.
-                it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], r_current_process_info);
-                mAdjointMassMatrix[k] = mAlphaBossak * mAdjointMassMatrix[k];
+                it->CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], r_current_process_info);
+                mSecondDerivsLHS[k] = mAlphaBossak * mSecondDerivsLHS[k];
 
                 // Calculate transposed gradient of response function on element w.r.t. acceleration.
                 mpResponseFunction->CalculateSecondDerivativesGradient(
-                    *it, mAdjointMassMatrix[k], mResponseGradient[k], r_current_process_info);
+                    *it, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], r_current_process_info);
 
                 // Get adjoint vector.
                 it->GetValuesVector(mAdjointValues[k]);
 
                 mAdjointAcceleration[k] =
-                    prod(mAdjointMassMatrix[k], mAdjointValues[k]) + mResponseGradient[k];
+                    prod(mSecondDerivsLHS[k], mAdjointValues[k]) + mSecondDerivsResponseGradient[k];
 
                 // Assemble.
                 unsigned int local_index = 0;
@@ -281,43 +285,6 @@ public:
         // Loop over conditions.
 // #pragma omp parallel
 //         {
-//             int k = OpenMPUtils::ThisThread();
-//             ModelPart::ConditionIterator conditions_begin;
-//             ModelPart::ConditionIterator conditions_end;
-//             OpenMPUtils::PartitionedIterators(rModelPart.Conditions(), conditions_begin, conditions_end);
-
-//             for (auto it = conditions_begin; it != conditions_end; ++it)
-//             {
-//                 // Calculate transposed gradient of condition residual w.r.t. acceleration.
-//                 it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], r_current_process_info);
-//                 mAdjointMassMatrix[k] = mAlphaBossak * mAdjointMassMatrix[k];
-
-//                 // Calculate transposed gradient of response function on condition w.r.t. acceleration.
-//                 mpResponseFunction->CalculateSecondDerivativesGradient(
-//                     *it, mAdjointMassMatrix[k], mResponseGradient[k], r_current_process_info);
-                
-//                 if (mResponseGradient[k].size() == 0)
-//                     continue;
-
-//                 // Get adjoint vector.
-//                 it->GetValuesVector(mAdjointValues[k]);
-
-//                 mAdjointAcceleration[k] =
-//                     prod(mAdjointMassMatrix[k], mAdjointValues[k]) + mResponseGradient[k];
-
-//                 // Assemble.
-//                 unsigned int local_index = 0;
-//                 for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
-//                 {
-//                     array_1d<double, 3>& r_aux_adjoint_acceleration =
-//                         it->GetGeometry()[i_node].FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1);
-//                     it->GetGeometry()[i_node].SetLock();
-//                     for (unsigned int d = 0; d < domain_size; ++d)
-//                         r_aux_adjoint_acceleration[d] += mAdjointAcceleration[k][local_index++];
-//                     it->GetGeometry()[i_node].UnSetLock();
-//                     ++local_index; // pressure dof
-//                 }
-//             }
 //         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_FLUID_VECTOR_1);
@@ -437,18 +404,18 @@ public:
             for (auto it = elements_begin; it != elements_end; ++it)
             {
                 // Calculate transposed gradient of element residual w.r.t. second derivatives.
-                it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], r_current_process_info);
-                mAdjointMassMatrix[k] = (1.0 - mAlphaBossak) * mAdjointMassMatrix[k];
+                it->CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], r_current_process_info);
+                mSecondDerivsLHS[k] = (1.0 - mAlphaBossak) * mSecondDerivsLHS[k];
 
                 // Calculate transposed gradient of response function on element w.r.t. acceleration.
                 mpResponseFunction->CalculateSecondDerivativesGradient(
-                    *it, mAdjointMassMatrix[k], mResponseGradient[k], r_current_process_info);
+                    *it, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], r_current_process_info);
 
                 // Get adjoint vector.
                 it->GetValuesVector(mAdjointValues[k]);
 
                 mAdjointAcceleration[k] = (mGammaNewmark - 1.0) * mInvGamma *
-                    (prod(mAdjointMassMatrix[k], mAdjointValues[k]) + mResponseGradient[k]);
+                    (prod(mSecondDerivsLHS[k], mAdjointValues[k]) + mSecondDerivsResponseGradient[k]);
                 
                 // Assemble contributions to adjoint acceleration.
                 unsigned int local_index = 0;
@@ -467,42 +434,6 @@ public:
         // Loop over conditions.
 // #pragma omp parallel
 //         {
-//             int k = OpenMPUtils::ThisThread();
-//             ModelPart::ConditionIterator conditions_begin;
-//             ModelPart::ConditionIterator conditions_end;
-//             OpenMPUtils::PartitionedIterators(rModelPart.Conditions(), conditions_begin, conditions_end);
-//             for (auto it = conditions_begin; it != conditions_end; ++it)
-//             {
-//                 // Calculate transposed gradient of condition residual w.r.t. second derivatives.
-//                 it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], r_current_process_info);
-//                 mAdjointMassMatrix[k] = (1.0 - mAlphaBossak) * mAdjointMassMatrix[k];
-
-//                 // Calculate transposed gradient of response function on condition w.r.t. acceleration.
-//                 mpResponseFunction->CalculateSecondDerivativesGradient(
-//                     *it, mAdjointMassMatrix[k], mResponseGradient[k], r_current_process_info);
-
-//                 if (mResponseGradient[k].size() == 0)
-//                     continue;
-
-//                 // Get adjoint vector.
-//                 it->GetValuesVector(mAdjointValues[k]);
-
-//                 mAdjointAcceleration[k] = (mGammaNewmark - 1.0) * mInvGamma * mInvDt *
-//                     (prod(mAdjointMassMatrix[k], mAdjointValues[k]) + mResponseGradient[k]);
-                
-//                 // Assemble contributions to adjoint acceleration.
-//                 unsigned int local_index = 0;
-//                 for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
-//                 {
-//                     array_1d<double, 3>& r_current_adjoint_acceleration =
-//                         it->GetGeometry()[i_node].FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
-//                     it->GetGeometry()[i_node].SetLock();
-//                     for (unsigned int d = 0; d < domain_size; ++d)
-//                         r_current_adjoint_acceleration[d] += mAdjointAcceleration[k][local_index++];
-//                     it->GetGeometry()[i_node].UnSetLock();
-//                     ++local_index; // pressure dof
-//                 }
-//             }
 //         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_FLUID_VECTOR_3);
@@ -574,23 +505,25 @@ public:
         }
 
         // Calculate transposed gradient of element residual w.r.t. acceleration.
-        pCurrentElement->CalculateSecondDerivativesLHS(mAdjointMassMatrix[thread_id], rCurrentProcessInfo);
-        mAdjointMassMatrix[thread_id] = (1.0 - mAlphaBossak) * mAdjointMassMatrix[thread_id];
+        pCurrentElement->CalculateSecondDerivativesLHS(mSecondDerivsLHS[thread_id], rCurrentProcessInfo);
+        mSecondDerivsLHS[thread_id] = (1.0 - mAlphaBossak) * mSecondDerivsLHS[thread_id];
 
         // Calculate transposed gradient of response function on element w.r.t. acceleration.
         mpResponseFunction->CalculateSecondDerivativesGradient(
-            *pCurrentElement, mAdjointMassMatrix[thread_id], mResponseGradient[thread_id], rCurrentProcessInfo);
-        noalias(rRHS_Contribution) -= mInvGamma * mInvDt * mResponseGradient[thread_id];
+            *pCurrentElement, mSecondDerivsLHS[thread_id], mSecondDerivsResponseGradient[thread_id], rCurrentProcessInfo);
+        noalias(rRHS_Contribution) -= mInvGamma * mInvDt * mSecondDerivsResponseGradient[thread_id];
 
         // Calculate transposed gradient of element residual w.r.t. velocity.
-        pCurrentElement->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
+        pCurrentElement->CalculateFirstDerivativesLHS(mFirstDerivsLHS[thread_id], rCurrentProcessInfo);
 
         // Calculate transposed gradient of response function on element w.r.t. velocity.
         mpResponseFunction->CalculateFirstDerivativesGradient(
-            *pCurrentElement, rLHS_Contribution, mResponseGradient[thread_id], rCurrentProcessInfo);
-        noalias(rRHS_Contribution) -= mResponseGradient[thread_id];
+            *pCurrentElement, mFirstDerivsLHS[thread_id], mFirstDerivsResponseGradient[thread_id], rCurrentProcessInfo);
+        noalias(rRHS_Contribution) -= mFirstDerivsResponseGradient[thread_id];
 
-        noalias(rLHS_Contribution) += mInvGamma * mInvDt * mAdjointMassMatrix[thread_id];
+        if (rLHS_Contribution.size1() != mFirstDerivsLHS[thread_id].size1() || rLHS_Contribution.size2() != mFirstDerivsLHS[thread_id].size2())
+            rLHS_Contribution.resize(mFirstDerivsLHS[thread_id].size1(), mFirstDerivsLHS[thread_id].size2());
+        noalias(rLHS_Contribution) = mFirstDerivsLHS[thread_id] + mInvGamma * mInvDt * mSecondDerivsLHS[thread_id];
 
         // Calculate system contributions in residual form.
         pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
@@ -628,32 +561,7 @@ public:
     // {
     //     KRATOS_TRY;
 
-    //     int thread_id = OpenMPUtils::ThisThread();
 
-    //     // Calculate transposed gradient of condition residual w.r.t. acceleration.
-    //     pCurrentCondition->CalculateSecondDerivativesLHS(mAdjointMassMatrix[thread_id], rCurrentProcessInfo);
-    //     mAdjointMassMatrix[thread_id] = (1.0 - mAlphaBossak) * mAdjointMassMatrix[thread_id];
-
-    //     // Calculate transposed gradient of response function on condition w.r.t. acceleration.
-    //     mpResponseFunction->CalculateSecondDerivativesGradient(
-    //         *pCurrentCondition, mAdjointMassMatrix[thread_id], mResponseGradient[thread_id], rCurrentProcessInfo);
-    //     rRHS_Contribution = -mInvGamma * mInvDt * mResponseGradient[thread_id];
-
-    //     // Calculate transposed gradient of condition residual w.r.t. velocity.
-    //     pCurrentCondition->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
-
-    //     // Calculate transposed gradient of response function on condition w.r.t. velocity.
-    //     mpResponseFunction->CalculateFirstDerivativesGradient(
-    //         *pCurrentCondition, rLHS_Contribution, mResponseGradient[thread_id], rCurrentProcessInfo);
-    //     noalias(rRHS_Contribution) -= mResponseGradient[thread_id];
-
-    //     noalias(rLHS_Contribution) += mInvGamma * mInvDt * mAdjointMassMatrix[thread_id];
-
-    //     // Calculate system contributions in residual form.
-    //     pCurrentCondition->GetValuesVector(mAdjointValues[thread_id]);
-    //     noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
-
-    //     pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
     //     KRATOS_CATCH("");
     // }
@@ -736,7 +644,11 @@ private:
     std::vector<LocalSystemVectorType> mAdjointValues;
     std::vector<LocalSystemVectorType> mAdjointAcceleration;
     std::vector<LocalSystemVectorType> mResponseGradient;
-    std::vector<LocalSystemMatrixType> mAdjointMassMatrix;
+    std::vector<LocalSystemVectorType> mFirstDerivsResponseGradient;
+    std::vector<LocalSystemVectorType> mSecondDerivsResponseGradient;
+    std::vector<LocalSystemMatrixType> mLeftHandSide;
+    std::vector<LocalSystemMatrixType> mFirstDerivsLHS;
+    std::vector<LocalSystemMatrixType> mSecondDerivsLHS;
 
     ///@}
     ///@name Private Operators
