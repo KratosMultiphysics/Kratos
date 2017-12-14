@@ -97,6 +97,11 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         BaseType::SetTolerance( mParam["tolerance"].GetDouble() );
         BaseType::SetMaxIterationsNumber( mParam["max_iteration"].GetInt() );
 
+        KRATOS_ERROR_IF( mParam["linear_solver_settings"]["solver_type"].GetString() == "eigen_pardiso_llt") <<
+            "eigen_pardiso_llt cannot handle negative entries on the main diagonal" << std::endl;
+
+        std::cout << "\nWARNING: Make sure the linear solver can handle negative entries on the main diagonal!\n" << std::endl;
+
     }
 
     /// Destructor.
