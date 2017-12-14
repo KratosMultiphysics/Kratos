@@ -42,21 +42,6 @@ class MeshingTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
     
-#class TwoDLevelSetTest(MeshingTestFactory):
-    #file_name = "mmg_eulerian_test/2D_levelset_test"
-    
-#class ThreeDLevelSetTest(MeshingTestFactory):
-    #file_name = "mmg_eulerian_test/3D_levelset_test"
-    
-class TwoDHessianTest(MeshingTestFactory):
-    file_name = "mmg_eulerian_test/2D_hessian_test"
-    
-class ThreeDHessianTest(MeshingTestFactory):
-    file_name = "mmg_eulerian_test/3D_hessian_test"
-    
-class TwoDCavityTest(MeshingTestFactory):
-    file_name = "mmg_eulerian_test/2D_cavity_test"
-    
 class TwoDDynamicBeamTest(MeshingTestFactory):
     file_name = "mmg_lagrangian_test/beam2D_test"
     

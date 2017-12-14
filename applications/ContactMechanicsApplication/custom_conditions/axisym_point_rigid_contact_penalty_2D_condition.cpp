@@ -256,9 +256,11 @@ namespace Kratos
   {
 
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
-
-    if( GetProperties()[THICKNESS] > 0 )
-      IntegrationWeight /=  GetProperties()[THICKNESS];
+    
+    if ( this->GetProperties().Has(THICKNESS) ) {
+       if( GetProperties()[THICKNESS] > 0 )
+          IntegrationWeight /=  GetProperties()[THICKNESS];
+    }
 
     //contributions to stiffness matrix calculated on the reference config
 
@@ -275,8 +277,10 @@ namespace Kratos
   {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
-    if( GetProperties()[THICKNESS] > 0 )
-      IntegrationWeight /=  GetProperties()[THICKNESS];
+    if ( this->GetProperties().Has(THICKNESS) ) {
+       if( GetProperties()[THICKNESS] > 0 )
+          IntegrationWeight /=  GetProperties()[THICKNESS];
+    }
 
     //contribution to external forces
 

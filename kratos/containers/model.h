@@ -132,7 +132,7 @@ namespace Kratos
       ///@}
       ///@name Protected Operators
       ///@{
-
+      void AddModelPartRawPointer( ModelPart* pmodel_part); //TODO: change this conveniently
 
       ///@}
       ///@name Protected Operations
