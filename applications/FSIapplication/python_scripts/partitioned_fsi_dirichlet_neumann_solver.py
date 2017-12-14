@@ -207,7 +207,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
             self.mesh_solver.MoveMesh()
 
         # Update MESH_VELOCITY and MESH_ACCELERATION with Newmark formulas
-        # self.nodal_update_utilities.UpdateMeshTimeDerivatives(self.fluid_main_model_part, self.time_step)
+        self.nodal_update_utilities.UpdateMeshTimeDerivatives(self.fluid_main_model_part, self.time_step)
 
         # Impose the structure MESH_VELOCITY and MESH_ACCELERATION in the fluid interface VELOCITY and ACCELERATION
         self.nodal_update_utilities.SetMeshTimeDerivativesOnInterface(self._GetFluidInterfaceSubmodelPart())
