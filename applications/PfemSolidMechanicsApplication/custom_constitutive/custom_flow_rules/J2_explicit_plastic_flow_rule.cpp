@@ -178,12 +178,12 @@ namespace Kratos
    }
    void J2ExplicitFlowRule::save( Serializer& rSerializer) const 
    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FlowRule )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonAssociativeExplicitPlasticFlowRule )
    }
 
    void J2ExplicitFlowRule::load( Serializer& rSerializer)
    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FlowRule )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonAssociativeExplicitPlasticFlowRule )
 
    }
 

@@ -222,14 +222,14 @@ class ExplicitStrategy:
 
         # TIME RELATED PARAMETERS
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
-               
+        
+        os.chdir('..')
+        
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
-
+        
         for properties in self.inlet_model_part.Properties:
             self.ModifyProperties(properties)
-
-        os.chdir('..')
 
         for properties in self.cluster_model_part.Properties:
             self.ModifyProperties(properties)
@@ -521,7 +521,9 @@ class ExplicitStrategy:
             pre_utils = PreUtilities(self.spheres_model_part)
             pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
             self.Procedures.KRATOSprint(properties)
-
+            if not properties.Has(BREAKABLE_CLUSTER):
+                properties.SetValue(BREAKABLE_CLUSTER, False)
+        
         if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
         else:
