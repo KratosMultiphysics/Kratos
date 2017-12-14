@@ -139,7 +139,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
                         
                         const double DetJ = DecompGeom.DeterminantOfJacobian( LocalPointDecomp );
                         
-                        AllIntegrationPointsSlave.push_back( IntegrationPointType( LocalPointParent.Coordinate(1), LocalPointParent.Coordinate(2), Weight * DetJ ));
+                        AllIntegrationPointsSlave.push_back( IntegrationPointType( LocalPointParent.X(), LocalPointParent.Y(), Weight * DetJ ));
                     }
                 }
             }

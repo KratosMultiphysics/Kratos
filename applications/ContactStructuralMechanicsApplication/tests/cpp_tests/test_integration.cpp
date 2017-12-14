@@ -581,9 +581,9 @@ namespace Kratos
             const double tolerance = 1.0e-6;
             for (unsigned int inode = 0; inode < 3; inode++)
             {
-                for (unsigned int jdim = 1; jdim < 4; jdim++)
+                for (unsigned int jdim = 0; jdim < 3; jdim++)
                 {
-                    KRATOS_CHECK_NEAR(aux_geometry[inode].Coordinate(jdim), triangle_0[inode].Coordinate(jdim), tolerance);
+                    KRATOS_CHECK_NEAR(aux_geometry[inode].Coordinates()[jdim], triangle_0[inode].Coordinates()[jdim], tolerance);
                 }
             }
         }
