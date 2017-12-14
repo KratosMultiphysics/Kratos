@@ -101,7 +101,7 @@ namespace Kratos
      * process in bytes. It returns zero for not supported 
      * operating systems. The main idea is from:
      * http://nadeausoftware.com/articles/2012/07/c_c_tip_how_get_process_resident_set_size_physical_memory_use
-     * rewritten for c++ and with style change 
+     * rewritten/reordered to have independent code for each platform and some styling applied 
      **/ 
     std::size_t GetPeakMemoryUsage()
     {
