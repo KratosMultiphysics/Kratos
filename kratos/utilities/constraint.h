@@ -91,7 +91,7 @@ class Constraint
 	* Get the MasterDOFs vector for this slave
 	* @return MasterDOFs vector for this slave
 	*/
-    virtual const ConstraintEquation &GetConstraintEquation(DofType &SlaveDof)
+    virtual const ConstraintEquation &GetConstraintEquation(const DofType &SlaveDof)
     {
         return mConstraintEquationContainer.GetConstraintEquation(SlaveDof);
     }

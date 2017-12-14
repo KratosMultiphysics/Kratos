@@ -249,7 +249,7 @@ class ConstraintEquationContainer
 		Get the Data for this slave
 		@return Data vector for this slave
 		*/
-    const ConstraintEquation &GetConstraintEquation(DofType &SlaveDof)
+    const ConstraintEquation &GetConstraintEquation(const DofType &SlaveDof)
     {
         auto &index = mDataContainer.get<SlaveDofId_Key>();
         auto pos = index.find(boost::make_tuple(SlaveDof.Id(), SlaveDof.GetVariable().Key()));
@@ -281,7 +281,8 @@ class ConstraintEquationContainer
         auto &index = mDataContainer.get<SlaveDofId_Key>();
         auto pos = index.find(boost::make_tuple(SlaveDof.Id(), SlaveDof.GetVariable().Key()));
         int numMasters = -1;
-        numMasters = (pos->get())->NumberOfMasters();
+        if (pos != index.end())
+            numMasters = (pos->get())->NumberOfMasters();
         return numMasters;
     }
     unsigned int GetNumbeOfMasterDofsForSlave(unsigned int slaveEqutionId)
@@ -291,8 +292,6 @@ class ConstraintEquationContainer
         int numMasters = -1;
         if (pos != index.end())
             numMasters = (*pos)->NumberOfMasters();
-        else
-            numMasters = 0;
         return numMasters;
     }
 
