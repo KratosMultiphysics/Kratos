@@ -110,7 +110,12 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
 
     virtual void ExecuteBeforeBuilding(NodesContainerType &Nodes) override
     {
+        UpdateConstraintEquations(Nodes);
+    }
 
+
+    virtual void SetUp(NodesContainerType &Nodes) override
+    {
         for (const auto &slaveData : this->GetData())
         {
             unsigned int slaveNodeId = slaveData->dofId;
@@ -133,9 +138,8 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                 index++;
             }
         }
-
-        UpdateConstraintEquations(Nodes);
-    }
+        
+    }    
 
     virtual void ExecuteAfterSolving(TSystemMatrixType &A,
                                      TSystemVectorType &Dx,

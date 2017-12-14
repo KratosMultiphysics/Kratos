@@ -163,8 +163,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     ) override
     {
         BaseType::SetUpSystem(r_model_part);
-        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
-        Constraints_ExecuteBeforeBuilding(r_model_part, CurrentProcessInfo);
+        Constraints_SetUp(r_model_part);
     }
 
     /** Destructor.
@@ -184,9 +183,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         Timer::Start("Build");
 
-        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-        Constraints_ExecuteBeforeBuilding(r_model_part, CurrentProcessInfo);
+        Constraints_ExecuteBeforeBuilding(r_model_part);
 
         Build(pScheme, r_model_part, A, b);
 
@@ -194,7 +191,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         this->ApplyDirichletConditions(pScheme, r_model_part, A, Dx, b);
 
-        Constraints_ExecuteAfterBuilding(r_model_part, CurrentProcessInfo);
+        Constraints_ExecuteAfterBuilding(r_model_part);
 
         if (this->GetEchoLevel() == 3)
         {
@@ -207,7 +204,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
 
-        Constraints_ExecuteBeforeSolving(A, Dx, b, r_model_part, CurrentProcessInfo);
+        Constraints_ExecuteBeforeSolving(A, Dx, b, r_model_part);
 
         this->SystemSolveWithPhysics(A, Dx, b, r_model_part);
 
@@ -224,7 +221,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             std::cout << "RHS vector = " << b << std::endl;
         }
 
-        Constraints_ExecuteAfterSolving(A, Dx, b, r_model_part, CurrentProcessInfo);
+        Constraints_ExecuteAfterSolving(A, Dx, b, r_model_part);
 
         KRATOS_CATCH("")
     }
@@ -550,9 +547,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
     }
 
-    void Constraints_ExecuteBeforeBuilding(ModelPart &model_part, ProcessInfo &CurrentProcessInfo)
+    void Constraints_ExecuteBeforeBuilding(ModelPart &r_model_part)
     {
-
+        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
@@ -560,15 +557,15 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             {
                 if (constraint->IsActive())
                 {
-                    constraint->ExecuteBeforeBuilding(model_part.Nodes());
+                    constraint->ExecuteBeforeBuilding(r_model_part.Nodes());
                 }
             }
         }
     }
 
-    void Constraints_ExecuteAfterBuilding(ModelPart &model_part, ProcessInfo &CurrentProcessInfo)
+    void Constraints_ExecuteAfterBuilding(ModelPart &r_model_part)
     {
-
+        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
@@ -576,19 +573,34 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             {
                 if (constraint->IsActive())
                 {
-                    constraint->ExecuteAfterBuilding(model_part.Nodes());
+                    constraint->ExecuteAfterBuilding(r_model_part.Nodes());
                 }
             }
         }
     }
+
+    void Constraints_SetUp(ModelPart &r_model_part)
+    {
+        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
+        if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
+        {
+            ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
+            for (auto &constraint : (*constraintVector))
+            {
+                if (constraint->IsActive())
+                {
+                    constraint->SetUp(r_model_part.Nodes());
+                }
+            }
+        }
+    }    
 
     void Constraints_ExecuteBeforeSolving(TSystemMatrixType &A,
                                           TSystemVectorType &Dx,
                                           TSystemVectorType &b,
-                                          ModelPart &r_model_part,
-                                          ProcessInfo &CurrentProcessInfo)
+                                          ModelPart &r_model_part)
     {
-
+        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
@@ -605,10 +617,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     void Constraints_ExecuteAfterSolving(TSystemMatrixType &A,
                                          TSystemVectorType &Dx,
                                          TSystemVectorType &b,
-                                         ModelPart &r_model_part,
-                                         ProcessInfo &CurrentProcessInfo)
+                                         ModelPart &r_model_part)
     {
-
+        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
         if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
         {
             ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);

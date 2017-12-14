@@ -106,6 +106,13 @@ class Constraint
     }
 
     /**
+     *  Does necessary operations to setup the constraint.
+     */
+    virtual void SetUp(NodesContainerType &Nodes)
+    {
+    }
+
+    /**
      *  Does necessary operations on the constraint before the build of master stiffness matrix is commenced
      */
     virtual void ExecuteBeforeBuilding(NodesContainerType &Nodes)
