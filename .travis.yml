@@ -40,7 +40,7 @@ script:
 - cp scripts/build/travis/configure_travis_trusty.sh cmake_build/configure.sh
 - cd cmake_build
 - bash configure.sh
-- make all_unity
+- travis_wait make all_unity
 - make runkratos
 - make install/fast
 - ccache -s
