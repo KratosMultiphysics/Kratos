@@ -47,7 +47,7 @@ class EigenGeneralizedEigenSolver: public LinearSolver<TSparseSpaceType, TDenseS
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    EigenGeneralizedEigenSolver(Parameters::Pointer pParam) : mpParam(pParam)
+    EigenGeneralizedEigenSolver(Parameters param) : mParam(param)
     {
 
         Parameters default_params(R"(
@@ -57,7 +57,7 @@ class EigenGeneralizedEigenSolver: public LinearSolver<TSparseSpaceType, TDenseS
         })");
 
         // don't validate linear_solver_settings here
-        mpParam->ValidateAndAssignDefaults(default_params);
+        mParam.ValidateAndAssignDefaults(default_params);
     }
 
     ~EigenGeneralizedEigenSolver() override {}
@@ -74,9 +74,7 @@ class EigenGeneralizedEigenSolver: public LinearSolver<TSparseSpaceType, TDenseS
             DenseVectorType& rEigenvalues,
             DenseMatrixType& rEigenvectors) override
     {
-        // settings
-        //Parameters& settings = *mpParam;
-        const int verbosity = 2;
+        const int verbosity = mParam["verbosity"].GetInt();
 
         if (rA.size1() > 100)
         {
@@ -93,8 +91,8 @@ class EigenGeneralizedEigenSolver: public LinearSolver<TSparseSpaceType, TDenseS
         {
             for (size_t j=0; j<rA.size2(); j++)
             {
-                A(i,j) = double(rA(i,j));
-                B(i,j) = double(rB(i,j));
+                A(i,j) = rA(i,j);
+                B(i,j) = rB(i,j);
             }
         }
 
@@ -148,7 +146,7 @@ class EigenGeneralizedEigenSolver: public LinearSolver<TSparseSpaceType, TDenseS
     ///@name Member Variables
     ///@{
 
-    Parameters::Pointer mpParam;
+    Parameters mParam;
 
     ///@}
 
