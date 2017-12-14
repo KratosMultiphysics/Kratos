@@ -101,11 +101,11 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
             }
             puts $MyFileVar "            \"hydrostatic\":          $PutStrings,"
             if {[lindex [lindex $Groups $i] 5] eq "Y"} {
-                set PutStrings 2
-            } elseif {[lindex [lindex $Groups $i] 5] eq "Z"} {
-                set PutStrings 3
-            } else {
                 set PutStrings 1
+            } elseif {[lindex [lindex $Groups $i] 5] eq "Z"} {
+                set PutStrings 2
+            } else {
+                set PutStrings 0
             }
             puts $MyFileVar "            \"gravity_direction\":    $PutStrings,"
             puts $MyFileVar "            \"reference_coordinate\": [lindex [lindex $Groups $i] 6],"
@@ -180,11 +180,11 @@ proc WriteNormalLoadProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         }
         puts $MyFileVar "            \"hydrostatic\":          $PutStrings,"
         if {[lindex [lindex $Groups $i] 6] eq "Y"} {
-            set PutStrings 2
-        } elseif {[lindex [lindex $Groups $i] 6] eq "Z"} {
-            set PutStrings 3
-        } else {
             set PutStrings 1
+        } elseif {[lindex [lindex $Groups $i] 6] eq "Z"} {
+            set PutStrings 2
+        } else {
+            set PutStrings 0
         }
         puts $MyFileVar "            \"gravity_direction\":    $PutStrings,"
         puts $MyFileVar "            \"reference_coordinate\": [lindex [lindex $Groups $i] 7],"

@@ -122,7 +122,7 @@ namespace Kratos
 		
 		bounded_vector<double,msElementSize> CalculateBodyForces();  
 		void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
-			const bounded_vector<double,msDimension> ForceInput,
+			const bounded_vector<double,3> ForceInput,
 			bounded_vector<double,msElementSize>& rRightHandSideVector,
 			const double GeometryLength);
 

@@ -438,13 +438,19 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
         {
             Ply& iPly = *ply_it;
             const Properties& iPlyProps = iPly.GetProperties();
+			Properties LaminaProps;
 
-            if(CheckIsOrthotropic(iPlyProps))
+            if(this->CheckIsOrthotropic(iPlyProps))
             {
-                iPly.RecoverOrthotropicProperties(ply_number);
+				LaminaProps = Properties(iPlyProps);
+                iPly.RecoverOrthotropicProperties(ply_number, LaminaProps);
+				materialValues.SetMaterialProperties(LaminaProps);
             }
+			else
+			{
+				materialValues.SetMaterialProperties(iPlyProps);
+			}
 
-            materialValues.SetMaterialProperties(iPlyProps);
             double iPlyAngle = iPly.GetOrientationAngle();
 
             if(iPlyAngle == 0.0)
@@ -832,26 +838,26 @@ bool ShellCrossSection::CheckIsOrthotropic(const Properties& rProps)
     }
 }
 
-void ShellCrossSection::ParseOrthotropicPropertyMatrix(Properties& props, Element* myElement)
+void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties::Pointer & pProps)
 {
     // ascertain how many plies there are and begin stacking them
-    unsigned int plies = (props)[SHELL_ORTHOTROPIC_LAYERS].size1();
+    const int num_plies = pProps->GetValue(SHELL_ORTHOTROPIC_LAYERS).size1();
     this->BeginStack();
 
     // figure out the format of material properties based on it's width
-    int myFormat = (props)[SHELL_ORTHOTROPIC_LAYERS].size2();
-    if(myFormat == 16)
+    int my_format = pProps->GetValue(SHELL_ORTHOTROPIC_LAYERS).size2();
+    if(my_format == 16)
     {
-        myFormat -= 7;
+        my_format -= 7;
     }
 
-    double plyThickness, angleRz, elementThickness;
-    elementThickness = 0.0;
+    double ply_thickness, angle_rz, accum_thickness;
+    accum_thickness = 0.0;
 
     // add ply for each orthotropic layer defined
-    for(unsigned int currentPly = 0; currentPly < plies; currentPly++)
+    for(int current_ply = 0; current_ply < num_plies; current_ply++)
     {
-        switch (myFormat)
+        switch (my_format)
         {
         case 9:
             // Composite mechanical properties material definition
@@ -859,8 +865,8 @@ void ShellCrossSection::ParseOrthotropicPropertyMatrix(Properties& props, Elemen
             // Arranged as: thickness, RZangle, density, E1, E2, Poisson_12, G12, G13, G23
 
             // Assign the geometric properties of the current ply
-            plyThickness = (props)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 0);
-            angleRz = (props)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 1);
+            ply_thickness = pProps->GetValue(SHELL_ORTHOTROPIC_LAYERS)(current_ply, 0);
+            angle_rz = pProps->GetValue(SHELL_ORTHOTROPIC_LAYERS)(current_ply, 1);
 
             // Mechanical properties of the plies are updated during the
             // calculation in the following method:
@@ -869,15 +875,17 @@ void ShellCrossSection::ParseOrthotropicPropertyMatrix(Properties& props, Elemen
             break;
 
         default:
-            KRATOS_THROW_ERROR(std::logic_error, "The Orthotropic Layer data has been defined incorrectly! It should be arranged as follows:\n\tthickness, RZangle, density, E1, E2, Poisson_12, G12, G13, G23", "")
+            KRATOS_ERROR << "The Orthotropic Layer data has been defined incorrectly! It should be arranged as follows:"
+                         << "\n\tthickness, RZangle, density, E1, E2, Poisson_12, G12, G13, G23" << std::endl;
         }
 
-        this->AddPly(plyThickness, angleRz, 5, myElement->pGetProperties());
-        elementThickness += plyThickness;
+        this->AddPly(ply_thickness, angle_rz, 5, pProps);
+        accum_thickness += ply_thickness;
     }
 
     this->EndStack();
-    props.SetValue(THICKNESS, elementThickness);
+    KRATOS_ERROR_IF_NOT(pProps->GetValue(THICKNESS) == accum_thickness) << "The sum of ply thicknesses ( " << accum_thickness 
+                << " ) is different from the element property THICKNESS ( " << pProps->GetValue(THICKNESS) << std::endl;
 }
 
 void ShellCrossSection::GetLaminaeOrientation(Vector & rOrientation_Vector)
@@ -895,18 +903,29 @@ void ShellCrossSection::GetLaminaeOrientation(Vector & rOrientation_Vector)
     }
 }
 
-void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Strengths, Properties& rProps)
+void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Strengths, const Properties& rProps)
 {
     // ascertain how many plies there are
     unsigned int plies = (rProps)[SHELL_ORTHOTROPIC_LAYERS].size1();
 
     // figure out the format of material properties based on it's width
-    int myFormat = (rProps)[SHELL_ORTHOTROPIC_LAYERS].size2();
+    int my_format = (rProps)[SHELL_ORTHOTROPIC_LAYERS].size2();
     int offset = 0;
-    if(myFormat == 16)
+    if(my_format == 16)
     {
         offset = 9;
     }
+	else
+	{
+		KRATOS_ERROR <<
+			"The laminate material data has not been properly defined!\n" 
+			<< "Make sure you have included material strengths.\n"
+			<< "Material strengths consider (T)ension, (C)ompression and (S)hear "
+			<< "strengths along local (1,2,3) lamina material coordinates.\n\n"
+			<< "For each lamina, following material properties, they are ordered as:\n"
+			<< "T1, C1, T2, C2, S12, S13, S23"
+			<< std::endl;
+	}
 
     // Loop over all plies
     for(unsigned int currentPly = 0; currentPly < plies; currentPly++)
@@ -1079,6 +1098,8 @@ void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoi
     Vector& generalizedStressVector       = rValues.GetGeneralizedStressVector();
     Matrix& sectionConstitutiveMatrix     = rValues.GetConstitutiveMatrix();
 
+	double stenbergShearStabilization = rValues.GetStenbergShearStabilization();
+
     Vector& materialStrainVector       = rMaterialValues.GetStrainVector();
     Vector& materialStressVector       = rMaterialValues.GetStressVector();
     Matrix& materialConstitutiveMatrix = rMaterialValues.GetConstitutiveMatrix();
@@ -1170,8 +1191,8 @@ void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoi
             if(mBehavior == Thick)
             {
                 // here the transverse shear is treated elastically
-                generalizedStressVector(6) += cs * h * rVariables.GYZ * ce * generalizedStrainVector(6);		// V.yz
-                generalizedStressVector(7) += cs * h * rVariables.GXZ * ce * generalizedStrainVector(7);		// V.xz
+                generalizedStressVector(6) += cs * h * rVariables.GYZ * ce * generalizedStrainVector(6) * stenbergShearStabilization;		// V.yz
+                generalizedStressVector(7) += cs * h * rVariables.GXZ * ce * generalizedStrainVector(7)* stenbergShearStabilization;		// V.xz
             }
         }
         else // full 3D case
@@ -1252,8 +1273,8 @@ void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoi
             if(mBehavior == Thick)
             {
                 // here the transverse shear is treated elastically
-                D(6, 6) += h * cs * ce * rVariables.GYZ;
-                D(7, 7) += h * cs * ce * rVariables.GXZ;
+                D(6, 6) += h * cs * ce * rVariables.GYZ*stenbergShearStabilization;
+				D(7, 7) += h * cs * ce * rVariables.GXZ*stenbergShearStabilization;
             }
 
             if(mStorePlyConstitutiveMatrices)
@@ -1267,10 +1288,9 @@ void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoi
                 }
                 if(mBehavior == Thick)
                 {
-                    //mDSG_shear_stabilization = 1.0;
                     // include transverse moduli and add in shear stabilization
-                    mPlyConstitutiveMatrices[plyNumber](6, 6) = cs * ce * rVariables.GYZ *mDSG_shear_stabilization;
-                    mPlyConstitutiveMatrices[plyNumber](7, 7) = cs * ce * rVariables.GXZ *mDSG_shear_stabilization;
+                    mPlyConstitutiveMatrices[plyNumber](6, 6) = cs * ce * rVariables.GYZ *stenbergShearStabilization;
+                    mPlyConstitutiveMatrices[plyNumber](7, 7) = cs * ce * rVariables.GXZ *stenbergShearStabilization;
                 }
             }
         }
@@ -1456,31 +1476,31 @@ void ShellCrossSection::PrivateCopy(const ShellCrossSection & other)
         mOOP_CondensedStrains_converged = other.mOOP_CondensedStrains_converged;
     }
 }
-void ShellCrossSection::Ply::RecoverOrthotropicProperties(const unsigned int currentPly)
+void ShellCrossSection::Ply::RecoverOrthotropicProperties(const unsigned int currentPly, Properties& laminaProps)
 {
     // Composite mechanical properties material definition
     //
     // Arranged as: (thickness), (RZangle), density, E1, E2, Poisson_12, G12, G13, G23
 
-    mpProperties->SetValue(DENSITY,
+    laminaProps.SetValue(DENSITY,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 2));    //DENSITY
 
-    mpProperties->SetValue(YOUNG_MODULUS_X,
+    laminaProps.SetValue(YOUNG_MODULUS_X,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 3));    //E1
 
-    mpProperties->SetValue(YOUNG_MODULUS_Y,
+    laminaProps.SetValue(YOUNG_MODULUS_Y,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 4));    //E2
 
-    mpProperties->SetValue(POISSON_RATIO_XY,
+    laminaProps.SetValue(POISSON_RATIO_XY,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 5));    //Nu_12
 
-    mpProperties->SetValue(SHEAR_MODULUS_XY,
+    laminaProps.SetValue(SHEAR_MODULUS_XY,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 6));    //G12
 
-    mpProperties->SetValue(SHEAR_MODULUS_XZ,
+    laminaProps.SetValue(SHEAR_MODULUS_XZ,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 7));    //G13
 
-    mpProperties->SetValue(SHEAR_MODULUS_YZ,
+    laminaProps.SetValue(SHEAR_MODULUS_YZ,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 8));    //G23
 }
 }

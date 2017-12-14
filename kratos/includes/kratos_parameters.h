@@ -261,65 +261,42 @@ public:
     }
     bool IsVector() const
     {
-        if(mpvalue->IsArray())
-        {
-            if (mpvalue->Size() > 0) // check size first before accessing to avoid segfault
-            {
-                if((*mpvalue)[0].IsArray()) // mpvalue is a matrix
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
-            }
-            else
-            {
-                return true;
-            }
-        }
-        else
-        {
+        if(!mpvalue->IsArray())
             return false;
+
+        for (unsigned int i=0; i<mpvalue->Size(); ++i)
+        {
+            if (!(*mpvalue)[i].IsNumber()) 
+                return false;
         }
+        return true; // All entries are numbers or Vector is empty
     }
     bool IsMatrix() const
     {
-        if(mpvalue->IsArray())
-        {
-            unsigned int nrows = mpvalue->Size();
-            if (nrows > 0)
-            {
-                if((*mpvalue)[0].IsArray()) // mpvalue is a matrix
-                {
-                    unsigned int ncols = 0;
-                    if(nrows != 0)
-                        ncols = (*mpvalue)[0].Size();
-            
-                    for (unsigned int i=1; i<nrows; ++i)
-                    {
-                        auto& row_i = (*mpvalue)[i];
-                        if(row_i.IsArray() == false) return false;
-                        if(row_i.Size() != ncols) return false;
-                    }
-            
-                    return true;                    
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-        else
-        {
+        if(!mpvalue->IsArray()) // mpvalue != [ ... ]
             return false;
+
+        unsigned int nrows = mpvalue->Size();
+        if (nrows == 0) // mpvalue is an empty array/vector => "[]"
+            return false; 
+
+        for (unsigned int i=0; i<nrows; ++i)
+        {
+            auto& row_i = (*mpvalue)[i];
+            if (!row_i.IsArray())
+                return false;
+
+            unsigned int ncols = row_i.Size();
+            if (ncols != (*mpvalue)[0].Size()) // compare number of columns to first row
+                return false; // number of columns is not consistent
+            
+            for (unsigned int j=0; j<ncols; ++j) // Check all values in column
+            {
+                if (!row_i[j].IsNumber()) 
+                    return false;
+            }
         }
+        return true; // All entries are numbers or Matrix is empty ([[]] or [[],[],[],...])
     }
     bool IsSubParameter() const
     {
@@ -351,13 +328,12 @@ public:
         KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "argument must be a Vector (a json list)" << std::endl;
         
         const unsigned int size = mpvalue->Size();
-        if (size > 0)
-            KRATOS_ERROR_IF((*mpvalue)[0].IsArray()) << "argument must be a Vector (a json list), it might be a matrix" << std::endl;
             
         Vector V(size);
         
         for(unsigned int i=0; i<size; ++i)
         {
+            KRATOS_ERROR_IF_NOT((*mpvalue)[i].IsNumber()) << "Entry " << i << " is not a number!" << std::endl;
             V(i) = (*mpvalue)[i].GetDouble();
         }
         
@@ -368,10 +344,11 @@ public:
         KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "argument must be a Matrix (a json list of lists)" << std::endl;
         
         const unsigned int nrows = mpvalue->Size();
+        KRATOS_ERROR_IF(nrows == 0) << "argument must be a Matrix (a json list of lists)" << std::endl;
+
         unsigned int ncols = 0;
-        if(nrows != 0)
-            if((*mpvalue)[0].IsArray())
-                ncols = (*mpvalue)[0].Size();
+        if((*mpvalue)[0].IsArray())
+            ncols = (*mpvalue)[0].Size();
             
         Matrix A(nrows,ncols);
         
@@ -379,9 +356,10 @@ public:
         {
             auto& row_i = (*mpvalue)[i];
             KRATOS_ERROR_IF_NOT(row_i.IsArray()) << "not an array on row " << i << std::endl;
-            KRATOS_ERROR_IF(row_i.Size() != ncols) << "wrong size of row " << i << std::endl;
+            KRATOS_ERROR_IF_NOT(row_i.Size() == ncols) << "wrong size of row " << i << std::endl;
             for(unsigned int j=0; j<ncols; ++j)
             {
+                KRATOS_ERROR_IF_NOT((row_i)[j].IsNumber()) << "Entry (" << i << "," << j << ") is not a number!" << std::endl;
                 A(i,j) = (row_i)[j].GetDouble();
             }
         }

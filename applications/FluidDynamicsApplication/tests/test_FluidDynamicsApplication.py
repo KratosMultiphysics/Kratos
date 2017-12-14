@@ -12,7 +12,6 @@ from SmallTests import EmbeddedCouette2DTest as TEmbeddedCouette2DTest
 from SmallTests import EmbeddedCouette3DTest as TEmbeddedCouette3DTest
 from SmallTests import EmbeddedCouette2DImposedTest as TEmbeddedCouette2DImposedTest
 from SmallTests import EmbeddedCouette3DImposedTest as TEmbeddedCouette3DImposedTest
-from SmallTests import EmbeddedReservoirTest as TEmbeddedReservoirTest
 from SmallTests import EmbeddedSlipReservoirTest as TEmbeddedSlipReservoirTest
 from SmallTests import EmbeddedSlipBoundaryConditionTest as TEmbeddedSlipBoundaryConditionTest
 from SmallTests import ManufacturedSolutionTest as TManufacturedSolutionTest
@@ -21,6 +20,7 @@ from SmallTests import NavierStokesWallConditionTest as TNavierStokesWallConditi
 from buoyancy_test import BuoyancyTest
 from volume_source_test import VolumeSourceTest
 from darcy_channel_test import DarcyChannelTest
+from embedded_reservoir_test import EmbeddedReservoirTest
 from embedded_ausas_couette_test import EmbeddedAusasCouetteTest
 
 ## NIGTHLY TESTS
@@ -46,14 +46,14 @@ def AssambleTestSuites():
     smallSuite.addTest(TEmbeddedArtificialCompressibilityTest('test_execution'))
     smallSuite.addTest(TEmbeddedCouette2DTest('test_execution'))
     smallSuite.addTest(TEmbeddedCouette2DImposedTest('test_execution'))
-    smallSuite.addTest(TEmbeddedReservoirTest('test_execution'))
     smallSuite.addTest(TEmbeddedSlipBoundaryConditionTest('test_execution'))
-    smallSuite.addTest(TEmbeddedSlipReservoirTest('test_execution'))
     smallSuite.addTest(TManufacturedSolutionTest('test_execution'))
     smallSuite.addTest(TNavierStokesWallConditionTest('test_execution'))
     smallSuite.addTest(BuoyancyTest('testEulerian'))
     smallSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))
     smallSuite.addTest(DarcyChannelTest('testDarcyDensity'))
+    smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
+    smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
     smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette2D'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
@@ -73,6 +73,8 @@ def AssambleTestSuites():
     allSuite.addTest(DarcyChannelTest('testDarcyNonLinear'))
     allSuite.addTest(TEmbeddedCouette3DTest('test_execution'))
     allSuite.addTest(TEmbeddedCouette3DImposedTest('test_execution'))
+    allSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir3D'))
+    allSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir3D'))
     allSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette3D'))
 
     return suites

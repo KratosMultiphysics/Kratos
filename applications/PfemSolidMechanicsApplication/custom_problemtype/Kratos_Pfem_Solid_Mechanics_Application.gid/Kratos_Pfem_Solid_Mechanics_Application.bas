@@ -91,27 +91,6 @@ Begin Properties *MatNum
  CONTACT_FRICTION_ANGLE *MatProp(CONTACT_FRICTION_ANGLE,real)
 *format "%10.5e"
  K0 *MatProp(K0,real)
-*elseif(strcmp(MatProp(HARDENING_MODEL),"MOHR_C")==0)
-*format "%10.5e"
- INTERNAL_FRICTION_ANGLE *MatProp(INTERNAL_FRICTION_ANGLE,real)
-*format "%10.5e"
- INTERNAL_DILATANCY_ANGLE *MatProp(INTERNAL_DILATANCY_ANGLE,real)
-*format "%10.5e"
- COHESION *MatProp(COHESION,real)
-*format "%10.5e"
- DENSITY_WATER *MatProp(WATER_DENSITY,real)
-*format "%10.5e"
- WATER_BULK_MODULUS *MatProp(WATER_BULK_MODULUS,real)
-*format "%10.5e"
- PERMEABILITY *MatProp(PERMEABILITY,real)
-*format "%10.5e"
- STABILIZATION_FACTOR *MatProp(STABILIZATION_FACTOR,real)
-*format "%10.5e"
- CONTACT_ADHESION *MatProp(CONTACT_ADHESION,real)
-*format "%10.5e"
- CONTACT_FRICTION_ANGLE *MatProp(CONTACT_FRICTION_ANGLE,real)
-*format "%10.5e"
- K0 *MatProp(K0,real)
 *endif
 *format "%10.5e"
  THICKNESS *MatProp(THICKNESS,real)
