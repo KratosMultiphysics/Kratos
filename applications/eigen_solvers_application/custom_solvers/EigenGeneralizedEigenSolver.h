@@ -16,7 +16,6 @@
 #include "boost/smart_ptr.hpp"
 
 #include <Eigen/Core>
-#include <Eigen/Sparse>
 #include <Eigen/Eigenvalues>
 
 // Project includes
@@ -65,7 +64,7 @@ class EigenGeneralizedEigenSolver: public LinearSolver<TSparseSpaceType, TDenseS
 
 
     /**
-     * Solve the generalized eigenvalue problem.
+     * Solve for all eigenvalues and vectors of the generalized eigenvalue problem.
      * for self adjoint version:
      * rA is self adjoint matrix; rB positive-definite matrix.
      */
