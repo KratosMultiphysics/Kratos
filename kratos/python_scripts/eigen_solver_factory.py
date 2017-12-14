@@ -6,12 +6,10 @@ def ConstructSolver(settings):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
+    import new_linear_solver_factory
+    linear_solver = new_linear_solver_factory.ConstructSolver(settings["linear_solver_settings"])
+
     solver_type = settings["solver_type"].GetString()
-
-    if(solver_type != "SpectraEigenValueSolver"):
-        import new_linear_solver_factory
-        linear_solver = new_linear_solver_factory.ConstructSolver(settings["linear_solver_settings"])
-
 
     if(solver_type == "power_iteration_eigenvalue_solver"):
         eigen_solver = KratosMultiphysics.PowerIterationEigenvalueSolver( settings, linear_solver)
