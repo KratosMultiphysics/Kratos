@@ -22,10 +22,6 @@
 #include "includes/ublas_interface.h"
 #include "linear_solvers/iterative_solver.h"
 
-#include <Eigen/Core>
-#include <Eigen/Eigenvalues>
-
-
 namespace Kratos
 {
 
@@ -51,7 +47,10 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
     KrylovSchurEigenValueSolver(Parameters::Pointer pParam,
-        typename TLinearSolverType::Pointer pLinearSolver) : mpParam(pParam), mpLinearSolver(pLinearSolver)
+        typename TLinearSolverType::Pointer pLinearSolver,
+        typename TLinearSolverType::Pointer pEigenValueSolver) : mpParam(pParam),
+                                                                 mpLinearSolver(pLinearSolver),
+                                                                 mpEigenValueSolver(pEigenValueSolver)
 
     {
 
@@ -62,7 +61,8 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
             "max_iteration": 1000,
             "tolerance": 1e-6,
             "verbosity": 1,
-            "linear_solver_settings": {}
+            "linear_solver_settings": {},
+            "eigen_sub_solver_settings" :{}
         })");
 
         // don't validate linear_solver_settings here
@@ -120,10 +120,12 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
         nc1 = nc - 1 ;
 
         // ar: working matrix storing projection of rK
-        DenseMatrixType ar = ZeroMatrix(nc,nc);
+        //DenseMatrixType ar = ZeroMatrix(nc,nc);
+        SparseMatrixType ar(nc,nc);
 
         // br: working matrix storing projection of rM
-        DenseMatrixType br = ZeroMatrix(nc,nc);
+        //DenseMatrixType br = ZeroMatrix(nc,nc);
+        SparseMatrixType br(nc,nc);
 
         // declaration and initialization of vectors
         VectorType w = ZeroVector(nn);                  // working vector
@@ -293,35 +295,11 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
 
             }                           // label 160
 
-            //solve sub-problem
-            Eigen::Map<Eigen::MatrixXd> AR(&ar(0,0),nc,nc);
-            Eigen::Map<Eigen::MatrixXd> BR(&br(0,0),nc,nc);
-
-            Eigen::VectorXd evalues;
-            Eigen::MatrixXd evecs;
-
-            if (verbosity>1) std::cout << "Start eigen value solution of a nxn matrix with n=" << nc << std::endl;
-            Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> ges(AR, BR);
-
-            if (ges.info() != Eigen::Success)
-                eigen_solver_successful = false;
-
-            evalues = ges.eigenvalues();
-            evecs = ges.eigenvectors();
-
-            eigv.resize(evalues.rows());
-            vec.resize(evecs.rows(), evecs.cols());
-
-            for (int i=0; i<evalues.rows(); i++){
-                eigv(i) = evalues(i);
-                for (int j=0; j<evecs.cols(); j++){
-                    vec(i,j) = evecs(i,j);
-                }
-            }
-
+            mpEigenValueSolver->Solve(ar,br,eigv,vec);
 
             if(!eigen_solver_successful)
             {
+                //TODO how can this be checked?
                 std::cout << "Eigen solution was not successful!" << std::endl;
                 break;
             }
@@ -473,8 +451,8 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
     ///@{
 
     Parameters::Pointer mpParam;
-
     typename TLinearSolverType::Pointer mpLinearSolver;
+    typename TLinearSolverType::Pointer mpEigenValueSolver;
 
     ///@}
 
@@ -484,18 +462,18 @@ class KrylovSchurEigenValueSolver: public IterativeSolver<TSparseSpaceType, TDen
 /**
  * input stream function
  */
-template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
+template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType, class TReordererType>
 inline std::istream& operator >>(std::istream& rIStream,
-        KrylovSchurEigenValueSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis) {
+        KrylovSchurEigenValueSolver<TSparseSpaceType, TDenseSpaceType,  TLinearSolverType, TReordererType>& rThis) {
     return rIStream;
 }
 
 /**
  * output stream function
  */
-template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
+template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType, class TReordererType>
 inline std::ostream& operator <<(std::ostream& rOStream,
-        const KrylovSchurEigenValueSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis) {
+        const KrylovSchurEigenValueSolver<TSparseSpaceType, TDenseSpaceType, TLinearSolverType, TReordererType>& rThis) {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);

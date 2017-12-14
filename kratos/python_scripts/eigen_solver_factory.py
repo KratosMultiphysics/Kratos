@@ -27,7 +27,13 @@ def ConstructSolver(settings):
         eigen_solver = KratosMultiphysics.EigenSolversApplication.SpectraEigenValueSolver(settings)
     elif(solver_type == "KrylovSchurEigenValueSolver"):
         import KratosMultiphysics.EigenSolversApplication
-        eigen_solver = KratosMultiphysics.EigenSolversApplication.KrylovSchurEigenValueSolver(settings, linear_solver)
+        eigen_sub_solver_settings = settings["eigen_sub_solver_settings"]
+        eigen_sub_solver_type = eigen_sub_solver_settings["solver_type"].GetString()
+        if eigen_sub_solver_type == "GeneralizedSelfAdjointEigenSolver":
+            eigen_sub_solver = KratosMultiphysics.EigenSolversApplication.GeneralizedSelfAdjointEigenSolver(eigen_sub_solver_settings)
+        else:
+            raise Exception("Eigen Sub Solver type not found. Asking for :" + eigen_sub_solver_type)
+        eigen_solver = KratosMultiphysics.EigenSolversApplication.KrylovSchurEigenValueSolver(settings, linear_solver, eigen_sub_solver)
     else:
         raise Exception("Solver type not found. Asking for :" + solver_type)
 
