@@ -21,8 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
-#include "linear_solvers/direct_solver.h"
+#include "linear_solvers/linear_solver.h"
 
 namespace Kratos
 {
@@ -84,7 +83,8 @@ class EigenGeneralizedEigenvalueSolver: public LinearSolver<TSparseSpaceType, TD
                         "This might take long for large matrices!" << std::endl;
         }
 
-        if (verbosity>1) std::cout << "Start solving for eigenvalues" << evalues << std::endl;
+        if (verbosity>1) std::cout << "Start solving for eigenvalues" << std::endl;
+
         // create Eigen matrix A
         Eigen::MatrixXd A(rA.size1(),rA.size2());
         Eigen::MatrixXd B(rA.size1(),rA.size2());

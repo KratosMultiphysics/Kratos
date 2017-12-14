@@ -15,12 +15,10 @@
 #define KRATOS_SUBSPACE_ITERATION_EIGEN_VALUE_SOLVER_H_INCLUDED
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
 #include "linear_solvers/iterative_solver.h"
 
 namespace Kratos
