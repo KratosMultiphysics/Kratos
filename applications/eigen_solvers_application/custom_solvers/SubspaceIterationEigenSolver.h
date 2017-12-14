@@ -9,9 +9,8 @@
 //  Author: Armin Geiser
 */
 
-// TODO check naming: is this really a Krylov-Schur algorithm?
-#if !defined(KRATOS_KRYLOV_SCHUR_EIGEN_VALUE_SOLVER_H_INCLUDED)
-#define KRATOS_KRYLOV_SCHUR_EIGEN_VALUE_SOLVER_H_INCLUDED
+#if !defined(KRATOS_SUBSPACE_ITERATION_EIGEN_VALUE_SOLVER_H_INCLUDED)
+#define KRATOS_SUBSPACE_ITERATION_EIGEN_VALUE_SOLVER_H_INCLUDED
 
 // External includes
 #include "boost/smart_ptr.hpp"
@@ -483,4 +482,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 } // namespace Kratos
 
-#endif // defined(KRATOS_KRYLOV_SCHUR_EIGEN_VALUE_SOLVER_H_INCLUDED)
+#endif // defined(KRATOS_SUBSPACE_ITERATION_EIGEN_VALUE_SOLVER_H_INCLUDED)
