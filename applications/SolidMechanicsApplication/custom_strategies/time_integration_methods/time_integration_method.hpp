@@ -66,6 +66,8 @@ namespace Kratos
     
     KRATOS_CLASS_POINTER_DEFINITION( TimeIntegrationMethod );
 
+	typedef typename TimeIntegrationMethod::Pointer   TimeIntegrationMethodPointer;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -91,9 +93,9 @@ namespace Kratos
     }
 
     /// Clone
-    TimeIntegrationMethod::Pointer Clone()
+	TimeIntegrationMethodPointer Clone()
     {
-      return TimeIntegrationMethod::Pointer( new TimeIntegrationMethod(*this) );
+      return TimeIntegrationMethodPointer( new TimeIntegrationMethod(*this) );
     }
 
     /// Destructor.

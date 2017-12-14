@@ -90,10 +90,9 @@ namespace Kratos
 
     if ( this->GetProperties().Has(THICKNESS) ) {
        if ( dimension == 2 && GetProperties()[THICKNESS]>0 ) 
-          rIntegrationWeight *= GetProperties()[THICKNESS];
-
-       return rIntegrationWeight;
+          rIntegrationWeight *= GetProperties()[THICKNESS];       
     }
+	return rIntegrationWeight;
   }
 
 
