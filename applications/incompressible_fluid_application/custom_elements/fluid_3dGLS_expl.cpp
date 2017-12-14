@@ -377,7 +377,7 @@ void Fluid3DGLS_expl::CalculateRHSVector(VectorType& Galerkin_RHS, double& dt)
 
     //getting the velocity vector on the nodes
 
-    //getting the velocity on the nodes
+    //getting the velocity on the nodes.
     const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double,3>& vel_old0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
     //const array_1d<double,3>& vel_old0_n1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
@@ -613,7 +613,7 @@ void Fluid3DGLS_expl::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vect
 
     //fract. vel, that is calculated in the first Fractional Step.. but is saved inside the "VELOCITY" VARIABLE
     //so, u_n os VELOCITY, 1 and u_n-1 VELOCITY,2
-    const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
+    const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double,3>& fv0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
     const array_1d<double,3>& fv0_n_1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
     const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
@@ -623,7 +623,7 @@ void Fluid3DGLS_expl::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vect
     double p0_old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);
     const array_1d<double,3>& ff0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
 
-    const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
+    const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double,3>& fv1_old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
     const array_1d<double,3>& fv1_n_1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,2);
     const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
@@ -633,7 +633,7 @@ void Fluid3DGLS_expl::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vect
     double p1_old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);
     const array_1d<double,3>& ff1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
 
-    const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
+    const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double,3>& fv2_old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
     const array_1d<double,3>& fv2_n_1 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,2);
     const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
@@ -644,7 +644,7 @@ void Fluid3DGLS_expl::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vect
     //double p2_old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT);
     const array_1d<double,3>& ff2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
 
-    const array_1d<double,3>& fv3 = GetGeometry()[3].FastGetSolutionStepValue(FRACT_VEL);
+    const array_1d<double,3>& fv3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double,3>& fv3_old = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY,1);
     const array_1d<double,3>& fv3_n_1 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY,2);
     const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
