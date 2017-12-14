@@ -37,8 +37,8 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
         self.Model = Model
 
-        parameter_file = open(settings["materials_filename"].GetString(), 'r')
-        materials = KratosMultiphysics.Parameters(parameter_file.read())
+        with open(settings["materials_filename"].GetString(), 'r') as parameter_file:
+            materials = KratosMultiphysics.Parameters(parameter_file.read())
         
         for i in range(materials["properties"].size()):
             self._AssignPropertyBlock(materials["properties"][i])
