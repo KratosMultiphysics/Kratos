@@ -687,22 +687,13 @@ void Fluid3DGLS_expl::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vect
     ms_vel_gauss[1] =  0.25*(fv0[1]+fv1[1]+fv2[1]+fv3[1]);
     ms_vel_gauss[2] =  0.25*(fv0[2]+fv1[2]+fv2[2]+fv3[2]);
 
-    //calculating parameter tau (saved internally to each element)
     //h in 3D is calculated like this!
-    //double h = pow(6.00*Volume,0.3333333);
-    double h = pow(12.00*Volume,0.3333333);
-    h*=(2.0/sqrt(3.0));
-
-    double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
-    norm_u = sqrt(norm_u);
-    double tau = 1.00 / ( 4.00*nu/(h*h) + 2.00*norm_u/h+ 1.0/dt);
-
-    //calculating parameter tau
-    h = CalculateH(msDN_DX,Volume);
+    double h = CalculateH(msDN_DX,Volume);
     
-    norm_u = ms_vel_gauss[0] * ms_vel_gauss[0] + ms_vel_gauss[1] * ms_vel_gauss[1] + ms_vel_gauss[2] * ms_vel_gauss[2];
+    double norm_u = ms_vel_gauss[0] * ms_vel_gauss[0] + ms_vel_gauss[1] * ms_vel_gauss[1] + ms_vel_gauss[2] * ms_vel_gauss[2];
     norm_u = sqrt(norm_u);
-    tau = CalculateTau(msDN_DX, ms_vel_gauss, h, nu, norm_u, rCurrentProcessInfo);
+    //calculating parameter tau	
+    double tau = CalculateTau(msDN_DX, ms_vel_gauss, h, nu, norm_u, rCurrentProcessInfo);
 
 
 
