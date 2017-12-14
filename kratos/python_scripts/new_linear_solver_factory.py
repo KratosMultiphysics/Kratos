@@ -70,16 +70,16 @@ def ConstructSolver(configuration):
         linear_solver = KratosMultiphysics.MKLSolversApplication.ParallelMKLPardisoSolver(configuration)
     
     ################################## following solvers need importing the EigenSolversApplication
-    elif(solver_type == "Eigen_SparseLU"):
+    elif(solver_type == "eigen_sparse_lu"):
         import KratosMultiphysics.EigenSolversApplication
         linear_solver = KratosMultiphysics.EigenSolversApplication.SparseLUSolver(configuration)
-    elif(solver_type == "Eigen_PardisoLLT"): # needs Intel MKL
+    elif(solver_type == "eigen_pardiso_llt"): # needs Intel MKL
         import KratosMultiphysics.EigenSolversApplication
         linear_solver = KratosMultiphysics.EigenSolversApplication.PardisoLLTSolver(configuration)
-    elif(solver_type == "Eigen_PardisoLDLT"): # needs Intel MKL
+    elif(solver_type == "eigen_pardiso_ldlt"): # needs Intel MKL
         import KratosMultiphysics.EigenSolversApplication
         linear_solver = KratosMultiphysics.EigenSolversApplication.PardisoLDLTSolver(configuration)
-    elif(solver_type == "Eigen_PardisoLU"): # needs Intel MKL
+    elif(solver_type == "eigen_pardiso_lu"): # needs Intel MKL
         import KratosMultiphysics.EigenSolversApplication
         linear_solver = KratosMultiphysics.EigenSolversApplication.PardisoLUSolver(configuration)
 

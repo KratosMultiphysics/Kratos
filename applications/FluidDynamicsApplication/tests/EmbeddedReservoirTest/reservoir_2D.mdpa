@@ -1,0 +1,200 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Properties 1
+    DENSITY   1.00000E+03 
+    VISCOSITY   1.00000E-06
+    DYNAMIC_VISCOSITY   1.00000E-03
+End Properties
+
+Begin Nodes
+    1   0.0000000000   2.0000000000   0.0000000000
+    2   0.3333333333   2.0000000000   0.0000000000
+    3   0.0000000000   1.6000000000   0.0000000000
+    4   0.3333333333   1.6000000000   0.0000000000
+    5   0.6666666667   2.0000000000   0.0000000000
+    6   0.6666666667   1.6000000000   0.0000000000
+    7   0.0000000000   1.2000000000   0.0000000000
+    8   0.3333333333   1.2000000000   0.0000000000
+    9   1.0000000000   2.0000000000   0.0000000000
+   10   0.6666666667   1.2000000000   0.0000000000
+   11   1.0000000000   1.6000000000   0.0000000000
+   12   0.0000000000   0.8000000000   0.0000000000
+   13   0.3333333333   0.8000000000   0.0000000000
+   14   1.0000000000   1.2000000000   0.0000000000
+   15   0.6666666667   0.8000000000   0.0000000000
+   16   1.0000000000   0.8000000000   0.0000000000
+   17   0.0000000000   0.4000000000   0.0000000000
+   18   0.3333333333   0.4000000000   0.0000000000
+   19   0.6666666667   0.4000000000   0.0000000000
+   20   1.0000000000   0.4000000000   0.0000000000
+   21   0.0000000000   0.0000000000   0.0000000000
+   22   0.3333333333   0.0000000000   0.0000000000
+   23   0.6666666667   0.0000000000   0.0000000000
+   24   1.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements Element2D3N// GUI group identifier: Fluid
+         1          1         22         18         21 
+         2          1         18         17         21 
+         3          1         23         19         22 
+         4          1         19         18         22 
+         5          1         24         20         23 
+         6          1         20         19         23 
+         7          1         18         13         17 
+         8          1         13         12         17 
+         9          1         19         15         18 
+        10          1         15         13         18 
+        11          1         20         16         19 
+        12          1         16         15         19 
+        13          1         13          8         12 
+        14          1          8          7         12 
+        15          1         15         10         13 
+        16          1         10          8         13 
+        17          1         16         14         15 
+        18          1         14         10         15 
+        19          1          8          4          7 
+        20          1          4          3          7 
+        21          1         10          6          8 
+        22          1          6          4          8 
+        23          1         14         11         10 
+        24          1         11          6         10 
+        25          1          4          2          3 
+        26          1          2          1          3 
+        27          1          6          5          4 
+        28          1          5          2          4 
+        29          1         11          9          6 
+        30          1          9          5          6 
+End Elements
+
+Begin Conditions WallCondition2D2N// GUI group identifier: Outlet
+1 0 1 2
+2 0 2 5
+3 0 5 9
+End Conditions
+
+Begin Conditions WallCondition2D2N// GUI group identifier: NoSlip
+4 0 24 20
+5 0 20 16
+6 0 16 14
+7 0 14 11
+8 0 11 9
+9 0 21 17
+10 0 17 12
+11 0 12 7
+12 0 7 3
+13 0 3 1
+End Conditions
+
+Begin SubModelPart Parts_Fluid // Group Fluid // Subtree Parts
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+        17
+        18
+        19
+        20
+        21
+        22
+        23
+        24
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+        17
+        18
+        19
+        20
+        21
+        22
+        23
+        24
+        25
+        26
+        27
+        28
+        29
+        30
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Outlet2D // Group Outlet // Subtree Outlet2D
+    Begin SubModelPartNodes
+         1
+         2
+         5
+         9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+         1
+         2
+         3
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart NoSlip2D // Group Slip // Subtree NoSlip2D
+    Begin SubModelPartNodes
+         1
+         3
+         7
+         9
+        11
+        12
+        14
+        16
+        17
+        20
+        21
+        24
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+         4
+         5
+         6
+         7
+         8
+         9
+        10
+        11
+        12
+        13
+    End SubModelPartConditions
+End SubModelPart

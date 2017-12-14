@@ -156,6 +156,36 @@ public:
         const IntegrationMethodType IntegrationMethod) override;
 
     /**
+    * Given a face id, returns the shape function values in the positive split element exterior face side for a given quadrature.
+    * @return rInterfacePositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
+    * @return rInterfacePositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
+    * @return rInterfacePositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
+    * @param FaceId: Face local id. in where the values are to be computed.
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    void ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+        Matrix &rPositiveExteriorFaceShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rPositiveExteriorFaceShapeFunctionsGradientsValues,
+        Vector &rPositiveExteriorFaceWeightsValues,
+        const unsigned int FaceId,
+        const IntegrationMethodType IntegrationMethod) override;
+
+    /**
+    * Given a face id, returns the shape function values in the negative split element exterior face side for a given quadrature.
+    * @return rInterfaceNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
+    * @return rInterfaceNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
+    * @return rInterfaceNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
+    * @param FaceId: Face local id. in where the values are to be computed.
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    void ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+        Matrix &rNegativeExteriorFaceShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rNegativeExteriorFaceShapeFunctionsGradientsValues,
+        Vector &rNegativeExteriorFaceWeightsValues,
+        const unsigned int FaceId,
+        const IntegrationMethodType IntegrationMethod) override;
+
+    /**
     * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
     * @return rPositiveSideInterfaceAreaNormal: Outwards area normal vector list.
     * @param IntegrationMethod: Desired integration quadrature.
@@ -171,6 +201,28 @@ public:
     */
     void ComputeNegativeSideInterfaceAreaNormals(
         std::vector<Vector> &rNegativeSideInterfaceAreaNormal,
+        const IntegrationMethodType IntegrationMethod) override;
+
+    /**
+    * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
+    * @return rPositiveExteriorFaceAreaNormal: Outwards area normal vector list.
+    * @param FaceId: Face local id. in where the values are to be computed.
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    void ComputePositiveExteriorFaceAreaNormals(
+        std::vector<Vector> &rPositiveExteriorFaceAreaNormal,
+        const unsigned int FaceId,
+        const IntegrationMethodType IntegrationMethod) override;
+
+    /**
+    * Returns the negative side outwards area normal vector values for the Gauss pts. of given quadrature.
+    * @return rNegativeExteriorFaceAreaNormal: Outwards area normal vector list.
+    * @param FaceId: Face local id. in where the values are to be computed.
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    void ComputeNegativeExteriorFaceAreaNormals(
+        std::vector<Vector> &rNegativeExteriorFaceAreaNormal,
+        const unsigned int FaceId,
         const IntegrationMethodType IntegrationMethod) override;
 
     /**

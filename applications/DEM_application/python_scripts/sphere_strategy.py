@@ -194,12 +194,11 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(PRINT_STRESS_TENSOR_OPTION, self.print_stress_tensor_option)
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_OPTION, self.continuum_type)
 
-        # GLOBAL PHYSICAL ASPECTS
+        self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 0) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
         if "PeriodicDomainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PeriodicDomainOption"].GetBool():
                 self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 1) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
-        else:
-            self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 0)
+                
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MIN_CORNER, self.bottom_corner)
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MAX_CORNER, self.top_corner)
         self.spheres_model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
@@ -223,14 +222,14 @@ class ExplicitStrategy:
 
         # TIME RELATED PARAMETERS
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
-               
+        
+        os.chdir('..')
+        
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
-
+        
         for properties in self.inlet_model_part.Properties:
             self.ModifyProperties(properties)
-
-        os.chdir('..')
 
         for properties in self.cluster_model_part.Properties:
             self.ModifyProperties(properties)
@@ -275,15 +274,11 @@ class ExplicitStrategy:
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              #self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
                                                               self.search_strategy, self.do_search_neighbours)
-                                                              #TODO: remove time_integration_scheme. no longer necessary and maybe safety_factor
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                             #self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
                                                              self.search_strategy, self.do_search_neighbours)
-                                                             #TODO: remove time_integration_scheme. no longer necessary
 
     def BeforeInitialize(self):
         self.CreateCPlusPlusStrategy()
@@ -526,7 +521,9 @@ class ExplicitStrategy:
             pre_utils = PreUtilities(self.spheres_model_part)
             pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
             self.Procedures.KRATOSprint(properties)
-
+            if not properties.Has(BREAKABLE_CLUSTER):
+                properties.SetValue(BREAKABLE_CLUSTER, False)
+        
         if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
         else:

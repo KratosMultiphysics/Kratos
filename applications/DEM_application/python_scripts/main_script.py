@@ -25,6 +25,12 @@ class Solution(object):
     def LoadParametersFile(self):
         parameters_file = open("ProjectParametersDEM.json",'r')
         self.DEM_parameters = Parameters(parameters_file.read())
+        default_input_parameters = self.GetDefaultInputParameters()
+        self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
+        
+    def GetDefaultInputParameters(self):
+        import dem_default_input_parameters
+        return dem_default_input_parameters.GetDefaultInputParameters()
 
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
@@ -39,7 +45,9 @@ class Solution(object):
         self.SetAnalyticParticleWatcher()
         self.PreUtilities = PreUtilities()
 
-
+        # Set the print function TO_DO: do this better...
+        self.KRATOSprint   = self.procedures.KRATOSprint
+        
         # Creating necessary directories:
         self.main_path = os.getcwd()
         problem_name = self.GetProblemTypeFilename()
@@ -56,9 +64,6 @@ class Solution(object):
         self.p_frequency = 100   # activate every 100 steps
         self.step_count = 0
         self.p_count = self.p_frequency
-
-        # Set the print function TO_DO: do this better...
-        self.KRATOSprint   = self.procedures.KRATOSprint
 
         # Prepare modelparts
         self.CreateModelParts()        
@@ -141,16 +146,7 @@ class Solution(object):
     
     def SelectRotationalScheme(self):
         if (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Direct_Integration'):
-            if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler'):
-                return ForwardEulerScheme()
-            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Symplectic_Euler'):
-                return SymplecticEulerScheme()
-            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
-                return TaylorScheme()
-            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-                return NewmarkBetaScheme
-            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
-                return VelocityVerletScheme()
+            return self.SelectTranslationalScheme()
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Runge_Kutta'):
             return RungeKuttaScheme()
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration'):
@@ -401,7 +397,7 @@ class Solution(object):
 
             #### PRINTING GRAPHS ####
             os.chdir(self.graphs_path)
-            self.post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", self.time)
+            self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time)
 
             self.materialTest.MeasureForcesAndPressure()
             self.materialTest.PrintGraph(self.time)
