@@ -731,6 +731,7 @@ public:
     {
     }
 
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     /**
      * Calculate variables on Integration points.
      * This gives access to variables computed in the constitutive law on each integration point.
@@ -740,26 +741,28 @@ public:
      * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
      * these methods are: OPTIONAL
      */
-
-    virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+    KRATOS_DEPRECATED virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
 					      std::vector< Vector >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
 					      std::vector< Matrix >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
     {
@@ -777,43 +780,51 @@ public:
      */
 
     //SET ON INTEGRATION POINTS - METHODS
-    virtual void SetValueOnIntegrationPoints(const Variable<int>& rVariable,
+    
+    /// This method is deprecated, use SetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void SetValueOnIntegrationPoints(const Variable<int>& rVariable,
 					     std::vector<int>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    /// This method is deprecated, use SetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    /// This method is deprecated, use SetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					     std::vector<array_1d<double, 3 > > rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+    /// This method is deprecated, use SetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
 					     std::vector<array_1d<double, 6 > > rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    /// This method is deprecated, use SetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
 					     std::vector<Vector>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    /// This method is deprecated, use SetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
 					     std::vector<Matrix>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    /// This method is deprecated, use SetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void SetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
 					     std::vector<ConstitutiveLaw::Pointer>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
@@ -821,43 +832,134 @@ public:
 
     //GET ON INTEGRATION POINTS METHODS
 
-    virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
 					     std::vector<int>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					     std::vector<array_1d<double, 3 > >& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+    
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
 					     std::vector<array_1d<double, 6 > >& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
 					     std::vector<Vector>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
 					     std::vector<Matrix>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+					     std::vector<ConstitutiveLaw::Pointer>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
+					     std::vector<int>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {}
+    
+    virtual void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+					     std::vector<double>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {}
+
+    virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+					     std::vector<array_1d<double, 3 > > rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {}
+
+    virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+					     std::vector<array_1d<double, 6 > > rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {}
+
+    virtual void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+					     std::vector<Vector>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {}
+
+    virtual void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
+					     std::vector<Matrix>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {}
+
+    virtual void SetValuesOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+					     std::vector<ConstitutiveLaw::Pointer>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {}
+
+    //GET ON INTEGRATION POINTS METHODS
+
+    virtual void GetValuesOnIntegrationPoints(const Variable<int>& rVariable,
+					     std::vector<int>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void GetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+					     std::vector<double>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+
+    virtual void GetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+					     std::vector<array_1d<double, 3 > >& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+    
+
+    virtual void GetValuesOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+					     std::vector<array_1d<double, 6 > >& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+
+    virtual void GetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+					     std::vector<Vector>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+    
+
+    virtual void GetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
+					     std::vector<Matrix>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+
+    virtual void GetValuesOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
 					     std::vector<ConstitutiveLaw::Pointer>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
