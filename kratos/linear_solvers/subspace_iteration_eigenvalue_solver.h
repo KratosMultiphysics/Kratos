@@ -84,6 +84,8 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             "number_of_eigenvalues": 1,
             "max_iteration": 1000,
             "tolerance": 1e-6,
+            "mass_normalization": true,
+            "orient_eigen_vectors": true,
             "verbosity": 1,
             "linear_solver_settings": {},
             "eigen_sub_solver_settings" :{}
@@ -446,9 +448,17 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
 
             KRATOS_WATCH(rEigenvalues);
 
-        // TODO
         // 1. make vectors M-normalized
+        if (mParam["mass_normalization"].GetBool())
+        {
+            MassNormalizeEigenVectors(rM, rEigenvectors);
+        }
+
         // 2. orient vectors
+        if (mParam["orient_eigen_vectors"]){
+            OrientEigenVectors(rEigenvectors);
+        }
+        // TODO
         // 3. speed up
         // 4. sturm sequence check
         }
@@ -498,6 +508,33 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
     typename TLinearSolverType::Pointer mpLinearSolver;
     typename TLinearSolverType::Pointer mpEigenValueSolver;
 
+    ///@}
+    ///@name Private Operations
+    ///@{
+    MassNormalizeEigenVectors(SparseMatrixType& rM, DenseMatrixType& rEigenvectors){
+        // GlobalVectorBasis* aux = this->create_GlobalVector(nn);
+        // cfloat phi_t_M_phi, multiplier;
+        // for (cint i=0; i< _NROOT; ++i)
+        // {
+        //     aux->be_Product_Of(_mtx_B, _eigen_vecs[i]);
+        //     phi_t_M_phi = aux->dot_Product_With(_eigen_vecs[i]);
+        //     multiplier =  1.0 / sqrt(fabs(phi_t_M_phi));
+        //     _eigen_vecs[i]->scale_With(multiplier);
+        // }
+    }
+
+    OrientEigenVectors(DenseMatrixType& rEigenvectors){
+        if (rEigenvalues.size2() == 0) return;
+        for (int i=0; i<rEigenvectors.size1())
+        {
+            if (rEigenvalues(i,0) > 0.0)
+                continue;
+            for (int j=0; j<rEigenvectors.size2())
+            {
+                rEigenvectors(i,j) *= -1.0;
+            }
+        }
+    }
     ///@}
 
 }; // class SubspaceIterationEigenvalueSolver
