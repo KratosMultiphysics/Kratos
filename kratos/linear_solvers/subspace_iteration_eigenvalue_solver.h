@@ -397,10 +397,10 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             // {
             //     double vdot = 0.0;
             //     for (int j=0; j<nc; j++)
-            //         vdot += vec(j,i);
+            //         vdot += vec(j,i) * vec(j,i);
             //     double eigv2 = eigv(i) * eigv(i);
             //     dif = vdot-eigv2;
-            //     rtolv(i) = sqrt(std::max(dif, 1e-24*eigv2)/vdot);
+            //     rtolv(i) = std::sqrt(std::max(dif, 1e-24*eigv2)/vdot);
             // }
 
             bool converged = true;
@@ -445,9 +445,11 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             }
 
             // copy results to function parameters
-            // TODO conditional resize
-            rEigenvalues.resize(nroot);
-            rEigenvectors.resize(nroot, nn);
+            if (static_cast<int>(rEigenvalues.size()) != nroot)
+                rEigenvalues.resize(nroot);
+            if (static_cast<int>(rEigenvectors.size1()) != nroot || static_cast<int>(rEigenvectors.size2()) != nn)
+                rEigenvectors.resize(nroot, nn);
+
             for (int i = 0; i< nroot; i++)
             {
                 rEigenvalues(i) = eigv(i);
@@ -558,7 +560,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             // tmp = rM*vec_i
             TSparseSpaceType::Mult(rM, vec_i, tmp);
             double phi_t_M_phi = TSparseSpaceType::Dot(tmp, vec_i);
-            double factor = 1.0 / sqrt(fabs(phi_t_M_phi));
+            double factor = 1.0 / std::sqrt(std::fabs(phi_t_M_phi));
 
             for (int j=0; j<size2; ++j)
             {
