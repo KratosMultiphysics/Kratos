@@ -821,7 +821,7 @@ public:
         array_1d<double, 3> normal;
         MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
 
-        return normal;
+        return 0.5 * normal;
     }
 
     /**

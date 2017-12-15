@@ -584,24 +584,24 @@ void Fluid3DGLS_expl_comp::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,12,12> msAuxMat;
-    boost::numeric::ublas::bounded_matrix<double,12,12> msAuxMat1;
-    boost::numeric::ublas::bounded_matrix<double,12,3> msAuxMat2;
-    boost::numeric::ublas::bounded_matrix<double,3,3> msGrad_ug;
-    array_1d<double,12> msAuxVec;
-    array_1d<double,12> msStabMomRes;
-    boost::numeric::ublas::bounded_matrix<double,4,4> msWorkMatrix;
-    boost::numeric::ublas::bounded_matrix<double,12,3> msShapeFunc;
-    boost::numeric::ublas::bounded_matrix<double,3,12> msConvOp;
-    boost::numeric::ublas::bounded_matrix<double,12,4> msGradOp;
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
-    array_1d<double,3> ms_adv_vel;
-    array_1d<double,4> msN;
-    array_1d<double,3> ms_vel_gauss;
-    array_1d<double,4> ms_temp_vec_np;
-    array_1d<double,4> ms_aux0;
-    array_1d<double,4> ms_aux1;
-    array_1d<double,3> ms_aux2;
+    boost::numeric::ublas::bounded_matrix<double,12,12> msAuxMat= ZeroMatrix(12,12);
+    boost::numeric::ublas::bounded_matrix<double,12,12> msAuxMat1= ZeroMatrix(12,12);
+    boost::numeric::ublas::bounded_matrix<double,12,3> msAuxMat2= ZeroMatrix(12,3);
+    boost::numeric::ublas::bounded_matrix<double,3,3> msGrad_ug= ZeroMatrix(3,3);
+    array_1d<double,12> msAuxVec= ZeroVector(12);
+    array_1d<double,12> msStabMomRes= ZeroVector(12);
+    boost::numeric::ublas::bounded_matrix<double,4,4> msWorkMatrix= ZeroMatrix(4,4);
+    boost::numeric::ublas::bounded_matrix<double,12,3> msShapeFunc= ZeroMatrix(12,3);
+    boost::numeric::ublas::bounded_matrix<double,3,12> msConvOp= ZeroMatrix(3,12);
+    boost::numeric::ublas::bounded_matrix<double,12,4> msGradOp= ZeroMatrix(12,4);
+    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX= ZeroMatrix(4,3);
+    array_1d<double,3> ms_adv_vel= ZeroVector(3);
+    array_1d<double,4> msN= ZeroVector(4);
+    array_1d<double,3> ms_vel_gauss= ZeroVector(3);
+    array_1d<double,4> ms_temp_vec_np= ZeroVector(4);
+    array_1d<double,4> ms_aux0= ZeroVector(4);
+    array_1d<double,4> ms_aux1= ZeroVector(4);
+    array_1d<double,3> ms_aux2= ZeroVector(3);
 
     if(rRightHandSideVector.size() != 4)
     {
@@ -689,14 +689,13 @@ void Fluid3DGLS_expl_comp::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
     //calculating parameter tau (saved internally to each element)
     //h in 3D is calculated like this!
-    //double h = pow(6.00*Volume,0.3333333);
-    double h = pow(12.00*Volume,0.3333333);
-    h*=(2.0/sqrt(3.0));
-
-    double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
+ 
+    double h = CalculateH(msDN_DX,Volume);
+    
+    double norm_u = ms_vel_gauss[0] * ms_vel_gauss[0] + ms_vel_gauss[1] * ms_vel_gauss[1] + ms_vel_gauss[2] * ms_vel_gauss[2];
     norm_u = sqrt(norm_u);
-    double tau = 1.00 / ( 4.00*nu/(h*h) + 2.00*norm_u/h+ 1.0/dt);
-
+    //calculating parameter tau	 
+    double tau = CalculateTau(msDN_DX, ms_vel_gauss, h, nu, norm_u, rCurrentProcessInfo);
 
     //AND NOW WE ADD THE RESPECTIVE CONTRIBUTIONS TO THE RHS AND LHS of THE SECOND FRAC STEP
     //we use Backward Euler for this step, therefore stab. contribution no RHS +=Tau1*(gradQ, residual)
@@ -921,6 +920,26 @@ void Fluid3DGLS_expl_comp::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
     noalias(rRightHandSideVector) -= tau*density*Volume*ms_aux0;
 
+
+   //adding contributions to nodal Volumes following the corresponding lumping term
+    double nodal_contrib = 0.25 * Volume * density;
+
+    double& m0 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+    #pragma omp atomic
+    m0 += nodal_contrib;
+
+    double& m1 = GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS);
+    #pragma omp atomic
+    m1 += nodal_contrib;
+
+    double& m2 = GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS);
+    #pragma omp atomic
+    m2 += nodal_contrib;
+
+    double& m3 = GetGeometry()[3].FastGetSolutionStepValue(NODAL_MASS);
+    #pragma omp atomic
+    m3 += nodal_contrib;
+
     KRATOS_CATCH("")
 }
 //************************************************************************************
@@ -1020,7 +1039,52 @@ void Fluid3DGLS_expl_comp::GetDofList(DofsVectorType& ElementalDofList,ProcessIn
     KRATOS_CATCH("");
 }
 
+inline double Fluid3DGLS_expl_comp::CalculateH(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, double Volume)
+{
+//         double h = pow(6.00 * Volume, 0.3333333);
 
+    double inv_h_max = 0.0;
+    for(unsigned int i=0; i<4; i++)
+    {
+        double inv_h = 0.0;
+        for(unsigned int k=0; k<3; k++)
+            inv_h += DN_DX(i,k)*DN_DX(i,k);
+
+        if(inv_h > inv_h_max) inv_h_max = inv_h;
+    }
+    inv_h_max = sqrt(inv_h_max);
+    double h = 1.0/inv_h_max;
+
+    return h ;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+inline double Fluid3DGLS_expl_comp::CalculateTau(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, array_1d<double, 3 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
+{
+
+    //viscous parts
+    double viscous_part=0.0;
+    for(unsigned int i=0; i<4; i++)
+        for(unsigned int k=0; k<3; k++)
+            viscous_part += DN_DX(i,k)*DN_DX(i,k);
+    viscous_part *= nu;
+
+
+    double conv_part = 2.0*norm_u/h;
+
+    const double dyn_st_beta = CurrentProcessInfo[DYNAMIC_TAU];
+    const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
+    double tau = 1.00 / (dyn_st_beta * inv_dt_coeff + viscous_part + conv_part);
+
+
+
+
+
+    return tau;
+
+}
 
 } // Namespace Kratos
 
