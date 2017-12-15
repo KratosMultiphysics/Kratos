@@ -100,6 +100,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         KRATOS_ERROR_IF( mParam["linear_solver_settings"]["solver_type"].GetString() == "eigen_pardiso_llt") <<
             "eigen_pardiso_llt cannot handle negative entries on the main diagonal" << std::endl;
 
+        std::cout << "\nWARNING: SubspaceIterationEigenvalueSolver showed slightly different results than e.g. Arnoldi method.\n" << std::endl;
         std::cout << "\nWARNING: Make sure the linear solver can handle negative entries on the main diagonal!\n" << std::endl;
 
     }
@@ -513,15 +514,23 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
     ///@name Private Operations
     ///@{
     MassNormalizeEigenVectors(SparseMatrixType& rM, DenseMatrixType& rEigenvectors){
-        // GlobalVectorBasis* aux = this->create_GlobalVector(nn);
-        // cfloat phi_t_M_phi, multiplier;
-        // for (cint i=0; i< _NROOT; ++i)
-        // {
-        //     aux->be_Product_Of(_mtx_B, _eigen_vecs[i]);
-        //     phi_t_M_phi = aux->dot_Product_With(_eigen_vecs[i]);
-        //     multiplier =  1.0 / sqrt(fabs(phi_t_M_phi));
-        //     _eigen_vecs[i]->scale_With(multiplier);
-        // }
+        DenseVectorType tmp(rM.size1());
+        DenseVectorType vec_i(rM.size1());
+        for (int i=0; i<rEigenvectors.size1(); ++i)
+        {
+            for (int j=0; j<rEigenvectors.size2(); ++j)
+            {
+                vec_i(j) = rEigenvectors(i,j);
+            }
+            // tmp = rM*vec_i
+            TSparseSpaceType::Mult(rM, vec_i, tmp);
+            double phi_t_M_phi = TSparseSpaceType::Dot(tmp, vec_i);
+            double factor = 1.0 / sqrt(fabs(phi_t_M_phi));
+            for (int j=0; j<rEigenvectors.size2(); ++j)
+            {
+                rEigenvectors(i,j) *= factor;
+            }
+        }
     }
 
     OrientEigenVectors(DenseMatrixType& rEigenvectors){
