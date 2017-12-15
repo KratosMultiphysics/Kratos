@@ -86,15 +86,6 @@ namespace Kratos
     
     typedef ModelPart::NodesContainerType NodesArrayType;
 
-
-
-    /*@} */
-    /**@name Life Cycle
-     */
-    /*@{ */
-
-    /** Constructor.
-     */
     ExplicitCentralDifferencesScheme(
 				     const double  rMaximumDeltaTime,
 				     const double  rDeltaTimeFraction,
@@ -111,15 +102,11 @@ namespace Kratos
 
       mRayleighDamping            = rRayleighDamping;
 	
-      //Allocate auxiliary memory
       int NumThreads = OpenMPUtils::GetNumThreads();
 
-      //mMatrix.M.resize(NumThreads);
       mMatrix.D.resize(NumThreads);
 
       mVector.v.resize(NumThreads);
-      //mVector.a.resize(NumThreads);
-      //mVector.ap.resize(NumThreads);
       mSchemeIsInitialized = false;
 
     }
@@ -189,8 +176,7 @@ namespace Kratos
     virtual void InitializeSolutionStep(ModelPart& r_model_part,
 					TSystemMatrixType& A,
 					TSystemVectorType& Dx,
-					TSystemVectorType& b
-					)
+					TSystemVectorType& b)
     {
       KRATOS_TRY
 
@@ -210,40 +196,39 @@ namespace Kratos
     //**************************************************************************
     
     void InitializeResidual( ModelPart& r_model_part )
-
     {
-        KRATOS_TRY
+      KRATOS_TRY
        
-        NodesArrayType& pNodes   = r_model_part.Nodes();
+      NodesArrayType& pNodes   = r_model_part.Nodes();
 
-#ifdef _OPENMP
+      #ifdef _OPENMP
         int number_of_threads = omp_get_max_threads();
-#else
+      #else
         int number_of_threads = 1;
-#endif
+      #endif
 
-        vector<unsigned int> node_partition;
-        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+      vector<unsigned int> node_partition;
+      OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-        #pragma omp parallel for
-        for(int k=0; k<number_of_threads; k++)
-        {
-            typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-            typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+      #pragma omp parallel for
+      for(int k=0; k<number_of_threads; k++)
+      {
+          typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+          typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-            for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
+          for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
+          {
+            array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(FORCE_RESIDUAL));  
+            noalias(node_rhs)             = ZeroVector(3);
+
+            if (i->HasDofFor(ROTATION_X))
             {
-              array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(FORCE_RESIDUAL));  
-              noalias(node_rhs)             = ZeroVector(3);
-
-              if (i->HasDofFor(ROTATION_X))
-              {
-                array_1d<double,3>& node_rhs_moment  = (i->FastGetSolutionStepValue(MOMENT_RESIDUAL));  
-                noalias(node_rhs_moment)             = ZeroVector(3);
-              }
+              array_1d<double,3>& node_rhs_moment  = (i->FastGetSolutionStepValue(MOMENT_RESIDUAL));  
+              noalias(node_rhs_moment)             = ZeroVector(3);
             }
-        }
-        KRATOS_CATCH("")
+          }
+      }
+      KRATOS_CATCH("")
     }
 
     //***************************************************************************
@@ -256,12 +241,12 @@ namespace Kratos
       ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
       ElementsArrayType& pElements      = r_model_part.Elements();
 
-#ifdef _OPENMP
-      int number_of_threads = omp_get_max_threads();
-#else
-      int number_of_threads = 1;
+      #ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+      #else
+        int number_of_threads = 1;
 
-#endif
+      #endif
 
       vector<unsigned int> element_partition;
       OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
@@ -275,7 +260,8 @@ namespace Kratos
       for(int i = 0; i < number_of_threads; i++)
           delta_times[i] = mDeltaTime.Maximum/safety_factor;
 
-#pragma omp parallel for private(stable_delta_time)
+      #pragma omp parallel for private(stable_delta_time)
+
       for(int k=0; k<number_of_threads; k++)
       {
         typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
@@ -331,20 +317,19 @@ namespace Kratos
     void InitializeExplicitScheme(ModelPart& r_model_part)
     {
       KRATOS_TRY
-      //Set velocity to zero...
 
       NodesArrayType& pNodes        = r_model_part.Nodes();
 
-#ifdef _OPENMP
-      int number_of_threads = omp_get_max_threads();
-#else
-      int number_of_threads = 1;
-#endif
+      #ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+      #else
+        int number_of_threads = 1;
+      #endif
 
       vector<unsigned int> node_partition;
       OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-#pragma omp parallel for
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
       {
         typename NodesArrayType::iterator i_begin = pNodes.ptr_begin()+node_partition[k];
@@ -386,18 +371,18 @@ namespace Kratos
         }
       }
     KRATOS_CATCH("")
-	}
+	  }
 
   /**
       Performing the update of the solution.
   */
   //***************************************************************************
-virtual void Update(ModelPart& r_model_part,
-      DofsArrayType& rDofSet,
-      TSystemMatrixType& A,
-      TSystemVectorType& Dx,
-      TSystemVectorType& b
-      )
+    virtual void Update(ModelPart& r_model_part,
+          DofsArrayType& rDofSet,
+          TSystemMatrixType& A,
+          TSystemVectorType& Dx,
+          TSystemVectorType& b
+          )
     {
       KRATOS_TRY
       ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
@@ -410,16 +395,16 @@ virtual void Update(ModelPart& r_model_part,
       mTime.Middle    = 0.5*(mTime.Previous + mTime.Current);
 
 
-  #ifdef _OPENMP
-      int number_of_threads = omp_get_max_threads();
-  #else
-      int number_of_threads = 1;
-  #endif
+      #ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+      #else
+        int number_of_threads = 1;
+      #endif
 
       vector<unsigned int> node_partition;
       OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-  #pragma omp parallel for
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
       {
         typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
@@ -530,16 +515,16 @@ virtual void Update(ModelPart& r_model_part,
       KRATOS_TRY
       NodesArrayType& pNodes            = r_model_part.Nodes();
       const double numerical_limit = std::numeric_limits<double>::epsilon();
-  #ifdef _OPENMP
-      int number_of_threads = omp_get_max_threads();
-  #else
-      int number_of_threads = 1;
-  #endif
+      #ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+      #else
+        int number_of_threads = 1;
+      #endif
 
       vector<unsigned int> node_partition;
       OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-  #pragma omp parallel for
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
       {
         typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
@@ -693,7 +678,6 @@ virtual void Update(ModelPart& r_model_part,
       Element::Pointer rCurrentElement,
       LocalSystemVectorType& RHS_Contribution,
       LocalSystemMatrixType& D,
-      /*LocalSystemMatrixType& M,*/
       ProcessInfo& CurrentProcessInfo)
   {
     int thread = OpenMPUtils::ThisThread();
@@ -759,7 +743,6 @@ virtual void Update(ModelPart& r_model_part,
       Condition::Pointer rCurrentCondition,
       LocalSystemVectorType& RHS_Contribution,
       LocalSystemMatrixType& D,
-      /*LocalSystemMatrixType& M,*/
       ProcessInfo& CurrentProcessInfo)
   {
     int thread = OpenMPUtils::ThisThread();
@@ -830,21 +813,8 @@ virtual void Update(ModelPart& r_model_part,
                 ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
-   
-    //int thread = OpenMPUtils::ThisThread();
-
-    //basic operations for the element considered 
-    (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-          
-    //if(mRayleighDamping)
-    //    {
-    //         (rCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread],rCurrentProcessInfo);
-
-    //         AddDynamicsToRHS (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], rCurrentProcessInfo);
-    //    }
   
-
-    //add explicit contribution of the Condition Residual (RHS) to nodal Force Residual (nodal RHS)
+    (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
 
     (rCurrentCondition) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
     if (rCurrentCondition->GetGeometry()[0].HasDofFor(ROTATION_X))

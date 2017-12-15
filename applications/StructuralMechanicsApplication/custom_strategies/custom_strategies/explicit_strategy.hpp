@@ -78,7 +78,7 @@ public:
      */
     ExplicitStrategy(
         ModelPart& model_part,
-        bool MoveMeshFlag = false
+        bool MoveMeshFlag = true
     )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
     {
@@ -90,7 +90,7 @@ public:
         typename TLinearSolver::Pointer pNewLinearSolver,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false
+        bool MoveMeshFlag = true
     )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
     {
@@ -100,7 +100,7 @@ public:
         mCalculateReactionsFlag = CalculateReactions;
         mReformDofSetAtEachStep = ReformDofSetAtEachStep;
 
-	//saving the scheme
+	    //saving the scheme
         mpScheme = pScheme;
 
         //saving the linear solver
@@ -119,13 +119,13 @@ public:
         //set EchoLevel to the deffault value (only time is displayed)
         SetEchoLevel(1);
 
-	//set RebuildLevel to the deffault value 
-	BaseType::SetRebuildLevel(0);  
+        //set RebuildLevel to the deffault value 
+        BaseType::SetRebuildLevel(0);  
 
-	//set it true for explicit :: taking the deffault geometry lumping factors
-	BaseType::GetModelPart().GetProcessInfo()[COMPUTE_LUMPED_MASS_MATRIX] = true; 
+        //set it true for explicit :: taking the deffault geometry lumping factors
+        BaseType::GetModelPart().GetProcessInfo()[COMPUTE_LUMPED_MASS_MATRIX] = true; 
 
-        KRATOS_CATCH( "" )
+            KRATOS_CATCH( "" )
     }
 
     /** Destructor.
@@ -240,7 +240,7 @@ public:
         
         mInitializeWasPerformed = true;
 
-	//std::cout<<" Rebuild Level "<<BaseType::mRebuildLevel<<std::endl;
+	    //std::cout<<" Rebuild Level "<<BaseType::mRebuildLevel<<std::endl;
 
         KRATOS_CATCH( "" )
     }
@@ -265,8 +265,8 @@ public:
 
         if(BaseType::mRebuildLevel > 0)
         {
-	  pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
-	}
+	        pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
+	    }
 
         mSolutionStepIsInitialized = true;
 
@@ -297,8 +297,7 @@ public:
         
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
-        if(mInitializeWasPerformed == false)
-            Initialize();
+        if(mInitializeWasPerformed == false) Initialize();
             
         //prints informations about the current time
         if (this->GetEchoLevel() == 2 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
@@ -308,26 +307,12 @@ public:
         }
 
         //initialize solution step
-        if(mSolutionStepIsInitialized == false)
-	  InitializeSolutionStep();
+        if(mSolutionStepIsInitialized == false) InitializeSolutionStep();
 
         
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
 
-        //calculate reactions if required
-//         if (mCalculateReactionsFlag == true)
-//         {
-//             pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-//         }
-
         pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb); // Explicitly integrates the equation of motion.
-
-	//calculate reactions if required
-        // if (mCalculateReactionsFlag == true)
-        // {
-        //     pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-        // }
-
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
@@ -356,10 +341,6 @@ public:
     {
         KRATOS_TRY
         std::cout << "Explicit strategy Clear function used" << std::endl;
-
-       //setting to zero the internal flag to ensure that the dof sets are recalculated
-        //GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
-        //GetBuilderAndSolver()->Clear();
 
         GetScheme()->Clear();
 

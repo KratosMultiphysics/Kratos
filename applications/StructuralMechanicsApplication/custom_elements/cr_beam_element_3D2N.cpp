@@ -836,7 +836,7 @@ namespace Kratos
 
 		Matrix StiffnessMatrix = ZeroMatrix(msElementSize, msElementSize);
 
-		this->CalculateLeftHandSide(StiffnessMatrix, rCurrentProcessInfo);
+		this->CalculateLumpedMassMatrix(StiffnessMatrix, rCurrentProcessInfo);
 
 		Matrix MassMatrix = ZeroMatrix(msElementSize, msElementSize);
 
@@ -861,6 +861,7 @@ namespace Kratos
 		{
 			beta = rCurrentProcessInfo[RAYLEIGH_BETA];
 		}
+
 
 		rDampingMatrix += alpha * MassMatrix;
 		rDampingMatrix += beta  * StiffnessMatrix;
