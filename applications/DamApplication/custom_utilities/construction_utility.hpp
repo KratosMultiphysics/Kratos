@@ -91,7 +91,7 @@ class ConstructionUtility
             mNumNode = el_begin->GetGeometry().PointsNumber();
 
 #pragma omp parallel for
-            for (unsigned int k = 0; k < nelements; ++k)
+            for (int k = 0; k < nelements; ++k)
             {
                 ModelPart::ElementsContainerType::iterator it = el_begin + k;
                 ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -102,7 +102,7 @@ class ConstructionUtility
             // Same nodes for both computing model part
             ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 #pragma omp parallel for
-            for (unsigned int i = 0; i < nnodes; ++i)
+            for (int i = 0; i < nnodes; ++i)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->Set(ACTIVE, false);
@@ -121,7 +121,7 @@ class ConstructionUtility
             mNumNode = el_begin->GetGeometry().PointsNumber();
 
 #pragma omp parallel for
-            for (unsigned int k = 0; k < soil_nelements; ++k)
+            for (int k = 0; k < soil_nelements; ++k)
             {
                 ModelPart::ElementsContainerType::iterator it = el_begin + k;
                 ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -132,7 +132,7 @@ class ConstructionUtility
             // Same nodes for both computing model part
             ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.GetSubModelPart(mThermalSoilPart).NodesBegin();
 #pragma omp parallel for
-            for (unsigned int i = 0; i < soil_nnodes; ++i)
+            for (int i = 0; i < soil_nnodes; ++i)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->Set(ACTIVE, true);
@@ -147,7 +147,7 @@ class ConstructionUtility
             {
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 #pragma omp parallel for
-                for (unsigned int i = 0; i < nnodes; ++i)
+                for (int i = 0; i < nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
                     it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = mAlphaInitial;
@@ -157,7 +157,7 @@ class ConstructionUtility
             {
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 #pragma omp parallel for
-                for (unsigned int i = 0; i < nnodes; ++i)
+                for (int i = 0; i < nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
                     it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = mAlphaInitial;
@@ -192,7 +192,7 @@ class ConstructionUtility
             double previous_height = mReferenceCoordinate + (mHeight / mPhases) * (phase - 1);
 
 #pragma omp parallel for
-            for (unsigned int k = 0; k < nelements; ++k)
+            for (int k = 0; k < nelements; ++k)
             {
                 ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
                 array_1d<double, 3> central_position = it_thermal->GetGeometry().Center();
@@ -237,7 +237,7 @@ class ConstructionUtility
             ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).ElementsBegin();
 
 #pragma omp parallel for
-            for (unsigned int k = 0; k < nelements; ++k)
+            for (int k = 0; k < nelements; ++k)
             {
                 ModelPart::ElementsContainerType::iterator it = el_begin + k;
                 ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -281,7 +281,7 @@ class ConstructionUtility
             if (Dim == 2)
             {
 #pragma omp parallel for
-                for (unsigned int k = 0; k < nelements; ++k)
+                for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
                     // Elements
@@ -318,7 +318,7 @@ class ConstructionUtility
             else
             {
 #pragma omp parallel for
-                for (unsigned int k = 0; k < nelements; ++k)
+                for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
                     // Elements
@@ -379,7 +379,7 @@ class ConstructionUtility
             {
 // Searching for thermal boundary conditions Edges
 #pragma omp parallel for
-                for (unsigned int k = 0; k < nelements; ++k)
+                for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
                     // Elements
@@ -418,7 +418,7 @@ class ConstructionUtility
             {
 // Searching for thermal boundary conditions
 #pragma omp parallel for
-                for (unsigned int k = 0; k < nelements; ++k)
+                for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
                     // Elements
@@ -484,7 +484,7 @@ class ConstructionUtility
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 
 #pragma omp parallel for
-        for (unsigned int i = 0; i < nnodes; ++i)
+        for (int i = 0; i < nnodes; ++i)
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
             double current_activation_time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION));
@@ -525,7 +525,7 @@ class ConstructionUtility
 
             ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 #pragma omp parallel for
-            for (unsigned int i = 0; i < nnodes; ++i)
+            for (int i = 0; i < nnodes; ++i)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 double current_activation_time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION));
@@ -609,7 +609,7 @@ class ConstructionUtility
 
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 #pragma omp parallel for
-        for (unsigned int i = 0; i < nnodes; ++i)
+        for (int i = 0; i < nnodes; ++i)
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
             double current_activation_time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION));
