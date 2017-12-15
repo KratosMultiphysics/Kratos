@@ -1,7 +1,7 @@
 {
     "model_settings"           : {
-        "domain_parts_list"    : ["Parts_Solid"],
-        "processes_parts_list" : ["DISPLACEMENT_Dirichlet"],
+        "domain_parts_list"    : ["Parts_plate"],
+        "processes_parts_list" : ["DISPLACEMENT_support"],
 	"dofs"                 : ["ROTATION"]
     },
     "solver_settings"          : {
@@ -23,8 +23,8 @@
 		"solve_eigenvalue_problem": true,
 		"compute_modal_contribution": false,
 		"lambda_min": 0.0,
-		"lambda_max": 2.5e3,
-		"search_dimension": 6,
+		"lambda_max": 1.0e4,
+		"search_dimension": 9,
 		"linear_solver_settings":{
 		    "solver_type": "complex_skyline_lu_solver"
 		}
@@ -32,7 +32,7 @@
 	}
     },
     "constraints_process_list" : [{
-        "model_part_name" : "DISPLACEMENT_Dirichlet"
+	"model_part_name" : "DISPLACEMENT_support"
     }],
     "check_process_list" :[{
         "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
@@ -41,7 +41,7 @@
         "Parameters"    : {
             "model_part_name" : "solid_domain",
 	    "variable_name"   : "EIGENVALUE_VECTOR",                                              
-            "reference_values": "[907.790376, 907.790376, 1765.137798, 2254.538816]"
+            "reference_values": "[138.05922354056685, 3955.0855388258715, 7796.83946434412]"
         }
     }]
 }

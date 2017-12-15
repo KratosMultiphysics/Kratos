@@ -2,10 +2,7 @@
     "model_settings"           : {
         "dimension"            : 2,
         "domain_parts_list"    : ["Parts_Parts_Auto1"],
-        "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","LineLoad2D_Load_on_lines_Auto1"],
-        "import_settings"      : {
-            "input_filename"   : "element_tests/tension2D"
-        }
+        "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","LineLoad2D_Load_on_lines_Auto1"]
     },
     "solver_settings"          : {
 	"solver_type" : "solid_mechanics_static_solver",
@@ -34,9 +31,9 @@
     }],
     "check_process_list" : [
     {
-        "python_module"   : "check_scalar_to_nodes_process",
-        "kratos_module"   : "KratosMultiphysics",
-        "process_name"    : "CheckScalarToNodesProcess",
+        "python_module"   : "check_scalar_on_nodes_process",
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "process_name"    : "CheckScalarOnNodesProcess",
         "Parameters"      : {
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
             "variable_name"   : "DISPLACEMENT_X",

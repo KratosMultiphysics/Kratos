@@ -2517,7 +2517,7 @@ int  SolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 	// Nodal data
 	Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
-	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
+	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 	
 	// Nodal dofs
 	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);

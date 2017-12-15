@@ -14,7 +14,7 @@ sys.stdout.flush()
 
 class Solution(object):
 
-    def __init__(self, file_name = None):
+    def __init__(self, file_parameters = "ProjectParameters.json", file_name = None):
         
         # Time control starts        
         print(timer.ctime())
@@ -28,12 +28,12 @@ class Solution(object):
         self.t0w = timer.time()
                 
         # Import input
-        parameter_file = open("ProjectParameters.json",'r')
+        parameter_file = open(file_parameters,'r')
         self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        if( file_name is not None ):
-            self.ProjectParameters["problem_data"]["problem_name"].SetString(file_name)
-            self.ProjectParameters["model_settings"]["input_file_settings"]["name"].SetString(file_name)         
+        # Set input file name
+        self._set_input_file_name(file_name)
+        
         # Set echo level
         self.echo_level = 0
         if( self.ProjectParameters["problem_data"].Has("echo_level") ):
@@ -86,13 +86,13 @@ class Solution(object):
             self.solver.SetBuffer()       
             
         # Import materials
+        self.main_model_part = self.model.GetMainModelPart() 
         self._import_materials()
 
         # Initiliaze processes
         self.processes.ExecuteInitialize()
         
         # Print model_part and properties
-        self.main_model_part = self.model.GetMainModelPart() 
         if(self.echo_level>0):
             print("")
             print(self.main_model_part)
@@ -189,8 +189,7 @@ class Solution(object):
         self.processes.ExecuteBeforeOutputStep()
 
         # Write output results GiD: (frequency writing is controlled internally)
-        if(self.output.IsOutputStep()):
-            self.output.PrintOutput()
+        self._print_output()
 
         # Processes to be executed after witting the output
         self.processes.ExecuteAfterOutputStep()
@@ -221,6 +220,36 @@ class Solution(object):
         
     #### Main internal methods ####
 
+    def _print_output(self):
+        if( self.ProjectParameters.Has("output_configuration") ):
+            if(self.output.IsOutputStep()):
+                self.output.PrintOutput()
+                # Write EigenValues
+        if( self.process_info.Has(KratosSolid.EIGENVALUE_VECTOR) ):
+            current_vals = [ev for ev in self.main_model_part.ProcessInfo[KratosSolid.EIGENVALUE_VECTOR]]
+            print(" EIGENVALUES ", current_vals)
+    
+    def _set_input_file_name(self, file_name):
+        if( file_name is not None ):
+            if( self.ProjectParameters.Has("problem_data") == False):
+                void_parameters = KratosMultiphysics.Parameters("{}")
+                self.ProjectParameters.AddValue("problem_data", void_parameters)
+                
+            if( self.ProjectParameters["problem_data"].Has("problem_name") ):
+                self.ProjectParameters["problem_data"]["problem_name"].SetString(file_name)
+            else:
+                self.ProjectParameters["problem_data"].AddEmptyValue("problem_name").SetString(file_name)
+
+            
+            if( self.ProjectParameters["model_settings"].Has("input_file_settings") == False ):
+                void_parameters = KratosMultiphysics.Parameters("{}")
+                self.ProjectParameters["model_settings"].AddValue("input_file_settings", void_parameters)
+  
+            if( self.ProjectParameters["model_settings"]["input_file_settings"].Has("name") ):
+                self.ProjectParameters["model_settings"]["input_file_settings"]["name"].SetString(file_name)
+            else:
+                self.ProjectParameters["model_settings"]["input_file_settings"].AddEmptyValue("name").SetString(file_name)
+    
     def _is_not_restarted(self):
         if( self.process_info.Has(KratosMultiphysics.IS_RESTARTED) ):
             if( self.process_info[KratosMultiphysics.IS_RESTARTED] == False ):
@@ -279,8 +308,10 @@ class Solution(object):
 
         process_parameters = KratosMultiphysics.Parameters("{}") 
         process_parameters.AddEmptyValue("echo_level").SetInt(self.echo_level)
-        process_parameters.AddValue("constraints_process_list", self.ProjectParameters["constraints_process_list"])
-        process_parameters.AddValue("loads_process_list", self.ProjectParameters["loads_process_list"])
+        if( self.ProjectParameters.Has("constraints_process_list") ):
+            process_parameters.AddValue("constraints_process_list", self.ProjectParameters["constraints_process_list"])
+        if( self.ProjectParameters.Has("loads_process_list") ):
+            process_parameters.AddValue("loads_process_list", self.ProjectParameters["loads_process_list"])
         if( self.ProjectParameters.Has("problem_process_list") ):
             process_parameters.AddValue("problem_process_list", self.ProjectParameters["problem_process_list"])
         if( self.ProjectParameters.Has("output_process_list") ):
@@ -293,15 +324,19 @@ class Solution(object):
         
     def _get_graphical_output(self, output_model_part):
         # Output settings start
-        import gid_output_process
-        self.output_settings = self.ProjectParameters["output_configuration"]
-        problem_name = "results_output"
-        if( self.ProjectParameters["problem_data"].Has("problem_name") ):
-            problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()
+        if( self.ProjectParameters.Has("output_configuration") ):
+            import gid_output_process
+            self.output_settings = self.ProjectParameters["output_configuration"]
+            problem_name = "results_output"
+            if( self.ProjectParameters["problem_data"].Has("problem_name") ):
+                problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()
+            else:
+                print(" problem name not supplied -> generic name used : results_output ")
+            print("::[KSM Simulation]:: Output Ready [File: "+problem_name+".*.post.* ]")
+            return (gid_output_process.GiDOutputProcess(output_model_part,problem_name,self.output_settings))
         else:
-            print(" problem name not supplied -> generic name used : results_output ")
-        print("::[KSM Simulation]:: Output Ready [File: "+problem_name+".*.post.* ]")
-        return (gid_output_process.GiDOutputProcess(output_model_part,problem_name,self.output_settings))
+            print("::[KSM Simulation]:: No Output")
+            return (KratosMultiphysics.Process())
                      
     def _set_parallel_size(self, num_threads):
         parallel = KratosMultiphysics.OpenMPUtils()

@@ -174,7 +174,10 @@ class ModelManager(object):
         #print("::[Model_Manager]:: DOF's ADDED")
 
     def _set_variables(self):
-                
+
+        # Add input variables supplied
+        self._set_input_variables()
+        
         # Add displacements
         self.dof_variables = self.dof_variables + ['DISPLACEMENT']
         self.dof_reactions = self.dof_reactions + ['REACTION'] 
@@ -212,6 +215,10 @@ class ModelManager(object):
             self.dof_variables = self.dof_variables + ['LAGRANGE_MULTIPLIER_NORMAL']
             self.dof_reactions = self.dof_reactions + ['LAGRANGE_MULTIPLIER_NORMAL_REACTION']
             
+    def _set_input_variables(self):
+        variables_list = self.settings["variables"]
+        for i in range(0, variables_list.size() ):
+            self.nodal_variables.append(variables_list[i].GetString())
             
     def _check_input_dof(self, variable):
         dofs_list = self.settings["dofs"]

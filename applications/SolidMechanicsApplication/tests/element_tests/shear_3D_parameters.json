@@ -2,10 +2,7 @@
     "model_settings"           : {
         "dimension"            : 3,
         "domain_parts_list"    : ["Parts_Parts_Auto2"],
-        "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto6","DISPLACEMENT_Displacement_Auto7","DISPLACEMENT_Displacement_Auto8","SurfaceLoad3D_Load_on_surfaces_Auto2","SurfaceLoad3D_Load_on_surfaces_Auto3","SurfaceLoad3D_Load_on_surfaces_Auto4","SurfaceLoad3D_Load_on_surfaces_Auto5"],
-        "import_settings"      : {
-            "input_filename"   : "element_tests/shear3D"
-        }
+        "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto6","DISPLACEMENT_Displacement_Auto7","DISPLACEMENT_Displacement_Auto8","SurfaceLoad3D_Load_on_surfaces_Auto2","SurfaceLoad3D_Load_on_surfaces_Auto3","SurfaceLoad3D_Load_on_surfaces_Auto4","SurfaceLoad3D_Load_on_surfaces_Auto5"]
     },
     "solver_settings"          : {
         "solver_type" : "solid_mechanics_static_solver",
@@ -54,9 +51,9 @@
     }],
     "check_process_list" : [
     {
-        "python_module"   : "check_scalar_to_nodes_process",
-        "kratos_module"   : "KratosMultiphysics",
-        "process_name"    : "CheckScalarToNodesProcess",
+        "python_module"   : "check_scalar_on_nodes_process",
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "process_name"    : "CheckScalarOnNodesProcess",
         "Parameters"      : {
             "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto2",
             "variable_name"   : "DISPLACEMENT_Y",

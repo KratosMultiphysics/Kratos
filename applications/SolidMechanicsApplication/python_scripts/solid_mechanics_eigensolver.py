@@ -54,7 +54,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, custom_settings)
         
-        print("::[Eigen_Scheme]:: +self.time_integration_settings["integration_method"].GetString()+" Scheme Ready")
+        print("::[Eigen_Scheme]:: "+self.time_integration_settings["integration_method"].GetString()+" Scheme Ready")
 
     #### Private functions ####
 

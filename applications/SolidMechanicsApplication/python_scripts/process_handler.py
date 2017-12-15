@@ -41,8 +41,12 @@ class ProcessHandler(KratosMultiphysics.Process):
     def GetVariables(self):
         nodal_variables = []
         for process in self.list_of_processes:
-            nodal_variables = nodal_variables + process.GetVariables()
-
+            try:
+                nodal_variables = nodal_variables + process.GetVariables()
+            except AttributeError:
+                # the process does not have GetVariables()
+                pass
+            
         return nodal_variables
             
     #
@@ -253,6 +257,7 @@ class ProcessHandler(KratosMultiphysics.Process):
         }
         """)
 
+        
         ##overwrite the default settings with user-provided parameters
         settings = custom_settings
         settings.ValidateAndAssignDefaults(default_settings)
@@ -291,6 +296,12 @@ class ProcessHandler(KratosMultiphysics.Process):
         }
         """)
 
+        #trick to allow "value" to be a string or a double value
+        if(custom_settings.Has("modulus")):
+            if(custom_settings["modulus"].IsString()):
+                default_settings["modulus"].SetString("0.0")
+
+        
         ##overwrite the default settings with user-provided parameters
         settings = custom_settings
         settings.ValidateAndAssignDefaults(default_settings)

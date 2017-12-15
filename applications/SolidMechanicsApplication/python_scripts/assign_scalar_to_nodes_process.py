@@ -122,7 +122,10 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
         time_integration_method = KratosSolid.TimeIntegrationMethod()
         self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo)
-        
+
+        if( self.TimeIntegrationMethod == None ):
+            self.TimeIntegrationMethod = KratosSolid.TimeIntegrationMethod()
+            
         # set processes
         self.FixDofsProcesses     = []
         self.FreeDofsProcesses    = []
