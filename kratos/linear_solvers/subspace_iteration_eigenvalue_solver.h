@@ -100,8 +100,10 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         KRATOS_ERROR_IF( mParam["linear_solver_settings"]["solver_type"].GetString() == "eigen_pardiso_llt") <<
             "eigen_pardiso_llt cannot handle negative entries on the main diagonal" << std::endl;
 
-        std::cout << "\nWARNING: SubspaceIterationEigenvalueSolver showed slightly different results than e.g. Arnoldi method.\n" << std::endl;
-        std::cout << "\nWARNING: Make sure the linear solver can handle negative entries on the main diagonal!\n" << std::endl;
+        std::cout << std::endl;
+        std::cout << "WARNING: SubspaceIterationEigenvalueSolver showed slightly different results than e.g. Arnoldi method." << std::endl << std::endl;
+
+        std::cout << "WARNING: Make sure the linear solver can handle negative entries on the main diagonal!" << std::endl << std::endl;
 
     }
 
@@ -450,19 +452,19 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
 
             if (echo_level >= 1) KRATOS_WATCH(rEigenvalues);
 
-        // 1. make vectors M-normalized
+        // make vectors M-normalized
         if (mParam["mass_normalization"].GetBool())
         {
             MassNormalizeEigenVectors(rM, rEigenvectors);
         }
 
-        // 2. orient vectors
-        if (mParam["orient_eigen_vectors"]){
+        // orient vectors
+        if (mParam["orient_eigen_vectors"].GetBool()){
             OrientEigenVectors(rEigenvectors);
         }
         // TODO
-        // 3. speed up
-        // 4. sturm sequence check
+        // 1. speed up
+        // 2. sturm sequence check
         }
         else{
             KRATOS_ERROR << "Solution failed!" <<std::endl;
@@ -513,9 +515,9 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
     ///@}
     ///@name Private Operations
     ///@{
-    MassNormalizeEigenVectors(SparseMatrixType& rM, DenseMatrixType& rEigenvectors){
-        DenseVectorType tmp(rM.size1());
-        DenseVectorType vec_i(rM.size1());
+    void MassNormalizeEigenVectors(SparseMatrixType& rM, DenseMatrixType& rEigenvectors){
+        VectorType tmp(rM.size1());
+        VectorType vec_i(rM.size1());
         for (int i=0; i<rEigenvectors.size1(); ++i)
         {
             for (int j=0; j<rEigenvectors.size2(); ++j)
@@ -533,13 +535,13 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         }
     }
 
-    OrientEigenVectors(DenseMatrixType& rEigenvectors){
-        if (rEigenvalues.size2() == 0) return;
-        for (int i=0; i<rEigenvectors.size1())
+    void OrientEigenVectors(DenseMatrixType& rEigenvectors){
+        if (rEigenvectors.size2() == 0) return;
+        for (int i=0; i<rEigenvectors.size1(); ++i)
         {
-            if (rEigenvalues(i,0) > 0.0)
+            if (rEigenvectors(i,0) >= 0.0)
                 continue;
-            for (int j=0; j<rEigenvectors.size2())
+            for (int j=0; j<rEigenvectors.size2(); ++j)
             {
                 rEigenvectors(i,j) *= -1.0;
             }
