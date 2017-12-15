@@ -184,6 +184,7 @@ void  AddLinearSolversToPython()
     class_<SubspaceIterationEigenvalueSolverType, SubspaceIterationEigenvalueSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >
     ("SubspaceIterationEigenvalueSolver", init<Parameters, LinearSolverType::Pointer, LinearSolverType::Pointer>())
     .def(init<Parameters, LinearSolverType::Pointer, LinearSolverType::Pointer>())
+    .def( "GetEigenValue",&SubspaceIterationEigenvalueSolverType::GetEigenValue)
     ;
 
     typedef Reorderer<SpaceType,  LocalSpaceType > ReordererType;

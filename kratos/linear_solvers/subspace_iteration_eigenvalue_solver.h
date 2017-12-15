@@ -150,7 +150,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         double dif;
         bool eigen_solver_successful = true;
 
-        if (echo_level >= 1) std::cout << "Start solving for eigen values."  << std::endl;
+        if (echo_level >= 1) std::cout << "Start subspace iteration to solve for eigen values."  << std::endl;
 
         nn = rK.size1();
         nc = std::min(2*nroot,nroot+8);
@@ -473,6 +473,25 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         return;
     }
 
+    /**
+     * This method returns directly the first eigen value obtained
+     * @param rK: The stiffness matrix
+     * @param rM: The mass matrix
+     * @return The first eigenvalue
+     */
+    double GetEigenValue(
+        SparseMatrixType& rK,
+        SparseMatrixType& rM
+        )
+    {
+        VectorType eigen_values;
+        DenseMatrixType eigen_vectors;
+
+        Solve(rK, rM, eigen_values, eigen_vectors);
+
+        return eigen_values[0];
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -518,9 +537,9 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
     void MassNormalizeEigenVectors(SparseMatrixType& rM, DenseMatrixType& rEigenvectors){
         VectorType tmp(rM.size1());
         VectorType vec_i(rM.size1());
-        for (int i=0; i<rEigenvectors.size1(); ++i)
+        for (std::size_t i=0; i<rEigenvectors.size1(); ++i)
         {
-            for (int j=0; j<rEigenvectors.size2(); ++j)
+            for (std::size_t j=0; j<rEigenvectors.size2(); ++j)
             {
                 vec_i(j) = rEigenvectors(i,j);
             }
@@ -528,7 +547,8 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             TSparseSpaceType::Mult(rM, vec_i, tmp);
             double phi_t_M_phi = TSparseSpaceType::Dot(tmp, vec_i);
             double factor = 1.0 / sqrt(fabs(phi_t_M_phi));
-            for (int j=0; j<rEigenvectors.size2(); ++j)
+            KRATOS_WATCH(factor);
+            for (std::size_t j=0; j<rEigenvectors.size2(); ++j)
             {
                 rEigenvectors(i,j) *= factor;
             }
@@ -537,11 +557,11 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
 
     void OrientEigenVectors(DenseMatrixType& rEigenvectors){
         if (rEigenvectors.size2() == 0) return;
-        for (int i=0; i<rEigenvectors.size1(); ++i)
+        for (std::size_t i=0; i<rEigenvectors.size1(); ++i)
         {
             if (rEigenvectors(i,0) >= 0.0)
                 continue;
-            for (int j=0; j<rEigenvectors.size2(); ++j)
+            for (std::size_t j=0; j<rEigenvectors.size2(); ++j)
             {
                 rEigenvectors(i,j) *= -1.0;
             }
