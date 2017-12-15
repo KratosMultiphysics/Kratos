@@ -54,6 +54,7 @@ namespace Kratos
   //Application Constructor:
 
   KratosPfemSolidMechanicsApplication::KratosPfemSolidMechanicsApplication():
+    KratosApplication("PfemSolidMechanicsApplication"), 
     mTotalUpdatedLagrangianElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mTotalUpdatedLagrangianElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     mTotalUpdatedLagrangianElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
