@@ -4,12 +4,12 @@ The *EigenSolversApplication* is a thin wrapper for the [Eigen linear algebra li
 
 It provides the following direct sparse solvers:
 
-| solver_type         | Matrix kind | Dependencies |
-|---------------------|:-----------:|:------------:|
-| `Eigen_SparseLU`    | Square      | None         |
-| `Eigen_PardisoLLT`  | SPD         | Intel® MKL   |
-| `Eigen_PardisoLDLT` | SPD         | Intel® MKL   |
-| `Eigen_PardisoLU`   | Square      | Intel® MKL   |
+| solver_type          | Matrix kind | Dependencies |
+|----------------------|:-----------:|:------------:|
+| `eigen_sparse_lu`    | Square      | None         |
+| `eigen_pardiso_llt`  | SPD         | Intel® MKL   |
+| `eigen_pardiso_ldlt` | SPD         | Intel® MKL   |
+| `eigen_pardiso_lu`   | Square      | Intel® MKL   |
 
 SPD = symmetric positive definite
 
