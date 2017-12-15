@@ -37,40 +37,6 @@ namespace Kratos
 ///@{
 
 /// A scheme for unsteady adjoint equations using Bossak time discretization.
-/**
- * The forward Bossak equations are:
- * \f[
- * \mathbf{M}\dot{\mathbf{w}}^{n-\alpha} = \mathbf{f}(\mathbf{w}^{n};\mathbf{s})
- * \f]
- * \f[
- * \dot{\mathbf{w}}^{n-\alpha}
- * = (1 - \alpha) \dot{\mathbf{w}}^n + \alpha \dot{\mathbf{w}}^{n-1}
- * \f]
- * \f[
- * \dot{\mathbf{w}}^n
- * = \frac{\mathbf{w}^n - \mathbf{w}^{n-1}}{\gamma \Delta t}
- * + \frac{\gamma - 1}{\gamma}\dot{\mathbf{w}}^{n-1}
- * \f]
- *
- * The adjoint Bossak equations are:
- * \f[
- * \frac{1}{\gamma - 1} (\dot{\lambda}^n - \dot{\lambda}^{n+1})
- * + (\partial_{\mathbf{w}^n}\mathbf{f}^n
- * -\partial_{\mathbf{w}^n}(\mathbf{M}^n\dot{\mathbf{w}}^{n-\alpha}))^T\lambda^n
- * = -\partial_{\mathbf{w}^n}J^{nT}
- * \f]
- * \f[
- * \frac{1}{\gamma - 1} \dot{\lambda}^n
- * = \frac{1}{\gamma} \dot{\lambda}^{n+1}
- * - \frac{1 - \alpha}{\gamma \Delta t}M^{nT} \lambda^n
- * - \frac{\alpha}{\gamma \Delta t}M^{(n+1)T} \lambda^{n+1}
- * + \frac{1}{\gamma \Delta t}\partial_{\dot{\mathbf{w}}^n}J^{nT}
- * + \frac{1}{\gamma \Delta t}\partial_{\dot{\mathbf{w}}^n}J^{(n+1)T}
- * \f]
- *
- * with response function
- *\f$J^n=J(\mathbf{w}^n,\dot{\mathbf{w}}^n,\dot{\mathbf{w}}^{n-1};\mathbf{s})\f$.
- */
 template <class TSparseSpace, class TDenseSpace>
 class AdjointBossakScheme : public Scheme<TSparseSpace, TDenseSpace>
 {
@@ -334,15 +300,10 @@ public:
                 {
                     noalias(it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2)) =
                         it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2, 1);
-                    array_1d<double, 3>& r_adjoint_fluid_vector_3 =
-                        it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
-                    const array_1d<double, 3>& r_old_adjoint_fluid_vector_3 =
-                        it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3, 1);
-                    const array_1d<double, 3>& r_adjoint_aux_fluid_vector_1 =
-                        it->FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1, 1);
-                    for (unsigned int d = 0; d < domain_size; ++d)
-                        r_adjoint_fluid_vector_3[d] = (mGammaNewmark - 1.0) * mInvGamma *
-                            (r_old_adjoint_fluid_vector_3[d] + r_adjoint_aux_fluid_vector_1[d]);
+                    noalias(it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3)) =
+                        it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3, 1) +
+                        (1.0 - mGammaNewmark) * mDt *
+                            it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2, 1);
                 }
             }
         }
@@ -373,29 +334,23 @@ public:
                 OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
                 for (auto it = nodes_begin; it != nodes_end; ++it)
                 {
-                    array_1d<double, 3>& r_adjoint_fluid_vector_3 =
-                        it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
-
                     // In the end we need to assemble so we only compute this part
                     // on the process that owns the node.
                     if (it->FastGetSolutionStepValue(PARTITION_INDEX) == r_comm.MyPID())
                     {
                         noalias(it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2)) =
                             it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2, 1);
-                        const array_1d<double, 3>& r_old_adjoint_fluid_vector_3 =
-                            it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3, 1);
-                        const array_1d<double, 3>& r_adjoint_aux_fluid_vector_1 =
-                            it->FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1, 1);
-                        for (unsigned int d = 0; d < domain_size; ++d)
-                            r_adjoint_fluid_vector_3[d] = (mGammaNewmark - 1.0) * mInvGamma *
-                                (r_old_adjoint_fluid_vector_3[d] + r_adjoint_aux_fluid_vector_1[d]);
+                        noalias(it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3)) =
+                        it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3, 1) +
+                        (1.0 - mGammaNewmark) * mDt *
+                            it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2, 1);
                     }
                     else
                     {
                         noalias(it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2)) =
                             ADJOINT_FLUID_VECTOR_2.Zero();
-                        for (unsigned int d = 0; d < domain_size; ++d)
-                            r_adjoint_fluid_vector_3[d] = 0.0;
+                        noalias(it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3)) =
+                            ADJOINT_FLUID_VECTOR_3.Zero();
                     }
                 }
             }
@@ -415,23 +370,23 @@ public:
                 mpResponseFunction->CalculateGradient(
                     *it, mLeftHandSide[k], mResponseGradient[k], r_current_process_info);
 
-                // Calculate transposed gradient of element residual w.r.t. second derivatives.
+                it->CalculateFirstDerivativesLHS(mFirstDerivsLHS[k], r_current_process_info);
+                mpResponseFunction->CalculateFirstDerivativesGradient(
+                    *it, mFirstDerivsLHS[k], mFirstDerivsResponseGradient[k], r_current_process_info);
+
                 it->CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], r_current_process_info);
                 mSecondDerivsLHS[k] = (1.0 - mAlphaBossak) * mSecondDerivsLHS[k];
-
-                // Calculate transposed gradient of response function on element w.r.t. acceleration.
                 mpResponseFunction->CalculateSecondDerivativesGradient(
                     *it, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], r_current_process_info);
 
-                // Get adjoint vector.
                 it->GetValuesVector(mAdjointValuesVector[k]);
 
                 mAdjointFirstDerivsVector[k] =
                     mDt * (prod(mLeftHandSide[k], mAdjointValuesVector[k]) +
                            mResponseGradient[k]);
 
-                mAdjointSecondDerivsVector[k] = (mGammaNewmark - 1.0) * mInvGamma *
-                    (prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]) + mSecondDerivsResponseGradient[k]);
+                mAdjointSecondDerivsVector[k] = (1.0 - mGammaNewmark) * mDt *
+                    (prod(mFirstDerivsLHS[k], mAdjointValuesVector[k]) + mFirstDerivsResponseGradient[k]);
                 
                 // Assemble contributions to adjoint acceleration.
                 unsigned int local_index = 0;
@@ -459,43 +414,6 @@ public:
 //         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_FLUID_VECTOR_2);
-
-        if (r_comm.TotalProcesses() == 1)
-        {
-            #pragma omp parallel
-            {
-                ModelPart::NodeIterator nodes_begin;
-                ModelPart::NodeIterator nodes_end;
-                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
-                for (auto it = nodes_begin; it != nodes_end; ++it)
-                {
-                    noalias(it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3)) +=
-                        (mGammaNewmark - 1.0) * mInvGamma * mDt *
-                        ((0.5 - mBetaNewmark) *
-                             it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2, 1) +
-                         mBetaNewmark * it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2));
-                }
-            }
-        }
-        else
-        {
-            #pragma omp parallel
-            {
-                ModelPart::NodeIterator nodes_begin;
-                ModelPart::NodeIterator nodes_end;
-                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
-                for (auto it = nodes_begin; it != nodes_end; ++it)
-                    if (it->FastGetSolutionStepValue(PARTITION_INDEX) == r_comm.MyPID())
-                    {
-                        noalias(it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3)) +=
-                        (mGammaNewmark - 1.0) * mInvGamma * mDt *
-                        ((0.5 - mBetaNewmark) *
-                             it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2, 1) +
-                         mBetaNewmark * it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2));
-                    }
-            }
-        }
-
         rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_FLUID_VECTOR_3);
 
         mpResponseFunction->UpdateSensitivities(rModelPart);
