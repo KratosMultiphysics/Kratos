@@ -150,10 +150,10 @@ set_target_properties(Kratos PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)
     ## KratosCore and KratosTests are ok
+    cotire(KratosCore)
     if(${KRATOS_BUILD_TESTING} MATCHES ON)
         cotire(KratosTests)
     endif(${KRATOS_BUILD_TESTING} MATCHES ON)
-    cotire(KratosCore)
 
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
     SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j8")
