@@ -45,8 +45,8 @@ CMAKE_BIN=cmake
 #        C_COMPILER=gcc
 #        CXX_COMPILER=g++
 # --------------------------------------------------------------------------------------------------------------
-C_COMPILER=gcc-6
-CXX_COMPILER=g++-6
+C_COMPILER=clang
+CXX_COMPILER=clang++
 
 # Build type
 #    Indicate the build type. Possible values are "Release", "RelWithDebInfo" or "Debug"
@@ -82,8 +82,8 @@ CXX_WARN_FLAGS="-Wall"
 #        C_CUSTOM_FLAGS="-fmessage-length=20"
 #        CXX_CUSTOM_FLAGS="-fmessage-length=20"
 # --------------------------------------------------------------------------------------------------------------
-C_CUSTOM_FLAGS=""
-CXX_CUSTOM_FLAGS=""
+C_CUSTOM_FLAGS="-flto"
+CXX_CUSTOM_FLAGS="-flto"
 
 CMAKE_LIBS=(
   # Boost
