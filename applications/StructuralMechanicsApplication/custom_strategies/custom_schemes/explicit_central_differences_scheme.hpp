@@ -653,13 +653,13 @@ namespace Kratos
     rCurrentElement -> CalculateLocalSystem(DummyLHS,RHS_Contribution,rCurrentProcessInfo);
     //(rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
 
-
-    if(mRayleighDamping)
+    // TODO: add Damping ? how to handle 2d and non-rot elements?
+    /*     if(mRayleighDamping)
     {
       (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],rCurrentProcessInfo);
       AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], rCurrentProcessInfo);
 
-    }
+    } */
     //add explicit contribution of the Element Residual (RHS) to nodal Force Residual (nodal RHS)
     (rCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
     if (rCurrentElement->GetGeometry()[0].HasDofFor(ROTATION_X))
@@ -781,16 +781,12 @@ namespace Kratos
       unsigned int index = i * dimension;
       if (check_has_rot_dof) index *= 2;
 
-      rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue(MIDDLE_VELOCITY);
-
       rValues[index]     = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[0];
       rValues[index + 1] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[1];
       rValues[index + 2] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[2];
 
         if (check_has_rot_dof)
-        {
-          rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue(MIDDLE_VELOCITY);
-          
+        {          
           rValues[index+dimension]     = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[0];
           rValues[index+dimension+1] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[1];
           rValues[index+dimension+2] = rCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[2];          

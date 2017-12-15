@@ -137,7 +137,20 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         
         strategy.Check()
         strategy.Solve()
+
+    def _solve_dynamic_explicit(self,mp):
+        #define a minimal newton raphson solver
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00,0)
+
+        strategy = StructuralMechanicsApplication.ExplicitStrategy(mp,
+                                            scheme,linear_solver,0,0,1)
+        strategy.SetEchoLevel(0)
         
+        strategy.Check()
+        strategy.Solve()
+
+
     def _check_results_linear(self,mp):
         #1.) check displacement result
         displacement_nodes = [mp.Nodes[1].GetSolutionStepValue(
@@ -254,6 +267,38 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             KratosMultiphysics.DISPLACEMENT_X)  
 
         self.assertAlmostEqual(simulated_disp_temp, test_disp_temp,6)
+
+    def _check_results_dynamic_explicit_nonlinear(self,mp,time_i,time_step):
+            
+        simulated_disp_temp = mp.Nodes[2].GetSolutionStepValue(
+            KratosMultiphysics.DISPLACEMENT_Y)
+        test_disp_temp = [-0.0006800040890707892,-0.003385632648997578,-0.008739986050963466,
+        -0.016631792981290368,-0.02690027880147843,-0.039341968779078626,
+        -0.053718908449284584,-0.06976770838096333,-0.08720881433704447,
+        -0.10575545534419874,-0.12512181751008705,-0.14503011280434994,
+        -0.1652163415054807,-0.18543466928516517,-0.20546044395292135,
+        -0.2250919565657224,-0.2441511051980201,-0.26248314886662993,
+        -0.2799557478038202,-0.2964574793911626,-0.31189600163073977,
+        -0.32619601254536407,-0.3392971280195048,-0.3511517750152139,
+        -0.36172317361585915,-0.37098346099404517,-0.37891199360759126,
+        -0.3854938507191039,-0.390718552460905,-0.39457899872535096,
+        -0.3970706306798857,-0.39819081420222896,-0.39793844353790697,
+        -0.39631376356566644,-0.39331840981451216,-0.3889556664322855,
+        -0.3832309432950477,-0.37615247400146434,-0.36773223623219536,
+        -0.35798709445787164,-0.34694016180402587,-0.334622372552202,
+        -0.32107424878919866,-0.3063478336573198,-0.29050874914982955,
+        -0.2736383182717859,-0.25583566980245215,-0.2372197194867871,
+        -0.2179308955408685,-0.19813245099239318,-0.1780111836424963,
+        -0.15777737031910882,-0.13766372034484775,-0.11792316883897899,
+        -0.09882536827799343,-0.08065179988190989,-0.06368951545346745,
+        -0.04822363201887833,-0.034528828072760864,-0.02286021870413232,
+        -0.013444100824313968,-0.006469140880608323,-0.0020786090238113612,
+        -0.0003642339709067451,-0.0013621583152224977,-0.0050513214861408525,
+        -0.01135440360986412,-0.020141252326200156,-0.031234513534037837,
+        -0.044417021544550905]
+
+        self.assertAlmostEqual(simulated_disp_temp, test_disp_temp[time_step])
+
 
     def _set_and_fill_buffer(self,mp,buffer_size,delta_time):
         # Set buffer size
@@ -514,9 +559,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         time_step = 0
         self._set_and_fill_buffer(mp,2,time_delta)
 
-        x = []
-        y = []
-        y_1 = []
+
         while (time_i <= time_end):
             
             time_i += time_delta
@@ -526,6 +569,52 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._check_results_dynamic(mp,time_i)
             time_step += 1        
 
+    def test_truss3D2N_dynamic_explicit_nonlinear(self):
+        dim = 3
+        mp = KratosMultiphysics.ModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,2.0,1.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_yz = mp.CreateSubModelPart("Dirichlet_XZ")
+        bcs_yz.AddNodes([2])
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([2])
+        bcs_neumann.AddConditions([1]) 
+        #create Elements
+        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])      
+        #apply constant boundary conditions
+        Force_Y = -24000000
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_yz,'xz')
+        self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+
+        #loop over time
+        time_start = 0.00
+        time_end = 0.007
+        time_delta = 0.0001
+        time_i = time_start
+        time_step = 0
+        self._set_and_fill_buffer(mp,2,time_delta)
+
+        while (time_i <= time_end):
+            
+            time_i += time_delta
+            mp.CloneTimeStep(time_i)            
+            #solve + compare
+            self._solve_dynamic(mp)  
+            self._check_results_dynamic_explicit_nonlinear(mp,time_i,time_step)
+            time_step += 1     
         
 if __name__ == '__main__':
     KratosUnittest.main()
