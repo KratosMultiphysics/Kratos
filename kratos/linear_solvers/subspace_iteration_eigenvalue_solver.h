@@ -218,12 +218,12 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         if(int(rM.nnz()) == nn)
         {
             int j=0;
-            for (int i = 1; i<= nn ; i++)
+            for (int i = 0; i< nn ; i++)
             {
-                r(i-1,0)=rM(i-1,i-1);  // first vector is diagonal of mass matrix
-                if(rM(i-1,i-1)>0.0)
+                r(i,0)=rM(i,i);  // first vector is diagonal of mass matrix
+                if(rM(i,i)>0.0)
                     j++;
-                w(i-1) = rM(i-1,i-1)/rK(i-1,i-1);
+                w(i) = rM(i,i)/rK(i,i);
             }
             if(nc>j)
             {
@@ -232,10 +232,10 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         }
         else // case: mass matrix is not a diagonal matrix
         {
-            for (int i = 1; i<= nn ; i++)
+            for (int i = 0; i< nn ; i++)
             {
-                r(i-1,0)=rM(i-1,i-1);  // first vector is diagonal of mass matrix
-                w(i-1) = rM(i-1,i-1)/rK(i-1,i-1);
+                r(i,0)=rM(i,i);  // first vector is diagonal of mass matrix
+                w(i) = rM(i,i)/rK(i,i);
             }
         }
 
@@ -245,36 +245,36 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         int nd = nn/nc;
         int l = nn - nd;
 
-        for (int j = 2; j<= nc ; j++)
+        for (int j = 1; j< nc ; j++)
         {
             rt = 0.0;
-            for (int i = 1; i<= l ; i++)
+            for (int i = 0; i< l ; i++)
             {
-                if (w(i-1) >= rt)
+                if (w(i) >= rt)
                 {
-                    rt = w(i-1);
+                    rt = w(i);
                     ij = i;
                 }
             }
-            for (int i = l; i<= nn ; i++)
+            for (int i = l-1; i< nn ; i++)
             {
-                if (w(i-1) > rt)
+                if (w(i) > rt)
                 {
-                    rt = w(i-1);
+                    rt = w(i);
                     ij = i;
                 }
             }
-            tt(j-1) = double(ij); //gets the equation-nrs of excited DOFs
-            w(ij-1) = 0.0;
+            tt(j) = double(ij); //gets the equation-nrs of excited DOFs
+            w(ij) = 0.0;
 
             l -= nd;
 
-            r(ij-1,j-1) = 1.0;
+            r(ij,j) = 1.0;
         }
         if (echo_level > 1) {
             std::cout << "Degrees of freedom excited by unit starting iteration vectors:" << std::endl;
-            for (int j = 2; j <= nc; j++)
-                std::cout << tt(j-1) << std::endl;
+            for (int j = 1; j < nc; j++)
+                std::cout << tt(j) << std::endl;
         }
         // r has now the initial values for the eigenvectors
 
@@ -294,49 +294,49 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             if (echo_level > 1) std::cout << "Subspace Iteration Eigenvalue Solver: Iteration no. " << nite <<std::endl;
 
             // compute projection ar of matrix rK
-            for (int j = 1; j<= nc; j++)
+            for (int j = 0; j< nc; j++)
             {
-                for (int k = 1; k<= nn; k++) // tt gets an iteration eigenvector
-                    tt(k-1) = r(k-1,j-1);
+                for (int k = 0; k< nn; k++) // tt gets an iteration eigenvector
+                    tt(k) = r(k,j);
 
                 // K*temp_tt = tt
                 if (echo_level > 1) std::cout << "Backsubstitute using initialized linear solver." << std::endl;
                 mpLinearSolver->PerformSolutionStep(rK, temp_tt, tt);
-                for(int k=1; k<=nn; k++)
-                    tt(k-1) = temp_tt(k-1);
+                for(int k=0; k<nn; k++)
+                    tt(k) = temp_tt(k);
 
-                for (int i = j; i<= nc; i++) //SSP00161
+                for (int i = j; i< nc; i++) //SSP00161
                 {
                     art = 0.;
-                    for (int k = 1; k<= nn; k++)
-                        art += r(k-1,i-1)*tt(k-1);
-                    ar(j-1,i-1) = art;
-                    ar(i-1,j-1) = art;
+                    for (int k = 0; k< nn; k++)
+                        art += r(k,i)*tt(k);
+                    ar(j,i) = art;
+                    ar(i,j) = art;
                 }
-                for (int k = 1; k<= nn; k++)
-                    r(k-1,j-1) = tt(k-1);   // (r = xbar)
+                for (int k = 0; k< nn; k++)
+                    r(k,j) = tt(k);   // (r = xbar)
             }
 
             // compute projection br of matrix
-            for (int j = 1; j<= nc; j++) //SSP00170
+            for (int j = 0; j < nc; j++) //SSP00170
             {
-                for (int k = 1; k<= nn ; k++)  // temp gets an iteration eigenvector
-                    temp(k-1)=r(k-1,j-1);
+                for (int k = 0; k < nn ; k++)  // temp gets an iteration eigenvector
+                    temp(k)=r(k,j);
 
                 // tt = rM*temp
                 TSparseSpaceType::Mult(rM, temp, tt);
 
-                for (int i = j; i<= nc; i++)
+                for (int i = j; i < nc; i++)
                 {
                     brt = 0.;
-                    for (int k = 1; k<= nn; k++)
-                        brt += r(k-1,i-1)*tt(k-1);
-                    br(j-1,i-1) = brt;
-                    br(i-1,j-1) = brt;
+                    for (int k=0; k<nn; k++)
+                        brt += r(k,i)*tt(k);
+                    br(j,i) = brt;
+                    br(i,j) = brt;
                 }                         // label 180
 
-                for (int k = 1; k<= nn; k++)
-                    r(k-1,j-1)=tt(k-1);
+                for (int k=0; k<nn; k++)
+                    r(k,j)=tt(k);
 
             }                           // label 160
 
@@ -353,60 +353,60 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             do
             {
                 is = 0; // label 350
-                for (int i = 1; i<= nc1; i++)
+                for (int i = 0; i< nc1; i++)
                 {
-                    if ((eigv(i)) < (eigv(i-1)))
+                    if ((eigv(i+1)) < (eigv(i)))
                     {
                         is++;
-                        eigvt = eigv(i);
-                        eigv(i) = eigv(i-1) ;
-                        eigv(i-1) = eigvt ;
-                        for (int k = 1; k<= nc; k++)
+                        eigvt = eigv(i+1);
+                        eigv(i+1) = eigv(i) ;
+                        eigv(i) = eigvt ;
+                        for (int k = 0; k < nc; k++)
                         {
-                            rt = vec(k-1,i) ;
-                            vec(k-1,i) = vec(k-1,i-1) ;
-                            vec(k-1,i-1)   = rt ;
+                            rt = vec(k,i+1) ;
+                            vec(k,i+1) = vec(k,i) ;
+                            vec(k,i)   = rt ;
                         }
                     }
                 }                         // label 360
             } while (is != 0);
 
             // compute eigenvectors
-            for (int i = 1; i<= nn; i++)  // label 375
+            for (int i = 0; i< nn; i++)  // label 375
             {
-                for (int j = 1; j<= nc; j++)
-                    tt(j-1) = r(i-1,j-1);
-                for (int k = 1; k<= nc; k++)
+                for (int j = 0; j< nc; j++)
+                    tt(j) = r(i,j);
+                for (int k = 0; k< nc; k++)
                 {
                     rt = 0.0;
-                    for (int j = 1; j<= nc; j++)
-                        rt += tt(j-1)*vec(j-1,k-1) ;
-                    r(i-1,k-1) = rt ;
+                    for (int j = 0; j< nc; j++)
+                        rt += tt(j)*vec(j,k) ;
+                    r(i,k) = rt ;
                 }
             }                           // label 420   (r = z)
 
             // convergency check alternative A: change in eigenvalues
-            for (int i = 1; i<= nc; i++)
+            for (int i = 0; i< nc; i++)
             {
-                dif = (eigv(i-1) - prev_eigv(i-1));
-                rtolv(i-1) = std::fabs(dif / eigv(i-1));
+                dif = (eigv(i) - prev_eigv(i));
+                rtolv(i) = std::fabs(dif / eigv(i));
             }
 
             // convergency check alternative B: according to BATHE (more restrictive)
-            // for (int i = 1; i<=nc; i++)
+            // for (int i = 0; i<nc; i++)
             // {
             //     double vdot = 0.0;
-            //     for (int j=1; j<=nc; j++)
-            //         vdot += vec(j-1,i-1);
-            //     double eigv2 = eigv(i-1) * eigv(i-1);
+            //     for (int j=0; j<nc; j++)
+            //         vdot += vec(j,i);
+            //     double eigv2 = eigv(i) * eigv(i);
             //     dif = vdot-eigv2;
-            //     rtolv(i-1) = sqrt(std::max(dif, 1e-24*eigv2)/vdot);
+            //     rtolv(i) = sqrt(std::max(dif, 1e-24*eigv2)/vdot);
             // }
 
             bool converged = true;
-            for (int i = 1; i<= nroot; i++)
+            for (int i = 0; i< nroot; i++)
             {
-                if (rtolv(i-1) > rtol) converged = false;
+                if (rtolv(i) > rtol) converged = false;
             }
             if (converged)
             {
@@ -421,11 +421,10 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
                 }
             }
 
-            for (int i = 1; i<= nc ; i++)
-                prev_eigv(i-1) = eigv(i-1); // label 410 and 440
+            for (int i = 0; i< nc ; i++)
+                prev_eigv(i) = eigv(i); // label 410 and 440
 
-            //GramSchmidt Orthogonalization
-            // GramSchmidt(r);
+            //TODO evaluate if necessary: GramSchmidt Orthogonalization
         } while (true);
 
         mpLinearSolver->FinalizeSolutionStep(rK, temp_tt, tt);
@@ -433,16 +432,16 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         if(eigen_solver_successful)
         {
             // compute eigenvectors
-            for (int j = 1; j<= nc; j++)
+            for (int j = 0; j< nc; j++)
             {
-                for (int k = 1; k<= nn; k++)
-                    tt(k) = r(k-1,j-1);
+                for (int k = 0; k< nn; k++)
+                    tt(k) = r(k,j);
 
                 // K*temp_tt = tt
                 mpLinearSolver->PerformSolutionStep(rK, temp_tt, tt);
 
-                for (int k = 1; k<= nn; k++)
-                    r(k-1,j-1) = temp_tt(k-1);
+                for (int k = 0; k< nn; k++)
+                    r(k,j) = temp_tt(k);
             }
 
             // copy results to function parameters
@@ -548,8 +547,9 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
     void MassNormalizeEigenVectors(SparseMatrixType& rM, DenseMatrixType& rEigenvectors){
         VectorType tmp(rM.size1());
         VectorType vec_i(rM.size1());
+        int size1 = int(rEigenvectors.size1());
         int size2 = int(rEigenvectors.size2());
-        for (std::size_t i=0; i<rEigenvectors.size1(); ++i)
+        for (int i=0; i<size1; ++i)
         {
             for (int j=0; j<size2; ++j)
             {
