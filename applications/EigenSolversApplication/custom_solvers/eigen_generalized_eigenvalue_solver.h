@@ -13,7 +13,6 @@
 #define EIGEN_GENERALIZED_EIGEN_SOLVER_H_INCLUDED
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
@@ -47,13 +46,15 @@ class EigenGeneralizedEigenvalueSolver: public LinearSolver<TSparseSpaceType, TD
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
+    typedef std::size_t SizeType;
+
     EigenGeneralizedEigenvalueSolver(Parameters param) : mParam(param)
     {
 
         Parameters default_params(R"(
         {
-            "solver_type": "GeneralizedEigenSolver",
-            "verbosity": 1
+            "solver_type": "generalized_eigenvalue_solver",
+            "echo_level": 1
         })");
 
         // don't validate linear_solver_settings here
@@ -74,7 +75,7 @@ class EigenGeneralizedEigenvalueSolver: public LinearSolver<TSparseSpaceType, TD
             DenseVectorType& rEigenvalues,
             DenseMatrixType& rEigenvectors) override
     {
-        const int verbosity = mParam["verbosity"].GetInt();
+        const int echo_level = mParam["echo_level"].GetInt();
 
         if (rA.size1() > 100)
         {
@@ -83,15 +84,16 @@ class EigenGeneralizedEigenvalueSolver: public LinearSolver<TSparseSpaceType, TD
                         "This might take long for large matrices!" << std::endl;
         }
 
-        if (verbosity>1) std::cout << "Start solving for eigenvalues" << std::endl;
+        if (echo_level>1) std::cout << "Start solving for eigenvalues" << std::endl;
 
-        // create Eigen matrix A
+        // create and fill Eigen matrix A
         Eigen::MatrixXd A(rA.size1(),rA.size2());
         Eigen::MatrixXd B(rA.size1(),rA.size2());
 
-        for (size_t i=0; i<rA.size1(); i++)
+        // TODO OpenMP
+        for (SizeType i=0; i<rA.size1(); ++i)
         {
-            for (size_t j=0; j<rA.size2(); j++)
+            for (SizeType j=0; j<rA.size2(); ++j)
             {
                 A(i,j) = rA(i,j);
                 B(i,j) = rB(i,j);
@@ -103,19 +105,20 @@ class EigenGeneralizedEigenvalueSolver: public LinearSolver<TSparseSpaceType, TD
         Eigen::VectorXd evalues = ges.eigenvalues();
         Eigen::MatrixXd evecs = ges.eigenvectors();
 
-        if(ges.info() != Eigen::Success)
-        {
-            KRATOS_ERROR << "Eigen solution was not successful!" << std::endl;
-        }
+        KRATOS_ERROR_IF_NOT(ges.info() == Eigen::Success) << "Eigen solution was not successful!" << std::endl;
 
-        if (verbosity>1) std::cout << "Generalized eigenvalues found:\n" << evalues << std::endl;
+        if (echo_level>1) std::cout << "Generalized eigenvalues found:\n" << evalues << std::endl;
 
-        rEigenvalues.resize(evalues.rows());
-        rEigenvectors.resize(evecs.rows(), evecs.cols());
+        if (static_cast<int>(rEigenvalues.size()) != evalues.rows()) 
+            rEigenvalues.resize(evalues.rows());
+        if (static_cast<int>(rEigenvectors.size1()) != evecs.rows() || static_cast<int>(rEigenvectors.size2()) != evecs.cols())
+            rEigenvectors.resize(evecs.rows(), evecs.cols());
 
-        for (int i=0; i<evalues.rows(); i++){
+        // copy the Eigen results back to the Kratos Dataformat 
+        // TODO OpenMP
+        for (int i=0; i<evalues.rows(); ++i){
             rEigenvalues(i) = evalues(i);
-            for (int j=0; j<evecs.cols(); j++){
+            for (int j=0; j<evecs.cols(); ++j){
                 rEigenvectors(i,j) = evecs(i,j);
             }
         }

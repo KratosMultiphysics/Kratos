@@ -24,8 +24,11 @@ def ConstructSolver(settings):
         eigen_sub_solver_settings = settings["eigen_sub_solver_settings"]
         eigen_sub_solver_type = eigen_sub_solver_settings["solver_type"].GetString()
         if eigen_sub_solver_type == "generalized_self_adjoint_eigenvalue_solver": # needs Eigen at the moment
-            import KratosMultiphysics.EigenSolversApplication
-            eigen_sub_solver = KratosMultiphysics.EigenSolversApplication.GeneralizedSelfAdjointEigenSolver(eigen_sub_solver_settings)
+            try:
+                import KratosMultiphysics.EigenSolversApplication
+                eigen_sub_solver = KratosMultiphysics.EigenSolversApplication.GeneralizedSelfAdjointEigenSolver(eigen_sub_solver_settings)
+            except:
+                raise Exception("EigenSolversApplication is not available!")
         else:
             raise Exception("Eigen Sub Solver type not found. Asking for :" + eigen_sub_solver_type)
         eigen_solver = KratosMultiphysics.SubspaceIterationEigenvalueSolver(settings, linear_solver, eigen_sub_solver)
