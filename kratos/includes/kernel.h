@@ -2,17 +2,17 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
-#if !defined(KRATOS_KERNEL_H_INCLUDED )
-#define  KRATOS_KERNEL_H_INCLUDED
+#if !defined(KRATOS_KERNEL_H_INCLUDED)
+#define KRATOS_KERNEL_H_INCLUDED
 
 // System includes
 #include <string>
@@ -26,9 +26,7 @@
 #include "includes/variables.h"
 #include "includes/kratos_application.h"
 
-
-namespace Kratos
-{
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
@@ -53,9 +51,8 @@ namespace Kratos
     @see InitializeApplication
     @see KratosApplication
 */
-class KRATOS_API(KRATOS_CORE) Kernel
-{
-public:
+class KRATOS_API(KRATOS_CORE) Kernel {
+   public:
     ///@name Type Definitions
     ///@{
 
@@ -80,10 +77,8 @@ public:
     */
     Kernel(Kernel const& rOther) {}
 
-
     /// Destructor.
     virtual ~Kernel() {}
-
 
     ///@}
     ///@name Operations
@@ -100,7 +95,7 @@ public:
     @param NewApplication The application to be added and synchronized
     */
     void ImportApplication(KratosApplication::Pointer pNewApplication);
-    
+
     /// Assign sequential key to the registered variables.
     /** This method assigns a sequential key to all registerd variables in kratos and all added applications.
         It is very important to call this function after adding ALL necessary applications using ImportApplication
@@ -108,11 +103,11 @@ public:
         @see ImportApplication
         @see InitializeApplication
     */
-    void Initialize()
-    {
+    void Initialize() {
         unsigned int j = 0;
-        for(KratosComponents<VariableData>::ComponentsContainerType::iterator i = KratosComponents<VariableData>::GetComponents().begin() ;
-                i != KratosComponents<VariableData>::GetComponents().end() ; i++)
+        for (KratosComponents<VariableData>::ComponentsContainerType::iterator
+                 i = KratosComponents<VariableData>::GetComponents().begin();
+             i != KratosComponents<VariableData>::GetComponents().end(); i++)
             i->second->SetKey(++j);
     }
 
@@ -122,12 +117,10 @@ public:
         @see ImportApplication
         @see Initialize
     */
-    void InitializeApplication(KratosApplication& NewApplication)
-    {
-    }
+    void InitializeApplication(KratosApplication& NewApplication) {}
 
     bool IsImported(std::string ApplicationName) const;
-    
+
     ///@}
     ///@name Input and output
     ///@{
@@ -141,20 +134,18 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const;
 
-    static std::unordered_map< std::string, KratosApplication::Pointer >& GetApplicationsList();
+    static std::unordered_map<std::string, KratosApplication::Pointer>&
+    GetApplicationsList();
 
     ///@}
-protected:
-    
-private:
+   protected:
+   private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
     ///@{
-    
 
     ///@}
     ///@name Private Operations
@@ -169,24 +160,19 @@ private:
     /// Assignment operator.
     Kernel& operator=(Kernel const& rOther);
 
-
     ///@}
 
-}; // Class Kernel
+};  // Class Kernel
 
 ///@}
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  Kernel& rThis);
+inline std::istream& operator>>(std::istream& rIStream, Kernel& rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const Kernel& rThis)
-{
+inline std::ostream& operator<<(std::ostream& rOStream, const Kernel& rThis) {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);
@@ -195,9 +181,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
 
-#endif // KRATOS_KERNEL_H_INCLUDED  defined 
-
-
+#endif  // KRATOS_KERNEL_H_INCLUDED  defined
