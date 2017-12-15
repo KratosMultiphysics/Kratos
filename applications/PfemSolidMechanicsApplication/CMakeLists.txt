@@ -71,13 +71,6 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_P_wP_element.cpp
 
 
-	##conditions
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_penalty_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_LM_3D_condition.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_pressure_condition.cpp
-
-
 	##constitutive laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_plane_strain_2D_law.cpp

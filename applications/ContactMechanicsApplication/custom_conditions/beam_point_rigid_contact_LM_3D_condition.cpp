@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Created by:          $Author:                JMCarbonell $
-//   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                    July 2013 $
-//   Revision:            $Revision:                      0.0 $
+//   Project Name:        KratosContactMechanicsApplication $
+//   Created by:          $Author:              JMCarbonell $
+//   Last modified by:    $Co-Author:                       $
+//   Date:                $Date:                  July 2013 $
+//   Revision:            $Revision:                    0.0 $
 //
 //
 
@@ -15,7 +15,7 @@
 // Project includes
 #include "custom_conditions/beam_point_rigid_contact_LM_3D_condition.hpp"
 
-#include "pfem_solid_mechanics_application_variables.h"
+#include "conatct_mechanics_application_variables.h"
 
 namespace Kratos
 {

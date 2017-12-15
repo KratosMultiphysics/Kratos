@@ -214,6 +214,22 @@ class ModelManager(object):
             # Add specific variables for the problem (contact dofs)
             self.dof_variables = self.dof_variables + ['LAGRANGE_MULTIPLIER_NORMAL']
             self.dof_reactions = self.dof_reactions + ['LAGRANGE_MULTIPLIER_NORMAL_REACTION']
+
+        # Add water displacement variables
+        if self._check_input_dof("WATER_DISPLACEMENT"):
+            self.dof_variables = self.dof_variables + ['WATER_DISPLACEMENT','WATER_VELOCITY','WATER_ACCELERATION']
+            self.dof_reactions = self.dof_reactions + ['WATER_DISPLACEMENT_REACTION','WATER_VELOCITY_REACTION','WATER_ACCELERATION_REACTION']
+
+        # Add water pressure variables
+        if self._check_input_dof("WATER_PRESSURE"):
+            self.dof_variables = self.dof_variables + ['WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATIONN']
+            self.dof_reactions = self.dof_reactions + ['REACTION_WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY_REACTION', 'WATER_PRESSURE_ACCELERATION_REACTION']
+
+        # Add jacobian variables
+        if self._check_input_dof("JACOBIAN"):
+            self.dof_variables = self.dof_variables + ['JACOBIAN']
+            self.dof_reactions = self.dof_reactions + ['REACTION_JACOBIAN']
+
             
     def _set_input_variables(self):
         variables_list = self.settings["variables"]
