@@ -312,7 +312,6 @@ class ProcessHandler(KratosMultiphysics.Process):
         {
            "python_module" : "assign_modulus_and_direction_to_conditions_process",
            "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
-           "check"         : "DirectorVectorNonZero direction",
            "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
            "Parameters"    : {
            }
