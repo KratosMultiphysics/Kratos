@@ -207,6 +207,23 @@ namespace Kratos
       KRATOS_CATCH( "" )
 
    }
+
+   //*************************************************************************
+   //*************************************************************************
+
+   void UpdatedLagrangianUPressureElement::GetValueOnIntegrationPoints( const Variable<double> & rVariable,
+         std::vector<double>& rValues,
+         const ProcessInfo& rCurrentProcessInfo)
+   {
+      KRATOS_TRY
+
+      //Element* pBasePointer = this;
+      //pBasePointer->GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
+      SolidElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
+
+      KRATOS_CATCH("")
+   }
+
    //*************************************************************************
    //*************************************************************************
 

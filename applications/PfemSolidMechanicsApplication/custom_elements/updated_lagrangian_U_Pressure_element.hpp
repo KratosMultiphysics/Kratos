@@ -148,10 +148,7 @@ namespace Kratos
          
          
          // Get Values defined in order to avoid a clang warning (?)
-         /*void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override
-         {
-            UpdatedLagrangianUPElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
-         };*/
+         void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Calculate a Matrix Variable on the Element Constitutive Law
