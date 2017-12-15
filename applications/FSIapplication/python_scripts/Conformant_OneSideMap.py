@@ -1,9 +1,12 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+
 from KratosMultiphysics import *
-from KratosMultiphysics.FSIApplication import *
-# Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
+
+if (Kernel().IsImported("FSIApplication")):
+    from KratosMultiphysics.FSIApplication import *
+else:
+    raise Exception("FSIApplication could not be found.")
 
 
 def AddVariables(fluid_model_part, structure_model_part):

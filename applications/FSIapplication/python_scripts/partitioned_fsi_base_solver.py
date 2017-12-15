@@ -4,16 +4,35 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import NonConformant_OneSideMap                # Import non-conformant mapper
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
 import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
+import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
 
-# Import kratos core and applications
+# Import Kratos core
 import KratosMultiphysics
-import KratosMultiphysics.ALEApplication as KratosALE
-import KratosMultiphysics.FSIApplication as KratosFSI
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
-
-# Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
+
+# Import FSI application
+if (KratosMultiphysics.Kernel().IsImported("FSIApplication")):
+    import KratosMultiphysics.FSIApplication as KratosFSI
+else:
+    raise Exception("FSIApplication could not be found.")
+
+# Import ALE application
+if (KratosMultiphysics.Kernel().IsImported("ALEApplication")):
+    import KratosMultiphysics.ALEApplication as KratosALE
+else:
+    raise Exception("ALEApplication could not be found.")
+
+# Import FluidDynamicsApplication
+if (KratosMultiphysics.Kernel().IsImported("FluidDynamicsApplication")):
+    import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+else:
+    raise Exception("FluidDynamicsApplication could not be found.")
+
+# Import StructuralMechanicsApplication
+if (KratosMultiphysics.Kernel().IsImported("StructuralMechanicsApplication")):
+    import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
+else:
+    raise Exception("StructuralMechanicsApplication could not be found.")
 
 
 def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
@@ -81,7 +100,6 @@ class PartitionedFSIBaseSolver:
         print("* Fluid solver constructed.")
 
         # Construct the coupling partitioned strategy
-        import convergence_accelerator_factory
         self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(coupling_utility_parameters)
         print("* Coupling strategy constructed.")
 

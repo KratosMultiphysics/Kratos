@@ -1,22 +1,42 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import math
+from math import sqrt   # Import the square root from python library
 
 # Import utilities
 import NonConformant_OneSideMap                # Import non-conformant mapper
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
+import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
+import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
 
-# Import kratos core and applications
+# Import base class file
+import partitioned_fsi_base_solver
+
+# Import Kratos core
 import KratosMultiphysics
-import KratosMultiphysics.ALEApplication as KratosALE
-import KratosMultiphysics.FSIApplication as KratosFSI
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
-
-# Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-## Import base class file
-import partitioned_fsi_base_solver
+# Import FSI application
+if (KratosMultiphysics.Kernel().IsImported("FSIApplication")):
+    import KratosMultiphysics.FSIApplication as KratosFSI
+else:
+    raise Exception("FSIApplication could not be found.")
+
+# Import ALE application
+if (KratosMultiphysics.Kernel().IsImported("ALEApplication")):
+    import KratosMultiphysics.ALEApplication as KratosALE
+else:
+    raise Exception("ALEApplication could not be found.")
+
+# Import FluidDynamicsApplication
+if (KratosMultiphysics.Kernel().IsImported("FluidDynamicsApplication")):
+    import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+else:
+    raise Exception("FluidDynamicsApplication could not be found.")
+
+# Import StructuralMechanicsApplication
+if (KratosMultiphysics.Kernel().IsImported("StructuralMechanicsApplication")):
+    import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
+else:
+    raise Exception("StructuralMechanicsApplication could not be found.")
 
 
 def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
@@ -116,15 +136,15 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
             interface_dofs = self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart())
 
             # Check convergence
-            if nl_res_norm/math.sqrt(interface_dofs) < self.nl_tol:
+            if nl_res_norm/sqrt(interface_dofs) < self.nl_tol:
                 self.coupling_utility.FinalizeNonLinearIteration()
                 print("     NON-LINEAR ITERATION CONVERGENCE ACHIEVED")
-                print("     Total non-linear iterations: ",nl_it," |res|/sqrt(Ndofs) = ",nl_res_norm/math.sqrt(interface_dofs))
+                print("     Total non-linear iterations: ",nl_it," |res|/sqrt(Ndofs) = ",nl_res_norm/sqrt(interface_dofs))
 
                 break
             else:
                 # If convergence is not achieved, perform the correction of the prediction
-                print("     Residual computation finished. |res|/sqrt(Ndofs) =", nl_res_norm/math.sqrt(interface_dofs))
+                print("     Residual computation finished. |res|/sqrt(Ndofs) =", nl_res_norm/sqrt(interface_dofs))
                 print("     Performing non-linear iteration ",nl_it," correction.")
                 self.coupling_utility.UpdateSolution(dis_residual, self.iteration_value)
                 self.coupling_utility.FinalizeNonLinearIteration()
