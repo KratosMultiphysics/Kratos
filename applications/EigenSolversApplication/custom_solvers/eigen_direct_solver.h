@@ -13,7 +13,6 @@
 #define KRATOS_EIGEN_SOLVER_H_INCLUDED
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 #include <Eigen/Core>
 #include <Eigen/Sparse>
@@ -25,9 +24,6 @@
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "linear_solvers/direct_solver.h"
-
-#include <chrono>
-using namespace std::chrono;
 
 namespace Kratos
 {
@@ -109,11 +105,13 @@ class EigenDirectSolver
         std::vector<int> index1_vector(rA.index1_data().size());
         std::vector<int> index2_vector(rA.index2_data().size());
 
-        for (size_t i = 0; i < rA.index1_data().size(); i++) {
+        // TODO OpenMP
+        for (std::size_t i = 0; i < rA.index1_data().size(); i++) {
             index1_vector[i] = (int)rA.index1_data()[i];
         }
 
-        for (size_t i = 0; i < rA.index2_data().size(); i++) {
+        // TODO OpenMP
+        for (std::size_t i = 0; i < rA.index2_data().size(); i++) {
             index2_vector[i] = (int)rA.index2_data()[i];
         }
 
@@ -135,7 +133,7 @@ class EigenDirectSolver
 
         x = solver.solve(b);
 
-        KRATOS_ERROR_IF(solver.info() != Eigen::Success) << "Solution failed!" << std::endl;
+        KRATOS_ERROR_IF_NOT(solver.info() == Eigen::Success) << "Solution failed!" << std::endl;
     }
 
     /** This function is designed to be called at the end of the solve step.

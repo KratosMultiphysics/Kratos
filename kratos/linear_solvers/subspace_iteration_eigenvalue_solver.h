@@ -86,7 +86,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             "tolerance": 1e-6,
             "mass_normalization": true,
             "orient_eigen_vectors": true,
-            "verbosity": 1,
+            "echo_level": 1,
             "linear_solver_settings": {},
             "eigen_sub_solver_settings" :{}
         })");
@@ -129,11 +129,9 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             VectorType& rEigenvalues,
             DenseMatrixType& rEigenvectors) override
     {
-        std::cout << "Start solving for eigen values."  << std::endl;
-
-        const int verbosity = mParam["verbosity"].GetInt();
-        int nroot = mParam["number_of_eigenvalues"].GetInt(); // number of eigenvalues requested
-        int nitem = BaseType::GetMaxIterationsNumber();
+        const int echo_level = mParam["echo_level"].GetInt();
+        const int nroot = mParam["number_of_eigenvalues"].GetInt(); // number of eigenvalues requested
+        const int nitem = BaseType::GetMaxIterationsNumber();
         const double rtol = BaseType::GetTolerance();
 
         int nn;  // size of problem (order of stiffness and mass matrix)
@@ -148,6 +146,8 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         double eigvt;
         double dif;
         bool eigen_solver_successful = true;
+
+        if (echo_level >= 1) std::cout << "Start solving for eigen values."  << std::endl;
 
         nn = rK.size1();
         nc = std::min(2*nroot,nroot+8);
@@ -263,7 +263,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
 
             r(ij-1,j-1) = 1.0;
         }
-        if (verbosity>1) {
+        if (echo_level>1) {
             std::cout << "Degrees of freedom excited by unit starting iteration vectors:" << std::endl;
             for (int j = 2; j <= nc; j++)
                 std::cout << tt(j-1) << std::endl;
@@ -272,7 +272,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
 
         // TODO add random numbers to last column of r(:,nc) -> Bathe SSP00131
 
-        if (verbosity>1) std::cout << "Initialize linear solver." << std::endl;
+        if (echo_level>1) std::cout << "Initialize linear solver." << std::endl;
         mpLinearSolver->InitializeSolutionStep(rK, temp_tt, tt);
 
         //------------------------------------------------------------------------------------
@@ -283,7 +283,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         {
             nite ++;
 
-            if (verbosity>1) std::cout << "Subspace Iteration Eigenvalue Solver: Iteration no. " << nite <<std::endl;
+            if (echo_level>1) std::cout << "Subspace Iteration Eigenvalue Solver: Iteration no. " << nite <<std::endl;
 
             // compute projection ar of matrix casted_A
             for (int j = 1; j<= nc; j++)
@@ -292,7 +292,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
                     tt(k-1) = r(k-1,j-1);
 
                 // K*temp_tt = tt
-                if (verbosity>1) std::cout << "Backsubstitute using initialized linear solver." << std::endl;
+                if (echo_level>1) std::cout << "Backsubstitute using initialized linear solver." << std::endl;
                 mpLinearSolver->PerformSolutionStep(rK, temp_tt, tt);
                 for(int k=1; k<=nn; k++) tt(k-1) = temp_tt(k-1);
 
@@ -380,7 +380,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             for (int i = 1; i<= nc; i++)
             {
                 dif = (eigv(i-1) - prev_eigv(i-1));
-                rtolv(i-1) = fabs(dif / eigv(i-1));
+                rtolv(i-1) = std::fabs(dif / eigv(i-1));
             }
 
             // convergency check alternative B: according to BATHE (more restrictive)
@@ -437,6 +437,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             }
 
             // copy results to function parameters
+            // TODO conditional resize
             rEigenvalues.resize(nroot);
             rEigenvectors.resize(nroot, nn);
             for (int i = 0; i< nroot; i++)
@@ -446,7 +447,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
                     rEigenvectors(i,j) = r(j,i);
             }
 
-            KRATOS_WATCH(rEigenvalues);
+            if (echo_level >= 1) KRATOS_WATCH(rEigenvalues);
 
         // 1. make vectors M-normalized
         if (mParam["mass_normalization"].GetBool())
