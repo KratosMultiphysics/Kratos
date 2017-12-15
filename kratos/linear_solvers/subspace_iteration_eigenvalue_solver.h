@@ -20,6 +20,7 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
+#include "utilities/openmp_utils.h" // for timer
 
 namespace Kratos
 {
@@ -124,6 +125,8 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
      * The implementation follows the code from
      * K. J. Bathe, Finite Element Procedures second Edition, ISBN-13: 978-0979004957
      * page 954 and following
+     * The naming of the variables is chose according to the reference.
+     *
      * K is a symmetric matrix. M is a symmetric positive-definite matrix.
      */
     void Solve(
@@ -132,6 +135,8 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             VectorType& rEigenvalues,
             DenseMatrixType& rEigenvectors) override
     {
+        double start_time = OpenMPUtils::GetCurrentTime();
+
         const int echo_level = mParam["echo_level"].GetInt();
         const int nroot = mParam["number_of_eigenvalues"].GetInt(); // number of eigenvalues requested
         const int nitem = BaseType::GetMaxIterationsNumber();
@@ -150,7 +155,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         double dif;
         bool eigen_solver_successful = true;
 
-        if (echo_level >= 1) std::cout << "Start subspace iteration to solve for eigen values."  << std::endl;
+        if (echo_level > 0) std::cout << "Start subspace iteration to solve for eigen values."  << std::endl;
 
         nn = rK.size1();
         nc = std::min(2*nroot,nroot+8);
@@ -266,7 +271,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
 
             r(ij-1,j-1) = 1.0;
         }
-        if (echo_level>1) {
+        if (echo_level > 1) {
             std::cout << "Degrees of freedom excited by unit starting iteration vectors:" << std::endl;
             for (int j = 2; j <= nc; j++)
                 std::cout << tt(j-1) << std::endl;
@@ -286,18 +291,19 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
         {
             nite ++;
 
-            if (echo_level>1) std::cout << "Subspace Iteration Eigenvalue Solver: Iteration no. " << nite <<std::endl;
+            if (echo_level > 1) std::cout << "Subspace Iteration Eigenvalue Solver: Iteration no. " << nite <<std::endl;
 
-            // compute projection ar of matrix casted_A
+            // compute projection ar of matrix rK
             for (int j = 1; j<= nc; j++)
             {
                 for (int k = 1; k<= nn; k++) // tt gets an iteration eigenvector
                     tt(k-1) = r(k-1,j-1);
 
                 // K*temp_tt = tt
-                if (echo_level>1) std::cout << "Backsubstitute using initialized linear solver." << std::endl;
+                if (echo_level > 1) std::cout << "Backsubstitute using initialized linear solver." << std::endl;
                 mpLinearSolver->PerformSolutionStep(rK, temp_tt, tt);
-                for(int k=1; k<=nn; k++) tt(k-1) = temp_tt(k-1);
+                for(int k=1; k<=nn; k++)
+                    tt(k-1) = temp_tt(k-1);
 
                 for (int i = j; i<= nc; i++) //SSP00161
                 {
@@ -311,7 +317,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
                     r(k-1,j-1) = tt(k-1);   // (r = xbar)
             }
 
-            // compute projection br of matrix casted_B
+            // compute projection br of matrix
             for (int j = 1; j<= nc; j++) //SSP00170
             {
                 for (int k = 1; k<= nn ; k++)  // temp gets an iteration eigenvector
@@ -397,20 +403,22 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             //     rtolv(i-1) = sqrt(std::max(dif, 1e-24*eigv2)/vdot);
             // }
 
+            bool converged = true;
             for (int i = 1; i<= nroot; i++)
             {
-                if (rtolv(i-1) > rtol) goto label400 ;
+                if (rtolv(i-1) > rtol) converged = false;
             }
-
-            std::cout << "Convergence reached after " << nite << " iterations within a relative tolerance: " << rtol << std::endl;
-
-            break;
-
-            label400:      // "not converged so far"
-            if (nite >= nitem)
+            if (converged)
             {
-                std::cout << "Convergence not reached in " << nitem << " iterations." << std::endl;
+                if (echo_level > 0) std::cout << "Convergence reached after " << nite << " iterations within a relative tolerance: " << rtol << std::endl;
                 break;
+            }
+            else{
+                if (nite >= nitem)
+                {
+                    if (echo_level > 0) std::cout << "Convergence not reached in " << nitem << " iterations." << std::endl;
+                    break;
+                }
             }
 
             for (int i = 1; i<= nc ; i++)
@@ -418,7 +426,7 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
 
             //GramSchmidt Orthogonalization
             // GramSchmidt(r);
-        } while (1);
+        } while (true);
 
         mpLinearSolver->FinalizeSolutionStep(rK, temp_tt, tt);
 
@@ -432,11 +440,9 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
 
                 // K*temp_tt = tt
                 mpLinearSolver->PerformSolutionStep(rK, temp_tt, tt);
-                for(int k=1; k<=nn; k++)
-                    tt(k-1) = temp_tt(k-1);
 
                 for (int k = 1; k<= nn; k++)
-                    r(k-1,j-1) = tt(k-1);   // (r = xbar)
+                    r(k-1,j-1) = temp_tt(k-1);
             }
 
             // copy results to function parameters
@@ -450,24 +456,29 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
                     rEigenvectors(i,j) = r(j,i);
             }
 
-            if (echo_level >= 1) KRATOS_WATCH(rEigenvalues);
+            if (echo_level > 0) KRATOS_WATCH(rEigenvalues);
 
-        // make vectors M-normalized
-        if (mParam["mass_normalization"].GetBool())
-        {
-            MassNormalizeEigenVectors(rM, rEigenvectors);
-        }
+            // make vectors M-normalized
+            if (mParam["mass_normalization"].GetBool())
+            {
+                MassNormalizeEigenVectors(rM, rEigenvectors);
+            }
 
-        // orient vectors
-        if (mParam["orient_eigen_vectors"].GetBool()){
-            OrientEigenVectors(rEigenvectors);
-        }
-        // TODO
-        // 1. speed up
-        // 2. sturm sequence check
+            // orient vectors
+            if (mParam["orient_eigen_vectors"].GetBool()){
+                OrientEigenVectors(rEigenvectors);
+            }
+            // TODO
+            // 1. speed up
+            // 2. sturm sequence check
         }
         else{
             KRATOS_ERROR << "Solution failed!" <<std::endl;
+        }
+
+        if (echo_level > 0) {
+            std::cout  << "SubspaceIterationEigenvalueSolver completed in " <<
+            OpenMPUtils::GetCurrentTime() - start_time << " seconds" << std::endl;
         }
 
         return;
@@ -537,9 +548,10 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
     void MassNormalizeEigenVectors(SparseMatrixType& rM, DenseMatrixType& rEigenvectors){
         VectorType tmp(rM.size1());
         VectorType vec_i(rM.size1());
+        int size2 = int(rEigenvectors.size2());
         for (std::size_t i=0; i<rEigenvectors.size1(); ++i)
         {
-            for (std::size_t j=0; j<rEigenvectors.size2(); ++j)
+            for (int j=0; j<size2; ++j)
             {
                 vec_i(j) = rEigenvectors(i,j);
             }
@@ -547,8 +559,8 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
             TSparseSpaceType::Mult(rM, vec_i, tmp);
             double phi_t_M_phi = TSparseSpaceType::Dot(tmp, vec_i);
             double factor = 1.0 / sqrt(fabs(phi_t_M_phi));
-            KRATOS_WATCH(factor);
-            for (std::size_t j=0; j<rEigenvectors.size2(); ++j)
+
+            for (int j=0; j<size2; ++j)
             {
                 rEigenvectors(i,j) *= factor;
             }
@@ -556,12 +568,14 @@ class SubspaceIterationEigenvalueSolver: public IterativeSolver<TSparseSpaceType
     }
 
     void OrientEigenVectors(DenseMatrixType& rEigenvectors){
-        if (rEigenvectors.size2() == 0) return;
-        for (std::size_t i=0; i<rEigenvectors.size1(); ++i)
+        int size1 = int(rEigenvectors.size1());
+        int size2 = int(rEigenvectors.size2());
+        if (size2 == 0) return;
+        for (int i=0; i<size1; ++i)
         {
             if (rEigenvectors(i,0) >= 0.0)
                 continue;
-            for (std::size_t j=0; j<rEigenvectors.size2(); ++j)
+            for (int j=0; j<size2; ++j)
             {
                 rEigenvectors(i,j) *= -1.0;
             }
