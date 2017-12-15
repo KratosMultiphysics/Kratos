@@ -23,6 +23,7 @@ namespace Kratos {
 
   //Application Constructor:
   KratosContactMechanicsApplication::KratosContactMechanicsApplication():
+    KratosApplication("ContactMechanicsApplication"),
     mContactDomainLMCondition3D4N( 0, Condition::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
     mContactDomainLMCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mContactDomainPenaltyCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),

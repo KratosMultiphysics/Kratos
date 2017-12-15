@@ -19,10 +19,10 @@
 
 namespace Kratos {
 
-  KratosConstitutiveModelsApplication::KratosConstitutiveModelsApplication() 
-    : KratosApplication("ConstitutiveModelsApplication")
+  KratosConstitutiveModelsApplication::KratosConstitutiveModelsApplication()
+    :KratosApplication("ConstitutiveModelsApplication")
   {}
-  
+
   void KratosConstitutiveModelsApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
