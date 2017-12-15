@@ -25,7 +25,7 @@ namespace Kratos {
         array_1d<double, 3> mInjectionForce;
         void FixInjectionConditions(Element* p_element) override;
         void FixInjectorConditions(Element* p_element) override;
-        void RemoveInjectionConditions(Element &element) override;
+        void RemoveInjectionConditions(Element &element, const array_1d<double, 3 >& injector_velocity) override;
         virtual array_1d<double, 3> GetInjectionForce(Element* p_element);
     };
 }// namespace Kratos.
