@@ -471,7 +471,41 @@ class TestParameters(KratosUnittest.TestCase):
                     tmp[key].GetMatrix()   
         
     def test_vector_interface(self):
-        tmp = Parameters("""{ }""")
+        # Read and check Vectors from a Parameters-Object
+        tmp = Parameters("""{
+            "valid_vectors" : [ []
+            ],
+            "false_vectors" : [ [[2,3],2],
+                                [2,3,[2]],
+                                [2,3,[]],
+                                [{"key":3},2],
+                                [2,3,{"key":3}],
+                                [true,2],
+                                [2,3,true],
+                                [5,"string",2] 
+            ]
+        }""")      
+
+        # Check the IsVector Method
+        for i in range(tmp["valid_vectors"].size()):
+            valid_vector = tmp["valid_vectors"][i]
+            self.assertTrue(valid_vector.IsVector())
+        
+        for i in range(tmp["false_vectors"].size()):
+            false_vector = tmp["false_vectors"][i]
+            self.assertFalse(false_vector.IsVector())
+
+        # Check the GetVector Method also on the valid Matrices
+        for i in range(tmp["valid_vectors"].size()):
+            valid_vector = tmp["valid_vectors"][i]
+            valid_vector.GetVector()
+
+        # Check that the errors of the GetVector method are thrown correctly
+        for i in range(tmp["false_vectors"].size()):
+            false_vector = tmp["false_vectors"][i]
+            with self.assertRaises(RuntimeError):        
+                false_vector.GetVector()
+
         # Manually assign and check a Vector
         vec = Vector(3)
         vec[0] = 1.32
@@ -489,11 +523,42 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(V2[2],5.5)
 
     def test_matrix_interface(self):
-        # Read and check a Matrix from a Parameters-Object
+        # Read and check Matrices from a Parameters-Object
         tmp = Parameters("""{
-            "false_matrix_value": [[2, 1.5,3.3],[1,2]]
+            "valid_matrices" : [ [[]],
+                                 [[],[]],
+                                 [[-9.81,8, 5.47]]
+            ],
+            "false_matrices" : [ [],
+                                 [[[]]],
+                                 [[3.3] , [1,2]],
+                                 [[2,1.5,3.3] , [3,{"key":3},2]],
+                                 [[2,1.5,3.3] , [5,false,2]],
+                                 [[2,1.5,3.3] , [[2,3],1,2]],
+                                 [[2,1.5,3.3] , ["string",2,9]] 
+            ]
         }""")
         
+        # Check the IsMatrix Method
+        for i in range(tmp["valid_matrices"].size()):
+            valid_matrix = tmp["valid_matrices"][i]
+            self.assertTrue(valid_matrix.IsMatrix())
+            
+        for i in range(tmp["false_matrices"].size()):
+            false_matrix = tmp["false_matrices"][i]
+            self.assertFalse(false_matrix.IsMatrix())
+
+        # Check the GetMatrix Method also on the valid Matrices
+        for i in range(tmp["valid_matrices"].size()):
+            valid_matrix = tmp["valid_matrices"][i]
+            valid_matrix.GetMatrix()
+
+        # Check that the errors of the GetMatrix method are thrown correctly
+        for i in range(tmp["false_matrices"].size()):
+            false_matrix = tmp["false_matrices"][i]
+            with self.assertRaises(RuntimeError):        
+                false_matrix.GetMatrix()
+
         # Manually assign and check a Matrix
         mat = Matrix(3,2)
         mat[0,0] = 1.0
@@ -516,13 +581,6 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(A2[2,0],5.0)
         self.assertEqual(A2[2,1],6.0)
 
-        # Check the IsMatrix Method
-        self.assertFalse(tmp["false_matrix_value"].IsMatrix()) # Mis-sized Matrix
-
-        # check that the errors of the GetMatrix method are thrown correctly
-        with self.assertRaises(RuntimeError):        
-            tmp["false_matrix_value"].GetMatrix() # Mis-sized Matrix
-        
         
 if __name__ == '__main__':
     KratosUnittest.main()

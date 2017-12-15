@@ -40,7 +40,7 @@ public:
                 "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed": false,
-                "gravity_direction" : 3,
+                "gravity_direction" : 2,
                 "reference_coordinate" : 0.0,
                 "specific_weight" : 10000.0,
                 "table" : 1
@@ -86,12 +86,14 @@ public:
         Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
         
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
-
+        
         if(nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            
+            array_1d<double,3> Coordinates;
 
-            #pragma omp parallel for
+            #pragma omp parallel for private(Coordinates)
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -101,7 +103,9 @@ public:
                     it->Fix(var);
                 }
                 
-                double pressure = mspecific_weight*( mreference_coordinate - (it->Coordinate(mgravity_direction)) );
+                noalias(Coordinates) = it->Coordinates();
+
+                const double pressure = mspecific_weight*( mreference_coordinate - Coordinates[mgravity_direction] );
                 
                 if(pressure > 0.0) 
                 {

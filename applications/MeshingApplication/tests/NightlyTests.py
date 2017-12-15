@@ -43,6 +43,3 @@ class MeshingTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         pass
-
-class StanfordBunnyTest(MeshingTestFactory):
-    file_name = "mmg_eulerian_test/bunny_test"

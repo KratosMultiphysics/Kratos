@@ -367,8 +367,6 @@ void  AddContainersToPython()
     AddCFDVariablesToPython(); ///@TODO: move variables to CFD application
     AddALEVariablesToPython(); ///@TODO: move variables to ALE application
     AddFSIVariablesToPython(); ///@TODO: move variables to FSI application
-    AddMATVariablesToPython(); ///@TODO: move variables to CFD application
-    AddALEVariablesToPython(); ///@TODO: move variables to ALE application
     AddMappingVariablesToPython(); ///@TODO: move variables to Mapping application
     AddMATVariablesToPython(); ///@TODO: move variables to CL application
     AddLegacyStructuralAppVarsToPython();
@@ -464,6 +462,7 @@ void  AddContainersToPython()
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WATER_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( REACTION_WATER_PRESSURE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( WATER_PRESSURE_ACCELERATION )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AIR_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( REACTION_AIR_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( RHS_WATER )
