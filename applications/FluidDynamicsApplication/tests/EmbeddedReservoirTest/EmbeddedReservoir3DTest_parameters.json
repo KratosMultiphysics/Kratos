@@ -1,11 +1,11 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "slip_reservoir",
+        "problem_name"    : "reservoir_3D",
         "model_part_name" : "MainModelPart",
         "parallel_type"   : "OpenMP",
         "domain_size"     : 3,
         "start_step"      : 0.0,
-        "end_time"        : 50.0
+        "end_time"        : 1
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -37,13 +37,14 @@
         "solver_type"                  : "Embedded",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "EmbeddedSlipReservoirTest/reservoir"
+            "input_filename" : "reservoir_3D"
         },
         "dynamic_tau"                  : 0.001,
-        "relative_velocity_tolerance"  : 1e-4,
-        "absolute_velocity_tolerance"  : 1e-6,
-        "relative_pressure_tolerance"  : 1e-4,
-        "absolute_pressure_tolerance"  : 1e-6,
+        "echo_level"                   : 0,
+        "relative_velocity_tolerance"  : 1e-5,
+        "absolute_velocity_tolerance"  : 1e-7,
+        "relative_pressure_tolerance"  : 1e-5,
+        "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
             "solver_type"         : "SuperLUSolver"
         },
@@ -73,14 +74,6 @@
         "process_name"  : "ApplyNoSlipProcess",
         "Parameters"    : {
             "model_part_name" : "NoSlip3D"
-        }
-    },{
-        "python_module" : "embedded_slip_reservoir_test_local_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "EmbeddedSlipReservoirTestLocalProcess",
-        "Parameters"    : {
-            "distance"               : 1.0,
-            "fluid_model_part_name"  : "Parts_Fluid"
         }
     },{
         "python_module" : "apply_distance_modification_process",
