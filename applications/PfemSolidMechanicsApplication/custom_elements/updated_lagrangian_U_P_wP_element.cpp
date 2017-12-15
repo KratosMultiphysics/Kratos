@@ -775,11 +775,10 @@ namespace Kratos
          ProcessInfo SomeProcessInfo;
          std::vector<double> Values;
 
-         SolidElement* pBaseClassPointer = this;
-         pBaseClassPointer->GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
+         SolidElement::GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization /= Values[0];
 
-         pBaseClassPointer->GetValueOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
+         SolidElement::GetValueOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization *= Values[0];
 
       }
@@ -830,8 +829,8 @@ namespace Kratos
 
       ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
-      SolidElement* pBaseClassPointer = this;
-      pBaseClassPointer->GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
+
+      SolidElement::GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
       Caux = 1.0/Mmodulus[0];
 
       double he;
@@ -1079,8 +1078,7 @@ namespace Kratos
 
       ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
-      SolidElement* pBaseClassPointer = this;
-      pBaseClassPointer->GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
+      SolidElement::GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
       Caux = 1.0/Mmodulus[0];
 
       double he;
