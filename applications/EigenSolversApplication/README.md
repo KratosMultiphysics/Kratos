@@ -62,23 +62,27 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
     **Linux:**
 
     ```batch
-    source "~/intel/mkl/bin/mklvars.sh" intel64 lp64
+    source ~/intel/mkl/bin/mklvars.sh intel64 lp64
     ```
 
 2. Build Kratos
 
-3. Copy the required MKL library to the Kratos `lib`
-    
+3. Usage:
+
     **Windows:**
+
+    Copy the required MKL library to the Kratos `lib`
+    
 
     ```
     C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_rt.dll
     ```
 
-    **Linux:**
-
-    ```
-    ~/intel/mkl/lib/intel64/libmkl_rt.so
-    ```
-
     or add the folder to your `PATH`/`LD_LIBRARY_PATH` variable.
+
+    **Linux:**
+    
+    Set the environment before using MKL
+    ```batch
+    source ~/intel/mkl/bin/mklvars.sh intel64 lp64
+    ```
