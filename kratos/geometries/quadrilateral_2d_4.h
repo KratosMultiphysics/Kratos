@@ -522,19 +522,17 @@ public:
     */
     bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
     {
-        typename Triangle2D3<PointType>::Pointer p_triangle_0 (new Triangle2D3<PointType>(
-            this->pGetPoint( 0 ),
-            this->pGetPoint( 1 ),
-            this->pGetPoint( 2 )
-        ));
-        typename Triangle2D3<PointType>::Pointer p_triangle_1 (new Triangle2D3<PointType>(
-            this->pGetPoint( 2 ),
-            this->pGetPoint( 3 ),
-            this->pGetPoint( 0 )
-        ));
+        Triangle2D3<PointType> triangle_0 (this->pGetPoint( 0 ),
+                                           this->pGetPoint( 1 ),
+                                           this->pGetPoint( 2 )
+        );
+        Triangle2D3<PointType> triangle_1 (this->pGetPoint( 2 ),
+                                           this->pGetPoint( 3 ),
+                                           this->pGetPoint( 0 )
+        );
 
-        if     ( p_triangle_0->HasIntersection(rLowPoint, rHighPoint) ) return true;
-        else if( p_triangle_1->HasIntersection(rLowPoint, rHighPoint) ) return true;
+        if      ( triangle_0.HasIntersection(rLowPoint, rHighPoint) ) return true;
+        else if ( triangle_1.HasIntersection(rLowPoint, rHighPoint) ) return true;
         else return false;
     }
 
