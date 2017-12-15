@@ -29,7 +29,8 @@
 namespace Kratos
 {
 
-    KratosShallowWaterApplication::KratosShallowWaterApplication():
+    KratosShallowWaterApplication::KratosShallowWaterApplication()
+        : KratosApplication("ShallowWaterApplication"),
 
     mPrimitiveVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
     mPrimitiveVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
