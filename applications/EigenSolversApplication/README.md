@@ -41,7 +41,7 @@ SPD = symmetric positive definite
 
     ```json
     "linear_solver_settings": {
-        "solver_type" : "Eigen_SparseLU"
+        "solver_type" : "eigen_sparse_lu"
     }
     ```
 
@@ -51,15 +51,15 @@ SPD = symmetric positive definite
 
 In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can also use the Pardiso solvers.
 
-1. Run the MKL setup script
+1. Run the MKL setup script before building Kratos:
 
-    **Windows:** before cmake in `configure.bat`
+    **Windows:**
 
     ```batch
     call "C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\mkl\bin\mklvars.bat" intel64 lp64
     ```
     
-    **Linux:** before cmake in `configure.sh`
+    **Linux:**
 
     ```batch
     source "~/intel/mkl/bin/mklvars.sh" intel64 lp64
