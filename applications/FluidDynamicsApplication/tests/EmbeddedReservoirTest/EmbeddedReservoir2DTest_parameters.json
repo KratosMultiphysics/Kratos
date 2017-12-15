@@ -1,9 +1,9 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "reservoir",
+        "problem_name"    : "reservoir_2D",
         "model_part_name" : "MainModelPart",
         "parallel_type"   : "OpenMP",
-        "domain_size"     : 3,
+        "domain_size"     : 2,
         "start_step"      : 0.0,
         "end_time"        : 1
     },
@@ -37,9 +37,10 @@
         "solver_type"                  : "Embedded",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "EmbeddedReservoirTest/reservoir"
+            "input_filename" : "reservoir_2D"
         },
         "dynamic_tau"                  : 0.001,
+        "echo_level"                   : 0,
         "relative_velocity_tolerance"  : 1e-5,
         "absolute_velocity_tolerance"  : 1e-7,
         "relative_pressure_tolerance"  : 1e-5,
@@ -48,7 +49,7 @@
             "solver_type"         : "SuperLUSolver"
         },
         "volume_model_part_name"       : "Parts_Fluid",
-        "skin_parts"                   : ["Outlet3D","NoSlip3D"],
+        "skin_parts"                   : ["Outlet2D","NoSlip2D"],
         "no_skin_parts"                : [],
         "time_stepping"                : {
             "automatic_time_step" : false,
@@ -61,7 +62,7 @@
         "kratos_module" : "KratosMultiphysics",
         "process_name"  : "AssignScalarVariableProcess",
         "Parameters"    : {
-            "model_part_name" : "Outlet3D",
+            "model_part_name" : "Outlet2D",
             "variable_name"   : "PRESSURE",
             "constrained"     : true,
             "interval"        : [0.0,"End"],
@@ -72,15 +73,7 @@
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "process_name"  : "ApplyNoSlipProcess",
         "Parameters"    : {
-            "model_part_name" : "NoSlip3D"
-        }
-    },{
-        "python_module" : "embedded_reservoir_test_local_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "EmbeddedReservoirTestLocalProcess",
-        "Parameters"    : {
-            "distance"               : 0.5,
-            "fluid_model_part_name"  : "Parts_Fluid"
+            "model_part_name" : "NoSlip2D"
         }
     },{
         "python_module" : "apply_distance_modification_process",
@@ -100,7 +93,7 @@
             "variable_name"   : "BODY_FORCE",
             "modulus"         : 9.8,
             "constrained"     : false,
-            "direction"       : [0.0,0.0,-1.0]
+            "direction"       : [0.0,-1.0,0.0]
         }
     }]
 }
