@@ -204,30 +204,22 @@ namespace Kratos {
             Node<3>& r_node = spheric_particle.GetGeometry()[0];
 
             bool have_just_stopped_touching = true;
-            array_1d<double, 3 > injector_velocity(3, 0.0);
 
             for (unsigned int i = 0; i < spheric_particle.mNeighbourElements.size(); i++) {
-                SphericParticle* neighbour_particle = spheric_particle.mNeighbourElements[i];
-                if(neighbour_particle == NULL) continue;
+                SphericParticle* p_neighbour_particle = spheric_particle.mNeighbourElements[i];
+                if(p_neighbour_particle == NULL) continue;
                 
-                Node<3>& neighbour_node = neighbour_particle->GetGeometry()[0];
+                Node<3>& neighbour_node = p_neighbour_particle->GetGeometry()[0];
 
-                const double indentation = CalculateNormalizedIndentation(spheric_particle, *neighbour_particle);
+                const double indentation = CalculateNormalizedIndentation(spheric_particle, *p_neighbour_particle);
                 const bool indentation_is_significant_for_release = indentation > mNormalizedMaxIndentationForRelease;
                 const bool indentation_is_significant_for_injection = indentation > mNormalizedMaxIndentationForNewParticleCreation;
                 const bool i_am_injected_he_is_injector = r_node.IsNot(BLOCKED) && neighbour_node.Is(BLOCKED);
                 const bool i_am_injector_he_is_injected = r_node.Is(BLOCKED) && neighbour_node.IsNot(BLOCKED);
-                noalias(injector_velocity) = neighbour_node.FastGetSolutionStepValue(VELOCITY);
 
                 if (i_am_injected_he_is_injector && indentation_is_significant_for_release) {
                     have_just_stopped_touching = false;
-                    const array_1d<double, 3 >& ejection_velocity = mInletModelPart.GetSubModelPart(mOriginInletSubmodelPartIndexes[spheric_particle.Id()])[VELOCITY];
-                    array_1d<double, 3 >& velocity = r_node.FastGetSolutionStepValue(VELOCITY);
-                    noalias(velocity) = ejection_velocity + injector_velocity;
-                    if (r_node.SolutionStepsDataHas(VELOCITY_OLD)){
-                        array_1d<double, 3 >& velocity_old = r_node.FastGetSolutionStepValue(VELOCITY_OLD);
-                        noalias(velocity_old) = velocity;
-                    }
+                    UpdateInjectedParticleVelocity(spheric_particle, *p_neighbour_particle);
                     break;
                 }
 
@@ -239,7 +231,7 @@ namespace Kratos {
 
             if (have_just_stopped_touching) {
                 if (r_node.IsNot(BLOCKED)) {//The ball must be freed
-                    RemoveInjectionConditions(spheric_particle, injector_velocity);
+                    RemoveInjectionConditions(spheric_particle);
                     ids_to_remove_partial.push_back(spheric_particle.Id());
                     UpdateTotalThroughput(spheric_particle);
                 }
@@ -264,10 +256,25 @@ namespace Kratos {
 
     } //Dettach
 
+    void DEM_Inlet::UpdateInjectedParticleVelocity(Element& particle, Element& injector_element)
+    {
+        Node<3>& central_node = particle.GetGeometry()[0];
+        const array_1d<double, 3 >& ejection_velocity = mInletModelPart.GetSubModelPart(mOriginInletSubmodelPartIndexes[particle.Id()])[VELOCITY];
+        const array_1d<double, 3 >& injector_velocity = injector_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3 >& velocity = central_node.FastGetSolutionStepValue(VELOCITY);
+        noalias(velocity) = ejection_velocity + injector_velocity;
+        if (central_node.SolutionStepsDataHas(VELOCITY_OLD)){
+            array_1d<double, 3 >& velocity_old = central_node.FastGetSolutionStepValue(VELOCITY_OLD);
+            noalias(velocity_old) = velocity;
+        }
+    }
+
     void DEM_Inlet::FixInjectorConditions(Element* p_element){}
 
-    void DEM_Inlet::FixInjectionConditions(Element* p_element)
+    void DEM_Inlet::FixInjectionConditions(Element* p_element, Element* p_injector_element)
     {
+        UpdateInjectedParticleVelocity(*p_element, *p_injector_element);
+
         Node<3>& node = p_element->GetGeometry()[0];
         node.pGetDof(VELOCITY_X)->FixDof();
         node.pGetDof(VELOCITY_Y)->FixDof();
@@ -284,7 +291,7 @@ namespace Kratos {
         node.Set(DEMFlags::FIXED_ANG_VEL_Z, true);
     }
 
-    void DEM_Inlet::RemoveInjectionConditions(Element& element, const array_1d<double, 3 >& injector_velocity)
+    void DEM_Inlet::RemoveInjectionConditions(Element& element)
     {
         Node<3>& node = element.GetGeometry()[0];
         node.Set(DEMFlags::FIXED_VEL_X, false);
@@ -305,12 +312,12 @@ namespace Kratos {
         const int id = element.Id();
         ModelPart& inlet_to_which_it_belongs = mInletModelPart.GetSubModelPart(mOriginInletSubmodelPartIndexes[id]);
 
-        const array_1d<double, 3 >& ejection_velocity = inlet_to_which_it_belongs[VELOCITY];
+        array_1d<double, 3 > ejection_velocity_copy = inlet_to_which_it_belongs[VELOCITY];
         array_1d<double, 3 >& velocity = node.FastGetSolutionStepValue(VELOCITY);
-        noalias(velocity) = ejection_velocity;
+        noalias(velocity) -= ejection_velocity_copy;
         const double max_rand_deviation_angle = inlet_to_which_it_belongs[MAX_RAND_DEVIATION_ANGLE];
-        AddRandomPerpendicularComponentToGivenVector(velocity, max_rand_deviation_angle);
-        noalias(velocity) += injector_velocity;
+        AddRandomPerpendicularComponentToGivenVector(ejection_velocity_copy, max_rand_deviation_angle);
+        noalias(velocity) += ejection_velocity_copy;
     }
 
     void DEM_Inlet::DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id) {    
@@ -328,37 +335,29 @@ namespace Kratos {
             if (elem_it->IsNot(NEW_ENTITY)) continue;
 
             Kratos::Cluster3D& r_cluster = dynamic_cast<Kratos::Cluster3D&>(*elem_it); 
-            Node<3>& r_node = r_cluster.GetGeometry()[0];
 
             bool still_touching=false;
-            array_1d<double, 3 > injector_velocity(3, 0.0);
 
             for (unsigned int j = 0; j < r_cluster.GetSpheres().size(); j++) { //loop over the spheres of the cluster
                 SphericParticle* spheric_particle = r_cluster.GetSpheres()[j];
+                SphericParticle* p_neighbour;
                 for (unsigned int i = 0; i < spheric_particle->mNeighbourElements.size(); i++) { //loop over the neighbor spheres of each sphere of the cluster
-                    SphericParticle* neighbour_iterator = spheric_particle->mNeighbourElements[i];
-                    Node<3>& neighbour_node = neighbour_iterator->GetGeometry()[0]; 
-                    noalias(injector_velocity) = neighbour_node.FastGetSolutionStepValue(VELOCITY);
+                    p_neighbour = spheric_particle->mNeighbourElements[i];
 
-                    if (neighbour_node.Is(BLOCKED)) {
+                    if (p_neighbour->GetGeometry()[0].Is(BLOCKED)) {
                         still_touching = true;
                         break;
                     }              
                 }
+
                 if (still_touching){
-                    const array_1d<double, 3 >& ejection_velocity = mInletModelPart.GetSubModelPart(mOriginInletSubmodelPartIndexes[r_cluster.Id()])[VELOCITY];
-                    array_1d<double, 3 >& velocity = r_node.FastGetSolutionStepValue(VELOCITY);
-                    noalias(velocity) = ejection_velocity + injector_velocity;
-                    if (r_node.SolutionStepsDataHas(VELOCITY_OLD)){
-                        array_1d<double, 3 >& velocity_old = r_node.FastGetSolutionStepValue(VELOCITY_OLD);
-                        noalias(velocity_old) = velocity;
-                    }
+                    UpdateInjectedParticleVelocity(r_cluster, *p_neighbour);
                     break;
                 }
             }
 
             if (!still_touching) { //The ball must be freed
-                RemoveInjectionConditions(r_cluster, injector_velocity);
+                RemoveInjectionConditions(r_cluster);
                 ids_to_remove_partial.push_back(r_cluster.Id());
 
                 UpdateTotalThroughput(r_cluster);
@@ -522,7 +521,8 @@ namespace Kratos {
                     }
 
                     int random_pos = rand() % valid_elements_length;
-                    
+                    Element* p_injector_element = valid_elements[random_pos].get();
+
                     if (mp[CONTAINS_CLUSTERS] == false) {
                         SphericParticle* p_spheric_particle = creator.ElementCreatorWithPhysicalParameters(r_modelpart,
                                                                                     max_Id+1,
@@ -540,17 +540,7 @@ namespace Kratos {
                                                                                     smp_it->Elements());
 
                         mOriginInletSubmodelPartIndexes[p_spheric_particle->Id()] = smp_it->Name();
-                        const array_1d<double, 3 >& ejection_velocity = mp[VELOCITY];
-                        const array_1d<double, 3 >& inlet_velocity = valid_elements[random_pos]->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-                        array_1d<double, 3 >& velocity = p_spheric_particle->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-                        noalias(velocity) = ejection_velocity + inlet_velocity;
-
-                    /*if(mStrategyForContinuum) {
-                        SphericContinuumParticle& spheric_cont_particle = dynamic_cast<SphericContinuumParticle&>(*p_element);
-                        spheric_cont_particle.mContinuumInitialNeighborsSize = 0;
-                    }*/
-
-                        FixInjectionConditions(p_spheric_particle);
+                        FixInjectionConditions(p_spheric_particle, p_injector_element);
                         UpdatePartialThroughput(*p_spheric_particle, smp_number);
                         max_Id++;
                     }
@@ -574,14 +564,9 @@ namespace Kratos {
                                                                                             number_of_added_spheres,
                                                                                             mStrategyForContinuum);
                                                
-                        //UpdatePartialThroughput(*p_cluster, smp_number);
                         max_Id += number_of_added_spheres;
-
                         mOriginInletSubmodelPartIndexes[p_cluster->Id()] = smp_it->Name();
-                        const array_1d<double, 3 >& ejection_velocity = mp[VELOCITY];
-                        const array_1d<double, 3 >& inlet_velocity = valid_elements[random_pos]->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-                        array_1d<double, 3 >& velocity = p_cluster->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-                        noalias(velocity) = ejection_velocity + inlet_velocity;
+                        UpdateInjectedParticleVelocity(*p_cluster, *p_injector_element);
                     }
 
                     valid_elements[random_pos]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
@@ -615,12 +600,12 @@ namespace Kratos {
         array_1d<double, 3 > normal_1;
         array_1d<double, 3 > normal_2;
 
-        if (fabs(unitary_vector[0])>=0.577) {
+        if (std::abs(unitary_vector[0])>=0.577) {
             normal_1[0]= - unitary_vector[1];
             normal_1[1]= unitary_vector[0];
             normal_1[2]= 0.0;
         }
-        else if (fabs(unitary_vector[1])>=0.577) {
+        else if (std::abs(unitary_vector[1])>=0.577) {
             normal_1[0]= 0.0;
             normal_1[1]= - unitary_vector[2];
             normal_1[2]= unitary_vector[1];

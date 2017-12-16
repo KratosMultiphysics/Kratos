@@ -10,10 +10,8 @@ DEM_Force_Based_Inlet::DEM_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1
                DEM_Inlet(inlet_modelpart), mInjectionForce(injection_force)
 {}
 
-void DEM_Force_Based_Inlet::RemoveInjectionConditions(Element &element, const array_1d<double, 3 >& injector_velocity)
+void DEM_Force_Based_Inlet::RemoveInjectionConditions(Element &element)
 {
-    // the injector velocity is not relevant here
-    static_cast<void>(injector_velocity);
     Node<3>& node = element.GetGeometry()[0];
     element.Set(NEW_ENTITY, 0);
     node.Set(NEW_ENTITY, 0);
@@ -26,8 +24,11 @@ void DEM_Force_Based_Inlet::RemoveInjectionConditions(Element &element, const ar
     noalias(node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)) = ZeroVector();
 }
 
-void DEM_Force_Based_Inlet::FixInjectionConditions(Element* p_element)
+void DEM_Force_Based_Inlet::FixInjectionConditions(Element* p_element, Element* p_injector_element)
 {
+    // the injector velocity is not relevant here
+    static_cast<void>(p_injector_element);
+
     Node<3>& node = p_element->GetGeometry()[0];
     node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce(p_element);
 
