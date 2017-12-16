@@ -194,7 +194,7 @@ namespace Kratos {
         #pragma omp parallel
         {
         std::vector<int> ids_to_remove_partial;
-        #pragma omp for nowait schedule(static)
+        #pragma omp for
         for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
             ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;                                        
             if (elem_it->IsNot(NEW_ENTITY)) continue;
