@@ -375,6 +375,8 @@ namespace Kratos
       if( rVariables.State().IsNot(ConstitutiveModelData::RETURN_MAPPING_COMPUTED) )
 	KRATOS_ERROR << "ReturnMapping has to be computed to perform the calculation" << std::endl;
 
+      double size = rConstitutiveMatrix.size1();
+      
       double& rDamage          = rVariables.DeltaInternal.Variables[0];
 
       //alternative way, compute damage if not computed
@@ -403,17 +405,16 @@ namespace Kratos
       
       const ModelDataType&  rModelData = rVariables.GetModelData();
       const MatrixType& rStressMatrix  = rModelData.GetStressMatrix();
-
-      Vector EffectiveStressVector;
+      
+      Vector EffectiveStressVector(size);
       EffectiveStressVector  = ConstitutiveModelUtilities::StressTensorToVector(rStressMatrix, EffectiveStressVector);
 
-      VectorType EquivalentStrainVector;
+      Vector EquivalentStrainVector(size);
       EquivalentStrainVector = this->CalculateEquivalentStrainDerivative(rVariables, rConstitutiveMatrix, EquivalentStrainVector);
 
       rConstitutiveMatrix *= (1-rDamage);
       rConstitutiveMatrix += DeltaStateFunction * outer_prod(EffectiveStressVector,EquivalentStrainVector);
-      
-      
+
       rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
     
       KRATOS_CATCH(" ")
@@ -475,7 +476,7 @@ namespace Kratos
 
       // Flow Rule local variables
       rVariables.TrialStateFunction = 0;
-      rVariables.StressNorm        = 0;
+      rVariables.StressNorm         = 0;
 
       // Set Strain
       rVariables.StrainMatrix = rValues.StrainMatrix;
@@ -516,8 +517,8 @@ namespace Kratos
 
       // Compute strenght type parameter
       rVariables.RateFactor = 0.0;
-        
-      VectorType PrincipalStresses;
+
+      Vector PrincipalStresses(3);
       noalias(PrincipalStresses) = ConstitutiveModelUtilities::EigenValuesDirectMethod(rStressMatrix);
 
       double Macaulay_PrincipalStress = 0.0;
@@ -565,24 +566,26 @@ namespace Kratos
     
     // calculate equivalent strain derivative
     
-    VectorType& CalculateEquivalentStrainDerivative(PlasticDataType& rVariables, const Matrix& rConstitutiveMatrix, VectorType& rEquivalentStrainDerivative)
+    Vector& CalculateEquivalentStrainDerivative(PlasticDataType& rVariables, const Matrix& rConstitutiveMatrix, Vector& rEquivalentStrainDerivative)
     {
       KRATOS_TRY
 
       //The derivative of the equivalent strain with respect to the strain vector is obtained through the perturbation method
 
-      VectorType StressVector;
+      unsigned int size = rEquivalentStrainDerivative.size();
+	
+      Vector StressVector(size);
       MatrixType StressMatrix;
       double EquivalentStrainForward  = 0.0;
       double EquivalentStrainBackward = 0.0;
       
       //Compute the strains perturbations in each direction of the vector
       const MatrixType& rStrainMatrix  = rVariables.GetStrainMatrix();
-      VectorType StrainVector;
+      Vector StrainVector(size);
       StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rStrainMatrix, StrainVector);
-      VectorType PerturbatedStrainVector;
+      Vector PerturbatedStrainVector;
       ConstitutiveModelUtilities::ComputePerturbationVector(PerturbatedStrainVector,StrainVector);
-
+       
       for(unsigned int i = 0; i < StrainVector.size(); i++)
 	{
 	  //Forward perturbed equivalent strain
