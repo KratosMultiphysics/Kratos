@@ -31,7 +31,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionalMortarContactCondition<TDi
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return boost::make_shared< AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return boost::make_shared< AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -51,8 +51,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionalMortarContactCondition<TDi
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
 AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation>::~AugmentedLagrangianMethodFrictionalMortarContactCondition( )
-{
-}
+= default;
 
 /***************************** BEGIN AD REPLACEMENT ********************************/
 /***********************************************************************************/
@@ -203,7 +202,6 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
     
     KRATOS_CATCH( "" );
 }
-
 
 /***********************************************************************************/
 /***********************************************************************************/
