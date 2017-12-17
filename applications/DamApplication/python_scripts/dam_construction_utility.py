@@ -39,8 +39,8 @@ class DamConstructionUtility:
         # Getting the part corresponding to soil part for its activation in the initialize
         part_number = parameters["soil_part"].GetString()
         parameters.RemoveValue("soil_part")
-        parameters.AddEmptyValue("mechanical_soil_part").SetString("Parts_Parts_Auto"+part_number[10:])
-        parameters.AddEmptyValue("thermal_soil_part").SetString("Thermal_Part_Auto_"+part_number[10:])
+        parameters.AddEmptyValue("mechanical_soil_part").SetString("sub_Parts_Parts_Auto"+part_number[10:])
+        parameters.AddEmptyValue("thermal_soil_part").SetString("sub_Thermal_Part_Auto_"+part_number[10:])
         
         self.table_ambient = PiecewiseLinearTable()
         with open(ambient_input_file_name,'r') as file_name1:
