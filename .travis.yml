@@ -1,7 +1,7 @@
 sudo: false
 dist: trusty
 language: cpp
-compiler: g++
+compiler: clang
 
 git:
   depth: 3
@@ -15,7 +15,7 @@ env:
     - CCACHE_COMPRESS=true
     - CCACHE_NODISABLE=true
     - CCACHE_MAXSIZE=500M
-    - FC=gfortran-6
+    - FC=gfortran
 
 addons:
   apt:
@@ -23,9 +23,7 @@ addons:
       - sourceline: 'ppa:ubuntu-toolchain-r/test'
       - sourceline: 'ppa:boost-latest/ppa'
     packages:
-      - gcc-6
-      - g++-6
-      - gfortran-6
+      - gfortran
       - libboost1.55-dev
       - libboost-serialization1.55-dev
       - libboost-python1.55-dev
