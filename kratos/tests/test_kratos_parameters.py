@@ -581,7 +581,6 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(A2[2,0],5.0)
         self.assertEqual(A2[2,1],6.0)
 
-    @KratosUnittest.expectedFailure
     def test_null_vs_null_validation(self):
             
         # supplied settings
@@ -594,9 +593,10 @@ class TestParameters(KratosUnittest.TestCase):
         "parameter": null
         }""")
         
+        #this should NOT raise, hence making the test to pass
         null_custom.ValidateAndAssignDefaults(null_default)
 
-    def test_double_null_validation(self):
+    def test_double_vs_null_validation(self):
             
         # supplied settings
         double_custom = Parameters("""{
