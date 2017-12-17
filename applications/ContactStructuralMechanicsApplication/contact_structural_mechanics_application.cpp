@@ -30,9 +30,8 @@
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 
-namespace Kratos
-{
-KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApplication():
+namespace Kratos {
+KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApplication(): KratosApplication("ContactStructuralMechanicsApplication"),
     /* CONDITIONS */
     // Mesh tying mortar conditions
     // 2D Scalar
@@ -82,7 +81,6 @@ void KratosContactStructuralMechanicsApplication::Register()
     /* Mortar method general variables */
     KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
     KRATOS_REGISTER_VARIABLE( ELEMENT_POINTER )                                 // A pointer to the element belonging to this condition
-    KRATOS_REGISTER_VARIABLE( MORTAR_CONTACT_OPERATOR )                         // Mortar Contact Operator
     KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                             // The factor employed to serach an active/inactive node
     
     /* Weighted values */
@@ -91,9 +89,6 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( WEIGHTED_FRICTION )                               // The integrated friction coefficient
     KRATOS_REGISTER_VARIABLE( WEIGHTED_SCALAR_RESIDUAL )                        // The integrated scalar residual  
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )     // The integrated vector residual    
-    
-    /* Matrix to store the derivatives of the normal */
-    KRATOS_REGISTER_VARIABLE( DELTA_NORMAL )                                    // Directional derivative of the normal
     
     /* For ALM mortar condition */
     KRATOS_REGISTER_VARIABLE( AUGMENTED_NORMAL_CONTACT_PRESSURE )               // The resultant augmented pressure in the normal direction

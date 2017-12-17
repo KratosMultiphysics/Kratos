@@ -45,11 +45,6 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-
-#if !defined(TENSOR_VALUE)
-#define TENSOR_VALUE
-    enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector2DPScalarValue = 3, Vector3DValue = 3, Vector3DPScalarValue = 4 };
-#endif
     
 ///@}
 ///@name  Functions
