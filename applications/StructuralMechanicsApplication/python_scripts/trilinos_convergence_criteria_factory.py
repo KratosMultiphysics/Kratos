@@ -51,6 +51,6 @@ class convergence_criterion:
             self.mechanical_convergence_criterion = TrilinosApplication.TrilinosOrCriteria(Residual, Displacement)
             
         else:
-            raise NameError("WARNING: Not convergence criterion available. The possibilities are: \ndisplacement_criterion \nresidual_criterion \nnd_criterion \nor_criterion")
+            raise NameError("ERROR: Not convergence criterion available. The possibilities are: \ndisplacement_criterion \nresidual_criterion \nand_criterion \nor_criterion")
         
 
