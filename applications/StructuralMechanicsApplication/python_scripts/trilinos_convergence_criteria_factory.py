@@ -49,5 +49,8 @@ class convergence_criterion:
             Residual = TrilinosApplication.TrilinosResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             self.mechanical_convergence_criterion = TrilinosApplication.TrilinosOrCriteria(Residual, Displacement)
+            
+        else:
+            raise NameError("WARNING: Not convergence criterion available. The possibilities are: \ndisplacement_criterion \nresidual_criterion \nnd_criterion \nor_criterion")
         
 
