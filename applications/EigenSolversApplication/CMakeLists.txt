@@ -22,7 +22,9 @@ if( NOT MSVC )
 endif()
 
 add_definitions( -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
-#add_definitions( -DEIGEN_INTERNAL_DEBUGGING )
+if( ${CMAKE_BUILD_TYPE} MATCHES "FullDebug" )
+	add_definitions( -DEIGEN_INTERNAL_DEBUGGING )
+endif( ${CMAKE_BUILD_TYPE} MATCHES "FullDebug" )
 
 include_directories(
 	${CMAKE_SOURCE_DIR}/kratos
