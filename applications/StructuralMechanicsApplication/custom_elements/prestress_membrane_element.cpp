@@ -27,12 +27,14 @@ namespace Kratos
 PrestressMembraneElement::PrestressMembraneElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : Element( NewId, pGeometry )
 {
+    mStep = 0;
 }
 
 // Constructor
 PrestressMembraneElement::PrestressMembraneElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element( NewId, pGeometry, pProperties )
 {
+    mStep = 0;
 }
 
 //***********************************************************************************
@@ -132,7 +134,10 @@ void PrestressMembraneElement::Initialize()
     // Initialize Variables
     mdensity = GetProperties()[DENSITY];
     mThickness = 0.00;
-    mAnisotropicPrestress = GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL) && GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL);
+    if(GetProperties().Has(MEMBRANE_PRESTRESS)){
+        if(GetProperties()[MEMBRANE_PRESTRESS](0)== GetProperties()[MEMBRANE_PRESTRESS](1) && GetProperties()[MEMBRANE_PRESTRESS](2) == 0)
+            mAnisotropicPrestress = true;
+    }
 
     mTotalDomainInitialSize = 0.00;
    
@@ -181,6 +186,7 @@ void PrestressMembraneElement::Initialize()
         // Store base vectors in reference configuration
         mG1[PointNumber] = g1;
         mG2[PointNumber] = g2;
+        
 
         //KRATOS_WATCH(J0);
 
@@ -838,6 +844,8 @@ void PrestressMembraneElement::CalculateAll(
 
     J = GetGeometry().Jacobian(J);
    
+
+
     //bool is_initialized = false;
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
     {
@@ -869,7 +877,7 @@ void PrestressMembraneElement::CalculateAll(
         CalculateMetricDeformed(PointNumber, DN_De, gab, g1, g2);
         CalculateStrain(StrainVector, gab, mGab0[PointNumber]);
 
-        Vector CartesianStrainVector = prod(Q, StrainVector);
+        Vector CartesianStrainVector = prod(Q, StrainVector); //in refence configuration
 
         // Constitutive Matrices D
         Matrix D(3, 3);
@@ -886,38 +894,32 @@ void PrestressMembraneElement::CalculateAll(
 
         array_1d<double,3> pre_stress_tensor;          // Vector with the global Cauchy Pre-Stress components 
         array_1d<double,3> pre_stress_axis_global_1;   // Global prestress axis 1
-        array_1d<double,3> pre_stress_axis_global_2;   // Global prestress axis     
-        
-        // Getting the prestress values and global prestress axes
+        array_1d<double,3> pre_stress_axis_global_2;   // Global prestress axis 
 
-        //pre_stress_tensor(0) = GetProperties()[MEMBRANE_PRESTRESS](0);
-        //pre_stress_tensor(1) = GetProperties()[MEMBRANE_PRESTRESS](1);
-        //pre_stress_tensor(2) = GetProperties()[MEMBRANE_PRESTRESS](2);
+        // Getting the prestress values and global prestress axes
         for (unsigned int i=0; i<3; i++){
             pre_stress_tensor(i) = GetProperties()[MEMBRANE_PRESTRESS](i);
             if(mAnisotropicPrestress == true){
                 pre_stress_axis_global_1(i) = GetProperties()[PRESTRESS_AXIS_1_GLOBAL](i);
                 pre_stress_axis_global_2(i) = GetProperties()[PRESTRESS_AXIS_2_GLOBAL](i);
             }
-            
         }
+        
         // in case of anisotropic prestress: hardcode the prestress direction
         if (mAnisotropicPrestress == false){
             pre_stress_axis_global_1(0) = 1;
             pre_stress_axis_global_1(1) = 0;
             pre_stress_axis_global_1(2) = 0;
-
+            
             pre_stress_axis_global_1(0) = 0;
             pre_stress_axis_global_1(1) = 1;
             pre_stress_axis_global_1(2) = 0;
         }
-        //array_1d<double, 2> par_g1_1;
-        //par_g1_1(0) = 0.0;
-        //par_g1_1(1) = 1.0;
-
-        CalculateTransMatrixToLocalCartesian(PointNumber, g1, g2, g3, gab, pre_stress_tensor,pre_stress_axis_global_1,pre_stress_axis_global_2 );
-
-        // taking out the pre-stress
+        
+        //transform the prestresses in the local cartesion coordinate system (originating from reference configuration)
+        //CalculateTransMatrixToLocalCartesian(PointNumber, mG1[PointNumber], mG2[PointNumber], pre_stress_tensor, pre_stress_axis_global_1,pre_stress_axis_global_2 );
+        TransformPrestress(PointNumber, pre_stress_tensor,pre_stress_axis_global_1,pre_stress_axis_global_2);
+   
         // Adding the pre-stress values as forces over length
         for (int i = 0; i < 3; ++i)
         {
@@ -1156,97 +1158,58 @@ void PrestressMembraneElement::CalculateMembraneElasticityTensor(
 //************************************************************************************
 /** \brief PrestressMembraneElement::CalculateTransMatrixToLocalCartesian
 *
-* returns the Pre-Stress tensor already transformed in the oppurtune base
+* returns the Pre-Stress tensor already transformed in the oppurtune base (here: local cartesian coordinates)
 * according to its definition. 
 *
 */
-void PrestressMembraneElement::CalculateTransMatrixToLocalCartesian(
+/*void PrestressMembraneElement::CalculateTransMatrixToLocalCartesian(
     unsigned int& PointNumber,
     array_1d<double, 3>& g1,
     array_1d<double, 3>& g2,
-    array_1d<double, 3>& g3,
-    array_1d<double, 3>& gab,
     array_1d<double, 3>& prestress,
     array_1d<double, 3> GlobalPrestressAxis1,
     array_1d<double, 3> GlobalPrestressAxis2)
 {
-    //if (this->GetId() == 42 && PointNumber == 1)
-    //{
-    //    KRATOS_WATCH(g1);
-    //    KRATOS_WATCH(g2);
-    //    KRATOS_WATCH(g3);
-    //    KRATOS_WATCH(gab);
-    //    
-    //}
 
     CrossProduct(g3, g1, g2);
-    //if (this->GetId() == 42 && PointNumber == 1)
-    //    KRATOS_WATCH(g3);
-    
-
 
     array_1d<double, 3> t1; // T1 vector
     array_1d<double, 3> t2; // T2 vector
     array_1d<double, 3> t3; // T3 vector
-    //array_1d<double, 3> a;  // A vector for the plane definition
-    //array_1d<double, 3> b;  // B vector for the plane definition
+
     boost::numeric::ublas::bounded_matrix<double, 3, 3> Tm; // Transformation matrix
-
-    // in case of isotropic prestress: Hardcode the direction vector a, b
-    //a(0) = 1.0;
-    //a(1) = 0.0;
-    //a(2) = 0.0;
-
-    //b(0) = 0.0;
-    //b(1) = 1.0;
-    //b(2) = 0.0;
-
-    //array_1d<double, 3> g1;
-    //array_1d<double, 3> g2;
-    array_1d<double, 3> g1_ref;
-    array_1d<double, 3> g2_ref;
-    //array_1d<double, 3> g3;
-    //array_1d<double, 3> gab;
-    array_1d<double, 3> g_con_1_ref;
-    array_1d<double, 3> g_con_2_ref;
-    
-    //KRATOS_WATCH(g1);
 
     // contravariant metric gab_con and base vectors g_con
     double invdetGab = 1.0 / (gab[0] * gab[1] - gab[2] * gab[2]);
     double gab_con11 = invdetGab*gab[1];
     double gab_con12 = -invdetGab*gab[2];
-    double gab_con22 = -invdetGab*gab[0];
+    double gab_con22 = invdetGab*gab[0];
 
     array_1d<double, 3> g_con_1 = g1*gab_con11 + g2*gab_con12;
     array_1d<double, 3> g_con_2 = g1*gab_con12 + g2*gab_con22;
 
-    // local cartesian coordinates
+    // local cartesian coordinates: 
+    //first basis vector: normed g_1
+    //second basis vector: normed g^2
     double lg1 = norm_2(g1);
     array_1d<double, 3> e1 = g1 / lg1;
     double lg_con2 = norm_2(g_con_2);
     array_1d<double, 3> e2 = g_con_2 / lg_con2;
 
-    // array_1d<double,3> n_pre_pk2=    // Integration of the PreStress over the thickness
-
     // the Pre-Stress tensor is defined according to the projection definition proposed by Dr. W�chner
 
     // creation of T1 ==> Projection of A on the tangential plane
-    CrossProduct(t1, GlobalPrestressAxis1, g3);
-
-    //if (this->GetId() == 42 && PointNumber == 1)
-    //    KRATOS_WATCH(t1);
-
+    array_1d<double, 3> GlobalPrestressAxis3;
+    array_1d<double, 3> normal_projection_plane;
+    CrossProduct(GlobalPrestressAxis3, GlobalPrestressAxis1, GlobalPrestressAxis2);
+    CrossProduct(normal_projection_plane, GlobalPrestressAxis1, GlobalPrestressAxis3);
+    CrossProduct(t1, normal_projection_plane, g3);
     
     // The frame must be orthogonal, so T3 == G3
     t3 = g3;
 
     // Then T2 can only be the cross product between T1 and T3
     CrossProduct(t2, t3, t1);
-
-    //if (this->GetId() == 42 && PointNumber == 1)
-    //    KRATOS_WATCH(t2);
-
 
     // Normalization of the vectors
     t1 = t1 / norm_2(t1);
@@ -1258,14 +1221,6 @@ void PrestressMembraneElement::CalculateTransMatrixToLocalCartesian(
     double eG12 = inner_prod(e1, t2);
     double eG21 = inner_prod(e2, t1);
     double eG22 = inner_prod(e2, t2);
-
-    //if (this->GetId() == 42 && PointNumber == 1)
-    //{
-    //    KRATOS_WATCH(eG11);
-    //    KRATOS_WATCH(eG12);
-    //    KRATOS_WATCH(eG21);
-    //    KRATOS_WATCH(eG22);
-    //}
 
     
     // finally, calculating the Transformation Matrix
@@ -1282,13 +1237,297 @@ void PrestressMembraneElement::CalculateTransMatrixToLocalCartesian(
     Tm(2, 2) = eG11*eG22 + eG12*eG21;
 
     prestress = prod(Tm, prestress);
+}*/
 
-    //if (this->GetId() == 42 && PointNumber == 1)
-    //{
-    //    KRATOS_WATCH(Tm);
-    //    KRATOS_WATCH(prestress);
-    //}
+void PrestressMembraneElement::TransformPrestress(
+    unsigned int PointNumber,
+    array_1d<double, 3>& rPrestress,
+    array_1d<double, 3>& GlobalPrestressAxis1,
+    array_1d<double, 3>& GlobalPrestressAxis2){
+    
+    // normalize global axes
+    GlobalPrestressAxis1 /= norm_2(GlobalPrestressAxis1);
+    GlobalPrestressAxis2 /= norm_2(GlobalPrestressAxis2);
 
+    // Compute GlobalPrestressAxis3
+    array_1d<double, 3> GlobalPrestressAxis3;
+    CrossProduct(GlobalPrestressAxis3, GlobalPrestressAxis1, GlobalPrestressAxis2);
+    GlobalPrestressAxis3 /= norm_2(GlobalPrestressAxis3);
+
+    // Compute G1, G2, G3
+    array_1d<double,3> G1 = mG1[PointNumber]/norm_2(mG1[PointNumber]);
+    array_1d<double,3> G2 = mG2[PointNumber]/norm_2(mG2[PointNumber]);
+    array_1d<double,3> G3;
+    CrossProduct(G3,G1,G2);
+    G3 /= norm_2(G3);
+    
+
+    // Compute T1, T2, T3
+    array_1d<double, 3> normal_projection_plane;
+    CrossProduct(normal_projection_plane, GlobalPrestressAxis1, GlobalPrestressAxis3);
+    array_1d<double, 3> T1, T2, T3;
+    CrossProduct(T1, normal_projection_plane, G3);
+    T1 /= norm_2(T1);
+    CrossProduct(T2,T1,G3);
+    T2 /= norm_2(T2);
+    T3 = G3;
+
+    // Compute local Cartesian Basis
+    array_1d<double, 3> E2;
+    CrossProduct(E2,G1,G3);
+    E2 /= norm_2(E2);
+
+    // Transform to matrix
+    Matrix Origin = Matrix(3,3,0);
+    Matrix Target = Matrix(3,3,0);
+    Matrix Tensor = Matrix(3,3,0);
+
+    for (int i=0;i<3;i++){
+        Origin(i,0) = T1(i);
+        Origin(i,1) = T2(i);
+        Origin(i,2) = T3(i);
+        Target(i,0) = G1(i);
+        Target(i,1) = E2(i);
+        Target(i,2) = G3(i);        
+    }
+    Tensor.clear();
+    Tensor(0,0) = rPrestress(0);
+    Tensor(1,1) = rPrestress(1);
+    Tensor(1,0) = rPrestress(2);
+    Tensor(0,1) = rPrestress(2);
+    Tensor(0,2) = 0;
+    Tensor(2,0) = 0;
+    Tensor(1,2) = 0;
+    Tensor(2,1) = 0;
+    Tensor(2,2) = 0;
+    //Tensor(2,2) = 1;
+    
+    
+    // Transformation Stress Tensor
+    TensorTransformation(Origin,Origin,Target,Target,Tensor);
+    std::cout<<Tensor<<std::endl;
+    // set transformed stress
+    rPrestress(0) = Tensor(0,0);
+    rPrestress(1) = Tensor(1,1);
+    rPrestress(2) = Tensor(1,0);
+
+    
+}
+void PrestressMembraneElement::TensorTransformation(
+        Matrix& Origin_left,
+        Matrix& Origin_right,
+        Matrix& Target_left,
+        Matrix& Target_right,
+        Matrix& rTensor)
+{
+    
+    // metric (for transformation of the target coordinate system)
+    Matrix metric_left = Matrix(3,3,0);
+    Matrix metric_right = Matrix(3,3,0);
+
+    // dual basis target coordinate system
+    Matrix Target_left_dual = Matrix(3,3,0);
+    Matrix Target_right_dual = Matrix(3,3,0);
+
+    for(int i=0;i<3;i++){
+        Vector Target_left_dual_i = Vector(3,0);
+        Vector Target_right_dual_i = Vector(3,0);
+        for(int j=0;j<3;j++){
+            Vector Target_left_i, Target_left_j;
+            Vector Target_right_i, Target_right_j;
+            UblasSpace<double,Matrix,Vector>::GetColumn(i,Target_left,Target_left_i);
+            UblasSpace<double,Matrix,Vector>::GetColumn(j,Target_left,Target_left_j);
+            UblasSpace<double,Matrix,Vector>::GetColumn(i,Target_right,Target_right_i);
+            UblasSpace<double,Matrix,Vector>::GetColumn(j,Target_right,Target_right_j);
+
+            // metric computation
+            metric_left(i,j) += inner_prod(Target_left_i, Target_left_j);
+            metric_right(i,j) += inner_prod(Target_right_i, Target_right_j);
+        }        
+    }
+
+    // invert metric
+    double det;
+    Matrix inv_metric_left = Matrix(3,3,0);
+    Matrix inv_metric_right = Matrix(3,3,0);
+    MathUtils<double>::InvertMatrix(metric_left,inv_metric_left,det);
+    MathUtils<double>::InvertMatrix(metric_right,inv_metric_right,det);
+    for(int i=0;i<3;i++){
+        Vector Target_left_dual_i = Vector(3,0);
+        Vector Target_right_dual_i = Vector(3,0);
+        for(int j=0;j<3;j++){
+            Vector Target_left_i, Target_left_j;
+            Vector Target_right_i, Target_right_j;
+            UblasSpace<double,Matrix,Vector>::GetColumn(i,Target_left,Target_left_i);
+            UblasSpace<double,Matrix,Vector>::GetColumn(j,Target_left,Target_left_j);
+            UblasSpace<double,Matrix,Vector>::GetColumn(i,Target_right,Target_right_i);
+            UblasSpace<double,Matrix,Vector>::GetColumn(j,Target_right,Target_right_j);
+            
+            // transformation target coordinate system to dual basis
+            Target_left_dual_i += inv_metric_left(i,j)*Target_left_j;
+            Target_right_dual_i += inv_metric_right(i,j)*Target_right_j;
+        }
+        
+        std::cout<<Target_left_dual_i<<std::endl;
+        //UblasSpace<double,Matrix,Vector>::SetColumn(i,Target_left_dual,Target_left_dual_i);
+        //UblasSpace<double,Matrix,Vector>::SetColumn(i,Target_right_dual,Target_right_dual_i);
+        row(Target_left_dual,i) = Target_left_dual_i;
+        row(Target_right_dual,i) = Target_right_dual_i;
+        
+        
+    }
+    
+    
+    // Compute tensor transformation
+    Matrix transformed_tensor = Matrix(3,3,0);
+    for(int k=0;k<3;k++){
+        for(int l=0;l<3;l++){
+            Vector Target_left_dual_k, Target_right_dual_l;
+            UblasSpace<double,Matrix,Vector>::GetColumn(k,Target_left_dual,Target_left_dual_k);
+            UblasSpace<double,Matrix,Vector>::GetColumn(l,Target_right_dual,Target_right_dual_l);
+
+            for(int i=0;i<3;i++){
+                for(int j=0;j<3;j++){
+                    Vector Origin_left_i, Origin_right_j;
+                    UblasSpace<double,Matrix,Vector>::GetColumn(i,Origin_left,Origin_left_i);
+                    UblasSpace<double,Matrix,Vector>::GetColumn(j,Origin_right,Origin_right_j);
+                    transformed_tensor(k,l) += rTensor(i,j)*inner_prod(Target_left_dual_k,Origin_left_i)*inner_prod(Target_right_dual_l,Origin_right_j);
+                }
+            }
+        }
+    }
+    rTensor = transformed_tensor;
+}
+void PrestressMembraneElement::UpdateReferenceConfiguration(unsigned int step){
+        // reading integration points and local gradients
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+
+    //const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = GetGeometry().ShapeFunctionsLocalGradients();
+
+    //const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
+
+    // Initialize Variables
+    mdensity = GetProperties()[DENSITY];
+    mThickness = 0.00;
+
+    mTotalDomainInitialSize = 0.00;
+
+    
+    // resizing jacobian inverses containers
+    mDetJ0.resize(integration_points.size());
+    mGab0.resize(integration_points.size());
+    mG1.resize(integration_points.size());
+    mG2.resize(integration_points.size());
+
+    GeometryType::JacobiansType J0;
+    J0 = GetGeometry().Jacobian(J0);
+
+    //KRATOS_WATCH(J0);
+
+    mStrainsVector.resize(integration_points.size());
+    mStressesVector.resize(integration_points.size());
+    mCauchyStressesVector.resize(integration_points.size()); //VM
+
+    mG_Vector.resize(integration_points.size(), ZeroMatrix(2, 2));
+
+    
+    // Calculating geometry tensors in reference configuration on Integration points
+    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
+    {
+        // getting information for integration
+        double IntegrationWeight = integration_points[PointNumber].Weight();
+        //std::cout << "PrestressMembraneElement::Initialize(): 2 " << this->GetId() << std::endl;
+        // base vectors
+        array_1d<double, 3> g1;
+        array_1d<double, 3> g2;
+        array_1d<double, 3> g3;
+
+        g1[0] = J0[PointNumber](0, 0);
+        g2[0] = J0[PointNumber](0, 1);
+        g1[1] = J0[PointNumber](1, 0);
+        g2[1] = J0[PointNumber](1, 1);
+        g1[2] = J0[PointNumber](2, 0);
+        g2[2] = J0[PointNumber](2, 1);
+
+
+        // Store base vectors in reference configuration
+        mG1[PointNumber] = g1;
+        mG2[PointNumber] = g2;
+        
+
+        //KRATOS_WATCH(J0);
+
+        // base vector g3
+        CrossProduct(g3, g1, g2);
+        // differential area dA
+        const double dA = norm_2(g3);
+
+        if (dA == 0)
+        {
+            KRATOS_ERROR << "PrestressMembraneElement with id"<< this->GetId() <<"has ZERO differential area!"<< std::endl;
+        }
+        // normal vector n
+        array_1d<double, 3> n = g3 / dA;
+
+        // Get CovariantMetric
+        mGab0[PointNumber][0] = pow(g1[0], 2) + pow(g1[1], 2) + pow(g1[2], 2);
+        mGab0[PointNumber][1] = pow(g2[0], 2) + pow(g2[1], 2) + pow(g2[2], 2);
+        mGab0[PointNumber][2] = g1[0] * g2[0] + g1[1] * g2[1] + g1[2] * g2[2];
+
+        double inverse_determinant_gab = 1.0 / (mGab0[PointNumber][0] * mGab0[PointNumber][1] - mGab0[PointNumber][2] * mGab0[PointNumber][2]);
+
+        array_1d<double, 3> gab_contravariant;
+        gab_contravariant[0] = inverse_determinant_gab*mGab0[PointNumber][1];
+        gab_contravariant[1] = -inverse_determinant_gab*mGab0[PointNumber][2];
+        gab_contravariant[2] = inverse_determinant_gab*mGab0[PointNumber][0];
+
+        array_1d<double, 3> gab_contravariant_1 = g1*gab_contravariant[0] + g2*gab_contravariant[1];
+        array_1d<double, 3> gab_contravariant_2 = g1*gab_contravariant[1] + g2*gab_contravariant[2];
+        
+        // build local cartesian coordinate system
+        double lg1 = norm_2(g1);
+        array_1d<double, 3> e1 = g1 / lg1;
+        double lg_contravariant_2 = norm_2(gab_contravariant_2);
+        array_1d<double, 3> e2 = gab_contravariant_2 / lg_contravariant_2;
+
+        boost::numeric::ublas::bounded_matrix<double, 2, 2> mG;
+        //boost::numeric::ublas::bounded_matrix<double, 2, 3> mG;
+        mG(0, 0) = inner_prod(e1, gab_contravariant_1);
+        mG(0, 1) = inner_prod(e1, gab_contravariant_2);
+        mG(1, 0) = inner_prod(e2, gab_contravariant_1);
+        mG(1, 1) = inner_prod(e2, gab_contravariant_2);
+
+        mG_Vector[PointNumber] = ZeroMatrix(2, 2);
+        // saving the G matrix for this point number
+        noalias(mG_Vector[PointNumber]) = mG;
+
+        // Calculate the reduced mass matrix
+        mDetJ0[PointNumber] = norm_2(g3);
+
+        // Calculating the total area
+        mTotalDomainInitialSize += mDetJ0[PointNumber] * IntegrationWeight;
+
+        // if step =1: in case of anisotropic remeshing: Store initial reference configuration for later use in the prestress modification
+        if(step ==1 && mAnisotropicPrestress == true){
+            mG1_initial = mG1;
+            mG2_initial = mG2;
+        }
+
+    }
+
+    // Initialize Material
+
+    if (mConstitutiveLawVector.size() == 0)
+    {
+        mConstitutiveLawVector.resize(integration_points.size());
+
+        for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
+        {
+            mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+
+            mConstitutiveLawVector[i]->InitializeMaterial(GetProperties(), GetGeometry(), row(GetGeometry().ShapeFunctionsValues(), i));
+        }
+    }
 }
 
 //***********************************************************************************

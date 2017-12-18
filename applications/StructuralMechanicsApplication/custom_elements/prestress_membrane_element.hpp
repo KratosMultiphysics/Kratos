@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/element.h"
-
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -106,6 +106,8 @@ namespace Kratos
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
       std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void UpdateReferenceConfiguration(unsigned int step);
+
 
   protected:
 
@@ -133,10 +135,13 @@ namespace Kratos
     std::vector< Matrix >              mG_Vector;
 
     std::vector< array_1d<double, 3> > mGab0;
-    std::vector< array_1d<double, 3> > mG1;
-    std::vector< array_1d<double, 3> > mG2;
+    std::vector< array_1d<double, 3> > mG1; // Base vector 1 in updated reference configuration
+    std::vector< array_1d<double, 3> > mG2; // Base vector 2 in updated reference configuration
+    unsigned int mStep;
 
     bool mAnisotropicPrestress;             // determines if isotropic or anisotropic prestress is applied
+    std::vector< array_1d<double, 3> > mG1_initial; // Base vector 1 in initial reference configuration
+    std::vector< array_1d<double, 3> > mG2_initial; // Base vector 2 in initial reference configuration
     array_1d<double, 3> mPreStress;         // Pre-Stress which cannot be read through mpda file. this is a temporary solution
 
 
@@ -277,7 +282,7 @@ namespace Kratos
         );
 
 
-    void CalculateTransMatrixToLocalCartesian(
+    /*void CalculateTransMatrixToLocalCartesian(
         unsigned int& PointNumber,
         array_1d<double, 3>& g1,
         array_1d<double, 3>& g2,
@@ -285,8 +290,20 @@ namespace Kratos
         array_1d<double, 3>& gab,
         array_1d<double, 3>& prestress,
         array_1d<double, 3> GlobalPrestressAxis1,
-        array_1d<double, 3> GlobalPrestressAxis2);
+        array_1d<double, 3> GlobalPrestressAxis2);*/
 
+    void TensorTransformation(
+        Matrix& Origin_left,
+        Matrix& Origin_right,
+        Matrix& Target_left,
+        Matrix& Target_right,
+        Matrix& Tensor);
+
+    void TransformPrestress(
+      unsigned int PointNumber,
+      array_1d<double, 3>& rPrestress,
+      array_1d<double, 3>& GlobalPrestressAxis1,
+      array_1d<double, 3>& GlobalPrestressAxis2);
 
     int  Check(const ProcessInfo& rCurrentProcessInfo) override;
 
