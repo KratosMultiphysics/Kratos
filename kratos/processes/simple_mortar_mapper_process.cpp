@@ -92,13 +92,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>:: Execute()
     KRATOS_TRY;
 
     if (mpThisLinearSolver == nullptr)
-    {
         ExecuteExplicitMapping();
-    }
     else
-    {
         ExecuteImplicitMapping();
-    }
     
     KRATOS_CATCH("");
 }
@@ -143,7 +139,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::AssemblyMortar
         {
             PointType global_point;
             SlaveGeometry.GlobalCoordinates(global_point, ConditionsPointSlave[i_geom][i_node]);
-            points_array[i_node] = boost::make_shared<PointType>(global_point);
+            points_array[i_node] = PointType::Pointer( new PointType(global_point) );
         }
         
         DecompType decomp_geom( points_array );
@@ -217,7 +213,7 @@ inline bounded_matrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TD
         {
             PointType global_point;
             SlaveGeometry.GlobalCoordinates(global_point, ConditionsPointsSlave[i_geom][i_node]);
-            points_array[i_node] = boost::make_shared<PointType>(global_point);
+            points_array[i_node] = PointType::Pointer( new PointType(global_point) );
         }
         
         DecompType decomp_geom( points_array );
@@ -248,7 +244,10 @@ inline bounded_matrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TD
         }
     }
     
-    return Ae_data.CalculateAe();
+    bounded_matrix<double, TNumNodes, TNumNodes> Ae;
+    Ae_data.CalculateAe(Ae);
+    
+    return Ae;
 }
 
 /***********************************************************************************/
@@ -260,9 +259,7 @@ inline bounded_matrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TD
     bounded_matrix<double, TNumNodes, TNumNodes> inv_matrix = ZeroMatrix(TNumNodes);
     
     for (std::size_t i = 0; i < TNumNodes; ++i)
-    {
         inv_matrix(i, i) = 1.0/InputMatrix(i, i);
-    }
     
     return inv_matrix;
 }
@@ -279,9 +276,7 @@ inline void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::FastInv
     InvertedMatrix = ZeroMatrix(TNumNodes);
     
     for (std::size_t i = 0; i < TNumNodes; ++i)
-    {
         InvertedMatrix(i, i) = 1.0/InputMatrix(i, i);
-    }
 }
 
 /***********************************************************************************/
@@ -334,8 +329,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::GetSystemSize(
 template< int TDim, int TNumNodes, class TVarType, HistoricalValues THist> 
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::CreateSlaveConectivityDatabase(
     std::size_t& SizeSystem,
-    std::unordered_map<int, int>& ConectivityDatabase,
-    std::unordered_map<int, int>& InverseConectivityDatabase
+    IntMap& ConectivityDatabase,
+    IntMap& InverseConectivityDatabase
     )
 {
     // Initialize the value
@@ -366,18 +361,12 @@ IntegrationMethod SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::G
     const int& integration_order = mThisParameters["integration_order"].GetInt();
     switch ( integration_order )
     {
-        case 1:
-            return GeometryData::GI_GAUSS_1;
-        case 2:
-            return GeometryData::GI_GAUSS_2;
-        case 3:
-            return GeometryData::GI_GAUSS_3;
-        case 4:
-            return GeometryData::GI_GAUSS_4;
-        case 5:
-            return GeometryData::GI_GAUSS_5;
-        default:
-            return GeometryData::GI_GAUSS_2;
+        case 1: return GeometryData::GI_GAUSS_1;
+        case 2: return GeometryData::GI_GAUSS_2;
+        case 3: return GeometryData::GI_GAUSS_3;
+        case 4: return GeometryData::GI_GAUSS_4;
+        case 5: return GeometryData::GI_GAUSS_5;
+        default: return GeometryData::GI_GAUSS_2;
     }
     
     return GeometryData::GI_GAUSS_2;
@@ -392,9 +381,7 @@ bool SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::CheckWholeVect
     bool result = true;
 
     for(std::size_t i = 0; i < VectorToCheck.size(); ++i)
-    {
         if (VectorToCheck[i] == false) return false;
-    }
     
     return result;
 }
@@ -410,17 +397,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ComputeResidua
     const MortarOperator<TNumNodes>& ThisMortarOperators
     )
 {    
-    Matrix var_origin_matrix;
+    const unsigned int size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
+    Matrix var_origin_matrix(TNumNodes, size_to_compute);
     MortarUtilities::MatrixValue<TVarType, THist>(MasterGeometry, mOriginVariable, var_origin_matrix);
-    Matrix var_destination_matrix;
+    Matrix var_destination_matrix(TNumNodes, size_to_compute);
     MortarUtilities::MatrixValue<TVarType, THist>(SlaveGeometry, mDestinationVariable, var_destination_matrix);
     
     const std::size_t size_1 = var_origin_matrix.size1();
     const std::size_t size_2 = var_origin_matrix.size2();
     if (ResidualMatrix.size1() != size_1  || ResidualMatrix.size2() !=  size_2)
-    {
         ResidualMatrix.resize(size_1, size_2, false);
-    }
     
     noalias(ResidualMatrix) = prod(ThisMortarOperators.MOperator, var_origin_matrix) - prod(ThisMortarOperators.DOperator, var_destination_matrix);
 }
@@ -435,7 +421,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::AssembleRHSAnd
     const unsigned int& VariableSize,
     const Matrix& ResidualMatrix,
     GeometryType& SlaveGeometry,
-    std::unordered_map<int, int>& InverseConectivityDatabase,
+    IntMap& InverseConectivityDatabase,
     const MortarOperator<TNumNodes>& ThisMortarOperators
     )
 {
@@ -474,7 +460,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::AssembleRHS(
     const unsigned int& VariableSize,
     const Matrix& ResidualMatrix,
     GeometryType& SlaveGeometry,
-    std::unordered_map<int, int>& InverseConectivityDatabase
+    IntMap& InverseConectivityDatabase
     )
 {
     // First we assemble the RHS
@@ -498,7 +484,10 @@ template< int TDim, int TNumNodes, class TVarType, HistoricalValues THist>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteExplicitMapping()
 {
     KRATOS_TRY;
-
+    
+    // Calculate the mean of the normal in all the nodes
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mrThisModelPart); 
+    
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
     const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
@@ -554,11 +543,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteExplici
                 const array_1d<double, 3>& slave_normal = it_cond->GetValue(NORMAL);
                 GeometryType& slave_geometry = it_cond->GetGeometry();
                 
-                ConditionMap::Pointer& all_conditions_maps = it_cond->GetValue( MAPPING_PAIRS ); // These are the master conditions
+                IndexSet::Pointer& indexes_set = it_cond->GetValue( INDEX_SET ); // These are the master conditions
+                std::vector<std::size_t> indexes_to_remove;
                 
-                for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
+                for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair )
                 {
-                    Condition::Pointer p_cond_master = (it_pair->first); // MASTER
+                    Condition::Pointer p_cond_master = mrThisModelPart.pGetCondition(*it_pair); // MASTER
                     const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
                     GeometryType& master_geometry = p_cond_master->GetGeometry();
                     
@@ -581,7 +571,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteExplici
                         AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal ,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
                         
                         /* We compute the residual */
-                        Matrix residual_matrix;
+                        const unsigned int size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
+                        Matrix residual_matrix(TNumNodes, size_to_compute);
                         ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
                         
                         MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
@@ -594,9 +585,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteExplici
                             const bounded_matrix<double, TNumNodes, TNumNodes> aux_diff = aux_copy_D - this_mortar_operators.DOperator;
                             const double norm_diff = norm_frobenius(aux_diff);
                             if (norm_diff > 1.0e-4) 
-                            {
                                 std::cout << "WARNING: THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
-                            }
                             if (mEchoLevel == 3) 
                             {
                                 KRATOS_WATCH(norm_diff);
@@ -605,14 +594,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteExplici
                         }
                         
                         if (iteration == 0) // Just assembled the first iteration
-                        {
                             for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
-                            {
                                 slave_geometry[i_node].GetValue(NODAL_AREA) += this_mortar_operators.DOperator(i_node, i_node);
-                            }
-                        }
                     }
+                    else
+                        indexes_to_remove.push_back(*it_pair);
                 }
+                
+                // Clear indexes
+                for (unsigned int i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove)
+                    indexes_set->RemoveId(indexes_to_remove[i_to_remove]);
             }
         }
         
@@ -627,7 +618,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteExplici
             auto it_node = nodes_array.begin() + i;
             if (it_node->Is(SLAVE) == !mInvertedPairing)
             {    
-                Node<3>::Pointer pnode = *(it_node.base());
+                NodeType::Pointer pnode = *(it_node.base());
                 MortarUtilities::AddAreaWeightedNodalValue<TVarType, THist>(pnode, mDestinationVariable);
                 for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
                 {   
@@ -652,9 +643,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteExplici
             }
             norm_bi[i_size] = residual_norm[i_size];
             if (mEchoLevel > 0)
-            {
                 std::cout << "Iteration: " << iteration + 1 << "\tRESISUAL::\tABS: " << residual_norm[i_size] << "\tRELATIVE: " << residual_norm[i_size]/norm_b0[i_size] << "\tINCREMENT: " << increment_residual_norm << std::endl;
-            }
         }
         
         iteration += 1;
@@ -670,7 +659,10 @@ template< int TDim, int TNumNodes, class TVarType, HistoricalValues THist>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplicitMapping()
 {
     KRATOS_TRY;
-
+    
+    // Calculate the mean of the normal in all the nodes
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mrThisModelPart); 
+    
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
     const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
@@ -682,7 +674,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
     
     // Creating the assemble database
     std::size_t system_size;
-    std::unordered_map<int, int> conectivity_database, inverse_conectivity_database;
+    IntMap conectivity_database, inverse_conectivity_database;
     CreateSlaveConectivityDatabase(system_size, conectivity_database, inverse_conectivity_database);
     
     // Defining the operators
@@ -690,9 +682,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
     std::vector<bool> is_converged(variable_size, false);
     MatrixType A(system_size, system_size);
     for (std::size_t i = 0; i < system_size; ++i)
-    {
         A.push_back(i, i, 0.0); 
-    }
     const VectorType zero_vector = ZeroVector(system_size);
     std::vector<VectorType> b(variable_size, zero_vector);
     std::vector<double> norm_b0(variable_size, 0.0);
@@ -712,12 +702,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
     {
         // We reset the RHS
         if (iteration > 0)
-        {
             for (unsigned int i_size = 0; i_size < variable_size; ++i_size) 
-            {
                 b[i_size] = zero_vector;
-            }
-        }
             
         // We map the values from one side to the other
         #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
@@ -730,11 +716,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
                 const array_1d<double, 3>& slave_normal = it_cond->GetValue(NORMAL);
                 GeometryType& slave_geometry = it_cond->GetGeometry();
                 
-                ConditionMap::Pointer& all_conditions_maps = it_cond->GetValue( MAPPING_PAIRS ); // These are the master conditions
+                IndexSet::Pointer& indexes_set = it_cond->GetValue( INDEX_SET ); // These are the master conditions
+                std::vector<std::size_t> indexes_to_remove;
                 
-                for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
+                for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair )
                 {
-                    Condition::Pointer p_cond_master = (it_pair->first); // MASTER
+                    Condition::Pointer p_cond_master = mrThisModelPart.pGetCondition(*it_pair); // MASTER
                     const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
                     GeometryType& master_geometry = p_cond_master->GetGeometry();
                     
@@ -756,7 +743,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
                         
                         AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal ,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
                         
-                        Matrix residual_matrix;
+                        /* We compute the residual */
+                        const unsigned int size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
+                        Matrix residual_matrix(TNumNodes, size_to_compute);
                         ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
                         
                         // We check if DOperator is diagonal
@@ -767,9 +756,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
                             const bounded_matrix<double, TNumNodes, TNumNodes> aux_diff = aux_copy_D - this_mortar_operators.DOperator;
                             const double norm_diff = norm_frobenius(aux_diff);
                             if (norm_diff > 1.0e-4) 
-                            {
                                 std::cout << "WARNING: THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
-                            }
                             if (mEchoLevel == 3) 
                             {
                                 KRATOS_WATCH(norm_diff);
@@ -779,15 +766,17 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
                         
                         /* We compute the residual and assemble */
                         if (iteration == 0)
-                        {
                             AssembleRHSAndLHS(A, b, variable_size, residual_matrix, slave_geometry, inverse_conectivity_database, this_mortar_operators);
-                        }
                         else
-                        {
                             AssembleRHS(b, variable_size, residual_matrix, slave_geometry, inverse_conectivity_database);
-                        }
                     }
+                    else
+                        indexes_to_remove.push_back(*it_pair);
                 }
+                
+                // Clear indexes
+                for (unsigned int i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove)
+                    indexes_set->RemoveId(indexes_to_remove[i_to_remove]);
             }
         }
         
@@ -806,9 +795,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
             if (increment_norm/norm_Dx0[i_size] < relative_convergence_tolerance) is_converged[i_size] = true;
             
             if (mEchoLevel > 0)
-            {
                 std::cout << "Iteration: " << iteration + 1 << "\tRESISUAL::\tABS: " << residual_norm << "\tRELATIVE: " << residual_norm/norm_b0[i_size] << "\tINCREMENT::\tABS" << increment_norm << "\tRELATIVE: " << increment_norm/norm_Dx0[i_size] << std::endl;
-            }
         }
         
         iteration += 1;
