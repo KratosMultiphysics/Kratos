@@ -44,3 +44,8 @@ def CheckForPreviousImport():
             print(" to import Kratos. This will soon be OBSOLETED.")
             print(" See the following message for details:\n")
             print(msg)
+
+def CheckImportedApplications(*applications_list):
+    for application in applications_list:
+       if not KratosGlobals.Kernel.IsImported(application):
+           raise Exception("Application {0} was not imported in the main script".format(application))
