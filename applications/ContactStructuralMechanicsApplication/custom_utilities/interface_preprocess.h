@@ -75,7 +75,7 @@ public:
     
     /**
      * This is the default constructor
-     * @param rModelPart: The model part to consider
+     * @param rMainModelPrt The model part to consider
      */
     
     InterfacePreprocessCondition(ModelPart& rMainModelPrt)
@@ -101,7 +101,7 @@ public:
      * @param ThisParameters The configuration parameters
      */
     
-    template< const unsigned int TDim>
+    template<const unsigned int TDim>
     void GenerateInterfacePart(
             ModelPart& rOriginPart,
             ModelPart& rInterfacePart,
@@ -156,19 +156,17 @@ private:
 
     /**
      * Creates a new condition with a giving name
-     * @param rpElem The pointer to the element
+     * @param prThisProperties The pointer to the element
      * @param rGeometry The  geometry considered
      * @param CondId The Id of the condition
-     * @param ConditionName The name of the condition
-     * @param IsMortar If the condition is mortar
+     * @param rCondition The base condition
      */
 
     void CreateNewCondition(
-            Element::Pointer rpElem,
-            Geometry<Node<3> > & rGeometry,
+            Properties::Pointer prThisProperties,
+            GeometryType& rGeometry,
             const unsigned int CondId,
-            const std::string& ConditionName,
-            const bool IsMortar
+            Condition const& rCondition
             );
     
     /**
@@ -192,51 +190,39 @@ private:
     /**
      * This method creates the conditions for the edges
      * @param rInterfacePart The model part of the interface
-     * @param rpElem Pointer to the element
+     * @param prThisProperties The properties of the base element
      * @param EdgeGeometry Geometry considered
-     * @param ConditionName The name of the condition
-     * @param FinalString The last part added to the name condition
      * @param SimplestGeometry If consider or not the simplest geometry
      * @param CondCounter The counter of conditions
      * @param CondId The condition id
-     * @param IsMortar If the condition is mortar
      */
 
     inline void GenerateEdgeCondition(
         ModelPart& rInterfacePart,
-        Element::Pointer rpElem,
+        Properties::Pointer prThisProperties,
         GeometryType& EdgeGeometry,
-        const std::string& ConditionName,
-        const std::string& FinalString,
         const bool SimplestGeometry,
         unsigned int& CondCounter,
-        unsigned int& CondId,
-        const bool IsMortar
+        unsigned int& CondId
         );
     
     /**
      * This method creates the conditions for the faces
      * @param rInterfacePart The model part of the interface
-     * @param rpElem Pointer to the element
+     * @param rThisProperties The properties of the base element
      * @param FaceGeometry Geometry considered
-     * @param ConditionName The name of the condition
-     * @param FinalString The last part added to the name condition
      * @param SimplestGeometry If consider or not the simplest geometry
      * @param CondCounter The counter of conditions
      * @param CondId The condition id
-     * @param IsMortar If the condition is mortar
      */
 
     inline void GenerateFaceCondition(
         ModelPart& rInterfacePart,
-        Element::Pointer rpElem,
+        Properties::Pointer prThisProperties,
         GeometryType& FaceGeometry,
-        const std::string& ConditionName,
-        const std::string& FinalString,
         const bool SimplestGeometry,
         unsigned int& CondCounter,
-        unsigned int& CondId,
-        const bool IsMortar
+        unsigned int& CondId
         );
     
     ///@}
