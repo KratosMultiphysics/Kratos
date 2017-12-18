@@ -574,29 +574,32 @@ public:
             PenaltyParameter[i] = SlaveGeometry[i].GetValue(INITIAL_PENALTY);
         }
         ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
-    }
-    
-    /**
-     * This method reset tos zero the derivatives
-     */
-    
-    virtual void ResetDerivatives()
-    {                
-        // Derivatives 
+        
+        // We initialize the derivatives
         for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
         {
+            DeltaDetjSlave[i] = 0.0;
+            if (TDim == 3) DeltaDetjSlave[i + TNumNodes * TDim] = 0.0;
             DeltaPhi[i] = ZeroVector(TNumNodes);
+            if (TDim == 3) DeltaPhi[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
             DeltaN1[i] = ZeroVector(TNumNodes);
             DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
             DeltaN2[i] = ZeroVector(TNumNodes);
             DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
         }
+    }
     
+    /**
+     * This method reset to zero the cell vertex derivatives
+     */
+    
+    virtual void ResetDerivatives()
+    {                
+        // Derivatives 
         if (TDim == 3) // Derivative of the cell vertex
         {
             for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
             {
-                DeltaPhi[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
                 DeltaCellVertex[i] = ZeroMatrix(3, 3);
                 DeltaCellVertex[i + TNumNodes * TDim] = ZeroMatrix(3, 3);
             }
@@ -624,10 +627,8 @@ public:
      * @param pCond The pointer of the current master
      */
     
-    virtual void UpdateMasterPair(const Condition::Pointer& pCond)
-    {
-        const GeometryType& MasterGeometry =  pCond->GetGeometry();
-        
+    virtual void UpdateMasterPair(const GeometryType& MasterGeometry)
+    {        
         NormalMaster = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL, 0);
         
         // Displacements, coordinates and normals of the master
@@ -779,14 +780,12 @@ public:
     
     /**
      * Updating the Master pair
-     * @param pCond The pointer of the current master
+     * @param MasterGeometry The geometry of the master
      */
     
-    void UpdateMasterPair(const Condition::Pointer& pCond) override
+    void UpdateMasterPair(const GeometryType& MasterGeometry) override
     {
-        BaseClassType::UpdateMasterPair(pCond);
-        
-        const GeometryType& MasterGeometry = pCond->GetGeometry();
+        BaseClassType::UpdateMasterPair(MasterGeometry);
         
         u2old = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
     }
@@ -1350,7 +1349,7 @@ public:
      * Calculates the matrix Ae. To avoid problems in the inversion the matrix is normalized
      * Popp thesis page 70. Equation 3.65
      */
-    bounded_matrix<double, TNumNodes, TNumNodes> CalculateAe()
+    bool CalculateAe(bounded_matrix<double, TNumNodes, TNumNodes>& Ae)
     {        
         const double tolerance = std::numeric_limits<double>::epsilon(); 
         
@@ -1364,9 +1363,10 @@ public:
         double aux_det = MathUtils<double>::DetMat<bounded_matrix<double, TNumNodes, TNumNodes>>(normalized_Me); 
         if (std::abs(aux_det) >= tolerance) 
         { 
-            const bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);  
+            const bounded_matrix<double, TNumNodes, TNumNodes>& normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);  
              
-            return (1.0/norm_me) * prod(De, normalized_inv_Me); 
+            noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me); 
+            return true;
         } 
     #ifdef KRATOS_DEBUG
         else
@@ -1376,7 +1376,8 @@ public:
         }
     #endif
         
-        return IdentityMatrix(TNumNodes);  
+        noalias(Ae) = IdentityMatrix(TNumNodes);  
+        return false;
     }   
     
     /**
