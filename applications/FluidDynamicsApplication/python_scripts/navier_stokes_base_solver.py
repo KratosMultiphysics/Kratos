@@ -2,11 +2,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
-# Check that KratosMultiphysics and applications were imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-KratosMultiphysics.CheckImportedApplications(["FluidDynamicsApplication"])
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckImportedApplications("FluidDynamicsApplication")
+
+# Import applications
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 def CreateSolver(main_model_part, custom_settings):
     return NavierStokesBaseSolver(main_model_part, custom_settings)
