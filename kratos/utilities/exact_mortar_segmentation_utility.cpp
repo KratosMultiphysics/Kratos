@@ -798,14 +798,23 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong> 
-double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGetExactAreaIntegration(Condition::Pointer& SlaveCond){ 
+template< unsigned int TDim, unsigned int TNumNodes, bool TBelong>
+double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGetExactAreaIntegration(
+    ModelPart& rMainModelPart,
+    Condition::Pointer& SlaveCond
+    )
+{        
     // Initalize values
     double area = 0.0;
-    ConditionMap::Pointer& all_conditions_maps = SlaveCond->GetValue(MAPPING_PAIRS); 
- 
-    for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair)
-        GetExactAreaIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), (it_pair->first)->GetGeometry(), (it_pair->first)->GetValue(NORMAL), area); 
+    IndexSet::Pointer indexes_set = SlaveCond->GetValue( INDEX_SET );
+    
+    for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair )
+    {        
+        double local_area = 0.0;
+        Condition::Pointer p_master_cond = rMainModelPart.pGetCondition(*it_pair);
+        const bool is_inside = GetExactAreaIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), p_master_cond->GetGeometry(), p_master_cond->GetValue(NORMAL), local_area);
+        if (is_inside) area += local_area;
+    }
     
     return area;
 }

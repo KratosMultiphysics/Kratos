@@ -216,7 +216,10 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
      * @return The total area integrated
      */
     
-    double TestGetExactAreaIntegration(Condition::Pointer& SlaveCond); 
+    double TestGetExactAreaIntegration(    
+        ModelPart& rMainModelPart,
+        Condition::Pointer& SlaveCond
+        );
     
     /**
     * This method is used for debugging purposes
