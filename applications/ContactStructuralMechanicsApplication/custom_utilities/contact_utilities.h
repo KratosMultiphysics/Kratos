@@ -118,7 +118,7 @@ public:
     {
         // Time constants 
         const double velocity_constant = HalfJump ? 0.25 : 0.5;     
-        const double acceleration_constant = HalfJump ? 0.125 : 0.25;
+        const double acceleration_constant = HalfJump ? 0.125 : 0.5;
         
         // Iterate over the nodes
         NodesArrayType& nodes_array = rThisModelPart.Nodes();
