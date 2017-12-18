@@ -189,7 +189,8 @@ public:
                                             bool has_rotation,
                                             ElementsContainerType& array_of_injector_elements,
                                             int& number_of_added_spheres,
-                                            const bool mStrategyForContinuum);
+                                            const bool mStrategyForContinuum,
+                                            std::vector<SphericParticle*>& new_component_spheres);
     
     
     void NodeCreatorForClusters(ModelPart& r_modelpart, 

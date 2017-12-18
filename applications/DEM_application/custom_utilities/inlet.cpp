@@ -547,6 +547,7 @@ namespace Kratos {
                     else {
                         
                         int number_of_added_spheres = 0;
+                        std::vector<SphericParticle*> new_component_spheres;
                         Cluster3D* p_cluster = creator.ClusterCreatorWithPhysicalParameters(r_modelpart,
                                                                                             r_clusters_modelpart,
                                                                                             max_Id+1,
@@ -562,11 +563,23 @@ namespace Kratos {
                                                                                             mBallsModelPartHasRotation,
                                                                                             smp_it->Elements(),
                                                                                             number_of_added_spheres,
-                                                                                            mStrategyForContinuum);
+                                                                                            mStrategyForContinuum,
+                                                                                            new_component_spheres);
                                                
                         max_Id += number_of_added_spheres;
-                        mOriginInletSubmodelPartIndexes[p_cluster->Id()] = smp_it->Name();
-                        UpdateInjectedParticleVelocity(*p_cluster, *p_injector_element);
+                        if (p_cluster) {
+                            mOriginInletSubmodelPartIndexes[p_cluster->Id()] = smp_it->Name();
+                            UpdateInjectedParticleVelocity(*p_cluster, *p_injector_element);
+                        } 
+                        
+                        else {
+                            KRATOS_WATCH(new_component_spheres.size())
+                            for (unsigned int i = 0; i < new_component_spheres.size(); ++i) {
+                                mOriginInletSubmodelPartIndexes[new_component_spheres[i]->Id()] = smp_it->Name();
+                                UpdateInjectedParticleVelocity(*new_component_spheres[i], *p_injector_element);
+                                
+                            }
+                        } 
                     }
 
                     valid_elements[random_pos]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 

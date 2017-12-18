@@ -526,7 +526,8 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                                                                          bool has_rotation,
                                                                          ElementsContainerType& array_of_injector_elements,
                                                                          int& number_of_added_spheres,
-                                                                         const bool continuum_strategy) {
+                                                                         const bool continuum_strategy,
+                                                                         std::vector<SphericParticle*>& new_component_spheres) {
         KRATOS_TRY
 
         ProcessInfo& r_process_info = r_spheres_modelpart.GetProcessInfo();
@@ -585,7 +586,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         SphericParticle* injector_spheric_particle = dynamic_cast<SphericParticle*> (injector_element.get());
 
-    if (has_rotation) p_cluster->Set(DEMFlags::HAS_ROTATION, true);
+        if (has_rotation) p_cluster->Set(DEMFlags::HAS_ROTATION, true);
         else p_cluster->Set(DEMFlags::HAS_ROTATION, false);
 
         if (!is_breakable) {
@@ -620,12 +621,22 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             spheric_p_particle->Set(NEW_ENTITY);
             spheric_p_particle->GetGeometry()[0].Set(NEW_ENTITY);
             spheric_p_particle->SetFastProperties(p_fast_properties);
+            
+            if (is_breakable) {
+                
+                new_component_spheres.push_back(spheric_p_particle);
+            }
         }
 
         p_cluster->Set(NEW_ENTITY);
         pnew_node->Set(NEW_ENTITY);
-
-        return p_cluster;
+        
+        if (!is_breakable) {
+            return p_cluster;
+        } else {
+            return NULL;
+        }
+        
         KRATOS_CATCH("")
     }
 
