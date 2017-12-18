@@ -34,7 +34,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             "contact_settings" :
             {
                 "mortar_type"                            : "",
-                "contact_tolerance"                      : 0.0e0,
                 "condn_convergence_criterion"            : false,
                 "fancy_convergence_criterion"            : true,
                 "print_convergence_criterion"            : false,
@@ -75,16 +74,15 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         super().AddVariables()
             
         if  self.contact_settings["mortar_type"].GetString() != "":
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)                                           # Add normal
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)  # Add normal
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H) # Add nodal size variable
             if  self.contact_settings["mortar_type"].GetString() == "ALMContactFrictionless":
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)                        # Add normal contact stress
                 self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)              # Add normal contact gap
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)                                      # Add nodal size variable
             elif self.contact_settings["mortar_type"].GetString() == "ALMContactFrictional": 
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)                   # Add normal contact stress 
                 self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)              # Add normal contact gap 
                 self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_SLIP)             # Add normal contact gap 
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)                                      # Add nodal size variable 
             elif  self.contact_settings["mortar_type"].GetString() == "ScalarMeshTying":
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER)                   # Add scalar LM
                 self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL)  # Add scalar LM residual
@@ -134,7 +132,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         conv_params.AddValue("contact_residual_relative_tolerance",self.contact_settings["contact_residual_relative_tolerance"])
         conv_params.AddValue("contact_residual_absolute_tolerance",self.contact_settings["contact_residual_absolute_tolerance"])
         conv_params.AddValue("mortar_type",self.contact_settings["mortar_type"])
-        conv_params.AddValue("contact_tolerance",self.contact_settings["contact_tolerance"])
         conv_params.AddValue("condn_convergence_criterion",self.contact_settings["condn_convergence_criterion"])
         conv_params.AddValue("fancy_convergence_criterion",self.contact_settings["fancy_convergence_criterion"])
         conv_params.AddValue("print_convergence_criterion",self.contact_settings["print_convergence_criterion"])
