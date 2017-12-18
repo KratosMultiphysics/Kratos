@@ -64,9 +64,12 @@ class TestMortarMapping(KratosUnittest.TestCase):
             
         Preprocess = ContactStructuralMechanicsApplication.InterfacePreprocessCondition(self.main_model_part)
 
-        interface_parameters = KratosMultiphysics.Parameters("""{"condition_name": "", "final_string": "", "simplify_geometry": false}""")
-        interface_parameters["condition_name"].SetString("ALMFrictionlessMortarContact")
+        interface_parameters = KratosMultiphysics.Parameters("""{"simplify_geometry": false}""")
         Preprocess.GenerateInterfacePart3D(self.main_model_part, self.mapping_model_part, interface_parameters)
+            
+        # We compute NODAL_H that can be used in the search and some values computation
+        find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.mapping_model_part)
+        find_nodal_h.Execute()
             
         # We copy the conditions to the ContactSubModelPart
         for cond in self.mapping_model_part.Conditions:
@@ -84,11 +87,14 @@ class TestMortarMapping(KratosUnittest.TestCase):
         {
             "search_factor"               : 3.5,
             "allocation_size"             : 1000,
-            "type_search"                 : "InRadius",
-            "use_exact_integration"       : true
+            "check_gap"                   : "NoCheck",
+            "type_search"                 : "InRadius"
         }
         """)
-        contact_search = ContactStructuralMechanicsApplication.TreeContactSearch(self.main_model_part, search_parameters)
+        if (num_nodes == 3):
+            contact_search = ContactStructuralMechanicsApplication.TreeContactSearch3D3N(self.main_model_part, search_parameters)
+        else:
+            contact_search = ContactStructuralMechanicsApplication.TreeContactSearch3D4N(self.main_model_part, search_parameters)
         
         # We initialize the search utility
         contact_search.CreatePointListMortar()
@@ -140,7 +146,7 @@ class TestMortarMapping(KratosUnittest.TestCase):
         self.mortar_mapping_double.Execute()
         self.mortar_mapping_vector.Execute()
         
-        ## DEBUG
+        ### DEBUG
         #self.__post_process()
         
         import from_json_check_result_process
@@ -221,7 +227,7 @@ class TestMortarMapping(KratosUnittest.TestCase):
                                                     "MultiFileFlag": "SingleFile"
                                                 },        
                                                 "nodal_results"       : ["DISPLACEMENT","NORMAL","TEMPERATURE"],
-                                                "nodal_nonhistorical_results": ["NODAL_AREA"],
+                                                "nodal_nonhistorical_results": ["NODAL_AREA","NODAL_MAUX","NODAL_VAUX"],
                                                 "nodal_flags_results": ["MASTER","SLAVE"]
                                             }
                                         }
