@@ -95,6 +95,8 @@ void ALMVariablesCalculationProcess::Execute()
     const double penalty_parameter_master = mFactorStiffness * mean_young_modulus_master/(mean_nodal_h_master + 1.0e-12);
     const double scale_factor_master   = mPenaltyScale * mFactorStiffness * mean_young_modulus_master/(mean_nodal_h_master + 1.0e-12); 
     
+    std::cout << "The potential parameters for penalty and scale factor are: \n" << "PENALTY SLAVE:\t" << penalty_parameter_slave << "\tPENALTY MASTER:\t" << penalty_parameter_master << "\nSCALE FACTOR SLAVE:\t" << scale_factor_slave << "\tPSCALE FACTOR MASTER:\t" << scale_factor_master << std::endl;
+    
     mrThisModelPart.GetProcessInfo()[INITIAL_PENALTY] = (penalty_parameter_slave > penalty_parameter_master) ? penalty_parameter_slave : penalty_parameter_master; // NOTE: > or <? , we are supposed to take the largest of the values (more stiff)
     mrThisModelPart.GetProcessInfo()[SCALE_FACTOR] = (scale_factor_slave > scale_factor_master) ? scale_factor_slave : scale_factor_master;
     
