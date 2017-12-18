@@ -1274,7 +1274,7 @@ void PrestressMembraneElement::TransformPrestress(
 
     // Compute local Cartesian Basis
     array_1d<double, 3> E2;
-    CrossProduct(E2,G1,G3);
+    CrossProduct(E2,G3,G1);
     E2 /= norm_2(E2);
 
     // Transform to matrix
@@ -1299,13 +1299,11 @@ void PrestressMembraneElement::TransformPrestress(
     Tensor(2,0) = 0;
     Tensor(1,2) = 0;
     Tensor(2,1) = 0;
-    Tensor(2,2) = 0;
-    //Tensor(2,2) = 1;
-    
+    Tensor(2,2) = 0;    
     
     // Transformation Stress Tensor
     TensorTransformation(Origin,Origin,Target,Target,Tensor);
-    std::cout<<Tensor<<std::endl;
+    
     // set transformed stress
     rPrestress(0) = Tensor(0,0);
     rPrestress(1) = Tensor(1,1);
@@ -1329,9 +1327,8 @@ void PrestressMembraneElement::TensorTransformation(
     Matrix Target_left_dual = Matrix(3,3,0);
     Matrix Target_right_dual = Matrix(3,3,0);
 
+    // metric computation
     for(int i=0;i<3;i++){
-        Vector Target_left_dual_i = Vector(3,0);
-        Vector Target_right_dual_i = Vector(3,0);
         for(int j=0;j<3;j++){
             Vector Target_left_i, Target_left_j;
             Vector Target_right_i, Target_right_j;
@@ -1340,7 +1337,6 @@ void PrestressMembraneElement::TensorTransformation(
             UblasSpace<double,Matrix,Vector>::GetColumn(i,Target_right,Target_right_i);
             UblasSpace<double,Matrix,Vector>::GetColumn(j,Target_right,Target_right_j);
 
-            // metric computation
             metric_left(i,j) += inner_prod(Target_left_i, Target_left_j);
             metric_right(i,j) += inner_prod(Target_right_i, Target_right_j);
         }        
@@ -1352,33 +1348,27 @@ void PrestressMembraneElement::TensorTransformation(
     Matrix inv_metric_right = Matrix(3,3,0);
     MathUtils<double>::InvertMatrix(metric_left,inv_metric_left,det);
     MathUtils<double>::InvertMatrix(metric_right,inv_metric_right,det);
+
+    // Compute dual target base vectors
     for(int i=0;i<3;i++){
         Vector Target_left_dual_i = Vector(3,0);
         Vector Target_right_dual_i = Vector(3,0);
         for(int j=0;j<3;j++){
-            Vector Target_left_i, Target_left_j;
-            Vector Target_right_i, Target_right_j;
-            UblasSpace<double,Matrix,Vector>::GetColumn(i,Target_left,Target_left_i);
+            Vector Target_left_j;
+            Vector Target_right_j;
+
             UblasSpace<double,Matrix,Vector>::GetColumn(j,Target_left,Target_left_j);
-            UblasSpace<double,Matrix,Vector>::GetColumn(i,Target_right,Target_right_i);
             UblasSpace<double,Matrix,Vector>::GetColumn(j,Target_right,Target_right_j);
             
             // transformation target coordinate system to dual basis
             Target_left_dual_i += inv_metric_left(i,j)*Target_left_j;
             Target_right_dual_i += inv_metric_right(i,j)*Target_right_j;
-        }
-        
-        std::cout<<Target_left_dual_i<<std::endl;
-        //UblasSpace<double,Matrix,Vector>::SetColumn(i,Target_left_dual,Target_left_dual_i);
-        //UblasSpace<double,Matrix,Vector>::SetColumn(i,Target_right_dual,Target_right_dual_i);
-        row(Target_left_dual,i) = Target_left_dual_i;
-        row(Target_right_dual,i) = Target_right_dual_i;
-        
-        
+        }        
+        column(Target_left_dual,i) = Target_left_dual_i;
+        column(Target_right_dual,i) = Target_right_dual_i;
     }
-    
-    
-    // Compute tensor transformation
+
+    // Tensor transformation
     Matrix transformed_tensor = Matrix(3,3,0);
     for(int k=0;k<3;k++){
         for(int l=0;l<3;l++){
