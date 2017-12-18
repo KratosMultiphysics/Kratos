@@ -60,7 +60,7 @@ namespace Kratos
 //Kratos::Variable<double> SOLIDIF_MODULUS_US( "SOLIDIF MODULUS (in)" );
 //Kratos::Variable<double> TEMPERATURES_US( "TEMPERATURES (F)" );
 
-KratosThermoMechanicalApplication::KratosThermoMechanicalApplication():
+KratosThermoMechanicalApplication::KratosThermoMechanicalApplication("ThermoMechanicalApplication"):
 // 		mElem2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
 /*		mMonolithic2DNeumann(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),*/
     mHeatContact2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
