@@ -136,6 +136,7 @@ def GetDefaultInputParameters():
             "print_MEAN_HYDRODYNAMIC_REACTION_option"    : false,
             "print_VELOCITY_LAPLACIAN_option"            : false,
             "print_VELOCITY_LAPLACIAN_RATE_option"       : false,
+            "BINGHAM_FLUID_option"                       : true,
 
             "PredefinedSkinOption"             : false,
             "MeanRadius"                       : 0.0001

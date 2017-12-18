@@ -217,6 +217,7 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("angular_acceleration_of_frame_X").SetDouble(0.0)
         self.pp.CFD_DEM.AddEmptyValue("angular_acceleration_of_frame_Y").SetDouble(0.0)
         self.pp.CFD_DEM.AddEmptyValue("angular_acceleration_of_frame_Z").SetDouble(0.0)
+        self.pp.CFD_DEM.AddEmptyValue("BINGHAM_FLUID_option").SetBool(False)
         self.pp.CFD_DEM.print_DISPERSE_FRACTION_option = False
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
         self.pp.CFD_DEM.PostCationConcentration = False
@@ -549,6 +550,17 @@ class Algorithm(object):
                     Say("Assessing Stationarity...\n")
                     self.stationarity = self.stationarity_tool.Assess(self.fluid_model_part)
                     self.stationarity_counter.Deactivate(self.stationarity)
+
+            imposed_bbcc_pressure = False
+            
+            if imposed_bbcc_pressure:
+                for node in self.fluid_model_part.Nodes:
+                    if node.X < 0.001:
+                        node.SetSolutionStepValue(PRESSURE, 3000.0)
+                        node.Fix(PRESSURE)
+                    if node.X > 5.999:
+                        node.SetSolutionStepValue(PRESSURE, 0.0)
+                        node.Fix(PRESSURE)
 
             # printing if required
 
