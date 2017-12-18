@@ -187,8 +187,8 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
                                                     "WriteConditionsFlag": "WriteConditionsOnly",
                                                     "MultiFileFlag": "SingleFile"
                                                 },        
-                                                "nodal_results"       : ["DISPLACEMENT","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
-                                                "nodal_nonhistorical_results": ["NORMAL","AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+                                                "nodal_results"       : ["DISPLACEMENT","NORMAL","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
+                                                "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
                                                 "nodal_flags_results": ["ACTIVE","SLAVE"]
                                             }
                                         }

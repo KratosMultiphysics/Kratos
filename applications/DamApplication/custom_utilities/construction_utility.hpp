@@ -78,8 +78,8 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
-        const unsigned int nnodes = mrMechanicalModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
+        const int nnodes = mrMechanicalModelPart.GetMesh(mMeshId).Nodes().size();
 
         mMechanicalLastCondition = mrMechanicalModelPart.GetMesh(mMeshId).Conditions().size();
         mThermalLastCondition = mrThermalModelPart.GetMesh(mMeshId).Conditions().size();
@@ -111,8 +111,8 @@ class ConstructionUtility
         }
 
         // Activation of the soil ( User must specify the soil part through the interface)
-        const unsigned int soil_nelements = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Elements().size();
-        const unsigned int soil_nnodes = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Nodes().size();
+        const int soil_nelements = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Elements().size();
+        const int soil_nnodes = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Nodes().size();
 
         if (soil_nelements != 0)
         {
@@ -175,7 +175,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
+        const int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
         int direction;
         if (mGravityDirection == "X")
             direction = 0;
@@ -217,7 +217,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
+        const int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
         int direction;
 
         if (mGravityDirection == "X")
@@ -266,7 +266,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nelements = mrThermalModelPart.GetMesh(mMeshId).Elements().size();
+        const int nelements = mrThermalModelPart.GetMesh(mMeshId).Elements().size();
         const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE];
         std::vector<std::size_t> ConditionNodeIds(Dim);
         if (mNumNode == 8)
@@ -363,7 +363,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
+        const int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
         const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE];
         std::vector<std::size_t> ConditionNodeIds(Dim);
         if (mNumNode == 8)
@@ -472,7 +472,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nnodes = mrThermalModelPart.Nodes().size();
+        const int nnodes = mrThermalModelPart.Nodes().size();
 
         // Getting Noorzai Values
         double density = NoorzaiParameters["density"].GetDouble();
@@ -507,7 +507,7 @@ class ConstructionUtility
 
         if (mAging == false)
         {
-            const unsigned int nnodes = mrThermalModelPart.Nodes().size();
+            const int nnodes = mrThermalModelPart.Nodes().size();
 
             // Getting Azenha Values
             double activation_energy = AzenhaParameters["activation_energy"].GetDouble();
@@ -591,7 +591,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nnodes = mrThermalModelPart.Nodes().size();
+        const int nnodes = mrThermalModelPart.Nodes().size();
 
         // Getting Azenha Values
         double activation_energy = AzenhaParameters["activation_energy"].GetDouble();

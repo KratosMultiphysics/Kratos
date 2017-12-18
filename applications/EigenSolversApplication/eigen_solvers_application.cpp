@@ -19,7 +19,7 @@
 
 namespace Kratos
 {
-KratosEigenSolversApplication::KratosEigenSolversApplication() {}
+KratosEigenSolversApplication::KratosEigenSolversApplication() : KratosApplication("EigenSolversApplication") {}
 
 void KratosEigenSolversApplication::Register()
 {

@@ -35,10 +35,6 @@ template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR(Kratos::Flags::Create(0));
 template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX(Kratos::Flags::Create(1));
-template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
-const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS(Kratos::Flags::Create(2));
-template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
-const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS(Kratos::Flags::Create(3));
 
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
@@ -69,8 +65,7 @@ Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Create(
 
 template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::~MeshTyingMortarCondition( )
-{
-}
+= default;
 
 //************************** STARTING - ENDING  METHODS ***************************//
 /***********************************************************************************/
@@ -85,71 +80,72 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
 //     mThisSlaveElement = this->GetValue(ELEMENT_POINTER);
     
     // Populate of the vector of master elements (it is supposed to be constant)    
-    ConditionMap::Pointer& AllConditionMaps = this->GetValue( MAPPING_PAIRS );
+    ConditionMap::Pointer& all_conditions_maps = this->GetValue( MAPPING_PAIRS );
     
     mIntegrationOrder = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
-    IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
+    IntegrationMethod this_integration_method = GetIntegrationMethod();
     
     mPairSize = 0;
-    ExactMortarIntegrationUtility<TDim, NumNodes> IntUtil = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
+    mIntegrationPointsVector.clear();
+    ExactMortarIntegrationUtility<TDim, NumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
     
     // Create and initialize condition variables:
     GeneralVariables rVariables;
     
-    for (auto itPair = AllConditionMaps->begin(); itPair != AllConditionMaps->end(); ++itPair )
+    for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
     {
-        Condition::Pointer pCond = *(itPair);
+        Condition::Pointer pCond = (it_pair->first);
         
         // Reading integration points
-        ConditionArrayListType ConditionsPointsSlave;
-        const bool IsInside = IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), pCond->GetGeometry(), pCond->GetValue(NORMAL), ConditionsPointsSlave);
+        ConditionArrayListType conditions_points_slave;
+        const bool is_inside = integration_utility.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), pCond->GetGeometry(), pCond->GetValue(NORMAL), conditions_points_slave);
         
-        if (IsInside == true)
+        if (is_inside == true)
         {
-            GeometryType::IntegrationPointsArrayType AllIntegrationPointsSlave;
+            GeometryType::IntegrationPointsArrayType all_integration_points_slave;
             
-            for (unsigned int i_geom = 0; i_geom < ConditionsPointsSlave.size(); i_geom++)
+            for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
             {
-                std::vector<PointType::Pointer> PointsArray (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+                std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
                 for (unsigned int i_node = 0; i_node < TDim; i_node++)
                 {
-                    PointType GlobalPoint;
-                    GetGeometry().GlobalCoordinates(GlobalPoint, ConditionsPointsSlave[i_geom][i_node]);
-                    PointsArray[i_node] = boost::make_shared<PointType>(GlobalPoint);
+                    PointType global_point;
+                    GetGeometry().GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                    points_array[i_node] = boost::make_shared<PointType>(global_point);
                 }
                 
-                DecompositionType DecompGeom( PointsArray );
+                DecompositionType decomp_geom( points_array );
                 
-                const bool BadShape = (TDim == 2) ? false : MortarUtilities::HeronCheck(DecompGeom);
+                const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
                 
-                if (BadShape == false)
+                if (bad_shape == false)
                 {
-                    const GeometryType::IntegrationPointsArrayType& IntegrationPointsSlave = DecompGeom.IntegrationPoints( ThisIntegrationMethod );
+                    const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
                     
                     // Integrating the mortar operators
-                    for ( unsigned int PointNumber = 0; PointNumber < IntegrationPointsSlave.size(); PointNumber++ )
+                    for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
                     {
-                        const double Weight = IntegrationPointsSlave[PointNumber].Weight();
-                        const PointType LocalPointDecomp = IntegrationPointsSlave[PointNumber].Coordinates();
-                        PointType LocalPointParent;
-                        PointType GPGlobal;
-                        DecompGeom.GlobalCoordinates(GPGlobal, LocalPointDecomp);
-                        GetGeometry().PointLocalCoordinates(LocalPointParent, GPGlobal);
+                        const double weight = integration_points_slave[point_number].Weight();
+                        const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                        PointType local_point_parent;
+                        PointType gp_global;
+                        decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
+                        GetGeometry().PointLocalCoordinates(local_point_parent, gp_global);
                         
-                        const double DetJ = DecompGeom.DeterminantOfJacobian( LocalPointDecomp );
+                        const double DetJ = decomp_geom.DeterminantOfJacobian( local_point_decomp );
                         
-                        AllIntegrationPointsSlave.push_back( IntegrationPointType( LocalPointParent.Coordinate(1), LocalPointParent.Coordinate(2), Weight * DetJ ));
+                        all_integration_points_slave.push_back( IntegrationPointType( local_point_parent.Coordinate(1), local_point_parent.Coordinate(2), weight * DetJ ));
                     }
                 }
             }
  
-            if (AllIntegrationPointsSlave.size() > 0)
+            if (all_integration_points_slave.size() > 0)
             {
                 mPairSize += 1;
                 mThisMasterConditions.push_back(pCond);
-                mIntegrationPointsVector.push_back(AllIntegrationPointsSlave);
-//                 mIntegrationPointsVector.push_back(IntegrationPointsSlave);
+                mIntegrationPointsVector.push_back(all_integration_points_slave);
+//                 mIntegrationPointsVector.push_back(integration_points_slave);
 //                 mThisMasterElements.push_back(pCond->GetValue(ELEMENT_POINTER));
             }
         }
@@ -227,20 +223,20 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::FinalizeNonLinearIter
 //     // DoF of the slave       // TODO: Add the values of the elements
 //     if (TTensor == ScalarValue)
 //     {
-//         for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
+//         for (unsigned int i_node = 0; i_node < NumNodes; i_node++)
 //         {
-//             const double var  = SlaveGeometry[iNode].FastGetSolutionStepValue(mTyingVarScalar);
-//             u1(iNode, 0) = var;
+//             const double var  = SlaveGeometry[i_node].FastGetSolutionStepValue(mTyingVarScalar);
+//             u1(i_node, 0) = var;
 //         }
 //     }
 //     else
 //     {
-//         for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
+//         for (unsigned int i_node = 0; i_node < NumNodes; i_node++)
 //         {
 //             for (unsigned int iDof = 0; iDof < TDim; iDof++)
 //             {
-//                 const double var = SlaveGeometry[iNode].FastGetSolutionStepValue(mTyingVarVector[iDof]);
-//                 u1(iNode, iDof) = var;
+//                 const double var = SlaveGeometry[i_node].FastGetSolutionStepValue(mTyingVarVector[iDof]);
+//                 u1(i_node, iDof) = var;
 //             }
 //         }
 //     }
@@ -271,10 +267,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateLocalSystem(
 {    
     // Create local system components
     LocalSystemComponents LocalSystem;
-
-    // Calculation flags
-    LocalSystem.CalculationFlags.Set(MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true);
-    LocalSystem.CalculationFlags.Set(MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true);
 
     //Initialize sizes for the system components
     if ( rLHSVariables.size( ) != rLeftHandSideMatrices.size( ) )
@@ -389,7 +381,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateLeftHandSide
 
     // Calculation flags
     LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX, true );
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true );
 
     VectorType RightHandSideVector = Vector( );
 
@@ -445,10 +436,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateRightHandSid
 {
     // Create local system components
     LocalSystemComponents LocalSystem;
-
-    // Calculation flags
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR, true );
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true );
 
     MatrixType LeftHandSideMatrix = Matrix( );
 
@@ -564,99 +551,96 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
                                             
     // Initialize the DoF data
     this->InitializeDofData(rDofData, rCurrentProcessInfo);
-    
-    // Compute Ae and its derivative
-    this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo); 
-    
+  
 //     // We calculate the Equation ID, LHS and RHS of the slave parent element
-//     boost::numeric::ublas::bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution;
+//     bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution;
 //     array_1d<double, DimensionLocalElem> RHS_SlaveElem_Contribution;
 //     Element::EquationIdVectorType& EquationIdSlaveElem;
 //     
 //     (mThisSlaveElement) -> EquationIdVector(EquationIdSlaveElem, rCurrentProcessInfo);
 //     
-//     if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX ) ||
-//                 rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+//     if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX ) )
 //     {
 //         // We calculate the contributions of the local elements
 //         (mThisSlaveElement) -> CalculateLeftHandSide(LHS_SlaveElem_Contribution,rCurrentProcessInfo);
 //     }
-//     if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR ) ||
-//             rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+//     if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR ) )
 //     {
 //         // We calculate the contributions of the local elements
 //         (mThisSlaveElement) -> CalculateRightHandSide(RHS_SlaveElem_Contribution,rCurrentProcessInfo);
 //     }
     
     // Iterate over the master segments
-//     ExactMortarIntegrationUtility<TDim, NumNodes> IntUtil = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
-    for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
+//     ExactMortarIntegrationUtility<TDim, NumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
+    
+    for (unsigned int pair_index = 0; pair_index < mPairSize; ++pair_index)
     {
+        // Compute Ae 
+        this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo, pair_index); 
+    
         // The normal of the master condition
-        const array_1d<double, 3> MasterNormal = mThisMasterConditions[PairIndex]->GetValue(NORMAL);
+        const array_1d<double, 3>& master_normal = mThisMasterConditions[pair_index]->GetValue(NORMAL);
         
         // Initialize general variables for the current master element
-        this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
+        rVariables.Initialize();
         
         // Update master pair info
-        rDofData.UpdateMasterPair(mThisMasterConditions[PairIndex]);
+        rDofData.UpdateMasterPair(mThisMasterConditions[pair_index]);
         
         // Initialize the mortar operators
         rThisMortarConditionMatrices.Initialize();
         
         // Get the integration points
-        const IntegrationPointsType IntegrationPointsSlave = mIntegrationPointsVector[PairIndex];
-//         IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[PairIndex]->GetGeometry(), mThisMasterConditions[PairIndex]->GetValue(NORMAL), IntegrationPointsSlave);
+        const IntegrationPointsType integration_points_slave = mIntegrationPointsVector[pair_index];
+//         integration_utility.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[pair_index]->GetGeometry(), mThisMasterConditions[pair_index]->GetValue(NORMAL), integration_points_slave);
         
-        const unsigned int NumberOfIntegrationPoints = IntegrationPointsSlave.size();
+        const unsigned int number_of_integration_points = integration_points_slave.size();
         
         // Integrating the mortar operators
-        for ( unsigned int PointNumber = 0; PointNumber < NumberOfIntegrationPoints; PointNumber++ )
+        for ( unsigned int point_number = 0; point_number < number_of_integration_points; point_number++ )
         {            
             // Calculate the kinematic variables
-            this->CalculateKinematics( rVariables, rDofData, MasterNormal, PointNumber, IntegrationPointsSlave );
+            this->CalculateKinematics( rVariables, rDofData, master_normal, point_number, integration_points_slave, pair_index );
             
-            this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, IntegrationPointsSlave[PointNumber].Weight());
+            rThisMortarConditionMatrices.CalculateMortarOperators(rVariables, integration_points_slave[point_number].Weight());
         }
                 
-        if (NumberOfIntegrationPoints > 0)
+        if (number_of_integration_points > 0)
         {
 //             // Debug
 //             std::cout << "--------------------------------------------------" << std::endl;
 //             KRATOS_WATCH(this->Id());
-//             KRATOS_WATCH(PairIndex);
+//             KRATOS_WATCH(pair_index);
 //             rThisMortarConditionMatrices.print();
             
             // Assemble of the matrix is required
-            if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX ) ||
-                    rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+            if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX ) )
             {        
                 // Calculate the local contribution
-                const boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, PairIndex, rCurrentProcessInfo);
-    //             const boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, LHS_SlaveElem_Contribution, EquationIdSlaveElem, PairIndex, rCurrentProcessInfo);
+                const bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, pair_index, rCurrentProcessInfo);
+    //             const bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, LHS_SlaveElem_Contribution, EquationIdSlaveElem, pair_index, rCurrentProcessInfo);
                 
 //                 // Debug
 // //                 KRATOS_WATCH(LHS_contact_pair);
 //                 LOG_MATRIX_PRETTY( LHS_contact_pair );
                 
                 // Contributions to stiffness matrix calculated on the reference config
-                this->CalculateAndAddLHS( rLocalSystem, LHS_contact_pair, PairIndex );
+                this->CalculateAndAddLHS( rLocalSystem, LHS_contact_pair, pair_index );
             }
 
             // Assemble of the vector is required
-            if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR ) ||
-                    rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+            if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR ) )
             {
                 // Calculate the local contribution
-                const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, PairIndex, rCurrentProcessInfo);
-    //             const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, RHS_SlaveElem_Contribution, EquationIdSlaveElem, PairIndex, rCurrentProcessInfo);
+                const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, pair_index, rCurrentProcessInfo);
+    //             const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, RHS_SlaveElem_Contribution, EquationIdSlaveElem, pair_index, rCurrentProcessInfo);
                 
 //                 // Debug
 // //                 KRATOS_WATCH(RHS_contact_pair);
 //                 LOG_VECTOR_PRETTY( RHS_contact_pair );
                 
                 // Contribution to previous step contact force and residuals vector
-                this->CalculateAndAddRHS( rLocalSystem, RHS_contact_pair, PairIndex );
+                this->CalculateAndAddRHS( rLocalSystem, RHS_contact_pair, pair_index );
             }
         }
     }
@@ -678,30 +662,11 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::InitializeGeneralVariables(
-    GeneralVariables& rVariables,
-    const ProcessInfo& rCurrentProcessInfo,
-    const unsigned int rMasterElementIndex
-    )
-{
-    // Master segment info
-    GeometryType& CurrentMasterElement = mThisMasterConditions[rMasterElementIndex]->GetGeometry();
-    
-    // Slave element info
-    rVariables.Initialize();
-
-    rVariables.SetMasterElement( CurrentMasterElement );
-    rVariables.SetMasterElementIndex( rMasterElementIndex );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
     DofData& rDofData,
     GeneralVariables& rVariables,
-    const ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo,
+    const unsigned int PairIndex
     )
 {
     // We initilize the Ae components
@@ -710,36 +675,27 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
     
     rDofData.InitializeAeComponents();
     
-    double TotalWeight = 0.0;
+    // The normal of the master condition
+    const array_1d<double, 3>& master_normal = mThisMasterConditions[PairIndex]->GetValue(NORMAL);
     
-    for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
-    {
-        // The normal of the master condition
-        const array_1d<double, 3> MasterNormal = mThisMasterConditions[PairIndex]->GetValue(NORMAL);
+    // Get the integration points
+    const IntegrationPointsType integration_points_slave = mIntegrationPointsVector[PairIndex];
+    
+    // Initialize general variables for the current master element
+    rVariables.Initialize();
         
-        // Get the integration points
-        const IntegrationPointsType IntegrationPointsSlave = mIntegrationPointsVector[PairIndex];
+    // Calculating the proportion between the integrated area and segment area
+    for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
+    {            
+        // Calculate the kinematic variables
+        this->CalculateKinematics( rVariables, rDofData, master_normal, point_number, integration_points_slave, PairIndex );
         
-        // Initialize general variables for the current master element
-        this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
-            
-        // Calculating the proportion between the integrated area and segment area
-        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPointsSlave.size(); PointNumber++ )
-        {            
-            // Calculate the kinematic variables
-            this->CalculateKinematics( rVariables, rDofData, MasterNormal, PointNumber, IntegrationPointsSlave );
-            
-            const double& IntegrationWeight = IntegrationPointsSlave[PointNumber].Weight();
-            TotalWeight += IntegrationWeight;
-            
-            this->CalculateAeComponents(rVariables, rAeData, IntegrationWeight);
-        }
+        const double& integration_weight = integration_points_slave[point_number].Weight();
+        
+        rAeData.CalculateAeComponents(rVariables, integration_weight);
     }
     
-    if (TotalWeight > 0.0)
-    {
-        this->CalculateAe(rDofData, rAeData);
-    }
+    noalias(rDofData.Ae) = rAeData.CalculateAe();
 }
 
 /***********************************************************************************/
@@ -756,24 +712,24 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::InitializeDofData(
     
     if (TTensor == 1)
     {
-        for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
+        for (unsigned int i_node = 0; i_node < NumNodes; i_node++)
         {
-            const double Value = GetGeometry()[iNode].FastGetSolutionStepValue(TEMPERATURE);
-            const double LM = GetGeometry()[iNode].FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER);
-            rDofData.u1(iNode, 0) = Value;
-            rDofData.LagrangeMultipliers(iNode, 0) = LM;
+            const double value = GetGeometry()[i_node].FastGetSolutionStepValue(TEMPERATURE);
+            const double lm = GetGeometry()[i_node].FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER);
+            rDofData.u1(i_node, 0) = value;
+            rDofData.LagrangeMultipliers(i_node, 0) = lm;
         }
     }
     else
     {
-        for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
+        for (unsigned int i_node = 0; i_node < NumNodes; i_node++)
         {
-            const array_1d<double, 3> Value = GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double, 3> LM = GetGeometry()[iNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+            const array_1d<double, 3> value = GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3> lm = GetGeometry()[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
             for (unsigned int iDof = 0; iDof < TTensor; iDof++)
             {
-                rDofData.u1(iNode, iDof) = Value[iDof];
-                rDofData.LagrangeMultipliers(iNode, iDof) = LM[iDof];
+                rDofData.u1(i_node, iDof) = value[iDof];
+                rDofData.LagrangeMultipliers(i_node, iDof) = lm[iDof];
             }
         }
     }
@@ -788,23 +744,24 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateKinematics(
     const DofData rDofData,
     const array_1d<double, 3> MasterNormal,
     const double& rPointNumber,
-    const IntegrationPointsType& IntegrationPointsSlave
+    const IntegrationPointsType& IntegrationPointsSlave,
+    const unsigned int PairIndex
     )
 {       
     /* LOCAL COORDINATES */
     const PointType& LocalPoint = IntegrationPointsSlave[rPointNumber].Coordinates();
        
     /// SLAVE CONDITION ///
-    GetGeometry( ).ShapeFunctionsValues( rVariables.N_Slave, LocalPoint.Coordinates() );
-    rVariables.Phi_LagrangeMultipliers = prod(rDofData.Ae, rVariables.N_Slave);
-//     rVariables.Phi_LagrangeMultipliers = rVariables.N_Slave; // TODO: This could be needed in the future to be different than the standart shape functions 
+    GetGeometry( ).ShapeFunctionsValues( rVariables.NSlave, LocalPoint.Coordinates() );
+    rVariables.PhiLagrangeMultipliers = prod(rDofData.Ae, rVariables.NSlave);
+//     rVariables.PhiLagrangeMultipliers = rVariables.NSlave; // TODO: This could be needed in the future to be different than the standart shape functions 
     
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
-    rVariables.DetJSlave = 1.0;
-//     rVariables.DetJSlave = GetGeometry( ).DeterminantOfJacobian( LocalPoint );
+    rVariables.DetjSlave = 1.0;
+//     rVariables.DetjSlave = GetGeometry( ).DeterminantOfJacobian( LocalPoint );
     
     /// MASTER CONDITION ///
-    this->MasterShapeFunctionValue( rVariables, MasterNormal, LocalPoint);
+    this->MasterShapeFunctionValue( rVariables, MasterNormal, LocalPoint, PairIndex);
 }
  
 /***********************************************************************************/
@@ -815,101 +772,25 @@ template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::MasterShapeFunctionValue(
     GeneralVariables& rVariables,
     const array_1d<double, 3> MasterNormal,
-    const PointType& LocalPoint 
+    const PointType& LocalPoint,
+    const unsigned int PairIndex
     )
 {    
-    GeometryType& MasterSegment = rVariables.GetMasterElement( );
+    GeometryType& master_geometry = mThisMasterConditions[PairIndex]->GetGeometry();
 
-    PointType ProjectedGPGlobal;
-    const array_1d<double,3> GPNormal = MortarUtilities::GaussPointUnitNormal(rVariables.N_Slave, GetGeometry());
+    PointType projected_gp_global;
+    const array_1d<double,3> gp_normal = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, GetGeometry());
     
-    GeometryType::CoordinatesArrayType SlaveGPGlobal;
-    this->GetGeometry( ).GlobalCoordinates( SlaveGPGlobal, LocalPoint );
-    MortarUtilities::FastProjectDirection( MasterSegment, SlaveGPGlobal, ProjectedGPGlobal, MasterNormal, -GPNormal ); // The opposite direction
+    GeometryType::CoordinatesArrayType slave_gp_global;
+    this->GetGeometry( ).GlobalCoordinates( slave_gp_global, LocalPoint );
+    MortarUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, MasterNormal, -gp_normal ); // The opposite direction
     
-    GeometryType::CoordinatesArrayType ProjectedGPLocal;
+    GeometryType::CoordinatesArrayType projected_gp_local;
     
-    MasterSegment.PointLocalCoordinates(ProjectedGPLocal, ProjectedGPGlobal.Coordinates( ) ) ;
+    master_geometry.PointLocalCoordinates(projected_gp_local, projected_gp_global.Coordinates( ) ) ;
     
     // SHAPE FUNCTIONS 
-    MasterSegment.ShapeFunctionsValues( rVariables.N_Master, ProjectedGPLocal );         
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateMortarOperators(
-    MortarConditionMatrices& rThisMortarConditionMatrices,
-    GeneralVariables& rVariables,
-    const double& rIntegrationWeight
-    )
-{
-    /* DEFINITIONS */
-    const double J_s = rVariables.DetJSlave; 
-    const VectorType Phi = rVariables.Phi_LagrangeMultipliers;
-    const VectorType N1  = rVariables.N_Slave;
-    const VectorType N2  = rVariables.N_Master;
-    
-    // Mortar condition matrices - DOperator and MOperator
-    boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
-    boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
-    
-    for (unsigned int i_slave = 0; i_slave < NumNodes; i_slave++)
-    {
-        for (unsigned int j_slave = 0; j_slave < NumNodes; j_slave++)
-        {
-            const double phi = Phi[i_slave];
-            
-            DOperator(i_slave, j_slave) += J_s * rIntegrationWeight * phi * N1[j_slave];
-            MOperator(i_slave, j_slave) += J_s * rIntegrationWeight * phi * N2[j_slave];
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAeComponents(
-    GeneralVariables& rVariables,
-    AeData& rAeData,
-    const double& rIntegrationWeight
-    )
-{
-    /* DEFINITIONS */
-    const VectorType N1 = rVariables.N_Slave;
-    const double DetJ = rVariables.DetJSlave; 
-     
-    rAeData.De += rIntegrationWeight * (ComputeDe(N1, DetJ));
-    rAeData.Me += rIntegrationWeight * DetJ * outer_prod(N1, N1);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
-    DofData& rDofData,
-    AeData& rAeData
-    )
-{        
-    double auxdet;
-    const double Tolerance = std::numeric_limits<double>::epsilon();
-
-    // We compute the norm
-    const double NormMe = norm_frobenius(rAeData.Me);
-    
-    // Now we normalize the matrix
-    const boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> NormalizedMe = rAeData.Me/NormMe;
-    
-    // We compute the normalized inverse
-    const boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> NormalizedInvMe = MathUtils<double>::InvertMatrix<NumNodes>(NormalizedMe, auxdet, Tolerance); 
-    
-    // Now we compute the inverse
-    const boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> InvMe = NormalizedInvMe/NormMe;
-
-    noalias(rDofData.Ae) = prod(rAeData.De, InvMe);
+    master_geometry.ShapeFunctionsValues( rVariables.NMaster, projected_gp_local );         
 }
 
 /***************************** BEGIN AD REPLACEMENT ********************************/
@@ -1203,7 +1084,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateOnIntegratio
 //     // Initialize the current DoF data
 //     DofData rDofData;
 //                                                
-//     const unsigned int number_of_integration_pts =IntegrationPointsSlave.size();
+//     const unsigned int number_of_integration_pts =integration_points_slave.size();
 //     if ( rOutput.size( ) != number_of_integration_pts )
 //     {
 //         rOutput.resize( number_of_integration_pts, false );
@@ -1235,16 +1116,16 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateOnIntegratio
 //     // Initialize the current contact data
 //     DofData rDofData;
 //                                                                                                                         
-//     const unsigned int number_of_integration_pts = IntegrationPointsSlave.size();
+//     const unsigned int number_of_integration_pts = integration_points_slave.size();
 //     if ( rOutput.size() != number_of_integration_pts )
 //     {
 //         rOutput.resize( number_of_integration_pts );
 //     }
 //     
 //     const array_1d<double, 3> zero_vector = ZeroVector(3);
-//     for (unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++)
+//     for (unsigned int point_number = 0; point_number < number_of_integration_pts; point_number++)
 //     {
-//         rOutput[PointNumber] = zero_vector;
+//         rOutput[point_number] = zero_vector;
 //     }
     
     // TODO: Add eventually
