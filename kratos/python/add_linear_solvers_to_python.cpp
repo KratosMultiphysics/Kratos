@@ -85,6 +85,7 @@ void  AddLinearSolversToPython()
     typedef SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexSkylineLUSolverType;
 
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
+    void (LinearSolverType::*pointer_to_eigen_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::SparseMatrixType& rB, LinearSolverType::DenseVectorType& rVal, LinearSolverType::DenseMatrixType& rVec) = &LinearSolverType::Solve;
     bool (ComplexLinearSolverType::*pointer_to_complex_solve)(ComplexLinearSolverType::SparseMatrixType& rA, ComplexLinearSolverType::VectorType& rX, ComplexLinearSolverType::VectorType& rB) = &ComplexLinearSolverType::Solve;
 
     using namespace boost::python;
@@ -184,7 +185,8 @@ void  AddLinearSolversToPython()
     class_<SubspaceIterationEigenvalueSolverType, SubspaceIterationEigenvalueSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >
     ("SubspaceIterationEigenvalueSolver", init<Parameters, LinearSolverType::Pointer, LinearSolverType::Pointer>())
     .def(init<Parameters, LinearSolverType::Pointer, LinearSolverType::Pointer>())
-    .def( "GetEigenValue",&SubspaceIterationEigenvalueSolverType::GetEigenValue)
+    .def("GetEigenValue", &SubspaceIterationEigenvalueSolverType::GetEigenValue)
+    .def("Solve",pointer_to_eigen_solve)
     ;
 
     typedef Reorderer<SpaceType,  LocalSpaceType > ReordererType;
