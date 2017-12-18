@@ -31,7 +31,8 @@
 #include "geometries/point_3d.h"
 
 namespace Kratos {
-KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApplication(): KratosApplication("ContactStructuralMechanicsApplication"),
+KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApplication():
+    KratosApplication("ContactStructuralMechanicsApplication"),
     /* CONDITIONS */
     // Mesh tying mortar conditions
     // 2D Scalar
