@@ -40,11 +40,14 @@ namespace Kratos
 ///@name  Functions
 ///@{
     
-class TableStreamUtility
+class KRATOS_API(KRATOS_CORE) TableStreamUtility
 {
 public:
     ///@name Type Definitions
     ///@{
+    
+    /// Counted pointer of TableStreamUtility
+    KRATOS_CLASS_POINTER_DEFINITION( TableStreamUtility );
     
     ///@}
     ///@name Life Cycle
