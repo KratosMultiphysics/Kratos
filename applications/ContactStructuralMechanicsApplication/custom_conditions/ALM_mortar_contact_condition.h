@@ -15,11 +15,10 @@
 // System includes
 
 // External includes
-#include "structural_mechanics_application.h"
-#include "structural_mechanics_application_variables.h"
 
 // Project includes
-#include "includes/condition.h"
+#include "contact_structural_mechanics_application_variables.h"
+#include "custom_conditions/paired_condition.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
 #include "includes/checks.h"
@@ -27,7 +26,6 @@
 
 /* Utilities */
 #include "utilities/exact_mortar_segmentation_utility.h"
-#include "custom_utilities/contact_utilities.h"
 #include "custom_utilities/derivatives_utilities.h"
 #include "custom_utilities/logging_settings.hpp"
 
@@ -70,7 +68,7 @@ namespace Kratos
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
-class AugmentedLagrangianMethodMortarContactCondition: public Condition 
+class AugmentedLagrangianMethodMortarContactCondition: public PairedCondition 
 {
 public:
     ///@name Type Definitions
@@ -79,7 +77,7 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodMortarContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodMortarContactCondition );
 
-    typedef Condition                                                                                    BaseType;
+    typedef PairedCondition                                                                              BaseType;
     
     typedef typename BaseType::VectorType                                                              VectorType;
 
@@ -113,6 +111,10 @@ public:
     
     static constexpr unsigned int MatrixSize = TFrictional == true ? TDim * (TNumNodes + TNumNodes + TNumNodes) : TDim * (TNumNodes + TNumNodes) + TNumNodes;
     
+    typedef bounded_matrix<double, MatrixSize, MatrixSize>                                        LocalMatrixType;
+    
+    typedef array_1d<double, MatrixSize>                                                          LocalVectorType;
+    
     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes>                             GeneralVariables;
     
     typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation> AeData;
@@ -127,23 +129,39 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor
-    AugmentedLagrangianMethodMortarContactCondition(): Condition() 
-    {
-        mIntegrationOrder = 2; // Default value
-    }
+ /// Default constructor
+    AugmentedLagrangianMethodMortarContactCondition()
+        : PairedCondition(),
+          mIntegrationOrder(2)
+    {}
     
     // Constructor 1
-    AugmentedLagrangianMethodMortarContactCondition(IndexType NewId, GeometryType::Pointer pGeometry):Condition(NewId, pGeometry)
-    {
-        mIntegrationOrder = 2; // Default value
-    }
+    AugmentedLagrangianMethodMortarContactCondition(
+        IndexType NewId, 
+        GeometryType::Pointer pGeometry
+        ) :PairedCondition(NewId, pGeometry),
+           mIntegrationOrder(2)
+    {}
     
     // Constructor 2
-    AugmentedLagrangianMethodMortarContactCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Condition( NewId, pGeometry, pProperties )
-    {
-        mIntegrationOrder = 2; // Default value
-    }
+    AugmentedLagrangianMethodMortarContactCondition(
+        IndexType NewId, 
+        GeometryType::Pointer pGeometry, 
+        PropertiesType::Pointer pProperties
+        ) :PairedCondition( NewId, pGeometry, pProperties ),
+           mIntegrationOrder(2)
+    {}
+    
+    // Constructor 3
+    AugmentedLagrangianMethodMortarContactCondition(
+        IndexType NewId, 
+        GeometryType::Pointer pGeometry, 
+        PropertiesType::Pointer pProperties, 
+        GeometryType::Pointer pMasterGeometry
+        )
+        :PairedCondition( NewId, pGeometry, pProperties, pMasterGeometry),
+         mIntegrationOrder(2)
+    {}
 
     ///Copy constructor
     AugmentedLagrangianMethodMortarContactCondition( AugmentedLagrangianMethodMortarContactCondition const& rOther){}
@@ -191,16 +209,6 @@ public:
     * Called at the end of each iteration
     */
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-    
-    /**
-    * Initialize System Matrices
-    */
-    
-    void InitializeSystemMatrices( 
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        Flags& rCalculationFlags
-        );
 
     /**
     * Initialize Mass Matrix
@@ -246,6 +254,21 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
+        ) const override;
+        
+    /**
+     * Creates a new element pointer from an existing geometry
+     * @param NewId the ID of the new element
+     * @param pGeom the  geometry taken to create the condition
+     * @param pProperties the properties assigned to the new element
+     * @param pMasterGeom the paired geometry
+     * @return a Pointer to the new element
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties,
+        GeometryType::Pointer pMasterGeom
         ) const override;
        
     /**
@@ -369,7 +392,7 @@ public:
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
-     * @param rCurrentProcessInfo
+     * @param rCurrentProcessInfo The current process information
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
         
@@ -394,46 +417,15 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-    
-   /**
-    * This struct is used to store the flags and components of the local system
-    */
-    struct LocalSystem
-    {
-    private:
-        // For calculation local system with compacted LHS and RHS
-        MatrixType *mpLeftHandSideMatrix;
-        VectorType *mpRightHandSideVector;
-
-    public:
-        // Calculation flags
-        Flags  CalculationFlags;
-
-        /**
-        * Sets the value of a specified pointer variable
-        */
-        void SetLeftHandSideMatrix( MatrixType& rLeftHandSideMatrix ) { mpLeftHandSideMatrix = &rLeftHandSideMatrix; };
-
-        void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
-
-        /**
-        * Returns the value of a specified pointer variable
-        */
-        MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
-
-        VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
-    };
 
     ///@}
     ///@name Protected member Variables
     ///@{
-
+    
+    Flags  mCalculationFlags;                            // Calculation flags
+    
     IntegrationMethod mThisIntegrationMethod;            // Integration order of the element
-    unsigned int mPairIndex;                             // The current index contact pair
-    unsigned int mPairSize;                              // The number of contact pairs
-    std::vector<Condition::Pointer> mThisMasterElements; // Vector which contains the pointers to the master elements
-    std::vector<bool> mThisMasterElementsActive;         // Vector which contains if the conditions are active or not
-   
+    
     unsigned int mIntegrationOrder;                      // The integration order to consider
     
     ///@}
@@ -492,16 +484,10 @@ protected:
      */
     
     void CalculateConditionSystem( 
-        LocalSystem& rLocalSystem,
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
         const ProcessInfo& CurrentProcessInfo 
         );
-    
-    /**
-     * This function loops over all conditions and calculates the overall number of DOFs
-     * total_dofs = SUM( master_u_dofs + 2 * slave_u_dofs) 
-     */
-    
-    const unsigned int CalculateConditionSize( );
     
     /**
      * Calculate condition kinematics
@@ -509,39 +495,17 @@ protected:
     
     void CalculateKinematics( 
         GeneralVariables& rVariables,
-        const DerivativeDataType rDerivativeData,
-        const array_1d<double, 3> MasterNormal,
-        const unsigned int PairIndex,
+        const DerivativeDataType& rDerivativeData,
+        const array_1d<double, 3>& NormalMaster,
         const PointType& LocalPointDecomp,
         const PointType& LocalPointParent,
         GeometryPointType& GeometryDecomp,
-        const bool DualLM = true,
-        Matrix DeltaPosition = ZeroMatrix(TNumNodes, TDim)
+        const bool DualLM = true
         );
 
     /********************************************************************************/
     /**************** METHODS TO CALCULATE MORTAR CONDITION MATRICES ****************/
     /********************************************************************************/
-
-    /**
-     * Calculation and addition of the matrices of the LHS of a contact pair
-     */
-
-    void CalculateAndAddLHS( 
-        LocalSystem& rLocalSystem,
-        const bounded_matrix<double, MatrixSize, MatrixSize>& LHS_contact_pair, 
-        const unsigned int rPairIndex
-        );
-
-    /**
-     * Assembles the contact pair LHS block into the condition's LHS
-     */
-    
-    void AssembleContactPairLHSToConditionSystem( 
-        const bounded_matrix<double, MatrixSize, MatrixSize>& rPairLHS,
-        MatrixType& rConditionLHS,
-        const unsigned int rPairIndex
-        );
 
     /**
      * Calculates the local contibution of the LHS
@@ -551,26 +515,6 @@ protected:
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
         const unsigned int rActiveInactive
-        );
-    
-    /**
-     * Calculation and addition fo the vectors of the RHS of a contact pair
-     */
-    
-    void CalculateAndAddRHS( 
-        LocalSystem& rLocalSystem,
-        const array_1d<double, MatrixSize>& RHS_contact_pair, 
-        const unsigned int rPairIndex
-        );
-    
-    /**
-     * Assembles the contact pair RHS block into the condition's RHS
-     */
-    
-    void AssembleContactPairRHSToConditionSystem( 
-        const array_1d<double, MatrixSize>& rPairRHS,
-        VectorType& rConditionRHS,
-        const unsigned int rPairIndex
         );
     
     /**
@@ -593,9 +537,8 @@ protected:
     
     void MasterShapeFunctionValue(
         GeneralVariables& rVariables,
-        const array_1d<double, 3> MasterNormal,
-        const PointType& LocalPoint,
-        const unsigned int PairIndex
+        const array_1d<double, 3>& NormalMaster,
+        const PointType& LocalPoint
     );
     
     /******************************************************************/
@@ -618,30 +561,15 @@ protected:
      */
     
     IntegrationMethod GetIntegrationMethod() override
-    {
-        if (mIntegrationOrder == 1)
-        {
-            return GeometryData::GI_GAUSS_1;
-        }
-        else if (mIntegrationOrder == 2)
-        {
-            return GeometryData::GI_GAUSS_2;
-        }
-        else if (mIntegrationOrder == 3)
-        {
-            return GeometryData::GI_GAUSS_3;
-        }
-        else if (mIntegrationOrder == 4)
-        {
-            return GeometryData::GI_GAUSS_4;
-        }
-        else if (mIntegrationOrder == 5)
-        {
-            return GeometryData::GI_GAUSS_5;
-        }
-        else
-        {
-            return GeometryData::GI_GAUSS_2;
+    {        
+        // Setting the auxiliar integration points
+        switch (mIntegrationOrder) {
+        case 1: return GeometryData::GI_GAUSS_1;
+        case 2: return GeometryData::GI_GAUSS_2;
+        case 3: return GeometryData::GI_GAUSS_3;
+        case 4: return GeometryData::GI_GAUSS_4;
+        case 5: return GeometryData::GI_GAUSS_5;
+        default: return GeometryData::GI_GAUSS_2;
         }
     }
     
