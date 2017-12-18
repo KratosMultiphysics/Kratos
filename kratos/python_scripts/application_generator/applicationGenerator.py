@@ -469,8 +469,9 @@ class ApplicationGenerator(TemplateRule):
             ptab * 2 + 'sys.path.append(applications_path + \'/{CAMEL}/Linux\')\n',
             ptab * 2 + 'from Kratos{CAMEL}Application import *\n',
             ptab * 2 + '{LOWER}_application = Kratos{CAMEL}Application()\n',
-            ptab * 2 + 'kernel.AddApplication({LOWER}_application)\n',
-            ptab * 2 + 'print("Kratos{CAMEL}Application Succesfully imported")\n'
+            ptab * 2 + 'kernel.ImportApplication({LOWER}_application)\n',
+            ptab * 2 + 'print("Kratos{CAMEL}Application Succesfully imported")\n',
+            '\n'
         ]
 
         prepareBlockContent = [

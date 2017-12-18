@@ -97,13 +97,27 @@ class Algorithm(object):
     def SetDispersePhaseAlgorithm(self):
         import dem_main_script_ready_for_coupling as DEM_algorithm
         self.disperse_phase_solution = DEM_algorithm.Solution(self.pp)
-
-    def SetCouplingParameters(self, varying_parameters):
-        # The parameters associated with the swimming_DEM_application only are added here
-
-        # First, read the parameters generated from the interface
+        
+    def ReadDispersePhaseAndCouplingParameters(self):
+        
         with open(self.main_path + '/ProjectParametersDEM.json', 'r') as parameters_file:
             self.pp.CFD_DEM = Parameters(parameters_file.read())
+            
+        import dem_default_input_parameters
+        dem_defaults = dem_default_input_parameters.GetDefaultInputParameters()
+    
+        import swimming_dem_default_input_parameters
+        only_swimming_defaults = swimming_dem_default_input_parameters.GetDefaultInputParameters()
+        
+        for key in only_swimming_defaults.keys():
+            dem_defaults.AddValue(key,only_swimming_defaults[key])
+            
+        self.pp.CFD_DEM.ValidateAndAssignDefaults(dem_defaults)        
+
+    def SetCouplingParameters(self, varying_parameters):
+        
+        # First, read the parameters generated from the interface
+        self.ReadDispersePhaseAndCouplingParameters()
 
         # Second, set the default 'beta' parameters (candidates to be moved to the interface)
         self.SetBetaParameters()

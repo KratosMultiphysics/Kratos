@@ -15,6 +15,9 @@ class Solution(BaseAlgorithm):
         self.pp = pp
         super(Solution, self).__init__()
         
+    def LoadParametersFile(self):
+        self.DEM_parameters = self.pp.CFD_DEM
+        
     def GetDefaultInputParameters(self):
         import dem_default_input_parameters
         dem_defaults = dem_default_input_parameters.GetDefaultInputParameters()
