@@ -25,13 +25,29 @@
 namespace Kratos
 {
 
-typedef array_1d<double,3> Vector3;
+///@name Kratos Globals
+///@{
+    
+///@}
+///@name Type Definitions
+///@{
+    
+    typedef array_1d<double,3> Vector3;
+    
+///@}
+///@name  Enum's
+///@{
+    
+    enum NormalDerivativesComputation {NODERIVATIVESCOMPUTATION = 0, ELEMENTALDERIVATIVES = 1, NODALELEMENTALDERIVATIVES = 2};
+    
+///@}
+///@name  Functions
+///@{
 
 // VARIABLES
 /* Mortar method */ 
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                          // A pointer to the element belonging to this condition
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                            // The integration order computed in the contact
-KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                            // Mortar Contact Operator
 KRATOS_DEFINE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                                // The factor employed to search an active/inactive node
 
 /* Weighted values */
@@ -41,14 +57,11 @@ KRATOS_DEFINE_VARIABLE( double, WEIGHTED_FRICTION )                             
 KRATOS_DEFINE_VARIABLE( double, WEIGHTED_SCALAR_RESIDUAL )                           // The integrated scalar residual  
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )                // The integrated vector residual         
 
-/* Matrix to store the derivatives of the normal */
-KRATOS_DEFINE_VARIABLE( Matrix, DELTA_NORMAL )                                       // Directional derivative of the normal
-
 /* For ALM mortar condition */
 KRATOS_DEFINE_VARIABLE( double, AUGMENTED_NORMAL_CONTACT_PRESSURE )                 // The resultant augmented pressure in the normal direction
 KRATOS_DEFINE_VARIABLE( double, AUGMENTED_TANGENT_CONTACT_PRESSURE )                // The resultant augmented pressure in the tangent direction
 KRATOS_DEFINE_VARIABLE( double, TANGENT_FACTOR )                                    // The proportion between the tangent and normal penalty
-KRATOS_DEFINE_VARIABLE( bool, CONSIDER_NORMAL_VARIATION )                           // A value used to check if consider normal variation or not
+KRATOS_DEFINE_VARIABLE( int, CONSIDER_NORMAL_VARIATION )                            // A value used to check if consider normal variation or not
 KRATOS_DEFINE_VARIABLE( bool, CONSIDER_PAIR_VARIATION )                             // A value used to check if consider variation or not in the active inactive pairs
 KRATOS_DEFINE_VARIABLE( bool, ADAPT_PENALTY )                                       // To set if the penalty is recalculated or not
 KRATOS_DEFINE_VARIABLE( double, MAX_GAP_FACTOR )                                    // The factor between the nodal H and the max gap considered to recalculate the penalty
