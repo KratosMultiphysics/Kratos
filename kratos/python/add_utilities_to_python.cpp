@@ -64,6 +64,10 @@ void AddUtilitiesToPython()
 {
     using namespace boost::python;
 
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    
     // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
     class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >("PythonGenericFunctionUtility", init<const std::string&>() )
     .def(init<const std::string&, Parameters>())
@@ -85,7 +89,9 @@ void AddUtilitiesToPython()
     ;
 
     class_<ConditionNumberUtility>("ConditionNumberUtility", init<>())
+    .def(init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
     .def("GetConditionNumber",&ConditionNumberUtility::GetConditionNumber)
+    .def("GetConditionNumberInternally",&ConditionNumberUtility::GetConditionNumberInternally)
     ;
 
     class_<VariableUtils > ("VariableUtils", init<>())
