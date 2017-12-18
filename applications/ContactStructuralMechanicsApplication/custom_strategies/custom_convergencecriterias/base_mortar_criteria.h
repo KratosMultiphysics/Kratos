@@ -17,8 +17,10 @@
 /* External includes */
 
 /* Project includes */
+#include "contact_structural_mechanics_application_variables.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/mortar_utilities.h"
 #include "custom_processes/aalm_adapt_penalty_value_process.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
@@ -49,7 +51,8 @@ namespace Kratos
 /** @brief Custom convergence criteria for the mortar condition 
  */
 template<class TSparseSpace, class TDenseSpace>
-class BaseMortarConvergenceCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class BaseMortarConvergenceCriteria 
+    : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
@@ -115,11 +118,8 @@ public:
         ) override
     {
         // We update the normals if necessary
-        if (static_cast<NormalDerivativesComputation>(rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION]) != NODERIVATIVESCOMPUTATION)
-        {
-            // Update normal of the conditions
-            ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); 
-        }
+        if (static_cast<NormalDerivativesComputation>(rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION]) != NO_DERIVATIVES_COMPUTATION)
+            MortarUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); // Update normal of the conditions
         
         // We recalculate the penalty parameter
         if (rModelPart.GetProcessInfo()[ADAPT_PENALTY] == true)
@@ -152,16 +152,17 @@ public:
         // Set to zero the weighted gap
         ResetWeightedGap(rModelPart);
         
-        ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("Contact").Conditions();
-        const int num_conditions = static_cast<int>(conditions_array.size());
-
+        ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
+        
+    #ifdef KRATOS_DEBUG
+        if (conditions_array.size() == 0) std::cout << "WARNING:: YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
+    #endif
+        
+    #ifdef _OPENMP
         #pragma omp parallel for 
-        for(int i = 0; i < num_conditions; i++) 
-        {
-            auto it_cond = conditions_array.begin() + i;
-            
-            it_cond->AddExplicitContribution(rModelPart.GetProcessInfo());
-        }
+    #endif
+        for(int i = 0; i < static_cast<int>(conditions_array.size()); i++)
+            (conditions_array.begin() + i)->AddExplicitContribution(rModelPart.GetProcessInfo());
         
         return true;
     }
@@ -192,64 +193,9 @@ public:
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
         ) override
-    {
-    }
-    
-    /**
-     * This function finalizes the solution step
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
-     */
-    
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-        ) override 
-    {
-    }
-
-    /**
-     * This function initializes the non linear iteration
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
-     */
-    
-    void InitializeNonLinearIteration(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-        ) override
-    {
-    }
-    
-    /**
-     * This function finalizes the non linear iteration
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
-     */
-    
-    void FinalizeNonLinearIteration(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-        ) override
-    {
+    { 
+        // Update normal of the conditions
+        MortarUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") );  
     }
     
     ///@}
@@ -293,15 +239,12 @@ protected:
     virtual void ResetWeightedGap(ModelPart& rModelPart)
     {       
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
 
+    #ifdef _OPENMP
         #pragma omp parallel for 
-        for(int i = 0; i < num_nodes; i++) 
-        {
-            auto it_node = nodes_array.begin() + i;
-            
-            it_node->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
-        }
+    #endif
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
+            (nodes_array.begin() + i)->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
     }
     
     ///@}

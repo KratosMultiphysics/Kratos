@@ -55,7 +55,8 @@ namespace Kratos
  */
 template<   class TSparseSpace,
             class TDenseSpace >
-class DisplacementLagrangeMultiplierMixedContactCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class DisplacementLagrangeMultiplierMixedContactCriteria 
+    : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
 
@@ -80,7 +81,7 @@ public:
 
     typedef std::size_t                                           KeyType;
     
-    typedef boost::shared_ptr<TableStreamUtility> TablePrinterPointerType;
+    typedef TableStreamUtility::Pointer           TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -177,8 +178,10 @@ public:
             OpenMPUtils::DivideInPartitions(num_dofs,num_threads,dof_partition);
 
             // Loop over Dofs
+        #ifdef _OPENMP
             #pragma omp parallel reduction(+:disp_residual_solution_norm,lm_solution_norm,lm_increase_norm,disp_dof_num,lm_dof_num)
             {
+        #endif
                 const int k = OpenMPUtils::ThisThread();
                 typename DofsArrayType::iterator dof_begin = rDofSet.begin() + dof_partition[k];
                 typename DofsArrayType::iterator dof_end = rDofSet.begin() + dof_partition[k+1];
@@ -211,17 +214,12 @@ public:
                         }
                     }
                 }
+        #ifdef _OPENMP
             }
+        #endif
 
             if(lm_increase_norm == 0.0) lm_increase_norm = 1.0;
-            if(lm_solution_norm == 0.0)
-            {
-                lm_solution_norm = 1.0;
-                if (mEnsureContact == true)
-                {
-                    KRATOS_ERROR << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
-                }
-            }
+            KRATOS_ERROR_IF(mEnsureContact == true && lm_solution_norm == 0.0) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
             
             mDispCurrentResidualNorm = disp_residual_solution_norm;
             TDataType lm_ratio = std::sqrt(lm_increase_norm/lm_solution_norm);
@@ -232,15 +230,7 @@ public:
             // We initialize the solution
             if (mInitialResidualIsSet == false)
             {
-                if (disp_residual_solution_norm == 0.0)
-                {
-                    mDispInitialResidualNorm = 1.0;
-                }
-                else
-                {
-                    mDispInitialResidualNorm = disp_residual_solution_norm;
-                }
-                
+                mDispInitialResidualNorm = (disp_residual_solution_norm == 0.0) ? 1.0 : disp_residual_solution_norm;
                 residual_disp_ratio = 1.0;
                 mInitialResidualIsSet = true;
             }
@@ -265,13 +255,13 @@ public:
                     std::cout.precision(4);
                     if (mPrintingOutput == false)
                     {
-                        std::cout << BOLDFONT("MIXED CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+                        std::cout << BOLDFONT("MIXED CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                         std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << residual_disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << residual_disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
                         std::cout << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << lm_ratio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << lm_abs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
                     }
                     else
                     {
-                        std::cout << "MIXED CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+                        std::cout << "MIXED CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                         std::cout << "\tDISPLACEMENT: RATIO = " << residual_disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << residual_disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
                         std::cout << "\tLAGRANGE MUL: RATIO = " << lm_ratio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << lm_abs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
                     }
@@ -290,24 +280,16 @@ public:
                     {
                         auto& table = mpTable->GetTable();
                         if (mPrintingOutput == false)
-                        {
                             table << BOLDFONT(FGRN("       Achieved"));
-                        }
                         else
-                        {
                             table << "Achieved";
-                        }
                     }
                     else
                     {
                         if (mPrintingOutput == false)
-                        {
                             std::cout << BOLDFONT("\tConvergence") << " is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                        }
                         else
-                        {
                             std::cout << "\tConvergence is achieved" << std::endl;
-                        }
                     }
                 }
                 return true;
@@ -320,24 +302,16 @@ public:
                     {
                         auto& table = mpTable->GetTable();
                         if (mPrintingOutput == false)
-                        {
                             table << BOLDFONT(FRED("   Not achieved"));
-                        }
                         else
-                        {
                             table << "Not achieved";
-                        }
                     }
                     else
                     {
                         if (mPrintingOutput == false)
-                        {
                             std::cout << BOLDFONT("\tConvergence") << " is " << BOLDFONT(FRED(" not achieved")) << std::endl;
-                        }
                         else
-                        {
                             std::cout << "\tConvergence is not achieved" << std::endl;
-                        }
                     }
                 }
                 return false;
@@ -392,26 +366,6 @@ public:
         ) override
     {
         mInitialResidualIsSet = false;
-    }
-
-    /**
-     * This function finalizes the solution step
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
-     */
-        
-    void FinalizeSolutionStep(  
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b 
-        ) override
-    {
-        
     }
 
     ///@}
