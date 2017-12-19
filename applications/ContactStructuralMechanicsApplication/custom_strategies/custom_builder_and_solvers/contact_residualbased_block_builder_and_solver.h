@@ -152,25 +152,12 @@ public:
         {
             auto cond_it = conditions_array.begin() + i;
             
-            if (cond_it->Is(ISOLATED) == true)
+            auto& geom = cond_it->GetGeometry();
+            for (std::size_t i_node = 0; i_node < geom.size(); ++i_node)
             {
-                auto& geom = cond_it->GetGeometry();
-                for (std::size_t i_node = 0; i_node < geom.size(); ++i_node)
-                {
-                    geom[i_node].SetLock();
-                    geom[i_node].Set(ISOLATED, true);
-                    geom[i_node].UnSetLock();
-                }
-            }
-            else
-            {
-                auto& geom = cond_it->GetGeometry();
-                for (std::size_t i_node = 0; i_node < geom.size(); ++i_node)
-                {
-                    geom[i_node].SetLock();
-                    geom[i_node].Set(ISOLATED, false);
-                    geom[i_node].UnSetLock();
-                }
+                geom[i_node].SetLock();
+                geom[i_node].Set(ISOLATED, cond_it->Is(ISOLATED));
+                geom[i_node].UnSetLock();
             }
         }
         
