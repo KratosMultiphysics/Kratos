@@ -5,7 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Check that applications were imported in the main script
-KratosMultiphysics.CheckImportedApplications("StructuralMechanicsApplication","MetisApplication","TrilinosApplication")
+KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication","MetisApplication","TrilinosApplication")
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication

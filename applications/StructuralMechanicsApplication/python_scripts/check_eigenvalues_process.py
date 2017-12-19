@@ -6,7 +6,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Check that applications were imported in the main script
-KratosMultiphysics.CheckImportedApplications("StructuralMechanicsApplication")
+KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
