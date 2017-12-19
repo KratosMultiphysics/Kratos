@@ -1,13 +1,12 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+# Importing the Kratos Library
 import KratosMultiphysics
-KratosMultiphysics.CheckForPreviousImport()
 
-if (KratosMultiphysics.Kernel().IsImported("FSIApplication")):
-    import KratosMultiphysics.FSIApplication as KratosFSI
-else:
-    raise Exception("FSIApplication could not be found.")
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("FSIApplication")
 
+# Check if Trilinos has been imported to set the have_trilinos flag
 if (KratosMultiphysics.Kernel().IsImported("TrilinosApplication")):
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos
     have_trilinos = True

@@ -2,69 +2,38 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 from math import sqrt
 
 # Import utilities
-import NonConformant_OneSideMap                # Import non-conformant mapper
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
 import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
 import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
 
-# Import Kratos core
+# Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
-KratosMultiphysics.CheckForPreviousImport()
 
-# Import Metis application
-if (KratosMultiphysics.Kernel().IsImported("MetisApplication")):
-    import KratosMultiphysics.MetisApplication as KratosMetis
-else:
-    raise Exception("MetisApplication could not be found.")
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications(
+    "MetisApplication",
+    "TrilinosApplication",
+    "MappingApplication",
+    "FSIApplication",
+    "ALEApplication",
+    "FluidDynamicsApplication",
+    "StructuralMechanicsApplication")
 
-# Import Trilinos application
-if (KratosMultiphysics.Kernel().IsImported("TrilinosApplication")):
-    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-else:
-    raise Exception("TrilinosApplication could not be found.")
+# Import applications
+import KratosMultiphysics.MetisApplication as KratosMetis
+import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+import KratosMultiphysics.MappingApplication as KratosMapping
+import KratosMultiphysics.FSIApplication as KratosFSI
+import KratosMultiphysics.ALEApplication as KratosALE
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
-# Import Mapping application
-if (KratosMultiphysics.Kernel().IsImported("MappingApplication")):
-    import KratosMultiphysics.MappingApplication as KratosMapping
-else:
-    raise Exception("MappingApplication could not be found.")
-
-# Import FSI application
-if (KratosMultiphysics.Kernel().IsImported("FSIApplication")):
-    import KratosMultiphysics.FSIApplication as KratosFSI
-else:
-    raise Exception("FSIApplication could not be found.")
-
-# Import ALE application
-if (KratosMultiphysics.Kernel().IsImported("ALEApplication")):
-    import KratosMultiphysics.ALEApplication as KratosALE
-else:
-    raise Exception("ALEApplication could not be found.")
-
-# Import FluidDynamicsApplication
-if (KratosMultiphysics.Kernel().IsImported("FluidDynamicsApplication")):
-    import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-else:
-    raise Exception("FluidDynamicsApplication could not be found.")
-
-# Import StructuralMechanicsApplication
-if (KratosMultiphysics.Kernel().IsImported("StructuralMechanicsApplication")):
-    import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
-else:
-    raise Exception("StructuralMechanicsApplication could not be found.")
-
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
-## Python files import 
-import convergence_accelerator_factory          # Convergence accelerator factory
+# Import base class file
 import trilinos_partitioned_fsi_base_solver     # Base class file
-
 
 def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
     return TrilinosPartitionedFSIDirichletNeumannSolver(structure_main_model_part, fluid_main_model_part, project_parameters)
-
 
 class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base_solver.TrilinosPartitionedFSIBaseSolver):
     def __init__(self, structure_main_model_part, fluid_main_model_part, project_parameters):

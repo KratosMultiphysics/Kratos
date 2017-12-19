@@ -6,38 +6,24 @@ import python_solvers_wrapper_fluid            # Import the fluid Python solvers
 import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
 import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
 
-# Import Kratos core
+# Importing the Kratos Library
 import KratosMultiphysics
-KratosMultiphysics.CheckForPreviousImport()
 
-# Import FSI application
-if (KratosMultiphysics.Kernel().IsImported("FSIApplication")):
-    import KratosMultiphysics.FSIApplication as KratosFSI
-else:
-    raise Exception("FSIApplication could not be found.")
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications(
+    "FSIApplication",
+    "ALEApplication",
+    "FluidDynamicsApplication",
+    "StructuralMechanicsApplication")
 
-# Import ALE application
-if (KratosMultiphysics.Kernel().IsImported("ALEApplication")):
-    import KratosMultiphysics.ALEApplication as KratosALE
-else:
-    raise Exception("ALEApplication could not be found.")
-
-# Import FluidDynamicsApplication
-if (KratosMultiphysics.Kernel().IsImported("FluidDynamicsApplication")):
-    import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-else:
-    raise Exception("FluidDynamicsApplication could not be found.")
-
-# Import StructuralMechanicsApplication
-if (KratosMultiphysics.Kernel().IsImported("StructuralMechanicsApplication")):
-    import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
-else:
-    raise Exception("StructuralMechanicsApplication could not be found.")
-
+# Import applications
+import KratosMultiphysics.FSIApplication as KratosFSI
+import KratosMultiphysics.ALEApplication as KratosALE
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
     return PartitionedFSIBaseSolver(structure_main_model_part, fluid_main_model_part, project_parameters)
-
 
 class PartitionedFSIBaseSolver:
     def __init__(self, structure_main_model_part, fluid_main_model_part, project_parameters):
