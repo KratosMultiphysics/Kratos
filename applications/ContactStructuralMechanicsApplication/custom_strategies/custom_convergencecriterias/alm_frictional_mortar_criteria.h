@@ -84,8 +84,9 @@ public:
     /// Default constructors
     ALMFrictionalMortarConvergenceCriteria(        
         TablePrinterPointerType pTable = nullptr,
-        const bool PrintingOutput = false
-        ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+        const bool PrintingOutput = false,
+        const bool GiDIODebug = false
+        ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(GiDIODebug),
         mpTable(pTable),
         mPrintingOutput(PrintingOutput),
         mTableIsInitialized(false)

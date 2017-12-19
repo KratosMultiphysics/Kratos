@@ -39,6 +39,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                 "fancy_convergence_criterion"            : true,
                 "print_convergence_criterion"            : false,
                 "ensure_contact"                         : false,
+                "gidio_debug"                            : false,
                 "adaptative_strategy"                    : false,
                 "split_factor"                           : 10.0,
                 "max_number_splits"                      : 3,
@@ -137,6 +138,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         conv_params.AddValue("fancy_convergence_criterion",self.contact_settings["fancy_convergence_criterion"])
         conv_params.AddValue("print_convergence_criterion",self.contact_settings["print_convergence_criterion"])
         conv_params.AddValue("ensure_contact",self.contact_settings["ensure_contact"])
+        conv_params.AddValue("gidio_debug",self.contact_settings["gidio_debug"])
         import contact_convergence_criteria_factory
         convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(conv_params)
         return convergence_criterion.mechanical_convergence_criterion

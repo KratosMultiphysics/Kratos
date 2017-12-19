@@ -28,6 +28,7 @@ class convergence_criterion:
             fancy_convergence_criterion = convergence_criterion_parameters["fancy_convergence_criterion"].GetBool()
             print_convergence_criterion = convergence_criterion_parameters["print_convergence_criterion"].GetBool()
             ensure_contact = convergence_criterion_parameters["ensure_contact"].GetBool()
+            gidio_debug = convergence_criterion_parameters["gidio_debug"].GetBool()
             
             if(echo_level >= 1):
                 print("::[Mechanical Solver]:: CONVERGENCE CRITERION : ", convergence_criterion_parameters["convergence_criterion"].GetString())
@@ -83,12 +84,12 @@ class convergence_criterion:
             # Adding the mortar criteria
             if  (convergence_criterion_parameters["mortar_type"].GetString() == "ALMContactFrictionless"):
                 if (fancy_convergence_criterion == True):
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria(table, print_convergence_criterion)
+                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria(table, print_convergence_criterion, gidio_debug)
                 else:
                     Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria()
             elif  (convergence_criterion_parameters["mortar_type"].GetString() == "ALMContactFrictional"):
                 if (fancy_convergence_criterion == True):
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria(table, print_convergence_criterion)
+                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria(table, print_convergence_criterion, gidio_debug)
                 else:
                     Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria()
             elif ("MeshTying" in convergence_criterion_parameters["mortar_type"].GetString()):

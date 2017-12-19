@@ -151,6 +151,7 @@ void  AddCustomStrategiesToPython()
             init< >())
             .def(init<TablePrinterPointerType>())
             .def(init<TablePrinterPointerType, bool>())
+            .def(init<TablePrinterPointerType, bool, bool>())
             ;
             
     // Dual set strategy for SSNM Convergence Criterion (frictional case)
@@ -161,6 +162,7 @@ void  AddCustomStrategiesToPython()
             init< >())
             .def(init<TablePrinterPointerType>())
             .def(init<TablePrinterPointerType, bool>())
+            .def(init<TablePrinterPointerType, bool, bool>())
             ;
             
     // Displacement and lagrange multiplier Convergence Criterion
