@@ -45,7 +45,7 @@ def CheckForPreviousImport():
             print(" See the following message for details:\n")
             print(msg)
 
-def CheckImportedApplications(*applications):
+def CheckRegisteredApplications(*applications):
     for app in applications:
        if not KratosGlobals.Kernel.IsImported(app):
            raise Exception("Application {0} was not imported in the main script".format(app))

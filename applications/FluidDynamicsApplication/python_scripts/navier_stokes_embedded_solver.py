@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # Check that applications were imported in the main script
-KratosMultiphysics.CheckImportedApplications("FluidDynamicsApplication")
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD

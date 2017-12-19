@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 from KratosMultiphysics import *
 
-CheckImportedApplications("ExternalSolversApplication")
+CheckRegisteredApplications("ExternalSolversApplication")
 
 def ConstructPreconditioner(configuration):
     if hasattr(configuration, 'preconditioner_type'):

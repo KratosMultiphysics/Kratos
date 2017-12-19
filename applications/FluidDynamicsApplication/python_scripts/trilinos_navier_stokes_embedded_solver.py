@@ -5,7 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
 
 # Check that applications were imported in the main script
-KratosMultiphysics.CheckImportedApplications("FluidDynamicsApplication","MetisApplication","TrilinosApplication")
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","MetisApplication","TrilinosApplication")
 
 # Import applications
 import KratosMultiphysics.MetisApplication as KratosMetis           # Partitioning
