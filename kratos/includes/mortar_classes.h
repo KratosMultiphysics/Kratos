@@ -489,7 +489,7 @@ private:
  * This data will be used to compute the derivatives.
  * This class includes different information that is used in order to compute the directional derivatives in the mortar contact conditions
  */
-template< unsigned int TDim, unsigned int TNumNodes>
+template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation>
 class DerivativeData
 {
 public:
@@ -497,15 +497,18 @@ public:
     ///@{
     
     // Auxiliar types
-    typedef array_1d<double, TNumNodes>                                         type_1;
+    typedef bounded_matrix<int, 1, 1>                    type_0;
+    typedef array_1d<double, TNumNodes>                  type_1;
     typedef bounded_matrix<double, TNumNodes, TDim>      type_2;
     typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
-    typedef bounded_matrix<double, 3, 3>                 type_4;
+    typedef typename std::conditional<TNumNodes == 2, type_0, bounded_matrix<double, 3, 3>>::type type_4;
     
     // Auxiliar sizes
+    static const unsigned int size_0 = 1;
     static const unsigned int size_1 =     (TNumNodes * TDim);
     static const unsigned int size_2 = 2 * (TNumNodes * TDim);
     static const unsigned int size_3 = (TDim == 2) ? size_1 : size_2;
+    static const unsigned int size_4 = (TDim == 2) ? size_0 : size_2;
     
     ///@}
     ///@name Life Cycle
@@ -530,7 +533,7 @@ public:
     array_1d<type_1, size_3> DeltaPhi;
     array_1d<type_1, size_2> DeltaN1, DeltaN2;
     array_1d<type_2, size_1> DeltaNormalSlave, DeltaNormalMaster;
-    array_1d<type_4, size_2> DeltaCellVertex;
+    array_1d<type_4, size_4> DeltaCellVertex;
     
     // Ae
     type_3 Ae;
@@ -559,7 +562,7 @@ public:
         )
     {        
         // The normals of the nodes
-        NormalSlave = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL);
+        NormalSlave = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL, 0);
         
         // Displacements and velocities of the slave       
         u1 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1);
@@ -587,17 +590,9 @@ public:
             DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
             DeltaN2[i] = ZeroVector(TNumNodes);
             DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-            DeltaNormalSlave[i] = ZeroMatrix(TNumNodes, TDim);
         }
     
-        if (TDim == 2) // Derivative of master's normal
-        {
-            for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
-            {
-                DeltaNormalMaster[i] = ZeroMatrix(TNumNodes, TDim);
-            }
-        }
-        else // Derivative of the cell vertex
+        if (TDim == 3) // Derivative of the cell vertex
         {
             for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
             {
@@ -633,7 +628,7 @@ public:
     {
         const GeometryType& MasterGeometry =  pCond->GetGeometry();
         
-        NormalMaster = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL);
+        NormalMaster = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL, 0);
         
         // Displacements, coordinates and normals of the master
         u2 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 0)
@@ -723,19 +718,19 @@ private:
 /** \brief DerivativeDataFrictional
  * This class is a derived class of DerivativeData. Includes additionally the derivatives necessary to compute the directional derivatives for the frictional conditions
  */
-template< unsigned int TDim, unsigned int TNumNodes>
-class DerivativeDataFrictional : public DerivativeData<TDim, TNumNodes>
+template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation>
+class DerivativeDataFrictional : public DerivativeData<TDim, TNumNodes, TNormalVariation>
 {
 public:
     ///@name Type Definitions
     ///@{
     
     // Auxiliar types
-    typedef DerivativeData<TDim, TNumNodes>       BaseClassType;
-    typedef array_1d<double, TNumNodes>                  type_1;
-    typedef bounded_matrix<double, TNumNodes, TDim>      type_2;
-    typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
-    typedef bounded_matrix<double, 3, 3>                 type_4;
+    typedef DerivativeData<TDim, TNumNodes, TNormalVariation> BaseClassType;
+    typedef array_1d<double, TNumNodes>                              type_1;
+    typedef bounded_matrix<double, TNumNodes, TDim>                  type_2;
+    typedef bounded_matrix<double, TNumNodes, TNumNodes>             type_3;
+    typedef bounded_matrix<double, 3, 3>                             type_4;
     
     // Auxiliar sizes
     static const unsigned int size_1 =     (TNumNodes * TDim);
@@ -1062,20 +1057,20 @@ private:
  * The derived operators are defined in each DoF of each domain, which means TNumNodes x TDim x 2 derivatives definitions in order to compute all the necessary derivatives
  * Popp thesis page 102 and following 
  */
-template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional>
+template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
 class MortarOperatorWithDerivatives : public MortarOperator<TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
         
-    typedef MortarOperator<TNumNodes>                                BaseClassType;
+    typedef MortarOperator<TNumNodes>                                                  BaseClassType;
     
-    typedef MortarKinematicVariables<TNumNodes>                 KinematicVariables;
+    typedef MortarKinematicVariables<TNumNodes>                                   KinematicVariables;
     
-    typedef DerivativeDataFrictional<TDim, TNumNodes> DerivativeDataFrictionalType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation> DerivativeDataFrictionalType;
     
-    typedef DerivativeData<TDim, TNumNodes>         DerivativeFrictionalessDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNormalVariation>        DerivativeFrictionalessDataType;
     
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
     
@@ -1501,20 +1496,20 @@ private:
  * Popp thesis page 111 and following
  */
 
-template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional>
+template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
 class DualLagrangeMultiplierOperatorsWithDerivatives : public DualLagrangeMultiplierOperators<TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
         
-    typedef DualLagrangeMultiplierOperators<TNumNodes>                        BaseClassType;  
+    typedef DualLagrangeMultiplierOperators<TNumNodes>                                 BaseClassType;  
     
-    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes> KinematicVariablesType;
+    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes>          KinematicVariablesType;
     
-    typedef DerivativeDataFrictional<TDim, TNumNodes>          DerivativeDataFrictionalType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation> DerivativeDataFrictionalType;
     
-    typedef DerivativeData<TDim, TNumNodes>                 DerivativeFrictionalessDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNormalVariation>        DerivativeFrictionalessDataType;
     
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
     

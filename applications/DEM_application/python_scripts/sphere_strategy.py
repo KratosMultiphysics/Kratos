@@ -540,4 +540,7 @@ class ExplicitStrategy:
             
         rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
+        
+        if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
+            properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 
