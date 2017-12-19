@@ -65,9 +65,9 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         if (self.settings["reform_dofs_at_each_step"].GetBool() == False):
             print("WARNING:: DoF must be reformed each time step. Switching to True")
             self.settings["reform_dofs_at_each_step"].SetBool(True)
-        if (self.settings["block_builder"].GetBool() == False):
-            print("WARNING:: EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
-            self.settings["block_builder"].SetBool(True)
+        #if (self.settings["block_builder"].GetBool() == False):
+            #print("WARNING:: EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
+            #self.settings["block_builder"].SetBool(True)
         
         # Setting echo level
         self.echo_level =  self.settings["echo_level"].GetInt()
