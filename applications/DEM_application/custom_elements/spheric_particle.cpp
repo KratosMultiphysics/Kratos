@@ -616,7 +616,7 @@ void SphericParticle::ComputeMoments(double NormalLocalContactForce,
         }
 
         else if (wall) {
-            equiv_rolling_friction_coeff = GetRollingFriction() * GetRadius();
+            equiv_rolling_friction_coeff = GetRollingFrictionWithWalls() * GetRadius();
         }
 
         if (equiv_rolling_friction_coeff != 0.0) {
