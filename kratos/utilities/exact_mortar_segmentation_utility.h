@@ -125,11 +125,10 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
      * This is the default constructor
      * @param IntegrationOrder The integration order to consider
      */
-
-    ExactMortarIntegrationUtility(const unsigned int IntegrationOrder = 0,
-        const bool DebugGeometries = false)
-        : mIntegrationOrder(IntegrationOrder),
-          mDebugGeometries(DebugGeometries) {
+    
+    ExactMortarIntegrationUtility(const unsigned int IntegrationOrder = 0)
+    :mIntegrationOrder(IntegrationOrder)
+    {
         GetIntegrationMethod();
     }
 
@@ -216,9 +215,9 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
      * @param SlaveCond The slave condition
      * @return The total area integrated
      */
-
-    double TestGetExactAreaIntegration(Condition::Pointer& SlaveCond);
-
+    
+    double TestGetExactAreaIntegration(Condition::Pointer& SlaveCond); 
+    
     /**
     * This method is used for debugging purposes
     * @param IndexSlave The index of the slave geometry
@@ -323,84 +322,6 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
     GeometryNodeType::IntegrationPointsArrayType GetIntegrationTriangle();
 
     /**
-     * This function divides the triangles to enhance the integration 
-     * @param ConditionsPointsSlave The list of points from the decomposition 
-     */
-
-    static inline void EnhanceTriangulation(
-        ConditionArrayListType& ConditionsPointsSlave) {
-        ConditionArrayListType aux_conditions_points_slave =
-            ConditionsPointsSlave;
-
-        ConditionsPointsSlave.clear();
-
-        for (unsigned int i_geom = 0;
-             i_geom < aux_conditions_points_slave.size(); i_geom++) {
-            PointType& point1 = aux_conditions_points_slave[i_geom][0];
-            PointType& point2 = aux_conditions_points_slave[i_geom][1];
-            PointType& point3 = aux_conditions_points_slave[i_geom][2];
-
-            // Aux info
-            std::vector<PointType::Pointer> points_array(3);
-            points_array[0] = boost::make_shared<PointType>(point1);
-            points_array[1] = boost::make_shared<PointType>(point2);
-            points_array[2] = boost::make_shared<PointType>(point3);
-            TriangleType aux_triangle = TriangleType(points_array);
-            Vector N_aux;
-            array_1d<double, 3> aux_coords = ZeroVector(3);
-
-            // Compute intermediate points
-            // Point 4
-            aux_coords[0] = 0.5;
-            N_aux = aux_triangle.ShapeFunctionsValues(N_aux, aux_coords);
-            PointType point4;
-            point4.Coordinates() = N_aux[0] * point1.Coordinates() +
-                                   N_aux[1] * point2.Coordinates();
-
-            // Point 5
-            aux_coords[1] = 0.5;
-            N_aux = aux_triangle.ShapeFunctionsValues(N_aux, aux_coords);
-            PointType point5;
-            point5.Coordinates() = N_aux[1] * point2.Coordinates() +
-                                   N_aux[2] * point3.Coordinates();
-
-            // Point 6
-            aux_coords[0] = 0.0;
-            N_aux = aux_triangle.ShapeFunctionsValues(N_aux, aux_coords);
-            PointType point6;
-            point6.Coordinates() = N_aux[2] * point3.Coordinates() +
-                                   N_aux[0] * point1.Coordinates();
-
-            // New triangles
-            array_1d<PointType, 3> aux_new_triangle;
-
-            // Triangle 1
-            aux_new_triangle[0] = point1;
-            aux_new_triangle[1] = point4;
-            aux_new_triangle[2] = point6;
-            ConditionsPointsSlave.push_back(aux_new_triangle);
-
-            // Triangle 2
-            aux_new_triangle[0] = point4;
-            aux_new_triangle[1] = point2;
-            aux_new_triangle[2] = point5;
-            ConditionsPointsSlave.push_back(aux_new_triangle);
-
-            // Triangle 3
-            aux_new_triangle[0] = point6;
-            aux_new_triangle[1] = point4;
-            aux_new_triangle[2] = point5;
-            ConditionsPointsSlave.push_back(aux_new_triangle);
-
-            // Triangle 4
-            aux_new_triangle[0] = point6;
-            aux_new_triangle[1] = point5;
-            aux_new_triangle[2] = point3;
-            ConditionsPointsSlave.push_back(aux_new_triangle);
-        }
-    }
-
-    /**
      * This method checks if the whole array is true
      * @param AllInside The nodes that are inside or not the geometry
      * @return True if all the nodes are inside, false otherwise
@@ -428,14 +349,20 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
     static inline bool Clipping2D(PointType& PointIntersection,
         const PointType& PointOrig1, const PointType& PointOrig2,
         const PointType& PointDest1, const PointType& PointDest2) {
+        
+        const array_1d<double, 3>& coord_point_orig1 = PointOrig1.Coordinates();
+        const array_1d<double, 3>& coord_point_orig2 = PointOrig2.Coordinates();
+        const array_1d<double, 3>& coord_point_dest1 = PointDest1.Coordinates();
+        const array_1d<double, 3>& coord_point_dest2 = PointDest2.Coordinates();
+        
         const double s_orig1_orig2_x =
-            PointOrig2.Coordinate(1) - PointOrig1.Coordinate(1);
+            coord_point_orig2[0] - coord_point_orig1[0];
         const double s_orig1_orig2_y =
-            PointOrig2.Coordinate(2) - PointOrig1.Coordinate(2);
+            coord_point_orig2[1] - coord_point_orig1[1];
         const double s_dest1_dest2_x =
-            PointDest2.Coordinate(1) - PointDest1.Coordinate(1);
+            coord_point_dest2[0] - coord_point_dest1[0];
         const double s_dest1_dest2_y =
-            PointDest2.Coordinate(2) - PointDest1.Coordinate(2);
+            coord_point_dest2[1] - coord_point_dest1[1];
 
         const double denom = s_orig1_orig2_x * s_dest1_dest2_y -
                              s_dest1_dest2_x * s_orig1_orig2_y;
@@ -443,35 +370,25 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
         const double tolerance = 1.0e-12;
         //         const double tolerance = std::numeric_limits<double>::epsilon();
 
-        if (std::abs(denom) < tolerance)  // NOTE: Collinear
+        if (std::abs(denom) < tolerance) // NOTE: Collinear
+            return false;
+        
+        const double s_orig1_dest1_x = coord_point_orig1[0] - coord_point_dest1[0];
+        const double s_orig1_dest1_y = coord_point_orig1[1] - coord_point_dest1[1];
+        
+        const double s = (s_orig1_orig2_x * s_orig1_dest1_y - s_orig1_orig2_y * s_orig1_dest1_x)/denom;
+        
+        const double t = (s_dest1_dest2_x * s_orig1_dest1_y - s_dest1_dest2_y * s_orig1_dest1_x)/denom;
+        
+        if (s >= -tolerance && s <= (1.0 + tolerance) && t >= -tolerance && t <= (1.0 + tolerance))
         {
-            return false;
-        }
-
-        const double s_orig1_dest1_x =
-            PointOrig1.Coordinate(1) - PointDest1.Coordinate(1);
-        const double s_orig1_dest1_y =
-            PointOrig1.Coordinate(2) - PointDest1.Coordinate(2);
-
-        const double s = (s_orig1_orig2_x * s_orig1_dest1_y -
-                             s_orig1_orig2_y * s_orig1_dest1_x) /
-                         denom;
-
-        const double t = (s_dest1_dest2_x * s_orig1_dest1_y -
-                             s_dest1_dest2_y * s_orig1_dest1_x) /
-                         denom;
-
-        if (s >= -tolerance && s <= (1.0 + tolerance) && t >= -tolerance &&
-            t <= (1.0 + tolerance)) {
-            PointIntersection.Coordinate(1) =
-                PointOrig1.Coordinate(1) + t * s_orig1_orig2_x;
-            PointIntersection.Coordinate(2) =
-                PointOrig1.Coordinate(2) + t * s_orig1_orig2_y;
-
+            PointIntersection.Coordinates()[0] = coord_point_orig1[0] + t * s_orig1_orig2_x; 
+            PointIntersection.Coordinates()[1] = coord_point_orig1[1] + t * s_orig1_orig2_y; 
+            
             return true;
-        } else {
-            return false;
         }
+        else
+            return false;
     }
 
     /**
@@ -499,17 +416,19 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
      * @param Axis2 The normal to the previous axis
      * @return angle The angle formed
      */
-
-    static inline double AnglePoints(const PointType& PointOrig1,
-        const PointType& PointOrig2, const array_1d<double, 3>& Axis1,
-        const array_1d<double, 3>& Axis2) {
-        array_1d<double, 3> local_edge =
-            PointOrig2.Coordinates() - PointOrig1.Coordinates();
-        if (norm_2(local_edge) > 0.0) {
+    
+    static inline double AnglePoints(
+        const PointType& PointOrig1,
+        const PointType& PointOrig2,
+        const array_1d<double, 3>& Axis1,
+        const array_1d<double, 3>& Axis2
+        )
+    {
+        array_1d<double, 3> local_edge = PointOrig2.Coordinates() - PointOrig1.Coordinates();
+        if (norm_2(local_edge) > 0.0)
             local_edge /= norm_2(local_edge);
-        }
-
-        const double xi = inner_prod(Axis1, local_edge);
+        
+        const double xi  = inner_prod(Axis1, local_edge);
         const double eta = inner_prod(Axis2, local_edge);
 
         return (std::atan2(eta, xi));
@@ -525,11 +444,7 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
     static inline bool CheckPoints(
         const PointType& PointOrig, const PointType& PointDest) {
         const double tolerance = std::numeric_limits<double>::epsilon();
-
-        return (norm_2(PointDest.Coordinates() - PointOrig.Coordinates()) <
-                   tolerance)
-                   ? true
-                   : false;
+        return (norm_2(PointDest.Coordinates() - PointOrig.Coordinates()) < tolerance) ? true : false;
     }
 
     /**
@@ -649,13 +564,9 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
     ///@name Member Variables
     ///@{
 
-    const unsigned int mIntegrationOrder;  // The integration order to consider
-    IntegrationMethod
-        mAuxIntegrationMethod;  // The auxiliar list of Gauss Points taken from the geometry
-
-    // NOTE: Just for debug
-    const bool mDebugGeometries;  // If the geometry is debugged or not
-
+    const unsigned int mIntegrationOrder;    // The integration order to consider
+    IntegrationMethod mAuxIntegrationMethod; // The auxiliar list of Gauss Points taken from the geometry
+    
     ///@}
     ///@name Private Operators
     ///@{
