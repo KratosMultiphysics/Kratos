@@ -1,15 +1,18 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+
+# Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","MetisApplication","TrilinosApplication")
+
+# Import applications
 import KratosMultiphysics.MetisApplication as KratosMetis           # Partitioning
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
 
-## Checks that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
-## Import serial monolithic embedded solver
+# Import serial monolithic embedded solver
 import navier_stokes_embedded_solver
 
 def CreateSolver(main_model_part, custom_settings):
