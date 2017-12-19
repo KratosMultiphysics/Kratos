@@ -113,7 +113,7 @@ public:
     static inline void ComputeStepJump(
         ModelPart& rThisModelPart,
         const double DeltaTime,
-        const bool HalfJump = true
+        const bool HalfJump = false
         )
     {
         // Time constants 

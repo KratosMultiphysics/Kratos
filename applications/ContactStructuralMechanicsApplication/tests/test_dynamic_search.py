@@ -61,7 +61,7 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         del(node)
         
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 1 
-        self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = 0.5 
+        self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = 0.25 
         
         for prop in self.main_model_part.GetProperties():
             prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = 3 
