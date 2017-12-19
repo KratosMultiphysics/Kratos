@@ -42,6 +42,7 @@
 
 // Builders and solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "custom_strategies/custom_builder_and_solvers/contact_residualbased_block_builder_and_solver.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -201,6 +202,9 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
+            
+    typedef ContactResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ContactResidualBasedBlockBuilderAndSolverType;
+    class_< ContactResidualBasedBlockBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > ("ContactResidualBasedBlockBuilderAndSolver", init< LinearSolverType::Pointer > ());
 }
 
 }  // namespace Python.

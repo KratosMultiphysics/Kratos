@@ -66,9 +66,9 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         if (self.settings["reform_dofs_at_each_step"].GetBool() == False):
             print("WARNING:: DoF must be reformed each time step. Switching to True")
             self.settings["reform_dofs_at_each_step"].SetBool(True)
-        #if (self.settings["block_builder"].GetBool() == False):
-            #print("WARNING:: EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
-            #self.settings["block_builder"].SetBool(True)
+        if (self.settings["block_builder"].GetBool() == False):
+            print("WARNING:: EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
+            self.settings["block_builder"].SetBool(True)
 
         # Setting echo level
         self.echo_level =  self.settings["echo_level"].GetInt()
@@ -149,6 +149,17 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         import contact_convergence_criteria_factory
         convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(conv_params)
         return convergence_criterion.mechanical_convergence_criterion
+        
+    def _create_builder_and_solver(self):
+        linear_solver = self.get_linear_solver()
+        if self.settings["block_builder"].GetBool():
+            if self.settings["multi_point_constraints_used"].GetBool():
+                raise Exception("MPCs not compatible with contact")
+            else:
+                builder_and_solver = ContactStructuralMechanicsApplication.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
+        else:
+            raise Exception("Contact not compatible with EliminationBuilderAndSolver")
+        return builder_and_solver
         
     def _create_mechanical_solver(self):
         if(self.settings["line_search"].GetBool()):

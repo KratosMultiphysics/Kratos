@@ -538,7 +538,9 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 }
             }
         }
-              
+            
+        this->Set(ISOLATED, false); // We set the corresponding flag
+            
         // Calculates the active/inactive combination pair
         const unsigned int active_inactive = GetActiveInactiveValue(slave_geometry);
         
@@ -558,6 +560,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     }
     else //If not inside we fill we zero the local matrices
     {
+        this->Set(ISOLATED, true); // We set the corresponding flag
+        
         // Assemble of the matrix is required
         if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_LHS_MATRIX ) )
             rLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
