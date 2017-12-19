@@ -97,8 +97,8 @@ void ALMVariablesCalculationProcess::Execute()
     
     std::cout << "The potential parameters for penalty and scale factor are: \n" << "PENALTY SLAVE:\t" << penalty_parameter_slave << "\tPENALTY MASTER:\t" << penalty_parameter_master << "\nSCALE FACTOR SLAVE:\t" << scale_factor_slave << "\tPSCALE FACTOR MASTER:\t" << scale_factor_master << std::endl;
     
-    mrThisModelPart.GetProcessInfo()[INITIAL_PENALTY] = (penalty_parameter_slave > penalty_parameter_master) ? penalty_parameter_slave : penalty_parameter_master; // NOTE: > or <? , we are supposed to take the largest of the values (more stiff)
-    mrThisModelPart.GetProcessInfo()[SCALE_FACTOR] = (scale_factor_slave > scale_factor_master) ? scale_factor_slave : scale_factor_master;
+    mrThisModelPart.GetProcessInfo()[INITIAL_PENALTY] = (penalty_parameter_slave < penalty_parameter_master) ? penalty_parameter_slave : penalty_parameter_master; // NOTE: > or <? , we are supposed to take the smallest of the values (less stiff)
+    mrThisModelPart.GetProcessInfo()[SCALE_FACTOR] = (scale_factor_slave < scale_factor_master) ? scale_factor_slave : scale_factor_master;
     
     KRATOS_CATCH("")
 } // class ALMVariablesCalculationProcess
