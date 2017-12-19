@@ -48,7 +48,12 @@ class PfemDynamicMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         scheme_type = self.settings["scheme_type"].GetString()
         
         damp_factor_m = 0.0
-        mechanical_scheme = KratosPfemSolid.ResidualBasedUWBossakScheme(damp_factor_m, 1.0)
+        alphaM = 0
+        dynamic = 1
+        alphaF = 0
+        beta = 0.25
+        gamma = 0.5
+        mechanical_scheme = KratosPfemSolid.ResidualBasedUWBossakScheme(alphaM, dynamic, alphaF, beta, gamma)
                     
         return mechanical_scheme
  

@@ -118,6 +118,10 @@ namespace Kratos
     
     //Register Variables (variables created in pfem_solid_mechanics_application_variables.cpp)
 
+    //scheme
+    KRATOS_REGISTER_VARIABLE( HHT_ALPHA )
+
+
     //solution
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_DISPLACEMENT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_VELOCITY )

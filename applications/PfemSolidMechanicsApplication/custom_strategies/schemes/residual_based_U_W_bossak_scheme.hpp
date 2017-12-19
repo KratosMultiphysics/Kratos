@@ -89,7 +89,37 @@ namespace Kratos
          {
          }
 
+         ResidualBasedUWBossakScheme(double rAlpham, double rDynamic,double rAlphaf)
+            :ResidualBasedBossakScheme<TSparseSpace,TDenseSpace>(rAlpham, rDynamic)
+         {
+            KRATOS_TRY
 
+            this->mAlpha.f = rAlphaf;
+            this->mAlpha.m = rAlpham;
+
+            this->mNewmark.beta= (1.0+this->mAlpha.f-this->mAlpha.m)*(1.0+this->mAlpha.f-this->mAlpha.m)*0.25;
+            this->mNewmark.gamma= 0.5+this->mAlpha.f-this->mAlpha.m;
+
+            this->mNewmark.static_dynamic= rDynamic;
+
+            KRATOS_CATCH("")
+         }
+
+         ResidualBasedUWBossakScheme(double rAlpham, double rDynamic, double rAlphaf,double rBeta,double rGamma)
+            :ResidualBasedBossakScheme<TSparseSpace,TDenseSpace>(rAlpham, rDynamic)
+         {
+            KRATOS_TRY
+
+            this->mAlpha.f = rAlphaf;
+            this->mAlpha.m = rAlpham;
+
+            this->mNewmark.beta  = rBeta;
+            this->mNewmark.gamma = rGamma;
+
+            this->mNewmark.static_dynamic= rDynamic;
+
+            KRATOS_CATCH("")
+         }
          /** Copy Constructor.
           */
          ResidualBasedUWBossakScheme(ResidualBasedUWBossakScheme& rOther)
@@ -407,6 +437,35 @@ namespace Kratos
 
                this->UpdateAcceleration (CurrentWaterAcceleration, DeltaWaterDisplacement, PreviousWaterVelocity, PreviousWaterAcceleration);
 
+            }
+
+            KRATOS_CATCH("")
+         }
+
+         //***************************************************************************
+         //***************************************************************************
+
+         /**
+          * initializes time step solution
+          * only for reasons if the time step solution is restarted
+          * @param r_model_part
+          * @param A	LHS matrix
+          * @param Dx incremental update of primary variables
+          * @param b RHS Vector
+          */
+         void InitializeSolutionStep(
+               ModelPart& r_model_part,
+               TSystemMatrixType& A,
+               TSystemVectorType& Dx,
+               TSystemVectorType& b)
+         {
+            KRATOS_TRY
+
+            ResidualBasedBossakScheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep( r_model_part, A, Dx, b);
+
+            if ( this->mNewmark.static_dynamic) {
+               ProcessInfo& rCurrentProcessInfo= r_model_part.GetProcessInfo();
+               rCurrentProcessInfo[HHT_ALPHA] = this->mAlpha.f;
             }
 
             KRATOS_CATCH("")
