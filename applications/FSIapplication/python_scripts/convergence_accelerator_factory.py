@@ -6,6 +6,9 @@ import KratosMultiphysics
 # Check that applications were imported in the main script
 KratosMultiphysics.CheckRegisteredApplications("FSIApplication")
 
+# Import applications
+import KratosMultiphysics.FSIApplication as KratosFSI
+
 # Check if Trilinos has been imported to set the have_trilinos flag
 if (KratosMultiphysics.Kernel().IsImported("TrilinosApplication")):
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos
