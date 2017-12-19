@@ -152,15 +152,43 @@ namespace Kratos {
         virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
         virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
 
-        virtual void ComputeConditionRelativeData(
-                int rigid_neighbour_index,
-                DEMWall* const wall,
-                double LocalCoordSystem[3][3],
-                double& DistPToB,
-                array_1d<double, 4>& Weight,
-                array_1d<double, 3>& wall_delta_disp_at_contact_point,
-                array_1d<double, 3>& wall_velocity_at_contact_point,
-                int& ContactType);
+virtual double GetRadius();
+virtual void   SetRadius(double radius);
+virtual void   SetRadius();
+virtual double CalculateVolume();
+virtual double GetInteractionRadius(const int radius_index = 0);
+virtual void SetInteractionRadius(const double radius, const int radius_index = 0);
+virtual double GetSearchRadius();
+DEMDiscontinuumConstitutiveLaw::Pointer GetConstitutiveLawPointer();
+virtual void SetDefaultRadiiHierarchy(const double radius);
+virtual void SetSearchRadius(const double radius);
+virtual double GetMass();
+virtual void   SetMass(double real_mass);
+virtual double   CalculateMomentOfInertia();
+virtual double GetYoung();
+void   SetYoungFromProperties(double* young);
+virtual double GetRollingFriction();
+void   SetRollingFrictionFromProperties(double* rolling_friction);
+virtual double GetRollingFrictionWithWalls();
+void   SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls);
+virtual double GetPoisson();
+void   SetPoissonFromProperties(double* poisson);
+virtual double GetTgOfFrictionAngle();
+void   SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle);
+virtual double GetCoefficientOfRestitution();
+void   SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution);
+virtual double GetLnOfRestitCoeff();
+void   SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff);
+virtual double GetDensity();
+void   SetDensityFromProperties(double* density);
+virtual int    GetParticleMaterial();
+void   SetParticleMaterialFromProperties(int* particle_material);
+virtual double GetParticleCohesion();
+void   SetParticleCohesionFromProperties(double* particle_cohesion);
+virtual double GetParticleKNormal();
+void   SetParticleKNormalFromProperties(double* particle_k_normal);
+virtual double GetParticleKTangential();
+void   SetParticleKTangentialFromProperties(double* particle_k_tangential);
 
         virtual void RenewData();
         virtual void SendForcesToFEM();
@@ -215,9 +243,15 @@ namespace Kratos {
         virtual double& GetInelasticFrictionalEnergy();
         virtual double& GetInelasticViscodampingEnergy();
 
-        PropertiesProxy* GetFastProperties();
-        void   SetFastProperties(PropertiesProxy* pProps);
-        void   SetFastProperties(std::vector<PropertiesProxy>& list_of_proxies);
+double SlowGetYoung();
+double SlowGetRollingFriction();
+double SlowGetRollingFrictionWithWalls();
+double SlowGetPoisson();
+double SlowGetTgOfFrictionAngle();
+double SlowGetCoefficientOfRestitution();
+double SlowGetDensity();
+double SlowGetParticleCohesion();
+int    SlowGetParticleMaterial();
 
         double SlowGetYoung();
         double SlowGetRollingFriction();
