@@ -26,8 +26,6 @@ class Kratos_Execute_Test:
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
 
-        self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString(): self.main_model_part}
-
         # Construct the solver (main setting methods are located in the solver_module)
         import python_solvers_wrapper_contact_structural
         self.solver = python_solvers_wrapper_contact_structural.CreateSolver(self.main_model_part, ProjectParameters)
@@ -44,10 +42,8 @@ class Kratos_Execute_Test:
         self.solver.AddDofs()
 
         # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
-        # #Get the list of the submodel part in the object Model
-        for i in range(self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
-            part_name = self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-            self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+        self.Model = KratosMultiphysics.Model()
+        self.Model.AddModelPart(self.main_model_part)
 
         # Obtain the list of the processes to be applied
         self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["constraints_process_list"])
