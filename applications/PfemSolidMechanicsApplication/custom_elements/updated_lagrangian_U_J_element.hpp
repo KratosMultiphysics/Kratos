@@ -264,14 +264,22 @@ namespace Kratos
           ****/    
          double mElementStabilizationNumber;
 
-         /*** 
-           Just to check a few things
-          ***/
-         //bool mCompressibleWater;
+         bool mDynamicElement;
+
+         double mAlphaF;
+
+         VectorType mPreviousRHSVector;
+
 
          ///@}
          ///@name Protected Operators
          ///@{
+
+         /**
+           * number of dofs per each node
+           */
+         virtual int GetDofsPerNode();
+
 
          /**
           * Calculates the elemental contributions
