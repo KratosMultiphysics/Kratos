@@ -35,7 +35,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "distance_file_name"  : "no_distance_file"
             },
             "maximum_iterations": 10,
-            "dynamic_tau": 0.01,
+            "dynamic_tau": 1.0,
             "echo_level": 0,
             "time_order": 2,
             "compute_reactions": false,
@@ -50,7 +50,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "tolerance"           : 1e-7,
                 "provide_coordinates" : false,
                 "smoother_type"       : "ilu0",
-                "krylov_type"         : "gmres",
+                "krylov_type"         : "lgmres",
                 "coarsening_type"     : "aggregation",
                 "scaling"             : true,
                 "verbosity"           : 0
@@ -61,8 +61,8 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             "time_stepping"                : {
                 "automatic_time_step" : true,
                 "CFL_number"          : 1,
-                "minimum_delta_time"  : 1e-4,
-                "maximum_delta_time"  : 0.01
+                "minimum_delta_time"  : 1e-2,
+                "maximum_delta_time"  : 1.0
             },
             "periodic": "periodic",
             "move_mesh_flag": false,
@@ -98,8 +98,8 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)        # Speed of sound velocity
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)     # Nodal external pressure
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)     # At the moment, the EmbeddedNavierStokes element works with the DYNAMIC_VISCOSITY
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.EMBEDDED_WET_PRESSURE)        # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.EMBEDDED_WET_VELOCITY)        # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_PRESSURE)          # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_VELOCITY)          # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
         print("Monolithic embedded fluid solver variables added correctly")
 
@@ -112,10 +112,10 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         # Creating the solution strategy
-        self.conv_criteria = KratosFluid.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                       self.settings["absolute_velocity_tolerance"].GetDouble(),
-                                                       self.settings["relative_pressure_tolerance"].GetDouble(),
-                                                       self.settings["absolute_pressure_tolerance"].GetDouble())
+        self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
+                                                     self.settings["absolute_velocity_tolerance"].GetDouble(),
+                                                     self.settings["relative_pressure_tolerance"].GetDouble(),
+                                                     self.settings["absolute_pressure_tolerance"].GetDouble())
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
@@ -190,9 +190,9 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
 
         ## Construct the constitutive law needed for the embedded element
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosFluid.Newtonian3DLaw()
+            self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.Newtonian3DLaw()
         elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosFluid.Newtonian2DLaw()
+            self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.Newtonian2DLaw()
 
         ## Setting the nodal distance
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
