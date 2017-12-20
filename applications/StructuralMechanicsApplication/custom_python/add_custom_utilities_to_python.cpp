@@ -28,7 +28,7 @@
 
 //Processes
 #include "custom_processes/postprocess_eigenvalues_process.h"
-
+#include "custom_processes/apply_periodic_condition_process.h"
 
 namespace Kratos
 {
@@ -47,6 +47,9 @@ void  AddCustomUtilitiesToPython()
     .def("Execute",&SprismNeighbours::Execute)
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
     ;
+
+
+    class_<ApplyPeriodicConditionProcess, boost::noncopyable, bases<Process>>("ApplyPeriodicConditionProcess", init<ModelPart&, Parameters>());
 
 }
 
