@@ -78,7 +78,8 @@ namespace Kratos
 
     // Eof variables
 
-    KratosShapeOptimizationApplication::KratosShapeOptimizationApplication():
+    KratosShapeOptimizationApplication::KratosShapeOptimizationApplication() :
+        KratosApplication("ShapeOptimizationApplication"),
     	mSmallDisplacementAnalyticSensitivityElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
 		mSmallDisplacementAnalyticSensitivityElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10 ) ) ) ),
     	mSmallDisplacementAnalyticSensitivityElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
