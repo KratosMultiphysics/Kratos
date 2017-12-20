@@ -712,7 +712,7 @@ private:
         amgcl::make_solver<
         amgcl::runtime::amg<Backend>,
               amgcl::runtime::iterative_solver<Backend>
-              > solve( amgcl::adapter::block_matrix<TBlockSize, value_type>(boost::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() )), mprm);
+              > solve( amgcl::adapter::block_matrix<value_type>(boost::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() )), mprm);
 
 //         //compute preconditioner
 //         if(mverbosity > 0) std::cout << solve.precond() << std::endl;
