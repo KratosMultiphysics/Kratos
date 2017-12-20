@@ -88,10 +88,18 @@ void AddUtilitiesToPython()
     .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
     ;
 
+    // This is required to recognize the different overloads of ConditionNumberUtility::GetConditionNumber
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef double (ConditionNumberUtility::*InputGetConditionNumber)(SparseSpaceType::MatrixType&, LinearSolverType::Pointer, LinearSolverType::Pointer);
+    typedef double (ConditionNumberUtility::*DirectGetConditionNumber)(SparseSpaceType::MatrixType&);
+
+    InputGetConditionNumber ThisGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
+    DirectGetConditionNumber ThisDirectGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
+    
     class_<ConditionNumberUtility>("ConditionNumberUtility", init<>())
     .def(init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
-    .def("GetConditionNumber",&ConditionNumberUtility::GetConditionNumber)
-    .def("ComputeConditionNumber",&ConditionNumberUtility::ComputeConditionNumber)
+    .def("GetConditionNumber", ThisGetConditionNumber)
+    .def("GetConditionNumber", ThisDirectGetConditionNumber)
     ;
 
     class_<VariableUtils > ("VariableUtils", init<>())
