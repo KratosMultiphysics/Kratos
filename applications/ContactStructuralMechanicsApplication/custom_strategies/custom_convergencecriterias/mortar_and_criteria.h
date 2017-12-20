@@ -177,7 +177,7 @@ public:
         if (mpConditionNumberUtility != nullptr)
         {
             TSystemMatrixType copy_A; // NOTE: Can not be const, TODO: Change the solvers to const
-            const double condition_number = mpConditionNumberUtility->ComputeConditionNumber(copy_A);
+            const double condition_number = mpConditionNumberUtility->GetConditionNumber(copy_A);
             
             if (mpTable != nullptr)
             {
