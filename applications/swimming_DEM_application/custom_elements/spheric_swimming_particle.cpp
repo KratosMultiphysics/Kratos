@@ -929,11 +929,11 @@ void SphericSwimmingParticle<TBaseElement>::ComputePowerLawParticleReynoldsNumbe
                                                                                   const int flow_behavior_index,
                                                                                   const bool use_max_shear_rate)
 {
-
+    // This function is consistent with Shah 2007 (doi:10.1016/j.ijmultiphaseﬂow.2006.06.006)
     int coefficient = use_max_shear_rate ? 3 : 2;
     const int& K = consistency_index;
     const int& n = flow_behavior_index;
-    reynolds =  mFluidDensity * std::pow(2 * mRadius, n) * std::pow(mNormOfSlipVel, 2 - n) / K;
+    reynolds =  2 * mFluidDensity * std::pow(0.5 * coefficient * mRadius, n) * std::pow(mNormOfSlipVel, 2 - n) / K;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -1387,7 +1387,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeBeetstraDragCoefficient()
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-double SphericSwimmingParticle<TBaseElement>::ComputeShahDragCoefficient()
+double SphericSwimmingParticle<TBaseElement>::ComputeShahDragCoefficient(const bool use_shahi_correction = false)
 {
     const double power_law_tol = 0.0001;
     const double n = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_N);
@@ -1397,11 +1397,18 @@ double SphericSwimmingParticle<TBaseElement>::ComputeShahDragCoefficient()
         std::cout << "WARNING: Shah's method is being used with Power Law data being zero!!" << std::endl << std::flush;
     }
 
-    const double A =   6.9148 * n * n - 24.838 * n + 22.642;
-    const double B = - 0.5067 * n * n + 1.3234 * n - 0.1744;
+    double A =   6.9148 * n * n - 24.838 * n + 22.642;
+    double B = - 0.5067 * n * n + 1.3234 * n - 0.1744;
+
+    if (use_shahi_correction){ // from 2016 Shahi (doi: 10.1016/j.minpro.2016.06.002)
+        A = 1.5269 * A - 3.9375;
+        B =  0.892 * B + 0.0326;
+    }
+
     double reynolds;
     ComputePowerLawParticleReynoldsNumber(reynolds, K, n, false);
     const double exponents_coeff = 1.0 / (2 - n);
+
     return std::pow(A, exponents_coeff) * std::pow(reynolds, exponents_coeff * (2 * B - 2));
 }
 //**************************************************************************************************************************************************
