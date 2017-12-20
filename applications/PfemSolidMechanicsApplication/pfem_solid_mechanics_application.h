@@ -33,7 +33,6 @@
 #include "contact_mechanics_application.h"
 
 //conditions
-#include "custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.hpp"
 
 //elements
 #include "custom_elements/total_updated_lagrangian_element.hpp"
@@ -90,8 +89,6 @@
 #include "custom_constitutive/hencky_tresca_3D_law.hpp"
 #include "custom_constitutive/hencky_tresca_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_axisym_2D_law.hpp"
-//#include "custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_J2_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.hpp"
@@ -307,8 +304,6 @@ namespace Kratos
     const HenckyTrescaPlasticAxisym2DLaw                                    mHenckyTrescaPlasticAxisym2DLaw;
     const HenckyTrescaPlasticPlaneStrain2DLaw                          mHenckyTrescaPlasticPlaneStrain2DLaw;
     const HenckyTresca3DLaw                                                              mHenckyTresca3DLaw;
-    //const HenckyMohrCoulombPlasticAxisym2DLaw                          mHenckyMohrCoulombPlasticAxisym2DLaw;
-    //const HenckyMohrCoulombPlasticPlaneStrain2DLaw                mHenckyMohrCoulombPlasticPlaneStrain2DLaw;
 
     const HenckyPlasticUPJ2Axisym2DLaw                        mHenckyPlasticUPJ2Axisym2DLaw;
     const HenckyPlasticUPJ2PlaneStrain2DLaw                   mHenckyPlasticUPJ2PlaneStrain2DLaw;
@@ -318,17 +313,15 @@ namespace Kratos
 
     const J2ExplicitFlowRule                 mJ2ExplicitFlowRule; 
     const TrescaExplicitFlowRule             mTrescaExplicitFlowRule; 
-    //const MohrCoulombExplicitFlowRule        mMohrCoulombExplicitFlowRule; 
     const BorjaCamClayExplicitFlowRule       mBorjaCamClayExplicitFlowRule;
 
 
 
     const J2YieldCriterion                   mJ2YieldCriterion;
     const TrescaYieldCriterion               mTrescaYieldCriterion;
-    //const MohrCoulombYieldCriterion          mMohrCoulombYieldCriterion;
     const CamClayYieldCriterion              mCamClayYieldCriterion;
 
-    const CamClayKinematicHardeningLaw       mCamClayKinematicHardeningLaw;
+    const CamClayHardeningLaw       mCamClayHardeningLaw;
 
 
     ///@} 

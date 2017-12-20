@@ -7,6 +7,7 @@ from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import swimming_DEM_algorithm
 import swimming_DEM_procedures as SDP
+import variables_management as vars_man
 
 sys.path.insert(0,'')
 import DEM_explicit_solver_var as DEM_parameters
@@ -22,7 +23,7 @@ class Algorithm(BaseAlgorithm):
     def SetCouplingParameters(self, varying_parameters):
 
         super(Algorithm,self).SetCouplingParameters(varying_parameters)
-        self.pp.domain_size = self.fluid_solution.ProjectParameters["problem_data"]["domain_size"].GetInt()
+        self.pp.domain_size = self.fluid_solution.ProjectParameters["problem_data"]["dimension"].GetInt()
 
     def SetBetaParameters(self):
 
@@ -66,7 +67,7 @@ class Algorithm(BaseAlgorithm):
 
     def FluidInitialize(self):
 
-        self.fluid_solution.vars_man=self.vars_man
+        self.fluid_solution.vars_man=vars_man
         self.fluid_solution.Initialize()
         bodies_parts_list = self.fluid_solution.ProjectParameters["solver_settings"]["bodies_list"]
         for i in range(bodies_parts_list.size()):
@@ -84,11 +85,12 @@ class Algorithm(BaseAlgorithm):
             print(" [STEP:",self.step," TIME:",self.time,"]")
 
     def CloneTimeStep(self):
+        self.TransferTimeToFluidSolver()
 
         if self.step < self.GetFirstStepForFluidComputation() or self.stationarity:
             self.fluid_solution.main_model_part.CloneTimeStep(self.time)
 
-    def FluidSolve(self, time = 'None'):
+    def FluidSolve(self, time = 'None', solve_system = True):
 
         self.fluid_solution.InitializeSolutionStep()
         self.fluid_solution.SolveSolutionStep()
