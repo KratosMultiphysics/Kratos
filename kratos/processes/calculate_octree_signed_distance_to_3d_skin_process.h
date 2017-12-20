@@ -54,7 +54,7 @@ public:
         double& X() {return mCoordinates[0];}
         double& Y() {return mCoordinates[1];}
         double& Z() {return mCoordinates[2];}
-        double& Coordinate(int i) {return mCoordinates[i];}
+        double& operator[](int i) {return mCoordinates[i];}
         std::size_t& Id(){return mId;}
     };
 
@@ -330,11 +330,11 @@ private:
           for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin() ; i_node != mrSkinModelPart.NodesEnd() ; i_node++)
           {
               double temp_point[3];
-              const array_1d<double,3>& r_coordinates = i_node->Coordinates();
+              const Node<3>& r_node = *i_node;
               
-              temp_point[0] = r_coordinates[0];
-              temp_point[1] = r_coordinates[1];
-              temp_point[2] = r_coordinates[2];
+              temp_point[0] = r_node[0];
+              temp_point[1] = r_node[1];
+              temp_point[2] = r_node[2];
               
               mOctree.Insert(temp_point);
           }

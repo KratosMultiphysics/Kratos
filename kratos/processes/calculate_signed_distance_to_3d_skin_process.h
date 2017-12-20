@@ -67,7 +67,7 @@ public:
         double& X() {return mCoordinates[0];}
         double& Y() {return mCoordinates[1];}
         double& Z() {return mCoordinates[2];}
-        double& Coordinate(int i) {return mCoordinates[i];}
+        double& operator[](int i) {return mCoordinates[i];}
         std::size_t& Id(){return mId;}
     };
 
@@ -1980,7 +1980,7 @@ public:
         //            KRATOS_WATCH(nodes_array.size())
         for (std::size_t i_node = 0; i_node < nodes_array.size() ; i_node++)
         {
-            double coord = nodes_array[i_node]->Coordinate(i_direction);
+            double coord = (*nodes_array[i_node])[i_direction];
             //             KRATOS_WATCH(intersections.size());
 
             int ray_color= 1;
@@ -2038,10 +2038,6 @@ public:
 
                 double cell_point[3];
                 mpOctree->CalculateCoordinates(keys,cell_point);
-
-                //                cell_point[0] = pCell->GetCoordinate(keys[0]);
-                //                cell_point[1] = pCell->GetCoordinate(keys[1]);
-                //                cell_point[2] = pCell->GetCoordinate(keys[2]);
 
                 double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point(cell_point[0], cell_point[1], cell_point[2]));
 
