@@ -72,17 +72,17 @@ namespace Kratos {
             
                 mListOfCoordinates[i + number_of_spheres_per_pass * j][0] = 
                         
-                    cl * 0.5 * cos(-0.5 * Globals::Pi + j * Globals::Pi / (number_of_passes - 1))
-                        * cos(-Globals::Pi + Globals::Pi * i * 0.5 / (number_of_spheres_in_first_sector - 1)); 
+                    cl * 0.5 * std::cos(-0.5 * Globals::Pi + j * Globals::Pi / (number_of_passes - 1))
+                        * std::cos(-Globals::Pi + Globals::Pi * i * 0.5 / (number_of_spheres_in_first_sector - 1)); 
                 
                 mListOfCoordinates[i + number_of_spheres_per_pass * j][1] = 
                         
-                    cl * 0.375 * cos(-0.5 * Globals::Pi + j * Globals::Pi / (number_of_passes - 1))
-                        * sin(-Globals::Pi + Globals::Pi * i * 0.5 / (number_of_spheres_in_first_sector - 1)); 
+                    cl * 0.375 * std::cos(-0.5 * Globals::Pi + j * Globals::Pi / (number_of_passes - 1))
+                        * std::sin(-Globals::Pi + Globals::Pi * i * 0.5 / (number_of_spheres_in_first_sector - 1)); 
                 
                 mListOfCoordinates[i + number_of_spheres_per_pass * j][2] = 
                         
-                    cl * 0.25 * sin(-0.5 * Globals::Pi + j * Globals::Pi / (number_of_passes - 1));
+                    cl * 0.25 * std::sin(-0.5 * Globals::Pi + j * Globals::Pi / (number_of_passes - 1));
                 
                 //u = -0.5 * Globals::Pi + j * Globals::Pi / (number_of_passes - 1)
                         

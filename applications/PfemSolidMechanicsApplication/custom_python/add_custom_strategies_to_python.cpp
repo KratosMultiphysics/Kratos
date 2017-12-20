@@ -35,7 +35,6 @@
 #include "custom_strategies/schemes/residual_based_bossak_scheme.hpp"
 #include "custom_strategies/schemes/residual_based_U_W_bossak_scheme.hpp"
 #include "custom_strategies/schemes/residual_based_contact_bossak_scheme.hpp"
-#include "custom_strategies/schemes/residual_based_U_wP_static_scheme.hpp"
 
 namespace Kratos
 {
@@ -55,9 +54,6 @@ namespace Kratos
       //typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
       typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
       //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
-
-      //custom strategy types
-      typedef ResidualBasedUwPStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedUwPStaticSchemeType;
 
       //custom scheme types
       typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >    ResidualBasedBossakSchemeType;
@@ -102,15 +98,6 @@ namespace Kratos
 	 "ResidualBasedContactBossakScheme", init< double , double >() )
 	
 	.def("Initialize", &ResidualBasedContactBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
-      
-      // Static Scheme Type
-      class_< ResidualBasedUwPStaticSchemeType,
-	      bases< BaseSchemeType >, boost::noncopyable >
-	(
-	 "ResidualBasedUwPStaticScheme", init< >() )
-        
-	.def("Initialize", &ResidualBasedUwPStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
 	;
       
       
