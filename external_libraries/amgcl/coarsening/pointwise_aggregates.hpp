@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,10 +33,6 @@ THE SOFTWARE.
 
 #include <vector>
 #include <cmath>
-
-#include <boost/typeof/typeof.hpp>
-#include <boost/range/algorithm.hpp>
-#include <boost/range/numeric.hpp>
 
 #include <amgcl/util.hpp>
 #include <amgcl/backend/builtin.hpp>
@@ -118,34 +114,21 @@ class pointwise_aggregates {
 
                 count = pw_aggr.count * prm.block_size;
 
-                BOOST_AUTO(Aptr, A.ptr_data());
-                BOOST_AUTO(Acol, A.col_data());
-
 #pragma omp parallel
                 {
                     std::vector<ptrdiff_t> marker(Ap.nrows, -1);
 
-#ifdef _OPENMP
-                    int nt  = omp_get_num_threads();
-                    int tid = omp_get_thread_num();
-
-                    size_t chunk_size  = (Ap.nrows + nt - 1) / nt;
-                    size_t chunk_start = tid * chunk_size;
-                    size_t chunk_end   = std::min(Ap.nrows, chunk_start + chunk_size);
-#else
-                    size_t chunk_start = 0;
-                    size_t chunk_end   = Ap.nrows;
-#endif
-
-                    for(size_t ip = chunk_start, ia = ip * prm.block_size; ip < chunk_end; ++ip) {
+#pragma omp for
+                    for(ptrdiff_t ip = 0; ip < static_cast<ptrdiff_t>(Ap.nrows); ++ip) {
+                        ptrdiff_t ia = ip * prm.block_size;
                         ptrdiff_t row_beg = Ap.ptr[ip];
                         ptrdiff_t row_end = row_beg;
 
                         for(unsigned k = 0; k < prm.block_size; ++k, ++ia) {
                             id[ia] = prm.block_size * pw_aggr.id[ip] + k;
 
-                            for(ptrdiff_t ja = Aptr[ia], ea = Aptr[ia+1]; ja < ea; ++ja) {
-                                ptrdiff_t cp = Acol[ja] / prm.block_size;
+                            for(ptrdiff_t ja = A.ptr[ia], ea = A.ptr[ia+1]; ja < ea; ++ja) {
+                                ptrdiff_t cp = A.col[ja] / prm.block_size;
 
                                 if (marker[cp] < row_beg) {
                                     marker[cp] = row_end;
@@ -216,51 +199,40 @@ class pointwise_aggregates {
                     "Matrix size should be divisible by block_size");
 
             backend::crs<S> Ap;
-            Ap.nrows = np;
-            Ap.ncols = mp;
-            Ap.ptr.resize(np + 1, 0);
+            Ap.set_size(np, mp, true);
 
 #pragma omp parallel
             {
                 std::vector<ptrdiff_t> marker(mp, -1);
 
-#ifdef _OPENMP
-                int nt  = omp_get_num_threads();
-                int tid = omp_get_thread_num();
-
-                size_t chunk_size  = (np + nt - 1) / nt;
-                size_t chunk_start = tid * chunk_size;
-                size_t chunk_end   = std::min(np, chunk_start + chunk_size);
-#else
-                size_t chunk_start = 0;
-                size_t chunk_end   = np;
-#endif
-
                 // Count number of nonzeros in block matrix.
-                for(size_t ip = chunk_start, ia = ip * block_size; ip < chunk_end; ++ip) {
+#pragma omp for
+                for(ptrdiff_t ip = 0; ip < static_cast<ptrdiff_t>(np); ++ip) {
+                    ptrdiff_t ia = ip * block_size;
+
                     for(unsigned k = 0; k < block_size; ++k, ++ia) {
                         for(row_iterator a = backend::row_begin(A, ia); a; ++a) {
                             ptrdiff_t cp = a.col() / block_size;
-                            if (static_cast<size_t>(marker[cp]) != ip) {
+                            if (marker[cp] != ip) {
                                 marker[cp] = ip;
                                 ++Ap.ptr[ip + 1];
                             }
                         }
                     }
                 }
+            }
 
-                boost::fill(marker, -1);
+            std::partial_sum(Ap.ptr, Ap.ptr + np + 1, Ap.ptr);
+            Ap.set_nonzeros();
 
-#pragma omp barrier
-#pragma omp single
-                {
-                    boost::partial_sum(Ap.ptr, Ap.ptr.begin());
-                    Ap.col.resize(Ap.ptr.back());
-                    Ap.val.resize(Ap.ptr.back());
-                }
+#pragma omp parallel
+            {
+                std::vector<ptrdiff_t> marker(mp, -1);
 
                 // Fill the reduced matrix. Use max norm for blocks.
-                for(size_t ip = chunk_start, ia = ip * block_size; ip < chunk_end; ++ip) {
+#pragma omp for
+                for(ptrdiff_t ip = 0; ip < static_cast<ptrdiff_t>(np); ++ip) {
+                    ptrdiff_t ia = ip * block_size;
                     ptrdiff_t row_beg = Ap.ptr[ip];
                     ptrdiff_t row_end = row_beg;
 

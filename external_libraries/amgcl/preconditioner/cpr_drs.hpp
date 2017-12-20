@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ THE SOFTWARE.
  */
 
 #include <vector>
+#include <algorithm>
 
 #include <boost/shared_ptr.hpp>
 
@@ -181,17 +182,12 @@ class cpr_drs {
             np = N / B;
 
             boost::shared_ptr<build_matrix> fpp = boost::make_shared<build_matrix>();
-            fpp->nrows = np;
-            fpp->ncols = n;
-
-            fpp->col.resize(n);
-            fpp->val.resize(n, 1);
-            fpp->ptr.resize(np+1);
+            fpp->set_size(np, n);
+            fpp->set_nonzeros(n);
             fpp->ptr[0] = 0;
 
             boost::shared_ptr<build_matrix> App = boost::make_shared<build_matrix>();
-            App->nrows = App->ncols = np;
-            App->ptr.resize(np+1, 0);
+            App->set_size(np, np, true);
 
 #pragma omp parallel
             {
@@ -202,11 +198,11 @@ class cpr_drs {
                 for(ptrdiff_t ip = 0; ip < static_cast<ptrdiff_t>(np); ++ip) {
                     ptrdiff_t ik = ip * B;
                     bool      done = true;
-                    ptrdiff_t cur_col;
+                    ptrdiff_t cur_col = 0;
 
-                    boost::fill(a_dia, 0);
-                    boost::fill(a_off, 0);
-                    boost::fill(a_top, 0);
+                    std::fill(a_dia.begin(), a_dia.end(), 0);
+                    std::fill(a_off.begin(), a_off.end(), 0);
+                    std::fill(a_top.begin(), a_top.end(), 0);
 
                     k.clear();
                     for(int i = 0; i < B; ++i) {
@@ -284,19 +280,13 @@ class cpr_drs {
                 }
             }
 
-            boost::partial_sum(App->ptr, App->ptr.begin());
-
-            App->col.resize(App->ptr.back());
-            App->val.resize(App->ptr.back());
+            std::partial_sum(App->ptr, App->ptr + np + 1, App->ptr);
+            App->set_nonzeros(App->ptr[np]);
 
             boost::shared_ptr<build_matrix> scatter = boost::make_shared<build_matrix>();
-            scatter->nrows = n;
-            scatter->ncols = np;
-
-            scatter->ptr.resize(n+1);
+            scatter->set_size(n, np);
+            scatter->set_nonzeros(np);
             scatter->ptr[0] = 0;
-            scatter->col.resize(np);
-            scatter->val.resize(np, 1);
 
 #pragma omp parallel
             {
@@ -307,7 +297,7 @@ class cpr_drs {
                     ptrdiff_t ik = ip * B;
                     ptrdiff_t head = App->ptr[ip];
                     bool      done = true;
-                    ptrdiff_t cur_col;
+                    ptrdiff_t cur_col = 0;
 
                     value_type *d = &fpp->val[ik];
 
@@ -358,6 +348,8 @@ class cpr_drs {
                     }
 
                     scatter->col[ip] = ip;
+                    scatter->val[ip] = math::identity<value_type>();
+
                     ptrdiff_t nnz = ip;
                     for(int i = 0; i < B; ++i) {
                         if (i == 0) ++nnz;

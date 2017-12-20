@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -127,7 +127,7 @@ struct damped_jacobi {
     }
 
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x, const params &prm) const
+    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x, const params&) const
     {
         backend::vmul(math::identity<scalar_type>(), *dia, rhs, math::zero<scalar_type>(), x);
     }

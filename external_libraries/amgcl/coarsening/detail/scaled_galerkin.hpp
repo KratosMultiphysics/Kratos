@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -48,8 +48,8 @@ boost::shared_ptr<Matrix> scaled_galerkin(
 {
         boost::shared_ptr<Matrix> a = galerkin(A, P, R);
 
-        typedef typename backend::value_type<Matrix>::type V;
-        BOOST_FOREACH(V &v, a->val) v *= scale;
+        for(size_t i = 0; i < a->nnz; ++i)
+            a->val[i] *= scale;
 
         return a;
 }

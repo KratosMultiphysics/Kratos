@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -122,7 +122,7 @@ struct viennacl {
     copy_vector(typename builtin<value_type>::vector const &x, const params&)
     {
         boost::shared_ptr<vector> v = boost::make_shared<vector>(x.size());
-        ::viennacl::fast_copy(x, *v);
+        ::viennacl::fast_copy(x.data(), x.data() + x.size(), v->begin());
         return v;
     }
 
@@ -235,7 +235,7 @@ struct viennacl {
             viennacl_matrix_adapter(
                     const typename backend::builtin<value_type>::matrix &A)
                 : rows(A.nrows), cols(A.ncols),
-                  row(A.ptr_data()), col(A.col_data()), val(A.val_data())
+                  row(A.ptr), col(A.col), val(A.val)
             { }
 
             const_iterator1 begin1() const {
