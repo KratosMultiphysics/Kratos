@@ -131,85 +131,29 @@ public:
         TSystemVectorType& b
         ) override
     {
-        KRATOS_ERROR_IF(!(rModelPart.HasSubModelPart("ComputingContact"))) << "ERROR:: CONTACT COMPUTING MODEL PART NOT CREATED" << std::endl;
-        ModelPart& computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact"); 
-        
-        // We reset the flag
-        auto& nodes_array = computing_contact_model_part.Nodes();
-    #ifdef _OPENMP
-        #pragma omp parallel for 
-    #endif
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-            (nodes_array.begin() + i)->Set(ISOLATED, false);
-        
-        // Now we set the flag in the nodes
-        auto& conditions_array = computing_contact_model_part.Conditions();
-        
-    #ifdef _OPENMP
-        #pragma omp parallel for 
-    #endif
-        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) 
-        {
-            auto cond_it = conditions_array.begin() + i;
-            
-            auto& geom = cond_it->GetGeometry();
-            for (std::size_t i_node = 0; i_node < geom.size(); ++i_node)
-            {
-                geom[i_node].SetLock();
-                geom[i_node].Set(ISOLATED, cond_it->Is(ISOLATED));
-                geom[i_node].UnSetLock();
-            }
-        }
-        
-        // We fix the LM
-    #ifdef _OPENMP
-        #pragma omp parallel for 
-    #endif
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-        {
-            auto node_it = nodes_array.begin() + i;
-            if (node_it->Is(ISOLATED) == true)
-            {
-                auto& dofs = node_it->GetDofs();
-                
-                for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
-                {
-                    if (it_dof->IsFree())
-                    {
-                        const auto curr_var = it_dof->GetVariable().Key();
-                        if (!((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z))) 
-                            it_dof->FixDof(); // NOTE: FIX THE LM
-                    }
-                }
-            }
-        }
+        FixIsolatedNodes(rModelPart);
         
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
         
-    // We release the LM
-    #ifdef _OPENMP
-        #pragma omp parallel for 
-    #endif
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-        {
-            auto node_it = nodes_array.begin() + i;
-            if (node_it->Is(ISOLATED) == true)
-            {
-                auto& dofs = node_it->GetDofs();
-                
-                for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
-                {
-                    if (it_dof->IsFree())
-                    {
-                        const auto curr_var = it_dof->GetVariable().Key();
-                        if (!((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z))) 
-                            it_dof->FreeDof(); // NOTE: RELEASE THE LM
-                    }
-                }
-            }
-        }
+        FreeIsolatedNodes(rModelPart);
     }
 
+    //**************************************************************************
+    //**************************************************************************
+
+    void BuildRHS(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& b
+        ) override
+    {
+        FixIsolatedNodes(rModelPart);
+        
+        BaseType::BuildRHS(pScheme, rModelPart, b);
+        
+        FreeIsolatedNodes(rModelPart);
+    }
+    
     ///@}
     ///@name Operations
     ///@{
@@ -270,6 +214,101 @@ private:
     ///@name Private Operators
     ///@{
 
+    /**
+     * This method check the ISOLATED nodes and it fixes
+     * @param rModelPart The model part to compute
+     */
+    void FixIsolatedNodes(ModelPart& rModelPart)
+    {
+        KRATOS_ERROR_IF(!(rModelPart.HasSubModelPart("ComputingContact"))) << "ERROR:: CONTACT COMPUTING MODEL PART NOT CREATED" << std::endl;
+        ModelPart& computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact"); 
+        
+        // We reset the flag
+        auto& nodes_array = computing_contact_model_part.Nodes();
+    #ifdef _OPENMP
+        #pragma omp parallel for 
+    #endif
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
+            (nodes_array.begin() + i)->Set(ISOLATED, false);
+        
+        // Now we set the flag in the nodes
+        auto& conditions_array = computing_contact_model_part.Conditions();
+        
+    #ifdef _OPENMP
+        #pragma omp parallel for 
+    #endif
+        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) 
+        {
+            auto cond_it = conditions_array.begin() + i;
+            
+            auto& geom = cond_it->GetGeometry();
+            for (std::size_t i_node = 0; i_node < geom.size(); ++i_node)
+            {
+                geom[i_node].SetLock();
+                geom[i_node].Set(ISOLATED, cond_it->Is(ISOLATED));
+                geom[i_node].UnSetLock();
+            }
+        }
+        
+        // We fix the LM
+    #ifdef _OPENMP
+        #pragma omp parallel for 
+    #endif
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
+        {
+            auto node_it = nodes_array.begin() + i;
+            if (node_it->Is(ISOLATED) == true)
+            {
+                auto& dofs = node_it->GetDofs();
+                
+                for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
+                {
+                    if (it_dof->IsFree())
+                    {
+                        const auto curr_var = it_dof->GetVariable().Key();
+                        if (!((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z))) 
+                            it_dof->FixDof(); // NOTE: FIX THE LM
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * This method releases the ISOLATED nodes 
+     * @param rModelPart The model part to compute
+     */
+    void FreeIsolatedNodes(ModelPart& rModelPart)
+    {
+        KRATOS_ERROR_IF(!(rModelPart.HasSubModelPart("ComputingContact"))) << "ERROR:: CONTACT COMPUTING MODEL PART NOT CREATED" << std::endl;
+        ModelPart& computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
+        
+        // We release the LM
+        auto& nodes_array = computing_contact_model_part.Nodes();
+    #ifdef _OPENMP
+        #pragma omp parallel for 
+    #endif
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
+        {
+            auto node_it = nodes_array.begin() + i;
+            if (node_it->Is(ISOLATED) == true)
+            {
+                auto& dofs = node_it->GetDofs();
+                
+                for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
+                {
+                    if (it_dof->IsFree())
+                    {
+                        const auto curr_var = it_dof->GetVariable().Key();
+                        if (!((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z))) 
+                            it_dof->FreeDof(); // NOTE: RELEASE THE LM
+                    }
+                }
+            }
+        }
+        
+    }
+    
     ///@}
     ///@name Private Operations
     ///@{
