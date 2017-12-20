@@ -91,7 +91,7 @@ void AddUtilitiesToPython()
     class_<ConditionNumberUtility>("ConditionNumberUtility", init<>())
     .def(init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
     .def("GetConditionNumber",&ConditionNumberUtility::GetConditionNumber)
-    .def("GetConditionNumberInternally",&ConditionNumberUtility::GetConditionNumberInternally)
+    .def("ComputeConditionNumber",&ConditionNumberUtility::ComputeConditionNumber)
     ;
 
     class_<VariableUtils > ("VariableUtils", init<>())

@@ -113,7 +113,7 @@ public:
      * @return condition_number The condition number
      */
     
-    double GetConditionNumberInternally(SparseMatrixType& InputMatrix)
+    double ComputeConditionNumber(SparseMatrixType& InputMatrix)
     {
         KRATOS_ERROR_IF(mpEigenSolverMax == nullptr || mpEigenSolverMin == nullptr) << "WARNING:: PLEASE DEFINE THE EigenSolvers" << std::endl;
         return GetConditionNumber(InputMatrix, mpEigenSolverMax, mpEigenSolverMin);
@@ -145,6 +145,8 @@ public:
 
         pEigenSolverMin->Solve(InputMatrix, identity_matrix, eigen_values, eigen_vectors);
         const double min_lambda = eigen_values[0];
+        
+        KRATOS_ERROR_IF(min_lambda < std::numeric_limits<double>::epsilon()) << "ERROR:: NOT POSSIBLE TO COMPUTE CONDITION NUMBER. ZERO EIGENVALUE" << std::endl;
         
         const double condition_number = std::abs(max_lambda)/std::abs(min_lambda); 
         
