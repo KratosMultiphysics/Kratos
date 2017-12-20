@@ -217,6 +217,10 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("angular_acceleration_of_frame_X").SetDouble(0.0)
         self.pp.CFD_DEM.AddEmptyValue("angular_acceleration_of_frame_Y").SetDouble(0.0)
         self.pp.CFD_DEM.AddEmptyValue("angular_acceleration_of_frame_Z").SetDouble(0.0)
+        self.pp.CFD_DEM.AddEmptyValue("ALE_option").SetBool(False)
+        self.pp.CFD_DEM.AddEmptyValue("frame_rotation_axis_initial_point").SetVector(Vector([0., 0., 0.]))
+        self.pp.CFD_DEM.AddEmptyValue("frame_rotation_axis_final_point").SetVector(Vector([0., 0., 1.]))
+        self.pp.CFD_DEM.AddEmptyValue("angular_velocity_magnitude").SetDouble(1.0)
         self.pp.CFD_DEM.print_DISPERSE_FRACTION_option = False
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
         self.pp.CFD_DEM.PostCationConcentration = False
