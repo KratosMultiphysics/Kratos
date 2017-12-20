@@ -7,7 +7,7 @@ import os
 
 def GetFilePath(fileName):
 
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestGidIO(KratosUnittest.TestCase):
 
@@ -68,7 +68,7 @@ class TestGidIO(KratosUnittest.TestCase):
             }
         """)
 
-        params["file_name_1"].SetString(GetFilePath(output_file))
+        params["file_name_1"].SetString(output_file)
         params["file_name_2"].SetString(GetFilePath(reference_file))
 
         cmp_process = compare_two_files_check_process.CompareTwoFilesCheckProcess(KratosMultiphysics.ModelPart(), params)
