@@ -1,36 +1,30 @@
-//  KRATOS  _____     _ _ _                 
-//         |_   _| __(_) (_)_ __   ___  ___ 
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
 //           | || '__| | | | '_ \ / _ \/ __|
-//           | || |  | | | | | | | (_) \__ 
+//           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License 
+//  License:             BSD License
 //                                       Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//        
+//
 
-#if !defined(KRATOS_TRILINOS_APPLICATION_H_INCLUDED )
-#define  KRATOS_TRILINOS_APPLICATION_H_INCLUDED
-
-
+#if !defined(KRATOS_TRILINOS_APPLICATION_H_INCLUDED)
+#define KRATOS_TRILINOS_APPLICATION_H_INCLUDED
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 
-
-namespace Kratos
-{
+namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
@@ -56,12 +50,10 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosTrilinosApplication : public KratosApplication
-{
-public:
+class KratosTrilinosApplication : public KratosApplication {
+   public:
     ///@name Type Definitions
     ///@{
-
 
     /// Pointer definition of KratosTrilinosApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosTrilinosApplication);
@@ -71,16 +63,14 @@ public:
     ///@{
 
     /// Default constructor.
-    KratosTrilinosApplication() {}
+    KratosTrilinosApplication() : KratosApplication("TrilinosApplication") {}
 
     /// Destructor.
     virtual ~KratosTrilinosApplication() {}
 
-
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -88,40 +78,31 @@ public:
 
     virtual void Register();
 
-
-
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "KratosTrilinosApplication";
-    }
+    virtual std::string Info() const { return "KratosTrilinosApplication"; }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
+    virtual void PrintInfo(std::ostream& rOStream) const {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
+    virtual void PrintData(std::ostream& rOStream) const {
         KRATOS_WATCH("in KratosALEApplication application");
-        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
         rOStream << std::endl;
@@ -132,56 +113,45 @@ public:
         KratosComponents<Condition>().PrintData(rOStream);
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
 
-protected:
+   protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
 
-private:
+   private:
     ///@name Static Member Variables
     ///@{
-
-
 
     //       static const ApplicationCondition  msApplicationCondition;
 
@@ -189,48 +159,41 @@ private:
     ///@name Member Variables
     ///@{
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
     ///@{
 
     /// Assignment operator.
-    KratosTrilinosApplication& operator=(KratosTrilinosApplication const& rOther);
+    KratosTrilinosApplication& operator=(
+        KratosTrilinosApplication const& rOther);
 
     /// Copy constructor.
     KratosTrilinosApplication(KratosTrilinosApplication const& rOther);
 
-
     ///@}
 
-}; // Class KratosTrilinosApplication
+};  // Class KratosTrilinosApplication
 
 ///@}
 
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
@@ -238,9 +201,6 @@ private:
 
 ///@}
 
-
 }  // namespace Kratos.
 
-#endif // KRATOS_TRILINOS_APPLICATION_H_INCLUDED defined 
-
-
+#endif  // KRATOS_TRILINOS_APPLICATION_H_INCLUDED defined

@@ -552,20 +552,20 @@ namespace Kratos
       CalculateThisElementVariables( ElementVariables, rVariables);
 
       //respect to the current configuration n+1
-      CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, ElementVariables,  rIntegrationWeight );
+      CalculateAndAddKuumElemUJP( rLeftHandSideMatrix, rVariables, ElementVariables,  rIntegrationWeight );
 
       // operation performed: add Kg to the rLefsHandSideMatrix
-      CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
+      CalculateAndAddKuugElemUJP( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
 
-      CalculateAndAddKuJ( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
+      CalculateAndAddKuJElemUJP( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
 
       // operation performed: add Kup to the rLefsHandSideMatrix
       CalculateAndAddKup( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
 
 
-      CalculateAndAddKJu( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
+      CalculateAndAddKJuElemUJP( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
 
-      CalculateAndAddKJJ( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
+      CalculateAndAddKJJElemUJP( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
 
       CalculateAndAddKJp( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
 
@@ -579,7 +579,7 @@ namespace Kratos
 
       // operation performed: add Kpp Stab to the rLefsHandSideMatrix
       CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
-      CalculateAndAddKJJStab( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
+      CalculateAndAddKJJStabElemUJP( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
 
       //std::cout << " SYSTEMMATRIX " << rLeftHandSideMatrix << std::endl;
 
@@ -617,9 +617,9 @@ namespace Kratos
       CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
       // operation performed: rRightHandSideVector -= IntForce*IntegrationWeight
-      CalculateAndAddInternalForces( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
+      CalculateAndAddInternalForcesElemUJP( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
 
-      CalculateAndAddJacobianForces( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
+      CalculateAndAddJacobianForcesElemUJP( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
 
       // operation performed: rRightHandSideVector -= PressureForceBalance*IntegrationWeight
       CalculateAndAddPressureForces( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
@@ -627,7 +627,7 @@ namespace Kratos
       // operation performed: rRightHandSideVector -= Stabilized Pressure Forces
       CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
 
-      CalculateAndAddStabilizedJacobian( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
+      CalculateAndAddStabilizedJacobianElemUJP( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
 
       rVariables.detF = DeterminantF;
       rVariables.detF0 /= rVariables.detF;
@@ -642,7 +642,7 @@ namespace Kratos
    //************************** INTERNAL FORCES    *******************************
    //************************************** Idem but with Total Stress ***********
 
-   void UpdatedLagrangianUJPElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+   void UpdatedLagrangianUJPElement::CalculateAndAddInternalForcesElemUJP(VectorType& rRightHandSideVector,
          ElementVariables & rVariables,
          UJPElementVariables& rElementVariables, 
          double& rIntegrationWeight
@@ -675,7 +675,7 @@ namespace Kratos
 
    //******************************** PRESSURE FORCES  **********************************
    //************************************************************************************
-   void UpdatedLagrangianUJPElement::CalculateAndAddJacobianForces( VectorType& rRightHandSideVector,
+   void UpdatedLagrangianUJPElement::CalculateAndAddJacobianForcesElemUJP( VectorType& rRightHandSideVector,
          ElementVariables & rVariables,
          UJPElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -761,7 +761,7 @@ namespace Kratos
 
    //****************** STABILIZATION *********************************************************
    //************************* defined in the Stab element ************************************
-   void UpdatedLagrangianUJPElement::CalculateAndAddStabilizedJacobian(VectorType& rRightHandSideVector,
+   void UpdatedLagrangianUJPElement::CalculateAndAddStabilizedJacobianElemUJP(VectorType& rRightHandSideVector,
          ElementVariables & rVariables,
          UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
@@ -869,7 +869,7 @@ namespace Kratos
    //******** Kuu Material************************************************************
    //***************** It includes the pw geometric stiffness ************************
 
-   void UpdatedLagrangianUJPElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUJPElement::CalculateAndAddKuumElemUJP(MatrixType& rLeftHandSideMatrix,
          ElementVariables& rVariables,
          UJPElementVariables &  rElementVariables, 
          double& rIntegrationWeight)
@@ -972,7 +972,7 @@ namespace Kratos
 
 
 
-      if ( this->Id() < 0) {
+      if ( this->Id() == 0) {
          std::cout << " CONST MATRIX SMALL " << ConstMatrixSmall << std::endl;
          std::cout << " MORE TERMS " << MoreTerms << std::endl;
       }
@@ -992,7 +992,7 @@ namespace Kratos
                ConstMatrixBig(indexi, indexj)  = ConstMatrixSmall(i,j) + MoreTerms(indexi, indexj) ;
             }
          }
-         if ( this->Id() < 0) {
+         if ( this->Id() == 0) {
             std::cout << " I ADD THE OUT OF PLANE "<< ConstMatrixBig  << std::endl; 
          }
 
@@ -1003,12 +1003,12 @@ namespace Kratos
             if ( i == 2) indexi += 1;
             Aux1(0,i) = rVariables.ConstitutiveMatrix(2, indexi);
          }
-         if (this->Id() < 0 ) {
+         if (this->Id() == 0 ) {
             std::cout << " PREIVIOUS TO MULT " << Aux1 << std::endl;
          }
          Aux1 = prod ( Aux1, DeviatoricAlpha);
 
-         if (this->Id() < 0) {
+         if (this->Id() == 0) {
             std::cout << " AUX 1"  << Aux1 << std::endl; 
          }
          for (unsigned int i = 0; i < 2; i++) {
@@ -1017,7 +1017,7 @@ namespace Kratos
          }
       }
 
-      if ( this->Id() < 0) {
+      if ( this->Id() == 0) {
          std::cout << " AFTER THE OUT OF PLANE (i.e. breve derivative) " << ConstMatrixBig << std::endl;
       }
 
@@ -1030,7 +1030,7 @@ namespace Kratos
             DeviatoricBeta(i,j) -= rElementVariables.Beta; 
          }
       }
-      if ( this->Id() < 0 ) {
+      if ( this->Id() == 0 ) {
          std::cout << " PREVIOS MULTIPLICATION " << std::endl;
          std::cout << " CONST MATRIX " << ConstMatrixBig << std::endl;
          std::cout << " DEVIATORIC BETA " << DeviatoricBeta << std::endl;
@@ -1060,7 +1060,7 @@ namespace Kratos
       //contributions to stiffness matrix calculated on the reference config
       Matrix Kuu = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( ConstMatrixSmall, rVariables.B ) ) );  
 
-      if (this->Id() < 0) {
+      if (this->Id() == 0) {
          std::cout << " DISPLACEMENT DEVIATORIC DERIVATIVE " << ConstMatrixSmall << std::endl;
          std::cout << " THIS DIMENSIONS " << Kuu.size1() << " and " << Kuu.size2() << std::endl;
          std::cout << std::endl;
@@ -1102,7 +1102,7 @@ namespace Kratos
    //******************* Kuug ********************************************************
    //*********************************************************************************
 
-   void UpdatedLagrangianUJPElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUJPElement::CalculateAndAddKuugElemUJP(MatrixType& rLeftHandSideMatrix,
          ElementVariables& rVariables,
          UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
@@ -1303,7 +1303,7 @@ namespace Kratos
 
    // *********************** KuJ TERMS ***********************************************
    // *********************************************************************************
-   void UpdatedLagrangianUJPElement::CalculateAndAddKuJ (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUJPElement::CalculateAndAddKuJElemUJP (MatrixType& rLeftHandSideMatrix,
          ElementVariables& rVariables,
          UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
@@ -1334,7 +1334,7 @@ namespace Kratos
          ConstitutiveMatrix(5, 0) = 0.0;
       }
 
-      if ( this->Id() < 0) {
+      if ( this->Id() == 0) {
          std::cout << " THIS CONST MATRIX " << ConstitutiveMatrix << std::endl;
          std::cout << " IDENTITY " << Identity << std::endl;
       }
@@ -1348,7 +1348,7 @@ namespace Kratos
 
       ConstitutiveMatrix /= rElementVariables.NodalJacobian; 
 
-      if ( this->Id() < 0 ) {
+      if ( this->Id() == 0 ) {
          std::cout << " AFTER OUT OF PLANE " << ConstitutiveMatrix << std::endl;
       }
       // MULTIPLY BY THE BETA DEVIATORIC
@@ -1363,7 +1363,7 @@ namespace Kratos
 
       ConstitutiveMatrix = prod( BetaDeviatoric, ConstitutiveMatrix);
 
-      if (this->Id() < 0) {
+      if (this->Id() == 0) {
          std::cout << " BETA DEVIATORIC " << BetaDeviatoric << std::endl;
          std::cout << " THETA BREVE DERIVATIVE " << ConstitutiveMatrix << std::endl;
       }
@@ -1380,7 +1380,7 @@ namespace Kratos
          }
       }
 
-      if ( this->Id() < 0) {
+      if ( this->Id() == 0) {
          std::cout << " SMALL MATRIX " << SmallConstMatrix << std::endl;
          std::cout << std::endl;
          std::cout << std::endl;
@@ -1431,7 +1431,7 @@ namespace Kratos
 
    // ******************** KJu term *******************************************************
    // *************************************************************************************
-   void UpdatedLagrangianUJPElement::CalculateAndAddKJu (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUJPElement::CalculateAndAddKJuElemUJP (MatrixType& rLeftHandSideMatrix,
          ElementVariables& rVariables,
          UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
@@ -1470,7 +1470,7 @@ namespace Kratos
 
    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^KJJ term ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   void UpdatedLagrangianUJPElement::CalculateAndAddKJJ (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUJPElement::CalculateAndAddKJJElemUJP (MatrixType& rLeftHandSideMatrix,
          ElementVariables& rVariables,
          UJPElementVariables&  rElementVariables, 
          double& rIntegrationWeight)
@@ -1689,7 +1689,7 @@ namespace Kratos
 
       // Multiply and everithing
 
-      if ( this->Id() < 0 )
+      if ( this->Id() == 0 )
       {
          std::cout << " CONSMAT  SIZE    " << ConstMatrix.size1() << " and " << ConstMatrix.size2() << std::endl;
          std::cout << " B SIZE " << rVariables.B.size1() << " and " << rVariables.B.size2() << std::endl;
@@ -1704,23 +1704,6 @@ namespace Kratos
          }
       }
 
-      // ARA EM FALTA ASALAJARLO AL SEU LLOC
-      /*unsigned int indexi = 0; 
-        unsigned int indexj = 0;
-        for (unsigned int i = 0; i < number_of_nodes ; i++)
-        {
-        for (unsigned int j = 0; j < number_of_nodes; j++) {
-        for (unsigned int jdim = 0; jdim < dimension; jdim++) {
-        rLeftHandSideMatrix( indexi + 3*(i+1), 4*j + jdim) -= SmallMatrix(indexi, indexj);
-        if ( this->Id() == 1) {
-        std::cout << " CHEKC INDICES " << std::endl;
-        std::cout << " TO "  << indexi+3*(i+1) << " and " << 4*j+jdim << " FROOOOM " << indexi << " and " << indexj << std::endl;
-        }
-        }
-        indexj += 1;
-        }
-        indexi += 1;
-        }*/
       unsigned int indexj = 0;
       for (unsigned int i = 0; i < number_of_nodes ; i++)
       {
@@ -1780,7 +1763,7 @@ namespace Kratos
 
    //************************************************************************************
    //************************************************************************************
-   void UpdatedLagrangianUJPElement::CalculateAndAddKJJStab (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUJPElement::CalculateAndAddKJJStabElemUJP (MatrixType& rLeftHandSideMatrix,
          ElementVariables & rVariables,
          UJPElementVariables & rElementVariables, 
          double& rIntegrationWeight)
@@ -1968,354 +1951,4 @@ namespace Kratos
 
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////// RESTOS DEL NAUFRAGIO ///////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-   //// ************************************************************************************
-   //// ************************************************************************************
-
-   void UpdatedLagrangianUJPElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-         ProcessInfo& rCurrentProcessInfo)
-   {
-      KRATOS_TRY
-
-      //create and initialize element variables:
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
-
-      //create constitutive law parameters:
-      ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-      //set constitutive law flags:
-      Flags &ConstitutiveLawOptions=Values.GetOptions();
-
-      ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-      ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-      ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-      //reading integration points
-      const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
-      //auxiliary terms
-      Vector VolumeForce;
-
-      for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-      {
-         //compute element kinematics B, F, DN_DX ...
-         this->CalculateKinematics(Variables,PointNumber);
-
-         //set general variables to constitutivelaw parameters
-         this->SetElementVariables(Variables,Values,PointNumber);
-
-         // OBS, now changing Variables I change Values because they are pointers ( I hope);
-         double NodalJacobian = 0;
-         for (int i = 0; i < 3; i++)
-            NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
-
-         double detFT = Variables.detH;
-         const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-         double dimension_double = double(dimension);
-
-         // T1
-         Variables.H *= pow( (NodalJacobian) / Variables.detH, 1.0/dimension_double);
-         Variables.detH = (NodalJacobian);
-
-         //compute stresses and constitutive parameters
-         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
-
-         // T1
-         Variables.H *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
-         Variables.detH = detFT;
-
-         //some transformation of the configuration can be needed (UL element specially)
-         this->TransformElementVariables(Variables,PointNumber);
-
-         //calculating weights for integration on the "reference configuration"
-         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
-
-         if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-         {
-            //contributions to stiffness matrix calculated on the reference config
-            this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
-         }
-
-         if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
-         {
-            //contribution to external forces
-            VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables );
-
-            this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, IntegrationWeight );
-         }
-
-
-         // std::cout<<" Element: "<<this->Id()<<std::endl;
-         // unsigned int number_of_nodes = GetGeometry().PointsNumber();
-         // for ( unsigned int i = 0; i < number_of_nodes; i++ )
-         //   {
-         //     array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
-         //     array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-         //     array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-         //     array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-         //     std::cout<<" Previous  Position  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<std::endl;
-         //   }
-         // for ( unsigned int i = 0; i < number_of_nodes; i++ )
-         //   {
-         //     array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
-         //     std::cout<<" Current  Position  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentPosition<<std::endl;
-         //   }
-         // for ( unsigned int i = 0; i < number_of_nodes; i++ )
-         //   {
-         //     array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-         //     std::cout<<" Previous Displacement  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousDisplacement<<std::endl;
-         //   }
-
-         // for ( unsigned int i = 0; i < number_of_nodes; i++ )
-         //   {
-         //     array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-         //     std::cout<<" Current  Displacement  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentDisplacement<<std::endl;
-         //   }
-         // std::cout<<" Stress "<<Variables.StressVector<<std::endl;
-         // std::cout<<" Strain "<<Variables.StrainVector<<std::endl;
-         // std::cout<<" F  "<<Variables.F<<std::endl;
-         // std::cout<<" F0 "<<Variables.F0<<std::endl;
-         // std::cout<<" ConstitutiveMatrix "<<Variables.ConstitutiveMatrix<<std::endl;
-         // std::cout<<" K "<<rLocalSystem.GetLeftHandSideMatrix()<<std::endl;
-         // std::cout<<" f "<<rLocalSystem.GetRightHandSideVector()<<std::endl;
-
-
-
-      }
-
-      if ( this->Id() == 0) {
-         double delta = 0.000001;
-
-         std::cout << " TRY TO COMPUTE SOMETHING SIMILAR TO A Numerical Derivative and then try to compare it to that " << std::endl;
-         if ( ( rLocalSystem.CalculationFlags.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) && ( rLocalSystem.CalculationFlags.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) )//calculation of the vector is required
-         {
-            std::cout << " LHS MATRIX. LEts see what " << rLocalSystem.GetLeftHandSideMatrix() << std::endl;
-            MatrixType ThisMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
-            std::cout << " THE RHS " << rLocalSystem.GetRightHandSideVector() << std::endl;
-            std::cout << " THEEEE MAAATRIX " << std::endl;
-            for (unsigned int i = 0; i< 12; i++) {
-               for (unsigned int j = 0; j < 12; j++) {
-                  std::cout<< ThisMatrix(j,i) << " , ";
-               }
-               std::cout << " ... " << std::endl;
-            }
-            //
-            VectorType PreviousRHS = rLocalSystem.GetRightHandSideVector() ; 
-
-            // CHECK THE PRESSURE DERIVATIVE
-            const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-            for (unsigned int node = 0; node < number_of_nodes; node++)
-            {
-               VectorType & PRHS = rLocalSystem.GetRightHandSideVector();
-               PRHS = ZeroVector( 3*4);
-               std::cout << " ---------  DERIVATIVE WITH RESPECT PRESSURE ------------" << std::endl;
-               int PointNumber = 0;
-               const double  ThisNodePressure = GetGeometry()[node].GetSolutionStepValue(PRESSURE);
-
-               GetGeometry()[node].GetSolutionStepValue(PRESSURE) = ThisNodePressure + delta; 
-
-
-               // DO THE STUPID COMPUTATION 
-               //compute element kinematics B, F, DN_DX ...
-               this->CalculateKinematics(Variables,PointNumber);
-
-               //set general variables to constitutivelaw parameters
-               this->SetElementVariables(Variables,Values,PointNumber);
-
-               // OBS, now changing Variables I change Values because they are pointers ( I hope);
-               double NodalJacobian = 0;
-               for (int i = 0; i < 3; i++)
-                  NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
-
-               double detFT = Variables.detH;
-               const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-               double dimension_double = double(dimension);
-
-               // T1
-               Variables.H *= pow( (NodalJacobian) / Variables.detH, 1.0/dimension_double);
-               Variables.detH = (NodalJacobian);
-
-               //compute stresses and constitutive parameters
-               ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-               mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
-
-               // T1
-               Variables.H *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
-               Variables.detH = detFT;
-
-               //some transformation of the configuration can be needed (UL element specially)
-               this->TransformElementVariables(Variables,PointNumber);
-
-               //calculating weights for integration on the "reference configuration"
-               double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-               IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
-
-               //contributions to stiffness matrix calculated on the reference config
-               this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce,  IntegrationWeight );
-
-               // END STUPID COMPUTATION
-               VectorType ThisRHS = rLocalSystem.GetRightHandSideVector();
-               std::cout << " THE DERIVATIVE i: " << node << " is " << -( ThisRHS -PreviousRHS) / delta << std::endl;
-               std::cout << std::endl;
-
-               // PUT IT AS IT WAS
-               GetGeometry()[node].GetSolutionStepValue(PRESSURE) = ThisNodePressure; 
-            } // end for Pressure derivative
-
-            VectorType& THISRH = rLocalSystem.GetRightHandSideVector(); 
-            THISRH = PreviousRHS; 
-
-
-            // NUMERICAL DERIVATIVE WITH RESPECT TO THE JACOBIAN
-            // CHECK THE JACOBIAN DERIVATIVE
-            for (unsigned int node = 0; node < number_of_nodes; node++)
-            {
-               VectorType & PRHS = rLocalSystem.GetRightHandSideVector();
-               PRHS = ZeroVector( 3*4);
-               std::cout << " ---------  DERIVATIVE WITH RESPECT jacobian ------------" << std::endl;
-               int PointNumber = 0;
-               const double  ThisNodePressure = GetGeometry()[node].GetSolutionStepValue(JACOBIAN);
-
-               GetGeometry()[node].GetSolutionStepValue(JACOBIAN) = ThisNodePressure + delta; 
-
-               // DO THE STUPID COMPUTATION 
-               //compute element kinematics B, F, DN_DX ...
-               this->CalculateKinematics(Variables,PointNumber);
-
-               //set general variables to constitutivelaw parameters
-               this->SetElementVariables(Variables,Values,PointNumber);
-
-               // OBS, now changing Variables I change Values because they are pointers ( I hope);
-               double NodalJacobian = 0;
-               for (int i = 0; i < 3; i++)
-                  NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
-
-               double detFT = Variables.detH;
-               const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-               double dimension_double = double(dimension);
-
-               // T1
-               Variables.H *= pow( (NodalJacobian) / Variables.detH, 1.0/dimension_double);
-               Variables.detH = (NodalJacobian);
-
-               //compute stresses and constitutive parameters
-               mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
-
-               // T1
-               Variables.H *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
-               Variables.detH = detFT;
-
-               //some transformation of the configuration can be needed (UL element specially)
-               this->TransformElementVariables(Variables,PointNumber);
-
-               //calculating weights for integration on the "reference configuration"
-               double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-               IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
-
-               //contributions to stiffness matrix calculated on the reference config
-               this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce,  IntegrationWeight );
-
-               // END STUPID COMPUTATION
-               VectorType ThisRHS = rLocalSystem.GetRightHandSideVector();
-               std::cout << " THE DERIVATIVE i: " << node << " is " << -( ThisRHS -PreviousRHS) / delta << std::endl;
-               std::cout << std::endl;
-
-               // PUT IT AS IT WAS
-               GetGeometry()[node].GetSolutionStepValue(JACOBIAN) = ThisNodePressure; 
-            } // end check derivative of jacobian
-
-            // NUMERICAL DERIVATIVE WITH RESPECT TO THE DISPLACEMENT
-            // CHECK THE DISPLACEMENT DERIVATIVE
-            const unsigned int dimensionIS       = GetGeometry().WorkingSpaceDimension();
-            delta = 0.000001;
-            delta = 0.0001;
-
-
-            for (unsigned int node = 0; node < number_of_nodes; node++)
-            {
-               for (unsigned int dime = 0; dime < dimensionIS; dime++) 
-               {
-                  VectorType & PRHS = rLocalSystem.GetRightHandSideVector();
-                  PRHS = ZeroVector( 3*4);
-                  std::cout << " ---------  DERIVATIVE WITH RESPECT DISPLACEMENT ------------" << std::endl;
-                  int PointNumber = 0;
-
-                  const array_1d< double, 3 > ConstDispl = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-                  array_1d< double, 3 > & Displ = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-                  Displ[dime] = ConstDispl[dime] + delta; 
-
-                  const array_1d< double, 3 > PlotDispl = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-            
-                  this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-                  // DO THE STUPID COMPUTATION 
-                  //compute element kinematics B, F, DN_DX ...
-                  this->CalculateKinematics(Variables,PointNumber);
-
-                  //set general variables to constitutivelaw parameters
-                  this->SetElementVariables(Variables,Values,PointNumber);
-
-                  // OBS, now changing Variables I change Values because they are pointers ( I hope);
-                  double NodalJacobian = 0;
-                  for (int i = 0; i < 3; i++)
-                     NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
-
-                  double detFT = Variables.detH;
-                  const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-                  double dimension_double = double(dimension);
-
-                  // T1
-                  Variables.H *= pow( (NodalJacobian) / Variables.detH, 1.0/dimension_double);
-                  Variables.detH = (NodalJacobian);
-
-                  //compute stresses and constitutive parameters
-                  mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
-
-
-                  // T1
-                  Variables.H *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
-                  Variables.detH = detFT;
-
-                  //some transformation of the configuration can be needed (UL element specially)
-                  this->TransformElementVariables(Variables,PointNumber);
-
-                  //calculating weights for integration on the "reference configuration"
-                  double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-                  IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
-
-                  //contributions to stiffness matrix calculated on the reference config
-                  this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce,  IntegrationWeight );
-
-                  // END STUPID COMPUTATION
-                  VectorType ThisRHS = rLocalSystem.GetRightHandSideVector();
-                  std::cout << " THE DERIVATIVE i: " << node << " COMPONENT " << dime << " is " << -( ThisRHS -PreviousRHS) / delta << std::endl;
-                  std::cout << std::endl;
-
-                  // PUT IT AS IT WAS
-                  Displ[dime] = ConstDispl[dime];
-               }
-            } // end check derivative of jacobian
-
-            THISRH = PreviousRHS; 
-
-         }
-
-      } // end of this stupid thing that I 'm doing.
-
-
-      KRATOS_CATCH( "" )
-   }
-
-*/

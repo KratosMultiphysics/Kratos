@@ -39,9 +39,13 @@ namespace Kratos {
         double* pGetPoisson();                                                   
         void    SetPoissonFromProperties(double* poisson);                                     
             
-        double  GetRollingFriction();                                                 
-        double* pGetRollingFriction();                                            
-        void    SetRollingFrictionFromProperties(double* rolling_friction);        
+        double  GetRollingFriction();
+        double* pGetRollingFriction();
+        void    SetRollingFrictionFromProperties(double* rolling_friction);
+        
+        double  GetRollingFrictionWithWalls();
+        double* pGetRollingFrictionWithWalls();
+        void    SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls);
       
         double  GetTgOfFrictionAngle();                                          
         double* pGetTgOfFrictionAngle();                                          
@@ -108,6 +112,7 @@ namespace Kratos {
         double* mYoung;
         double* mPoisson;
         double* mRollingFriction;
+        double* mRollingFrictionWithWalls;
         double* mTgOfFrictionAngle;
         double* mCoefficientOfRestitution;
         double* mLnOfRestitCoeff;

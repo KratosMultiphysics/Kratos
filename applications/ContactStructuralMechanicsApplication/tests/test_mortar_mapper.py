@@ -220,8 +220,8 @@ class TestMortarMapping(KratosUnittest.TestCase):
                                                     "WriteConditionsFlag": "WriteElementsOnly",
                                                     "MultiFileFlag": "SingleFile"
                                                 },        
-                                                "nodal_results"       : ["DISPLACEMENT","TEMPERATURE"],
-                                                "nodal_nonhistorical_results": ["NORMAL","NODAL_AREA"],
+                                                "nodal_results"       : ["DISPLACEMENT","NORMAL","TEMPERATURE"],
+                                                "nodal_nonhistorical_results": ["NODAL_AREA"],
                                                 "nodal_flags_results": ["MASTER","SLAVE"]
                                             }
                                         }
