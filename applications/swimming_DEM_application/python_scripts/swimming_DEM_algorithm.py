@@ -176,7 +176,6 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("full_particle_history_watcher").SetString("Empty")
         self.pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").SetString("")
         self.pp.CFD_DEM.AddEmptyValue("ALE_option").SetBool(False)    
-        self.pp.CFD_DEM.AddEmptyValue("ALE_update_time_steps_per_fluid_step").SetInt(1)    
         self.pp.CFD_DEM.AddEmptyValue("frame_rotation_axis_initial_point").SetVector(Vector([0., 0., 0.]))
         self.pp.CFD_DEM.AddEmptyValue("frame_rotation_axis_final_point").SetVector(Vector([0., 0., 1.]))
         self.pp.CFD_DEM.AddEmptyValue("angular_velocity_magnitude").SetDouble(1.0)
@@ -185,6 +184,10 @@ class Algorithm(object):
         self.pp.CFD_DEM.PostCationConcentration = False
         # Making the fluid step an exact multiple of the DEM step
         self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM["MaxTimeStep"].GetDouble()) * self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
+        self.output_time = int(self.pp.CFD_DEM["OutputTimeStep"].GetDouble() / self.pp.CFD_DEM["MaxTimeStep"].GetDouble()) * self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
+        Say('Dt_DEM', self.pp.CFD_DEM["MaxTimeStep"].GetDouble())
+        Say('self.pp.Dt', self.pp.Dt)
+        Say('self.output_time', self.output_time)
         self.pp.viscosity_modification_type = 0.0
         self.domain_size = 3
         self.pp.type_of_inlet = 'VelocityImposed' # 'VelocityImposed' or 'ForceImposed'
@@ -324,10 +327,7 @@ class Algorithm(object):
         self.step           = 0
         self.time           = self.pp.Start_time
         self.Dt             = self.pp.Dt
-        self.out            = self.Dt
         self.final_time     = self.pp.CFD_DEM["FinalTime"].GetDouble()
-        self.output_time    = self.pp.CFD_DEM["OutputTimeStep"].GetDouble()
-
         self.report.Prepare(self.timer, self.pp.CFD_DEM["ControlTime"].GetDouble())
 
         #first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
@@ -364,32 +364,26 @@ class Algorithm(object):
 
         ######################################################################################################################################
 
-        # setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean, dead_or_not)
-        self.fluid_solve_counter          = self.GetFluidSolveCounter()
-        self.ALE_mesh_update_counter      = self.GetALEMeshUpdateCounter()
-        #self.embedded_counter             = self.GetEmbeddedCounter()
-        self.DEM_to_fluid_counter         = self.GetBackwardCouplingCounter()
-        self.derivative_recovery_counter  = self.GetRecoveryCounter()
-        self.stationarity_counter         = self.GetStationarityCounter()
-        self.print_counter                = self.GetPrintCounter()
-        self.debug_info_counter           = self.GetDebugInfo()
-        self.particles_results_counter    = self.GetParticlesResultsCounter()
-        self.quadrature_counter           = self.GetHistoryForceQuadratureCounter()
-        self.mat_deriv_averager           = SDP.Averager(1, 3)
-        self.laplacian_averager           = SDP.Averager(1, 3)
-
-        ##############################################################################
-        #                                                                            #
-        #    MAIN LOOP                                                               #
-        #                                                                            #
-        ##############################################################################
-
         self.DEM_step     = 0      # necessary to get a good random insertion of particles   # relevant to the stationarity assessment tool
         self.time_dem     = 0.0
         self.Dt_DEM       = self.disperse_phase_solution.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
         self.disperse_phase_solution.rigid_face_model_part.ProcessInfo[DELTA_TIME] = self.Dt_DEM
         self.disperse_phase_solution.cluster_model_part.ProcessInfo[DELTA_TIME] = self.Dt_DEM
         self.stationarity = False
+
+        # setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean, dead_or_not)
+        self.fluid_solve_counter          = self.GetFluidSolveCounter()
+        #self.embedded_counter             = self.GetEmbeddedCounter()
+        self.DEM_to_fluid_counter         = self.GetBackwardCouplingCounter()
+        self.derivative_recovery_counter  = self.GetRecoveryCounter()
+        self.stationarity_counter         = self.GetStationarityCounter()
+        self.print_counter_updated_DEM    = self.GetPrintCounterUpdatedDEM()
+        self.print_counter_updated_fluid  = self.GetPrintCounterUpdatedFluid()
+        self.debug_info_counter           = self.GetDebugInfo()
+        self.particles_results_counter    = self.GetParticlesResultsCounter()
+        self.quadrature_counter           = self.GetHistoryForceQuadratureCounter()
+        self.mat_deriv_averager           = SDP.Averager(1, 3)
+        self.laplacian_averager           = SDP.Averager(1, 3)
 
         self.report.total_steps_expected = int(self.pp.CFD_DEM["FinalTime"].GetDouble() / self.Dt_DEM)
 
@@ -501,8 +495,9 @@ class Algorithm(object):
 
             #self.PerformEmbeddedOperations() #TODO: it's crashing
 
-            # solving the fluid part
+            self.UpdateALEMeshMovement(self.time)
 
+            # solving the fluid part
             if self.step >= self.GetFirstStepForFluidComputation():
                 self.FluidSolve(self.time, solve_system = self.fluid_solve_counter.Tick() and not self.stationarity)
 
@@ -525,13 +520,12 @@ class Algorithm(object):
                 #self.graph_printer.PrintGraphs(self.time) #MA: commented out because the constructor was already commented out
                 self.PrintDrag(self.drag_list, self.drag_file_output_list, self.fluid_model_part, self.time)
 
-            if self.output_time <= self.out and self.pp.CFD_DEM["coupling_scheme_type"].GetString() == "UpdatedDEM":
+            if self.print_counter_updated_DEM.Tick():
 
-                if self.pp.CFD_DEM["coupling_level_type"].GetInt() > 0:
+                if coupling_level_type:
                     self.projection_module.ComputePostProcessResults(self.disperse_phase_solution.spheres_model_part.ProcessInfo)
 
-                self.post_utils.Writeresults(self.time)
-                self.out = 0
+                self.post_utils.Writeresults(self.time_dem)
 
             # solving the DEM part
             interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
@@ -595,15 +589,13 @@ class Algorithm(object):
                 if dem_inlet_option:
                     self.disperse_phase_solution.DEM_inlet.CreateElementsFromInletMesh(self.disperse_phase_solution.spheres_model_part, self.disperse_phase_solution.cluster_model_part, self.disperse_phase_solution.creator_destructor)  # After solving, to make sure that neighbours are already set.
 
-                if self.output_time <= self.out and coupling_scheme_type == "UpdatedFluid":
+                if self.print_counter_updated_fluid.Tick():
 
                     if coupling_level_type:
                         self.projection_module.ComputePostProcessResults(self.disperse_phase_solution.spheres_model_part.ProcessInfo)
 
                     self.post_utils.Writeresults(self.time_dem)
-                    self.out = 0
 
-                self.out = self.out + self.Dt_DEM
                 first_dem_iter = False
 
                 # applying DEM-to-fluid coupling
@@ -642,14 +634,10 @@ class Algorithm(object):
         self.fluid_model_part.CloneTimeStep(self.time)
 
     def DEMSolve(self, time = 'None'): # time is passed in case it is needed
-
-        if self.ALE_mesh_update_counter.Tick():
-            self.UpdateMeshMovement(time)
-
         self.disperse_phase_solution.solver.Solve()
 
-    def UpdateMeshMovement(self, time):
-        pass
+    def UpdateALEMeshMovement(self, time):
+        pass       
 
     def FluidSolve(self, time = 'None', solve_system = True):
         Say('Solving Fluid... (', self.fluid_model_part.NumberOfElements(0), 'elements )\n')
@@ -714,11 +702,6 @@ class Algorithm(object):
     def GetFluidSolveCounter(self):
         return SDP.Counter(is_dead = (self.pp.CFD_DEM["drag_force_type"].GetInt() == 9))
 
-    def GetALEMeshUpdateCounter(self):
-        return SDP.Counter(steps_in_cycle = self.pp.CFD_DEM["ALE_update_time_steps_per_fluid_step"].GetInt(),
-                           beginning_step = 1,
-                           is_active = self.pp.CFD_DEM["ALE_option"].GetBool())
-
     def GetEmbeddedCounter(self):
         return SDP.Counter(1, 3, self.pp.CFD_DEM["embedded_option"].GetBool())  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
 
@@ -733,8 +716,21 @@ class Algorithm(object):
                            beginning_step = 1,
                            is_active = self.pp.CFD_DEM["stationary_problem_option"].GetBool())
 
-    def GetPrintCounter(self):
-        return SDP.Counter(1, 1, 10) # still unused
+    def GetPrintCounterUpdatedDEM(self):
+        counter = SDP.Counter(steps_in_cycle = int(self.output_time / self.Dt_DEM + 0.5),
+                                     beginning_step = int(self.Dt / self.Dt_DEM))              
+
+        if 'UpdatedDEM' != self.pp.CFD_DEM["coupling_scheme_type"].GetString():   
+            counter.Kill()             
+        return counter
+
+    def GetPrintCounterUpdatedFluid(self):
+        counter = SDP.Counter(steps_in_cycle = int(self.output_time / self.Dt_DEM + 0.5),
+                           beginning_step = int(self.Dt / self.Dt_DEM))
+
+        if 'UpdatedFluid' != self.pp.CFD_DEM["coupling_scheme_type"].GetString():   
+            counter.Kill()             
+        return counter
 
     def GetDebugInfo(self):
         return SDP.Counter(self.pp.CFD_DEM["debug_tool_cycle"].GetInt(), 1, self.pp.CFD_DEM["print_debug_info_option"].GetBool())

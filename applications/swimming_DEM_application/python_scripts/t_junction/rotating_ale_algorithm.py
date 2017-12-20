@@ -72,11 +72,11 @@ class Algorithm(BaseAlgorithm):
         # a_final = self.pp.CFD_DEM.AddEmptyValue("frame_rotation_axis_final_point").GetVector()
         # omega = self.pp.CFD_DEM.AddEmptyValue("angular_velocity_magnitude").GetDouble()
         self.rotator = MeshRotationUtility(self.pp.CFD_DEM)
-
-    def FluidSolve(self, time = 'None', solve_system = True):
-        self.rotator.RotateMesh(self.fluid_model_part, time)
-        BaseAlgorithm.FluidSolve(self, time, solve_system)
     
     def SetBetaParameters(self):
         BaseAlgorithm.SetBetaParameters(self)
         self.pp.CFD_DEM.AddEmptyValue("ALE_option").SetBool(True)
+
+    def UpdateALEMeshMovement(self, time):
+        if self.pp.CFD_DEM["ALE_option"].GetBool():
+            self.rotator.RotateMesh(self.fluid_model_part, time)
