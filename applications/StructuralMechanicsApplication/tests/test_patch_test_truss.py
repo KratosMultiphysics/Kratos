@@ -139,7 +139,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         strategy.Solve()
 
     def _solve_dynamic_explicit(self,mp):
-        #define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00,0)
 
