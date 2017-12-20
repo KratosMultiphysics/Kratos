@@ -42,13 +42,17 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_STRESS);
             
-            double& penalty_parameter = this_model_part.GetProcessInfo()[INITIAL_PENALTY];
+            auto& process_info = this_model_part.GetProcessInfo();
+            process_info[STEP] = 1;
+            process_info[NL_ITERATION_NUMBER] = 1;
+            double& penalty_parameter = process_info[INITIAL_PENALTY];
             penalty_parameter = 1.0e7;
-            double& max_gap_factor = this_model_part.GetProcessInfo()[MAX_GAP_FACTOR];
+            double& max_gap_factor = process_info[MAX_GAP_FACTOR];
             max_gap_factor = 1.0;
             
             // First we create the nodes 
             NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(0,0.0,0.0,0.0);
+            p_node_1->SetValue(NODAL_AREA, 1.0);
             p_node_1->FastGetSolutionStepValue(NODAL_H) = 0.1;
             p_node_1->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.05;
             p_node_1->FastGetSolutionStepValue(WEIGHTED_GAP, 1) = -0.1;

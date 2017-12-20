@@ -25,8 +25,10 @@ void AALMAdaptPenaltyValueProcess::Execute()
     KRATOS_TRY;
     
     // We initialize the zero vector
-    const double penalty_parameter = mrThisModelPart.GetProcessInfo()[INITIAL_PENALTY];
-    const double max_gap_factor = mrThisModelPart.GetProcessInfo()[MAX_GAP_FACTOR];
+    auto& process_info = mrThisModelPart.GetProcessInfo();
+    const double initial_penalty_parameter = process_info[INITIAL_PENALTY];
+    const double max_gap_factor = process_info[MAX_GAP_FACTOR];
+    const bool initialize = (process_info[STEP] == 1 && process_info[NL_ITERATION_NUMBER] == 1);
     
     // We iterate over the node
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
@@ -38,9 +40,13 @@ void AALMAdaptPenaltyValueProcess::Execute()
     {
         auto it_node = nodes_array.begin() + i;
         
+        // Initial value
+        const double penalty_parameter = initialize ? initial_penalty_parameter : it_node->GetValue(INITIAL_PENALTY);
+        
         // Weighted values
-        const double current_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-        const double previous_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1);
+        const double nodal_area = it_node->GetValue(NODAL_AREA);
+        const double current_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP)/nodal_area;
+        const double previous_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1)/nodal_area;
         
         // Nodal H x gap factor
         const double max_gap = max_gap_factor * it_node->FastGetSolutionStepValue(NODAL_H); // NOTE: This value must be studied

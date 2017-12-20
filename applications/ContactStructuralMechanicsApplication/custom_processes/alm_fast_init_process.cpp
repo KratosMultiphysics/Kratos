@@ -47,9 +47,6 @@ void ALMFastInit::Execute()
         // Penalty parameter
         it_node->SetValue(INITIAL_PENALTY, epsilon);
         
-        // Nodal area
-        it_node->SetValue(NODAL_AREA, 0.0);
-        
         // Auxiliar values
         it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
         if (is_frictional == true)

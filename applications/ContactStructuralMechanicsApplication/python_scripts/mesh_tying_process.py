@@ -147,8 +147,7 @@ class MeshTyingProcess(python_process.PythonProcess):
                 node.SetSolutionStepValue(ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL, 0.0)
             else:
                 node.SetSolutionStepValue(ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL, ZeroVector)
-            node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
-            node.SetValue(KratosMultiphysics.NORMAL, ZeroVector)
+            node.SetSolutionStepValue(KratosMultiphysics.NORMAL, ZeroVector)
         del node
         
         # Setting the conditions 
