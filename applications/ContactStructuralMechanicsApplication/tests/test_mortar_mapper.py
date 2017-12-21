@@ -184,21 +184,9 @@ class TestMortarMapping(KratosUnittest.TestCase):
         #out.ExecuteInitialize()
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()
-                    
-    def test_basic_mortar_mapping_triangle(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_triangle"
-        self._mapper_tests(input_filename, 3, False)
-        
-    def test_basic_mortar_mapping_quad(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_quad"
-        self._mapper_tests(input_filename, 4, False)
         
     def test_less_basic_mortar_mapping_triangle(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_triangles"
-        self._mapper_tests(input_filename, 3, False)
-        
-    def test_less_basic_2_mortar_mapping_triangle(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_triangles_2"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_several_triangles"
         self._mapper_tests(input_filename, 3, False)
         
     def test_simple_curvature_mortar_mapping_triangle(self):

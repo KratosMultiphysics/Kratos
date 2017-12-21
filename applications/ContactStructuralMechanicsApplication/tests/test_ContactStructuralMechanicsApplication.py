@@ -81,10 +81,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestDynamicSearch('test_dynamic_search_quad'))
     
     # Mortar mapping
-    smallSuite.addTest(TTestMortarMapping('test_basic_mortar_mapping_triangle'))
-    smallSuite.addTest(TTestMortarMapping('test_basic_mortar_mapping_quad'))
     smallSuite.addTest(TTestMortarMapping('test_less_basic_mortar_mapping_triangle'))
-    smallSuite.addTest(TTestMortarMapping('test_less_basic_2_mortar_mapping_triangle'))
     smallSuite.addTest(TTestMortarMapping('test_simple_curvature_mortar_mapping_triangle'))
     smallSuite.addTest(TTestMortarMapping('test_mortar_mapping_triangle'))
     smallSuite.addTest(TTestMortarMapping('test_mortar_mapping_quad'))
