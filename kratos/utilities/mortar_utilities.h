@@ -142,15 +142,16 @@ public:
     static inline PointType FastProject(
         const PointType& PointOrigin,
         const PointType& PointDestiny,
-        const array_1d<double,3>& Normal
+        const array_1d<double,3>& Normal,
+        double& Distance
         )
     {
         array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
 
-        const double distance = inner_prod(vector_points, Normal); 
+        Distance = inner_prod(vector_points, Normal); 
         
         PointType point_projected;
-        point_projected.Coordinates() = PointDestiny.Coordinates() - Normal * distance;
+        point_projected.Coordinates() = PointDestiny.Coordinates() - Normal * Distance;
         
         return point_projected;
     }

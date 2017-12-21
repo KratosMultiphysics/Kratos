@@ -126,8 +126,11 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
      * @param IntegrationOrder The integration order to consider
      */
     
-    ExactMortarIntegrationUtility(const unsigned int IntegrationOrder = 0)
-    :mIntegrationOrder(IntegrationOrder)
+    ExactMortarIntegrationUtility(
+        const unsigned int IntegrationOrder = 0,
+        const double DistanceThreshold = std::numeric_limits<double>::max()
+        ) :mIntegrationOrder(IntegrationOrder),
+           mDistanceThreshold(DistanceThreshold)
     {
         GetIntegrationMethod();
     }
@@ -568,6 +571,7 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
     ///@{
 
     const unsigned int mIntegrationOrder;    // The integration order to consider
+    const double mDistanceThreshold;         // The distance where we directly  consider out of integration limits
     IntegrationMethod mAuxIntegrationMethod; // The auxiliar list of Gauss Points taken from the geometry
     
     ///@}
