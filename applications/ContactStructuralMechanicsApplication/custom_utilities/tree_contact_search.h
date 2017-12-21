@@ -226,11 +226,62 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-         
+    
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+  
+    ModelPart& mrMainModelPart;                      // The main model part
+    Parameters mThisParameters;                      // The configuration parameters
+    CheckGap mCheckGap;                              // If the gap is checked during the search
+    bool mInvertedSearch;                            // The search will be done inverting the way master and slave/master is assigned
+    std::string mConditionName;                      // The name of the condition to be created
+    bool mCreateAuxiliarConditions;                  // If the auxiliar conditions are created or not
+    PointVector mPointListDestination;               // A list that contents the all the points (from nodes) from the modelpart 
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+       
+    /**
+     * This method computes the maximal nodal H
+     */
+    inline double GetMaxNodalH();
+       
+    /**
+     * This method computes the mean nodal H
+     */
+    inline double GetMeanNodalH();
+       
     /**
      * This method initializes the acceleraction when there is a volume acceleration
      */
@@ -318,48 +369,6 @@ protected:
     
     CheckGap ConvertCheckGap(const std::string& str);
     
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-  
-    ModelPart& mrMainModelPart;                      // The main model part
-    Parameters mThisParameters;                      // The configuration parameters
-    CheckGap mCheckGap;                              // If the gap is checked during the search
-    bool mInvertedSearch;                            // The search will be done inverting the way master and slave/master is assigned
-    std::string mConditionName;                      // The name of the condition to be created
-    bool mCreateAuxiliarConditions;                  // If the auxiliar conditions are created or not
-    PointVector mPointListDestination;               // A list that contents the all the points (from nodes) from the modelpart 
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
     ///@}
     ///@name Private  Access
     ///@{

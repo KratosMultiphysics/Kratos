@@ -458,6 +458,66 @@ void TreeContactSearch<TDim, TNumNodes>::InvertSearch()
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
+inline double TreeContactSearch<TDim, TNumNodes>::GetMaxNodalH()
+{
+    // We iterate over the nodes
+    NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+    
+#ifdef _OPENMP
+    // Creating a buffer for parallel vector fill
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<double> max_vector(num_threads, 0.0);
+    #pragma omp parallel for 
+#else
+    std::vector<double> max_vector(1);
+#endif
+    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
+    {
+        auto it_node = nodes_array.begin() + i;
+        const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
+
+#ifdef _OPENMP
+        const int id = OpenMPUtils::ThisThread();
+#else
+        const int id = 0;
+#endif
+        if (nodal_h > max_vector[id]) 
+            max_vector[id] = nodal_h;
+    }
+    
+    return *std::max_element(max_vector.begin(), max_vector.end());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TNumNodes>
+inline double TreeContactSearch<TDim, TNumNodes>::GetMeanNodalH()
+{
+    // We iterate over the nodes
+    NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+    
+    double sum_nodal_h = 0.0;
+    
+#ifdef _OPENMP
+    #pragma omp parallel for 
+#endif
+    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
+    {
+        auto it_node = nodes_array.begin() + i;
+        const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
+
+        #pragma omp atomic
+        sum_nodal_h += nodal_h;
+    }
+    
+    return sum_nodal_h/static_cast<double>(nodes_array.size());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::InitializeAcceleration()
 {
     // We iterate over the nodes
@@ -659,9 +719,19 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
             it_node->SetValue(AUXILIAR_COORDINATES, ZeroVector(3));
     }
     
-    Parameters mapping_parameters = Parameters(R"({"inverted_master_slave_pairing": false})" );
+    // We compute the maximal nodal h and some auxiliar values
+    const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
+    // TODO: Think about this criteria
+    const double distance_threshold = GetMeanNodalH(); 
+//     const double distance_threshold = GetMaxNodalH(); 
+//     const double distance_threshold = active_check_factor * GetMaxNodalH();
+    
+    // We set the mapper parameters
+    Parameters mapping_parameters = Parameters(R"({"inverted_master_slave_pairing": false, "distance_threshold" : 1.0e24})" );
     mapping_parameters["inverted_master_slave_pairing"].SetBool(mThisParameters["inverted_search"].GetBool());
-    auto mapper = SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, NonHistorical>(contact_model_part, AUXILIAR_COORDINATES, mapping_parameters);
+    mapping_parameters["distance_threshold"].SetDouble(distance_threshold);
+    typedef SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, NonHistorical> MapperType;
+    MapperType mapper = MapperType(contact_model_part, AUXILIAR_COORDINATES, mapping_parameters);
     mapper.Execute();
     
     // Iterate in the conditions
@@ -680,9 +750,6 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
             }
         }
     }
-    
-    // Some auxiliar values
-    const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
     
 #ifdef _OPENMP
     #pragma omp parallel for 
@@ -704,7 +771,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
             if (norm_2(auxiliar_coordinates) > tolerance)
             {
             #ifdef KRATOS_DEBUG
-                KRATOS_ERROR_IF(!(it_node->SolutionStepsDataHas(NODAL_H)) << "WARNING:: NODAL_H not added" << std::endl; 
+                KRATOS_ERROR_IF(!(it_node->SolutionStepsDataHas(NODAL_H))) << "WARNING:: NODAL_H not added" << std::endl; 
             #endif
                 const double auxiliar_length = it_node->FastGetSolutionStepValue(NODAL_H) * active_check_factor;
                 if (gap < auxiliar_length) it_node->Set(ACTIVE);
