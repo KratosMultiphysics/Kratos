@@ -1,31 +1,39 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from math import sqrt
 
 # Import utilities
-import math
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
+import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
+import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
 
-# Import kratos core and applications
+# Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications(
+    "MetisApplication",
+    "TrilinosApplication",
+    "MappingApplication",
+    "FSIApplication",
+    "ALEApplication",
+    "FluidDynamicsApplication",
+    "StructuralMechanicsApplication")
+
+# Import applications
 import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.MappingApplication as KratosMapping
 import KratosMultiphysics.FSIApplication as KratosFSI
+import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
-## Python files import 
-import convergence_accelerator_factory          # Convergence accelerator factory
+# Import base class file
 import trilinos_partitioned_fsi_base_solver     # Base class file
-
 
 def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
     return TrilinosPartitionedFSIDirichletNeumannSolver(structure_main_model_part, fluid_main_model_part, project_parameters)
-
 
 class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base_solver.TrilinosPartitionedFSIBaseSolver):
     def __init__(self, structure_main_model_part, fluid_main_model_part, project_parameters):
@@ -134,16 +142,16 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
             interface_dofs = self.trilinos_partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart())
 
             # Check convergence
-            if nl_res_norm/math.sqrt(interface_dofs) < self.nl_tol:
+            if nl_res_norm/sqrt(interface_dofs) < self.nl_tol:
                 if (KratosMPI.mpi.rank == 0):
                     print("     NON-LINEAR ITERATION CONVERGENCE ACHIEVED")
-                    print("     Total non-linear iterations: ",nl_it," |res|/sqrt(Ndofs) = ",nl_res_norm/math.sqrt(interface_dofs))
+                    print("     Total non-linear iterations: ",nl_it," |res|/sqrt(Ndofs) = ",nl_res_norm/sqrt(interface_dofs))
 
                 break
             else:
                 # If convergence is not achieved, perform the correction of the prediction
                 if (KratosMPI.mpi.rank == 0):
-                    print("     Residual computation finished. |res|/sqrt(Ndofs) =", nl_res_norm/math.sqrt(interface_dofs))
+                    print("     Residual computation finished. |res|/sqrt(Ndofs) =", nl_res_norm/sqrt(interface_dofs))
                     print("     Performing non-linear iteration ",nl_it," correction.")
 
                 self.coupling_utility.UpdateSolution(dis_residual.GetReference(), self.iteration_value.GetReference())

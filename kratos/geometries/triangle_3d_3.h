@@ -641,18 +641,18 @@ public:
      */
     bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint) override
     {
-        Point boxcenter;
-        Point boxhalfsize;
+        Point box_center;
+        Point box_half_size;
 
-        boxcenter[0]   = 0.5 * (rLowPoint[0] + rHighPoint[0]);
-        boxcenter[1]   = 0.5 * (rLowPoint[1] + rHighPoint[1]);
-        boxcenter[2]   = 0.5 * (rLowPoint[2] + rHighPoint[2]);
+        box_center[0] = 0.5 * (rLowPoint[0] + rHighPoint[0]);
+        box_center[1] = 0.5 * (rLowPoint[1] + rHighPoint[1]);
+        box_center[2] = 0.5 * (rLowPoint[2] + rHighPoint[2]);
 
-        boxhalfsize[0] = 0.5 * (rHighPoint[0] - rLowPoint[0]);
-        boxhalfsize[1] = 0.5 * (rHighPoint[1] - rLowPoint[1]);
-        boxhalfsize[2] = 0.5 * (rHighPoint[2] - rLowPoint[2]);
+        box_half_size[0] = 0.5 * std::abs(rHighPoint[0] - rLowPoint[0]);
+        box_half_size[1] = 0.5 * std::abs(rHighPoint[1] - rLowPoint[1]);
+        box_half_size[2] = 0.5 * std::abs(rHighPoint[2] - rLowPoint[2]);
 
-        return TriBoxOverlap(boxcenter, boxhalfsize);
+        return TriBoxOverlap(box_center, box_half_size);
     }
 
     /// Quality functions
@@ -2132,8 +2132,6 @@ private:
 		return false;
 	}
 
-//*************************************************************************************
-//*************************************************************************************
 
     /**
      * @see HasIntersection
@@ -2165,23 +2163,23 @@ private:
         abs_ex = std::abs(edge0[0]);
         abs_ey = std::abs(edge0[1]);
         abs_ez = std::abs(edge0[2]);
-        if (!AxisTestX(edge0[1],edge0[2],abs_ey,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
-        if (!AxisTestY(edge0[0],edge0[2],abs_ex,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
-        if (!AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
+        if (AxisTestX(edge0[1],edge0[2],abs_ey,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
+        if (AxisTestY(edge0[0],edge0[2],abs_ex,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
+        if (AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
 
         abs_ex = std::abs(edge1[0]);
         abs_ey = std::abs(edge1[1]);
         abs_ez = std::abs(edge1[2]);
-        if (!AxisTestX(edge1[1],edge1[2],abs_ey,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
-        if (!AxisTestY(edge1[0],edge1[2],abs_ex,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
-        if (!AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
+        if (AxisTestX(edge1[1],edge1[2],abs_ey,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
+        if (AxisTestY(edge1[0],edge1[2],abs_ex,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
+        if (AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
 
         abs_ex = std::abs(edge2[0]);
         abs_ey = std::abs(edge2[1]);
         abs_ez = std::abs(edge2[2]);
-        if (!AxisTestX(edge2[1],edge2[2],abs_ey,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
-        if (!AxisTestY(edge2[0],edge2[2],abs_ex,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
-        if (!AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
+        if (AxisTestX(edge2[1],edge2[2],abs_ey,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
+        if (AxisTestY(edge2[0],edge2[2],abs_ex,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
+        if (AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
 
         // Bullet 1:
         //  first test overlap in the {x,y,z}-directions
@@ -2245,8 +2243,8 @@ private:
     }
 
     /** AxisTestX
-     * This method return true if there is a separating axis
-     *
+     * This method returns true if there is a separating axis
+     * 
      * @param rEdgeY, rEdgeZ: i-edge corrdinates
      * @param rAbsEdgeY, rAbsEdgeZ: i-edge abs coordinates
      * @param rVertA: i   vertex
@@ -2267,13 +2265,13 @@ private:
 
         rad = rAbsEdgeZ*rBoxHalfSize[1] + rAbsEdgeY*rBoxHalfSize[2];
 
-        if(min_max.first>rad || min_max.second<-rad) return false;
-        else return true;
+        if(min_max.first>rad || min_max.second<-rad) return true;
+        else return false;
     }
 
     /** AxisTestY
-     * This method return true if there is a separating axis
-     *
+     * This method returns true if there is a separating axis
+     * 
      * @param rEdgeX, rEdgeZ: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeZ: i-edge fabs coordinates
      * @param rVertA: i   vertex
@@ -2294,13 +2292,13 @@ private:
 
         rad = rAbsEdgeZ*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[2];
 
-        if(min_max.first>rad || min_max.second<-rad) return false;
-        else return true;
+        if(min_max.first>rad || min_max.second<-rad) return true;
+        else return false;
     }
 
     /** AxisTestZ
-     * This method return true if there is a separating axis
-     *
+     * This method returns true if there is a separating axis
+     * 
      * @param rEdgeX, rEdgeY: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeY: i-edge fabs coordinates
      * @param rVertA: i   vertex
@@ -2321,8 +2319,8 @@ private:
 
         rad = rAbsEdgeY*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[1];
 
-        if(min_max.first>rad || min_max.second<-rad) return false;
-        else return true;
+        if(min_max.first>rad || min_max.second<-rad) return true;
+        else return false;
     }
 
 

@@ -5,6 +5,7 @@ import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.IncompressibleFluidApplication
 import KratosMultiphysics.DEMApplication
 import KratosMultiphysics.SwimmingDEMApplication
+import KratosMultiphysics.ExternalSolversApplication
 import KratosSwimmingDEM as script
 import json
 import os

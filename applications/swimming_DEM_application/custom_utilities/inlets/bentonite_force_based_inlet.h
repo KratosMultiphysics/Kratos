@@ -30,8 +30,8 @@ namespace Kratos {
     private:
         double mCationConcentration;
         array_1d<double, 3> mInjectionForce;
-        void FixInjectionConditions(Element* p_element) override;
-        void FixInjectorConditions(Element* p_element)override;
+        void FixInjectionConditions(Element* p_element, Element* p_injector_element) override;
+        void FixInjectorConditions(Element* p_element) override;
         array_1d<double, 3> GetInjectionForce(Element* p_element) override;
         void UpdateInjectionForce(Element *p_element);
     };

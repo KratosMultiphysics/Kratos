@@ -390,7 +390,7 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
         {
             PointIntersection.Coordinates()[0] = coord_point_orig1[0] + t * s_orig1_orig2_x; 
             PointIntersection.Coordinates()[1] = coord_point_orig1[1] + t * s_orig1_orig2_y; 
-            
+
             return true;
         }
         else

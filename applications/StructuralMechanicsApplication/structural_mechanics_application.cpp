@@ -46,324 +46,125 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_8.h"
 #include "geometries/quadrilateral_2d_9.h"
+
 namespace Kratos {
 KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
     : KratosApplication("StructuralMechanicsApplication"),
       /* ELEMENTS */
       // Adding the truss elements
-      mTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
-                               Element::GeometryType::PointsArrayType(2))),
-          false),
-      mTrussLinearElement3D2N(0,
-          Element::GeometryType::Pointer(
-              new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2))),
-          true),
+      mTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2))), false),
+      mTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
       // Adding the beam element
-      mCrBeamElement3D2N(0,
-          Element::GeometryType::Pointer(
-              new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2))),
-          false),
-      mCrLinearBeamElement3D2N(0,
-          Element::GeometryType::Pointer(
-              new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2))),
-          true),
-      mCrBeamElement2D2N(0,
-          Element::GeometryType::Pointer(
-              new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2))),
-          false),
-      mCrLinearBeamElement2D2N(0,
-          Element::GeometryType::Pointer(
-              new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2))),
-          true),
+      mCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2))), false),
+      mCrLinearBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
+      mCrBeamElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2))), false),
+      mCrLinearBeamElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
       // Adding the shells elements
-      mIsotropicShellElement3D3N(
-          0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mShellThickElement3D4N(0,
-          Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-              Element::GeometryType::PointsArrayType(4))),
-          false),
-      mShellThickCorotationalElement3D4N(0,
-          Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-              Element::GeometryType::PointsArrayType(4))),
-          true),
-      mShellThinCorotationalElement3D4N(0,
-          Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-              Element::GeometryType::PointsArrayType(4))),
-          true),
-      mShellThinElement3D3N(0,
-          Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-              Element::GeometryType::PointsArrayType(3))),
-          false),
-      mShellThinCorotationalElement3D3N(0,
-          Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-              Element::GeometryType::PointsArrayType(3))),
-          true),
-      mShellThickCorotationalElement3D3N(0,
-          Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-              Element::GeometryType::PointsArrayType(3))),
-          true),
+      mIsotropicShellElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mShellThickElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))), false),
+      mShellThickCorotationalElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))), true),
+      mShellThinCorotationalElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))), true),
+      mShellThinElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))), false),
+      mShellThinCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))), true),
+      mShellThickCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))), true),
       // Adding the membrane element
-      mMembraneElement3D3N(
-          0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mMembraneElement3D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mPreStressMembraneElement3D3N(
-          0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mPreStressMembraneElement3D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+      mMembraneElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mMembraneElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mPreStressMembraneElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mPreStressMembraneElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       // Adding the SPRISM element
-      mSprismElement3D6N(
-          0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
+      mSprismElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
       // Adding the nodal concentrated element
-      mNodalConcentratedElement2D1N(0,
-          Element::GeometryType::Pointer(
-              new Point2D<Node<3> >(Element::GeometryType::PointsArrayType(1))),
-          true),
-      mNodalConcentratedDampedElement2D1N(0,
-          Element::GeometryType::Pointer(
-              new Point2D<Node<3> >(Element::GeometryType::PointsArrayType(1))),
-          false),
-      mNodalConcentratedElement3D1N(0,
-          Element::GeometryType::Pointer(
-              new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1))),
-          true),
-      mNodalConcentratedDampedElement3D1N(0,
-          Element::GeometryType::Pointer(
-              new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1))),
-          false),
+      mNodalConcentratedElement2D1N(0, Element::GeometryType::Pointer(new Point2D<Node<3> >(Element::GeometryType::PointsArrayType(1))), true),
+      mNodalConcentratedDampedElement2D1N(0, Element::GeometryType::Pointer(new Point2D<Node<3> >(Element::GeometryType::PointsArrayType(1))), false),
+      mNodalConcentratedElement3D1N(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1))), true),
+      mNodalConcentratedDampedElement3D1N(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1))), false),
       // Adding the kinematic linear elements
-      mSmallDisplacement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mSmallDisplacement2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mSmallDisplacement2D6N(
-          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
-      mSmallDisplacement2D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mSmallDisplacement2D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
-      mSmallDisplacement3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mSmallDisplacement3D6N(
-          0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
-      mSmallDisplacement3D8N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mSmallDisplacement3D10N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(
-                 Element::GeometryType::PointsArrayType(10)))),
-      mSmallDisplacement3D15N(
-          0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(
-                 Element::GeometryType::PointsArrayType(15)))),
-      mSmallDisplacement3D20N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(
-                 Element::GeometryType::PointsArrayType(20)))),
-      mSmallDisplacement3D27N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(
-                 Element::GeometryType::PointsArrayType(27)))),
-      mAxisymSmallDisplacement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mAxisymSmallDisplacement2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mAxisymSmallDisplacement2D6N(
-          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
-      mAxisymSmallDisplacement2D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mAxisymSmallDisplacement2D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
+      mSmallDisplacement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mSmallDisplacement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+      mSmallDisplacement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+      mSmallDisplacement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(Element::GeometryType::PointsArrayType(9)))),
+      mSmallDisplacement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+      mSmallDisplacement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+      mSmallDisplacement3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
+      mSmallDisplacement3D15N(0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(Element::GeometryType::PointsArrayType(15)))),
+      mSmallDisplacement3D20N(0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(Element::GeometryType::PointsArrayType(20)))),
+      mSmallDisplacement3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27)))),
+      mAxisymSmallDisplacement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mAxisymSmallDisplacement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mAxisymSmallDisplacement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+      mAxisymSmallDisplacement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+      mAxisymSmallDisplacement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(Element::GeometryType::PointsArrayType(9)))),
       // Adding the Total lagrangian elements
-      mTotalLagrangian2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mTotalLagrangian2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mTotalLagrangian2D6N(
-          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
-      mTotalLagrangian2D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mTotalLagrangian2D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
-      mTotalLagrangian3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mTotalLagrangian3D6N(
-          0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
-      mTotalLagrangian3D8N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mTotalLagrangian3D10N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(
-                 Element::GeometryType::PointsArrayType(10)))),
-      mTotalLagrangian3D15N(
-          0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(
-                 Element::GeometryType::PointsArrayType(15)))),
-      mTotalLagrangian3D20N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(
-                 Element::GeometryType::PointsArrayType(20)))),
-      mTotalLagrangian3D27N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(
-                 Element::GeometryType::PointsArrayType(27)))),
-      mAxisymTotalLagrangian2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mAxisymTotalLagrangian2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mAxisymTotalLagrangian2D6N(
-          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
-      mAxisymTotalLagrangian2D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mAxisymTotalLagrangian2D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
+      mTotalLagrangian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mTotalLagrangian2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mTotalLagrangian2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+      mTotalLagrangian2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+      mTotalLagrangian2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(Element::GeometryType::PointsArrayType(9)))),
+      mTotalLagrangian3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mTotalLagrangian3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+      mTotalLagrangian3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+      mTotalLagrangian3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
+      mTotalLagrangian3D15N(0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(Element::GeometryType::PointsArrayType(15)))),
+      mTotalLagrangian3D20N(0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(Element::GeometryType::PointsArrayType(20)))),
+      mTotalLagrangian3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27)))),
+      mAxisymTotalLagrangian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mAxisymTotalLagrangian2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mAxisymTotalLagrangian2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+      mAxisymTotalLagrangian2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+      mAxisymTotalLagrangian2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(Element::GeometryType::PointsArrayType(9)))),
       // Adding the Updated lagrangian elements
-      mUpdatedLagrangian2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mUpdatedLagrangian2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mUpdatedLagrangian2D6N(
-          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
-      mUpdatedLagrangian2D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mUpdatedLagrangian2D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
-      mUpdatedLagrangian3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mUpdatedLagrangian3D6N(
-          0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
-      mUpdatedLagrangian3D8N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mUpdatedLagrangian3D10N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(
-                 Element::GeometryType::PointsArrayType(10)))),
-      mUpdatedLagrangian3D15N(
-          0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(
-                 Element::GeometryType::PointsArrayType(15)))),
-      mUpdatedLagrangian3D20N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(
-                 Element::GeometryType::PointsArrayType(20)))),
-      mUpdatedLagrangian3D27N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(
-                 Element::GeometryType::PointsArrayType(27)))),
-      mAxisymUpdatedLagrangian2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mAxisymUpdatedLagrangian2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mAxisymUpdatedLagrangian2D6N(
-          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
-      mAxisymUpdatedLagrangian2D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mAxisymUpdatedLagrangian2D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
+      mUpdatedLagrangian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mUpdatedLagrangian2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mUpdatedLagrangian2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+      mUpdatedLagrangian2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+      mUpdatedLagrangian2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(Element::GeometryType::PointsArrayType(9)))),
+      mUpdatedLagrangian3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mUpdatedLagrangian3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+      mUpdatedLagrangian3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+      mUpdatedLagrangian3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
+      mUpdatedLagrangian3D15N(0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(Element::GeometryType::PointsArrayType(15)))),
+      mUpdatedLagrangian3D20N(0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(Element::GeometryType::PointsArrayType(20)))),
+      mUpdatedLagrangian3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27)))),
+      mAxisymUpdatedLagrangian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mAxisymUpdatedLagrangian2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mAxisymUpdatedLagrangian2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+      mAxisymUpdatedLagrangian2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+      mAxisymUpdatedLagrangian2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(Element::GeometryType::PointsArrayType(9)))),
       // Adding the spring damper element
-      mSpringDamperElement3D2N(
-          0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
-                 Element::GeometryType::PointsArrayType(2)))),
+      mSpringDamperElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       /* CONDITIONS */
       // Adding point load conditions
-      mPointLoadCondition2D1N(
-          0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
-      mPointLoadCondition3D1N(
-          0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
-      mPointContactCondition2D1N(
-          0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
-      mPointContactCondition3D1N(
-          0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
-      mAxisymPointLoadCondition2D1N(
-          0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
+      mPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(Condition::GeometryType::PointsArrayType(1)))),
+      mPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(Condition::GeometryType::PointsArrayType(1)))),
+      mPointContactCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(Condition::GeometryType::PointsArrayType(1)))),
+      mPointContactCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(Condition::GeometryType::PointsArrayType(1)))),
+      mAxisymPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(Condition::GeometryType::PointsArrayType(1)))),
       // Adding line load conditions
-      mLineLoadCondition2D2N(
-          0, Condition::GeometryType::Pointer(new Line2D2<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(2)))),
-      mLineLoadCondition2D3N(
-          0, Condition::GeometryType::Pointer(new Line2D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
-      mAxisymLineLoadCondition2D2N(
-          0, Condition::GeometryType::Pointer(new Line2D2<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(2)))),
-      mAxisymLineLoadCondition2D3N(
-          0, Condition::GeometryType::Pointer(new Line2D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
+      mLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node<3> >(Condition::GeometryType::PointsArrayType(2)))),
+      mLineLoadCondition2D3N(0, Condition::GeometryType::Pointer(new Line2D3<Node<3> >(Condition::GeometryType::PointsArrayType(3)))),
+      mAxisymLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node<3> >(Condition::GeometryType::PointsArrayType(2)))),
+      mAxisymLineLoadCondition2D3N(0, Condition::GeometryType::Pointer(new Line2D3<Node<3> >(Condition::GeometryType::PointsArrayType(3)))),
       // Adding surface load conditions
-      mSurfaceLoadCondition3D3N(
-          0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
-      mSurfaceLoadCondition3D4N(
-          0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(4)))),
-      mSurfaceLoadCondition3D6N(
-          0, Condition::GeometryType::Pointer(new Triangle3D6<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(6)))),
-      mSurfaceLoadCondition3D8N(
-          0, Condition::GeometryType::Pointer(new Quadrilateral3D8<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(8)))),
-      mSurfaceLoadCondition3D9N(
-          0, Condition::GeometryType::Pointer(new Quadrilateral3D9<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(9)))),
+      mSurfaceLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3> >(Condition::GeometryType::PointsArrayType(3)))),
+      mSurfaceLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >( Condition::GeometryType::PointsArrayType(4)))),
+      mSurfaceLoadCondition3D6N(0, Condition::GeometryType::Pointer(new Triangle3D6<Node<3> >(Condition::GeometryType::PointsArrayType(6)))),
+      mSurfaceLoadCondition3D8N(0, Condition::GeometryType::Pointer(new Quadrilateral3D8<Node<3> >(Condition::GeometryType::PointsArrayType(8)))),
+      mSurfaceLoadCondition3D9N(0, Condition::GeometryType::Pointer(new Quadrilateral3D9<Node<3> >(Condition::GeometryType::PointsArrayType(9)))),
       // Adding point moment conditions
-      mPointMomentCondition3D1N(
-          0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))) {}
+      mPointMomentCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(Condition::GeometryType::PointsArrayType(1)))) {}
 
 void KratosStructuralMechanicsApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    std::cout << "     KRATOS   ___|  |                   |                   "
-                 "|               "
-              << std::endl;
-    std::cout << "            \\___ \\  __|  __| |   |  __| __| |   |  __| _` "
-                 "| |               "
-              << std::endl;
-    std::cout << "                  | |   |    |   | (    |   |   | |   (   | "
-                 "|               "
-              << std::endl;
-    std::cout << "            _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  "
-                 "\\__,_|_| MECHANICS     "
-              << std::endl;
 
+    std::cout << "     KRATOS   ___|  |                   |                   |                     " << std::endl;
+    std::cout << "            \\___ \\  __|  __| |   |  __| __| |   |  __| _` | |                   " << std::endl;
+    std::cout << "                  | |   |    |   | (    |   |   | |   (   | |                     " << std::endl;
+    std::cout << "            _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS     " << std::endl;
+    
     // Generalized eigenvalue problem
     KRATOS_REGISTER_VARIABLE(BUILD_LEVEL)
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_VECTOR)
@@ -500,77 +301,49 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("CrLinearBeamElement2D2N", mCrLinearBeamElement2D2N)
 
     //Register the shells elements
-    KRATOS_REGISTER_ELEMENT(
-        "IsotropicShellElement3D3N", mIsotropicShellElement3D3N)
+    KRATOS_REGISTER_ELEMENT("IsotropicShellElement3D3N", mIsotropicShellElement3D3N)
     KRATOS_REGISTER_ELEMENT("ShellThickElement3D4N", mShellThickElement3D4N)
-    KRATOS_REGISTER_ELEMENT(
-        "ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N)
-    KRATOS_REGISTER_ELEMENT(
-        "ShellThinElementCorotational3D4N", mShellThinCorotationalElement3D4N)
+    KRATOS_REGISTER_ELEMENT("ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N)
+    KRATOS_REGISTER_ELEMENT("ShellThinElementCorotational3D4N", mShellThinCorotationalElement3D4N)
     KRATOS_REGISTER_ELEMENT("ShellThinElement3D3N", mShellThinElement3D3N)
-    KRATOS_REGISTER_ELEMENT(
-        "ShellThickElementCorotational3D3N", mShellThickCorotationalElement3D3N)
-    KRATOS_REGISTER_ELEMENT(
-        "ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N)
+    KRATOS_REGISTER_ELEMENT("ShellThickElementCorotational3D3N", mShellThickCorotationalElement3D3N)
+    KRATOS_REGISTER_ELEMENT("ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N)
 
     // Register the membrane element
     KRATOS_REGISTER_ELEMENT("MembraneElement3D3N", mMembraneElement3D3N)
     KRATOS_REGISTER_ELEMENT("MembraneElement3D4N", mMembraneElement3D4N)
-    KRATOS_REGISTER_ELEMENT(
-        "PreStressMembraneElement3D3N", mPreStressMembraneElement3D3N)
-    KRATOS_REGISTER_ELEMENT(
-        "PreStressMembraneElement3D4N", mPreStressMembraneElement3D4N)
+    KRATOS_REGISTER_ELEMENT("PreStressMembraneElement3D3N", mPreStressMembraneElement3D3N)
+    KRATOS_REGISTER_ELEMENT("PreStressMembraneElement3D4N", mPreStressMembraneElement3D4N)
 
     // Register the SPRISM element
     KRATOS_REGISTER_ELEMENT("SprismElement3D6N", mSprismElement3D6N);
 
     // Register the nodal concentrated element
-    KRATOS_REGISTER_ELEMENT(
-        "NodalConcentratedElement2D1N", mNodalConcentratedElement2D1N);
-    KRATOS_REGISTER_ELEMENT("NodalConcentratedDampedElement2D1N",
-        mNodalConcentratedDampedElement2D1N);
-    KRATOS_REGISTER_ELEMENT(
-        "NodalConcentratedElement3D1N", mNodalConcentratedElement3D1N);
-    KRATOS_REGISTER_ELEMENT("NodalConcentratedDampedElement3D1N",
-        mNodalConcentratedDampedElement3D1N);
+    KRATOS_REGISTER_ELEMENT("NodalConcentratedElement2D1N", mNodalConcentratedElement2D1N);
+    KRATOS_REGISTER_ELEMENT("NodalConcentratedDampedElement2D1N", mNodalConcentratedDampedElement2D1N);
+    KRATOS_REGISTER_ELEMENT("NodalConcentratedElement3D1N", mNodalConcentratedElement3D1N);
+    KRATOS_REGISTER_ELEMENT("NodalConcentratedDampedElement3D1N", mNodalConcentratedDampedElement3D1N);
 
     // SOLID ELEMENTS
     // Small displacement elements
-    KRATOS_REGISTER_ELEMENT(
-        "SmallDisplacementElement2D3N", mSmallDisplacement2D3N)
-    KRATOS_REGISTER_ELEMENT(
-        "SmallDisplacementElement2D4N", mSmallDisplacement2D4N)
-    KRATOS_REGISTER_ELEMENT(
-        "SmallDisplacementElement2D6N", mSmallDisplacement2D6N)
-    KRATOS_REGISTER_ELEMENT(
-        "SmallDisplacementElement2D8N", mSmallDisplacement2D8N)
-    KRATOS_REGISTER_ELEMENT(
-        "SmallDisplacementElement2D9N", mSmallDisplacement2D9N)
-    KRATOS_REGISTER_ELEMENT(
-        "SmallDisplacementElement3D4N", mSmallDisplacement3D4N)
-    KRATOS_REGISTER_ELEMENT(
-        "SmallDisplacementElement3D6N", mSmallDisplacement3D6N)
-    KRATOS_REGISTER_ELEMENT(
-        "SmallDisplacementElement3D8N", mSmallDisplacement3D8N)
-    KRATOS_REGISTER_ELEMENT(
-        "SmallDisplacementElement3D10N", mSmallDisplacement3D10N)
-    KRATOS_REGISTER_ELEMENT(
-        "SmallDisplacementElement3D15N", mSmallDisplacement3D15N)
-    KRATOS_REGISTER_ELEMENT(
-        "SmallDisplacementElement3D20N", mSmallDisplacement3D20N)
-    KRATOS_REGISTER_ELEMENT(
-        "SmallDisplacementElement3D27N", mSmallDisplacement3D27N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementElement2D3N", mSmallDisplacement2D3N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementElement2D4N", mSmallDisplacement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementElement2D6N", mSmallDisplacement2D6N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementElement2D8N", mSmallDisplacement2D8N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementElement2D9N", mSmallDisplacement2D9N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D4N", mSmallDisplacement3D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D6N", mSmallDisplacement3D6N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D8N", mSmallDisplacement3D8N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D10N", mSmallDisplacement3D10N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D15N", mSmallDisplacement3D15N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D20N", mSmallDisplacement3D20N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D27N", mSmallDisplacement3D27N)
 
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymSmallDisplacementElement2D3N", mAxisymSmallDisplacement2D3N)
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymSmallDisplacementElement2D4N", mAxisymSmallDisplacement2D4N)
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymSmallDisplacementElement2D6N", mAxisymSmallDisplacement2D6N)
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymSmallDisplacementElement2D8N", mAxisymSmallDisplacement2D8N)
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymSmallDisplacementElement2D9N", mAxisymSmallDisplacement2D9N)
+    KRATOS_REGISTER_ELEMENT("AxisymSmallDisplacementElement2D3N", mAxisymSmallDisplacement2D3N)
+    KRATOS_REGISTER_ELEMENT("AxisymSmallDisplacementElement2D4N", mAxisymSmallDisplacement2D4N)
+    KRATOS_REGISTER_ELEMENT("AxisymSmallDisplacementElement2D6N", mAxisymSmallDisplacement2D6N)
+    KRATOS_REGISTER_ELEMENT("AxisymSmallDisplacementElement2D8N", mAxisymSmallDisplacement2D8N)
+    KRATOS_REGISTER_ELEMENT("AxisymSmallDisplacementElement2D9N", mAxisymSmallDisplacement2D9N)
 
     // Total lagrangian elements
     KRATOS_REGISTER_ELEMENT("TotalLagrangianElement2D3N", mTotalLagrangian2D3N)
@@ -581,103 +354,65 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TotalLagrangianElement3D4N", mTotalLagrangian3D4N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianElement3D6N", mTotalLagrangian3D6N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianElement3D8N", mTotalLagrangian3D8N)
-    KRATOS_REGISTER_ELEMENT(
-        "TotalLagrangianElement3D10N", mTotalLagrangian3D10N)
-    KRATOS_REGISTER_ELEMENT(
-        "TotalLagrangianElement3D15N", mTotalLagrangian3D15N)
-    KRATOS_REGISTER_ELEMENT(
-        "TotalLagrangianElement3D20N", mTotalLagrangian3D20N)
-    KRATOS_REGISTER_ELEMENT(
-        "TotalLagrangianElement3D27N", mTotalLagrangian3D27N)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianElement3D10N", mTotalLagrangian3D10N)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianElement3D15N", mTotalLagrangian3D15N)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianElement3D20N", mTotalLagrangian3D20N)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianElement3D27N", mTotalLagrangian3D27N)
 
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymTotalLagrangianElement2D3N", mAxisymTotalLagrangian2D3N)
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymTotalLagrangianElement2D4N", mAxisymTotalLagrangian2D4N)
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymTotalLagrangianElement2D6N", mAxisymTotalLagrangian2D6N)
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymTotalLagrangianElement2D8N", mAxisymTotalLagrangian2D8N)
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymTotalLagrangianElement2D9N", mAxisymTotalLagrangian2D9N)
+    KRATOS_REGISTER_ELEMENT("AxisymTotalLagrangianElement2D3N", mAxisymTotalLagrangian2D3N)
+    KRATOS_REGISTER_ELEMENT("AxisymTotalLagrangianElement2D4N", mAxisymTotalLagrangian2D4N)
+    KRATOS_REGISTER_ELEMENT("AxisymTotalLagrangianElement2D6N", mAxisymTotalLagrangian2D6N)
+    KRATOS_REGISTER_ELEMENT("AxisymTotalLagrangianElement2D8N", mAxisymTotalLagrangian2D8N)
+    KRATOS_REGISTER_ELEMENT("AxisymTotalLagrangianElement2D9N", mAxisymTotalLagrangian2D9N)
 
     // Updated lagrangian elements
-    KRATOS_REGISTER_ELEMENT(
-        "UpdatedLagrangianElement2D3N", mUpdatedLagrangian2D3N)
-    KRATOS_REGISTER_ELEMENT(
-        "UpdatedLagrangianElement2D4N", mUpdatedLagrangian2D4N)
-    KRATOS_REGISTER_ELEMENT(
-        "UpdatedLagrangianElement2D6N", mUpdatedLagrangian2D6N)
-    KRATOS_REGISTER_ELEMENT(
-        "UpdatedLagrangianElement2D8N", mUpdatedLagrangian2D8N)
-    KRATOS_REGISTER_ELEMENT(
-        "UpdatedLagrangianElement2D9N", mUpdatedLagrangian2D9N)
-    KRATOS_REGISTER_ELEMENT(
-        "UpdatedLagrangianElement3D4N", mUpdatedLagrangian3D4N)
-    KRATOS_REGISTER_ELEMENT(
-        "UpdatedLagrangianElement3D6N", mUpdatedLagrangian3D6N)
-    KRATOS_REGISTER_ELEMENT(
-        "UpdatedLagrangianElement3D8N", mUpdatedLagrangian3D8N)
-    KRATOS_REGISTER_ELEMENT(
-        "UpdatedLagrangianElement3D10N", mUpdatedLagrangian3D10N)
-    KRATOS_REGISTER_ELEMENT(
-        "UpdatedLagrangianElement3D15N", mUpdatedLagrangian3D15N)
-    KRATOS_REGISTER_ELEMENT(
-        "UpdatedLagrangianElement3D20N", mUpdatedLagrangian3D20N)
-    KRATOS_REGISTER_ELEMENT(
-        "UpdatedLagrangianElement3D27N", mUpdatedLagrangian3D27N)
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianElement2D3N", mUpdatedLagrangian2D3N)
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianElement2D4N", mUpdatedLagrangian2D4N)
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianElement2D6N", mUpdatedLagrangian2D6N)
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianElement2D8N", mUpdatedLagrangian2D8N)
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianElement2D9N", mUpdatedLagrangian2D9N)
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianElement3D4N", mUpdatedLagrangian3D4N)
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianElement3D6N", mUpdatedLagrangian3D6N)
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianElement3D8N", mUpdatedLagrangian3D8N)
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianElement3D10N", mUpdatedLagrangian3D10N)
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianElement3D15N", mUpdatedLagrangian3D15N)
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianElement3D20N", mUpdatedLagrangian3D20N)
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianElement3D27N", mUpdatedLagrangian3D27N)
 
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymUpdatedLagrangianElement2D3N", mAxisymUpdatedLagrangian2D3N)
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymUpdatedLagrangianElement2D4N", mAxisymUpdatedLagrangian2D4N)
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymUpdatedLagrangianElement2D6N", mAxisymUpdatedLagrangian2D6N)
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymUpdatedLagrangianElement2D8N", mAxisymUpdatedLagrangian2D8N)
-    KRATOS_REGISTER_ELEMENT(
-        "AxisymUpdatedLagrangianElement2D9N", mAxisymUpdatedLagrangian2D9N)
+    KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D3N", mAxisymUpdatedLagrangian2D3N)
+    KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D4N", mAxisymUpdatedLagrangian2D4N)
+    KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D6N", mAxisymUpdatedLagrangian2D6N)
+    KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D8N", mAxisymUpdatedLagrangian2D8N)
+    KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D9N", mAxisymUpdatedLagrangian2D9N)
 
     // Register the spring damper element
-    KRATOS_REGISTER_ELEMENT(
-        "SpringDamperElement3D2N", mSpringDamperElement3D2N);
+    KRATOS_REGISTER_ELEMENT("SpringDamperElement3D2N", mSpringDamperElement3D2N);
 
     // Register the conditions
     // Point loads
     KRATOS_REGISTER_CONDITION("PointLoadCondition2D1N", mPointLoadCondition2D1N)
     KRATOS_REGISTER_CONDITION("PointLoadCondition3D1N", mPointLoadCondition3D1N)
-    KRATOS_REGISTER_CONDITION(
-        "PointContactCondition2D1N", mPointContactCondition2D1N)
-    KRATOS_REGISTER_CONDITION(
-        "PointContactCondition3D1N", mPointContactCondition3D1N)
+    KRATOS_REGISTER_CONDITION("PointContactCondition2D1N", mPointContactCondition2D1N)
+    KRATOS_REGISTER_CONDITION("PointContactCondition3D1N", mPointContactCondition3D1N)
 
-    KRATOS_REGISTER_CONDITION(
-        "AxisymPointLoadCondition2D1N", mAxisymPointLoadCondition2D1N)
+    KRATOS_REGISTER_CONDITION("AxisymPointLoadCondition2D1N", mAxisymPointLoadCondition2D1N)
 
     // Line loads
     KRATOS_REGISTER_CONDITION("LineLoadCondition2D2N", mLineLoadCondition2D2N)
     KRATOS_REGISTER_CONDITION("LineLoadCondition2D3N", mLineLoadCondition2D3N)
 
-    KRATOS_REGISTER_CONDITION(
-        "AxisymLineLoadCondition2D2N", mAxisymLineLoadCondition2D2N)
-    KRATOS_REGISTER_CONDITION(
-        "AxisymLineLoadCondition2D3N", mAxisymLineLoadCondition2D3N)
+    KRATOS_REGISTER_CONDITION("AxisymLineLoadCondition2D2N", mAxisymLineLoadCondition2D2N)
+    KRATOS_REGISTER_CONDITION("AxisymLineLoadCondition2D3N", mAxisymLineLoadCondition2D3N)
 
     // Surface loads
-    KRATOS_REGISTER_CONDITION(
-        "SurfaceLoadCondition3D3N", mSurfaceLoadCondition3D3N)
-    KRATOS_REGISTER_CONDITION(
-        "SurfaceLoadCondition3D4N", mSurfaceLoadCondition3D4N)
-    KRATOS_REGISTER_CONDITION(
-        "SurfaceLoadCondition3D6N", mSurfaceLoadCondition3D6N)
-    KRATOS_REGISTER_CONDITION(
-        "SurfaceLoadCondition3D8N", mSurfaceLoadCondition3D8N)
-    KRATOS_REGISTER_CONDITION(
-        "SurfaceLoadCondition3D9N", mSurfaceLoadCondition3D9N)
+    KRATOS_REGISTER_CONDITION("SurfaceLoadCondition3D3N", mSurfaceLoadCondition3D3N)
+    KRATOS_REGISTER_CONDITION("SurfaceLoadCondition3D4N", mSurfaceLoadCondition3D4N)
+    KRATOS_REGISTER_CONDITION("SurfaceLoadCondition3D6N", mSurfaceLoadCondition3D6N)
+    KRATOS_REGISTER_CONDITION("SurfaceLoadCondition3D8N", mSurfaceLoadCondition3D8N)
+    KRATOS_REGISTER_CONDITION("SurfaceLoadCondition3D9N", mSurfaceLoadCondition3D9N)
 
     // Point moment
-    KRATOS_REGISTER_CONDITION(
-        "PointMomentCondition3D1N", mPointMomentCondition3D1N);
+    KRATOS_REGISTER_CONDITION("PointMomentCondition3D1N", mPointMomentCondition3D1N);
 
     // For MPC implementations
     KRATOS_REGISTER_VARIABLE(MPC_DATA_CONTAINER)
@@ -688,12 +423,13 @@ void KratosStructuralMechanicsApplication::Register() {
     Serializer::Register("LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain);
     Serializer::Register("LinearElasticPlaneStress2DLaw", mLinearPlaneStress);
     Serializer::Register("LinearElasticAxisym2DLaw", mAxisymElasticIsotropic);
-    Serializer::Register(
-        "HyperElastic3DLaw", mHyperElasticIsotropicNeoHookean3D);
-    Serializer::Register("HyperElasticPlaneStrain2DLaw",
-        mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
-    Serializer::Register(
-        "LinearElasticOrthotropic2DLaw", mLinearElasticOrthotropic2DLaw);
+    Serializer::Register("LinearElasticOrthotropic2DLaw", mLinearElasticOrthotropic2DLaw);
+    // Register hyper elastic laws
+    Serializer::Register("KirchhoffSaintVenant3DLaw", mHyperElasticIsotropicKirchhoff3D);
+    Serializer::Register("KirchhoffSaintVenantPlaneStress2DLaw", mHyperElasticIsotropicKirchhoffPlaneStress2D);
+    Serializer::Register("KirchhoffSaintVenantPlaneStrain2DLaw", mHyperElasticIsotropicKirchhoffPlaneStrain2D);
+    Serializer::Register("HyperElastic3DLaw", mHyperElasticIsotropicNeoHookean3D);
+    Serializer::Register("HyperElasticPlaneStrain2DLaw", mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
 }
 
 }  // namespace Kratos.

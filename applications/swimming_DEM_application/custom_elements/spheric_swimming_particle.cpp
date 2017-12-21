@@ -1,10 +1,5 @@
-//
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: G.Casas, gcasas@cimne.upc.edu $
-//   Date:                $Date: 2013-11-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
-//
-//
+//   Author: G.Casas, gcasas@cimne.upc.edu $
+
 // System includes
 #include <string>
 #include <iostream>
@@ -929,6 +924,20 @@ void SphericSwimmingParticle<TBaseElement>::ComputeParticleReynoldsNumber(double
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::ComputePowerLawParticleReynoldsNumber(double& reynolds,
+                                                                                  const double consistency_index,
+                                                                                  const int flow_behavior_index,
+                                                                                  const bool use_max_shear_rate)
+{
+    // This function is consistent with Shah 2007 (doi:10.1016/j.ijmultiphaseﬂow.2006.06.006)
+    int coefficient = use_max_shear_rate ? 3 : 2;
+    const int& K = consistency_index;
+    const int& n = flow_behavior_index;
+    reynolds =  2 * mFluidDensity * std::pow(0.5 * coefficient * mRadius, n) * std::pow(mNormOfSlipVel, 2 - n) / K;
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeNondimensionalRotVelocity(const array_1d<double, 3>& slip_rot_velocity)
 {
     return 2.0 * mRadius * mNormOfSlipVel / std::sqrt(SWIMMING_INNER_PRODUCT_3(slip_rot_velocity, slip_rot_velocity));
@@ -1058,6 +1067,10 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
 
     else if (mDragForceType == 11){ // Maxey-Riley expression with Faxen correction
         drag_coeff = ComputeStokesDragCoefficient(); // temporary
+    }
+
+    else if (mDragForceType == 13){ // Maxey-Riley expression with Faxen correction
+        drag_coeff = ComputeShahDragCoefficient(); // temporary
     }
 
     else {
@@ -1374,8 +1387,36 @@ double SphericSwimmingParticle<TBaseElement>::ComputeBeetstraDragCoefficient()
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
- void SphericSwimmingParticle<TBaseElement>::ComputeGanserParameters(const int isometric_shape, const double dn, double& k_1, double& k_2)
- {
+double SphericSwimmingParticle<TBaseElement>::ComputeShahDragCoefficient(const bool use_shahi_correction = false)
+{
+    const double power_law_tol = 0.0001;
+    const double n = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_N);
+    const double K = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_K);
+
+    if (std::abs(n) < power_law_tol || std::abs(K) < power_law_tol){
+        std::cout << "WARNING: Shah's method is being used with Power Law data being zero!!" << std::endl << std::flush;
+    }
+
+    double A =   6.9148 * n * n - 24.838 * n + 22.642;
+    double B = - 0.5067 * n * n + 1.3234 * n - 0.1744;
+
+    if (use_shahi_correction){ // from 2016 Shahi (doi: 10.1016/j.minpro.2016.06.002)
+        A = 1.5269 * A - 3.9375;
+        B =  0.892 * B + 0.0326;
+    }
+
+    double reynolds;
+    ComputePowerLawParticleReynoldsNumber(reynolds, K, n, false);
+    const double exponents_coeff = 1.0 / (2 - n);
+
+    return std::pow(A, exponents_coeff) * std::pow(reynolds, exponents_coeff * (2 * B - 2));
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::ComputeGanserParameters(const int isometric_shape, const double dn, double& k_1, double& k_2)
+{
      if (isometric_shape){
          k_1 = 3 / (1 + 2 / std::sqrt(mSphericity));
      }
@@ -1385,7 +1426,7 @@ template < class TBaseElement >
      }
 
      k_2 = pow(10.0, 1.8148 * pow(- log10(mSphericity), 0.5743));
- }
+}
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
