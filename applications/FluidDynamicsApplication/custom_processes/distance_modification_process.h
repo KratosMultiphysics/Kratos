@@ -371,7 +371,15 @@ protected:
 
     void DeactivateFullNegativeElements()
     {
+        ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
         ModelPart::ElementsContainerType& rElements = mrModelPart.Elements();
+
+        // Initialize the ACTIVE flag to false
+        #pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node) {
+            ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
+            it_node->Set(ACTIVE, false);
+        }
 
         // Deactivate those elements whose fixed nodes and negative distance nodes summation is equal (or larger) to their number of nodes
         #pragma omp parallel for
@@ -383,15 +391,40 @@ protected:
             GeometryType& rGeometry = itElement->GetGeometry();
 
             // Check the distance function sign at the element nodes
-            for (unsigned int itNode=0; itNode<rGeometry.size(); itNode++)
+            for (unsigned int i_node=0; i_node<rGeometry.size(); i_node++)
             {
-                if (rGeometry[itNode].GetSolutionStepValue(DISTANCE)<0.0)
+                if (rGeometry[i_node].FastGetSolutionStepValue(DISTANCE) < 0.0)
                     inside++;
-                if (rGeometry[itNode].IsFixed(VELOCITY_X) && rGeometry[itNode].IsFixed(VELOCITY_Y) && rGeometry[itNode].IsFixed(VELOCITY_Z))
+                if (rGeometry[i_node].IsFixed(VELOCITY_X) && rGeometry[i_node].IsFixed(VELOCITY_Y) && rGeometry[i_node].IsFixed(VELOCITY_Z))
                     fixed++;
             }
 
             (inside+fixed >= rGeometry.size()) ? itElement->Set(ACTIVE, false) : itElement->Set(ACTIVE, true);
+
+            // If the element is ACTIVE, all its nodes are active as well
+            if (itElement->Is(ACTIVE)) {
+                for (unsigned int i_node = 0; i_node < rGeometry.size(); ++i_node) {
+                    rGeometry[i_node].Set(ACTIVE, true);
+                }
+            }
+        }
+
+        // Set to zero and fix the DOFs in the remaining INACTIVE nodes
+        #pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node) {
+
+            ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
+
+            if (it_node->IsNot(ACTIVE)) {
+                // Fix the nodal DOFs
+                it_node->Fix(PRESSURE);
+                it_node->Fix(VELOCITY_X);
+                it_node->Fix(VELOCITY_Y);
+                it_node->Fix(VELOCITY_Z);
+                // Set to zero the nodal DOFs
+                it_node->FastGetSolutionStepValue(PRESSURE) = 0.0;
+                it_node->FastGetSolutionStepValue(VELOCITY) = ZeroVector(3);
+            }
         }
     }
 
