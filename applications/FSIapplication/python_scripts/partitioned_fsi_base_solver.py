@@ -4,21 +4,26 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import NonConformant_OneSideMap                # Import non-conformant mapper
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
 import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
+import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
 
-# Import kratos core and applications
+# Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.ALEApplication as KratosALE
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications(
+    "FSIApplication",
+    "ALEApplication",
+    "FluidDynamicsApplication",
+    "StructuralMechanicsApplication")
+
+# Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
+import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
-
 def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
     return PartitionedFSIBaseSolver(structure_main_model_part, fluid_main_model_part, project_parameters)
-
 
 class PartitionedFSIBaseSolver:
     def __init__(self, structure_main_model_part, fluid_main_model_part, project_parameters):
@@ -81,7 +86,6 @@ class PartitionedFSIBaseSolver:
         print("* Fluid solver constructed.")
 
         # Construct the coupling partitioned strategy
-        import convergence_accelerator_factory
         self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(coupling_utility_parameters)
         print("* Coupling strategy constructed.")
 
@@ -231,10 +235,20 @@ class PartitionedFSIBaseSolver:
 
     def _GetNodalUpdateUtilities(self):
 
-        if (self.domain_size == 2):
-            return KratosFSI.NodalUpdateNewmark2D(self.settings["fluid_solver_settings"]["alpha"].GetDouble())
+        structure_time_scheme = self.structure_solver.settings["scheme_type"].GetString()
+        if (structure_time_scheme == "newmark"):
+            damp_factor_m = 0.0
+        elif (structure_time_scheme == "bossak"):
+            damp_factor_m = -0.3
         else:
-            return KratosFSI.NodalUpdateNewmark3D(self.settings["fluid_solver_settings"]["alpha"].GetDouble())
+            err_msg =  "Requested structure time scheme type \"" + structure_time_scheme + "\" is not available!\n"
+            err_msg += "Available options are: \"newmark\", \"bossak\", \"relaxation\""
+            raise Exception(err_msg)
+
+        if (self.domain_size == 2):
+            return KratosFSI.NodalUpdateNewmark2D(damp_factor_m)
+        else:
+            return KratosFSI.NodalUpdateNewmark3D(damp_factor_m)
 
 
     def _GetPartitionedFSIUtilities(self):

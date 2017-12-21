@@ -3,14 +3,15 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Malik Ali Dawi
+//                   Ruben Zorrilla
 //
 
-#if !defined (KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED)
-#define  KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED
+#if !defined (KRATOS_HYPER_ELASTIC_ISOTROPIC_KIRCHHOFF_PLANE_STRAIN_2D_LAW_H_INCLUDED)
+#define  KRATOS_HYPER_ELASTIC_ISOTROPIC_KIRCHHOFF_PLANE_STRAIN_2D_LAW_H_INCLUDED
 
 // System includes
 
@@ -39,7 +40,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicNeoHookean3D : public ConstitutiveLaw
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicKirchhoffPlaneStrain2D : public ConstitutiveLaw
 {
 public:
 
@@ -49,11 +50,11 @@ public:
     typedef ProcessInfo      ProcessInfoType;
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
+    
     /**
-     * Counted pointer of HyperElasticIsotropicNeoHookean3D
+     * Counted pointer of HyperElasticIsotropicKirchhoffPlaneStrain2D
      */
-
-    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicNeoHookean3D );
+    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicKirchhoffPlaneStrain2D );
 
     ///@name Lyfe Cycle
     ///@{
@@ -61,19 +62,19 @@ public:
     /**
      * Default constructor.
      */
-    HyperElasticIsotropicNeoHookean3D();
+    HyperElasticIsotropicKirchhoffPlaneStrain2D();
 
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
      */
-    HyperElasticIsotropicNeoHookean3D (const HyperElasticIsotropicNeoHookean3D& rOther);
+    HyperElasticIsotropicKirchhoffPlaneStrain2D (const HyperElasticIsotropicKirchhoffPlaneStrain2D& rOther);
 
     /**
      * Destructor.
      */
-    ~HyperElasticIsotropicNeoHookean3D() override;
+    ~HyperElasticIsotropicKirchhoffPlaneStrain2D() override;
 
     ///@}
     ///@name Operators
@@ -92,17 +93,15 @@ public:
     /**
      * Dimension of the law:
      */
-    SizeType WorkingSpaceDimension() override
-    {
-        return 3;
+    SizeType WorkingSpaceDimension() override {
+        return 2;
     };
-    
+
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize() override
-    {
-        return 6;
+    SizeType GetStrainSize() override {
+        return 3;
     };
 
     /**
@@ -175,9 +174,9 @@ public:
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
-     */ 
+     */
     double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-    
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -190,8 +189,7 @@ public:
     int Check(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
 
@@ -201,7 +199,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -231,29 +229,25 @@ private:
      * @param InverseCTensor: The inverse right Cauchy-Green tensor
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
-     * @param LameMu: Second Lame parameter
+     * @param LameMu: Seconf Lame parameter
      */
     virtual void CalculateConstitutiveMatrixPK2(
         Matrix& ConstitutiveMatrix,
-        const Matrix& InverseCTensor,
-        const double& DeterminantF,
-        const double& LameLambda,
-        const double& LameMu
-        );
+        const double& YoungModulus,
+        const double& PoissonCoefficient);
 
     /**
      * It calculates the constitutive matrix C (Kirchoff)
      * @param ConstitutiveMatrix: The constitutive matrix
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
-     * @param LameMu: Second Lame parameter
+     * @param LameMu: Seconf Lame parameter
      */
     virtual void CalculateConstitutiveMatrixKirchhoff(
         Matrix& ConstitutiveMatrix,
-        const double& DeterminantF,
-        const double& LameLambda,
-        const double& LameMu
-        );
+        const Matrix& DeformationGradientF,
+        const double& YoungModulus,
+        const double& PoissonCoefficient);
 
     /**
      * It calculates the PK2 stress vector
@@ -261,15 +255,13 @@ private:
      * @param rStressVector: The stress vector in Voigt notation
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
-     * @param LameMu: Second Lame parameter
+     * @param LameMu: Seconf Lame parameter
      */
     virtual void CalculatePK2Stress(
-        const Matrix& InvCTensor,
+        const Vector& rStrainVector,
         Vector& rStressVector,
-        const double& DeterminantF,
-        const double& LameLambda,
-        const double& LameMu
-        );
+        const double& YoungModulus,
+        const double& PoissonCoefficient);
 
     /**
      * It calculates the Kirchoff stress vector
@@ -277,35 +269,32 @@ private:
      * @param rStressVector: The stress vector in Voigt notation
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
-     * @param LameMu: Second Lame parameter
+     * @param LameMu: Seconf Lame parameter
      */
     virtual void CalculateKirchhoffStress(
-        const Matrix& BTensor,
+        const Vector& rStrainVector,
         Vector& rStressVector,
-        const double& DeterminantF,
-        const double& LameLambda,
-        const double& LameMu
-        );
+        const Matrix& DeformationGradientF,
+        const double& YoungModulus,
+        const double& PoissonCoefficient);
 
     /**
      * It calculates the strain vector
      * @param rValues: The Internalvalues of the law
      * @param rStrainVector: The strain vector in Voigt notation
      */
-    virtual void CalculateCauchyGreenStrain(
+    virtual void CalculateGreenLagrangianStrain(
         Parameters& rValues,
-        Vector& rStrainVector
-        );
-    
+        Vector& rStrainVector);
+
     /**
      * Calculates the Almansi strains
      * @param @param rValues: The Internalvalues of the law
      * @param rStrainVector: The strain vector in Voigt notation
      */
-    virtual void CalculateAlmansiStrain( 
+    virtual void CalculateAlmansiStrain(
         Parameters& rValues,
-        Vector& rStrainVector 
-        );
+        Vector& rStrainVector);
 
     ///@}
     ///@name Private Operations
@@ -322,17 +311,15 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
+    void save(Serializer& rSerializer) const override {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-    void load(Serializer& rSerializer) override
-    {
+    void load(Serializer& rSerializer) override {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
     }
 
 
-}; // Class HyperElasticIsotropicNeoHookean3D
+}; // Class HyperElasticIsotropicKirchhoffPlaneStrain2D
 }  // namespace Kratos.
-#endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_KIRCHHOFF_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined
