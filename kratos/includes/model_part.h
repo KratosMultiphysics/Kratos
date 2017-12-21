@@ -1032,7 +1032,7 @@ public:
     /** Creates a new sub model part with given name.
     Does nothing if a sub model part with the same name exist.
     */
-    ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
+    ModelPart::Pointer CreateSubModelPart(std::string const& NewSubModelPartName);
 
     /** Add an existing model part as a sub model part.
     	All the meshes will be added to the parents.
@@ -1054,6 +1054,19 @@ public:
             //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
 
             return *i;
+    }
+
+    /** Returns a shared pointer to the sub_model part with given string name
+    	In debug gives an error if does not exist.
+    */
+    ModelPart::Pointer pGetSubModelPart(std::string const& SubModelPartName)
+    {
+        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+        if(i == mSubModelParts.end())
+            KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
+            //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
+
+            return i.base()->second;
     }
 
     /** Remove a sub modelpart with given name.
