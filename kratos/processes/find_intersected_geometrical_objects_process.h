@@ -45,7 +45,7 @@ namespace Kratos
 				double& X() { return mCoordinates[0]; }
 				double& Y() { return mCoordinates[1]; }
 				double& Z() { return mCoordinates[2]; }
-				double& Coordinate(int i) { return mCoordinates[i - 1]; }
+				double& Coordinate(int i) { return mCoordinates[i]; }
 				std::size_t& Id() { return mId; }
 			};
 

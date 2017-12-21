@@ -67,7 +67,7 @@ public:
         double& X() {return mCoordinates[0];}
         double& Y() {return mCoordinates[1];}
         double& Z() {return mCoordinates[2];}
-        double& Coordinate(int i) {return mCoordinates[i-1];}
+        double& operator[](int i) {return mCoordinates[i];}
         std::size_t& Id(){return mId;}
     };
 
@@ -623,7 +623,8 @@ public:
             array_1d<double,3> n = prod(trans(DN_DX),distances);
             n /= norm_2(n);
 
-            array_1d<double,3> v2 = MathUtils<double>::CrossProduct(n,v1);
+            array_1d<double,3> v2;
+            MathUtils<double>::CrossProduct(v2,v1,n); // v2 = v1 x n
 
             array_1d<double,3> angles;
             angles[0] = 0.0; //angle between x21 and v1
@@ -1612,7 +1613,8 @@ public:
                     array_1d<double,3> n = prod(trans(DN_DX),distances);
                     n /= norm_2(n);
 
-                    array_1d<double,3> v2 = MathUtils<double>::CrossProduct(n,v1);
+                    array_1d<double,3> v2;
+                    MathUtils<double>::CrossProduct(v2,v1,n); // v2 = v1 x n
 
                     array_1d<double,3> angles;
                     angles[0] = 0.0; //angle between x21 and v1
@@ -1689,7 +1691,7 @@ public:
         
         for (int i = 0 ; i < 3; i++)
         {
-            low[i] = high[i] = mrFluidModelPart.NodesBegin()->Coordinate(i+1);
+            low[i] = high[i] = mrFluidModelPart.NodesBegin()->Coordinates()[i];
         }
         
         // loop over all nodes in the bounding box
@@ -1697,10 +1699,11 @@ public:
             i_node != mrFluidModelPart.NodesEnd();
             i_node++)
         {
+            const array_1d<double,3>& r_coordinates = i_node->Coordinates();
             for (int i = 0 ; i < 3; i++)
             {
-                low[i]  = i_node->Coordinate(i+1) < low[i]  ? i_node->Coordinate(i+1) : low[i];
-                high[i] = i_node->Coordinate(i+1) > high[i] ? i_node->Coordinate(i+1) : high[i];
+                low[i]  = r_coordinates[i] < low[i]  ? r_coordinates[i] : low[i];
+                high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
             }
         }
         
@@ -1709,10 +1712,11 @@ public:
             i_node != mrSkinModelPart.NodesEnd();
             i_node++)
         {
+            const array_1d<double,3>& r_coordinates = i_node->Coordinates();
             for (int i = 0 ; i < 3; i++)
             {
-                low[i]  = i_node->Coordinate(i+1) < low[i]  ? i_node->Coordinate(i+1) : low[i];
-                high[i] = i_node->Coordinate(i+1) > high[i] ? i_node->Coordinate(i+1) : high[i];
+                low[i]  = r_coordinates[i] < low[i]  ? r_coordinates[i] : low[i];
+                high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
             }
         }
                 
@@ -1976,7 +1980,7 @@ public:
         //            KRATOS_WATCH(nodes_array.size())
         for (std::size_t i_node = 0; i_node < nodes_array.size() ; i_node++)
         {
-            double coord = nodes_array[i_node]->Coordinate(i_direction+1);
+            double coord = (*nodes_array[i_node])[i_direction];
             //             KRATOS_WATCH(intersections.size());
 
             int ray_color= 1;
@@ -2034,10 +2038,6 @@ public:
 
                 double cell_point[3];
                 mpOctree->CalculateCoordinates(keys,cell_point);
-
-                //                cell_point[0] = pCell->GetCoordinate(keys[0]);
-                //                cell_point[1] = pCell->GetCoordinate(keys[1]);
-                //                cell_point[2] = pCell->GetCoordinate(keys[2]);
 
                 double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point(cell_point[0], cell_point[1], cell_point[2]));
 
@@ -2501,7 +2501,7 @@ public:
 
         for(DistanceSpatialContainersConfigure::data_type::const_iterator i_node = mOctreeNodes.begin() ; i_node != mOctreeNodes.end() ; i_node++)
         {
-            rOStream << (*i_node)->Id() << "  " << (*i_node)->Coordinate(1) << "  " << (*i_node)->Coordinate(2) << "  " << (*i_node)->Coordinate(3) << std::endl;
+            rOStream << (*i_node)->Id() << "  " << (*i_node)->X() << "  " << (*i_node)->Y() << "  " << (*i_node)->Z() << std::endl;
             //mpOctree->Insert(temp_point);
         }
         std::cout << "Nodes written..." << std::endl;
