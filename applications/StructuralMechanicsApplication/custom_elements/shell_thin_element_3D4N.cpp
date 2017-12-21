@@ -14,7 +14,6 @@
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
 
-#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
 #include "custom_utilities/shell_utilities.h"
 #include "geometries/quadrilateral_3d_4.h"
 
@@ -289,7 +288,7 @@ namespace Kratos
 		KRATOS_TRY
 
 		const GeometryType & geom = GetGeometry();
-		PropertiesType & props = GetProperties();
+		const PropertiesType & props = GetProperties();
 
 		if (geom.PointsNumber() != OPT_NUM_NODES)
 			KRATOS_THROW_ERROR(std::logic_error,
@@ -314,20 +313,15 @@ namespace Kratos
 			{
 				theSection = props[SHELL_CROSS_SECTION];
 			}
-			// else if (theSection->CheckIsOrthotropic(props))
-			// {
-			// 	// make new instance of shell cross section
-			// 	theSection =
-			// 		ShellCrossSection::Pointer(new ShellCrossSection());
+			else if (ShellCrossSection::CheckIsOrthotropic(props))
+			{
+				// make new instance of shell cross section
+				theSection =
+					ShellCrossSection::Pointer(new ShellCrossSection());
 
-			// 	// Assign orthotropic material law for entire element
-			// 	LinearElasticOrthotropic2DLaw OrthoLaw;
-			// 	props.SetValue(CONSTITUTIVE_LAW, OrthoLaw.Clone());
-
-			// 	// Parse material properties for each layer
-			// 	Element* thisElement = this;
-			// 	theSection->ParseOrthotropicPropertyMatrix(props, thisElement);
-			// }
+				// Parse material properties for each layer
+				theSection->ParseOrthotropicPropertyMatrix(this->pGetProperties());
+			}
 			else
 			{
 				theSection =
@@ -366,7 +360,7 @@ namespace Kratos
 
 		for (SizeType i = 0; i < geom.size(); i++)
 		{
-			int index = i * 6;
+			const int index = i * 6;
 			NodeType & iNode = geom[i];
 
 			rResult[index] = iNode.GetDof(DISPLACEMENT_X).EquationId();
@@ -403,133 +397,17 @@ namespace Kratos
 
 	int ShellThinElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
 	{
-		KRATOS_TRY
-
-			GeometryType& geom = GetGeometry();
-
-		// verify that the variables are correctly initialized
-		if (DISPLACEMENT.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"DISPLACEMENT has Key zero! (check if the application is correctly registered", "");
-
-		if (ROTATION.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"ROTATION has Key zero! (check if the application is correctly registered", "");
-
-		if (VELOCITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"VELOCITY has Key zero! (check if the application is correctly registered", "");
-
-		if (ACCELERATION.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"ACCELERATION has Key zero! (check if the application is correctly registered", "");
-
-		if (DENSITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"DENSITY has Key zero! (check if the application is correctly registered", "");
-
-		if (SHELL_CROSS_SECTION.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"SHELL_CROSS_SECTION has Key zero! (check if the application is correctly registered", "");
-
-		if (THICKNESS.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"THICKNESS has Key zero! (check if the application is correctly registered", "");
-
-		if (CONSTITUTIVE_LAW.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"CONSTITUTIVE_LAW has Key zero! (check if the application is correctly registered", "");
-
-		// verify that the dofs exist
-		for (unsigned int i = 0; i < geom.size(); i++)
-		{
-			if (geom[i].SolutionStepsDataHas(DISPLACEMENT) == false)
-				KRATOS_THROW_ERROR(std::invalid_argument,
-					"missing variable DISPLACEMENT on node ", geom[i].Id());
-
-			if (geom[i].HasDofFor(DISPLACEMENT_X) == false ||
-				geom[i].HasDofFor(DISPLACEMENT_Y) == false ||
-				geom[i].HasDofFor(DISPLACEMENT_Z) == false)
-				KRATOS_THROW_ERROR(std::invalid_argument,
-					"missing one of the dofs for the variable DISPLACEMENT on node ",
-					GetGeometry()[i].Id());
-
-			if (geom[i].SolutionStepsDataHas(ROTATION) == false)
-				KRATOS_THROW_ERROR(std::invalid_argument,
-					"missing variable ROTATION on node ", geom[i].Id());
-
-			if (geom[i].HasDofFor(ROTATION_X) == false ||
-				geom[i].HasDofFor(ROTATION_Y) == false ||
-				geom[i].HasDofFor(ROTATION_Z) == false)
-				KRATOS_THROW_ERROR(std::invalid_argument,
-					"missing one of the dofs for the variable ROTATION on node ",
-					geom[i].Id());
-
-			if (geom[i].GetBufferSize() < 2)
-				KRATOS_THROW_ERROR(std::logic_error,
-					"This Element needs at least a buffer size = 2", "");
-		}
-
-		// check properties
-		if (this->pGetProperties() == NULL)
-			KRATOS_THROW_ERROR(std::logic_error,
-				"Properties not provided for element ", this->Id());
-
-		const PropertiesType & props = this->GetProperties();
-
-		if (props.Has(SHELL_CROSS_SECTION))
-		{
-			// if the user specified a cross section...
-
-			const ShellCrossSection::Pointer & section =
-				props[SHELL_CROSS_SECTION];
-			if (section == NULL)
-				KRATOS_THROW_ERROR(std::logic_error,
-					"SHELL_CROSS_SECTION not provided for element ",
-					this->Id());
-
-			section->Check(props, geom, rCurrentProcessInfo);
-		}
-		else if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
-		{
-			// perform orthotropic check later in shell_cross_section
-		}
-		else
-		{
-			// ... allow the automatic creation of a homogeneous section from a
-			// material and a thickness
-
-			if (!props.Has(CONSTITUTIVE_LAW))
-				KRATOS_THROW_ERROR(std::logic_error,
-					"CONSTITUTIVE_LAW not provided for element ", this->Id());
-
-			const ConstitutiveLaw::Pointer& claw = props[CONSTITUTIVE_LAW];
-
-			if (claw == NULL)
-				KRATOS_THROW_ERROR(std::logic_error,
-					"CONSTITUTIVE_LAW not provided for element ", this->Id());
-
-			if (!props.Has(THICKNESS))
-				KRATOS_THROW_ERROR(std::logic_error,
-					"THICKNESS not provided for element ", this->Id());
-
-			if (props[THICKNESS] <= 0.0)
-				KRATOS_THROW_ERROR(std::logic_error,
-					"wrong THICKNESS value provided for element ", this->Id());
-
-			ShellCrossSection::Pointer dummySection =
-				ShellCrossSection::Pointer(new ShellCrossSection());
-			dummySection->BeginStack();
-			dummySection->AddPly(props[THICKNESS], 0.0, 5,
-				this->pGetProperties());
-			dummySection->EndStack();
-			dummySection->SetSectionBehavior(ShellCrossSection::Thin);
-			dummySection->Check(props, geom, rCurrentProcessInfo);
-		}
-
-		return 0;
-
-		KRATOS_CATCH("")
+        KRATOS_TRY
+    
+        GeometryType& r_geom = GetGeometry();
+    
+        ShellUtilities::CheckVariables();
+        ShellUtilities::CheckDofs(r_geom);
+        ShellUtilities::CheckProperties(this, rCurrentProcessInfo);
+    
+        return 0;
+    
+        KRATOS_CATCH("")
 	}
 
 	void ShellThinElement3D4N::CleanMemory()
@@ -641,7 +519,7 @@ namespace Kratos
 	void ShellThinElement3D4N::InitializeSolutionStep
 	(ProcessInfo& CurrentProcessInfo)
 	{
-		PropertiesType& props = GetProperties();
+		const PropertiesType& props = GetProperties();
 		const GeometryType & geom = GetGeometry();
 		const Matrix & shapeFunctionsValues =
 			geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -689,7 +567,7 @@ namespace Kratos
 		if (bconsistent_matrix)
 		{
 			// Get shape function values and setup jacobian
-			GeometryType & geom = GetGeometry();
+			const GeometryType & geom = GetGeometry();
 			const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
 			JacobianOperator jacOp;
 
@@ -707,7 +585,7 @@ namespace Kratos
 											// 1.0 is no reduction.
 
 			// Gauss loop
-			for (size_t gauss_point = 0; gauss_point < 4; gauss_point++)
+			for (std::size_t gauss_point = 0; gauss_point < 4; gauss_point++)
 			{
 				// Calculate average mass per unit area and thickness at the
 				// current GP
@@ -722,17 +600,17 @@ namespace Kratos
 					jacOp.Determinant();
 
 				// Assemble shape function matrix over nodes
-				for (size_t node = 0; node < 4; node++)
+				for (std::size_t node = 0; node < 4; node++)
 				{
 					// translational entries - dofs 1, 2, 3
-					for (size_t dof = 0; dof < 3; dof++)
+					for (std::size_t dof = 0; dof < 3; dof++)
 					{
 						N(dof, 6 * node + dof) =
 							shapeFunctions(gauss_point, node);
 					}
 
 					// rotational inertia entries - dofs 4, 5
-					for (size_t dof = 0; dof < 2; dof++)
+					for (std::size_t dof = 0; dof < 2; dof++)
 					{
 						N(dof + 3, 6 * node + dof + 3) =
 							thickness / std::sqrt(12.0) *
@@ -755,7 +633,7 @@ namespace Kratos
 			// Lumped mass matrix
 
 			// Calculate average mass per unit area over the whole element
-			for (size_t i = 0; i < 4; i++)
+			for (std::size_t i = 0; i < 4; i++)
 				av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
 			av_mass_per_unit_area /= 4.0;
 
@@ -763,9 +641,9 @@ namespace Kratos
 			double lump_area = referenceCoordinateSystem.Area() / 4.0;
 
 			// Gauss Loop
-			for (size_t i = 0; i < 4; i++)
+			for (std::size_t i = 0; i < 4; i++)
 			{
-				size_t index = i * 6;
+				std::size_t index = i * 6;
 
 				double nodal_mass = av_mass_per_unit_area * lump_area;
 
@@ -893,7 +771,7 @@ namespace Kratos
 		if (caseId > 19)
 		{
 			// resize output
-			size_t size = 4;
+			std::size_t size = 4;
 			if (rValues.size() != size)
 				rValues.resize(size);
 
@@ -977,7 +855,7 @@ namespace Kratos
 		else if (rVariable == TSAI_WU_RESERVE_FACTOR)
 		{
 			// resize output
-			size_t size = 4;
+			std::size_t size = 4;
 			if (rValues.size() != size)
 				rValues.resize(size);
 
@@ -1008,7 +886,7 @@ namespace Kratos
 
 
 			// Get all laminae strengths
-			PropertiesType & props = GetProperties();
+			const PropertiesType & props = GetProperties();
 			ShellCrossSection::Pointer & section = mSections[0];
 			std::vector<Matrix> Laminae_Strengths = 
 								std::vector<Matrix>(section->NumberOfPlies());
@@ -1109,9 +987,9 @@ namespace Kratos
 		std::vector<Vector>& rValues,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
-		if (rVariable == LOCAL_AXIS_VECTOR_1)
+		if (rVariable == LOCAL_AXIS_1)
 		{
-			// LOCAL_AXIS_VECTOR_1 output DOES NOT include the effect of section
+			// LOCAL_AXIS_1 output DOES NOT include the effect of section
 			// orientation, which rotates the entrire element section in-plane
 			// and is used in element stiffness calculation.
 
@@ -1124,14 +1002,14 @@ namespace Kratos
 			ShellQ4_LocalCoordinateSystem localCoordinateSystem(
 				mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 			
-			for (size_t GP = 0; GP < 4; GP++)
+			for (std::size_t GP = 0; GP < 4; GP++)
 			{
 				rValues[GP] = localCoordinateSystem.Vx();
 			}
 		}
-		else if (rVariable == ORTHOTROPIC_FIBER_ORIENTATION_1)
+		else if (rVariable == LOCAL_MATERIAL_ORIENTATION_VECTOR_1)
 		{
-			// ORTHOTROPIC_FIBER_ORIENTATION_1 output DOES include the effect of 
+			// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of 
 			// section orientation, which rotates the entrire element section 
 			// in-plane and is used in element stiffness calculation.
 
@@ -1164,28 +1042,14 @@ namespace Kratos
 
 			Vector3 temp = prod(localToFiberRotation, localAxis1);
 
-			// Transform result back to global cartesian coords
-				// Includes warpage correction
-					/*
-					Matrix localToGlobalLarge;
-					localCoordinateSystem.ComputeLocalToGlobalTransformationMatrix(localToGlobalLarge);
-					Matrix localToGlobalSmall = Matrix(3, 3, 0.0);
-					for (size_t i = 0; i < 3; i++)
-					{
-						for (size_t j = 0; j < 3; j++)
-						{
-							localToGlobalSmall(i, j) = localToGlobalLarge(i, j);
-						}
-					}
-					*/
-				// Basic rotation without warpage correction
-					Matrix localToGlobalSmall = localCoordinateSystem.Orientation();
+			// Basic rotation without warpage correction
+			Matrix localToGlobalSmall = localCoordinateSystem.Orientation();
 
 			Vector3 fiberAxis1 = prod(trans(localToGlobalSmall), temp);
 			fiberAxis1 /= std::sqrt(inner_prod(fiberAxis1, fiberAxis1));
 
 			//write results
-			for (size_t dir = 0; dir < 1; dir++)
+			for (std::size_t dir = 0; dir < 1; dir++)
 			{
 				rValues[dir] = fiberAxis1;
 			}
@@ -1260,17 +1124,6 @@ namespace Kratos
 			ShellQ4_LocalCoordinateSystem localCoordinateSystem(
 				mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 			Output = localCoordinateSystem.Orientation();
-		}
-	}
-
-	void ShellThinElement3D4N::Calculate(const Variable<double>& rVariable, double & rotationAngle, const ProcessInfo & rCurrentProcessInfo)
-	{
-		if (rVariable == ORTHOTROPIC_ORIENTATION_ASSIGNMENT)
-		{
-			if (rotationAngle != 0.0)
-			{
-				mOrthotropicSectionRotation = rotationAngle;
-			}
 		}
 	}
 
@@ -1422,10 +1275,10 @@ namespace Kratos
 		// Evaluate Tsai-Wu @ top surface of current layer
 		double var_a = 0.0;
 		double var_b = 0.0;
-		for (size_t i = 0; i < 3; i++)
+		for (std::size_t i = 0; i < 3; i++)
 		{
 			var_b += F_i[i] * data.rlaminateStresses[2 * rPly][i];
-			for (size_t j = 0; j < 3; j++)
+			for (std::size_t j = 0; j < 3; j++)
 			{
 				var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly][i] * data.rlaminateStresses[2 * rPly][j];
 			}
@@ -1435,10 +1288,10 @@ namespace Kratos
 		// Evaluate Tsai-Wu @ bottom surface of current layer
 		var_a = 0.0;
 		var_b = 0.0;
-		for (size_t i = 0; i < 3; i++)
+		for (std::size_t i = 0; i < 3; i++)
 		{
 			var_b += F_i[i] * data.rlaminateStresses[2 * rPly + 1][i];
-			for (size_t j = 0; j < 3; j++)
+			for (std::size_t j = 0; j < 3; j++)
 			{
 				var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly + 1][i] * data.rlaminateStresses[2 * rPly + 1][j];
 			}
@@ -1481,21 +1334,21 @@ namespace Kratos
 		// Output requested quantity
 		if (rVariable == VON_MISES_STRESS_TOP_SURFACE)
 		{
-			rVon_Mises_Result = sqrt(von_mises_top);
+			rVon_Mises_Result = std::sqrt(von_mises_top);
 		}
 		else if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE)
 		{
-			rVon_Mises_Result = sqrt(von_mises_mid);
+			rVon_Mises_Result = std::sqrt(von_mises_mid);
 		}
 		else if (rVariable == VON_MISES_STRESS_BOTTOM_SURFACE)
 		{
-			rVon_Mises_Result = sqrt(von_mises_bottom);
+			rVon_Mises_Result = std::sqrt(von_mises_bottom);
 		}
 		else if (rVariable == VON_MISES_STRESS)
 		{
 			// take the greatest value and output
 			rVon_Mises_Result =
-				sqrt(std::max(von_mises_top,
+            std::sqrt(std::max(von_mises_top,
 					std::max(von_mises_mid, von_mises_bottom)));
 		}
 	}
@@ -1523,7 +1376,7 @@ namespace Kratos
 
 		if (rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY || rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY_FRACTION)
 		{
-			for (size_t i = 0; i < 3; i++)
+			for (std::size_t i = 0; i < 3; i++)
 			{
 				rEnergy_Result += data.generalizedStresses[i] * data.generalizedStrains[i]* data.dA[data.gpIndex];
 			}
@@ -1535,7 +1388,7 @@ namespace Kratos
 		}
 		else if (rVariable == SHELL_ELEMENT_BENDING_ENERGY || rVariable == SHELL_ELEMENT_BENDING_ENERGY_FRACTION)
 		{
-			for (size_t i = 3; i < 6; i++)
+			for (std::size_t i = 3; i < 6; i++)
 			{
 				rEnergy_Result += data.generalizedStresses[i] * data.generalizedStrains[i]* data.dA[data.gpIndex];
 			}
@@ -1652,66 +1505,65 @@ namespace Kratos
 
 	void ShellThinElement3D4N::SetupOrientationAngles()
 	{
-		ShellQ4_LocalCoordinateSystem lcs(mpCoordinateTransformation->
-			CreateReferenceCoordinateSystem());
+        if (this->Has(MATERIAL_ORIENTATION_ANGLE)) 
+        { 
+            for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) 
+            (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE)); 
+        } 
+        else 
+        {
+            ShellQ4_LocalCoordinateSystem lcs(mpCoordinateTransformation->
+                CreateReferenceCoordinateSystem());
 
-		Vector3Type normal;
-		noalias(normal) = lcs.Vz();
+            Vector3Type normal;
+            noalias(normal) = lcs.Vz();
 
-		Vector3Type dZ;
-		dZ(0) = 0.0;
-		dZ(1) = 0.0;
-		dZ(2) = 1.0;
+            Vector3Type dZ;
+            dZ(0) = 0.0;
+            dZ(1) = 0.0;
+            dZ(2) = 1.0;
 
-		Vector3Type dirX;
-		MathUtils<double>::CrossProduct(dirX, dZ, normal);
+            Vector3Type dirX;
+            MathUtils<double>::CrossProduct(dirX, dZ, normal);
 
-		// try to normalize the x vector. if it is near zero it means that we
-		// need to choose a default one.
-		double dirX_norm = dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2);
-		if (dirX_norm < 1.0E-12)
-		{
-			dirX(0) = 1.0;
-			dirX(1) = 0.0;
-			dirX(2) = 0.0;
-		}
-		else if (dirX_norm != 1.0)
-		{
-			dirX_norm = std::sqrt(dirX_norm);
-			dirX /= dirX_norm;
-		}
+            // try to normalize the x vector. if it is near zero it means that we
+            // need to choose a default one.
+            double dirX_norm = dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2);
+            if (dirX_norm < 1.0E-12)
+            {
+                dirX(0) = 1.0;
+                dirX(1) = 0.0;
+                dirX(2) = 0.0;
+            }
+            else if (dirX_norm != 1.0)
+            {
+                dirX_norm = std::sqrt(dirX_norm);
+                dirX /= dirX_norm;
+            }
 
-		Vector3Type elem_dirX = lcs.Vx();
+            Vector3Type elem_dirX = lcs.Vx();
 
-		// now calculate the angle between the element x direction and the
-		// material x direction.
-		Vector3Type& a = elem_dirX;
-		Vector3Type& b = dirX;
-		double a_dot_b = a(0)*b(0) + a(1)*b(1) + a(2)*b(2);
-		if (a_dot_b < -1.0) a_dot_b = -1.0;
-		if (a_dot_b > 1.0) a_dot_b = 1.0;
-		double angle = std::acos(a_dot_b);
+            // now calculate the angle between the element x direction and the
+            // material x direction.
+            Vector3Type& a = elem_dirX;
+            Vector3Type& b = dirX;
+            double a_dot_b = a(0)*b(0) + a(1)*b(1) + a(2)*b(2);
+            if (a_dot_b < -1.0) a_dot_b = -1.0;
+            if (a_dot_b > 1.0) a_dot_b = 1.0;
+            double angle = std::acos(a_dot_b);
 
-		// if they are not counter-clock-wise,
-		// let's change the sign of the angle
-		if (angle != 0.0)
-		{
-			const MatrixType& R = lcs.Orientation();
-			if (dirX(0)*R(1, 0) + dirX(1)*R(1, 1) + dirX(2)*R(1, 2) < 0.0)
-				angle = -angle;
-		}
+            // if they are not counter-clock-wise,
+            // let's change the sign of the angle
+            if (angle != 0.0)
+            {
+                const MatrixType& R = lcs.Orientation();
+                if (dirX(0)*R(1, 0) + dirX(1)*R(1, 1) + dirX(2)*R(1, 2) < 0.0)
+                    angle = -angle;
+            }
 
-		Properties props = GetProperties();
-		if (props.Has(ORTHOTROPIC_ORIENTATION_ASSIGNMENT))
-		{
-			for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
-				(*it)->SetOrientationAngle(mOrthotropicSectionRotation);
-		}
-		else
-		{
-			for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
-				(*it)->SetOrientationAngle(angle);
-		}
+            for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+                (*it)->SetOrientationAngle(angle);
+        }
 	}
 
 	void ShellThinElement3D4N::InitializeCalculationData(CalculationData& data)
@@ -1763,7 +1615,7 @@ namespace Kratos
 		data.r_cartesian[3] = data.LCS0.P4();
 
 		//Precalculate dA to be multiplied with material matrix
-		GeometryType & geom = GetGeometry();
+		const GeometryType & geom = GetGeometry();
 		const GeometryType::IntegrationPointsArrayType& integration_points =
 			geom.IntegrationPoints(mThisIntegrationMethod);
 		data.dA.clear();
@@ -1799,7 +1651,7 @@ namespace Kratos
 			data.s_eta.clear();
 
 			//set values of SFs to xi = 1 and eta = 0
-			Utilities::ShapeFunc(1, 0, data.N);
+			ShellUtilities::ShapeFunc(1, 0, data.N);
 			for (int i = 0; i < 4; i++)
 			{
 				data.s_xi(0) += data.r_cartesian[i][0] * data.N(i);
@@ -1810,7 +1662,7 @@ namespace Kratos
 
 			//set values of SFs to xi = 0 and eta = 1
 			data.N.clear();
-			Utilities::ShapeFunc(0, 1, data.N);
+			ShellUtilities::ShapeFunc(0, 1, data.N);
 			for (int i = 0; i < 4; i++)
 			{
 				data.s_eta(0) += data.r_cartesian[i][0] * data.N(i);
@@ -1982,17 +1834,15 @@ namespace Kratos
 			r_eta /= 2.0;
 			double l_xi = std::sqrt(inner_prod(r_xi, r_xi));
 			double l_eta = std::sqrt(inner_prod(r_eta, r_eta));
-
+                        
 			for (int i = 0; i < 4; i++)
 			{
 				//eqn 5.2.29
-				Vector vec1 = Vector(MathUtils<double>::CrossProduct
-				(data.r_cartesian[i], s_xi));
+                                const Vector vec1 = MathUtils<double>::CrossProduct(data.r_cartesian[i], s_xi);
 				d_xi_i[i] = std::sqrt(inner_prod(vec1, vec1));
 				chi_xi_i[i] = d_xi_i[i] / l_xi;
 
-				Vector vec2 = Vector(MathUtils<double>::CrossProduct
-				(data.r_cartesian[i], s_eta));
+				const Vector vec2 = MathUtils<double>::CrossProduct(data.r_cartesian[i], s_eta);
 				d_eta_i[i] = std::sqrt(inner_prod(vec2, vec2));
 				chi_eta_i[i] = d_eta_i[i] / l_eta;
 			}
@@ -2003,18 +1853,19 @@ namespace Kratos
 			double l_13 = std::sqrt(inner_prod(r_13, r_13));
 
 			Vector e_24 = Vector(r_24 / l_24);
-			Vector vec1 = Vector(MathUtils<double>::CrossProduct(r_13*-1.0, e_24));
-			Vector vec2 = Vector(MathUtils<double>::CrossProduct(r_13, e_24));
-			double d_24 = std::sqrt(inner_prod(vec1, vec2));
-			double d_13 = std::sqrt(inner_prod(vec1, vec2));
-			double chi_24 = d_24 / 2.0 / l_24;
-			double chi_13 = d_13 / 2.0 / l_13;
+			const Vector vec1 = Vector(MathUtils<double>::CrossProduct(r_13*-1.0, e_24)); // NOTE: This operation is marked as deprecated by the compiler, but it is not deprecated...not my fault
+                        const Vector vec2 = Vector(MathUtils<double>::CrossProduct(r_13, e_24));
+                        
+			const double d_24 = std::sqrt(inner_prod(vec1, vec2));
+			const double d_13 = std::sqrt(inner_prod(vec1, vec2));
+			const double chi_24 = d_24 / 2.0 / l_24;
+			const double chi_13 = d_13 / 2.0 / l_13;
 
-			double chi_xi_t = l_eta / l_xi;
-			double chi_eta_t = l_xi / l_eta;
+			const double chi_xi_t = l_eta / l_xi;
+			const double chi_eta_t = l_xi / l_eta;
 
-			double chi_xi_hat = 0.0;
-			double chi_eta_hat = 0.0;
+                        double chi_xi_hat = 0.0;
+                        double chi_eta_hat = 0.0;
 			for (int i = 0; i < 4; i++)
 			{
 				chi_xi_hat += chi_xi_i[i];
@@ -2357,7 +2208,7 @@ namespace Kratos
 	{
 		//---------------------------------------------
 		// geom data
-		GeometryType & geom = GetGeometry();
+		const GeometryType & geom = GetGeometry();
 
 		//---------------------------------------------
 		// set to zero the total B matrix
@@ -2388,7 +2239,7 @@ namespace Kratos
 			Matrix dN(4, 2, 0.0);
 
 			// dN/dxi and dN/deta
-			Utilities::ShapeFunc_NaturalDerivatives(xi, eta, dN);
+			ShellUtilities::ShapeFunc_NaturalDerivatives(xi, eta, dN);
 			Matrix temp = Matrix(prod(data.DKQ_invJac[data.gpIndex], trans(dN)));
 
 			// dN/dx and dN/dy
@@ -2472,59 +2323,59 @@ namespace Kratos
 			// d( ) / dxi
 			// Compute vector of dPsi_x/dxi
 			dpsiX_dxi[3 * node] = 1.5 *
-				(ar*Utilities::dN_seren_dxi(r, xi, eta) -
-					as*Utilities::dN_seren_dxi(s, xi, eta));
+				(ar*ShellUtilities::dN_seren_dxi(r, xi, eta) -
+					as*ShellUtilities::dN_seren_dxi(s, xi, eta));
 
-			dpsiX_dxi[3 * node + 1] = br*Utilities::dN_seren_dxi(r, xi, eta) +
-				bs*Utilities::dN_seren_dxi(s, xi, eta);
+			dpsiX_dxi[3 * node + 1] = br*ShellUtilities::dN_seren_dxi(r, xi, eta) +
+				bs*ShellUtilities::dN_seren_dxi(s, xi, eta);
 
 			dpsiX_dxi[3 * node + 2] =
-				Utilities::dN_seren_dxi(node + 1, xi, eta) -
-				cr*Utilities::dN_seren_dxi(r, xi, eta) -
-				cs*Utilities::dN_seren_dxi(s, xi, eta);
+				ShellUtilities::dN_seren_dxi(node + 1, xi, eta) -
+				cr*ShellUtilities::dN_seren_dxi(r, xi, eta) -
+				cs*ShellUtilities::dN_seren_dxi(s, xi, eta);
 
 			// Compute vector of dPsi_y/dxi
 			dpsiY_dxi[3 * node] = 1.5 *
-				(dr*Utilities::dN_seren_dxi(r, xi, eta) -
-					ds*Utilities::dN_seren_dxi(s, xi, eta));
+				(dr*ShellUtilities::dN_seren_dxi(r, xi, eta) -
+					ds*ShellUtilities::dN_seren_dxi(s, xi, eta));
 
 			dpsiY_dxi[3 * node + 1] = -1.0 *
-				Utilities::dN_seren_dxi(node + 1, xi, eta) +
-				er*Utilities::dN_seren_dxi(r, xi, eta) +
-				es*Utilities::dN_seren_dxi(s, xi, eta);
+				ShellUtilities::dN_seren_dxi(node + 1, xi, eta) +
+				er*ShellUtilities::dN_seren_dxi(r, xi, eta) +
+				es*ShellUtilities::dN_seren_dxi(s, xi, eta);
 
 			dpsiY_dxi[3 * node + 2] = -1.0 * br*
-				Utilities::dN_seren_dxi(r, xi, eta) -
-				bs*Utilities::dN_seren_dxi(s, xi, eta);
+				ShellUtilities::dN_seren_dxi(r, xi, eta) -
+				bs*ShellUtilities::dN_seren_dxi(s, xi, eta);
 
 			// d( ) / deta
 			// Compute vector of dPsi_x/deta
 			dpsiX_deta[3 * node] = 1.5 *
-				(ar*Utilities::dN_seren_deta(r, xi, eta) -
-					as*Utilities::dN_seren_deta(s, xi, eta));
+				(ar*ShellUtilities::dN_seren_deta(r, xi, eta) -
+					as*ShellUtilities::dN_seren_deta(s, xi, eta));
 
 			dpsiX_deta[3 * node + 1] = br*
-				Utilities::dN_seren_deta(r, xi, eta) +
-				bs*Utilities::dN_seren_deta(s, xi, eta);
+				ShellUtilities::dN_seren_deta(r, xi, eta) +
+				bs*ShellUtilities::dN_seren_deta(s, xi, eta);
 
 			dpsiX_deta[3 * node + 2] =
-				Utilities::dN_seren_deta(node + 1, xi, eta) -
-				cr*Utilities::dN_seren_deta(r, xi, eta) -
-				cs*Utilities::dN_seren_deta(s, xi, eta);
+				ShellUtilities::dN_seren_deta(node + 1, xi, eta) -
+				cr*ShellUtilities::dN_seren_deta(r, xi, eta) -
+				cs*ShellUtilities::dN_seren_deta(s, xi, eta);
 
 			// Compute vector of dPsi_y/deta
 			dpsiY_deta[3 * node] = 1.5 *
-				(dr*Utilities::dN_seren_deta(r, xi, eta) -
-					ds*Utilities::dN_seren_deta(s, xi, eta));
+				(dr*ShellUtilities::dN_seren_deta(r, xi, eta) -
+					ds*ShellUtilities::dN_seren_deta(s, xi, eta));
 
 			dpsiY_deta[3 * node + 1] = -1.0 *
-				Utilities::dN_seren_deta(node + 1, xi, eta) +
-				er*Utilities::dN_seren_deta(r, xi, eta) +
-				es*Utilities::dN_seren_deta(s, xi, eta);
+				ShellUtilities::dN_seren_deta(node + 1, xi, eta) +
+				er*ShellUtilities::dN_seren_deta(r, xi, eta) +
+				es*ShellUtilities::dN_seren_deta(s, xi, eta);
 
 			dpsiY_deta[3 * node + 2] = -1.0 * br*
-				Utilities::dN_seren_deta(r, xi, eta) -
-				bs*Utilities::dN_seren_deta(s, xi, eta);
+				ShellUtilities::dN_seren_deta(r, xi, eta) -
+				bs*ShellUtilities::dN_seren_deta(s, xi, eta);
 		}
 
 		double j11, j12, j21, j22;
@@ -2591,7 +2442,7 @@ namespace Kratos
 
 	void ShellThinElement3D4N::CalculateSectionResponse(CalculationData& data)
 	{
-		GeometryType & geom = GetGeometry();
+		const GeometryType & geom = GetGeometry();
 		const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
 		Vector iN(shapeFunctions.size2());
 		noalias(iN) = row(shapeFunctions, data.gpIndex);
@@ -2662,7 +2513,7 @@ namespace Kratos
 		InitializeCalculationData(data);
 
 		// Gauss Loop.
-		for (size_t i = 0; i < OPT_NUM_GP; i++)
+		for (std::size_t i = 0; i < OPT_NUM_GP; i++)
 		{
 			data.gpIndex = i;
 			CalculateGaussPointContribution(data, rLeftHandSideMatrix,
@@ -2733,7 +2584,7 @@ namespace Kratos
 
 		// resize output
 
-		size_t size = 4;
+		std::size_t size = 4;
 		if (rValues.size() != size)
 			rValues.resize(size);
 
@@ -2792,7 +2643,7 @@ namespace Kratos
 		if (ijob == 0) return false;
 
 		// resize output
-		size_t size = 4;
+		std::size_t size = 4;
 		if (rValues.size() != size)
 			rValues.resize(size);
 
@@ -3001,9 +2852,9 @@ namespace Kratos
 							
 				int surface = 0; // start from top ply top surface
 				// Output global results sequentially
-				for (size_t row = 0; row < 3; row++)
+				for (std::size_t row = 0; row < 3; row++)
 				{
-					for (size_t col = 0; col < 3; col++)
+					for (std::size_t col = 0; col < 3; col++)
 					{
 						if (surface > 7)
 						{
@@ -3028,7 +2879,7 @@ namespace Kratos
 						Laminae_Strengths[ply].resize(3, 3, 0.0);
 						Laminae_Strengths[ply].clear();
 					}
-					PropertiesType & props = GetProperties();
+					const PropertiesType & props = GetProperties();
 					section->GetLaminaeStrengths(Laminae_Strengths, props);
 					Vector ply_orientation(section->NumberOfPlies());
 					section->GetLaminaeOrientation(ply_orientation);
@@ -3071,9 +2922,9 @@ namespace Kratos
 
 					int surface = 0; // start from top ply top surface
 									 // Output global results sequentially
-					for (size_t row = 0; row < 3; row++)
+					for (std::size_t row = 0; row < 3; row++)
 					{
-						for (size_t col = 0; col < 3; col++)
+						for (std::size_t col = 0; col < 3; col++)
 						{
 							if (surface > 7)
 							{
@@ -3185,7 +3036,7 @@ namespace Kratos
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 		rSerializer.save("CTr", mpCoordinateTransformation);
 		rSerializer.save("Sec", mSections);
-		rSerializer.save("IntM", (int)mThisIntegrationMethod);
+        rSerializer.save("IntM", (int)mThisIntegrationMethod);
 	}
 
 	void ShellThinElement3D4N::load(Serializer& rSerializer)
@@ -3195,6 +3046,6 @@ namespace Kratos
 		rSerializer.load("Sec", mSections);
 		int temp;
 		rSerializer.load("IntM", temp);
-		mThisIntegrationMethod = (IntegrationMethod)temp;
+        mThisIntegrationMethod = (IntegrationMethod)temp;
 	}
 }

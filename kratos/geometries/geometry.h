@@ -685,7 +685,7 @@ public:
 
         return result;
     }
-    
+
     /**
      * It computes the unit normal of the geometry, if possible
      * @return The normal of the geometry
@@ -694,19 +694,19 @@ public:
     {
         const unsigned int local_space_dimension = this->LocalSpaceDimension();
         const unsigned int dimension = this->WorkingSpaceDimension();
-        
+
         if (dimension == local_space_dimension)
         {
             KRATOS_ERROR << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
         }
-        
+
         // We define the normal and tangents
         array_1d<double,3> tangent_xi(3, 0.0);
         array_1d<double,3> tangent_eta(3, 0.0);
-        
-        Matrix j_node = ZeroMatrix( dimension, local_space_dimension ); 
+
+        Matrix j_node = ZeroMatrix( dimension, local_space_dimension );
         this->Jacobian( j_node, rPointLocalCoordinates);
-        
+
         // Using the Jacobian tangent directions
         if (dimension == 2)
         {
@@ -714,7 +714,7 @@ public:
             for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
             {
                 tangent_xi[i_dim]  = j_node(i_dim, 0);
-            } 
+            }
         }
         else
         {
@@ -722,23 +722,29 @@ public:
             {
                 tangent_xi[i_dim]  = j_node(i_dim, 0);
                 tangent_eta[i_dim] = j_node(i_dim, 1);
-            } 
+            }
         }
 
         array_1d<double, 3> normal;
         MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
         return normal;
     }
-    
+
+    /**
+     * It computes the unit normal of the geometry
+     * @param rPointLocalCoordinates Refernce to the local coordinates of the
+     * point in where the unit normal is to be computed
+     * @return The unit normal in the given point
+     */
     virtual array_1d<double, 3> UnitNormal(const CoordinatesArrayType& rPointLocalCoordinates) const
     {
         array_1d<double, 3> normal = AreaNormal(rPointLocalCoordinates);
-	const double norm_normal = norm_2(normal);
-	if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
-	else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
+        const double norm_normal = norm_2(normal);
+        if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
+        else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
         return normal;
     }
-    
+
     /** Calculates the quality of the geometry according to a given criteria.
      *
      * Calculates the quality of the geometry according to a given criteria. In General
@@ -877,9 +883,9 @@ public:
      * @param rPoint: The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
-    virtual CoordinatesArrayType& PointLocalCoordinates( 
+    virtual CoordinatesArrayType& PointLocalCoordinates(
             CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint 
+            const CoordinatesArrayType& rPoint
             )
     {
         Matrix J = ZeroMatrix( LocalSpaceDimension(), LocalSpaceDimension() );
@@ -921,23 +927,23 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint: The point to be checked if is inside o note in global coordinates
      * @param rResult: The local coordinates of the point
      * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
+    virtual bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         )
     {
         KRATOS_ERROR << "Calling base class IsInside method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
         return false;
     }
-    
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -1034,7 +1040,7 @@ public:
 //       virtual Pointer Edge(const PointsArrayType& EdgePoints)
 //  {
 //    KRATOS_ERROR << "Calling base class Edge method instead of derived class one. Please check the definition of derived class." << *this << std::endl;
-// 
+//
 //  }
 
     /**
@@ -1183,16 +1189,16 @@ public:
     ///@}
     ///@name Jacobian
     ///@{
-    
+
     /** This method provides the global coordinates corresponding to the local coordinates provided
      * @param rResult The array containing the global coordinates corresponding to the local coordinates provided
      * @param LocalCoordinates The local coordinates provided
      * @return An array containing the global coordinates corresponding to the local coordinates provides
      * @see PointLocalCoordinates
      */
-    virtual CoordinatesArrayType& GlobalCoordinates( 
-        CoordinatesArrayType& rResult, 
-        CoordinatesArrayType const& LocalCoordinates 
+    virtual CoordinatesArrayType& GlobalCoordinates(
+        CoordinatesArrayType& rResult,
+        CoordinatesArrayType const& LocalCoordinates
         ) const
     {
         if (rResult.size() != 3)
@@ -1207,7 +1213,7 @@ public:
 
         return rResult;
     }
-    
+
     /** This method provides the global coordinates corresponding to the local coordinates provided, considering additionally a certain increment in the coordinates
      * @param rResult The array containing the global coordinates corresponding to the local coordinates provided
      * @param LocalCoordinates The local coordinates provided
@@ -1215,10 +1221,10 @@ public:
      * @return An array containing the global coordinates corresponding to the local coordinates provides
      * @see PointLocalCoordinates
      */
-    virtual CoordinatesArrayType& GlobalCoordinates( 
-        CoordinatesArrayType& rResult, 
+    virtual CoordinatesArrayType& GlobalCoordinates(
+        CoordinatesArrayType& rResult,
         CoordinatesArrayType const& LocalCoordinates,
-        Matrix& DeltaPosition 
+        Matrix& DeltaPosition
         ) const
     {
         if (rResult.size() != 3)
@@ -1444,13 +1450,13 @@ public:
 
         return rResult;
     }
-    
+
     /** Jacobian in given point. This method calculate jacobian
     matrix in given point.
 
     @param rCoordinates point which jacobians has to
     be calculated in it.
-    
+
     @param DeltaPosition Matrix with the nodes position increment which describes
     the configuration where the jacobian has to be calculated.
 
@@ -1459,7 +1465,7 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    
+
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates, Matrix& DeltaPosition ) const
     {
         if(rResult.size1() != this->WorkingSpaceDimension() || rResult.size2() != this->LocalSpaceDimension())

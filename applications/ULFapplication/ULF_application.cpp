@@ -46,6 +46,7 @@ KRATOS_CREATE_VARIABLE(double, PRESSURE_OLD_IT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
 KratosULFApplication::KratosULFApplication():
+    KratosApplication("ULFApplication"),
 
     mUpdatedLagrangianFluid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mUpdatedLagrangianFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),

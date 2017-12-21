@@ -42,12 +42,14 @@ set(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/pillcluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ellipsoidcluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/singlespherecluster3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/dem_integration_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_scheme.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/newmark_beta_scheme.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/dem_integration_scheme.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/verlet_velocity_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/taylor_scheme.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/newmark_beta_scheme.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/velocity_verlet_scheme.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/runge_kutta_scheme.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/quaternion_integration_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack_2D_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack_torque_CL.cpp
@@ -72,6 +74,7 @@ set(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_dependent_friction_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dem_kdem_2d_cl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dem_kdem_fabric_2d_cl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlet.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/force_based_inlet.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/create_and_destroy.cpp

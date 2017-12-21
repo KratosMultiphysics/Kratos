@@ -1,7 +1,5 @@
 cmake_minimum_required (VERSION 2.8.6)
 
-
-
 if(POLICY CMP0054)
   cmake_policy(SET CMP0054 OLD)
 endif(POLICY CMP0054)
@@ -10,7 +8,7 @@ project (KratosMultiphysics)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 5)
-set (KratosMultiphysics_MINOR_VERSION 1)
+set (KratosMultiphysics_MINOR_VERSION 3)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # Define custom compiler build types
@@ -30,6 +28,10 @@ SET( CMAKE_C_FLAGS_CUSTOM "" )
 SET( CMAKE_CXX_FLAGS_CUSTOM "" )
 SET( CMAKE_SHARED_LINKER_FLAGS_CUSTOM "" )
 SET( CMAKE_EXE_LINKER_FLAGS_CUSTOM "" )
+
+if(USE_COTIRE MATCHES ON)
+    set(CMAKE_SKIP_RPATH ON)
+endif(USE_COTIRE MATCHES ON)
 
 # If build mode is not defined, assume Release
 if(NOT CMAKE_BUILD_TYPE)
@@ -216,6 +218,7 @@ message("Boostlib used: ${Boost_LIBRARIES}")
 # Finding and including PYTHON
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
+list(REMOVE_ITEM PYTHON_LIBRARIES "debug" "optimized")
 link_directories(${PYTHON_LIBRARIES})
 
 # Follow the symbolic links for the python lib only if needed
@@ -406,7 +409,7 @@ endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 # Kratos Testing
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests FILES_MATCHING PATTERN "*.py" PATTERN "*.mm" PATTERN "*.ref" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 ################################################################################

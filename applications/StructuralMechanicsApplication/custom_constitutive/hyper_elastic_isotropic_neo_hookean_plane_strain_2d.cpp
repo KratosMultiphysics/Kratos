@@ -107,7 +107,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixPK
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixKirchoff(
+void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixKirchhoff(
     Matrix& ConstitutiveMatrix,
     const double& DeterminantF,
     const double& LameLambda,

@@ -70,12 +70,16 @@ public:
         {
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
 
-            #pragma omp parallel for
+            array_1d<double,3> Coordinates;
+
+            #pragma omp parallel for private(Coordinates)
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 
-                double pressure = mspecific_weight*( reference_coordinate - (it->Coordinate(mgravity_direction)) );
+                noalias(Coordinates) = it->Coordinates();
+
+                const double pressure = mspecific_weight*( reference_coordinate - Coordinates[mgravity_direction] );
                 
                 if(pressure > 0.0) 
                 {
