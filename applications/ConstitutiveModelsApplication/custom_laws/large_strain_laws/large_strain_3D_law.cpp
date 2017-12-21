@@ -182,6 +182,27 @@ namespace Kratos
   //************* COMPUTING  METHODS
   //************************************************************************************
   //************************************************************************************
+  void LargeStrain3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
+					     const GeometryType& rElementGeometry,
+					     const Vector& rShapeFunctionsValues )
+  {
+    KRATOS_TRY
+
+    ConstitutiveLaw::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
+
+    //member variables initialization
+    mTotalDeformationDet = 1.0;
+
+    MatrixType Identity = identity_matrix<double>(3);   
+    noalias(mInverseTotalDeformationMatrix) = Identity;
+    
+    mpModel->InitializeMaterial(rMaterialProperties);
+    
+    KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
   
   void LargeStrain3DLaw::InitializeModelData(Parameters& rValues,ModelDataType& rModelValues)
   {
