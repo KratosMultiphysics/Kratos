@@ -384,7 +384,7 @@ namespace Kratos {
         visc_param[1] = 2.0 * equiv_gamma * std::sqrt(equiv_mass * equiv_young * Inertia_I / distance); // OLMEDO
         visc_param[2] = 2.0 * equiv_gamma * std::sqrt(equiv_mass * equiv_shear * Inertia_J / distance); // OLMEDO
 
-        double aux = ((element->GetRadius() + neighbor->GetRadius()) / distance) * ((element->GetRadius() + neighbor->GetRadius()) / distance);
+        double aux = (element->GetRadius() + neighbor->GetRadius()) / distance;
 
         array_1d<double, 3> LocalEffDeltaRotatedAngle;
         LocalEffDeltaRotatedAngle[0] = LocalDeltaRotatedAngle[0] * aux;
