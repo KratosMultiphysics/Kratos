@@ -17,6 +17,7 @@
 #include "includes/cfd_variables.h"
 
 #include "custom_utilities/fluid_element_data.h"
+#include "custom_constitutive/newtonian_2d_law.h"
 
 namespace Kratos {
 namespace Testing {
@@ -262,6 +263,119 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSui
     process_info_data.Initialize(r_element,r_process_info);
     KRATOS_CHECK_EQUAL(process_info_data.UseOSS, 0.0);
     KRATOS_CHECK_EQUAL(process_info_data.DeltaTime, 0.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite)
+{
+    ModelPart model_part("Main");
+    model_part.SetBufferSize(3);
+
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(BODY_FORCE);
+    model_part.AddNodalSolutionStepVariable(DENSITY);
+    model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+    model_part.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+    model_part.AddNodalSolutionStepVariable(SOUND_VELOCITY);
+    model_part.AddNodalSolutionStepVariable(PRESSURE);
+    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
+    model_part.AddNodalSolutionStepVariable(DISTANCE);
+
+    // Process info creation
+    double delta_time = 0.1;
+    model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
+    model_part.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
+    model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+    Vector bdf_coefs(3);
+    bdf_coefs[0] = 3.0/(2.0*delta_time);
+    bdf_coefs[1] = -2.0/delta_time;
+    bdf_coefs[2] = 0.5*delta_time;
+    model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+
+    // Set the element properties
+    Properties::Pointer p_properties = model_part.pGetProperties(0);
+    p_properties->SetValue(DENSITY, 1000.0);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+    ConstitutiveLaw::Pointer pConsLaw(new Newtonian2DLaw());
+    p_properties->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+    // Geometry creation
+    model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
+    model_part.CreateNewElement("EmbeddedNavierStokes2D3N", 1, element_nodes, p_properties);
+    model_part.CreateNewElement("EmbeddedSymbolicNavierStokes2D3N", 2, element_nodes, p_properties);
+    model_part.CreateNewElement("NavierStokes2D3N", 3, element_nodes, p_properties);
+    model_part.CreateNewElement("SymbolicNavierStokes2D3N", 4, element_nodes, p_properties);
+    model_part.CreateNewElement("TimeIntegratedQSVMS2D3N", 5, element_nodes, p_properties);
+
+    // Define the nodal values
+    Matrix reference_velocity(3,2);
+    reference_velocity(0,0) = 0.0; reference_velocity(0,1) = 0.1;
+    reference_velocity(1,0) = 0.1; reference_velocity(1,1) = 0.2;
+    reference_velocity(2,0) = 0.2; reference_velocity(2,1) = 0.3;
+
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+
+    // Set the nodal DENSITY and DYNAMIC_VISCOSITY values
+    for (ModelPart::NodeIterator it_node=model_part.NodesBegin(); it_node<model_part.NodesEnd(); ++it_node){
+        it_node->FastGetSolutionStepValue(DENSITY) = p_properties->GetValue(DENSITY);
+        it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = p_properties->GetValue(DYNAMIC_VISCOSITY);
+    }
+
+    for(unsigned int i=0; i<3; i++){
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
+        for(unsigned int k=0; k<2; k++){
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k]    = reference_velocity(i,k);
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9*reference_velocity(i,k);
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[k] = 0.75*reference_velocity(i,k);
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k]    = 0.0;
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 2)[k] = 0.0;
+        }
+    }
+
+    p_element->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = 1.0;
+    p_element->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = 1.0;
+    p_element->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = 1.0;
+    /*p_element->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
+    p_element->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -1.0;
+    p_element->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) =  0.5;
+    array_1d<double, 3> embedded_vel;
+    embedded_vel(0) = 1.0;
+    embedded_vel(1) = 2.0;
+    embedded_vel(2) = 0.0;
+    p_element->SetValue(EMBEDDED_VELOCITY, embedded_vel);*/
+
+    // Compute RHS and LHS
+    Vector RHS = ZeroVector(9);
+    Matrix LHS = ZeroMatrix(9,9);
+
+    for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
+        i->Initialize(); // Initialize the element to initialize the constitutive law
+        i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+
+        KRATOS_WATCH(RHS);
+    }
+/*
+    Element::Pointer p_element2 = model_part.pGetElement(2);
+    p_element2->Initialize(); // Initialize the element to initialize the constitutive law
+    p_element2->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    KRATOS_WATCH(RHS);
+
+    Element::Pointer p_element3 = model_part.pGetElement(3);
+    p_element3->Initialize(); // Initialize the element to initialize the constitutive law
+    p_element3->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    KRATOS_WATCH(RHS);
+
+    Element::Pointer p_element4 = model_part.pGetElement(4);
+    p_element4->Initialize(); // Initialize the element to initialize the constitutive law
+    p_element4->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    KRATOS_WATCH(RHS);*/
 }
 
 }  // namespace Testing
