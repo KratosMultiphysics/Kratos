@@ -68,9 +68,6 @@ class Algorithm(BaseAlgorithm):
         self.SetRotator()
 
     def SetRotator(self):
-        # a_init = self.pp.CFD_DEM.AddEmptyValue("frame_rotation_axis_initial_point").GetVector()
-        # a_final = self.pp.CFD_DEM.AddEmptyValue("frame_rotation_axis_final_point").GetVector()
-        # omega = self.pp.CFD_DEM.AddEmptyValue("angular_velocity_magnitude").GetDouble()
         self.rotator = MeshRotationUtility(self.pp.CFD_DEM)
     
     def SetBetaParameters(self):
@@ -80,3 +77,4 @@ class Algorithm(BaseAlgorithm):
     def UpdateALEMeshMovement(self, time):
         if self.pp.CFD_DEM["ALE_option"].GetBool():
             self.rotator.RotateMesh(self.fluid_model_part, time)
+            self.projection_module.UpdateDatabase(self.h_min)
