@@ -1208,7 +1208,7 @@ private:
         const bounded_matrix<double, 2, 2> invJ = (std::abs(det_j) < tolerance) ? ZeroMatrix(2,2) : MathUtils<double>::InvertMatrix<2>(J, det_j);
         
     #ifdef KRATOS_DEBUG
-        if (std::abs(det_j) < tolerance) std:::cout << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
+        if (std::abs(det_j) < tolerance) std::cout << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
     #endif
         
         const array_1d<double, 2> res = prod(trans(DN), DeltaPoint);
