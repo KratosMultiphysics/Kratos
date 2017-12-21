@@ -212,7 +212,7 @@ public:
     /// The container of the sub model parts. A hash table is used.
     /**
     */
-    typedef PointerHashMapSet<ModelPart, boost::hash< std::string >, GetModelPartName, ModelPart*>  SubModelPartsContainerType;
+    typedef PointerHashMapSet<ModelPart, boost::hash< std::string >, GetModelPartName, ModelPart::Pointer>  SubModelPartsContainerType;
 
     /// Iterator over the sub model parts of this model part.
     /**	Note that this iterator only iterates over the next level of
@@ -1041,7 +1041,7 @@ public:
     	In the case of conflict the new one would replace the old one
     	resulting inconsitency in parent.
     */
-    void AddSubModelPart(ModelPart& rThisSubModelPart);
+    void AddSubModelPart(ModelPart::Pointer rThisSubModelPart);
 
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
