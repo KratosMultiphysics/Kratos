@@ -42,6 +42,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::SimpleMortarMapperP
         "relative_convergence_tolerance"   : 1.0e-4,
         "max_number_iterations"            : 10,
         "integration_order"                : 2,
+        "distance_threshold"               : 1.0e24,
         "inverted_master_slave_pairing"    : false
     })" );
 
@@ -497,6 +498,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteExplici
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
     const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
+    const double distance_threshold = mThisParameters["distance_threshold"].GetDouble();
     const unsigned int max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
     unsigned int iteration = 0;
 
@@ -525,7 +527,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteExplici
     MortarOperator<TNumNodes> this_mortar_operators;
 
     // We call the exact integration utility
-    ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(TDim);
+    ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(TDim, distance_threshold);
 
     // We reset the nodal area
     ResetNodalArea();
@@ -673,6 +675,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
     const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
+    const double distance_threshold = mThisParameters["distance_threshold"].GetDouble();
     const unsigned int max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
     unsigned int iteration = 0;
 
@@ -703,7 +706,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
     MortarOperator<TNumNodes> this_mortar_operators;
 
     // We call the exact integration utility
-    ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(TDim);
+    ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(TDim, distance_threshold);
 
     while (CheckWholeVector(is_converged) == false && iteration < max_number_iterations)
     {
