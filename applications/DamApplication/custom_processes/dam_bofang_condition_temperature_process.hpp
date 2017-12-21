@@ -123,11 +123,11 @@ class DamBofangConditionTemperatureProcess : public Process
         int direction;
 
         if (mGravityDirection == "X")
-            direction = 1;
+            direction = 0;
         else if (mGravityDirection == "Y")
-            direction = 2;
+            direction = 1;
         else
-            direction = 3;
+            direction = 2;
 
         if (nnodes != 0)
         {
@@ -143,7 +143,7 @@ class DamBofangConditionTemperatureProcess : public Process
                     it->Fix(var);
                 }
 
-                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinate(direction);
+                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
                 if (aux >= 0.0)
                 {
                     double aux1 = ((mBottomTemp - (mSurfaceTemp * exp(-0.04 * mHeight))) / (1 - (exp(-0.04 * mHeight))));
@@ -194,11 +194,11 @@ class DamBofangConditionTemperatureProcess : public Process
         int direction;
 
         if (mGravityDirection == "X")
-            direction = 1;
+            direction = 0;
         else if (mGravityDirection == "Y")
-            direction = 2;
+            direction = 1;
         else
-            direction = 3;
+            direction = 2;
 
         if (nnodes != 0)
         {
@@ -214,7 +214,7 @@ class DamBofangConditionTemperatureProcess : public Process
                     it->Fix(var);
                 }
 
-                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinate(direction);
+                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
                 if (aux >= 0.0)
                 {
                     double aux1 = ((mBottomTemp - (mSurfaceTemp * exp(-0.04 * mHeight))) / (1 - (exp(-0.04 * mHeight))));
