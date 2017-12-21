@@ -159,11 +159,16 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     }
 
     void SetUpSystem(
-    ModelPart& r_model_part
-    ) override
+        ModelPart &r_model_part) override
     {
+        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
+        mHasConstraints = CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER);
         BaseType::SetUpSystem(r_model_part);
-        Constraints_SetUp(r_model_part);
+        if (mHasConstraints)
+        {
+            mpConstraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
+            Constraints_SetUp(r_model_part, mpConstraintVector);
+        }
     }
 
     /** Destructor.
@@ -183,15 +188,22 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         Timer::Start("Build");
 
-        Constraints_ExecuteBeforeBuilding(r_model_part);
-
-        Build(pScheme, r_model_part, A, b);
+        if (mHasConstraints)
+        {
+            Constraints_ExecuteBeforeBuilding(r_model_part, mpConstraintVector);
+            Build(pScheme, r_model_part, A, b);
+        }
+        else
+        {
+            BaseType::Build(pScheme, r_model_part, A, b);
+        }
 
         Timer::Stop("Build");
 
         this->ApplyDirichletConditions(pScheme, r_model_part, A, Dx, b);
 
-        Constraints_ExecuteAfterBuilding(r_model_part);
+        if (mHasConstraints)
+            Constraints_ExecuteAfterBuilding(r_model_part, mpConstraintVector);
 
         if (this->GetEchoLevel() == 3)
         {
@@ -203,8 +215,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
-
-        Constraints_ExecuteBeforeSolving(A, Dx, b, r_model_part);
+        if (mHasConstraints)
+            Constraints_ExecuteBeforeSolving(A, Dx, b, r_model_part, mpConstraintVector);
 
         this->SystemSolveWithPhysics(A, Dx, b, r_model_part);
 
@@ -220,8 +232,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             std::cout << "unknowns vector = " << Dx << std::endl;
             std::cout << "RHS vector = " << b << std::endl;
         }
-
-        Constraints_ExecuteAfterSolving(A, Dx, b, r_model_part);
+        if (mHasConstraints)
+            Constraints_ExecuteAfterSolving(A, Dx, b, r_model_part, mpConstraintVector);
 
         KRATOS_CATCH("")
     }
@@ -279,7 +291,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                     // Modifying the local contributions for MPC
-                    this->Element_ApplyConstraints(*(*(it.base())), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    this->Element_ApplyConstraints(*(*(it.base())), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo, mpConstraintVector);
 //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
                     this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mlock_array);
@@ -309,7 +321,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                     pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     // Modifying the local contributions for MPC
-                    this->Condition_ApplyConstraints(*(*(it.base())), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    this->Condition_ApplyConstraints(*(*(it.base())), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo, mpConstraintVector);
 
 //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -349,6 +361,19 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         ConditionsArrayType &rConditions,
         ProcessInfo &CurrentProcessInfo) override
     {
+        if (mHasConstraints)
+            Constraints_ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
+        else
+            BaseType::ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
+    }
+
+    void Constraints_ConstructMatrixStructure(
+        typename TSchemeType::Pointer pScheme,
+        TSystemMatrixType &A,
+        ElementsContainerType &rElements,
+        ConditionsArrayType &rConditions,
+        ProcessInfo &CurrentProcessInfo)
+    {
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
@@ -380,7 +405,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             (i_element)->EquationIdVector(ids, CurrentProcessInfo);
 
             // Modifying the equation IDs of this element to suit MPCs
-            this->Element_ModifyEquationIdsForConstraints(*(*(i_element.base())), ids, CurrentProcessInfo);
+            this->Element_ModifyEquationIdsForConstraints(*(*(i_element.base())), ids, CurrentProcessInfo, mpConstraintVector);
 
             for (std::size_t i = 0; i < ids.size(); i++)
             {
@@ -402,7 +427,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
             (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
             // Modifying the equation IDs of this element to suit MPCs
-            this->Condition_ModifyEquationIdsForConstraints(*(*(i_condition.base())), ids, CurrentProcessInfo);
+            this->Condition_ModifyEquationIdsForConstraints(*(*(i_condition.base())), ids, CurrentProcessInfo, mpConstraintVector);
 
             for (std::size_t i = 0; i < ids.size(); i++)
             {
@@ -454,10 +479,12 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         Timer::Stop("MatrixStructure");
     }
 
-  protected:
+  private:
     /*@} */
-    /**@name Protected member Variables */
+    /**@name Private member Variables */
     /*@{ */
+    bool mHasConstraints;
+    ConstraintSharedPointerVectorType mpConstraintVector;
 
     /*
      * This function changes/extends the element LHS and RHS to apply constraints
@@ -467,18 +494,14 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                                   LocalSystemMatrixType &LHS_Contribution,
                                   LocalSystemVectorType &RHS_Contribution,
                                   Element::EquationIdVectorType &EquationId,
-                                  ProcessInfo &CurrentProcessInfo)
+                                  ProcessInfo &CurrentProcessInfo,
+                                  ConstraintSharedPointerVectorType &constraintVector)
     {
-
-        if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
+        for (auto &constraint : (*constraintVector))
         {
-            ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto &constraint : (*constraintVector))
+            if (constraint->IsActive())
             {
-                if (constraint->IsActive())
-                {
-                    constraint->Element_ApplyConstraints(rCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                }
+                constraint->Element_ApplyConstraints(rCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
             }
         }
 
@@ -491,17 +514,14 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                                     LocalSystemMatrixType &LHS_Contribution,
                                     LocalSystemVectorType &RHS_Contribution,
                                     Element::EquationIdVectorType &EquationId,
-                                    ProcessInfo &CurrentProcessInfo)
+                                    ProcessInfo &CurrentProcessInfo,
+                                    ConstraintSharedPointerVectorType &constraintVector)
     {
-        if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
+        for (auto &constraint : (*constraintVector))
         {
-            ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto &constraint : (*constraintVector))
+            if (constraint->IsActive())
             {
-                if (constraint->IsActive())
-                {
-                    constraint->Condition_ApplyConstraints(rCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                }
+                constraint->Condition_ApplyConstraints(rCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
             }
         }
 
@@ -512,17 +532,14 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      */
     void Element_ModifyEquationIdsForConstraints(Element &rCurrentElement,
                                                  Element::EquationIdVectorType &EquationId,
-                                                 ProcessInfo &CurrentProcessInfo)
+                                                 ProcessInfo &CurrentProcessInfo,
+                                                 ConstraintSharedPointerVectorType &constraintVector)
     {
-        if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
+        for (auto &constraint : (*constraintVector))
         {
-            ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto &constraint : (*constraintVector))
+            if (constraint->IsActive())
             {
-                if (constraint->IsActive())
-                {
-                    constraint->Element_ModifyEquationIdsForConstraints(rCurrentElement, EquationId, CurrentProcessInfo);
-                }
+                constraint->Element_ModifyEquationIdsForConstraints(rCurrentElement, EquationId, CurrentProcessInfo);
             }
         }
     }
@@ -532,84 +549,63 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      */
     void Condition_ModifyEquationIdsForConstraints(Condition &rCurrentCondition,
                                                    Condition::EquationIdVectorType &EquationId,
-                                                   ProcessInfo &CurrentProcessInfo)
+                                                   ProcessInfo &CurrentProcessInfo,
+                                                   ConstraintSharedPointerVectorType &constraintVector)
     {
-        if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
+        for (auto &constraint : (*constraintVector))
         {
-            ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto &constraint : (*constraintVector))
+            if (constraint->IsActive())
             {
-                if (constraint->IsActive())
-                {
-                    constraint->Condition_ModifyEquationIdsForConstraints(rCurrentCondition, EquationId, CurrentProcessInfo);
-                }
+                constraint->Condition_ModifyEquationIdsForConstraints(rCurrentCondition, EquationId, CurrentProcessInfo);
             }
         }
     }
 
-    void Constraints_ExecuteBeforeBuilding(ModelPart &r_model_part)
+    void Constraints_ExecuteBeforeBuilding(ModelPart &r_model_part, ConstraintSharedPointerVectorType &constraintVector)
     {
-        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
-        if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
+        for (auto &constraint : (*constraintVector))
         {
-            ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto &constraint : (*constraintVector))
+            if (constraint->IsActive())
             {
-                if (constraint->IsActive())
-                {
-                    constraint->ExecuteBeforeBuilding(r_model_part.Nodes());
-                }
+                constraint->ExecuteBeforeBuilding(r_model_part.Nodes());
             }
         }
     }
 
-    void Constraints_ExecuteAfterBuilding(ModelPart &r_model_part)
+    void Constraints_ExecuteAfterBuilding(ModelPart &r_model_part, ConstraintSharedPointerVectorType &constraintVector)
     {
-        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
-        if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
+        for (auto &constraint : (*constraintVector))
         {
-            ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto &constraint : (*constraintVector))
+            if (constraint->IsActive())
             {
-                if (constraint->IsActive())
-                {
-                    constraint->ExecuteAfterBuilding(r_model_part.Nodes());
-                }
+                constraint->ExecuteAfterBuilding(r_model_part.Nodes());
             }
         }
     }
 
-    void Constraints_SetUp(ModelPart &r_model_part)
+    void Constraints_SetUp(ModelPart &r_model_part, ConstraintSharedPointerVectorType &constraintVector)
     {
-        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
-        if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
+        for (auto &constraint : (*constraintVector))
         {
-            ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto &constraint : (*constraintVector))
+            if (constraint->IsActive())
             {
-                if (constraint->IsActive())
-                {
-                    constraint->SetUp(r_model_part.Nodes());
-                }
+                constraint->SetUp(r_model_part.Nodes());
             }
         }
-    }    
+    }
 
     void Constraints_ExecuteBeforeSolving(TSystemMatrixType &A,
                                           TSystemVectorType &Dx,
                                           TSystemVectorType &b,
-                                          ModelPart &r_model_part)
+                                          ModelPart &r_model_part,
+                                          ConstraintSharedPointerVectorType &constraintVector)
+
     {
-        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
-        if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
+        for (auto &constraint : (*constraintVector))
         {
-            ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto &constraint : (*constraintVector))
+            if (constraint->IsActive())
             {
-                if (constraint->IsActive())
-                {
-                    constraint->ExecuteBeforeSolving(A, Dx, b);
-                }
+                constraint->ExecuteBeforeSolving(A, Dx, b);
             }
         }
     }
@@ -617,18 +613,14 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     void Constraints_ExecuteAfterSolving(TSystemMatrixType &A,
                                          TSystemVectorType &Dx,
                                          TSystemVectorType &b,
-                                         ModelPart &r_model_part)
+                                         ModelPart &r_model_part,
+                                         ConstraintSharedPointerVectorType &constraintVector)
     {
-        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
-        if (CurrentProcessInfo.Has(CONSTRAINTS_CONTAINER))
+        for (auto &constraint : (*constraintVector))
         {
-            ConstraintSharedPointerVectorType constraintVector = CurrentProcessInfo.GetValue(CONSTRAINTS_CONTAINER);
-            for (auto &constraint : (*constraintVector))
+            if (constraint->IsActive())
             {
-                if (constraint->IsActive())
-                {
-                    constraint->ExecuteAfterSolving(A, Dx, b);
-                }
+                constraint->ExecuteAfterSolving(A, Dx, b);
             }
         }
     }
