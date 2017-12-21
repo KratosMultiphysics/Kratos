@@ -2143,8 +2143,9 @@ namespace Kratos
 		for (int i = 0; i < 4; i++)
 		{
 			//set to current parametric integration location
-			double xi = integrationPoints[i].Coordinate(1);
-			double eta = integrationPoints[i].Coordinate(2);
+			const array_1d<double,3>& r_coordinates = integrationPoints[i].Coordinates();
+			double xi = r_coordinates[0];
+			double eta = r_coordinates[1];
 
 			Matrix DKQ_temp = Matrix(2, 2, 0.0);
 			DKQ_temp(0, 0) = x21 + x34 + eta*(x12 + x34);
@@ -2233,8 +2234,9 @@ namespace Kratos
 				geom.IntegrationPoints(GetIntegrationMethod());
 
 			//set to current parametric integration location
-			double xi = integrationPoints[data.gpIndex].Coordinate(1);
-			double eta = integrationPoints[data.gpIndex].Coordinate(2);
+			const array_1d<double,3>& r_coordinates = integrationPoints[data.gpIndex].Coordinates();
+			double xi = r_coordinates[0];
+			double eta = r_coordinates[1];
 
 			Matrix dN(4, 2, 0.0);
 
@@ -2296,8 +2298,9 @@ namespace Kratos
 			geom.IntegrationPoints(GetIntegrationMethod());
 
 		//set to current parametric integration location
-		double xi = integrationPoints[data.gpIndex].Coordinate(1);
-		double eta = integrationPoints[data.gpIndex].Coordinate(2);
+		const array_1d<double,3>& r_coordinates = integrationPoints[data.gpIndex].Coordinates();
+		double xi = r_coordinates[0];
+		double eta = r_coordinates[1];
 
 		double ar, br, cr, dr, er;
 		double as, bs, cs, ds, es;
