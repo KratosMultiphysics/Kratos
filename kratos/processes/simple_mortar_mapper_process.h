@@ -90,6 +90,9 @@ public:
     
     // An integer map
     typedef std::unordered_map<int, int>                             IntMap;
+    
+    // BoundedMatrix
+    typedef bounded_matrix<double, TNumNodes, TNumNodes>  BoundedMatrixType;
 
     ///@}
     ///@name Life Cycle
@@ -260,7 +263,7 @@ private:
         MortarKinematicVariables<TNumNodes>& ThisKinematicVariables,
         MortarOperator<TNumNodes>& ThisMortarOperators,
         const IntegrationMethod& ThisIntegrationMethod,
-        const bounded_matrix<double, TNumNodes, TNumNodes> Ae = IdentityMatrix(TNumNodes)
+        const BoundedMatrixType Ae = IdentityMatrix(TNumNodes)
         );
     
     /**
@@ -271,7 +274,7 @@ private:
      * @param ThisIntegrationMethod The integration method considered
      * @return Ae: The matrix of dual LM
      */
-    static inline bounded_matrix<double, TNumNodes, TNumNodes> CalculateAe(
+    static inline BoundedMatrixType CalculateAe(
         GeometryType& SlaveGeometry,
         MortarKinematicVariables<TNumNodes>& ThisKinematicVariables,
         std::vector<array_1d<PointType,TDim>>& ConditionsPointsSlave,
@@ -283,23 +286,23 @@ private:
      * @param InputMatrix The matrix to invert
      * @return The matrix inverted
      */
-    static inline bounded_matrix<double, TNumNodes, TNumNodes> FastInverse(const bounded_matrix<double, TNumNodes, TNumNodes>& InputMatrix);
+    static inline BoundedMatrixType InvertDiagonalMatrix(const BoundedMatrixType& InputMatrix);
 
     /**
      * This method inverts a diagonal matrix
      * @param InputMatrix The matrix to invert
      * @param InvertedMatrix The matrix inverted
      */
-    static inline void FastInverse(
-        const bounded_matrix<double, TNumNodes, TNumNodes>& InputMatrix,
-        bounded_matrix<double, TNumNodes, TNumNodes>& InvertedMatrix
+    static inline void InvertDiagonalMatrix(
+        const BoundedMatrixType& InputMatrix,
+        BoundedMatrixType& InvertedMatrix
         );
     
     /**
      * This method lumps a matrix
      * @param InputMatrix The matrix to lump
      */
-    void LumpMatrix(bounded_matrix<double, TNumNodes, TNumNodes>& InputMatrix);
+    void LumpMatrix(BoundedMatrixType& InputMatrix);
     
     /**
      * This method computes the size of the system
