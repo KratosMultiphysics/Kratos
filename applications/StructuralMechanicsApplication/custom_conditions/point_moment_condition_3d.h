@@ -203,7 +203,7 @@ protected:
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-        );
+        ) override;
         
     /**
      * It calcules the integration weight for the point moment 

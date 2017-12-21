@@ -6,7 +6,7 @@ import math
 import time
 import cluster_file_reader
 
-class ExplicitStrategy:
+class ExplicitStrategy(object):
 
     #def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
@@ -540,4 +540,7 @@ class ExplicitStrategy:
             
         rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
+        
+        if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
+            properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 

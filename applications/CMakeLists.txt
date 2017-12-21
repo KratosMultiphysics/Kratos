@@ -194,10 +194,6 @@ if(${PFEM2_APPLICATION} MATCHES ON)
   add_subdirectory(pfem_2_application)
 endif(${PFEM2_APPLICATION} MATCHES ON)
 
-if(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
-  add_subdirectory(pure_diffusion_application)
-endif(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
-
 if(${MESHLESS_APPLICATION} MATCHES ON)
   add_subdirectory(meshless_application)
 endif(${MESHLESS_APPLICATION} MATCHES ON)
