@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -82,7 +82,7 @@ Element::Pointer NodalConcentratedElement::Create(
     ) const
 {
     //NEEDED TO CREATE AN ELEMENT   
-    return Element::Pointer( new NodalConcentratedElement( NewId, GetGeometry().Create( rThisNodes ), pProperties, mUseRayleighDamping ) );
+    return boost::make_shared<NodalConcentratedElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mUseRayleighDamping );
 }
 
 
@@ -97,9 +97,9 @@ Element::Pointer NodalConcentratedElement::Clone(
     //YOU CREATE A NEW ELEMENT CLONING THEIR VARIABLES
     //ALL MEMBER VARIABLES THAT MUST BE CLONED HAVE TO BE DEFINED HERE
 
-    NodalConcentratedElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties(), mUseRayleighDamping );
+    NodalConcentratedElement new_element(NewId, GetGeometry().Create( rThisNodes ), pGetProperties(), mUseRayleighDamping );
 
-    return Element::Pointer( new NodalConcentratedElement(NewElement) );
+    return boost::make_shared<NodalConcentratedElement>(new_element);
 }
 
 
@@ -127,10 +127,7 @@ void NodalConcentratedElement::GetDofList(
     rElementalDofList.push_back( GetGeometry()[0].pGetDof( DISPLACEMENT_X ) );
     rElementalDofList.push_back( GetGeometry()[0].pGetDof( DISPLACEMENT_Y ) );
     if( dimension == 3 )
-    {
-        rElementalDofList.push_back( GetGeometry()[0].pGetDof( DISPLACEMENT_Z ) );
-    }
-    
+        rElementalDofList.push_back( GetGeometry()[0].pGetDof( DISPLACEMENT_Z ) );    
 }
 
 //************************************************************************************
@@ -145,17 +142,12 @@ void NodalConcentratedElement::EquationIdVector(
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if ( rResult.size() != dimension )
-    {
         rResult.resize( dimension, false );
-    }
 
     rResult[0] = GetGeometry()[0].GetDof( DISPLACEMENT_X ).EquationId();
     rResult[1] = GetGeometry()[0].GetDof( DISPLACEMENT_Y ).EquationId();
     if( dimension == 3)
-    {
         rResult[2] = GetGeometry()[0].GetDof( DISPLACEMENT_Z ).EquationId();
-    }
-
 }
 
 //*********************************DISPLACEMENT***************************************
@@ -167,17 +159,13 @@ void NodalConcentratedElement::GetValuesVector( Vector& rValues, int Step )
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if ( rValues.size() != dimension ) 
-    {
         rValues.resize( dimension, false );
-    }
 
     rValues[0] = GetGeometry()[0].GetSolutionStepValue( DISPLACEMENT_X, Step );
     rValues[1] = GetGeometry()[0].GetSolutionStepValue( DISPLACEMENT_Y, Step );
 
     if ( dimension == 3 )
-    {
         rValues[2] = GetGeometry()[0].GetSolutionStepValue( DISPLACEMENT_Z, Step );
-    }
 }
 
 
@@ -190,18 +178,13 @@ void NodalConcentratedElement::GetFirstDerivativesVector( Vector& rValues, int S
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if ( rValues.size() != dimension ) 
-    {
         rValues.resize( dimension, false );
-    }
 
     rValues[0] = GetGeometry()[0].GetSolutionStepValue( VELOCITY_X, Step );
     rValues[1] = GetGeometry()[0].GetSolutionStepValue( VELOCITY_Y, Step );
 
     if ( dimension == 3 )
-    {
         rValues[2] = GetGeometry()[0].GetSolutionStepValue( VELOCITY_Z, Step );
-    }
-
 }
 
 //*********************************ACCELERATION***************************************
@@ -213,17 +196,13 @@ void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if ( rValues.size() != dimension ) 
-    {
         rValues.resize( dimension, false );
-    }
 
     rValues[0] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_X, Step );
     rValues[1] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_Y, Step );
 
     if ( dimension == 3 )
-    {
         rValues[2] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_Z, Step );
-    }
 }
 
 //************* STARTING - ENDING  METHODS
@@ -300,36 +279,40 @@ void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSide
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the RHS
-    const unsigned int SystemSize = dimension;
+    const unsigned int system_size = dimension;
 
-    if ( rRightHandSideVector.size() != SystemSize )
-    {
-        rRightHandSideVector.resize( SystemSize, false );
-    }
+    if ( rRightHandSideVector.size() != system_size )
+        rRightHandSideVector.resize( system_size, false );
 
-    rRightHandSideVector = ZeroVector( SystemSize ); //resetting RHS
+    rRightHandSideVector = ZeroVector( system_size ); //resetting RHS
 
-    const array_1d<double, 3 > Current_Displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
-    array_1d<double, 3 > Volume_Acceleration = ZeroVector(3);
+    const array_1d<double, 3 >& current_displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+    array_1d<double, 3 > volume_acceleration = ZeroVector(3);
 
     if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
-    {
-        Volume_Acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-    }
+        volume_acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
     // Compute and add external forces
-    const double Nodal_Mass = Element::GetValue(NODAL_MASS);
-    for ( unsigned int j = 0; j < dimension; j++ )
-    {
-        rRightHandSideVector[j]  += Volume_Acceleration[j] * Nodal_Mass;
+    if (this->Has(NODAL_MASS)){
+        const double Nodal_Mass = this->GetValue(NODAL_MASS);
+        for ( unsigned int j = 0; j < dimension; ++j )
+            rRightHandSideVector[j]  += volume_acceleration[j] * Nodal_Mass;
     }
+#ifdef KRATOS_DEBUG
+    else
+        std::cout << "WARNING :: YOUR NODAL ELEMENT LACKS OF NODAL MASS" << std::endl;
+#endif
 
     // Compute and add internal forces
-    const array_1d<double, 3 > Nodal_Stiffness = Element::GetValue(NODAL_STIFFNESS);
-    for ( unsigned int j = 0; j < dimension; j++ )
-    {
-        rRightHandSideVector[j]  -= Nodal_Stiffness[j] * Current_Displacement[j];
+    if (this->Has(NODAL_STIFFNESS)){
+        const array_1d<double, 3 >& nodal_stiffness = this->GetValue(NODAL_STIFFNESS);
+        for ( unsigned int j = 0; j < dimension; ++j )
+            rRightHandSideVector[j]  -= nodal_stiffness[j] * current_displacement[j];
     }
+#ifdef KRATOS_DEBUG
+    else
+        std::cout << "WARNING :: YOUR NODAL ELEMENT LACKS OF NODAL STIFFNESS" << std::endl;
+#endif
 
 }
 
@@ -341,20 +324,22 @@ void NodalConcentratedElement::CalculateLeftHandSide( MatrixType& rLeftHandSideM
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the LHS
-    const unsigned int SystemSize = dimension;
+    const unsigned int system_size = dimension;
 
-    if ( rLeftHandSideMatrix.size1() != SystemSize )
-    {
-        rLeftHandSideMatrix.resize( SystemSize, SystemSize, false );
+    if ( rLeftHandSideMatrix.size1() != system_size )
+        rLeftHandSideMatrix.resize( system_size, system_size, false );
+
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( system_size, system_size ); //resetting LHS
+
+    if (this->Has(NODAL_STIFFNESS)){
+        const array_1d<double, 3 >& nodal_stiffness = this->GetValue(NODAL_STIFFNESS);
+        for ( unsigned int j = 0; j < dimension; ++j )
+            rLeftHandSideMatrix(j, j) += nodal_stiffness[j];
     }
-
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix( SystemSize, SystemSize ); //resetting LHS
-
-    const array_1d<double, 3 > Nodal_Stiffness = Element::GetValue(NODAL_STIFFNESS);
-    for ( unsigned int j = 0; j < dimension; j++ )
-    {
-        rLeftHandSideMatrix(j, j) += Nodal_Stiffness[j];
-    }
+#ifdef KRATOS_DEBUG
+    else
+        std::cout << "WARNING :: YOUR NODAL ELEMENT LACKS OF NODAL STIFFNESS" << std::endl;
+#endif
     
 }
 
@@ -375,9 +360,7 @@ Matrix& NodalConcentratedElement::CalculateDeltaPosition(Matrix & rDeltaPosition
     rDeltaPosition(0, 0) = GetGeometry()[0].X() - GetGeometry()[0].X0();
     rDeltaPosition(0, 1) = GetGeometry()[0].Y() - GetGeometry()[0].Y0();
     if(dimension == 3)
-    {
         rDeltaPosition(0, 2) = GetGeometry()[0].Z() - GetGeometry()[0].Z0();
-    }
 
     return rDeltaPosition;
 
@@ -393,21 +376,17 @@ void NodalConcentratedElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
 
     //lumped
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int SystemSize = dimension;
+    unsigned int system_size = dimension;
 
-    if ( rMassMatrix.size1() != SystemSize )
-    {
-        rMassMatrix.resize( SystemSize, SystemSize, false );
-    }
+    if ( rMassMatrix.size1() != system_size )
+        rMassMatrix.resize( system_size, system_size, false );
 
-    rMassMatrix = ZeroMatrix( SystemSize, SystemSize );
+    rMassMatrix = ZeroMatrix( system_size, system_size );
 
-    double &Nodal_Mass = Element::GetValue(NODAL_MASS);
+    const double Nodal_Mass = this->GetValue(NODAL_MASS);
 
-    for ( unsigned int j = 0; j < dimension; j++ )
-    {
+    for ( unsigned int j = 0; j < dimension; ++j )
         rMassMatrix( j, j ) = Nodal_Mass;
-    }
 
     KRATOS_CATCH( "" );
 }
@@ -426,63 +405,50 @@ void NodalConcentratedElement::CalculateDampingMatrix(
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the LHS
-    const unsigned int SystemSize = dimension;
+    const unsigned int system_size = dimension;
 
-    rDampingMatrix = ZeroMatrix( SystemSize, SystemSize );
+    rDampingMatrix = ZeroMatrix( system_size, system_size );
 
     //Check, if Rayleigh damping is available; use nodal damping, if not
-    if( mUseRayleighDamping )
-    {
+    if( mUseRayleighDamping ) {
         //1.-Calculate StiffnessMatrix:
 
-        MatrixType StiffnessMatrix     = ZeroMatrix( SystemSize, SystemSize );
-        VectorType RightHandSideVector = ZeroVector( SystemSize ); 
+        MatrixType stiffness_matrix     = ZeroMatrix( system_size, system_size );
+        VectorType right_hand_side_vector = ZeroVector( system_size ); 
 
-        this->CalculateLocalSystem( StiffnessMatrix, RightHandSideVector, rCurrentProcessInfo );
+        this->CalculateLocalSystem( stiffness_matrix, right_hand_side_vector, rCurrentProcessInfo );
 
         //2.-Calculate MassMatrix:
 
-        MatrixType MassMatrix  = ZeroMatrix( SystemSize, SystemSize );
+        MatrixType mass_matrix  = ZeroMatrix( system_size, system_size );
 
-        this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+        this->CalculateMassMatrix ( mass_matrix, rCurrentProcessInfo );
         
         //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
         double alpha = 0.0;
         if( GetProperties().Has(RAYLEIGH_ALPHA) )
-        { 
             alpha = GetProperties()[RAYLEIGH_ALPHA];
-        }
         else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
-        { 
             alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-        }
 
         double beta  = 0.0;
         if( GetProperties().Has(RAYLEIGH_BETA) )
-        {
             beta = GetProperties()[RAYLEIGH_BETA];
-        }
         else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
-        { 
             beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-        }
 
         //4.-Compose the Damping Matrix:
     
         //Rayleigh Damping Matrix: alpha*M + beta*K
-        MassMatrix      *= alpha;
-        StiffnessMatrix *= beta;
+        mass_matrix      *= alpha;
+        stiffness_matrix *= beta;
 
-        rDampingMatrix  = MassMatrix;
-        rDampingMatrix += StiffnessMatrix;
-    }
-    else
-    {
-        const array_1d<double, 3 > Nodal_Damping_Ratio = Element::GetValue(NODAL_DAMPING_RATIO);
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            rDampingMatrix(j, j) += Nodal_Damping_Ratio[j];
-        }
+        rDampingMatrix  = mass_matrix;
+        rDampingMatrix += stiffness_matrix;
+    } else {
+        const array_1d<double, 3 >& nodal_damping_ratio = this->GetValue(NODAL_DAMPING_RATIO);
+        for ( unsigned int j = 0; j < dimension; ++j )
+            rDampingMatrix(j, j) += nodal_damping_ratio[j];
     }
 
     KRATOS_CATCH( "" );
@@ -495,63 +461,23 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {    
     KRATOS_TRY
     
-    // Verify that the variables are correctly initialized
-
-    if ( VELOCITY.Key() == 0 )
-    {
-        KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is correctly registered" << std::endl;
-    }
-
-    if ( DISPLACEMENT.Key() == 0 )
-    {
-        KRATOS_ERROR << "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-    }
-
-    if ( ACCELERATION.Key() == 0 )
-    {
-        KRATOS_ERROR << "ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
-    }
-
-    if ( NODAL_MASS.Key() == 0 )
-    {
-        KRATOS_ERROR << "NODAL_MASS has Key zero! (check if the application is correctly registered" << std::endl;
-    }
+    // Base class 
+    Element::Check(rCurrentProcessInfo);
     
-    if ( NODAL_STIFFNESS.Key() == 0 )
-    {
-        KRATOS_ERROR << "NODAL_STIFFNESS has Key zero! (check if the application is correctly registered" << std::endl;
-    }
+    // Verify that the variables are correctly initialized
+    KRATOS_ERROR_IF(VELOCITY.Key() == 0) << "VELOCITY has Key zero! (check if the application is correctly registered" << std::endl;
+    KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0 ) << "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
+    KRATOS_ERROR_IF(ACCELERATION.Key() == 0) << "ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
+    KRATOS_ERROR_IF(NODAL_MASS.Key() == 0) << "NODAL_MASS has Key zero! (check if the application is correctly registered" << std::endl;
+    KRATOS_ERROR_IF(NODAL_STIFFNESS.Key() == 0) << "NODAL_STIFFNESS has Key zero! (check if the application is correctly registered" << std::endl;
+    KRATOS_ERROR_IF(NODAL_DAMPING_RATIO.Key() == 0) << "NODAL_DAMPING_RATIO has Key zero! (check if the application is correctly registered" << std::endl;
+    KRATOS_ERROR_IF(VOLUME_ACCELERATION.Key() == 0) << "VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
 
-    if ( NODAL_DAMPING_RATIO.Key() == 0 )
-    {
-        KRATOS_ERROR << "NODAL_DAMPING_RATIO has Key zero! (check if the application is correctly registered" << std::endl;
-    }
-
-    if ( VOLUME_ACCELERATION.Key() == 0 )
-    {
-        KRATOS_ERROR << "VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
-    }
-
-    for ( std::size_t i = 0; i < this->GetGeometry().size(); i++ )
-    {
-        if ( this->GetGeometry()[i].SolutionStepsDataHas( VOLUME_ACCELERATION ) == false )
-        {
-            KRATOS_ERROR << "Missing variable VOLUME_ACCELERATION on node " << this->GetGeometry()[i].Id() << std::endl;
-        }
-    }
-
-    // Verify that the dofs exist
-    for ( std::size_t i = 0; i < this->GetGeometry().size(); i++ )
-    {
-        if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-        {
-            KRATOS_ERROR << "Missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
-        }
-
-        if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-        {
-            KRATOS_ERROR << "Missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << std::endl;
-        }
+    for ( std::size_t i = 0; i < this->GetGeometry().size(); ++i ) {
+        KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas( VOLUME_ACCELERATION ) == false) << "Missing variable VOLUME_ACCELERATION on node " << this->GetGeometry()[i].Id() << std::endl;
+        // Verify that the dofs exist
+        KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false) << "Missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
+        KRATOS_ERROR_IF(( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )) << "Missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << std::endl;
     }
     
     return 0;
