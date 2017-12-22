@@ -370,8 +370,12 @@ void NodalConcentratedElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
         rMassMatrix.resize( system_size, system_size, false );
 
     rMassMatrix = ZeroMatrix( system_size, system_size );
-
-    const double nodal_mass = this->GetValue(NODAL_MASS);
+    
+    // We get the reference
+    const auto& rconst_this = *this;
+    
+    // Get the nodal mass
+    const double nodal_mass = rconst_this.GetValue(NODAL_MASS);
 
     for ( unsigned int j = 0; j < dimension; ++j )
         rMassMatrix( j, j ) = nodal_mass;
