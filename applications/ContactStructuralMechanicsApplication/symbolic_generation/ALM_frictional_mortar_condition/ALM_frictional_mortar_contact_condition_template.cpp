@@ -191,6 +191,7 @@ int AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNo
     if(ierr != 0) return ierr;
 
     // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(NORMAL)
     KRATOS_CHECK_VARIABLE_KEY(VECTOR_LAGRANGE_MULTIPLIER)
     KRATOS_CHECK_VARIABLE_KEY(WEIGHTED_SLIP)
 
@@ -198,6 +199,7 @@ int AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNo
     for ( unsigned int i = 0; i < TNumNodes; ++i )
     {
         Node<3> &rnode = this->GetGeometry()[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VECTOR_LAGRANGE_MULTIPLIER,rnode)
 
         KRATOS_CHECK_DOF_IN_NODE(VECTOR_LAGRANGE_MULTIPLIER_X, rnode)

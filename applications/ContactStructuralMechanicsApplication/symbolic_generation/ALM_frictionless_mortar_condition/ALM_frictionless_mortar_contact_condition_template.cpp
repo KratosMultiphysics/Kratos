@@ -187,12 +187,14 @@ int AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,T
     if(ierr != 0) return ierr;
 
     // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(NORMAL)
     KRATOS_CHECK_VARIABLE_KEY(NORMAL_CONTACT_STRESS)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( unsigned int i = 0; i < TNumNodes; ++i )
     {
         Node<3> &rnode = this->GetGeometry()[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL_CONTACT_STRESS,rnode)
 
         KRATOS_CHECK_DOF_IN_NODE(NORMAL_CONTACT_STRESS, rnode)
