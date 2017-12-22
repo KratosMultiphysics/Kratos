@@ -286,7 +286,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     MortarConditionMatrices rThisMortarConditionMatrices;
     
     // We call the exact integration utility
-    IntegrationUtility integration_utility = IntegrationUtility (mIntegrationOrder);
+    // TODO: Think about the limit
+    IntegrationUtility integration_utility = IntegrationUtility (mIntegrationOrder, this->GetGeometry().Length());
     
     // If we consider the normal variation
     const NormalDerivativesComputation consider_normal_variation = static_cast<NormalDerivativesComputation>(rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION]);
@@ -448,7 +449,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     MortarConditionMatrices rThisMortarConditionMatrices;
     
     // We call the exact integration utility
-    IntegrationUtility integration_utility = IntegrationUtility (mIntegrationOrder);
+    // TODO: Think about the limit
+    IntegrationUtility integration_utility = IntegrationUtility (mIntegrationOrder, this->GetGeometry().Length());
     
     // The master geometry
     GeometryType& master_geometry = this->GetPairedGeometry();
