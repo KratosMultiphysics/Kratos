@@ -217,7 +217,6 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("angular_acceleration_of_frame_X").SetDouble(0.0)
         self.pp.CFD_DEM.AddEmptyValue("angular_acceleration_of_frame_Y").SetDouble(0.0)
         self.pp.CFD_DEM.AddEmptyValue("angular_acceleration_of_frame_Z").SetDouble(0.0)
-        self.pp.CFD_DEM.AddEmptyValue("BINGHAM_FLUID_option").SetBool(False)
         self.pp.CFD_DEM.print_DISPERSE_FRACTION_option = False
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
         self.pp.CFD_DEM.PostCationConcentration = False
