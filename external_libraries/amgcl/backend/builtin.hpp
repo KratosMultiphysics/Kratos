@@ -42,7 +42,10 @@ THE SOFTWARE.
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/range/iterator_range.hpp>
+
+#if BOOST_VERSION > 105800
 #include <boost/container/small_vector.hpp>
+#endif
 
 #include <amgcl/util.hpp>
 #include <amgcl/backend/interface.hpp>
@@ -704,8 +707,13 @@ struct inner_product_impl<
 #else
         const int nt = 1;
 #endif
+        
+#if BOOST_VERSION > 105800
         boost::container::small_vector<return_type, 64> sum(nt);
-
+#else
+        std::vector<return_type> sum(nt);
+#endif
+        
 #pragma omp parallel
         {
 #ifdef _OPENMP
