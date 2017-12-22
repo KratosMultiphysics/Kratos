@@ -300,7 +300,7 @@ void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSide
     }
 #ifdef KRATOS_DEBUG
     else
-        std::cout << "WARNING :: YOUR NODAL ELEMENT LACKS OF NODAL MASS" << std::endl;
+        std::cout << "WARNING :: YOUR NODAL ELEMENT ID: << this->Id() << LACKS OF NODAL MASS" << std::endl;
 #endif
 
     // Compute and add internal forces
@@ -311,7 +311,7 @@ void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSide
     }
 #ifdef KRATOS_DEBUG
     else
-        std::cout << "WARNING :: YOUR NODAL ELEMENT LACKS OF NODAL STIFFNESS" << std::endl;
+        std::cout << "WARNING :: YOUR NODAL ELEMENT ID: << this->Id() << LACKS OF NODAL STIFFNESS" << std::endl;
 #endif
 
 }
@@ -338,7 +338,7 @@ void NodalConcentratedElement::CalculateLeftHandSide( MatrixType& rLeftHandSideM
     }
 #ifdef KRATOS_DEBUG
     else
-        std::cout << "WARNING :: YOUR NODAL ELEMENT LACKS OF NODAL STIFFNESS" << std::endl;
+        std::cout << "WARNING :: YOUR NODAL ELEMENT ID: << this->Id() << LACKS OF NODAL STIFFNESS" << std::endl;
 #endif
     
 }
