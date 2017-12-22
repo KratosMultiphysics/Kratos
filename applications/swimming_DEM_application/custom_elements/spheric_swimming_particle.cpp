@@ -1387,7 +1387,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeBeetstraDragCoefficient()
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-double SphericSwimmingParticle<TBaseElement>::ComputeShahDragCoefficient(const bool use_shahi_correction = false)
+double SphericSwimmingParticle<TBaseElement>::ComputeShahDragCoefficient(const bool use_shahi_correction)
 {
     const double power_law_tol = 0.0001;
     const double n = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_N);
