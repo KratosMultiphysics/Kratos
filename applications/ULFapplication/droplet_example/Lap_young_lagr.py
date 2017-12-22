@@ -24,11 +24,11 @@ import sys
 sys.path.append(ProjectParameters.kratos_path)
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
-from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
 #from KratosMultiphysics.PFEM2Application import *
 from KratosMultiphysics.ALEApplication import *
 
@@ -41,6 +41,7 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "REACTION" : REACTION,
                         "DISTANCE" : DISTANCE,
 			 "AUX_VEL" : AUX_VEL,                        
+                        "DISPLACEMENT" : DISPLACEMENT,
                         "DISPLACEMENT" : DISPLACEMENT,
                         "IS_INTERFACE" : IS_INTERFACE,
                         "IS_STRUCTURE" : IS_STRUCTURE,
@@ -57,7 +58,7 @@ SolverType=problem_settings.SolverType
 if (SolverType=="Incompressible_Modified_FracStep"):
     fluid_only_model_part = ModelPart("FluidOnlyPart");
 
-#lagrangian_model_part.AddNodalSolutionStepVariable(CURVATURE)
+lagrangian_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
 lagrangian_model_part.AddNodalSolutionStepVariable(DISTANCE)
 lagrangian_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
 lagrangian_model_part.AddNodalSolutionStepVariable(VELOCITY)
@@ -68,7 +69,7 @@ lagrangian_model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
 lagrangian_model_part.AddNodalSolutionStepVariable(VISCOUS_STRESSX)
 lagrangian_model_part.AddNodalSolutionStepVariable(VISCOUS_STRESSY)
 lagrangian_model_part.AddNodalSolutionStepVariable(AUX_VEL)
-#lagrangian_model_part.AddNodalSolutionStepVariable(CONTACT_ANGLE)
+lagrangian_model_part.AddNodalSolutionStepVariable(CONTACT_ANGLE)
 lagrangian_model_part.AddNodalSolutionStepVariable(IS_WATER)
 
 
@@ -85,7 +86,7 @@ solver_lagr.AddVariables(lagrangian_model_part, SolverSettings)
 import mesh_solver
 mesh_solver.AddVariables(lagrangian_model_part)
 
-compute_reactions=False
+compute_reactions = False
 #reading the fluid part
 
 # initialize GiD  I/O
@@ -121,7 +122,7 @@ else:
     multifile = MultiFileFlag.SingleFile
 
 
-input_file_name = "drop" # "drop_square_h010" | "drop_square_h0075" | "drop_square_h0050" | "drop_square_h0025" | "drop_square_h0010" | "drop_square_h0005"
+input_file_name = "drop1" # "drop" | "square" 
 
 gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 
@@ -150,26 +151,34 @@ add_nodes=problem_settings.adaptive_refinement
 bulk_modulus=problem_settings.bulk_modulus
 density=problem_settings.density
 FSI=problem_settings.FSI
-
+#MoveMeshFlag = True
 eul_model_part = 0
+
+#domain_size = 2
 gamma = 1.0 		#surface tension coefficient [N m-1]
 contact_angle = 130 	#contact angle [deg]
 lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle)
+#lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, compute_reactions, box_corner1,box_corner2, domain_size, eul_model_part, gamma, contact_angle, add_nodes)
 #lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings)
+
 # Mesh solver:
-reform_dofs_at_each_step = False
-mesh_solver= mesh_solver.MeshSolver(lagrangian_model_part, 2, reform_dofs_at_each_step)
-#mesh_solver= mesh_solver.MeshSolver(lagrangian_model_part, reform_dofs_at_each_step)
+reform_dofs_each_step = False
+#linear_solver = BICGSTABSolver(1e-9, 300)
+time_order = 2
+mesh_solver= mesh_solver.MeshSolver(lagrangian_model_part, 2, reform_dofs_each_step)
+#mesh_solver= mesh_solver.MeshSolver(lagrangian_model_part, time_order, reform_dofs_each_step, compute_reactions, box_corner1,box_corner2, domain_size, add_nodes)
 pDiagPrecond = DiagonalPreconditioner()
 mesh_solver.linear_solver = CGSolver(1e-3, 300, pDiagPrecond)
 mesh_solver.time_order = 2
 mesh_solver.Initialize()
 mesh_solver.solver.SetEchoLevel(0)
+#mesh_solver.MoveMesh()
 print("mesh solver created")
 
 lag_solver.alpha_shape = problem_settings.alpha_shape;
 lag_solver.echo_level = 2;
 lag_solver.Initialize()
+
 print("lagrangian solver created")
 
 lagrangian_model_part.SetBufferSize(3)
@@ -215,8 +224,10 @@ while(time <= final_time):
     print("TIME = ", time)
 
     if(step >= 3):
-	  
+        print("Executing monolithic lagrangian solver")
+        
         lag_solver.Solve()
+        print("Executing mesh solver")
         mesh_solver.Solve()	
 
 ##################################################
@@ -246,7 +257,7 @@ while(time <= final_time):
         #gid_io.WriteNodalResults(FLAG_VARIABLE,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(FORCE,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(NORMAL,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(NODAL_H,lagrangian_model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(NODAL_H,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(PRESSURE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(VELOCITY,lagrangian_model_part.Nodes,time,0)
         
@@ -259,3 +270,4 @@ if Multifile:
     f.close()
 else:
     gid_io.FinalizeResults()
+

@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.StructuralApplication import *
 #from KratosMultiphysics.PFEMApplication import PfemUtils
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.MeshingApplication import *
@@ -79,7 +80,7 @@ def AddDofs(model_part, config=None):
     print("dofs for the SurfaceTension monolithic solver added correctly")
 
 
-class MonolithicSolver:
+class STMonolithicSolver:
     def __init__(self, model_part, domain_size, eul_model_part, gamma, contact_angle):
         self.model_part = model_part
         self.domain_size = domain_size
@@ -166,7 +167,7 @@ class MonolithicSolver:
             self.box_corner2 = box_corner2
 	  
             if(domain_size == 2):
-                self.Mesher = TriGenPFEMModeler()            
+                self.Mesher =  TriGenPFEMModeler()            
                 self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
                 #this is needed if we want to also store the conditions a node belongs to
                 self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
@@ -177,12 +178,29 @@ class MonolithicSolver:
 
     #
     def Initialize(self):
+        
+        if self.use_slip_conditions == False:
+            for cond in self.model_part.Conditions:
+                if cond.GetValue(IS_STRUCTURE) != 0.0:
+                    self.use_slip_conditions = True
+                    break
+
+        # if we use slip conditions, calculate normals on the boundary
+        if self.use_slip_conditions:
+            self.normal_util = NormalCalculationUtils()
+            self.normal_util.CalculateOnSimplex(
+                self.model_part, self.domain_size, IS_STRUCTURE)
+
+            for cond in self.model_part.Conditions:
+                if cond.GetValue(IS_STRUCTURE) != 0.0:
+                    for node in cond.GetNodes():
+                        node.SetValue(IS_STRUCTURE, 1.0)
        
         # creating the solution strategy
         self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol, self.rel_pres_tol, self.abs_pres_tol)
         #self.conv_criteria = ResidualCriteria(0.0001, 0.0000001)
         
-        (self.conv_criteria).SetEchoLevel(self.echo_level)
+        #(self.conv_criteria).SetEchoLevel(self.echo_level)
 
        
         self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.alpha, self.move_mesh_strategy, self.domain_size)
@@ -195,9 +213,13 @@ class MonolithicSolver:
             builder_and_solver, self.max_iter, self.compute_reactions, self.ReformDofSetAtEachStep, self.MoveMeshFlag)
         (self.solver).SetEchoLevel(self.echo_level)
         self.solver.Check()
+        
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau)
+        self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch)
+        self.model_part.ProcessInfo.SetValue(M, self.regularization_coef)
 
         
-        self.model_part.ProcessInfo.SetValue(CONTACT_ANGLE_STATIC, self.contact_angle)
+        #self.model_part.ProcessInfo.SetValue(CONTACT_ANGLE_STATIC, self.contact_angle)
         self.model_part.ProcessInfo.SetValue(SURFTENS_COEFF, self.gamma)
         
         if(self.eul_model_part == 0):
@@ -208,59 +230,78 @@ class MonolithicSolver:
 
 # print "Initialization monolithic solver finished"
     #
-    def Solve(self):   
-      
-        if self.divergence_clearance_steps > 0:
-            print("Calculating divergence-free initial condition")
-            # initialize with a Stokes solution step
-            try:
-                import KratosMultiphysics.ExternalSolversApplication as kes
-                smoother_type = kes.AMGCLSmoother.DAMPED_JACOBI
-                solver_type = kes.AMGCLIterativeSolverType.CG
-                gmres_size = 50
-                max_iter = 200
-                tol = 1e-6
-                verbosity = 0
-                stokes_linear_solver = kes.AMGCLSolver(
-                    smoother_type,
-                    solver_type,
-                    tol,
-                    max_iter,
-                    verbosity,
-                    gmres_size)
-            except:
-                pPrecond = DiagonalPreconditioner()
-                stokes_linear_solver = BICGSTABSolver(1e-6, 5000, pPrecond)
-            stokes_process = StokesInitializationProcess(
-                self.model_part,
-                stokes_linear_solver,
-                self.domain_size,
-                PATCH_INDEX)
-            # copy periodic conditions to Stokes problem
-            stokes_process.SetConditions(self.model_part.Conditions)
-            # execute Stokes process
-            stokes_process.Execute()
-            stokes_process = None
-            
-            for node in self.model_part.Nodes:
-                node.SetSolutionStepValue(PRESSURE, 0, 0.0)
-                node.SetSolutionStepValue(ACCELERATION_X, 0, 0.0)
-                node.SetSolutionStepValue(ACCELERATION_Y, 0, 0.0)
-                node.SetSolutionStepValue(ACCELERATION_Z, 0, 0.0)
+    def Solve(self):  
 
-            self.divergence_clearance_steps = 0
-            print("Finished divergence clearance")
+        #if self.divergence_clearance_steps > 0:
+            #print("Calculating divergence-free initial condition")
+            ## initialize with a Stokes solution step
+            #try:
+                #import KratosMultiphysics.ExternalSolversApplication as kes
+                #smoother_type = kes.AMGCLSmoother.DAMPED_JACOBI
+                #solver_type = kes.AMGCLIterativeSolverType.CG
+                #gmres_size = 50
+                #max_iter = 200
+                #tol = 1e-6
+                #verbosity = 0
+                #stokes_linear_solver = kes.AMGCLSolver(
+                    #smoother_type,
+                    #solver_type,
+                    #tol,
+                    #max_iter,
+                    #verbosity,
+                    #gmres_size)
+            #except:
+                #pPrecond = DiagonalPreconditioner()
+                #stokes_linear_solver = BICGSTABSolver(1e-6, 5000, pPrecond)
+            #stokes_process = StokesInitializationProcess(
+                #self.model_part,
+                #stokes_linear_solver,
+                #self.domain_size,
+                #PATCH_INDEX)
+            ## copy periodic conditions to Stokes problem
+            #stokes_process.SetConditions(self.model_part.Conditions)
+            ## execute Stokes process
+            #stokes_process.Execute()
+            #stokes_process = None
+            
+            #for node in self.model_part.Nodes:
+                #node.SetSolutionStepValue(PRESSURE, 0, 0.0)
+                #node.SetSolutionStepValue(ACCELERATION_X, 0, 0.0)
+                #node.SetSolutionStepValue(ACCELERATION_Y, 0, 0.0)
+                #node.SetSolutionStepValue(ACCELERATION_Z, 0, 0.0)
+
+            #self.divergence_clearance_steps = 0
+            #print("Finished divergence clearance")
+            
+        if self.ReformDofSetAtEachStep:
+            if self.use_slip_conditions:
+                self.normal_util.CalculateOnSimplex(
+                    self.model_part, self.domain_size, IS_STRUCTURE)
+            if self.use_spalart_allmaras:
+                self.neighbour_search.Execute()
+                
+        NormalCalculationUtils().CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
+        for node in self.model_part.Nodes:
+            if (node.GetSolutionStepValue(IS_BOUNDARY) == 0.0):# and node.GetSolutionStepValue(TRIPLE_POINT) == 0):
+                node.SetSolutionStepValue(NORMAL_X,0,0.0)
+                node.SetSolutionStepValue(NORMAL_Y,0,0.0)
+                node.SetSolutionStepValue(NORMAL_Z,0,0.0)    
 
 
         if (self.domain_size == 2):
             CalculateCurvature().CalculateCurvature2D(self.model_part)
+
+            
+        #self.solver.MoveMesh()
 	  
         (self.solver).Solve() #it dumps in this line... 20151020
         #AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.model_part)
         
+        #self.solver.MoveMesh()
+        
         if(self.eul_model_part == 0):
             (self.fluid_neigh_finder).Execute();
-            (self.fluid_neigh_finder).Execute();
+            #(self.fluid_neigh_finder).Execute();
             self.Remesh();
 
     #
@@ -286,7 +327,7 @@ class MonolithicSolver:
         h_factor=0.25;
         
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
+         (self.Mesher).ReGenerateMesh("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
        
         (self.fluid_neigh_finder).Execute();
         (self.condition_neigh_finder).Execute();
@@ -332,10 +373,35 @@ class MonolithicSolver:
         print("end of remesh function")
     ######################################################################
    
+    def FindNeighbours(self):
+        (self.neigh_finder).Execute();
+        
+    #def cont_angle_cond(self):
+        #theta_adv = 105
+        #theta_rec = 70
+	##theta_adv = self.contact_angle + 0.5
+	##theta_rec = self.contact_angle - 0.5
+        #time = self.model_part.ProcessInfo.GetValue(TIME)
+        #dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
+	##x_mean = 0.0
+	##found_tp = 0
+	################### For sessile drop examples
+        #for node in self.model_part.Nodes:
+	    ##if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
+		##if ((node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec)):
+		    ##node.Free(VELOCITY_X)
+		##else:
+            ##node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+            ##node.Fix(VELOCITY_X)
+            #if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
+                    #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                    #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                    #node.Fix(VELOCITY_X)
+                    #node.Fix(VELOCITY_Y)    
 
 
 def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle): #FOR 3D!!!!!!!!!!
-    fluid_solver = MonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle)    
+    fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle)    
       
     if(hasattr(config, "alpha")):
         fluid_solver.alpha = config.alpha
@@ -373,3 +439,4 @@ def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle): #FOR
             config.linear_solver_config)
 
     return fluid_solver
+

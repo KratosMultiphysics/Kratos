@@ -801,6 +801,7 @@ private:
             number_of_structure_nodes += int( temp[1].FastGetSolutionStepValue(IS_STRUCTURE) );
             number_of_structure_nodes += int( temp[2].FastGetSolutionStepValue(IS_STRUCTURE) );
 
+            
             //check the number of nodes of boundary
             int nfs = int( temp[0].FastGetSolutionStepValue(IS_FREE_SURFACE) );
             nfs += int( temp[1].FastGetSolutionStepValue(IS_FREE_SURFACE) );
@@ -1450,7 +1451,7 @@ private:
     }
     // end of alex code
 
-    void initialize_triangulateio( triangulateio& tr )
+ void initialize_triangulateio( triangulateio& tr )
     {
         tr.pointlist                  = (REAL*) nullptr;
         tr.pointattributelist         = (REAL*) nullptr;
@@ -1552,6 +1553,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED  defined 
-
-
-

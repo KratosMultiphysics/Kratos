@@ -26,7 +26,7 @@ class FluidSolverConfiguration:
     time_order = 2
     predictor_corrector = False
     dynamic_tau = 0.1
-    max_iteration = 2000
+    max_iteration = 20
     laplacian_form = 2
     
     eulerian_model_part = 0
@@ -34,7 +34,7 @@ class FluidSolverConfiguration:
 # Monolithic solver
 Monolithic_Linear_Solver ="MixedUP"#"BiConjugate gradient stabilized"#
 Monolithic_Iterative_Tolerance = 1E-4
-Monolithic_Solver_Max_Iteration = 50000
+Monolithic_Solver_Max_Iteration = 5000
 Monolithic_Preconditioner_type = "ILU0"#"Diagonal"
 
 Velocity_Linear_Solver="BiConjugate gradient stabilized"
@@ -43,8 +43,8 @@ Velocity_Preconditioner_type="ILU0"
 Pressure_Preconditioner_type="ILU0"
 Velocity_Iterative_Tolerance=1E-6
 Pressure_Iterative_Tolerance=1E-3
-Velocity_Solver_Max_Iteration = 50000
-Pressure_Solver_Max_Iteration = 10000
+Velocity_Solver_Max_Iteration = 5000
+Pressure_Solver_Max_Iteration = 1000
 
 TurbulenceModel = "None"
 
@@ -60,10 +60,10 @@ laplacian_form = 2
 
 AutomaticDeltaTime = "Fixed"
 divergence_cleareance_step = 10
-Dt = 0.01
+Dt = 0.1
 Start_time = 0.0
 max_time = 1.00
-nsteps = 100
+nsteps = 10
 
 use_dt_in_stabilization = 0.10
 use_orthogonal_subscales = 0
