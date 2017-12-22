@@ -28,7 +28,9 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         n = A.Size1()
         b = KratosMultiphysics.Vector(n)
         space.SetToZeroVector(b)
-        b[1] = 1.0
+        
+        for i in range(len(b)):
+            b[i] = i/len(b)
         
         x = KratosMultiphysics.Vector(n)
         #KratosMultiphysics.ReadMatrixMarketVector("b.mm",b)
@@ -63,6 +65,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         target_norm = tolerance*space.TwoNorm(boriginal)
 
         if(not (achieved_norm <= target_norm)):
+            print("echo of settings for failing test:")
             print(settings.PrettyPrintJsonString())
             print("achieved_norm",achieved_norm)
             print("target_norm",target_norm)
@@ -274,8 +277,8 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 ]
             }
             """)
-        
-    def test_bicgstab_ilu0(self):
+    
+    def test_amgcl_bicgstab_ilu0(self):
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -287,7 +290,30 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "max_iteration": 100,
                         "provide_coordinates": false,
                         "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 1,
+                        "verbosity" : 0,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
+
+    def test_amgcl_idr_ilu0(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "AMGCL",
+                        "smoother_type":"ilu0",
+                        "krylov_type": "idrs",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 100,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 0,
                         "tolerance": 1e-6,
                         "scaling": false,
                         "block_size": 1,
@@ -298,7 +324,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
         
-    def test_bicgstab_spai0(self):
+    def test_amgcl_bicgstab_spai0(self):
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -344,7 +370,6 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 ]
             }
             """)
-        
         
         
     def test_amgcl_bicgstabl(self):
