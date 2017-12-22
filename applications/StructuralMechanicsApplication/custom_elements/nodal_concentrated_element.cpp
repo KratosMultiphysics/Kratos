@@ -449,10 +449,6 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {    
     KRATOS_TRY
     
-    // Base class 
-    int ierr = Element::Check(rCurrentProcessInfo);
-    if(ierr != 0) return ierr;
-    
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
