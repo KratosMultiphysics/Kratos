@@ -104,11 +104,11 @@ class DamHydroConditionLoadProcess : public Process
         int direction;
 
         if (mGravityDirection == "X")
-            direction = 1;
+            direction = 0;
         else if (mGravityDirection == "Y")
-            direction = 2;
+            direction = 1;
         else
-            direction = 3;
+            direction = 2;
 
         double ref_coord = mReferenceCoordinate + mWaterLevel;
 
@@ -121,7 +121,7 @@ class DamHydroConditionLoadProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double pressure = (mSpecific * (ref_coord - (it->Coordinate(direction))));
+                double pressure = (mSpecific * (ref_coord - it->Coordinates()[direction]));
 
                 if (pressure > 0.0)
                 {
@@ -159,11 +159,11 @@ class DamHydroConditionLoadProcess : public Process
         int direction;
 
         if (mGravityDirection == "X")
-            direction = 1;
+            direction = 0;
         else if (mGravityDirection == "Y")
-            direction = 2;
+            direction = 1;
         else
-            direction = 3;
+            direction = 2;
 
         double ref_coord = mReferenceCoordinate + mWaterLevel;
 
@@ -176,7 +176,7 @@ class DamHydroConditionLoadProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double pressure = (mSpecific * (ref_coord - (it->Coordinate(direction))));
+                double pressure = (mSpecific * (ref_coord - it->Coordinates()[direction]));
 
                 if (pressure > 0.0)
                 {

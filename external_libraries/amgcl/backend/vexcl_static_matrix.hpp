@@ -391,7 +391,7 @@ class ell<amgcl::static_matrix<T, N, N>, Col, Ptr> {
         }
 
         template <class Vector>
-        void expression_properties(const Vector &x,
+        void expression_properties(const Vector&,
             std::vector<backend::command_queue> &queue_list,
             std::vector<size_t> &partition,
             size_t &size) const
@@ -634,8 +634,8 @@ struct vex_scale {
             return "scale_" + vex::type_name<vector>();
         }
 
-        static void define(vex::backend::source_generator &src, const std::string &name = name()) {
-            src.begin_function<vector>(name);
+        static void define(vex::backend::source_generator &src, const std::string &fname = name()) {
+            src.begin_function<vector>(fname);
             src.begin_function_parameters();
             src.parameter<T>("a");
             src.parameter<vector>("m");
@@ -659,8 +659,8 @@ struct vex_add {
             return "add_" + vex::type_name<vector>();
         }
 
-        static void define(vex::backend::source_generator &src, const std::string &name = name()) {
-            src.begin_function<vector>(name);
+        static void define(vex::backend::source_generator &src, const std::string &fname = name()) {
+            src.begin_function<vector>(fname);
             src.begin_function_parameters();
             src.parameter<vector>("a");
             src.parameter<vector>("b");
@@ -685,8 +685,8 @@ struct vex_sub {
             return "sub_" + vex::type_name<vector>();
         }
 
-        static void define(vex::backend::source_generator &src, const std::string &name = name()) {
-            src.begin_function<vector>(name);
+        static void define(vex::backend::source_generator &src, const std::string &fname = name()) {
+            src.begin_function<vector>(fname);
             src.begin_function_parameters();
             src.parameter<vector>("a");
             src.parameter<vector>("b");
@@ -712,8 +712,8 @@ struct vex_mul {
             return "mul_" + vex::type_name<matrix>();
         }
 
-        static void define(vex::backend::source_generator &src, const std::string &name = name()) {
-            src.begin_function<vector>(name);
+        static void define(vex::backend::source_generator &src, const std::string &fname = name()) {
+            src.begin_function<vector>(fname);
             src.begin_function_parameters();
             src.parameter<matrix>("a");
             src.parameter<vector>("b");

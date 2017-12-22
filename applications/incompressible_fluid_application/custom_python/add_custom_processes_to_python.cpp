@@ -60,7 +60,6 @@
 #include "custom_processes/save_element_by_flag_process.h"
 #include "custom_processes/explicit_dt.h"
 #include "custom_processes/assign_h_by_distance_process.h" 
-#include "custom_processes/copy_to_vulcan_post_variables_process.h"
 #include "custom_processes/save_external_surface_embedded.h"
 
 #include "includes/node.h"
@@ -143,8 +142,6 @@ void  AddCustomProcessesToPython()
     class_<SaveFlagModelPartProcess, bases<Process> >("SaveFlagModelPartProcess", init<ModelPart&, ModelPart&,int,Kratos::Variable<double>&, double >())
     ; 	      
     class_<AssignHByDistanceProcess, bases<Process> >("AssignHByDistanceProcess", init<ModelPart&, double, double, double, double >())
-    ; 	  
-   class_<CopyToVulcanPostVariablesProcess, bases<Process>  >("CopyToVulcanPostVariablesProcess",init<ModelPart&  >())    
     ;
 }
 

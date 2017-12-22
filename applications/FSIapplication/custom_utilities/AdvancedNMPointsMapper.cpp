@@ -38,7 +38,7 @@ void GaussPointItem::Project(Condition::Pointer pOriginCond,
     if (dimension == 2)
     {
         Point point_projected;
-        Point point_to_project = Point(this->Coordinate(1), this->Coordinate(2), this->Coordinate(3));
+        Point point_to_project = Point(this->X(), this->Y(), this->Z());
         ProjectPointToLine(rOriginGeom[0], point_to_project, point_projected, Dist);
 
         array_1d<double, 3> point_projected_local_coor;
@@ -61,9 +61,7 @@ void GaussPointItem::Project(Condition::Pointer pOriginCond,
 
         array_1d<double, 3> RHS, Res;
 
-        RHS[0] = this->Coordinate(1) - rOriginGeom[0].X();
-        RHS[1] = this->Coordinate(2) - rOriginGeom[0].Y();
-        RHS[2] = this->Coordinate(3) - rOriginGeom[0].Z();
+        noalias(RHS) = this->Coordinates() - rOriginGeom[0].Coordinates();
 
         ChangeMatrix(0, 0) = rOriginGeom[1].X() - rOriginGeom[0].X();
         ChangeMatrix(1, 0) = rOriginGeom[1].Y() - rOriginGeom[0].Y();
@@ -237,9 +235,10 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(ModelPart& rOriginModelPart,
 
             for(unsigned int i = 0; i < nnodes; i++)
             {
+                const array_1d<double,3>& r_coordinates = rGeom[i].Coordinates();
                 for(unsigned int j = 0; j < 3; j++)
                 {
-                    Nodes(i,j) = rGeom[i].Coordinate(j + 1);
+                    Nodes(i,j) = r_coordinates[j];
                 }
             }
 
@@ -423,9 +422,10 @@ void AdvancedNMPointsMapper::ComputeGeometryCenterAndRadius(const Condition::Poi
 
     for(unsigned int i = 0; i < nnodes; i++)
     {
-        double dx = Center.Coordinate(1) - Cond->GetGeometry()[i].X();
-        double dy = Center.Coordinate(2) - Cond->GetGeometry()[i].Y();
-        double dz = Center.Coordinate(3) - Cond->GetGeometry()[i].Z();
+        const Node<3>& r_node = Cond->GetGeometry()[i];
+        double dx = Center.X() - r_node.X();
+        double dy = Center.Y() - r_node.Y();
+        double dz = Center.Z() - r_node.Z();
 
         double tmp = dx*dx + dy*dy + dz*dz;
         Radius = std::max(Radius,tmp);
