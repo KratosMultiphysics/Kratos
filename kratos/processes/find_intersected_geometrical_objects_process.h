@@ -219,7 +219,7 @@ namespace Kratos
   It also provides some helper methods for derived classes to check
   individual element or condition interesections.
   */
-  class FindIntersectedGeometricalObjectsProcess : public Process
+  class KRATOS_API(KRATOS_CORE) FindIntersectedGeometricalObjectsProcess : public Process
     {
     public:
       ///@name Type Definitions
