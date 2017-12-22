@@ -15,6 +15,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/checks.h"
 #include "custom_elements/nodal_concentrated_element.hpp"
 
 #include "structural_mechanics_application_variables.h"
@@ -292,28 +293,18 @@ void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSide
     if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
         volume_acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
+    // We get the reference
+    const auto& rconst_this = *this;
+    
     // Compute and add external forces
-    if (this->Has(NODAL_MASS)){
-        const double Nodal_Mass = this->GetValue(NODAL_MASS);
-        for ( unsigned int j = 0; j < dimension; ++j )
-            rRightHandSideVector[j]  += volume_acceleration[j] * Nodal_Mass;
-    }
-#ifdef KRATOS_DEBUG
-    else
-        std::cout << "WARNING :: YOUR NODAL ELEMENT ID: << this->Id() << LACKS OF NODAL MASS" << std::endl;
-#endif
+    const double nodal_mass = rconst_this.GetValue(NODAL_MASS);
+    for ( unsigned int j = 0; j < dimension; ++j )
+        rRightHandSideVector[j]  += volume_acceleration[j] * nodal_mass;
 
     // Compute and add internal forces
-    if (this->Has(NODAL_STIFFNESS)){
-        const array_1d<double, 3 >& nodal_stiffness = this->GetValue(NODAL_STIFFNESS);
-        for ( unsigned int j = 0; j < dimension; ++j )
-            rRightHandSideVector[j]  -= nodal_stiffness[j] * current_displacement[j];
-    }
-#ifdef KRATOS_DEBUG
-    else
-        std::cout << "WARNING :: YOUR NODAL ELEMENT ID: << this->Id() << LACKS OF NODAL STIFFNESS" << std::endl;
-#endif
-
+    const array_1d<double, 3 >& nodal_stiffness = rconst_this.GetValue(NODAL_STIFFNESS);
+    for ( unsigned int j = 0; j < dimension; ++j )
+        rRightHandSideVector[j]  -= nodal_stiffness[j] * current_displacement[j];
 }
 
 //***********************************************************************************
@@ -331,16 +322,13 @@ void NodalConcentratedElement::CalculateLeftHandSide( MatrixType& rLeftHandSideM
 
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( system_size, system_size ); //resetting LHS
 
-    if (this->Has(NODAL_STIFFNESS)){
-        const array_1d<double, 3 >& nodal_stiffness = this->GetValue(NODAL_STIFFNESS);
-        for ( unsigned int j = 0; j < dimension; ++j )
-            rLeftHandSideMatrix(j, j) += nodal_stiffness[j];
-    }
-#ifdef KRATOS_DEBUG
-    else
-        std::cout << "WARNING :: YOUR NODAL ELEMENT ID: << this->Id() << LACKS OF NODAL STIFFNESS" << std::endl;
-#endif
+    // We get the reference
+    const auto& rconst_this = *this;
     
+    // We add the nodal stiffness
+    const array_1d<double, 3 >& nodal_stiffness = rconst_this.GetValue(NODAL_STIFFNESS);
+    for ( unsigned int j = 0; j < dimension; ++j )
+        rLeftHandSideMatrix(j, j) += nodal_stiffness[j];
 }
 
 //*************************COMPUTE DELTA POSITION*************************************
@@ -383,10 +371,10 @@ void NodalConcentratedElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
 
     rMassMatrix = ZeroMatrix( system_size, system_size );
 
-    const double Nodal_Mass = this->GetValue(NODAL_MASS);
+    const double nodal_mass = this->GetValue(NODAL_MASS);
 
     for ( unsigned int j = 0; j < dimension; ++j )
-        rMassMatrix( j, j ) = Nodal_Mass;
+        rMassMatrix( j, j ) = nodal_mass;
 
     KRATOS_CATCH( "" );
 }
@@ -462,22 +450,28 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
     KRATOS_TRY
     
     // Base class 
-    Element::Check(rCurrentProcessInfo);
+    int ierr = Element::Check(rCurrentProcessInfo);
+    if(ierr != 0) return ierr;
     
-    // Verify that the variables are correctly initialized
-    KRATOS_ERROR_IF(VELOCITY.Key() == 0) << "VELOCITY has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0 ) << "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF(ACCELERATION.Key() == 0) << "ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF(NODAL_MASS.Key() == 0) << "NODAL_MASS has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF(NODAL_STIFFNESS.Key() == 0) << "NODAL_STIFFNESS has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF(NODAL_DAMPING_RATIO.Key() == 0) << "NODAL_DAMPING_RATIO has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF(VOLUME_ACCELERATION.Key() == 0) << "VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
-
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
+    KRATOS_CHECK_VARIABLE_KEY(NODAL_MASS)
+    KRATOS_CHECK_VARIABLE_KEY(NODAL_STIFFNESS)
+    KRATOS_CHECK_VARIABLE_KEY(NODAL_DAMPING_RATIO)
+    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
+    
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( std::size_t i = 0; i < this->GetGeometry().size(); ++i ) {
-        KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas( VOLUME_ACCELERATION ) == false) << "Missing variable VOLUME_ACCELERATION on node " << this->GetGeometry()[i].Id() << std::endl;
-        // Verify that the dofs exist
-        KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false) << "Missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
-        KRATOS_ERROR_IF(( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )) << "Missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << std::endl;
+        Node<3>& rnode = this->GetGeometry()[i];
+        
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rnode)
+
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rnode)
     }
     
     return 0;
