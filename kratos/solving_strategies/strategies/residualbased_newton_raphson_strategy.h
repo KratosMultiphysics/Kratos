@@ -474,14 +474,6 @@ class ResidualBasedNewtonRaphsonStrategy
         GetBuilderAndSolver()->Clear();
         GetScheme()->Clear();
 
-        if (this->GetEchoLevel() > 0)
-        {
-            if (BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-            {
-                std::cout << "Newton Raphson strategy Clear function used" << std::endl;
-            }
-        }
-
         KRATOS_CATCH("");
     }
 

@@ -1,14 +1,19 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-#import kratos core and applications
-import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.mpi as mpi
-import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-import KratosMultiphysics.MetisApplication as MetisApplication
-import trilinos_structural_mechanics_solver
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+# Importing the Kratos Library
+import KratosMultiphysics
+import KratosMultiphysics.mpi as KratosMPI
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication","MetisApplication","TrilinosApplication")
+
+# Import applications
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.MetisApplication as MetisApplication
+import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+
+# Import base class file
+import trilinos_structural_mechanics_solver
 
 
 def CreateSolver(main_model_part, custom_settings):
@@ -45,12 +50,12 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
     def AddVariables(self):
         super(TrilinosImplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
-        print("::[TrilinosImplicitMechanicalSolver]:: Variables ADDED")
+        self.print_on_rank_zero("::[TrilinosImplicitMechanicalSolver]:: Variables ADDED")
     
     def AddDofs(self):
         super(TrilinosImplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()
-        print("::[TrilinosImplicitMechanicalSolver]:: DOF's ADDED")
+        self.print_on_rank_zero("::[TrilinosImplicitMechanicalSolver]:: DOF's ADDED")
 
     #### Private functions ####
 

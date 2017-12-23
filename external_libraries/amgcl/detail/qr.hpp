@@ -258,18 +258,21 @@ class QR {
         // Solves the system Q R x = f
         void solve(
                 int rows, int cols, int row_stride, int col_stride, value_type *A,
-                value_type *f, value_type *x)
+                const value_type *b, value_type *x, bool computed = false)
         {
+            f.resize(rows);
+            std::copy(b, b + rows, f.begin());
+
             if (rows >= cols) {
                 // We are solving overdetermined (tall) system Ax = f by
                 // writing the matrix A as A = QR and solving for x as
                 // x = R^-1 Q^-1 f = R^-1 Q^T f.
-                compute(rows, cols, row_stride, col_stride, A);
+                if (!computed) compute(rows, cols, row_stride, col_stride, A);
 
                 for(int i = 0, ii = 0; i < cols; ++i, ii += row_stride + col_stride)
-                    apply_reflector(rows-i, 1, r+ii, row_stride, math::adjoint(tau[i]), f+i, 1, 1);
+                    apply_reflector(rows-i, 1, r+ii, row_stride, math::adjoint(tau[i]), &f[i], 1, 1);
 
-                std::copy(f, f+cols, x);
+                std::copy(f.begin(), f.begin()+cols, x);
 
                 for(int i = cols, ia = (cols-1) * col_stride; i --> 0; ia -= col_stride) {
                     value_type rii = r[i*(row_stride+col_stride)];
@@ -283,9 +286,11 @@ class QR {
                 // We are solving underdetermined (wide) system Ax = f by
                 // writing the matrix A^T as A^T = QR and solving for x as
                 // x = Q^-T R^-T f = Q R^-T f.
-                for(int i = 0, n = cols * rows; i < n; ++i)
-                    A[i] = math::adjoint(A[i]);
-                compute(cols, rows, col_stride, row_stride, A);
+                if (!computed) {
+                    for(int i = 0, n = cols * rows; i < n; ++i)
+                        A[i] = math::adjoint(A[i]);
+                    compute(cols, rows, col_stride, row_stride, A);
+                }
 
                 for(int i = 0, ia = 0; i < rows; ++i, ia += col_stride) {
                     value_type rii = math::adjoint(r[i*(row_stride+col_stride)]);
@@ -296,7 +301,7 @@ class QR {
                         f[j] -= math::adjoint(r[ia + ja]) * f[i];
                 }
 
-                std::copy(f, f+rows, x);
+                std::copy(f.begin(), f.end(), x);
                 std::fill(x+rows, x+cols, math::zero<value_type>());
 
                 for(int i = rows; i --> 0; ) {
@@ -307,13 +312,13 @@ class QR {
         }
 
         void solve(
-                int rows, int cols, value_type *A, value_type *f, value_type *x,
-                storage_order order = row_major
+                int rows, int cols, value_type *A, const value_type *b, value_type *x,
+                storage_order order = row_major, bool computed = false
                 )
         {
             int row_stride = (order == row_major ? cols : 1);
             int col_stride = (order == row_major ? 1 : rows);
-            solve(rows, cols, row_stride, col_stride, A, f, x);
+            solve(rows, cols, row_stride, col_stride, A, b, x, computed);
         }
 
     private:
@@ -324,7 +329,7 @@ class QR {
         int m, n, row_stride, col_stride;
 
         value_type *r;
-        std::vector<value_type> tau;
+        std::vector<value_type> tau, f;
         std::vector<value_type> q;
 
         static value_type gen_reflector(int order, value_type &alpha, value_type *x, int stride) {
@@ -530,7 +535,7 @@ class QR<value_type, typename boost::enable_if< math::is_static_matrix<value_typ
         // Solves the system Q R x = f
         void solve(
                 int rows, int cols, int row_stride, int col_stride, value_type *A,
-                rhs_type *f, rhs_type *x)
+                const rhs_type *f, rhs_type *x, bool computed = false)
         {
             const int M = math::static_rows<value_type>::value;
             const int N = math::static_cols<value_type>::value;
@@ -542,19 +547,20 @@ class QR<value_type, typename boost::enable_if< math::is_static_matrix<value_typ
 
             copy_to_scalar_buf(rows, cols, row_stride, col_stride, A);
             base.solve(m, n, 1, m, buf.data(),
-                    reinterpret_cast<scalar_type*>(f),
-                    reinterpret_cast<scalar_type*>(x)
+                    reinterpret_cast<const scalar_type*>(f),
+                    reinterpret_cast<scalar_type*>(x),
+                    computed
                     );
         }
 
         void solve(
-                int rows, int cols, value_type *A, rhs_type *f, rhs_type *x,
-                storage_order order = row_major
+                int rows, int cols, value_type *A, const rhs_type *f, rhs_type *x,
+                storage_order order = row_major, bool computed = false
                 )
         {
             int row_stride = (order == row_major ? cols : 1);
             int col_stride = (order == row_major ? 1 : rows);
-            solve(rows, cols, row_stride, col_stride, A, f, x);
+            solve(rows, cols, row_stride, col_stride, A, f, x, computed);
         }
 
     private:
