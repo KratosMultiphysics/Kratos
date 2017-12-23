@@ -312,7 +312,7 @@ private:
      * This method checks the potential pairing between two conditions/geometries
      */
     inline void AddPotentialPairing(
-        ModelPart& ComputingModelPart,
+        ModelPart& rComputingModelPart,
         std::size_t& ConditionId,
         Condition::Pointer pCondSlave,
         PointVector& PointsFound,
@@ -322,14 +322,28 @@ private:
     
     /**
      * This method add a new pair to the computing model part
-     * @param ComputingModelPart The modelpart  used in the assemble of the system
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
+     * @param ConditionId The ID of the new condition to be created
+     * @param pCondSlave The pointer to the slave condition
+     * @param pCondMaster The pointer to the master condition
+     */
+    inline void AddPairing(
+        ModelPart& rComputingModelPart,
+        std::size_t& ConditionId,
+        Condition::Pointer pCondSlave,
+        Condition::Pointer pCondMaster
+        );
+    
+    /**
+     * This method add a new pair to the computing model part
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
      * @param ConditionId The ID of the new condition to be created
      * @param pCondSlave The pointer to the slave condition
      * @param pCondMaster The pointer to the master condition
      * @param IndexesSet The map of indexes considered
      */
     inline void AddPairing(
-        ModelPart& ComputingModelPart,
+        ModelPart& rComputingModelPart,
         std::size_t& ConditionId,
         Condition::Pointer pCondSlave,
         Condition::Pointer pCondMaster,
@@ -338,11 +352,23 @@ private:
     
     /**
      * This method checks the pairing
-     * @param ComputingModelPart The modelpart  used in the assemble of the system
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
      * @param ConditionId The ID of the new condition to be created
      */
     inline void CheckPairing(
-        ModelPart& ComputingModelPart,
+        ModelPart& rComputingModelPart,
+        std::size_t& ConditionId
+        );
+    
+    /**
+     * This method creates the auxiliar the pairing
+     * @param rContactModelPart The modelpart  used in the assemble of the system
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
+     * @param ConditionId The ID of the new condition to be created
+     */
+    inline void CreateAuxiliarConditions(
+        ModelPart& rContactModelPart,
+        ModelPart& rComputingModelPart,
         std::size_t& ConditionId
         );
     
