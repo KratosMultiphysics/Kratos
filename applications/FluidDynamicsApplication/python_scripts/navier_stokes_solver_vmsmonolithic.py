@@ -175,7 +175,9 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
 
 
     def Solve(self):
-        (self.solver).Solve()
+        # Note that the first time step is dropped to fill the Bossak buffer
+        if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= 2):
+            (self.solver).Solve()
 
 
     def _ExecuteAfterReading(self):
