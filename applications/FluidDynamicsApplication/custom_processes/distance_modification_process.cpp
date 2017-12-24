@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "utilities/openmp_utils.h"
 #include "processes/find_nodal_h_process.h"
 
@@ -31,7 +32,7 @@ DistanceModificationProcess::DistanceModificationProcess(
     ModelPart& rModelPart,
     const double FactorCoeff,
     const double DistanceThreshold,
-    const bool CheckAtEachStep, 
+    const bool CheckAtEachStep,
     const bool NegElemDeactivation,
     const bool RecoverOriginalDistance)
     : Process(), mrModelPart(rModelPart) {
@@ -71,11 +72,10 @@ void DistanceModificationProcess::ExecuteInitialize() {
 
     KRATOS_TRY;
 
-    // Variables check
-    if( mrModelPart.NodesBegin()->SolutionStepsDataHas( DISTANCE ) == false )
-        KRATOS_ERROR << "Nodes do not have DISTANCE variable!";
-    if( mrModelPart.NodesBegin()->SolutionStepsDataHas( NODAL_H ) == false )
-        KRATOS_ERROR << "Nodes do not have NODAL_H variable!";
+    // Required variables check
+    const auto& r_node = *mrModelPart.NodesBegin();
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_H, r_node);
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
 
     // Obtain NODAL_H values
     FindNodalHProcess NodalHCalculator(mrModelPart);
@@ -306,4 +306,3 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
 /* Private functions ****************************************************/
 
 };  // namespace Kratos.
-
