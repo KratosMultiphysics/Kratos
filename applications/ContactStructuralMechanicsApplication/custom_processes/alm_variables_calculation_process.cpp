@@ -41,10 +41,8 @@ void ALMVariablesCalculationProcess::Execute()
     // Now we iterate over the conditions to calculate the nodal area
     ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
     
-#ifdef _OPENMP
     #pragma omp parallel for reduction(+:total_volume_slave, total_area_slave, mean_young_modulus_slave, mean_nodal_h_slave, total_volume_master, total_area_master, mean_young_modulus_master, mean_nodal_h_master)
-#endif
-    for(int i = 0; i < static_cast<int>(conditions_array.size()); i++) 
+    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) 
     {
         auto it_cond = conditions_array.begin() + i;
         

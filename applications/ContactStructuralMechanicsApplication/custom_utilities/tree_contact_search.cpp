@@ -56,9 +56,7 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
         ConditionsArrayType& conditions_array = computing_rcontact_model_part.Conditions();
         const int num_conditions = static_cast<int>(conditions_array.size());
 
-    #ifdef _OPENMP
         #pragma omp parallel for 
-    #endif
         for(int i = 0; i < num_conditions; ++i) 
             (conditions_array.begin() + i)->Set(TO_ERASE, true);
         
@@ -82,9 +80,7 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
     // We iterate over the nodes
     NodesArrayType& nodes_array = mrMainModelPart.GetSubModelPart("Contact").Nodes();
     
-#ifdef _OPENMP
     #pragma omp parallel for 
-#endif
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
         it_node->Set(ACTIVE, false);
@@ -95,9 +91,7 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
     ConditionsArrayType& conditions_array = mrMainModelPart.GetSubModelPart("Contact").Conditions();
     const int num_conditions = static_cast<int>(conditions_array.size());
 
-#ifdef _OPENMP
     #pragma omp parallel for 
-#endif
     for(int i = 0; i < num_conditions; ++i) 
         (conditions_array.begin() + i)->Set(ACTIVE, false);
 }   
@@ -112,9 +106,7 @@ void TreeContactSearch<TDim, TNumNodes>::InitializeMortarConditions()
     ConditionsArrayType& conditions_array = mrMainModelPart.GetSubModelPart("Contact").Conditions();
     const int num_conditions = static_cast<int>(conditions_array.size());
 
-#ifdef _OPENMP
     #pragma omp parallel for 
-#endif
     for(int i = 0; i < num_conditions; ++i) {
         auto it_cond = conditions_array.begin() + i;
 
@@ -133,9 +125,7 @@ void TreeContactSearch<TDim, TNumNodes>::ClearScalarMortarConditions()
     
     NodesArrayType& nodes_array = mrMainModelPart.GetSubModelPart("Contact").Nodes();
     
-#ifdef _OPENMP
     #pragma omp parallel for 
-#endif
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
         (nodes_array.begin() + i)->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
 }
@@ -150,9 +140,7 @@ void TreeContactSearch<TDim, TNumNodes>::ClearComponentsMortarConditions()
     
     NodesArrayType& nodes_array = mrMainModelPart.GetSubModelPart("Contact").Nodes();
     
-#ifdef _OPENMP
     #pragma omp parallel for 
-#endif
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
         noalias((nodes_array.begin() + i)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = ZeroVector(3);
 }
@@ -167,9 +155,7 @@ void TreeContactSearch<TDim, TNumNodes>::ClearALMFrictionlessMortarConditions()
     
     NodesArrayType& nodes_array = mrMainModelPart.GetSubModelPart("Contact").Nodes();
     
-#ifdef _OPENMP
     #pragma omp parallel for 
-#endif
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
         (nodes_array.begin() + i)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
 }
@@ -190,15 +176,11 @@ void TreeContactSearch<TDim, TNumNodes>::CreatePointListMortar()
     const int num_threads = OpenMPUtils::GetNumThreads();
     std::vector<PointVector> points_buffer(num_threads);
 
-#ifdef _OPENMP
     #pragma omp parallel
     {
-#endif
         const int thread_id = OpenMPUtils::ThisThread();
 
-    #ifdef _OPENMP
         #pragma omp for
-    #endif
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
             auto it_cond = conditions_array.begin() + i;
             
@@ -214,9 +196,7 @@ void TreeContactSearch<TDim, TNumNodes>::CreatePointListMortar()
             for( auto& point_buffer : points_buffer)
                 std::move(point_buffer.begin(),point_buffer.end(),back_inserter(mPointListDestination));
         }
-#ifdef _OPENMP
     }
-#endif
     
 #ifdef KRATOS_DEBUG
     // NOTE: We check the list
@@ -251,9 +231,7 @@ void TreeContactSearch<TDim, TNumNodes>::UpdatePointListMortar()
             noalias((update_nodes_array.begin() + i)->Coordinates()) += (update_nodes_array.begin() + i)->GetValue(DELTA_COORDINATES);
     }
     
-#ifdef _OPENMP
     #pragma omp parallel for 
-#endif
     for(int i = 0; i < static_cast<int>(mPointListDestination.size()); ++i) mPointListDestination[i]->UpdatePoint();
 }
 
@@ -292,9 +270,7 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
     ConditionsArrayType& conditions_array = rcontact_model_part.Conditions();
     const int num_conditions = static_cast<int>(conditions_array.size());
 
-// #ifdef _OPENMP
 //     #pragma omp parallel for firstprivate(tree_points) // FIXME: Make me parallel!!! 
-// #endif
     for(int i = 0; i < num_conditions; ++i) {
         auto it_cond = conditions_array.begin() + i;
         
@@ -458,23 +434,16 @@ inline double TreeContactSearch<TDim, TNumNodes>::GetMaxNodalH()
     // We iterate over the nodes
     NodesArrayType& nodes_array = mrMainModelPart.Nodes();
     
-#ifdef _OPENMP
     // Creating a buffer for parallel vector fill
     const int num_threads = OpenMPUtils::GetNumThreads();
     std::vector<double> max_vector(num_threads, 0.0);
     #pragma omp parallel for 
-#else
-    std::vector<double> max_vector(1);
-#endif
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
         const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
 
-#ifdef _OPENMP
         const int id = OpenMPUtils::ThisThread();
-#else
-        const int id = 0;
-#endif
+        
         if (nodal_h > max_vector[id]) 
             max_vector[id] = nodal_h;
     }
@@ -493,9 +462,7 @@ inline double TreeContactSearch<TDim, TNumNodes>::GetMeanNodalH()
     
     double sum_nodal_h = 0.0;
     
-#ifdef _OPENMP
     #pragma omp parallel for 
-#endif
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
         const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
@@ -529,9 +496,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::InitializeAcceleration()
         }
         
         // Initialize the acceleration when VOLUME_ACCELERATION to be able to predict position in the first step
-    #ifdef _OPENMP
         #pragma omp parallel for 
-    #endif
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
             const array_1d<double, 3>& nodal_volume_acceleration = it_node->FastGetSolutionStepValue(VOLUME_ACCELERATION);
@@ -684,9 +649,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
     NodesArrayType& nodes_array = rcontact_model_part.Nodes();
     
     // We set the auxiliar Coordinates
-#ifdef _OPENMP
     #pragma omp parallel for 
-#endif
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
         
@@ -712,9 +675,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
     mapper.Execute();
     
     // We compute now the normal gap and set the nodes under certain threshold as active
-#ifdef _OPENMP
     #pragma omp parallel for 
-#endif
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {        
         auto it_node = nodes_array.begin() + i;
 
@@ -743,9 +704,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
     
     // We revert the nodes to the original position    
     if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X) == true) {
-#ifdef _OPENMP
         #pragma omp parallel for
-#endif
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
             noalias((nodes_array.begin() + i)->Coordinates()) -= (nodes_array.begin() + i)->GetValue(DELTA_COORDINATES);
     }
@@ -808,9 +767,7 @@ void TreeContactSearch<TDim, TNumNodes>::ResetContactOperators()
 {
     ConditionsArrayType& conditions_array = mrMainModelPart.GetSubModelPart("Contact").Conditions();
     
-#ifdef _OPENMP
     #pragma omp parallel for 
-#endif
     for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) 
     {
         auto it_cond = conditions_array.begin() + i;
@@ -830,9 +787,7 @@ void TreeContactSearch<TDim, TNumNodes>::ResetContactOperators()
     ConditionsArrayType& computing_conditions_array = computing_rcontact_model_part.Conditions();
     const int num_computing_conditions = static_cast<int>(computing_conditions_array.size());
 
-#ifdef _OPENMP
     #pragma omp parallel for 
-#endif
     for(int i = 0; i < num_computing_conditions; ++i) 
         (computing_conditions_array.begin() + i)->Set(TO_ERASE, true);
     

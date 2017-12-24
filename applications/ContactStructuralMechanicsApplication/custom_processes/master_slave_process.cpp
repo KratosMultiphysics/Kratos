@@ -34,29 +34,17 @@ void MasterSlaveProcess::Execute()
     const int num_conditions = static_cast<int>(conditions_array.size());
     
     // Creating a buffer for parallel vector fill
-#ifdef _OPENMP
     const int num_threads = OpenMPUtils::GetNumThreads();
-#else
-    const int num_threads = 1;
-#endif
     std::vector<std::size_t> index_node;
     std::vector<std::vector<std::size_t>> index_node_buffer(num_threads);
     std::vector<std::size_t> index_cond;
     std::vector<std::vector<std::size_t>> index_cond_buffer(num_threads);
     
-#ifdef _OPENMP
     #pragma omp parallel
     {
-#endif
-    #ifdef _OPENMP
         const int thread_id = OpenMPUtils::ThisThread();
-    #else
-        const int thread_id = 1;
-    #endif
         
-    #ifdef _OPENMP
         #pragma omp for
-    #endif
         for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
@@ -67,9 +55,7 @@ void MasterSlaveProcess::Execute()
             }
         }
         
-    #ifdef _OPENMP
         #pragma omp for
-    #endif
         for(int i = 0; i < num_conditions; ++i) 
         {
             auto it_cond = conditions_array.begin() + i;
@@ -96,21 +82,13 @@ void MasterSlaveProcess::Execute()
         }
         
         // Combine buffers together
-    #ifdef _OPENMP
         #pragma omp single
         {
-    #endif
             for( auto& node_buffer : index_node_buffer)
-            {
                 std::move(node_buffer.begin(),node_buffer.end(),back_inserter(index_node));
-            }
             for( auto& cond_buffer : index_cond_buffer)
-            {
                 std::move(cond_buffer.begin(),cond_buffer.end(),back_inserter(index_cond));
-            }
-    #ifdef _OPENMP
         }
-    #endif
     }
     
     // Adding nodes and conditions

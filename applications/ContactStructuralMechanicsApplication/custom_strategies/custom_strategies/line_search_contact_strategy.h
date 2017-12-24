@@ -307,10 +307,8 @@ protected:
         NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
-    #ifdef _OPENMP
         #pragma omp parallel for
-    #endif
-        for(int i = 0; i < num_nodes; i++) 
+        for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
     
@@ -350,10 +348,8 @@ protected:
         NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
-    #ifdef _OPENMP
         #pragma omp parallel for
-    #endif
-        for(int i = 0; i < num_nodes; i++) 
+        for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
     
@@ -364,16 +360,12 @@ protected:
                 
                 if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
                 {          
-                #ifdef _OPENMP
                     #pragma omp atomic
-                #endif
                     normDisp += b[j] * b[j];
                 }
                 else // Corresponding with contact
                 {
-                #ifdef _OPENMP
                     #pragma omp atomic
-                #endif
                     normLM += b[j] * b[j];
                 }
             }

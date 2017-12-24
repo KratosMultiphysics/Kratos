@@ -32,9 +32,7 @@ void ALMFastInit::Execute()
     // We iterate over the nodes
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     
-#ifdef _OPENMP
     #pragma omp parallel for
-#endif
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
     {
         auto it_node = nodes_array.begin() + i;
@@ -56,9 +54,7 @@ void ALMFastInit::Execute()
     // Now we iterate over the conditions
     ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
     
-#ifdef _OPENMP
     #pragma omp parallel for
-#endif
     for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
         (conditions_array.begin() + i)->SetValue(NORMAL, ZeroVector(3)); // The normal and tangents vectors
 

@@ -179,10 +179,8 @@ public:
             OpenMPUtils::DivideInPartitions(num_dofs,num_threads,dof_partition);
 
             // Loop over Dofs
-        #ifdef _OPENMP
             #pragma omp parallel reduction(+:disp_residual_solution_norm,lm_residual_solution_norm,disp_dof_num,lm_dof_num)
             {
-        #endif
                 const int k = OpenMPUtils::ThisThread();
                 typename DofsArrayType::iterator dof_begin = rDofSet.begin() + dof_partition[k];
                 typename DofsArrayType::iterator dof_end   = rDofSet.begin() + dof_partition[k + 1];
@@ -210,9 +208,7 @@ public:
                         }
                     }
                 }
-        #ifdef _OPENMP
             }
-        #endif
 
             mDispCurrentResidualNorm = disp_residual_solution_norm;
             mLMCurrentResidualNorm = lm_residual_solution_norm;

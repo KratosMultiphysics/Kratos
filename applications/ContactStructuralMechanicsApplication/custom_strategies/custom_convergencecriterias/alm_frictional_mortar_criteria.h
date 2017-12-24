@@ -165,9 +165,7 @@ public:
         
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
-    #ifdef _OPENMP
         #pragma omp parallel for 
-    #endif
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
         {
             auto it_node = nodes_array.begin() + i;
@@ -194,9 +192,7 @@ public:
                     if (it_node->Is(ACTIVE) == false )
                     {
                         it_node->Set(ACTIVE, true);
-                    #ifdef _OPENMP
                         #pragma omp atomic
-                    #endif
                         is_converged_active += 1;
                     }
                     
@@ -227,9 +223,7 @@ public:
                         if (it_node->Is(SLIP) == false)
                         {
                             it_node->Set(SLIP, true);
-                        #ifdef _OPENMP
                             #pragma omp atomic
-                        #endif
                             is_converged_slip += 1;
                         }
                     }   
@@ -239,9 +233,7 @@ public:
                     if (it_node->Is(ACTIVE) == true )
                     {
                         it_node->Set(ACTIVE, false);
-                    #ifdef _OPENMP
                         #pragma omp atomic
-                    #endif
                         is_converged_active += 1;
                     }
                 }
@@ -379,9 +371,7 @@ protected:
     {       
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
-    #ifdef _OPENMP
         #pragma omp parallel for 
-    #endif
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
         {
             auto it_node = nodes_array.begin() + i;

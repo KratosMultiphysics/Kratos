@@ -175,10 +175,8 @@ public:
             OpenMPUtils::DivideInPartitions(num_dofs,num_threads,DofPartition);
 
             // Loop over Dofs
-        #ifdef _OPENMP
             #pragma omp parallel reduction(+:disp_solution_norm,lm_solution_norm,disp_increase_norm,lm_increase_norm,disp_dof_num,lm_dof_num)
             {
-        #endif
                 const int k = OpenMPUtils::ThisThread();
                 typename DofsArrayType::iterator dof_begin = rDofSet.begin() + DofPartition[k];
                 typename DofsArrayType::iterator dof_end   = rDofSet.begin() + DofPartition[k + 1];
@@ -210,9 +208,7 @@ public:
                         }
                     }
                 }
-        #ifdef _OPENMP
             }
-        #endif
 
             if(disp_increase_norm == 0.0) disp_increase_norm = 1.0;
             if(lm_increase_norm == 0.0) lm_increase_norm = 1.0;

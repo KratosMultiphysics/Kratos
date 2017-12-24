@@ -164,9 +164,7 @@ public:
         if (conditions_array.size() == 0) std::cout << "WARNING:: YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
     #endif
         
-    #ifdef _OPENMP
         #pragma omp parallel for 
-    #endif
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
             (conditions_array.begin() + i)->AddExplicitContribution(rModelPart.GetProcessInfo());
         
@@ -306,10 +304,8 @@ protected:
     {       
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
-    #ifdef _OPENMP
         #pragma omp parallel for 
-    #endif
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
             (nodes_array.begin() + i)->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
     }
     

@@ -225,18 +225,14 @@ private:
         
         // We reset the flag
         auto& nodes_array = computing_contact_model_part.Nodes();
-    #ifdef _OPENMP
         #pragma omp parallel for 
-    #endif
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
             (nodes_array.begin() + i)->Set(ISOLATED, false);
         
         // Now we set the flag in the nodes
         auto& conditions_array = computing_contact_model_part.Conditions();
         
-    #ifdef _OPENMP
         #pragma omp parallel for 
-    #endif
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) 
         {
             auto cond_it = conditions_array.begin() + i;
@@ -251,9 +247,7 @@ private:
         }
         
         // We fix the LM
-    #ifdef _OPENMP
         #pragma omp parallel for 
-    #endif
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
         {
             auto node_it = nodes_array.begin() + i;
@@ -285,9 +279,7 @@ private:
         
         // We release the LM
         auto& nodes_array = computing_contact_model_part.Nodes();
-    #ifdef _OPENMP
         #pragma omp parallel for 
-    #endif
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
         {
             auto node_it = nodes_array.begin() + i;

@@ -178,10 +178,8 @@ public:
             OpenMPUtils::DivideInPartitions(num_dofs,num_threads,dof_partition);
 
             // Loop over Dofs
-        #ifdef _OPENMP
             #pragma omp parallel reduction(+:disp_residual_solution_norm,lm_solution_norm,lm_increase_norm,disp_dof_num,lm_dof_num)
             {
-        #endif
                 const int k = OpenMPUtils::ThisThread();
                 typename DofsArrayType::iterator dof_begin = rDofSet.begin() + dof_partition[k];
                 typename DofsArrayType::iterator dof_end = rDofSet.begin() + dof_partition[k+1];
@@ -214,9 +212,7 @@ public:
                         }
                     }
                 }
-        #ifdef _OPENMP
             }
-        #endif
 
             if(lm_increase_norm == 0.0) lm_increase_norm = 1.0;
             KRATOS_ERROR_IF(mEnsureContact == true && lm_solution_norm == 0.0) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;

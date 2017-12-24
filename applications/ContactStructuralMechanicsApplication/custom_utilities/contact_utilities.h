@@ -124,9 +124,7 @@ public:
         NodesArrayType& nodes_array = rThisModelPart.Nodes();
     
         // We compute the half jump
-    #ifdef _OPENMP
         #pragma omp parallel for 
-    #endif
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
         {
             auto it_node = nodes_array.begin() + i;

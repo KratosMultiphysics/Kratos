@@ -33,9 +33,7 @@ void AALMAdaptPenaltyValueProcess::Execute()
     // We iterate over the node
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
 
-#ifdef _OPENMP
     #pragma omp parallel for 
-#endif
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
     {
         auto it_node = nodes_array.begin() + i;
