@@ -60,10 +60,10 @@ laplacian_form = 2
 
 AutomaticDeltaTime = "Fixed"
 divergence_cleareance_step = 10
-Dt = 0.1
+Dt = 0.001
 Start_time = 0.0
 max_time = 1.00
-nsteps = 10
+nsteps = 100
 
 use_dt_in_stabilization = 0.10
 use_orthogonal_subscales = 0
@@ -73,7 +73,7 @@ groups_dictionary = {
         "Fluid" : 1,
                    }
 
-output_time = 0.01
+output_time = 0.1
 output_step = 10
 VolumeOutput = True
 
@@ -86,7 +86,7 @@ GiDWriteConditionsFlag = True
 GiDWriteParticlesFlag = False
 GiDMultiFileFlag = "Multiples"
 
-problem_name="square_circ3"
-problem_path="/home/elaf/Kratos/GiDInterface-master/channel30mm4_vms.gid"
+problem_name="square"
+problem_path="/home/elaf/Kratos/applications/ULFapplication/droplet_example/square"
 
 kratos_path="home/elaf/Kratos"

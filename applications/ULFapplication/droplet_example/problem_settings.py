@@ -23,8 +23,8 @@ lagrangian_element = "SurfaceTension"
 #lagrangian_element = "ulf"
 # Declare Python Variables
 
-problem_name = 'drop'
-problem_path="/home/elaf/Kratos/applications/ULFapplication/droplet_example/drop"
+problem_name = 'square'
+problem_path="/home/elaf/Kratos/applications/ULFapplication/droplet_example/square"
 kratos_path = '/home/elaf/Kratos'
 
 

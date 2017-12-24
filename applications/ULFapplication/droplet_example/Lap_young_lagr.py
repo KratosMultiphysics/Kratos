@@ -122,7 +122,7 @@ else:
     multifile = MultiFileFlag.SingleFile
 
 
-input_file_name = "drop1" # "drop" | "square" 
+input_file_name = "square3" # "drop" | "square" 
 
 gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 
@@ -178,6 +178,7 @@ print("mesh solver created")
 lag_solver.alpha_shape = problem_settings.alpha_shape;
 lag_solver.echo_level = 2;
 lag_solver.Initialize()
+#lag_solver.solver.MoveMesh()
 
 print("lagrangian solver created")
 
@@ -228,7 +229,7 @@ while(time <= final_time):
         
         lag_solver.Solve()
         print("Executing mesh solver")
-        mesh_solver.Solve()	
+        #mesh_solver.Solve()	
 
 ##################################################
 ##################################################
