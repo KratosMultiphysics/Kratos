@@ -1,4 +1,13 @@
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
+
+# Import applications
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+
+# Import base class file
 import python_process
 
 def Factory(settings, Model):
@@ -56,17 +65,9 @@ class ComputeEmbeddedDragProcess(python_process.PythonProcess):
 
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
 
-            # Initialize drag vector
-            drag_force = KratosMultiphysics.Vector(3)
-            drag_force[0] = 0.0
-            drag_force[1] = 0.0
-            drag_force[2] = 0.0
-
             # Integrate the drag over the model part elements
-            for element in self.fluid_model_part.Elements:
-                elem_drag_force = KratosMultiphysics.Vector(3)
-                element.Calculate(KratosMultiphysics.DRAG_FORCE, elem_drag_force, self.fluid_model_part.ProcessInfo)
-                drag_force += elem_drag_force
+            drag_force = KratosMultiphysics.Vector(3)
+            KratosCFD.EmbeddedDragUtilities().CalculateDrag(self.fluid_model_part, drag_force)
 
             # Print drag values to screen
             if (self.print_drag_to_screen) and (self.fluid_model_part.GetCommunicator().MyPID()==0):
