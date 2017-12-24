@@ -50,7 +50,6 @@ DistanceModificationProcess::DistanceModificationProcess(
 
     Parameters default_parameters( R"(
     {
-        "mesh_id"                                : 0,
         "model_part_name"                        : "default_model_part_name",
         "distance_factor"                        : 2.0,
         "distance_threshold"                     : 0.01,
