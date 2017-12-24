@@ -305,7 +305,7 @@ protected:
         unsigned int value = 0;
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
             if (CurrentGeometry[i_node].Is(ACTIVE) == true)
-                value += std::pow(2, i_node);
+                value += 1 << i_node;
         
         return value;
     }
