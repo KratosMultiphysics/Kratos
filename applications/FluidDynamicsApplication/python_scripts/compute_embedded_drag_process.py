@@ -13,7 +13,6 @@ class ComputeEmbeddedDragProcess(python_process.PythonProcess):
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"                   : 0,
                 "model_part_name"           : "",
                 "interval"                  : [0.0, 1e30],
                 "write_drag_output_file"    : true,
@@ -57,15 +56,23 @@ class ComputeEmbeddedDragProcess(python_process.PythonProcess):
 
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
 
-            drag_x = KratosMultiphysics.VariableUtils().SumHistoricalNodeScalarVariable(KratosMultiphysics.REACTION_X, self.fluid_model_part, 0)
-            drag_y = KratosMultiphysics.VariableUtils().SumHistoricalNodeScalarVariable(KratosMultiphysics.REACTION_Y, self.fluid_model_part, 0)
-            drag_z = KratosMultiphysics.VariableUtils().SumHistoricalNodeScalarVariable(KratosMultiphysics.REACTION_Z, self.fluid_model_part, 0)
+            # Initialize drag vector
+            drag_force = KratosMultiphysics.Vector(3)
+            drag_force[0] = 0.0
+            drag_force[1] = 0.0
+            drag_force[2] = 0.0
 
+            # Integrate the drag over the model part elements
+            for element in self.fluid_model_part.Elements:
+                drag_force += element.Calculate(KratosMultiphysics.DRAG_FORCE)
+
+            # Print drag values to screen
             if (self.print_drag_to_screen) and (self.fluid_model_part.GetCommunicator().MyPID()==0):
-                print("DRAG RESULTS:")
-                print("Current time: " + str(current_time) + " x-drag: " + str(drag_x) + " y-drag: " + str(drag_y) + " z-drag: " + str(drag_z))
+                print("DRAG VALUES:")
+                print("Current time: " + str(current_time) + " x-drag: " + str(drag_force[0]) + " y-drag: " + str(drag_force[1]) + " z-drag: " + str(drag_force[2]))
 
+            # Print drag values to file
             if (self.write_drag_output_file) and (self.fluid_model_part.GetCommunicator().MyPID()==0):
                 with open(self.drag_filename, 'a') as file:
-                    file.write(str(current_time)+"   "+str(drag_x)+"   "+str(drag_y)+"   "+str(drag_z)+"\n")
+                    file.write(str(current_time)+"   "+str(drag_force[0])+"   "+str(drag_force[1])+"   "+str(drag_force[2])+"\n")
                     file.close()
