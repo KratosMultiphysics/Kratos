@@ -167,7 +167,7 @@ class STMonolithicSolver:
             self.box_corner2 = box_corner2
 	  
             if(domain_size == 2):
-                self.Mesher =  TriGenPFEMModeler()            
+                self.Mesher =  TriGenDropletModeler()            
                 self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
                 #this is needed if we want to also store the conditions a node belongs to
                 self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
@@ -327,7 +327,7 @@ class STMonolithicSolver:
         h_factor=0.25;
         
         if (self.domain_size == 2):
-         (self.Mesher).ReGenerateMesh("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
+         (self.Mesher).ReGenerateMeshDROPLET("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
        
         (self.fluid_neigh_finder).Execute();
         (self.condition_neigh_finder).Execute();
