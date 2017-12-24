@@ -111,7 +111,6 @@
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "process_name"  : "ApplyDistanceModificationProcess",
         "Parameters"    : {
-            "mesh_id"                           : 0,
             "model_part_name"                   : "Parts_Fluid",
             "check_at_each_time_step"           : false,
             "deactivate_full_negative_elements" : false
