@@ -25,12 +25,10 @@ namespace Kratos
 {
     /* Public functions *******************************************************/
 
-    void EmbeddedDragUtilities::CalculateDrag(
-        ModelPart& rModelPart,
-        array_1d<double, 3>& rDragForce) {
+    array_1d<double, 3> EmbeddedDragUtilities::CalculateDrag(ModelPart& rModelPart) {
         
         // Initialize total drag force
-        rDragForce = ZeroVector(3);
+        array_1d<double, 3> drag_force = ZeroVector(3);
 
         // Initialize auxiliar arrays and partitioning
         const unsigned int num_threads = OpenMPUtils::GetNumThreads();
@@ -59,11 +57,13 @@ namespace Kratos
 
         // Perform reduction
         for (unsigned int i_thread = 0; i_thread < num_threads; ++i_thread) {
-            rDragForce += thread_drag_force[i_thread];
+            drag_force += thread_drag_force[i_thread];
         }
 
         // Perform MPI synchronization
-        rModelPart.GetCommunicator().SumAll(rDragForce);
+        rModelPart.GetCommunicator().SumAll(drag_force);
+
+        return drag_force;
     }
 
     /* External functions *****************************************************/

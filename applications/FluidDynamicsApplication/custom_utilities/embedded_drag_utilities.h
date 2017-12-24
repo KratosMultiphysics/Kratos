@@ -85,9 +85,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    static void CalculateDrag(
-        ModelPart &rModelPart,
-        array_1d<double, 3> &rDragForce);
+    array_1d<double, 3> CalculateDrag(ModelPart &rModelPart);
 
     ///@}
     ///@name Access
