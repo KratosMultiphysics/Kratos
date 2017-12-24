@@ -293,7 +293,7 @@ public:
 
         // If the element is split, integrate sigma·n over the interface
         // Note that in the ausas formulation, both interface sides need to be integrated
-        if (rVariable == DRAG_VECTOR) {
+        if (rVariable == DRAG_FORCE) {
 
             EmbeddedAusasElementDataStruct data;
             this->FillEmbeddedAusasElementData(data, rCurrentProcessInfo);
