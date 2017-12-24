@@ -64,7 +64,9 @@ class ComputeEmbeddedDragProcess(python_process.PythonProcess):
 
             # Integrate the drag over the model part elements
             for element in self.fluid_model_part.Elements:
-                drag_force += element.Calculate(KratosMultiphysics.DRAG_FORCE)
+                elem_drag_force = KratosMultiphysics.Vector(3)
+                element.Calculate(KratosMultiphysics.DRAG_FORCE, elem_drag_force, self.fluid_model_part.ProcessInfo)
+                drag_force += elem_drag_force
 
             # Print drag values to screen
             if (self.print_drag_to_screen) and (self.fluid_model_part.GetCommunicator().MyPID()==0):
