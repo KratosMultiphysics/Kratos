@@ -76,7 +76,12 @@ std::istream& operator>>(std::istream &in, type &s)
         s = pastix;
 #endif
     else
-        throw std::invalid_argument("Invalid direct solver value");
+        throw std::invalid_argument("Invalid direct solver value. Valid choices are: "
+                "skyline_lu"
+#ifdef AMGCL_HAVE_PASTIX
+                ", pastix"
+#endif
+                ".");
 
     return in;
 }
