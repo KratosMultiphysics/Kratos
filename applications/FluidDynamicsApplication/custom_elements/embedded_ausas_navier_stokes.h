@@ -354,7 +354,7 @@ public:
                 }
             }
         } else {
-            KRATOS_ERROR << "Calculate method not implemented for the required variable.";
+            KRATOS_ERROR << "Calculate method not implemented for the requested variable.";
         }
     }
 
