@@ -161,7 +161,7 @@ public:
         const double scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
         const double tangent_factor = rModelPart.GetProcessInfo()[TANGENT_FACTOR];
         
-        const array_1d<double,3> zero_vector(0.0);
+        const array_1d<double,3> zero_vector(3, 0.0);
         
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
