@@ -233,13 +233,11 @@ private:
         auto& conditions_array = computing_contact_model_part.Conditions();
         
         #pragma omp parallel for 
-        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) 
-        {
+        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
             auto cond_it = conditions_array.begin() + i;
             
             auto& geom = cond_it->GetGeometry();
-            for (std::size_t i_node = 0; i_node < geom.size(); ++i_node)
-            {
+            for (std::size_t i_node = 0; i_node < geom.size(); ++i_node) {
                 geom[i_node].SetLock();
                 geom[i_node].Set(ISOLATED, cond_it->Is(ISOLATED));
                 geom[i_node].UnSetLock();
@@ -248,21 +246,14 @@ private:
         
         // We fix the LM
         #pragma omp parallel for 
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-        {
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto node_it = nodes_array.begin() + i;
-            if (node_it->Is(ISOLATED) == true)
-            {
+            if (node_it->Is(ISOLATED) == true) {
                 auto& dofs = node_it->GetDofs();
-                
-                for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
-                {
-                    if (it_dof->IsFree())
-                    {
-                        const auto curr_var = it_dof->GetVariable().Key();
-                        if (!((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z))) 
-                            it_dof->FixDof(); // NOTE: FIX THE LM
-                    }
+                for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof) {
+                    const auto curr_var = it_dof->GetVariable().Key();
+                    if (!((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z))) 
+                        it_dof->FixDof(); // NOTE: FIX THE LM
                 }
             }
         }
@@ -280,21 +271,15 @@ private:
         // We release the LM
         auto& nodes_array = computing_contact_model_part.Nodes();
         #pragma omp parallel for 
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-        {
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto node_it = nodes_array.begin() + i;
-            if (node_it->Is(ISOLATED) == true)
-            {
+            if (node_it->Is(ISOLATED) == true) {
                 auto& dofs = node_it->GetDofs();
                 
-                for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
-                {
-                    if (it_dof->IsFree())
-                    {
-                        const auto curr_var = it_dof->GetVariable().Key();
-                        if (!((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z))) 
-                            it_dof->FreeDof(); // NOTE: RELEASE THE LM
-                    }
+                for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof) {
+                    const auto curr_var = it_dof->GetVariable().Key();
+                    if (!((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z))) 
+                        it_dof->FreeDof(); // NOTE: RELEASE THE LM
                 }
             }
         }
