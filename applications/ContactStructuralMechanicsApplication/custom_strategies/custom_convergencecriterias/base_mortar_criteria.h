@@ -185,6 +185,7 @@ public:
             mGidIO.WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
             mGidIO.WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
             mGidIO.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
+            mGidIO.WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
             mGidIO.WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
             mGidIO.WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
             mGidIO.WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
