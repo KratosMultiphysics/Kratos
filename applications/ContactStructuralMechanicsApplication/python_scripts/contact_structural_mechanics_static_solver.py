@@ -151,34 +151,31 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         return convergence_criterion.mechanical_convergence_criterion
         
     def _create_builder_and_solver(self):
-        linear_solver = self.get_linear_solver()
-        if self.settings["block_builder"].GetBool():
-            if self.settings["multi_point_constraints_used"].GetBool():
-                raise Exception("MPCs not compatible with contact")
+        if  self.contact_settings["mortar_type"].GetString() != "":
+            linear_solver = self.get_linear_solver()
+            if self.settings["block_builder"].GetBool():
+                if self.settings["multi_point_constraints_used"].GetBool():
+                    raise Exception("MPCs not compatible with contact")
+                else:
+                    builder_and_solver = ContactStructuralMechanicsApplication.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
-                builder_and_solver = ContactStructuralMechanicsApplication.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
+                raise Exception("Contact not compatible with EliminationBuilderAndSolver")
         else:
-            raise Exception("Contact not compatible with EliminationBuilderAndSolver")
+            builder_and_solver = super()._create_builder_and_solver()
+            
         return builder_and_solver
         
     def _create_mechanical_solver(self):
-        if(self.settings["line_search"].GetBool()):
-            mechanical_solver = self._create_line_search_strategy()
-        else:
+        if  self.contact_settings["mortar_type"].GetString() != "":
             if self.settings["analysis_type"].GetString() == "linear":
                 mechanical_solver = self._create_linear_strategy()
-            elif self.settings["analysis_type"].GetString() == "arc_length":
-                mechanical_solver = self._create_arc_length_strategy()
-            elif self.settings["analysis_type"].GetString() == "formfinding":
-                mechanical_solver = self._create_formfinding_strategy()
             else:
-                if  self.contact_settings["mortar_type"].GetString() != "":
-                    if(self.settings["line_search"].GetBool()):
-                        mechanical_solver = self._create_contact_line_search_strategy()
-                    else:
-                        mechanical_solver = self._create_contact_newton_raphson_strategy()
+                if(self.settings["line_search"].GetBool()):
+                    mechanical_solver = self._create_contact_line_search_strategy()
                 else:
-                    mechanical_solver = super()._create_newton_raphson_strategy()
+                    mechanical_solver = self._create_contact_newton_raphson_strategy()
+        else:
+            mechanical_solver = super()._create_mechanical_solver()
                     
         return mechanical_solver
     
