@@ -124,7 +124,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 {
     KRATOS_TRY;
     
-    // NOTE: Add things if necessary
+    // We reset the flag
+    this->Set(ISOLATED, false); // We set the corresponding flag
         
     KRATOS_CATCH( "" );
 }
@@ -300,7 +301,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     
     // Reading integration points
     ConditionArrayListType conditions_points_slave;
-    const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, normal_slave, master_geometry, normal_master, conditions_points_slave);
+    const bool is_inside = (this->Is(ISOLATED)) ? false : integration_utility.GetExactIntegration(slave_geometry, normal_slave, master_geometry, normal_master, conditions_points_slave);
     
     double integration_area;
     integration_utility.GetTotalArea(slave_geometry, conditions_points_slave, integration_area);
@@ -454,7 +455,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
         
     // Reading integration points
     ConditionArrayListType conditions_points_slave;
-    const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, normal_slave, master_geometry, normal_master, conditions_points_slave);
+    const bool is_inside = (this->Is(ISOLATED)) ? false : integration_utility.GetExactIntegration(slave_geometry, normal_slave, master_geometry, normal_master, conditions_points_slave);
     
     double integration_area;
     integration_utility.GetTotalArea(slave_geometry, conditions_points_slave, integration_area);
@@ -537,8 +538,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
             }
         }
             
-        this->Set(ISOLATED, false); // We set the corresponding flag
-            
         // Calculates the active/inactive combination pair
         const unsigned int active_inactive = GetActiveInactiveValue(slave_geometry);
         
@@ -558,7 +557,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     }
     else //If not inside we fill we zero the local matrices
     {
-        this->Set(ISOLATED, true); // We set the corresponding flag
+//         this->Set(ISOLATED, true); // We set the corresponding flag FIXME: This is not working
         
         // Assemble of the matrix is required
         if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_LHS_MATRIX ) )
