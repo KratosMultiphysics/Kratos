@@ -137,7 +137,8 @@ set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMP
 ## Define library KratosTests if enabled
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     add_library(KratosTests SHARED ${KRATOS_TEST_SOURCES})
-    target_link_libraries(KratosTests KratosCore)
+	target_link_libraries(KratosTests KratosCore)
+	set_target_properties(KratosTests PROPERTIES COMPILE_DEFINITIONS "KRATOS_TESTS=IMPORT,API")
     set_target_properties(KratosTests PROPERTIES PREFIX "")
     set(KRATOS_TEST_LIBRARIES KratosTests)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
@@ -149,7 +150,8 @@ set_target_properties(Kratos PROPERTIES PREFIX "")
 
 
 if(USE_COTIRE MATCHES ON)
-    ## KratosCore and KratosTests are ok
+    ## Kratos cannot be compiled with just one unity build as it takes way too much ram
+    SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
     cotire(KratosCore)
     if(${KRATOS_BUILD_TESTING} MATCHES ON)
         cotire(KratosTests)
