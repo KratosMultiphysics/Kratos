@@ -27,13 +27,14 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
+#include "custom_utilities/drag_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
 #include "custom_utilities/fractional_step_settings_periodic.h"
 #include "custom_utilities/fractional_step_settings.h"
 #include "custom_utilities/integration_point_to_node_transformation_utility.h"
 #include "custom_utilities/periodic_condition_utilities.h"
-#include "custom_utilities/embedded_drag_utilities.h"
+
 #include "utilities/split_tetrahedra.h"
 
 
@@ -141,8 +142,9 @@ void  AddCustomUtilitiesToPython()
         ;
 
     // Calculate embedded drag utilities
-    class_< EmbeddedDragUtilities, boost::noncopyable> ("EmbeddedDragUtilities", init<>())
-        .def("CalculateDrag", &EmbeddedDragUtilities::CalculateDrag)
+    class_< DragUtilities, boost::noncopyable> ("DragUtilities", init<>())
+        //.def("CalculateSlipDrag", &DragUtilities::CalculateSlipDrag)
+        .def("CalculateEmbeddedDrag", &DragUtilities::CalculateEmbeddedDrag)
         ;
 
 }

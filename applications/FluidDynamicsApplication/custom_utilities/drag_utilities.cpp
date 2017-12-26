@@ -19,13 +19,13 @@
 #include "utilities/openmp_utils.h"
 
 // Application includes
-#include "embedded_drag_utilities.h"
+#include "drag_utilities.h"
 
 namespace Kratos
 {
     /* Public functions *******************************************************/
 
-    array_1d<double, 3> EmbeddedDragUtilities::CalculateDrag(ModelPart& rModelPart) {
+    array_1d<double, 3> DragUtilities::CalculateEmbeddedDrag(ModelPart& rModelPart) {
         
         // Initialize total drag force
         array_1d<double, 3> drag_force = ZeroVector(3);
@@ -71,7 +71,7 @@ namespace Kratos
     /// output stream function
     inline std::ostream& operator << (
         std::ostream& rOStream,
-        const EmbeddedDragUtilities& rThis) {
+        const DragUtilities& rThis) {
 
         rThis.PrintData(rOStream);
         return rOStream;

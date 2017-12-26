@@ -66,7 +66,7 @@ class ComputeEmbeddedDragProcess(python_process.PythonProcess):
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
 
             # Integrate the drag over the model part elements
-            drag_force = KratosCFD.EmbeddedDragUtilities().CalculateDrag(self.fluid_model_part)
+            drag_force = KratosCFD.DragUtilities().CalculateEmbeddedDrag(self.fluid_model_part)
 
             # Print drag values to screen
             if (self.print_drag_to_screen) and (self.fluid_model_part.GetCommunicator().MyPID()==0):

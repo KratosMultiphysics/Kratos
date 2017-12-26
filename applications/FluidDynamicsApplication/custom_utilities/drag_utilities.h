@@ -10,8 +10,8 @@
 //  Main author:     Ruben Zorrilla
 //
 
-#if !defined(KRATOS_EMBEDDED_DRAG_UTILITIES_H_INCLUDED )
-#define  KRATOS_EMBEDDED_DRAG_UTILITIES_H_INCLUDED
+#if !defined(KRATOS_DRAG_UTILITIES_H_INCLUDED )
+#define  KRATOS_DRAG_UTILITIES_H_INCLUDED
 
 // System includes
 #include <string>
@@ -56,25 +56,25 @@ namespace Kratos
    * Note that if there is more than one embedded object, one just needs to save the surrounding elements to each embedded
    * object in different submodelparts and call this process for each one of that submodelparts.
    */
-  class EmbeddedDragUtilities
+  class DragUtilities
   {
   public:
 
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of EmbeddedDragUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedDragUtilities);
+    /// Pointer definition of DragUtilities
+    KRATOS_CLASS_POINTER_DEFINITION(DragUtilities);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-    EmbeddedDragUtilities() {};
+    DragUtilities() {};
 
     /// Destructor.
-    ~EmbeddedDragUtilities() {};
+    ~DragUtilities() {};
 
     ///@}
     ///@name Operators
@@ -85,7 +85,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    array_1d<double, 3> CalculateDrag(ModelPart &rModelPart);
+    array_1d<double, 3> CalculateEmbeddedDrag(ModelPart &rModelPart);
 
     ///@}
     ///@name Access
@@ -152,14 +152,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    EmbeddedDragUtilities& operator=(EmbeddedDragUtilities const& rOther);
+    DragUtilities& operator=(DragUtilities const& rOther);
 
     /// Copy constructor.
-    EmbeddedDragUtilities(EmbeddedDragUtilities const& rOther);
+    DragUtilities(DragUtilities const& rOther);
 
     ///@}
 
-}; // Class EmbeddedDragUtilities
+}; // Class DragUtilities
 
 ///@}
 
@@ -175,7 +175,7 @@ private:
 /// output stream function
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const EmbeddedDragUtilities& rThis);
+    const DragUtilities& rThis);
 
 ///@}
 
@@ -183,4 +183,4 @@ inline std::ostream& operator << (
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EMBEDDED_DRAG_UTILITIES_H_INCLUDED  defined
+#endif // KRATOS_DRAG_UTILITIES_H_INCLUDED  defined
