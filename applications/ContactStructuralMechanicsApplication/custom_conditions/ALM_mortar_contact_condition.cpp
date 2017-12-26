@@ -557,7 +557,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     }
     else //If not inside we fill we zero the local matrices
     {
-//         this->Set(ISOLATED, true); // We set the corresponding flag FIXME: This is not working
+        this->Set(ISOLATED, true); // We set the corresponding flag
         
         // Assemble of the matrix is required
         if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_LHS_MATRIX ) )

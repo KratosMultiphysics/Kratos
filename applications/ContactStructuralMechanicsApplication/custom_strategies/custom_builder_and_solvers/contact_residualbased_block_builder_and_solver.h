@@ -228,8 +228,10 @@ private:
         // We reset the flag
         auto& nodes_array = contact_model_part.Nodes();
         #pragma omp parallel for 
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+            (nodes_array.begin() + i)->Set(VISITED, false);
             (nodes_array.begin() + i)->Set(ISOLATED, false);
+        }
         
         // Now we set the flag in the nodes
         auto& conditions_array = computing_contact_model_part.Conditions();
@@ -240,7 +242,12 @@ private:
             auto& geom = it_cond->GetGeometry();
             for (std::size_t i_node = 0; i_node < geom.size(); ++i_node) {
                 geom[i_node].SetLock();
-                geom[i_node].Set(ISOLATED, it_cond->Is(ISOLATED));
+                if (geom[i_node].Is(VISITED) == false) {
+                    geom[i_node].Set(ISOLATED, it_cond->Is(ISOLATED));
+                    geom[i_node].Set(VISITED, true);
+                } else {
+                    geom[i_node].Set(ISOLATED, geom[i_node].Is(ISOLATED) && it_cond->Is(ISOLATED));
+                }
                 geom[i_node].UnSetLock();
             }
         }
@@ -250,7 +257,6 @@ private:
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
             if (it_node->Is(ISOLATED) == true) {
-                it_node->Set(ACTIVE, false); // TODO: This is not supposed to be necessary
                 if (it_node->SolutionStepsDataHas(NORMAL_CONTACT_STRESS) == true)
                     it_node->Fix(NORMAL_CONTACT_STRESS);
                 else { // We will assume that VECTOR_LAGRANGE_MULTIPLIER
