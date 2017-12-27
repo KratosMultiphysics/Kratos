@@ -942,6 +942,21 @@ public:
     }
     
     /**
+     * Computes the angle between two vectors in 3D
+     * @param v1 First input vector
+     * @param v2 Second input vector
+     */
+    
+    template< class T1, class T2>
+    static inline double VectorsAngle(const T1& v1, const T2& v2 ){
+        const T1 aux_1 = v1 * norm_2(v2);
+        const T2 aux_2 = norm_2(v1) * v2;
+        const double num = norm_2(aux_1 - aux_2);
+        const double denom = norm_2(aux_1 + aux_2);
+        return 2.0 * std::atan2( num , denom);
+    }
+    
+    /**
      * Returns a matrix :
      * A = a.tensorproduct.b
      * a,b are assumed to be of order 3, no check is performed on the size of the vectors
