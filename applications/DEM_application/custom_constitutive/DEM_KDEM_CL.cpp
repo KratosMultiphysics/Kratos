@@ -28,9 +28,10 @@ namespace Kratos {
     void DEM_KDEM::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
 
         KRATOS_TRY
-        double radius_sum = radius + other_radius;
+//         double radius_sum = radius + other_radius;
 //         double equiv_radius = radius * other_radius / radius_sum;
-        double equiv_radius = 0.5 * radius_sum;
+//         double equiv_radius = 0.5 * radius_sum;
+        double equiv_radius = std::min(radius, other_radius);
         calculation_area = Globals::Pi * equiv_radius * equiv_radius;
         KRATOS_CATCH("")  
     }
