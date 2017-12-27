@@ -47,14 +47,17 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// Auxiliary utility to compute the drag force in embedded formulations.
-  /** This utility iterates all the elements of a provided model part. In this iteration calls the calculate method of
-   * each element to compute the value of the variable DRAG_FORCE. If the element is split, this method computes the 
-   * integration of the stress term over the interface. Otherwise, the value is just zero. The obtained values are 
-   * accumulated to get the total drag force in the model part.
+  /// Auxiliary utility to compute the drag force.
+  /** For embedded formulations, this utility iterates all the elements of a provided model part. In this iteration 
+   * calls the calculate method of each element to compute the value of the variable DRAG_FORCE. If the element is split, 
+   * this method computes the integration of the stress term over the interface. Otherwise, the value is just zero. 
+   * The obtained values are accumulated to get the total drag force in the model part.
    * 
    * Note that if there is more than one embedded object, one just needs to save the surrounding elements to each embedded
    * object in different submodelparts and call this process for each one of that submodelparts.
+   * 
+   * For the body fitted slip case, it integrates the pressure stress term over the given submodelpart conditions (the 
+   * shear stress term is assumed to be zero).
    */
   class DragUtilities
   {
@@ -62,6 +65,10 @@ namespace Kratos
 
     ///@name Type Definitions
     ///@{
+    
+    typedef Geometry<Node<3>>                                 GeometryType;
+    typedef IntegrationPoint<3>                       IntegrationPointType;
+    typedef std::vector<IntegrationPointType>   IntegrationPointsArrayType;
 
     /// Pointer definition of DragUtilities
     KRATOS_CLASS_POINTER_DEFINITION(DragUtilities);
@@ -85,6 +92,19 @@ namespace Kratos
     ///@name Operations
     ///@{
 
+    /**
+    * Computes the integral of the pressure stress term normal projection over the conditions 
+    * of the given modelpart
+    * @param rModelPart: reference to the model part in where the drag is to be computed
+    * @return an array containing the drag force value.
+    */
+    array_1d<double, 3> CalculateSlipDrag(ModelPart &rModelPart);
+
+    /**
+    * Computes the integral of the Cauchy stress term normal projection in the given modelpart elements.
+    * @param rModelPart: reference to the model part in where the drag is to be computed
+    * @return an array containing the drag force value.
+    */
     array_1d<double, 3> CalculateEmbeddedDrag(ModelPart &rModelPart);
 
     ///@}
