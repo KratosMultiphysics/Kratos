@@ -876,7 +876,8 @@ class DEMFEMProcedures(object):
 
         if not "TestType" in DEM_parameters.keys():
             self.TestType = "None"
-        # self.TestType = self.DEM_parameters["TestType"].GetString()
+        else:
+            self.TestType = self.DEM_parameters["TestType"].GetString()
 
         # Initialization of member variables
         # SIMULATION FLAGS
@@ -961,7 +962,7 @@ class DEMFEMProcedures(object):
 
         self.particle_graph_forces = {}                    
 
-        if not "TestType" in DEM_parameters.keys():
+        if self.TestType == "None":
             open_graph_files(self, RigidFace_model_part)
             open_balls_graph_files(self,spheres_model_part)
 
@@ -1066,7 +1067,8 @@ class DEMFEMProcedures(object):
     
     def PrintGraph(self, time):
 
-        if not "TestType" in self.DEM_parameters.keys():
+        if self.TestType == "None":
+            
             if (self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
 
