@@ -7,9 +7,13 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 # generate variables with the sources
 set( KRATOS_CO_SIMULATION_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/co_simulation_application.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/co_simulation_application_variables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/co_simulation_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/co_simulation_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_base_classes_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_application_interfaces_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_coupling_strategies_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_relaxation_schemes_to_python.cpp   
 )
 
 # define library Kratos which defines the basic python interface

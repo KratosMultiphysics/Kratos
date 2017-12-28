@@ -23,8 +23,11 @@
 #include "includes/define.h"
 #include "co_simulation_application.h"
 #include "co_simulation_application_variables.h"
-#include "custom_python/add_custom_strategies_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_application_interfaces_to_python.h"
+#include "custom_python/add_custom_coupling_strategies_to_python.h"
+#include "custom_python/add_custom_io_to_python.h"
+#include "custom_python/add_custom_relaxation_schemes_to_python.h"
+//#include "custom_python/"
 
 
 namespace Kratos
@@ -45,9 +48,11 @@ namespace Python
 			  bases<KratosApplication>, boost::noncopyable >("KratosCoSimulationApplication")
 			;
 
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
-
+    AddCustomApplicatonInterfacesToPython();            
+	AddCustomCouplingStrategiesToPython();
+    AddCustomIoToPython();
+    AddCustomRelaxationSchemesToPython();
+    
 	//registering variables in python
 
 //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);

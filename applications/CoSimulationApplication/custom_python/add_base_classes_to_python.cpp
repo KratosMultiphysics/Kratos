@@ -7,8 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author1 Fullname
-//                   Author2 Fullname 
+//  Main authors:    Aditya Ghantasala
 //
 
 
@@ -21,7 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_base_classes_to_python.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -35,7 +34,7 @@ namespace Python
 {
 
 
-  void  AddCustomUtilitiesToPython()
+  void  AddCustomBaseClassesToPython()
   {
 	using namespace boost::python;
 

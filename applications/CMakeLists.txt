@@ -55,6 +55,7 @@ message("COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION.... ${COMPRESSIBLE_POTENTIAL_FL
 message("HDF5_APPLICATION........................... ${HDF5_APPLICATION}")
 message("SHALLOW_WATER_APPLICATION.................. ${SHALLOW_WATER_APPLICATION}")
 message("EIGEN_SOLVERS_APPLICATION.................. ${EIGEN_SOLVERS_APPLICATION}")
+message("CO_SIMULATION_APPLICATION.................. ${CO_SIMULATION_APPLICATION}")
 message( " ")
 
 
@@ -282,6 +283,10 @@ endif(${SHALLOW_WATER_APPLICATION} MATCHES ON)
 if(${EIGEN_SOLVERS_APPLICATION} MATCHES ON)
   add_subdirectory(EigenSolversApplication)
 endif(${EIGEN_SOLVERS_APPLICATION} MATCHES ON)
+
+if(${CO_SIMULATION_APPLICATION} MATCHES ON)
+add_subdirectory(CoSimulationApplication)
+endif(${CO_SIMULATION_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")

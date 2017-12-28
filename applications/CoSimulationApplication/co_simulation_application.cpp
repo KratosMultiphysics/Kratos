@@ -7,30 +7,30 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand@{KRATOS_APP_AUTHOR}
+//  Main authors:    Aditya Ghantasala
 //
-
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "co_simulation_application.h"
 #include "co_simulation_application_variables.h"
 
+namespace Kratos
+{
 
-namespace Kratos {
+KratosCoSimulationApplication::KratosCoSimulationApplication() : KratosApplication("CoSimulationApplication") {}
 
-KratosCoSimulationApplication::KratosCoSimulationApplication() {}
-
-void KratosCoSimulationApplication::Register() {
- 	// calling base class register to register Kratos components
- 	KratosApplication::Register();
- 	std::cout << "Initializing KratosCoSimulationApplication... " << std::endl;
-
-
+void KratosCoSimulationApplication::Register()
+{
+    // calling base class register to register Kratos components
+    KratosApplication::Register();
+	std::cout  << "KRATOS / ___|  ___   ___ (_) _ __   _   _| | __ _| |_(_)            " << std::endl;
+	std::cout  << "       | |    / _ \\/ __| | '_ ` _ \\| | | | |/ _` | __| |/ _ \\| '_ \\ " << std::endl;
+	std::cout  << "       | |__ | (_) |\\__ \\| | | | | | |_| | | (_| | |_| | (_) | | | |" << std::endl;
+	std::cout  << "       \\____| \\___/___/_/| | | | |\\__,_|_|__\\__,_|\\__|_|\\___/|_| |_| Application" << std::endl;
+    std::cout << "Initializing KratosCoSimulationApplication... " << std::endl;
 }
-}  // namespace Kratos.
+} // namespace Kratos.
