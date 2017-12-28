@@ -10,64 +10,60 @@
 //  Main authors:    Aditya Ghantasala
 //
 
-#if !defined(KRATOS_CO_SIMULATION_BASE_COUPLING_STRATEGY_H_INCLUDED)
-#define KRATOS_CO_SIMULATION_BASE_COUPLING_STRATEGY_H_INCLUDED
+#if !defined(KRATOS_CO_SIMULATION_BASE_APPLICATION_IO_H_INCLUDED)
+#define KRATOS_CO_SIMULATION_BASE_APPLICATION_IO_H_INCLUDED
 
 // System includes
 #include <string>
 #include <iostream>
 
 // Project includes
+#include "includes/kratos_parameters.h"
 
 // Application includes
 
 namespace Kratos
 {
 
-class CoSimulationBaseCouplingStrategy
+class CoSimulationBaseIo
 {
 
-public:
-	///@name Type Definitions
-	///@{
+  public:
+    ///@name Type Definitions
+    ///@{
 
-	///@}
-	///@name Life Cycle
-	///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
+    CoSimulationBaseIo(ModelPart &iModelPart, Parameters iParameters) : mrModelPart(iModelPart), mParameters(iParameters)
+    {
+    }
 
+    ///@}
+    ///@name Operators
+    ///@{
 
-	///@}
-	///@name Operators
-	///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
+    ///@}
+    ///@name Access
+    ///@{
 
-	///@}
-	///@name Operations
-	///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
+    ///@}
+    ///@name Input and output
+    ///@{
 
-	///@}
-	///@name Access
-	///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
-
-	///@}
-	///@name Inquiry
-	///@{
-
-
-	///@}
-	///@name Input and output
-	///@{
-
-
-	///@}
-	///@name Friends
-	///@{
-
-
-	///@}
-
+    ///@}
 
   protected:
     ///@name Protected static Member Variables
@@ -106,6 +102,8 @@ public:
     ///@}
     ///@name Member Variables
     ///@{
+    ModelPart &mrModelPart;
+    Parameters mParameters;
 
     ///@}
     ///@name Private Operators
@@ -133,4 +131,4 @@ public:
 
 } // End Kratos namespace
 
-#endif // KRATOS_CO_SIMULATION_BASE_COUPLING_STRATEGY_H_INCLUDED  defined
+#endif // KRATOS_CO_SIMULATION_BASE_APPLICATION_IO_H_INCLUDED  defined
