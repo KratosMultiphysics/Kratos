@@ -141,7 +141,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    KRATOS_ERROR << "calling ConstitutiveModel Initialize base class " << std::endl;
+    //KRATOS_ERROR << "calling ConstitutiveModel Initialize base class " << std::endl;
       
     KRATOS_CATCH(" ")
   }
