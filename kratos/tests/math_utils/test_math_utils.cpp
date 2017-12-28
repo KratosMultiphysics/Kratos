@@ -660,6 +660,22 @@ namespace Kratos
             array_1d<double, 3> a = ZeroVector(3);
             array_1d<double, 3> b = ZeroVector(3);
             a[0] = 1.0;
+            b[0] = -1.0;
+
+            const double angle = MathUtils<double>::VectorsAngle(b, a);
+            
+            KRATOS_CHECK_EQUAL(angle, Globals::Pi);
+        }
+        
+        /** Checks if it calculates the cross product (III)
+         * Checks if it calculates the cross product (III)
+         */
+        
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsVectorAngleTest3, KratosCoreMathUtilsFastSuite) 
+        {
+            array_1d<double, 3> a = ZeroVector(3);
+            array_1d<double, 3> b = ZeroVector(3);
+            a[0] = 1.0;
             a[2] = 1.0;
             a /= norm_2(a);
             b[1] = -1.0;
