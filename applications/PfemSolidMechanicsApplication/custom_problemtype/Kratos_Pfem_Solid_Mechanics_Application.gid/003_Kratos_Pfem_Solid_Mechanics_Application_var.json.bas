@@ -1,8 +1,8 @@
 {
     "problem_data"             : {
         "problem_name"    : "*tcl(file tail [GiD_Info Project ModelName])",
-        "threads"         : *GenData(Number_of_threads,INT)
-        "echo_level"      : *GenData(Echo_Level),
+        "threads"         : *GenData(Number_of_threads,INT),
+        "echo_level"      : *GenData(Echo_Level)
     },
     "model_settings"           : {
         "dimension"       : *GenData(DIMENSION,INT),
@@ -29,7 +29,7 @@
 *end groups
 *endif
 	],
-        "domain_part_list" : [
+        "domain_parts_list" : [
 *set cond group_DeformableBodies *groups
 *add cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
@@ -75,16 +75,16 @@
 *endif
 *end groups
 *endif
-	]
+	],
         "input_file_settings"     : {
 *if(strcmp(GenData(Load_Restart),"True")==0)
-            "input_type"       : "rest",
-            "input_filename"   : "*tcl(file tail [GiD_Info Project ModelName])",
-	    "input_file_label" : "*GenData(Load_Step)"
+            "type"       : "rest",
+            "name"   : "*tcl(file tail [GiD_Info Project ModelName])",
+	    "label" : *GenData(Load_Step)
 *else
-            "input_type"       : "mdpa",
-            "input_filename"   : "*tcl(file tail [GiD_Info Project ModelName])",
-	    "input_file_label" : "0"
+            "type"       : "mdpa",
+            "name"   : "*tcl(file tail [GiD_Info Project ModelName])",
+	    "label" : 0
 *endif
         },
         "dofs"                               : [
