@@ -115,6 +115,7 @@ namespace Kratos
       SeparateVolumetricAndDeviatoricPart( HenckyStrain, VolumetricHencky, DeviatoricHencky, deviatoricNorm);
 
       // 3.a Compute Deviatoric Part
+      rStressMatrix.clear();
       double ShearModulus = rAlphaShear * ReferencePressure * std::exp( -VolumetricHencky / rSwellingSlope );
       rStressMatrix += DeviatoricHencky * 2 * ( ShearModulus  + rConstantShearModulus );
 
@@ -148,14 +149,14 @@ namespace Kratos
       const double & rConstantShearModulus = rMaterialProperties[INITIAL_SHEAR_MODULUS];
 
       // 1. Define some matrices
-      Matrix FourthOrderIdentity = ZeroMatrix(6,6);
+      Matrix FourthOrderIdentity = ZeroMatrix(6);
       for (unsigned int i = 0; i<3; ++i)
          FourthOrderIdentity(i,i) = 1.0;
 
       for (unsigned int i = 3; i<6; ++i)
          FourthOrderIdentity(i,i) = 0.50;
 
-      Matrix IdentityCross = ZeroMatrix(6,6);
+      Matrix IdentityCross = ZeroMatrix(6);
       for (unsigned int i = 0; i<3; ++i) {
          for (unsigned int j = 0; j<3; ++j) {
             IdentityCross(i,j) = 1.0;
