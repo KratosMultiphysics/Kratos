@@ -2,30 +2,32 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Aditya Ghantasala
 //
-
 
 // System includes
 
 // External includes
 #include <boost/python.hpp>
 
-
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
+#include "includes/model_part.h"
 #include "custom_python/add_base_classes_to_python.h"
+#include "custom_base_classes/base_co_simulation_class.h"
+#include "custom_base_classes/base_co_simulation_application_io.h"
+#include "custom_base_classes/base_co_simulation_application.h"
+#include "custom_base_classes/base_co_simulation_coupling_strategy.h"
+#include "custom_base_classes/base_co_simulation_relaxation_scheme.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
-
-
 
 namespace Kratos
 {
@@ -33,23 +35,54 @@ namespace Kratos
 namespace Python
 {
 
+void AddCustomBaseClassesToPython()
+{
+    using namespace boost::python;
 
-  void  AddCustomBaseClassesToPython()
-  {
-	using namespace boost::python;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    typedef CoSimulationBaseClass<SparseSpaceType, LocalSpaceType, LinearSolverType> CoSimulationBaseClassType;
+    typedef CoSimulationBaseApplication<SparseSpaceType, LocalSpaceType, LinearSolverType> CoSimulationBaseApplicationType;
+    typedef CoSimulationBaseCouplingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> CoSimulationBaseCouplingStrategyType;
+    typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
 
+    //********************************************************************
+    //********************CoSimulationBaseClass***************************
+    //********************************************************************
+    class_<CoSimulationBaseClassType,
+           bases<SolvingStrategyType>,
+           boost::noncopyable>("CoSimulationBaseClass", init<ModelPart &>());    
 
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    //********************************************************************
+    //********************CoSimulationIo**********************************
+    //********************************************************************
+    class_<CoSimulationBaseIo,
+           boost::noncopyable>("CoSimulationBaseIo", init<ModelPart &, Parameters>());
 
+    //********************************************************************
+    //********************CoSimulationApplication*************************
+    //********************************************************************
+    class_<CoSimulationBaseApplicationType,
+           bases<CoSimulationBaseClassType>,
+           boost::noncopyable>("CoSimulationBaseApplication", init<ModelPart &, CoSimulationBaseIo &, Parameters>())
+           .def("ImportModelPart",&CoSimulationBaseApplicationType::ImportModelPart);
 
-  }
+    //********************************************************************
+    //********************CoSimulationCouplingStrategy********************
+    //********************************************************************
+    class_<CoSimulationBaseCouplingStrategyType,
+           bases<CoSimulationBaseClassType>,
+           boost::noncopyable>("CoSimulationBaseCouplingStrategy", init<CoSimulationBaseApplicationType::Pointer , CoSimulationBaseApplicationType::Pointer >())
+           .def("TransferDataField",&CoSimulationBaseCouplingStrategyType::TransferDataField);
 
+    //********************************************************************
+    //********************CoSimulationRelaxationSchemes*******************
+    //********************************************************************
+    class_<CoSimulationBaseRelaxationScheme,
+           boost::noncopyable>("CoSimulationBaseRelaxationScheme", init<>());
+}
 
-
-
-
-}  // namespace Python.
+} // namespace Python.
 
 } // Namespace Kratos

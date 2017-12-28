@@ -30,10 +30,7 @@ namespace Kratos
     namespace Python
     {
 
-      void  AddCustomCouplingStrategiesToPython()
-      {
-		  using namespace boost::python;
-	  }
+      void  AddCustomCouplingStrategiesToPython();
 
     }  // namespace Python.
 
