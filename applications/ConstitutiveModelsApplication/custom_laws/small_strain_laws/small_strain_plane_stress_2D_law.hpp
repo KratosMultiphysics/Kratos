@@ -238,7 +238,12 @@ namespace Kratos
 	
 	rConstitutiveMatrix ( 0 , 1 ) = rConstitutiveMatrix ( 0 , 0 )*rPoissonCoefficient;
 	rConstitutiveMatrix ( 1 , 0 ) = rConstitutiveMatrix ( 0 , 1 );	  
-    
+
+	rConstitutiveMatrix ( 0 , 2 ) = 0.0;
+	rConstitutiveMatrix ( 2 , 0 ) = 0.0;
+	rConstitutiveMatrix ( 1 , 2 ) = 0.0;
+	rConstitutiveMatrix ( 2 , 1 ) = 0.0;
+		
 	KRATOS_CATCH(" ")
       }    
       

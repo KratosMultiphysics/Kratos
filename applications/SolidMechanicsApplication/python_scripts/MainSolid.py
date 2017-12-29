@@ -36,8 +36,9 @@ class Solution(object):
         
         # Set echo level
         self.echo_level = 0
-        if( self.ProjectParameters["problem_data"].Has("echo_level") ):
-            self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
+        if( self.ProjectParameters.Has("problem_data") ):
+            if( self.ProjectParameters["problem_data"].Has("echo_level") ):
+                self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
 
         # Defining the number of threads
         num_threads =  self._get_parallel_size()

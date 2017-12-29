@@ -1,6 +1,5 @@
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
 import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterial
 
 def AssignMaterial(Properties):
@@ -22,7 +21,7 @@ def AssignMaterial(Properties):
     
     prop_id = 4
     prop = Properties[prop_id]
-    mat = KratosSolid.LinearElasticPlaneStress2DLaw()
+    mat = KratosMaterial.SmallStrainPlaneStress2DLaw(KratosMaterial.LinearElasticModel())
     prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, mat.Clone())
     
     prop_id = 5
