@@ -24,7 +24,7 @@
 #include "custom_base_classes/base_co_simulation_application_io.h"
 #include "custom_base_classes/base_co_simulation_application.h"
 #include "custom_base_classes/base_co_simulation_coupling_strategy.h"
-#include "custom_base_classes/base_co_simulation_relaxation_scheme.h"
+#include "custom_base_classes/base_co_simulation_convergence_acceleration_scheme.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -58,29 +58,28 @@ void AddCustomBaseClassesToPython()
     //********************CoSimulationIo**********************************
     //********************************************************************
     class_<CoSimulationBaseIo,
-           boost::noncopyable>("CoSimulationBaseIo", init<ModelPart &, Parameters>());
+           boost::noncopyable>("CoSimulationBaseIo", init<Parameters>());
 
     //********************************************************************
     //********************CoSimulationApplication*************************
     //********************************************************************
     class_<CoSimulationBaseApplicationType,
            bases<CoSimulationBaseClassType>,
-           boost::noncopyable>("CoSimulationBaseApplication", init<ModelPart &, CoSimulationBaseIo &, Parameters>())
-           .def("ImportModelPart",&CoSimulationBaseApplicationType::ImportModelPart);
+           boost::noncopyable>("CoSimulationBaseApplication", init<CoSimulationBaseIo &, Parameters>());
 
     //********************************************************************
     //********************CoSimulationCouplingStrategy********************
     //********************************************************************
     class_<CoSimulationBaseCouplingStrategyType,
            bases<CoSimulationBaseClassType>,
-           boost::noncopyable>("CoSimulationBaseCouplingStrategy", init<CoSimulationBaseApplicationType::Pointer , CoSimulationBaseApplicationType::Pointer >())
-           .def("TransferDataField",&CoSimulationBaseCouplingStrategyType::TransferDataField);
+           boost::noncopyable>("CoSimulationBaseCouplingStrategy", init<CoSimulationBaseApplicationType::Pointer , CoSimulationBaseApplicationType::Pointer, CoSimulationBaseConvergenceAccelerationScheme& >())
+           ;
 
     //********************************************************************
     //********************CoSimulationRelaxationSchemes*******************
     //********************************************************************
-    class_<CoSimulationBaseRelaxationScheme,
-           boost::noncopyable>("CoSimulationBaseRelaxationScheme", init<>());
+    class_<CoSimulationBaseConvergenceAccelerationScheme,
+           boost::noncopyable>("CoSimulationBaseConvergenceAccelerationScheme", init<>());
 }
 
 } // namespace Python.
