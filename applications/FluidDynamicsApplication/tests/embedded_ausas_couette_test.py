@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 import KratosMultiphysics.KratosUnittest as UnitTest
