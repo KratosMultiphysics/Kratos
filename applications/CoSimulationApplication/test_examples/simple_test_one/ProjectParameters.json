@@ -1,0 +1,56 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "CoupledProblem",
+        "domain_size"     : 3,
+        "time_step"       : 0.1,
+        "start_time"      : 0.0,
+        "end_time"        : 1,
+        "echo_level"      : 0
+    },
+    
+   "co_simulation_solver_settings" : {
+        "solver_type"                        : "gauss_seidel_iterative_strong_coupling_solver",
+        "echo_level"                         : 1,
+        "convergence_acceleration"           : "constant",
+        "convergence_criterion"              : "residual_criterion",
+        "residual_relative_tolerance"        : 0.001,
+        "residual_absolute_tolerance"        : 1e-6,
+        "max_iteration_per_step"             : 10,
+        "participants"                       : 
+                    [
+                        {
+                        "type": "KratosDummy",
+                        "name": "dummy1",
+                        "io_type": "kratos",      
+                        "output_data_field_list": ["DISPLACEMENT"],
+                        "input_data_field_list": ["POINT_LOAD"],
+                        "settings":{
+                        },
+                        "output_configuration": {
+                                "file_label"          : "step",
+                                "output_control_type" : "step",
+                                "output_frequency"    : 1,
+                                "nodal_results"       : ["DISPLACEMENT","REACTION"],
+                                "elemental_results"   : []   
+                        }
+                        },
+                        
+                        {
+                        "type": "KratosDummy",
+                        "name": "dummy2",
+                        "io_type": "kratos",
+                        "output_data_field_list": ["POINT_LOAD"],
+                        "input_data_field_list": ["DISPLACEMENT"],
+                        "settings":{
+                        },
+                        "output_configuration": {
+                                "file_label"          : "step",
+                                "output_control_type" : "step",
+                                "output_frequency"    : 1,
+                                "nodal_results"       : ["DISPLACEMENT","REACTION"],
+                                "elemental_results"   : []   
+                        }
+                        }
+                  ]          
+     }    
+}
