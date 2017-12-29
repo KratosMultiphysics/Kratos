@@ -7,20 +7,14 @@ import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplicati
 import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
 import os
 
-parameter_file = open("ProjectParameters.json",'r')
-ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
+parameter_file = open("ProjectParameters.json", 'r')
+ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-convScheme = CoSimulationApplication.CoSimulationBaseConvergenceAccelerationScheme()
-io = CoSimulationApplication.CoSimulationBaseIo(KratosMultiphysics.Parameters("""{ }"""))
-app1 = CoSimulationApplication.CoSimulationBaseApplication( io, KratosMultiphysics.Parameters("""{ }""") )
-app2 = CoSimulationApplication.CoSimulationBaseApplication( io, KratosMultiphysics.Parameters("""{ }""") )
-
-newStrategyModule = __import__(ProjectParameters["co_simulation_solver_settings"]["solver_type"].GetString())
-solver = newStrategyModule.CreateSolver(app1, app2, convScheme)
+newStrategyModule = __import__(ProjectParameters[
+    "co_simulation_solver_settings"]["type"].GetString())
+solver = newStrategyModule.CreateSolver(
+    ProjectParameters["co_simulation_solver_settings"])
 solver.Initialize()
-solver.Check()
-solver.Solve()
-
 
 delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
 # Start time
@@ -31,15 +25,15 @@ end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 step = 0
 time = 0
 # Solving the problem (time integration)
-while(time <= end_time):
+while (time <= end_time):
     time = time + delta_time
     step = step + 1
-    
+
     solver.InitializeSolutionStep()
     print('############## ')
     print('Step :: ', step)
     print('Time :: ', time)
-    
-    solver.SolveSolutionStep()
-    
+
+    solver.Solve()
+
     solver.FinalizeSolutionStep()

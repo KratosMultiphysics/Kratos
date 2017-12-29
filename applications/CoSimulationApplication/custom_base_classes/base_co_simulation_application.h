@@ -43,9 +43,8 @@ class CoSimulationBaseApplication : public CoSimulationBaseClass<TSparseSpace, T
     ///@}
     ///@name Life Cycle
     ///@{
-    CoSimulationBaseApplication(CoSimulationBaseIo &iIo, Parameters iParameters) : BaseType(*(ModelPart::Pointer(new ModelPart("cosim")))),
-                                                                                                         mParameters(iParameters),
-                                                                                                         mrIo(iIo)
+    CoSimulationBaseApplication(Parameters iParameters) : BaseType(*(ModelPart::Pointer(new ModelPart("cosim")))),
+                                                                                                         mParameters(iParameters)
     {
     }
 
@@ -61,6 +60,24 @@ class CoSimulationBaseApplication : public CoSimulationBaseClass<TSparseSpace, T
         return mrModelPart;
     }
 
+    /////////////////////////////////////////////////
+    /// Methods specific for Co-Simulation
+    /////////////////////////////////////////////////
+
+    /// Data synchronization methods
+    virtual void SynchronizeInputData()
+    {
+    }
+
+    virtual void SynchronizeOutputData()
+    {
+    }
+
+    /// model part synchronization methods
+    virtual void ImportModelPart()
+    {
+    }    
+
     ///@}
     ///@name Access
     ///@{
@@ -72,15 +89,6 @@ class CoSimulationBaseApplication : public CoSimulationBaseClass<TSparseSpace, T
     ///@}
     ///@name Input and output
     ///@{
-
-    // This will update the data field on the mrModelPart :: Done via IO
-    virtual void SynchronizeInputData() // TODO: Check how to give scalar and vectorial data field names as arguments
-    {
-    }
-
-    virtual void SynchronizeOutputData() // TODO: This will take the name of the data field and the other application from where the data is to be obtained.
-    {
-    }
 
     ///@}
     ///@name Friends
@@ -127,7 +135,6 @@ class CoSimulationBaseApplication : public CoSimulationBaseClass<TSparseSpace, T
     ///@{
     ModelPart mrModelPart;
     Parameters mParameters;
-    CoSimulationBaseIo &mrIo;
     ///@}
     ///@name Private Operators
     ///@{

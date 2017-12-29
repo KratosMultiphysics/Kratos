@@ -48,6 +48,24 @@ class CoSimulationBaseIo
     ///@name Operations
     ///@{
 
+    /////////////////////////////////////////////////
+    /// Methods specific for Co-Simulation
+    /////////////////////////////////////////////////
+
+    /// Data synchronization methods
+    virtual void SynchronizeInputData()
+    {
+    }
+
+    virtual void SynchronizeOutputData()
+    {
+    }
+
+    /// model part synchronization methods
+    virtual void ImportModelPart()
+    {
+    }
+
     ///@}
     ///@name Access
     ///@{

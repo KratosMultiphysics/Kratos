@@ -14,6 +14,7 @@
 
 // External includes
 #include <boost/python.hpp>
+#include <string>
 
 // Project includes
 #include "includes/define.h"
@@ -25,6 +26,7 @@
 #include "custom_base_classes/base_co_simulation_application.h"
 #include "custom_base_classes/base_co_simulation_coupling_strategy.h"
 #include "custom_base_classes/base_co_simulation_convergence_acceleration_scheme.h"
+#include "custom_base_classes/base_co_simulation_convergence_criterion.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -52,20 +54,26 @@ void AddCustomBaseClassesToPython()
     //********************************************************************
     class_<CoSimulationBaseClassType,
            bases<SolvingStrategyType>,
-           boost::noncopyable>("CoSimulationBaseClass", init<ModelPart &>());    
+           boost::noncopyable>("CoSimulationBaseClass", init<ModelPart &>())
+           .def("ImportModelPart", &CoSimulationBaseClassType::ImportModelPart)
+           .def("SynchronizeInputData", &CoSimulationBaseClassType::SynchronizeInputData)
+           .def("SynchronizeOutputData", &CoSimulationBaseClassType::SynchronizeOutputData);
 
     //********************************************************************
     //********************CoSimulationIo**********************************
     //********************************************************************
     class_<CoSimulationBaseIo,
-           boost::noncopyable>("CoSimulationBaseIo", init<Parameters>());
+           boost::noncopyable>("CoSimulationBaseIo", init<Parameters>())
+           .def("ImportModelPart", &CoSimulationBaseIo::ImportModelPart)
+           .def("SynchronizeInputData", &CoSimulationBaseIo::SynchronizeInputData)
+           .def("SynchronizeOutputData", &CoSimulationBaseIo::SynchronizeOutputData);           
 
     //********************************************************************
     //********************CoSimulationApplication*************************
     //********************************************************************
     class_<CoSimulationBaseApplicationType,
            bases<CoSimulationBaseClassType>,
-           boost::noncopyable>("CoSimulationBaseApplication", init<CoSimulationBaseIo &, Parameters>());
+           boost::noncopyable>("CoSimulationBaseApplication", init<Parameters>());
 
     //********************************************************************
     //********************CoSimulationCouplingStrategy********************
@@ -80,6 +88,15 @@ void AddCustomBaseClassesToPython()
     //********************************************************************
     class_<CoSimulationBaseConvergenceAccelerationScheme,
            boost::noncopyable>("CoSimulationBaseConvergenceAccelerationScheme", init<>());
+
+
+    //********************************************************************
+    //********************CoSimulationConvergenceCriterion****************
+    //********************************************************************
+    class_<CoSimulationBaseConvergenceCriterion,
+           boost::noncopyable>("CoSimulationBaseConvergenceCriterion", init<double, double>())
+           .def("IsConverged",&CoSimulationBaseConvergenceCriterion::IsConverged);           
+
 }
 
 } // namespace Python.
