@@ -159,7 +159,7 @@ namespace Kratos
 
     //Get external load
     this->CalculateExternalStiffness(rVariables);
-    
+ 
     KRATOS_CATCH( "" )
   }
 
@@ -178,9 +178,38 @@ namespace Kratos
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
 
-    noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
+    //noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
 
-    rVariables.ExternalScalarValue = 0;
+    //PRESSURE CONDITION:
+    rVariables.ExternalVectorValue = rVariables.Normal;
+    rVariables.ExternalScalarValue = 0.0;
+
+    //defined on condition
+    if( this->Has( BALLAST_COEFFICIENT ) ){
+      double& BallastCoefficient = this->GetValue( BALLAST_COEFFICIENT );
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	rVariables.ExternalScalarValue += rVariables.N[i] * fabs(BallastCoefficient);
+    }
+
+
+    //defined on condition nodes   
+    if( this->Has( BALLAST_COEFFICIENT_VECTOR ) ){
+      Vector& BallastCoefficient = this->GetValue( BALLAST_COEFFICIENT_VECTOR );
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{	  
+	  rVariables.ExternalScalarValue += rVariables.N[i] * fabs(BallastCoefficient[i]); 
+	}
+    }
+    
+    //defined on geometry nodes
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+	if( GetGeometry()[i].SolutionStepsDataHas( BALLAST_COEFFICIENT ) ) 
+	  rVariables.ExternalScalarValue += rVariables.N[i] * fabs( GetGeometry()[i].FastGetSolutionStepValue( BALLAST_COEFFICIENT ) );     
+      }
+    
+    rVariables.ExternalVectorValue *= rVariables.ExternalScalarValue;
+
     
     //STIFFNESS CONDITION:
     
@@ -222,6 +251,72 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void LineElasticCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+						 ConditionVariables& rVariables,
+						 double& rIntegrationWeight)
+
+  {
+    KRATOS_TRY
+
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      
+      if( rVariables.ExternalScalarValue == 0 )
+	{
+	  ElasticCondition::CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+	}
+      else
+	{
+	  if( dimension == 2 ){
+
+	    ElasticCondition::CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+	    
+	    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+	
+	    boost::numeric::ublas::bounded_matrix<double, 2, 2 > Kij;
+	    boost::numeric::ublas::bounded_matrix<double, 2, 2 > SkewSymmMatrix;
+	
+	    //Compute the K sub matrix
+	    SkewSymmMatrix( 0, 0 ) =  0.0;
+	    SkewSymmMatrix( 0, 1 ) = -1.0;
+	    SkewSymmMatrix( 1, 0 ) = +1.0;
+	    SkewSymmMatrix( 1, 1 ) =  0.0;
+
+	    double coeff;
+	    unsigned int RowIndex = 0;
+	    unsigned int ColIndex = 0;
+        
+	    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	      {
+		RowIndex = i * 2;
+	    
+		for ( unsigned int j = 0; j < number_of_nodes; j++ )
+		  {
+		    ColIndex = j * 2;
+		
+		    coeff = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De( j, 0 ) * rIntegrationWeight;
+		    Kij = coeff * SkewSymmMatrix;
+		    
+		    BeamMathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+		  }
+	      }
+
+	  }
+	  else{ //3D line pressure not considered here
+	    unsigned int size = GetGeometry().PointsNumber() * dimension;
+	    if(rLeftHandSideMatrix.size1() != size )
+	      rLeftHandSideMatrix.resize(size,size,false);
+	    noalias(rLeftHandSideMatrix) = ZeroMatrix( size, size );
+	  }
+ 
+	}
+      
+    KRATOS_CATCH( "" )
+  }
+
   
   //***********************************************************************************
   //***********************************************************************************
@@ -236,6 +331,10 @@ namespace Kratos
     ErrorCode = ElasticCondition::Check(rCurrentProcessInfo);
       
     // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(BALLAST_COEFFICIENT);
+    KRATOS_CHECK_VARIABLE_KEY(BALLAST_COEFFICIENT_VECTOR);    
+
+    
     KRATOS_CHECK_VARIABLE_KEY(LINE_STIFFNESS);
     KRATOS_CHECK_VARIABLE_KEY(LINE_STIFFNESS_VECTOR);
         
