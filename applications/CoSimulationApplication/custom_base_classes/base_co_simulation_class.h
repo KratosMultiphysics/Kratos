@@ -124,11 +124,29 @@ class CoSimulationBaseClass : public SolvingStrategy<TSparseSpace, TDenseSpace, 
 
     virtual int Check() override
     {
-        std::cout<<"CoSimulationBaseClass :: Check "<<std::endl;
+        std::cout << "CoSimulationBaseClass :: Check " << std::endl;
         return 0;
     }
 
+    /////////////////////////////////////////////////
     /// Methods specific for Co-Simulation
+    /////////////////////////////////////////////////
+
+    /// Data synchronization methods
+    virtual void SynchronizeInputData()
+    {
+    }
+
+    virtual void SynchronizeOutputData()
+    {
+    }
+
+    /// model part synchronization methods
+    virtual void ImportModelPart()
+    {
+    }
+
+    ///
 
     ///@}
     ///@name Inquiry

@@ -23,6 +23,7 @@
 
 // Application includes
 #include "custom_base_classes/base_co_simulation_application.h"
+#include "custom_base_classes/base_co_simulation_convergence_acceleration_scheme.h"
 
 namespace Kratos
 {
@@ -43,7 +44,10 @@ class CoSimulationBaseCouplingStrategy : public CoSimulationBaseClass<TSparseSpa
     ///@}
     ///@name Life Cycle
     ///@{
-    CoSimulationBaseCouplingStrategy(CoSimBaseClassPointerType app1, CoSimBaseClassPointerType app2) : BaseType(app1->GetModelPart()), mpApplicationOne(app1), mpApplicationTwo(app2)
+    CoSimulationBaseCouplingStrategy(CoSimBaseClassPointerType app1, CoSimBaseClassPointerType app2, CoSimulationBaseConvergenceAccelerationScheme& iConvAccelerator) : BaseType(*(ModelPart::Pointer(new ModelPart("cosim")))), 
+                                                                                                                                                                        mpApplicationOne(app1), 
+                                                                                                                                                                        mpApplicationTwo(app2),
+                                                                                                                                                                        mrConvAccelerator(iConvAccelerator)
     {
     }
 
@@ -52,14 +56,6 @@ class CoSimulationBaseCouplingStrategy : public CoSimulationBaseClass<TSparseSpa
     }
     ///@}
     ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    ///@}
-    ///@name Access
     ///@{
 
     virtual void Predict() override
@@ -120,14 +116,16 @@ class CoSimulationBaseCouplingStrategy : public CoSimulationBaseClass<TSparseSpa
         return 0;
     }
 
-    virtual void TransferDataField() // TODO: transfers a given data field from app1 to app2 CAN use MappingApplication
-    {
-        std::cout << "TransferDataField ... .!!" << std::endl;
-    }
-
     /// Methods specific for Co-Simulation
     
+    ///@}
+    ///@name Operations
+    ///@{
 
+    ///@}
+    ///@name Access
+    ///@{
+        
     ///@}
     ///@name Inquiry
     ///@{
@@ -178,6 +176,7 @@ class CoSimulationBaseCouplingStrategy : public CoSimulationBaseClass<TSparseSpa
 
     CoSimBaseClassPointerType mpApplicationOne;
     CoSimBaseClassPointerType mpApplicationTwo;
+    CoSimulationBaseConvergenceAccelerationScheme& mrConvAccelerator;
 
     ///@}
     ///@name Member Variables

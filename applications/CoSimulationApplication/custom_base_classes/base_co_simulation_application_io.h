@@ -35,8 +35,9 @@ class CoSimulationBaseIo
     ///@}
     ///@name Life Cycle
     ///@{
-    CoSimulationBaseIo(ModelPart &iModelPart, Parameters iParameters) : mrModelPart(iModelPart), mParameters(iParameters)
+    CoSimulationBaseIo(Parameters iParameters) : mParameters(iParameters)
     {
+        mpModelPart = nullptr;
     }
 
     ///@}
@@ -102,7 +103,7 @@ class CoSimulationBaseIo
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart &mrModelPart;
+    ModelPart::Pointer mpModelPart;
     Parameters mParameters;
 
     ///@}

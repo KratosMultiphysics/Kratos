@@ -24,7 +24,6 @@
 
 // Application includes
 #include "custom_base_classes/base_co_simulation_application_io.h"
-#include "custom_base_classes/base_co_simulation_coupling_strategy.h"
 
 namespace Kratos
 {
@@ -44,8 +43,7 @@ class CoSimulationBaseApplication : public CoSimulationBaseClass<TSparseSpace, T
     ///@}
     ///@name Life Cycle
     ///@{
-    CoSimulationBaseApplication(ModelPart &modelPart, CoSimulationBaseIo &iIo, Parameters iParameters) : BaseType(modelPart),
-                                                                                                         mrModelPart(modelPart),
+    CoSimulationBaseApplication(CoSimulationBaseIo &iIo, Parameters iParameters) : BaseType(*(ModelPart::Pointer(new ModelPart("cosim")))),
                                                                                                          mParameters(iParameters),
                                                                                                          mrIo(iIo)
     {
@@ -75,18 +73,12 @@ class CoSimulationBaseApplication : public CoSimulationBaseClass<TSparseSpace, T
     ///@name Input and output
     ///@{
 
-    //This will get the modelpart of the solver from the solver :: Done via IO
-    virtual void ImportModelPart()
-    {
-        std::cout<<"ImportModelPart .... !!"<<std::endl;
-    }
-
     // This will update the data field on the mrModelPart :: Done via IO
-    virtual void GetData() // TODO: Check how to give scalar and vectorial data field names as arguments
+    virtual void SynchronizeInputData() // TODO: Check how to give scalar and vectorial data field names as arguments
     {
     }
 
-    virtual void SetData() // TODO: This will take the name of the data field and the other application from where the data is to be obtained.
+    virtual void SynchronizeOutputData() // TODO: This will take the name of the data field and the other application from where the data is to be obtained.
     {
     }
 
@@ -133,9 +125,9 @@ class CoSimulationBaseApplication : public CoSimulationBaseClass<TSparseSpace, T
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart &mrModelPart;
+    ModelPart mrModelPart;
     Parameters mParameters;
-    CoSimulationBaseIo mrIo;
+    CoSimulationBaseIo &mrIo;
     ///@}
     ///@name Private Operators
     ///@{

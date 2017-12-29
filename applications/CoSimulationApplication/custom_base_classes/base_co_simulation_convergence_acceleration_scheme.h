@@ -10,8 +10,8 @@
 //  Main authors:    Aditya Ghantasala
 //
 
-#if !defined(KRATOS_CO_SIMULATION_BASE_RELAXATION_SCHEME_H_INCLUDED)
-#define KRATOS_CO_SIMULATION_BASE_RELAXATION_SCHEME_H_INCLUDED
+#if !defined(KRATOS_CO_SIMULATION_BASE_CONVERGENCE_ACCELERATION_SCHEME_H_INCLUDED)
+#define KRATOS_CO_SIMULATION_BASE_CONVERGENCE_ACCELERATION_SCHEME_H_INCLUDED
 
 // System includes
 #include <string>
@@ -24,7 +24,7 @@
 namespace Kratos
 {
 
-class CoSimulationBaseRelaxationScheme
+class CoSimulationBaseConvergenceAccelerationScheme
 {
 
 public:
@@ -133,4 +133,4 @@ public:
 
 } // End Kratos namespace
 
-#endif // KRATOS_CO_SIMULATION_BASE_RELAXATION_SCHEME_H_INCLUDED  defined
+#endif // KRATOS_CO_SIMULATION_BASE_CONVERGENCE_ACCELERATION_SCHEME_H_INCLUDED  defined
