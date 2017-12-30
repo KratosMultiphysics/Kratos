@@ -576,7 +576,10 @@ public:
     void  CloseResultFile()
     {
         if ( mResultFileOpen )
+        {
             GiD_fClosePostResultFile( mResultFile );
+            mResultFileOpen = false;
+        }
     }
 
     /**

@@ -1190,9 +1190,18 @@ namespace Kratos
 
 
 	    if(indepnorm==3){
-	      double aux=inner_prod(N[0],MathUtils<double>::CrossProduct(N[1],N[2]));
+	      array_1d<double,3> CrossProductN;
+	      MathUtils<double>::CrossProduct(CrossProductN,N[1],N[2]);
+	      double aux=inner_prod(N[0],CrossProductN);
 	      if(aux!=0){
-		Normal=((MathUtils<double>::CrossProduct(N[1],N[2])+MathUtils<double>::CrossProduct(N[2],N[0])+MathUtils<double>::CrossProduct(N[0],N[1]))/aux); //intersection of three planes
+		MathUtils<double>::CrossProduct(CrossProductN,N[1],N[2]);
+		Normal = CrossProductN;
+		MathUtils<double>::CrossProduct(CrossProductN,N[2],N[0]);
+		Normal += CrossProductN;
+		MathUtils<double>::CrossProduct(CrossProductN,N[0],N[1]);
+		Normal += CrossProductN;
+		if( aux > 1e-15 )
+		  Normal /= aux;  //intersection of three planes
 	      }
 	      // else{
 	      //   std::cout<<" aux "<<aux<<" Normals :";

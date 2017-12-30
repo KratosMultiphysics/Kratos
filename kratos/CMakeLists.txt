@@ -137,7 +137,8 @@ set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMP
 ## Define library KratosTests if enabled
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     add_library(KratosTests SHARED ${KRATOS_TEST_SOURCES})
-    target_link_libraries(KratosTests KratosCore)
+	target_link_libraries(KratosTests KratosCore)
+	set_target_properties(KratosTests PROPERTIES COMPILE_DEFINITIONS "KRATOS_TESTS=IMPORT,API")
     set_target_properties(KratosTests PROPERTIES PREFIX "")
     set(KRATOS_TEST_LIBRARIES KratosTests)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)

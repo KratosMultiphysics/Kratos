@@ -1386,8 +1386,10 @@ private:
       PointType DistanceToTip    = (rSlaveTipPoint - rMasterCenter);
       DistanceToTip[2] = 0; //2D
 
-      PointType ReferenceOrientation = MathUtils<double>::CrossProduct( DistanceToTip, DistanceToCenter );
-      PointType Orientation = MathUtils<double>::CrossProduct( DistanceToPoint, DistanceToCenter );
+      PointType ReferenceOrientation;
+      MathUtils<double>::CrossProduct( ReferenceOrientation, DistanceToTip, DistanceToCenter );
+      PointType Orientation;
+      MathUtils<double>::CrossProduct( Orientation, DistanceToPoint, DistanceToCenter );
 
       double sign = (Orientation[2] * ReferenceOrientation[2]);
 

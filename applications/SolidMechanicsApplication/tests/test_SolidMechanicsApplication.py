@@ -72,8 +72,6 @@ from NightlyTests import SmallStrains_IsotropicDamage_SimoJu_Test  as CSS_IsoDam
 # from ValidationTests import ...
 
 
-
-
 def AssambleTestSuites():
     ''' Populates the test suites to run.
 
@@ -93,48 +91,48 @@ def AssambleTestSuites():
     smallSuite = suites['small']
 
     # Patch test small displacement elements SDE
-    smallSuite.addTest(SDE_2D4N_S_TEST('test_execution'))
-    smallSuite.addTest(SDE_2D3N_S_TEST('test_execution'))
-    smallSuite.addTest(SDE_2D4N_T_TEST('test_execution'))
-    smallSuite.addTest(SDE_2D3N_T_TEST('test_execution'))
-    smallSuite.addTest(SDE_3D8N_T_TEST('test_execution'))
-    smallSuite.addTest(SDE_3D4N_T_TEST('test_execution'))
-    smallSuite.addTest(SDE_3D8N_T_TEST('test_execution'))
-    smallSuite.addTest(SDE_3D4N_T_TEST('test_execution'))   
+    smallSuite.addTest(SDE_2D4N_S_TEST())
+    smallSuite.addTest(SDE_2D3N_S_TEST())
+    smallSuite.addTest(SDE_2D4N_T_TEST())
+    smallSuite.addTest(SDE_2D3N_T_TEST())
+    smallSuite.addTest(SDE_3D8N_T_TEST())
+    smallSuite.addTest(SDE_3D4N_T_TEST())
+    smallSuite.addTest(SDE_3D8N_T_TEST())
+    smallSuite.addTest(SDE_3D4N_T_TEST())   
 
     # Patch test total lagrangian elements TLE
-    smallSuite.addTest(TLE_2D4N_S_TEST('test_execution'))
-    smallSuite.addTest(TLE_2D3N_S_TEST('test_execution'))
-    smallSuite.addTest(TLE_2D4N_T_TEST('test_execution'))
-    smallSuite.addTest(TLE_2D3N_T_TEST('test_execution'))
-    smallSuite.addTest(TLE_3D8N_T_TEST('test_execution'))
-    smallSuite.addTest(TLE_3D4N_T_TEST('test_execution'))
-    smallSuite.addTest(TLE_3D8N_T_TEST('test_execution'))
-    smallSuite.addTest(TLE_3D4N_T_TEST('test_execution'))   
+    smallSuite.addTest(TLE_2D4N_S_TEST())
+    smallSuite.addTest(TLE_2D3N_S_TEST())
+    smallSuite.addTest(TLE_2D4N_T_TEST())
+    smallSuite.addTest(TLE_2D3N_T_TEST())
+    smallSuite.addTest(TLE_3D8N_T_TEST())
+    smallSuite.addTest(TLE_3D4N_T_TEST())
+    smallSuite.addTest(TLE_3D8N_T_TEST())
+    smallSuite.addTest(TLE_3D4N_T_TEST())   
 
     # Patch test updated lagrangian elements ULE
-    smallSuite.addTest(ULE_2D4N_S_TEST('test_execution'))
-    smallSuite.addTest(ULE_2D3N_S_TEST('test_execution'))
-    smallSuite.addTest(ULE_2D4N_T_TEST('test_execution'))
-    smallSuite.addTest(ULE_2D3N_T_TEST('test_execution'))
-    smallSuite.addTest(ULE_3D8N_T_TEST('test_execution'))
-    smallSuite.addTest(ULE_3D4N_T_TEST('test_execution'))
-    smallSuite.addTest(ULE_3D8N_T_TEST('test_execution'))
-    smallSuite.addTest(ULE_3D4N_T_TEST('test_execution'))   
+    smallSuite.addTest(ULE_2D4N_S_TEST())
+    smallSuite.addTest(ULE_2D3N_S_TEST())
+    smallSuite.addTest(ULE_2D4N_T_TEST())
+    smallSuite.addTest(ULE_2D3N_T_TEST())
+    smallSuite.addTest(ULE_3D8N_T_TEST())
+    smallSuite.addTest(ULE_3D4N_T_TEST())
+    smallSuite.addTest(ULE_3D8N_T_TEST())
+    smallSuite.addTest(ULE_3D4N_T_TEST())   
 
     # Tests for shell elements SHE
-    smallSuite.addTest(SHE_3D4N_B_TEST('test_execution'))
-    smallSuite.addTest(SHE_3D4N_D_TEST('test_execution'))
-    smallSuite.addTest(SHE_3D3N_B_TEST('test_execution'))
-    smallSuite.addTest(SHE_3D3N_D_TEST('test_execution'))
+    smallSuite.addTest(SHE_3D4N_B_TEST())
+    smallSuite.addTest(SHE_3D4N_D_TEST())
+    smallSuite.addTest(SHE_3D3N_B_TEST())
+    smallSuite.addTest(SHE_3D3N_D_TEST())
 
     #...
     if (missing_external_dependencies == False):
-        if( hasattr(KratosMultiphysics.ExternalSolversApplication,  "FEASTSolver") ):
+        if( hasattr(KratosMultiphysics.ExternalSolversApplication,"FEASTSolver") ):
             # Eigenvalues tests
-            smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
-            smallSuite.addTest(TEigen3D3NThinCircleTests('test_execution'))
-            smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
+            smallSuite.addTest(TEigenQ4Thick2x2PlateTests())
+            smallSuite.addTest(TEigen3D3NThinCircleTests())
+            smallSuite.addTest(TEigenTL3D8NCubeTests())
         else:
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
     
@@ -147,19 +145,16 @@ def AssambleTestSuites():
     nightSuite.addTests(smallSuite)
     
     # Test constitutive model
-    nightSuite.addTest(CSS_IsoDamage_SimoJu_TEST('test_execution'))
+    nightSuite.addTest(CSS_IsoDamage_SimoJu_TEST())
 
     #...
 
 
-    
     ## VALIDATION TESTS   
     # Create a test suit with the selected tests for validation: (long tests do not run at night)
     validationSuite = suites['validation']
     
-    #...
-
-    
+    #...   
 
     ## ALL TESTS     
     # Create a test suit that contains all the tests:
