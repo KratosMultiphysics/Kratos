@@ -32,7 +32,6 @@
         "variable_name"   : "SURFACE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [0.0,1.0,0.0]
-        }
     },{
         "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto3",
         "variable_name"   : "SURFACE_LOAD",
