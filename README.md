@@ -7,11 +7,11 @@ _Kratos_ is a framework for building multi-disciplinary finite element programs.
 Build Status <img src="https://blog.travis-ci.com/images/travis-mascot-200px.png" height="30"/>
 ------------
 
-| Master | Release-5.1|
+| Master | Release-5.2|
 |:------:|:----:|
-|[![Master][kratos-master-status]][travis-branches]|[![Release-5.1][kratos-Release-5.1-status]][travis-branches]|
+|[![Master][kratos-master-status]][travis-branches]|[![Release-5.2][kratos-Release-5.2-status]][travis-branches]|
 
-[kratos-Release-5.1-status]: https://travis-ci.org/KratosMultiphysics/Kratos.svg?branch=Release-5.1
+[kratos-Release-5.2-status]: https://travis-ci.org/KratosMultiphysics/Kratos.svg?branch=Release-5.2
 [kratos-master-status]: https://travis-ci.org/KratosMultiphysics/Kratos.svg?branch=master
 [travis-branches]: https://travis-ci.org/KratosMultiphysics/Kratos/branches
 [travis-builds]: https://travis-ci.org/KratosMultiphysics/Kratos/builds
