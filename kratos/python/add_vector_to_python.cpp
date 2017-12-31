@@ -16,16 +16,14 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "python/add_vector_to_python.h"
-#include "python/vector_python_interface.h"
-#include "python/vector_scalar_operator_python.h"
-#include "python/vector_vector_operator_python.h"
+// #include "python/vector_python_interface.h"
+// #include "python/vector_scalar_operator_python.h"
+// #include "python/vector_vector_operator_python.h"
 
 namespace Kratos
 {
@@ -33,81 +31,50 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-template<class TContainerType>
-struct UblasVectorModifierRenamed
+// template<class TContainerType>
+// struct UblasVectorModifierRenamed
+// {
+//     typedef typename TContainerType::size_type index_type;
+//     static void Resize(TContainerType& ThisContainer, typename TContainerType::size_type NewSize)
+//     {
+//         ThisContainer.resize(NewSize, true);
+//     }
+//     static void MoveSlice(TContainerType& ThisContainer, index_type Index, index_type From, index_type To)
+//     {
+//         if(Index > From)
+//         {
+//             ThisContainer.resize(ThisContainer.size() + Index - From, true);
+//             std::copy_backward(ThisContainer.begin() + From, ThisContainer.begin() + To, ThisContainer.begin() + Index + To - From);
+//         }
+//         else
+//         {
+//             std::copy(ThisContainer.begin() + From, ThisContainer.begin() + To, ThisContainer.begin() + Index);
+//             ThisContainer.resize(ThisContainer.size() + Index - From, true);
+//         }
+//     }
+// };
+
+
+void  AddVectorToPython(pybind11::module& m)
 {
-    typedef typename TContainerType::size_type index_type;
-    static void Resize(TContainerType& ThisContainer, typename TContainerType::size_type NewSize)
-    {
-        ThisContainer.resize(NewSize, true);
-    }
-    static void MoveSlice(TContainerType& ThisContainer, index_type Index, index_type From, index_type To)
-    {
-        if(Index > From)
-        {
-            ThisContainer.resize(ThisContainer.size() + Index - From, true);
-            std::copy_backward(ThisContainer.begin() + From, ThisContainer.begin() + To, ThisContainer.begin() + Index + To - From);
-        }
-        else
-        {
-            std::copy(ThisContainer.begin() + From, ThisContainer.begin() + To, ThisContainer.begin() + Index);
-            ThisContainer.resize(ThisContainer.size() + Index - From, true);
-        }
-    }
-};
 
-
-void  AddVectorToPython()
-{
-
-    ReadonlyVectorPythonInterface<zero_vector<double> >::CreateInterface("ZeroVector")
-    .def(init<zero_vector<double>::size_type>())
-//       .def(VectorScalarOperatorPython<zero_vector<double>, double, vector<double> >())
-//       .def(VectorVectorOperatorPython<zero_vector<double>, unit_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<zero_vector<double>, scalar_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<zero_vector<double>, vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<zero_vector<double>, mapped_vector<double>, mapped_vector<double> >())
-//       .def(VectorVectorOperatorPython<zero_vector<double>, compressed_vector<double>, compressed_vector<double> >())
-//       .def(VectorVectorOperatorPython<zero_vector<double>, coordinate_vector<double>, coordinate_vector<double> >())
-    ;
-
-    ReadonlyVectorPythonInterface<unit_vector<double> >::CreateInterface("UnitVector")
-    .def(init<unit_vector<double>::size_type, vector<double>::size_type>())
-//       .def(VectorScalarOperatorPython<unit_vector<double>, double, vector<double> >())
-//       .def(VectorVectorOperatorPython<unit_vector<double>, zero_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<unit_vector<double>, scalar_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<unit_vector<double>, vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<unit_vector<double>, mapped_vector<double>, mapped_vector<double> >())
-//       .def(VectorVectorOperatorPython<unit_vector<double>, compressed_vector<double>, compressed_vector<double> >())
-//       .def(VectorVectorOperatorPython<unit_vector<double>, coordinate_vector<double>, coordinate_vector<double> >())
-    ;
-
-    ReadonlyVectorPythonInterface<scalar_vector<double> >::CreateInterface("ScalarVector")
-    .def(init<scalar_vector<double>::size_type, scalar_vector<double>::value_type>())
-//       .def(VectorScalarOperatorPython<scalar_vector<double>, double, vector<double> >())
-//       .def(VectorVectorOperatorPython<scalar_vector<double>, zero_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<scalar_vector<double>, unit_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<scalar_vector<double>, vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<scalar_vector<double>, mapped_vector<double>, mapped_vector<double> >())
-//       .def(VectorVectorOperatorPython<scalar_vector<double>, compressed_vector<double>, compressed_vector<double> >())
-//       .def(VectorVectorOperatorPython<scalar_vector<double>, coordinate_vector<double>, coordinate_vector<double> >())
-    ;
-
-    VectorPythonInterface<vector<double>, UblasVectorModifierRenamed<vector<double> > >::CreateInterface("Vector")
+    class_< vector<double> >(m,"Vector")
     .def(init<vector<double>::size_type>())
-    .def(init<vector_expression<vector<double> > >())
-    .def(VectorScalarOperatorPython<vector<double>, double, vector<double> >())
-//       .def(VectorVectorOperatorPython<vector<double>, zero_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<vector<double>, unit_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<vector<double>, scalar_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<vector<double>, mapped_vector<double>, vector<double> >())
-   ;
+    .def(init<vector<double>::size_type, double>())
+    .def("__add__", [](Vector& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]+=scalar;} )
+    .def("__sub__", [](Vector& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]-=scalar;})
+    .def("__mul__", [](Vector& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]*=scalar;})
+    .def("__div__", [](Vector& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]/=scalar;})
+    .def("__radd__", [](Vector& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]+=scalar;})
+    .def("__rsub__", [](Vector& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]-=scalar;})
+    .def("__rmul__", [](Vector& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]*=scalar;})
+    .def("__rdiv__", [](Vector& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]/=scalar;})
+    .def("__add__", [](Vector& self, const Vector& other_vec){noalias(self) += other_vec; } )
+    .def("__sub__", [](Vector& self, const Vector& other_vec){noalias(self) -= other_vec; } )
+    ;
     
-      VectorPythonInterface<vector<int>, UblasVectorModifierRenamed<vector<int> > >::CreateInterface("IntegerVector")
-      .def(init<vector<int>::size_type>())
-   ;
 
 }
 }  // namespace Python.
