@@ -27,7 +27,7 @@
 #include "includes/constitutive_law.h"
 #include "includes/geometrical_object.h"
 
-#include "python/add_deprecated_variables_to_python.h"
+// #include "python/add_deprecated_variables_to_python.h"
 
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
