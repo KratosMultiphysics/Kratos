@@ -25,7 +25,7 @@ Kernel::Kernel() {
 
     if (!IsImported("KratosMultiphysics")) {
         KratosApplication::Pointer pKratosApplication =
-            boost::make_shared<KratosApplication>(
+            Kratos::make_shared<KratosApplication>(
                 std::string("KratosMultiphysics"));
         pKratosApplication->RegisterVariables();
         this->ImportApplication(pKratosApplication);

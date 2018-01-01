@@ -21,7 +21,7 @@
 
 namespace Kratos
 {
-    KRATOS_CREATE_VARIABLE( boost::shared_ptr<ConditionMap>, MAPPING_PAIRS ) // An unordened map of which contains the structure
+    KRATOS_CREATE_VARIABLE( Kratos::shared_ptr<ConditionMap>, MAPPING_PAIRS ) // An unordened map of which contains the structure
     KRATOS_CREATE_VARIABLE( double, TANGENT_FACTOR )                         // The factor between the tangent and normal behaviour
 
     void KratosApplication::RegisterMappingVariables()
