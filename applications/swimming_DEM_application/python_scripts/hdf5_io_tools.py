@@ -42,11 +42,6 @@ def Index():
         yield index
         index += 1
 
-class ResultsFileEmptyError(Exception):
-   # raised when the results file has less than two time step entries
-    def __init___(self, number_of_time_steps):
-        Exception.__init__(self, "The number of stored time steps is {0}".format(number_of_time_steps) + ". At least two are needed")
-
 class FluidHDF5Loader:
 
     def __init__(self, fluid_model_part, particles_model_part, pp, main_path):
@@ -75,14 +70,16 @@ class FluidHDF5Loader:
         if pp.CFD_DEM["fluid_already_calculated"].GetBool():
 
             with h5py.File(self.file_path, 'r') as f:
-                self.times_str = list([str(key) for key in f.keys() if key not in {'nodes'}])
+                self.times_str = list([str(key) for key in f.keys() if 'time' in f['/' + key].attrs])
                 nodes_ids = np.array([node_id for node_id in f['nodes'][:, 0]])
                 self.permutations = np.array(range(len(nodes_ids)))
                 # obtaining the vector of permutations by ordering [0, 1, ..., n_nodes] as nodes_ids, by increasing order of id.
                 self.permutations = np.array([x for (y, x) in sorted(zip(nodes_ids, self.permutations))])
-                self.times     = np.array([float(f[key].attrs['time']) for key in self.times_str])
+                self.times = np.array([float(f[key].attrs['time']) for key in self.times_str])
+
                 if len(self.times) < 2:
-                    raise ResultsFileEmptyError(len(self.times))
+                    raise ValueError("\nThere are only " + str(len(self.times)) + ' time steps stored in the hdf5 file. At least two are needed.\n')
+
                 self.times_str = np.array([x for (y, x) in sorted(zip(self.times, self.times_str))])
                 self.times = sorted(self.times)
                 self.dt = self.times[-1] - self.times[-2]
