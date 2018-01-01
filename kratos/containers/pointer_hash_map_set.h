@@ -110,7 +110,7 @@ private:
 		bool operator==(const iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
 		bool operator!=(const iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
 		data_type& operator*() const { return *(map_iterator->second); }
-		data_type* operator->() const { return map_iterator->second; }
+		pointer operator->() const { return map_iterator->second; }
 		ptr_iterator& base() { return map_iterator; }
 		ptr_iterator const& base() const { return map_iterator; }
 	};
@@ -126,7 +126,7 @@ private:
 		bool operator==(const const_iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
 		bool operator!=(const const_iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
 		data_type const& operator*() const { return *(map_iterator->second); }
-		data_type* operator->() const { return map_iterator->second; }
+		pointer operator->() const { return map_iterator->second; }
 		ptr_const_iterator& base() { return map_iterator; }
 		ptr_const_iterator const& base() const { return map_iterator; }
 	};
