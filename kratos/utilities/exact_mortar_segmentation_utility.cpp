@@ -178,13 +178,13 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
                 .Coordinates();  // NOTE: We are in a linear triangle, all the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi,
             slave_tangent_eta, false);
-        points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
+        points_array_slave[i_node] = Kratos::make_shared<PointType>(aux_point);
 
         aux_point = MortarUtilities::FastProject(
             slave_center, OriginalMasterGeometry[i_node], SlaveNormal);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi,
             slave_tangent_eta, false);
-        points_array_master[i_node] = boost::make_shared<PointType>(aux_point);
+        points_array_master[i_node] = Kratos::make_shared<PointType>(aux_point);
     }
 
     Triangle3D3<PointType> slave_geometry(points_array_slave);
@@ -266,16 +266,16 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
         aux_point = MortarUtilities::FastProject(
             slave_center, OriginalSlaveGeometry[i_node], SlaveNormal);
         points_array_slave_not_rotated[i_node] =
-            boost::make_shared<PointType>(aux_point);
+            Kratos::make_shared<PointType>(aux_point);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi,
             slave_tangent_eta, false);
-        points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
+        points_array_slave[i_node] = Kratos::make_shared<PointType>(aux_point);
 
         aux_point = MortarUtilities::FastProject(
             slave_center, OriginalMasterGeometry[i_node], SlaveNormal);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi,
             slave_tangent_eta, false);
-        points_array_master[i_node] = boost::make_shared<PointType>(aux_point);
+        points_array_master[i_node] = Kratos::make_shared<PointType>(aux_point);
     }
 
     Quadrilateral3D4<PointType> slave_geometry(points_array_slave);
@@ -522,13 +522,13 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
                 .Coordinates();  // NOTE: We are in a linear triangle, all the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi,
             slave_tangent_eta, false);
-        points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
+        points_array_slave[i_node] = Kratos::make_shared<PointType>(aux_point);
 
         aux_point = MortarUtilities::FastProject(
             slave_center, OriginalMasterGeometry[i_node], SlaveNormal);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi,
             slave_tangent_eta, false);
-        points_array_master[i_node] = boost::make_shared<PointType>(aux_point);
+        points_array_master[i_node] = Kratos::make_shared<PointType>(aux_point);
     }
 
     Triangle3D3<PointType> slave_geometry(points_array_slave);
@@ -612,16 +612,16 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
         aux_point = MortarUtilities::FastProject(
             slave_center, OriginalSlaveGeometry[i_node], SlaveNormal);
         points_array_slave_not_rotated[i_node] =
-            boost::make_shared<PointType>(aux_point);
+            Kratos::make_shared<PointType>(aux_point);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi,
             slave_tangent_eta, false);
-        points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
+        points_array_slave[i_node] = Kratos::make_shared<PointType>(aux_point);
 
         aux_point = MortarUtilities::FastProject(
             slave_center, OriginalMasterGeometry[i_node], SlaveNormal);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi,
             slave_tangent_eta, false);
-        points_array_master[i_node] = boost::make_shared<PointType>(aux_point);
+        points_array_master[i_node] = Kratos::make_shared<PointType>(aux_point);
     }
 
     Quadrilateral3D4<PointType> slave_geometry(points_array_slave);
@@ -690,7 +690,7 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes,
             PointType global_point;
             OriginalSlaveGeometry.GlobalCoordinates(
                 global_point, conditions_points_slave[i_geom][i_node]);
-            points_array[i_node] = boost::make_shared<PointType>(global_point);
+            points_array[i_node] = Kratos::make_shared<PointType>(global_point);
         }
 
         DecompositionType decomp_geom(points_array);
@@ -754,7 +754,7 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetTotalArea(
             PointType global_point;
             OriginalSlaveGeometry.GlobalCoordinates(
                 global_point, ConditionsPointsSlave[i_geom][i_node]);
-            points_array[i_node] = boost::make_shared<PointType>(global_point);
+            points_array[i_node] = Kratos::make_shared<PointType>(global_point);
         }
         
         DecompositionType decomp_geom( points_array );
