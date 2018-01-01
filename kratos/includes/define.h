@@ -16,10 +16,11 @@
 /* System includes */
 #include <stdexcept>
 #include <sstream>
+#include <memory>
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
+// #include "boost/smart_ptr.hpp"
 #include "boost/current_function.hpp"
 
 
@@ -28,15 +29,30 @@
 #include "includes/kratos_export_api.h"
 #include "includes/exception.h"
 
+namespace Kratos
+{
+template<class T>
+    using shared_ptr = std::shared_ptr<T>;
+
+template<class T>
+    using weak_ptr = std::weak_ptr<T>;
+    
+template<typename C, typename...Args>
+    shared_ptr<C> make_shared(Args &&...args) {
+        return std::make_shared<C>(std::forward<Args>(args)...);
+    }
+
+}
+    
 
 
-#define KRATOS_CLASS_POINTER_DEFINITION(a) typedef boost::shared_ptr<a > Pointer; \
-typedef boost::shared_ptr<a > SharedPointer; \
-typedef boost::weak_ptr<a > WeakPointer
+#define KRATOS_CLASS_POINTER_DEFINITION(a) typedef Kratos::shared_ptr<a > Pointer; \
+typedef Kratos::shared_ptr<a > SharedPointer; \
+typedef Kratos::weak_ptr<a > WeakPointer
 
-#define KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME(a) typedef boost::shared_ptr<a > Pointer; \
-typedef typename boost::shared_ptr<a > SharedPointer; \
-typedef typename boost::weak_ptr<a > WeakPointer
+#define KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME(a) typedef Kratos::shared_ptr<a > Pointer; \
+typedef typename Kratos::shared_ptr<a > SharedPointer; \
+typedef typename Kratos::weak_ptr<a > WeakPointer
 
 //-----------------------------------------------------------------
 //
