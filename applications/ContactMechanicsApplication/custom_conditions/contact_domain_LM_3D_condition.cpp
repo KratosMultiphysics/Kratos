@@ -603,7 +603,10 @@ namespace Kratos
     //A_n-1, B_n-1, L_n-1:
     std::vector<BaseLengths> PreviousBase(3);
     mContactUtilities.CalculateEdgeDistances(PreviousBase,P1,P2,PS1,PS2,mContactVariables.PreStepSurface.Normal);
-    double EquivalentArea = 0.5 * norm_2( MathUtils<double>::CrossProduct(mContactVariables.Tangent.CovariantBase.DirectionA,mContactVariables.Tangent.CovariantBase.DirectionB) ); 
+
+    PointType NormalDirection;
+    MathUtils<double>::CrossProduct(NormalDirection, mContactVariables.Tangent.CovariantBase.DirectionA,mContactVariables.Tangent.CovariantBase.DirectionB);
+    double EquivalentArea = 0.5 * norm_2( NormalDirection ); 
     double FactorArea = 0.25 * (PreviousBase[0].L + PreviousBase[1].L) * (PreviousBase[0].L + PreviousBase[1].L);
     
     //complete the computation of the stabilization gap
@@ -1233,7 +1236,9 @@ namespace Kratos
 
     //a, b, l:
     mContactUtilities.CalculateEdgeDistances(rVariables.Contact.CurrentBase,P1,P2,PS1,PS2,rVariables.Contact.CurrentSurface.Normal);
-    rVariables.Contact.Tangent.CurrentArea = 0.5 * norm_2(MathUtils<double>::CrossProduct(rVariables.Contact.Tangent.CovariantBase.DirectionA,rVariables.Contact.Tangent.CovariantBase.DirectionB) );
+    PointType NormalDirection;
+    MathUtils<double>::CrossProduct( NormalDirection, rVariables.Contact.Tangent.CovariantBase.DirectionA,rVariables.Contact.Tangent.CovariantBase.DirectionB);
+    rVariables.Contact.Tangent.CurrentArea = 0.5 * norm_2(NormalDirection);
 
     
     //A, B, L:
@@ -1250,7 +1255,9 @@ namespace Kratos
     PointType V1 = P2 - P1;
     PointType V2 = PS2 - PS1;
 
-    rVariables.Contact.Tangent.ReferenceArea = 0.5 * norm_2(MathUtils<double>::CrossProduct(V1,V2) );
+    PointType V3;
+    MathUtils<double>::CrossProduct(V3,V1,V2);
+    rVariables.Contact.Tangent.ReferenceArea = 0.5 * norm_2(V3);
 
 
     rVariables.Contact.Tangent.FactorArea = 0.25 * (rVariables.Contact.ReferenceBase[0].L + rVariables.Contact.ReferenceBase[1].L) * (rVariables.Contact.ReferenceBase[0].L + rVariables.Contact.ReferenceBase[1].L);

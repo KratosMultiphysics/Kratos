@@ -180,7 +180,7 @@ namespace Kratos
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
 
-    noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
+    //noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
     
     //PRESSURE CONDITION:
     rVariables.ExternalVectorValue = rVariables.Normal;
@@ -246,6 +246,7 @@ namespace Kratos
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
+     counter = 3*i;
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    {
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoads[counter];
@@ -293,8 +294,8 @@ namespace Kratos
 	  
 	    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 	
-	    Matrix Kij     ( 2, 2 );
-	    Matrix SkewSymmMatrix( 2, 2 );
+	    boost::numeric::ublas::bounded_matrix<double, 2, 2 > Kij;
+	    boost::numeric::ublas::bounded_matrix<double, 2, 2 > SkewSymmMatrix;
 	
 	    //Compute the K sub matrix
 	    SkewSymmMatrix( 0, 0 ) =  0.0;
@@ -302,7 +303,7 @@ namespace Kratos
 	    SkewSymmMatrix( 1, 0 ) = +1.0;
 	    SkewSymmMatrix( 1, 1 ) =  0.0;
 
-	    double DiscretePressure=0;
+	    double DiscretePressure;
 	    unsigned int RowIndex = 0;
 	    unsigned int ColIndex = 0;
         
@@ -317,7 +318,7 @@ namespace Kratos
 		    DiscretePressure = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De( j, 0 ) * rIntegrationWeight;
 		    Kij = DiscretePressure * SkewSymmMatrix;
 		
-		    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+		    BeamMathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 		  }
 	      }
 
@@ -348,6 +349,12 @@ namespace Kratos
     ErrorCode = LoadCondition::Check(rCurrentProcessInfo);
 
     // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(NEGATIVE_FACE_PRESSURE);
+    KRATOS_CHECK_VARIABLE_KEY(NEGATIVE_FACE_PRESSURE_VECTOR);
+
+    KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE);
+    KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE_VECTOR);
+    
     KRATOS_CHECK_VARIABLE_KEY(LINE_LOAD);
     KRATOS_CHECK_VARIABLE_KEY(LINE_LOAD_VECTOR);
         

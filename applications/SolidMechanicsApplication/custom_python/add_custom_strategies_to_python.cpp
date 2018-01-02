@@ -18,7 +18,6 @@
 #include "includes/define.h"
 #include "containers/flags.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-
 #include "spaces/ublas_space.h"
 
 //strategies
@@ -41,6 +40,7 @@
 #include "custom_strategies/convergence_criteria/component_wise_residual_convergence_criterion.hpp"
 
 //schemes
+#include "custom_strategies/schemes/residual_based_displacement_bossak_scheme.hpp"
 #include "custom_strategies/schemes/component_wise_bossak_scheme.hpp"
 #include "custom_strategies/schemes/eigensolver_dynamic_scheme.hpp" 
  
@@ -49,6 +49,10 @@
 #include "custom_strategies/schemes/residual_based_rotation_simo_scheme.hpp"
 #include "custom_strategies/schemes/residual_based_rotation_emc_scheme.hpp"
 #include "custom_strategies/schemes/explicit_hamilton_scheme.hpp"
+
+//integration methods
+#include "custom_strategies/time_integration_methods/bossak_method.hpp"
+
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -90,6 +94,8 @@ namespace Kratos
       typedef ExplicitHamiltonBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitHamiltonBuilderAndSolverType;
 
       //custom scheme types
+      typedef ResidualBasedDisplacementBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementBossakSchemeType;
+      typedef ResidualBasedDisplacementNewmarkScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementNewmarkSchemeType;     
       typedef ComponentWiseBossakScheme< SparseSpaceType, LocalSpaceType >  ComponentWiseBossakSchemeType;     
       typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
       typedef ResidualBasedRotationNewmarkScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationNewmarkSchemeType;
@@ -102,6 +108,15 @@ namespace Kratos
       typedef DisplacementConvergenceCriterion< SparseSpaceType,  LocalSpaceType > DisplacementConvergenceCriterionType;
       typedef ComponentWiseResidualConvergenceCriterion< SparseSpaceType,  LocalSpaceType > ComponentWiseResidualConvergenceCriterionType;
 
+
+      //custom integration methods by components
+      typedef VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >                     ComponentType;
+      typedef TimeIntegrationMethod<ComponentType, double>                                    IntegrationMethodType;
+      typedef NewmarkMethod<ComponentType, double>                                                NewmarkMethodType;
+      typedef BossakMethod<ComponentType, double>                                                  BossakMethodType;
+
+
+     
       //********************************************************************
       //*************************STRATEGY CLASSES***************************
       //********************************************************************
@@ -214,7 +229,22 @@ namespace Kratos
       //*************************SHCHEME CLASSES****************************
       //********************************************************************
 
+      // Residual Based Bossak Scheme Type
+      class_< ResidualBasedDisplacementBossakSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementBossakScheme", init<>() )
+      	.def("Initialize", &ResidualBasedDisplacementBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
 
+      // Residual Based Newmark Scheme Type
+      class_< ResidualBasedDisplacementNewmarkSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementNewmarkScheme", init<>() )
+      	.def("Initialize", &ResidualBasedDisplacementNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
+	    
       // Component Wise Bossak Scheme Type
       class_< ComponentWiseBossakSchemeType,
 	      bases< BaseSchemeType >,  boost::noncopyable >
@@ -280,7 +310,6 @@ namespace Kratos
 	(
 	 "DisplacementConvergenceCriterion", 
 	 init<double, double >())
-	.def(init<double, double >())
 	.def("SetEchoLevel", &DisplacementConvergenceCriterionType::SetEchoLevel)
 	;
 
@@ -291,7 +320,6 @@ namespace Kratos
 	(
 	 "ComponentWiseResidualConvergenceCriterion", 
 	 init<double, double >())
-	.def(init<double, double >())
 	.def("SetEchoLevel", &ComponentWiseResidualConvergenceCriterionType::SetEchoLevel)
 	;
 
@@ -303,6 +331,51 @@ namespace Kratos
 	 "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
 	;
 
+
+
+      //********************************************************************
+      //*******************TIME INTEGRATION METHODS*************************
+      //********************************************************************
+
+      //Time Integration Method   
+      class_< IntegrationMethodType, IntegrationMethodType::Pointer, boost::noncopyable >
+      	(
+      	 "TimeIntegrationMethod", init<>())
+      	.def("SetVariables", &IntegrationMethodType::SetVariables)
+      	.def("SetInputVariable", &IntegrationMethodType::SetInputVariable)
+      	.def("SetParameters", &IntegrationMethodType::SetParameters)
+      	.def("Predict", &IntegrationMethodType::Predict)
+	.def(self_ns::str(self))
+	DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO_PYTHON_AS_POINTER(IntegrationMethodType)
+	DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO_PYTHON_AS_POINTER(IntegrationMethodType)
+      	;
+
+      //to define it as a variable 
+      class_<Variable<IntegrationMethodType::Pointer> , bases<VariableData>, boost::noncopyable >("TimeIntegrationMethodVariable", no_init)
+	;
+      
+      class_< NewmarkMethodType, NewmarkMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "NewmarkMethod", init<>())
+      	.def("SetVariables", &NewmarkMethodType::SetVariables)
+      	.def("SetInputVariable", &NewmarkMethodType::SetInputVariable)
+      	.def("SetParameters", &NewmarkMethodType::SetParameters)
+      	.def("Predict", &NewmarkMethodType::Predict)
+	.def(self_ns::str(self))
+      	;
+
+      class_< BossakMethodType, BossakMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "BossakMethod", init<>())
+      	.def("SetVariables", &BossakMethodType::SetVariables)
+      	.def("SetInputVariable", &BossakMethodType::SetInputVariable)
+      	.def("SetParameters", &BossakMethodType::SetParameters)
+      	.def("Predict", &BossakMethodType::Predict)
+	.def(self_ns::str(self))
+      	;
+      
     }
 
   }  // namespace Python.

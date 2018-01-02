@@ -224,12 +224,12 @@ namespace Kratos
 
          virtual void save(Serializer& rSerializer) const override
          {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallStrainUmatModel )
          }
 
          virtual void load(Serializer& rSerializer) override
          {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallStrainUmatModel )
          }
 
          ///@}
