@@ -16,7 +16,7 @@ debugApp = ApplicationGenerator(appNameCamel)
 
 # Add KratosVariables
 debugApp.AddVariables([
-    VariableCreator(name='POINT_SOURCE', vtype='double'),
+    VariableCreator(name='POINT_HEAT_SOURCE', vtype='double'),
 ])
 
 # Add test element
