@@ -115,7 +115,7 @@ public:
     
     double GetConditionNumber(SparseMatrixType& InputMatrix)
     {
-        KRATOS_ERROR_IF(mpEigenSolverMax == nullptr || mpEigenSolverMin == nullptr) << "WARNING:: PLEASE DEFINE THE EigenSolvers" << std::endl;
+        KRATOS_ERROR_IF(mpEigenSolverMax == nullptr || mpEigenSolverMin == nullptr) << "ERROR:: PLEASE DEFINE THE EigenSolvers" << std::endl;
         return GetConditionNumber(InputMatrix, mpEigenSolverMax, mpEigenSolverMin);
     }
     
