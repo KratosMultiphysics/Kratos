@@ -212,6 +212,8 @@ namespace Kratos
       const ModelDataType& rModelData = Variables.GetModelData();
       double pTime[2];
       double delta_time = rModelData.GetProcessInfo()[DELTA_TIME];
+      if ( delta_time < 1e-5)
+         delta_time = 0.01;
       pTime[0] = 0.0;
       pTime[1] = pTime[0] + delta_time;
           

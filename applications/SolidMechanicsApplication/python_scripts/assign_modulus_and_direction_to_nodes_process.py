@@ -106,8 +106,6 @@ class AssignModulusAndDirectionToNodesProcess(BaseProcess.AssignVectorComponents
         BaseProcess.AssignVectorComponentsToNodesProcess.__init__(self, Model, params)
         
 
-            
-
         
         
         
