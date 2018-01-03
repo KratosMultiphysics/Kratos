@@ -10,8 +10,8 @@
 //  Main author:    Michael Andre, https://github.com/msandre
 //
 
-#if !defined(KRATOS_HDF5_MODEL_PART_IO_BASE_IMPL_H_INCLUDED)
-#define KRATOS_HDF5_MODEL_PART_IO_BASE_IMPL_H_INCLUDED
+#if !defined(KRATOS_HDF5_MODEL_PART_IO_BASE_H_INCLUDED)
+#define KRATOS_HDF5_MODEL_PART_IO_BASE_H_INCLUDED
 
 // System includes
 #include <vector>
@@ -38,7 +38,7 @@ namespace HDF5
 ///@name Kratos Classes
 ///@{
 
-class ModelPartIOBaseImpl : public virtual IO
+class ModelPartIOBase : public virtual IO
 {
 public:
     ///@name Type Definitions
@@ -49,7 +49,7 @@ public:
     ///@{
 
     /// Constructor.
-    ModelPartIOBaseImpl(Parameters Settings, File::Pointer pFile);
+    ModelPartIOBase(Parameters Settings, File::Pointer pFile);
 
     ///@}
     ///@name Operations
@@ -70,7 +70,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    ~ModelPartIOBaseImpl() = default;
+    ~ModelPartIOBase() = default;
 
     File& GetFile() const;
 
@@ -96,4 +96,4 @@ protected:
 } // namespace HDF5.
 } // namespace Kratos.
 
-#endif // KRATOS_HDF5_MODEL_PART_IO_BASE_IMPL_H_INCLUDED defined
+#endif // KRATOS_HDF5_MODEL_PART_IO_BASE_H_INCLUDED defined

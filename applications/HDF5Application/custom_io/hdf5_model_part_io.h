@@ -23,7 +23,7 @@
 
 // Application includes
 #include "hdf5_application_define.h"
-#include "custom_io/hdf5_model_part_io_base_impl.h"
+#include "custom_io/hdf5_model_part_io_base.h"
 
 namespace Kratos
 {
@@ -35,7 +35,7 @@ namespace HDF5
 ///@{
 
 /// A class for serial IO of a model part in HDF5.
-class ModelPartIO : public virtual IO, public ModelPartIOBaseImpl
+class ModelPartIO : public virtual IO, public ModelPartIOBase
 {
 public:
     ///@name Type Definitions

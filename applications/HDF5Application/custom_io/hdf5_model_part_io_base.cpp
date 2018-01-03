@@ -1,4 +1,4 @@
-#include "custom_io/hdf5_model_part_io_base_impl.h"
+#include "custom_io/hdf5_model_part_io_base.h"
 
 #include "custom_io/hdf5_properties_io.h"
 #include "custom_io/hdf5_nodal_solution_step_variables_io.h"
@@ -8,7 +8,7 @@ namespace Kratos
 {
 namespace HDF5
 {
-ModelPartIOBaseImpl::ModelPartIOBaseImpl(Parameters Settings, File::Pointer pFile)
+ModelPartIOBase::ModelPartIOBase(Parameters Settings, File::Pointer pFile)
 : mpFile(pFile)
 {
     KRATOS_TRY;
@@ -41,31 +41,31 @@ ModelPartIOBaseImpl::ModelPartIOBaseImpl(Parameters Settings, File::Pointer pFil
     KRATOS_CATCH("");
 }
 
-std::size_t ModelPartIOBaseImpl::ReadNodesNumber()
+std::size_t ModelPartIOBase::ReadNodesNumber()
 {
     const std::vector<unsigned> dims = mpFile->GetDataDimensions(mPrefix + "/Nodes/Local/Ids");
     return dims[0];
 }
 
-void ModelPartIOBaseImpl::ReadProperties(PropertiesContainerType& rProperties)
+void ModelPartIOBase::ReadProperties(PropertiesContainerType& rProperties)
 {
     Internals::PropertiesIO prop_io(mPrefix, mpFile);
     prop_io.ReadProperties(rProperties);
 }
 
-void ModelPartIOBaseImpl::WriteProperties(Properties const& rProperties)
+void ModelPartIOBase::WriteProperties(Properties const& rProperties)
 {
     Internals::PropertiesIO prop_io(mPrefix, mpFile);
     prop_io.WriteProperties(rProperties);
 }
 
-void ModelPartIOBaseImpl::WriteProperties(PropertiesContainerType const& rProperties)
+void ModelPartIOBase::WriteProperties(PropertiesContainerType const& rProperties)
 {
     Internals::PropertiesIO prop_io(mPrefix, mpFile);
     prop_io.WriteProperties(rProperties);
 }
 
-void ModelPartIOBaseImpl::WriteModelPart(ModelPart& rModelPart)
+void ModelPartIOBase::WriteModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
@@ -84,7 +84,7 @@ void ModelPartIOBaseImpl::WriteModelPart(ModelPart& rModelPart)
     KRATOS_CATCH("");
 }
 
-File& ModelPartIOBaseImpl::GetFile() const
+File& ModelPartIOBase::GetFile() const
 {
     return *mpFile;
 }

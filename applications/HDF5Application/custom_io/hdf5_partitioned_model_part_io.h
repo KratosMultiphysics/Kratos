@@ -24,7 +24,7 @@
 
 // Application includes
 #include "hdf5_application_define.h"
-#include "custom_io/hdf5_model_part_io_base_impl.h"
+#include "custom_io/hdf5_model_part_io_base.h"
 
 namespace Kratos
 {
@@ -36,7 +36,7 @@ namespace HDF5
 ///@{
 
 /// A class for partitioned IO of a model part in HDF5.
-class PartitionedModelPartIO : public virtual IO, public ModelPartIOBaseImpl
+class PartitionedModelPartIO : public virtual IO, public ModelPartIOBase
 {
 public:
     ///@name Type Definitions
