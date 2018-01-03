@@ -1151,7 +1151,7 @@ namespace Kratos
 
 			parameters.SetShapeFunctionsValues( iN );
 			parameters.SetShapeFunctionsDerivatives( jacOp.XYDerivatives() );
-			section->CalculateSectionResponse( parameters, ConstitutiveLaw::StressMeasure_PK2 );
+			section->CalculateSectionResponse( parameters, ConstitutiveLaw::StressMeasure_Kirchhoff );
 			Ddrilling = section->GetDrillingStiffness();
 
             // multiply the section tangent matrices and stress resultants by 'dA'
@@ -1459,7 +1459,7 @@ namespace Kratos
 			{
 				parameters.SetShapeFunctionsValues( iN );
 				parameters.SetShapeFunctionsDerivatives( jacOp.XYDerivatives() );
-				section->CalculateSectionResponse( parameters, ConstitutiveLaw::StressMeasure_PK2 );
+				section->CalculateSectionResponse( parameters, ConstitutiveLaw::StressMeasure_Kirchhoff );
 			}
 
             // save the results
