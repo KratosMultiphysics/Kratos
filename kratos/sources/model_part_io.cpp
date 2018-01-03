@@ -3065,7 +3065,7 @@ namespace Kratos
                 for (unsigned int i_sub = 0; i_sub < SubModelPartNames.size(); i_sub++)
                 {
                     const std::string submodelname = SubModelPartNames[i_sub];
-                    ModelPart& SubModel = rMainModelPart.GetSubModelPart(submodelname);
+                    ModelPart& rSubModelPart = rMainModelPart.GetSubModelPart(submodelname);
                     
                     (*mpStream) << InitialTabulation << "Begin SubModelPart\t" << submodelname << std::endl;
                     
@@ -3086,7 +3086,7 @@ namespace Kratos
                     
                     
                     (*mpStream) << InitialTabulation << "\tBegin SubModelPartNodes" << std::endl;
-                    NodesContainerType& rThisNodes = rMainModelPart.Nodes();
+                    NodesContainerType& rThisNodes = rSubModelPart.Nodes();
                     auto numNodes = rThisNodes.end() - rThisNodes.begin();
                     for(unsigned int i = 0; i < numNodes; i++) 
                     {
@@ -3097,7 +3097,7 @@ namespace Kratos
                     
                     
                     (*mpStream) << InitialTabulation << "\tBegin SubModelPartElements" << std::endl;
-                    ElementsContainerType& rThisElements = rMainModelPart.Elements();
+                    ElementsContainerType& rThisElements = rSubModelPart.Elements();
                     auto numElements = rThisElements.end() - rThisElements.begin();
                     for(unsigned int i = 0; i < numElements; i++) 
                     {
@@ -3108,7 +3108,7 @@ namespace Kratos
                     
                     
                     (*mpStream) << InitialTabulation << "\tBegin SubModelPartConditions" << std::endl;
-                    ConditionsContainerType& rThisConditions= rMainModelPart.Conditions();
+                    ConditionsContainerType& rThisConditions= rSubModelPart.Conditions();
                     auto numConditions = rThisConditions.end() - rThisConditions.begin();
                     for(unsigned int i = 0; i < numConditions; i++) 
                     {
@@ -3118,7 +3118,7 @@ namespace Kratos
                     (*mpStream) << InitialTabulation << "\tEnd SubModelPartConditions" << std::endl;
                     
                     // Write the subsubmodelparts
-                    WriteSubModelPartBlock(SubModel, InitialTabulation+"\t");
+                    WriteSubModelPartBlock(rSubModelPart, InitialTabulation+"\t");
                     
                     (*mpStream) << InitialTabulation << "End SubModelPart\t" << std::endl << std::endl;
                 }
