@@ -16,13 +16,10 @@
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
-#include "includes/serializer.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "utilities/integration_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -552,8 +549,12 @@ protected:
     
     /**
      * This function computes the body force
+     * @param rGaussPoint: The gauss point considered
      */ 
-    Vector GetBodyForce();
+    Vector GetBodyForce(
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber
+        ) const;
     
     /**
      * Calculation of the Material Stiffness Matrix. Km = B^T * D *B

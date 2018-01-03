@@ -81,6 +81,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/inlets/bentonite_force_based_inlet.h"
 #include "custom_utilities/swimming_dem_in_pfem_utils.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
+#include "custom_utilities/mesh_rotation_utility.h"
 
 namespace Kratos{
 
@@ -370,7 +371,7 @@ using namespace boost::python;
             ("BinBasedDEMFluidCoupledMapping2D", init<double, int, int, int, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeFlowOnDEMFromField)
-        .def("ImposeVelocityOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeVelocityOnDEMFromField)
+        .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ComputePostProcessResults)
@@ -383,7 +384,7 @@ using namespace boost::python;
             ("BinBasedNanoDEMFluidCoupledMapping2D", init<double, int, int, int, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeFlowOnDEMFromField)
-        .def("ImposeVelocityOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeVelocityOnDEMFromField)
+        .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::ComputePostProcessResults)
@@ -394,11 +395,11 @@ using namespace boost::python;
 
     class_<BinBasedDEMFluidCoupledMapping <3, SphericParticle> >
             ("BinBasedDEMFluidCoupledMapping3D", init<double, int, int, int>())
-        .def("InterpolateVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateVelocity)
+        .def("InterpolateVelocityOnSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateVelocityOnSlipVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromNewestFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeFlowOnDEMFromField)
-        .def("ImposeVelocityOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeVelocityOnDEMFromField)
+        .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ComputePostProcessResults)
@@ -410,11 +411,11 @@ using namespace boost::python;
 
     class_<BinBasedDEMFluidCoupledMapping <3, NanoParticle> >
             ("BinBasedNanoDEMFluidCoupledMapping3D", init<double, int, int, int>())
-        .def("InterpolateVelocity", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateVelocity)
+        .def("InterpolateVelocityOnSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateVelocityOnSlipVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromNewestFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ImposeFlowOnDEMFromField)
-        .def("ImposeVelocityOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ImposeVelocityOnDEMFromField)
+        .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ComputePostProcessResults)
@@ -445,7 +446,13 @@ using namespace boost::python;
         .def("TransferWalls", &SwimmingDemInPfemUtils::TransferWalls)
         ;
 
+    class_<MeshRotationUtility >("MeshRotationUtility", init<Kratos::Parameters&>())
+        .def("RotateMesh", &MeshRotationUtility::RotateMesh)
+        .def("RotateDEMMesh", &MeshRotationUtility::RotateDEMMesh)
+        ;
+
     }
+
 }  // namespace Python.
 
 } // Namespace Kratos

@@ -24,10 +24,10 @@ def CreateMapper( designSurface, optimizationSettings ):
     # default settings string in json format
     default_settings = Parameters("""
     {
-        "design_variables_type"     : "vertex_morphing",
-        "input_model_part_name"     : "input_model_part_name",
-        "design_submodel_part_name" : "design_surface",
-        "domain_size"               : 3,
+        "design_variables_type"              : "vertex_morphing",
+        "optimization_model_part_name"       : "optimization_model_part_name",
+        "design_surface_sub_model_part_name" : "design_surface",
+        "domain_size"                  : 3,
         "filter" : {
             "filter_function_type"       : "linear",
             "filter_radius"              : 1.0,

@@ -124,7 +124,7 @@ namespace Kratos
     rVariables.Tangent2[2] = rVariables.J[rPointNumber](2, 1);
 
     //Compute the  normal
-    CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
+    MathUtils<double>::CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
 
     //Jacobian to the last known configuration
     double Jacobian =  norm_2(rVariables.Normal);
@@ -142,7 +142,7 @@ namespace Kratos
     rVariables.Tangent2[2] = rVariables.j[rPointNumber](2, 1);
 
     //Compute the  normal
-    CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
+    MathUtils<double>::CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
 
     //Jacobian to the deformed configuration
     rVariables.Jacobian = norm_2(rVariables.Normal);
@@ -187,7 +187,7 @@ namespace Kratos
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
 
-    noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
+    //noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
     
     //PRESSURE CONDITION:
     rVariables.ExternalVectorValue = rVariables.Normal;
@@ -304,8 +304,8 @@ namespace Kratos
 	  double coeff;
 	  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
-	  this->MakeCrossMatrix(Cross_ge, rVariables.Tangent1);
-	  this->MakeCrossMatrix(Cross_gn, rVariables.Tangent2);
+	  BeamMathUtils<double>::VectorToSkewSymmetricTensor(rVariables.Tangent1,Cross_ge);
+	  BeamMathUtils<double>::VectorToSkewSymmetricTensor(rVariables.Tangent2,Cross_gn);
 
 	  unsigned int RowIndex = 0;
 	  unsigned int ColIndex = 0;
@@ -317,14 +317,16 @@ namespace Kratos
 		{
 		  ColIndex = j * 3;
 
-		  coeff = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De(j, 1) * rIntegrationWeight;
-		  noalias(Kij) = coeff * Cross_ge;
 
 		  coeff = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De(j, 0) * rIntegrationWeight;
 
-		  noalias(Kij) -= coeff * Cross_gn;
+		  noalias(Kij) = coeff * Cross_gn;
+		  
+		  coeff = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De(j, 1) * rIntegrationWeight;
+		  noalias(Kij) -= coeff * Cross_ge;
 
-		  this->AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+
+		  BeamMathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 		}
 	    }
 	}
@@ -336,101 +338,28 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void SurfaceLoadCondition::MakeCrossMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & M, 
-					     Vector& U)
-  {
-    M(0, 0) = 0.00;
-    M(0, 1) = U[2];
-    M(0, 2) = -U[1];
-    M(1, 0) = -U[2];
-    M(1, 1) = 0.00;
-    M(1, 2) = U[0];
-    M(2, 0) = U[1];
-    M(2, 1) = -U[0];
-    M(2, 2) = 0.00;
-  }
-
-  //***********************************************************************************
-  //***********************************************************************************
-
-  void SurfaceLoadCondition::CrossProduct(Vector & cross,
-					  Vector & a,
-					  Vector & b)
-  {
-    cross[0] = a[1] * b[2] - a[2] * b[1];
-    cross[1] = a[2] * b[0] - a[0] * b[2];
-    cross[2] = a[0] * b[1] - a[1] * b[0];
-  }
-
-  //***********************************************************************************
-  //***********************************************************************************
-
-  void SurfaceLoadCondition::ExpandReducedMatrix(Matrix& Destination,
-						 Matrix& ReducedMatrix)
-  {
-    KRATOS_TRY
-
-    unsigned int size = ReducedMatrix.size2();
-    unsigned int rowindex = 0;
-    unsigned int colindex = 0;
-
-    for (unsigned int i = 0; i < size; i++)
-      {
-        rowindex = i * 3;
-        for (unsigned int j = 0; j < size; j++)
-	  {
-            colindex = j * 3;
-            for (unsigned int ii = 0; ii < 3; ii++)
-	      Destination(rowindex + ii, colindex + ii) += ReducedMatrix(i, j);
-	  }
-      }
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //***********************************************************************************
-  //***********************************************************************************
-
-  void SurfaceLoadCondition::AddMatrix(MatrixType& Destination,
-				       boost::numeric::ublas::bounded_matrix<double, 3, 3 > & InputMatrix,
-				       int InitialRow,
-				       int InitialCol)
-  {
-    KRATOS_TRY
-
-    for (unsigned int i = 0; i < 3; i++)
-      for (unsigned int j = 0; j < 3; j++)
-	Destination(InitialRow + i, InitialCol + j) += InputMatrix(i, j);
-    
-    KRATOS_CATCH( "" )
-  }
-
-  //***********************************************************************************
-  //***********************************************************************************
-
-  void SurfaceLoadCondition::SubtractMatrix(MatrixType& Destination,
-					    boost::numeric::ublas::bounded_matrix<double, 3, 3 > & InputMatrix,
-					    int InitialRow,
-					    int InitialCol)
-  {
-    KRATOS_TRY
-
-    for (unsigned int i = 0; i < 3; i++)
-      for (unsigned int j = 0; j < 3; j++)
-	Destination(InitialRow + i, InitialCol + j) -= InputMatrix(i, j);
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //***********************************************************************************
-  //***********************************************************************************
-
 
   int SurfaceLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
   {
-    return 0;
+    KRATOS_TRY
+
+    // Perform base condition checks
+    int ErrorCode = 0;
+    ErrorCode = LoadCondition::Check(rCurrentProcessInfo);
+
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(NEGATIVE_FACE_PRESSURE);
+    KRATOS_CHECK_VARIABLE_KEY(NEGATIVE_FACE_PRESSURE_VECTOR);
+
+    KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE);
+    KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE_VECTOR);
+    
+    KRATOS_CHECK_VARIABLE_KEY(SURFACE_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(SURFACE_LOAD_VECTOR);
+        
+    return ErrorCode;
+    
+    KRATOS_CATCH( "" )
   }
 
   //***********************************************************************************

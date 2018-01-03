@@ -87,6 +87,8 @@ public:
      * Operations needed by the base class:
      */
 
+    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue);
+    
     double& GetValue( const Variable<double>& rThisVariable, double& rValue );
 
     /**

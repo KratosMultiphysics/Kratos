@@ -227,14 +227,18 @@ public:
    * @param rVector: rotation vector (input parameter)
    * @param rSkewSymmetricTensor: skew symmetric matrix (output parameter)
    */
-  template<class TVector3>
-  static inline void VectorToSkewSymmetricTensor(const TVector3& rVector, MatrixType& rSkewSymmetricTensor)
+  template<class TVector3, class TMatrix3>
+  static inline void VectorToSkewSymmetricTensor(const TVector3& rVector, TMatrix3& rSkewSymmetricTensor)
   {
     KRATOS_TRY
 
     //Initialize Local Matrices
     if( rSkewSymmetricTensor.size1() != 3 )
       rSkewSymmetricTensor.resize(3, 3, false);
+
+    rSkewSymmetricTensor( 0, 0 ) = 0.0;
+    rSkewSymmetricTensor( 1, 1 ) = 0.0;
+    rSkewSymmetricTensor( 2, 2 ) = 0.0;
     
     rSkewSymmetricTensor( 0, 1 ) = -rVector[2];
     rSkewSymmetricTensor( 0, 2 ) =  rVector[1];
@@ -243,11 +247,9 @@ public:
     rSkewSymmetricTensor( 1, 0 ) =  rVector[2];
     rSkewSymmetricTensor( 2, 0 ) = -rVector[1];
     rSkewSymmetricTensor( 2, 1 ) =  rVector[0];
-
     
     KRATOS_CATCH( "" )
   }
-
 
   //************************************************************************************
   //************************************************************************************
@@ -256,8 +258,8 @@ public:
    * @param rSkewSymmetricTensor: skew symmetric matrix (input parameter)
    * @param rVector: rotation vector (output parameter)
    */
-  template<class TVector3>
-  static inline void SkewSymmetricTensorToVector(const MatrixType& rSkewSymmetricTensor, TVector3& rVector)
+  template<class TMatrix3, class TVector3>
+  static inline void SkewSymmetricTensorToVector(const TMatrix3& rSkewSymmetricTensor, TVector3& rVector)
   { 
     KRATOS_TRY
 
@@ -331,7 +333,7 @@ public:
    * @param InitialRow: InitialRowNumber, initial index of the OutputVector
    * note the initialization of the outputvector must be done previously to the call of the method
    */
-  static inline void AddVector(const VectorType& rInputVector, VectorType& rOutputVector, unsigned int InitialRow)
+  static inline void AddVector(const VectorType& rInputVector,VectorType& rOutputVector,const unsigned int InitialRow)
   {
     KRATOS_TRY
     
@@ -351,7 +353,7 @@ public:
    * @param InitialRow: InitialRowNumber, initial index of the OutputVector
    * note the initialization of the outputvector must be done previously to the call of the method
    */
-  static inline void SubstractVector(const VectorType& rInputVector, VectorType& rOutputVector, unsigned int InitialRow)
+  static inline void SubstractVector(const VectorType& rInputVector,VectorType& rOutputVector,const unsigned int InitialRow)
   {
     KRATOS_TRY
 
@@ -362,8 +364,59 @@ public:
   }
 
 
+  /**
+   * "InputMatrix" is ADDED to "Destination" matrix starting from
+   * InitialRow and InitialCol of the destination matrix
+   * "Destination" is assumed to be able to contain the "input matrix"
+   * (no check is performed on the bounds)
+   * @return rDestination: The matric destination
+   * @param rInputMatrix: The input matrix to be computed
+   * @param rInitialRow: The initial row to compute
+   * @param rInitialCol: The initial column to compute
+   */
+  
+  template<class TMatrix, class TInputMatrix>
+  static inline void  AddMatrix(TMatrix& rDestination,const TInputMatrix& rInputMatrix,const unsigned int rInitialRow,const unsigned int rInitialCol)
+  {
+    KRATOS_TRY
+    for(unsigned int i = 0; i < rInputMatrix.size1(); i++)
+      {
+	for(unsigned int j = 0; j < rInputMatrix.size2(); j++)
+	  {
+	    rDestination(rInitialRow+i, rInitialCol+j) += rInputMatrix(i,j);
+	  }
+      }
+    KRATOS_CATCH("")
+  }
+    
+  /**
+   *  "InputMatrix" is SUBTRACTED to "Destination" matrix starting from
+   * InitialRow and InitialCol of the destination matrix
+   * "Destination" is assumed to be able to contain the "input matrix"
+   * (no check is performed on the bounds)
+   * @return rDestination: The matric destination
+   * @param rInputMatrix: The input matrix to be computed
+   * @param rInitialRow: The initial row to compute
+   * @param rInitialCol: The initial column to compute
+   */
 
- //*****************************************************************************
+  template<class TMatrix, class TInputMatrix>
+  static inline void  SubtractMatrix(TMatrix& rDestination,const TInputMatrix& rInputMatrix,const unsigned int rInitialRow,const unsigned int rInitialCol)
+  {
+    KRATOS_TRY;
+        
+    for(unsigned int i = 0; i<rInputMatrix.size1(); i++)
+      {
+	for(unsigned int j = 0; j<rInputMatrix.size2(); j++)
+	  {
+	    rDestination(rInitialRow+i, rInitialCol+j) -= rInputMatrix(i,j);
+	  }
+      }
+        
+    KRATOS_CATCH("");
+  }
+
+  //*****************************************************************************
   //*****************************************************************************
 
   /**

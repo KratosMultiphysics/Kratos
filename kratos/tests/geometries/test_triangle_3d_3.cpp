@@ -53,7 +53,7 @@ namespace Testing
   typename Triangle3D3<TPointType>::Pointer GenerateRightTriangle3D3() {
     return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
       GeneratePoint<TPointType>(0.0, 0.0, 0.0),
-      GeneratePoint<TPointType>(std::cos(M_PI/4), 0.0, std::sin(M_PI/4)),
+      GeneratePoint<TPointType>(std::cos(Globals::Pi/4), 0.0, std::sin(Globals::Pi/4)),
       GeneratePoint<TPointType>(0.0, 1.0, 0.0)
     ));
   }
@@ -475,8 +475,8 @@ namespace Testing
         Point point_4( 0.3, 0.5, 1.2);
         KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
         
-        Point point_5( 0.8,-0.3,-0.5);
-        Point point_6( 1.2, 0.3, 0.5);
+        Point point_5( 1.2, 0.3, 0.5);
+        Point point_6( 0.8,-0.3,-0.5);
         KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
     }
 

@@ -177,6 +177,12 @@ protected:
     void CalculateKinematics(ElementVariables& rVariables,
                              const double& rPointNumber) override;
 
+    /**
+     * Calculate Element Jacobian
+     */
+    void CalculateKinetics(ElementVariables& rVariables,
+			   const double& rPointNumber) override;
+    
 
     /**
      * Calculation of the Deformation Matrix  BL

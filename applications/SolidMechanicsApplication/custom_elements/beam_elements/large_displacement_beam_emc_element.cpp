@@ -506,8 +506,11 @@ namespace Kratos
     CalculateAlphaRotationMatrix( rVariables.PreviousRotationMatrix, rVariables.CurrentRotationMatrix, AlphaRotationMatrix, AlphaRotationMatrixAsterisk, alpha);
   
     Vector AxisPositionDerivativesAlpha = (1-alpha) * rVariables.PreviousAxisPositionDerivatives + alpha * rVariables.CurrentAxisPositionDerivatives;
+
+    Vector CurrentStepxAxisPosition;
+    MathUtils<double>::CrossProduct(CurrentStepxAxisPosition,CurrentStepRotationVector, AxisPositionDerivativesAlpha);
     
-    Vector AxisDisplacementDerivatives = CurrentStepDisplacementDerivativesVector - MathUtils<double>::CrossProduct(CurrentStepRotationVector, AxisPositionDerivativesAlpha);
+    Vector AxisDisplacementDerivatives = CurrentStepDisplacementDerivativesVector - CurrentStepxAxisPosition;
     
     
     //std::cout<<" ID "<<this->Id()<<" Previous "<<rVariables.PreviousStrainResultantsVector<<std::endl;
@@ -877,13 +880,13 @@ namespace Kratos
 	    GabK *= (-1) * (rVariables.DN_DX(i, 0) * rVariables.N[j]); 
 	      
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( Kij, GabK, 0, 3 );
+	    BeamMathUtilsType::AddMatrix( Kij, GabK, 0, 3 );
 		
 	    //term 21
 	    noalias(GabK) = ZeroMatrix(3,3);
 	    GabK = (rVariables.N[i] * rVariables.DN_DX(j, 0) ) * SkewSymStressResultants;
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( Kij, GabK, 3, 0 );
+	    BeamMathUtilsType::AddMatrix( Kij, GabK, 3, 0 );
 	
 
 	    //term 22
@@ -908,12 +911,12 @@ namespace Kratos
 	    GabK -= ( rVariables.N[i] * rVariables.N[j]) * inner_prod( CurrentValueVector, AxisPositionDerivativesAlpha ) * DiagonalMatrix;
 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( Kij, GabK, 3, 3 );
+	    BeamMathUtilsType::AddMatrix( Kij, GabK, 3, 3 );
 
 	    Kij *= rIntegrationWeight * rVariables.Alpha;
 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 	    
 	  }
       }
@@ -1089,8 +1092,8 @@ namespace Kratos
 
 
 	    //Building the Local Tangent Inertia Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
 	    
 	  }
 	

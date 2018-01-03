@@ -75,13 +75,15 @@ class Communicator:
     # --------------------------------------------------------------------------
     def __deleteAllRequests( self ):
         for responseId in self.listOfRequests:
-            self.listOfRequests[responseId] = {"calculateValue": False, "calculateGradient": False}
+            self.listOfRequests[responseId]["CalculateValue"] = False
+            self.listOfRequests[responseId]["calculateGradient"] = False
 
     # --------------------------------------------------------------------------
     def __deleteAllReportedValues( self ):
         for responseId in self.listOfResponses:
-            self.listOfResponses[responseId] = {"value": None, "referenceValue": None, "gradient": None}  
-
+            self.listOfResponses[responseId]["value"] = None 
+            self.listOfResponses[responseId]["gradient"] = None 
+            
     # --------------------------------------------------------------------------
     def requestFunctionValueOf( self, responseId ):
         self.listOfRequests[responseId]["calculateValue"] = True
@@ -108,16 +110,16 @@ class Communicator:
             raise NameError("Reported function is not specified: " + responseId)
 
     # --------------------------------------------------------------------------
-    def reportFunctionReferenceValue( self, responseId, functionReferenceValue ):
-        if responseId in self.listOfResponses.keys():
-            self.listOfResponses[responseId]["referenceValue"] = functionReferenceValue
+    def reportGradient( self, responseId, gradient ):
+        if responseId in self.listOfResponses.keys():        
+            self.listOfResponses[responseId]["gradient"] = gradient
         else:
             raise NameError("Reported function is not specified: " + responseId)
 
     # --------------------------------------------------------------------------
-    def reportGradient( self, responseId, gradient ):
-        if responseId in self.listOfResponses.keys():        
-            self.listOfResponses[responseId]["gradient"] = gradient
+    def setFunctionReferenceValue( self, responseId, functionReferenceValue ):
+        if responseId in self.listOfResponses.keys():
+            self.listOfResponses[responseId]["referenceValue"] = functionReferenceValue
         else:
             raise NameError("Reported function is not specified: " + responseId)
 

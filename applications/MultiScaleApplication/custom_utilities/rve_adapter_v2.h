@@ -160,7 +160,7 @@ namespace Kratos
 		angle = 0.0;
 		for(int i = 0; i <= 360.0; i++)
 		{
-			double a = double(i)/180.0*KRATOS_M_PI;
+			double a = double(i)/180.0*Globals::Pi;
 			double dq_trial = rve_det_acoustic_tensor_2d(C,a);
 			if(dq_trial < dq) {
 				dq = dq_trial;
@@ -175,7 +175,7 @@ namespace Kratos
 		angle = 0.0;
 		for(int i = 0; i <= 360.0; i++)
 		{
-			double a = double(i)/180.0*KRATOS_M_PI;
+			double a = double(i)/180.0*Globals::Pi;
 			double dq_trial = rve_det_acoustic_tensor_2d(C,a);
 			if(dq_trial < 0.0) {
 				if(dq_trial > dq) {
