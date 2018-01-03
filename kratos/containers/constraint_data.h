@@ -109,7 +109,7 @@ class ConstraintEquation
         SetConstantUpdate(0.0);
     }
 
-    ConstraintEquation(const ConstraintEquation &iOther)
+/*     ConstraintEquation(const ConstraintEquation &iOther)
     {
         this->slaveDofId = iOther.slaveDofId;
         this->slaveDofKey = iOther.slaveDofKey;
@@ -118,7 +118,7 @@ class ConstraintEquation
         this->constantUpdate = iOther.constantUpdate;
 
         this->mMasterData = std::move(iOther.mMasterData);
-    }
+    } */
 
     void SetConstant(double iConstant) { constant = iConstant; }
     void SetConstantUpdate(double iConstantUpdate) { constantUpdate = iConstantUpdate; }
