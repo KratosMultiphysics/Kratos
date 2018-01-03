@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_BOSSAK_METHOD )
-#define  KRATOS_BOSSAK_METHOD
+#if !defined(KRATOS_STATIC_STEP_METHOD )
+#define  KRATOS_STATIC_STEP_METHOD
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_strategies/time_integration_methods/newmark_method.hpp"
+#include "custom_strategies/time_integration_methods/static_method.hpp"
 
 namespace Kratos
 {
@@ -47,11 +47,8 @@ namespace Kratos
    * This class performs predict and update of dofs variables, their time derivatives and time integrals      
    */
   template<class TVariableType, class TValueType>
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) BossakMethod : public NewmarkMethod<TVariableType,TValueType>
-  {
-  protected:
-
-    
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepMethod : public StaticMethod<TVariableType,TValueType>
+  {   
   public:
  
     ///@name Type Definitions
@@ -70,10 +67,10 @@ namespace Kratos
     typedef typename BaseType::VariablePointer        VariablePointer;
 
     /// DerivedType
-    typedef NewmarkMethod<TVariableType,TValueType>       DerivedType;
+    typedef StaticMethod<TVariableType,TValueType>        DerivedType;
 
     
-    KRATOS_CLASS_POINTER_DEFINITION( BossakMethod );
+    KRATOS_CLASS_POINTER_DEFINITION( StaticStepMethod );
 
     ///@}
     ///@name Life Cycle
@@ -81,23 +78,26 @@ namespace Kratos
 
     
     /// Default Constructor.
-    BossakMethod() : DerivedType() {}
+    StaticStepMethod() : DerivedType()
+    {
+      mpStepVariable = nullptr;
+    }
 
     /// Copy Constructor.
-    BossakMethod(BossakMethod& rOther)
+    StaticStepMethod(StaticStepMethod& rOther)
       :DerivedType(rOther)
-      ,mAlpha(rOther.mAlpha)
+      ,mpStepVariable(rOther.mpStepVariable)
     {
     }
 
     /// Clone.
     BaseTypePointer Clone()
     {
-      return BaseTypePointer( new BossakMethod(*this) );
+      return BaseTypePointer( new StaticStepMethod(*this) );
     }
 
     /// Destructor.
-    ~BossakMethod(){}
+    ~StaticStepMethod(){}
 
     ///@}
     ///@name Operators
@@ -106,73 +106,47 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
+
+    // has step variable
+    virtual bool HasStepVariable() override
+    {
+      return true;
+    }
     
-    // set parameters
-    void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
+    // set step variable (step variable)
+    virtual void SetStepVariable(const TVariableType& rStepVariable) override
+    {
+      mpStepVariable = &rStepVariable;
+    }
+    
+    // predict
+    virtual void Predict(NodeType& rNode) override
+    {
+     KRATOS_TRY
+     
+     DerivedType::Predict(rNode);
+
+     this->PredictStepVariable(rNode);
+	
+     KRATOS_CATCH( "" )
+    }
+
+
+    
+    // update
+     virtual void Update(NodeType& rNode) override
     {
      KRATOS_TRY
        
-     double delta_time = rCurrentProcessInfo[DELTA_TIME];
+     DerivedType::Update(rNode);
 
-     if (delta_time < 1.0e-24)
-        {
-	  KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Method DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part " << std::endl;
-        }
-     
-     double beta = 0.25;
-     if (rCurrentProcessInfo.Has(NEWMARK_BETA))
-       {
-	 beta = rCurrentProcessInfo[NEWMARK_BETA];
-       }
-     double gamma = 0.5;
-     if (rCurrentProcessInfo.Has(NEWMARK_GAMMA))
-       {
-	 gamma = rCurrentProcessInfo[NEWMARK_GAMMA];
-       }
+     this->UpdateStepVariable(rNode);
 
-     mAlpha = -0.3;
-     if (rCurrentProcessInfo.Has(BOSSAK_ALPHA))
-       {
-	 mAlpha = rCurrentProcessInfo[BOSSAK_ALPHA];
-       }
 
-     if(mAlpha > 0.0 || mAlpha < -0.3)
-        {
-	  KRATOS_ERROR << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is " << mAlpha << std::endl; 
-        }
-     
-     beta  = (1.0 - mAlpha) * (1.0 - mAlpha) * beta;
-     gamma = gamma - mAlpha;
-          
-     this->mNewmark.SetParameters(beta,gamma,delta_time);
-     
-     KRATOS_CATCH( "" )
-    }     
-
-    // set parameters to process info
-    virtual void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo) override
-    {
-     KRATOS_TRY
-       
-     rCurrentProcessInfo[NEWMARK_BETA]  = this->mNewmark.beta;      
-     rCurrentProcessInfo[NEWMARK_GAMMA] = this->mNewmark.gamma;
-     rCurrentProcessInfo[BOSSAK_ALPHA]  = this->mAlpha;
-       
      KRATOS_CATCH( "" )
     }
-    
-    double& GetMethodParameter(double& rParameter) override
-    {
-      rParameter = mAlpha;
-      return rParameter;
-    }
-    
-    double& GetSecondDerivativeParameter(double& rParameter) override
-    {
-      rParameter = (1.0 - mAlpha) * this->mNewmark.c0;
-      return rParameter;
-    }
-    
+
+     
     ///@}
     ///@name Access
     ///@{
@@ -190,20 +164,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "BossakMethod";
+        buffer << "StaticStepMethod";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "BossakMethod";
+        rOStream << "StaticStepMethod";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "BossakMethod Data";     
+      rOStream << "StaticStepMethod Data";     
     }
 
     
@@ -223,7 +197,8 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-    double   mAlpha;
+    // method variables    
+    VariablePointer mpStepVariable;
     
     ///@}
     ///@name Protected Operators
@@ -233,6 +208,32 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
+    virtual void PredictStepVariable(NodeType& rNode)
+    {
+      KRATOS_TRY
+
+      this->UpdateStepVariable(rNode);
+	
+      KRATOS_CATCH( "" )
+    }
+
+
+    virtual void UpdateStepVariable(NodeType& rNode)
+    {
+      KRATOS_TRY
+
+      // predict step variable from previous and current values
+      TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
+	
+      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
+      
+      CurrentStepVariable = CurrentVariable-PreviousVariable;
+	
+      KRATOS_CATCH( "" )
+    }
+    
+    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -275,14 +276,14 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
-      rSerializer.save("BossakAlpha", mAlpha);
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
+      // rSerializer.save("StepVariable", mpStepVariable);
     };
 
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
-      rSerializer.load("BossakAlpha", mAlpha);
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
+      // rSerializer.load("StepVariable", mpStepVariable);
     };
     
     ///@}
@@ -295,7 +296,7 @@ namespace Kratos
   
     ///@}
   
-  }; // Class BossakMethod
+  }; // Class StaticStepMethod
   
   ///@}
 
@@ -308,12 +309,12 @@ namespace Kratos
   ///@{
   
   template<class TVariableType, class TValueType>
-  inline std::istream & operator >> (std::istream & rIStream, BossakMethod<TVariableType,TValueType>& rThis)
+  inline std::istream & operator >> (std::istream & rIStream, StaticStepMethod<TVariableType,TValueType>& rThis)
   {
   }
 
   template<class TVariableType, class TValueType>
-  inline std::ostream & operator << (std::ostream & rOStream, const BossakMethod<TVariableType,TValueType>& rThis)
+  inline std::ostream & operator << (std::ostream & rOStream, const StaticStepMethod<TVariableType,TValueType>& rThis)
   {
     return rOStream << rThis.Info();
   }
@@ -324,4 +325,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_BOSSAK_METHOD defined
+#endif // KRATOS_STATIC_STEP_METHOD defined

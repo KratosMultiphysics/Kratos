@@ -121,8 +121,16 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         time_integration_method = KratosSolid.TimeIntegrationMethod()
-        self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo)
 
+        angular_variables = self.AngularDynamicVariables[:]
+        angular_variables.append("ROTATION")
+        variable = self.variable_name[:-2]
+        try:
+            index_value = angular_variables.index(variable)
+            self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo)
+        except ValueError:
+            self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo)       
+            
         if( self.TimeIntegrationMethod == None ):
             self.TimeIntegrationMethod = KratosSolid.TimeIntegrationMethod()
             
@@ -186,13 +194,16 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         self.FreeDofsProcesses.append(free_dof_process)
                 
         for dynamic_variable in self.AngularDynamicVariables:
-            if dynamic_variable in self.variable_name[:-2]:
+            if dynamic_variable == self.variable_name[:-2]:
                 self.derivated_variable_name = "ROTATION" + self.variable_name[-2:]
                 self.fix_derivated_variable = True
                 variable          = KratosMultiphysics.KratosGlobals.GetVariable("ROTATION" + self.variable_name[-2:])
                 first_derivative  = KratosMultiphysics.KratosGlobals.GetVariable("ANGULAR_VELOCITY" + self.variable_name[-2:])
                 second_derivative = KratosMultiphysics.KratosGlobals.GetVariable("ANGULAR_ACCELERATION" + self.variable_name[-2:])
-                self.TimeIntegrationMethod.SetVariables(variable, first_derivative, second_derivative)                   
+                self.TimeIntegrationMethod.SetVariables(variable, first_derivative, second_derivative)
+                if( self.TimeIntegrationMethod.HasStepVariable() ):
+                    step_variable = KratosMultiphysics.KratosGlobals.GetVariable("STEP_ROTATION" + self.variable_name[-2:])
+                    self.TimeIntegrationMethod.SetStepVariable(step_variable)
                 break
 
         if( self.fix_derivated_variable == False ):
@@ -203,7 +214,10 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                     variable          = KratosMultiphysics.KratosGlobals.GetVariable("DISPLACEMENT" + self.variable_name[-2:])
                     first_derivative  = KratosMultiphysics.KratosGlobals.GetVariable("VELOCITY" + self.variable_name[-2:])
                     second_derivative = KratosMultiphysics.KratosGlobals.GetVariable("ACCELERATION" + self.variable_name[-2:])
-                    self.TimeIntegrationMethod.SetVariables(variable, first_derivative, second_derivative)                   
+                    self.TimeIntegrationMethod.SetVariables(variable, first_derivative, second_derivative)                    
+                    if( self.TimeIntegrationMethod.HasStepVariable() ):
+                        step_variable = KratosMultiphysics.KratosGlobals.GetVariable("STEP_DISPLACEMENT" + self.variable_name[-2:])
+                        self.TimeIntegrationMethod.SetStepVariable(step_variable)
                     break
 
         input_variable = KratosMultiphysics.KratosGlobals.GetVariable(self.variable_name)

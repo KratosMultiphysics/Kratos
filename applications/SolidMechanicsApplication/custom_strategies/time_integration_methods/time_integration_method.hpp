@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/process_info.h"
 #include "includes/variables.h"
+#include "includes/node.h"
 #include "custom_utilities/process_info_extensions.hpp"
 
 namespace Kratos
@@ -93,7 +94,7 @@ namespace Kratos
     }
 
     /// Clone
-	TimeIntegrationMethodPointer Clone()
+    TimeIntegrationMethodPointer Clone()
     {
       return TimeIntegrationMethodPointer( new TimeIntegrationMethod(*this) );
     }
@@ -114,8 +115,13 @@ namespace Kratos
     {
     
     }
+
+    virtual void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo)
+    {
     
-    // get parameters
+    }
+    
+    // get parameters   
     virtual double& GetMethodParameter(double& rParameter)
     {
       rParameter = 0.0;
@@ -134,6 +140,23 @@ namespace Kratos
       return rParameter;
     }
 
+    // set nodal variable
+    void SetVariable(const TVariableType& rVariable)
+    {
+      mpVariable = &rVariable;
+    }
+
+    // set nodal variable first derivative
+    void SetFirstDerivative(const TVariableType& rFirstDerivative)
+    {
+      mpFirstDerivative = &rFirstDerivative;
+    }
+
+    // set nodal variable second derivative
+    void SetSecondDerivative(const TVariableType& rSecondDerivative)
+    {
+      mpSecondDerivative = &rSecondDerivative;
+    }
     
     // set time integration nodal variables
     void SetVariables(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative)
@@ -151,8 +174,18 @@ namespace Kratos
       mpInputVariable = &rVariable;
     }
 
-    // predict
+    virtual bool HasStepVariable()
+    {
+      return false;
+    }
     
+    // set step variable (step variable)
+    virtual void SetStepVariable(const TVariableType& rStepVariable)
+    {
+      KRATOS_ERROR << " Calling SetStepVariable from time integration base class " <<std::endl;
+    }
+    
+    // predict
     virtual void Predict(NodeType& rNode)
     {
       KRATOS_ERROR << " Calling predict from time integration base class " <<std::endl;

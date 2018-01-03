@@ -57,20 +57,35 @@ namespace Kratos
     typedef ResidualBasedDisplacementNewmarkScheme<TSparseSpace,TDenseSpace>  DerivedType;
 
     typedef typename DerivedType::IntegrationTypePointer           IntegrationTypePointer;
+
+    typedef typename DerivedType::NodeType                                       NodeType;
+    
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default Constructor.
-    ResidualBasedDisplacementBossakScheme()
-      :DerivedType()
+    ResidualBasedDisplacementBossakScheme()      
     {
+      BaseType();
+	
+      // Set integration method
+      this->SetIntegrationMethod();
+            
+      // Allocate auxiliary memory
+      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+
+      this->mMatrix.M.resize(NumThreads);
+      this->mMatrix.D.resize(NumThreads);
+
+      this->mVector.v.resize(NumThreads);
+      this->mVector.a.resize(NumThreads);
+      this->mVector.ap.resize(NumThreads);
     }
 
     /// Copy Constructor.
     ResidualBasedDisplacementBossakScheme(ResidualBasedDisplacementBossakScheme& rOther)
       :DerivedType(rOther)
-
     {
     }
 
@@ -149,6 +164,9 @@ namespace Kratos
     void SetIntegrationMethod() override
     {
       this->mpIntegrationMethod = IntegrationTypePointer( new BossakMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+
+      // Set scheme variables
+      this->mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
     }
     
     /**
