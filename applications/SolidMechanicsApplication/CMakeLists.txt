@@ -5,10 +5,9 @@ message("**** configuring KratosSolidMechanicsApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ConstitutiveModelsApplication )
 
-
-#if(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
-#    message(SEND_ERROR "The ConsitutiveModels Application must be compiled before this one. Set CONSTITUTIVE_MODELS_APPLICATION=ON in the configure file.")
-#endif(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
+if(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
+    message(SEND_ERROR "The ConsitutiveModelsApplication must be compiled before this one. Set CONSTITUTIVE_MODELS_APPLICATION=ON in the configure file.")
+endif(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
 
 ## generate variables with the sources
 set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES

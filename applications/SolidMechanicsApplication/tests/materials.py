@@ -26,11 +26,11 @@ def AssignMaterial(Properties):
     
     prop_id = 5
     prop = Properties[prop_id]
-    mat = KratosMaterial.LargeStrainPlaneStrain2DLaw(KratosMaterial.NeoHookeanJ_1SquaredModel())
+    mat = KratosMaterial.LargeStrainPlaneStrain2DLaw(KratosMaterial.SaintVenantKirchhoffModel())
     prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, mat.Clone())
     
     prop_id = 6
     prop = Properties[prop_id]
-    mat = KratosMaterial.LargeStrain3DLaw(KratosMaterial.NeoHookeanJ_1SquaredModel())
+    mat = KratosMaterial.LargeStrain3DLaw(KratosMaterial.SaintVenantKirchhoffModel())
     prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, mat.Clone())
  
