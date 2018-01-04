@@ -26,6 +26,9 @@ def GetDefaultInputParameters():
             "GravityZ"                         : -9.81,
 
             "EnergyCalculationOption"          : false,
+            "PotentialEnergyReferencePointX"   : 0.0,
+            "PotentialEnergyReferencePointY"   : 0.0,
+            "PotentialEnergyReferencePointZ"   : 0.0,
             "VelocityTrapOption"               : false,
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
