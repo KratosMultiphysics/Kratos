@@ -70,16 +70,6 @@ namespace Kratos {
                                               const double kt_el) {
 
         KRATOS_TRY
-
-//         double aux_norm_to_tang = sqrt(kt_el / kn_el);
-//         const double mRealMass = element1->GetMass();
-//         const double other_real_mass = element2->GetMass();
-//         const double mCoefficientOfRestitution = element1->GetCoefficientOfRestitution();
-//         const double mOtherCoefficientOfRestitution = element2->GetCoefficientOfRestitution();
-//         const double equiv_coefficientOfRestitution = 0.5 * (mCoefficientOfRestitution + mOtherCoefficientOfRestitution);
-// 
-//         equiv_visco_damp_coeff_normal = (1.0 - equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
-//         equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
         
         const double my_mass    = element1->GetMass(); 
         const double other_mass = element2->GetMass(); 
@@ -277,8 +267,6 @@ namespace Kratos {
                                   + LocalElasticContactForce[1] * LocalElasticContactForce[1]);        
         
         if (failure_type == 0) { // This means it has not broken 
-            //Properties& element1_props = element1->GetProperties();
-            //Properties& element2_props = element2->GetProperties();
             if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) { //TODO: use this only for intact bonds (not broken))
                 AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
             }
