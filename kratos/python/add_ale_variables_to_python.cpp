@@ -16,7 +16,7 @@
 #include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/ale_variables.h"
 #include "python/add_ale_variables_to_python.h"
 
@@ -25,14 +25,14 @@ namespace Kratos
 
 namespace Python
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
-    void  AddALEVariablesToPython()
+    void  AddALEVariablesToPython(pybind11::module& m)
     {
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_DISPLACEMENT)
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_ACCELERATION)
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_REACTION)
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_RHS)
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,MESH_DISPLACEMENT)
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,MESH_ACCELERATION)
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,MESH_REACTION)
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,MESH_RHS)
     }
 }  // namespace Python.
 } // Namespace Kratos

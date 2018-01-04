@@ -70,7 +70,7 @@ ModelPart::MeshType::Pointer ModelPartGetMesh2(ModelPart& rModelPart, ModelPart:
     // adding necessary meshes to the model part.
     ModelPart::MeshType empty_mesh;
     for(ModelPart::IndexType i = number_of_meshes ; i < MeshIndex + 1 ; i++)
-        rModelPart.GetMeshes().push_back(boost::make_shared<ModelPart::MeshType>(empty_mesh.Clone()));
+        rModelPart.GetMeshes().push_back(Kratos::make_shared<ModelPart::MeshType>(empty_mesh.Clone()));
 
     return rModelPart.pGetMesh(MeshIndex);
 }
@@ -611,7 +611,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("__next__", [](ModelPart::SubModelPartIterator &it) -> ModelPart::SubModelPartIterator& { return (++it); } )
         ;
 
-	class_<ModelPart, DataValueContainer, Flags >(m,"ModelPart")
+	class_<ModelPart, ModelPart::Pointer, DataValueContainer, Flags >(m,"ModelPart")
 		.def(init<std::string const&>())
 		.def(init<>())
 		.def_property("Name", GetModelPartName, SetModelPartName)
@@ -739,7 +739,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AddElement", &ModelPart::AddElement)
         .def("AddElements",AddElementsByIds)
         .def("GetRootModelPart", &ModelPart::GetRootModelPart, return_value_policy::reference_internal)
-        .def("SubModelParts", [](ModelPart& self){ return make_iterator(self.SubModelPartsBegin(), self.SubModelPartsEnd()); } , keep_alive<0,1>())
+        .def("SubModelParts", [](ModelPart& self){ return make_iterator(self.SubModelPartsBegin(), self.SubModelPartsEnd()); } , keep_alive<0,1>()) //ERROR: this should give back a "container" of submodelparts
  		.def("__repr__", &ModelPart::Info)
 		;
 }

@@ -14,7 +14,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -23,14 +22,13 @@
 
 namespace Kratos {
 namespace Python {
-using namespace boost::python;
+using namespace pybind11;
 
-void AddKratosApplicationToPython() {
-    class_<KratosApplication, KratosApplication::Pointer, boost::noncopyable>(
-        "KratosApplication", init<std::string>())
+void AddKratosApplicationToPython(pybind11::module& m) {
+    class_<KratosApplication, KratosApplication::Pointer>(m,"KratosApplication")
+        .def(init<std::string>())
         .def("Register", &KratosApplication::Register)
-        //.def("",&Kernel::Initialize)
-        .def(self_ns::str(self));
+        .def("__repr__", &KratosApplication::Info);
 }
 
 }  // namespace Python.

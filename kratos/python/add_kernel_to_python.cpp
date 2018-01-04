@@ -12,8 +12,6 @@
 //
 
 // External includes
-#include <boost/python.hpp>
-#include "boost/python/suite/indexing/map_indexing_suite.hpp"
 
 // System includes
 #include <sstream>
@@ -23,9 +21,12 @@
 #include "includes/kernel.h"
 #include "python/add_kernel_to_python.h"
 
+
 namespace Kratos {
 namespace Python {
-using namespace boost::python;
+    
+
+
 
 template <class TVariableType>
 bool HasVariable(Kernel& rKernel, const std::string& variable_name) {
@@ -55,50 +56,98 @@ std::string GetVariableNames(Kernel& rKernel) {
     return buffer.str();
 }
 
-void AddKernelToPython() {
-    //class_<std::map<std::string, const VariableData*> >("VariableDataMap")
-    // .def(map_indexing_suite<std::map<std::string, const VariableData> >())
-    //  ;
-    class_<Kernel, Kernel::Pointer, boost::noncopyable>("Kernel")
-        .def("Initialize", &Kernel::Initialize)
+
+// THIS IS INTERESTING BUT DOES NOT WORK
+template< typename TVariableType > void RegisterInPythonVariables(pybind11::module& m)
+    {
+        KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        KRATOS_WATCH(KratosComponents<TVariableType>::GetComponents().size())
+        auto comp = KratosComponents<TVariableType>::GetComponents();
+        
+        std::vector<TVariableType> aaaaaaaaaaaaa;
+        for(auto item = comp.begin(); item!=comp.end(); item++)
+        {
+            std::cout << "item " << item->first << " " << item->second << std::endl;
+            auto& var = (item->second);
+            
+            std::string name = item->first;
+            KRATOS_WATCH(name)
+            KRATOS_WATCH(var)
+            m.attr(name.c_str()) = var; //FAILS HERE. I guess that because the function cannot modify "m"
+            std::cout << " done " <<std::endl;
+        }
+    }
+
+    void RegisterInPython3DVariablesWithComponents(pybind11::module& m)
+    {
+        for(const auto& item : KratosComponents<Variable<array_1d<double,3>>>::GetComponents())
+        {
+            std::string name = item.first;
+            m.attr(name.c_str()) = item.second;
+            
+            std::string xcomponent = name + "_X";
+            std::string ycomponent = name + "_Y";
+            std::string zcomponent = name + "_Z";
+            const auto& xvar = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::Get(xcomponent);
+            const auto& yvar = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::Get(ycomponent);
+            const auto& zvar = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::Get(zcomponent);
+            m.attr(xcomponent.c_str()) = xvar;
+            m.attr(ycomponent.c_str()) = yvar;
+            m.attr(zcomponent.c_str()) = zvar;
+        }
+    }
+
+void AddKernelToPython(pybind11::module& m) {
+        
+    
+    
+    using namespace pybind11;    
+    
+    
+    
+    class_<Kernel, Kernel::Pointer>(m,"Kernel")
+        .def(init<>())
+        .def("Initialize", [&m](Kernel& self){
+                                self.Initialize(); 
+                                /*RegisterInPythonVariables<Variable<bool>>(m);*/ }) //&Kernel::Initialize)
         .def("ImportApplication", &Kernel::ImportApplication)
         .def("InitializeApplication", &Kernel::InitializeApplication)
         //.def(""A,&Kernel::Initialize)
         .def("IsImported", &Kernel::IsImported)
         .def("HasBoolVariable", HasVariable<Variable<bool> >)
         .def("GetBoolVariable", GetVariable<Variable<bool> >,
-            return_internal_reference<>())
+            return_value_policy::reference_internal)
         .def("HasIntVariable", HasVariable<Variable<int> >)
         .def("GetIntVariable", GetVariable<Variable<int> >,
-            return_internal_reference<>())
+            return_value_policy::reference_internal)
         .def("HasUnsignedIntVariable", HasVariable<Variable<unsigned int> >)
         .def("GetUnsignedIntVariable", GetVariable<Variable<unsigned int> >,
-            return_internal_reference<>())
+            return_value_policy::reference_internal)
         .def("HasDoubleVariable", HasVariable<Variable<double> >)
         .def("GetDoubleVariable", GetVariable<Variable<double> >,
-            return_internal_reference<>())
+            return_value_policy::reference_internal)
         .def("HasArrayVariable", HasVariable<Variable<array_1d<double, 3> > >)
         .def("GetArrayVariable", GetVariable<Variable<array_1d<double, 3> > >,
-            return_internal_reference<>())
+            return_value_policy::reference_internal)
         .def("HasVectorVariable", HasVariable<Variable<Vector> >)
         .def("GetVectorVariable", GetVariable<Variable<Vector> >,
-            return_internal_reference<>())
+            return_value_policy::reference_internal)
         .def("HasMatrixVariable", HasVariable<Variable<Matrix> >)
         .def("GetMatrixVariable", GetVariable<Variable<Matrix> >,
-            return_internal_reference<>())
+            return_value_policy::reference_internal)
         .def("HasStringVariable", HasVariable<Variable<std::string> >)
         .def("GetStringVariable", GetVariable<Variable<std::string> >,
-            return_internal_reference<>())
+            return_value_policy::reference_internal)
         .def("HasVariableComponent",
             HasVariable<VariableComponent<
                 VectorComponentAdaptor<array_1d<double, 3> > > >)
         .def("GetVariableComponent",
             GetVariable<VariableComponent<
                 VectorComponentAdaptor<array_1d<double, 3> > > >,
-            return_internal_reference<>())
+            return_value_policy::reference_internal)
         .def("HasFlagsVariable", HasVariable<Variable<Flags> >)
         .def("GetFlagsVariable", GetVariable<Variable<Flags> >,
-            return_internal_reference<>())
+            return_value_policy::reference_internal)
         .def("HasVariableData", HasVariable<VariableData>)
         .def("PrintAllVariables", PrintVariablesName<VariableData>)
         .def("PrintBoolVariables", PrintVariablesName<Variable<bool> >)
@@ -128,7 +177,12 @@ void AddKernelToPython() {
         .def("GetVariableComponentVariableNames",
             GetVariableNames<VariableComponent<
                 VectorComponentAdaptor<array_1d<double, 3> > > >)
-        .def(self_ns::str(self));
+        .def("__repr__", &Kernel::Info)
+        ;
+        
+        
+        
+//         m.def("RegisterAllVariables",RegisterInPythonVariables<Variable<bool>>);
 }
 
 }  // namespace Python.

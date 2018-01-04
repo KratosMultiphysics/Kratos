@@ -18,7 +18,7 @@
 
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 
@@ -32,21 +32,21 @@ namespace Kratos
 namespace Python
 {
 
-void  AddMatrixToPython();
-void  AddBandedMatrixToPython();
-void  AddSymmetricMatrixToPython();
-#if defined KRATOS_ADD_HERMITIAN_MATRIX_INTERFACE
-void  AddHermitianMatrixToPython();
-#endif
-void  AddZeroMatrixToPython();
-void  AddIdentityMatrixToPython();
-void  AddScalarMatrixToPython();
-void  AddTriangularMatrixToPython();
-void  AddSparseMatrixToPython();
-void  AddCompressedMatrixToPython();
-#if defined KRATOS_ADD_COORDINATE_MATRIX_INTERFACE
-void  AddCoordinateMatrixToPython();
-#endif
+void  AddMatrixToPython(pybind11::module& m);
+// void  AddBandedMatrixToPython();
+// void  AddSymmetricMatrixToPython();
+// #if defined KRATOS_ADD_HERMITIAN_MATRIX_INTERFACE
+// void  AddHermitianMatrixToPython();
+// #endif
+// void  AddZeroMatrixToPython();
+// void  AddIdentityMatrixToPython();
+// void  AddScalarMatrixToPython();
+// void  AddTriangularMatrixToPython();
+// void  AddSparseMatrixToPython();
+// // // // // // // // // // // void  AddCompressedMatrixToPython(pybind11::module& m);
+// #if defined KRATOS_ADD_COORDINATE_MATRIX_INTERFACE
+// void  AddCoordinateMatrixToPython();
+// #endif
 
 }  // namespace Python.
 
