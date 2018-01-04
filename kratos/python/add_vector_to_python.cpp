@@ -82,6 +82,12 @@ namespace Python
         vector_binder.def(init<typename Vector::size_type, double>());
         vector_binder.def(init<Vector>());
         vector_binder.def(init<array_1d<double,3>>());
+        vector_binder.def(init( [](const list& input){
+                                Vector* tmp = new Vector(input.size());
+                                for(unsigned int i=0; i<tmp->size(); ++i)
+                                    (*tmp)[i] = cast<double>(input[i]);
+                                return tmp;
+                                }));
         
         auto array3_binder = CreateVectorInterface< Kratos::array_1d<double,3> >(m, "Array3");
         array3_binder.def(init<>());
