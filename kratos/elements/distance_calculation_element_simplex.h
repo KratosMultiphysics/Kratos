@@ -280,7 +280,7 @@ public:
             //unfortunately the numerical experiments tell that this in too unstable to be used unless a very 
             //good initial approximation is used
 //            noalias(rLeftHandSideMatrix) = (Area*(grad_norm - 1.0))*rod(DN_DX,trans(DN_DX) ); //RISKY!!
-            noalias(rLeftHandSideMatrix) = Area*std::max(grad_norm,1.0)*prod( DN_DX,trans(DN_DX) );
+            noalias(rLeftHandSideMatrix) = Area*std::max(grad_norm,0.1)*prod( DN_DX,trans(DN_DX) );
         }
     }
 
