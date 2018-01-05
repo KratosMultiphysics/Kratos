@@ -24,8 +24,8 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 
-#include "custom_utilities/nearest_neighbor_mapper.h"
-#include "custom_utilities/nearest_element_mapper.h"
+#include "custom_mappers/nearest_neighbor_mapper.h"
+#include "custom_mappers/nearest_element_mapper.h"
 
 
 namespace Kratos
@@ -72,17 +72,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    MapperFactory(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
-                  Parameters JsonParameters) :
-        mrModelPartOrigin(rModelPartOrigin),
-        mrModelPartDestination(rModelPartDestination),
-        mJsonParameters(JsonParameters)
-    {
-        ReadInterfaceModelParts();
-        ConstructMapper();
-    }
-
     /// Destructor.
     virtual ~MapperFactory() { }
 
@@ -96,73 +85,47 @@ public:
     ///@name Operations
     ///@{
 
-    void UpdateInterface(Kratos::Flags& rOptions, double SearchRadius)
+    static Mapper::Pointer CreateMapper(ModelPart& rModelPartOrigin, 
+                                        ModelPart& rModelPartDestination,
+                                        Parameters JsonParameters)
     {
-        double start_time = MapperUtilities::GetCurrentTime();
-        mpMapper->UpdateInterface(rOptions, SearchRadius);
-        double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
+        ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, JsonParameters, "origin");
+        ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, JsonParameters, "destination");
 
-        mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
-                "UpdateInterface",
-                elapsed_time);
-    }
+        Mapper::Pointer mapper;
 
+        if (!JsonParameters.Has("mapper_type"))
+        {
+            KRATOS_ERROR << "No \"mapper_type\" defined in json" << std::endl;
+        }
 
-    /* This function maps a variable from Origin to Destination */
-    void Map(const Variable<double>& rOriginVariable,
-             const Variable<double>& rDestinationVariable,
-             Kratos::Flags& rOptions)
-    {
-        double start_time = MapperUtilities::GetCurrentTime();
-        mpMapper->Map(rOriginVariable, rDestinationVariable, rOptions);
-        double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
+        const std::string mapper_type = JsonParameters["mapper_type"].GetString();
 
-        mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
-                "Map",
-                elapsed_time);
-    }
+        if (mapper_type == "NearestNeighbor")
+        {
+            if (JsonParameters.Has("approximation_tolerance"))
+            {
+                KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" "
+                             << "specified for Nearest Neighbor Mapper" << std::endl;
+            }
 
-    /* This function maps a variable from Origin to Destination */
-    void Map(const Variable< array_1d<double, 3> >& rOriginVariable,
-             const Variable< array_1d<double, 3> >& rDestinationVariable,
-             Kratos::Flags& rOptions)
-    {
-        double start_time = MapperUtilities::GetCurrentTime();
-        mpMapper->Map(rOriginVariable, rDestinationVariable, rOptions);
-        double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
+            mapper = Mapper::Pointer( new NearestNeighborMapper(r_interface_model_part_origin,
+                                      r_interface_model_part_destination,
+                                      JsonParameters));
+        }
+        else if (mapper_type == "NearestElement")
+        {
+            mapper = Mapper::Pointer( new NearestElementMapper(r_interface_model_part_origin,
+                                      r_interface_model_part_destination,
+                                      JsonParameters));
 
-        mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
-                "Map",
-                elapsed_time);
-    }
+        }
+        else
+        {
+            KRATOS_ERROR << "Selected Mapper \"" << mapper_type << "\" not implemented" << std::endl;
+        }
 
-
-    /* This function maps from Destination to Origin */
-    void InverseMap(const Variable<double>& rOriginVariable,
-                    const Variable<double>& rDestinationVariable,
-                    Kratos::Flags& rOptions)
-    {
-        double start_time = MapperUtilities::GetCurrentTime();
-        mpMapper->InverseMap(rOriginVariable, rDestinationVariable, rOptions);
-        double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
-
-        mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
-                "InverseMap",
-                elapsed_time);
-    }
-
-    /* This function maps from Destination to Origin */
-    void InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
-                    const Variable< array_1d<double, 3> >& rDestinationVariable,
-                    Kratos::Flags& rOptions)
-    {
-        double start_time = MapperUtilities::GetCurrentTime();
-        mpMapper->InverseMap(rOriginVariable, rDestinationVariable, rOptions);
-        double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
-
-        mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
-                "InverseMap",
-                elapsed_time);
+        return mapper;
     }
 
 
@@ -251,17 +214,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    Mapper::Pointer mpMapper;
-    std::string mMapperType;
-
-    ModelPart& mrModelPartOrigin;
-    ModelPart& mrModelPartDestination;
-
-    ModelPart* mpInterfaceModelPartOrigin;
-    ModelPart* mpInterfaceModelPartDestination;
-
-    Parameters mJsonParameters;
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -271,118 +223,48 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ReadInterfaceModelParts()
+    /// Default constructor.
+    MapperFactory()
+    {
+    }
+
+    static ModelPart& ReadInterfaceModelPart(ModelPart& rModelPart,
+                                             Parameters InterfaceParameters,
+                                             const std::string InterfaceSide)
     {
         int echo_level = 0;
         // read the echo_level temporarily, bcs the mJsonParameters have not yet been validated and defaults assigned
-        if (mJsonParameters.Has("echo_level"))
+        if (InterfaceParameters.Has("echo_level"))
         {
-            echo_level = std::max(echo_level, mJsonParameters["echo_level"].GetInt());
+            echo_level = std::max(echo_level, InterfaceParameters["echo_level"].GetInt());
         }
 
-        int comm_rank_origin = mrModelPartOrigin.GetCommunicator().MyPID();
-        int comm_rank_destination = mrModelPartDestination.GetCommunicator().MyPID();
+        int comm_rank = rModelPart.GetCommunicator().MyPID();
 
-        if (mJsonParameters.Has("interface_submodel_part_origin"))
+        std::string key_sub_model_part = "interface_submodel_part_";
+        key_sub_model_part.append(InterfaceSide);
+
+
+        if (InterfaceParameters.Has(key_sub_model_part))
         {
-            std::string name_interface_submodel_part = mJsonParameters["interface_submodel_part_origin"].GetString();
-            mpInterfaceModelPartOrigin = &mrModelPartOrigin.GetSubModelPart(name_interface_submodel_part);
-
-            if (echo_level >= 3 && comm_rank_origin == 0)
+            const std::string name_interface_submodel_part = InterfaceParameters[key_sub_model_part].GetString();
+            
+            if (echo_level >= 3 && comm_rank == 0)
             {
-                std::cout << "Mapper: SubModelPart used for Origin-ModelPart" << std::endl;
+                std::cout << "Mapper: SubModelPart used for " << InterfaceSide << "-ModelPart" << std::endl;
             }
+
+            return rModelPart.GetSubModelPart(name_interface_submodel_part);
         }
         else
         {
-            mpInterfaceModelPartOrigin = &mrModelPartOrigin;
-
-            if (echo_level >= 3 && comm_rank_origin == 0)
+            if (echo_level >= 3 && comm_rank == 0)
             {
-                std::cout << "Mapper: Main ModelPart used for Origin-ModelPart" << std::endl;
-            }
-        }
-
-        if (mJsonParameters.Has("interface_submodel_part_destination"))
-        {
-            std::string name_interface_submodel_part = mJsonParameters["interface_submodel_part_destination"].GetString();
-            mpInterfaceModelPartDestination = &mrModelPartDestination.GetSubModelPart(name_interface_submodel_part);
-
-            if (echo_level >= 3 && comm_rank_destination == 0)
-            {
-                std::cout << "Mapper: SubModelPart used for Destination-ModelPart" << std::endl;
-            }
-        }
-        else
-        {
-            mpInterfaceModelPartDestination = &mrModelPartDestination;
-
-            if (echo_level >= 3 && comm_rank_destination == 0)
-            {
-                std::cout << "Mapper: Main ModelPart used for Destination-ModelPart" << std::endl;
-            }
-        }
-    }
-
-    void ConstructMapper()
-    {
-        double start_time = MapperUtilities::GetCurrentTime();
-
-        if (!mJsonParameters.Has("mapper_type"))
-        {
-            KRATOS_ERROR << "No \"mapper_type\" defined in json" << std::endl;
-        }
-
-        mMapperType = mJsonParameters["mapper_type"].GetString();
-
-        if (mMapperType == "NearestNeighbor")
-        {
-            if (mJsonParameters.Has("approximation_tolerance"))
-            {
-                KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" "
-                             << "specified for Nearest Neighbor Mapper" << std::endl;
+                std::cout << "Mapper: Main ModelPart used for " << InterfaceSide << "-ModelPart" << std::endl;
             }
 
-            mpMapper = Mapper::Pointer(new NearestNeighborMapper(*mpInterfaceModelPartOrigin,
-                                       *mpInterfaceModelPartDestination,
-                                       mJsonParameters));
+            return rModelPart;
         }
-        else if (mMapperType == "NearestElement")
-        {
-            mpMapper = Mapper::Pointer(new NearestElementMapper(*mpInterfaceModelPartOrigin,
-                                       *mpInterfaceModelPartDestination,
-                                       mJsonParameters));
-
-        } /*else if (mMapperType == "Barycentric") {
-              mpMapper = Mapper::Pointer(new BarycentricMapper(*mpInterfaceModelPartOrigin,
-                                                                 *mpInterfaceModelPartDestination,
-                                                                 mJsonParameters));
-
-          } *//*else if (mMapperType == "RBF") {
-              mpMapper = Mapper::Pointer(new RBFMapper(*mpInterfaceModelPartOrigin,
-                                                         *mpInterfaceModelPartDestination,
-                                                         mJsonParameters));
-
-          } *//*else if (mMapperType == "Mortar") {
-              mpMapper = Mapper::Pointer(new MortarMapper(*mpInterfaceModelPartOrigin,
-                                                            *mpInterfaceModelPartDestination,
-                                                            mJsonParameters));
-
-          } *//*else if (mMapperType == "IGA") {
-              mpMapper = Mapper::Pointer(new IGAMapper(*mpInterfaceModelPartOrigin,
-                                                         *mpInterfaceModelPartDestination,
-                                                         mJsonParameters));
-
-          } */else
-        {
-            KRATOS_ERROR << "Selected Mapper \"" << mMapperType << "\" not implemented" << std::endl;
-        }
-
-        double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
-
-        mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
-                "Mapper Construction",
-                elapsed_time);
     }
 
     ///@}

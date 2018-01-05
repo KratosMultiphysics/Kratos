@@ -22,14 +22,14 @@
 
 // Project includes
 #include "includes/define.h"
-#include "mapper_communicator.h"
-#include "mapper_utilities.h"
-#include "mapper_flags.h"
+#include "custom_utilities/mapper_communicator.h"
+#include "custom_utilities/mapper_utilities.h"
+#include "custom_utilities/mapper_flags.h"
 
 // For MPI-parallel Mapper
 #ifdef KRATOS_USING_MPI
 #include "mpi.h"
-#include "mapper_mpi_communicator.h"
+#include "custom_utilities/mapper_mpi_communicator.h"
 #endif
 
 
