@@ -30,7 +30,7 @@ namespace Kratos
 {
 namespace HDF5
 {
-namespace Detail
+namespace Internals
 {
 ///@addtogroup HDF5Application
 ///@{
@@ -209,7 +209,7 @@ bool PointerBinsUtility<DataType>::IsMatch(KeyType lhs, KeyType rhs)
 }
 
 ///@} addtogroup
-} // namespace Detail.
+} // namespace Internals.
 } // namespace HDF5.
 } // namespace Kratos.
 

@@ -11,6 +11,7 @@ set( KRATOS_HDF5_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file_serial.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_model_part_io.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_model_part_io_base.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_properties_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_data_value_container_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_variables_io.cpp
@@ -40,8 +41,7 @@ endif()
 
 find_package(HDF5 REQUIRED COMPONENTS C)
 
-string(REGEX MATCH "1\\.[0-9]+" HDF5_MAJOR_MINOR_VERSION ${HDF5_VERSION})
-if(NOT HDF5_MAJOR_MINOR_VERSION EQUAL "1.8")
+if(HDF5_VERSION VERSION_LESS "1.8" )
   message(FATAL_ERROR "HDF5 1.8 is required.")
 endif()
 
@@ -70,11 +70,11 @@ if(MPI_NEEDED)
     #                 NO_CMAKE_PATH)
     ##################################################################
   else()
-    message(FATAL_ERROR "Parallel HDF5 libraries were not found.")
+    message(FATAL_ERROR "This is a parallel compilation. Parallel HDF5 libraries were not found.")
   endif()
 else()
   if(HDF5_IS_PARALLEL)
-    message(FATAL_ERROR "Parallel HDF5 libraries were found.")
+    message(FATAL_ERROR "This is a non-parallel compilation. Parallel HDF5 libraries were found.")
   else()
     message(STATUS "Using serial HDF5 libraries.")
   endif()

@@ -67,9 +67,9 @@ bool File::HasPath(std::string Path) const
 {
     KRATOS_TRY;
     // Expects a valid path.
-    KRATOS_ERROR_IF_NOT(Detail::IsPath(Path)) << "Invalid path: \"" << Path << '"' << std::endl;
+    KRATOS_ERROR_IF_NOT(Internals::IsPath(Path)) << "Invalid path: \"" << Path << '"' << std::endl;
 
-    std::vector<std::string> splitted_path = Detail::Split(Path, '/');
+    std::vector<std::string> splitted_path = Internals::Split(Path, '/');
     std::string sub_path;
     for (const auto& r_link: splitted_path)
     {
@@ -170,9 +170,9 @@ void File::CreateGroup(std::string Path)
 
 void File::AddPath(std::string Path)
 {
-    KRATOS_ERROR_IF(Detail::IsPath(Path) == false) << "Invalid path: " << Path << std::endl;
+    KRATOS_ERROR_IF(Internals::IsPath(Path) == false) << "Invalid path: " << Path << std::endl;
 
-    std::vector<std::string> splitted_path = Detail::Split(Path, '/');
+    std::vector<std::string> splitted_path = Internals::Split(Path, '/');
     std::string sub_path;
     for (const auto& r_link: splitted_path)
     {
@@ -513,7 +513,7 @@ void File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
     KRATOS_CATCH("");
 }
 
-namespace Detail
+namespace Internals
 {
 bool IsPath(std::string Path)
 {
@@ -532,7 +532,7 @@ std::vector<std::string> Split(std::string Path, char Delimiter)
 
     return result;
 }
-} // namespace Detail.
+} // namespace Internals.
 
 } // namespace HDF5.
 } // namespace Kratos.

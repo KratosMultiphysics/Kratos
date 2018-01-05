@@ -32,7 +32,7 @@ namespace Kratos
     ///@{
 
     typedef ConstitutiveModel                                     ModelType; //large_strain model
-    typedef typename ModelType::Pointer                    ModelTypePointer;
+    typedef ModelType::Pointer                             ModelTypePointer;
     
     /// Pointer definition of LargeStrain3DLaw
     KRATOS_CLASS_POINTER_DEFINITION( LargeStrain3DLaw );
@@ -68,7 +68,13 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-
+    /**
+     * Material parameters are inizialized
+     */
+    void InitializeMaterial(const Properties& rMaterialProperties,
+			    const GeometryType& rElementGeometry,
+			    const Vector& rShapeFunctionsValues ) override;
+    
     /**
      * Computes the material response:
      * PK2 stresses and algorithmic ConstitutiveMatrix

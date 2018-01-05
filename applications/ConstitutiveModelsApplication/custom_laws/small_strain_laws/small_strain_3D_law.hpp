@@ -37,7 +37,7 @@ namespace Kratos
     ///@{
 
     typedef ConstitutiveModel                                     ModelType; //small_strain model
-    typedef typename ModelType::Pointer                    ModelTypePointer;
+    typedef ModelType::Pointer                             ModelTypePointer;
 	
     /// Pointer definition of SmallStrain3DLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrain3DLaw);
@@ -73,6 +73,12 @@ namespace Kratos
     ///@name Operations
     ///@{
     
+    /**
+     * Material parameters are inizialized
+     */
+    void InitializeMaterial(const Properties& rMaterialProperties,
+			    const GeometryType& rElementGeometry,
+			    const Vector& rShapeFunctionsValues ) override;
 
     /**
      * Computes the material response:

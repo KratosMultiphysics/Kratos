@@ -8,7 +8,7 @@ namespace Kratos
 {
 namespace HDF5
 {
-namespace Detail
+namespace Internals
 {
 
 PropertiesIO::PropertiesIO(std::string Prefix, File::Pointer pFile)
@@ -70,6 +70,6 @@ void PropertiesIO::WriteProperties(PropertiesContainerType const& rProperties)
     KRATOS_CATCH("");
 }
 
-} // namespace Detail.
+} // namespace Internals.
 } // namespace HDF5.
 } // namespace Kratos.

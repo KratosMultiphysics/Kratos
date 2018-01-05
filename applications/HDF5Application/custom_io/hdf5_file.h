@@ -36,7 +36,7 @@ namespace HDF5
 ///@addtogroup HDF5Application
 ///@{
 
-namespace Detail
+namespace Internals
 {
 /// Check if string is a valid path.
 /**
@@ -45,13 +45,13 @@ namespace Detail
  */
 bool IsPath(std::string Path);
 
-// Return vector of non-empty substrings separated by a delimiter.
+/// Return vector of non-empty substrings separated by a delimiter.
 std::vector<std::string> Split(std::string Path, char Delimiter);
 
 template <class TScalar>
 hid_t GetScalarDataType();
 
-} // namespace Detail.
+} // namespace Internals.
 
 ///@name Kratos Classes
 ///@{
@@ -288,7 +288,7 @@ void File::WriteAttribute(std::string ObjectPath, std::string Name, TScalar Valu
     boost::timer timer;
     hid_t type_id, space_id, attr_id;
 
-    type_id = Detail::GetScalarDataType<TScalar>();
+    type_id = Internals::GetScalarDataType<TScalar>();
     space_id = H5Screate(H5S_SCALAR);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
     attr_id = H5Acreate_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(), type_id,
@@ -309,7 +309,7 @@ void File::WriteAttribute(std::string ObjectPath, std::string Name, const Vector
     boost::timer timer;
     hid_t type_id, space_id, attr_id;
 
-    type_id = Detail::GetScalarDataType<TScalar>();
+    type_id = Internals::GetScalarDataType<TScalar>();
     const hsize_t dim = rValue.size();
     space_id = H5Screate_simple(1, &dim, nullptr);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
@@ -331,7 +331,7 @@ void File::WriteAttribute(std::string ObjectPath, std::string Name, const Matrix
     boost::timer timer;
     hid_t type_id, space_id, attr_id;
 
-    type_id = Detail::GetScalarDataType<TScalar>();
+    type_id = Internals::GetScalarDataType<TScalar>();
     const unsigned ndims = 2;
     hsize_t dims[ndims];
     dims[0] = rValue.size1();
@@ -357,7 +357,7 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, TScalar& rVal
     hid_t mem_type_id, attr_type_id, space_id, attr_id;
     int ndims;
 
-    mem_type_id = Detail::GetScalarDataType<TScalar>();
+    mem_type_id = Internals::GetScalarDataType<TScalar>();
     attr_id = H5Aopen_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -395,7 +395,7 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, Vector<TScala
     int ndims;
     hsize_t dims[1];
 
-    mem_type_id = Detail::GetScalarDataType<TScalar>();
+    mem_type_id = Internals::GetScalarDataType<TScalar>();
     attr_id = H5Aopen_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -435,7 +435,7 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TScala
     int ndims;
     hsize_t dims[2];
 
-    mem_type_id = Detail::GetScalarDataType<TScalar>();
+    mem_type_id = Internals::GetScalarDataType<TScalar>();
     attr_id = H5Aopen_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -466,7 +466,7 @@ void File::ReadAttribute(std::string ObjectPath, std::string Name, Matrix<TScala
     KRATOS_CATCH("Path: \"" + ObjectPath + '/' + Name + "\".");
 }
 
-namespace Detail
+namespace Internals
 {
 template <class TScalar>
 hid_t GetScalarDataType()
@@ -484,7 +484,7 @@ hid_t GetScalarDataType()
 
     return type_id;
 }
-} // namespace Detail.
+} // namespace Internals.
 
 ///@} addtogroup
 } // namespace HDF5.

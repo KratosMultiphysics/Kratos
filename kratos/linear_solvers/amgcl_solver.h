@@ -112,7 +112,7 @@ public:
 
         //validate if values are admissible
         std::set<std::string> available_smoothers = {"spai0","ilu0","ilut","iluk","damped_jacobi","gauss_seidel","chebyshev"};
-        std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","lgmres", "bicgstab_with_gmres_fallback"};
+        std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","lgmres", "bicgstab_with_gmres_fallback","idrs"};
         std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
 
         std::stringstream msg;
@@ -126,7 +126,7 @@ public:
         if(available_solvers.find(rParameters["krylov_type"].GetString()) == available_solvers.end())
         {
             msg << "currently prescribed krylov_type : " << rParameters["krylov_type"].GetString() << std::endl;
-            msg << "admissible values are : gmres,bicgstab,cg,bicgstabl,bicgstab_with_gmres_fallback"<< std::endl;
+            msg << "admissible values are : gmres,bicgstab,cg,bicgstabl,bicgstab_with_gmres_fallback,idrs"<< std::endl;
             KRATOS_THROW_ERROR(std::invalid_argument," krylov_type is invalid: available possibilities are : ",msg.str());
         }
         if(available_coarsening.find(rParameters["coarsening_type"].GetString()) == available_coarsening.end())
@@ -712,7 +712,7 @@ private:
         amgcl::make_solver<
         amgcl::runtime::amg<Backend>,
               amgcl::runtime::iterative_solver<Backend>
-              > solve( amgcl::adapter::block_matrix<TBlockSize, value_type>(boost::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() )), mprm);
+              > solve( amgcl::adapter::block_matrix<value_type>(boost::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() )), mprm);
 
 //         //compute preconditioner
 //         if(mverbosity > 0) std::cout << solve.precond() << std::endl;

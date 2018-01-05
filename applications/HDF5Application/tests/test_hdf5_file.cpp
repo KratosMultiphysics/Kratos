@@ -29,17 +29,17 @@ namespace Testing
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5Utils_IsPath, KratosHDF5TestSuite)
 {
-    KRATOS_CHECK(HDF5::Detail::IsPath("") == false);
-    KRATOS_CHECK(HDF5::Detail::IsPath("/") == false);
-    KRATOS_CHECK(HDF5::Detail::IsPath("/foo") == true);
-    KRATOS_CHECK(HDF5::Detail::IsPath("/foo/") == false);
-    KRATOS_CHECK(HDF5::Detail::IsPath("/foo/bar") == true);
-    KRATOS_CHECK(HDF5::Detail::IsPath("/foo//bar") == false);
+    KRATOS_CHECK(HDF5::Internals::IsPath("") == false);
+    KRATOS_CHECK(HDF5::Internals::IsPath("/") == false);
+    KRATOS_CHECK(HDF5::Internals::IsPath("/foo") == true);
+    KRATOS_CHECK(HDF5::Internals::IsPath("/foo/") == false);
+    KRATOS_CHECK(HDF5::Internals::IsPath("/foo/bar") == true);
+    KRATOS_CHECK(HDF5::Internals::IsPath("/foo//bar") == false);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5Utils_Split, KratosHDF5TestSuite)
 {
-    std::vector<std::string> result = HDF5::Detail::Split("/foo//bar", '/');
+    std::vector<std::string> result = HDF5::Internals::Split("/foo//bar", '/');
     KRATOS_CHECK(result.size() == 2);
     KRATOS_CHECK(result[0] == "foo");
     KRATOS_CHECK(result[1] == "bar");

@@ -8,7 +8,7 @@ namespace Kratos
 {
 namespace HDF5
 {
-namespace Detail
+namespace Internals
 {
 NodalSolutionStepVariablesIO::NodalSolutionStepVariablesIO(std::string Prefix, File::Pointer pFile)
 : mPrefix(Prefix), mpFile(pFile)
@@ -21,9 +21,9 @@ void NodalSolutionStepVariablesIO::WriteVariablesList(ModelPart const& rModelPar
 
     const VariablesList& r_variables_list = rModelPart.GetNodalSolutionStepVariablesList();
     int pos = 0;
-    mpFile->AddPath(mPrefix + "/NodalVariablesList");
+    mpFile->AddPath(mPrefix + "/NodalSolutionStep/VariablesList");
     for (auto it = r_variables_list.begin(); it != r_variables_list.end(); ++it)
-        mpFile->WriteAttribute(mPrefix + "/NodalVariablesList", it->Name(), pos++);
+        mpFile->WriteAttribute(mPrefix + "/NodalSolutionStep/VariablesList", it->Name(), pos++);
 
     KRATOS_CATCH("");
 }
@@ -35,14 +35,14 @@ void NodalSolutionStepVariablesIO::ReadAndAssignVariablesList(ModelPart& rModelP
     VariablesList& r_variables_list = rModelPart.GetNodalSolutionStepVariablesList();
     r_variables_list.clear();
     std::vector<std::string> variable_names;
-    mpFile->GetAttributeNames(mPrefix + "/NodalVariablesList", variable_names);
+    mpFile->GetAttributeNames(mPrefix + "/NodalSolutionStep/VariablesList", variable_names);
 
     // Ensure the variables order is the same as in the original model part.
     std::vector<std::string> ordered_variable_names(variable_names.size());
     for (const auto& r_name : variable_names)
     {
         int pos;
-        mpFile->ReadAttribute(mPrefix + "/NodalVariablesList", r_name, pos);
+        mpFile->ReadAttribute(mPrefix + "/NodalSolutionStep/VariablesList", r_name, pos);
         ordered_variable_names[pos] = r_name;
     }
 
@@ -76,8 +76,8 @@ void NodalSolutionStepVariablesIO::WriteBufferSize(int BufferSize)
 {
     KRATOS_TRY;
 
-    mpFile->AddPath(mPrefix);
-    mpFile->WriteAttribute(mPrefix, "BufferSize", BufferSize);
+    mpFile->AddPath(mPrefix + "/NodalSolutionStep");
+    mpFile->WriteAttribute(mPrefix + "/NodalSolutionStep", "BufferSize", BufferSize);
 
     KRATOS_CATCH("");
 }
@@ -87,12 +87,12 @@ void NodalSolutionStepVariablesIO::ReadAndAssignBufferSize(ModelPart& rModelPart
     KRATOS_TRY;
 
     int buffer_size;
-    mpFile->ReadAttribute(mPrefix, "BufferSize", buffer_size);
+    mpFile->ReadAttribute(mPrefix + "/NodalSolutionStep", "BufferSize", buffer_size);
     rModelPart.SetBufferSize(buffer_size);
 
     KRATOS_CATCH("");
 }
 
-} // namespace Detail.
+} // namespace Internals.
 } // namespace HDF5.
 } // namespace Kratos.

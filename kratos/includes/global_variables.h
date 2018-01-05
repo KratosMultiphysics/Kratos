@@ -27,15 +27,13 @@
 
 
 // Project includes
-#include "includes/define.h"
-#include "containers/variables_list.h"
 
 
 namespace Kratos
 {
 namespace Globals
 {
-
+	constexpr double Pi   = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651L;
 /*		class VariableData;
 		class Element;
 		class Condition;
@@ -44,7 +42,6 @@ namespace Globals
 ///@{
 //
 // This variable is NOT synchronized between different applications threads
-extern KRATOS_API(KRATOS_CORE) VariablesList DefaultVariablesList;
 /*
 		extern KratosComponents<VariableData> VariableDataComponents;
 		extern KratosComponents<Condition> ConditionComponents;

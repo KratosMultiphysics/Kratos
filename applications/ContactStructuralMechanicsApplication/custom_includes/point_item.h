@@ -113,7 +113,7 @@ public:
     
     /**
      * Set the point
-     * @param The point
+     * @param Point The point
      */
     void SetPoint(const Point Point)
     {
@@ -122,7 +122,7 @@ public:
 
     /**
      * Sets the condition associated to the point
-     * @param Cond: The pointer to the condition
+     * @param pCond The pointer to the condition
      */
 
     void SetCondition(Condition::Pointer pCond)
@@ -142,7 +142,7 @@ public:
     
     /**
      * This function updates the database, using as base for the coordinates the condition center
-     * @return Coordinates: The coordinates of the item
+     * @param DeltaTime The increment in the time scheme
      */
 
     void UpdatePoint(const double& DeltaTime)

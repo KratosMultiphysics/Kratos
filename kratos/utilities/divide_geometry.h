@@ -190,6 +190,8 @@ public:
     std::vector < IndexedPointGeometryPointerType > mNegativeSubdivisions;  // Array to store the generated negative subdivisions geometries.
     std::vector < IndexedPointGeometryPointerType > mPositiveInterfaces;    // Array to store the generated positive interfaces geometries.
     std::vector < IndexedPointGeometryPointerType > mNegativeInterfaces;    // Array to store the generated negative interfaces geometries.
+    std::vector < unsigned int > mPositiveInterfacesParentIds;              // Array to store the parent subgeometries ids of the generated positive interfaces.
+    std::vector < unsigned int > mNegativeInterfacesParentIds;              // Array to store the parent subgeometries ids of the generated negative interfaces.
 
     ///@}
     ///@name Life Cycle
@@ -243,6 +245,31 @@ public:
      * Generates a list containing the intersection interface geometries for either the positive or the negative element subdivisions.
      */
     virtual void GenerateIntersectionsSkin() = 0;
+
+    /**
+     * Generates a list containing the exterior (boundary) faces geometries for either the positive or the negative element subdivisions.
+     * @param rExteriorFacesVector: vector containing the generated exterior subfaces geometries
+     * @param rExteriorFacesParentSubdivisionsIdsVector: vector containing the ids of the parent subdivision of each subface
+     * @param rSubdivisionsContainer: positive or negative parent geometry subdivisions container
+     */
+    virtual void GenerateExteriorFaces(
+        std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
+        std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer) = 0;
+
+    /**
+     * Given a father face id, generates a list containing the exterior (boundary)
+     * faces geometries belonging to either the positive or negative side of that that father face.
+     * @param rExteriorFacesVector: vector containing the generated exterior subfaces geometries
+     * @param rExteriorFacesParentSubdivisionsIdsVector: vector containing the ids of the parent subdivision of each subface
+     * @param rSubdivisionsContainer: positive or negative parent geometry subdivisions container
+     * @param FatherFaceId: Father face in where the positive exterior faces are to be obtained
+     */
+    virtual void GenerateExteriorFaces(
+        std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
+        std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
+        const unsigned int FatherFaceId) = 0;
 
     ///@}
 

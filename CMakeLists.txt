@@ -8,7 +8,7 @@ project (KratosMultiphysics)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 5)
-set (KratosMultiphysics_MINOR_VERSION 1)
+set (KratosMultiphysics_MINOR_VERSION 3)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # Define custom compiler build types
@@ -28,6 +28,10 @@ SET( CMAKE_C_FLAGS_CUSTOM "" )
 SET( CMAKE_CXX_FLAGS_CUSTOM "" )
 SET( CMAKE_SHARED_LINKER_FLAGS_CUSTOM "" )
 SET( CMAKE_EXE_LINKER_FLAGS_CUSTOM "" )
+
+if(USE_COTIRE MATCHES ON)
+    set(CMAKE_SKIP_RPATH ON)
+endif(USE_COTIRE MATCHES ON)
 
 # If build mode is not defined, assume Release
 if(NOT CMAKE_BUILD_TYPE)
@@ -161,6 +165,10 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
+if(USE_COTIRE MATCHES ON)
+    include(cotire)
+endif(USE_COTIRE MATCHES ON)
+
 ######################################################################################
 ######################################################################################
 ######################################################################################
@@ -210,6 +218,7 @@ message("Boostlib used: ${Boost_LIBRARIES}")
 # Finding and including PYTHON
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
+list(REMOVE_ITEM PYTHON_LIBRARIES "debug" "optimized")
 link_directories(${PYTHON_LIBRARIES})
 
 # Follow the symbolic links for the python lib only if needed
@@ -311,6 +320,21 @@ if(${MPI_NEEDED} MATCHES ON )
   # find_package(Boost COMPONENTS mpi_python REQUIRED)
 endif(${MPI_NEEDED} MATCHES ON )
 
+# Find zlib (for gidpost)
+find_package(ZLIB)
+
+if( ZLIB_FOUND )
+  include_directories( ${ZLIB_INCLUDE_DIRS} )
+else( ZLIB_FOUND )
+  message( "-- Preparing local ZLIB compilation.")
+  include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
+  # Compile our own
+  add_subdirectory(external_libraries/zlib)
+  # we have to add this for zconf
+  include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
+  set( ZLIB_LIBRARIES zlib )
+endif( ZLIB_FOUND )
+  
 
 ##echo user options
 message( " ")
@@ -321,10 +345,6 @@ message( " ")
 ######################################################################################
 #include internal dependencies
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries )
-include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
-# we have to add this for zconf
-include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
-# include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/gidpost )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
@@ -334,7 +354,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 # include subdirectories
-add_subdirectory(external_libraries/zlib)
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 add_subdirectory(applications)
@@ -390,7 +409,7 @@ endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 # Kratos Testing
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests FILES_MATCHING PATTERN "*.py" PATTERN "*.mm" PATTERN "*.ref" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 ################################################################################

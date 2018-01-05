@@ -30,7 +30,7 @@ namespace Kratos
 {
 namespace HDF5
 {
-namespace Detail
+namespace Internals
 {
 ///@addtogroup HDF5Application
 ///@{
@@ -81,7 +81,7 @@ private:
 
 ///@} // Kratos Classes
 ///@} addtogroup
-} // namespace Detail.
+} // namespace Internals.
 } // namespace HDF5.
 } // namespace Kratos.
 

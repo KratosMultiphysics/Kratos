@@ -66,35 +66,35 @@ namespace Kratos {
         
         double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
         
-        double sinusoidal_factor = 0.5 * KRATOS_M_PI / (20.0/4.0 - 1);
+        double sinusoidal_factor = 0.5 * Globals::Pi / (20.0/4.0 - 1);
              
         for (int i = 0; i < 20; i++) {           
-            mListOfCoordinates[i][0] = 0.45 * cl * cos(sinusoidal_factor * i); ////APPROXIMATE COORDINATES, CALCULATE MORE EXACTLY
-            mListOfCoordinates[i][1] = 0.45 * cl * sin(sinusoidal_factor * i);
+            mListOfCoordinates[i][0] = 0.45 * cl * std::cos(sinusoidal_factor * i); ////APPROXIMATE COORDINATES, CALCULATE MORE EXACTLY
+            mListOfCoordinates[i][1] = 0.45 * cl * std::sin(sinusoidal_factor * i);
             mListOfCoordinates[i][2] = 0.0;
         }
         
-        sinusoidal_factor = 0.5 * KRATOS_M_PI / (16.0/4.0 - 1);
+        sinusoidal_factor = 0.5 * Globals::Pi / (16.0/4.0 - 1);
         
         for (int i = 0; i < 16; i++) {           
-            mListOfCoordinates[20 + i][0] = 0.35 * cl * cos(sinusoidal_factor * i);
-            mListOfCoordinates[20 + i][1] = 0.35 * cl * sin(sinusoidal_factor * i);
+            mListOfCoordinates[20 + i][0] = 0.35 * cl * std::cos(sinusoidal_factor * i);
+            mListOfCoordinates[20 + i][1] = 0.35 * cl * std::sin(sinusoidal_factor * i);
             mListOfCoordinates[20 + i][2] = 0.0;
         }
         
-        sinusoidal_factor = 0.5 * KRATOS_M_PI / (12.0/4.0 - 1);
+        sinusoidal_factor = 0.5 * Globals::Pi / (12.0/4.0 - 1);
         
         for (int i = 0; i < 12; i++) {           
-            mListOfCoordinates[36 + i][0] = 0.25 * cl * cos(sinusoidal_factor * i); 
-            mListOfCoordinates[36 + i][1] = 0.25 * cl * sin(sinusoidal_factor * i);
+            mListOfCoordinates[36 + i][0] = 0.25 * cl * std::cos(sinusoidal_factor * i); 
+            mListOfCoordinates[36 + i][1] = 0.25 * cl * std::sin(sinusoidal_factor * i);
             mListOfCoordinates[36 + i][2] = 0.0;
         }
         
-        sinusoidal_factor = 0.333333333333333333 * KRATOS_M_PI;
+        sinusoidal_factor = 0.333333333333333333 * Globals::Pi;
         
         for (int i = 0; i <  6; i++) {           
-            mListOfCoordinates[48 + i][0] = 0.15 * cl * cos(sinusoidal_factor * i); 
-            mListOfCoordinates[48 + i][1] = 0.15 * cl * sin(sinusoidal_factor * i);
+            mListOfCoordinates[48 + i][0] = 0.15 * cl * std::cos(sinusoidal_factor * i); 
+            mListOfCoordinates[48 + i][1] = 0.15 * cl * std::sin(sinusoidal_factor * i);
             mListOfCoordinates[48 + i][2] = 0.0;
         }
         
@@ -108,7 +108,7 @@ namespace Kratos {
             mListOfRadii[i]= 0.1 * cl;
         }        
                 
-//        double sinusoidal_factor = 0.5 * KRATOS_M_PI / (number_of_spheres_in_first_sector - 1);
+//        double sinusoidal_factor = 0.5 * Globals::Pi / (number_of_spheres_in_first_sector - 1);
 //        
 //        for (int j = 0; j < number_of_passes; j++) {
 //        
@@ -116,8 +116,8 @@ namespace Kratos {
 //            
 //                mListOfRadii[i + number_of_spheres_per_pass * j]= 0.1 * cl;
 //            
-//                mListOfCoordinates[i + number_of_spheres_per_pass * j][0] = (0.05 + 0.1 * j) * cl * cos(sinusoidal_factor * i); ////APPROXIMATE COORDINATES, CALCULATE MORE EXACTLY
-//                mListOfCoordinates[i + number_of_spheres_per_pass * j][1] = (0.05 + 0.1 * j) * cl * sin(sinusoidal_factor * i);
+//                mListOfCoordinates[i + number_of_spheres_per_pass * j][0] = (0.05 + 0.1 * j) * cl * std::cos(sinusoidal_factor * i); ////APPROXIMATE COORDINATES, CALCULATE MORE EXACTLY
+//                mListOfCoordinates[i + number_of_spheres_per_pass * j][1] = (0.05 + 0.1 * j) * cl * std::sin(sinusoidal_factor * i);
 //                mListOfCoordinates[i + number_of_spheres_per_pass * j][2] = 0.0;
 //            
 //            }
@@ -125,11 +125,11 @@ namespace Kratos {
         
         //double particle_density = this->SlowGetDensity(); /////////////////////////////USE FAST
          
-        double cluster_volume = KRATOS_M_PI * 0.5 * 0.5 * cl * cl * 2.0 * 0.1 * cl; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
+        double cluster_volume = Globals::Pi * 0.5 * 0.5 * cl * cl * 2.0 * 0.1 * cl; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
         
         //double cluster_mass = particle_density * cluster_volume;
         
-        double cluster_mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = (this->SlowGetDensity()) * KRATOS_M_PI * 0.5 * 0.5 * cl * cl * 2.0 * 0.1 * cl;
+        double cluster_mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = (this->SlowGetDensity()) * Globals::Pi * 0.5 * 0.5 * cl * cl * 2.0 * 0.1 * cl;
         
         array_1d<double,3>& base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
         

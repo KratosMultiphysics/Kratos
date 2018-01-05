@@ -81,6 +81,7 @@ namespace Kratos
 		bounded_matrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry();
 		bounded_matrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness();
 		bounded_matrix<double,msElementSize,msLocalSize> CalculateTransformationS();
+		bounded_vector<double,msLocalSize> GetCurrentNodalPosition();
 
 		bounded_vector<double,msLocalSize> CalculateElementForces();
 
@@ -118,7 +119,7 @@ namespace Kratos
 
 		void BuildSingleMassMatrix(
 			MatrixType& rMassMatrix,
-			const double Phi, const double CT, const double CR, const double L);
+			const double Phi, const double CT, const double CR, const double L, const double dir);
 
 		void CalculateDampingMatrix(
 			MatrixType& rDampingMatrix,
@@ -146,11 +147,10 @@ namespace Kratos
 
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-
-		double CalculateCurrentLength();
 		double CalculatePsi(const double I, const double A_eff);
 		double CalculateShearModulus();
 		double CalculateReferenceLength();
+		double CalculateCurrentLength();
 		void UpdateIncrementDeformation();
 
 		bounded_vector<double,msElementSize> CalculateBodyForces();  
@@ -191,10 +191,9 @@ namespace Kratos
 			ProcessInfo& rCurrentProcessInfo);
 
 	private:
-		double mdPhi_x_a, mRotInertiaY, mRotInertiaZ;
-		Vector mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;
-		Vector mTotalNodalDeformation, mTotalNodalPosistion, mBodyForces;
-		Vector mDeformationModes, mIncrementDeformation;
+		Vector mNX, mNY, mNZ;
+		Vector mTotalNodalDeformation;
+		Vector mIncrementDeformation;
 		Matrix mLHS, mRotationMatrix;
 		bounded_matrix<double,msElementSize,msElementSize> mRotationMatrix0;
 		Vector mNX0, mNY0, mNZ0;
@@ -225,18 +224,14 @@ namespace Kratos
 		
 	public:
 		Orientation(array_1d<double, msDimension>& v1, const double theta = 0.00);
-		Orientation(array_1d<double, msDimension>& v1, array_1d<double, msDimension>& v2);
-
 
 		void CalculateRotationMatrix(Matrix& R);
 		void CalculateBasisVectors(array_1d<double, msDimension>& v1,
 								   array_1d<double, msDimension>& v2,
 								   array_1d<double, msDimension>& v3);
 
-		Quaternion<double>& GetQuaternion() { return morientation; }
-
 	private:
-		Quaternion<double> morientation;
+		Matrix mRotationMatrix;
 	};
 
 

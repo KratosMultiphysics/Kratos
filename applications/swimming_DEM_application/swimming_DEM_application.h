@@ -154,17 +154,6 @@ private:
     const SphericSwimmingParticle<NanoParticle> mSwimmingNanoParticle3D;
     const SphericSwimmingParticle<AnalyticSphericParticle> mSwimmingAnalyticParticle3D;
 
-    //const DEM_FEM_Particle mDEM_FEM_Particle2D;
-    const VariablesList mVariablesList;
-
-    //       static const ApplicationCondition  msApplicationCondition;
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-// 		const Elem2D   mElem2D;
-// 		const Elem3D   mElem3D;
-
     /// Assignment operator.
     KratosSwimmingDEMApplication& operator=(KratosSwimmingDEMApplication const& rOther);
 

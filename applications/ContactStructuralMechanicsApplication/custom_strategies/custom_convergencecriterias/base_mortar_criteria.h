@@ -115,7 +115,7 @@ public:
         ) override
     {
         // We update the normals if necessary
-        if (rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] == true)
+        if (static_cast<NormalDerivativesComputation>(rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION]) != NODERIVATIVESCOMPUTATION)
         {
             // Update normal of the conditions
             ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); 
@@ -168,7 +168,7 @@ public:
     
     /**
      * This function initialize the convergence criteria
-     * @param rModelPart: The model part of interest
+     * @param rModelPart The model part of interest
      */ 
     
     void Initialize(ModelPart& rModelPart) override

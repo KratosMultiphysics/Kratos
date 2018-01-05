@@ -103,19 +103,29 @@ namespace Kratos
         
         void ComputeBuoyancy(NodeType& node, array_1d<double, 3>& buoyancy, const array_1d<double,3>& gravity, const ProcessInfo& r_current_process_info);
         void ComputeDragForce(NodeType& node, array_1d<double, 3>& drag_force, const ProcessInfo& r_current_process_info);
-        void ComputeVirtualMassForce(NodeType& node, array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info);
+        void ComputeVirtualMassPlusUndisturbedFlowForce(NodeType& node, array_1d<double, 3>& virtual_mass_plus_undisturbed_flow_force, const ProcessInfo& r_current_process_info);
         void ComputeBassetForce(NodeType& node, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info);
         void ComputeSaffmanLiftForce(NodeType& node, array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
         void ComputeMagnusLiftForce(NodeType& node, array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
         void ComputeHydrodynamicTorque(NodeType& node, array_1d<double, 3>& hydro_torque, const ProcessInfo& r_current_process_info);
         void ComputeBrownianMotionForce(NodeType& node, array_1d<double, 3>& brownian_motion_force, const ProcessInfo& r_current_process_info);
         void ComputeParticleReynoldsNumber(double& r_reynolds);
+        void ComputePowerLawParticleReynoldsNumber(double& reynolds,
+                                                   const double consistency_index,
+                                                   const int flow_behavior_index,
+                                                   const bool use_max_shear_rate = false);
         double ComputeNondimensionalRotVelocity(const array_1d<double, 3>& slip_rot_velocity);
         void ComputeParticleRotationReynoldsNumber(double r_norm_of_slip_rot, double& r_reynolds);
         void ComputeParticleRotationReynoldsNumberOverNormOfSlipRot(double& r_reynolds);
         void ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_acc, double& acc_number);
         void MemberDeclarationFirstStep(const ProcessInfo& r_current_process_info);
         void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info);
+        array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
+        void AddCentrifugalForces(array_1d<double,3>& weight, const ProcessInfo& r_process_info);
+        void AddCoriolisForces(array_1d<double,3>& weight, const ProcessInfo& r_process_info);
+        void AddRelativeAccelerationForces(array_1d<double,3>& weight, const ProcessInfo& r_process_info);
+        void AddEulerForces(array_1d<double,3>& weight, const ProcessInfo& r_process_info);
+        virtual double GetFluidMass();
 
       ///@name Protected static Member Variables
       ///@{
@@ -168,6 +178,7 @@ namespace Kratos
         double ComputeIntermediateRegimeDragCoefficient();
         double ComputeHaiderDragCoefficient();
         double ComputeBeetstraDragCoefficient();
+        double ComputeShahDragCoefficient(const bool use_shahi_correction = false);
         void ComputeGanserParameters(const int isometric_shape, const double dn, double& k_1, double& k_2);
         void ApplyDragPorosityModification(double& drag_coeff);
         double ComputeElSamniLiftCoefficient(const double norm_of_shear_rate, const double vorticity_norm, const ProcessInfo& r_current_process_info);

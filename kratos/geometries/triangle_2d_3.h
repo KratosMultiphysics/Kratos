@@ -441,18 +441,18 @@ public:
      */
     bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override 
     {
-        Point boxcenter;
-        Point boxhalfsize;
+        Point box_center;
+        Point box_half_size;
 
-        boxcenter[0]   = 0.50 * (rLowPoint[0] + rHighPoint[0]);
-        boxcenter[1]   = 0.50 * (rLowPoint[1] + rHighPoint[1]);
-        boxcenter[2]   = 0.00;
+        box_center[0] = 0.50 * (rLowPoint[0] + rHighPoint[0]);
+        box_center[1] = 0.50 * (rLowPoint[1] + rHighPoint[1]);
+        box_center[2] = 0.00;
 
-        boxhalfsize[0] = 0.50 * (rHighPoint[0] - rLowPoint[0]);
-        boxhalfsize[1] = 0.50 * (rHighPoint[1] - rLowPoint[1]);
-        boxhalfsize[2] = 0.00;
+        box_half_size[0] = 0.50 * std::abs(rHighPoint[0] - rLowPoint[0]);
+        box_half_size[1] = 0.50 * std::abs(rHighPoint[1] - rLowPoint[1]);
+        box_half_size[2] = 0.00;
 
-        return TriBoxOverlap(boxcenter, boxhalfsize);
+        return TriBoxOverlap(box_center, box_half_size);
     }
 
     /** This method calculates and returns length, area or volume of
@@ -720,6 +720,8 @@ public:
         ) override {
 
         rResult = ZeroVector(3);
+        
+        const TPointType& point_0 = this->GetPoint(0);
 
         // Compute the Jacobian matrix and its determinant
         bounded_matrix<double, 2, 2> J;
@@ -730,9 +732,10 @@ public:
         const double det_J = J(0,0)*J(1,1) - J(0,1)*J(1,0);
 
         // Compute eta and xi
-        const double eta = (J(1,0)*(this->GetPoint(0).X()-rPoint(0)) +
-                            J(0,0)*(rPoint(1)-this->GetPoint(0).Y())) / det_J;
-        const double xi  = (rPoint(0) - this->GetPoint(0).X() - eta*J(0,1)) / J(0,0);
+        const double eta = (J(1,0)*(point_0.X() - rPoint(0)) +
+                            J(0,0)*(rPoint(1) - point_0.Y())) / det_J;
+        const double xi  = (J(1,1)*(rPoint(0) - point_0.X()) + 
+                            J(0,1)*(point_0.Y() - rPoint(1))) / det_J;
 
         rResult(0) = xi;
         rResult(1) = eta;
@@ -1905,8 +1908,6 @@ private:
         return false;
     }
 
-//*************************************************************************************
-//*************************************************************************************
 
     /** 
      * @see HasIntersection
@@ -1940,15 +1941,15 @@ private:
         //    that means there is no separating axis on X,Y-axis tests
         abs_ex = std::abs(edge0[0]);
         abs_ey = std::abs(edge0[1]);
-        if (!AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
+        if (AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
 
         abs_ex = std::abs(edge1[0]);
         abs_ey = std::abs(edge1[1]);
-        if (!AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
+        if (AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
 
         abs_ex = std::abs(edge2[0]);
         abs_ey = std::abs(edge2[1]);
-        if (!AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
+        if (AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
 
         // Bullet 1:
         //  first test overlap in the {x,y,(z)}-directions
@@ -1976,7 +1977,7 @@ private:
     }
 
     /** AxisTestZ
-     * This method return true if there is a separating axis
+     * This method returns true if there is a separating axis
      * 
      * @param rEdgeX, rEdgeY: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeY: i-edge abs coordinates
@@ -1998,8 +1999,8 @@ private:
 
         rad = rAbsEdgeY*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[1];
 
-        if(min_max.first>rad || min_max.second<-rad) return false;
-        else return true;
+        if(min_max.first>rad || min_max.second<-rad) return true;
+        else return false;
     }
 
     /** Implements the calculus of the semiperimeter

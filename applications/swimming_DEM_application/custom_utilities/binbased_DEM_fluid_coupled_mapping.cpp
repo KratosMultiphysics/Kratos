@@ -122,7 +122,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeFl
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
-void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeVelocityOnDEMFromField(
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeVelocityOnDEMFromFieldToSlipVelocity(
     FluidFieldUtility& r_flow,
     ModelPart& r_dem_model_part)
 {
@@ -135,7 +135,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeVe
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
-void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::InterpolateVelocity(
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::InterpolateVelocityOnSlipVelocity(
     ModelPart& r_fluid_model_part,
     ModelPart& r_dem_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid)
@@ -947,7 +947,9 @@ array_1d<double, 3> BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingPart
         }
 
         const array_1d<double, 3>& vel = geom[n].FastGetSolutionStepValue(VELOCITY, index);
-        vorticity += MathUtils<double>::CrossProduct(derivatives, vel);
+        array_1d<double, 3> aux;
+        MathUtils<double>::CrossProduct(aux, vel, derivatives);
+        noalias(vorticity) += aux;
     }
 
     return(vorticity);
@@ -1630,7 +1632,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
 //    Geometry<Node<3> >& geom = p_elem->GetGeometry();
 
 //    const double& radius         = p_node->FastGetSolutionStepValue(RADIUS);
-//    const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
+//    const double particle_volume = 1.33333333333333333333 * Globals::Pi * mParticlesPerDepthDistance * radius * radius * radius;
 
 //    for (unsigned int i = 0; i < TDim + 1; i++){
 //        geom[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
@@ -1671,7 +1673,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
     double elemental_volume;
     GeometryUtils::CalculateGeometryData(geom, DN_DX, Ng, elemental_volume);
     const double& radius         = p_node->FastGetSolutionStepValue(RADIUS);
-    const double particle_volume = 4.0 * KRATOS_M_PI_3 * mParticlesPerDepthDistance * radius * radius * radius;
+    const double particle_volume = 4.0 * Globals::Pi / 3.0 * mParticlesPerDepthDistance * radius * radius * radius;
 
     for (unsigned int i = 0; i < TDim + 1; i++){
         geom[i].FastGetSolutionStepValue(FLUID_FRACTION) += (TDim + 1) * N[i] * particle_volume / elemental_volume;
@@ -1804,7 +1806,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
     unsigned int vector_size = neighbours.size();
     if (vector_size && p_node->Is(INSIDE)){
         const double& radius = p_node->FastGetSolutionStepValue(RADIUS);
-        double solid_volume = 4.0 * KRATOS_M_PI_3 * radius * radius * radius;
+        double solid_volume = 4.0 * Globals::Pi / 3.0 * radius * radius * radius;
 
         for (unsigned int i = 0; i != vector_size; ++i){
             neighbours[i]->GetSolutionStepValue(FLUID_FRACTION) += averaging_volume_inv * weights[i] * solid_volume;

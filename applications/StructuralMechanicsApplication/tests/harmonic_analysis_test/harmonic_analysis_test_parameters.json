@@ -1,0 +1,118 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "harmonic_analysis_test",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
+        "time_step"       : 3.0,
+        "start_time"      : 10.0,
+        "end_time"        : 3800.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "harmonic_analysis",
+        "echo_level"                         : 0,
+        "analysis_type"                      : "linear",
+        "model_import_settings"              : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "harmonic_analysis_test/harmonic_analysis_test",
+            "input_file_label" : 0
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "harmonic_analysis_test/harmonic_analysis_test_materials.json"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "problem_domain_sub_model_part_list" : ["Parts_plate"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","PointLoad3D_load"],
+        "rotation_dofs"                      : true,
+        "harmonic_analysis_settings" : {
+            "use_effective_material_damping" : false
+        }
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_support",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PointLoad3D_load",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : 1.0,
+            "direction"       : [0.0,0.0,1.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "list_other_processes"  : [{
+        "kratos_module" : "KratosMultiphysics.AdjointFluidApplication",
+        "python_module" : "input_primal_solution_process",
+        "help"          : "",
+        "process_name"  : "InputPrimalSolutionProcess",
+        "Parameters" : {
+	    "model_part_name" : "Structure",
+            "file_name"                 : "harmonic_analysis_test/harmonic_analysis_test",
+            "variable_list"             : [],
+            "nodal_value_list"          : ["EIGENVECTOR_MATRIX"],
+            "processinfo_value_list"    : ["EIGENVALUE_VECTOR"]
+        }
+    },{
+        "kratos_module" : "KratosMultiphysics",
+        "python_module" : "from_json_check_result_process",
+        "help" : "",
+        "process_name" : "JsonOutputProcess",
+        "Parameters": {
+            "check_variables"      : ["DISPLACEMENT_Z"],
+            "input_file_name"      : "harmonic_analysis_test/harmonic_analysis_test_results.json",
+            "model_part_name"      : "Structure",
+            "sub_model_part_name"  : "PointLoad3D_load",
+            "time_frequency"       : 0.1,
+            "historical_value"     : true,
+        "tolerance" : 1e-3,
+        "relative_tolerance" : 1e-6
+        }
+    },{
+        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "python_module" : "check_eigenvalues_process",
+        "help" : "",
+        "process_name" : "CheckEigenvaluesProcess",
+        "Parameters": {
+            "model_part_name"      : "Structure",
+            "variable_name"  : "EIGENVALUE_VECTOR",
+            "reference_values"       : "[145801.00267211083, 906254.0808654225, 911359.7527626479, 2326540.76016708, 3587479.169479124, 3632487.4950418114, 6044676.003445955, 6151325.827220598]"
+        }
+    }],
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    },
+    "material_import_settings" : {
+        "materials_filename" : "harmonic_analysis_test/harmonic_analysis_test_materials.json"
+
+    }
+}
