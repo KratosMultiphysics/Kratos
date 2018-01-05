@@ -116,11 +116,17 @@ class ConnectivitiesOutput
     {
         const std::string& Name;
         const std::string& Path;
+        const int WorkingSpaceDimension;
+        const int Dimension;
+        const int NumberOfNodes;
         Internals::ConnectivitiesData Connectivities;
 
         void WriteConnectivities(File& rFile)
         {
             Connectivities.WriteData(rFile, Path);
+            rFile.WriteAttribute(Path, "WorkingSpaceDimension", WorkingSpaceDimension);
+            rFile.WriteAttribute(Path, "Dimension", Dimension);
+            rFile.WriteAttribute(Path, "NumberOfNodes", NumberOfNodes);
         }
     };
 
@@ -139,8 +145,11 @@ public:
         std::vector<const TConnectivitiesType*> bin_keys;
         for (const auto& r_item : rOutputItems)
         {
-            mOutputs.push_back({r_item.Name, r_item.Path});
             bin_keys.push_back(&KratosComponents<TConnectivitiesType>::Get(r_item.Name));
+            const int ws_dim = bin_keys.back()->WorkingSpaceDimension();
+            const int dim = bin_keys.back()->GetGeometry().Dimension();
+            const int nnodes = bin_keys.back()->GetGeometry().size();
+            mOutputs.push_back({r_item.Name, r_item.Path, ws_dim, dim, nnodes});
         }
 
         Internals::PointerBinsUtility<TConnectivitiesType> bins(bin_keys);

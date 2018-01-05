@@ -119,7 +119,7 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io = self._get_model_part_io(kratos_hdf5_file)
             hdf5_model_part_io.WriteModelPart(model_part)
             del hdf5_model_part_io, kratos_hdf5_file
-            xdmf_utils.WriteParametricCoordinates("test_xdmf_output.h5", "/ModelData/Nodes/Local")
+            HDF5SortedCoordinatesProcess("test_xdmf_output.h5", "/ModelData/Nodes/Local").Execute()
             h5py_file = h5py.File("test_xdmf_output.h5", "r")
             geometry = xdmf_utils.KratosGeometry(h5py_file, '/ModelData/Nodes/Local')
             #print(xdmf_utils.ET.tostring(geometry.root))
@@ -148,25 +148,10 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io = self._get_model_part_io(kratos_hdf5_file)
             hdf5_model_part_io.WriteModelPart(model_part)
             del hdf5_model_part_io, kratos_hdf5_file
-            xdmf_utils.WriteParametricCoordinates("test_xdmf_output.h5", "/ModelData/Nodes/Local")
+            HDF5SortedCoordinatesProcess("test_xdmf_output.h5", "/ModelData/Nodes/Local").Execute()
             h5py_file = h5py.File("test_xdmf_output.h5", "r")
             mesh = xdmf_utils.KratosCollectionGrid(h5py_file, '/ModelData')
             #xdmf_utils.ET.ElementTree(mesh.root).write("test.xml")
-            self._remove_file("test_xdmf_output.h5")
-
-    def test_XdmfStaticResults(self):
-        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            model_part = ModelPart("test")
-            self._initialize_model_part(model_part)
-            kratos_hdf5_file = self._get_file()
-            hdf5_model_part_io = self._get_model_part_io(kratos_hdf5_file)
-            hdf5_model_part_io.WriteModelPart(model_part)
-            hdf5_nodal_solution_step_data_io = self._get_nodal_solution_step_data_io(kratos_hdf5_file)
-            hdf5_nodal_solution_step_data_io.WriteNodalResults(model_part.Nodes, 0)
-            del hdf5_nodal_solution_step_data_io, hdf5_model_part_io, kratos_hdf5_file
-            xdmf_utils.WriteParametricCoordinates("test_xdmf_output.h5", "/ModelData/Nodes/Local")
-            xdmf_results = xdmf_utils.KratosStaticResults("test_xdmf_output.h5", "/ModelData", "test_xdmf_output.h5", "ResultsData")
-            #xdmf_utils.ET.ElementTree(xdmf_results.GetXmlElement()).write("test.xml")
             self._remove_file("test_xdmf_output.h5")
 
     def tearDown(self):
