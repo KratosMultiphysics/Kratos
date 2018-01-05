@@ -24,7 +24,7 @@
 #undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #endif
 #define KRATOS_REGISTER_IN_PYTHON_VARIABLE(module,variable) \
-	module.attr(#variable) = &variable; 
+	//module.attr(#variable) = &variable; 
 
 #ifdef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
