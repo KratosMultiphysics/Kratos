@@ -30,6 +30,7 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp;
 	#${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
+ 	${CMAKE_CURRENT_SOURCE_DIR}/sources/connectivity_preserve_modeler.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_local_smoothing_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_worst_element_smoothing_process.cpp;
@@ -67,7 +68,7 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_part_to_python.cpp
 # 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_compressed_matrix_to_python.cpp
 # 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_constant_matrix_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_points_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_points_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_deprecated_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_c2c_variables_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_cfd_variables_to_python.cpp
@@ -78,11 +79,11 @@ set( KRATOS_PYTHON_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mat_variables_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_legacy_structural_app_vars_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_containers_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_constitutive_law_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_processes_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_constitutive_law_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_processes_to_python.cpp
 # 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_coordinate_matrix_to_python.cpp
 # 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_quadratures_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometries_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometries_to_python.cpp
 # 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_scalar_matrix_to_python.cpp
 # 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_hermitian_matrix_to_python.cpp
 # 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_sparse_matrix_to_python.cpp
@@ -97,25 +98,24 @@ set( KRATOS_PYTHON_SOURCES
 # 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_zero_matrix_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mesh_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_modeler_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_modeler_to_python.cpp
 # 	${CMAKE_CURRENT_SOURCE_DIR}/python/vectorial_spaces_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_properties_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_node_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_linear_solvers_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_process_info_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_market_interface_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_serializer_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_table_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_linear_solvers_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_process_info_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_market_interface_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_serializer_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_table_to_python.cpp
 # 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_search_strategies_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_parameters_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_testing_to_python.cpp
-#     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_logger_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_to_python.cpp;
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_parameters_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_testing_to_python.cpp
+#####TO BE SPOKEN WITH POOYAN        ${CMAKE_CURRENT_SOURCE_DIR}/python/add_logger_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_to_python.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/sources/connectivity_preserve_modeler.cpp;
 )
 
 ## Kratos testing engine soruces
