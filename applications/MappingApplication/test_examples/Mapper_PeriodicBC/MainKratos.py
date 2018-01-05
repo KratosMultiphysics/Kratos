@@ -89,7 +89,7 @@ fluid_model_part = solver.GetComputingModelPart()
 mapper_settings_file = open("MapperSettings.json",'r')
 Projectparameters_Mapper = Parameters( mapper_settings_file.read())["mapper_settings"][0]
 
-periodic_bc_mapper = KratosMapping.MapperFactory(main_model_part, 
+periodic_bc_mapper = KratosMapping.MapperFactory.CreateMapper(main_model_part, 
                                                  main_model_part, 
                                                  Projectparameters_Mapper)
 
