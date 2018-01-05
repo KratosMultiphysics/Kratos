@@ -38,28 +38,27 @@
 #include "add_legacy_structural_app_vars_to_python.h"
 #include "add_containers_to_python.h"
 #include "add_matrix_to_python.h"
-// #include "add_geometries_to_python.h"
+#include "add_points_to_python.h"
+#include "add_geometries_to_python.h"
 #include "add_containers_to_python.h"
-// #include "add_processes_to_python.h"
-// #include "add_model_to_python.h"
+#include "add_processes_to_python.h"
+#include "add_model_to_python.h"
 #include "add_io_to_python.h"
 #include "add_mesh_to_python.h"
-// #include "add_modeler_to_python.h"
+#include "add_modeler_to_python.h"
 #include "add_kratos_application_to_python.h"
-// #include "add_linear_solvers_to_python.h"
-// #ioclude "add_amgcl_solver_to_python.h"
-// #include "add_process_info_to_python.h"
-// #include "add_constitutive_law_to_python.h"
-// #include "add_serializer_to_python.h"
-// #include "add_table_to_python.h"
-// #include "pointer_vector_set_python_interface.h"
-// #include "solution_step_variable_indexing_python.h"
-// #include "add_strategies_to_python.h"
-// #include "add_utilities_to_python.h"
-// #include "add_matrix_market_interface_to_python.h"
+#include "add_linear_solvers_to_python.h"
+#include "add_amgcl_solver_to_python.h"
+#include "add_process_info_to_python.h"
+#include "add_constitutive_law_to_python.h"
+#include "add_serializer_to_python.h"
+#include "add_table_to_python.h"
+#include "add_strategies_to_python.h"
+#include "add_utilities_to_python.h"
+#include "add_matrix_market_interface_to_python.h"
 // #include "add_search_strategies_to_python.h
-// #include "add_kratos_parameters_to_python.h"
-// #include "add_testing_to_python.h"
+#include "add_kratos_parameters_to_python.h"
+#include "add_testing_to_python.h"
 // #include "add_logger_to_python.h"
 
 namespace Kratos
@@ -80,6 +79,8 @@ using namespace pybind11;
 PYBIND11_MODULE(Kratos, m)
 {
     AddVectorToPython(m);
+    AddMatrixToPython(m);
+    AddPointsToPython(m);
     AddKernelToPython(m);
     AddContainersToPython(m);
     AddModelPartToPython(m);
@@ -97,34 +98,34 @@ PYBIND11_MODULE(Kratos, m)
     AddMATVariablesToPython(m);
     AddDeprecatedVariablesToPython(m);    
     
-    AddMatrixToPython(m);
-//     AddPointsToPython();
+    
+     
 //     //  AddQuadraturesToPython();
 //     //  AddIntegrationPointsToPython();
      
-//     AddProcessesToPython();
+     AddProcessesToPython(m);
      AddIOToPython(m);
-//     AddModelToPython();
+     AddModelToPython(m);
      
-//     AddModelerToPython();
+     AddModelerToPython(m);
      
      AddKratosApplicationToPython(m);
-//     AddLinearSolversToPython();
-//     AddAMGCLSolverToPython();
-//     AddStrategiesToPython();
-//     AddUtilitiesToPython();
-//     AddProcessInfoToPython();
-//     AddConstitutiveLawToPython();
-//     AddSerializerToPython();
-//     AddTableToPython();
-//     AddGeometriesToPython();
+     AddLinearSolversToPython(m);
+     AddAMGCLSolverToPython(m);
+     AddStrategiesToPython(m);
+     AddUtilitiesToPython(m);
+     AddProcessInfoToPython(m);
+     AddConstitutiveLawToPython(m);
+     AddSerializerToPython(m);
+     AddTableToPython(m);
+     AddGeometriesToPython(m);
 
-//     AddMatrixMarketInterfaceToPython();
-//     AddKratosParametersToPython();
+    AddMatrixMarketInterfaceToPython(m);
+    AddKratosParametersToPython(m);
 // 
 //     AddSearchStrategiesToPython();
-//     AddTestingToPython();
-//     AddLoggerToPython();
+     AddTestingToPython(m);
+// // // // // // //      AddLoggerToPython(m); //TO BE SPOKEN WITH POOYAN
 
 //     AddBandedMatrixToPython();
 //     AddTriangularMatrixToPython();

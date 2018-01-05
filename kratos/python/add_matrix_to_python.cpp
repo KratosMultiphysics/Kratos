@@ -53,6 +53,18 @@ template< typename TMatrixType > class_< TMatrixType > CreateMatrixInterface(pyb
                                         auto index_i = cast<typename TMatrixType::size_type>(index[0]);
                                         auto index_j = cast<typename TMatrixType::size_type>(index[1]);
                                         return self(index_i, index_j);} );
+        
+        //out of place versions
+        binder.def("__add__", [](TMatrixType& m1, const TMatrixType& m2){ return TMatrixType(m1+m2);}, is_operator());
+        binder.def("__sub__", [](TMatrixType& m1, const TMatrixType& m2){ return TMatrixType(m1-m2);}, is_operator());
+        binder.def("__mul__", [](TMatrixType& m1, const TMatrixType& m2){ return TMatrixType(prod(m1,m2));}, is_operator());
+        binder.def("__mul__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ return TMatrixType(m1*value);}, is_operator());
+        binder.def("__truediv__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ return TMatrixType(m1/value);}, is_operator());
+        
+        //inplace versions
+        binder.def("__imul__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1*=value;}, is_operator());
+        binder.def("__itruediv__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1/=value;}, is_operator());
+
         binder.def("__repr__", [](const TMatrixType& self)
                 { std::stringstream out;
                   out << ( self );
@@ -65,27 +77,19 @@ template< typename TMatrixType > class_< TMatrixType > CreateMatrixInterface(pyb
 
 void  AddMatrixToPython(pybind11::module& m)
 {
+    //here we add the dense matrix
     auto matrix_binder = CreateMatrixInterface< Matrix >(m,"Matrix");
+    matrix_binder.def(init<>());
     matrix_binder.def(init<matrix<double>::size_type, matrix<double>::size_type>());
     matrix_binder.def(init<matrix<double>::size_type, matrix<double>::size_type, matrix<double>::value_type >());
-    /*		  .def(MatrixScalarOperatorPython<matrix<double>, double>())
-      .def(MatrixScalarAssignmentOperatorPython<matrix<double>, double>())
-          .def(MatrixMatrixOperatorPython<matrix<double>, zero_matrix<double>, matrix<double> >())
-          .def(MatrixMatrixOperatorPython<matrix<double>, identity_matrix<double>, matrix<double> >())
-          .def(MatrixMatrixOperatorPython<matrix<double>, scalar_matrix<double>, matrix<double> >())
-          .def(MatrixMatrixOperatorPython<matrix<double>, banded_matrix<double>, matrix<double> >())
-          .def(MatrixMatrixOperatorPython<matrix<double>, triangular_matrix<double, upper>, matrix<double> >())
-          .def(MatrixMatrixOperatorPython<matrix<double>, triangular_matrix<double, lower>, matrix<double> >())
-          .def(MatrixMatrixOperatorPython<matrix<double>, symmetric_matrix<double, upper>, matrix<double> >())
-    #if defined KRATOS_ADD_HERMITIAN_MATRIX_INTERFACE
-          .def(MatrixMatrixOperatorPython<matrix<double>, hermitian_matrix<double, upper>, matrix<double> >())
-    #endif
-          .def(MatrixMatrixOperatorPython<matrix<double>, mapped_matrix<double>, matrix<double> >())
-          .def(MatrixMatrixOperatorPython<matrix<double>, compressed_matrix<double>, matrix<double> >())
-    #if defined KRATOS_ADD_COORDINATE_MATRIX_INTERFACE
-          .def(MatrixMatrixOperatorPython<matrix<double>, coordinate_matrix<double>, matrix<double> >())
-    #endif*/
+    matrix_binder.def(init<matrix<double>& >());
     ;
+    
+    //here we add the sparse matrix
+    auto compressed_matrix_binder = CreateMatrixInterface< compressed_matrix<double> >(m,"CompressedMatrix");
+    compressed_matrix_binder.def(init<>());
+    compressed_matrix_binder.def(init<compressed_matrix<double>::size_type, compressed_matrix<double>::size_type>());
+    compressed_matrix_binder.def(init<compressed_matrix<double>& >());
 }
 
 }  // namespace Python.

@@ -12,18 +12,17 @@
 //
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/raw_function.hpp>
 
 // Project includes
 #include "input_output/logger.h"
-using namespace boost::python;
+
 
 namespace Kratos
 {
 
 namespace Python
 {
+using namespace pybind11;
 
 /**
  * Prints the arguments from the python script using the Kratos Logger class
@@ -61,9 +60,8 @@ object print(boost::python::tuple args, boost::python::dict kwargs) {
 }
 
 void  AddLoggerToPython() {
-	using namespace boost::python;
 
-  class_<Logger, Kratos::shared_ptr<Logger>, boost::noncopyable>("Logger", no_init)
+  class_<Logger, Kratos::shared_ptr<Logger>>(m,"Logger")
   .def("Print", raw_function(print,1))
   .staticmethod("Print");
 }

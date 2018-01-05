@@ -606,9 +606,9 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Matrix> )
         ;
 
-        class_<ModelPart::SubModelPartIterator >(m, "ModelPartIterator")
-        .def("__iter__", [](ModelPart::SubModelPartIterator &it) -> ModelPart::SubModelPartIterator& { return it; })
-        .def("__next__", [](ModelPart::SubModelPartIterator &it) -> ModelPart::SubModelPartIterator& { return (++it); } )
+        class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
+        .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return make_iterator(self.begin(), self.end());},  keep_alive<0,1>())
+        
         ;
 
 	class_<ModelPart, ModelPart::Pointer, DataValueContainer, Flags >(m,"ModelPart")
@@ -739,7 +739,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AddElement", &ModelPart::AddElement)
         .def("AddElements",AddElementsByIds)
         .def("GetRootModelPart", &ModelPart::GetRootModelPart, return_value_policy::reference_internal)
-        .def("SubModelParts", [](ModelPart& self){ return make_iterator(self.SubModelPartsBegin(), self.SubModelPartsEnd()); } , keep_alive<0,1>()) //ERROR: this should give back a "container" of submodelparts
+        .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },  
+                                        [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; }) 
  		.def("__repr__", &ModelPart::Info)
 		;
 }

@@ -13,8 +13,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define.h"
@@ -25,38 +23,40 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "python/add_geometries_to_python.h"
-#include "python/bounded_vector_python_interface.h"
-#include "python/vector_scalar_operator_python.h"
-#include "python/vector_vector_operator_python.h"
 
 namespace Kratos
 {
 
 namespace Python
 {
+    
     const PointerVector< Node<3> >& ConstGetPoints( Geometry<Node<3> >& geom ) { return geom.Points(); }
     PointerVector< Node<3> >& GetPoints( Geometry<Node<3> >& geom ) { return geom.Points(); }
-void  AddGeometriesToPython()
+    
+void  AddGeometriesToPython(pybind11::module& m)
 {
-
+    using namespace pybind11;
+    
     typedef Node<3> Node3D;
     typedef Node3D::Pointer pNode3D;
     typedef Geometry<Node3D > GeometryType;
 
-    class_<GeometryType, GeometryType::Pointer >("Geometry", init<>())
+    class_<GeometryType, GeometryType::Pointer >(m,"Geometry")
+    .def(init<>())
     .def(init< GeometryType::PointsArrayType& >())
 	.def("DomainSize",&GeometryType::DomainSize)
-//     .def("Points", &GeometryType::ConstGetPoints)
-//     .def("Points", &GeometryType::GetPoints)
     ;
     
-    class_<Triangle2D3<Node3D>, Triangle2D3<Node3D>::Pointer, bases< GeometryType > >("Triangle2D3", init<pNode3D, pNode3D, pNode3D>())
+    class_<Triangle2D3<Node3D>, Triangle2D3<Node3D>::Pointer, GeometryType  >(m,"Triangle2D3")
+    .def(init<pNode3D, pNode3D, pNode3D>())
     ;    
     
-    class_<Tetrahedra3D4<Node3D>, Tetrahedra3D4<Node3D>::Pointer, bases< GeometryType > >("Tetrahedra3D4", init<pNode3D, pNode3D, pNode3D, pNode3D>())
+    class_<Tetrahedra3D4<Node3D>, Tetrahedra3D4<Node3D>::Pointer, GeometryType  >(m,"Tetrahedra3D4")
+    .def(init<pNode3D, pNode3D, pNode3D, pNode3D>())
     ;
 
-    class_<Hexahedra3D8<Node3D>, Hexahedra3D8<Node3D>::Pointer, bases< GeometryType > >("Hexahedra3D8", init<pNode3D, pNode3D, pNode3D, pNode3D, pNode3D, pNode3D, pNode3D, pNode3D>())
+    class_<Hexahedra3D8<Node3D>, Hexahedra3D8<Node3D>::Pointer, GeometryType  >(m,"Hexahedra3D8")
+    .def(init<pNode3D, pNode3D, pNode3D, pNode3D, pNode3D, pNode3D, pNode3D, pNode3D>())
     ;
 
 //     class_<GeometryType, GeometryType::Pointer, bases<PointerVector< Node<3> > > >("Geometry", init<>())

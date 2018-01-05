@@ -58,44 +58,20 @@ std::string GetVariableNames(Kernel& rKernel) {
 
 
 // THIS IS INTERESTING BUT DOES NOT WORK
-template< typename TVariableType > void RegisterInPythonVariables(pybind11::module& m)
+    void RegisterInPythonKernelVariables()
     {
-        KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        KRATOS_WATCH(KratosComponents<TVariableType>::GetComponents().size())
-        auto comp = KratosComponents<TVariableType>::GetComponents();
+        auto comp = KratosComponents<VariableData>::GetComponents();
+        auto m = pybind11::module::import("KratosMultiphysics"); //Note that this is added to KratosMultiphysics not to 
         
-        std::vector<TVariableType> aaaaaaaaaaaaa;
         for(auto item = comp.begin(); item!=comp.end(); item++)
         {
-            std::cout << "item " << item->first << " " << item->second << std::endl;
-            auto& var = (item->second);
-            
+            auto& var = (item->second);            
             std::string name = item->first;
-            KRATOS_WATCH(name)
-            KRATOS_WATCH(var)
-            m.attr(name.c_str()) = var; //FAILS HERE. I guess that because the function cannot modify "m"
-            std::cout << " done " <<std::endl;
+            
+            m.attr(name.c_str()) = var; 
         }
     }
 
-    void RegisterInPython3DVariablesWithComponents(pybind11::module& m)
-    {
-        for(const auto& item : KratosComponents<Variable<array_1d<double,3>>>::GetComponents())
-        {
-            std::string name = item.first;
-            m.attr(name.c_str()) = item.second;
-            
-            std::string xcomponent = name + "_X";
-            std::string ycomponent = name + "_Y";
-            std::string zcomponent = name + "_Z";
-            const auto& xvar = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::Get(xcomponent);
-            const auto& yvar = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::Get(ycomponent);
-            const auto& zvar = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::Get(zcomponent);
-            m.attr(xcomponent.c_str()) = xvar;
-            m.attr(ycomponent.c_str()) = yvar;
-            m.attr(zcomponent.c_str()) = zvar;
-        }
-    }
 
 void AddKernelToPython(pybind11::module& m) {
         
@@ -107,9 +83,9 @@ void AddKernelToPython(pybind11::module& m) {
     
     class_<Kernel, Kernel::Pointer>(m,"Kernel")
         .def(init<>())
-        .def("Initialize", [&m](Kernel& self){
+        .def("Initialize", [](Kernel& self){
                                 self.Initialize(); 
-                                /*RegisterInPythonVariables<Variable<bool>>(m);*/ }) //&Kernel::Initialize)
+                                RegisterInPythonKernelVariables(); }) //&Kernel::Initialize)
         .def("ImportApplication", &Kernel::ImportApplication)
         .def("InitializeApplication", &Kernel::InitializeApplication)
         //.def(""A,&Kernel::Initialize)

@@ -12,10 +12,11 @@
 //
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
+#include "includes/define.h"
 #include "testing/testing.h"
+#include "add_testing_to_python.h"
 
 
 namespace Kratos
@@ -28,42 +29,42 @@ void ListOfAllTestCases() {
 	std::cout << Testing::Tester::GetInstance() << std::endl;
 }
 
-void  AddTestingToPython() {
-	using namespace boost::python;
+void  AddTestingToPython(pybind11::module& m) {
+	using namespace pybind11;
 
-  scope tester_scope = class_<Testing::Tester, Kratos::shared_ptr<Testing::Tester>, boost::noncopyable>("Tester", no_init)
+  scope tester_scope = class_<Testing::Tester, Kratos::shared_ptr<Testing::Tester> >(m,"Tester")
 
   // Properties
-  .def("SetVerbosity",&Testing::Tester::SetVerbosity)
-  .staticmethod("SetVerbosity")
+  .def_static("SetVerbosity",&Testing::Tester::SetVerbosity)
+//   .staticmethod("SetVerbosity")
 
   // Run
-  .def("RunAllTestCases", &Testing::Tester::RunAllTestCases)
-  .staticmethod("RunAllTestCases")
-  .def("RunTestSuite", &Testing::Tester::RunTestSuite)
-  .staticmethod("RunTestSuite")
-  .def("RunTestCases", &Testing::Tester::RunTestCases)
-  .staticmethod("RunTestCases")
+  .def_static("RunAllTestCases", &Testing::Tester::RunAllTestCases)
+//   .staticmethod("RunAllTestCases")
+  .def_static("RunTestSuite", &Testing::Tester::RunTestSuite)
+//   .staticmethod("RunTestSuite")
+  .def_static("RunTestCases", &Testing::Tester::RunTestCases)
+//   .staticmethod("RunTestCases")
 
   // Profile tests
-  .def("ProfileAllTestCases", &Testing::Tester::ProfileAllTestCases)
-  .staticmethod("ProfileAllTestCases")
-  .def("ProfileTestSuite", &Testing::Tester::ProfileTestSuite)
-  .staticmethod("ProfileTestSuite")
+  .def_static("ProfileAllTestCases", &Testing::Tester::ProfileAllTestCases)
+//   .staticmethod("ProfileAllTestCases")
+  .def_static("ProfileTestSuite", &Testing::Tester::ProfileTestSuite)
+//   .staticmethod("ProfileTestSuite")
 
   // Utils
-  .def("NumberOfFailedTestCases", &Testing::Tester::NumberOfFailedTestCases)
-  .staticmethod("NumberOfFailedTestCases")
-  .def("ResetAllTestCasesResults", &Testing::Tester::ResetAllTestCasesResults)
-  .staticmethod("ResetAllTestCasesResults")
+  .def_static("NumberOfFailedTestCases", &Testing::Tester::NumberOfFailedTestCases)
+//   .staticmethod("NumberOfFailedTestCases")
+  .def_static("ResetAllTestCasesResults", &Testing::Tester::ResetAllTestCasesResults)
+//   .staticmethod("ResetAllTestCasesResults")
 
   // Info
-  .def("ListOfAllTestCases", ListOfAllTestCases)
-  .staticmethod("ListOfAllTestCases")
+  .def_static("ListOfAllTestCases", ListOfAllTestCases)
+//   .staticmethod("ListOfAllTestCases")
 
   ;
 
-  enum_<Testing::Tester::Verbosity>("Verbosity")
+  enum_<Testing::Tester::Verbosity>(m,"Verbosity")
   // Enums
   .value("QUITE", Testing::Tester::Verbosity::QUITE)
   .value("PROGRESS", Testing::Tester::Verbosity::PROGRESS)

@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/fsi_variables.h"
 #include "python/add_fsi_variables_to_python.h"
 

@@ -33,7 +33,8 @@ namespace Python
 
     template< typename TVectorType > class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string Name )
         {
-        class_< TVectorType > binder(m,Name.c_str());
+            
+        class_< TVectorType, std::shared_ptr<TVectorType> > binder(m,Name.c_str());
 
         //binder.def(init<std::TVectorType& >())
         binder.def("Size", [](const TVectorType& self){return self.size();} );
@@ -66,11 +67,7 @@ namespace Python
         binder.def("__getitem__", [](const TVectorType& self, const unsigned int i){return self[i];} );
         
         binder.def("__iter__", [](TVectorType& self){ return make_iterator(self.begin(), self.end(), return_value_policy::reference_internal); } , keep_alive<0,1>() ) ;
-        binder.def("__repr__", [](const TVectorType& self)
-                { std::stringstream out;
-                out << ( self );
-                  return out.str();
-                }); 
+        binder.def("__repr__", [](const TVectorType& self){ std::stringstream out;  out << ( self ); return out.str(); }); 
         
         return binder;
         }

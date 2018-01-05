@@ -16,8 +16,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define.h"
@@ -30,16 +28,16 @@ namespace Kratos
 
 namespace Python
 {
-void  AddMatrixMarketInterfaceToPython()
+void  AddMatrixMarketInterfaceToPython(pybind11::module& m)
 {
 
-    using namespace boost::python;
+    using namespace pybind11;
 
-    def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix <Kratos::CompressedMatrix>);
-    def("WriteMatrixMarketMatrix", WriteMatrixMarketMatrix <Kratos::CompressedMatrix>);
+    m.def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix <Kratos::CompressedMatrix>);
+    m.def("WriteMatrixMarketMatrix", WriteMatrixMarketMatrix <Kratos::CompressedMatrix>);
 
-    def("ReadMatrixMarketVector", ReadMatrixMarketVector <Kratos::Vector>);
-    def("WriteMatrixMarketVector", WriteMatrixMarketVector <Kratos::Vector>);
+    m.def("ReadMatrixMarketVector", ReadMatrixMarketVector <Kratos::Vector>);
+    m.def("WriteMatrixMarketVector", WriteMatrixMarketVector <Kratos::Vector>);
 
 }
 

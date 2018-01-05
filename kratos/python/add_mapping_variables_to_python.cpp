@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/mapping_variables.h"
 #include "python/add_mapping_variables_to_python.h"
 

@@ -13,13 +13,12 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include <boost/python.hpp>
+#include "add_kratos_parameters_to_python.h"
 
 namespace Kratos
 {
@@ -27,46 +26,39 @@ namespace Kratos
 namespace Python
 {
 
-Parameters::iterator NonConstBegin(Parameters& el)
-{
-    return el.begin();
-}
-Parameters::iterator NonConstEnd(Parameters& el)
-{
-    return el.end();
-}
 
-boost::python::list items(Parameters const& self)
+pybind11::list items(Parameters const& self)
 {
-    boost::python::list t;
+    pybind11::list t;
     for(Parameters::const_iterator it=self.begin(); it!=self.end(); ++it)
-        t.append( boost::python::make_tuple(it.name(), *it) );
+        t.append( std::make_tuple(it.name(), *it) );
     return t;
 }
 
-boost::python::list keys(Parameters const& self)
+pybind11::list keys(Parameters const& self)
 {
-    boost::python::list t;
+    pybind11::list t;
     for(Parameters::const_iterator it=self.begin(); it!=self.end(); ++it)
         t.append(it.name());
     return t;
 }
 
-boost::python::list values(Parameters const& self)
+pybind11::list values(Parameters const& self)
 {
-    boost::python::list t;
+    pybind11::list t;
     for(Parameters::const_iterator it=self.begin(); it!=self.end(); ++it)
         t.append(*it);
     return t;
 }
 
-void  AddKratosParametersToPython()
+void  AddKratosParametersToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
 
 
-    class_<Parameters, Parameters::Pointer >("Parameters", init<const std::string>()) //init<rapidjson::Value& >())
+    class_<Parameters, Parameters::Pointer >(m,"Parameters")
+    .def(init<const std::string>()) //init<rapidjson::Value& >())
     .def(init<Parameters const&>())
     .def("WriteJsonString", &Parameters::WriteJsonString)
     .def("PrettyPrintJsonString", &Parameters::PrettyPrintJsonString)
@@ -108,11 +100,11 @@ void  AddKratosParametersToPython()
     .def("__getitem__", &Parameters::GetValue)
     .def("__setitem__", &Parameters::SetArrayItem)
     .def("__getitem__", &Parameters::GetArrayItem)
-    .def("__iter__", boost::python::range(&NonConstBegin, &NonConstEnd) )
+    .def("__iter__", [](Parameters& self){ return make_iterator(self.begin(), self.end()); } , keep_alive<0,1>()) 
     .def("items", &items )
     .def("keys", &keys )
     .def("values", &values )
-    .def(self_ns::str(self))
+    .def("__repr__",&Parameters::Info)
     ;
 
 
