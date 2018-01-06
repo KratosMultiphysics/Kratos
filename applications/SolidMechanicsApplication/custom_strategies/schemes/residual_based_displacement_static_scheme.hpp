@@ -86,8 +86,6 @@ namespace Kratos
     ResidualBasedDisplacementStaticScheme()
       :BaseType()
     {
-      // Set integration method
-      this->SetIntegrationMethod();
     }
 
     /// Copy Constructor.
@@ -113,7 +111,24 @@ namespace Kratos
     ///@name Operations
     ///@{
 
+    /**
+    this is the place to initialize the Scheme.
+    This is intended to be called just once when the strategy is initialized
+     */
+    virtual void Initialize(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
 
+	BaseType::Initialize(rModelPart);
+	  
+	ProcessInfo& rCurrentProcessInfo= rModelPart.GetProcessInfo();
+
+	// Set integration method
+	this->SetIntegrationMethod(rCurrentProcessInfo);
+            
+	KRATOS_CATCH("")
+    }
+    
     /**
      * Performing the update of the solution
      * Incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
@@ -286,11 +301,7 @@ namespace Kratos
     {
       KRATOS_TRY;
 
-      ProcessInfo& rCurrentProcessInfo= rModelPart.GetProcessInfo();
-
-      Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
-
-      this->SetIntegrationMethodParameters(rCurrentProcessInfo);
+      BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
 
       KRATOS_CATCH( "" );
     }
@@ -682,14 +693,18 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual void SetIntegrationMethod()
+    virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo)
     {
-      std::cout<<" set static integration mtehod "<<std::endl;
       this->mpIntegrationMethod = IntegrationTypePointer( new StaticMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
       // Set scheme variables
       this->mpIntegrationMethod->SetVariable(DISPLACEMENT);
-
+      
+     // Set scheme parameters
+      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
+      
+      // Modify ProcessInfo scheme parameters
+      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
     }
 
     virtual void IntegrationMethodUpdate(NodeType& rNode)
@@ -700,12 +715,6 @@ namespace Kratos
     virtual void IntegrationMethodPredict(NodeType& rNode)
     {
       this->mpIntegrationMethod->Predict(rNode);
-    }
-
-    virtual void SetIntegrationMethodParameters(ProcessInfo& rCurrentProcessInfo)
-    {
-      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
-      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
     }
 
 

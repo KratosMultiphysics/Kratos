@@ -38,9 +38,9 @@ namespace Kratos
       // update delta variable      
       array_1d<double,3> DeltaVariable;
       noalias(DeltaVariable) = CurrentVariable - PreviousVariable;
-
+     
       Quaternion<double> DeltaVariableQuaternion = Quaternion<double>::FromRotationVector(DeltaVariable);
-
+      
       // linear delta variable
       array_1d<double,3> LinearDeltaVariable;
       noalias(LinearDeltaVariable) = -CurrentStepVariable;
@@ -58,16 +58,16 @@ namespace Kratos
       Quaternion<double> VariableQuaternion = Quaternion<double>::FromRotationVector(PreviousVariable);
       
       VariableQuaternion = DeltaVariableQuaternion * VariableQuaternion;
-
+      
       VariableQuaternion.ToRotationVector( CurrentVariable );
 
+      // update variable previous iteration instead of previous step
+      PreviousVariable   = CurrentVariable;
+      
       // update linear delta variable:
       VariableQuaternion  = StepVariableQuaternion.conjugate() * VariableQuaternion;
       LinearDeltaVariable = BeamMathUtils<double>::MapToCurrentLocalFrame( VariableQuaternion, LinearDeltaVariable );
-
-      // update variable previous iteration instead of previous step
-      PreviousVariable     = CurrentVariable;
-     
+      
       // update first derivative
       array_1d<double,3>& CurrentFirstDerivative = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);          
       noalias(CurrentFirstDerivative) += this->mNewmark.c1 * LinearDeltaVariable;
@@ -75,7 +75,10 @@ namespace Kratos
       // update second derivative
       array_1d<double,3>& CurrentSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative,  0);          
       noalias(CurrentSecondDerivative) += this->mNewmark.c0 * LinearDeltaVariable;
-            
+
+      // std::cout<<*this->mpVariable<<" Update Node["<<rNode.Id()<<"]"<<CurrentVariable<<" "<<CurrentStepVariable<<" "<<CurrentFirstDerivative<<" "<<CurrentSecondDerivative<<std::endl;
+
+      
       KRATOS_CATCH( "" )
     }
 

@@ -114,8 +114,7 @@ class Solution(object):
         if( self._is_not_restarted() ):
             self.output.ExecuteBeforeSolutionLoop()
                 
-        # Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
-        self.processes.ExecuteInitializeSolutionStep() #trick to use elimintation builder
+
         self.solver.Initialize()
 
         print(" ")

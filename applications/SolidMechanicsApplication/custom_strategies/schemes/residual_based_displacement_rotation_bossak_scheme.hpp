@@ -67,21 +67,8 @@ namespace Kratos
 
     /// Default Constructor.
     ResidualBasedDisplacementRotationBossakScheme()
+      :DerivedType()
     {
-      BaseType();
-      
-      // Set integration method
-      this->SetIntegrationMethod();
-            
-      // Allocate auxiliary memory
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-
-      this->mMatrix.M.resize(NumThreads);
-      this->mMatrix.D.resize(NumThreads);
-
-      this->mVector.v.resize(NumThreads);
-      this->mVector.a.resize(NumThreads);
-      this->mVector.ap.resize(NumThreads);
     }
 
     /// Copy Constructor.
@@ -106,7 +93,25 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
- 
+
+    /**
+    this is the place to initialize the Scheme.
+    This is intended to be called just once when the strategy is initialized
+     */
+    virtual void Initialize(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+	DerivedType::Initialize(rModelPart);  
+
+	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+	
+	this->mVector.ap.resize(NumThreads);
+
+	KRATOS_CATCH("")
+    }
+
+    
     ///@}
     ///@name Access
     ///@{
@@ -162,8 +167,8 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
     
-    virtual void SetIntegrationMethod() override
-    {
+    virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
+    {      
       this->mpIntegrationMethod = IntegrationTypePointer( new BossakStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
       // Set scheme variables
@@ -171,6 +176,9 @@ namespace Kratos
 
       this->mpIntegrationMethod->SetStepVariable(STEP_DISPLACEMENT);
       
+      // Set scheme parameters
+      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
+
       this->mpRotationIntegrationMethod = IntegrationTypePointer( new BossakStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
       // Set rotation scheme variables
@@ -178,6 +186,12 @@ namespace Kratos
       
       this->mpRotationIntegrationMethod->SetStepVariable(STEP_ROTATION);
 
+      // Set scheme parameters
+      this->mpRotationIntegrationMethod->SetParameters(rCurrentProcessInfo);
+
+      // Modify ProcessInfo scheme parameters
+      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
+      rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;
     }
 
 

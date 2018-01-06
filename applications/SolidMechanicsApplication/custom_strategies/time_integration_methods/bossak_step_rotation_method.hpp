@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_strategies/time_integration_methods/bossak_step_method.hpp"
+#include "custom_strategies/time_integration_methods/newmark_step_rotation_method.hpp"
 
 namespace Kratos
 {
@@ -47,7 +47,7 @@ namespace Kratos
    * This class performs predict and update of dofs variables, their time derivatives and time integrals      
    */
   template<class TVariableType, class TValueType>
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) BossakStepRotationMethod : public BossakStepMethod<TVariableType,TValueType>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) BossakStepRotationMethod : public NewmarkStepRotationMethod<TVariableType,TValueType>
   {   
   public:
  
@@ -67,7 +67,7 @@ namespace Kratos
     typedef typename BaseType::VariablePointer        VariablePointer;
 
     /// DerivedType
-    typedef BossakStepMethod<TVariableType,TValueType>    DerivedType;
+    typedef NewmarkStepRotationMethod<TVariableType,TValueType> DerivedType;
 
     
     KRATOS_CLASS_POINTER_DEFINITION( BossakStepRotationMethod );
@@ -83,6 +83,7 @@ namespace Kratos
     /// Copy Constructor.
     BossakStepRotationMethod(BossakStepRotationMethod& rOther)
       :DerivedType(rOther)
+      ,mAlpha(rOther.mAlpha)
     {
     }
 
@@ -103,22 +104,73 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    
-    // update
-     virtual void Update(NodeType& rNode) override
+    // set parameters
+    void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY
-
-     this->UpdateStepRotationVariable(rNode);
        
-     this->UpdateVariable(rNode);
-     this->UpdateFirstDerivative(rNode);
-     this->UpdateSecondDerivative(rNode);
+     double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
+     if (delta_time < 1.0e-24)
+        {
+	  KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Method DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part " << std::endl;
+        }
+     
+     double beta = 0.25;
+     if (rCurrentProcessInfo.Has(NEWMARK_BETA))
+       {
+	 beta = rCurrentProcessInfo[NEWMARK_BETA];
+       }
+     double gamma = 0.5;
+     if (rCurrentProcessInfo.Has(NEWMARK_GAMMA))
+       {
+	 gamma = rCurrentProcessInfo[NEWMARK_GAMMA];
+       }
+
+     mAlpha = -0.3;
+     if (rCurrentProcessInfo.Has(BOSSAK_ALPHA))
+       {
+	 mAlpha = rCurrentProcessInfo[BOSSAK_ALPHA];
+       }
+
+     if(mAlpha > 0.0 || mAlpha < -0.3)
+        {
+	  KRATOS_ERROR << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is " << mAlpha << std::endl; 
+        }
+     
+     beta  = (1.0 - mAlpha) * (1.0 - mAlpha) * beta;
+     gamma = gamma - mAlpha;
+     
+     this->mNewmark.SetParameters(beta,gamma,delta_time);
+     
      KRATOS_CATCH( "" )
     }
 
-     
+
+    // set parameters to process info
+    virtual void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo) override
+    {
+     KRATOS_TRY
+       
+     rCurrentProcessInfo[NEWMARK_BETA]  = this->mNewmark.beta;      
+     rCurrentProcessInfo[NEWMARK_GAMMA] = this->mNewmark.gamma;
+     rCurrentProcessInfo[BOSSAK_ALPHA]  = this->mAlpha;
+       
+     KRATOS_CATCH( "" )
+    } 
+    
+    double& GetMethodParameter(double& rParameter) override
+    {
+      rParameter = mAlpha;
+      return rParameter;
+    }
+    
+    double& GetSecondDerivativeParameter(double& rParameter) override
+    {
+      rParameter = (1.0 - mAlpha) * this->mNewmark.c0;
+      return rParameter;
+    }
+    
     ///@}
     ///@name Access
     ///@{
@@ -169,6 +221,8 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
     
+    double   mAlpha;
+    
     ///@}
     ///@name Protected Operators
     ///@{
@@ -176,25 +230,6 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-
-    virtual void PredictStepVariable(NodeType& rNode) override
-    {
-      KRATOS_TRY
-
-      // predict step variable from previous and current values
-      TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
-	
-      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-      
-      CurrentStepVariable = CurrentVariable-PreviousVariable;
-	
-      KRATOS_CATCH( "" )
-    }
-
-
-    virtual void UpdateStepRotationVariable(NodeType& rNode);
-
     
     ///@}
     ///@name Protected  Access
@@ -239,11 +274,13 @@ namespace Kratos
     virtual void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
+      rSerializer.save("BossakAlpha", mAlpha);	
     };
 
     virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
+      rSerializer.load("BossakAlpha", mAlpha);
     };
     
     ///@}
@@ -261,19 +298,9 @@ namespace Kratos
   ///@}
 
   ///@name Type Definitions
-  ///@{
+  ///@{  
 
-  template<class TVariableType, class TValueType>
-  void BossakStepRotationMethod<TVariableType,TValueType>::UpdateStepRotationVariable(NodeType& rNode)
-  {
-      KRATOS_TRY
-
-      KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS " <<std::endl;
-	
-      KRATOS_CATCH( "" )
-  }
-
-
+  
   ///@}
   ///@name Input and output
   ///@{

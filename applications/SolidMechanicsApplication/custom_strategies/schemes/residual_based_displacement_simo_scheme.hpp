@@ -7,17 +7,16 @@
 //
 //
 
-#if !defined(KRATOS_RESIDUAL_BASED_DISPLACEMENT_ROTATION_SIMO_SCHEME )
-#define  KRATOS_RESIDUAL_BASED_DISPLACEMENT_ROTATION_SIMO_SCHEME
+#if !defined(KRATOS_RESIDUAL_BASED_DISPLACEMENT_SIMO_SCHEME )
+#define  KRATOS_RESIDUAL_BASED_DISPLACEMENT_SIMO_SCHEME
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_strategies/schemes/residual_based_displacement_rotation_bossak_scheme.hpp"
-
-#include "custom_strategies/time_integration_methods/simo_step_rotation_method.hpp"
+#include "custom_strategies/schemes/residual_based_displacement_bossak_scheme.hpp"
+#include "custom_strategies/time_integration_methods/simo_method.hpp"
 
 namespace Kratos
 {
@@ -39,13 +38,13 @@ namespace Kratos
   /** @brief Bossak integration scheme (for dynamic problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class ResidualBasedDisplacementRotationSimoScheme: public ResidualBasedDisplacementRotationBossakScheme<TSparseSpace,TDenseSpace>
+  class ResidualBasedDisplacementSimoScheme: public ResidualBasedDisplacementBossakScheme<TSparseSpace,TDenseSpace>
   {   
   public:
     
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedDisplacementRotationSimoScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedDisplacementSimoScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
     
@@ -55,24 +54,24 @@ namespace Kratos
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-    typedef ResidualBasedDisplacementRotationBossakScheme<TSparseSpace,TDenseSpace>  DerivedType;
+    typedef ResidualBasedDisplacementBossakScheme<TSparseSpace,TDenseSpace>   DerivedType;
 
-    typedef typename DerivedType::IntegrationTypePointer                  IntegrationTypePointer;
-      
-    typedef typename DerivedType::NodeType                                              NodeType;
+    typedef typename DerivedType::IntegrationTypePointer           IntegrationTypePointer;
+
+    typedef typename DerivedType::NodeType                                       NodeType;
     
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default Constructor.
-    ResidualBasedDisplacementRotationSimoScheme()
+    ResidualBasedDisplacementSimoScheme()
       :DerivedType()
     {
     }
 
     /// Copy Constructor.
-    ResidualBasedDisplacementRotationSimoScheme(ResidualBasedDisplacementRotationSimoScheme& rOther)
+    ResidualBasedDisplacementSimoScheme(ResidualBasedDisplacementSimoScheme& rOther)
       :DerivedType(rOther)
     {
     }
@@ -80,11 +79,11 @@ namespace Kratos
     /// Clone.
     BaseTypePointer Clone() override
     {
-      return BaseTypePointer( new ResidualBasedDisplacementRotationSimoScheme(*this) );
+      return BaseTypePointer( new ResidualBasedDisplacementSimoScheme(*this) );
     }
 
     /// Destructor.
-    ~ResidualBasedDisplacementRotationSimoScheme() override {}
+    ~ResidualBasedDisplacementSimoScheme() override {}
 
     ///@}
     ///@name Operators
@@ -93,33 +92,6 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-    this is the place to initialize the Scheme.
-    This is intended to be called just once when the strategy is initialized
-     */
-    virtual void Initialize(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-	  
-	BaseType::Initialize(rModelPart);
-	  
-	ProcessInfo& rCurrentProcessInfo= rModelPart.GetProcessInfo();
-
-	// Set integration method
-	this->SetIntegrationMethod(rCurrentProcessInfo);
-            
-	// Allocate auxiliary memory
-	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-
-	this->mMatrix.M.resize(NumThreads);
-	this->mMatrix.D.resize(NumThreads);
-	
-	this->mVector.v.resize(NumThreads);
-	this->mVector.a.resize(NumThreads);
-
-	KRATOS_CATCH("")
-    }
     
     ///@}
     ///@name Access
@@ -137,20 +109,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Displacement-Rotation SimoScheme";
+        buffer << "Displacement SimoScheme";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Displacement-Rotation SimoScheme";
+        rOStream << "Displacement SimoScheme";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Displacement-Rotation SimoScheme Data";     
+      rOStream << "Displacement SimoScheme Data";     
     }
     
     ///@}
@@ -176,33 +148,19 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
     
-    virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
+    void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
     {
-      this->mpIntegrationMethod = IntegrationTypePointer( new SimoStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+      this->mpIntegrationMethod = IntegrationTypePointer( new SimoMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
       // Set scheme variables
       this->mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
 
-      this->mpIntegrationMethod->SetStepVariable(STEP_DISPLACEMENT);
-
       // Set scheme parameters
       this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
-      
-      this->mpRotationIntegrationMethod = IntegrationTypePointer( new SimoStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
-
-      // Set rotation scheme variables
-      this->mpRotationIntegrationMethod->SetVariables(ROTATION,ANGULAR_VELOCITY,ANGULAR_ACCELERATION);
-      
-      this->mpRotationIntegrationMethod->SetStepVariable(STEP_ROTATION);
-
-      // Set scheme parameters
-      this->mpRotationIntegrationMethod->SetParameters(rCurrentProcessInfo);
 
       // Modify ProcessInfo scheme parameters
       this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
-      rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;            
     }
-
 
     ///@}
     ///@name Protected  Access
@@ -252,7 +210,7 @@ namespace Kratos
     ///@{
   
     ///@}
-  }; // Class ResidualBasedDisplacementRotationSimoScheme
+  }; // Class ResidualBasedDisplacementSimoScheme
   ///@}
 
   ///@name Type Definitions
@@ -270,4 +228,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_RESIDUAL_BASED_DISPLACEMENT_ROTATION_SIMO_SCHEME defined
+#endif // KRATOS_RESIDUAL_BASED_DISPLACEMENT_BOSSAK_SCHEME defined

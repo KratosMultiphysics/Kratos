@@ -140,7 +140,7 @@ namespace Kratos
      
      beta  = (1.0 - mAlpha) * (1.0 - mAlpha) * beta;
      gamma = gamma - mAlpha;
-          
+     
      this->mNewmark.SetParameters(beta,gamma,delta_time);
      
      KRATOS_CATCH( "" )

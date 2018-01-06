@@ -66,20 +66,8 @@ namespace Kratos
 
     /// Default Constructor.
     ResidualBasedDisplacementRotationNewmarkScheme()
+      :DerivedType()
     {
-      BaseType();
-      
-      // Set integration method
-      this->SetIntegrationMethod();
-            
-      // Allocate auxiliary memory
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-
-      this->mMatrix.M.resize(NumThreads);
-      this->mMatrix.D.resize(NumThreads);
-
-      this->mVector.v.resize(NumThreads);
-      this->mVector.a.resize(NumThreads);
     }
 
     /// Copy Constructor.
@@ -343,22 +331,32 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual void SetIntegrationMethod() override
+    virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
     {
+      
       this->mpIntegrationMethod = IntegrationTypePointer( new NewmarkStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
       // Set scheme variables
       this->mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
 
       this->mpIntegrationMethod->SetStepVariable(STEP_DISPLACEMENT);
-      
-      this->mpRotationIntegrationMethod = IntegrationTypePointer( new NewmarkStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
+      // Set scheme parameters
+      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
+       
+      this->mpRotationIntegrationMethod = IntegrationTypePointer( new NewmarkStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+            
       // Set rotation scheme variables
       this->mpRotationIntegrationMethod->SetVariables(ROTATION,ANGULAR_VELOCITY,ANGULAR_ACCELERATION);
       
       this->mpRotationIntegrationMethod->SetStepVariable(STEP_ROTATION);
+      
+      // Set scheme parameters
+      this->mpRotationIntegrationMethod->SetParameters(rCurrentProcessInfo);
 
+      // Modify ProcessInfo scheme parameters
+      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
+      rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;      
     }
 
     virtual void IntegrationMethodUpdate(NodeType& rNode) override
@@ -373,15 +371,6 @@ namespace Kratos
       this->mpRotationIntegrationMethod->Predict(rNode);
     }
 
-    virtual void SetIntegrationMethodParameters(ProcessInfo& rCurrentProcessInfo) override
-    {
-      rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;
-      
-      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
-      this->mpRotationIntegrationMethod->SetParameters(rCurrentProcessInfo);
-
-      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
-    }
     
     /**
      * It adds the dynamic LHS contribution of the elements: M*c0 + D*c1 + K

@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_SIMO_STEP_METHOD )
-#define  KRATOS_SIMO_STEP_METHOD
+#if !defined(KRATOS_SIMO_METHOD )
+#define  KRATOS_SIMO_METHOD
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_strategies/time_integration_methods/bossak_step_method.hpp"
+#include "custom_strategies/time_integration_methods/bossak_method.hpp"
 
 namespace Kratos
 {
@@ -47,7 +47,7 @@ namespace Kratos
    * This class performs predict and update of dofs variables, their time derivatives and time integrals      
    */
   template<class TVariableType, class TValueType>
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoStepMethod : public BossakStepMethod<TVariableType,TValueType>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoMethod : public BossakMethod<TVariableType,TValueType>
   {   
   public:
  
@@ -67,10 +67,10 @@ namespace Kratos
     typedef typename BaseType::VariablePointer        VariablePointer;
 
     /// DerivedType
-    typedef BossakStepMethod<TVariableType,TValueType>    DerivedType;
+    typedef BossakMethod<TVariableType,TValueType>        DerivedType;
 
     
-    KRATOS_CLASS_POINTER_DEFINITION( SimoStepMethod );
+    KRATOS_CLASS_POINTER_DEFINITION( SimoMethod );
 
     ///@}
     ///@name Life Cycle
@@ -78,19 +78,19 @@ namespace Kratos
 
     
     /// Default Constructor.
-    SimoStepMethod() : DerivedType() {}
+    SimoMethod() : DerivedType() {}
 
     /// Copy Constructor.
-    SimoStepMethod(SimoStepMethod& rOther) : DerivedType(rOther) {}
+    SimoMethod(SimoMethod& rOther) : DerivedType(rOther) {}
 
     /// Clone.
     BaseTypePointer Clone()
     {
-      return BaseTypePointer( new SimoStepMethod(*this) );
+      return BaseTypePointer( new SimoMethod(*this) );
     }
 
     /// Destructor.
-    ~SimoStepMethod(){}
+    ~SimoMethod(){}
 
     ///@}
     ///@name Operators
@@ -125,45 +125,25 @@ namespace Kratos
 
        this->PredictFirstDerivative(rNode);
        this->PredictSecondDerivative(rNode);
-       this->PredictStepVariable(rNode);
        this->PredictVariable(rNode);
        
      }       
 
-     // const TValueType& CurrentVariable           = rNode.FastGetSolutionStepValue(*this->mpVariable,     0);
-     // const TValueType& CurrentStepVariable       = rNode.FastGetSolutionStepValue(*this->mpStepVariable, 0);
-     // const TValueType& CurrentFirstDerivative    = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 0);
-     // const TValueType& CurrentSecondDerivative   = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
-
-     // std::cout<<*this->mpVariable<<" Predict Node["<<rNode.Id()<<"]"<<CurrentVariable<<" "<<CurrentStepVariable<<" "<<CurrentFirstDerivative<<" "<<CurrentSecondDerivative<<std::endl;
-
-     
      KRATOS_CATCH( "" )
     }
-
     
     // update
     virtual void Update(NodeType& rNode) override
     {
      KRATOS_TRY
-
+       
      this->UpdateFirstDerivative(rNode);
      this->UpdateSecondDerivative(rNode);
-
-     this->UpdateStepVariable(rNode);
      this->UpdateVariable(rNode);
-     
-     // const TValueType& CurrentVariable           = rNode.FastGetSolutionStepValue(*this->mpVariable,     0);
-     // const TValueType& CurrentStepVariable       = rNode.FastGetSolutionStepValue(*this->mpStepVariable, 0);
-     // const TValueType& CurrentFirstDerivative    = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 0);
-     // const TValueType& CurrentSecondDerivative   = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
-
-     // std::cout<<*this->mpVariable<<" Update Node["<<rNode.Id()<<"]"<<CurrentVariable<<" "<<CurrentStepVariable<<" "<<CurrentFirstDerivative<<" "<<CurrentSecondDerivative<<std::endl;
      
      KRATOS_CATCH( "" )
     }
-
-          
+    
     ///@}
     ///@name Access
     ///@{
@@ -181,20 +161,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "SimoStepMethod";
+        buffer << "SimoMethod";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "SimoStepMethod";
+        rOStream << "SimoMethod";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "SimoStepMethod Data";     
+      rOStream << "SimoMethod Data";     
     }
 
     
@@ -309,45 +289,6 @@ namespace Kratos
       
       KRATOS_CATCH( "" )              
     }
-
-
-    virtual void PredictStepVariable(NodeType& rNode) override
-    {
-      KRATOS_TRY
-
-      // predict step variable from previous and current values
-      TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
-      TValueType& PreviousStepVariable           = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     1);
-      
-      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-
-      // update step variable previous iteration instead of previous step
-      PreviousStepVariable = CurrentStepVariable;
-      
-      CurrentStepVariable  = CurrentVariable-PreviousVariable;
-      
-      KRATOS_CATCH( "" )
-    }
-
-    virtual void UpdateStepVariable(NodeType& rNode) override
-    {
-      KRATOS_TRY
-
-      // predict step variable from previous and current values
-      TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
-      TValueType& PreviousStepVariable           = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     1);
-      
-      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-
-      // update step variable previous iteration instead of previous step
-      PreviousStepVariable = CurrentStepVariable;
-      
-      CurrentStepVariable += CurrentVariable-PreviousVariable;
-      
-      KRATOS_CATCH( "" )
-    }
     
 
     virtual void UpdateVariable(NodeType& rNode) override
@@ -453,7 +394,7 @@ namespace Kratos
   
     ///@}
   
-  }; // Class SimoStepMethod
+  }; // Class SimoMethod
   
   ///@}
 
@@ -466,12 +407,12 @@ namespace Kratos
   ///@{
   
   template<class TVariableType, class TValueType>
-  inline std::istream & operator >> (std::istream & rIStream, SimoStepMethod<TVariableType,TValueType>& rThis)
+  inline std::istream & operator >> (std::istream & rIStream, SimoMethod<TVariableType,TValueType>& rThis)
   {
   }
 
   template<class TVariableType, class TValueType>
-  inline std::ostream & operator << (std::ostream & rOStream, const SimoStepMethod<TVariableType,TValueType>& rThis)
+  inline std::ostream & operator << (std::ostream & rOStream, const SimoMethod<TVariableType,TValueType>& rThis)
   {
     return rOStream << rThis.Info();
   }
@@ -482,4 +423,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_SIMO_STEP_METHOD defined
+#endif // KRATOS_SIMO_METHOD defined

@@ -67,20 +67,8 @@ namespace Kratos
 
     /// Default Constructor.
     ResidualBasedDisplacementRotationEmcScheme()
+      :DerivedType()
     {
-      BaseType();
-      
-      // Set integration method
-      this->SetIntegrationMethod();
-            
-      // Allocate auxiliary memory
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-
-      this->mMatrix.M.resize(NumThreads);
-      this->mMatrix.D.resize(NumThreads);
-
-      this->mVector.v.resize(NumThreads);
-      this->mVector.a.resize(NumThreads);
     }
 
     /// Copy Constructor.
@@ -161,8 +149,8 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
     
-    virtual void SetIntegrationMethod() override
-    {
+    virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
+    {      
       this->mpIntegrationMethod = IntegrationTypePointer( new EmcStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
       // Set scheme variables
@@ -170,13 +158,22 @@ namespace Kratos
 
       this->mpIntegrationMethod->SetStepVariable(STEP_DISPLACEMENT);
       
+      // Set scheme parameters
+      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
+      
       this->mpRotationIntegrationMethod = IntegrationTypePointer( new EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
       // Set rotation scheme variables
       this->mpRotationIntegrationMethod->SetVariables(ROTATION,ANGULAR_VELOCITY,ANGULAR_ACCELERATION);
       
       this->mpRotationIntegrationMethod->SetStepVariable(STEP_ROTATION);
+      
+      // Set scheme parameters
+      this->mpRotationIntegrationMethod->SetParameters(rCurrentProcessInfo);
 
+      // Modify ProcessInfo scheme parameters
+      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
+      rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;
     }
 
 

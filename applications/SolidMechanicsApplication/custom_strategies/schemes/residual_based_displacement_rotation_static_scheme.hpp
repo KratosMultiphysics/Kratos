@@ -66,11 +66,9 @@ namespace Kratos
 
     /// Default Constructor.
     ResidualBasedDisplacementRotationStaticScheme()
+      :DerivedType()
     {
-      BaseType();
-      // Set integration method
-      this->SetIntegrationMethod();
-     }
+    }
 
     /// Copy Constructor.
     ResidualBasedDisplacementRotationStaticScheme(ResidualBasedDisplacementRotationStaticScheme& rOther)
@@ -317,22 +315,27 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual void SetIntegrationMethod() override
-    {
+    virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
+    {      
       this->mpIntegrationMethod = IntegrationTypePointer( new StaticStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
       // Set scheme variables
       this->mpIntegrationMethod->SetVariable(DISPLACEMENT);
 
       this->mpIntegrationMethod->SetStepVariable(STEP_DISPLACEMENT);
+
+      // Set scheme parameters
+      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
       
       this->mpRotationIntegrationMethod = IntegrationTypePointer( new StaticStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
-
+     
       // Set rotation scheme variables
       this->mpRotationIntegrationMethod->SetVariable(ROTATION);
       
       this->mpRotationIntegrationMethod->SetStepVariable(STEP_ROTATION);
 
+      // Set scheme parameters
+      this->mpRotationIntegrationMethod->SetParameters(rCurrentProcessInfo);
     }
 
     virtual void IntegrationMethodUpdate(NodeType& rNode) override
@@ -346,16 +349,7 @@ namespace Kratos
       this->mpIntegrationMethod->Predict(rNode);
       this->mpRotationIntegrationMethod->Predict(rNode);
     }
-
-    virtual void SetIntegrationMethodParameters(ProcessInfo& rCurrentProcessInfo) override
-    {
-      
-      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
-      this->mpRotationIntegrationMethod->SetParameters(rCurrentProcessInfo);
-
-      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
-    }
-    
+  
 
     ///@}
     ///@name Protected  Access

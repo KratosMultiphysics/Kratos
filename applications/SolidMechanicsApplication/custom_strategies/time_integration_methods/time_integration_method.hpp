@@ -191,22 +191,7 @@ namespace Kratos
       KRATOS_ERROR << " Calling predict from time integration base class " <<std::endl;
     }
 
-    virtual void PredictVariable(NodeType& rNode)
-    {
-      KRATOS_ERROR << " Calling predict variable from time integration base class " <<std::endl;
-    }
-
-    virtual void PredictFirstDerivative(NodeType& rNode)
-    {
-      KRATOS_ERROR << " Calling predict first derivative from time integration base class " <<std::endl;
-    }
-
-    virtual void PredictSecondDerivative(NodeType& rNode)
-    {
-      KRATOS_ERROR << " Calling predict second derivative from time integration base class " <<std::endl;
-    }
-
-    
+  
     // update
     
     virtual void Update(NodeType& rNode)
@@ -214,20 +199,6 @@ namespace Kratos
       KRATOS_ERROR << " Calling update from time integration base class " <<std::endl;
     }
 
-    virtual void UpdateVariable(NodeType& rNode)
-    {
-      KRATOS_ERROR << " Calling update variable from time integration base class " <<std::endl;
-    }
-
-    virtual void UpdateFirstDerivative(NodeType& rNode)
-    {
-      KRATOS_ERROR << " Calling update first derivative from time integration base class " <<std::endl;
-    }
-
-    virtual void UpdateSecondDerivative(NodeType& rNode)
-    {
-      KRATOS_ERROR << " Calling update second derivative from time integration base class " <<std::endl;
-    }
     
     ///@}
     ///@name Access
@@ -300,6 +271,53 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
+ 
+    virtual void PredictFromVariable(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict from variable from time integration base class " <<std::endl;
+    }
+    
+    virtual void PredictFromFirstDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict from first derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void PredictFromSecondDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict from second derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void PredictVariable(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict variable from time integration base class " <<std::endl;
+    }
+
+    virtual void PredictFirstDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict first derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void PredictSecondDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict second derivative from time integration base class " <<std::endl;
+    }
+
+    
+    virtual void UpdateVariable(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling update variable from time integration base class " <<std::endl;
+    }
+
+    virtual void UpdateFirstDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling update first derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void UpdateSecondDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling update second derivative from time integration base class " <<std::endl;
+    }
+
 
     ///@}
     ///@name Protected  Access
@@ -368,6 +386,7 @@ namespace Kratos
     
   public:
 
+    DECLARE_HAS_THIS_TYPE_PROCESS_INFO
     DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO
     DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO
     

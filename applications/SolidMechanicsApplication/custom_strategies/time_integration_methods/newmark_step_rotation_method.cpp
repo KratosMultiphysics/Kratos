@@ -72,6 +72,8 @@ namespace Kratos
       array_1d<double,3>& CurrentSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative,  0);          
       CurrentSecondDerivative = mNewmark.c0 * CurrentStepVariable - mNewmark.c2 * PreviousFirstDerivative - mNewmark.c3 * PreviousSecondDerivative;
 
+      //std::cout<<*this->mpVariable<<" Update Node["<<rNode.Id()<<"]"<<CurrentVariable<<" "<<CurrentStepVariable<<" "<<CurrentFirstDerivative<<" "<<CurrentSecondDerivative<<std::endl;
+     
       
       KRATOS_CATCH( "" )
 

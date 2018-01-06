@@ -57,6 +57,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
             #mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
             time_integration_method = KratosSolid.StaticMethod()
             time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
+            time_integration_method.SetParameters(self.process_info)
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementStaticScheme()            
         elif(integration_method == "Non-Linear" ):
             if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
@@ -71,8 +72,10 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
             #mechanical_scheme = KratosSolid.ResidualBasedRotationNewmarkScheme(dynamic_factor, damp_factor_m)
             time_integration_method = KratosSolid.StaticStepMethod()
             time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
+            time_integration_method.SetParameters(self.process_info)
             angular_time_integration_method = KratosSolid.StaticStepRotationMethod()
             angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
+            angular_time_integration_method.SetParameters(self.process_info)
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementRotationStaticScheme()   
         else:
             raise Exception("Unsupported integration_method: " + integration_method)

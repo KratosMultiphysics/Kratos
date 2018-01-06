@@ -52,6 +52,7 @@
 
 #include "custom_strategies/schemes/residual_based_displacement_rotation_static_scheme.hpp"
 #include "custom_strategies/schemes/residual_based_displacement_rotation_emc_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_displacement_simo_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -109,7 +110,9 @@ namespace Kratos
       
       typedef ResidualBasedDisplacementBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementBossakSchemeType;
       typedef ResidualBasedDisplacementRotationBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementRotationBossakSchemeType;
-      
+
+      typedef ResidualBasedDisplacementSimoScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementSimoSchemeType;
+
       typedef ResidualBasedDisplacementRotationSimoScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementRotationSimoSchemeType;
       typedef ResidualBasedDisplacementRotationEmcScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementRotationEmcSchemeType;
       
@@ -124,6 +127,7 @@ namespace Kratos
       typedef StaticMethod<ComponentType, double>  StaticMethodType;
       typedef NewmarkMethod<ComponentType, double>  NewmarkMethodType;
       typedef BossakMethod<ComponentType, double>  BossakMethodType;
+      typedef SimoMethod<ComponentType, double>  SimoMethodType;
 
       typedef StaticStepMethod<ComponentType, double>  StaticStepMethodType;	    
       typedef NewmarkStepMethod<ComponentType, double>  NewmarkStepMethodType;
@@ -353,6 +357,14 @@ namespace Kratos
       	.def("Initialize", &ResidualBasedDisplacementRotationBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
       	;
 
+      // Residual Based Displacement Simo Scheme Type
+      class_< ResidualBasedDisplacementSimoSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementSimoScheme", init<>() )
+      	.def("Initialize", &ResidualBasedDisplacementSimoScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
+
       // Residual Based Displacement Rotation Simo Scheme Type
       class_< ResidualBasedDisplacementRotationSimoSchemeType,
       	      bases< BaseSchemeType >,  boost::noncopyable >
@@ -420,6 +432,7 @@ namespace Kratos
       	.def("SetParameters", &IntegrationMethodType::SetParameters)
       	.def("Predict", &IntegrationMethodType::Predict)
 	.def(self_ns::str(self))
+	DECLARE_HAS_THIS_TYPE_PROCESS_INFO_PYTHON_AS_POINTER(IntegrationMethodType)
 	DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO_PYTHON_AS_POINTER(IntegrationMethodType)
 	DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO_PYTHON_AS_POINTER(IntegrationMethodType)
       	;
@@ -444,6 +457,12 @@ namespace Kratos
       	      bases< IntegrationMethodType >, boost::noncopyable >
       	(
       	 "BossakMethod", init<>())
+      	;
+      
+      class_< SimoMethodType, SimoMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "SimoMethod", init<>())
       	;
       
       class_< StaticStepMethodType, StaticStepMethodType::Pointer,

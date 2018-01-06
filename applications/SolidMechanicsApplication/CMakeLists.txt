@@ -23,7 +23,6 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	# time integration methods
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/time_integration_methods/static_step_rotation_method.cpp		
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/time_integration_methods/newmark_step_rotation_method.cpp	
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/time_integration_methods/bossak_step_rotation_method.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/time_integration_methods/simo_step_rotation_method.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/time_integration_methods/emc_step_rotation_method.cpp
 	

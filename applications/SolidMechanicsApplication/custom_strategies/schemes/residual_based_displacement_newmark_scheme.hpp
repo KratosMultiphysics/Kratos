@@ -102,17 +102,6 @@ namespace Kratos
     ResidualBasedDisplacementNewmarkScheme()
       :BaseType()
     {
-      // Set integration method
-      this->SetIntegrationMethod();
-            
-      // Allocate auxiliary memory
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-
-      mMatrix.M.resize(NumThreads);
-      mMatrix.D.resize(NumThreads);
-
-      mVector.v.resize(NumThreads);
-      mVector.a.resize(NumThreads);
     }
 
     /// Copy Constructor.
@@ -141,7 +130,34 @@ namespace Kratos
     ///@name Operations
     ///@{
 
+    /**
+    this is the place to initialize the Scheme.
+    This is intended to be called just once when the strategy is initialized
+     */
+    virtual void Initialize(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
 
+	BaseType::Initialize(rModelPart);
+	  
+	ProcessInfo& rCurrentProcessInfo= rModelPart.GetProcessInfo();
+
+	// Set integration method
+	this->SetIntegrationMethod(rCurrentProcessInfo);
+            
+	// Allocate auxiliary memory
+	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+
+	mMatrix.M.resize(NumThreads);
+	mMatrix.D.resize(NumThreads);
+	
+	mVector.v.resize(NumThreads);
+	mVector.a.resize(NumThreads);
+
+	KRATOS_CATCH("")
+    }
+
+    
     /**
      * Performing the update of the solution
      * Incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
@@ -316,11 +332,7 @@ namespace Kratos
     {
       KRATOS_TRY;
 
-      ProcessInfo& rCurrentProcessInfo= rModelPart.GetProcessInfo();
-
       Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
-
-      this->SetIntegrationMethodParameters(rCurrentProcessInfo);
 
       KRATOS_CATCH( "" );
     }
@@ -747,13 +759,18 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual void SetIntegrationMethod()
-    {
+    virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo)
+    {      
       this->mpIntegrationMethod = IntegrationTypePointer( new NewmarkMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
       // Set scheme variables
       mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
 
+      // Set scheme parameters
+      mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
+
+      // Modify ProcessInfo scheme parameters
+      mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
     }
 
     virtual void IntegrationMethodUpdate(NodeType& rNode)
@@ -766,11 +783,6 @@ namespace Kratos
       mpIntegrationMethod->Predict(rNode);
     }
 
-    virtual void SetIntegrationMethodParameters(ProcessInfo& rCurrentProcessInfo)
-    {
-      mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
-      mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
-    }
 
     /**
      * It adds the dynamic LHS contribution of the elements: M*c0 + D*c1 + K
