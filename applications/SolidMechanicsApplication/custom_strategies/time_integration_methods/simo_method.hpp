@@ -99,50 +99,6 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-
-    
-    // predict
-    virtual void Predict(NodeType& rNode) override
-    {
-     KRATOS_TRY
-       
-     if( this->mpInputVariable != nullptr ){ 
-
-       if( *this->mpInputVariable == *this->mpVariable ){
-	 this->PredictFromVariable(rNode);
-       }
-
-       if( *this->mpInputVariable == *this->mpFirstDerivative ){
-	 this->PredictFromFirstDerivative(rNode);
-       }
-       
-       if( *this->mpInputVariable == *this->mpSecondDerivative ){
-	 this->PredictFromSecondDerivative(rNode);	 
-       }
-       
-     }
-     else{
-
-       this->PredictFirstDerivative(rNode);
-       this->PredictSecondDerivative(rNode);
-       this->PredictVariable(rNode);
-       
-     }       
-
-     KRATOS_CATCH( "" )
-    }
-    
-    // update
-    virtual void Update(NodeType& rNode) override
-    {
-     KRATOS_TRY
-       
-     this->UpdateFirstDerivative(rNode);
-     this->UpdateSecondDerivative(rNode);
-     this->UpdateVariable(rNode);
-     
-     KRATOS_CATCH( "" )
-    }
     
     ///@}
     ///@name Access
@@ -207,8 +163,6 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      // predict variable from variable
-
       
       KRATOS_CATCH( "" )      
     } 
@@ -251,12 +205,6 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      TValueType& PreviousVariable               = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-	
-      // update variable previous iteration instead of previous step
-      PreviousVariable = CurrentVariable;
-      
       KRATOS_CATCH( "" )
     }
     
@@ -295,11 +243,6 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      TValueType& PreviousVariable               = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-	
-      // update variable previous iteration instead of previous step
-      PreviousVariable = CurrentVariable;     
 	
       KRATOS_CATCH( "" )
     }
@@ -313,8 +256,8 @@ namespace Kratos
  	          
       const TValueType& PreviousVariable        = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
 
-      CurrentFirstDerivative += this->mNewmark.c1 * (CurrentVariable-PreviousVariable);
-      
+      CurrentFirstDerivative = this->mNewmark.c1 * (CurrentVariable-PreviousVariable);
+
       KRATOS_CATCH( "" )      
     }
 
@@ -322,12 +265,15 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      TValueType& CurrentSecondDerivative        = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
  	          
-      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
+      const TValueType& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
+
+      const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
+
+      TValueType& CurrentSecondDerivative        = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
       
-      CurrentSecondDerivative += this->mNewmark.c0 * (CurrentVariable-PreviousVariable);
+      CurrentSecondDerivative = (this->mNewmark.c0/this->mNewmark.c1) * (CurrentFirstDerivative-PreviousFirstDerivative);
+
       
       KRATOS_CATCH( "" )              
     }
