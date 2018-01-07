@@ -70,10 +70,10 @@
             "result_file_format_use_ascii" : true
         }
     },{
-        "python_module" : "check_postprocess_eigenvalues_file",
+        "python_module" : "check_postprocess_eigenvalues_file_process",
         "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
         "help"          : "This process compares two eigenvalue postprocessing files",
-        "process_name"  : "CheckPostprocessEigenvaluesFile",
+        "process_name"  : "CheckPostprocessEigenvaluesFileProcess",
         "Parameters"    : {
             "reference_file_name"    : "eigen_test/Eigen_Q4_Thick_2x2_Plate_test.post.res.ref",
             "output_file_name"       : "eigen_test/Eigen_Q4_Thick_2x2_Plate_EigenResults_0.post.res"

@@ -11,9 +11,9 @@ import os
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return CheckPostprocessEigenvaluesFile(Model, settings["Parameters"])
+    return CheckPostprocessEigenvaluesFileProcess(Model, settings["Parameters"])
 
-class CheckPostprocessEigenvaluesFile(KratosMultiphysics.Process, KratosUnittest.TestCase):
+class CheckPostprocessEigenvaluesFileProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
     """
     This process compares the *.post.res file written by the PostprocessEigenvaluesProcess
     """
