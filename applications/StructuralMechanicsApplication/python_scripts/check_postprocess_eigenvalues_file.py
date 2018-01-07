@@ -115,7 +115,7 @@ class CheckPostprocessEigenvaluesFile(KratosMultiphysics.Process, KratosUnittest
 
             for j in range(len(tmp1)):
                 # comparing the values
-                # abs bcs the sign does not matter for eigenvalues
+                # abs bcs the sign does not matter for eigenvectors
                 # tolerance is small bcs values in file are also small
                 self.assertAlmostEqual(abs(float(tmp1[j])),
                                        abs(float(tmp2[j])), 15)
