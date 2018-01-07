@@ -70,14 +70,13 @@
             "result_file_format_use_ascii" : true
         }
     },{
-        "python_module" : "compare_two_files_check_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process compares two files and executes an Unittest Assert",
-        "process_name"  : "CompareTwoFilesCheckProcess",
+        "python_module" : "check_postprocess_eigenvalues_file",
+        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "help"          : "This process compares two eigenvalue postprocessing files",
+        "process_name"  : "CheckPostprocessEigenvaluesFile",
         "Parameters"    : {
-            "file_name_1"       : "eigen_test/Eigen_Q4_Thick_2x2_Plate_test.post.res.ref",
-            "file_name_2"       : "eigen_test/Eigen_Q4_Thick_2x2_Plate_EigenResults_0.post.res",
-            "deterministic"     : true
+            "reference_file_name"    : "eigen_test/Eigen_Q4_Thick_2x2_Plate_test.post.res.ref",
+            "output_file_name"       : "eigen_test/Eigen_Q4_Thick_2x2_Plate_EigenResults_0.post.res"
         }
     }],
     "restart_options"          : {
