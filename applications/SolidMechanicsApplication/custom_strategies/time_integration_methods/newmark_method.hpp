@@ -349,11 +349,17 @@ namespace Kratos
       const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
       const TValueType& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 1);
        
-      CurrentVariable = PreviousVariable + mNewmark.delta_time * ( ( 1.0 - (mNewmark.beta/mNewmark.gamma) ) * PreviousFirstDerivative + (mNewmark.beta/mNewmark.gamma) * CurrentFirstDerivative +  mNewmark.delta_time *  0.5 * ( 1.0 - 2.0 * (mNewmark.beta/mNewmark.gamma) ) * PreviousSecondDerivative );
-
+      // newmark consistent
+      CurrentVariable = PreviousVariable + this->mNewmark.delta_time * ( ( 1.0 - (this->mNewmark.beta/this->mNewmark.gamma) ) * PreviousFirstDerivative + (this->mNewmark.beta/this->mNewmark.gamma) * CurrentFirstDerivative +  this->mNewmark.delta_time *  0.5 * ( 1.0 - 2.0 * (this->mNewmark.beta/this->mNewmark.gamma) ) * PreviousSecondDerivative );
+      // uniform accelerated movement
+      //CurrentVariable = PreviousVariable + 0.5 * mNewmark.delta_time * (PreviousFirstDerivative + CurrentFirstDerivative) + 0.5 * mNewmark.delta_time * mNewmark.delta_time * PreviousSecondDerivative;
+      
       TValueType& CurrentSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
 
-      CurrentFirstDerivative   = PreviousFirstDerivative;
+      // variable prediction :: uniform accelerated movement **
+      CurrentVariable -= this->mNewmark.delta_time * PreviousFirstDerivative;
+      
+      CurrentFirstDerivative   = PreviousFirstDerivative;    
       CurrentSecondDerivative -= CurrentSecondDerivative;
 
       KRATOS_CATCH( "" )      
@@ -372,10 +378,13 @@ namespace Kratos
       const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
       const TValueType& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 1);
 
-      CurrentVariable = PreviousVariable + mNewmark.delta_time * PreviousFirstDerivative +  mNewmark.delta_time * mNewmark.delta_time * ( 0.5 * ( 1.0 - 2.0 * mNewmark.beta ) * PreviousSecondDerivative + mNewmark.beta * CurrentSecondDerivative );
-      
-      CurrentSecondDerivative  = PreviousSecondDerivative;
-      
+      CurrentVariable = PreviousVariable + this->mNewmark.delta_time * PreviousFirstDerivative + this->mNewmark.delta_time * this->mNewmark.delta_time * ( 0.5 * ( 1.0 - 2.0 * this->mNewmark.beta ) * PreviousSecondDerivative + this->mNewmark.beta * CurrentSecondDerivative );
+
+      // variable prediction :: uniform accelerated movement **
+      CurrentVariable -= this->mNewmark.delta_time * PreviousFirstDerivative + 0.5 * this->mNewmark.delta_time * this->mNewmark.delta_time * PreviousSecondDerivative;
+ 
+      CurrentSecondDerivative = PreviousSecondDerivative;
+       
       KRATOS_CATCH( "" )      
     }
 
@@ -383,7 +392,14 @@ namespace Kratos
     virtual void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY
-	
+
+      TValueType& CurrentVariable               = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      const TValueType& CurrentFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
+      const TValueType& CurrentSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
+      
+      // variable prediction :: uniform accelerated movement **
+      CurrentVariable += this->mNewmark.delta_time * CurrentFirstDerivative + 0.5 * this->mNewmark.delta_time * this->mNewmark.delta_time * CurrentSecondDerivative;
+      
       KRATOS_CATCH( "" )
     }
 
@@ -397,7 +413,12 @@ namespace Kratos
 
       const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
 
+      // consistent newmark
       CurrentFirstDerivative = (this->mNewmark.gamma/(this->mNewmark.beta*this->mNewmark.delta_time)) * (CurrentVariable-PreviousVariable) - ( (this->mNewmark.gamma/this->mNewmark.beta) - 1.0 ) * CurrentFirstDerivative - this->mNewmark.delta_time * 0.5 * ( (this->mNewmark.gamma/this->mNewmark.beta) - 2.0 ) * CurrentSecondDerivative;
+
+      // uniform accelerated movement
+      // CurrentFirstDerivative = (2.0/this->mNewmark.delta_time) * (CurrentVariable-PreviousVariable) - this->mNewmark.delta_time * CurrentSecondDerivative - CurrentFirstDerivative;
+
       
       KRATOS_CATCH( "" )      
     }
@@ -406,7 +427,7 @@ namespace Kratos
     {
       KRATOS_TRY
       
-      TValueType& CurrentFirstDerivative         = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
+      const TValueType& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
       TValueType& CurrentSecondDerivative        = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
       const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
       
@@ -421,6 +442,7 @@ namespace Kratos
       
       KRATOS_CATCH( "" )
     }
+    
 
     virtual void UpdateFirstDerivative(NodeType& rNode) override
     {
@@ -433,8 +455,8 @@ namespace Kratos
       const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
       const TValueType& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 1);
 
-      CurrentFirstDerivative = (mNewmark.c1 * (CurrentVariable-PreviousVariable) - mNewmark.c4 * PreviousFirstDerivative - mNewmark.c5 * PreviousSecondDerivative);
-      
+      CurrentFirstDerivative = (this->mNewmark.c1 * (CurrentVariable-PreviousVariable) - this->mNewmark.c4 * PreviousFirstDerivative - this->mNewmark.c5 * PreviousSecondDerivative);
+  
       KRATOS_CATCH( "" )      
     }
 
@@ -449,8 +471,8 @@ namespace Kratos
       const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
       const TValueType& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 1);
       
-      CurrentSecondDerivative = (mNewmark.c0 * (CurrentVariable-PreviousVariable) - mNewmark.c2 * PreviousFirstDerivative - mNewmark.c3 * PreviousSecondDerivative);
-      
+      CurrentSecondDerivative = (this->mNewmark.c0 * (CurrentVariable-PreviousVariable) - this->mNewmark.c2 * PreviousFirstDerivative - this->mNewmark.c3 * PreviousSecondDerivative);
+    
       KRATOS_CATCH( "" )              
     }
 

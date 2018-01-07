@@ -150,7 +150,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             if( time_integration_method.HasProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo) ):
                 self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo)                
         else:
-            print(variable+": No time integration ")
+            print(" No time integration ")
             
         # set processes
         self.FixDofsProcesses     = []
