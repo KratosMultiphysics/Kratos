@@ -114,7 +114,10 @@ class CheckPostprocessEigenvaluesFile(KratosMultiphysics.Process, KratosUnittest
                 raise Exception("Different number of results!")
 
             for j in range(len(tmp1)):
-                self.assertAlmostEqual(float(tmp1[j]),
-                                       float(tmp2[j]), 7)
+                # comparing the values
+                # abs bcs the sign does not matter for eigenvalues
+                # tolerance is small bcs values in file are also small
+                self.assertAlmostEqual(abs(float(tmp1[j])),
+                                       abs(float(tmp2[j])), 15)
 
         return current_index+2 # directly incrementing to get the new result label
