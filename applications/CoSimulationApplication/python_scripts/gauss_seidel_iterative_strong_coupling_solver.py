@@ -95,8 +95,12 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimApp.CoSimulationBaseCoupling
         #while(iter < maxIter and not self.conv_criterion.IsConverged(self.appOne.GetModelPart(), DISPLACEMENT)):
             print('\t############## ')
             print('\tCoupling iteration :: ', iter)
+            self.appOne.SynchronizeInputData()
             self.appOne.Solve()
+            self.appOne.SynchronizeOutputData()
+            self.appTwo.SynchronizeInputData()
             self.appTwo.Solve()
+            self.appTwo.SynchronizeOutputData()
             
             iter = iter + 1
         

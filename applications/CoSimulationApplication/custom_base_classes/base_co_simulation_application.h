@@ -48,6 +48,15 @@ class CoSimulationBaseApplication : public CoSimulationBaseClass<TSparseSpace, T
     {
     }
 
+    CoSimulationBaseApplication(CoSimulationBaseIo& iIo, Parameters iParameters) : BaseType(*(ModelPart::Pointer(new ModelPart("cosim")))),
+                                                                                                         mParameters(iParameters)
+    {
+    }    
+
+    virtual ~CoSimulationBaseApplication(){
+
+    }
+
     ///@}
     ///@name Operators
     ///@{

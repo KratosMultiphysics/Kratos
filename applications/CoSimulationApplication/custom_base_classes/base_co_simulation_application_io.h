@@ -16,6 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <stdio.h>
 
 // Project includes
 #include "includes/kratos_parameters.h"
@@ -53,10 +54,20 @@ class CoSimulationBaseIo
     /////////////////////////////////////////////////
 
     /// Data synchronization methods
+    /* 
+     * This function should read/take the specified output datafields of a
+     * solver available. Once it reads/takes the datafield it SHOULD call the function
+     * MakeDataFieldNotAvailable to let the other solvers that the solver took its input
+     */
     virtual void SynchronizeInputData()
     {
     }
 
+    /* 
+     * This function should write/put out the specified output datafields of a 
+     * solver available. Once this function write/put out the datafield it SHOULD call
+     * function MakeDataFieldAvailable so as to notifiy other solvers the field is available
+     */
     virtual void SynchronizeOutputData()
     {
     }
@@ -66,6 +77,24 @@ class CoSimulationBaseIo
     {
     }
 
+    /// Check if an input datafield is available.
+    /// This is done by checking if a file with the name of the data field exists or not.
+    /// This is also for synchronizing between different solvers.
+    virtual bool IsDataFieldAvailable(std::string iDataFieldName)
+    {
+        return FileExists(iDataFieldName);
+    }
+
+    bool MakeDataFieldAvailable(std::string iFileName)
+    {
+        std::ofstream outputFile(iFileName.c_str());
+        return outputFile.is_open();
+    }
+
+    bool MakeDataFieldNotAvailable(std::string iFileName)
+    {
+        return (remove(iFileName.c_str()) != 0);
+    }
     ///@}
     ///@name Access
     ///@{
@@ -131,6 +160,10 @@ class CoSimulationBaseIo
     ///@}
     ///@name Private Operations
     ///@{
+    bool FileExists(std::string iFileName)
+    {
+        return (access(iFileName.c_str(), F_OK) != -1);
+    }
 
     ///@}
     ///@name Private  Access

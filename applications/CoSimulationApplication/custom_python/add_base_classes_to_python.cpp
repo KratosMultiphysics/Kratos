@@ -66,7 +66,11 @@ void AddCustomBaseClassesToPython()
            boost::noncopyable>("CoSimulationBaseIo", init<Parameters>())
            .def("ImportModelPart", &CoSimulationBaseIo::ImportModelPart)
            .def("SynchronizeInputData", &CoSimulationBaseIo::SynchronizeInputData)
-           .def("SynchronizeOutputData", &CoSimulationBaseIo::SynchronizeOutputData);           
+           .def("SynchronizeOutputData", &CoSimulationBaseIo::SynchronizeOutputData)
+           .def("IsDataFieldAvailable", &CoSimulationBaseIo::IsDataFieldAvailable) 
+           .def("MakeDataFieldAvailable", &CoSimulationBaseIo::MakeDataFieldAvailable)
+           .def("MakeDataFieldNotAvailable", &CoSimulationBaseIo::MakeDataFieldNotAvailable);
+
 
     //********************************************************************
     //********************CoSimulationApplication*************************
