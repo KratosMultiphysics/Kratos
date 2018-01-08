@@ -63,7 +63,7 @@ def AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part):
 
     if pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 5 or pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 6:
          fluid_model_part.ProcessInfo.SetValue(CURRENT_COMPONENT, 0)
-    
+
     if pp.CFD_DEM["non_newtonian_option"].GetBool():
         fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, pp.CFD_DEM["yield_stress"].GetDouble())
         fluid_model_part.ProcessInfo.SetValue(REGULARIZATION_COEFFICIENT, pp.CFD_DEM["regularization_coefficient"].GetDouble())
