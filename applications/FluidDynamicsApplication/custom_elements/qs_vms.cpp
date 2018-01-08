@@ -98,10 +98,19 @@ int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
 
     // Extra variables
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+    KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
 
     // Output variables (for Calculate() functions)
     KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_PRESSURE);
+
+    for(unsigned int i=0; i<NumNodes; ++i)
+    {
+        Node<3>& rNode = this->GetGeometry()[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,rNode);
+    }
 
     return out;
 }

@@ -280,6 +280,13 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
     model_part.AddNodalSolutionStepVariable(DISTANCE);
+    model_part.AddNodalSolutionStepVariable(ACCELERATION);
+
+    // For VMS comparison
+    model_part.AddNodalSolutionStepVariable(NODAL_AREA);
+    model_part.AddNodalSolutionStepVariable(ADVPROJ);
+    model_part.AddNodalSolutionStepVariable(DIVPROJ);
+
 
     // Process info creation
     double delta_time = 0.1;
@@ -303,6 +310,14 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
     model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+
+    for (ModelPart::NodeIterator it_node=model_part.NodesBegin(); it_node<model_part.NodesEnd(); ++it_node){
+        it_node->AddDof(VELOCITY_X,REACTION_X);
+        it_node->AddDof(VELOCITY_Y,REACTION_Y);
+        it_node->AddDof(VELOCITY_Z,REACTION_Z);
+        it_node->AddDof(PRESSURE,REACTION_WATER_PRESSURE);
+    }
+
     std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
     model_part.CreateNewElement("EmbeddedNavierStokes2D3N", 1, element_nodes, p_properties);
     model_part.CreateNewElement("EmbeddedSymbolicNavierStokes2D3N", 2, element_nodes, p_properties);
@@ -315,7 +330,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     reference_velocity(0,0) = 0.0; reference_velocity(0,1) = 0.1;
     reference_velocity(1,0) = 0.1; reference_velocity(1,1) = 0.2;
     reference_velocity(2,0) = 0.2; reference_velocity(2,1) = 0.3;
-
 
     Element::Pointer p_element = model_part.pGetElement(1);
 
@@ -352,6 +366,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         i->Initialize(); // Initialize the element to initialize the constitutive law
+        i->Check(model_part.GetProcessInfo()); // Here otherwise the constitutive law is not seen
         i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
         std::cout << i->Info() << std::endl;

@@ -367,13 +367,11 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 
     // Extra variables used in computing projections
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
 
     for(unsigned int i=0; i<NumNodes; ++i)
     {
         Node<3>& rNode = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,rNode);
 
         // Check that required dofs exist
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
