@@ -1,6 +1,7 @@
 # import Kratos
 import KratosMultiphysics 
 import KratosMultiphysics.SolidMechanicsApplication 
+import KratosMultiphysics.ConstitutiveModelsApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
