@@ -74,17 +74,6 @@ class Algorithm(BaseAlgorithm):
         BaseAlgorithm.SetBetaParameters(self)
         self.pp.CFD_DEM.AddEmptyValue("ALE_option").SetBool(True)
 
-    # def FluidSolve(self, time = 'None', solve_system = True):
-    #     BaseAlgorithm.FluidSolve(self, time, solve_system)
-    #     for node in self.fluid_model_part.Nodes:
-    #         if node.X ** 2 + node.Y ** 2 > 0.1196 ** 2:
-    #             # mv_x = node.GetSolutionStepValue(MESH_VELOCITY_X)
-    #             # mv_y = node.GetSolutionStepValue(MESH_VELOCITY_Y)
-    #             # node.SetSolutionStepValue(VELOCITY_X, - mv_x)
-    #             # node.SetSolutionStepValue(VELOCITY_Y, - mv_y)
-    #             node.SetSolutionStepValue(VELOCITY_X, 0.)
-    #             node.SetSolutionStepValue(VELOCITY_Y, 0.)
-
     def UpdateALEMeshMovement(self, time):
         if self.pp.CFD_DEM["ALE_option"].GetBool():
             self.rotator.RotateMesh(self.fluid_model_part, time)
