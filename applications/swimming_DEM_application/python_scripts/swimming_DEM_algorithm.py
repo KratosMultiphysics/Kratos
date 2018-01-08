@@ -5,18 +5,19 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import os
 import sys
 import math
+import time as timer
+import weakref
+
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
+
 from DEM_procedures import KratosPrint as Say
 import CFD_DEM_coupling
 import swimming_DEM_procedures as SDP
 import swimming_DEM_gid_output
 import embedded
 import variables_management as vars_man
-import time as timer
-import os
-import weakref
 
 try:
     import define_output  # MA: some GUI write this file, some others not!
@@ -596,7 +597,7 @@ class Algorithm(object):
                         self.ApplyForwardCoupling()
 
                     else:
-                        self.ApplyForwardCoupling((time_final_DEM_substepping - self.time_dem) / self.Dt)
+                        self.ApplyForwardCoupling(alpha = 1.0 - (time_final_DEM_substepping - self.time_dem) / self.Dt)
 
                         if self.quadrature_counter.Tick():
                             self.AppendValuesForTheHistoryForce()

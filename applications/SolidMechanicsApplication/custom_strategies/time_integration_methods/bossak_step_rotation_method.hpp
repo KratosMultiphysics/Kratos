@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_BOSSAK_METHOD )
-#define  KRATOS_BOSSAK_METHOD
+#if !defined(KRATOS_BOSSAK_STEP_ROTATION_METHOD )
+#define  KRATOS_BOSSAK_STEP_ROTATION_METHOD
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_strategies/time_integration_methods/newmark_method.hpp"
+#include "custom_strategies/time_integration_methods/newmark_step_rotation_method.hpp"
 
 namespace Kratos
 {
@@ -47,11 +47,8 @@ namespace Kratos
    * This class performs predict and update of dofs variables, their time derivatives and time integrals      
    */
   template<class TVariableType, class TValueType>
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) BossakMethod : public NewmarkMethod<TVariableType,TValueType>
-  {
-  protected:
-
-    
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) BossakStepRotationMethod : public NewmarkStepRotationMethod<TVariableType,TValueType>
+  {   
   public:
  
     ///@name Type Definitions
@@ -70,10 +67,10 @@ namespace Kratos
     typedef typename BaseType::VariablePointer        VariablePointer;
 
     /// DerivedType
-    typedef NewmarkMethod<TVariableType,TValueType>       DerivedType;
+    typedef NewmarkStepRotationMethod<TVariableType,TValueType> DerivedType;
 
     
-    KRATOS_CLASS_POINTER_DEFINITION( BossakMethod );
+    KRATOS_CLASS_POINTER_DEFINITION( BossakStepRotationMethod );
 
     ///@}
     ///@name Life Cycle
@@ -81,10 +78,10 @@ namespace Kratos
 
     
     /// Default Constructor.
-    BossakMethod() : DerivedType() {}
+    BossakStepRotationMethod() : DerivedType() {}
 
     /// Copy Constructor.
-    BossakMethod(BossakMethod& rOther)
+    BossakStepRotationMethod(BossakStepRotationMethod& rOther)
       :DerivedType(rOther)
       ,mAlpha(rOther.mAlpha)
     {
@@ -93,11 +90,11 @@ namespace Kratos
     /// Clone.
     BaseTypePointer Clone()
     {
-      return BaseTypePointer( new BossakMethod(*this) );
+      return BaseTypePointer( new BossakStepRotationMethod(*this) );
     }
 
     /// Destructor.
-    ~BossakMethod(){}
+    ~BossakStepRotationMethod(){}
 
     ///@}
     ///@name Operators
@@ -106,7 +103,7 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-    
+
     // set parameters
     void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -143,11 +140,12 @@ namespace Kratos
      
      beta  = (1.0 - mAlpha) * (1.0 - mAlpha) * beta;
      gamma = gamma - mAlpha;
-          
+     
      this->mNewmark.SetParameters(beta,gamma,delta_time);
      
      KRATOS_CATCH( "" )
-    }     
+    }
+
 
     // set parameters to process info
     virtual void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo) override
@@ -159,7 +157,7 @@ namespace Kratos
      rCurrentProcessInfo[BOSSAK_ALPHA]  = this->mAlpha;
        
      KRATOS_CATCH( "" )
-    }
+    } 
     
     double& GetMethodParameter(double& rParameter) override
     {
@@ -190,20 +188,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "BossakMethod";
+        buffer << "BossakStepRotationMethod";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "BossakMethod";
+        rOStream << "BossakStepRotationMethod";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "BossakMethod Data";     
+      rOStream << "BossakStepRotationMethod Data";     
     }
 
     
@@ -222,7 +220,7 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-
+    
     double   mAlpha;
     
     ///@}
@@ -232,7 +230,7 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-
+    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -276,7 +274,7 @@ namespace Kratos
     virtual void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
-      rSerializer.save("BossakAlpha", mAlpha);
+      rSerializer.save("BossakAlpha", mAlpha);	
     };
 
     virtual void load(Serializer& rSerializer) override
@@ -295,25 +293,25 @@ namespace Kratos
   
     ///@}
   
-  }; // Class BossakMethod
+  }; // Class BossakStepRotationMethod
   
   ///@}
 
   ///@name Type Definitions
-  ///@{
+  ///@{  
 
-
+  
   ///@}
   ///@name Input and output
   ///@{
   
   template<class TVariableType, class TValueType>
-  inline std::istream & operator >> (std::istream & rIStream, BossakMethod<TVariableType,TValueType>& rThis)
+  inline std::istream & operator >> (std::istream & rIStream, BossakStepRotationMethod<TVariableType,TValueType>& rThis)
   {
   }
 
   template<class TVariableType, class TValueType>
-  inline std::ostream & operator << (std::ostream & rOStream, const BossakMethod<TVariableType,TValueType>& rThis)
+  inline std::ostream & operator << (std::ostream & rOStream, const BossakStepRotationMethod<TVariableType,TValueType>& rThis)
   {
     return rOStream << rThis.Info();
   }
@@ -324,4 +322,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_BOSSAK_METHOD defined
+#endif // KRATOS_BOSSAK_STEP_ROTATION_METHOD defined
