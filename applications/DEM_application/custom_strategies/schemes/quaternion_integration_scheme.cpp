@@ -159,9 +159,9 @@ namespace Kratos {
             GeometryFunctions::UpdateOrientation(Orientation, half_Orientation, rotation_aux);
 
             GeometryFunctions::QuaternionVectorLocal2Global(half_Orientation, half_local_angular_velocity, half_angular_velocity);
-
-            UpdateRotatedAngle(rotated_angle, delta_rotation, half_angular_velocity, 0.5 * delta_t);
-            GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
+            
+            rotation_aux = half_angular_velocity * delta_t;
+            GeometryFunctions::UpdateOrientation(Orientation, half_Orientation, rotation_aux);
         }//if StepFlag == 1
                     
         else if (StepFlag == 2) { //CORRECT
@@ -171,7 +171,7 @@ namespace Kratos {
             noalias(local_angular_velocity) += local_angular_acceleration * delta_t;
             GeometryFunctions::QuaternionVectorLocal2Global(half_Orientation, local_angular_velocity, angular_velocity);
             
-            UpdateRotatedAngle(rotated_angle, delta_rotation, angular_velocity, 0.5 * delta_t);
+            UpdateRotatedAngle(rotated_angle, delta_rotation, angular_velocity, delta_t);
             GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
             
             GeometryFunctions::QuaternionVectorLocal2Global(Orientation, local_angular_velocity, angular_velocity);
