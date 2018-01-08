@@ -666,14 +666,24 @@ private:
             {
                 if( !it_dof->IsFixed() )
                 {
-                    //absolute displacement
-                    it_dof->GetSolutionStepValue(step) = std::abs(rModalDisplacement(it_dof->EquationId()));
+                    const auto modal_displacement = rModalDisplacement( it_dof->EquationId() );
+                    //displacement
+                    if( std::real( modal_displacement ) < 0 )
+                    {
+                        it_dof->GetSolutionStepValue(step) = -1 * std::abs( modal_displacement );
+                    }
+                    else
+                    {
+                        it_dof->GetSolutionStepValue(step) = std::abs( modal_displacement );
+                    }
+
                     //phase angle
-                    it_dof->GetSolutionStepReactionValue(step) = std::abs(std::arg(rModalDisplacement(it_dof->EquationId())));
+                    it_dof->GetSolutionStepReactionValue(step) = std::abs( std::arg( modal_displacement ) );
                 }
                 else
                 {
                     it_dof->GetSolutionStepValue(step) = 0.0;
+                    it_dof->GetSolutionStepReactionValue(step) = 0.0;
                 }
             }
         }
