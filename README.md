@@ -2,18 +2,19 @@
 
 # Overview
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a06a0e564b2d450dafb0684905c1e83c)](https://www.codacy.com/app/pooyan/Kratos?utm_source=github.com&utm_medium=referral&utm_content=KratosMultiphysics/Kratos&utm_campaign=badger)
-
 _Kratos_ is a framework for building multi-disciplinary finite element programs. It provides several tools for fast implementation of finite element applications. CFD, CSD, Thermally Coupled Problems, Particles, ...
 
 [![Release][release-image]][releases]
 [![License][license-image]][license]
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a06a0e564b2d450dafb0684905c1e83c)](https://www.codacy.com/app/pooyan/Kratos?utm_source=github.com&utm_medium=referral&utm_content=KratosMultiphysics/Kratos&utm_campaign=badger)
 
 [release-image]: https://img.shields.io/badge/release-5.2-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
 [license]: https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt
+
+
 
 Build Status <img src="https://blog.travis-ci.com/images/travis-mascot-200px.png" height="30"/>
 ------------
