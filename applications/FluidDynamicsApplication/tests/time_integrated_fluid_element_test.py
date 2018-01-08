@@ -239,4 +239,5 @@ if __name__ == '__main__':
     test.print_reference_values = True
     test.print_output = True
     test.testSymbolic()
+    #test.testCavity()
     test.tearDown()
