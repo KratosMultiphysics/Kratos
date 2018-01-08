@@ -451,7 +451,7 @@ public:
             TDenseSpace::GetColumn(i, r_modal_matrix, modal_vector);
 
             ComplexType factor( eigenvalues[i] - std::pow( excitation_frequency, 2.0 ), 2 * modal_damping * std::sqrt(eigenvalues[i]) * excitation_frequency );
-            KRATOS_ERROR_IF(factor < std::numeric_limits<double>::epsilon()) << "No valid factor" << std::endl;
+            KRATOS_ERROR_IF( std::abs(factor) < std::numeric_limits<double>::epsilon() ) << "No valid modal weight" << std::endl;
             mode_weight = inner_prod( modal_vector, f ) / factor;
 
             // compute the modal displacement as a superposition of modal_weight * eigenvector
