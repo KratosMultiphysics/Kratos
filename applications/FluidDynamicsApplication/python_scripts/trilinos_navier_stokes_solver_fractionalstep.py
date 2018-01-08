@@ -1,15 +1,18 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-## Importing the Kratos Library
+
+# Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.mpi as KratosMPI
-import KratosMultiphysics.MetisApplication as KratosMetis
-import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
 
-## Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","MetisApplication","TrilinosApplication")
 
-## Import base class file
+# Import applications
+import KratosMultiphysics.MetisApplication as KratosMetis           # Partitioning
+import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
+
+# Import base class file
 import navier_stokes_solver_fractionalstep
 
 def CreateSolver(main_model_part, custom_settings):
@@ -41,7 +44,6 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
             "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
-            "divergence_clearance_steps": 0,
             "reform_dofs_at_each_step": false,
             "pressure_linear_solver_settings":  {
                 "solver_type"                        : "MultiLevelSolver",

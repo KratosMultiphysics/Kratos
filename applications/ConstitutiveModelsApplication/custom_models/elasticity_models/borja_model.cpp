@@ -115,6 +115,7 @@ namespace Kratos
       SeparateVolumetricAndDeviatoricPart( HenckyStrain, VolumetricHencky, DeviatoricHencky, deviatoricNorm);
 
       // 3.a Compute Deviatoric Part
+      rStressMatrix.clear();
       double ShearModulus = rAlphaShear * ReferencePressure * std::exp( -VolumetricHencky / rSwellingSlope );
       rStressMatrix += DeviatoricHencky * 2 * ( ShearModulus  + rConstantShearModulus );
 

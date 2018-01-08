@@ -19,7 +19,6 @@
 #include "testing/testing.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "tests/geometries/test_geometry.h"
-#include "includes/global_variables.h"
 
 // Utility includes
 #include "utilities/geometry_utilities.h"

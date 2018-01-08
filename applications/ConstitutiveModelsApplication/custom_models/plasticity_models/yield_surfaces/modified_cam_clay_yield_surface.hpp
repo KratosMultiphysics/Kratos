@@ -132,12 +132,6 @@ namespace Kratos
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, DeviatoricQ, LodeAngle);
       DeviatoricQ *= sqrt(3.0);
 
-      for (double aLodeAngle = -0.54; aLodeAngle < 0.54 ; aLodeAngle += 0.02) {
-         double Effect =  ShapeAtDeviatoricPlaneMCCUtility::EvaluateEffectDueToThirdInvariant( Effect, aLodeAngle, 20.0);
-         std::cout << Effect << " , " <<  aLodeAngle << " , " << LodeAngle <<  std::endl;
-      }
-
-      KRATOS_ERROR << " END END " << std::endl;
       rYieldCondition  = pow( DeviatoricQ/rShearM, 2);
       rYieldCondition += (MeanStress * (MeanStress - PreconsolidationStress) );
 

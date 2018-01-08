@@ -40,7 +40,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class MeshCoarseningProcess : public MeshNodeCollapsingProcess
+  class KRATOS_API(KRATOS_CORE) MeshCoarseningProcess : public MeshNodeCollapsingProcess
     {
     public:
       ///@name Type Definitions

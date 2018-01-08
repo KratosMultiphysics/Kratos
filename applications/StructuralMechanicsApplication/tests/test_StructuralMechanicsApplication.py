@@ -212,7 +212,6 @@ def AssambleTestSuites():
     smallSuite.addTest(T3D2NBeamCrTest('test_execution'))
     smallSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
     smallSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
-    smallSuite.addTest(T2D2NBeamCrTest('test_execution'))
     # Nodal damping test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests]))
 
@@ -267,6 +266,7 @@ def AssambleTestSuites():
     validationSuite.addTest(TPendulusULTest('test_execution'))
     validationSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
     validationSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
+    validationSuite.addTest(T2D2NBeamCrTest('test_execution'))
     
     # Create a test suit that contains all the tests:
     allSuite = suites['all']

@@ -349,7 +349,7 @@ void SolidElement::GetValueOnIntegrationPoints( const Variable<double>& rVariabl
 						std::vector<double>& rValues,
 						const ProcessInfo& rCurrentProcessInfo )
 {
-    if ( rVariable == VON_MISES_STRESS || rVariable == NORM_ISOCHORIC_STRESS || rVariable == PRESSURE)
+    if ( rVariable == VON_MISES_STRESS || rVariable == NORM_ISOCHORIC_STRESS || rVariable == PRESSURE || DAMAGE_VARIABLE)
     {
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
@@ -2145,6 +2145,35 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
         rOutput.resize( integration_points_number, false );
 
 
+    if ( rVariable == DAMAGE_VARIABLE)
+    {
+        //create and initialize element variables:
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+
+        //create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        //set constitutive law flags:
+        Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+        //reading integration points
+        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+        {
+            //compute element kinematic variables B, F, DN_DX ...
+            this->CalculateKinematics(Variables,PointNumber);
+
+            //set general variables to constitutivelaw parameters
+            this->SetElementVariables(Variables,Values,PointNumber);
+
+            //call the constitutive law to update material variables
+            mConstitutiveLawVector[PointNumber]->CalculateValue(Values,rVariable,rOutput[PointNumber]);
+	    std::cout<<" rOutput "<<rOutput[PointNumber]<<std::endl;
+
+        }
+    }    
     if ( rVariable == VON_MISES_STRESS )
     {
         //create and initialize element variables:
@@ -2517,7 +2546,7 @@ int  SolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 	// Nodal data
 	Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
-	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
+	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 	
 	// Nodal dofs
 	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);

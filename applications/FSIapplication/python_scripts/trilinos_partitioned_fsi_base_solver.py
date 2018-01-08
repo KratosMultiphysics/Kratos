@@ -3,28 +3,36 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Import utilities
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
 import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
+import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
 
-# Import kratos core and applications
+# Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications(
+    "MetisApplication",
+    "TrilinosApplication",
+    "MappingApplication",
+    "FSIApplication",
+    "ALEApplication",
+    "FluidDynamicsApplication",
+    "StructuralMechanicsApplication")
+
+# Import applications
 import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.MappingApplication as KratosMapping
 import KratosMultiphysics.FSIApplication as KratosFSI
+import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
-## Import base class file
+# Import base class file
 import partitioned_fsi_base_solver
-
 
 def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
     return TrilinosPartitionedFSIBaseSolver(structure_main_model_part, fluid_main_model_part, project_parameters)
-
 
 class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFSIBaseSolver):
     def __init__(self, structure_main_model_part, fluid_main_model_part, project_parameters):

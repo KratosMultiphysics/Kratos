@@ -99,6 +99,22 @@ namespace Kratos
   //************* COMPUTING  METHODS
   //************************************************************************************
   //************************************************************************************
+
+  void SmallStrain3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
+					     const GeometryType& rElementGeometry,
+					     const Vector& rShapeFunctionsValues )
+  {
+    KRATOS_TRY
+
+    ConstitutiveLaw::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
+
+    mpModel->InitializeMaterial(rMaterialProperties);
+    
+    KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
   
   void SmallStrain3DLaw::InitializeModelData(Parameters& rValues,ModelDataType& rModelValues)
   {
@@ -211,12 +227,9 @@ namespace Kratos
     //6.- Finalize hyperelastic model parameters    
     this->FinalizeModelData(rValues,rModelValues);
 
-    
+    // std::cout<<" ConstitutiveMatrix "<<rValues.GetConstitutiveMatrix()<<std::endl;   
     // std::cout<<" StrainVector "<<rValues.GetStrainVector()<<std::endl;
     // std::cout<<" StressVector "<<rValues.GetStressVector()<<std::endl;
-    // std::cout<<" ConstitutiveMatrix "<<rValues.GetConstitutiveMatrix()<<std::endl;
-
-
     
     //-----------------------------//
     // const Properties& rMaterialProperties  = rValues.GetMaterialProperties();    

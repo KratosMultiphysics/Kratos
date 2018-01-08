@@ -17,10 +17,13 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         super(KratosUnittest.TestCase, self).__init__(*args, **kwargs)
 
 
-    def test_UndrainedStressPath(self):
+    def test_UndrainedStressPath_OC(self):
 
 
         self._create_material_model_and_law()
+
+        self.properties.SetValue(KratosMultiphysics.OVER_CONSOLIDATION_RATIO, 4.0)
+        self.parameters.SetMaterialProperties( self.properties )
 
         NumberIncrements = 100
         IncrementalF = self._set_identity_matrix()
@@ -31,20 +34,54 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
 
         #Compute Analytical solution
-        pc     = self.variables["KratosMultiphysics.PRE_CONSOLIDATION_STRESS"].GetDouble()
-        OCR    = self.variables["KratosMultiphysics.OVER_CONSOLIDATION_RATIO"].GetDouble()
-        kappa  = self.variables["KratosMultiphysics.SWELLING_SLOPE"].GetDouble()
-        landa  = self.variables["KratosMultiphysics.NORMAL_COMPRESSION_SLOPE"].GetDouble()
-        M      = self.variables["KratosMultiphysics.CRITICAL_STATE_LINE"].GetDouble()
-        alphaS = self.variables["KratosMultiphysics.ALPHA_SHEAR"].GetDouble()
+        pc0    = self.properties.GetValue(KratosMultiphysics.PRE_CONSOLIDATION_STRESS)
+        OCR    = self.properties.GetValue(KratosMultiphysics.OVER_CONSOLIDATION_RATIO)
+        kappa  = self.properties.GetValue(KratosMultiphysics.SWELLING_SLOPE)
+        landa  = self.properties.GetValue(KratosMultiphysics.NORMAL_COMPRESSION_SLOPE)
+        M      = self.properties.GetValue(KratosMultiphysics.CRITICAL_STATE_LINE)
+        alphaS = self.properties.GetValue(KratosMultiphysics.ALPHA_SHEAR)
         if ( abs(alphaS) > 1e-12):
             self.skipTest("The constitutive problem no longer has analytical solution")
 
-        p0 = pc / OCR
+        p0 = pc0 / OCR
         BigLambda = ( landa - kappa) / landa
         pressureFailure = p0 * (  (OCR / 2.0 ) ** BigLambda) 
         UndrainedShearStrenght = 0.5*p0*M * ( (OCR/2.0)**BigLambda)
 
+        self.assertAlmostEqual(Pressure, pressureFailure)
+        self.assertAlmostEqual(0.5*DeviatoricQ, UndrainedShearStrenght)
+
+
+    def test_UndrainedStressPath_NC(self):
+
+
+        self._create_material_model_and_law()
+
+        self.properties.SetValue(KratosMultiphysics.OVER_CONSOLIDATION_RATIO, 1.0)
+        self.parameters.SetMaterialProperties( self.properties )
+
+        NumberIncrements = 100
+        IncrementalF = self._set_identity_matrix()
+        IncrementalF[0,1] = 1.0/float(NumberIncrements)
+
+        self._compute_strain_driven_problem(IncrementalF, NumberIncrements)
+        Pressure, DeviatoricQ = self._calculate_invariants()
+
+
+        #Compute Analytical solution
+        pc0    = self.properties.GetValue(KratosMultiphysics.PRE_CONSOLIDATION_STRESS)
+        OCR    = self.properties.GetValue(KratosMultiphysics.OVER_CONSOLIDATION_RATIO)
+        kappa  = self.properties.GetValue(KratosMultiphysics.SWELLING_SLOPE)
+        landa  = self.properties.GetValue(KratosMultiphysics.NORMAL_COMPRESSION_SLOPE)
+        M      = self.properties.GetValue(KratosMultiphysics.CRITICAL_STATE_LINE)
+        alphaS = self.properties.GetValue(KratosMultiphysics.ALPHA_SHEAR)
+        if ( abs(alphaS) > 1e-12):
+            self.skipTest("The constitutive problem no longer has analytical solution")
+
+        p0 = pc0 / OCR
+        BigLambda = ( landa - kappa) / landa
+        pressureFailure = p0 * (  (OCR / 2.0 ) ** BigLambda) 
+        UndrainedShearStrenght = 0.5*p0*M * ( (OCR/2.0)**BigLambda)
 
         self.assertAlmostEqual(Pressure, pressureFailure)
         self.assertAlmostEqual(0.5*DeviatoricQ, UndrainedShearStrenght)
@@ -55,10 +92,10 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         self._create_material_model_and_law()
 
         # read material parameters
-        pc0 = self.variables["KratosMultiphysics.PRE_CONSOLIDATION_STRESS"].GetDouble()
-        OCR = self.variables["KratosMultiphysics.OVER_CONSOLIDATION_RATIO"].GetDouble()
-        kappa = self.variables["KratosMultiphysics.SWELLING_SLOPE"].GetDouble()
-        landa = self.variables["KratosMultiphysics.NORMAL_COMPRESSION_SLOPE"].GetDouble()
+        pc0    = self.properties.GetValue(KratosMultiphysics.PRE_CONSOLIDATION_STRESS)
+        OCR    = self.properties.GetValue(KratosMultiphysics.OVER_CONSOLIDATION_RATIO)
+        kappa  = self.properties.GetValue(KratosMultiphysics.SWELLING_SLOPE)
+        landa  = self.properties.GetValue(KratosMultiphysics.NORMAL_COMPRESSION_SLOPE)
         p0 = pc0 / OCR
 
 
@@ -85,6 +122,8 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
                 self.assertAlmostEqual( self.stress[i], 0.0)
 
     def _compute_strain_driven_problem(self, IncrF, nIncr):
+
+        
 
         self.parameters.SetDeformationGradientF(self.F)
         self.parameters.SetDeterminantF(self.detF)

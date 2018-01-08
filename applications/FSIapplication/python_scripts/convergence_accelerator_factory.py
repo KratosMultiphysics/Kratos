@@ -1,11 +1,19 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("FSIApplication")
+
+# Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
-try:
+
+# Check if Trilinos has been imported to set the have_trilinos flag
+if (KratosMultiphysics.Kernel().IsImported("TrilinosApplication")):
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos
     have_trilinos = True
-except ImportError:
+else:
     have_trilinos = False
 
 def CreateConvergenceAccelerator(configuration):

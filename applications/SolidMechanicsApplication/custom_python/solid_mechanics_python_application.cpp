@@ -31,7 +31,6 @@ namespace Python
 using namespace boost::python;
 
 
-
 BOOST_PYTHON_MODULE(KratosSolidMechanicsApplication)
 {
 
@@ -48,15 +47,15 @@ BOOST_PYTHON_MODULE(KratosSolidMechanicsApplication)
 
     //registering variables in python ( if must to be seen from python )
 
-    // Generalized eigenvalue problem
+    //Generalized eigenvalue problem
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( BUILD_LEVEL )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( EIGENVALUE_VECTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( EIGENVECTOR_MATRIX )
 
     //For process information
-
-      
-   
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TIME_INTEGRATION_METHOD )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ANGULAR_TIME_INTEGRATION_METHOD )
+         
     //For explicit schemes
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
             

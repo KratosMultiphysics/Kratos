@@ -6,7 +6,7 @@ import math
 import time
 import cluster_file_reader
 
-class ExplicitStrategy:
+class ExplicitStrategy(object):
 
     #def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
@@ -222,14 +222,14 @@ class ExplicitStrategy:
 
         # TIME RELATED PARAMETERS
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
-               
+        
+        os.chdir('..')
+        
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
-
+        
         for properties in self.inlet_model_part.Properties:
             self.ModifyProperties(properties)
-
-        os.chdir('..')
 
         for properties in self.cluster_model_part.Properties:
             self.ModifyProperties(properties)
@@ -523,8 +523,7 @@ class ExplicitStrategy:
             self.Procedures.KRATOSprint(properties)
             if not properties.Has(BREAKABLE_CLUSTER):
                 properties.SetValue(BREAKABLE_CLUSTER, False)
-                
-
+        
         if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
         else:
@@ -541,4 +540,7 @@ class ExplicitStrategy:
             
         rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
+        
+        if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
+            properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 
