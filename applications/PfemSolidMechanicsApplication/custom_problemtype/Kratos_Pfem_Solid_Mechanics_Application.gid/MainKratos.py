@@ -3,6 +3,7 @@ import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.ConstitutiveModelsApplication
 import KratosMultiphysics.PfemApplication
+import KratosMultiphysics.ContactMechanicsApplication
 import KratosMultiphysics.PfemSolidMechanicsApplication
 import MainSolid
 
