@@ -87,6 +87,10 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
     return out;
 }
 
+bool IsCut() {
+    return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
+}
+
 ///@}
 
 };
