@@ -599,8 +599,9 @@ namespace Kratos
             //***************************************************
             // Update reference configuration for formfinding
             // Initialize the Elements
-            pScheme->InitializeElements(BaseType::GetModelPart());
-
+            for(auto it_ele = BaseType::GetModelPart().ElementsBegin(); it_ele != BaseType::GetModelPart().ElementsEnd(); it_ele++){
+                it_ele->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
+            }
             KRATOS_CATCH("");
         }
 
@@ -616,7 +617,10 @@ namespace Kratos
 
             KRATOS_CATCH("");
         }
-
+        
+        void UpdateReferenceConfiguration(){
+            
+        }
 
         /**
          * Solves the current step. This function returns true if a solution has been found, false otherwise

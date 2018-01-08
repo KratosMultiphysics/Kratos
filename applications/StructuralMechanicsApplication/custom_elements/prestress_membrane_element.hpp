@@ -20,7 +20,8 @@
 
 // Project includes
 #include "includes/element.h"
-#include "spaces/ublas_space.h"
+//#include "spaces/ublas_space.h"
+#include "custom_utilities/structural_mechanics_math_utilities.hpp"
 
 namespace Kratos
 {
@@ -66,6 +67,8 @@ namespace Kratos
 
     void Initialize() override;
 
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateRightHandSide(
       VectorType& rRightHandSideVector,
       ProcessInfo& rCurrentProcessInfo) override;
@@ -106,7 +109,7 @@ namespace Kratos
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
       std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void UpdateReferenceConfiguration(unsigned int step);
+    void UpdatePrestress(unsigned int PointNumber);
 
 
   protected:
@@ -160,6 +163,8 @@ namespace Kratos
       double weight);
 
 
+    void InitializeNonLinearIteration();
+    
     void CalculateAndAddNonlinearKm(
         Matrix& K,
         Matrix& B11,
@@ -292,18 +297,15 @@ namespace Kratos
         array_1d<double, 3> GlobalPrestressAxis1,
         array_1d<double, 3> GlobalPrestressAxis2);*/
 
-    void TensorTransformation(
-        Matrix& Origin_left,
-        Matrix& Origin_right,
-        Matrix& Target_left,
-        Matrix& Target_right,
-        Matrix& Tensor);
+    /*void TensorTransformation(
+        bounded_matrix<double,3,3>& rOriginLeft,
+        bounded_matrix<double,3,3>& rOriginRight,
+        bounded_matrix<double,3,3>& rTargetLeft,
+        bounded_matrix<double,3,3>& rTargetRight,
+        bounded_matrix<double,3,3>& rTensor);*/
 
     void TransformPrestress(
-      unsigned int PointNumber,
-      array_1d<double, 3>& rPrestress,
-      array_1d<double, 3>& GlobalPrestressAxis1,
-      array_1d<double, 3>& GlobalPrestressAxis2);
+      unsigned int PointNumber);
 
     int  Check(const ProcessInfo& rCurrentProcessInfo) override;
 
