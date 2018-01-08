@@ -270,13 +270,9 @@ protected:
         double GammaDot = this->EquivalentStrainRate(rDN_DX);
 
         double YieldStress = rProcessInfo[YIELD_STRESS];
-                
-        YieldStress = 100.0;
-        
+                        
         double m = rProcessInfo[REGULARIZATION_COEFFICIENT];
         
-        m = 300.0;
-
         if (GammaDot > 1e-12) // Normal behaviour
         {
             double Regularization = 1.0 - std::exp(-m*GammaDot);
@@ -286,7 +282,7 @@ protected:
         {
             // In this case dynamic viscosity goes to infinity,
             // understand the following as a large number times yield stress
-            DynamicViscosity += m * YieldStress;
+            DynamicViscosity += m*YieldStress;
         }
 
         return DynamicViscosity;

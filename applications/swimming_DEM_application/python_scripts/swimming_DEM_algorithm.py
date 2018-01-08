@@ -550,17 +550,6 @@ class Algorithm(object):
                     self.stationarity = self.stationarity_tool.Assess(self.fluid_model_part)
                     self.stationarity_counter.Deactivate(self.stationarity)
 
-            imposed_bbcc_pressure = False
-            
-            if imposed_bbcc_pressure:
-                for node in self.fluid_model_part.Nodes:
-                    if node.X < 0.001:
-                        node.SetSolutionStepValue(PRESSURE, 3000.0)
-                        node.Fix(PRESSURE)
-                    if node.X > 5.999:
-                        node.SetSolutionStepValue(PRESSURE, 0.0)
-                        node.Fix(PRESSURE)
-
             # printing if required
 
             if self.particles_results_counter.Tick():
