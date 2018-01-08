@@ -2,14 +2,13 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from DEM_procedures import KratosPrint as Say
-import t_junction_algorithm
-BaseAlgorithm = t_junction_algorithm.Algorithm
-import h5py
+import pre_calculated_fluid_algorithm
+BaseAlgorithm = pre_calculated_fluid_algorithm.Algorithm
 import numpy as np
 import math
 
 class Rotator:
-    def __init__(self, 
+    def __init__(self,
                  rotation_axis_initial_point,
                  rotation_axis_final_point,
                  angular_velocity_module):
@@ -22,8 +21,8 @@ class Rotator:
     def CalculateRodriguesMatrices(self, axis):
         self.I = np.identity(3)
         self.UU = np.array([a * axis for a in axis])
-        self.Ux = np.array([[0, - axis[2], axis[1]], 
-                            [axis[2], 0., -axis[0]], 
+        self.Ux = np.array([[0, - axis[2], axis[1]],
+                            [axis[2], 0., -axis[0]],
                             [-axis[1], axis[0], 0.]])
 
     def Rotate(self, model_part, time):
@@ -69,7 +68,7 @@ class Algorithm(BaseAlgorithm):
 
     def SetRotator(self):
         self.rotator = MeshRotationUtility(self.pp.CFD_DEM)
-    
+
     def SetBetaParameters(self):
         BaseAlgorithm.SetBetaParameters(self)
         self.pp.CFD_DEM.AddEmptyValue("ALE_option").SetBool(True)
