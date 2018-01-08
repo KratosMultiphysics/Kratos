@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_BOSSAK_METHOD )
-#define  KRATOS_BOSSAK_METHOD
+#if !defined(KRATOS_STATIC_METHOD )
+#define  KRATOS_STATIC_METHOD
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_strategies/time_integration_methods/newmark_method.hpp"
+#include "custom_strategies/time_integration_methods/time_integration_method.hpp"
 
 namespace Kratos
 {
@@ -47,11 +47,8 @@ namespace Kratos
    * This class performs predict and update of dofs variables, their time derivatives and time integrals      
    */
   template<class TVariableType, class TValueType>
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) BossakMethod : public NewmarkMethod<TVariableType,TValueType>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticMethod : public TimeIntegrationMethod<TVariableType,TValueType>
   {
-  protected:
-
-    
   public:
  
     ///@name Type Definitions
@@ -68,12 +65,8 @@ namespace Kratos
     
     /// KratosVariable or KratosVariableComponent    
     typedef typename BaseType::VariablePointer        VariablePointer;
-
-    /// DerivedType
-    typedef NewmarkMethod<TVariableType,TValueType>       DerivedType;
-
     
-    KRATOS_CLASS_POINTER_DEFINITION( BossakMethod );
+    KRATOS_CLASS_POINTER_DEFINITION( StaticMethod );
 
     ///@}
     ///@name Life Cycle
@@ -81,23 +74,19 @@ namespace Kratos
 
     
     /// Default Constructor.
-    BossakMethod() : DerivedType() {}
+    StaticMethod() : BaseType() {}
 
     /// Copy Constructor.
-    BossakMethod(BossakMethod& rOther)
-      :DerivedType(rOther)
-      ,mAlpha(rOther.mAlpha)
-    {
-    }
+    StaticMethod(StaticMethod& rOther) : BaseType(rOther) {}
 
     /// Clone.
     BaseTypePointer Clone()
     {
-      return BaseTypePointer( new BossakMethod(*this) );
+      return BaseTypePointer( new StaticMethod(*this) );
     }
 
     /// Destructor.
-    ~BossakMethod(){}
+    ~StaticMethod(){}
 
     ///@}
     ///@name Operators
@@ -106,73 +95,19 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-    
-    // set parameters
-    void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
-    {
-     KRATOS_TRY
-       
-     double delta_time = rCurrentProcessInfo[DELTA_TIME];
-
-     if (delta_time < 1.0e-24)
-        {
-	  KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Method DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part " << std::endl;
-        }
      
-     double beta = 0.25;
-     if (rCurrentProcessInfo.Has(NEWMARK_BETA))
-       {
-	 beta = rCurrentProcessInfo[NEWMARK_BETA];
-       }
-     double gamma = 0.5;
-     if (rCurrentProcessInfo.Has(NEWMARK_GAMMA))
-       {
-	 gamma = rCurrentProcessInfo[NEWMARK_GAMMA];
-       }
-
-     mAlpha = -0.3;
-     if (rCurrentProcessInfo.Has(BOSSAK_ALPHA))
-       {
-	 mAlpha = rCurrentProcessInfo[BOSSAK_ALPHA];
-       }
-
-     if(mAlpha > 0.0 || mAlpha < -0.3)
-        {
-	  KRATOS_ERROR << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is " << mAlpha << std::endl; 
-        }
-     
-     beta  = (1.0 - mAlpha) * (1.0 - mAlpha) * beta;
-     gamma = gamma - mAlpha;
-          
-     this->mNewmark.SetParameters(beta,gamma,delta_time);
-     
-     KRATOS_CATCH( "" )
-    }     
-
-    // set parameters to process info
-    virtual void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo) override
+    // predict
+    virtual void Predict(NodeType& rNode) override
     {
-     KRATOS_TRY
-       
-     rCurrentProcessInfo[NEWMARK_BETA]  = this->mNewmark.beta;      
-     rCurrentProcessInfo[NEWMARK_GAMMA] = this->mNewmark.gamma;
-     rCurrentProcessInfo[BOSSAK_ALPHA]  = this->mAlpha;
-       
-     KRATOS_CATCH( "" )
+
     }
-    
-    double& GetMethodParameter(double& rParameter) override
+
+    // update
+    virtual void Update(NodeType& rNode) override
     {
-      rParameter = mAlpha;
-      return rParameter;
+
     }
-    
-    double& GetSecondDerivativeParameter(double& rParameter) override
-    {
-      rParameter = (1.0 - mAlpha) * this->mNewmark.c0;
-      return rParameter;
-    }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -190,20 +125,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "BossakMethod";
+        buffer << "StaticMethod";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "BossakMethod";
+        rOStream << "StaticMethod";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "BossakMethod Data";     
+      rOStream << "StaticMethod Data";     
     }
 
     
@@ -223,8 +158,6 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-    double   mAlpha;
-    
     ///@}
     ///@name Protected Operators
     ///@{
@@ -275,14 +208,12 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
-      rSerializer.save("BossakAlpha", mAlpha);
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     };
 
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
-      rSerializer.load("BossakAlpha", mAlpha);
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     };
     
     ///@}
@@ -295,7 +226,7 @@ namespace Kratos
   
     ///@}
   
-  }; // Class BossakMethod
+  }; // Class StaticMethod
   
   ///@}
 
@@ -308,12 +239,12 @@ namespace Kratos
   ///@{
   
   template<class TVariableType, class TValueType>
-  inline std::istream & operator >> (std::istream & rIStream, BossakMethod<TVariableType,TValueType>& rThis)
+  inline std::istream & operator >> (std::istream & rIStream, StaticMethod<TVariableType,TValueType>& rThis)
   {
   }
 
   template<class TVariableType, class TValueType>
-  inline std::ostream & operator << (std::ostream & rOStream, const BossakMethod<TVariableType,TValueType>& rThis)
+  inline std::ostream & operator << (std::ostream & rOStream, const StaticMethod<TVariableType,TValueType>& rThis)
   {
     return rOStream << rThis.Info();
   }
@@ -324,4 +255,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_BOSSAK_METHOD defined
+#endif // KRATOS_STATIC_METHOD defined
