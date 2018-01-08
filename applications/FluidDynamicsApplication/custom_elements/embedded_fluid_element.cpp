@@ -90,22 +90,24 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
             data, rLeftHandSideMatrix, rRightHandSideVector);
     }
 
-    // Iterate over integration points on the boundary
-    const unsigned int number_of_interface_gauss_points =
-        data.PositiveInterfaceWeights.size();
-    for (unsigned int g = 0; g < number_of_interface_gauss_points; g++) {
-        data.UpdateGeometryValues(data.PositiveInterfaceWeights[g],
-            row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
-        this->AddBoundaryIntegral(data, data.PositiveInterfaceUnitNormals[g],
-            rLeftHandSideMatrix, rRightHandSideVector);
-    }
+    if ( data.IsCut() ) {
+        // Iterate over integration points on the boundary
+        const unsigned int number_of_interface_gauss_points =
+            data.PositiveInterfaceWeights.size();
+        for (unsigned int g = 0; g < number_of_interface_gauss_points; g++) {
+            data.UpdateGeometryValues(data.PositiveInterfaceWeights[g],
+                row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
+            this->AddBoundaryIntegral(data, data.PositiveInterfaceUnitNormals[g],
+                rLeftHandSideMatrix, rRightHandSideVector);
+        }
 
-    // First, compute and assemble the penalty level set BC imposition contribution
-    // Secondly, compute and assemble the modified Nitche method level set BC imposition contribution (Codina and Baiges, 2009)
-    // Note that the Nitche contribution has to be computed the last since it drops the outer nodes rows previous constributions
-    AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-    DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-    AddBoundaryConditionModifiedNitscheContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+        // First, compute and assemble the penalty level set BC imposition contribution
+        // Secondly, compute and assemble the modified Nitche method level set BC imposition contribution (Codina and Baiges, 2009)
+        // Note that the Nistche contribution has to be computed the last since it drops the outer nodes rows previous constributions
+        AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+        DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+        AddBoundaryConditionModifiedNitscheContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,7 +167,7 @@ void EmbeddedFluidElement<TBaseElement>::InitializeGeometryData(
         }
     }
 
-    if ( (rData.NumPositiveNodes > 0) && (rData.NumNegativeNodes > 0) ) {
+    if ( rData.IsCut() ) {
         this->DefineCutGeometryData(rData);
     }
     else {
