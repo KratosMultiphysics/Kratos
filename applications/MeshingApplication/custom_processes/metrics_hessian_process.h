@@ -211,9 +211,9 @@ private:
         
     Vector ComputeHessianMetricTensor(
         const Vector& Hessian,
-        const double& AnisotropicRatio,
-        const double& ElementMinSize, // This way we can impose as minimum as the previous size if we desire
-        const double& ElementMaxSize // This way we can impose as maximum as the previous size if we desire
+        const double AnisotropicRatio,
+        const double ElementMinSize, // This way we can impose as minimum as the previous size if we desire
+        const double ElementMaxSize // This way we can impose as maximum as the previous size if we desire
         );
     
     /**
@@ -234,13 +234,14 @@ private:
         
     /**
      * This calculates the anisotropic ratio
-     * @param distance: Distance parameter
+     * @param Distance: Distance parameter
+     * @param AnisotropicRatio: The anisotropic ratio
      */
     
     double CalculateAnisotropicRatio(
-        const double& distance,
-        const double& rAnisRatio,
-        const double& rBoundLayer,
+        const double Distance,
+        const double AnisRatio,
+        const double BoundLayer,
         const Interpolation& rInterpolation
         );
     

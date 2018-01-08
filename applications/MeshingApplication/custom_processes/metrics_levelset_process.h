@@ -206,8 +206,8 @@ private:
         
     Vector ComputeLevelSetMetricTensor(
         const array_1d<double, 3>& GradientValue,
-        const double& Ratio,
-        const double& ElementSize
+        const double Ratio,
+        const double ElementSize
         );
 
     
@@ -222,12 +222,13 @@ private:
     /**
      * This calculates the anisotropic ratio
      * @param Distance: Distance parameter
+     * @param AnisotropicRatio: The anisotropic ratio
      */
     
     double CalculateAnisotropicRatio(
-        const double& Distance,
-        const double& rAnisRatio,
-        const double& rBoundLayer,
+        const double Distance,
+        const double AnisRatio,
+        const double BoundLayer,
         const Interpolation& rInterpolation
         );
     
