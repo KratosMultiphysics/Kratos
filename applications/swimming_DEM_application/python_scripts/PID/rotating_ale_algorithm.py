@@ -4,7 +4,6 @@ from KratosMultiphysics.SwimmingDEMApplication import *
 from DEM_procedures import KratosPrint as Say
 import pre_calculated_fluid_algorithm
 BaseAlgorithm = pre_calculated_fluid_algorithm.Algorithm
-import h5py
 import numpy as np
 import math
 

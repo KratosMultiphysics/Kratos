@@ -5,7 +5,6 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import rotating_ale_algorithm
 
-import h5py
 import json
 
 import KratosSwimmingDEM as script
