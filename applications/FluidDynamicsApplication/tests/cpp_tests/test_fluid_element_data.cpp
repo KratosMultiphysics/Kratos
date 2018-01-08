@@ -359,6 +359,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
         i->Initialize(); // Initialize the element to initialize the constitutive law
         i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
+        std::cout << i->Info() << std::endl;
         KRATOS_WATCH(RHS);
     }
 /*
