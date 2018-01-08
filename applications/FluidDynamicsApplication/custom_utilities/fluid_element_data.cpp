@@ -66,7 +66,7 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistor
 {
     for (size_t i = 0; i < TNumNodes; i++) {
         const array_1d<double, 3>& r_nodal_values =
-            rGeometry[i].FastGetSolutionStepValue(rVariable);
+            rGeometry[i].FastGetSolutionStepValue(rVariable,Step);
         for (size_t j = 0; j < rData.size2(); j++) {
             rData(i, j) = r_nodal_values[j];
         }

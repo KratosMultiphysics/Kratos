@@ -339,21 +339,16 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
         }
     }
 
+    // RHS and LHS
+    Vector RHS = ZeroVector(9);
+    Matrix LHS = ZeroMatrix(9,9);
+
+    KRATOS_WATCH("**** NO CUTS ****");
+
+    // Test Uncut element
     p_element->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = 1.0;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = 1.0;
     p_element->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = 1.0;
-    /*p_element->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -1.0;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) =  0.5;
-    array_1d<double, 3> embedded_vel;
-    embedded_vel(0) = 1.0;
-    embedded_vel(1) = 2.0;
-    embedded_vel(2) = 0.0;
-    p_element->SetValue(EMBEDDED_VELOCITY, embedded_vel);*/
-
-    // Compute RHS and LHS
-    Vector RHS = ZeroVector(9);
-    Matrix LHS = ZeroMatrix(9,9);
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         i->Initialize(); // Initialize the element to initialize the constitutive law
@@ -362,21 +357,38 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
         std::cout << i->Info() << std::endl;
         KRATOS_WATCH(RHS);
     }
-/*
-    Element::Pointer p_element2 = model_part.pGetElement(2);
-    p_element2->Initialize(); // Initialize the element to initialize the constitutive law
-    p_element2->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
-    KRATOS_WATCH(RHS);
 
-    Element::Pointer p_element3 = model_part.pGetElement(3);
-    p_element3->Initialize(); // Initialize the element to initialize the constitutive law
-    p_element3->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
-    KRATOS_WATCH(RHS);
+    KRATOS_WATCH("**** CUTS ****");
 
-    Element::Pointer p_element4 = model_part.pGetElement(4);
-    p_element4->Initialize(); // Initialize the element to initialize the constitutive law
-    p_element4->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
-    KRATOS_WATCH(RHS);*/
+    // Test cut element
+    p_element->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
+    p_element->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -1.0;
+    p_element->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) =  0.5;
+    
+    for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
+        i->Initialize(); // Initialize the element to initialize the constitutive law
+        i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+
+        std::cout << i->Info() << std::endl;
+        KRATOS_WATCH(RHS);
+    }
+
+    KRATOS_WATCH("**** CUTS WITH EMBEDDED VELOCITY ****");
+
+    // Test cut element with embedded velocity
+    array_1d<double, 3> embedded_vel;
+    embedded_vel(0) = 1.0;
+    embedded_vel(1) = 2.0;
+    embedded_vel(2) = 0.0;
+    
+    for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
+        i->SetValue(EMBEDDED_VELOCITY, embedded_vel);
+        i->Initialize(); // Initialize the element to initialize the constitutive law
+        i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+
+        std::cout << i->Info() << std::endl;
+        KRATOS_WATCH(RHS);
+    }
 }
 
 }  // namespace Testing
