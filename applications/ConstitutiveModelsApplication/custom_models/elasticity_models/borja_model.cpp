@@ -94,10 +94,16 @@ namespace Kratos
       KRATOS_TRY
 
       // material parameters
-      double SwellingSlope = 0.016;
-      double AlphaShear = 23.5;
-      double ReferencePressure = 10.0;
-      double ConstantShearModulus = 400.0;
+
+      const ModelDataType & rModelData = rVariables.GetModelData();
+      const Properties    & rMaterialProperties = rModelData.GetMaterialProperties();
+
+      const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
+      const double & rAlphaShear = rMaterialProperties[ALPHA_SHEAR];
+      const double & rReferencePressure = rMaterialProperties[PRE_CONSOLIDATION_STRESS];
+      const double & rOCR = rMaterialProperties[OVER_CONSOLIDATION_RATIO];
+      const double ReferencePressure = rReferencePressure / rOCR;
+      const double & rConstantShearModulus = rMaterialProperties[INITIAL_SHEAR_MODULUS];
 
       const MatrixType& HenckyStrain = rVariables.Strain.Matrix;
 
@@ -109,11 +115,12 @@ namespace Kratos
       SeparateVolumetricAndDeviatoricPart( HenckyStrain, VolumetricHencky, DeviatoricHencky, deviatoricNorm);
 
       // 3.a Compute Deviatoric Part
-      double ShearModulus = AlphaShear * ReferencePressure * std::exp( -VolumetricHencky / SwellingSlope );
-      rStressMatrix += DeviatoricHencky * 2 * ( ShearModulus  + ConstantShearModulus );
+      rStressMatrix.clear();
+      double ShearModulus = rAlphaShear * ReferencePressure * std::exp( -VolumetricHencky / rSwellingSlope );
+      rStressMatrix += DeviatoricHencky * 2 * ( ShearModulus  + rConstantShearModulus );
 
       // 3.b Compute Volumetric Part
-      double pressure = -ReferencePressure * std::exp( -VolumetricHencky / SwellingSlope ) * ( 1 + AlphaShear * pow(deviatoricNorm, 2) / SwellingSlope);
+      double pressure = -ReferencePressure * std::exp( -VolumetricHencky / rSwellingSlope ) * ( 1 + rAlphaShear * pow(deviatoricNorm, 2) / rSwellingSlope);
 
       for (unsigned int i = 0; i< 3; i++)
          rStressMatrix(i,i) += pressure;
@@ -129,11 +136,17 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      // model paramters
-      double SwellingSlope = 0.016;
-      double AlphaShear = 23.5;
-      double ReferencePressure = 10.0;
-      double ConstantShearModulus = 400.0;
+      // material parameters
+
+      const ModelDataType & rModelData = rVariables.GetModelData();
+      const Properties    & rMaterialProperties = rModelData.GetMaterialProperties();
+
+      const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
+      const double & rAlphaShear = rMaterialProperties[ALPHA_SHEAR];
+      const double & rReferencePressure = rMaterialProperties[PRE_CONSOLIDATION_STRESS];
+      const double & rOCR = rMaterialProperties[OVER_CONSOLIDATION_RATIO];
+      const double ReferencePressure = rReferencePressure / rOCR;
+      const double & rConstantShearModulus = rMaterialProperties[INITIAL_SHEAR_MODULUS];
 
       // 1. Define some matrices
       Matrix FourthOrderIdentity = ZeroMatrix(6,6);
@@ -162,17 +175,17 @@ namespace Kratos
 
 
       // bulk modulus part
-      double pressure = -ReferencePressure * std::exp( -VolumetricHencky / SwellingSlope ) * ( 1 + AlphaShear * pow(deviatoricNorm, 2) / SwellingSlope);
-      rConstitutiveMatrix = (-pressure/SwellingSlope) * IdentityCross;
+      double pressure = -ReferencePressure * std::exp( -VolumetricHencky / rSwellingSlope ) * ( 1 + rAlphaShear * pow(deviatoricNorm, 2) / rSwellingSlope);
+      rConstitutiveMatrix = (-pressure/rSwellingSlope) * IdentityCross;
 
       // Shear modulus part
-      rConstitutiveMatrix += 2.0*( AlphaShear*ReferencePressure*std::exp(-VolumetricHencky/SwellingSlope) + ConstantShearModulus) *(FourthOrderIdentity - (1.0/3.0)*IdentityCross);
+      rConstitutiveMatrix += 2.0*( rAlphaShear*ReferencePressure*std::exp(-VolumetricHencky/rSwellingSlope) + rConstantShearModulus) *(FourthOrderIdentity - (1.0/3.0)*IdentityCross);
 
       // coupling part
       Vector StrainVector = ZeroVector(6);
       StrainVector = ConstitutiveModelUtilities::StressTensorToVector( DeviatoricHencky, StrainVector); // then I do not have to divide by 2
 
-      double Modulus = 2.0 * ReferencePressure * exp( - VolumetricHencky/SwellingSlope) * ( AlphaShear / SwellingSlope);
+      double Modulus = 2.0 * ReferencePressure * exp( - VolumetricHencky/rSwellingSlope) * ( rAlphaShear / rSwellingSlope);
 
       for (unsigned int i = 0; i<3; ++i) {
          for (unsigned int j = 0; j<3; ++j) {

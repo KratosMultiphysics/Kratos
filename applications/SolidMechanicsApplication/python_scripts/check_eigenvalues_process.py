@@ -25,13 +25,19 @@ class CheckEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.TestCas
         settings.ValidateAndAssignDefaults(default_settings)
 
         KratosMultiphysics.Process.__init__(self)
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model    = Model
+        self.settings = settings
         self.variable = getattr(SolidMechanicsApplication, settings["variable_name"].GetString())
         self.reference_values = []
         reference_values = settings["reference_values"].GetString()
         for ev in reference_values.strip('[]').split(','):
             self.reference_values.append(float(ev))
+            
 
+    def ExecuteInitialize(self):
+        self.model_part = self.model[self.settings["model_part_name"].GetString()]
+
+    
     def ExecuteFinalizeSolutionStep(self):
         current_values = [ev for ev in self.model_part.ProcessInfo[self.variable]]
         for evs in zip(current_values,self.reference_values):

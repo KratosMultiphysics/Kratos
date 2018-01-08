@@ -48,7 +48,7 @@ namespace Kratos
   {
   protected:
 
-    constexpr static std::size_t VarSize = 5;
+    constexpr static std::size_t VarSize = 3;
     
   public:
     

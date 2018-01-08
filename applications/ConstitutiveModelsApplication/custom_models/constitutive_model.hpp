@@ -107,6 +107,12 @@ namespace Kratos
     /**
      * Initialize member data
      */    
+    virtual void InitializeMaterial(const Properties& rMaterialProperties);
+
+    
+    /**
+     * Initialize member data
+     */    
     virtual void InitializeModel(ModelDataType& rValues);
 
     /**

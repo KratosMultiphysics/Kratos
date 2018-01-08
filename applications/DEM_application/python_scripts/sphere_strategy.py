@@ -6,7 +6,7 @@ import math
 import time
 import cluster_file_reader
 
-class ExplicitStrategy:
+class ExplicitStrategy(object):
 
     #def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):

@@ -1,15 +1,17 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-#import kratos core and applications
+
+# Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.mpi as KratosMPI
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication","MetisApplication","TrilinosApplication")
+
+# Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
-# MPI
-import KratosMultiphysics.mpi as mpi
-import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.MetisApplication as MetisApplication
+import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
 
 # Convergence criteria class
 class convergence_criterion:
@@ -25,9 +27,10 @@ class convergence_criterion:
         
         echo_level = convergence_criterion_parameters["echo_level"].GetInt()
         
-        if(echo_level >= 1):
-            print("::[Mechanical Solver]:: MPI CONVERGENCE CRITERION : ", convergence_crit)
-            
+        if(echo_level >= 1 and KratosMPI.mpi.rank == 0):
+            print("::[Mechanical Solver]:: MPI CONVERGENCE CRITERION : ", 
+                  convergence_criterion_parameters["convergence_criterion"].GetString())
+
         if(convergence_crit == "displacement_criterion"):
             self.mechanical_convergence_criterion = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT)
             self.mechanical_convergence_criterion.SetEchoLevel(echo_level)

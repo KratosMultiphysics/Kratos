@@ -17,7 +17,12 @@ class AssignVectorToConditionsProcess(BaseProcess.AssignModulusAndDirectionToCon
         BaseProcess.AssignModulusAndDirectionToConditionsProcess.__init__(self, Model, custom_settings)
 
     def ExecuteInitialize(self):
-
+        
+        # set model part
+        self.model_part = self.model[self.settings["model_part_name"].GetString()]
+        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
+            self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
+            
         if( self.IsInsideInterval() and self.interval_string == "initial" ):
             self.AssignValueToConditions()
             
@@ -46,8 +51,6 @@ class AssignVectorToConditionsProcess(BaseProcess.AssignModulusAndDirectionToCon
         elif( self.settings["interval"][1].IsDouble() or  self.settings["interval"][1].IsInt() ):
             self.interval.append(self.settings["interval"][1].GetDouble());
 
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
-            self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         self.interval_string = "custom"
         if( self.interval[0] == 0.0 and self.interval[1] == 0.0 ):

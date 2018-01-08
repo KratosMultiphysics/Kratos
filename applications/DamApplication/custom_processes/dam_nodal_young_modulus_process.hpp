@@ -103,7 +103,7 @@ class DamNodalYoungModulusProcess : public Process
                     it->Fix(var);
                 }
 
-                double Young = mYoung1 + (mYoung2 * it->Coordinate(1)) + (mYoung3 * it->Coordinate(2)) + (mYoung4 * it->Coordinate(3));
+                double Young = mYoung1 + (mYoung2 * it->X()) + (mYoung3 * it->Y()) + (mYoung4 * it->Z());
 
                 if (Young <= 0.0)
                 {
@@ -141,7 +141,7 @@ class DamNodalYoungModulusProcess : public Process
                     it->Fix(var);
                 }
 
-                double Young = mYoung1 + (mYoung2 * it->Coordinate(1)) + (mYoung3 * it->Coordinate(2)) + (mYoung4 * it->Coordinate(3));
+                double Young = mYoung1 + (mYoung2 * it->X()) + (mYoung3 * it->Y()) + (mYoung4 * it->Z());
 
                 if (Young <= 0.0)
                 {
