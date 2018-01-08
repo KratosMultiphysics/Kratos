@@ -22,6 +22,7 @@
 #include "includes/kratos_parameters.h"
 
 // Application includes
+#include "custom_utilities/co_simulation_io_utilities.h"
 
 namespace Kratos
 {
@@ -82,7 +83,7 @@ class CoSimulationBaseIo
     /// This is also for synchronizing between different solvers.
     virtual bool IsDataFieldAvailable(std::string iDataFieldName)
     {
-        return FileExists(iDataFieldName);
+        return CoSimulation_IsDataFieldAvailable(iDataFieldName.c_str());
     }
 
     bool MakeDataFieldAvailable(std::string iFileName)
