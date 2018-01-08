@@ -1418,7 +1418,7 @@ namespace Kratos
 	    //std::cout<<" Kij "<<Kij<<std::endl;
 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 	  }
       }
 
@@ -1481,7 +1481,7 @@ namespace Kratos
 	    Kij *= rIntegrationWeight;
 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 	    
 	  }
       }
@@ -1579,13 +1579,13 @@ namespace Kratos
 	    BeamMathUtilsType::VectorToSkewSymmetricTensor(StressResultants, SkewSymStressResultants);
 	    GabK = (-1) * (rVariables.DN_DX(i, 0) * rVariables.N[j]) * SkewSymStressResultants; 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( Kij, GabK, 0, 3 );
+	    BeamMathUtilsType::AddMatrix( Kij, GabK, 0, 3 );
 		
 	    //term 21
 	    noalias(GabK) = ZeroMatrix(3,3);
 	    GabK = (rVariables.N[i] * rVariables.DN_DX(j, 0) ) * SkewSymStressResultants;
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( Kij, GabK, 3, 0 );
+	    BeamMathUtilsType::AddMatrix( Kij, GabK, 3, 0 );
 	
 
 	    //term 22
@@ -1601,12 +1601,12 @@ namespace Kratos
 	    GabK -= ( rVariables.N[i] * rVariables.N[j]) * inner_prod( StressResultants, rVariables.CurrentAxisPositionDerivatives ) * DiagonalMatrix;
 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( Kij, GabK, 3, 3 );
+	    BeamMathUtilsType::AddMatrix( Kij, GabK, 3, 3 );
 
 	    Kij *= rIntegrationWeight;
 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 	    
 	  }
       }
@@ -1699,10 +1699,10 @@ namespace Kratos
 	    Lij =  rIntegrationWeight * rVariables.N[i] * rVariables.N[j] * SkewSymResultants;
 	    
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( Kij, Lij, 0, 3 );
+	    BeamMathUtilsType::AddMatrix( Kij, Lij, 0, 3 );
 	    	    
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 	    
 	  }
       }
@@ -1951,8 +1951,8 @@ namespace Kratos
 	    
 
 	    //Building the Local Tangent Inertia Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
 	    
 	  }
       }
@@ -2259,7 +2259,7 @@ namespace Kratos
     	LinearMomentumVector  += TotalMass * rVariables.N[i] * prod( DiagonalMatrix, CurrentLinearVelocityVector ) * rIntegrationWeight;	  
       }
     
-    AngularMomentumVector  =  MathUtils<double>::CrossProduct(CurrentPositionVector, LinearMomentumVector);
+    MathUtils<double>::CrossProduct(AngularMomentumVector, CurrentPositionVector, LinearMomentumVector);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -2268,7 +2268,7 @@ namespace Kratos
 
     //for only one integration point
     //LinearMomentumVector   = TotalMass * prod( DiagonalMatrix, CurrentLinearVelocityVector ) * rIntegrationWeight;
-    //AngularMomentumVector  = MathUtils<double>::CrossProduct(CurrentPositionVector, LinearMomentumVector);
+    //MathUtils<double>::CrossProduct(AngularMomentumVector, CurrentPositionVector, LinearMomentumVector);
     //AngularMomentumVector += prod( CurrentInertiaDyadic, CurrentAngularVelocityVector ) * rIntegrationWeight;
 
     // Note: 
@@ -2443,8 +2443,8 @@ namespace Kratos
 
 	
 	//Building the Local Tangent Inertia Matrix
-	MathUtils<double>::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
-	MathUtils<double>::AddMatrix( rMassMatrix, m22, RowIndex+3, RowIndex+3 );
+	BeamMathUtilsType::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
+	BeamMathUtilsType::AddMatrix( rMassMatrix, m22, RowIndex+3, RowIndex+3 );
 	
       }
  

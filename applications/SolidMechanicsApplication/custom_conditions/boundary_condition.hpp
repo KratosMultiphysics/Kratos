@@ -18,6 +18,7 @@
 #include "includes/checks.h"
 #include "includes/condition.h"
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
+#include "utilities/beam_math_utilities.hpp"
 
 namespace Kratos
 {

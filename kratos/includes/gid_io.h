@@ -576,7 +576,10 @@ public:
     void  CloseResultFile()
     {
         if ( mResultFileOpen )
+        {
             GiD_fClosePostResultFile( mResultFile );
+            mResultFileOpen = false;
+        }
     }
 
     /**
@@ -646,7 +649,7 @@ public:
             }
         }
 
-        if ( mWriteConditions == WriteConditions || mWriteConditions == WriteConditionsOnly )
+        if ( mWriteConditions == WriteConditionsFlag::WriteConditions || mWriteConditions == WriteConditionsOnly )
             for ( MeshType::ConditionsContainerType::iterator conditions_iterator =
                         rThisMesh.ConditionsBegin(); conditions_iterator
                     != rThisMesh.ConditionsEnd(); conditions_iterator++ )
@@ -1366,7 +1369,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                     if ( it->AddElement( element_iterator ) )
                         break;
         }
-        if ( mWriteConditions == WriteConditions || mWriteConditions == WriteConditionsOnly )
+        if ( mWriteConditions == WriteConditionsFlag::WriteConditions || mWriteConditions == WriteConditionsOnly )
 		{
             for ( MeshType::ConditionsContainerType::iterator conditions_iterator =
                         rThisMesh.ConditionsBegin();

@@ -810,6 +810,9 @@ namespace Kratos
 		rVariables.StrainVector_2D.resize(3);
 		rVariables.StressVector_2D.resize(3);
 		rVariables.ConstitutiveMatrix_2D.resize(3,3);
+		noalias( rVariables.StrainVector_2D ) = ZeroVector(3);
+		noalias( rVariables.StressVector_2D ) = ZeroVector(3);
+		noalias( rVariables.ConstitutiveMatrix_2D ) = ZeroMatrix(3,3);
 		
 		if(mNeedsOOPCondensation) // avoid useless allocations
 		{

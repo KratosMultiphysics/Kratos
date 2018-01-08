@@ -30,6 +30,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "includes/mat_variables.h"
+#include "custom_strategies/time_integration_methods/time_integration_method.hpp"
 #include "custom_utilities/shell_cross_section.hpp"
 
 namespace Kratos
@@ -38,6 +39,8 @@ namespace Kratos
   ///@{
   typedef array_1d<double,3> Vector3;
   typedef array_1d<double,6> Vector6;
+  typedef VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >   VariableComponentType;
+  typedef TimeIntegrationMethod<VariableComponentType, double>     TimeIntegrationMethodComponentType;
   ///@}
 
   ///@name Kratos Globals
@@ -52,6 +55,7 @@ namespace Kratos
 
 
   //for explicit schemes
+  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, TimeIntegrationMethodComponentType::Pointer, TIME_INTEGRATION_METHOD )       
   KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, MIDDLE_VELOCITY )
 
   //solution
@@ -99,7 +103,8 @@ namespace Kratos
     
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, PLANE_POINT_MOMENT )
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double ,PLANE_LINE_MOMENT )
-
+  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double ,BALLAST_COEFFICIENT )
+    
   //nodal elastic variables
   KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, POINT_STIFFNESS )
   KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, LINE_STIFFNESS )
@@ -124,6 +129,7 @@ namespace Kratos
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Vector, POINT_STIFFNESS_VECTOR )
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Vector, LINE_STIFFNESS_VECTOR )
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Vector, SURFACE_STIFFNESS_VECTOR )    
+  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Vector, BALLAST_COEFFICIENT_VECTOR )
     
   //element  
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, VON_MISES_STRESS )
