@@ -25,7 +25,6 @@
 
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
-#include "custom_utilities/vtk_output.hpp"
 
 //Processes
 #include "custom_processes/postprocess_eigenvalues_process.h"
@@ -48,9 +47,6 @@ void  AddCustomUtilitiesToPython()
     .def("Execute",&SprismNeighbours::Execute)
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
     ;
-
-    class_<VtkOutput, boost::noncopyable>("VtkOutput", init< ModelPart&, std::string, Parameters >())
-    .def("PrintOutput", &VtkOutput::PrintOutput);
 
     class_<ApplyPeriodicConditionProcess, boost::noncopyable, bases<Process>>("ApplyPeriodicConditionProcess", init<ModelPart&, Parameters>());
 
