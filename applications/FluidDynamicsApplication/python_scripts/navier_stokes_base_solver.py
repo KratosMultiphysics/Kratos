@@ -1,12 +1,13 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
+
+# Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-
-#import KratosMultiphysics.MeshingApplication as KratosMeshing
-
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
 
 def CreateSolver(main_model_part, custom_settings):
     return NavierStokesBaseSolver(main_model_part, custom_settings)

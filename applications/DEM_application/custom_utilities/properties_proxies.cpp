@@ -30,9 +30,13 @@ namespace Kratos {
     double* PropertiesProxy::pGetPoisson()                                                    { return  mPoisson;                           }
     void    PropertiesProxy::SetPoissonFromProperties(double* poisson)                        { mPoisson = poisson;                         }                    
             
-    double  PropertiesProxy::GetRollingFriction()                                             { return *mRollingFriction;                   }      
-    double* PropertiesProxy::pGetRollingFriction()                                            { return  mRollingFriction;                   }  
-    void    PropertiesProxy::SetRollingFrictionFromProperties(double* rolling_friction)       { mRollingFriction = rolling_friction;        }      
+    double  PropertiesProxy::GetRollingFriction()                                             { return *mRollingFriction;                   }
+    double* PropertiesProxy::pGetRollingFriction()                                            { return  mRollingFriction;                   }
+    void    PropertiesProxy::SetRollingFrictionFromProperties(double* rolling_friction)       { mRollingFriction = rolling_friction;        }
+    
+    double  PropertiesProxy::GetRollingFrictionWithWalls()                                    { return *mRollingFrictionWithWalls;          }
+    double* PropertiesProxy::pGetRollingFrictionWithWalls()                                   { return  mRollingFrictionWithWalls;          }
+    void    PropertiesProxy::SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls) { mRollingFrictionWithWalls = rolling_friction_with_walls; }
       
     double  PropertiesProxy::GetTgOfFrictionAngle()                                           { return *mTgOfFrictionAngle;                 } 
     double* PropertiesProxy::pGetTgOfFrictionAngle()                                          { return  mTgOfFrictionAngle;                 } 
@@ -40,7 +44,7 @@ namespace Kratos {
       
     double  PropertiesProxy::GetCoefficientOfRestitution()                                    { return *mCoefficientOfRestitution;          } 
     double* PropertiesProxy::pGetCoefficientOfRestitution()                                   { return  mCoefficientOfRestitution;          } 
-    void    PropertiesProxy::SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution)     { mCoefficientOfRestitution = coefficient_of_restitution;      }  
+    void    PropertiesProxy::SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution) { mCoefficientOfRestitution = coefficient_of_restitution;      }  
     
     double  PropertiesProxy::GetLnOfRestitCoeff()                                             { return *mLnOfRestitCoeff;                   } 
     double* PropertiesProxy::pGetLnOfRestitCoeff()                                            { return  mLnOfRestitCoeff;                   } 
@@ -97,6 +101,7 @@ namespace Kratos {
         mYoung                    = props.pGetYoung();
         mPoisson                  = props.pGetPoisson();
         mRollingFriction          = props.pGetRollingFriction();
+        mRollingFrictionWithWalls = props.pGetRollingFrictionWithWalls();
         mTgOfFrictionAngle        = props.pGetTgOfFrictionAngle();
         mCoefficientOfRestitution = props.pGetCoefficientOfRestitution();
         mLnOfRestitCoeff          = props.pGetLnOfRestitCoeff();
@@ -155,7 +160,10 @@ namespace Kratos {
                                           
             aux_pointer = &( props_it->GetValue(ROLLING_FRICTION) );
             vector_of_proxies[properties_counter].SetRollingFrictionFromProperties(aux_pointer);
-              
+            
+            aux_pointer = &( props_it->GetValue(ROLLING_FRICTION_WITH_WALLS) );
+            vector_of_proxies[properties_counter].SetRollingFrictionWithWallsFromProperties(aux_pointer);
+
             //MA: I commented out the following part because the Initialization of the Proxies is done before the initialization of the inlet (where ProcessInfo for that ModelPart is set)
             /*if ( rModelPart.GetProcessInfo()[ROLLING_FRICTION_OPTION] )  {
             aux_pointer = &( props_it->GetValue(ROLLING_FRICTION) );

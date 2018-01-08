@@ -189,6 +189,8 @@ virtual double GetYoung();
 void   SetYoungFromProperties(double* young);
 virtual double GetRollingFriction();
 void   SetRollingFrictionFromProperties(double* rolling_friction);
+virtual double GetRollingFrictionWithWalls();
+void   SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls);
 virtual double GetPoisson();
 void   SetPoissonFromProperties(double* poisson);
 virtual double GetTgOfFrictionAngle();
@@ -228,6 +230,7 @@ void   SetFastProperties(std::vector<PropertiesProxy>& list_of_proxies);
 
 double SlowGetYoung();
 double SlowGetRollingFriction();
+double SlowGetRollingFrictionWithWalls();
 double SlowGetPoisson();
 double SlowGetTgOfFrictionAngle();
 double SlowGetCoefficientOfRestitution();

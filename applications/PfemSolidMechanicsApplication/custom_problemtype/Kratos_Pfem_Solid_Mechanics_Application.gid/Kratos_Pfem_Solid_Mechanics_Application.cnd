@@ -477,7 +477,23 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
+CONDITION: surface_UpdatedLagrangianUWwPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
 CONDITION: surface_UpdatedLagrangianUWElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_AxisymUpdatedLagrangianUJElement2D3N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over body elements
 QUESTION: Automatic
@@ -551,22 +567,6 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
-CONDITION: surface_UpdatedLagrangianUPStabElement2D3N
-CONDTYPE: over surfaces
-CONDMESHTYPE: over body elements
-QUESTION: Automatic
-VALUE: 0
-STATE: HIDDEN
-END CONDITION
-
-CONDITION: surface_AxisymUpdatedLagrangianUPStabElement2D3N
-CONDTYPE: over surfaces
-CONDMESHTYPE: over body elements
-QUESTION: Automatic
-VALUE: 0
-STATE: HIDDEN
-END CONDITION
-
 CONDITION: volume_UpdatedLagrangianUPElement3D4N
 CONDTYPE: over volumes
 CONDMESHTYPE: over body elements
@@ -598,7 +598,7 @@ QUESTION: Remesh#CB#(False,True)
 VALUE: False
 DEPENDENCIES:(True,RESTORE,MeshingElement,#CURRENT#,RESTORE,Constrained,#CURRENT#,RESTORE,MeshSmoothing,#CURRENT#,RESTORE,JacobiSmoothing,#CURRENT#,RESTORE,Meshing_Frequency,#CURRENT#,RESTORE,Refine,#CURRENT#)
 DEPENDENCIES:(False,HIDE,MeshingElement,#CURRENT#,HIDE,Constrained,#CURRENT#,HIDE,MeshSmoothing,#CURRENT#,HIDE,JacobiSmoothing,#CURRENT#,HIDE,Meshing_Frequency,#CURRENT#,HIDE,Refine,False)
-QUESTION: MeshingElement#CB#(UpdatedLagrangianElement2D3N,UpdatedLagrangianUPElement2D3N,AxisymUpdatedLagrangianElement2D3N,AxisymUpdatedLagrangianUPElement2D3N,UpdatedLagrangianUwPElement2D3N,UpdatedLagrangianUwPStabElement2D3N,AxisymUpdatedLagrangianUwPElement2D3N,UpdatedLagrangianUPStabElement2D3N,AxisymUpdatedLagrangianUPStabElement2D3N,AxisymUpdatedLagrangianUJwPElement2D3N,UpdatedLagrangianElement3D4N,UpdatedLagrangianUPElement3D4N)
+QUESTION: MeshingElement#CB#(UpdatedLagrangianElement2D3N,UpdatedLagrangianUPElement2D3N,AxisymUpdatedLagrangianElement2D3N,AxisymUpdatedLagrangianUPElement2D3N,UpdatedLagrangianUwPElement2D3N,UpdatedLagrangianUwPStabElement2D3N,AxisymUpdatedLagrangianUwPElement2D3N,AxisymUpdatedLagrangianUJwPElement2D3N,UpdatedLagrangianElement3D4N,UpdatedLagrangianUPElement3D4N)
 VALUE: UpdatedLagrangianUPElement2D3N
 QUESTION: Constrained#CB#(False,True)
 VALUE: True

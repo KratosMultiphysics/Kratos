@@ -42,6 +42,8 @@ THE SOFTWARE.
 #include <thrust/device_vector.h>
 #include <thrust/fill.h>
 #include <thrust/copy.h>
+#include <thrust/gather.h>
+#include <thrust/scatter.h>
 #include <thrust/for_each.h>
 #include <thrust/inner_product.h>
 #include <cusparse_v2.h>
@@ -315,6 +317,36 @@ struct cuda {
     {
         return boost::make_shared<direct_solver>(A, prm);
     }
+
+    struct gather {
+        thrust::device_vector<ptrdiff_t>  I;
+        mutable thrust::device_vector<value_type> T;
+
+        gather(size_t src_size, const std::vector<ptrdiff_t> &I, const params&)
+            : I(I), T(I.size())
+        { }
+
+        void operator()(const vector &src, vector &dst) const {
+            thrust::gather(I.begin(), I.end(), src.begin(), dst.begin());
+        }
+
+        void operator()(const vector &vec, std::vector<value_type> &vals) const {
+            thrust::gather(I.begin(), I.end(), vec.begin(), T.begin());
+            thrust::copy(T.begin(), T.end(), vals.begin());
+        }
+    };
+
+    struct scatter {
+        thrust::device_vector<ptrdiff_t>  I;
+
+        scatter(size_t size, const std::vector<ptrdiff_t> &I, const params &)
+            : I(I)
+        { }
+
+        void operator()(const vector &src, vector &dst) const {
+            thrust::scatter(src.begin(), src.end(), I.begin(), dst.begin());
+        }
+    };
 };
 
 //---------------------------------------------------------------------------
@@ -398,6 +430,17 @@ struct copy_impl<
     static void apply(const vector &x, vector &y)
     {
         thrust::copy(x.begin(), x.end(), y.begin());
+    }
+};
+
+template < typename V >
+struct copy_to_backend_impl<
+    thrust::device_vector<V>
+    >
+{
+    static void apply(const std::vector<V> &data, thrust::device_vector<V> &x)
+    {
+        thrust::copy(data.begin(), data.end(), x.begin());
     }
 };
 

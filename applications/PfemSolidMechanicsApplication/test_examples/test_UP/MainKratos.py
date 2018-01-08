@@ -49,7 +49,7 @@ import KratosMultiphysics
 from KratosMultiphysics.ConstitutiveModelsApplication import *
 import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication    as KratosSolvers
-import KratosMultiphysics.PfemApplication           as KratosPfemBase
+import KratosMultiphysics.PfemApplication               as KratosPfemBase
 import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
 import KratosMultiphysics.PfemFluidDynamicsApplication  as KratosPfemFluid

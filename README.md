@@ -4,6 +4,27 @@
 
 _Kratos_ is a framework for building multi-disciplinary finite element programs. It provides several tools for fast implementation of finite element applications. CFD, CSD, Thermally Coupled Problems, Particles, ...
 
+[![Release][release-image]][releases]
+[![License][license-image]][license]
+
+[release-image]: https://img.shields.io/badge/release-5.2-green.svg?style=flat
+[releases]: https://github.com/KratosMultiphysics/Kratos/releases
+
+[license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
+[license]: https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt
+
+Build Status <img src="https://blog.travis-ci.com/images/travis-mascot-200px.png" height="30"/>
+------------
+
+| Master | Release-5.2|
+|:------:|:----:|
+|[![Master][kratos-master-status]][travis-branches]|[![Release-5.2][kratos-Release-5.2-status]][travis-branches]|
+
+[kratos-Release-5.2-status]: https://travis-ci.org/KratosMultiphysics/Kratos.svg?branch=Release-5.2
+[kratos-master-status]: https://travis-ci.org/KratosMultiphysics/Kratos.svg?branch=master
+[travis-branches]: https://travis-ci.org/KratosMultiphysics/Kratos/branches
+[travis-builds]: https://travis-ci.org/KratosMultiphysics/Kratos/builds
+
 # What is _Kratos_?
 
 _Kratos_ is a framework for building multi-disciplinary finite element programs. It provides several tools for easy implementation of finite element applications and a common platform providing effortless interaction between them. _Kratos_ has an innovative variable base interface designed to be used at different levels of abstraction and implemented to be very clear and extendible. It also provides an efficient yet flexible data structure which can be used to store any type of data in a type-safe manner. The [Python](http://www.python.org/) scripting language is used to define the main procedure of _Kratos_ which significantly improves the flexibility of the framework in time of use.

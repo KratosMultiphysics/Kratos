@@ -117,7 +117,6 @@ def AddVariables(model_part):
     # ROTATION RELATED PROPERTIES
     model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
-    model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
 
     # OTHER PROPERTIES
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD

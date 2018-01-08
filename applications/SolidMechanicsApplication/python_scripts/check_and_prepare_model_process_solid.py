@@ -112,7 +112,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             processes_parts.append(self.main_model_part.GetSubModelPart(self.processes_model_part_names[i].GetString()))
         
         #construct a model part which contains the mesh to compute
-        self.main_model_part.CreateSubModelPart(self.computing_model_part_name)
+        #self.main_model_part.CreateSubModelPart(self.computing_model_part_name)
         
         computing_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name)
         computing_model_part.ProcessInfo = self.main_model_part.ProcessInfo

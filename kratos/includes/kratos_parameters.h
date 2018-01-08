@@ -501,7 +501,8 @@ public:
             if(itr->value.IsArray() && value_defaults->IsArray()) type_coincides = true;
             if(itr->value.IsString() && value_defaults->IsString()) type_coincides = true;
             if(itr->value.IsObject() && value_defaults->IsObject()) type_coincides = true;
-
+            if(itr->value.IsNull() && value_defaults->IsNull()) type_coincides = true;
+            
             if(type_coincides == false)
             {
                 std::stringstream msg;
@@ -579,6 +580,7 @@ public:
             if(itr->value.IsArray() && value_defaults->IsArray()) type_coincides = true;
             if(itr->value.IsString() && value_defaults->IsString()) type_coincides = true;
             if(itr->value.IsObject() && value_defaults->IsObject()) type_coincides = true;
+            if(itr->value.IsNull() && value_defaults->IsNull()) type_coincides = true;
 
             if(type_coincides == false)
             {
