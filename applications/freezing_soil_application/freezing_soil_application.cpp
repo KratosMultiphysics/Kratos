@@ -93,6 +93,7 @@ KRATOS_CREATE_VARIABLE( double, LOG_EQUIVALENT_VOLUMETRIC_STRESS )
 KRATOS_CREATE_VARIABLE( Vector, ELEMENT_PARAMETERS ) 
 
 KratosFreezingSoilApplication::KratosFreezingSoilApplication():
+        KratosApplication("FreezingSoilApplication"),
 
 // ELEMENT
         mSoil2PhaseRigid3D4N(0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType(4, Node<3>())))),
@@ -106,7 +107,7 @@ KratosFreezingSoilApplication::KratosFreezingSoilApplication():
         mSoil3Phase3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27 <Node<3> > (Element::GeometryType::PointsArrayType(27, Node<3>())))),
 
         mFreezingSoil3D4N(0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType(4, Node<3>())))),
-	mFreezingSoil3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>())))),
+        mFreezingSoil3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>())))),
         mFreezingSoil3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8 <Node<3> > (Element::GeometryType::PointsArrayType(8, Node<3>())))),
         mFreezingSoil3D20N(0, Element::GeometryType::Pointer(new Hexahedra3D20 <Node<3> > (Element::GeometryType::PointsArrayType(20, Node<3>())))),
         mFreezingSoil3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27 <Node<3> > (Element::GeometryType::PointsArrayType(27, Node<3>())))),
@@ -140,7 +141,6 @@ KratosFreezingSoilApplication::KratosFreezingSoilApplication():
         mFaceLoadPressure3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
         mFaceLoadPressure3D8N(0, Element::GeometryType::Pointer(new Quadrilateral3D8 <Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>())))),
         mFaceLoadPressure3D9N(0, Element::GeometryType::Pointer(new Quadrilateral3D9 <Node<3> >(Element::GeometryType::PointsArrayType(9, Node<3>()))))
-
 {}
 //
 void KratosFreezingSoilApplication::Register()

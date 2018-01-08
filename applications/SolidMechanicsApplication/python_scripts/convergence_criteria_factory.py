@@ -28,7 +28,7 @@ class convergence_criterion:
         R_AT = convergence_criterion_parameters["residual_absolute_tolerance"].GetDouble()
         
         echo_level = convergence_criterion_parameters["echo_level"].GetInt()
-        
+
         if(echo_level >= 1):
             print("::[Mechanical_Solver]:: Convergence criterion [", convergence_criterion_parameters["convergence_criterion"].GetString(),"]")
 

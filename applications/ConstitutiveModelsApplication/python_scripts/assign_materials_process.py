@@ -89,7 +89,7 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
 
         splitted_law_name = (self.settings["constitutive_law"]["name"].GetString()).split(".")
         
-        print("::[Material_Assigned]::", self.material_name," [",splitted_law_name[len(splitted_law_name)-1],"]")
+        print("::[Material]:: -"+self.material_name+"- [Model: "+splitted_law_name[len(splitted_law_name)-1]+"]")
         
     #
     def ExecuteFinalize(self):
@@ -103,7 +103,12 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         self.dimension = self.model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         
         if(self.material_law.WorkingSpaceDimension() != self.dimension):
-            raise Exception( "mismatch between the ConstitutiveLaw dimension and the dimension of the space")
+            #feature flags
+            self.features =KratosMultiphysics.ConstitutiveLawFeatures()
+            self.material_law.GetLawFeatures(self.features)
+            self.feature_options = self.features.GetOptions()
+            if( self.feature_options.IsNot(KratosMultiphysics.ConstitutiveLaw.PLANE_STRESS_LAW) ):
+                raise Exception("mismatch between the ConstitutiveLaw dimension and the dimension of the space")
  
         
         # Assign properties to the model_part elements

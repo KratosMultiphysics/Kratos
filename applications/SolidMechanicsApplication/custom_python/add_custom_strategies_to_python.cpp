@@ -18,7 +18,6 @@
 #include "includes/define.h"
 #include "containers/flags.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-
 #include "spaces/ublas_space.h"
 
 //strategies
@@ -41,6 +40,7 @@
 #include "custom_strategies/convergence_criteria/component_wise_residual_convergence_criterion.hpp"
 
 //schemes
+#include "custom_strategies/schemes/residual_based_displacement_bossak_scheme.hpp"
 #include "custom_strategies/schemes/component_wise_bossak_scheme.hpp"
 #include "custom_strategies/schemes/eigensolver_dynamic_scheme.hpp" 
  
@@ -49,6 +49,10 @@
 #include "custom_strategies/schemes/residual_based_rotation_simo_scheme.hpp"
 #include "custom_strategies/schemes/residual_based_rotation_emc_scheme.hpp"
 #include "custom_strategies/schemes/explicit_hamilton_scheme.hpp"
+
+#include "custom_strategies/schemes/residual_based_displacement_rotation_static_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_displacement_rotation_emc_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_displacement_simo_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -98,10 +102,45 @@ namespace Kratos
       typedef ExplicitHamiltonScheme< SparseSpaceType, LocalSpaceType >  ExplicitHamiltonSchemeType;
       typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
 
+      typedef ResidualBasedDisplacementStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementStaticSchemeType;     
+      typedef ResidualBasedDisplacementRotationStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementRotationStaticSchemeType;
+      
+      typedef ResidualBasedDisplacementNewmarkScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementNewmarkSchemeType;     
+      typedef ResidualBasedDisplacementRotationNewmarkScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementRotationNewmarkSchemeType;
+      
+      typedef ResidualBasedDisplacementBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementBossakSchemeType;
+      typedef ResidualBasedDisplacementRotationBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementRotationBossakSchemeType;
+
+      typedef ResidualBasedDisplacementSimoScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementSimoSchemeType;
+
+      typedef ResidualBasedDisplacementRotationSimoScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementRotationSimoSchemeType;
+      typedef ResidualBasedDisplacementRotationEmcScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementRotationEmcSchemeType;
+      
       //custom convergence criterion types
       typedef DisplacementConvergenceCriterion< SparseSpaceType,  LocalSpaceType > DisplacementConvergenceCriterionType;
       typedef ComponentWiseResidualConvergenceCriterion< SparseSpaceType,  LocalSpaceType > ComponentWiseResidualConvergenceCriterionType;
 
+
+      //custom integration methods by components
+      typedef VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >  ComponentType;
+      typedef TimeIntegrationMethod<ComponentType, double>  IntegrationMethodType;
+      typedef StaticMethod<ComponentType, double>  StaticMethodType;
+      typedef NewmarkMethod<ComponentType, double>  NewmarkMethodType;
+      typedef BossakMethod<ComponentType, double>  BossakMethodType;
+      typedef SimoMethod<ComponentType, double>  SimoMethodType;
+
+      typedef StaticStepMethod<ComponentType, double>  StaticStepMethodType;	    
+      typedef NewmarkStepMethod<ComponentType, double>  NewmarkStepMethodType;
+      typedef BossakStepMethod<ComponentType, double>  BossakStepMethodType;
+      typedef SimoStepMethod<ComponentType, double>  SimoStepMethodType;
+      typedef EmcStepMethod<ComponentType, double>  EmcStepMethodType;    
+
+      typedef StaticStepRotationMethod<ComponentType, double>  StaticStepRotationMethodType;
+      typedef NewmarkStepRotationMethod<ComponentType, double>  NewmarkStepRotationMethodType;
+      typedef BossakStepRotationMethod<ComponentType, double>  BossakStepRotationMethodType;
+      typedef SimoStepRotationMethod<ComponentType, double>  SimoStepRotationMethodType;
+      typedef EmcStepRotationMethod<ComponentType, double>  EmcStepRotationMethodType;
+      
       //********************************************************************
       //*************************STRATEGY CLASSES***************************
       //********************************************************************
@@ -214,7 +253,6 @@ namespace Kratos
       //*************************SHCHEME CLASSES****************************
       //********************************************************************
 
-
       // Component Wise Bossak Scheme Type
       class_< ComponentWiseBossakSchemeType,
 	      bases< BaseSchemeType >,  boost::noncopyable >
@@ -269,7 +307,80 @@ namespace Kratos
 	
 	.def("Initialize", &ExplicitHamiltonScheme<SparseSpaceType, LocalSpaceType>::Initialize)
 	;
+
+
+      // Residual Based Displacement Static Scheme Type
+      class_< ResidualBasedDisplacementStaticSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementStaticScheme", init<>() )
+      	.def("Initialize", &ResidualBasedDisplacementStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
+	    
+      // Residual Based Displacement Rotation Static Scheme Type
+      class_< ResidualBasedDisplacementRotationStaticSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementRotationStaticScheme", init<>() )
+      	.def("Initialize", &ResidualBasedDisplacementRotationStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
+
+      // Residual Based Displacement Newmark Scheme Type
+      class_< ResidualBasedDisplacementNewmarkSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementNewmarkScheme", init<>() )
+      	.def("Initialize", &ResidualBasedDisplacementNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
+	    
+      // Residual Based Displacement Rotation Newmark Scheme Type
+      class_< ResidualBasedDisplacementRotationNewmarkSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementRotationNewmarkScheme", init<>() )
+      	.def("Initialize", &ResidualBasedDisplacementRotationNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
       
+      // Residual Based Displacement Bossak Scheme Type
+      class_< ResidualBasedDisplacementBossakSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementBossakScheme", init<>() )
+      	.def("Initialize", &ResidualBasedDisplacementBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
+      
+      // Residual Based Displacement Rotation Bossak Scheme Type
+      class_< ResidualBasedDisplacementRotationBossakSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementRotationBossakScheme", init<>() )
+      	.def("Initialize", &ResidualBasedDisplacementRotationBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
+
+      // Residual Based Displacement Simo Scheme Type
+      class_< ResidualBasedDisplacementSimoSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementSimoScheme", init<>() )
+      	.def("Initialize", &ResidualBasedDisplacementSimoScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
+
+      // Residual Based Displacement Rotation Simo Scheme Type
+      class_< ResidualBasedDisplacementRotationSimoSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementRotationSimoScheme", init<>() )
+      	.def("Initialize", &ResidualBasedDisplacementRotationSimoScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
+      
+      // Residual Based Displacement Rotation Emc Scheme Type
+      class_< ResidualBasedDisplacementRotationEmcSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "ResidualBasedDisplacementRotationEmcScheme", init<>() )
+      	.def("Initialize", &ResidualBasedDisplacementRotationEmcScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
+
       //********************************************************************
       //*******************CONVERGENCE CRITERIA CLASSES*********************
       //********************************************************************
@@ -280,7 +391,6 @@ namespace Kratos
 	(
 	 "DisplacementConvergenceCriterion", 
 	 init<double, double >())
-	.def(init<double, double >())
 	.def("SetEchoLevel", &DisplacementConvergenceCriterionType::SetEchoLevel)
 	;
 
@@ -291,7 +401,6 @@ namespace Kratos
 	(
 	 "ComponentWiseResidualConvergenceCriterion", 
 	 init<double, double >())
-	.def(init<double, double >())
 	.def("SetEchoLevel", &ComponentWiseResidualConvergenceCriterionType::SetEchoLevel)
 	;
 
@@ -303,6 +412,118 @@ namespace Kratos
 	 "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
 	;
 
+
+
+      //********************************************************************
+      //*******************TIME INTEGRATION METHODS*************************
+      //********************************************************************
+
+      //Time Integration Method   
+      class_< IntegrationMethodType, IntegrationMethodType::Pointer, boost::noncopyable >
+      	(
+      	 "TimeIntegrationMethod", init<>())
+	.def("SetVariable", &IntegrationMethodType::SetVariable)
+	.def("SetFirstDerivative", &IntegrationMethodType::SetFirstDerivative)
+	.def("SetSecondDerivative", &IntegrationMethodType::SetSecondDerivative)
+      	.def("SetVariables", &IntegrationMethodType::SetVariables)
+      	.def("SetInputVariable", &IntegrationMethodType::SetInputVariable)
+	.def("HasStepVariable", &IntegrationMethodType::HasStepVariable)
+	.def("SetStepVariable", &IntegrationMethodType::SetStepVariable)
+      	.def("SetParameters", &IntegrationMethodType::SetParameters)
+      	.def("Predict", &IntegrationMethodType::Predict)
+	.def(self_ns::str(self))
+	DECLARE_HAS_THIS_TYPE_PROCESS_INFO_PYTHON_AS_POINTER(IntegrationMethodType)
+	DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO_PYTHON_AS_POINTER(IntegrationMethodType)
+	DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO_PYTHON_AS_POINTER(IntegrationMethodType)
+      	;
+
+      //to define it as a variable 
+      class_<Variable<IntegrationMethodType::Pointer> , bases<VariableData>, boost::noncopyable >("TimeIntegrationMethodVariable", no_init)
+	;
+
+      class_< StaticMethodType, StaticMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "StaticMethod", init<>())
+       	;
+      
+      class_< NewmarkMethodType, NewmarkMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "NewmarkMethod", init<>())
+       	;
+
+      class_< BossakMethodType, BossakMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "BossakMethod", init<>())
+      	;
+      
+      class_< SimoMethodType, SimoMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "SimoMethod", init<>())
+      	;
+      
+      class_< StaticStepMethodType, StaticStepMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "StaticStepMethod", init<>())
+     	;
+
+      class_< NewmarkStepMethodType, NewmarkStepMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "NewmarkStepMethod", init<>())
+      	;
+
+      class_< BossakStepMethodType, BossakStepMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "BossakStepMethod", init<>())
+      	;
+
+      class_< SimoStepMethodType, SimoStepMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "SimoStepMethod", init<>())
+      	;
+      
+       class_< EmcStepMethodType, EmcStepMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "EmcStepMethod", init<>())
+      	;
+
+       class_< StaticStepRotationMethodType, StaticStepRotationMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "StaticStepRotationMethod", init<>())
+      	;
+
+       class_< NewmarkStepRotationMethodType, NewmarkStepRotationMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "NewmarkStepRotationMethod", init<>())
+      	;
+
+       class_< BossakStepRotationMethodType, BossakStepRotationMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "BossakStepRotationMethod", init<>())
+      	;
+
+       class_< SimoStepRotationMethodType, SimoStepRotationMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "SimoStepRotationMethod", init<>())
+       	;
+
+       class_< EmcStepRotationMethodType, EmcStepRotationMethodType::Pointer,
+      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	(
+      	 "EmcStepRotationMethod", init<>())
+      	;
     }
 
   }  // namespace Python.

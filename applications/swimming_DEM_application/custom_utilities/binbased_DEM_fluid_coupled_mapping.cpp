@@ -122,7 +122,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeFl
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
-void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeVelocityOnDEMFromField(
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeVelocityOnDEMFromFieldToSlipVelocity(
     FluidFieldUtility& r_flow,
     ModelPart& r_dem_model_part)
 {
@@ -135,7 +135,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeVe
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
-void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::InterpolateVelocity(
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::InterpolateVelocityOnSlipVelocity(
     ModelPart& r_fluid_model_part,
     ModelPart& r_dem_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid)

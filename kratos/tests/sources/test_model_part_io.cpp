@@ -13,9 +13,7 @@
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "testing/testing.h"
@@ -23,14 +21,13 @@
 #include "includes/kratos_application.h"
 #include "includes/kernel.h"
 
-
 namespace Kratos {
-	namespace Testing {
+namespace Testing {
 
-		KRATOS_TEST_CASE_IN_SUITE(ModelPartIOSubModelPartsDivision, KratosCoreFastSuite)
-		{
-			boost::shared_ptr<std::iostream> p_input(new std::stringstream(
-				R"input(
+KRATOS_TEST_CASE_IN_SUITE(
+    ModelPartIOSubModelPartsDivision, KratosCoreFastSuite) {
+    boost::shared_ptr<std::iostream> p_input(new std::stringstream(
+        R"input(
 				Begin ModelPartData
                                  DENSITY 2700.000000
 				 BODY_FORCE [3] (0.000000,0.000000,0.000000)
@@ -94,81 +91,82 @@ namespace Kratos {
                                 End SubModelPart
 			)input"));
 
-			Kernel kernel;
-			KratosApplication application;
-			application.Register();
-			kernel.Initialize();
+    Kernel kernel;
+    KratosApplication application(std::string("Kratos"));
+    application.Register();
+    kernel.Initialize();
 
-			ModelPartIO model_part_io(p_input);
+    ModelPartIO model_part_io(p_input);
 
-			boost::shared_ptr<std::stringstream> p_output_0(new std::stringstream);
-			boost::shared_ptr<std::stringstream> p_output_1(new std::stringstream);
-			boost::shared_ptr<std::iostream> streams[2] = { p_output_0, p_output_1 };
+    boost::shared_ptr<std::stringstream> p_output_0(new std::stringstream);
+    boost::shared_ptr<std::stringstream> p_output_1(new std::stringstream);
+    boost::shared_ptr<std::iostream> streams[2] = {p_output_0, p_output_1};
 
-			std::size_t number_of_partitions = 2;
-			std::size_t number_of_colors = 1;
-			IO::GraphType domains_colored_graph(number_of_partitions, number_of_colors);
-			domains_colored_graph(0, 0) = 1;
-			domains_colored_graph(1, 0) = 0;
-			IO::PartitionIndicesType nodes_partitions = { 0,0,1,1 };
-			IO::PartitionIndicesType elements_partitions = { 0,1 };
-			IO::PartitionIndicesType conditions_partitions = { 0,1 };
-			IO::PartitionIndicesContainerType nodes_all_partitions = { { 0 },{ 0,1 },{ 1 },{ 0,1 } };
-			IO::PartitionIndicesContainerType elements_all_partitions = { { 0 },{ 1 } };
-			IO::PartitionIndicesContainerType conditions_all_partitions = { { 0 },{ 1 } };
+    std::size_t number_of_partitions = 2;
+    std::size_t number_of_colors = 1;
+    IO::GraphType domains_colored_graph(number_of_partitions, number_of_colors);
+    domains_colored_graph(0, 0) = 1;
+    domains_colored_graph(1, 0) = 0;
+    IO::PartitionIndicesType nodes_partitions = {0, 0, 1, 1};
+    IO::PartitionIndicesType elements_partitions = {0, 1};
+    IO::PartitionIndicesType conditions_partitions = {0, 1};
+    IO::PartitionIndicesContainerType nodes_all_partitions = {
+        {0}, {0, 1}, {1}, {0, 1}};
+    IO::PartitionIndicesContainerType elements_all_partitions = {{0}, {1}};
+    IO::PartitionIndicesContainerType conditions_all_partitions = {{0}, {1}};
 
-			model_part_io.DivideInputToPartitions(streams, number_of_partitions, domains_colored_graph,
-				nodes_partitions,
-				elements_partitions,
-				conditions_partitions,
-				nodes_all_partitions,
-				elements_all_partitions,
-				conditions_all_partitions);
+    model_part_io.DivideInputToPartitions(streams, number_of_partitions,
+        domains_colored_graph, nodes_partitions, elements_partitions,
+        conditions_partitions, nodes_all_partitions, elements_all_partitions,
+        conditions_all_partitions);
 
-			ModelPart model_part_0("Partition 0");
-			model_part_0.AddNodalSolutionStepVariable(DISPLACEMENT);
-			model_part_0.AddNodalSolutionStepVariable(FORCE);
-			model_part_0.AddNodalSolutionStepVariable(PARTITION_INDEX);
-			model_part_0.GetCommunicator().SetNumberOfColors(number_of_colors);
+    ModelPart model_part_0("Partition 0");
+    model_part_0.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part_0.AddNodalSolutionStepVariable(FORCE);
+    model_part_0.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    model_part_0.GetCommunicator().SetNumberOfColors(number_of_colors);
 
-			ModelPartIO model_part_io_0(p_output_0);
-			model_part_io_0.ReadModelPart(model_part_0);
+    ModelPartIO model_part_io_0(p_output_0);
+    model_part_io_0.ReadModelPart(model_part_0);
 
+    KRATOS_CHECK_EQUAL(model_part_0.NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(model_part_0.NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(model_part_0.NumberOfConditions(), 1);
+    KRATOS_CHECK_EQUAL(model_part_0.NumberOfSubModelParts(), 1);
+    KRATOS_CHECK(model_part_0.HasSubModelPart("BasePart"));
+    KRATOS_CHECK_EQUAL(
+        model_part_0.GetSubModelPart("BasePart").NumberOfNodes(), 2);
+    KRATOS_CHECK_EQUAL(
+        model_part_0.GetSubModelPart("BasePart").NumberOfElements(), 0);
+    KRATOS_CHECK_EQUAL(
+        model_part_0.GetSubModelPart("BasePart").NumberOfConditions(), 1);
 
-			KRATOS_CHECK_EQUAL(model_part_0.NumberOfNodes(), 3);
-			KRATOS_CHECK_EQUAL(model_part_0.NumberOfElements(), 1);
-			KRATOS_CHECK_EQUAL(model_part_0.NumberOfConditions(), 1);
-			KRATOS_CHECK_EQUAL(model_part_0.NumberOfSubModelParts(), 1);
-			KRATOS_CHECK(model_part_0.HasSubModelPart("BasePart"));
-			KRATOS_CHECK_EQUAL(model_part_0.GetSubModelPart("BasePart").NumberOfNodes(), 2);
-			KRATOS_CHECK_EQUAL(model_part_0.GetSubModelPart("BasePart").NumberOfElements(), 0);
-			KRATOS_CHECK_EQUAL(model_part_0.GetSubModelPart("BasePart").NumberOfConditions(), 1);
+    ModelPart model_part_1("Partition 1");
+    model_part_1.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part_1.AddNodalSolutionStepVariable(FORCE);
+    model_part_1.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    model_part_1.GetCommunicator().SetNumberOfColors(number_of_colors + 1);
 
-			ModelPart model_part_1("Partition 1");
-			model_part_1.AddNodalSolutionStepVariable(DISPLACEMENT);
-			model_part_1.AddNodalSolutionStepVariable(FORCE);
-			model_part_1.AddNodalSolutionStepVariable(PARTITION_INDEX);
-			model_part_1.GetCommunicator().SetNumberOfColors(number_of_colors + 1);
+    ModelPartIO model_part_io_1(p_output_1);
+    model_part_io_1.ReadModelPart(model_part_1);
 
-			ModelPartIO model_part_io_1(p_output_1);
-			model_part_io_1.ReadModelPart(model_part_1);
+    KRATOS_CHECK_EQUAL(model_part_1.NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(model_part_1.NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(model_part_1.NumberOfConditions(), 1);
+    KRATOS_CHECK_EQUAL(model_part_1.NumberOfSubModelParts(), 1);
+    KRATOS_CHECK(model_part_1.HasSubModelPart("BasePart"));
+    KRATOS_CHECK_EQUAL(
+        model_part_1.GetSubModelPart("BasePart").NumberOfNodes(), 1);
+    KRATOS_CHECK_EQUAL(
+        model_part_1.GetSubModelPart("BasePart").NumberOfElements(), 0);
+    KRATOS_CHECK_EQUAL(
+        model_part_1.GetSubModelPart("BasePart").NumberOfConditions(), 0);
 
-			KRATOS_CHECK_EQUAL(model_part_1.NumberOfNodes(), 3);
-			KRATOS_CHECK_EQUAL(model_part_1.NumberOfElements(), 1);
-			KRATOS_CHECK_EQUAL(model_part_1.NumberOfConditions(), 1);
-			KRATOS_CHECK_EQUAL(model_part_1.NumberOfSubModelParts(), 1);
-			KRATOS_CHECK(model_part_1.HasSubModelPart("BasePart"));
-			KRATOS_CHECK_EQUAL(model_part_1.GetSubModelPart("BasePart").NumberOfNodes(), 1);
-			KRATOS_CHECK_EQUAL(model_part_1.GetSubModelPart("BasePart").NumberOfElements(), 0);
-			KRATOS_CHECK_EQUAL(model_part_1.GetSubModelPart("BasePart").NumberOfConditions(), 0);
-
-
-//KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(p_output_1->str(), R"/(Begin SubModelPart BaseNodes
-//Begin SubModelPartNodes
-//2
-//End SubModelPartNodes
-//End Mesh)/");
-
-		}
-	}
+    //KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(p_output_1->str(), R"/(Begin SubModelPart BaseNodes
+    //Begin SubModelPartNodes
+    //2
+    //End SubModelPartNodes
+    //End Mesh)/");
+}
+}
 }  // namespace Kratos.

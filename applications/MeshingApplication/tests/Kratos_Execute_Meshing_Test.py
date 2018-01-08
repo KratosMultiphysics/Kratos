@@ -114,6 +114,20 @@ class Kratos_Execute_Test:
                 print("ADAPTATIVE INTERATION: ", n + 1)
                 for process in reversed(remeshing_processes):
                     process.ExecuteInitialize()
+                    process.ExecuteBeforeSolutionLoop() 
+                    process.ExecuteInitializeSolutionStep() 
+            
+                    if (self.output_post == True):
+                        output_settings = ProjectParameters["output_configuration"]
+                        gid_output_initial = GiDOutputProcess(self.solver.GetComputingModelPart(),
+                                                            self.problem_name+"_"+str(n+1),
+                                                            output_settings)
+                        gid_output_initial.ExecuteInitialize()
+                        gid_output_initial.ExecuteBeforeSolutionLoop()
+                        gid_output_initial.ExecuteInitializeSolutionStep()
+                        gid_output_initial.ExecuteFinalizeSolutionStep()
+                        gid_output_initial.PrintOutput()
+                        gid_output_initial.ExecuteFinalize()
 
         # Obtain the list of the processes to be applied
         if self.problem_type  == "fluid":
@@ -212,8 +226,8 @@ class Kratos_Execute_Test:
                     for process in self.list_of_processes:
                         process.ExecuteAfterOutputStep()
 
-            if (self.output_post == True):
-                self.gid_output.ExecuteFinalize()
+        if (self.output_post == True):
+            self.gid_output.ExecuteFinalize()
 
-            for process in self.list_of_processes:
-                process.ExecuteFinalize()
+        for process in self.list_of_processes:
+            process.ExecuteFinalize()

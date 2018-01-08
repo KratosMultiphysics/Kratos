@@ -659,9 +659,9 @@ namespace Kratos
             array_1d< double, 3 > Vector1 = rElemGeom[ BoundaryNodes[1] ].Coordinates() - rElemGeom[ BoundaryNodes[0] ].Coordinates();
             array_1d< double, 3 > Vector2 = rElemGeom[ BoundaryNodes[2] ].Coordinates() - rElemGeom[ BoundaryNodes[0] ].Coordinates();
             array_1d< double, 3 > Cross;
-            MathUtils<double>::CrossProduct( Cross, Vector1, Vector2 ); 
+            MathUtils<double>::CrossProduct( Cross, Vector1, Vector2 );
+            Cross /= 2.0;
             double ThisArea = MathUtils<double>::Norm3( Cross);
-            ThisArea /= 2.0;
             AreaVector.push_back(ThisArea);
          }
 

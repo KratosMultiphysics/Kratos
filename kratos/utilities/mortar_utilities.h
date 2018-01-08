@@ -181,8 +181,8 @@ public:
         array_1d<double, 3> current_global_coords;
 
         array_1d<array_1d<double, 3>, 2> normals;
-        normals[0] = GeomOrigin[0].GetValue(NORMAL);
-        normals[1] = GeomOrigin[1].GetValue(NORMAL);
+        normals[0] = GeomOrigin[0].FastGetSolutionStepValue(NORMAL);
+        normals[1] = GeomOrigin[1].FastGetSolutionStepValue(NORMAL);
         
         bounded_matrix<double,2,2> X;
         bounded_matrix<double,2,1> DN;
@@ -204,7 +204,7 @@ public:
             N_origin[0] = 0.5 * ( 1.0 - ResultingPoint[0]);
             N_origin[1] = 0.5 * ( 1.0 + ResultingPoint[0]);
             
-            array_1d<double,3> normal_xi = ZeroVector(3);
+            array_1d<double,3> normal_xi(3, 0.0);
             for( unsigned int i_node = 0; i_node < 2; ++i_node )
             {
                 normal_xi += N_origin[i_node] * normals[i_node]; 
@@ -212,7 +212,7 @@ public:
             
             normal_xi = normal_xi/norm_2(normal_xi); 
             
-            current_global_coords = ZeroVector( 3 );
+            current_global_coords = ZeroVector(3);
             for( unsigned int i_node = 0; i_node < 2; ++i_node )
             {
                 current_global_coords += N_origin[i_node] * GeomOrigin[i_node].Coordinates(); 
@@ -339,7 +339,7 @@ public:
         PointType aux_point_to_rotate;
         aux_point_to_rotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
         
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
+        bounded_matrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
         
         if (Inversed == false)
         {
@@ -372,10 +372,10 @@ public:
         const GeometryType& Geom
         )
     {
-        array_1d<double,3> normal = ZeroVector(3);
+        array_1d<double,3> normal(3, 0.0);
         for( unsigned int i_node = 0; i_node < Geom.PointsNumber(); ++i_node )
         {
-            normal += N[i_node] * Geom[i_node].GetValue(NORMAL); 
+            normal += N[i_node] * Geom[i_node].FastGetSolutionStepValue(NORMAL); 
         }
         
         const double this_norm = norm_2(normal);
@@ -854,7 +854,7 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, NonHistor
         )
 {
     // Zero vector
-    const array_1d<double, 3> zero_vector = ZeroVector(3);
+    const array_1d<double, 3> zero_vector(3, 0.0);
     
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
     const int num_nodes = static_cast<int>(nodes_array.size()); 
@@ -903,7 +903,7 @@ template<>
 inline void MortarUtilities::ResetAuxiliarValue<Variable<array_1d<double, 3>>>(ModelPart& rThisModelPart)
 {
     // Zero vector
-    const array_1d<double, 3> zero_vector = ZeroVector(3);
+    const array_1d<double, 3> zero_vector(3, 0.0);
     
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
     const int num_nodes = static_cast<int>(nodes_array.size()); 
