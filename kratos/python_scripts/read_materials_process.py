@@ -76,20 +76,21 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
             raise Exception("something wrong. Trying to split the string "+my_string)
         if(len(splitted) == 1):
             raise Exception("Please also provide the name of the application of constitutive law "+my_string)
+        if len(splitted) > 3:
+            raise Exception("Something wrong. String " + my_string + " has too many arguments")
 
         constitutive_law_name = splitted[-1]
-        module_name = splitted[-2]
+        application_name = splitted[-2]
 
-        if module_name == "KratosMultiphysics":
+        if application_name == "KratosMultiphysics":
             return getattr(KratosMultiphysics, constitutive_law_name) 
         else:
-            application_name = "Kratos" + module_name
-            if application_name not in KratosMultiphysics.KratosGlobals.RequestedApplications:
-                raise ImportError(module_name + " is not imported!")
-            module1 = KratosMultiphysics.KratosGlobals.RequestedApplications[application_name]
-            module2 = sys.modules[application_name]
+            # Check that applications were imported in the main script
+            KratosMultiphysics.CheckRegisteredApplications(application_name)
+            module_name = "Kratos" + application_name
+            application = __import__(module_name)
             
-            return getattr(module2, constitutive_law_name) 
+            return getattr(application, constitutive_law_name) 
 
     def _AssignPropertyBlock(self, data):
         """Set constitutive law and material properties and assign to elements and conditions.
