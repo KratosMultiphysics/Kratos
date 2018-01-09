@@ -463,8 +463,10 @@ private:
                     {
                         double& val = geom[i_node].GetValue(AUXILIAR_HESSIAN)[k];
                         
-                        #pragma omp atomic
-                        val += N[i_node] * Volume * HessianCond[k];
+                        #pragma omp critical
+                        {
+                          val += N[i_node] * Volume * HessianCond[k];
+                        }
                     }
                 }
             }
@@ -493,8 +495,10 @@ private:
                     {
                         double& val = geom[i_node].GetValue(AUXILIAR_HESSIAN)[k];
                         
-                        #pragma omp atomic
-                        val += N[i_node] * Volume * HessianCond[k];
+                        #pragma omp critical
+                        {
+                          val += N[i_node] * Volume * HessianCond[k];
+                        }
                     }
                 }
             }

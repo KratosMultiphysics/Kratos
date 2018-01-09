@@ -100,7 +100,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute() override
+    virtual void Execute()
     {
         KRATOS_TRY;
         
@@ -139,14 +139,18 @@ public:
                 {
                     double& val = geom[i].FastGetSolutionStepValue(mr_gradient_variable)[k];
                     
-                    #pragma omp atomic
-                    val += N[i]*Volume*grad[k];
+                    #pragma omp critical
+                    {
+                        val += N[i]*Volume*grad[k];
+                    }
                 }
                 
                 double& vol = geom[i].FastGetSolutionStepValue(mr_area_variable);
                 
-                #pragma omp atomic
-                vol += N[i]*Volume;
+                #pragma omp critical
+                {
+                    vol += N[i]*Volume;
+                }
             }
         }
         
@@ -176,19 +180,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    virtual std::string Info() const
     {
         return "ComputeNodalGradientProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "ComputeNodalGradientProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
     }
 

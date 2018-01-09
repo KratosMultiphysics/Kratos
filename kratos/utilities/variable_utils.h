@@ -419,8 +419,10 @@ public:
 
             for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
             {
-                #pragma omp atomic
-                sum_value[j] += private_sum_value[j];
+#pragma omp critical
+            {
+              sum_value[j] += private_sum_value[j];
+            }
             }
         }
 
@@ -486,8 +488,10 @@ public:
 
             for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
             {
-                #pragma omp atomic
-                sum_value[j] += private_sum_value[j];
+#pragma omp critical
+            {
+              sum_value[j] += private_sum_value[j];
+            }
             }
         }
 
@@ -553,8 +557,10 @@ public:
 
             for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
             {
-                #pragma omp atomic
-                sum_value[j] += private_sum_value[j];
+#pragma omp critical
+            {
+              sum_value[j] += private_sum_value[j];
+            }
             }
         }
 
@@ -619,8 +625,10 @@ public:
 
             for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
             {
-                #pragma omp atomic
-                sum_value[j] += private_sum_value[j];
+#pragma omp critical
+            {
+              sum_value[j] += private_sum_value[j];
+            }
             }
         }
 

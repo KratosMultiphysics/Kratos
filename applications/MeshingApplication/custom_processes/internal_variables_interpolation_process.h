@@ -811,8 +811,10 @@ private:
                     // We sum all the contributions
                     for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
                     {
-                        #pragma omp atomic
-                        rThisGeometry[iNode].GetValue(ThisVar) += N[iNode] * OriginValue * Weight;
+#pragma omp critical
+                    {
+                      rThisGeometry[iNode].GetValue(ThisVar) += N[iNode] * OriginValue * Weight;
+                    }
                     }
                 }
             }
