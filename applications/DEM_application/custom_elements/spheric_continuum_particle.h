@@ -70,6 +70,7 @@ namespace Kratos
         void ReorderFEMneighbours();
         virtual void UpdateContinuumNeighboursVector(ProcessInfo& r_process_info);
         virtual void ComputeForceWithNeighbourFinalOperations();
+        virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) override;
 
         virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) override;
         virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);
