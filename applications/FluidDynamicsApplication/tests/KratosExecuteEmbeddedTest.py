@@ -31,7 +31,7 @@ class KratosExecuteEmbeddedTest(KratosUnittest.TestCase):
         self.solver.AddDofs()
 
         ## Initialize GiD  I/O
-        self.output_flag = True
+        self.output_flag = False
         if (self.output_flag == True):
             from gid_output_process import GiDOutputProcess
             self.gid_output = GiDOutputProcess(self.solver.GetComputingModelPart(),

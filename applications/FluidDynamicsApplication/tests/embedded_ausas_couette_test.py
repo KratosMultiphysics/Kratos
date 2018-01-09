@@ -56,8 +56,8 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
 
         with WorkFolderScope(self.work_folder):
             self.setUp()
-            self.print_output = True
-            self.print_reference_values = True
+            self.print_output = False
+            self.print_reference_values = False
             self.setUpProblem()
             self.setUpDistanceField()
             self.setUpNoSlipBoundaryConditions()
@@ -73,8 +73,8 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
 
         with WorkFolderScope(self.work_folder):
             self.setUp()
-            self.print_output = True
-            self.print_reference_values = True
+            self.print_output = False
+            self.print_reference_values = False
             self.setUpProblem()
             self.setUpDistanceField()
             self.setUpNoSlipBoundaryConditions()
