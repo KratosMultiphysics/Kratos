@@ -65,7 +65,6 @@ namespace Kratos
     //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.
     BrepEdge(unsigned int edge_id,
-      ParameterVector& boundary_vertices,
       BrepFaceTrimVector& brep_face_trims_vector);
 
     /// Destructor.
@@ -88,7 +87,6 @@ namespace Kratos
     ///@name Member Variables
     ///@{ 
 
-    ParameterVector m_boundary_vertices;
     BrepFaceTrimVector m_brep_face_trims_vector;
 
     ///@}    

@@ -85,6 +85,7 @@ namespace Kratos
     void GetProjectPoint(Node<3>::Pointer& node_on_geometry, const Node<3>::Pointer& node_location, const int& shapefunction_order);
     std::vector<Node<3>::Pointer> GetQuadraturePoints(const int& shapefunction_order);
     std::vector<Node<3>::Pointer> GetQuadraturePointsTrimmed(const int& shapefunction_order);
+    std::vector<Node<3>::Pointer> GetQuadraturePointsEmbedded(const int& shapefunction_order);
     std::vector<Node<3>::Pointer> GetQuadraturePointsOfTrimmingCurve(const int& shapefunction_order, const int& trim_index);
     std::vector<Node<3>::Pointer> GetQuadraturePointsOfTrimmingCurveWithPoints(
       const int& shapefunction_order, const int& trim_index, std::vector<Point<3>> intersection_points);
@@ -106,6 +107,7 @@ namespace Kratos
     /// Constructor.
     BrepFace(unsigned int brep_id,
       TrimmingLoopVector& trimming_loops,
+      TrimmingLoopVector& embedded_loops,
       Vector& knot_vector_u, Vector& knot_vector_v,
       unsigned int& p, unsigned int& q, IntVector& control_point_ids,
       ModelPart& model_part);
@@ -136,6 +138,7 @@ namespace Kratos
     ///@{ 
 
     TrimmingLoopVector m_trimming_loops;
+    TrimmingLoopVector m_embedded_loops;
     Vector m_knot_vector_u;
     Vector m_knot_vector_v;
     unsigned int m_p;

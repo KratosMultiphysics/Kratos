@@ -48,10 +48,8 @@ namespace Kratos
 
   ///Constructor
   BrepEdge::BrepEdge(unsigned int edge_id, 
-    ParameterVector& boundary_vertices, 
     BrepFaceTrimVector& brep_face_trims_vector)
-    : m_boundary_vertices(boundary_vertices),
-      m_brep_face_trims_vector(brep_face_trims_vector),
+    : m_brep_face_trims_vector(brep_face_trims_vector),
       IndexedObject(edge_id),
       Flags()
   {

@@ -213,7 +213,6 @@ void MeshlessShellElement::Initialize()
 
 //***********************************************************************************
 //***********************************************************************************
-
 void MeshlessShellElement::CalculateRightHandSide(
 	VectorType& rRightHandSideVector,
 	ProcessInfo& rCurrentProcessInfo)
@@ -243,18 +242,87 @@ void MeshlessShellElement::CalculateLocalSystem(
 	CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 }
 
-//***********************************************************************************
-//***********************************************************************************
-
+//************************************************************************************
+//************************************************************************************
 void MeshlessShellElement::CalculateOnIntegrationPoints(
-	const Variable<Matrix>& rVariable,
-	std::vector<Matrix>& Output,
-	const ProcessInfo& rCurrentProcessInfo)
-
+  const Variable<double>& rVariable,
+  std::vector<double>& rOutput,
+  const ProcessInfo& rCurrentProcessInfo
+  )
 {
-	std::cout << "CalculateOnIntegrationPoints not yet implemented" << std::endl;
-}
+  if (rOutput.size() != 1)
+  {
+    rOutput.resize(1);
+  }
 
+  if (rVariable == VON_MISES_STRESS)
+  {
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = 2; // get value from dimension of derivatives
+    //const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+    //KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    //ConstitutiveVariables this_constitutive_variables(strain_size);
+
+    //// Create constitutive law parameters:
+    //ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+    //// Set constitutive law flags:
+    //Flags& ConstitutiveLawOptions = Values.GetOptions();
+    //ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    //Values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+    //// Reading integration points
+    //const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+
+    //// Displacements vector
+    //Vector displacements;
+    //GetValuesVector(displacements);
+
+    ////for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
+    ////{
+    //  // Compute element kinematics B, F, DN_DX ...
+    //  CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+
+    //  // Compute material reponse
+    //  CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
+
+    //  const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(this_constitutive_variables.StressVector);
+
+    //  double sigma_equivalent = 0.0;
+
+    //  if (dimension == 2)
+    //  {
+    //    sigma_equivalent = std::pow((stress_tensor(0, 0) - stress_tensor(1, 1)), 2.0) +
+    //      3 * (stress_tensor(0, 1) * stress_tensor(1, 0));
+    //  }
+    //  else
+    //  {
+    //    sigma_equivalent = 0.5*(std::pow((stress_tensor(0, 0) - stress_tensor(1, 1)), 2.0) +
+    //      std::pow((stress_tensor(1, 1) - stress_tensor(2, 2)), 2.0) +
+    //      std::pow((stress_tensor(2, 2) - stress_tensor(0, 0)), 2.0) +
+    //      6 * (stress_tensor(0, 1) * stress_tensor(1, 0) +
+    //        stress_tensor(1, 2) * stress_tensor(2, 1) +
+    //        stress_tensor(2, 0) * stress_tensor(0, 2)));
+    //  }
+
+      //if (sigma_equivalent < 0.0)
+      //{
+      //  rOutput[0] = 0.0;
+      //}
+      //else
+      //{
+        rOutput[0] = 5;// std::sqrt(sigma_equivalent);
+      //}
+  }
+  else
+  {
+    rOutput[0] = 0.0;// mConstitutiveLawVector[0]->GetValue(rVariable, rOutput[0]);
+  }
+}
 
 //***********************************************************************************
 //***********************************************************************************
@@ -922,21 +990,21 @@ void MeshlessShellElement::CalculateAll(
 void MeshlessShellElement::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
 	std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
-	std::cout << "GetValueOnIntegrationPoints" << std::endl;
-	if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
-	{
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	}
+	//std::cout << "GetValueOnIntegrationPoints" << std::endl;
+	//if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
+	//{
+	//	CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	//}
 
-	if (rVariable == PK2_STRESS_TENSOR)
-	{
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	}
-	// VM
-	if (rVariable == CAUCHY_STRESS_TENSOR)
-	{
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	}
+	//if (rVariable == PK2_STRESS_TENSOR)
+	//{
+	//	CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	//}
+	//// VM
+	//if (rVariable == CAUCHY_STRESS_TENSOR)
+	//{
+	//	CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	//}
 	// VM
 }
 

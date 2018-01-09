@@ -95,10 +95,50 @@ public:
 		VectorType& rRightHandSideVector,
 		ProcessInfo& rCurrentProcessInfo) override;
 
-	void CalculateOnIntegrationPoints(
-		const Variable<Matrix>& rVariable,
-		std::vector<Matrix>& Output,
-		const ProcessInfo& rCurrentProcessInfo) override;
+  /**
+  * Calculate a double Variable on the Element Constitutive Law
+  * @param rVariable: The variable we want to get
+  * @param rOutput: The values obtained int the integration points
+  * @param rCurrentProcessInfo: the current process info instance
+  */
+  void CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    );// override;
+  ///**
+  //* Calculate a double array_1d on the Element Constitutive Law
+  //* @param rVariable: The variable we want to get
+  //* @param rOutput: The values obtained int the integration points
+  //* @param rCurrentProcessInfo: the current process info instance
+  //*/
+  //void CalculateOnIntegrationPoints(
+  //  const Variable<array_1d<double, 3>>& rVariable,
+  //  std::vector<array_1d<double, 3>>& rOutput,
+  //  const ProcessInfo& rCurrentProcessInfo
+  //  ) override;
+  ///**
+  //* Calculate a Vector Variable on the Element Constitutive Law
+  //* @param rVariable: The variable we want to get
+  //* @param rOutput: The values obtained int the integration points
+  //* @param rCurrentProcessInfo: the current process info instance
+  //*/
+  //void CalculateOnIntegrationPoints(
+  //  const Variable<Vector>& rVariable,
+  //  std::vector<Vector>& rOutput,
+  //  const ProcessInfo& rCurrentProcessInfo
+  //  ) override;
+  ///**
+  //* Calculate a Matrix Variable on the Element Constitutive Law
+  //* @param rVariable: The variable we want to get
+  //* @param rOutput: The values obtained int the integration points
+  //* @param rCurrentProcessInfo: the current process info instance
+  //*/
+  //void CalculateOnIntegrationPoints(
+  //  const Variable<Matrix >& rVariable,
+  //  std::vector< Matrix >& rOutput,
+  //  const ProcessInfo& rCurrentProcessInfo
+  //  ) override;
 
 	void FinalizeSolutionStep(
 		ProcessInfo& rCurrentProcessInfo) override;

@@ -124,7 +124,7 @@ void MeshlessBaseCondition::JacobianInitial(const Matrix& DN_De,
 
 /**
 * MappingGeometricToParameter calculates the J-tilde for the mapping from 
-  Geometric to Parameter Space. This paramater is needed for all condition 
+  Geometry to Parameter Space. This paramater is needed for all condition 
   integrations on edges.
 *
 * @param DN_De derivatives of shape functions.

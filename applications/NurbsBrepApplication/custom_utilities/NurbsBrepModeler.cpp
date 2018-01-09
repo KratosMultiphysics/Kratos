@@ -118,6 +118,15 @@ namespace Kratos
           id_itr++;
           model_part_face_id.AddNode(NodeVectorElement[k]);
         }
+
+        ModelPart& model_part_face_id_embedded = model_part_faces.CreateSubModelPart("FACE_" + std::to_string(face.Id()) + "_EMBEDDED");
+        std::vector<Node<3>::Pointer> NodeVectorEmbeddedElement = face.GetQuadraturePointsEmbedded(shapefunction_order);
+        for (unsigned int k = 0; k < NodeVectorEmbeddedElement.size(); k++)
+        {
+          NodeVectorEmbeddedElement[k]->SetId(id_itr);
+          id_itr++;
+          model_part_face_id_embedded.AddNode(NodeVectorEmbeddedElement[k]);
+        }
       }
 
       for (unsigned int edge_itr = 0; edge_itr < m_brep_model_vector[brep_itr].GetEdgeVector().size(); edge_itr++)

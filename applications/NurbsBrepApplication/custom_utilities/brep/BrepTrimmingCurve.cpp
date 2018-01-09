@@ -608,14 +608,6 @@ namespace Kratos
   bool BrepTrimmingCurve::ProjectionNewtonRaphson(double& parameter, const Point<2>& closest_point)
   {
     double initial_param = parameter;
-    //KRATOS_WATCH(m_p)
-    //KRATOS_WATCH(m_knot_vector_u)
-    //KRATOS_WATCH(closest_point)
-    //KRATOS_WATCH(parameter)
-    //for (int i = 0; i < m_control_points.size(); ++i)
-    //{
-    //  KRATOS_WATCH(m_control_points[i])
-    //}
     int itmax = 20;
     double model_tolerance = 1e-1;
     double accuracy = 1e-8;
@@ -639,21 +631,16 @@ namespace Kratos
       Vector distance = closest_point_vector - derivatives[0];
 
       double orthogonal_projection = inner_prod(distance, derivatives[0]);
-      //KRATOS_WATCH(orthogonal_projection)
-      double residual = distance[0] * derivatives[1][0] + distance[1] * derivatives[1][1];
-      //KRATOS_WATCH(residual)
-
-        double jacobian = - norm_2(derivatives[1])*norm_2(derivatives[1]) + (derivatives[2][0] * distance[0] + derivatives[2][1] * distance[1]);
-      //KRATOS_WATCH(jacobian)
-      
       if (abs(orthogonal_projection) < 100 * accuracy)
       {
         if (norm_2(distance) < model_tolerance)
         {
-          std::cout << "orthogonal_projection break" << std::endl;
           return true;
         }
       }
+
+      double residual = distance[0] * derivatives[1][0] + distance[1] * derivatives[1][1];
+
       if (norm_2(derivatives[1]) < 10000 * accuracy)
       {
         std::cout << "You got ... a singularity" << std::endl;
@@ -663,15 +650,12 @@ namespace Kratos
       {
         if (norm_2(distance) < model_tolerance)
         {
-          std::cout << "Residual break" << std::endl;
           return true;
         }
       }
-      //if (norm_2(distance) < 10 * model_tolerance)
-      //{
-      //  std::cout << "Distance break" << std::endl;
-      //  return true;
-      //}
+
+      double jacobian = - norm_2(derivatives[1])*norm_2(derivatives[1]) + (derivatives[2][0] * distance[0] + derivatives[2][1] * distance[1]);
+      
 
       // compute new iteration step
       parameter = parameter - residual / jacobian;
@@ -743,8 +727,8 @@ namespace Kratos
     if (parameter_min > parameter_max)
       std::swap(parameter_min, parameter_max);
 
-    KRATOS_WATCH(parameter_min)
-    KRATOS_WATCH(parameter_max)
+    //KRATOS_WATCH(parameter_min)
+    //KRATOS_WATCH(parameter_max)
 
     Vector closest_point_vector(closest_point);
 
@@ -763,7 +747,7 @@ namespace Kratos
       double residual = distance[0] * derivatives[1][0] + distance[1] * derivatives[1][1];
       double new_distance = norm_2(distance);
 
-      KRATOS_WATCH(parameter)
+      //KRATOS_WATCH(parameter)
 
       if (abs(residual) < 1000 * accuracy)
       {

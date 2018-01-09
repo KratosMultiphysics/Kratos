@@ -165,7 +165,7 @@ void MeshlessBaseCouplingCondition::MappingGeometricToParameterMasterElement(con
 /**
 * ONLY NEEDED FOR COUPLING BETWEEN PATCHES
 * MappingGeometricToParameterMaster calculates the J-tilde for the mapping from
-Geometric to Parameter Space. This paramater is needed for all continuity condition
+Geometry to Parameter Space. This paramater is needed for all continuity condition
 integrations on curves. As integration is evaluated on the master curve the J-tilde
 is not needed for the slave.
 * The function needs the KRATOS-variables SHAPE_FUNCTIONS_LOCAL_DERIVATIVES and the

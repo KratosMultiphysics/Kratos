@@ -164,6 +164,74 @@ namespace Kratos
   }
 
 
+
+  std::vector<Node<3>::Pointer> BrepFace::GetQuadraturePointsEmbedded(const int& shapefunction_order)
+  {
+    //std::vector<array_1d<double, 2>> boundary_polygon;
+    //for (unsigned int loop_i = 0; loop_i < m_trimming_loops.size(); loop_i++)
+    //{
+    //  boundary_polygon = m_trimming_loops[loop_i].GetBoundaryPolygon(5);
+    //}
+    Polygon boundaries(m_embedded_loops);
+
+    std::vector<Node<3>::Pointer> NodeVector;
+
+    int tolerance = 10e6;
+
+    IntVector knot_vector_u = GetIntegerVector(m_knot_vector_u, tolerance);
+    IntVector knot_vector_v = GetIntegerVector(m_knot_vector_v, tolerance);
+
+    Vector parameter_span_u = ZeroVector(2);
+    Vector parameter_span_v = ZeroVector(2);
+
+    for (unsigned int i = 0; i < knot_vector_u.size() - 1; i++)
+    {
+      if (abs(knot_vector_u[i + 1] - knot_vector_u[i]) > 1)
+      {
+        parameter_span_u[0] = m_knot_vector_u[i];
+        parameter_span_u[1] = m_knot_vector_u[i + 1];
+
+        for (unsigned int j = 0; j < knot_vector_v.size() - 1; j++)
+        {
+          if (abs(knot_vector_v[j + 1] - knot_vector_v[j]) > 1)
+          {
+            parameter_span_v[0] = m_knot_vector_v[j];
+            parameter_span_v[1] = m_knot_vector_v[j + 1];
+
+            Polygon boundary_polygon = boundaries.clipByKnotSpan(parameter_span_u, parameter_span_v);
+
+            std::vector<array_1d<double, 3>> points;
+            if (!boundary_polygon.IsFullKnotSpan())
+            {
+              KnotSpan2dNIntegrate knot_span(0, true, m_p, m_q, parameter_span_u, parameter_span_v, boundary_polygon);
+              points = knot_span.getIntegrationPointsInParameterDomain();
+            }
+            else
+            {
+              KnotSpan2d knot_span(0, true, m_p, m_q, parameter_span_u, parameter_span_v);
+              points = knot_span.getIntegrationPointsInParameterDomain();
+            }
+            //std::cout << "k: " << std::endl;
+            //for (unsigned int k = 0; k < points.size(); k++)
+            //{
+            //  std::cout << "k: " << k << std::endl;
+            //  std::cout << "points: " << points[k][0] << points[k][1] << points[k][2] << std::endl;
+            //}
+            //std::cout << "size of points: " << points.size() << std::endl;
+            std::vector<Node<3>::Pointer> NodeVectorElement = EnhanceShapeFunctions(points, shapefunction_order);
+            for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
+            {
+              NodeVector.push_back(NodeVectorElement[k]);
+            }
+          }
+        }
+      }
+    }
+    return NodeVector;
+  }
+
+
+
   std::vector<Node<3>::Pointer> BrepFace::GetQuadraturePointsOfTrimmingCurve(const int& shapefunction_order, const int& trim_index)
   {
     BrepTrimmingCurve trimming_curve = GetTrimmingCurve(trim_index);
@@ -1285,18 +1353,20 @@ namespace Kratos
   ///Constructor
   BrepFace::BrepFace(unsigned int brep_id,
     TrimmingLoopVector& trimming_loops,
+    TrimmingLoopVector& embedded_loops,
     Vector& knot_vector_u, Vector& knot_vector_v,
     unsigned int& p, unsigned int& q, IntVector& control_point_ids,
     ModelPart& model_part)
     : m_trimming_loops(trimming_loops),
-    m_knot_vector_u(knot_vector_u),
-    m_knot_vector_v(knot_vector_v),
-    m_p(p),
-    m_q(q),
-    m_model_part(model_part),
-    m_control_points_ids(control_point_ids),
-    IndexedObject(brep_id),
-    Flags()
+      m_embedded_loops(embedded_loops),
+      m_knot_vector_u(knot_vector_u),
+      m_knot_vector_v(knot_vector_v),
+      m_p(p),
+      m_q(q),
+      m_model_part(model_part),
+      m_control_points_ids(control_point_ids),
+      IndexedObject(brep_id),
+      Flags()
   {
   }
   ///Destructor
