@@ -80,8 +80,8 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
     CalculateAuxiliarHessian();
     
     // Some checks
-    VariableUtils::CheckVariableExists(mVariable, nodes_array);
-    VariableUtils::CheckVariableExists(NODAL_H, nodes_array);
+    VariableUtils().CheckVariableExists(mVariable, nodes_array);
+    VariableUtils().CheckVariableExists(NODAL_H, nodes_array);
     
     #pragma omp parallel for 
     for(int i = 0; i < num_nodes; ++i) {

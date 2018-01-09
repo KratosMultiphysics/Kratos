@@ -66,8 +66,8 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
     const int num_nodes = nodes_array.end() - nodes_array.begin();
     
     // Some checks
-    VariableUtils::CheckVariableExists(mVariableGradient, nodes_array);
-    VariableUtils::CheckVariableExists(NODAL_H, nodes_array);
+    VariableUtils().CheckVariableExists(mVariableGradient, nodes_array);
+    VariableUtils().CheckVariableExists(NODAL_H, nodes_array);
     
     #pragma omp parallel for 
     for(int i = 0; i < num_nodes; ++i)  {

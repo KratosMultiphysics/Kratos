@@ -91,7 +91,7 @@ public:
      * @param Value array containing the Value to be set
      * @param rNodes reference to the objective node set
      */
-    static void SetVectorVar(
+    void SetVectorVar(
         const ArrayVarType& rVariable,
         const array_1d<double, 3 >& Value,
         NodesContainerType& rNodes
@@ -104,7 +104,7 @@ public:
      * @param rNodes reference to the objective node set
      */
     template< class TVarType >
-    static void SetScalarVar(
+    void SetScalarVar(
         TVarType& rVariable,
         const double& Value,
         NodesContainerType& rNodes
@@ -128,7 +128,7 @@ public:
      * @param rContainer reference to the objective container
      */
     template< class TContainerType >
-    static void SetFlag(
+    void SetFlag(
         const Flags& rFlag,
         const bool& rFlagValue,
         TContainerType& rContainer
@@ -153,7 +153,7 @@ public:
      * @param SavedVariable reference to the destination vector variable
      * @param rNodes reference to the objective node set
      */
-    static void SaveVectorVar(
+    void SaveVectorVar(
         const ArrayVarType& OriginVariable,
         const ArrayVarType& SavedVariable,
         NodesContainerType& rNodes
@@ -165,7 +165,7 @@ public:
      * @param SavedVariable reference to the destination scalar variable
      * @param rNodes reference to the objective node set
      */
-    static void SaveScalarVar(
+    void SaveScalarVar(
         const DoubleVarType& OriginVariable,
         DoubleVarType& SavedVariable,
         NodesContainerType& rNodes
@@ -177,7 +177,7 @@ public:
      * @param DestinationVariable reference to the destination vector variable
      * @param rNodes reference to the objective node set
      */
-    static void CopyVectorVar(
+    void CopyVectorVar(
         const ArrayVarType& OriginVariable,
         ArrayVarType& DestinationVariable,
         NodesContainerType& rNodes
@@ -189,7 +189,7 @@ public:
      * @param DestinationVariable reference to the destination double variable
      * @param rNodes reference to the objective node set
      */
-    static void CopyScalarVar(
+    void CopyScalarVar(
         const DoubleVarType& OriginVariable,
         DoubleVarType& DestinationVariable,
         NodesContainerType& rNodes
@@ -200,7 +200,7 @@ public:
      * @param Variable reference to the vector variable to be set to 0
      * @param rNodes reference to the objective node set
      */
-    static void SetToZero_VectorVar(
+    void SetToZero_VectorVar(
         const ArrayVarType& Variable, 
         NodesContainerType& rNodes
         );
@@ -210,7 +210,7 @@ public:
      * @param Variable reference to the double variable to be set to 0
      * @param rNodes reference to the objective node set
      */
-    static void SetToZero_ScalarVar(
+    void SetToZero_ScalarVar(
         const DoubleVarType& Variable, 
         NodesContainerType& rNodes
         );
@@ -222,7 +222,7 @@ public:
      * @param rOriginNodes Reference to the objective node set
      * @return selected_nodes: List of filtered nodes
      */
-    static NodesContainerType SelectNodeList(
+    NodesContainerType SelectNodeList(
         const DoubleVarType& Variable,
         const double& Value,
         NodesContainerType& rOriginNodes
@@ -235,7 +235,7 @@ public:
      * @return 0: if succeeds, return 0
      */
     template<class TVarType>
-    static int CheckVariableExists(
+    int CheckVariableExists(
         const TVarType& rVariable, 
         NodesContainerType& rNodes
         )
@@ -258,7 +258,7 @@ public:
      * @param rNodes reference to the nodes set to be frixed or freed
      */
     template< class TVarType >
-    static void ApplyFixity(
+    void ApplyFixity(
         const TVarType& rVar,
         const bool IsFixed,
         NodesContainerType& rNodes
@@ -297,7 +297,7 @@ public:
      * @param rNodes reference to the nodes set to be set
      */
     template< class TVarType >
-    static void ApplyVector(
+    void ApplyVector(
         const TVarType& rVar,
         const Vector& rData,
         NodesContainerType& rNodes
@@ -325,7 +325,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective node set
      * @return sum_value: summation vector result
      */
-    static array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
+    array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
         const Variable<array_1d<double, 3> >& rVar,
         ModelPart& rModelPart
         );
@@ -337,7 +337,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    static double SumNonHistoricalNodeScalarVariable(
+    double SumNonHistoricalNodeScalarVariable(
         const TVarType& rVar,
         ModelPart& rModelPart
         )
@@ -365,7 +365,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective node set
      * @return sum_value summation vector result
      */
-    static array_1d<double, 3> SumHistoricalNodeVectorVariable(
+    array_1d<double, 3> SumHistoricalNodeVectorVariable(
         const Variable<array_1d<double, 3> >& rVar,
         ModelPart& rModelPart,
         const unsigned int& rBuffStep = 0
@@ -378,7 +378,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    static double SumHistoricalNodeScalarVariable(
+    double SumHistoricalNodeScalarVariable(
         const TVarType& rVar,
         ModelPart& rModelPart,
         const unsigned int& rBuffStep = 0
@@ -407,7 +407,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective condition set
      * @return sum_value: summation result
      */
-    static array_1d<double, 3> SumConditionVectorVariable(
+    array_1d<double, 3> SumConditionVectorVariable(
         const Variable<array_1d<double, 3> >& rVar,
         ModelPart& rModelPart
         );
@@ -419,7 +419,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    static double SumConditionScalarVariable(
+    double SumConditionScalarVariable(
         const TVarType& rVar,
         ModelPart& rModelPart
         )
@@ -447,7 +447,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective element set
      * @return sum_value: summation result
      */
-    static array_1d<double, 3> SumElementVectorVariable(
+    array_1d<double, 3> SumElementVectorVariable(
         const Variable<array_1d<double, 3> >& rVar,
         ModelPart& rModelPart
         );
@@ -459,7 +459,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    static double SumElementScalarVariable(
+    double SumElementScalarVariable(
         const TVarType& rVar,
         ModelPart& rModelPart
         )
@@ -487,7 +487,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective element set
      */
     template< class TVarType >
-    static void AddDof( 
+    void AddDof( 
         const TVarType& rVar,
         ModelPart& rModelPart
         )
@@ -514,7 +514,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective element set
      */
     template< class TVarType >
-    static void AddDofWithReaction( 
+    void AddDofWithReaction( 
         const TVarType& rVar,
         const TVarType& rReactionVar,
         ModelPart& rModelPart
@@ -549,14 +549,14 @@ public:
      * This method checks the variable keys
      * @return True if all the keys are correct
      */
-    static bool CheckVariableKeys();
+    bool CheckVariableKeys();
 
     /** 
      * This method checks the dofs
      * @param rModelPart reference to the model part that contains the objective element set
      * @return True if all the DoFs are correct
      */
-    static bool CheckDofs(ModelPart& rModelPart);
+    bool CheckDofs(ModelPart& rModelPart);
 
     ///@}
     ///@name Acces
@@ -589,7 +589,7 @@ private:
      * @return True if all the keys are OK
      */
     template< class TVarType >
-    static bool CheckVariableKeysHelper()
+    bool CheckVariableKeysHelper()
     {
         KRATOS_TRY
 
