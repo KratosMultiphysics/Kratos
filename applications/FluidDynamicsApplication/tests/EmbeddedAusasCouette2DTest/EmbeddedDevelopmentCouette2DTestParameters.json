@@ -34,7 +34,7 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-        "solver_type"                  : "Embedded",
+        "solver_type"                  : "EmbeddedDevelopment",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "couette_ausas_2D"
