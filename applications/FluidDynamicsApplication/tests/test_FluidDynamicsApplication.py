@@ -61,6 +61,7 @@ def AssambleTestSuites():
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
     smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette2D'))
+    smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedDevelopmentCouette2D'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
@@ -82,6 +83,7 @@ def AssambleTestSuites():
     allSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir3D'))
     allSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir3D'))
     allSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette3D'))
+    smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedDevelopmentCouette3D'))
 
     return suites
 
