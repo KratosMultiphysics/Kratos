@@ -12,6 +12,7 @@
 
 // Project includes
 #include "utilities/math_utils.h"
+#include "utilities/variable_utils.h"
 #include "custom_utilities/metrics_math_utils.h"
 #include "custom_processes/metrics_levelset_process.h"
 
@@ -44,11 +45,11 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
     
     // In case we have isotropic remeshing (default values)
     if (ThisParameters["anisotropy_remeshing"].GetBool() == false) {
-        mAnisRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+        mAnisotropicRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
         mBoundLayer = DefaultParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
         mInterpolation = ConvertInter(DefaultParameters["anisotropy_parameters"]["interpolation"].GetString());
     } else {
-        mAnisRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+        mAnisotropicRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
         mBoundLayer = ThisParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
         mInterpolation = ConvertInter(ThisParameters["anisotropy_parameters"]["interpolation"].GetString());
     }
@@ -64,18 +65,18 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
     NodesArrayType& nodes_array = mThisModelPart.Nodes();
     const int num_nodes = nodes_array.end() - nodes_array.begin();
     
+    // Some checks
+    VariableUtils::CheckVariableExists(mVariableGradient, nodes_array);
+    VariableUtils::CheckVariableExists(NODAL_H, nodes_array);
+    
     #pragma omp parallel for 
     for(int i = 0; i < num_nodes; ++i)  {
         auto it_node = nodes_array.begin() + i;
         
-        // Some checks
-        KRATOS_ERROR_IF_NOT(it_node->SolutionStepsDataHas( mVariableGradient )) << "ERROR:: Missing gradient variable on node " << it_node->Id() << std::endl;
-        KRATOS_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not defined for node " << it_node->Id(); 
-        
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
         array_1d<double, 3>& gradient_value = it_node->FastGetSolutionStepValue(mVariableGradient);
         
-        const double ratio = CalculateAnisotropicRatio(distance, mAnisRatio, mBoundLayer, mInterpolation);
+        const double ratio = CalculateAnisotropicRatio(distance, mAnisotropicRatio, mBoundLayer, mInterpolation);
         
         // For postprocess pourposes
         it_node->SetValue(ANISOTROPIC_RATIO, ratio); 
@@ -194,21 +195,21 @@ Interpolation ComputeLevelSetSolMetricProcess<TDim>::ConvertInter(const std::str
 template<unsigned int TDim>  
 double ComputeLevelSetSolMetricProcess<TDim>::CalculateAnisotropicRatio(
     const double Distance,
-    const double AnisRatio,
+    const double AnisotropicRatio,
     const double BoundLayer,
     const Interpolation& rInterpolation
     )
 {
     const double tolerance = 1.0e-12;
     double ratio = 1.0; // NOTE: Isotropic mesh
-    if (AnisRatio < 1.0) {                           
+    if (AnisotropicRatio < 1.0) {                           
         if (std::abs(Distance) <= BoundLayer) {
             if (rInterpolation == Constant)
-                ratio = AnisRatio;
+                ratio = AnisotropicRatio;
             else if (rInterpolation == Linear)
-                ratio = AnisRatio + (std::abs(Distance)/BoundLayer) * (1.0 - AnisRatio);
+                ratio = AnisotropicRatio + (std::abs(Distance)/BoundLayer) * (1.0 - AnisotropicRatio);
             else if (rInterpolation == Exponential) {
-                ratio = - std::log(std::abs(Distance)/BoundLayer) * AnisRatio + tolerance;
+                ratio = - std::log(std::abs(Distance)/BoundLayer) * AnisotropicRatio + tolerance;
                 if (ratio > 1.0) ratio = 1.0;
             }
         }

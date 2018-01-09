@@ -12,6 +12,7 @@
 
 // Project includes
 #include "utilities/math_utils.h"
+#include "utilities/variable_utils.h"
 #include "custom_utilities/metrics_math_utils.h"
 #include "processes/compute_nodal_gradient_process.h" 
 #include "custom_processes/metrics_hessian_process.h" 
@@ -54,13 +55,13 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
     if (ThisParameters["anisotropy_remeshing"].GetBool() == false) {
         mInterpError = DefaultParameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
         mMeshConstant = DefaultParameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
-        mAnisRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+        mAnisotropicRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
         mBoundLayer = DefaultParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
         mInterpolation = ConvertInter(DefaultParameters["anisotropy_parameters"]["interpolation"].GetString());
     } else {
         mInterpError = ThisParameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
         mMeshConstant = ThisParameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
-        mAnisRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+        mAnisotropicRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
         mBoundLayer = ThisParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
         mInterpolation = ConvertInter(ThisParameters["anisotropy_parameters"]["interpolation"].GetString());
     }
@@ -78,13 +79,13 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
     
     CalculateAuxiliarHessian();
     
+    // Some checks
+    VariableUtils::CheckVariableExists(mVariable, nodes_array);
+    VariableUtils::CheckVariableExists(NODAL_H, nodes_array);
+    
     #pragma omp parallel for 
     for(int i = 0; i < num_nodes; ++i) {
         auto it_node = nodes_array.begin() + i;
-        
-        // Some checks
-        KRATOS_ERROR_IF_NOT(it_node->SolutionStepsDataHas( mVariable )) << "ERROR:: Missing variable on node " << it_node->Id() << std::endl;
-        KRATOS_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not defined for node " << it_node->Id();
         
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE); // TODO: This should be changed for the varaible of interestin the future. This means that the value of the boundary value would be changed to a threshold value instead
         const Vector& hessian = it_node->GetValue(AUXILIAR_HESSIAN);
@@ -96,7 +97,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
         double element_max_size = mMaxSize;
         if ((element_max_size > nodal_h) && (mEnforceCurrent == true)) element_max_size = nodal_h;
 
-        const double ratio = CalculateAnisotropicRatio(distance, mAnisRatio, mBoundLayer, mInterpolation);
+        const double ratio = CalculateAnisotropicRatio(distance, mAnisotropicRatio, mBoundLayer, mInterpolation);
         
         // For postprocess pourposes
         it_node->SetValue(ANISOTROPIC_RATIO, ratio); 
@@ -303,21 +304,21 @@ Interpolation ComputeHessianSolMetricProcess<TDim, TVarType>::ConvertInter(const
 template<unsigned int TDim, class TVarType>  
 double ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAnisotropicRatio(
     const double Distance,
-    const double AnisRatio,
+    const double AnisotropicRatio,
     const double BoundLayer,
-    const Interpolation& rInterpolation
+    const Interpolation rInterpolation
     )
 {
     const double tolerance = 1.0e-12;
     double ratio = 1.0; // NOTE: Isotropic mesh
-    if (AnisRatio < 1.0) {                           
+    if (AnisotropicRatio < 1.0) {                           
         if (std::abs(Distance) <= BoundLayer) {
             if (rInterpolation == Constant)
-                ratio = AnisRatio;
+                ratio = AnisotropicRatio;
             else if (rInterpolation == Linear)
-                ratio = AnisRatio + (std::abs(Distance)/BoundLayer) * (1.0 - AnisRatio);
+                ratio = AnisotropicRatio + (std::abs(Distance)/BoundLayer) * (1.0 - AnisotropicRatio);
             else if (rInterpolation == Exponential) {
-                ratio = - std::log(std::abs(Distance)/BoundLayer) * AnisRatio + tolerance;
+                ratio = - std::log(std::abs(Distance)/BoundLayer) * AnisotropicRatio + tolerance;
                 if (ratio > 1.0) ratio = 1.0;
             }
         }
