@@ -5,11 +5,10 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication","MetisApplication","TrilinosApplication")
+KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication","TrilinosApplication")
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Import base class file
@@ -65,6 +64,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         return self._epetra_communicator
 
     def print_on_rank_zero(self, *args):
+        KratosMPI.mpi.world.barrier()
         if KratosMPI.mpi.rank == 0:
             print(" ".join(map(str,args)))
 

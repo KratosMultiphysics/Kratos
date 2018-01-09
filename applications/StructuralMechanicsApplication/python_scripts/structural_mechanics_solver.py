@@ -96,7 +96,7 @@ class MechanicalSolver(object):
         if custom_settings.Has("bodies_list"):
             warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "bodies_list", '
             warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            print(warning)
+            self.print_on_rank_zero(warning)
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
@@ -104,7 +104,7 @@ class MechanicalSolver(object):
 
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
-        print("::[MechanicalSolver]:: Construction finished")
+        self.print_on_rank_zero("::[MechanicalSolver]:: Construction finished")
 
     def AddVariables(self):
         # Add displacements.
@@ -131,7 +131,7 @@ class MechanicalSolver(object):
             variable_name = self.settings["auxiliary_variables_list"][i].GetString()
             variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
             self.main_model_part.AddNodalSolutionStepVariable(variable)
-        print("::[MechanicalSolver]:: Variables ADDED")
+        self.print_on_rank_zero("::[MechanicalSolver]:: Variables ADDED")
 
     def GetMinimumBufferSize(self):
         return 2
@@ -146,7 +146,7 @@ class MechanicalSolver(object):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,self.main_model_part)
         if self.settings["pressure_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE_REACTION,self.main_model_part)
-        print("::[MechanicalSolver]:: DOF's ADDED")
+        self.print_on_rank_zero("::[MechanicalSolver]:: DOF's ADDED")
 
     def ImportModelPart(self):
         print("::[MechanicalSolver]:: Importing model part.")
@@ -190,7 +190,7 @@ class MechanicalSolver(object):
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
-        print("::[MechanicalSolver]:: Initializing ...")
+        self.print_on_rank_zero("::[MechanicalSolver]:: Initializing ...")
         # The mechanical solver is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -204,7 +204,7 @@ class MechanicalSolver(object):
             if hasattr(mechanical_solver, SetInitializePerformedFlag):
                 mechanical_solver.SetInitializePerformedFlag(True)
         self.Check()
-        print("::[MechanicalSolver]:: Finished initialization.")
+        self.print_on_rank_zero("::[MechanicalSolver]:: Finished initialization.")
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
@@ -346,6 +346,10 @@ class MechanicalSolver(object):
                     raise Exception('Unsupported parameter type.')
                 origin_settings.RemoveValue(name)
 
+    def print_on_rank_zero(self, *args):
+        # This function will be overridden in the trilinos-solvers
+        print(" ".join(map(str,args)))
+
     #### Private functions ####
 
     def _execute_after_reading(self):
@@ -363,9 +367,9 @@ class MechanicalSolver(object):
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
-            print("    Constitutive law was successfully imported.")
+            self.print_on_rank_zero("    Constitutive law was successfully imported.")
         else:
-            print("    Constitutive law was not imported.")
+            self.print_on_rank_zero("    Constitutive law was not imported.")
 
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
