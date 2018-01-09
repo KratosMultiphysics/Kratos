@@ -43,6 +43,7 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
         if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
             custom_settings.AddEmptyValue("scheme_type")
             custom_settings["scheme_type"].SetString("newmark")
+        
         # Construct the base solver.
         super(TrilinosImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
