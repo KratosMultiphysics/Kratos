@@ -29,7 +29,7 @@
 #include "processes/apply_multi_point_constraints_process.h"
 
 #include "../../MappingApplication/custom_utilities/mapper.h"
-#include "../../MappingApplication/custom_utilities/mapper_communicator.h"
+#include "../../MappingApplication/custom_utilities/mapper_communicator.h"  
 
 
 namespace Kratos
@@ -485,7 +485,7 @@ class ApplyPeriodicConditionProcess : public Process
         double a = U[0];
         double b = U[1];
         double c = U[2];
-        double eps = 1e-12;
+        //double eps = 1e-12;
 
         double t2 = cos(mTheta);
         double t3 = sin(mTheta);
