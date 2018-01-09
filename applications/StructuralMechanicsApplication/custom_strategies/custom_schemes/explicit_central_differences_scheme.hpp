@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME)
-#define  KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME
+#if !defined(KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_HPP_INCLUDED)
+#define  KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_HPP_INCLUDED
 
 
 /* System includes */
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */
@@ -269,28 +269,49 @@ namespace Kratos
         
         for(ElementsArrayType::iterator it=it_begin; it!= it_end; it++)
         {
-
+          bool check = true;
+          double E(0.00), v(0.00), ro(0.00), alpha(0.00), beta(0.00);
           //get geometric and material properties
-          double length   = it->GetGeometry().Length();
-          double alpha    = it->GetProperties()[RAYLEIGH_ALPHA];
-          double beta     = it->GetProperties()[RAYLEIGH_BETA];
-          double E        = it->GetProperties()[YOUNG_MODULUS];
-          double v        = it->GetProperties()[POISSON_RATIO];
-          double ro       = it->GetProperties()[DENSITY];
-
-          //compute courant criterion
-          double bulk       = E/(3.0*(1.0-2.0*v));               
-          double wavespeed  = sqrt(bulk/ro);
-          double w          = 2.0*wavespeed/length;   //frequency
-
-          double psi        = 0.5*(alpha/w + beta*w); //critical ratio;
-          stable_delta_time = (2.0/w)*(sqrt(1.0 + psi*psi)-psi);
-
-          if(stable_delta_time > 0.00)
+          if (it->GetProperties().Has(RAYLEIGH_ALPHA))
           {
-            if(stable_delta_time < delta_times[k])
+            alpha    = it->GetProperties()[RAYLEIGH_ALPHA];
+          }
+          if (it->GetProperties().Has(RAYLEIGH_BETA))
+          {
+            beta     = it->GetProperties()[RAYLEIGH_BETA];
+          }
+          if (it->GetProperties().Has(YOUNG_MODULUS))
+          {
+            E        = it->GetProperties()[YOUNG_MODULUS];
+          }
+          else check = false;
+          if (it->GetProperties().Has(POISSON_RATIO))
+          {
+            v        = it->GetProperties()[POISSON_RATIO];
+          }
+          if (it->GetProperties().Has(DENSITY))
+          {
+            ro       = it->GetProperties()[DENSITY];
+          }
+          else check = false;
+
+          if (check){
+            double length   = it->GetGeometry().Length();
+
+            //compute courant criterion
+            double bulk       = E/(3.0*(1.0-2.0*v));               
+            double wavespeed  = sqrt(bulk/ro);
+            double w          = 2.0*wavespeed/length;   //frequency
+
+            double psi        = 0.5*(alpha/w + beta*w); //critical ratio;
+            stable_delta_time = (2.0/w)*(sqrt(1.0 + psi*psi)-psi);
+
+            if(stable_delta_time > 0.00)
             {
-              delta_times[k] = stable_delta_time;
+              if(stable_delta_time < delta_times[k])
+              {
+                delta_times[k] = stable_delta_time;
+              }
             }
           }
 
@@ -685,7 +706,7 @@ namespace Kratos
     const unsigned int dimension       = rCurrentElement->GetGeometry().WorkingSpaceDimension();
 
     //adding damping contribution
-    if (D.size1() != 0)
+/*     if (D.size1() != 0)
     {
       GetFirstDerivativesVector(rCurrentElement, mVector.v[thread]);
 
@@ -694,7 +715,7 @@ namespace Kratos
         this->RHS_Contribution_NonRotationDampingMatrix(RHS_Contribution,D,dimension,number_of_nodes);
       }
       else noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
-    }
+    } */
 
   }
 
@@ -749,7 +770,7 @@ namespace Kratos
     const unsigned int number_of_nodes = rCurrentCondition->GetGeometry().size();
     const unsigned int dimension       = rCurrentCondition->GetGeometry().WorkingSpaceDimension();
 
-    //adding damping contribution
+/*     //adding damping contribution
     if (D.size1() != 0)
     {
       GetFirstDerivativesVector(rCurrentCondition, mVector.v[thread]);
@@ -759,7 +780,7 @@ namespace Kratos
         this->RHS_Contribution_NonRotationDampingMatrix(RHS_Contribution,D,dimension,number_of_nodes);
       }
       else noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
-    }
+    } */
   }
 
 
@@ -822,42 +843,6 @@ namespace Kratos
 
   //***************************************************************************
   //***************************************************************************
-    /** custom function to enlarge damping matrix of non-rot elements to fit
-     * to rot systems
-    */
-    void RHS_Contribution_NonRotationDampingMatrix(LocalSystemVectorType& RHS,
-       LocalSystemMatrixType D, const int dimension, const int number_of_nodes)
-    {
-      //assume following dof id : Displ1,Rot1,Displ2,Rot2 (XYZ)
-      int thread = OpenMPUtils::ThisThread();
-      const int element_size = 2*dimension*number_of_nodes;
-      Matrix D_rot = ZeroMatrix(element_size,element_size);
-
-
-      for (int i=0;i<dimension;++i)
-      {
-        for (int j=0;j<dimension;++j)
-        {
-          D_rot(i,j) = D(i,j);
-          D_rot(i+dimension*2,j) = D(i+dimension,j);
-          D_rot(i,j+dimension*2) = D(i,j+dimension);
-          D_rot(i+dimension*2,j+dimension*2) = D(i+dimension,j+dimension);
-        }
-      }
-
-
-      Vector RHS_Rot = prod(D_rot, mVector.v[thread]);
-      
-      for (int i =0;i<number_of_nodes;++i)
-      {
-        int index = i*dimension;
-        for (int j=0;j<dimension;++j)
-        {
-          RHS[index+j] -= RHS_Rot[2*index+j];
-        }
-      }    
-    }
-
     /*@} */
     /**@name Operations */
     /*@{ */

@@ -214,7 +214,6 @@ public:
     void Initialize()
     {
         KRATOS_TRY
-
         //pointers needed in the solution
         typename TSchemeType::Pointer pScheme                     = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
@@ -251,7 +250,6 @@ public:
     void InitializeSolutionStep()
     {
         KRATOS_TRY
-
         typename TSchemeType::Pointer pScheme                     = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         ModelPart& r_model_part                                   = BaseType::GetModelPart();
@@ -285,7 +283,6 @@ public:
     double Solve() override
     {
         KRATOS_TRY
-        
         DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
         TSystemMatrixType mA  = TSystemMatrixType();
         TSystemVectorType mDx = TSystemVectorType();
@@ -294,7 +291,7 @@ public:
         //pointers needed in the solution
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-        
+
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
         if(mInitializeWasPerformed == false) Initialize();
@@ -312,12 +309,14 @@ public:
         
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
 
+
         pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb); // Explicitly integrates the equation of motion.
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
         pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+
         
         //move the mesh if needed
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
@@ -325,9 +324,9 @@ public:
         //Cleaning memory after the solution
         pScheme->Clean();
 
+
         //reset flags for next step
         mSolutionStepIsInitialized = false;
-
         return 0.00;
 
         KRATOS_CATCH( "" )
