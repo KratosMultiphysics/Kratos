@@ -9,26 +9,26 @@ from classes.variableCreator import VariableCreator
 from applicationGenerator import ApplicationGenerator
 
 # Set the application name and generate Camel, Caps and Low
-appNameCamel = "PureDiffusion"
+appNameCamel = "MyExample"
 
 # Fetch the applications directory
 debugApp = ApplicationGenerator(appNameCamel)
 
 # Add KratosVariables
 debugApp.AddVariables([
-    VariableCreator(name='POINT_HEAT_SOURCE', vtype='double'),
+    VariableCreator(name='MY_SCALAR', vtype='double'),
 ])
 
 # Add test element
 debugApp.AddElements([
-    ElementCreator('LaplacianElement')
+    ElementCreator('MyElement')
     .AddDofs(['TEMPERATURE'])
     .AddFlags([])
     .AddClassMemberVariables([])
 ])
 
 debugApp.AddConditions([
-    ConditionCreator('PointSourceCondition')
+    ConditionCreator('MyCondition')
     .AddDofs(['TEMPERATURE'])
     .AddFlags([])
 ])
