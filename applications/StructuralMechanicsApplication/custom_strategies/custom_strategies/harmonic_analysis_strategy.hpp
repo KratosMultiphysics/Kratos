@@ -678,7 +678,7 @@ private:
                     }
 
                     //phase angle
-                    it_dof->GetSolutionStepReactionValue(step) = std::abs( std::arg( modal_displacement ) );
+                    it_dof->GetSolutionStepReactionValue(step) = std::arg( modal_displacement );
                 }
                 else
                 {
