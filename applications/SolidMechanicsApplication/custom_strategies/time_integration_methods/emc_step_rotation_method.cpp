@@ -17,7 +17,7 @@
 
 namespace Kratos
 {
-
+ 
   // specilization to array_1d
   
   template<>
@@ -135,6 +135,7 @@ namespace Kratos
     
     KRATOS_CATCH( "" )
   }
+  
   
 }  // namespace Kratos.
 

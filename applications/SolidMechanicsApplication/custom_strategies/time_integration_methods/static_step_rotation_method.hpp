@@ -243,6 +243,10 @@ namespace Kratos
 
   ///@name Type Definitions
   ///@{
+  
+  template<>
+  void StaticStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
+  
 
   template<class TVariableType, class TValueType>
   void StaticStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
