@@ -140,7 +140,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
                                                                               linear_solver, 
                                                                               mechanical_convergence_criterion, 
                                                                               builder_and_solver, 
-                                                                              self.settings["max_iteration"].GetInt(),
+                                                                              self.solving_strategy_settings["max_iteration"].GetInt(),
                                                                               self.solving_strategy_settings["compute_reactions"].GetBool(),
                                                                               self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool(),
                                                                               self.solving_strategy_settings["move_mesh_flag"].GetBool())
