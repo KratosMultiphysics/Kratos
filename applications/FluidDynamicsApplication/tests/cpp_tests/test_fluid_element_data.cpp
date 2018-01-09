@@ -11,6 +11,8 @@
 //
 //
 
+#include <iomanip> // for std::setprecision
+
 // Project includes
 #include "testing/testing.h"
 #include "includes/model_part.h"
@@ -357,7 +359,14 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     Vector RHS = ZeroVector(9);
     Matrix LHS = ZeroMatrix(9,9);
 
-    KRATOS_WATCH("**** NO CUTS ****");
+    std::vector< std::vector<double> > output_uncut;
+    output_uncut.resize(5);
+    output_uncut[0] = {-1.818177294,17.69882244,-0.5033880823,69.79292838,153.3702507,0.08535256462,95.7560183,195.5915822,0.2680355177}; // EmbeddedNavierStokes
+    output_uncut[1] = {-12.52607405,-3.069963453,-0.6557582459,79.46980568,174.5435981,0.1308775154,110.444523,227.2405845,0.3748807306}; // EmbeddedFluidElement
+    output_uncut[2] = {-1.818177294,17.69882244,-0.5033880823,69.79292838,153.3702507,0.08535256462,95.7560183,195.5915822,0.2680355177}; // NavierStokes
+    output_uncut[3] = {-12.52607405,-3.069963453,-0.6557582459,79.46980568,174.5435981,0.1308775154,110.444523,227.2405845,0.3748807306}; // SymbolicNavierStokes2D3N
+    output_uncut[4] = {-21.81650306,-40.75920676,-0.6557581669,54.90454836,132.1891487,0.1308774929,90.0369547,179.8200581,0.374880674}; // TimeIntegratedQSVMS
+    int counter = 0;
 
     // Test Uncut element
     p_element->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = 1.0;
@@ -366,14 +375,27 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         i->Initialize(); // Initialize the element to initialize the constitutive law
-        i->Check(model_part.GetProcessInfo()); // Here otherwise the constitutive law is not seen
+        i->Check(model_part.GetProcessInfo()); // Otherwise the constitutive law is not seen here
         i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-        std::cout << i->Info() << std::endl;
-        KRATOS_WATCH(RHS);
+        //std::cout << i->Info() << std::setprecision(10) << std::endl;
+        //KRATOS_WATCH(RHS);
+
+        for (unsigned int j = 0; j < RHS.size(); j++) {
+            KRATOS_CHECK_NEAR(RHS[j], output_uncut[counter][j], 1e-6);
+        }
+
+        counter++;
     }
 
-    KRATOS_WATCH("**** CUTS ****");
+    std::vector< std::vector<double> > output_cut;
+    output_cut.resize(5);
+    output_cut[0] = {-0.008024691358,-0.01358024691,-0.05463909243,-0.008641975309,-0.01419753086,0.01767964152,-2867.408637,-4778.200165,0.02029278424}; // EmbeddedNavierStokes
+    output_cut[1] = {-0.008024691358,-0.01358024691,-0.07247223359,-0.008641975309,-0.01419753086,0.02427807437,-5126.588376,-8543.394662,0.03152749255}; // EmbeddedFluidElement
+    output_cut[2] = {-1.818177294,17.69882244,-0.5033880823,69.79292838,153.3702507,0.08535256462,95.7560183,195.5915822,0.2680355177}; // NavierStokes
+    output_cut[3] = {-12.52607405,-3.069963453,-0.6557582459,79.46980568,174.5435981,0.1308775154,110.444523,227.2405845,0.3748807306}; // SymbolicNavierStokes2D3N
+    output_cut[4] = {-21.81650306,-40.75920676,-0.6557581669,54.90454836,132.1891487,0.1308774929,90.0369547,179.8200581,0.374880674}; // TimeIntegratedQSVMS
+    counter = 0;
 
     // Test cut element
     p_element->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
@@ -384,11 +406,24 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
         i->Initialize(); // Initialize the element to initialize the constitutive law
         i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-        std::cout << i->Info() << std::endl;
-        KRATOS_WATCH(RHS);
+        //std::cout << i->Info() << std::setprecision(10) << std::endl;
+        //KRATOS_WATCH(RHS);
+        
+        for (unsigned int j = 0; j < RHS.size(); j++) {
+            KRATOS_CHECK_NEAR(RHS[j], output_cut[counter][j], 1e-6);
+        }
+
+        counter++;
     }
 
-    KRATOS_WATCH("**** CUTS WITH EMBEDDED VELOCITY ****");
+    std::vector< std::vector<double> > output_embedded_velocity;
+    output_embedded_velocity.resize(5);
+    output_embedded_velocity[0] = {0.0475308641975,0.0975308641975,-0.0546390924304,0.0469135802469,0.0969135802469,0.0176796415227,16436.8507492,33830.318608,0.020292784241}; // EmbeddedNavierStokes
+    output_embedded_velocity[1] = {0.0475308641975,0.0975308641975,-0.0724722335903,0.0469135802469,0.0969135802469,0.0242780743742,29260.904177,60231.5904448,0.0315274925494}; // EmbeddedFluidElement
+    output_embedded_velocity[2] = {-1.818177294,17.69882244,-0.5033880823,69.79292838,153.3702507,0.08535256462,95.7560183,195.5915822,0.2680355177}; // NavierStokes
+    output_embedded_velocity[3] = {-12.52607405,-3.069963453,-0.6557582459,79.46980568,174.5435981,0.1308775154,110.444523,227.2405845,0.3748807306}; // SymbolicNavierStokes2D3N
+    output_embedded_velocity[4] = {-21.81650306,-40.75920676,-0.6557581669,54.90454836,132.1891487,0.1308774929,90.0369547,179.8200581,0.374880674}; // TimeIntegratedQSVMS
+    counter = 0;
 
     // Test cut element with embedded velocity
     array_1d<double, 3> embedded_vel;
@@ -401,8 +436,14 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
         i->Initialize(); // Initialize the element to initialize the constitutive law
         i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-        std::cout << i->Info() << std::endl;
-        KRATOS_WATCH(RHS);
+        //std::cout << i->Info() << std::setprecision(12) << std::endl;
+        //KRATOS_WATCH(RHS);
+        
+        for (unsigned int j = 0; j < RHS.size(); j++) {
+            KRATOS_CHECK_NEAR(RHS[j], output_embedded_velocity[counter][j], 1e-6);
+        }
+
+        counter++;
     }
 }
 
