@@ -90,7 +90,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
             KratosMultiphysics.CheckRegisteredApplications(application_name)
             application = __import__("Kratos" + application_name)
             
-            return getattr(application, constitutive_law_name) 
+            return getattr(application, constitutive_law_name)
 
     def _AssignPropertyBlock(self, data):
         """Set constitutive law and material properties and assign to elements and conditions.
