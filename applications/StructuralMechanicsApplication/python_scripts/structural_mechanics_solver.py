@@ -46,12 +46,9 @@ class MechanicalSolver(object):
     def __init__(self, main_model_part, custom_settings):
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "Static",
             "echo_level": 0,
             "buffer_size": 2,
             "analysis_type": "non_linear",
-            "time_integration_method": "implicit",
-            "scheme_type": "newmark",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
