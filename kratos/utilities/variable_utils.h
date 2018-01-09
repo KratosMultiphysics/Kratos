@@ -7,66 +7,56 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi, Ruben Zorrilla
+//  Main authors:    Riccardo Rossi 
+//                   Ruben Zorrilla
+//                   Vicente Mataix Ferrandiz
 //
 //
-
 
 #if !defined(KRATOS_VARIABLE_UTILS )
 #define  KRATOS_VARIABLE_UTILS
 
-
 /* System includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
-
 
 /* External includes */
 
-
 /* Project includes */
-
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
 
-/**@name Kratos Globals */
-/*@{ */
+///@}
+///@name Type Definitions
+///@{
 
+///@}
+///@name  Enum's
+///@{
 
-/*@} */
-/**@name Type Definitions */
-/*@{ */
+///@}
+///@name  Functions
+///@{
 
-
-/*@} */
-
-
-/**@name  Enum's */
-/*@{ */
-
-
-/*@} */
-/**@name  Functions */
-/*@{ */
-
-
-
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
+///@}
+///@name Kratos Classes
+///@{
 
 /**
  * This class implements a set of auxiliar, already parallelized, methods to
  * perform some common tasks related with the variable values and fixity.
  */
-class VariableUtils
+class KRATOS_API(KRATOS_CORE) VariableUtils
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
+    ///@name Type Definitions
+    ///@{
 
+    KRATOS_CLASS_POINTER_DEFINITION(VariableUtils);
+    
     typedef ModelPart::NodesContainerType NodesContainerType;
     
     typedef ModelPart::ConditionsContainerType ConditionsContainerType;
@@ -77,27 +67,23 @@ public:
     
     typedef Variable< array_1d<double, 3 > > ArrayVarType;
     
-    /*@} */
-    /**@name Life Cycle
-     */
-    /*@{ */
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     /** Constructor.
      */
 
-
     /** Destructor.
      */
 
-    /*@} */
-    /**@name Operators
-     */
-    /*@{ */
+    ///@}
+    ///@name Operators
+    ///@{
 
-
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
      * Sets the nodal value of a vector variable
@@ -109,18 +95,7 @@ public:
         const ArrayVarType& rVariable,
         const array_1d<double, 3 >& Value,
         NodesContainerType& rNodes
-        )
-    {
-        KRATOS_TRY
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator i = rNodes.begin() + k;
-            noalias(i->FastGetSolutionStepValue(rVariable)) = Value;
-        }
-        
-        KRATOS_CATCH("")
-    }
+        );
 
     /**
      * Sets the nodal value of a scalar variable
@@ -182,18 +157,7 @@ public:
         const ArrayVarType& OriginVariable,
         const ArrayVarType& SavedVariable,
         NodesContainerType& rNodes
-        )
-    {
-        KRATOS_TRY
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            it_node->SetValue(SavedVariable, it_node->FastGetSolutionStepValue(OriginVariable));
-        }
-        
-        KRATOS_CATCH("")
-    }
+        );
 
     /**
      * Takes the value of a non-historical scalar variable and sets it in other variable
@@ -205,18 +169,7 @@ public:
         const DoubleVarType& OriginVariable,
         DoubleVarType& SavedVariable,
         NodesContainerType& rNodes
-        )
-    {
-        KRATOS_TRY
-        
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            it_node->SetValue(SavedVariable,it_node->FastGetSolutionStepValue(OriginVariable));
-        }
-        
-        KRATOS_CATCH("")
-    }
+        );
 
     /**
      * Takes the value of an historical vector variable and sets it in other variable
@@ -228,18 +181,7 @@ public:
         const ArrayVarType& OriginVariable,
         ArrayVarType& DestinationVariable,
         NodesContainerType& rNodes
-        )
-    {
-        KRATOS_TRY
-        
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            noalias(it_node->FastGetSolutionStepValue(DestinationVariable)) = it_node->FastGetSolutionStepValue(OriginVariable);
-        }
-        
-        KRATOS_CATCH("")
-    }
+        );
 
     /**
      * Takes the value of an historical double variable and sets it in other variable
@@ -251,18 +193,7 @@ public:
         const DoubleVarType& OriginVariable,
         DoubleVarType& DestinationVariable,
         NodesContainerType& rNodes
-        )
-    {
-        KRATOS_TRY
-        
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            it_node->FastGetSolutionStepValue(DestinationVariable) = it_node->FastGetSolutionStepValue(OriginVariable);
-        }
-        
-        KRATOS_CATCH("")
-    }
+        );
 
     /**
      * In a node set, sets a vector variable to zero
@@ -272,18 +203,7 @@ public:
     static void SetToZero_VectorVar(
         const ArrayVarType& Variable, 
         NodesContainerType& rNodes
-        )
-    {
-        KRATOS_TRY
-        
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator i = rNodes.begin() + k;
-            noalias(i->FastGetSolutionStepValue(Variable)) = ZeroVector(3);
-        }
-        
-        KRATOS_CATCH("")
-    }
+        );
 
     /**
      * In a node set, sets a double variable to zero
@@ -293,18 +213,7 @@ public:
     static void SetToZero_ScalarVar(
         const DoubleVarType& Variable, 
         NodesContainerType& rNodes
-        )
-    {
-        KRATOS_TRY
-        
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator i = rNodes.begin() + k;
-            i->FastGetSolutionStepValue(Variable) = 0.0;
-        }
-        
-        KRATOS_CATCH("")
-    }
+        );
 
     /**
      * Returns a list of nodes filtered using the given double variable and value
@@ -317,20 +226,7 @@ public:
         const DoubleVarType& Variable,
         const double& Value,
         NodesContainerType& rOriginNodes
-        )
-    {
-        KRATOS_TRY
-        
-        NodesContainerType selected_nodes;
-        for (NodesContainerType::iterator it_node = rOriginNodes.begin(); it_node != rOriginNodes.end(); ++it_node) {
-            if (it_node->FastGetSolutionStepValue(Variable) == Value)
-                selected_nodes.push_back(*(it_node.base()));
-        }
-
-        return selected_nodes;
-        
-        KRATOS_CATCH("")
-    }
+        );
 
     /**
      * Checks if all the nodes of a node set has the specified variable
@@ -390,7 +286,7 @@ public:
 
         KRATOS_CATCH("")
     }
-
+    
     /**
      * Loops along a vector data to set its values to the nodes contained in a node set.
      * Note that this function is suitable for scalar historical variables, since each
@@ -432,34 +328,7 @@ public:
     static array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
         const Variable<array_1d<double, 3> >& rVar,
         ModelPart& rModelPart
-        )
-    {
-        KRATOS_TRY
-
-        array_1d<double, 3> sum_value = ZeroVector(3);
-
-        #pragma omp parallel
-        {
-            array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-            #pragma omp for
-            for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
-                NodesContainerType::iterator it_node = rModelPart.NodesBegin() + k;
-                private_sum_value += it_node->GetValue(rVar);
-            }
-
-            for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
-                #pragma omp atomic
-                sum_value[j] += private_sum_value[j];
-            }
-        }
-
-        rModelPart.GetCommunicator().SumAll(sum_value);
-
-        return sum_value;
-
-        KRATOS_CATCH("")
-    }
+        );
 
     /**
      * Returns the nodal value summation of a non-historical scalar variable.
@@ -500,35 +369,8 @@ public:
         const Variable<array_1d<double, 3> >& rVar,
         ModelPart& rModelPart,
         const unsigned int& rBuffStep = 0
-        )
-    {
-        KRATOS_TRY
-
-        array_1d<double, 3> sum_value = ZeroVector(3);
-
-        #pragma omp parallel
-        {
-            array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-            #pragma omp for
-            for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
-                NodesContainerType::iterator it_node = rModelPart.NodesBegin() + k;
-                private_sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
-            }
-
-            for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
-                #pragma omp atomic
-                sum_value[j] += private_sum_value[j];
-            }
-        }
-
-        rModelPart.GetCommunicator().SumAll(sum_value);
-
-        return sum_value;
-
-        KRATOS_CATCH("")
-    }
-
+        );
+    
     /**
      * Returns the nodal value summation of an historical scalar variable.
      * @param rVar reference to the scalar variable to be summed
@@ -568,34 +410,7 @@ public:
     static array_1d<double, 3> SumConditionVectorVariable(
         const Variable<array_1d<double, 3> >& rVar,
         ModelPart& rModelPart
-        )
-    {
-        KRATOS_TRY
-
-        array_1d<double, 3> sum_value = ZeroVector(3);
-
-        #pragma omp parallel
-        {
-            array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-            #pragma omp for
-            for (int k = 0; k < static_cast<int>(rModelPart.NumberOfConditions()); ++k) {
-                ConditionsContainerType::iterator it_cond = rModelPart.ConditionsBegin() + k;
-                private_sum_value += it_cond->GetValue(rVar);
-            }
-
-            for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
-                #pragma omp atomic
-                sum_value[j] += private_sum_value[j];
-            }
-        }
-
-        rModelPart.GetCommunicator().SumAll(sum_value);
-
-        return sum_value;
-
-        KRATOS_CATCH("")
-    }
+        );
 
     /**
      * Returns the condition value summation of a historical scalar variable
@@ -635,34 +450,7 @@ public:
     static array_1d<double, 3> SumElementVectorVariable(
         const Variable<array_1d<double, 3> >& rVar,
         ModelPart& rModelPart
-        )
-    {
-        KRATOS_TRY
-
-        array_1d<double, 3> sum_value = ZeroVector(3);
-
-        #pragma omp parallel
-        {
-            array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-            #pragma omp for
-            for (int k = 0; k < static_cast<int>(rModelPart.NumberOfElements()); ++k) {
-                ElementsContainerType::iterator it_elem = rModelPart.ElementsBegin() + k;
-                private_sum_value += it_elem->GetValue(rVar);
-            }
-
-            for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
-                #pragma omp atomic
-                sum_value[j] += private_sum_value[j];
-            }
-        }
-
-        rModelPart.GetCommunicator().SumAll(sum_value);
-
-        return sum_value;
-
-        KRATOS_CATCH("")
-    }
+        );
 
     /**
      * Returns the element value summation of a historical scalar variable
@@ -671,7 +459,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumElementScalarVariable(
+    static double SumElementScalarVariable(
         const TVarType& rVar,
         ModelPart& rModelPart
         )
@@ -699,7 +487,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective element set
      */
     template< class TVarType >
-    void AddDof( 
+    static void AddDof( 
         const TVarType& rVar,
         ModelPart& rModelPart
         )
@@ -718,7 +506,7 @@ public:
 
         KRATOS_CATCH("")
     }
-
+    
     /** 
      * This function add dofs to the nodes in a model part. It is useful since addition is done in parallel
      * @param rVar The variable to be added as DoF
@@ -726,7 +514,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective element set
      */
     template< class TVarType >
-    void AddDofWithReaction( 
+    static void AddDofWithReaction( 
         const TVarType& rVar,
         const TVarType& rReactionVar,
         ModelPart& rModelPart
@@ -761,78 +549,47 @@ public:
      * This method checks the variable keys
      * @return True if all the keys are correct
      */
-    bool CheckVariableKeys()
-    {
-        KRATOS_TRY
-
-        CheckVariableKeysHelper< Variable<double> >();
-        CheckVariableKeysHelper< Variable<array_1d<double,3> > >();
-        CheckVariableKeysHelper< Variable<bool> >();
-        CheckVariableKeysHelper< Variable<int> >();
-        CheckVariableKeysHelper< Variable<unsigned int> >();
-        CheckVariableKeysHelper< Variable<Vector> >();
-        CheckVariableKeysHelper< Variable<Matrix> >();
-        CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >();
-            
-        return true;
-        
-        KRATOS_CATCH("")
-    }
+    static bool CheckVariableKeys();
 
     /** 
      * This method checks the dofs
      * @param rModelPart reference to the model part that contains the objective element set
      * @return True if all the DoFs are correct
      */
-    bool CheckDofs(ModelPart& rModelPart)
-    {
-        KRATOS_TRY
+    static bool CheckDofs(ModelPart& rModelPart);
 
-        for(auto& node : rModelPart.Nodes()) {
-            for (auto& dof : node.GetDofs()) {
-//                 KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(dof.GetVariable())) << "Node : " << node << " does not have allocated space for the variable " << dof << std::endl;
-                KRATOS_ERROR_IF(dof.GetVariable().Key() == 0) << "Found a zero key on a dof of node " << node << std::endl;
-
-            }
-        }
-        
-        return true;
-        
-        KRATOS_CATCH("")
-    }
-
-    /*@} */
-    /**@name Acces */
-    /*@{ */
+    ///@}
+    ///@name Acces
+    ///@{
 
 
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-    /*@} */
-    /**@name Friends */
-    /*@{ */
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-    /*@} */
+    ///@}
 
 private:
-    /**@name Static Member Variables */
-    /*@{ */
+    ///@name Static Member Variables
+    ///@{
 
 
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
+    ///@}
+    ///@name Member Variables
+    ///@{
     
     /**
      * This is auxiliar method to check the keys 
      * @return True if all the keys are OK
      */
     template< class TVarType >
-    bool CheckVariableKeysHelper()
+    static bool CheckVariableKeysHelper()
     {
         KRATOS_TRY
 
@@ -851,45 +608,44 @@ private:
 
         return true;
         KRATOS_CATCH("")
-    }
+    }   
+    
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
+    ///@}
+    ///@name Private  Acces 
+    ///@{
 
 
-    /*@} */
-    /**@name Private  Acces */
-    /*@{ */
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
 
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
+    ///@}
+
+}; /* Class VariableUtils */
+
+///@}
+
+///@name Type Definitions
+///@{
 
 
-    /*@} */
-
-}; /* Class ClassName */
-
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
-
-
-/*@} */
+///@}
 
 } /* namespace Kratos.*/
 
