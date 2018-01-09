@@ -248,6 +248,9 @@ namespace Kratos
 
   ///@name Type Definitions
   ///@{
+  
+  template<>
+  void NewmarkStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
 
   template<class TVariableType, class TValueType>
   void NewmarkStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)

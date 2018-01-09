@@ -227,6 +227,9 @@ namespace Kratos
 
   ///@name Type Definitions
   ///@{
+  
+  template<>
+  void SimoStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
 
   template<class TVariableType, class TValueType>
   void SimoStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
