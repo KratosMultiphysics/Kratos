@@ -10,9 +10,9 @@ if(NOT (${FLUID_DYNAMICS_APPLICATION} STREQUAL "ON"))
     message(SEND_ERROR "The Fluid Dynamics Application must be compiled before this one. Set FLUID_DYNAMICS_APPLICATION=ON in the configure file.")
 endif(NOT (${FLUID_DYNAMICS_APPLICATION} STREQUAL "ON"))
 
-if(NOT (${INCOMPRESSIBLE_FLUID_APPLICATION} STREQUAL "ON"))
-    message(SEND_ERROR "The Incompressible Fluid Application must be compiled before this one. Set INCOMPRESSIBLE_FLUID_APPLICATION=ON in the configure file.")
-endif(NOT (${INCOMPRESSIBLE_FLUID_APPLICATION} STREQUAL "ON"))
+#if(NOT (${INCOMPRESSIBLE_FLUID_APPLICATION} STREQUAL "ON"))
+#    message(SEND_ERROR "The Incompressible Fluid Application must be compiled before this one. Set INCOMPRESSIBLE_FLUID_APPLICATION=ON in the configure file.")
+#endif(NOT (${INCOMPRESSIBLE_FLUID_APPLICATION} STREQUAL "ON"))
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 

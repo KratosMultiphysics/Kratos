@@ -533,21 +533,21 @@ namespace Kratos
     }
     else{
      
-      if( mIterationCounter == 0 ){
+      // if( mIterationCounter == 0 ){
 
 	rVariables.PreviousCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
       	rVariables.CurrentCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
 	
 	this->CalculateCurrentCurvature(rVariables, STEP_ROTATION);      
       
-      }
-      else{
+      // }
+      // else{
 
-	rVariables.PreviousCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
-	rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
+      // 	rVariables.PreviousCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
+      // 	rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
       
-	this->CalculateCurrentCurvature(rVariables, DELTA_ROTATION);
-      }
+      // 	this->CalculateCurrentCurvature(rVariables, DELTA_ROTATION);
+      // }
      
     }
     
