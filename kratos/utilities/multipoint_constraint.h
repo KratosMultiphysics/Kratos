@@ -83,19 +83,19 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
     {
         for (auto &constraintEqData : this->GetData())
         {
-            unsigned int slaveNodeId = constraintEqData->SlaveDofId();
-            unsigned int slaveDofKey = constraintEqData->SlaveDofKey();
+            unsigned int slaveNodeId = constraintEqData.SlaveDofId();
+            unsigned int slaveDofKey = constraintEqData.SlaveDofKey();
             NodeType &node = Nodes[slaveNodeId];
             Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
             double slaveDofValue = it->GetSolutionStepValue();
             double slaveDofValueCalc = 0.0;
-            double constant = constraintEqData->Constant();
+            double constant = constraintEqData.Constant();
 
-            for (auto &masterData : *constraintEqData)
+            for (auto &masterData : constraintEqData)
             {
-                unsigned int masterDofKey = masterData.masterKey;
-                double weight = masterData.masterWeight;
-                NodeType &masterNode = Nodes[masterData.masterDofId]; // DofId and nodeId are same
+                unsigned int masterDofKey = masterData.MasterKey();
+                double weight = masterData.MasterWeight();
+                NodeType &masterNode = Nodes[masterData.MasterDofId()]; // DofId and nodeId are same
                 Node<3>::DofsContainerType::iterator itMaster = masterNode.GetDofs().find(masterDofKey);
 
                 slaveDofValueCalc += itMaster->GetSolutionStepValue() * weight;
@@ -103,7 +103,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
             slaveDofValueCalc += constant;
 
             double dConstant = slaveDofValueCalc - slaveDofValue;
-            constraintEqData->SetConstantUpdate(dConstant);
+            constraintEqData.SetConstantUpdate(dConstant);
         }
     }
 
@@ -114,17 +114,17 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
 
     virtual void SetUp(NodesContainerType &Nodes) override
     {
-        for (const auto &constraintEqData : this->GetData())
+/*         for (const auto &constraintEqData : this->GetData())
         {
-            unsigned int slaveNodeId = constraintEqData->SlaveDofId();
-            unsigned int slaveDofKey = constraintEqData->SlaveDofKey();
+            unsigned int slaveNodeId = constraintEqData.SlaveDofId();
+            unsigned int slaveDofKey = constraintEqData.SlaveDofKey();
             NodeType &node = Nodes[slaveNodeId];
             Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
             unsigned int slaveEquationId = it->EquationId();
             this->GetData().AddEquationIdToSlave(*it, slaveEquationId);
 
             int index = 0;
-            for (auto &masterData : *constraintEqData)
+            for (auto &masterData : constraintEqData)
             {
                 unsigned int masterEquationId;
                 unsigned int masterDofKey = masterData.masterKey;
@@ -133,10 +133,10 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                 NodeType &masterNode = Nodes[masterDofId];
                 Node<3>::DofsContainerType::iterator itMaster = masterNode.GetDofs().find(masterDofKey);
                 masterEquationId = itMaster->EquationId();
-                constraintEqData->SetMasterEquationId(masterDofId, masterDofKey, masterEquationId);
+                constraintEqData.SetMasterEquationId(masterDofId, masterDofKey, masterEquationId);
                 index++;
             }
-        }
+        } */
     }
 
     virtual void ExecuteAfterSolving(TSystemMatrixType &A,
@@ -145,17 +145,17 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
     {
         for (auto &constraintEqData : this->GetData())
         {
-            unsigned int slaveEquationId = constraintEqData->SlaveEquationId();
+            unsigned int slaveEquationId = constraintEqData.SlaveEquationId();
 
             int index = 0;
-            for (auto &masterData : *constraintEqData)
+            for (auto &masterData : constraintEqData)
             {
-                Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + TSparseSpace::GetValue(Dx, masterData.masterEqId) * masterData.masterWeight;
+                Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + TSparseSpace::GetValue(Dx, masterData.MasterEqId()) * masterData.MasterWeight();
                 index++;
             }
 
-            Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + constraintEqData->ConstantUpdate();
-            constraintEqData->SetConstantUpdate(0.0);
+            Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + constraintEqData.ConstantUpdate();
+            constraintEqData.SetConstantUpdate(0.0);
         }
     }
 
@@ -182,7 +182,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
 
                         for (auto &masterData : constraintEqData)
                         {
-                            EquationId.push_back(masterData.masterEqId);
+                            EquationId.push_back(masterData.MasterEqId());
                         }
                     }
                 }
@@ -213,7 +213,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
 
                         for (auto &masterData : constraintEqData)
                         {
-                            EquationId.push_back(masterData.masterEqId);
+                            EquationId.push_back(masterData.MasterEqId());
                         }
                     }
                 }
@@ -365,7 +365,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                     RHS_Contribution(localMasterIndex) += LHS_Contribution(slaveIndex, slaveIndexOther) * weight * constantOther;
                 }
 
-                EquationId.push_back(masterData.masterEqId);
+                EquationId.push_back(masterData.MasterEqId());
                 // Changing the RHS side of the equation
                 RHS_Contribution(localMasterIndex) += weight * RHS_Contribution(slaveIndex);
 
@@ -517,7 +517,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                     RHS_Contribution(localMasterIndex) += LHS_Contribution(slaveIndex, slaveIndexOther) * weight * constantOther;
                 }
 
-                EquationId.push_back(masterData.masterEqId);
+                EquationId.push_back(masterData.MasterEqId());
                 // Changing the RHS side of the equation
                 RHS_Contribution(localMasterIndex) += weight * RHS_Contribution(slaveIndex);
 
