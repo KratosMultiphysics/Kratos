@@ -15,6 +15,9 @@ export LIBC_FATAL_STDERR_=1
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ubuntu/Kratos/libs:/home/ubuntu/CompiledLibs/clang-3.8.0-16.04-prebuilt/lib
 export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos
 
+## Step0: Let it rest some time so the unassisted updated can finish
+sleep 300 # 5 minutes
+
 ## Step1: Prepare
 cd ${HOME}
 wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli
