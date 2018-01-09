@@ -189,3 +189,11 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
             return ( self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] >= self.next_meshing )
         else:
             return ( self.step_count >= self.next_meshing )
+
+    #
+    def GetVariables(self):
+
+        nodal_variables = ['NORMAL', 'NODAL_H', 'SHRINK_FACTOR']
+        nodal_variables = nodal_variables + ['DETERMINANT_F'] # variables smoothing
+        nodal_variables = nodal_variables + ['MEAN_ERROR'] # removing nodes
+        return nodal_variables
