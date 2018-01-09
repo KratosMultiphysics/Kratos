@@ -93,8 +93,8 @@ void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
         noalias(C)  = ZeroMatrix(6,6);
 
         C(0,0) = 4.0/3.0*mu;  C(0,1) = -2.0/3.0*mu; C(0,2) = -2.0/3.0*mu;
-        C(1,2) = -2.0/3.0*mu; C(1,1) = 4.0/3.0*mu;  C(1,2) = -2.0/3.0*mu;
-        C(2,2) = -2.0/3.0*mu; C(2,2) = -2.0/3.0*mu; C(2,2) = 4.0/3.0*mu;
+        C(1,0) = -2.0/3.0*mu; C(1,1) = 4.0/3.0*mu;  C(1,2) = -2.0/3.0*mu;
+        C(2,0) = -2.0/3.0*mu; C(2,1) = -2.0/3.0*mu; C(2,2) = 4.0/3.0*mu;
         C(3,3) = mu;
         C(4,4) = mu;
         C(5,5) = mu;

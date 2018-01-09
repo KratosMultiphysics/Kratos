@@ -176,7 +176,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~ResidualBasedBlockBuilderAndSolver()
+    ~ResidualBasedBlockBuilderAndSolver() override
     {
     }
 
@@ -781,8 +781,6 @@ public:
         //
 
 
-
-
         KRATOS_CATCH("")
 
     }
@@ -959,7 +957,7 @@ public:
      * @param r_model_part
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_mUSE_GOOGLE_HASHodel_part) override
+    int Check(ModelPart& r_mUSE_GOOGLE_HASHodel_part) override
     {
         KRATOS_TRY
 
@@ -1018,7 +1016,7 @@ protected:
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
-        const std::size_t equation_size = BaseType::mDofSet.size();
+        const std::size_t equation_size = BaseType::mEquationSystemSize;
 
 #ifdef USE_GOOGLE_HASH
         std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);

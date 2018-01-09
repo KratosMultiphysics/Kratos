@@ -1,7 +1,19 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//                    
+//
+
 #if !defined(KRATOS_SPLIT_PRISM)
 #define  KRATOS_SPLIT_PRISM
-
-//TODO: Include the new license
 
 /** @file split_prism.hpp
  * @brief The class contains three helper functions to ease the splitting: 

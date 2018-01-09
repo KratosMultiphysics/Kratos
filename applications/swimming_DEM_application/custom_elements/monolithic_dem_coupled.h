@@ -306,19 +306,18 @@ public:
                                        ProcessInfo& rCurrentProcessInfo)
     {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
+            
             const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
-            if (rLeftHandSideMatrix.size1() != LocalSize)
-                rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+            if (rLeftHandSideMatrix.size1() != LocalSize) rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
-                noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
         }
 
         else {
             const unsigned int LocalSize = TDim * TNumNodes;
 
-            if (rLeftHandSideMatrix.size1() != LocalSize)
-                rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+            if (rLeftHandSideMatrix.size1() != LocalSize) rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
             CalculateLaplacianMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);

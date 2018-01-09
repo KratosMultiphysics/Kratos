@@ -5,7 +5,7 @@ message("**** configuring KratosShapeOptimizationApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 #dependecies on other applications
-include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 ## generate variables with the sources
 set( KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES     
@@ -19,7 +19,7 @@ set( KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosShapeOptimizationApplication SHARED ${KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES})
-target_link_libraries(KratosShapeOptimizationApplication KratosCore KratosSolidMechanicsApplication)
+target_link_libraries(KratosShapeOptimizationApplication KratosCore KratosStructuralMechanicsApplication)
 set_target_properties(KratosShapeOptimizationApplication PROPERTIES PREFIX "")
 install(TARGETS KratosShapeOptimizationApplication DESTINATION libs )
 

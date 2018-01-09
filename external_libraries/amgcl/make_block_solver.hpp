@@ -4,6 +4,7 @@
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/adapter/block_matrix.hpp>
 #include <amgcl/value_type/static_matrix.hpp>
+#include <amgcl/make_solver.hpp>
 
 namespace amgcl {
 
@@ -66,8 +67,7 @@ class make_block_solver {
                 const backend_params &bprm = backend_params()
                 )
         {
-            const int B = math::static_rows<value_type>::value;
-            S = boost::make_shared<Solver>(adapter::block_matrix<B, value_type>(A), prm, bprm);
+            S = boost::make_shared<Solver>(adapter::block_matrix<value_type>(A), prm, bprm);
         }
 
         template <class Matrix, class Vec1, class Vec2>
@@ -115,6 +115,10 @@ class make_block_solver {
 
         typename Precond::matrix const& system_matrix() const {
             return S->system_matrix();
+        }
+
+        friend std::ostream& operator<<(std::ostream &os, const make_block_solver &p) {
+            return os << *p.S << std::endl;
         }
     private:
         typedef make_solver<Precond, IterativeSolver> Solver;

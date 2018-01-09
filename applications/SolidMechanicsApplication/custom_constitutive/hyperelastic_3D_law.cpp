@@ -81,6 +81,17 @@ bool HyperElastic3DLaw::Has( const Variable<Matrix>& rThisVariable )
 }
 
 
+//******************CALCULATE VALUE: DOUBLE - VECTOR - MATRIX*************************
+//************************************************************************************
+
+double& HyperElastic3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue )
+{
+
+  return (this->GetValue(rThisVariable,rValue ));
+
+}
+  
+
 //***********************GET VALUE: DOUBLE - VECTOR - MATRIX**************************
 //************************************************************************************
 
@@ -248,7 +259,7 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
   MathUtils<double>::InvertMatrix( RightCauchyGreen, ElasticVariables.CauchyGreenMatrix, ElasticVariables.traceCG);
     
   //7.-Green-Lagrange Strain:
-  if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+  if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
       this->CalculateGreenLagrangeStrain(RightCauchyGreen, StrainVector);
     }
@@ -369,7 +380,7 @@ void HyperElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
     }
 
     //6.-Almansi Strain:
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
         // e= 0.5*(1-invbT*invb)
         this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix,StrainVector);
@@ -390,8 +401,11 @@ void HyperElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
         this->CalculateConstitutiveMatrix ( ElasticVariables, ConstitutiveMatrix );
     }
 
-    // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
-    // std::cout<<" Stress "<<StressVector<<std::endl;
+
+    // std::cout<<" StrainVector "<<StrainVector<<std::endl;
+    // std::cout<<" StressVector "<<StressVector<<std::endl;
+    // std::cout<<" ConstitutiveMatrix "<<ConstitutiveMatrix<<std::endl;
+    
 
     //-----------------------------//
 
@@ -909,17 +923,20 @@ double& HyperElastic3DLaw::IsochoricConstitutiveComponent(double & rCabcd,
 {
 
     //Isochoric part of the hyperelastic constitutive tensor component
-  
+
     //note.- rElasticVariables.traceCG is "traceCG_bar"
 
     rCabcd  = (1.0/3.0)*(rElasticVariables.CauchyGreenMatrix(a,b)*rElasticVariables.CauchyGreenMatrix(c,d));
+    
     rCabcd -= (0.5*(rElasticVariables.CauchyGreenMatrix(a,c)*rElasticVariables.CauchyGreenMatrix(b,d)+rElasticVariables.CauchyGreenMatrix(a,d)*rElasticVariables.CauchyGreenMatrix(b,c)));
     
     rCabcd *= rElasticVariables.traceCG * rElasticVariables.LameMu;
     
     rCabcd += (rElasticVariables.CauchyGreenMatrix(c,d)*rIsoStressMatrix(a,b) + rIsoStressMatrix(c,d)*rElasticVariables.CauchyGreenMatrix(a,b));
+
     rCabcd *= (-2.0/3.0);
 
+    
     return rCabcd;
 }
 

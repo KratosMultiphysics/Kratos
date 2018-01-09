@@ -5,6 +5,7 @@ import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
+import json
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -61,7 +62,8 @@ class DamThermoMechanicSolver(object):
                     "krylov_type": "gmres",
                     "coarsening_type": "aggregation"
                 },
-                "problem_domain_sub_model_part_list": [""]
+                "problem_domain_sub_model_part_list": [""],
+                "thermal_loads_sub_model_part_list": []
             },
             "mechanical_solver_settings":{
                 "echo_level": 0,
@@ -100,6 +102,7 @@ class DamThermoMechanicSolver(object):
                 },
                 "problem_domain_sub_model_part_list": [""],
                 "body_domain_sub_model_part_list": [],
+                "mechanical_loads_sub_model_part_list": [],
                 "loads_sub_model_part_list": [],
                 "loads_variable_list": []
             }
@@ -131,12 +134,12 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.POINT_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.LINE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.SURFACE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         # Add volume acceleration
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         # Add variables for post-processing
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Vi_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Viii_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_JOINT_WIDTH)
@@ -149,13 +152,22 @@ class DamThermoMechanicSolver(object):
         thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
         thermal_settings.SetSpecificHeatVariable(KratosMultiphysics.SPECIFIC_HEAT)
         thermal_settings.SetDensityVariable(KratosMultiphysics.DENSITY)
+        thermal_settings.SetVolumeSourceVariable(KratosMultiphysics.HEAT_FLUX)
+        thermal_settings.SetSurfaceSourceVariable(KratosMultiphysics.FACE_HEAT_FLUX)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, thermal_settings)
+        
         # Add thermal variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONDUCTIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SPECIFIC_HEAT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        # This Variable is used for computing heat source according Azenha Formulation
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.ALPHA_HEAT_SOURCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.TIME_ACTIVATION)
+
+
         print("Variables correctly added")
 
     def GetMinimumBufferSize(self):
@@ -202,11 +214,11 @@ class DamThermoMechanicSolver(object):
     def Initialize(self):
         
         # Set ProcessInfo variables
-        self.main_model_part.ProcessInfo.SetValue(KratosSolid.REFERENCE_TEMPERATURE, self.settings["reference_temperature"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.REFERENCE_TEMPERATURE, self.settings["reference_temperature"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosConvDiff.THETA, self.settings["thermal_solver_settings"]["theta_scheme"].GetDouble())
 
         # Get the computing model parts
-        self.thermal_computing_model_part = self.main_model_part.GetSubModelPart(self.thermal_model_part_name)
+        self.thermal_computing_model_part = self.GetComputingThermalModelPart()
         self.mechanical_computing_model_part = self.GetComputingModelPart()
         
         # Builder and solver creation
@@ -247,6 +259,9 @@ class DamThermoMechanicSolver(object):
     
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.mechanical_model_part_name)
+
+    def GetComputingThermalModelPart(self):
+        return self.main_model_part.GetSubModelPart(self.thermal_model_part_name)
     
     def GetOutputVariables(self):
         pass
@@ -314,15 +329,36 @@ class DamThermoMechanicSolver(object):
         self.thermal_model_part_name = "thermal_computing_domain"
         self.mechanical_model_part_name = "mechanical_computing_domain"
         
+        # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
+        thermal_loads_sub_sub_model_part_list = []
+        for i in range(self.settings["thermal_solver_settings"]["problem_domain_sub_model_part_list"].size()):
+            thermal_loads_sub_sub_model_part_list.append("sub_"+self.settings["thermal_solver_settings"]["problem_domain_sub_model_part_list"][i].GetString())
+        thermal_loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(thermal_loads_sub_sub_model_part_list))
+
+        self.body_domain_sub_sub_model_part_list = []
+        for i in range(self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"].size()):
+            self.body_domain_sub_sub_model_part_list.append("sub_"+self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"][i].GetString())
+        self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.body_domain_sub_sub_model_part_list))
+
+        self.loads_sub_sub_model_part_list = []
+        for i in range(self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"].size()):
+            self.loads_sub_sub_model_part_list.append("sub_"+self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"][i].GetString())
+        self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.loads_sub_sub_model_part_list))
+
         # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
         aux_params = KratosMultiphysics.Parameters("{}")
         aux_params.AddEmptyValue("thermal_model_part_name").SetString(self.thermal_model_part_name)
         aux_params.AddValue("thermal_domain_sub_model_part_list",self.settings["thermal_solver_settings"]["problem_domain_sub_model_part_list"])
+        aux_params.AddValue("thermal_loads_sub_model_part_list",self.settings["thermal_solver_settings"]["thermal_loads_sub_model_part_list"])
+        aux_params.AddValue("thermal_domain_sub_sub_model_part_list",thermal_loads_sub_sub_model_part_list)
+
         aux_params.AddEmptyValue("mechanical_model_part_name").SetString(self.mechanical_model_part_name)
         aux_params.AddValue("mechanical_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["problem_domain_sub_model_part_list"])
-        aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
+        aux_params.AddValue("mechanical_loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["mechanical_loads_sub_model_part_list"])
         aux_params.AddValue("body_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"])
+        aux_params.AddValue("body_domain_sub_sub_model_part_list",self.body_domain_sub_sub_model_part_list)
         aux_params.AddValue("loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"])
+        aux_params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
 
         # CheckAndPrepareModelProcess creates the solid_computational_model_part
         import check_and_prepare_model_process_dam
@@ -406,9 +442,9 @@ class DamThermoMechanicSolver(object):
         if strategy_type == "Newton-Raphson":
             if nonlocal_damage:
                 self.strategy_params = KratosMultiphysics.Parameters("{}")
-                self.strategy_params.AddValue("loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"])
+                self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
                 self.strategy_params.AddValue("loads_variable_list",self.settings["mechanical_solver_settings"]["loads_variable_list"])
-                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"])
+                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.body_domain_sub_sub_model_part_list)
                 self.strategy_params.AddValue("characteristic_length",self.settings["mechanical_solver_settings"]["characteristic_length"])
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["mechanical_solver_settings"]["search_neighbours_step"])
                 solver = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.mechanical_computing_model_part,
@@ -438,10 +474,10 @@ class DamThermoMechanicSolver(object):
             self.strategy_params.AddValue("desired_iterations",self.settings["mechanical_solver_settings"]["desired_iterations"])
             self.strategy_params.AddValue("max_radius_factor",self.settings["mechanical_solver_settings"]["max_radius_factor"])
             self.strategy_params.AddValue("min_radius_factor",self.settings["mechanical_solver_settings"]["min_radius_factor"])
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"])
+            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
             self.strategy_params.AddValue("loads_variable_list",self.settings["mechanical_solver_settings"]["loads_variable_list"])
             if nonlocal_damage:
-                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"])
+                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.body_domain_sub_sub_model_part_list)
                 self.strategy_params.AddValue("characteristic_length",self.settings["mechanical_solver_settings"]["characteristic_length"])
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["mechanical_solver_settings"]["search_neighbours_step"])
                 solver = KratosPoro.PoromechanicsRammArcLengthNonlocalStrategy(self.mechanical_computing_model_part,

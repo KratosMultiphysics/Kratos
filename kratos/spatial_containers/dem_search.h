@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: clabra $
-//   Date:                $Date: 2007-03-29 19:37:47 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    clabra
 //
 
 #if !defined(KRATOS_DEM_SEARCH_H_INCLUDED )
@@ -113,9 +117,9 @@ class RadiusPoint
 
       SpatialSearch::ElementPointerType pNaseElem;
 
-      void operator=(Point<Dimension> const& Other){
+      void operator=(Point const& Other){
          for(std::size_t i = 0; i < Dimension; i++)
-            coord[i] = Other.coord[i];
+            coord[i] = Other[i];
       }
 };
 
@@ -167,8 +171,17 @@ class DEMSearch : public SpatialSearch
       ///@{
 
       /// Default constructor.
-      DEMSearch(double period_x = -1.0, double period_y = -1.0, double period_z = -1.0){
-        TDerived::ElementConfigureType::SetPeriods(period_x, period_y, period_z);
+      DEMSearch(const double domain_min_x = 0.0, const double domain_min_y = 0.0, const double domain_min_z = 0.0,
+                const double domain_max_x = -1.0, const double domain_max_y = -1.0, const double domain_max_z = -1.0)
+      {
+        mDomainMin[0] = domain_min_x;
+        mDomainMin[1] = domain_min_y;
+        mDomainMin[2] = domain_min_z;
+        mDomainMax[0] = domain_max_x;
+        mDomainMax[1] = domain_max_y;
+        mDomainMax[2] = domain_max_z;
+        TDerived::ElementConfigureType::SetDomain(domain_min_x, domain_min_y, domain_min_z, domain_max_x, domain_max_y, domain_max_z);
+        mDomainPeriodicity = TDerived::ElementConfigureType::GetDomainPeriodicity();
         searchPoints = new std::vector<PtrPointType>(0);
       }
 
@@ -363,12 +376,13 @@ class DEMSearch : public SpatialSearch
       ///@}
       ///@name Protected  Access
       ///@{
-
+      bool mDomainPeriodicity;
+      array_1d<double, 3> mDomainMin;
+      array_1d<double, 3> mDomainMax;
 
       ///@}
       ///@name Protected Inquiry
       ///@{
-
 
       ///@}
       ///@name Protected LifeCycle
@@ -380,7 +394,6 @@ class DEMSearch : public SpatialSearch
     private:
       ///@name Static Member Variables
       ///@{
-
 
       ///@}
       ///@name Member Variables

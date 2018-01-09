@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
@@ -54,24 +54,17 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double,CONSTRAINT_SURFACE_SENSITIVITY);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MAPPED_CONSTRAINT_SENSITIVITY);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SEARCH_DIRECTION);
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DESIGN_UPDATE);
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DESIGN_CHANGE_ABSOLUTE);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_UPDATE);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_CHANGE);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE_ABSOLUTE);
-
-    // To allow for deactivating (setting zero) variables
-    KRATOS_CREATE_VARIABLE(double,SHAPE_UPDATES_DEACTIVATED);
-    KRATOS_CREATE_VARIABLE(double,SENSITIVITIES_DEACTIVATED);
-
-    // For boundary conditions
-    KRATOS_CREATE_VARIABLE(double,IS_ON_BOUNDARY);
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_PLANE);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);
 
     // For edge damping
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
 
-    // To create and process mapping matrix
-    KRATOS_CREATE_VARIABLE(int,MAPPING_MATRIX_ID);
+    // For Mapping
+    KRATOS_CREATE_VARIABLE(int,MAPPING_ID);
 
     // For Structure Sensitivity Analysis
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
@@ -85,7 +78,8 @@ namespace Kratos
 
     // Eof variables
 
-    KratosShapeOptimizationApplication::KratosShapeOptimizationApplication():
+    KratosShapeOptimizationApplication::KratosShapeOptimizationApplication() :
+        KratosApplication("ShapeOptimizationApplication"),
     	mSmallDisplacementAnalyticSensitivityElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
 		mSmallDisplacementAnalyticSensitivityElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10 ) ) ) ),
     	mSmallDisplacementAnalyticSensitivityElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
@@ -119,24 +113,17 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(CONSTRAINT_SURFACE_SENSITIVITY);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MAPPED_CONSTRAINT_SENSITIVITY);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SEARCH_DIRECTION);
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DESIGN_UPDATE);
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DESIGN_CHANGE_ABSOLUTE);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_UPDATE);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_CHANGE);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE_ABSOLUTE);
-
-        // To allow for deactivating (setting zero) variables
-        KRATOS_REGISTER_VARIABLE(SHAPE_UPDATES_DEACTIVATED);
-        KRATOS_REGISTER_VARIABLE(SENSITIVITIES_DEACTIVATED);
-
-        // For boundary treatment
-        KRATOS_REGISTER_VARIABLE(IS_ON_BOUNDARY);
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_PLANE);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);        
 
         // For edge damping
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
 
-        // To create and process mapping matrix
-        KRATOS_REGISTER_VARIABLE(MAPPING_MATRIX_ID);
+        // For mapping
+        KRATOS_REGISTER_VARIABLE(MAPPING_ID);
 
         // For Structure Sensitivity Analysis
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);

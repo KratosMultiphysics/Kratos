@@ -303,7 +303,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     mContactVariables.PreviousGap.Normal  = 0;
     mContactVariables.PreviousGap.Tangent = 0;
 
-
+    //(g_N)3
     mContactVariables.PreviousGap.Normal = inner_prod((PS-P1),mContactVariables.PreStepSurface.Normal);
     mContactVariables.PreviousGap.Tangent = mContactVariables.PreviousGap.Normal;
 
@@ -313,7 +313,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D2*(-PreviousBase.B/PreviousBase.L)));
     mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,DS);
 
-
+    //(g_T)3
     mContactVariables.PreviousGap.Tangent*= inner_prod(mContactVariables.ReferenceSurface.Tangent,mContactVariables.PreStepSurface.Normal);
 
     mContactVariables.PreviousGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,(D1*(-PreviousBase.A/PreviousBase.L)));
@@ -414,7 +414,7 @@ void ContactDomainLM2DCondition::CalculateContactFactor( ProcessInfo& rCurrentPr
 //********************************CALCULATE EXPLICIT MULTIPLIERS**********************
 //************************************************************************************
 
-void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void ContactDomainLM2DCondition::CalculateExplicitFactors(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -798,7 +798,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 //************************************************************************************
 
 
-void ContactDomainLM2DCondition::CalculateDomainShapeN(GeneralVariables& rVariables)
+void ContactDomainLM2DCondition::CalculateDomainShapeN(ConditionVariables& rVariables)
 {
 
     unsigned int ndi=mContactVariables.nodes[0];
@@ -874,7 +874,7 @@ void ContactDomainLM2DCondition::CalculateDomainShapeN(GeneralVariables& rVariab
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainLM2DCondition::FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr)
+void ContactDomainLM2DCondition::FSigmaP(ConditionVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr)
 {
     //Computation with the ndi and storage to ndj
 
@@ -895,7 +895,7 @@ void ContactDomainLM2DCondition::FSigmaP(GeneralVariables& rVariables, std::vect
 //************************************************************************************
 
 
-void ContactDomainLM2DCondition::FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj)
+void ContactDomainLM2DCondition::FSigmaPnd(ConditionVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj)
 {
     //Computation with the ndi and storage to ndj
     SigmaP[ndj]=ZeroVector(2);
@@ -977,7 +977,8 @@ double& ContactDomainLM2DCondition::CalculateIntegrationWeight(double& rIntegrat
 
     if ( dimension == 2 ){   
       ElementType& MasterElement = mContactVariables.GetMasterElement();
-      rIntegrationWeight *= MasterElement.GetProperties()[THICKNESS];
+      if ( MasterElement.GetProperties()[THICKNESS] > 0)
+	rIntegrationWeight *= MasterElement.GetProperties()[THICKNESS];
     }
 	
     return rIntegrationWeight;
@@ -987,7 +988,7 @@ double& ContactDomainLM2DCondition::CalculateIntegrationWeight(double& rIntegrat
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainLM2DCondition::CalculateNormalForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+void ContactDomainLM2DCondition::CalculateNormalForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
 {    
 
     F = rVariables.Contact.Multiplier.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir];
@@ -998,7 +999,7 @@ void ContactDomainLM2DCondition::CalculateNormalForce (double &F,GeneralVariable
 //************************************************************************************
 
 
-void ContactDomainLM2DCondition::CalculateTangentStickForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+void ContactDomainLM2DCondition::CalculateTangentStickForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
 {
 
 	if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
@@ -1017,7 +1018,7 @@ void ContactDomainLM2DCondition::CalculateTangentStickForce (double &F,GeneralVa
 //************************************************************************************
 
 
-void ContactDomainLM2DCondition::CalculateTangentSlipForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+void ContactDomainLM2DCondition::CalculateTangentSlipForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
 {
 
 	if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
@@ -1037,7 +1038,7 @@ void ContactDomainLM2DCondition::CalculateTangentSlipForce (double &F,GeneralVar
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainLM2DCondition::CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
+void ContactDomainLM2DCondition::CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
 {
     Kcont=0;
 
@@ -1126,7 +1127,7 @@ ContactDomainUtilities::PointType & ContactDomainLM2DCondition::CalculateCurrent
 //************************************************************************************
 
 
-inline bool ContactDomainLM2DCondition::CheckFictiousContacts(GeneralVariables& rVariables)
+inline bool ContactDomainLM2DCondition::CheckFictiousContacts(ConditionVariables& rVariables)
 {
 
   bool real_contact = false;

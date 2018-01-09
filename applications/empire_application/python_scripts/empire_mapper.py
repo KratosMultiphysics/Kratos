@@ -2,19 +2,20 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # import libraries
 from KratosMultiphysics import *
 from KratosMultiphysics.EmpireApplication import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 import ctypes as ctp
 import os
 
 CheckForPreviousImport()
 
 # Import the mapper library
-# This is pre compiled and is put in the external library. Also a header file is put in the header file folder to give the 
-# users the syntax for the mapping routines. 
-#libMapper = ctp.cdll.LoadLibrary("../custom_external_libraries/libEMPIRE_MapperLib.so")
-libMapper = ctp.cdll.LoadLibrary("/home/annab/software/kratos/applications/empire_application/custom_external_libraries/libEMPIRE_MapperLib.so")
-
-#libMapper = ctp.cdll.LoadLibrary("libEMPIRE_MapperLib.so")
+# A header file is put in the header file folder to give the users the syntax for the mapping routines.
+# TODO Aditya does the first case work all the time? Also should we change the two cases?
+try: # OpenMPI
+    libMapper = ctp.CDLL(os.environ['EMPIRE_MAPPER_LIBSO_ON_MACHINE'], ctp.RTLD_GLOBAL)
+    print("::EMPIRE:: Using standard OpenMPI")
+except: # Intel MPI or OpenMPI compiled with "–disable-dlopen" option
+    libMapper = ctp.cdll.LoadLibrary(os.environ['EMPIRE_MAPPER_LIBSO_ON_MACHINE'])
+    print("::EMPIRE:: Using Intel MPI or OpenMPI compiled with \"–disable-dlopen\" option")
 
 ## Wrapper class for the mapper
 # Consturctor will have two model parts as arguments, type of mapper and then options to the mapper. 

@@ -345,8 +345,8 @@ namespace Kratos
         
         this_model_part.Nodes().clear();
         this_model_part.Nodes().reserve(aux_node_list.size());
-        for(auto it = aux_node_list.begin(); it!=aux_node_list.end(); it++)
-            this_model_part.Nodes().push_back(it->second);
+        for(auto & it : aux_node_list)
+            this_model_part.Nodes().push_back(it.second);
         
         
         this_model_part.Nodes().Sort();
@@ -486,7 +486,7 @@ namespace Kratos
         for (ModelPart::SubModelPartIterator iSubModelPart = rModelPart.SubModelPartsBegin();
                 iSubModelPart != rModelPart.SubModelPartsEnd(); iSubModelPart++)
         {
-            for (ModelPart::NodesContainerType::ptr_iterator iNode = rModelPart.Nodes().ptr_begin();
+            for (auto iNode = rModelPart.Nodes().ptr_begin();
                     iNode != rModelPart.Nodes().ptr_end(); iNode++)
             {
                 WeakPointerVector< Node<3> > &rFatherNodes = (*iNode)->GetValue(FATHER_NODES);

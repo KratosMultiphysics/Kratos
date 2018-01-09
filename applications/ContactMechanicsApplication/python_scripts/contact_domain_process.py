@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics 
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -24,7 +24,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "mesh_id": 0,
+            "echo_level"            : 1,
             "model_part_name"       : "Solid Domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
@@ -37,8 +37,8 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.echo_level        = 1
-        self.domain_size       = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.echo_level        = self.settings["echo_level"].GetInt()
+        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
         self.meshing_control_is_time = False
@@ -83,7 +83,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
 
 
         # execute initialize base class
-        if( self.main_model_part.ProcessInfo[KratosPfemBase.INITIALIZED_DOMAINS] == False ):
+        if( self.main_model_part.ProcessInfo[KratosPfem.INITIALIZED_DOMAINS] == False ):
             import domain_utilities
             domain_utils = domain_utilities.DomainUtilities()
             domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
@@ -96,7 +96,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
     #
     def ExecuteInitializeSolutionStep(self):
         self.step_count += 1
-        meshing_step_performed = self.main_model_part.ProcessInfo[KratosPfemBase.MESHING_STEP_PERFORMED]
+        meshing_step_performed = self.main_model_part.ProcessInfo[KratosPfem.MESHING_STEP_PERFORMED]
         restart_performed = self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
         #if( not restart_performed ):
         if(self.IsMeshingStep() or meshing_step_performed):

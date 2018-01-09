@@ -47,7 +47,7 @@ for m in range(0, n_exponentials):
     for k in range(0, n_doubling):
         r_table[m][k] = Radius(positions_table[m][k])
 
-t_wins = [5 * DEM_parameters.MaxTimeStep * 2 ** k for k in range(n_doubling)]
+t_wins = [5 * DEM_parameters["MaxTimeStep"].GetDouble() * 2 ** k for k in range(n_doubling)]
 
 E_r = [[abs(r_final - r_table[m][k]) / r_final for k in range(n_doubling)] for m in range(n_exponentials)]
 E   = [[Radius([positions_table[m][k][0] - x_final, positions_table[m][k][1] - y_final]) / r_final for k in range(n_doubling)] for m in range(len(r_table))]

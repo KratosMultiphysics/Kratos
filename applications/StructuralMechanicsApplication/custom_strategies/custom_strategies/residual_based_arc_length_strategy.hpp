@@ -19,10 +19,9 @@
 #include<iomanip>
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
-#include "structural_mechanics_application.h"
+// #include "structural_mechanics_application.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
@@ -157,7 +156,7 @@ public:
     /************************************* DESTRUCTOR **********************************/
     /***********************************************************************************/
     
-    virtual ~ResidualBasedArcLengthStrategy() {}
+    ~ResidualBasedArcLengthStrategy() override {}
 
     /************************************* OPERATIONS **********************************/
     /***********************************************************************************/
@@ -219,7 +218,7 @@ public:
     // 2 -> Printing linear solver data
     // 3 -> Print of debug informations:
     // Echo of stiffness matrix, Dx, b...
-    void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::mEchoLevel = Level;
         GetBuilderAndSolver()->SetEchoLevel(Level);
@@ -245,7 +244,7 @@ public:
     * values of the solution step of interest are assumed equal to the old values
     */
     
-    void Predict()
+    void Predict() override
     {
         KRATOS_TRY;
         
@@ -296,7 +295,7 @@ public:
     * It solves the problem
     */
     
-    double Solve()
+    double Solve() override
     {
         KRATOS_TRY;
 
@@ -345,8 +344,8 @@ public:
         unsigned int recursive        = 0;
 
         //vector<RealType> Parameters;
-        RealType old_residual = 0.00;
-        RealType new_residual = 0.00;
+//         RealType old_residual = 0.00;
+//         RealType new_residual = 0.00;
 
         //unsigned int MaxLineSearchIter = 50;
         //RealType tolls                 = 0.80;
@@ -368,7 +367,7 @@ public:
 	
         // Creating models part for analysis
         InitializeAuxiliaryModelParts(BaseType::GetModelPart());
-        mstep = BaseType::GetModelPart().GetProcessInfo()[TIME_STEPS];
+        mstep = BaseType::GetModelPart().GetProcessInfo()[STEP];
 	
         if (this->GetEchoLevel() > 0)
         {
@@ -700,7 +699,7 @@ public:
                 //    new_residual = Parameters[0];
                 //}
 
-                old_residual = new_residual;
+//                 old_residual = new_residual;
 
                 if(is_converged == true)
                 {
@@ -813,7 +812,7 @@ public:
     *  the convergence criteria used is the one used inside the "solve" step
     */
 
-    bool IsConverged()
+    bool IsConverged() override
     {
         KRATOS_TRY;
 
@@ -843,7 +842,7 @@ public:
     * This operations should be called only when needed, before printing as it can involve a non negligible cost
     */
 
-    void CalculateOutputData()
+    void CalculateOutputData() override
     {
         TSystemMatrixType& mA  = *mpA;
         TSystemVectorType& mDx = *mpDx;
@@ -860,7 +859,7 @@ public:
     * It clears the variables of the arc length
     */
     
-    void Clear()
+    void Clear() override
     {
         KRATOS_TRY;
         if (this->GetEchoLevel() > 0)
@@ -1002,7 +1001,7 @@ public:
         disc = b * b - 4.00 * a * c;
         if (disc >= 0.00)
         {
-            StructuralMechanicsMathUtilities::Solve_Second_Order_Equation(a,b,c,x_sol);
+            StructuralMechanicsMathUtilities::SolveSecondOrderEquation(a,b,c,x_sol);
 
             TSparseSpace::ScaleAndAdd(x_sol[0],Sigma_q,meta,Sigma_h,Delta_p1); //Delta_p1 = x_sol(0)*Sigma_q + meta*Sigma_h
             TSparseSpace::ScaleAndAdd(x_sol[1],Sigma_q,meta,Sigma_h,Delta_p2); //Delta_p2 = x_sol(1)*Sigma_q + meta*Sigma_h
@@ -1212,7 +1211,7 @@ private:
     * Initilise the variables, schemes and convergence criterias
     */
 
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY;
 
@@ -1258,7 +1257,7 @@ private:
     * It initialises the solution step
     */
 
-    void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY;
 
@@ -1311,7 +1310,7 @@ private:
     * @param mReduceArcLenght: Boolean that tells if the arc length has been computed with the reduced method
     */
 
-    void FinalizeSolutionStep()
+    void FinalizeSolutionStep() override
     {
         KRATOS_TRY;
 
@@ -1452,7 +1451,7 @@ private:
         if (disc >= 0.00)
         {
             imag = false;
-            StructuralMechanicsMathUtilities::Solve_Second_Order_Equation(a_prima, b_prima, c_prima, solution);
+            StructuralMechanicsMathUtilities::SolveSecondOrderEquation(a_prima, b_prima, c_prima, solution);
 
             if(solution[0] < 0.00)
             {

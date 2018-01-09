@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,6 @@ THE SOFTWARE.
  */
 
 #include <boost/type_traits.hpp>
-#include <boost/typeof/typeof.hpp>
 
 namespace amgcl {
 namespace math {
@@ -106,7 +105,7 @@ struct zero_impl {
 /** \note Used in is_zero() */
 template <typename ValueType, class Enable = void>
 struct is_zero_impl {
-    static bool get(ValueType x) {
+    static bool get(const ValueType &x) {
         return x == zero_impl<ValueType>::get();
     }
 };
@@ -133,7 +132,7 @@ struct constant_impl {
 /** \note Used in inverse() */
 template <typename ValueType, class Enable = void>
 struct inverse_impl {
-    static ValueType get(ValueType x) {
+    static ValueType get(const ValueType &x) {
         return identity_impl<ValueType>::get() / x;
     }
 };
@@ -166,7 +165,7 @@ ValueType zero() {
 
 /// Return true if argument is considered zero.
 template <typename ValueType>
-bool is_zero(ValueType x) {
+bool is_zero(const ValueType &x) {
     return is_zero_impl<ValueType>::get(x);
 }
 
@@ -184,7 +183,7 @@ ValueType constant(typename scalar_of<ValueType>::type c) {
 
 /// Return inverse of the argument.
 template <typename ValueType>
-ValueType inverse(ValueType x) {
+ValueType inverse(const ValueType &x) {
     return inverse_impl<ValueType>::get(x);
 }
 

@@ -29,6 +29,11 @@
 #include "includes/variables.h"
 #include "custom_elements/meshless_base_element.h"
 #include "custom_elements/updated_lagrangian_mpm_element.h"
+//#include "custom_conditions/lagrange_multiplier_condition_y.h"
+#include "custom_conditions/lagrange_multiplier_condition.h"
+//#include "custom_conditions/lagrange_multiplier_condition_x.h"
+#include "custom_conditions/lagrange_multiplier_condition_0.h"
+#include "custom_conditions/pointforce2D.h"
 
 namespace Kratos
 {

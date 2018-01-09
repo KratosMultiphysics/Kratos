@@ -12,6 +12,8 @@
 // Project includes
 
 #include "properties_proxies.h"
+#include "../DEM_application_variables.h"
+
 
 namespace Kratos {
 
@@ -28,9 +30,13 @@ namespace Kratos {
     double* PropertiesProxy::pGetPoisson()                                                    { return  mPoisson;                           }
     void    PropertiesProxy::SetPoissonFromProperties(double* poisson)                        { mPoisson = poisson;                         }                    
             
-    double  PropertiesProxy::GetRollingFriction()                                             { return *mRollingFriction;                   }      
-    double* PropertiesProxy::pGetRollingFriction()                                            { return  mRollingFriction;                   }  
-    void    PropertiesProxy::SetRollingFrictionFromProperties(double* rolling_friction)       { mRollingFriction = rolling_friction;        }      
+    double  PropertiesProxy::GetRollingFriction()                                             { return *mRollingFriction;                   }
+    double* PropertiesProxy::pGetRollingFriction()                                            { return  mRollingFriction;                   }
+    void    PropertiesProxy::SetRollingFrictionFromProperties(double* rolling_friction)       { mRollingFriction = rolling_friction;        }
+    
+    double  PropertiesProxy::GetRollingFrictionWithWalls()                                    { return *mRollingFrictionWithWalls;          }
+    double* PropertiesProxy::pGetRollingFrictionWithWalls()                                   { return  mRollingFrictionWithWalls;          }
+    void    PropertiesProxy::SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls) { mRollingFrictionWithWalls = rolling_friction_with_walls; }
       
     double  PropertiesProxy::GetTgOfFrictionAngle()                                           { return *mTgOfFrictionAngle;                 } 
     double* PropertiesProxy::pGetTgOfFrictionAngle()                                          { return  mTgOfFrictionAngle;                 } 
@@ -38,7 +44,7 @@ namespace Kratos {
       
     double  PropertiesProxy::GetCoefficientOfRestitution()                                    { return *mCoefficientOfRestitution;          } 
     double* PropertiesProxy::pGetCoefficientOfRestitution()                                   { return  mCoefficientOfRestitution;          } 
-    void    PropertiesProxy::SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution)     { mCoefficientOfRestitution = coefficient_of_restitution;      }  
+    void    PropertiesProxy::SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution) { mCoefficientOfRestitution = coefficient_of_restitution;      }  
     
     double  PropertiesProxy::GetLnOfRestitCoeff()                                             { return *mLnOfRestitCoeff;                   } 
     double* PropertiesProxy::pGetLnOfRestitCoeff()                                            { return  mLnOfRestitCoeff;                   } 
@@ -64,7 +70,7 @@ namespace Kratos {
     double* PropertiesProxy::pGetParticleKTangential()                                           { return  mParticleKTangential;                }
     void    PropertiesProxy::SetParticleKTangentialFromProperties(double* particle_k_tangential) { mParticleKTangential = particle_k_tangential;}
     
-    //Conical damage    
+    // Dependent Friction    
     double  PropertiesProxy::GetParticleContactRadius()                                              { return *mParticleContactRadius;                   }
     double* PropertiesProxy::pGetParticleContactRadius()                                             { return  mParticleContactRadius;                   }
     void    PropertiesProxy::SetParticleContactRadiusFromProperties(double* particle_contact_radius) { mParticleContactRadius = particle_contact_radius; }
@@ -72,10 +78,6 @@ namespace Kratos {
     double  PropertiesProxy::GetParticleMaxStress()                                           { return *mParticleMaxStress;                  }
     double* PropertiesProxy::pGetParticleMaxStress()                                          { return  mParticleMaxStress;                  }
     void    PropertiesProxy::SetParticleMaxStressFromProperties(double* particle_max_stress)  { mParticleMaxStress = particle_max_stress;    }
-    
-    double  PropertiesProxy::GetParticleAlpha()                                               { return *mParticleAlpha;                      }
-    double* PropertiesProxy::pGetParticleAlpha()                                              { return  mParticleAlpha;                      }
-    void    PropertiesProxy::SetParticleAlphaFromProperties(double* particle_alpha)           { mParticleAlpha = particle_alpha;             }
     
     double  PropertiesProxy::GetParticleGamma()                                               { return *mParticleGamma;                      }
     double* PropertiesProxy::pGetParticleGamma()                                              { return  mParticleGamma;                      }
@@ -99,6 +101,7 @@ namespace Kratos {
         mYoung                    = props.pGetYoung();
         mPoisson                  = props.pGetPoisson();
         mRollingFriction          = props.pGetRollingFriction();
+        mRollingFrictionWithWalls = props.pGetRollingFrictionWithWalls();
         mTgOfFrictionAngle        = props.pGetTgOfFrictionAngle();
         mCoefficientOfRestitution = props.pGetCoefficientOfRestitution();
         mLnOfRestitCoeff          = props.pGetLnOfRestitCoeff();
@@ -138,7 +141,7 @@ namespace Kratos {
         rSerializer.load("mParticleMaterial",mParticleMaterial);*/        
     }
       
-    void AddPropertiesProxiesFromModelPartProperties(std::vector<PropertiesProxy>& vector_of_proxies,
+    void PropertiesProxiesManager::AddPropertiesProxiesFromModelPartProperties(std::vector<PropertiesProxy>& vector_of_proxies,
                                                                       ModelPart& rModelPart,
                                                                       int& properties_counter) {
         
@@ -157,7 +160,10 @@ namespace Kratos {
                                           
             aux_pointer = &( props_it->GetValue(ROLLING_FRICTION) );
             vector_of_proxies[properties_counter].SetRollingFrictionFromProperties(aux_pointer);
-              
+            
+            aux_pointer = &( props_it->GetValue(ROLLING_FRICTION_WITH_WALLS) );
+            vector_of_proxies[properties_counter].SetRollingFrictionWithWallsFromProperties(aux_pointer);
+
             //MA: I commented out the following part because the Initialization of the Proxies is done before the initialization of the inlet (where ProcessInfo for that ModelPart is set)
             /*if ( rModelPart.GetProcessInfo()[ROLLING_FRICTION_OPTION] )  {
             aux_pointer = &( props_it->GetValue(ROLLING_FRICTION) );
@@ -194,9 +200,6 @@ namespace Kratos {
             aux_pointer = &(props_it->GetValue(MAX_STRESS));
             vector_of_proxies[properties_counter].SetParticleMaxStressFromProperties(aux_pointer);
             
-            aux_pointer = &(props_it->GetValue(ALPHA));
-            vector_of_proxies[properties_counter].SetParticleAlphaFromProperties(aux_pointer);
-            
             aux_pointer = &(props_it->GetValue(GAMMA));
             vector_of_proxies[properties_counter].SetParticleGammaFromProperties(aux_pointer);
             
@@ -213,36 +216,46 @@ namespace Kratos {
         }      
     }    
     
-    void CreatePropertiesProxies(std::vector<PropertiesProxy>& vector_of_proxies,
+    void PropertiesProxiesManager::CreatePropertiesProxies(
                                                   ModelPart& balls_mp,
                                                   ModelPart& inlet_mp,
                                                   ModelPart& clusters_mp) {
         KRATOS_TRY
-          
+        
+        balls_mp[VECTOR_OF_PROPERTIES_PROXIES] = std::vector<PropertiesProxy>();
+        
+        std::vector<PropertiesProxy>& vector_of_proxies = balls_mp[VECTOR_OF_PROPERTIES_PROXIES];          
         vector_of_proxies.clear();    
         vector_of_proxies.resize( balls_mp.NumberOfProperties() + inlet_mp.NumberOfProperties() + clusters_mp.NumberOfProperties() );
         int properties_counter = 0;
         AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, balls_mp,    properties_counter);          
         AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, inlet_mp,    properties_counter);           
         AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, clusters_mp, properties_counter);                    
-          
+                  
         return;          
 
         KRATOS_CATCH("")
     }
     
-    void CreatePropertiesProxies(std::vector<PropertiesProxy>& vector_of_proxies, ModelPart& r_model_part) {
+    void PropertiesProxiesManager::CreatePropertiesProxies(ModelPart& r_model_part) {
 
         KRATOS_TRY
-          
+        
+        r_model_part[VECTOR_OF_PROPERTIES_PROXIES] = std::vector<PropertiesProxy>();
+        
+        std::vector<PropertiesProxy>& vector_of_proxies = r_model_part[VECTOR_OF_PROPERTIES_PROXIES];
         vector_of_proxies.clear();    
         vector_of_proxies.resize( r_model_part.NumberOfProperties() );
         int properties_counter = 0;
-        AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, r_model_part, properties_counter);          
+        AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, r_model_part, properties_counter);           
           
         return;          
     
         KRATOS_CATCH("")
+    }
+    
+    std::vector<PropertiesProxy>& PropertiesProxiesManager::GetPropertiesProxies(ModelPart& r_model_part) {
+        return r_model_part[VECTOR_OF_PROPERTIES_PROXIES];
     }
     
 } // Namespace Kratos

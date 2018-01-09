@@ -26,7 +26,7 @@
 
 ///VARIABLES used:
 //Data:      
-//StepData: DOMAIN_LABEL, CONTACT_FORCE, DISPLACEMENT
+//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked) 
 //          (set)     
 //          (modified)  
@@ -72,7 +72,6 @@ public:
     {
       std::cout<<" inlet_management CONSTRUCTOR "<<std::endl;
 
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -101,7 +100,7 @@ public:
   {
     KRATOS_TRY
 
-      if( mEchoLevel > 0 )
+      if( mEchoLevel > 1 )
 	std::cout<<" [ INLET MANAGEMENT PROCESS: "<<std::endl;
 
     if( mrModelPart.Name() != mrRemesh.SubModelPartName )
@@ -110,18 +109,11 @@ public:
     const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
     double currentTime = rCurrentProcessInfo[TIME];
     double timeInterval = rCurrentProcessInfo[DELTA_TIME];
- 
-    // if(currentTime<1.5*timeInterval){
-    // 	// //SetInletNodes();
-    // }
-    // else{
-    // 	CheckAndCreateNewInletLayer();
-    // }
 
     if(currentTime>1.5*timeInterval)
       CheckAndCreateNewInletLayer();
 
-    if( mEchoLevel > 0 )
+    if( mEchoLevel > 1 )
       std::cout<<"   INLET MANAGEMENT PROCESS ]; "<<std::endl;
 
     KRATOS_CATCH(" ")
@@ -224,8 +216,6 @@ private:
 
     ModelerUtilities mModelerUtilities;  
 
-    ModelPart::IndexType mMeshId; 
-
     int mEchoLevel;
 
     ///@}
@@ -245,84 +235,12 @@ private:
   {
     KRATOS_TRY
 
-      if( mEchoLevel > 0 )
+      if( mEchoLevel > 1 )
 	std::cout<<" CheckAndCreateNewInletLayer "<<std::endl;
-    const unsigned int dimension = mrModelPart.ElementsBegin(mMeshId)->GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     double maxSeparation=mrRemesh.Refine->CriticalRadius;
-    // if(dimension==3)
-    //   maxSeparation=mrRemesh.Refine->CriticalRadius;
 
-    // std::vector<array_1d<double,3> > freeInletPositions;
-    // std::vector<array_1d<double,3> > freeInletVelocities;
-    // freeInletPositions.resize(100);
-    // freeInletVelocities.resize(100);
-    // unsigned int countFreeInletNodes=0;
-    // for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(mMeshId) ; i_node != mrModelPart.NodesEnd(mMeshId) ; i_node++)
-    //   {
-    // 	WeakPointerVector<Node<3> >& rN = i_node->GetValue(NEIGHBOUR_NODES);
-
-    // 	// if(i_node->Is(RIGID) && i_node->IsNot(SOLID) && i_node->Is(INLET) ){
-    // 	if(i_node->Is(INLET) && rN.size()<1 ){
-
-    // 	  const array_1d<double,3>& inletDisplacement = i_node->FastGetSolutionStepValue(DISPLACEMENT);
-    // 	  double distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] + 
-    // 					 inletDisplacement[1]*inletDisplacement[1]);
-    // 	  if(dimension==3){
-    // 	    distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
-    // 				    inletDisplacement[1]*inletDisplacement[1] +
-    // 				    inletDisplacement[2]*inletDisplacement[2]);
-    // 	  }
-
-    // 	  if(distanceFromOrigin> maxSeparation){
-    // 	    std::cout<<countFreeInletNodes<<". distFromOrig "<<distanceFromOrigin<<" maxSep "<<maxSeparation<<std::endl;
-    // 	    freeInletPositions[countFreeInletNodes][0]=i_node->X0();
-    // 	    freeInletPositions[countFreeInletNodes][1]=i_node->Y0();
-
-    // 	    freeInletVelocities[countFreeInletNodes][0]=i_node->FastGetSolutionStepValue(VELOCITY_X,0);
-    // 	    freeInletVelocities[countFreeInletNodes][1]=i_node->FastGetSolutionStepValue(VELOCITY_Y,0);
-    // 	    if(dimension==3){
-    // 	      freeInletPositions[countFreeInletNodes][2]=i_node->Z0();
-    // 	      freeInletVelocities[countFreeInletNodes][2]=i_node->FastGetSolutionStepValue(VELOCITY_Z,0);
-    // 	    }
-    // 	    countFreeInletNodes++;
-    // 	    i_node->Free(VELOCITY_X);
-    // 	    i_node->Free(VELOCITY_Y);
-
-    // 	    i_node->FastGetSolutionStepValue(VELOCITY_X,0)=freeInletVelocities[countFreeInletNodes][0];
-    // 	    i_node->FastGetSolutionStepValue(VELOCITY_X,1)=freeInletVelocities[countFreeInletNodes][0];
-    // 	    i_node->FastGetSolutionStepValue(VELOCITY_Y,0)=freeInletVelocities[countFreeInletNodes][1];	
-    // 	    i_node->FastGetSolutionStepValue(VELOCITY_Y,1)=freeInletVelocities[countFreeInletNodes][1];
-
-    // 	    i_node->FastGetSolutionStepValue(ACCELERATION_X,0)=0;
-    // 	    i_node->FastGetSolutionStepValue(ACCELERATION_X,1)=0;
-    // 	    i_node->FastGetSolutionStepValue(ACCELERATION_Y,0)=0;
-    // 	    i_node->FastGetSolutionStepValue(ACCELERATION_Y,1)=0;
-
-    // 	    if(dimension==3){
-    // 	      double velocityZ= i_node->FastGetSolutionStepValue(VELOCITY_Z,0);
-    // 	      i_node->Free(VELOCITY_Z);
-    // 	      i_node->FastGetSolutionStepValue(VELOCITY_Z,0)=freeInletVelocities[countFreeInletNodes][2];
-    // 	      i_node->FastGetSolutionStepValue(VELOCITY_Z,1)=freeInletVelocities[countFreeInletNodes][2];
-    // 	      i_node->FastGetSolutionStepValue(ACCELERATION_Z,0)=0;
-    // 	      i_node->FastGetSolutionStepValue(ACCELERATION_Z,1)=0;
-    // 	    }
-    // 	    i_node->Reset(INLET);
-    // 	    i_node->Reset(RIGID);
-    // 	    double bulkModulus=2150000000;
-    // 	    double density=1000;
-    // 	    double viscosity=0.001;
-    // 	    i_node->FastGetSolutionStepValue(BULK_MODULUS)=bulkModulus;
-    // 	    i_node->FastGetSolutionStepValue(DENSITY)=density;
-    // 	    i_node->FastGetSolutionStepValue(VISCOSITY)=viscosity;
-
-    // 	  }
-	 
-    // 	}
-
-    //   }
-
-
-    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(mMeshId) ; i_node != mrModelPart.NodesEnd(mMeshId) ; i_node++)
+    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
       {
     	// if(i_node->Is(RIGID) && i_node->IsNot(SOLID) && i_node->Is(INLET) ){
     	if(i_node->Is(INLET) ){
@@ -361,7 +279,7 @@ private:
 
       }
 
-    for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(mMeshId); ic!= mrModelPart.ConditionsEnd(mMeshId); ic++)
+    for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ic++)
       {
 
     	Geometry< Node<3> >& rGeometry = ic->GetGeometry();
@@ -408,7 +326,7 @@ private:
 
 		  pnode->Set(INLET); //inlet node
 		  mrRemesh.NodalPreIds.push_back( pnode->Id() );
-		  mrModelPart.AddNode(pnode,mMeshId);
+		  mrModelPart.AddNode(pnode);
 
 		  rGeometry[n].Reset(INLET);
 		  rGeometry[n].Reset(RIGID);
@@ -461,9 +379,9 @@ private:
   {
     KRATOS_TRY
       std::cout<<" SET INLET NODES "<<std::endl;
-     const unsigned int dimension = mrModelPart.ElementsBegin(mMeshId)->GetGeometry().WorkingSpaceDimension();
+     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(mMeshId) ; i_node != mrModelPart.NodesEnd(mMeshId) ; i_node++)
+    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
       {
 	if(i_node->Is(RIGID) && i_node->IsNot(SOLID) ){
 	  double velocityX= i_node->FastGetSolutionStepValue(VELOCITY_X);

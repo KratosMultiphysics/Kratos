@@ -15,12 +15,9 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
-#include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
 #include "containers/array_1d.h"
@@ -136,7 +133,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~ResidualBasedRelaxationScheme()
+    ~ResidualBasedRelaxationScheme() override
     {
     }
 
@@ -158,7 +155,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY
 
@@ -226,7 +223,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         std::cout << "prediction" << std::endl;
         array_1d<double, 3 > DeltaDisp;
@@ -295,7 +292,7 @@ public:
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
@@ -326,7 +323,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current element
@@ -347,12 +344,12 @@ public:
     /** functions totally analogous to the precedent but applied to
     the "condition" objects
      */
-    virtual void Condition_CalculateSystemContributions(
+    void Condition_CalculateSystemContributions(
         Condition::Pointer rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
@@ -370,11 +367,11 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    virtual void Condition_Calculate_RHS_Contribution(
+    void Condition_Calculate_RHS_Contribution(
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
@@ -399,7 +396,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -427,7 +424,7 @@ public:
      * @param r_model_part
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_model_part)
+    int Check(ModelPart& r_model_part) override
     {
         KRATOS_TRY
 

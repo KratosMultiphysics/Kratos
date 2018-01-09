@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
 # Check that KratosMultiphysics was imported in the main script
@@ -51,11 +51,9 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         #print("::[Contact_Modeler_Strategy]:: Construction of Meshing Strategy finished")
         
     #
-    def Initialize(self,meshing_parameters,domain_size):
+    def Initialize(self,meshing_parameters,dimension):
 
         #parameters
-        self.mesh_id = meshing_parameters.GetMeshId()
-
         self.echo_level = 1
         
         #meshing parameters
@@ -63,9 +61,9 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
       
         meshing_options = KratosMultiphysics.Flags()
         
-        meshing_options.Set(KratosPfemBase.ModelerUtilities.REMESH, self.settings["remesh"].GetBool())
-        meshing_options.Set(KratosPfemBase.ModelerUtilities.CONSTRAINED, self.settings["constrained"].GetBool())
-        meshing_options.Set(KratosPfemBase.ModelerUtilities.CONTACT_SEARCH, True)
+        meshing_options.Set(KratosPfem.ModelerUtilities.REMESH, self.settings["remesh"].GetBool())
+        meshing_options.Set(KratosPfem.ModelerUtilities.CONSTRAINED, self.settings["constrained"].GetBool())
+        meshing_options.Set(KratosPfem.ModelerUtilities.CONTACT_SEARCH, True)
 
         self.MeshingParameters.SetOptions(meshing_options)
         self.MeshingParameters.SetReferenceCondition(self.settings["contact_parameters"]["contact_condition_type"].GetString())
@@ -105,8 +103,8 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         self.MeshingParameters.SetProperties(properties)
 
         #set variables to global transfer
-        self.MeshDataTransfer   = KratosPfemBase.MeshDataTransferUtilities()
-        self.TransferParameters = KratosPfemBase.TransferParameters()
+        self.MeshDataTransfer   = KratosPfem.MeshDataTransferUtilities()
+        self.TransferParameters = KratosPfem.TransferParameters()
         self.global_transfer    = False                          
 
         #mesh modelers for the current strategy
@@ -116,7 +114,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         self.SetMeshModelers();
         
         for mesher in self.mesh_modelers:
-            mesher.Initialize(domain_size)
+            mesher.Initialize(dimension)
 
         self.number_of_nodes      = 0
         self.number_of_elements   = 0
@@ -128,14 +126,14 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         transfer_options = transfer_parameters.GetOptions()
             
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
-            transfer_options.Set(KratosPfemBase.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, True)
+            transfer_options.Set(KratosPfem.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, True)
             transfer_parameters.SetOptions(transfer_options)
         
-            self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,self.main_model_part,self.mesh_id)
+            self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,self.main_model_part)
 
         # set flags for the transfer needed for the contact domain
-        transfer_options.Set(KratosPfemBase.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, False)
-        transfer_options.Set(KratosPfemBase.MeshDataTransferUtilities.MASTER_ELEMENT_TO_MASTER_CONDITION, True)
+        transfer_options.Set(KratosPfem.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, False)
+        transfer_options.Set(KratosPfem.MeshDataTransferUtilities.MASTER_ELEMENT_TO_MASTER_CONDITION, True)
         transfer_parameters.SetOptions(transfer_options)
         
 
@@ -173,7 +171,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         #if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
         #transfer_parameters = self.MeshingParameters.GetTransferParameters()
         #model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
-        #self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,model_part,self.mesh_id)
+        #self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,model_part)
 
     #
     def FinalizeMeshGeneration(self):

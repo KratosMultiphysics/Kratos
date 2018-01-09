@@ -30,7 +30,7 @@ namespace Kratos {
 
         virtual void Initialize() override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         ~DEM_Dempack() {
         }

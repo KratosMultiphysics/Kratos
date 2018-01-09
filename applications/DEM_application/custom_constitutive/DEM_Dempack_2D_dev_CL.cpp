@@ -14,8 +14,8 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_Dempack2D_dev::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning DEM_Dempack2D_dev to Properties " << pProp->Id() << std::endl;
+    void DEM_Dempack2D_dev::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+        if(verbose) std::cout << "\nAssigning DEM_Dempack2D_dev to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 

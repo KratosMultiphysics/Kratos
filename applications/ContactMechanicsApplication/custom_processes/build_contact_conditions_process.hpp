@@ -81,8 +81,7 @@ namespace Kratos
 			     int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
-    { 
-      mMeshId = mrRemesh.MeshId;
+    {
       mEchoLevel = EchoLevel;
     }
 
@@ -129,7 +128,7 @@ namespace Kratos
       //*******************************************************************
       //set consecutive ids for global conditions
       int id=1;
-      for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.GetParentModelPart()->ConditionsBegin(mMeshId) ; i_cond != mrModelPart.GetParentModelPart()->ConditionsEnd(mMeshId) ; i_cond++)
+      for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.GetParentModelPart()->ConditionsBegin() ; i_cond != mrModelPart.GetParentModelPart()->ConditionsEnd() ; i_cond++)
 	{
 	  i_cond->SetId(id);
 	  id++;
@@ -151,12 +150,12 @@ namespace Kratos
       int previous_id = mrModelPart.GetParentModelPart()->Conditions().back().Id();
       id = previous_id;
 
-      ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
+      ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
 
       for(int el = 0; el<OutNumberOfElements; el++)
-	{
+	{  
 	  if(mrRemesh.PreservedElements[el])
-	    {
+	    {	      
 	      Geometry<Node<3> > Vertices;
 	      for(unsigned int i=0; i<nds; i++)
 		{
@@ -168,7 +167,7 @@ namespace Kratos
 		    
 		  //   std::cout<<" ERROR node "<<mrRemesh.NodalPreIds[OutElementList[el*nds+i]]<<" is not in the modelpart "<<std::endl;
 		  //   std::cout<<" Element["<<el<<"] lnode["<<i<<"]: ["<<el*nds+i<<"] ElList["<<OutElementList[el*nds+i]<<"]: NODE "<<mrRemesh.NodalPreIds[OutElementList[el*nds+i]]<<std::endl;
-		  //   for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(mMeshId) ; i_node != mrModelPart.NodesEnd(mMeshId) ; i_node++)
+		  //   for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
 		  //     {
 		  // 	if( i_node->Id() == (unsigned int)mrRemesh.NodalPreIds[OutElementList[el*nds+i]] )
 		  // 	  std::cout<<" Node "<<i_node->Id()<<" is in Model PART !!!! "<<std::endl;
@@ -176,7 +175,7 @@ namespace Kratos
 		  // }
 
 		  Vertices.push_back(*(nodes_begin + OutElementList[el*nds+i]-1).base());
-		  //Vertices.push_back(mrModelPart.pGetNode(mrRemesh.NodalPreIds[OutElementList[el*nds+i]],mMeshId));
+		  //Vertices.push_back(mrModelPart.pGetNode(mrRemesh.NodalPreIds[OutElementList[el*nds+i]]));
 		  Vertices.back().Set(CONTACT);
 		}
 	      
@@ -208,6 +207,36 @@ namespace Kratos
 		pContactCondition->SetValue(MASTER_CONDITION, pMasterCondition );
 		pContactCondition->SetValue(MASTER_ELEMENTS, pMasterCondition->GetValue(MASTER_ELEMENTS) );
 		pContactCondition->SetValue(MASTER_NODES, pMasterCondition->GetValue(MASTER_NODES) );
+		
+		if( pContactCondition->Is(SELECTED) ){ //two master nodes needed
+		  
+		  Element::ElementType& rMasterElement  = pMasterCondition->GetValue(MASTER_ELEMENTS).back();
+		  Geometry< Node<3> >&  rMasterGeometry = rMasterElement.GetGeometry();
+		  Element::NodeType&    rMasterNode     = pContactCondition->GetValue(MASTER_NODES).back();
+		  Geometry< Node<3> >&  rGeometry       = pContactCondition->GetGeometry();
+
+		  std::vector<bool> edge_nodes(4);
+		  std::fill(edge_nodes.begin(), edge_nodes.end(), false);
+
+		  for(unsigned int i=0; i<rMasterGeometry.PointsNumber(); i++)
+		    {
+		      for(unsigned int j=0; j<rGeometry.PointsNumber(); j++)
+			{
+			  if(rGeometry[j].Id()==rMasterGeometry[i].Id()){
+			    edge_nodes[i] = true;
+			    break;
+			  }
+			}
+		    }
+
+		  for(unsigned int i=0; i<4; i++)
+		    {
+		      if(!edge_nodes[i] && rMasterGeometry[i].Id() != rMasterNode.Id())
+			pContactCondition->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer(rMasterGeometry(i)) );
+		    }
+		}
+		  
+		  
 		pContactCondition->SetValue(NORMAL, pMasterCondition->GetValue(NORMAL) );
 		pContactCondition->Set(CONTACT);
 
@@ -225,7 +254,7 @@ namespace Kratos
 
 
       //Restore global ID's
-      for(ModelPart::NodesContainerType::iterator in = mrModelPart.NodesBegin(mMeshId) ; in != mrModelPart.NodesEnd(mMeshId) ; in++)
+      for(ModelPart::NodesContainerType::iterator in = mrModelPart.NodesBegin() ; in != mrModelPart.NodesEnd() ; in++)
 	{
 	  in->SetId( mrRemesh.NodalPreIds[ in->Id() ] );
 	}
@@ -331,7 +360,6 @@ namespace Kratos
 
     ModelerUtilities::MeshingParameters& mrRemesh;
 
-    int mMeshId;
     int mEchoLevel;
 
     ///@}

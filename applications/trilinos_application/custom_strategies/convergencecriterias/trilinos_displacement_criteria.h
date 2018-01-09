@@ -1,23 +1,23 @@
-//  KRATOS  _____     _ _ _                 
-//         |_   _| __(_) (_)_ __   ___  ___ 
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
 //           | || '__| | | | '_ \ / _ \/ __|
-//           | || |  | | | | | | | (_) \__ 
+//           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License 
+//  License:             BSD License
 //                                       Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//        
+//
 
 #if !defined(KRATOS_TRILINOS_DISPLACEMENT_CRITERIA )
 #define  KRATOS_TRILINOS_DISPLACEMENT_CRITERIA
 
-//  System includes 
+//  System includes
 
-//  External includes 
+//  External includes
 
-//  Project includes 
+//  Project includes
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -26,29 +26,29 @@
 namespace Kratos
 {
 
-///@name Kratos Globals 
+///@name Kratos Globals
 ///@{
 
 
-///@} 
-///@name Type Definitions 
+///@}
+///@name Type Definitions
 ///@{
 
-///@} 
+///@}
 
 
-///@name  Enum's 
-///@{
-
-
-///@} 
-///@name  Functions 
+///@name  Enum's
 ///@{
 
 
+///@}
+///@name  Functions
+///@{
 
-///@} 
-///@name Kratos Classes 
+
+
+///@}
+///@name Kratos Classes
 ///@{
 
 // Short class definition
@@ -78,7 +78,7 @@ template<class TSparseSpace,
 class TrilinosDisplacementCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
-    ///@name Type Definitions 
+    ///@name Type Definitions
     ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosDisplacementCriteria );
@@ -95,18 +95,17 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    ///@} 
+    ///@}
     ///@name Life Cycle
-    
+
     ///@{
 
     // * Constructor.
-    
+
     TrilinosDisplacementCriteria(
         TDataType NewRatioTolerance,
-        TDataType AlwaysConvergedNorm,
-        Epetra_MpiComm& rComm)
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),mrComm(rComm)
+        TDataType AlwaysConvergedNorm)
+        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
     {
         mRatioTolerance = NewRatioTolerance;
         mAlwaysConvergedNorm = AlwaysConvergedNorm;
@@ -115,18 +114,18 @@ public:
     }
 
     // * Destructor.
-    
+
     virtual ~TrilinosDisplacementCriteria() {}
 
 
-    ///@} 
+    ///@}
     ///@name Operators
-    
+
     ///@{
 
-    // Criterias that need to be called after getting the solution 
+    // Criterias that need to be called after getting the solution
     bool PostCriteria(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
@@ -139,7 +138,7 @@ public:
 
             TDataType ratio = 0.00;
 
-            mReferenceDispNorm = CalculateReferenceNorm(rDofSet);
+            mReferenceDispNorm = CalculateReferenceNorm(rDofSet, rModelPart);
 
             ratio = mFinalCorrectionNorm/mReferenceDispNorm;
 
@@ -147,12 +146,12 @@ public:
 
             double AbsoluteNorm = (mFinalCorrectionNorm/sqrt(aaa));
 
-            if(mrComm.MyPID() == 0) //print performed only by the first processor
+            if(rModelPart.GetCommunicator().MyPID() == 0) //print performed only by the first processor
                 std::cout << "DISPLACEMENT CRITERIA :: obtained tol = " << ratio << ";  expected ratio = " << mRatioTolerance << "absolute tol = " << AbsoluteNorm << std::endl;
 
             if ( ratio <= mRatioTolerance || AbsoluteNorm<mAlwaysConvergedNorm ) // || (mFinalCorrectionNorm/x.size())<=1e-7)
             {
-                if(mrComm.MyPID() == 0) //print performed only by the first processor
+                if(rModelPart.GetCommunicator().MyPID() == 0) //print performed only by the first processor
                     std::cout <<"convergence is achieved" <<std::endl;
 
                 return true;
@@ -195,86 +194,86 @@ public:
 
 
 
-    ///@} 
-    ///@name Operations 
+    ///@}
+    ///@name Operations
     ///@{
 
 
-    ///@} 
-    ///@name Access 
+    ///@}
+    ///@name Access
     ///@{
 
 
-    ///@} 
-    ///@name Inquiry 
+    ///@}
+    ///@name Inquiry
     ///@{
 
 
-    ///@} 
-    ///@name Friends 
+    ///@}
+    ///@name Friends
     ///@{
 
 
-    ///@} 
+    ///@}
 
 protected:
-    ///@name Protected static Member Variables 
+    ///@name Protected static Member Variables
     ///@{
 
 
-    ///@} 
-    ///@name Protected member Variables 
+    ///@}
+    ///@name Protected member Variables
     ///@{
 
 
-    ///@} 
+    ///@}
     ///@name Protected Operators
     ///@{
 
 
-    ///@} 
+    ///@}
     ///@name Protected Operations
     ///@{
 
 
-    ///@} 
-    ///@name Protected  Access 
+    ///@}
+    ///@name Protected  Access
     ///@{
 
 
-    ///@} 
-    ///@name Protected Inquiry 
+    ///@}
+    ///@name Protected Inquiry
     ///@{
 
 
-    ///@} 
-    ///@name Protected LifeCycle 
+    ///@}
+    ///@name Protected LifeCycle
     ///@{
 
 
 
-    ///@} 
+    ///@}
 
 private:
-    ///@name Static Member Variables 
+    ///@name Static Member Variables
     ///@{
 
 
-    ///@} 
-    ///@name Member Variables 
+    ///@}
+    ///@name Member Variables
     ///@{
     TDataType mRatioTolerance;
     TDataType mAlwaysConvergedNorm;
 
-    Epetra_MpiComm& mrComm;
+    // Epetra_MpiComm& mrComm;
 
 
     TDataType mReferenceDispNorm;
-    ///@} 
+    ///@}
     ///@name Private Operators
     ///@{
 
-    TDataType CalculateReferenceNorm(DofsArrayType& rDofSet)
+    TDataType CalculateReferenceNorm(DofsArrayType& rDofSet, ModelPart& rModelPart)
     {
         TDataType local_ReferenceDispNorm = TDataType();
         TDataType temp;
@@ -289,47 +288,46 @@ private:
         }
 
         //perform the sum between all of the nodes
-        TDataType ReferenceDispNorm = TDataType();
-        mrComm.SumAll(&local_ReferenceDispNorm, &ReferenceDispNorm, 1);
+        TDataType ReferenceDispNorm = local_ReferenceDispNorm;
+        rModelPart.GetCommunicator().SumAll(ReferenceDispNorm);
 
 
         ReferenceDispNorm = std::sqrt(ReferenceDispNorm);
         return ReferenceDispNorm;
     }
 
-    ///@} 
+    ///@}
     ///@name Private Operations
     ///@{
 
 
-    ///@} 
-    ///@name Private  Access 
+    ///@}
+    ///@name Private  Access
     ///@{
 
 
-    ///@} 
-    ///@name Private Inquiry 
+    ///@}
+    ///@name Private Inquiry
     ///@{
 
 
-    ///@} 
-    ///@name Un accessible methods 
+    ///@}
+    ///@name Un accessible methods
     ///@{
 
 
-    ///@} 
+    ///@}
 
-}; //  Class ClassName 
+}; //  Class ClassName
 
-///@} 
+///@}
 
-///@name Type Definitions 
+///@name Type Definitions
 ///@{
 
 
-///@} 
+///@}
 
 }  //  namespace Kratos.
 
-#endif //  KRATOS_TRILINOS_DISPLACEMENT_CRITERIA  defined 
-
+#endif //  KRATOS_TRILINOS_DISPLACEMENT_CRITERIA  defined

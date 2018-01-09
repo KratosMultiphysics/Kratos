@@ -46,6 +46,7 @@ namespace Kratos
 /** @author  Guillermo Casas Gonzalez <gcasas@cimne.upc.edu>
 */
 
+template<std::size_t TDim>
 class DerivativeRecoveryMeshingTools
 {
 public:
@@ -80,7 +81,7 @@ virtual ~DerivativeRecoveryMeshingTools(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void FillUpEdgesModelPartFromTetrahedraModelPart(ModelPart& r_edges_model_part, ModelPart& r_tetra_model_part, std::string element_type);
+void FillUpEdgesModelPartFromSimplicesModelPart(ModelPart& r_edges_model_part, ModelPart& r_tetra_model_part, std::string element_type);
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -159,7 +160,7 @@ DerivativeRecoveryMeshingTools& operator=(DerivativeRecoveryMeshingTools const& 
 /// output stream function
 template<std::size_t TDim>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const DerivativeRecoveryMeshingTools& rThis)
+                                  const DerivativeRecoveryMeshingTools<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

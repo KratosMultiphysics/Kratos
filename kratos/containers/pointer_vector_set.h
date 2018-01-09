@@ -448,6 +448,8 @@ public:
     void clear()
     {
         mData.clear();
+        mSortedPartSize = size_type();
+        mMaxBufferSize = 1;
     }
 
     iterator find(const key_type& Key)

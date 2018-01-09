@@ -24,8 +24,11 @@ void DEM_Force_Based_Inlet::RemoveInjectionConditions(Element &element)
     noalias(node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)) = ZeroVector();
 }
 
-void DEM_Force_Based_Inlet::FixInjectionConditions(Element* p_element)
+void DEM_Force_Based_Inlet::FixInjectionConditions(Element* p_element, Element* p_injector_element)
 {
+    // the injector velocity is not relevant here
+    static_cast<void>(p_injector_element);
+
     Node<3>& node = p_element->GetGeometry()[0];
     node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce(p_element);
 
@@ -41,8 +44,6 @@ void DEM_Force_Based_Inlet::FixInjectorConditions(Element* p_element)
 
 array_1d<double, 3> DEM_Force_Based_Inlet::GetInjectionForce(Element* p_element)
 {
-    KRATOS_WATCH(mInjectionForce)
-
     return mInjectionForce;
 }
 

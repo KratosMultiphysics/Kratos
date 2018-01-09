@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
 # Check that KratosMultiphysics was imported in the main script
@@ -29,7 +29,6 @@ class ContactDomain(meshing_domain.MeshingDomain):
         default_settings = KratosMultiphysics.Parameters("""
         {
 	    "python_module": "contact_domain",
-            "mesh_id": 0,
             "model_part_name": "model_part_name",
             "alpha_shape": 1.4,
             "offset_factor": 0.0,
@@ -79,8 +78,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
 
         print("::[Meshing Contact Domain]:: -START-")
         
-        self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        self.mesh_id     = 0
+        self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         # Set MeshingParameters
         self.SetMeshingParameters()
@@ -100,7 +98,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
 
 
         # Meshing Stratety
-        self.MeshingStrategy.Initialize(self.MeshingParameters, self.domain_size)
+        self.MeshingStrategy.Initialize(self.MeshingParameters, self.dimension)
         
         print("::[Meshing Contact Domain]:: -END- ")
 
@@ -110,7 +108,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
     def SetRefiningParameters(self):   #no refine in the contact domain
 
         # Create RefiningParameters
-        self.RefiningParameters = KratosPfemBase.RefiningParameters()
+        self.RefiningParameters = KratosPfem.RefiningParameters()
         self.RefiningParameters.Initialize()
 
         # parameters

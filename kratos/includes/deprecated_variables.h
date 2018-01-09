@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -147,10 +147,19 @@ namespace Kratos
 
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( xi_c )
 
+	//for Thermo Mechanical application:
+	KRATOS_DEFINE_VARIABLE(int, NODE_PROPERTY_ID)
+	KRATOS_DEFINE_VARIABLE(int, REF_ID)
+	KRATOS_DEFINE_VARIABLE(double, PARTICLE_RADIUS)
+	KRATOS_DEFINE_VARIABLE(double, POSETIVE_DISTANCE)
+	KRATOS_DEFINE_VARIABLE(double, NAGATIVE_DISTANCE)
+	KRATOS_DEFINE_VARIABLE(bool, IS_ESCAPED)
+	KRATOS_DEFINE_VARIABLE(int, IS_SOLIDIFIED)
+	KRATOS_DEFINE_VARIABLE(int, IS_GRAVITY_FILLING)
+
 }  // namespace Kratos.
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 #endif // KRATOS_DEPRECATED_VARIABLES_H_INCLUDED  defined
-

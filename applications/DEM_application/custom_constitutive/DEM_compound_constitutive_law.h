@@ -22,8 +22,8 @@ public:
         return p_clone;
     }
 
-    void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override {
-        std::cout << "Assigning DEM_D_linear_viscous_Coulomb to Properties " << pProp->Id() << std::endl; // Print this correctly!!!
+    void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override {
+        if(verbose) std::cout << "\nAssigning DEM_D_linear_viscous_Coulomb to Properties " << pProp->Id() << std::endl; // Print this correctly!!!
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
     

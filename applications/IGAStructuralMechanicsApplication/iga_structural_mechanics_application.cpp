@@ -35,7 +35,8 @@
 
 namespace Kratos {
 
-KratosIGAStructuralMechanicsApplication::KratosIGAStructuralMechanicsApplication():
+KratosIGAStructuralMechanicsApplication::KratosIGAStructuralMechanicsApplication() :
+    KratosApplication("IGAStructuralMechanicsApplication"),
 	mMeshlessElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessMembraneElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessLaplaceElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),

@@ -45,7 +45,7 @@ namespace Kratos
 				double& X() { return mCoordinates[0]; }
 				double& Y() { return mCoordinates[1]; }
 				double& Z() { return mCoordinates[2]; }
-				double& Coordinate(int i) { return mCoordinates[i - 1]; }
+				double& Coordinate(int i) { return mCoordinates[i]; }
 				std::size_t& Id() { return mId; }
 			};
 
@@ -62,7 +62,7 @@ namespace Kratos
 				MIN_LEVEL = 2    // this cannot be less than 2!!!
 			};
 
-			typedef Point<3, double>                                PointType;  /// always the point 3D
+			typedef Point			                                PointType;  /// always the point 3D
 			typedef std::vector<double>::iterator                   DistanceIteratorType;
 			typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
 			typedef ContainerType::value_type                       PointerType;
@@ -166,8 +166,8 @@ namespace Kratos
 
 			static  inline bool  IsIntersected(const Element::Pointer rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
 			{
-				Point<3, double> low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
-				Point<3, double> high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
+				Point low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
+				Point high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
 
 				KRATOS_THROW_ERROR(std::logic_error, "Not Implemented method", "")
 					//return HasIntersection(rObject->GetGeometry(), low_point, high_point);
@@ -219,7 +219,7 @@ namespace Kratos
   It also provides some helper methods for derived classes to check
   individual element or condition interesections.
   */
-  class FindIntersectedGeometricalObjectsProcess : public Process
+  class KRATOS_API(KRATOS_CORE) FindIntersectedGeometricalObjectsProcess : public Process
     {
     public:
       ///@name Type Definitions
@@ -248,8 +248,12 @@ namespace Kratos
 
 
 	  /// Destructor.
-	  virtual ~FindIntersectedGeometricalObjectsProcess() {}
+	  ~FindIntersectedGeometricalObjectsProcess() override {}
 
+	  ///@name Member Variables
+	  ///@{
+
+	  std::vector<PointerVector<GeometricalObject>> mIntersectedObjects;
 
       ///@}
       ///@name Operations
@@ -257,20 +261,32 @@ namespace Kratos
 
 	  virtual void Initialize();
 
-	  virtual void Execute();
+	  virtual void FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults);
+
+	  virtual void FindIntersections();
+
+	  virtual std::vector<PointerVector<GeometricalObject>>& GetIntersections();
+
+	  virtual ModelPart& GetModelPart1();
+
+	  virtual OctreeBinary<OctreeBinaryCell<Internals::DistanceSpatialContainersConfigure>>* GetOctreePointer();
+
+	  virtual void Clear();
+
+	  void Execute() override;
 
       ///@}
       ///@name Input and output
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const;
+      std::string Info() const override;
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
+      void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
+      void PrintData(std::ostream& rOStream) const override;
 
       ///@}
 
@@ -295,6 +311,7 @@ namespace Kratos
 		void SetOctreeBoundingBox();
 		void MarkIfIntersected(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves);
 		bool HasIntersection(Element::GeometryType& rFirstGeometry, Element::GeometryType& rSecondGeometry);
+		void FindIntersectedSkinObjects(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves, PointerVector<GeometricalObject>& rResults);
 
 
       ///@}

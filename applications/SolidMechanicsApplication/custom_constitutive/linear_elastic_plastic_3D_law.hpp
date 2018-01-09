@@ -87,6 +87,8 @@ public:
      * Operations needed by the base class:
      */
 
+    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue);
+    
     double& GetValue( const Variable<double>& rThisVariable, double& rValue );
 
     /**
@@ -196,7 +198,17 @@ protected:
 
     virtual void UpdateInternalStateVariables( FlowRule::RadialReturnVariables& rReturnMappingVariables, Vector& rStressVector,
                                             const Matrix& LinearElasticMatrix, const Vector& StrainVector );
-                                  
+
+    /**
+     * Updates the stress vector (to finalize the step)
+     * @param rStressVector
+     * @param rReturnMappingVariables, plastic variables
+     * @param EffectiveStressVector
+     */
+
+    virtual void UpdateStressVector( Vector& rStressVector, FlowRule::RadialReturnVariables& rReturnMappingVariables,
+                                    const Vector& EffectiveStressVector );
+
     ///@}
 
 private:

@@ -112,7 +112,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             processes_parts.append(self.main_model_part.GetSubModelPart(self.processes_model_part_names[i].GetString()))
         
         #construct a model part which contains the mesh to compute
-        self.main_model_part.CreateSubModelPart(self.computing_model_part_name)
+        #self.main_model_part.CreateSubModelPart(self.computing_model_part_name)
         
         computing_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name)
         computing_model_part.ProcessInfo = self.main_model_part.ProcessInfo
@@ -136,9 +136,8 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         for part in processes_parts:
             part.Set(KratosMultiphysics.BOUNDARY)
             entity_type = "Conditions"
-            assign_flags = KratosSolid.FlagsContainer()
-            assign_flags.PushBack(KratosMultiphysics.BOUNDARY)
-            transfer_process = KratosSolid.TransferEntitiesProcess(computing_model_part,part,entity_type,void_flags,assign_flags)
+            #condition flags as BOUNDARY or CONTACT are reserved to composite or contact conditions (do not set it here)
+            transfer_process = KratosSolid.TransferEntitiesProcess(computing_model_part,part,entity_type)
             transfer_process.Execute()
 
         '''
@@ -168,4 +167,4 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         #    self.main_model_part.RemoveSubModelPart(part)
         #    print("Removed SubModelPart:", part.Name)
           
-        print("::[Model_Prepare]::",computing_model_part)       
+        #print("::[Model_Prepare]::",computing_model_part)       

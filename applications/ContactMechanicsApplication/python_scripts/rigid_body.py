@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
 # Check that KratosMultiphysics was imported in the main script
@@ -90,7 +90,7 @@ class RigidBody(object):
             box_parameters["lower_point"][counter].SetDouble(i)
             counter+=1
 
-        self.bounding_box = KratosPfemBase.SpatialBoundingBox(box_settings)
+        self.bounding_box = KratosPfem.SpatialBoundingBox(box_settings)
         
         # construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
         creation_utility = KratosContact.RigidBodyCreationUtility()
@@ -104,7 +104,7 @@ class RigidBody(object):
     # 
     def GetUpperPoint(self, model_part):
         
-        domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         max_x = sys.float_info.min
         max_y = sys.float_info.min
@@ -118,7 +118,7 @@ class RigidBody(object):
             if( node.Z > max_z ):
                 max_z = node.Z
 
-        if( domain_size == 2 ):
+        if( dimension == 2 ):
             return [max_x, max_y, 0]
         else:
             return [max_x, max_y, max_z]
@@ -126,7 +126,7 @@ class RigidBody(object):
     # 
     def GetLowerPoint(self, model_part):
 
-        domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         min_x = sys.float_info.max
         min_y = sys.float_info.max
@@ -140,7 +140,7 @@ class RigidBody(object):
             if( node.Z > min_z ):
                 min_z = node.Z
                 
-        if( domain_size == 2 ):
+        if( dimension == 2 ):
             return [min_x, min_y, 0]
         else:
             return [min_x, min_y, min_z]

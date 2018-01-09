@@ -1,30 +1,14 @@
-/*
-Kratos Multi-Physics
-
-Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
-		in the documentation and/or other materials provided with the distribution.
-	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
-			This product includes Kratos Multi-Physics technology.
-	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-	
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
-THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2015-09-12
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//                    
 //
 
 #if !defined(KRATOS_DISTANCE_CALCULATION_ELEMENT_H_INCLUDED )
@@ -167,7 +151,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~DistanceCalculationElementSimplex()
+    ~DistanceCalculationElementSimplex() override
     {}
 
 
@@ -195,7 +179,7 @@ public:
     }
 
     /// Calculate the element's local contribution to the system for the current step.
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo) override
     {
@@ -225,7 +209,7 @@ public:
         for(unsigned int i=0; i<number_of_points; i++)
         {
             distances[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-			if (distances[i] >= 0.0 && distances[i] < 1e-30) distances[i] = 1e-30;
+//			if (distances[i] >= 0.0 && distances[i] < 1e-30) distances[i] = 1e-30;
         }
 
         const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
@@ -307,72 +291,7 @@ public:
             if(distances[i] >= 0) positives++;
             else negatives++;
         }
-        
-        if(positives> 0  && negatives>0) //the element is cut by the interface
-        {   
-            array_1d<double,3> x0; //point on the cut
-            
-            //****************************************************************
-            //here impose the constraint that the zero is mantained
-            //****************************************************************
-            //compute a penalty factor by inspecting the diagonal of the LHS
-            double penalty = 0.0;
-            for(unsigned int i=0; i<TDim+1; i++)
-            {
-                penalty = std::max( penalty, fabs( rLeftHandSideMatrix(i,i) ) );
-            }
-            penalty *= 1e2; //1e6;
-            
-            //now loop over all the edges and 
-            for(unsigned int i=0; i<TDim; i++)
-            {
-                for(unsigned int j=i+1; j<TDim+1; j++)
-                {
-                    if(distances[i]*distances[j] < 0) //edge is divided
-                    {
-                        const double Ni = fabs(distances[j])/(fabs(distances[i])+fabs(distances[j]) + 1e-30);
-                        const double Nj = 1.0-Ni;
-                        
-                        rLeftHandSideMatrix(i,i) += penalty*Ni*Ni;
-                        rLeftHandSideMatrix(i,j) += penalty*Ni*Nj;
-                        rLeftHandSideMatrix(j,i) += penalty*Nj*Ni;
-                        rLeftHandSideMatrix(j,j) += penalty*Nj*Nj;
-                        
-                        noalias(x0) = Ni*GetGeometry()[i].Coordinates() + Nj*GetGeometry()[j].Coordinates();
-                    }
-                }
-            }
-            /*
-            if(step == 2)
-            {*/
-                //****************************************************************
-                //here impose (more weakly) that exact distance are mantained
-                //****************************************************************
-                array_1d<double,TDim+1> dexact;
-                
-                //compute normal
-                array_1d<double,TDim> n = prod(trans(DN_DX),distances);
-                n /= (norm_2(n) + 1e-30);
-                
-                //find exact distances
-                for(unsigned int i=0; i<TDim; i++)
-                {
-                    array_1d<double,3> dx = GetGeometry()[i].Coordinates() - x0;
-                    dexact[i] = inner_prod(n, dx);
-                }
-                
-                //impose constraint
-                penalty *= 0.1;
-                for(unsigned int i=0; i<TDim; i++)
-                {
-                    rLeftHandSideMatrix(i,i) += penalty;
-                    rRightHandSideVector(i) += penalty*(dexact[i] - distances[i]);
-                }
-//             }
-            
-             ImposeBCs(rLeftHandSideMatrix, rRightHandSideVector, distances);
-        }
-        
+       
         
     }
 
@@ -384,7 +303,7 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
+    void EquationIdVector(EquationIdVectorType& rResult,
                                   ProcessInfo& rCurrentProcessInfo) override
     {
 
@@ -394,11 +313,6 @@ public:
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
             rResult[i] = GetGeometry()[i].GetDof(DISTANCE).EquationId();
-        
-        
-//         for (unsigned int i = 0; i < number_of_nodes; i++)
-//             std::cout << rResult[i] << " " ;
-//         std::cout << std::endl;
     }
 
     /// Returns a list of the element's Dofs
@@ -406,7 +320,7 @@ public:
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
+    void GetDofList(DofsVectorType& rElementalDofList,
                             ProcessInfo& rCurrentProcessInfo) override
     {
         unsigned int number_of_nodes = TDim+1;
@@ -418,21 +332,6 @@ public:
             rElementalDofList[i] = GetGeometry()[i].pGetDof(DISTANCE);
 
     }
-
-
-
-    /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
-    /**
-     * @param rVariable Kratos vector variable to get
-     * @param Output Will be filled with the values of the variable on integrartion points
-     * @param rCurrentProcessInfo Process info instance
-     */
-//    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-//            std::vector<array_1d<double, 3 > >& rValues,
-//            const ProcessInfo& rCurrentProcessInfo)
-//    {
-//
-//    }
 
 
     ///@}
@@ -452,7 +351,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
 {
         KRATOS_TRY
 
@@ -504,7 +403,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "DistanceCalculationElementSimplex #" << Id();
@@ -512,7 +411,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "DistanceCalculationElementSimplex" << TDim << "D";
     }
@@ -540,112 +439,6 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    void ImposeBCs(Matrix& lhs,
-                   Vector& rhs,
-                   const Vector& distances
-         )
-    {
-        Matrix positive_side_lhs = ZeroMatrix(lhs.size1(), lhs.size2());
-        Matrix negative_side_lhs = ZeroMatrix(lhs.size1(), lhs.size2());
-        Vector positive_side_rhs = ZeroVector(rhs.size());
-        Vector negative_side_rhs = ZeroVector(rhs.size());
-
-		CondenseLocally(lhs,rhs, distances,  1.0, positive_side_lhs, positive_side_rhs);
-        CondenseLocally(lhs,rhs, distances,  -1.0, negative_side_lhs, negative_side_rhs);
-        noalias(lhs) = positive_side_lhs + negative_side_lhs;
-        noalias(rhs) = positive_side_rhs + negative_side_rhs;
-    }
-    
-    // | A11 A12 | x1  =   b1
-    // | A21 A22 | x2  =   b2
-    //
-    //solving the second equation
-    //x2 = A22inv * (b2 - A21*x1)
-    //
-    //substitutiting into the first
-    //(A11 - A12*A22inv*A21)*x1 = b1 - A12*A22inv*b2
-    //
-    void CondenseLocally( const Matrix& A, 
-                          const Vector& b,
-                          const Vector& distances, 
-                          const double sign,
-                          Matrix& output,
-                          Vector& output_rhs
-        
-    )
-    {
-        //count outer nodes to be condensed
-        std::vector<unsigned int> inner_indices; 
-        inner_indices.reserve(TDim+1);
-        std::vector<unsigned int> outer_indices;
-        outer_indices.reserve(TDim+1);
-        for(unsigned int i=0; i<distances.size(); i++)
-        {
-            if(distances[i]*sign < 0.0)
-                outer_indices.push_back(i);
-            else
-                inner_indices.push_back(i);
-        }
-        
-        Matrix A11(inner_indices.size(),inner_indices.size(),0.0);
-        Matrix A12(inner_indices.size(),outer_indices.size(),0.0);
-        Matrix A21(outer_indices.size(),inner_indices.size(),0.0);
-        Matrix A22(outer_indices.size(),outer_indices.size(),0.0);
-        Vector b1(inner_indices.size());
-        Vector b2(outer_indices.size());
-        for(unsigned int i=0; i<inner_indices.size(); i++)
-        {
-            b1[i] = b[inner_indices[i]];
-            for(unsigned int j=0; j<inner_indices.size(); j++)
-            {
-                A11(i,j) = A(inner_indices[i], inner_indices[j]);
-                
-            }
-            for(unsigned int j=0; j<outer_indices.size(); j++)
-            {
-                A12(i,j) = A(inner_indices[i], outer_indices[j]);
-            }
-        }
-
-        for(unsigned int i=0; i<outer_indices.size(); i++)
-        {
-            b2[i] = b[outer_indices[i]];
-            for(unsigned int j=0; j<inner_indices.size(); j++)
-            {
-                A21(i,j) = A(outer_indices[i], inner_indices[j]);
-            }
-            for(unsigned int j=0; j<outer_indices.size(); j++)
-            {
-                A22(i,j) = A(outer_indices[i], outer_indices[j]);
-            }
-        }
-        
-        double detA22;
-        Matrix A22inv(outer_indices.size(), outer_indices.size());
-        MathUtils<double>::InvertMatrix(A22, A22inv, detA22); //here i should invert the matrix
-        if(detA22 < 1e-30)
-        {
-            KRATOS_ERROR << "impossible to inverte the local matrix for element " << this->Id() << " matrix is " << A22 << " distances are: " << distances << std::endl;
-        }
-        
-        //A11 -= A12*A22inv*A21;
-        Matrix tmp = prod(A22inv,A21);
-        noalias(A11) -= prod(A12,tmp);
-        
-        Vector btmp = prod(A22inv, b2);
-        noalias(b1) -= prod( A12,btmp);
-                
-        //assemble to output matrix
-        for(unsigned int i=0; i<inner_indices.size(); i++)
-        {
-            output_rhs(inner_indices[i]) = b1[i];
-            for(unsigned int j=0; j<inner_indices.size(); j++)
-            {
-                output(inner_indices[i], inner_indices[j]) = A11(i,j);
-            }
-        }
-        
-    }
 
     ///@}
     ///@name Protected Operations
@@ -683,12 +476,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

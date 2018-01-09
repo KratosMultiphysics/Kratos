@@ -72,12 +72,12 @@ public:
 
 	TVertex(float x,float y, float z);
 	TVertex(float4 v);
-	~TVertex();
+	~TVertex() override;
 	void calcNormal();
 	float4 pos();
-	TList<TVertex*> *getVertexNeighboursByElem(TList<TVertex*> *toL = NULL , int depth = 1, int avoidLowerIds = false);			 
+	TList<TVertex*> *getVertexNeighboursByElem(TList<TVertex*> *toL = nullptr , int depth = 1, int avoidLowerIds = false);			 
 
-	TList<TVertex*>* getVertexNeighboursByTriangle(TList<TVertex*>* toL = NULL , int depth = 1);
+	TList<TVertex*>* getVertexNeighboursByTriangle(TList<TVertex*>* toL = nullptr , int depth = 1);
 };
 
 class TVertex3D : public TVertex
@@ -120,7 +120,7 @@ public:
 	TElement();
 	TElement(TVertex v0,TVertex v1,TVertex v2,TVertex v3);
 	virtual BoundBox CalcBound() ;	
-	virtual ~TElement();
+	~TElement() override;
 };
 
 
@@ -153,7 +153,7 @@ public :
 
 	TTetra(TObject* owner, TVertex* v0,TVertex* v1,TVertex* v2,TVertex* v3, bool publish = true) ;
 
-	~TTetra() ;
+	~TTetra() override ;
 	// Obtener el vecino que comparte estos 3 vertices  
 	TTetra* getTetraNeighbour(int faceI, TVertex* v0,TVertex* v1,TVertex* v2, TList<TObject*>*  tl);
 
@@ -180,7 +180,7 @@ public :
 
 	bool isInvalid() ;
 
-	TList<TObject*>* getNeighboursByFace(int depth ,TList<TObject*>* nFL= NULL , bool ommitLowerIds = false) ;
+	TList<TObject*>* getNeighboursByFace(int depth ,TList<TObject*>* nFL= nullptr , bool ommitLowerIds = false) ;
 	TTetra* getNeighByFace(TVertex*v0, TVertex*v1,TVertex*v2);
 
 	TList<TObject>* getNeighbours(int depth) ;
@@ -247,7 +247,7 @@ public:
 
 	TMesh(void) 
 	{
-		patchList = NULL;
+		patchList = nullptr;
 		selectedElements = new TList<TObject*>();
 		vertexes = new TList<TVertex*>();
 		fFaces = new TList<TPolygon*>();
@@ -307,18 +307,18 @@ public:
 		// test if array is empty
 		if (imax < imin)
 			// set is empty, so return value showing not found
-			return NULL;
+			return nullptr;
 		else
 		{
 			// calculate midpoint to cut set in half
 
 			int imid = (imin + imax) / 2;
 			if (imid>= vertexes->Count() )
-				return NULL;
+				return nullptr;
 			TVertex * v = vertexes->elementAt(imid);
 
-			if (v == NULL )
-				return NULL;		 
+			if (v == nullptr )
+				return nullptr;		 
 
 			// three-way comparison
 			if (v->getID() > key)

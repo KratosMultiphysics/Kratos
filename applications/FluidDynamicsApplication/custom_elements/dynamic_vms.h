@@ -199,7 +199,7 @@ public:
     DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties, const GeometryData::IntegrationMethod ThisIntegrationMethod);
 
     /// Destructor.
-    virtual ~DynamicVMS();
+    ~DynamicVMS() override;
 
     ///@}
     ///@name Operators
@@ -219,33 +219,33 @@ public:
      * @param pProperties: the properties assigned to the new element.
      * @return a Pointer to the new element.
      */
-    virtual Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                                    PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
+                                    PropertiesType::Pointer pProperties) const override;
 
     /// Initialize containters for subscales on integration points.
-    virtual void Initialize();
+    void Initialize() override;
 
     /**
      * @brief Prepare the element for a new solution step.
      * Update the values on the subscales and evaluate elemental shape functions.
      * @param rCurrentProcessInfo. ProcessInfo instance (unused).
      */
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /// Calculate a new value for the velocity subscale.
     /**
      * @param rCurrentProcessInfo ProcessInfo instance containig the time step as DELTA_TIME
      */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                       VectorType &rRightHandSideVector,
-                                      ProcessInfo &rCurrentProcessInfo);
+                                      ProcessInfo &rCurrentProcessInfo) override;
 
 
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                        ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Computes the local contribution associated to 'new' velocity and pressure values
@@ -257,11 +257,11 @@ public:
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
+    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo);
+            ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo) override;
 
 
     /// Provides the global indices for each one of this element's local rows
@@ -271,68 +271,68 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult,
+                                  ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList,
+                            ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
     /**
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
 
     /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
     /**
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
 
 //    virtual void Calculate(const Variable<double>& rVariable,
 //                           double& rOutput,
 //                           const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void Calculate(const Variable< array_1d<double,3> >& rVariable,
+    void Calculate(const Variable< array_1d<double,3> >& rVariable,
                            array_1d<double,3>& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo);
+                           const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
             std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
-    virtual void SetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo);
+    void SetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -341,7 +341,7 @@ public:
     /// Accessor to the integration method.
     /** GiDIO uses it to determine the number of Gauss Points on each element.
      */
-    virtual GeometryData::IntegrationMethod GetIntegrationMethod() const;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     ///@}
     ///@name Inquiry
@@ -353,12 +353,12 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const override;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override;
 
-    virtual void PrintData(std::ostream &rOStream) const;
+    void PrintData(std::ostream &rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -581,10 +581,10 @@ private:
     /// Default constructor
     DynamicVMS();
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
 
     ///@}

@@ -22,8 +22,8 @@ class AdjointVMSMonolithicSolver:
             "scheme_settings" : {
                 "scheme_type" : "bossak"
             },
-            "objective_settings" : {
-                "objective_type" : "drag"
+            "response_function_settings" : {
+                "response_type" : "drag"
             },
             "model_import_settings" : {
                 "input_type"     : "mdpa",
@@ -59,6 +59,7 @@ class AdjointVMSMonolithicSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_ADJOINT_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
@@ -139,20 +140,20 @@ class AdjointVMSMonolithicSolver:
         self.computing_model_part = self.GetComputingModelPart()
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        if self.settings["objective_settings"]["objective_type"].GetString() == "drag":
+        if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
             if (domain_size == 2):
-                self.objective_function = AdjointFluidApplication.DragObjectiveFunction2D(self.settings["objective_settings"])
+                self.response_function = AdjointFluidApplication.DragResponseFunction2D(self.main_model_part, self.settings["response_function_settings"])
             elif (domain_size == 3):
-                self.objective_function = AdjointFluidApplication.DragObjectiveFunction3D(self.settings["objective_settings"])
+                self.response_function = AdjointFluidApplication.DragResponseFunction3D(self.main_model_part, self.settings["response_function_settings"])
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
-            raise Exception("invalid objective_type: " + self.settings["objective_settings"]["objective_type"].GetString())
+            raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
 
         if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
-            self.time_scheme = AdjointFluidApplication.AdjointBossakScheme(self.settings["scheme_settings"], self.objective_function)
+            self.time_scheme = AdjointFluidApplication.AdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
         elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
-            self.time_scheme = AdjointFluidApplication.AdjointSteadyScheme(self.settings["scheme_settings"], self.objective_function)
+            self.time_scheme = AdjointFluidApplication.AdjointSteadyVelocityPressureScheme(self.settings["scheme_settings"], self.response_function)
         else:
             raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 

@@ -1,11 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Nelson Lafontaine  $
-//   Date:                $Date: 2006-11-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Nelson Lafontaine
+//                    
 //
-
 
 #if !defined(KRATOS_SPATIAL_CONTAINERS_CONFIGURE_INCLUDED )
 #define  KRATOS_SPATIAL_CONTAINERS_CONFIGURE_INCLUDED
@@ -57,7 +61,7 @@ public:
            MAX_LEVEL = 16,
            MIN_LEVEL = 2
          };
-    typedef Point<3, double>                                PointType;  /// always the point 3D
+    typedef Point                                PointType;  /// always the point 3D
     typedef std::vector<double>::iterator                   DistanceIteratorType;
     typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
     typedef ContainerType::value_type                       PointerType;
@@ -127,6 +131,15 @@ public:
 ///******************************************************************************************************************
 ///******************************************************************************************************************
 
+    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double Radius)
+    {
+        (void)Radius;
+        CalculateBoundingBox(rObject, rLowPoint, rHighPoint);
+    }
+
+///******************************************************************************************************************
+///******************************************************************************************************************
+
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
         Element::GeometryType& geom_1 = rObj_1->GetGeometry();
@@ -135,15 +148,36 @@ public:
 
     }
 
+///******************************************************************************************************************
+///******************************************************************************************************************
+
+    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double Radius)
+    {
+        (void)Radius;
+        return Intersection(rObj_1, rObj_2);
+    }
 
 ///******************************************************************************************************************
 ///******************************************************************************************************************
 
-    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
+    static inline bool IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
     {
         return rObject->GetGeometry().HasIntersection(rLowPoint, rHighPoint);
     }
 
+///******************************************************************************************************************
+///******************************************************************************************************************
+
+    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double Radius)
+    {
+        (void)Radius;
+        return IntersectionBox(rObject, rLowPoint, rHighPoint);
+    }
+
+///******************************************************************************************************************
+///******************************************************************************************************************
+
+    static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance) {}
 
 
     ///@}

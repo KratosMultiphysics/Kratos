@@ -4,7 +4,7 @@
 #  License:         BSD License
 #                   license: ShapeOptimizationApplication/license.txt
 #
-#  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+#  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 #                   Geiser Armin, https://github.com/armingeiser
 #
 # ==============================================================================
@@ -31,31 +31,31 @@ class Timer:
 
     # --------------------------------------------------------------------------
     def __init__( self ):
-        self.precision = 3
-        self.startTimeGlobal = None
-        self.startTimeLap = None
-        self.lapTime = None
+        self.Precision = 3
+        self.StartGlobalTime = None
+        self.StartLapTime = None
+        self.LapTime = None
     # --------------------------------------------------------------------------
-    def startTimer( self ):
-        self.startTimeGlobal = time.time()
-        self.startTimeLap = time.time()
+    def StartTimer( self ):
+        self.StartGlobalTime = time.time()
+        self.StartLapTime = time.time()
 
     # --------------------------------------------------------------------------
-    def getLapTime( self ):
-        lapTime = time.time() - self.startTimeLap
-        return round( lapTime, self.precision )
+    def GetLapTime( self ):
+        LapTime = time.time() - self.StartLapTime
+        return round( LapTime, self.Precision )
 
     # --------------------------------------------------------------------------
-    def resetLapTime( self ):    
-        self.startTimeLap = time.time()    
+    def StartNewLap( self ):    
+        self.StartLapTime = time.time()    
 
     #---------------------------------------------------------------------------
-    def getTotalTime( self ):
-        totalTime = time.time() - self.startTimeGlobal
-        return round( totalTime, self.precision )
+    def GetTotalTime( self ):
+        totalTime = time.time() - self.StartGlobalTime
+        return round( totalTime, self.Precision )
 
     # --------------------------------------------------------------------------
-    def getTimeStamp( self ):
+    def GetTimeStamp( self ):
         return time.ctime()
 
 # ==============================================================================

@@ -9,7 +9,7 @@
 // Application includes
 #include "custom_python/add_custom_schemes_to_python.h"
 #include "custom_schemes/adjoint_bossak_scheme.h"
-#include "custom_schemes/adjoint_steady_scheme.h"
+#include "custom_schemes/adjoint_steady_velocity_pressure_scheme.h"
 
 namespace Kratos
 {
@@ -24,11 +24,11 @@ void AddCustomSchemesToPython()
     typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 
     class_<AdjointBossakScheme<SparseSpaceType, LocalSpaceType>, bases<SchemeType>, boost::noncopyable>(
-        "AdjointBossakScheme", init<Parameters&, ObjectiveFunction::Pointer>())
+        "AdjointBossakScheme", init<Parameters&, ResponseFunction::Pointer>())
         ;
 
-    class_<AdjointSteadyScheme<SparseSpaceType, LocalSpaceType>, bases<SchemeType>, boost::noncopyable>(
-        "AdjointSteadyScheme", init<Parameters&, ObjectiveFunction::Pointer>())
+    class_<AdjointSteadyVelocityPressureScheme<SparseSpaceType, LocalSpaceType>, bases<SchemeType>, boost::noncopyable>(
+        "AdjointSteadyVelocityPressureScheme", init<Parameters&, ResponseFunction::Pointer>())
         ;
 }
 

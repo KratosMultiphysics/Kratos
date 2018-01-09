@@ -134,7 +134,12 @@ protected:
     /// Member Variables
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------    
-    
+
+    void SaveGPStress(Matrix& rStressContainer, const Vector& StressVector, const unsigned int& VoigtSize, const unsigned int& GPoint);
+
+    void ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& VoigtSize);
+
+
     void CaculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo );
     
     

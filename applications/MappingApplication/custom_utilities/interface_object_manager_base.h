@@ -66,8 +66,10 @@ struct CandidateManager
     std::unordered_map<int, std::vector<int> > mMatchingInformation;
 };
 
-/// Short class definition.
-/** Detail class definition.
+/// BaseClass for managing the InterfaceObjects
+/** This class is the interface between the Searching objects and the InterfaceObjects. It is responsible
+* for filling buffers, reconstructing things from buffers and the construction of the InterfaceObjects
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class InterfaceObjectManagerBase
 {
@@ -132,7 +134,7 @@ public:
 
         for (auto& interface_obj : mInterfaceObjects)
         {
-            if (!interface_obj->NeighborOrApproximationFound())   // TODO this prevents from printing warnings in case only an approx is found
+            if (!interface_obj->NeighborOrApproximationFound())
             {
                 all_neighbors_found = 0;
             }
@@ -149,16 +151,16 @@ public:
         for (auto& interface_obj : mInterfaceObjects)
         {
             const int pairing_status = interface_obj->GetPairingStatus();
-            if (pairing_status == InterfaceObject::PairingStatus::NoNeighbor)   // TODO
+            if (pairing_status == InterfaceObject::PairingStatus::NoNeighbor)
             {
                 std::cout << "MAPPER WARNING, Rank " << mCommRank
                           << "\tPoint [ "
                           << interface_obj->X() << " | "
                           << interface_obj->Y() << " | "
                           << interface_obj->Z() << " ] "
-                          << "has not found a neighbor" << std::endl;
+                          << "has not found a neighbor!" << std::endl;
             }
-            else if (pairing_status == InterfaceObject::PairingStatus::Approximation)     // TODO
+            else if (pairing_status == InterfaceObject::PairingStatus::Approximation)
             {
                 std::cout << "MAPPER WARNING, Rank " << mCommRank
                           << "\tPoint [ "
@@ -298,8 +300,8 @@ public:
     // **********************************************************************
     // ** InterfaceObjectManagerSerial and InterfaceObjectManagerParallel **
     template <typename T>
-    void FillBufferWithValues(std::vector< T >& rBuffer, const Variable< T >& rVariable,
-                              Kratos::Flags& rOptions)
+    void FillBufferWithValues(std::function<T(InterfaceObject*, const std::vector<double>&)> FunctionPointer,
+                              std::vector< T >& rBuffer)
     {
         int i = 0;
 
@@ -308,26 +310,19 @@ public:
         {
             interface_objects = mReceiveObjects.at(mCommRank);
         }
-
+        // bind shape function values // TODO
         rBuffer.resize(interface_objects.size());
 
         for (auto interface_obj : interface_objects)
         {
-            if (rOptions.Is(MapperFlags::INTERPOLATE_VALUES))
-            {
-                rBuffer[i] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(mCommRank)[i]);
-            }
-            else
-            {
-                rBuffer[i] = interface_obj->GetObjectValue(rVariable, rOptions);
-            }
+            rBuffer[i] = FunctionPointer(boost::get_pointer(interface_obj), mShapeFunctionValues.at(mCommRank)[i]);
             ++i;
         }
     }
 
     template <typename T>
-    void ProcessValues(const std::vector< T >& rBuffer, const Variable< T >& rVariable,
-                       Kratos::Flags& rOptions, const double Factor)
+    void ProcessValues(std::function<void(InterfaceObject*, T)> FunctionPointer,
+                       const std::vector< T >& rBuffer)
     {
         std::vector<InterfaceObject::Pointer> interface_objects;
         if (mSendObjects.count(mCommRank) > 0)
@@ -346,8 +341,7 @@ public:
 
         for (std::size_t i = 0; i < interface_objects.size(); ++i)
         {
-            interface_objects[i]->SetObjectValue(rVariable, rBuffer[i],
-                                                 rOptions, Factor);
+            FunctionPointer(boost::get_pointer(interface_objects[i]), rBuffer[i]);
         }
     }
 
@@ -359,29 +353,27 @@ public:
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }
+
     virtual void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                                      const Variable<double>& rVariable, Kratos::Flags& rOptions)
+                                      std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointer)
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
     virtual void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                                      const Variable< array_1d<double, 3> >& rVariable,
-                                      Kratos::Flags& rOptions)
+                                      std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointer)
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
     virtual void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                               const Variable<double>& rVariable,
-                               Kratos::Flags& rOptions, const double Factor)
+                               std::function<void(InterfaceObject*, double)> FunctionPointer)
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
     virtual void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                               const Variable< array_1d<double, 3> >& rVariable,
-                               Kratos::Flags& rOptions, const double Factor)
+                               std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointer)
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }
@@ -559,7 +551,7 @@ private:
         int i = 0;
         for (auto &local_node : rModelPart.GetCommunicator().LocalMesh().Nodes())
         {
-            mInterfaceObjects[i] = InterfaceObject::Pointer( new InterfaceNode(local_node) );
+            mInterfaceObjects[i] = InterfaceObject::Pointer( new InterfaceNode(local_node, mEchoLevel) );
             ++i;
         }
     }
@@ -596,23 +588,27 @@ private:
             {
                 mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(condition.GetGeometry(),
                                             ApproximationTolerance,
+                                            mEchoLevel, 
                                             0) ));
             }
             for (auto& element : rModelPart.GetCommunicator().LocalMesh().Elements())
             {
                 mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(element.GetGeometry(),
                                             ApproximationTolerance,
+                                            mEchoLevel,
                                             0) ));
             }
         }
         else     // construct with condition gauss points
         {
+            KRATOS_ERROR << "This is not implemented at the moment" << std::endl;
             for (auto& condition : rModelPart.GetCommunicator().LocalMesh().Conditions())
             {
                 for (int g = 0; g < 111111; ++g) // TODO fix this, should be number of GPs
                 {
                     mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(condition.GetGeometry(),
                                                 ApproximationTolerance,
+                                                mEchoLevel,
                                                 g, IntegrationMethod) ));
                 }
             }
@@ -622,6 +618,7 @@ private:
                 {
                     mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(element.GetGeometry(),
                                                 ApproximationTolerance,
+                                                mEchoLevel,
                                                 g, IntegrationMethod) ));
                 }
             }

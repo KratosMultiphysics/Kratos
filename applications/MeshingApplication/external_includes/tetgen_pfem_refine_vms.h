@@ -85,7 +85,7 @@ namespace Kratos
 		mRhs(ZeroVector(3)){} //dimension = number of nodes
 
 		/// Destructor.
-        virtual ~TetGenPfemModelerVms(){}
+        ~TetGenPfemModelerVms() override= default;
 
 
 		///@}
@@ -192,7 +192,7 @@ namespace Kratos
                         {
                             //look if we are already erasing any of the other nodes
                             double erased_nodes = 0;
-                            for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+                            for(auto i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
                                 erased_nodes += in->Is(TO_ERASE);
 
                             if( erased_nodes < 1) //we cancel the node if no other nodes are being erased
@@ -204,7 +204,7 @@ namespace Kratos
                             //with IS_BOUNDARY=1 which are closer than 0.2*nodal_h from our we remove the node we are considering
                             unsigned int k = 0;
                             unsigned int counter = 0;
-                            for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+                            for(auto i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
                             {
                                 if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY,1)==1.0 && res_distances[k] < 0.2*radius && res_distances[k] > 0.0 )
                                 {
@@ -714,7 +714,7 @@ namespace Kratos
 					
 									
 					//KRATOS_WATCH(results.size())
-					for(PointIterator it=results.begin(); it!=results.begin() + number_of_points_in_radius; it++)
+					for(auto it=results.begin(); it!=results.begin() + number_of_points_in_radius; it++)
 	 				{
 						bool is_inside=false; 
 														
@@ -739,12 +739,12 @@ namespace Kratos
 			ThisModelPart.Conditions().clear();
 			
 			//set the coordinates to the original value
-			for( PointVector::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); it++)
+			for(auto & list_of_new_node : list_of_new_nodes)
 			{				
-				const array_1d<double,3>& disp = (*it)->FastGetSolutionStepValue(DISPLACEMENT);
-				(*it)->X0() = (*it)->X() - disp[0];
-				(*it)->Y0() = (*it)->Y() - disp[1];
-				(*it)->Z0() = (*it)->Z() - disp[2];	
+				const array_1d<double,3>& disp = list_of_new_node->FastGetSolutionStepValue(DISPLACEMENT);
+				list_of_new_node->X0() = list_of_new_node->X() - disp[0];
+				list_of_new_node->Y0() = list_of_new_node->Y() - disp[1];
+				list_of_new_node->Z0() = list_of_new_node->Z() - disp[2];	
 			}
 			//cleaning unnecessary data
 			in2.deinitialize();
@@ -919,13 +919,13 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		///@{
 
 		/// Turn back information as a string.
-		virtual std::string Info() const{return "";}
+		std::string Info() const override{return "";}
 
 		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const{}
+		void PrintInfo(std::ostream& rOStream) const override{}
 
 		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const{}
+		void PrintData(std::ostream& rOStream) const override{}
 
 
 		///@}      

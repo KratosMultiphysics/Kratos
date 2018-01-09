@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division
 import math
 import os
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.DEMApplication import *
 
 def VectSum(v, w):

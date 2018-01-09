@@ -3,6 +3,12 @@ import os
 # Import Kratos
 from KratosMultiphysics import *
 
+try:
+    import KratosMultiphysics.ExternalSolversApplication
+    have_external_solvers = True
+except ImportError as e:
+    have_external_solvers = False
+
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosExecuteEmbeddedTest as ExecuteEmbeddedTest
@@ -44,7 +50,6 @@ class EmbeddedTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
 
-
 class ManufacturedSolutionTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -70,18 +75,35 @@ class EmbeddedArtificialCompressibilityTest(EmbeddedTestFactory):
     file_name = "EmbeddedArtificialCompressibilityTest/EmbeddedArtificialCompressibilityTest"
 
 
-class EmbeddedCouetteTest(EmbeddedTestFactory):
-    file_name = "EmbeddedCouetteTest/EmbeddedCouetteTest"
+class EmbeddedCouette2DTest(EmbeddedTestFactory):
+    file_name = "EmbeddedCouette2DTest/EmbeddedCouette2DTest"
 
 
-class EmbeddedCouetteImposedTest(EmbeddedTestFactory):
-    file_name = "EmbeddedCouetteImposedTest/EmbeddedCouetteImposedTest"
+class EmbeddedCouette3DTest(EmbeddedTestFactory):
+    file_name = "EmbeddedCouette3DTest/EmbeddedCouette3DTest"
+
+
+class EmbeddedCouette2DImposedTest(EmbeddedTestFactory):
+    file_name = "EmbeddedCouetteImposed2DTest/EmbeddedCouetteImposed2DTest"
+
+
+class EmbeddedCouette3DImposedTest(EmbeddedTestFactory):
+    file_name = "EmbeddedCouetteImposed3DTest/EmbeddedCouetteImposed3DTest"
 
 
 class EmbeddedReservoirTest(EmbeddedTestFactory):
     file_name = "EmbeddedReservoirTest/EmbeddedReservoirTest"
 
 
+class EmbeddedSlipBoundaryConditionTest(EmbeddedTestFactory):
+    file_name = "EmbeddedSlipBoundaryConditionTest/EmbeddedSlipBoundaryConditionTest"
+
+
+class EmbeddedSlipReservoirTest(EmbeddedTestFactory):
+    file_name = "EmbeddedSlipReservoirTest/EmbeddedSlipReservoirTest"
+
+    
+@KratosUnittest.skipUnless(have_external_solvers, "Missing required application: ExternalSolversApplication")
 class ManufacturedSolutionTest(ManufacturedSolutionTestFactory):
     file_name = "ManufacturedSolutionTest/ManufacturedSolutionTest"
 

@@ -4,416 +4,235 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 // 
 
 // System includes
 
 // External includes
 
-// System includes
-# include "tree_contact_search.h"
+// Project includes
 
-// TODO: Not clear everything from one step to the other, just check what can you add (this way the process is simplified)
+/* Custom utilities */
+#include "custom_utilities/contact_utilities.h"
+#include "custom_utilities/tree_contact_search.h"
 
 namespace Kratos
 {
-/************************************* CONSTRUCTOR *********************************/
-/***********************************************************************************/    
-
-// Class Constructor
-// WARNING: Input ModelParts are expected to contain interface nodes and conditions ONLY
-// Use an InterfacePreprocess object to create such a model part from a regular one:
-// InterfaceMapper = InterfacePreprocess()
-// InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
 TreeContactSearch::TreeContactSearch(
-        ModelPart & rOriginModelPart,
-        ModelPart & rDestinationModelPart,
-        const unsigned int allocation_size
-        ):
-        
-    mrOriginModelPart(rOriginModelPart),
-    mrDestinationModelPart(rDestinationModelPart),
-    mBucketSize(4),
-    mdimension(rOriginModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension()),
-    mallocation(allocation_size)
-{  
-//     // Destination model part
-//     ModelPartSetter(mrDestinationModelPart, false, true, false);
+        ModelPart & rMainModelPart,
+        Parameters ThisParameters
+        ):mrMainModelPart(rMainModelPart.GetSubModelPart("Contact")),
+        mDimension(rMainModelPart.GetProcessInfo()[DOMAIN_SIZE])
+{        
+    Parameters DefaultParameters = Parameters(R"(
+    {
+        "allocation_size"                      : 1000, 
+        "bucket_size"                          : 4, 
+        "search_factor"                        : 2.0, 
+        "type_search"                          : "InRadius", 
+        "dual_search_check"                    : false,
+        "strict_search_check"                  : true,
+        "use_exact_integration"                : true,
+        "inverted_search"                      : false
+    })" );
     
-    NodesArrayType& pNode = mrDestinationModelPart.Nodes();
-        
-    auto numNodes = pNode.end() - pNode.begin();
+    ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+
+    mAllocationSize = ThisParameters["allocation_size"].GetInt();
+    mSearchFactor = ThisParameters["search_factor"].GetDouble();
+    mDualSearchCheck = ThisParameters["dual_search_check"].GetBool();
+    mStrictSearchCheck = ThisParameters["strict_search_check"].GetBool();
+    mUseExactIntegration = ThisParameters["use_exact_integration"].GetBool();
+    mInvertedSearch = ThisParameters["inverted_search"].GetBool();
+    mSearchTreeType = ConvertSearchTree(ThisParameters["type_search"].GetString());
+    mBucketSize = ThisParameters["bucket_size"].GetInt();
+    
+    NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+    const int num_nodes = static_cast<int>(nodes_array.size());
     
     #pragma omp parallel for 
-    for(unsigned int i = 0; i < numNodes; i++) 
+    for(int i = 0; i < num_nodes; ++i) 
     {
-        auto itNode = pNode.begin() + i;
-        itNode->Set(SLAVE, true);  
+        auto it_node = nodes_array.begin() + i;
+        it_node->Set(ACTIVE, false);
     }
-
-//     // Origin model part
-//     ModelPartSetter(mrOriginModelPart, false, false, true); 
     
-    ConditionsArrayType& pCond = mrOriginModelPart.Conditions();
-        
-    auto numConditions = pCond.end() - pCond.begin();
+    // Iterate in the conditions
+    ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+    const int num_conditions = static_cast<int>(conditions_array.size());
+
+    #pragma omp parallel for 
+    for(int i = 0; i < num_conditions; ++i) 
+    {
+        auto it_cond = conditions_array.begin() + i;
+        it_cond->Set(ACTIVE, false);
+    }
+}   
+    
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::InitializeMortarConditions()
+{
+    // Iterate in the conditions
+    ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+    const int num_conditions = static_cast<int>(conditions_array.size());
+
+    #pragma omp parallel for 
+    for(int i = 0; i < num_conditions; ++i) 
+    {
+        auto it_cond = conditions_array.begin() + i;
+
+        if (it_cond->Has(MAPPING_PAIRS) == false) it_cond->SetValue(MAPPING_PAIRS, ConditionMap::Pointer(new ConditionMap)); 
+//             it_cond->GetValue(MAPPING_PAIRS)->reserve(mAllocationSize); 
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::TotalClearScalarMortarConditions()
+{
+    TotalResetContactOperators();
+    
+    NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+    const int num_nodes = static_cast<int>(nodes_array.size());
     
     #pragma omp parallel for 
-    for(unsigned int i = 0; i < numConditions; i++) 
+    for(int i = 0; i < num_nodes; ++i) 
     {
-        auto itCond = pCond.begin() + i;
-        itCond->Set(MASTER, true);  
-    }
-    
+        auto it_node = nodes_array.begin() + i;
+        it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+    }  
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::ModelPartSetter(
-    ModelPart& rModelPart,
-    const bool rActive,
-    const bool rSlave,
-    const bool rMaster
-    ) 
+void TreeContactSearch::TotalClearComponentsMortarConditions()
 {
-    NodesArrayType& pNode = rModelPart.Nodes();
-        
-    auto numNodes = pNode.end() - pNode.begin();
+    TotalResetContactOperators();
+    
+    NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+    const int num_nodes = static_cast<int>(nodes_array.size());
     
     #pragma omp parallel for 
-    for(unsigned int i = 0; i < numNodes; i++) 
+    for(int i = 0; i < num_nodes; ++i) 
     {
-        auto itNode = pNode.begin() + i;
-        itNode->Set( SLAVE,   rSlave );  
-        itNode->Set( ACTIVE, rActive );  // NOTE: It is supposed to be already false, just in case  
-    }
+        auto it_node = nodes_array.begin() + i;
+        noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = ZeroVector(3);
+    }  
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::TotalClearALMFrictionlessMortarConditions()
+{        
+    TotalResetContactOperators();
     
-    ConditionsArrayType& pCond  = rModelPart.Conditions();
-        
-    auto numConditions = pCond.end() - pCond.begin();
+    NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+    const int num_nodes = static_cast<int>(nodes_array.size());
     
     #pragma omp parallel for 
-    for(unsigned int i = 0; i < numConditions; i++) 
+    for(int i = 0; i < num_nodes; ++i) 
     {
-        auto itCond = pCond.begin() + i;
-        itCond->Set( ACTIVE, rActive ); // NOTE: It is supposed to be already false, just in case   
-        itCond->Set( MASTER, rMaster);
-    }
+        auto it_node = nodes_array.begin() + i;
+        it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+    }  
 }
 
-/************************************* DESTRUCTOR **********************************/
+/***********************************************************************************/
 /***********************************************************************************/
 
-TreeContactSearch::~TreeContactSearch() {}
-
-
-/************************************* OPERATIONS **********************************/
-/***********************************************************************************/
-
-void TreeContactSearch::InitializeNTNConditions()
+void TreeContactSearch::PartialClearScalarMortarConditions()
 {
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::InitializeNTSConditions()
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::InitializeMortarConditions(
-    const double rActiveCheckFactor,
-    const double rAugmentationNormal,
-    const double rAugmentationTangent,
-    const int rIntegrationOrder
-    )
-{
-    // Destination model part
-    InitializeConditions(mrDestinationModelPart, rActiveCheckFactor, rAugmentationNormal, rAugmentationTangent, rIntegrationOrder);
-    
-    // Origin model part
-    InitializeConditions(mrOriginModelPart, rActiveCheckFactor, rAugmentationNormal, rAugmentationTangent, rIntegrationOrder);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::InitializeMortarConditionsDLM(
-    const double rActiveCheckFactor,
-    const double rEpsilon,
-    const int rIntegrationOrder
-    )
-{
-    // Destination model part
-    InitializeConditionsDLM(mrDestinationModelPart, rActiveCheckFactor, rEpsilon, rIntegrationOrder);
-    
-    // Origin model part
-    InitializeConditionsDLM(mrOriginModelPart, rActiveCheckFactor, rEpsilon, rIntegrationOrder);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::InitializeNodes(ModelPart & rModelPart)
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::InitializeConditions(
-    ModelPart & rModelPart,
-    const double rActiveCheckFactor,
-    const double rAugmentationNormal,
-    const double rAugmentationTangent,
-    const int rIntegrationOrder
-    )
-{   
-    ConditionsArrayType& pCond  = rModelPart.Conditions();
-    ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
-    ConditionsArrayType::iterator it_end   = pCond.ptr_end();
-//     
-    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
-    {
-        cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
-//         cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
-        cond_it->GetProperties().SetValue(ACTIVE_CHECK_FACTOR, rActiveCheckFactor);
-        cond_it->GetProperties().SetValue(NORMAL_AUGMENTATION_FACTOR,  rAugmentationNormal);
-        cond_it->GetProperties().SetValue(TANGENT_AUGMENTATION_FACTOR, rAugmentationTangent);
-        if (cond_it->GetProperties().Has(INTEGRATION_ORDER_CONTACT) == false)
-        {
-            cond_it->GetProperties().SetValue(INTEGRATION_ORDER_CONTACT, rIntegrationOrder);
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::InitializeConditionsDLM(
-    ModelPart & rModelPart,
-    const double rActiveCheckFactor,
-    const double rEpsilon,
-    const int rIntegrationOrder
-    )
-{   
-    ConditionsArrayType& pCond  = rModelPart.Conditions();
-    ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
-    ConditionsArrayType::iterator it_end   = pCond.ptr_end();
-//     
-    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
-    {
-        cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
-//         cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
-        cond_it->GetProperties().SetValue(ACTIVE_CHECK_FACTOR, rActiveCheckFactor);
-        cond_it->GetProperties().SetValue(DOUBLE_LM_FACTOR,  rEpsilon);
-        if (cond_it->GetProperties().Has(INTEGRATION_ORDER_CONTACT) == false)
-        {
-            cond_it->GetProperties().SetValue(INTEGRATION_ORDER_CONTACT, rIntegrationOrder);
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::TotalClearNTNConditions()
-{    
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::PartialClearNTNConditions()
-{    
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::TotalClearNTSConditions()
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::PartialClearNTSConditions()
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::TotalClearMortarConditions()
-{
-    // Destination model part
-    TotalClearConditions(mrDestinationModelPart);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::PartialClearMortarConditions()
-{
-    // Destination model part
-    PartialClearConditions(mrDestinationModelPart);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::TotalClearConditions(ModelPart & rModelPart)
-{
-    ConditionsArrayType& pCond = rModelPart.Conditions();
-    
-    auto numConditions = pCond.end() - pCond.begin();
+    NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+    const int num_nodes = static_cast<int>(nodes_array.size());
     
     #pragma omp parallel for 
-    for(unsigned int i = 0; i < numConditions; i++) 
+    for(int i = 0; i < num_nodes; ++i) 
     {
-        auto itCond = pCond.begin() + i;
-        if (itCond->Is(ACTIVE) == true)
-        {
-            itCond->Set(ACTIVE, false);
-            
-            std::vector<contact_container> * ConditionPointers = itCond->GetValue(CONTACT_CONTAINERS);
-            
-            if (ConditionPointers != NULL)
-            {
-                for (unsigned int i = 0; i < ConditionPointers->size();i++)
-                {
-                    (*ConditionPointers)[i].clear();
-                } 
-                
-                ConditionPointers->clear();
-    //             ConditionPointers->reserve(mallocation); 
-            }
-//             delete ConditionPointers;
-//             itCond->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
-        }
-    }
-    
-    NodesArrayType& pNode = rModelPart.Nodes();
-    
-    auto numNodes = pNode.end() - pNode.begin();
+        auto it_node = nodes_array.begin() + i;
+        it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+    } 
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::PartialClearComponentsMortarConditions()
+{
+    NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+    const int num_nodes = static_cast<int>(nodes_array.size());
     
     #pragma omp parallel for 
-    for(unsigned int i = 0; i < numNodes; i++) 
+    for(int i = 0; i < num_nodes; ++i) 
     {
-        auto itNode = pNode.begin() + i;
-        if (itNode->Is(ACTIVE) == true)
-        {
-            itNode->Set( ACTIVE, false );
-            itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
-        }
-    }
+        auto it_node = nodes_array.begin() + i;
+        noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = ZeroVector(3);
+    } 
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::PartialClearConditions(ModelPart & rModelPart)
+void TreeContactSearch::PartialClearALMFrictionlessMortarConditions()
 {
-    NodesArrayType& pNode = rModelPart.Nodes();
-    
-    auto numNodes = pNode.end() - pNode.begin();
+    NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+    const int num_nodes = static_cast<int>(nodes_array.size());
     
     #pragma omp parallel for 
-    for(unsigned int i = 0; i < numNodes; i++) 
+    for(int i = 0; i < num_nodes; ++i) 
     {
-        auto itNode = pNode.begin() + i;
-        if (itNode->Is(ACTIVE) == false)
-        {
-            itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
-        }
-    }
+        auto it_node = nodes_array.begin() + i;
+        it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+    } 
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::CreatePointListNTN()
-{
-    // Destination model part
-    CreatePointListNodes(mrDestinationModelPart, mPointListDestination);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::CreatePointListNTS()
-{
-    // Destination model part
-    CreatePointListNodes(mrDestinationModelPart, mPointListDestination);
-}
-
+    
 /***********************************************************************************/
 /***********************************************************************************/
 
 void TreeContactSearch::CreatePointListMortar()
 {
-    // Destination model part
-    CreatePointListConditions(mrDestinationModelPart, mPointListDestination);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::CreatePointListNodes(
-    ModelPart & rModelPart, 
-    PointVector & PoinList
-    )
-{
-    array_1d<double, 3> Coord = ZeroVector(3); // Will store the coordinates 
-
-    NodesArrayType& pNode               = rModelPart.Nodes();
-    NodesArrayType::iterator node_begin = pNode.ptr_begin();
-    NodesArrayType::iterator node_end   = pNode.ptr_end();
+    // Clearing the vector
+    mPointListDestination.clear();
     
-    for(NodesArrayType::iterator node_it = node_begin; node_it!=node_end; node_it++)
+    // Iterate in the conditions
+    ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+    const int num_conditions = static_cast<int>(conditions_array.size());
+
+    // Creating a buffer for parallel vector fill
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<PointVector> points_buffer(num_threads);
+
+    #pragma omp parallel
     {
-        noalias(Coord) = node_it->Coordinates();
+        const int thread_id = OpenMPUtils::ThisThread();
+
+        #pragma omp for
+        for(int i = 0; i < num_conditions; ++i) 
+        {
+            auto it_cond = conditions_array.begin() + i;
+            
+            if (it_cond->Is(MASTER) == !mInvertedSearch)
+            {
+                const PointTypePointer& p_point = PointTypePointer(new PointItem((*it_cond.base())));
+                (points_buffer[thread_id]).push_back(p_point);
+            }
+        }
         
-        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Coord, *(node_it.base()))); 
-        (PoinList).push_back(pP);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::CreatePointListConditions(
-    ModelPart & rModelPart, 
-    PointVector & PoinList
-    )
-{
-    ConditionsArrayType& pCond  = rModelPart.Conditions();
-    ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
-    ConditionsArrayType::iterator it_end   = pCond.ptr_end();
-    
-    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
-    {
-        const Condition::Pointer & pCond = (*cond_it.base());
-        Point<3> Center;
-        double Radius;
-        ContactUtilities::CenterAndRadius(pCond, Center, Radius, mdimension); 
-        PointItem::Pointer pPoint = PointItem::Pointer(new PointItem(Center, pCond, Radius));
-        (PoinList).push_back(pPoint);
+        // Combine buffers together
+        #pragma omp single
+        {
+            for( auto& point_buffer : points_buffer)
+            {
+                std::move(point_buffer.begin(),point_buffer.end(),back_inserter(mPointListDestination));
+            }
+        }
     }
 }
 
@@ -422,327 +241,466 @@ void TreeContactSearch::CreatePointListConditions(
 
 void TreeContactSearch::UpdatePointListMortar()
 {
-    // Destination model part
-    UpdatePointListConditions(mrDestinationModelPart, mPointListDestination);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::UpdatePointListNodes(
-    ModelPart & rModelPart, 
-    PointVector & PoinList
-    )
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::UpdatePointListConditions(
-    ModelPart & rModelPart, 
-    PointVector & PoinList
-    )
-{
-    // TODO: Think how to parallel this!!!!
-    ConditionsArrayType& pCond  = rModelPart.Conditions();
-    ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
-    ConditionsArrayType::iterator it_end   = pCond.ptr_end();
+    const double& delta_time = mrMainModelPart.GetProcessInfo()[DELTA_TIME];
     
-    unsigned int index = 0;
-    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
-    {
-        const Condition::Pointer pCond = (*cond_it.base());
-        Point<3> Center;
-        double Radius;
-        ContactUtilities::CenterAndRadius(pCond, Center, Radius, mdimension); 
-        PointItem::Pointer & pPoint = PoinList[index];
-        pPoint->SetCondition(pCond);
-        pPoint->SetRadius(Radius);
-        pPoint->SetPoint(Center);
-        index += 1;
-     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::CreateNTNConditions(
-    const double SearchFactor,
-    const int type_search
-) 
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::UpdateNTNConditions(
-    const double SearchFactor,
-    const int type_search
-) 
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::CreateNTSConditions(
-    const double SearchFactor,
-    const int type_search
-) 
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::UpdateNTSConditions(
-    const double SearchFactor,
-    const int type_search
-) 
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::CreateMortarConditions(
-    const double SearchFactor,
-    const int type_search
-) 
-{
-    TotalClearMortarConditions(); // Clear the conditions
-    UpdateMortarConditions(SearchFactor, type_search);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::UpdateMortarConditions( // TODO: Change everything, using the slave as reference isntead of the master
-    const double SearchFactor,
-    const int type_search
-) 
-{
-    // Initialize values
-    PointVector PointsFound(mallocation);
-    std::vector<double> PointsDistances(mallocation);
-    unsigned int NumberPointsFound = 0;    
+    const int num_points = static_cast<int>(mPointListDestination.size());
     
-    // Create a tree
-    // It will use a copy of mNodeList (a std::vector which contains pointers)
-    // Copying the list is required because the tree will reorder it for efficiency
-    tree Tree_points(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
-    
-    ConditionsArrayType& pCond  = mrOriginModelPart.Conditions();
-    ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
-    ConditionsArrayType::iterator it_end   = pCond.ptr_end();
-    
-    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
-    {
-        const Condition::Pointer pCondOrigin = (*cond_it.base());
-        
-        if (type_search == 0)
-        {
-            Point<3> Center;
-            double SearchRadius;
-            ContactUtilities::CenterAndRadius(pCondOrigin, Center, SearchRadius, mdimension); 
-            SearchRadius *= SearchFactor;
+    #pragma omp parallel for 
+    for(int i = 0; i < num_points; ++i) mPointListDestination[i]->UpdatePoint(delta_time);
+}
 
-            NumberPointsFound = Tree_points.SearchInRadius(Center, SearchRadius, PointsFound.begin(), PointsDistances.begin(), mallocation);
-        }
-//         else if (type_search == 1) // TODO: Complete search in bounding box
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::UpdateMortarConditions()
+{        
+    // We update the list of points
+    UpdatePointListMortar();
+    
+    // Calculate the mean of the normal in all the nodes
+    ContactUtilities::ComputeNodesMeanNormalModelPart(mrMainModelPart); 
+    
+    const double& delta_time = mrMainModelPart.GetProcessInfo()[DELTA_TIME];
+    
+    // We check if we are in a dynamic or static case
+    const bool dynamic = mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X) ;
+    
+    // Taking the ACTIVE_CHECK_FACTOR
+    const double& active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
+    
+//         #pragma omp parallel 
 //         {
-//             Point<3> MinPoint, MaxPoint;
-//             CondOri->GetGeometry().BoundingBox(MinPoint, MaxPoint);
-//             NumberPointsFound= Tree_conds.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), PointsDistances.begin(), mallocation);
-//         }
-//         else if (type_search == 1) // TODO: Complete search in k-DOP
-//         {
-//         }
-        else
-        {
-            KRATOS_THROW_ERROR( std::logic_error, " The type search declared does not exist!!!!. type_search = ", type_search );
-        }
+        // Initialize values
+        PointVector points_found(mAllocationSize);
+        unsigned int number_points_found = 0;    
         
-        if (NumberPointsFound > 0)
+        // Create a tree
+        // It will use a copy of mNodeList (a std::vector which contains pointers)
+        // Copying the list is required because the tree will reorder it for efficiency
+        KDTree tree_points(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
+        
+        // Iterate in the conditions
+        ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+        const int num_conditions = static_cast<int>(conditions_array.size());
+
+//             #pragma omp for 
+        for(int i = 0; i < num_conditions; ++i) 
         {
-//             KRATOS_WATCH(NumberPointsFound); 
-            for(unsigned int i = 0; i < NumberPointsFound; i++)
-            {   
-                Condition::Pointer pCondDestination = PointsFound[i]->GetCondition();
+            auto it_cond = conditions_array.begin() + i;
+            
+            if (it_cond->Is(SLAVE) == !mInvertedSearch)
+            {
+                if (mSearchTreeType == KdtreeInRadius)
+                {
+                    GeometryType& geometry = it_cond->GetGeometry();
+                    const Point& center = dynamic ? ContactUtilities::GetHalfJumpCenter(geometry, delta_time) : geometry.Center(); // NOTE: Center in half delta time or real center
+                    
+                    const double search_radius = mSearchFactor * Radius(it_cond->GetGeometry());
+
+                    number_points_found = tree_points.SearchInRadius(center, search_radius, points_found.begin(), mAllocationSize);
+                }
+                else if (mSearchTreeType == KdtreeInBox)
+                {
+                    // Auxiliar values
+                    const double length_search = mSearchFactor * it_cond->GetGeometry().Length();
+                    
+                    // Compute max/min points
+                    Node<3> min_point, max_point;
+                    it_cond->GetGeometry().BoundingBox(min_point, max_point);
+                    
+                    // Get the normal in the extrema points
+                    Vector N_min, N_max;
+                    GeometryType::CoordinatesArrayType local_point_min, local_point_max;
+                    it_cond->GetGeometry().PointLocalCoordinates( local_point_min, min_point.Coordinates( ) ) ;
+                    it_cond->GetGeometry().PointLocalCoordinates( local_point_max, max_point.Coordinates( ) ) ;
+                    it_cond->GetGeometry().ShapeFunctionsValues( N_min, local_point_min );
+                    it_cond->GetGeometry().ShapeFunctionsValues( N_max, local_point_max );
                 
-                std::vector<contact_container> *& ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
+                    const array_1d<double,3> normal_min = MortarUtilities::GaussPointUnitNormal(N_min, it_cond->GetGeometry());
+                    const array_1d<double,3> normal_max = MortarUtilities::GaussPointUnitNormal(N_max, it_cond->GetGeometry());
+                    
+                    ContactUtilities::ScaleNode<Node<3>>(min_point, normal_min, length_search);
+                    ContactUtilities::ScaleNode<Node<3>>(max_point, normal_max, length_search);
+                    
+                    number_points_found = tree_points.SearchInBox(min_point, max_point, points_found.begin(), mAllocationSize);
+                }
+                else
+                {
+                    KRATOS_ERROR << " The type search is not implemented yet does not exist!!!!. SearchTreeType = " << mSearchTreeType << std::endl;
+                }
                 
-                bool to_check_cond = CheckCondition(ConditionPointersDestination, pCondDestination, pCondOrigin);
-                
-                if (to_check_cond == true) 
-                {    
+                if (number_points_found > 0)
+                {                           
+                    ConditionMap::Pointer& conditions_pointers_destination = it_cond->GetValue(MAPPING_PAIRS);
+                    Condition::Pointer p_cond_slave = (*it_cond.base()); // MASTER
+                    const array_1d<double, 3>& contact_normal_origin = p_cond_slave->GetValue(NORMAL);
+                    const GeometryType& this_geometry = p_cond_slave->GetGeometry();
+                    const double active_check_length = this_geometry.Length() *active_check_factor;
+                    
                     // If not active we check if can be potentially in contact
-                    MortarContainerFiller(pCondDestination, pCondOrigin, ConditionPointersDestination, pCondDestination->GetProperties().GetValue(ACTIVE_CHECK_FACTOR));
+                    if (mUseExactIntegration == false) // LEGACY WAY
+                    {
+                        for(unsigned int i_pair = 0; i_pair < number_points_found; ++i_pair)
+                        {   
+                            Condition::Pointer p_cond_origin = points_found[i_pair]->GetCondition();
+                            
+                            const CheckResult condition_checked_right = CheckCondition(conditions_pointers_destination, p_cond_slave, p_cond_origin, mInvertedSearch);
+                            
+                            if (condition_checked_right == OK)
+                            {    
+                                SearchUtilities::ContactContainerFiller<true>(conditions_pointers_destination, p_cond_slave, p_cond_origin, contact_normal_origin, p_cond_origin->GetValue(NORMAL), active_check_length, mDualSearchCheck, mStrictSearchCheck); 
+                            }
+                            else if (condition_checked_right == AlreadyInTheMap)
+                            {
+                                SearchUtilities::ContactContainerFiller<false>(conditions_pointers_destination, p_cond_slave, p_cond_origin, contact_normal_origin, p_cond_origin->GetValue(NORMAL), active_check_length, mDualSearchCheck, mStrictSearchCheck); 
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
+                        {
+                            MortarKinematicVariables<2> rVariables;
+                            MortarOperator<2> rThisMortarConditionMatrices;
+                            ExactMortarIntegrationUtility<2, 2> integration_utility = ExactMortarIntegrationUtility<2, 2>(2);
+                            
+                            for(unsigned int i_pair = 0; i_pair < number_points_found; ++i_pair)
+                            {   
+                                bool condition_is_active = false;
+                                                            
+                                Condition::Pointer p_cond_master = points_found[i_pair]->GetCondition(); // MASTER
+                                const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
+                                                    
+                                const CheckResult condition_checked_right = CheckCondition(conditions_pointers_destination, p_cond_slave, p_cond_master, mInvertedSearch);
+                                
+                                if (condition_checked_right == OK)
+                                {   
+                                    condition_is_active = SearchUtilities::CheckExactIntegration<2, 2, true>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                    
+                                    // If condition is active we add
+                                    if (condition_is_active) conditions_pointers_destination->AddNewActiveCondition(p_cond_master);
+                                    else conditions_pointers_destination->AddNewInactiveCondition(p_cond_master);
+                                }
+                                else if (condition_checked_right == AlreadyInTheMap)
+                                {
+                                    condition_is_active = SearchUtilities::CheckExactIntegration<2, 2, true>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                    
+                                    if (condition_is_active) conditions_pointers_destination->SetActive(p_cond_master);
+                                }
+                            }
+                        }
+                        else if (this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
+                        {
+                            MortarKinematicVariables<3> rVariables;
+                            MortarOperator<3> rThisMortarConditionMatrices;
+                            ExactMortarIntegrationUtility<3, 3> integration_utility = ExactMortarIntegrationUtility<3, 3>(3);
+                            
+                            for(unsigned int i_pair = 0; i_pair < number_points_found; ++i_pair)
+                            {   
+                                bool condition_is_active = false;
+                                                            
+                                Condition::Pointer p_cond_master = points_found[i_pair]->GetCondition(); // MASTER
+                                const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
+                                                    
+                                const CheckResult condition_checked_right = CheckCondition(conditions_pointers_destination, p_cond_slave, p_cond_master, mInvertedSearch);
+                                
+                                if (condition_checked_right == OK)
+                                {   
+                                    condition_is_active = SearchUtilities::CheckExactIntegration<3, 3, true>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                    
+                                    // If condition is active we add
+                                    if (condition_is_active == true) conditions_pointers_destination->AddNewActiveCondition(p_cond_master);
+                                    else conditions_pointers_destination->AddNewInactiveCondition(p_cond_master);
+                                }
+                                else if (condition_checked_right == AlreadyInTheMap)
+                                {
+                                    condition_is_active = SearchUtilities::CheckExactIntegration<3, 3, true>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                    
+                                    if (condition_is_active == true) conditions_pointers_destination->SetActive(p_cond_master);
+                                }
+                            }
+                        }
+                        else if (this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)
+                        {
+                            MortarKinematicVariables<4> rVariables;
+                            MortarOperator<4> rThisMortarConditionMatrices;
+                            ExactMortarIntegrationUtility<3, 4> integration_utility = ExactMortarIntegrationUtility<3, 4>(3);
+                            
+                            for(unsigned int i_pair = 0; i_pair < number_points_found; ++i_pair)
+                            {   
+                                bool condition_is_active = false;
+                                                            
+                                Condition::Pointer p_cond_master = points_found[i_pair]->GetCondition(); // MASTER
+                                const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
+                                                    
+                                const CheckResult condition_checked_right = CheckCondition(conditions_pointers_destination, p_cond_slave, p_cond_master, mInvertedSearch);
+                                
+                                if (condition_checked_right == OK)
+                                {   
+                                    condition_is_active = SearchUtilities::CheckExactIntegration<3, 4, true>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                    
+                                    // If condition is active we add
+                                    if (condition_is_active) conditions_pointers_destination->AddNewActiveCondition(p_cond_master);
+                                    else conditions_pointers_destination->AddNewInactiveCondition(p_cond_master);
+                                }
+                                else if (condition_checked_right == AlreadyInTheMap)
+                                {
+                                    condition_is_active = SearchUtilities::CheckExactIntegration<3, 4, true>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                    
+                                    if (condition_is_active) conditions_pointers_destination->SetActive(p_cond_master);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            KRATOS_ERROR << "INTEGRATION NOT IMPLEMENTED: dimension = " << this_geometry.WorkingSpaceDimension() << " number_of_nodes = " << this_geometry.size() << std::endl;
+                        }
+                    }
+                
+                    if ((conditions_pointers_destination->size() > 0) && 
+                        (conditions_pointers_destination->AtLeastOnePairActive() == true))
+                    {                        
+                        it_cond->Set(ACTIVE, true);
+                    }
+                }
+            }
+        }
+//         }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::CleanMortarConditions()
+{
+    ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+    const int num_conditions = static_cast<int>(conditions_array.size());
+
+    const double& active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
+    
+    #pragma omp parallel for 
+    for(int i = 0; i < num_conditions; ++i) 
+    {
+        auto it_cond = conditions_array.begin() + i;
+        const GeometryType& this_geometry = it_cond->GetGeometry();
+        if ( (it_cond)->Is(ACTIVE) == true )
+        {
+            ConditionMap::Pointer& conditions_pointers_destination = it_cond->GetValue(MAPPING_PAIRS);
+            
+            // Initialize geometries
+            const array_1d<double, 3>& contact_normal = it_cond->GetValue(NORMAL);
+            const double active_check_length = this_geometry.Length() * active_check_factor;
+            
+            if (mUseExactIntegration == false) // LEGACY WAY
+            {
+                for (auto it_pair = conditions_pointers_destination->begin(); it_pair != conditions_pointers_destination->end(); ++it_pair )
+                {
+                    SearchUtilities::ContactContainerFiller<false>(conditions_pointers_destination, (*it_cond.base()), (it_pair->first), contact_normal, (it_pair->first)->GetValue(NORMAL), active_check_length, mDualSearchCheck, mStrictSearchCheck);
+                }
+            }
+            else
+            {
+                const array_1d<double, 3>& contact_normal_origin = it_cond->GetValue(NORMAL);
+                
+                if (this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
+                {
+                    SearchUtilities::ExactContactContainerChecker<2,2>(conditions_pointers_destination, it_cond->GetGeometry(), contact_normal_origin, active_check_length); 
+                }
+                else if (this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
+                {
+                    SearchUtilities::ExactContactContainerChecker<3,3>(conditions_pointers_destination, it_cond->GetGeometry(), contact_normal_origin, active_check_length); 
+                }
+                else if (this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)
+                {
+                    SearchUtilities::ExactContactContainerChecker<3,4>(conditions_pointers_destination, it_cond->GetGeometry(), contact_normal_origin, active_check_length); 
+                }
+                else
+                {
+                    KRATOS_ERROR << "INTEGRATION NOT IMPLEMENTED: dimension = " << this_geometry.WorkingSpaceDimension() << " number_of_nodes = " << this_geometry.size() << std::endl;
                 }
             }
         }
     }
-    
-    // Here we remove all the inactive pairs
-    ClearAllInactivePairs(mrDestinationModelPart); 
-    
-    // Calculate the mean of the normal in all the nodes
-    ComputeNodesMeanNormal();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void TreeContactSearch::CheckMortarConditions()
-{    
-    ConditionsArrayType& pCondDestination  = mrDestinationModelPart.Conditions();
-    ConditionsArrayType::iterator it_begin = pCondDestination.ptr_begin();
-    ConditionsArrayType::iterator it_end   = pCondDestination.ptr_end();
-    
-    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
+{
+    // Iterate in the conditions
+    ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+    const int num_conditions = static_cast<int>(conditions_array.size());
+
+    for(int i = 0; i < num_conditions; ++i) 
     {
-        if (cond_it->Is(ACTIVE))
+        auto it_cond = conditions_array.begin() + i;
+        
+        ConditionMap::Pointer& conditions_pointers_destination = it_cond->GetValue(MAPPING_PAIRS);
+        if (conditions_pointers_destination->size() > 0) KRATOS_WATCH(conditions_pointers_destination->size());
+        
+        if (it_cond->Is(SLAVE) == true && it_cond->Is(ACTIVE) == true)
         {
-            std::vector<contact_container> *& ConditionPointersDestination = cond_it->GetValue(CONTACT_CONTAINERS);
-            KRATOS_WATCH(ConditionPointersDestination->size());
+            KRATOS_WATCH(it_cond->Id());
+            KRATOS_WATCH(it_cond->GetGeometry());
+            conditions_pointers_destination->print();
+        }
+    }
+    
+    NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+    const int num_nodes = static_cast<int>(nodes_array.size());
+    
+    for(int i = 0; i < num_nodes; ++i) 
+    {
+        auto it_node = nodes_array.begin() + i;
+        
+        if (it_node->Is(ACTIVE) == true) std::cout << "Node: " << it_node->Id() << " is active" << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::InvertSearch()
+{
+    mInvertedSearch = !mInvertedSearch;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+inline CheckResult TreeContactSearch::CheckCondition(
+    ConditionMap::Pointer& ConditionPointers1,
+    const Condition::Pointer& pCond1,
+    const Condition::Pointer& pCond2,
+    const bool InvertedSearch
+    )
+{
+    if (pCond1 == pCond2) // Avoiding "auto self-contact"
+    {
+        return Fail;
+    }
+    
+    if (((pCond1->Has(ELEMENT_POINTER)) && (pCond2->Has(ELEMENT_POINTER))) == true)
+    {
+        if ((pCond1->GetValue(ELEMENT_POINTER) != pCond2->GetValue(ELEMENT_POINTER)) == false) // Avoiding "auto element contact"
+        {
+            return Fail;
+        }
+    }
+
+    // Avoid conditions oriented in the same direction
+    const double tolerance = 1.0e-16;
+    if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < tolerance)
+    {
+        return Fail;
+    }
+
+    if (pCond2->Is(SLAVE) == !InvertedSearch) // Otherwise will not be necessary to check
+    {
+        auto& condition_pointers2 = pCond2->GetValue(MAPPING_PAIRS);
+        
+        if (condition_pointers2->find(pCond1) != condition_pointers2->end())
+        {
+            return Fail;
+        }
+    }
+    
+    // To avoid to repeat twice the same condition 
+    if (ConditionPointers1->find(pCond2) != ConditionPointers1->end())
+    {
+        return AlreadyInTheMap;
+    }
+
+    return OK;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+inline double TreeContactSearch::Radius(GeometryType& ThisGeometry) 
+{ 
+    double radius = 0.0; 
+    const Point& center = ThisGeometry.Center(); 
+        
+    for(unsigned int i_node = 0; i_node < ThisGeometry.PointsNumber(); ++i_node) 
+    { 
+        const array_1d<double, 3>& aux_vector = center.Coordinates() - ThisGeometry[i_node].Coordinates();
             
-            for (unsigned int i = 0; i < ConditionPointersDestination->size(); i++)
-            {
-                (*ConditionPointersDestination)[i].print();
-            } 
-        }
-    }
-    
-    NodesArrayType& pNodeDestination    = mrDestinationModelPart.Nodes();
-    NodesArrayType::iterator node_begin = pNodeDestination.ptr_begin();
-    NodesArrayType::iterator node_end   = pNodeDestination.ptr_end();
-    
-    for(NodesArrayType::iterator node_it = node_begin; node_it!=node_end; node_it++)
-    {         
-        if (node_it->Is(ACTIVE) == true)
-        {
-            std::cout << "Node: " << node_it->Id() << " is active. SLAVE: " << node_it->Is(SLAVE) << std::endl;
-        }
-    }
-}
+        const double aux_value = inner_prod(aux_vector, aux_vector); 
+
+        if(aux_value > radius) radius = aux_value; 
+    } 
+
+    return std::sqrt(radius); 
+} 
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::ClearAllInactivePairs(ModelPart & rModelPart)
+void TreeContactSearch::ResetContactOperators()
 {
-    ConditionsArrayType& pCond = rModelPart.Conditions();
+    ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+    const int num_conditions = static_cast<int>(conditions_array.size());
     
-    auto numConditions = pCond.end() - pCond.begin();
-    
-//     #pragma omp parallel for // NOTE: Be careful, if you change something with get value over the nodes iteraring in the conditions this will not work in OpenMP 
-    for(unsigned int i = 0; i < numConditions; i++) 
+    #pragma omp parallel for 
+    for(int i = 0; i < num_conditions; ++i) 
     {
-        auto itCond = pCond.begin() + i;
-        if (itCond->Is(ACTIVE) == true)
-        {            
-            std::vector<contact_container> *& ConditionPointers = itCond->GetValue(CONTACT_CONTAINERS);
-                            
-            if (ConditionPointers != NULL)
-            {
-                std::vector<contact_container> AuxConditionPointers;
-                for (unsigned int pair = 0; pair < (*ConditionPointers).size();pair++)
-                {
-                    contact_container aux_contact_container = (*ConditionPointers)[pair];
-                    
-                    if (aux_contact_container.active_pair == false)
-                    {
-                        // Last oportunity for the condition pair
-                        const double ActiveCheckFactor = itCond->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
-                        const bool cond_active = ContactUtilities::ContactContainerFiller(itCond->GetGeometry(),    (aux_contact_container.condition)->GetGeometry(), 
-                                                                                          itCond->GetValue(NORMAL), (aux_contact_container.condition)->GetValue(NORMAL), 
-                                                                                          ActiveCheckFactor);
-                        if (cond_active == true) // Still paired
-                        {
-                            aux_contact_container.active_pair = true; 
-                            AuxConditionPointers.push_back(aux_contact_container);
-                        }
-                    }
-                    else // It is already active pair, we append
-                    {
-                        AuxConditionPointers.push_back(aux_contact_container);
-                    }
-                } 
-                
-                // Now we copy the final result
-                *ConditionPointers = AuxConditionPointers;
-                
-                // All the pairs has been removed
-                if ((*ConditionPointers).size() == 0)
-                {
-                    itCond->Set(ACTIVE, false);
-                }
-            }
-            else
-            {
-                itCond->Set(ACTIVE, false);
-            }
-
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool TreeContactSearch::CheckCondition(
-        std::vector<contact_container> *& ConditionPointers,
-        const Condition::Pointer & pCondDestination,
-        const Condition::Pointer & pCondOrigin
-        )
-{
-    bool aux_bool = (pCondDestination != pCondOrigin); // Avoiding "auto self-contact"
-    
-    if (aux_bool == true)
-    {
-        for (unsigned int pair = 0; pair < ConditionPointers->size(); pair++)
+        auto it_cond = conditions_array.begin() + i;
+        if (it_cond->Is(SLAVE) == !mInvertedSearch && it_cond->Is(ACTIVE) == true)
         {
-            if ((*ConditionPointers)[pair].condition == pCondOrigin)
+            it_cond->Set(ACTIVE, false);
+            
+            auto& condition_pointers = it_cond->GetValue(MAPPING_PAIRS);
+            
+            if (condition_pointers != nullptr)
             {
-                aux_bool = false;
-                break;
+                condition_pointers->clear();
+//                     condition_pointers->reserve(mAllocationSize); 
             }
         }
+    }   
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::TotalResetContactOperators()
+{
+    ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+    const int num_conditions = static_cast<int>(conditions_array.size());
+    
+    #pragma omp parallel for 
+    for(int i = 0; i < num_conditions; ++i) 
+    {
+        auto it_cond = conditions_array.begin() + i;
+        it_cond->Set(ACTIVE, false);
+        auto& condition_pointers = it_cond->GetValue(MAPPING_PAIRS);
+        if (condition_pointers != nullptr)  condition_pointers->clear();
+    }   
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+SearchTreeType TreeContactSearch::ConvertSearchTree(const std::string& str)
+{
+    if(str == "InRadius") 
+    {
+        return KdtreeInRadius;
     }
-    
-    return aux_bool;
+    else if(str == "InBox") 
+    {
+        return KdtreeInBox;
+    }
+    else if (str == "KDOP")
+    {
+        KRATOS_ERROR << "KDOP contact search: Not yet implemented" << std::endl;
+        return Kdop;
+    }
+    else
+    {
+        return KdtreeInRadius;
+    }
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::MortarContainerFiller(
-        Condition::Pointer & pCondDestination,
-        const Condition::Pointer & pCondOrigin,
-        std::vector<contact_container> *& ConditionPointers,
-        const double ActiveCheckFactor
-        )
-{
-    ContactUtilities::ContactContainerFiller(ConditionPointers, pCondDestination, pCondOrigin, 
-                      pCondDestination->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), ActiveCheckFactor); 
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::ComputeNodesMeanNormal()
-{
-    ContactUtilities::ComputeNodesMeanNormalModelPart(mrDestinationModelPart);
-}
-
-/************************************** ACCESS *************************************/
-/***********************************************************************************/
-    
 }  // namespace Kratos.

@@ -73,14 +73,13 @@ public:
     ///@{
 
     /// Constructor.
-    EmbeddedNodesInitializationProcess(ModelPart& rModelPart, unsigned int MaxIterations = 10)
+    EmbeddedNodesInitializationProcess(ModelPart& rModelPart, unsigned int MaxIterations = 10) : mrModelPart(rModelPart)
     {
-        mrModelPart = rModelPart;
         mMaxIterations = MaxIterations;
     }
 
     /// Destructor.
-    virtual ~EmbeddedNodesInitializationProcess(){}
+    ~EmbeddedNodesInitializationProcess() override{}
 
     ///@}
     ///@name Operators
@@ -123,8 +122,7 @@ public:
         for (unsigned int it=0; it<mMaxIterations; ++it)
         {
             // Loop along the elements to find which ones have a unique selected node
-            #pragma omp parallel for
-            for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
+            for (int k = 0; k < static_cast<int>(rElements.size()); ++k)
             {
                 unsigned int NewNodes = 0;
                 ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
@@ -157,8 +155,7 @@ public:
                         else
                         {
                             // Get a pointer to the unique SELECTED node
-                            NodeType::Pointer pAux = rGeometry(j);
-                            std::swap(pAux, pNode);
+                            pNode = rGeometry(j);
                         }
                     }
 
@@ -167,14 +164,12 @@ public:
                     v_avg /= (ElemNumNodes-1);
 
                     // Historical values initialization
-                    pNode->SetLock();                                               // Avoid another thread to acces the node while the value set
                     pNode->Set(SELECTED, false);                                    // Once a node has been initialized it is marked as non SELECTED
                     for (unsigned int step=0; step<BufferSize; ++step)              // Fill the velocity and pressure buffer
                     {
                         pNode->FastGetSolutionStepValue(PRESSURE, step) = p_avg;
                         pNode->FastGetSolutionStepValue(VELOCITY, step) = v_avg;
                     }
-                    pNode->UnSetLock();                                             // Free the node thread access
                 }
             }
         }
@@ -206,7 +201,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "EmbeddedNodesInitializationProcess" ;
@@ -214,10 +209,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "EmbeddedNodesInitializationProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "EmbeddedNodesInitializationProcess";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -235,7 +230,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart                                  mrModelPart;
+    ModelPart&                                 mrModelPart;
     unsigned int                            mMaxIterations;
 
     ///@}
@@ -295,13 +290,13 @@ private:
     ///@{
 
     /// Default constructor.
-    EmbeddedNodesInitializationProcess(){}
+    EmbeddedNodesInitializationProcess() = delete;
 
     /// Assignment operator.
-    EmbeddedNodesInitializationProcess& operator=(EmbeddedNodesInitializationProcess const& rOther){return *this;}
+    EmbeddedNodesInitializationProcess& operator=(EmbeddedNodesInitializationProcess const& rOther) = delete;
 
     /// Copy constructor.
-    EmbeddedNodesInitializationProcess(EmbeddedNodesInitializationProcess const& rOther){}
+    EmbeddedNodesInitializationProcess(EmbeddedNodesInitializationProcess const& rOther) = delete;
 
 
     ///@}

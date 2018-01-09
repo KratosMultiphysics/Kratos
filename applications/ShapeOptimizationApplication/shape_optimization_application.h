@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
@@ -57,24 +57,17 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double,CONSTRAINT_SURFACE_SENSITIVITY);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MAPPED_CONSTRAINT_SENSITIVITY);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SEARCH_DIRECTION);
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DESIGN_UPDATE);
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DESIGN_CHANGE_ABSOLUTE);
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_UPDATE);
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_CHANGE);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE_ABSOLUTE);
-
-    // To allow for deactivating (setting zero) variables
-    KRATOS_DEFINE_VARIABLE(double,SHAPE_UPDATES_DEACTIVATED);
-    KRATOS_DEFINE_VARIABLE(double,SENSITIVITIES_DEACTIVATED);
-
-    // For boundary treatment
-    KRATOS_DEFINE_VARIABLE(double,IS_ON_BOUNDARY);
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_PLANE);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE);
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);	
 
 	// For edge damping
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
 
-    // To create and process mapping matrix
-    KRATOS_DEFINE_VARIABLE(int,MAPPING_MATRIX_ID);
+    // For mapping
+    KRATOS_DEFINE_VARIABLE(int,MAPPING_ID);
 
     // For Structure Sensitivity Analysis
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);

@@ -34,10 +34,6 @@
   #include "external_includes/feast_solver.h"
 #endif
 
-#ifndef EXCLUDE_ITSOL
-  #include "external_includes/itsol_arms_solver.h"
-#endif
-
 #ifdef INCLUDE_PASTIX
   #include "external_includes/pastix_solver.h"
   #include "external_includes/pastix_complex_solver.h"
@@ -72,12 +68,6 @@ void  AddLinearSolversToPython()
 
     using namespace boost::python;
 
-    class_<TLinearSolverType<std::complex<double>>, TLinearSolverType<std::complex<double>>::Pointer, boost::noncopyable>(
-        "ComplexLinearSolver").def(self_ns::str(self));
-    class_<TDirectSolverType<std::complex<double>>,
-           TDirectSolverType<std::complex<double>>::Pointer,
-           bases<TLinearSolverType<std::complex<double>>>,
-           boost::noncopyable>("ComplexDirectSolver").def(self_ns::str(self));
 
     //***************************************************************************
     //linear solvers
@@ -101,14 +91,6 @@ void  AddLinearSolversToPython()
     .def(init<double,int,int,double,double,double>())
     .def(init<Parameters>())
     ;
-    
-#ifndef EXCLUDE_ITSOL
-    typedef ITSOL_ARMS_Solver<SpaceType,  LocalSpaceType> ITSOL_ARMS_SolverType;
-    class_<ITSOL_ARMS_SolverType, bases<LinearSolverType>, boost::noncopyable >
-    ( "ITSOL_ARMS_Solver",init<>() )
-    .def(init<double,int,int>())
-    ;
-#endif
 
 #ifdef INCLUDE_PASTIX
     typedef PastixSolver<SpaceType,  LocalSpaceType> PastixSolverType;
@@ -131,7 +113,6 @@ void  AddLinearSolversToPython()
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
     .def(self_ns::str(self))
     ;
-
 }
 
 }  // namespace Python.

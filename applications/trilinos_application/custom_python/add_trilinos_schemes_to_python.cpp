@@ -61,8 +61,8 @@
 #include "custom_strategies/schemes/trilinos_gear_scheme.h"
 
 // AdjointFluidApplication
-#include "../../AdjointFluidApplication/custom_utilities/objective_function.h"
-#include "../../AdjointFluidApplication/custom_schemes/adjoint_steady_scheme.h"
+#include "../../AdjointFluidApplication/custom_utilities/response_function.h"
+#include "../../AdjointFluidApplication/custom_schemes/adjoint_steady_velocity_pressure_scheme.h"
 #include "../../AdjointFluidApplication/custom_schemes/adjoint_bossak_scheme.h"
 
 //convergence criterias
@@ -251,14 +251,14 @@ void  AddSchemes()
             .def(init<const Variable<int>&>()) // constructor for periodic conditions
             ;
 
-    class_< AdjointSteadyScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
+    class_< AdjointSteadyVelocityPressureScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
             bases<TrilinosBaseSchemeType>, boost::noncopyable >
-            ( "TrilinosAdjointSteadyScheme", init<Parameters&, ObjectiveFunction::Pointer>() )
+            ( "TrilinosAdjointSteadyVelocityPressureScheme", init<Parameters&, ResponseFunction::Pointer>() )
             ;
 
     class_< AdjointBossakScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
             bases<TrilinosBaseSchemeType>, boost::noncopyable >
-            ( "TrilinosAdjointBossakScheme", init<Parameters&, ObjectiveFunction::Pointer>() )
+            ( "TrilinosAdjointBossakScheme", init<Parameters&, ResponseFunction::Pointer>() )
             ;
 }
 

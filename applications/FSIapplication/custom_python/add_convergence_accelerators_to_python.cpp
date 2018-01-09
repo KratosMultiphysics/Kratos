@@ -47,6 +47,7 @@ void  AddConvergenceAcceleratorsToPython()
             
     // Aitken convergence accelerator
     class_< AitkenConvergenceAccelerator <TSpace>, bases <BaseConvergenceAcceleratorType>, boost::noncopyable > ("AitkenConvergenceAccelerator", init< double >())
+            .def(init< Parameters& >())
             .def("InitializeSolutionStep", &AitkenConvergenceAccelerator<TSpace>::InitializeSolutionStep)
             .def("UpdateSolution", &AitkenConvergenceAccelerator<TSpace>::UpdateSolution)
             .def("FinalizeNonLinearIteration", &AitkenConvergenceAccelerator<TSpace>::FinalizeNonLinearIteration)
@@ -55,6 +56,7 @@ void  AddConvergenceAcceleratorsToPython()
             
     // MVQN convergence accelerator
     class_< MVQNFullJacobianConvergenceAccelerator <TSpace>, bases <BaseConvergenceAcceleratorType>, boost::noncopyable > ("MVQNFullJacobianConvergenceAccelerator", init< double >())
+            .def(init< Parameters& >())
             .def("InitializeSolutionStep", &MVQNFullJacobianConvergenceAccelerator<TSpace>::InitializeSolutionStep)
             .def("UpdateSolution", &MVQNFullJacobianConvergenceAccelerator<TSpace>::UpdateSolution)
             .def("FinalizeNonLinearIteration", &MVQNFullJacobianConvergenceAccelerator<TSpace>::FinalizeNonLinearIteration)
@@ -63,6 +65,8 @@ void  AddConvergenceAcceleratorsToPython()
             
     // MVQN recursive convergence accelerator
     class_< MVQNRecursiveJacobianConvergenceAccelerator <TSpace>, bases <BaseConvergenceAcceleratorType>, boost::noncopyable > ("MVQNRecursiveJacobianConvergenceAccelerator", init< double, int >())
+            .def(init< Parameters& >())
+            .def(init< double, int, double >())
             .def("Initialize", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::Initialize)
             .def("InitializeSolutionStep", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::InitializeSolutionStep)
             .def("UpdateSolution", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::UpdateSolution)

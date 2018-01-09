@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
@@ -82,7 +82,7 @@ public:
 	///@{
 
 	/// Default constructor.
-	MassResponseFunction(ModelPart& model_part, Parameters& responseSettings)
+	MassResponseFunction(ModelPart& model_part, Parameters responseSettings)
 	: mr_model_part(model_part)
 	{
 		// Set gradient mode
@@ -97,10 +97,11 @@ public:
 			double delta = responseSettings["step_size"].GetDouble();
 			mDelta = delta;
 		}
-
 		// Throw error message in case of wrong specification
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: finite_differencing ", gradientMode);
+			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: finite_differencing. Specified gradient_mode: " << gradientMode << std::endl;
+
+		mConsiderDiscretization =  responseSettings["discretization_weighting"].GetBool();
 
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
@@ -122,11 +123,11 @@ public:
 	///@{
 
 	// ==============================================================================
-	void initialize()
+	void Initialize()
 	{}
 
 	// --------------------------------------------------------------------------
-	void calculate_value()
+	void CalculateValue()
 	{
 		KRATOS_TRY;
 
@@ -141,7 +142,7 @@ public:
 
 			// Compute mass according to element dimension
 			double elem_volume = 0.0;
-			if( isElementOfTypeShell(element_geometry) )
+			if( IsElementOfTypeShell(element_geometry) )
 				elem_volume = element_geometry.Area()*elem_i->GetProperties()[THICKNESS];
 			else
 				elem_volume = element_geometry.Volume();
@@ -159,7 +160,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_gradient()
+	void CalculateGradient()
 	{
 		KRATOS_TRY;
 
@@ -174,13 +175,13 @@ public:
 		switch (m_gradient_mode)
 		{
 		// Global finite differencing
-		case 3:
+    	case 3:
 		{
 			// Start process to identify element neighbors for every node
 			FindNodalNeighboursProcess neighorFinder = FindNodalNeighboursProcess(mr_model_part, 10, 10);
 			neighorFinder.Execute();
 
-			for(NodesContainerType::iterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
+			for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
 			{
 				// Get all neighbor elements of current node
 				WeakPointerVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
@@ -195,7 +196,7 @@ public:
 
 					// Compute mass according to element dimension
 					double elem_volume = 0.0;
-					if( isElementOfTypeShell(element_geometry) )
+					if( IsElementOfTypeShell(element_geometry) )
 						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
 					else
 						elem_volume = element_geometry.Volume();
@@ -211,12 +212,12 @@ public:
 				for(unsigned int i = 0; i < ng_elem.size(); i++)
 				{
 					Kratos::Element& ng_elem_i = ng_elem[i];
-					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();					
+					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
 					double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 					// Compute mass according to element dimension
 					double elem_volume = 0.0;
-					if( isElementOfTypeShell(element_geometry) )
+					if( IsElementOfTypeShell(element_geometry) )
 						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
 					else
 						elem_volume = element_geometry.Volume();
@@ -231,12 +232,12 @@ public:
 				for(unsigned int i = 0; i < ng_elem.size(); i++)
 				{
 					Kratos::Element& ng_elem_i = ng_elem[i];
-					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();										
+					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
 					double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 					// Compute mass according to element dimension
 					double elem_volume = 0.0;
-					if( isElementOfTypeShell(element_geometry) )
+					if( IsElementOfTypeShell(element_geometry) )
 						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
 					else
 						elem_volume = element_geometry.Volume();
@@ -251,12 +252,12 @@ public:
 				for(unsigned int i = 0; i < ng_elem.size(); i++)
 				{
 					Kratos::Element& ng_elem_i = ng_elem[i];
-					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();										
+					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
 					double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 					// Compute mass according to element dimension
 					double elem_volume = 0.0;
-					if( isElementOfTypeShell(element_geometry) )
+					if( IsElementOfTypeShell(element_geometry) )
 						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
 					else
 						elem_volume = element_geometry.Volume();
@@ -269,21 +270,23 @@ public:
 				noalias(node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT)) = gradient;
 			}
 
-			break;
+			if (mConsiderDiscretization)
+				this->ConsiderDiscretization();
 		}
 
 		}
+
 
 		KRATOS_CATCH("");
 	}
 
 	// --------------------------------------------------------------------------
-	double get_initial_value()
+	double GetInitialValue()
 	{
 		KRATOS_TRY;
 
 		if(!m_initial_value_defined)
-			KRATOS_THROW_ERROR(std::logi:error, "Initial value not yet defined! First compute it by calling \"calculate_value()\"", m_initial_value_defined);
+			KRATOS_ERROR << "Initial value not yet defined! First compute it by calling \"calculate_value()\"!" << std::endl;
 
 		return m_initial_value;
 
@@ -291,7 +294,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	double get_value()
+	double GetValue()
 	{
 		KRATOS_TRY;
 
@@ -301,7 +304,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	boost::python::dict get_gradient()
+	boost::python::dict GetGradient()
 	{
 		KRATOS_TRY;
 
@@ -318,13 +321,41 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	bool isElementOfTypeShell( Element::GeometryType& given_element_geometry )
+  	virtual void ConsiderDiscretization(){
+
+		std::cout<< "> Considering discretization size!" << std::endl;
+		for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
+		{
+			// Get all neighbor elements of current node
+			WeakPointerVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
+
+			// Compute total mass of all neighbor elements before finite differencing
+			double scaling_factor = 0.0;
+			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			{
+				Kratos::Element& ng_elem_i = ng_elem[i];
+				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
+
+				// Compute mass according to element dimension
+				if( IsElementOfTypeShell(element_geometry) )
+					scaling_factor += element_geometry.Area();
+				else
+					scaling_factor += element_geometry.Volume();
+			}
+
+			// apply scaling
+			node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT) /= scaling_factor;
+		}
+	}
+
+	// --------------------------------------------------------------------------
+	bool IsElementOfTypeShell( Element::GeometryType& given_element_geometry )
 	{
 		if(given_element_geometry.WorkingSpaceDimension() != given_element_geometry.LocalSpaceDimension())
 			return true;
 		else
 		    return false;
-	}	
+	}
 
 	// ==============================================================================
 
@@ -409,6 +440,7 @@ private:
 	double mDelta;
 	double m_initial_value;
 	bool m_initial_value_defined;
+	bool mConsiderDiscretization;
 
 	///@}
 ///@name Private Operators

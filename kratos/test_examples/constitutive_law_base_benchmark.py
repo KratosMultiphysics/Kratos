@@ -39,13 +39,12 @@ if(cl.WorkingSpaceDimension() != dim):
 ##set the parameters to be employed
 #note that here i am adding them all to check that this does not fail
 cl_options = Flags()
-cl_options.Set(ConstitutiveLaw.COMPUTE_STRAIN, False)
+cl_options.Set(ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN, False)
 cl_options.Set(ConstitutiveLaw.COMPUTE_STRESS, True)
 cl_options.Set(ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
 #cl_options.Set(ConstitutiveLaw.COMPUTE_STRAIN_ENERGY, False)
 #cl_options.Set(ConstitutiveLaw.ISOCHORIC_TENSOR_ONLY, False)
 #cl_options.Set(ConstitutiveLaw.VOLUMETRIC_TENSOR_ONLY, False)
-#cl_options.Set(ConstitutiveLaw.TOTAL_TENSOR, True)
 #cl_options.Set(ConstitutiveLaw.FINALIZE_MATERIAL_RESPONSE, False)
 
 ##from here below it should be an otput not an input

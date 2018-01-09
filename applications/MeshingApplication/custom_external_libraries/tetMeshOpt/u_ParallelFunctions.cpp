@@ -22,7 +22,7 @@
 bool* _faces;
 int innerID = 0;
 int innerNumThreads =12;
-TList<TObject*> * resultedClusters = NULL;  	
+TList<TObject*> * resultedClusters = nullptr;  	
 
 void setNumThreads(int nt)
 {
@@ -91,7 +91,7 @@ void parallelFor(int from, int to,  TList<TObject*>* elements,TStForLoopElement 
 
 void parallelFor(int from, int to,  TList<TVertex*>* elements,TStForLoopElement call)
 {
-	TList<TObject*>* lo = new TList<TObject*>();
+	auto  lo = new TList<TObject*>();
 	for (int i=0; i<elements->Count();i++)
 		lo->Add(elements->structure[i]);
 
@@ -119,7 +119,7 @@ void localProcessI(int i, int thId  ,TObject* destObject)
 	bool res;
 
 	t = (TTetra*)( destObject);
-	if (t ==  NULL ) return ;
+	if (t ==  nullptr ) return ;
 
 	for (j = 0 ; j<4; j++)
 	{
@@ -186,7 +186,7 @@ void fastGetSurfaceTriangles(TMesh* aMesh)
 	{
 		TTriangle *tr = (TTriangle*)(aMesh->fFaces->structure[i]);
 		// Si tengo el pool activado, lo guardo ahi 
-		if (aMesh->memPool == NULL ) 
+		if (aMesh->memPool == nullptr ) 
 			delete tr;
 		else
 			aMesh->memPool->releaseInstance(tr);
@@ -218,7 +218,7 @@ void fastGetSurfaceTriangles(TMesh* aMesh)
 			v0 = t->vertexes[ TTetraFaces[j*3] ];
 			v1 = t->vertexes[ TTetraFaces[j*3+1] ];
 			v2 = t->vertexes[ TTetraFaces[j*3+2] ];
-			if (aMesh->memPool == NULL ) 
+			if (aMesh->memPool == nullptr ) 
 				tr = new TTriangle( v0,v1,v2);
 			else
 				tr = aMesh->memPool->getTriangleInstance(v0,v1,v2);
@@ -264,8 +264,8 @@ void lpEvaluateClusterByFace(int i, int thId  ,TObject* destObject)
 				 (vi->getID() < v2->getID())  )
 			{	
 				//Obtengo el Tetra vecino
-				t1 = t0->getTetraNeighbour(0,v0,v1,v2,NULL);
-				if (t1 == NULL ) continue;
+				t1 = t0->getTetraNeighbour(0,v0,v1,v2,nullptr);
+				if (t1 == nullptr ) continue;
 				if (t1->fMinDiedralAngle>minExpectedAngle) continue;
 				if (t0->getID()>t1->getID()) continue;
 				// Evaluo
@@ -293,14 +293,14 @@ void getElementsByEdgeFaster(TVertex *v0, TVertex*v1 , TList<TObject*>* inspecte
 	int k;
 	TVertex *nv0,*nv1,*nv2,*fv0,*fv1,*fv2;
 	//--- Obtengo el primer elemento que tenga esta arista
-	ti = NULL;
-	t = NULL;
+	ti = nullptr;
+	t = nullptr;
 
 	//Para el vertice 0
 	for (k = 0 ; k<v0->elementsList->Count() ; k++)
 	{
 		t = (TTetra*)(v0->elementsList->elementAt(k));
-		if (t == NULL) continue;
+		if (t == nullptr) continue;
 		if (t->isdestroyed) continue;
 		if  (!t->hasEdge(v0,v1)) continue;	
 		ti = t;
@@ -330,7 +330,7 @@ void getElementsByEdgeFaster(TVertex *v0, TVertex*v1 , TList<TObject*>* inspecte
 			//Di la vuelta
 			if (tn == ti) {iface = iface+5; break;}
 			//Es una cara de superficie
-			if (tn == NULL) break;
+			if (tn == nullptr) break;
 			// Sigo iterando
 			t = tn;
 			inspectedElements->Add(t);
@@ -372,7 +372,7 @@ double getElementsByEdge(TVertex *v0, TVertex*v1 , TList<TObject*>* inspectedEle
 	for (k = 0 ; k<v0->elementsList->Count() ; k++)
 	{
 		t = (TTetra*)(v0->elementsList->elementAt(k));
-		if (t == NULL) continue;
+		if (t == nullptr) continue;
 		if (t->isdestroyed) continue;
 		if  (!t->hasEdge(v0,v1)) continue;				
 		minQ = Min( t->fMinDiedralAngle , minQ);
@@ -385,7 +385,7 @@ double getElementsByEdge(TVertex *v0, TVertex*v1 , TList<TObject*>* inspectedEle
 void lpEvaluateClusterByEdge(int i, int thId  ,TObject* destObject)
 {
 	TElementsCluster* aCluster =  (TElementsCluster*)destObject;
-	TList<TVertex*>* vl = new TList<TVertex*>();
+	auto  vl = new TList<TVertex*>();
 	TVertex *v0,*v1;
 	int j;
 	
@@ -398,7 +398,7 @@ void lpEvaluateClusterByEdge(int i, int thId  ,TObject* destObject)
 	{
 		v1 = (TVertex*)(vl->elementAt(j));
 		//if (v0->id>=v1->id) continue;
-		if (v1->elementsList == NULL) continue;
+		if (v1->elementsList == nullptr) continue;
 		//int innerFlag = rand();
 
 		aCluster->inspectedElements->Clear();			
@@ -435,7 +435,7 @@ void lpMeshSmooth(int i, int thId  ,TObject* destObject)
 	   TVertex *v = aCluster->inspVertex;
 	   if (v->fixed == 1) return;
 	   vList = v->elementsList;
-	   if (vList == NULL) return ;
+	   if (vList == nullptr) return ;
 	   if (vList->Count() == 0) return;
 	   //calculo la calidad minima del set
 		minq = 1000000;
@@ -561,7 +561,7 @@ void assignVertexesAvoidingVisited(TList<TVertex*> *vs, TList<TObject*> *vRes ,i
 	for (i = 0 ; i<vs->Count() ; i++)
 	{
 		TVertex *v = vs->elementAt(i);
-		if (v == NULL ) continue;
+		if (v == nullptr ) continue;
 		// Ya fue visitado en una iteracion previa
 		if (v->visited>0) continue;
 		// Ya lo marco otro thread!!
@@ -572,7 +572,7 @@ void assignVertexesAvoidingVisited(TList<TVertex*> *vs, TList<TObject*> *vRes ,i
 		lneigh->Clear();
 		v->getVertexNeighboursByElem(lneigh);    	 
 		//lneigh = v->neighV;
-		if (lneigh == NULL) continue;
+		if (lneigh == nullptr) continue;
 		if (lneigh->Count() == 0 ) continue;
 
 		wasVisited = false;
@@ -580,7 +580,7 @@ void assignVertexesAvoidingVisited(TList<TVertex*> *vs, TList<TObject*> *vRes ,i
 		for (j = 0 ; j<lneigh->Count() ; j++)
 		{
 			TVertex* v2 = (TVertex*)(lneigh->elementAt(j));
-			if (v2 == NULL ) continue;
+			if (v2 == nullptr ) continue;
 			if (v2->flag == iter)
 			{
 				wasVisited = true;
@@ -597,7 +597,7 @@ void assignVertexesAvoidingVisited(TList<TVertex*> *vs, TList<TObject*> *vRes ,i
 		for (j = 0 ; j<lneigh->Count() ; j++)
 		{
 			TVertex* v2 = (TVertex*)(lneigh->elementAt(j));
-			if (v2 == NULL ) continue;
+			if (v2 == nullptr ) continue;
 			v2->flag = iter;		 
 		}
 
@@ -610,7 +610,7 @@ void assignVertexesAvoidingVisited(TList<TVertex*> *vs, TList<TObject*> *vRes ,i
 void lpComputeQuality(int i, int thId  ,TObject* destObject)
 {
 	TTetra *t = (TTetra*)(destObject);
-	if (t == NULL) return;
+	if (t == nullptr) return;
 	t->calidad = vrelaxQuality(t->vertexes);
 	t->fMinDiedralAngle = diedralAngle(t->vertexes);
 }
@@ -618,11 +618,11 @@ void lpComputeQuality(int i, int thId  ,TObject* destObject)
 void lpCalculateVertexVertexNeigh(int i, int thId  ,TObject* destObject)
 {
 	TVertex *v = (TVertex*)(destObject);
-	if (v == NULL) return ;
-	if ( v->neighV == NULL) 
+	if (v == nullptr) return ;
+	if ( v->neighV == nullptr) 
 		v->neighV = new TList<TVertex*>();
 	v->neighV->Clear();
-	v->getVertexNeighboursByElem(NULL,1);
+	v->getVertexNeighboursByElem(nullptr,1);
 }
 
 double ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode, bool sort)
@@ -639,13 +639,13 @@ double ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode, b
 
 	// Initialize variables
 	vRes = new TList<TObject*>();
-	if (resultedClusters == NULL)
+	if (resultedClusters == nullptr)
 	{
 		std :: cout <<"*********** Creating clusters**************** \n";
 		resultedClusters = new TList<TObject*>();	
 		for (i = 0 ; i<ASSIGNMENT_SIZE ; i++)
 		{
-			TElementsCluster* e = new TElementsCluster(aMesh,vrelaxQuality) ;
+			auto  e = new TElementsCluster(aMesh,vrelaxQuality) ;
 			resultedClusters->Add( (TObject*)(e));
 		}
 	}
@@ -803,7 +803,7 @@ void preparePool()
 		resultedClusters = new TList<TObject*>();	
 		for (int i = 0 ; i<ASSIGNMENT_SIZE ; i++)
 		{
-			TElementsCluster* e = new TElementsCluster(NULL,vrelaxQuality) ;
+			auto  e = new TElementsCluster(nullptr,vrelaxQuality) ;
 			resultedClusters->Add( (TObject*)(e));
 		}
 
@@ -813,13 +813,13 @@ void clearPool()
 	for (int i = 0; i<ASSIGNMENT_SIZE; i++)
 	{
 		TElementsCluster* resC = (TElementsCluster*)(resultedClusters->elementAt(i));			
-		resultedClusters->setElementAt(i, NULL);
+		resultedClusters->setElementAt(i, nullptr);
 		delete resC ;
 	}
 	
 	delete resultedClusters ;	
 
-	resultedClusters = NULL;
+	resultedClusters = nullptr;
 	
 }
 

@@ -92,7 +92,7 @@ public:
     BICGSTABSolver(const BICGSTABSolver& Other) : BaseType(Other) {}
 
     /// Destructor.
-    virtual ~BICGSTABSolver() {}
+    ~BICGSTABSolver() override {}
 
 
     ///@}
@@ -186,7 +186,7 @@ public:
     ///@{
 
     /// Return information about this object.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Biconjugate gradient stabilized linear solver with " << BaseType::GetPreconditioner()->Info();

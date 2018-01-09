@@ -578,7 +578,7 @@ public:
     SkylineLUFactorizationSolver(Parameters settings): BaseType(settings) {}
     
     /// Destructor.
-    virtual ~SkylineLUFactorizationSolver() {}
+    ~SkylineLUFactorizationSolver() override {}
 
 
     /** Normal solve method.

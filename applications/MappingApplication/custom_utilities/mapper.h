@@ -55,7 +55,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
+/// Base Class for all Mappers
+/** This is the base class for every mapper.
+* It contains the three pure virtual functions that have to be implemented by every mapper:
+* - Map: Basic function that maps a field from one ModelPart to another Modelpart
+*        Mapping Direction: Origin => Destionation
+* - InverseMap: This function does the opposite of the "Map" function
+*               Mapping Direction: Destination => Origin
+* - UpdateInterface: Called when the interface is changed. It recomputes the neighbors and 
+*   other information related to the relations btw entities (node, elements,...) on the interfaces
+* It is also responsible for initializing the MapperCommunicator or the MapperMPICommuniator
+* For information abt the available echo_levels and the JSON default-parameters
+* look into the class description of the MapperCommunicator
+*/
 
 class Mapper
 {
@@ -86,27 +98,27 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void UpdateInterface(Kratos::Flags Options, double SearchRadius) = 0;
+    virtual void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius) = 0;
 
     /* This function maps from Origin to Destination */
     virtual void Map(const Variable<double>& rOriginVariable,
                      const Variable<double>& rDestinationVariable,
-                     Kratos::Flags Options) = 0;
+                     Kratos::Flags MappingOptions) = 0;
 
     /* This function maps from Origin to Destination */
     virtual void Map(const Variable< array_1d<double, 3> >& rOriginVariable,
                      const Variable< array_1d<double, 3> >& rDestinationVariable,
-                     Kratos::Flags Options) = 0;
+                     Kratos::Flags MappingOptions) = 0;
 
     /* This function maps from Destination to Origin */
     virtual void InverseMap(const Variable<double>& rOriginVariable,
                             const Variable<double>& rDestinationVariable,
-                            Kratos::Flags Options) = 0;
+                            Kratos::Flags MappingOptions) = 0;
 
     /* This function maps from Destination to Origin */
     virtual void InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
                             const Variable< array_1d<double, 3> >& rDestinationVariable,
-                            Kratos::Flags Options) = 0;
+                            Kratos::Flags MappingOptions) = 0;
 
     MapperCommunicator::Pointer pGetMapperCommunicator()
     {
@@ -190,8 +202,6 @@ protected:
 
         ComputeNumberOfNodesAndConditions();
 
-        mEchoLevel = JsonParameters["echo_level"].GetInt();
-
         // Create the mapper communicator
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
         int mpi_initialized;
@@ -220,6 +230,9 @@ protected:
 #else // serial compilation
         InitializeSerialCommunicator();
 #endif
+        // Access the Parameters only after the communicator is constructed,
+        // bcs they are checked and validated there!
+        mEchoLevel = JsonParameters["echo_level"].GetInt();
     }
 
     void ComputeNumberOfNodesAndConditions()
@@ -237,6 +250,15 @@ protected:
 
         mModelPartOrigin.GetCommunicator().SumAll(mNumNodesOrigin);
         mModelPartDestination.GetCommunicator().SumAll(mNumNodesDestination);
+    }
+
+    void ProcessMappingOptions(const Kratos::Flags& rMappingOptions,
+                               double& Factor)
+    {
+        if (rMappingOptions.Is(MapperFlags::SWAP_SIGN))
+        {
+            Factor *= (-1);
+        }
     }
 
     ///@}

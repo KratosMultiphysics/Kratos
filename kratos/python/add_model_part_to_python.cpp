@@ -565,6 +565,15 @@ TDataType CommunicatorMaxAll(Communicator& rCommunicator, const TDataType& rValu
     return Value;
 }
 
+template<class TDataType>
+TDataType CommunicatorScanSum(Communicator& rCommunicator, const TDataType rSendPartial, TDataType rReceiveAccumulated)
+{
+    TDataType SendPartial = rSendPartial;
+    TDataType ReceiveAccumulated = rReceiveAccumulated;
+    rCommunicator.ScanSum(SendPartial, ReceiveAccumulated);
+    return ReceiveAccumulated;
+}
+
 
 void AddModelPartToPython()
 {
@@ -600,6 +609,8 @@ void AddModelPartToPython()
         .def("MinAll", CommunicatorMinAll<double> )
         .def("MaxAll", CommunicatorMaxAll<int> )
         .def("MaxAll", CommunicatorMaxAll<double> )
+        .def("ScanSum", CommunicatorScanSum<int> )
+        .def("ScanSum", CommunicatorScanSum<double> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<int> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<double> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<array_1d<double,3> > )
@@ -614,7 +625,7 @@ void AddModelPartToPython()
 
 
 
-	class_<ModelPart, bases<DataValueContainer, Flags> >("ModelPart")
+	class_<ModelPart, ModelPart::Pointer, bases<DataValueContainer, Flags>, boost::noncopyable >("ModelPart")
 		.def(init<std::string const&>())
 		.def(init<>())
 		.add_property("Name", GetModelPartName, SetModelPartName)
@@ -688,6 +699,7 @@ void AddModelPartToPython()
 		.def("RemoveElement", ModelPartRemoveElement2)
 		.def("RemoveElement", ModelPartRemoveElement3)
 		.def("RemoveElement", ModelPartRemoveElement4)
+                .def("RemoveElements", &ModelPart::RemoveElements)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels1)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels2)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels3)
@@ -711,9 +723,9 @@ void AddModelPartToPython()
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels2)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels3)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels4)
-		.def("CreateSubModelPart", &ModelPart::CreateSubModelPart, return_internal_reference<>())
+		.def("CreateSubModelPart", &ModelPart::CreateSubModelPart)
 		.def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
-		.def("GetSubModelPart", &ModelPart::GetSubModelPart, return_internal_reference<>())
+		.def("GetSubModelPart", &ModelPart::pGetSubModelPart)
 		.def("RemoveSubModelPart", RemoveSubModelPart1)
 		.def("RemoveSubModelPart", RemoveSubModelPart2)
 		.def("HasSubModelPart", &ModelPart::HasSubModelPart)

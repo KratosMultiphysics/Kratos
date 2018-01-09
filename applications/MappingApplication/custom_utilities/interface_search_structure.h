@@ -53,8 +53,12 @@ typedef matrix<int> GraphType; // GraphColoringProcess
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Rank local searching
+/** This class provides features for rank local searching. It is basically a wrapper for the Bin Search Function
+* It computes local neighbors and selects the best neighbor out of the search results. How these are selected is
+* defined in the "EvaluateResult" function of the InterfaceObject
+* If no neighbors are found, the search radius is increased by a factor ("increase_factor" in "Search")
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class InterfaceSearchStructure
 {
@@ -97,7 +101,7 @@ public:
     {
         mSearchRadius = SearchRadius;
         mMaxSearchIterations = MaxSearchIterations;
-        int increase_factor = 4;
+        const int increase_factor = 4;
         int num_iteration = 1;
         bool last_iteration = false;
 
@@ -124,7 +128,7 @@ public:
                 last_iteration = true;
             }
 
-            if (mEchoLevel > 1 && mCommRank == 0)
+            if (mEchoLevel >= 2 && mCommRank == 0)
             {
                 std::cout << "MAPPER WARNING, search radius was increased, "
                           << "another search iteration is conducted, "
@@ -135,7 +139,7 @@ public:
 
             ConductSearchIteration(last_iteration);
         }
-        if (mEchoLevel > 1)
+        if (mEchoLevel >= 2)
         {
             mpInterfaceObjectManager->CheckResults();
         }

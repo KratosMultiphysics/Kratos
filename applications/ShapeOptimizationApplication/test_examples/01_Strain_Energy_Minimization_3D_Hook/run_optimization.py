@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 #import kratos core and applications
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.ALEApplication import *
@@ -114,9 +113,10 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         CSM_solver.SetEchoLevel(echo_level)
 
         mesh_solver.Initialize()
+        mesh_solver.SetEchoLevel(echo_level)
 
         for responseFunctionId in listOfResponseFunctions:
-            listOfResponseFunctions[responseFunctionId].initialize()
+            listOfResponseFunctions[responseFunctionId].Initialize()
 
         # Start process
         for process in self.list_of_processes:
@@ -138,27 +138,27 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             self.updateMeshForAnalysis()
             print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
-            print("\n> Starting SolidMechanicsApplication to solve structure")
+            print("\n> Starting StructuralMechanicsApplication to solve structure")
             startTime = timer.time()
             self.solveStructure( optimizationIteration )
             print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
 
             print("\n> Starting calculation of response value")
             startTime = timer.time()                    
-            listOfResponseFunctions["strain_energy"].calculate_value()
+            listOfResponseFunctions["strain_energy"].CalculateValue()
             print("> Time needed for calculation of response value = ",round(timer.time() - startTime,2),"s")
 
-            communicator.reportFunctionValue("strain_energy", listOfResponseFunctions["strain_energy"].get_value())  
+            communicator.reportFunctionValue("strain_energy", listOfResponseFunctions["strain_energy"].GetValue())  
 
         # Calculation of gradient of objective function
         if communicator.isRequestingGradientOf("strain_energy"): 
 
             print("\n> Starting calculation of gradients")
             startTime = timer.time()               
-            listOfResponseFunctions["strain_energy"].calculate_gradient()
+            listOfResponseFunctions["strain_energy"].CalculateGradient()
             print("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
             
-            gradientForCompleteModelPart = listOfResponseFunctions["strain_energy"].get_gradient()
+            gradientForCompleteModelPart = listOfResponseFunctions["strain_energy"].GetGradient()
             gradientOnDesignSurface = {}
             for node in currentDesign.Nodes:
                 gradientOnDesignSurface[node.Id] = gradientForCompleteModelPart[node.Id]
@@ -177,7 +177,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
         # Extract surface nodes
         sub_model_part_name = "surface_nodes"     
-        GeometryUtilities(main_model_part).extract_surface_nodes(sub_model_part_name)
+        GeometryUtilities(main_model_part).ExtractSurfaceNodes(sub_model_part_name)
 
         # Apply shape update as boundary condition for computation of mesh displacement 
         for node in main_model_part.GetSubModelPart(sub_model_part_name).Nodes:
@@ -194,7 +194,15 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         mesh_solver.Solve()
 
         # Update reference mesh (Since shape updates are imposed as incremental quantities)
-        mesh_solver.UpdateReferenceMesh()
+        mesh_solver.get_mesh_motion_solver().UpdateReferenceMesh()
+
+        # Log absolute mesh displacement
+        for node in main_model_part.Nodes:
+            mesh_change = Vector(3)
+            mesh_change[0] = node.GetSolutionStepValue(MESH_CHANGE_X) + node.GetSolutionStepValue(MESH_DISPLACEMENT_X)
+            mesh_change[1] = node.GetSolutionStepValue(MESH_CHANGE_Y) + node.GetSolutionStepValue(MESH_DISPLACEMENT_Y)
+            mesh_change[2] = node.GetSolutionStepValue(MESH_CHANGE_Z) + node.GetSolutionStepValue(MESH_DISPLACEMENT_Z)
+            node.SetSolutionStepValue(MESH_CHANGE,0,mesh_change)     
 
     # --------------------------------------------------------------------------
     def solveStructure( self, optimizationIteration ): 
@@ -207,11 +215,6 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             
         # Actual solution
         CSM_solver.Solve()
-        
-        for process in self.list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
-        
-        self.gid_output.ExecuteFinalizeSolutionStep()
 
         # processes to be executed at the end of the solution step
         for process in self.list_of_processes:
@@ -225,6 +228,8 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         if(self.gid_output.IsOutputStep()):
             self.gid_output.PrintOutput()
                         
+        self.gid_output.ExecuteFinalizeSolutionStep()
+
         # processes to be executed after witting the output
         for process in self.list_of_processes:
             process.ExecuteAfterOutputStep()            

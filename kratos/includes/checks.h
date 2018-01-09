@@ -43,6 +43,36 @@ KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given s
 " is not near to " << #b << " = " << b << " within the tolerance " << tolerance
 #define KRATOS_CHECK_DOUBLE_EQUAL(a,b) KRATOS_CHECK_NEAR(a,b,std::numeric_limits<double>::epsilon())
 
+#define KRATOS_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)                 \
+try {                                                                                   \
+    TheStatement;                                                                       \
+    KRATOS_ERROR << #TheStatement << " exited without throwing an error." << std::endl; \
+} catch (Kratos::Exception& e) {                                                        \
+    if ( std::string(e.what()).find( TheErrorMessage ) == std::string::npos )           \
+        KRATOS_ERROR                                                                    \
+            << "Test Failed: " << #TheStatement                                         \
+            << " did not throw the expected error." << std::endl                        \
+            << "Expected:" << std::endl << TheErrorMessage << std::endl                 \
+            << "Got:" << std::endl << e.what() << std::endl;                            \
+}
+
+#define KRATOS_CHECK_VARIABLE_KEY(TheVariable)                               \
+    KRATOS_ERROR_IF(TheVariable.Key() == 0)                                  \
+        << TheVariable.Name() << " Key is 0." << std::endl                   \
+        << "Check that Kratos variables have been correctly registered and " \
+           "all required applications have been imported."                   \
+        << std::endl;
+
+#define KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)                          \
+    KRATOS_ERROR_IF_NOT(TheNode.SolutionStepsDataHas(TheVariable))                         \
+        << "Missing " << TheVariable.Name() << " variable in solution step data for node " \
+        << TheNode.Id() << "." << std::endl;
+
+#define KRATOS_CHECK_DOF_IN_NODE(TheVariable, TheNode)            \
+    KRATOS_ERROR_IF_NOT(TheNode.HasDofFor(TheVariable))           \
+        << "Missing Degree of Freedom for " << TheVariable.Name() \
+        << " in node " << TheNode.Id() << "." << std::endl;
+
 #ifdef KRATOS_DEBUG
 #define KRATOS_DEBUG_CHECK(IsTrue) KRATOS_CHECK(IsTrue)
 #define KRATOS_DEBUG_CHECK_IS_FALSE(IsFalse) KRATOS_CHECK_IS_FALSE(IsFalse)
@@ -60,6 +90,16 @@ KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given s
 #define KRATOS_DEBUG_CHECK_GREATER_EQUAL(a,b) KRATOS_CHECK_GREATER_EQUAL(a,b)
 
 #define KRATOS_DEBUG_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString) KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString)
+
+#define KRATOS_DEBUG_CHECK_NEAR(a,b, tolerance) KRATOS_CHECK_NEAR(a,b, tolerance)
+#define KRATOS_DEBUG_CHECK_DOUBLE_EQUAL(a,b) KRATOS_CHECK_DOUBLE_EQUAL(a,b)
+
+#define KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage) KRATOS_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)
+
+#define KRATOS_DEBUG_CHECK_VARIABLE_KEY(TheVariable) KRATOS_CHECK_VARIABLE_KEY(TheVariable)
+#define KRATOS_DEBUG_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode) KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)
+#define KRATOS_DEBUG_CHECK_DOF_IN_NODE(TheVariable, TheNode) KRATOS_CHECK_DOF_IN_NODE(TheVariable, TheNode)
+
 #else
 #define KRATOS_DEBUG_CHECK(IsTrue) if(false) KRATOS_CHECK(IsTrue)
 #define KRATOS_DEBUG_CHECK_IS_FALSE(IsFalse) if(false) KRATOS_CHECK_IS_FALSE(IsFalse)
@@ -77,6 +117,15 @@ KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given s
 #define KRATOS_DEBUG_CHECK_GREATER_EQUAL(a,b) if(false) KRATOS_CHECK_GREATER_EQUAL(a,b)
 
 #define KRATOS_DEBUG_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString) if(false) KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString)
+
+#define KRATOS_DEBUG_CHECK_NEAR(a,b, tolerance) if(false) KRATOS_CHECK_NEAR(a,b, tolerance)
+#define KRATOS_DEBUG_CHECK_DOUBLE_EQUAL(a,b) if(false) KRATOS_CHECK_DOUBLE_EQUAL(a,b)
+
+#define KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage) if(false) KRATOS_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)
+
+#define KRATOS_DEBUG_CHECK_VARIABLE_KEY(TheVariable) if(false) KRATOS_CHECK_VARIABLE_KEY(TheVariable)
+#define KRATOS_DEBUG_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode) if(false) KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)
+#define KRATOS_DEBUG_CHECK_DOF_IN_NODE(TheVariable, TheNode) if(false) KRATOS_CHECK_DOF_IN_NODE(TheVariable, TheNode)
 #endif
 ///@}
 

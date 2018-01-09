@@ -12,8 +12,9 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
-#~ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+import KratosMultiphysics.ExternalSolversApplication as KratosSolvers 
+# import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
     
@@ -64,14 +65,14 @@ solver.ImportModelPart()
 # Add degrees of freedom
 solver.AddDofs()
 
-# Creation of Kratos model
+# Creation of Kratos model (build submodels and submeshes)
 PoroModel = KratosMultiphysics.Model()
 PoroModel.AddModelPart(main_model_part)
 
 # Build sub_model_parts (save the list of the submodel part in the object Model)
-for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
-    part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-    PoroModel.AddModelPart(main_model_part.GetSubModelPart(part_name))
+#for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
+#    part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
+#    PoroModel.AddModelPart(main_model_part.GetSubModelPart(part_name))
 
 # Print model_part and properties
 if(echo_level > 1):

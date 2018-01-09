@@ -8,7 +8,7 @@
 //  Original author:  Josep Maria Carbonell
 //  comming from      SolidMechanicsApplication
 //
-//  Co-author:        Vicente Mataix Ferrándiz
+//  Co-author:        Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_NEWMARK_DISPLACEMENT_SCHEME )
@@ -100,15 +100,15 @@ public:
     /**
      * Clone 
      */
-    virtual BaseTypePointer Clone() override
+    BaseTypePointer Clone() override
     {
       return BaseTypePointer( new ResidualBasedNewmarkDisplacementScheme(*this) );
     }
     
     /** Destructor.
      */
-    virtual ~ResidualBasedNewmarkDisplacementScheme
-    () {}
+    ~ResidualBasedNewmarkDisplacementScheme
+    () override {}
 
     ///@}
     ///@name Operators

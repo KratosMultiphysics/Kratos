@@ -251,7 +251,7 @@ double vrelaxQuality(TVertex* vertexes[])
 
 float relaxQuality(TObject* o)
 {
-	if ( (TTetra*)o != NULL)
+	if ( (TTetra*)o != nullptr)
 	{
 		TTetra* t = (TTetra*)(o);
 		return (float)vrelaxQuality( t->vertexes );
@@ -328,10 +328,10 @@ double minDiedralAngle(float4 v0, float4 v1, float4 v2, float4 v3)
 
 	double mD = 500000;	
 	
-	for (int i=0;i <6 ; i++)
+	for (double & i : d)
 	{
-	    d[i] =-acos(d[i]);		
-		if (d[i] <mD) mD = d[i];		
+	    i =-acos(i);		
+		if (i <mD) mD = i;		
 	}
 	return (PI+mD)*180/PI;
 }
@@ -404,10 +404,10 @@ double maxDiedralAngle(float4 v0, float4 v1, float4 v2, float4 v3)
 
 	double mD = -500000;	
 	
-	for (int i=0;i <6 ; i++)
+	for (double & i : d)
 	{
-	    d[i] =-acos(d[i]);		
-		if (d[i] >mD) mD = d[i];		
+	    i =-acos(i);		
+		if (i >mD) mD = i;		
 	}
 	return (PI+mD)*180/PI;
 }

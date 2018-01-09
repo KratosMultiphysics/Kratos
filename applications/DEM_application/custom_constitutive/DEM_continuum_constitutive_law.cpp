@@ -21,8 +21,8 @@ namespace Kratos {
     void DEMContinuumConstitutiveLaw::Initialize() {
     }
 
-    void DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning DEMContinuumConstitutiveLaw to Properties " << pProp->Id() << std::endl;
+    void DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+        if(verbose) std::cout << "\nAssigning DEMContinuumConstitutiveLaw to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
@@ -103,8 +103,8 @@ namespace Kratos {
 
         //mDensity = element1_props[PARTICLE_DENSITY];
         //other_density = element2_props[PARTICLE_DENSITY];
-        //double m1 = 4/3 * KRATOS_M_PI * my_radius * my_radius * my_radius * mDensity;
-        //double m2 = 4/3 * KRATOS_M_PI * other_radius * other_radius * other_radius * other_density;
+        //double m1 = 4/3 * Globals::Pi * my_radius * my_radius * my_radius * mDensity;
+        //double m2 = 4/3 * Globals::Pi * other_radius * other_radius * other_radius * other_density;
 
         const double mRealMass = element1->GetMass();  // { mRealMass = real_mass;  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = real_mass;}
         const double &other_real_mass = element2->GetMass();

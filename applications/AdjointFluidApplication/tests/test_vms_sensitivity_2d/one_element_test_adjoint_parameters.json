@@ -34,15 +34,16 @@
         "solver_type"                   : "adjoint_vmsmonolithic_solver",
         "scheme_settings" : {
             "scheme_type"               : "bossak",
-            "boundary_model_part_name"  : "Boundary",
-            "alpha_bossak"              :-0.3,
-            "adjoint_start_time"        : 0.0,
-            "adjoint_end_time"          : 3.000000001
+            "alpha_bossak"              :-0.3
         },
-        "objective_settings" : {
-            "objective_type"            : "drag",
-            "structure_model_part_name" : "Structure",
-            "drag_direction"            : [1.0, 0.0, 0.0]
+        "response_function_settings" : {
+            "response_type"            : "drag",
+            "sensitivity_model_part_name"  : "Boundary",
+            "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
+            "custom_settings" : {
+                "structure_model_part_name" : "Structure",
+                "drag_direction"            : [1.0, 0.0, 0.0]
+            }
         },
         "dynamic_tau"                   : 1.0,
         "oss_switch"                    : 0,
@@ -60,22 +61,19 @@
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Inlet",
             "variable_name"   : "ADJOINT_VELOCITY",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
             "value"           : [0.0, 0.0, 0.0]
         }
     },{
-        "python_module" : "impose_scalar_value_process",
+        "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyOutletProcess",
+        "process_name"  : "AssignScalarVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet",
@@ -83,29 +81,24 @@
             "value"           : 0
         }
     },{
-        "python_module" : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Boundary",
             "variable_name"   : "ADJOINT_VELOCITY",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
             "value"           : [0.0, 0.0, 0.0]
         }
     },{
-        "python_module" : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet",
             "variable_name"   : "ADJOINT_VELOCITY",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"     : [false,true,true],
             "value"           : [0.0, 0.0, 0.0]
         }
     }],

@@ -1,49 +1,12 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: janosch $
-//   Date:                $Date: 2008-04-28 16:19:49 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//
-
 
 // System includes
 
@@ -70,6 +33,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/trilinos_fractional_step_settings_periodic.h"
 #include "custom_utilities/gather_modelpart_utility.h"
 #include "custom_utilities/mpi_normal_calculation_utilities.h"
+#include "custom_utilities/trilinos_partitioned_fsi_utilities.h"
+#include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
+
+// External includes
+#include "../FSIapplication/custom_utilities/convergence_accelerator.hpp"
+#include "../FSIapplication/custom_utilities/aitken_convergence_accelerator.hpp"
 
 namespace Kratos
 {
@@ -151,7 +120,7 @@ void  AddCustomUtilitiesToPython()
     enum_<BaseSettingsType::TurbulenceModelLabel>("TrilinosTurbulenceModelLabel")
     .value("SpalartAllmaras",BaseSettingsType::SpalartAllmaras)
     ;
-    
+
     typedef void (TrilinosFSSettingsType::*SetStrategyByParamsType)(TrilinosFSSettingsType::StrategyLabel const&,TrilinosLinearSolverType::Pointer,const double,const unsigned int);
     SetStrategyByParamsType ThisSetStrategyOverload = &TrilinosFSSettingsType::SetStrategy;
 
@@ -174,8 +143,8 @@ void  AddCustomUtilitiesToPython()
     .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
     .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
     ;
-    
-    
+
+
     class_<GatherModelPartUtility, boost::noncopyable >
     ("GatherModelPartUtility",
      init<int, ModelPart&, int , ModelPart&>() )
@@ -192,9 +161,62 @@ void  AddCustomUtilitiesToPython()
             .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
             ;
 
+    typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType,2> TrilinosPartitionedFSIUtilities2DType;
+    typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType,3> TrilinosPartitionedFSIUtilities3DType;
+
+    class_< TrilinosPartitionedFSIUtilities2DType, boost::noncopyable > ("TrilinosPartitionedFSIUtilities2D", init < const Epetra_MpiComm& >())
+        .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceArea)
+        .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceResidualSize)
+        .def("SetUpInterfaceVector", &TrilinosPartitionedFSIUtilities2DType::SetUpInterfaceVector)
+        .def("ComputeInterfaceVectorResidual", &TrilinosPartitionedFSIUtilities2DType::ComputeInterfaceVectorResidual)
+        .def("UpdateInterfaceValues", &TrilinosPartitionedFSIUtilities2DType::UpdateInterfaceValues)
+        .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&TrilinosPartitionedFSIUtilities2DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
+        .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilities2DType::ComputeAndPrintFluidInterfaceNorms)
+        .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilities2DType::ComputeAndPrintStructureInterfaceNorms)
+        .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesFluid)
+        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesStructure)
+        ;
+
+    class_< TrilinosPartitionedFSIUtilities3DType, boost::noncopyable > ("TrilinosPartitionedFSIUtilities3D", init < const Epetra_MpiComm& >())
+        .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceArea)
+        .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceResidualSize)
+        .def("SetUpInterfaceVector", &TrilinosPartitionedFSIUtilities3DType::SetUpInterfaceVector)
+        .def("ComputeInterfaceVectorResidual", &TrilinosPartitionedFSIUtilities3DType::ComputeInterfaceVectorResidual)
+        .def("UpdateInterfaceValues", &TrilinosPartitionedFSIUtilities3DType::UpdateInterfaceValues)
+        .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&TrilinosPartitionedFSIUtilities3DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
+        .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilities3DType::ComputeAndPrintFluidInterfaceNorms)
+        .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilities3DType::ComputeAndPrintStructureInterfaceNorms)
+        .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesFluid)
+        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesStructure)
+        ;
+
+
+    // Convergence accelerators (from FSIApplication)
+    typedef ConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosConvergenceAccelerator;
+    typedef AitkenConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosAitkenAccelerator;
+    typedef TrilinosMVQNRecursiveJacobianConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosMVQNRecursiveAccelerator;
+
+    // Convergence accelerator base class
+    class_< TrilinosConvergenceAccelerator, boost::noncopyable > ("TrilinosConvergenceAccelerator", init < >())
+        .def("Initialize", &TrilinosConvergenceAccelerator::Initialize)
+        .def("InitializeSolutionStep", &TrilinosConvergenceAccelerator::InitializeSolutionStep)
+        .def("InitializeNonLinearIteration", &TrilinosConvergenceAccelerator::InitializeNonLinearIteration)
+        .def("UpdateSolution", &TrilinosConvergenceAccelerator::UpdateSolution)
+        .def("FinalizeNonLinearIteration", &TrilinosConvergenceAccelerator::FinalizeNonLinearIteration)
+        .def("FinalizeSolutionStep", &TrilinosConvergenceAccelerator::FinalizeSolutionStep)
+        .def("SetEchoLevel", &TrilinosConvergenceAccelerator::SetEchoLevel)
+        ;
+
+    class_<TrilinosAitkenAccelerator, bases<TrilinosConvergenceAccelerator>, boost::noncopyable>("TrilinosAitkenConvergenceAccelerator", init<double>())
+        .def(init< Parameters& >())
+        ;
+
+    class_< TrilinosMVQNRecursiveAccelerator, bases<TrilinosConvergenceAccelerator>, boost::noncopyable >("TrilinosMVQNRecursiveJacobianConvergenceAccelerator",
+        init< ModelPart&, const Epetra_MpiComm&, double, unsigned int >())
+        .def(init< ModelPart&, const Epetra_MpiComm&, Parameters& >())
+        ;
 
 }
 }  // namespace Python.
 
 } // Namespace Kratos
-

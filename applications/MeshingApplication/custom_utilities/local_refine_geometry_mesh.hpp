@@ -90,9 +90,7 @@ public:
     
     /// Destructor
     ~LocalRefineGeometryMesh()
-    {
-      
-    }
+    = default;
     
     ///@}
     ///@name Operators

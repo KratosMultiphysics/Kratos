@@ -47,6 +47,9 @@ for i in range(1,31):
 
 list_processors.extend([40, 50])
 
+os.system("export OMP_NUM_THREADS=1")
+print("OMP thread set to 1")
+
 # serial execution
 WriteInfo(kratos_output_file, tests_output_file, "w", "Serial Execution")
 system_cmd = "python3.5 " + input_file + " >> " + kratos_output_file + " 2>> " + tests_output_file

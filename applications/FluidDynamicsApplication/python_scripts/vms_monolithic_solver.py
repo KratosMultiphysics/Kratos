@@ -140,6 +140,8 @@ class MonolithicSolver:
         # creating the solution strategy
         self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
                                            self.rel_pres_tol, self.abs_pres_tol)
+        
+        (self.conv_criteria).SetEchoLevel(self.echo_level)
 
         # custom schemes should be defined in the calling python script
         # before calling Initialize().

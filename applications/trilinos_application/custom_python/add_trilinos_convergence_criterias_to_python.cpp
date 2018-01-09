@@ -1,14 +1,14 @@
-//  KRATOS  _____     _ _ _                 
-//         |_   _| __(_) (_)_ __   ___  ___ 
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
 //           | || '__| | | | '_ \ / _ \/ __|
-//           | || |  | | | | | | | (_) \__ 
+//           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License 
+//  License:             BSD License
 //                                       Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//        
+//
 
 // System includes
 
@@ -90,18 +90,18 @@ void  AddConvergenceCriterias()
     class_< TrilinosDisplacementCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
             bases< TrilinosConvergenceCriteria >,
             boost::noncopyable >
-            ("TrilinosDisplacementCriteria", init< double, double, Epetra_MpiComm& >());
+            ("TrilinosDisplacementCriteria", init< double, double >());
 
     class_< TrilinosUPCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
             bases< TrilinosConvergenceCriteria >,
             boost::noncopyable >
-            ("TrilinosUPCriteria", init< double, double, double, double, Epetra_MpiComm& >());
+            ("TrilinosUPCriteria", init< double, double, double, double >());
 
     class_< ResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
             bases< TrilinosConvergenceCriteria >,
             boost::noncopyable >
             ("TrilinosResidualCriteria", init< TrilinosSparseSpaceType::DataType, TrilinosSparseSpaceType::DataType >());
-            
+
     class_<And_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
             bases< TrilinosConvergenceCriteria >,
             boost::noncopyable >

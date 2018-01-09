@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,8 @@ THE SOFTWARE.
  * \brief  Sparse matrix in block-CRS format.
  */
 
-#include <boost/range/algorithm.hpp>
-#include <boost/range/numeric.hpp>
+#include <algorithm>
+#include <numeric>
 
 #include <amgcl/util.hpp>
 #include <amgcl/backend/interface.hpp>
@@ -79,24 +79,16 @@ struct bcrs {
     {
 #pragma omp parallel
         {
+            typedef typename backend::row_iterator<Matrix>::type row_iterator;
+
             std::vector<ptrdiff_t> marker(bcols, -1);
 
-#ifdef _OPENMP
-            int nt  = omp_get_num_threads();
-            int tid = omp_get_thread_num();
-
-            size_t chunk_size  = (brows + nt - 1) / nt;
-            size_t chunk_start = tid * chunk_size;
-            size_t chunk_end   = std::min(brows, chunk_start + chunk_size);
-#else
-            size_t chunk_start = 0;
-            size_t chunk_end   = brows;
-#endif
-
             // Count number of nonzeros in block matrix.
-            typedef typename backend::row_iterator<Matrix>::type row_iterator;
-            for(size_t ib = chunk_start, ia = ib * block_size; ib < chunk_end; ++ib) {
-                for(size_t k = 0; k < block_size && ia < nrows; ++k, ++ia) {
+#pragma omp for
+            for(ptr_type ib = 0; ib < static_cast<ptr_type>(brows); ++ib) {
+                ptr_type ia = ib * block_size;
+
+                for(size_t k = 0; k < block_size && ia < static_cast<ptr_type>(nrows); ++k, ++ia) {
                     for(row_iterator a = backend::row_begin(A, ia); a; ++a) {
                         col_type cb = a.col() / block_size;
 
@@ -108,22 +100,23 @@ struct bcrs {
                 }
             }
 
-            boost::fill(marker, -1);
-
-#pragma omp barrier
 #pragma omp single
             {
-                boost::partial_sum(ptr, ptr.begin());
+                std::partial_sum(ptr.begin(), ptr.end(), ptr.begin());
                 col.resize(ptr.back());
                 val.resize(ptr.back() * block_size * block_size, 0);
             }
 
+            std::fill(marker.begin(), marker.end(), -1);
+
             // Fill the block matrix.
-            for(size_t ib = chunk_start, ia = ib * block_size; ib < chunk_end; ++ib) {
+#pragma omp for
+            for(ptr_type ib = 0; ib < static_cast<ptr_type>(brows); ++ib) {
+                ptr_type ia = ib * block_size;
                 ptr_type row_beg = ptr[ib];
                 ptr_type row_end = row_beg;
 
-                for(size_t k = 0; k < block_size && ia < nrows; ++k, ++ia) {
+                for(size_t k = 0; k < block_size && ia < static_cast<ptr_type>(nrows); ++k, ++ia) {
                     for(row_iterator a = backend::row_begin(A, ia); a; ++a) {
                         col_type cb = a.col() / block_size;
                         col_type cc = a.col() % block_size;
@@ -190,6 +183,12 @@ struct block_crs {
     /// Copy vector from builtin backend.
     static boost::shared_ptr<vector>
     copy_vector(const vector &x, const params&)
+    {
+        return boost::make_shared<vector>(x);
+    }
+
+    static boost::shared_ptr< vector >
+    copy_vector(const std::vector<value_type> &x, const params&)
     {
         return boost::make_shared<vector>(x);
     }

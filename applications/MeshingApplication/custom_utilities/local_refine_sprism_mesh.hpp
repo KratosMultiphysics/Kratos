@@ -62,9 +62,7 @@ public:
 
     /// Destructor
     ~LocalRefineSPrismMesh()
-    {
-      
-    }
+    = default;
     
     ///@}
     ///@name Operators
@@ -183,7 +181,7 @@ public:
             const compressed_matrix<int>& Coord,
             PointerVector< Element >& New_Elements,
             bool interpolate_internal_variables
-    )
+    ) override
     {
         ElementsArrayType& rElements = this_model_part.Elements();
         ElementsArrayType::iterator it_begin = rElements.ptr_begin();
@@ -206,9 +204,9 @@ public:
         unsigned int current_id = (rElements.end() - 1)->Id() + 1;
         for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
         {
-            for (unsigned int i = 0; i < 24; i++)
+            for (int & i : t)
             {
-                t[i] = -1;
+                i = -1;
             }
             
             Element::GeometryType& geom = it->GetGeometry();
@@ -302,7 +300,7 @@ public:
     void EraseOldConditionsAndCreateNew(
 	ModelPart& this_model_part,
 	const compressed_matrix<int>& Coord
-	 )
+	 ) override
     {
         KRATOS_TRY;
 	
@@ -416,7 +414,7 @@ public:
             const compressed_matrix<int>& Coord,
             int* edge_ids,
             std::vector<int> & aux
-            )
+            ) override
     {
         aux.resize(12, false);
 	

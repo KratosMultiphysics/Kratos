@@ -99,7 +99,7 @@ namespace Kratos
 @see IntegrationPoint
 */
 //template<std::size_t TDimension, class TDataType = double> //always size 3!
-class PFEM_Particle : public Point<3>
+class PFEM_Particle : public Point
 {
 public: 
     ///@name Type Definitions
@@ -112,7 +112,7 @@ public:
 
     typedef array_1d<double,3> BaseType;
 
-    typedef Point<3, double> Type;
+    typedef Point Type;
 
     typedef BaseType CoordinatesArrayType;
 
@@ -129,7 +129,7 @@ public:
     ///@{
 
     /// Default constructor.
-    PFEM_Particle(TDataType const& NewX, TDataType const& NewY, TDataType const& NewZ) : Point<3>(NewX, NewY, NewZ)
+    PFEM_Particle(TDataType const& NewX, TDataType const& NewY, TDataType const& NewZ) : Point(NewX, NewY, NewZ)
     {
 		this->ERASE_FLAG=true; //initializing as useless particle
 		this->VELOCITY=ZeroVector(3);
@@ -152,7 +152,7 @@ public:
 		this->PLASTICIZED=false;
     }
     
-    PFEM_Particle() : Point<3>(0.0, 0.0, 0.0)
+    PFEM_Particle() : Point(0.0, 0.0, 0.0)
     {
 		this->ERASE_FLAG=true;
 		this->VELOCITY=ZeroVector(3);
@@ -333,7 +333,7 @@ public:
     //of given particle.
     
     //PFEM_Particle(PFEM_Particle const& rOtherParticle)
-     //   : Point<3>(rOtherParticle) {}
+     //   : Point(rOtherParticle) {}
       
        
 private: 

@@ -92,9 +92,10 @@ public:
 
     /** Constructor.
      */
-    LineSearchCalculationUtilities(int EchoLevel = 1)
+    LineSearchCalculationUtilities(int EchoLevel = 1, bool MoveMeshFlag = false)
     {
-      SetEchoLevel(EchoLevel);
+      mEchoLevel = EchoLevel;
+      mMoveMeshFlag = MoveMeshFlag;
     };
   
     /** Destructor.
@@ -175,16 +176,14 @@ public:
    	std::cout<<" ALPHA 1 "<<std::endl;
    	Dx = ReferenceDx *1;
 	
-   	     pScheme->Update(r_model_part,rDofSet,A,Dx,b);
-
-   	     //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
-	     pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+	SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
+	pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 
    	double FinalSlope= TSparseSpace::Dot(ReferenceDx,b);
 	std::cout<<" RESTORE ALPHA 1 "<<std::endl;
    	// ** Restore Current Displacement, Velocity, Acceleration
    	Dx *= (-1);
-   	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+   	SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 	b.clear();
 
 	//std::cout<<" Initial Slope "<<InitialSlope<<" FinalSlope "<<FinalSlope<<std::endl;
@@ -203,77 +202,76 @@ public:
    	  //std::cout<<" ALPHA PREVIOUS "<<PreviousAlpha<<std::endl;
    	  Dx = ReferenceDx * PreviousAlpha;
 	
-   	     pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	  SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 
-    	     //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
-	     pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+	  pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 
-   	   PreviousSlope=TSparseSpace::Dot(ReferenceDx,b);
-   	   // ** Restore Current Displacement, Velocity, Acceleration
-   	   Dx *= (-1);
-   	   pScheme->Update(r_model_part,rDofSet,A,Dx,b);
-	   b.clear();
+	  PreviousSlope=TSparseSpace::Dot(ReferenceDx,b);
+	  // ** Restore Current Displacement, Velocity, Acceleration
+	  Dx *= (-1);
+	  SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
+	  b.clear();
 
-   	   //compute s(alpha_k)
-   	   //std::cout<<" ALPHA CURRENT "<<CurrentAlpha<<std::endl;
-   	   Dx = ReferenceDx * CurrentAlpha;
+	  //compute s(alpha_k)
+	  //std::cout<<" ALPHA CURRENT "<<CurrentAlpha<<std::endl;
+	  Dx = ReferenceDx * CurrentAlpha;
 	
-   	     pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	  SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 
-   	     //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
-	     pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+	  //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
+	  pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 
-   	   CurrentSlope=TSparseSpace::Dot(ReferenceDx,b);
-   	   // ** Restore Current Displacement, Velocity, Acceleration
-   	   Dx *= (-1);
-   	   pScheme->Update(r_model_part,rDofSet,A,Dx,b);
-	   b.clear();
+	  CurrentSlope=TSparseSpace::Dot(ReferenceDx,b);
+	  // ** Restore Current Displacement, Velocity, Acceleration
+	  Dx *= (-1);
+	  SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
+	  b.clear();
 
-      	   int iterations=0;
-	   int max_iterations = 3;
+	  int iterations=0;
+	  int max_iterations = 3;
 
-   	   //while(fabs(CurrentSlope)>0.8*fabs(InitialSlope) && iterations<max_iterations && (CurrentSlope*PreviousSlope)<0 && fabs(CurrentSlope)>1e-5 && fabs(PreviousSlope)>1e-5 && (CurrentSlope*InitialSlope)<0) {
-	   while(fabs(CurrentSlope)>0.8*fabs(InitialSlope) && iterations<=max_iterations && fabs(CurrentSlope)>1e-5 && fabs(PreviousSlope)>1e-5 && (CurrentSlope*InitialSlope)<0) {
+	  //while(fabs(CurrentSlope)>0.8*fabs(InitialSlope) && iterations<max_iterations && (CurrentSlope*PreviousSlope)<0 && fabs(CurrentSlope)>1e-5 && fabs(PreviousSlope)>1e-5 && (CurrentSlope*InitialSlope)<0) {
+	  while(fabs(CurrentSlope)>0.8*fabs(InitialSlope) && iterations<=max_iterations && fabs(CurrentSlope)>1e-5 && fabs(PreviousSlope)>1e-5 && (CurrentSlope*InitialSlope)<0) {
 
 
-	     //compute s(alpha_k+1)	  
-   	     double alpha=CurrentAlpha-CurrentSlope*(CurrentAlpha-PreviousAlpha)/(CurrentSlope-PreviousSlope);
+	    //compute s(alpha_k+1)	  
+	    double alpha=CurrentAlpha-CurrentSlope*(CurrentAlpha-PreviousAlpha)/(CurrentSlope-PreviousSlope);
 
-	     //std::cout<<" CurrentSlope = "<<fabs(CurrentSlope)<<" > "<<0.8*fabs(InitialSlope)<<" = 0.8 * InitialSlope; PreviousSlope "<<PreviousSlope<<" / ; CurrentSlope "<<CurrentSlope<<std::endl;
-	     //std::cout<<" [ CurrentAlpha: "<<CurrentAlpha<<" PreviousAlpha: "<<PreviousAlpha<<" ] --> Computed Alpha: "<<alpha<<std::endl;
+	    //std::cout<<" CurrentSlope = "<<fabs(CurrentSlope)<<" > "<<0.8*fabs(InitialSlope)<<" = 0.8 * InitialSlope; PreviousSlope "<<PreviousSlope<<" / ; CurrentSlope "<<CurrentSlope<<std::endl;
+	    //std::cout<<" [ CurrentAlpha: "<<CurrentAlpha<<" PreviousAlpha: "<<PreviousAlpha<<" ] --> Computed Alpha: "<<alpha<<std::endl;
 
-   	     //alpha_k-1 = alpha_k
-   	     PreviousAlpha = CurrentAlpha;
-   	     //slope_k-1 = slope_k
-   	     PreviousSlope = CurrentSlope;
+	    //alpha_k-1 = alpha_k
+	    PreviousAlpha = CurrentAlpha;
+	    //slope_k-1 = slope_k
+	    PreviousSlope = CurrentSlope;
 	     
-   	     //alpha_k  = alpha_k+1
-   	     CurrentAlpha  = alpha;
+	    //alpha_k  = alpha_k+1
+	    CurrentAlpha  = alpha;
 
-   	     //compute s(alpha_k+1)
-   	     Dx = ReferenceDx * CurrentAlpha;
+	    //compute s(alpha_k+1)
+	    Dx = ReferenceDx * CurrentAlpha;
 	
-   	        pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	    SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 
-    	   	//pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
-	   	pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+	    //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
+	    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 	     
-   	     //slope_k = slope_k+1
-   	     CurrentSlope=TSparseSpace::Dot(ReferenceDx,b);
-   	     // ** Restore Current Displacement, Velocity, Acceleration
-   	     Dx *= (-1);
-   	     pScheme->Update(r_model_part,rDofSet,A,Dx,b);
-	     b.clear();
+	    //slope_k = slope_k+1
+	    CurrentSlope=TSparseSpace::Dot(ReferenceDx,b);
+	    // ** Restore Current Displacement, Velocity, Acceleration
+	    Dx *= (-1);
+	    SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
+	    b.clear();
 
-   	     iterations++;
-   	   }
+	    iterations++;
+	  }
 
-	   //std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
-	   //std::cout<<" CurrentSlope = "<<fabs(CurrentSlope)<<" > "<<0.8*fabs(InitialSlope)<<" = 0.8*InitialSlope; PreviousSlope "<<PreviousSlope<<std::endl;
+	  //std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
+	  //std::cout<<" CurrentSlope = "<<fabs(CurrentSlope)<<" > "<<0.8*fabs(InitialSlope)<<" = 0.8*InitialSlope; PreviousSlope "<<PreviousSlope<<std::endl;
 	   
 	   
-	   rPreviousAlpha = rCurrentAlpha;
-	   rCurrentAlpha  = CurrentAlpha;
+	  rPreviousAlpha = rCurrentAlpha;
+	  rCurrentAlpha  = CurrentAlpha;
     
    	}
    	// else{
@@ -332,15 +330,13 @@ public:
    	//s1  (alpha=1)
    	Dx = ReferenceDx *1;
 	
-   	     pScheme->Update(r_model_part,rDofSet,A,Dx,b);
-
-   	     //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
-	     pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+	SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
+	pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 
    	double R1= TSparseSpace::Dot(ReferenceDx,b);
    	// ** Restore Current Displacement, Velocity, Acceleration
    	Dx *= (-1);
-   	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+   	SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 	b.clear();
 
 	//std::cout<<" Initial Slope "<<R0<<" FinalSlope "<<R1<<std::endl;
@@ -394,16 +390,14 @@ public:
    	     //compute s(alpha_k+1)
    	     Dx = ReferenceDx * CurrentAlpha;
 	
-   	        pScheme->Update(r_model_part,rDofSet,A,Dx,b);
-
-    	   	//pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
-	   	pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+	     SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
+	     pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 	     
    	     //slope_k = slope_k+1
    	     R2 = TSparseSpace::Dot(ReferenceDx,b);
    	     // ** Restore Current Displacement, Velocity, Acceleration
    	     Dx *= (-1);
-   	     pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+   	     SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 	     b.clear();
 
    	     iterations++;
@@ -472,7 +466,7 @@ public:
 	
    	//s-1  ()
    	// Dx = ReferenceDx * (-1);
-	// pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	// SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 	// //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
 	// pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 
@@ -480,14 +474,14 @@ public:
 
 	// // ** Restore Current Displacement, Velocity, Acceleration
 	// Dx *= (-1);
-   	// pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+   	// SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 	// b.clear();
 
 	
 	//s1  (alpha=1)
    	Dx = ReferenceDx * 1;
 	
-	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 
 	//pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
 	pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
@@ -496,7 +490,7 @@ public:
 	//double Residual1 = TSparseSpace::TwoNorm(b)/TSparseSpace::Size(b);
    	// ** Restore Current Displacement, Velocity, Acceleration
    	Dx *= (-1);
-   	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+   	SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 	b.clear();
 
 	//double Residual2 = 0;
@@ -547,7 +541,7 @@ public:
 	      //compute s(alpha_k+1)
 	      Dx = ReferenceDx * CurrentAlpha;
 	
-	      pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	      SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 
 	      //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
 	      pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
@@ -558,7 +552,7 @@ public:
 	      //std::cout<<" Residual2 "<<Residual2<<std::endl;
 	      // ** Restore Current Displacement, Velocity, Acceleration
 	      Dx *= (-1);
-	      pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	      SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 	      b.clear();
 
 	     
@@ -582,7 +576,7 @@ public:
 	    }
 
 
-	    if( GetEchoLevel() > 0 )
+	    if( mEchoLevel > 0 )
 	      std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
 	    //std::cout<<" CurrentSlope = "<<R2<<" ?> "<<0.8*fabs(R0start)<<"=  0.8*InitialSlope;  PreviousSlope "<<R1<<std::endl;
 	   
@@ -649,7 +643,7 @@ public:
    	//s1  (alpha=1)
    	Dx = ReferenceDx *1;
 
-	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 
 	pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 
@@ -659,7 +653,7 @@ public:
 	
    	// ** Restore Current Displacement, Velocity, Acceleration
    	Dx *= (-1);
-   	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+   	SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 	b.clear();
 
 	// std::cout<<" Initial Slope "<<R0<<" FinalSlope "<<R1<<std::endl;
@@ -700,7 +694,7 @@ public:
 	    //compute s(alpha_k+1)
 	    Dx = ReferenceDx * CurrentAlpha;
 	
-	    pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	    SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 
 	    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 	     
@@ -709,7 +703,7 @@ public:
 	    
 	    // ** Restore Current Displacement, Velocity, Acceleration
 	    Dx *= (-1);
-	    pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	    SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 	    b.clear();
     
 	       
@@ -722,7 +716,7 @@ public:
 
 	  //std::cout<<" Initial Slope "<<R0<<" EndSlope "<<R1<<std::endl;
 	  
-	  if( GetEchoLevel() > 0 )
+	  if( mEchoLevel > 0 )
 	    std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
 	  //std::cout<<" CurrentSlope = "<<R2<<" ?> "<<0.8*fabs(R0start)<<"=  0.8*InitialSlope;  PreviousSlope "<<R1<<std::endl;
 	   
@@ -788,7 +782,7 @@ public:
    	//s1  (alpha=1)
    	Dx = ReferenceDx *1;
 
-	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 
 	pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 
@@ -796,7 +790,7 @@ public:
 	
    	// ** Restore Current Displacement, Velocity, Acceleration
    	Dx *= (-1);
-   	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+   	SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 	b.clear();
 
 	// std::cout<<" Initial Slope "<<R0<<" FinalSlope "<<R1<<std::endl;
@@ -823,7 +817,7 @@ public:
 	  //compute s(alpha_k+1)
 	  Dx = ReferenceDx * CurrentAlpha;
 	
-	  pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	  SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 
 	  pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 	     
@@ -832,7 +826,7 @@ public:
 	    
 	  // ** Restore Current Displacement, Velocity, Acceleration
 	  Dx *= (-1);
-	  pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	  SchemeUpdate(pScheme,r_model_part,rDofSet,A,Dx,b);
 	  b.clear();
     	       
 	  //slope_k-1 = slope_k
@@ -843,7 +837,7 @@ public:
 
 	//std::cout<<" Initial Slope "<<R0<<" EndSlope "<<R1<<std::endl;
 	
-	if( GetEchoLevel() > 0 )
+	if( mEchoLevel > 0 )
 	  std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
 		
 	rPreviousAlpha = rCurrentAlpha;
@@ -870,7 +864,43 @@ public:
     /**@name Operations */
     /*@{ */
 
+    void SchemeUpdate(TSchemePointerType pScheme,
+		      ModelPart& r_model_part,
+		      DofsArrayType& rDofSet,
+		      TSystemMatrixType& A,
+		      TSystemVectorType& Dx,
+		      TSystemVectorType& b)
+      
+    {
+      KRATOS_TRY
 
+      pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+      
+      if(mMoveMeshFlag)  //why MoveMesh is not located in the scheme??
+	MoveMesh(r_model_part);
+      
+      KRATOS_CATCH("")
+    }
+
+
+    void MoveMesh(ModelPart& r_model_part)
+    {
+        KRATOS_TRY
+
+        if (r_model_part.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
+	  KRATOS_ERROR << " MoveMesh not possible, no DISPLACEMENT variable present " << std::endl;
+
+        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
+                i != r_model_part.NodesEnd(); ++i)
+        {
+            (i)->X() = (i)->X0() + i->GetSolutionStepValue(DISPLACEMENT_X);
+            (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(DISPLACEMENT_Y);
+            (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(DISPLACEMENT_Z);
+        }
+
+        KRATOS_CATCH("")
+    }
+  
     /*@} */
     /**@name Access */
     /*@{ */
@@ -936,25 +966,19 @@ private:
     /*@{ */
 
     int  mEchoLevel;
-
+    bool mMoveMeshFlag;
+  
     /*@} */
     /**@name Private Operators*/
     /*@{ */
 
-    void SetEchoLevel(int Level)
-    {
-        mEchoLevel = Level;
-    }
 
-    int GetEchoLevel()
-    {
-        return mEchoLevel;
-    }
 
     /*@} */
     /**@name Private Operations*/
     /*@{ */
-
+  
+  
 
     /*@} */
     /**@name Private  Access */

@@ -36,17 +36,17 @@ void AnalyticFaceWatcher::MakeMeasurements(ModelPart& analytic_model_part)
 
     for (ConditionsIteratorType i_cond = analytic_model_part.ConditionsBegin(); i_cond != analytic_model_part.ConditionsEnd(); ++i_cond){
         AnalyticFace& face = dynamic_cast<Kratos::AnalyticRigidFace3D&>(*(*(i_cond.base())));
-        const int n_collisions = face.GetNumberOfCrossings();
+        const int n_crossings = abs(face.GetNumberThroughput());
 
-        if (n_collisions){
+        if (n_crossings){
             const int id = int(i_cond->Id());
             FaceHistoryDatabase& face_database = GetFaceDataBase(id);
-            std::vector<int> colliding_ids = face.GetIdsOfCrossers();
+            std::vector<int> colliding_ids = face.GetSignedCollidingIds();
             std::vector<double> particle_masses = face.GetMasses();
             std::vector<double> colliding_normal_vel = face.GetCollidingNormalRelativeVelocity();
             std::vector<double> colliding_tangential_vel = face.GetCollidingTangentialRelativeVelocity();
 
-            for (int i = 0; i < n_collisions; ++i){
+            for (unsigned int i = 0; i < colliding_ids.size(); ++i){
                 time_step_database.PushBackCrossings(id, colliding_ids[i], particle_masses[i], colliding_normal_vel[i], colliding_tangential_vel[i]);
                 face_database.PushBackCrossings(current_time, colliding_ids[i], particle_masses[i], colliding_normal_vel[i], colliding_tangential_vel[i]);
             }

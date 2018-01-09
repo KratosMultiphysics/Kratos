@@ -43,7 +43,7 @@
                 f->numberofpolygons = 1;
                 f->polygonlist = new tetgenio::polygon[f->numberofpolygons];
                 f->numberofholes = 0;
-                f->holelist = NULL;
+                f->holelist = nullptr;
                 tetgenio::polygon* p = &f->polygonlist[0];
                 p->numberofvertices = 3;
                 p->vertexlist = new int[p->numberofvertices];
@@ -58,7 +58,7 @@
             //perform meshing with tetgen
             tetrahedralize(tetgen_options, &in, &out);
 			
-			TVolumeMesh* outMesh = new TVolumeMesh();
+			auto  outMesh = new TVolumeMesh();
 			
 
 			//generate  nodes            
@@ -68,7 +68,7 @@
                 double x = out.pointlist[base];
                 double y = out.pointlist[base+1];
                 double z = out.pointlist[base+2];
-				TVertex*v = new TVertex(x,y,z);
+				auto v = new TVertex(x,y,z);
 				v->setID( i );
 				outMesh->vertexes->Add(v);
 			}
@@ -83,7 +83,7 @@
 				TVertex *v2 = outMesh->findVertexById( out.tetrahedronlist[base+2]); 
 				TVertex *v3 = outMesh->findVertexById( out.tetrahedronlist[base+3]); 
 
-				t = new TTetra(NULL, v0,v1,v2,v3);
+				t = new TTetra(nullptr, v0,v1,v2,v3);
 				outMesh->elements->Add(t);                 
             }
 

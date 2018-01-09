@@ -1,12 +1,15 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
+
+# Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
-## Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
-## Import base class file
+# Import base class file
 import navier_stokes_base_solver
 
 def CreateSolver(main_model_part, custom_settings):
@@ -33,7 +36,6 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "compute_reactions": false,
-            "divergence_clearance_steps": 0,
             "reform_dofs_at_each_step": true,
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
@@ -67,7 +69,8 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
             "move_mesh_strategy": 0,
             "periodic": "periodic",
             "move_mesh_flag": false,
-            "turbulence_model": "None"
+            "turbulence_model": "None",
+            "reorder": false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -124,6 +127,8 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
                                                      self.settings["relative_pressure_tolerance"].GetDouble(),
                                                      self.settings["absolute_pressure_tolerance"].GetDouble())
 
+        (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
+
         if (self.settings["turbulence_model"].GetString() == "None"):
             if self.settings["consider_periodic_conditions"].GetBool() == True:
                 self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
@@ -160,62 +165,16 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
+        (self.solver).Initialize()
+
         print ("Monolithic solver initialization finished.")
 
 
-    def DivergenceClearance(self):
-
-        if self.settings["divergence_clearance_steps"].GetInt() > 0:
-            print("Calculating divergence-free initial condition")
-            ## Initialize with a Stokes solution step
-            try:
-                import KratosMultiphysics.ExternalSolversApplication as KratosExternalSolvers
-                smoother_type = KratosExternalSolvers.AMGCLSmoother.DAMPED_JACOBI
-                solver_type = KratosExternalSolvers.AMGCLIterativeSolverType.CG
-                gmres_size = 50
-                max_iter = 200
-                tol = 1e-7
-                verbosity = 0
-                stokes_linear_solver = KratosExternalSolvers.AMGCLSolver(smoother_type,
-                                                                         solver_type,
-                                                                         tol,
-                                                                         max_iter,
-                                                                         verbosity,
-                                                                         gmres_size)
-            except:
-                pPrecond = DiagonalPreconditioner()
-                stokes_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
-
-            stokes_process = KratosCFD.StokesInitializationProcess(self.main_model_part,
-                                                                   stokes_linear_solver,
-                                                                   self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                   KratosCFD.PATCH_INDEX)
-            ## Copy periodic conditions to Stokes problem
-            stokes_process.SetConditions(self.main_model_part.Conditions)
-            ## Execute Stokes process
-            stokes_process.Execute()
-            stokes_process = None
-
-            for node in self.main_model_part.Nodes:
-                node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 0, 0.0)
-                node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION_X, 0, 0.0)
-                node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y, 0, 0.0)
-                node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION_Z, 0, 0.0)
-##                vel = node.GetSolutionStepValue(VELOCITY)
-##                for i in range(0,2):
-##                    node.SetSolutionStepValue(VELOCITY,i,vel)
-
-            self.settings["divergence_clearance_steps"].SetInt(0)
-            print("Finished divergence clearance.")
-
-
-    def SolverInitialize(self):
-        self.DivergenceClearance()
-        (self.solver).Initialize()
+    def InitializeSolutionStep(self):
+        (self.solver).InitializeSolutionStep()
 
 
     def Solve(self):
-        self.DivergenceClearance()
         (self.solver).Solve()
 
 

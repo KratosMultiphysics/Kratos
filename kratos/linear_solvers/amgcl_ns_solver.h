@@ -1,3 +1,16 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//                    
+//
+
 #if !defined(KRATOS_AMGCL_NAVIERSTOKES_SOLVER )
 #define  KRATOS_AMGCL_NAVIERSTOKES_SOLVER
 
@@ -77,20 +90,20 @@ public:
         Parameters default_parameters( R"(
                                        {
                                        "solver_type" : "AMGCL_NS_Solver",
-                                       "krylov_type" : "gmres",
+                                       "krylov_type" : "fgmres",
                                        "velocity_block_preconditioner" :
                                         {
-                                            "krylov_type" : "bicgstab",
+                                            "krylov_type" : "lgmres",
                                             "tolerance" : 1e-3,
-                                            "preconditioner_type" : "spai0",
-                                            "max_iteration": 50
+                                            "preconditioner_type" : "ilu0",
+                                            "max_iteration": 5
                                         },
                                         "pressure_block_preconditioner" :
                                         {
-                                            "krylov_type" : "cg",
+                                            "krylov_type" : "lgmres",
                                             "tolerance" : 1e-2,
                                             "preconditioner_type" : "spai0",
-                                            "max_iteration": 50
+                                            "max_iteration": 20
                                         },
                                        "tolerance" : 1e-9,
                                        "gmres_krylov_space_dimension": 50,
@@ -133,6 +146,30 @@ public:
 //             KRATOS_THROW_ERROR(std::invalid_argument," coarsening_type is invalid: available possibilities are : ",msg.str());
 //         }
 
+
+//HERE THE setting of AMGCL (not kratos)
+//     "precond" : {
+//         "usolver" : {
+//             "precond" : {
+//                 "type" : "ilu0"
+//             },
+//             "solver" : {
+//                 "tol" : 1e-2
+//             }
+//         },
+//         "psolver" : {
+//             "solver" : {
+//                 "type" : "lgmres",
+//                 "maxiter" : 20,
+//                 "tol" : 1e-1
+//             }
+//         }
+//     },
+//     "solver" : {
+//         "type" : "fgmres"
+//     }
+    
+
         mcoarse_enough = rParameters["coarse_enough"].GetInt();
 
         mTol = rParameters["tolerance"].GetDouble();
@@ -142,17 +179,19 @@ public:
 
         mndof = 1; //this will be computed automatically later on
         
-        if(rParameters["krylov_type"].GetString() == "gmres")
+        if(rParameters["krylov_type"].GetString() == "gmres" || rParameters["krylov_type"].GetString() == "lgmres" || rParameters["krylov_type"].GetString() == "fgmres")
             mprm.put("solver.M",  rParameters["gmres_krylov_space_dimension"].GetInt());
 
         //setting velocity solver options
         mprm.put("precond.usolver.solver.type", rParameters["velocity_block_preconditioner"]["krylov_type"].GetString());
         mprm.put("precond.usolver.solver.tol", rParameters["velocity_block_preconditioner"]["tolerance"].GetDouble());
+        mprm.put("precond.usolver.solver.maxiter", rParameters["velocity_block_preconditioner"]["max_iteration"].GetInt());
         mprm.put("precond.usolver.precond.type", rParameters["velocity_block_preconditioner"]["preconditioner_type"].GetString());
 
         //setting pressure solver options
         mprm.put("precond.psolver.solver.type", rParameters["pressure_block_preconditioner"]["krylov_type"].GetString());
         mprm.put("precond.psolver.solver.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
+        mprm.put("precond.psolver.solver.maxiter", rParameters["pressure_block_preconditioner"]["max_iteration"].GetInt());
         mprm.put("precond.psolver.precond.relax.type", rParameters["pressure_block_preconditioner"]["preconditioner_type"].GetString());
         mprm.put("precond.psolver.precond.coarsening.aggr.eps_strong", 0.0);
         mprm.put("precond.psolver.precond.coarsening.aggr.block_size", 1);
@@ -162,7 +201,7 @@ public:
     /**
      * Destructor
      */
-    virtual ~AMGCL_NS_Solver() {};
+    ~AMGCL_NS_Solver() override {};
 
     /**
      * Normal solve method.
@@ -172,7 +211,7 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         mprm.put("solver.tol", mTol);
         mprm.put("solver.maxiter", mmax_it);
@@ -248,7 +287,7 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
         return false;
 
@@ -257,7 +296,7 @@ public:
     /**
      * Print information about this object.
      */
-    void  PrintInfo(std::ostream& rOStream) const
+    void  PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "AMGCL NS Solver finished.";
     }
@@ -265,7 +304,7 @@ public:
     /**
      * Print object's data.
      */
-    void  PrintData(std::ostream& rOStream) const
+    void  PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -275,7 +314,7 @@ public:
      * which require knowledge on the spatial position of the nodes associated to a given dof.
      * This function tells if the solver requires such data
      */
-    virtual bool AdditionalPhysicalDataIsNeeded()
+    bool AdditionalPhysicalDataIsNeeded() override
     {
         return true;
     }
@@ -292,7 +331,7 @@ public:
         VectorType& rB,
         typename ModelPart::DofsArrayType& rdof_set,
         ModelPart& r_model_part
-    )
+    ) override
     {
 //         int old_ndof = -1;
 //         unsigned int old_node_id = rdof_set.begin()->Id();

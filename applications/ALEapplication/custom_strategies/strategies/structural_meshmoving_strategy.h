@@ -62,7 +62,6 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "custom_elements/structural_meshmoving_element.h"
-#include "processes/find_nodal_neighbours_process.h"
 
 #include "ale_application.h"
 
@@ -153,8 +152,10 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
 
   virtual ~StructuralMeshMovingStrategy() {}
 
+  void Initialize() override
+  {}
 
-  double Solve()
+  double Solve() override
   {
     KRATOS_TRY;
 
@@ -173,7 +174,7 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
 
     // Update FEM-base
     CalculateMeshVelocities();
-    MoveNodes();
+    MoveMesh();
 
     // Clearing the system if needed
     if(mreform_dof_at_every_step == true)
@@ -226,12 +227,12 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
     KRATOS_CATCH("");
   }
 
-  virtual void SetEchoLevel(int Level)
+  void SetEchoLevel(int Level) override
   {
     mstrategy->SetEchoLevel(Level);
   }
 
-  void MoveNodes()
+  void MoveMesh() override
   {
     for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
             i != BaseType::GetModelPart().NodesEnd(); ++i)

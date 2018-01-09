@@ -97,7 +97,7 @@ public:
     Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables) {}
 
     /// Destructor.
-    virtual ~Properties() {}
+    ~Properties() override {}
 
 
     ///@}
@@ -294,19 +294,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "Properties";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream <<  "Properties";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
         mData.PrintData(rOStream);
 		rOStream << "This properties contains " << mTables.size() << " tables";

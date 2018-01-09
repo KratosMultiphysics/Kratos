@@ -86,7 +86,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~VelPrCriteria() {}
+    ~VelPrCriteria() override {}
 
     ///@}
     ///@name Operators
@@ -105,7 +105,7 @@ public:
                         DofsArrayType& rDofSet,
                         const TSystemMatrixType& A,
                         const TSystemVectorType& Dx,
-                        const TSystemVectorType& b )
+                        const TSystemVectorType& b ) override
     {
         if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
         {
@@ -169,14 +169,20 @@ public:
             TDataType VelAbs = sqrt(VelIncreaseNorm)/ static_cast<TDataType>(VelDofNum);
             TDataType PrAbs = sqrt(PrIncreaseNorm)/ static_cast<TDataType>(PrDofNum);
 
-            std::cout << "CONVERGENCE CHECK:" << std::endl;
-            std::cout << " VELOC.: ratio = " << VelRatio <<"; exp.ratio = " << mVelRatioTolerance << " abs = " << VelAbs << " exp.abs = " << mVelAbsTolerance << std::endl;
-            std::cout << " PRESS.: ratio = " << PrRatio <<"; exp.ratio = " << mPrRatioTolerance << " abs = " << PrAbs << " exp.abs = " << mPrAbsTolerance << std::endl;
+            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
+            {
+                std::cout << "CONVERGENCE CHECK:" << std::endl;
+                std::cout << " VELOC.: ratio = " << VelRatio <<"; exp.ratio = " << mVelRatioTolerance << " abs = " << VelAbs << " exp.abs = " << mVelAbsTolerance << std::endl;
+                std::cout << " PRESS.: ratio = " << PrRatio <<"; exp.ratio = " << mPrRatioTolerance << " abs = " << PrAbs << " exp.abs = " << mPrAbsTolerance << std::endl;
+            }
 
             if (    (VelRatio <= mVelRatioTolerance || VelAbs <= mVelAbsTolerance) &&
                     (PrRatio <= mPrRatioTolerance || PrAbs <= mPrAbsTolerance) )
             {
-                std::cout << "*** CONVERGENCE IS ACHIEVED ***" << std::endl;
+                if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
+                {
+                    std::cout << "*** CONVERGENCE IS ACHIEVED ***" << std::endl;
+                }
                 return true;
             }
             else
@@ -194,7 +200,7 @@ public:
     /**
      * @param rModelPart Reference to the ModelPart containing the fluid problem. (unused)
      */
-    void Initialize( ModelPart& rModelPart	)
+    void Initialize( ModelPart& rModelPart	) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
     }
@@ -203,14 +209,14 @@ public:
                                     DofsArrayType& rDofSet,
                                     const TSystemMatrixType& A,
                                     const TSystemVectorType& Dx,
-                                    const TSystemVectorType& b )
+                                    const TSystemVectorType& b ) override
     {}
 
     void FinalizeSolutionStep(  ModelPart& rModelPart,
                                 DofsArrayType& rDofSet,
                                 const TSystemMatrixType& A,
                                 const TSystemVectorType& Dx,
-                                const TSystemVectorType& b )
+                                const TSystemVectorType& b ) override
     {}
 
     ///@} // Operations

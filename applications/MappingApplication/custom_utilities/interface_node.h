@@ -48,8 +48,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Node on the Interface for Searching
+/** This class Is the "wrapper" for nodes on the interface. It selects the best result by the closest distance to the 
+* point of which neighbor have to be found
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class InterfaceNode : public InterfaceObject
 {
@@ -64,10 +66,15 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    InterfaceNode(Node<3>& rNode) : mpNode(&rNode)
+    // A default constructor necessary for serialization 
+    InterfaceNode() : InterfaceObject()
+    {
+    }
+    
+    InterfaceNode(Node<3>& rNode, const int EchoLevel) : mpNode(&rNode)
     {
         SetCoordinates();
+        mEchoLevel = EchoLevel;
     }
 
     /// Destructor.
@@ -83,6 +90,11 @@ public:
     ///@name Operations
     ///@{
 
+    Node<3>* pGetBase()
+    {
+        return mpNode;
+    }
+
     bool EvaluateResult(const array_1d<double, 3>& GlobalCooords,
                         double& rMinDistance, const double Distance,
                         std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
@@ -96,94 +108,6 @@ public:
         }
 
         return is_closer;
-    }
-
-    // Scalars
-    double GetObjectValue(const Variable<double>& rVariable,
-                          const Kratos::Flags& rOptions) override
-    {
-        if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
-        {
-            return mpNode->GetValue(rVariable);
-        }
-        else
-        {
-            return mpNode->FastGetSolutionStepValue(rVariable);
-        }
-    }
-
-    void SetObjectValue(const Variable<double>& rVariable,
-                        const double& rValue,
-                        const Kratos::Flags& rOptions,
-                        const double Factor) override
-    {
-        if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
-        {
-            if (rOptions.Is(MapperFlags::ADD_VALUES))
-            {
-                double old_value = mpNode->GetValue(rVariable);
-                mpNode->SetValue(rVariable, old_value + rValue * Factor);
-            }
-            else
-            {
-                mpNode->SetValue(rVariable, rValue * Factor);
-            }
-        }
-        else     // Variable with history
-        {
-            if (rOptions.Is(MapperFlags::ADD_VALUES))
-            {
-                mpNode->FastGetSolutionStepValue(rVariable) += rValue * Factor;
-            }
-            else
-            {
-                mpNode->FastGetSolutionStepValue(rVariable) = rValue * Factor;
-            }
-        }
-    }
-
-    // Vectors
-    array_1d<double, 3> GetObjectValue(const Variable< array_1d<double, 3> >& rVariable,
-                                       const Kratos::Flags& rOptions) override
-    {
-        if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
-        {
-            return mpNode->GetValue(rVariable);
-        }
-        else
-        {
-            return mpNode->FastGetSolutionStepValue(rVariable);
-        }
-    }
-
-    void SetObjectValue(const Variable< array_1d<double, 3> >& rVariable,
-                        const array_1d<double, 3>& rValue,
-                        const Kratos::Flags& rOptions,
-                        const double Factor) override
-    {
-        if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
-        {
-            if (rOptions.Is(MapperFlags::ADD_VALUES))
-            {
-                array_1d<double, 3> old_value = mpNode->GetValue(rVariable);
-                mpNode->SetValue(rVariable, old_value + rValue * Factor);
-            }
-            else
-            {
-                mpNode->SetValue(rVariable, rValue * Factor);
-            }
-        }
-        else
-        {
-            if (rOptions.Is(MapperFlags::ADD_VALUES))
-            {
-                mpNode->FastGetSolutionStepValue(rVariable) += rValue * Factor;
-            }
-            else
-            {
-                mpNode->FastGetSolutionStepValue(rVariable) = rValue * Factor;
-            }
-        }
     }
 
     // Functions used for Debugging
@@ -225,7 +149,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "InterfaceNode" ;
@@ -233,13 +157,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "InterfaceNode";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -296,6 +220,23 @@ private:
     ///@{
 
     Node<3>* mpNode;
+        
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+    
+    virtual void save(Serializer& rSerializer) const override
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;        
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
+    }
+    virtual void load(Serializer& rSerializer) override
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
+    }
 
     ///@}
     ///@name Private Operators

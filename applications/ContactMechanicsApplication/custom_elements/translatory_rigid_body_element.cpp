@@ -292,7 +292,7 @@ void TranslatoryRigidBodyElement::InitializeSystemMatrices(MatrixType& rLeftHand
 //************************************************************************************
 
 //Inertia in the SPATIAL configuration 
-void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -339,7 +339,7 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
     	    m11 = (1.0-AlphaM) * Newmark1 * TotalMass * DiagonalMatrix;
 
     	    //Building the Local Tangent Inertia Matrix
-    	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
+    	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
 	    
     	  }
       }
@@ -356,7 +356,7 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
 //************************************************************************************
 
 //Inertia in the SPATIAL configuration 
-void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -480,7 +480,7 @@ void TranslatoryRigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
 
 	
     	//Building the Local Tangent Inertia Matrix
-    	MathUtils<double>::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
+    	BeamMathUtilsType::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
 	
       }
  

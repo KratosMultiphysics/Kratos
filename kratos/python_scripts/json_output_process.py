@@ -22,6 +22,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             "model_part_name"      : "",
             "sub_model_part_name"  : "",
             "time_frequency"       : 1.00,
+            "historical_value"     : true,
             "resultant_solution"   : false
         }
         """)
@@ -50,6 +51,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         self.output_variables = self.__generate_variable_list_from_input(self.params["output_variables"])
         self.frequency = self.params["time_frequency"].GetDouble()
         self.resultant_solution = self.params["resultant_solution"].GetBool()
+        self.historical_value = self.params["historical_value"].GetBool()
         
     def ExecuteBeforeSolutionLoop(self):
         data = {}
@@ -64,23 +66,33 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             for i in range(self.params["output_variables"].size()):
                 out = self.params["output_variables"][i]
                 variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
-                val = node.GetSolutionStepValue(variable, 0)
-                if isinstance(val,float):
+                if (self.historical_value == True):
+                    value = node.GetSolutionStepValue(variable, 0)
+                else:
+                    value = node.GetValue(variable)
+                if isinstance(value,float):
                     if (self.resultant_solution == False):
                         data["NODE_"+str(node.Id)][out.GetString() ] = []
                     else:
                         if (count == 0):
                             data["RESULTANT"][out.GetString() ] = []
                 else: # It is a vector
-                    if (self.resultant_solution == False):
-                        data["NODE_"+str(node.Id)][out.GetString()  + "_X"] = []
-                        data["NODE_"+str(node.Id)][out.GetString()  + "_Y"] = []
-                        data["NODE_"+str(node.Id)][out.GetString()  + "_Z"] = []
+                    if (KratosMultiphysics.KratosGlobals.HasVariable( out.GetString() + "_X" )): # We will asume to be components
+                        if (self.resultant_solution == False):
+                            data["NODE_"+str(node.Id)][out.GetString()  + "_X"] = []
+                            data["NODE_"+str(node.Id)][out.GetString()  + "_Y"] = []
+                            data["NODE_"+str(node.Id)][out.GetString()  + "_Z"] = []
+                        else:
+                            if (count == 0):
+                                data["RESULTANT"][out.GetString()  + "_X"] = []
+                                data["RESULTANT"][out.GetString()  + "_Y"] = []
+                                data["RESULTANT"][out.GetString()  + "_Z"] = []
                     else:
-                        if (count == 0):
-                            data["RESULTANT"][out.GetString()  + "_X"] = []
-                            data["RESULTANT"][out.GetString()  + "_Y"] = []
-                            data["RESULTANT"][out.GetString()  + "_Z"] = []
+                        if (self.resultant_solution == False):
+                            data["NODE_"+str(node.Id)][out.GetString() ] = []
+                        else:
+                            if (count == 0):
+                                data["RESULTANT"][out.GetString() ] = []
             count += 1
             
         write_external_json(self.output_file_name, data)
@@ -102,10 +114,13 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                 for i in range(self.params["output_variables"].size()):
                     out = self.params["output_variables"][i]
                     variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
-                    val = node.GetSolutionStepValue(variable, 0)
 
-                    value = node.GetSolutionStepValue(variable, 0)
-                    if isinstance(val,float):
+                    if (self.historical_value == True):
+                        value = node.GetSolutionStepValue(variable, 0)
+                    else:
+                        value = node.GetValue(variable)
+                    
+                    if isinstance(value,float):
                         if (self.resultant_solution == False):
                             data["NODE_"+str(node.Id)][out.GetString() ].append(value)
                         else:
@@ -114,19 +129,32 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             else:
                                 data["RESULTANT"][out.GetString() ][-1] += value
                     else: # It is a vector
-                        if (self.resultant_solution == False):
-                            data["NODE_"+str(node.Id)][out.GetString()  + "_X"].append(value[0])
-                            data["NODE_"+str(node.Id)][out.GetString()  + "_Y"].append(value[1])
-                            data["NODE_"+str(node.Id)][out.GetString()  + "_Z"].append(value[2])
-                        else:
-                            if (count == 0):
-                                data["RESULTANT"][out.GetString()  + "_X"].append(value[0])
-                                data["RESULTANT"][out.GetString()  + "_Y"].append(value[1])
-                                data["RESULTANT"][out.GetString()  + "_Z"].append(value[2])
+                        if (KratosMultiphysics.KratosGlobals.HasVariable( out.GetString() + "_X" )): # We will asume to be components
+                            if (self.resultant_solution == False):
+                                data["NODE_"+str(node.Id)][out.GetString()  + "_X"].append(value[0])
+                                data["NODE_"+str(node.Id)][out.GetString()  + "_Y"].append(value[1])
+                                data["NODE_"+str(node.Id)][out.GetString()  + "_Z"].append(value[2])
                             else:
-                                data["RESULTANT"][out.GetString()  + "_X"][-1] += value[0]
-                                data["RESULTANT"][out.GetString()  + "_Y"][-1] += value[1]
-                                data["RESULTANT"][out.GetString()  + "_Z"][-1] += value[2]
+                                if (count == 0):
+                                    data["RESULTANT"][out.GetString()  + "_X"].append(value[0])
+                                    data["RESULTANT"][out.GetString()  + "_Y"].append(value[1])
+                                    data["RESULTANT"][out.GetString()  + "_Z"].append(value[2])
+                                else:
+                                    data["RESULTANT"][out.GetString()  + "_X"][-1] += value[0]
+                                    data["RESULTANT"][out.GetString()  + "_Y"][-1] += value[1]
+                                    data["RESULTANT"][out.GetString()  + "_Z"][-1] += value[2]
+                        else:
+                            if (self.resultant_solution == False):
+                                list = self.__kratos_vector_to__python_list(value)
+                                data["NODE_"+str(node.Id)][out.GetString() ].append(list)
+                            else:
+                                aux = 0.0
+                                for index in range(len(value)):
+                                    aux += value[index]
+                                if (count == 0):
+                                    data["RESULTANT"][out.GetString() ].append(aux)
+                                else:
+                                    data["RESULTANT"][out.GetString() ][-1] += aux
                 count += 1
               
         write_external_json(self.output_file_name, data)
@@ -140,6 +168,12 @@ class JsonOutputProcess(KratosMultiphysics.Process):
     def ExecuteFinalize(self):
         pass
       
+    def __kratos_vector_to__python_list(self,value):
+        list = []
+        for index in range(len(value)):
+            list.append(value[index])
+        return list
+        
     def __generate_variable_list_from_input(self,param):
       '''Parse a list of variables from input.'''
       # At least verify that the input is a string

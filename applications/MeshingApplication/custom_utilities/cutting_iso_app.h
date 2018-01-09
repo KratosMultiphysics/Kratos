@@ -85,10 +85,10 @@ public:
     ///@{
 
     /// Default constructor.
-    Cutting_Isosurface_Application() {}
+    Cutting_Isosurface_Application() = default;
 
     /// Destructor.
-    virtual ~Cutting_Isosurface_Application() {}
+    virtual ~Cutting_Isosurface_Application() = default;
 
 
     ///This function Creates cutting isosurfaces by creating nodes and conditions (to define the conectivities) in a different model part. (new_model_part)

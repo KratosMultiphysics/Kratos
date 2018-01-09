@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -76,7 +76,12 @@ std::istream& operator>>(std::istream &in, type &s)
         s = pastix;
 #endif
     else
-        throw std::invalid_argument("Invalid direct solver value");
+        throw std::invalid_argument("Invalid direct solver value. Valid choices are: "
+                "skyline_lu"
+#ifdef AMGCL_HAVE_PASTIX
+                ", pastix"
+#endif
+                ".");
 
     return in;
 }

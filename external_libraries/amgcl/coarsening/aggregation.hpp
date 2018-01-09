@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -126,23 +126,20 @@ struct aggregation {
     {
         const size_t n = rows(A);
 
-        TIC("aggregates");
+        AMGCL_TIC("aggregates");
         Aggregates aggr(A, prm.aggr, prm.nullspace.cols);
-        TOC("aggregates");
+        AMGCL_TOC("aggregates");
 
-        TIC("interpolation");
+        AMGCL_TIC("interpolation");
         boost::shared_ptr<Matrix> P = tentative_prolongation<Matrix>(
                 n, aggr.count, aggr.id, prm.nullspace, prm.aggr.block_size
                 );
-        TOC("interpolation");
-
-        boost::shared_ptr<Matrix> R = boost::make_shared<Matrix>();
-        *R = transpose(*P);
+        AMGCL_TOC("interpolation");
 
         if (prm.nullspace.cols > 0)
             prm.aggr.block_size = prm.nullspace.cols;
 
-        return boost::make_tuple(P, R);
+        return boost::make_tuple(P, transpose(*P));
     }
 
     /// Creates system matrix for the coarser level.

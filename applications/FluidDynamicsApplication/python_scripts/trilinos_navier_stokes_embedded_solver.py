@@ -1,15 +1,18 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+
+# Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","MetisApplication","TrilinosApplication")
+
+# Import applications
 import KratosMultiphysics.MetisApplication as KratosMetis           # Partitioning
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
 
-## Checks that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
-## Import serial monolithic embedded solver
+# Import serial monolithic embedded solver
 import navier_stokes_embedded_solver
 
 def CreateSolver(main_model_part, custom_settings):
@@ -40,7 +43,6 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
-            "divergence_clearance_steps": 0,
             "reform_dofs_at_each_step": true,
             "relative_velocity_tolerance": 1e-5,
             "absolute_velocity_tolerance": 1e-7,
@@ -82,14 +84,14 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                 {
                     "element_name":"EmbeddedNavierStokes3D4N",
-                    "condition_name": "NavierStokesWallCondition3D"
+                    "condition_name": "NavierStokesWallCondition3D3N"
                 }
                 """)
         elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                 {
                     "element_name":"EmbeddedNavierStokes2D3N",
-                    "condition_name": "NavierStokesWallCondition2D"
+                    "condition_name": "NavierStokesWallCondition2D2N"
                 }
                 """)
         else:
@@ -151,8 +153,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         self.conv_criteria = KratosTrilinos.TrilinosUPCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
                                                                self.settings["absolute_velocity_tolerance"].GetDouble(),
                                                                self.settings["relative_pressure_tolerance"].GetDouble(),
-                                                               self.settings["absolute_pressure_tolerance"].GetDouble(),
-                                                               self.EpetraCommunicator)
+                                                               self.settings["absolute_pressure_tolerance"].GetDouble())
 
         ## Constructing the BDF process (time coefficients update)
         self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,self.settings["time_order"].GetInt())

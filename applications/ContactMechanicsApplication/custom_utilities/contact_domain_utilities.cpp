@@ -33,7 +33,7 @@ namespace Kratos
 	//*******************************************************************************************
 
         //GEOMETRICAL THEORY
-        // Heron's Formula for the area of a triangle(Hero's Formula)
+        // Heron's Formula for the area of a triangle 
         // A method for calculating the area of a triangle when you know the lengths of all three sides.
         // Let a,b,c be the lengths of the sides of a triangle. The area is given by:
 
@@ -59,11 +59,11 @@ namespace Kratos
 	//*******************************************************************************************
 
         void ContactDomainUtilities::CalculateEdgeDistances (std::vector<BaseLengths>& BaseVector,
-							     PointType& P1,
-							     PointType& P2,
-							     PointType& PS1,
-							     PointType& PS2,
-							     PointType& Normal)
+							     const PointType& P1,
+							     const  PointType& P2,
+							     const PointType& PS1,
+							     const PointType& PS2,
+							     const PointType& Normal)
 	{
 
 	  BaseVector[0].L=norm_2(P2-P1);
@@ -74,8 +74,8 @@ namespace Kratos
 	  PointType V2;
 	  
 	  //projection of the slave on the master plane:  
-	  PointType M1 = 0.5*(P2-P1);
-	  PointType M2 = 0.5*(PS2-PS1);
+	  PointType M1 = 0.5*(P1+P2);
+	  PointType M2 = 0.5*(PS1+PS2);
    
 	  //Comtutacion of the line bases:
 
@@ -86,6 +86,13 @@ namespace Kratos
 
 	  V1 /= norm_2(V1);
 	  V2 /= norm_2(V2);
+
+	  //projection on the master plane:
+	  PointType PlaneNormal;
+	  MathUtils<double>::CrossProduct(PlaneNormal,V1,V2);
+	  M2 -= P1;
+	  M2 -= PlaneNormal*(inner_prod(M2,PlaneNormal));
+	  M2 += P1;
 	  
 	  CalculateLineIntersection(BaseVector[0].B, P1, M2, V1, V2 );
 
@@ -94,18 +101,24 @@ namespace Kratos
 	  //BaseVector[1]:
 	  
 	  V1 = PS2-PS1;
-	  V2 = -Normal;
+	  V2 = Normal;
 
 	  V1 /= norm_2(V1);
 	  V2 /= norm_2(V2);
+
+	  //projection on the master plane:
+	  MathUtils<double>::CrossProduct(PlaneNormal,V1,V2);
+	  M1 -= PS1;
+	  M1 -= PlaneNormal*(inner_prod(M1,PlaneNormal));
+	  M1 += PS1;
 	  
-	  CalculateLineIntersection(BaseVector[1].B, PS1, M1 , V1, V2 );
+	  CalculateLineIntersection(BaseVector[1].B, PS1, M1, V1, V2 );
 
 	  BaseVector[1].A = BaseVector[1].L-BaseVector[1].B;
 
 
-	  std::cout<<" BaseVector 0-> L: "<<BaseVector[0].L<<" A: "<<BaseVector[0].A<<" B: "<<BaseVector[0].B<<std::endl;
-	  std::cout<<" BaseVector 1-> L: "<<BaseVector[1].L<<" A: "<<BaseVector[1].A<<" B: "<<BaseVector[1].B<<std::endl;
+	  //std::cout<<" BaseVector 0-> L: "<<BaseVector[0].L<<" A: "<<BaseVector[0].A<<" B: "<<BaseVector[0].B<<std::endl;
+	  //std::cout<<" BaseVector 1-> L: "<<BaseVector[1].L<<" A: "<<BaseVector[1].A<<" B: "<<BaseVector[1].B<<std::endl;
 	
 
 	}
@@ -114,11 +127,11 @@ namespace Kratos
 	//*******************************************************************************************
 
         void ContactDomainUtilities::CalculateBaseDistances (std::vector<BaseLengths>& BaseVector,
-							     PointType& P1,
-							     PointType& P2,
-							     PointType& P3,
-							     PointType& PS,
-							     PointType& Normal)
+							     const PointType& P1,
+							     const PointType& P2,
+							     const PointType& P3,
+							     const PointType& PS,
+							     const PointType& Normal)
 	{
 
 	  BaseVector[0].L=norm_2(P2-P1);
@@ -129,11 +142,6 @@ namespace Kratos
 	  PointType V1; 
 	  PointType V2;
 	  
-	  // V1 = P2-P1;
-	  // V2 = P3-P1;	  
-	  // MathUtils<double>::CrossProduct(Normal,V1,V2);	  
-	  // if( norm_2(Normal) != 0 )
-	  //   Normal/=norm_2(Normal);	  
 
 	  //projection of the slave on the master plane:  
 	  PointType PPS = PS-P1;
@@ -174,13 +182,13 @@ namespace Kratos
 	  V1 /= norm_2(V1);
 	  V2 /= norm_2(V2);
 	  
-	  CalculateLineIntersection(BaseVector[1].B, P3, PPS, V1, V2 );
+	  CalculateLineIntersection(BaseVector[2].B, P3, PPS, V1, V2 );
 
 	  BaseVector[2].A = BaseVector[2].L-BaseVector[2].B;
 
-	  std::cout<<" BaseVector 0-> L: "<<BaseVector[0].L<<" A: "<<BaseVector[0].A<<" B: "<<BaseVector[0].B<<std::endl;
-	  std::cout<<" BaseVector 1-> L: "<<BaseVector[1].L<<" A: "<<BaseVector[1].A<<" B: "<<BaseVector[1].B<<std::endl;
-	  std::cout<<" BaseVector 2-> L: "<<BaseVector[2].L<<" A: "<<BaseVector[2].A<<" B: "<<BaseVector[2].B<<std::endl;
+	  // std::cout<<" BaseVector 0-> L: "<<BaseVector[0].L<<" A: "<<BaseVector[0].A<<" B: "<<BaseVector[0].B<<std::endl;
+	  // std::cout<<" BaseVector 1-> L: "<<BaseVector[1].L<<" A: "<<BaseVector[1].A<<" B: "<<BaseVector[1].B<<std::endl;
+	  // std::cout<<" BaseVector 2-> L: "<<BaseVector[2].L<<" A: "<<BaseVector[2].A<<" B: "<<BaseVector[2].B<<std::endl;
 
 	}
 
@@ -220,21 +228,21 @@ namespace Kratos
 
 	  PointType P2_P1xV2;
 	  MathUtils<double>::CrossProduct(P2_P1xV2,P2_P1,V2);
-
+	  
 	  if( norm_2(V1xV2) != 0 )   
 	    a = norm_2(P2_P1xV2)/norm_2(V1xV2);
 	  else
-	    a = 0;	  
+	    a = 0;
 	}
 
 	//*******************************************************************************************
 	//*******************************************************************************************
 
 	void ContactDomainUtilities::CalculateBaseDistances (BaseLengths& Base,
-							     PointType& P1,
-							     PointType& P2,
-							     PointType& PS,
-							     PointType& Normal)
+							     const PointType& P1,
+							     const PointType& P2,
+							     const PointType& PS,
+							     const PointType& Normal)
 	{
 
 		Base.L=norm_2(P2-P1);
@@ -272,7 +280,7 @@ namespace Kratos
         //************************************************************************************
         //************************************************************************************
 
-	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateSurfaceNormal(PointType &Normal, PointType& D1, PointType& D2)
+	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateSurfaceNormal(PointType &Normal, const PointType& D1, const PointType& D2)
 	{
 
 		Normal.clear();
@@ -280,7 +288,7 @@ namespace Kratos
 		MathUtils<double>::CrossProduct(Normal, D1, D2);
 		
 		if(norm_2(Normal)!=0)
-			Normal/=norm_2(Normal);
+		  Normal/=norm_2(Normal);
 
 		return Normal;
 	}
@@ -288,9 +296,9 @@ namespace Kratos
         //************************************************************************************
         //************************************************************************************
 
-	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceNormal(PointType &Normal, PointType& P1, PointType &P2)
+	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceNormal(PointType &Normal, const PointType& P1, const PointType &P2)
 	{
-   	        //contact element is ouside (sign criterion)
+   	        //contact element is outside (sign criterion)
 		Normal.clear();
 		Normal[0] = - (P2[1] - P1[1]);
 		Normal[1] =   (P2[0] - P1[0]);
@@ -306,7 +314,7 @@ namespace Kratos
         //************************************************************************************
 
 
-	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent ,PointType& P1, PointType &P2)
+	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent, const  PointType& P1, const PointType &P2)
 	{
    	        //contact element is ouside (sign criterion)
 		Tangent.clear();
@@ -327,7 +335,7 @@ namespace Kratos
        //************************************************************************************
 
 
-	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent ,PointType& Normal)
+	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent, PointType& Normal)
 	{
 	        //counter clock-wise movement
 		Tangent.clear();

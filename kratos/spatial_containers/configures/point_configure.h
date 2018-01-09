@@ -72,8 +72,8 @@ public:
    * @param PointType   Point of doubles with 3 coordinates (Dimension = 3)
    * @param PointerType Pointer to Point of doubles with 3 coordinates (Dimension = 3)
    */
-  typedef Point<Dimension, double>          PointType;
-  typedef Point<Dimension, double>::Pointer PointerType;
+  typedef Point          PointType;
+  typedef Point::Pointer PointerType;
 
   /** Additional types needed by the bins.
    * @param PointContainerType    Point Container.
@@ -243,7 +243,7 @@ public:
     double pwdDistance = 0.0f;
 
     for(std::size_t i = 0; i < Dimension; i++) {
-      pwdDistance += std::pow((*rObj_2)[i] - (*rObj_2)[i], 2);
+      pwdDistance += std::pow((*rObj_1)[i] - (*rObj_2)[i], 2);
     }
 
     distance = std::sqrt(pwdDistance);

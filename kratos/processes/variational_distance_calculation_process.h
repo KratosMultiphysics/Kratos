@@ -1,31 +1,14 @@
-/*
-Kratos Multi-Physics
-
-Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-		in the documentation and/or other materials provided with the distribution.
-	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-			This product includes Kratos Multi-Physics technology.
-	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2015-09-12
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                    
 //
 
 
@@ -201,7 +184,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~VariationalDistanceCalculationProcess()
+    ~VariationalDistanceCalculationProcess() override
     {
     }
 
@@ -220,7 +203,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute() override
+    void Execute() override
     {
         KRATOS_TRY;
 
@@ -230,17 +213,143 @@ public:
         //TODO: check flag    PERFORM_STEP1
         //step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
         mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
+        
+        //unfix the distances
+        const int nnodes = static_cast<int>(mp_distance_model_part->Nodes().size());
+        #pragma omp parallel for
+        for(int iii=0; iii<nnodes; iii++)
+        {
+            auto it = mp_distance_model_part->NodesBegin() + iii;
+            it->Free(DISTANCE);
+            
+            
+            double& d = it->FastGetSolutionStepValue(DISTANCE);
+            it->SetValue(DISTANCE, d); //save the distances
+              
+            if(d == 0){
+                it->Fix(DISTANCE);
+                d = 1e-15;
+            }
+            else{
+                if(d > 0.0) //set to a large number, to make sure that that the minimal distance is computed according to CaculateTetrahedraDistances
+                    d = 1.0e15;
+                else
+                    d = -1.015;
+            }
+            
+            
+        }
+        
+        
+        const int nelem = static_cast<int>(mp_distance_model_part->Elements().size());
+        #pragma omp parallel for
+        for(int iii=0; iii<nelem; iii++)
+        {
+            auto it = mp_distance_model_part->ElementsBegin() + iii;
+            array_1d<double,TDim+1> distances;
+            auto& geom = it->GetGeometry();
+            
+            for(unsigned int i=0; i<TDim+1; i++)
+                distances[i] = geom[i].GetValue(DISTANCE);
+            
+            array_1d<double,TDim+1> original_distances = distances;
+            
+            unsigned int positives = 0, negatives=0;
+            for(unsigned int i=0; i<TDim+1; i++)
+            {
+                if(distances[i] >= 0) positives++;
+                else negatives++;
+            }
+        
+            if(positives> 0  && negatives>0) //the element is cut by the interface
+            {
+                if(TDim==3)
+                    GeometryUtils::CalculateTetrahedraDistances(geom, distances);
+                else
+                    GeometryUtils::CalculateTriangleDistances(geom,distances);
+                
+                //assign the sign 
+                for(unsigned int i=0; i<TDim+1; i++)
+                {
+                    if(original_distances[i] < 0) distances[i] = -distances[i];
+                }
+               
+                for(unsigned int i=0; i<TDim+1; i++)
+                {
+                    
+                    double& d = geom[i].FastGetSolutionStepValue(DISTANCE);
+                    if(std::abs(d) > std::abs(distances[i])) d = distances[i];
+                    geom[i].Fix(DISTANCE);
+                }
+            }
+        }
+        
+        //compute the maximum and minimum distance for the fixed nodes
+        double max_dist = 0.0;
+        double min_dist = 0.0;
+        for(int iii=0; iii<nnodes; iii++)
+        {
+            auto it = mp_distance_model_part->NodesBegin() + iii;
+            if(it->IsFixed(DISTANCE))
+            {
+                const double& d = it->FastGetSolutionStepValue(DISTANCE);
+                if(d>max_dist)
+                    max_dist = d;
+                if(d<min_dist)
+                    min_dist = d;
+            }
+        }        
+        
+        //assign the max dist to all of the non-fixed positve nodes and the minimum one to the non-fixed negatives
+        #pragma omp parallel for
+        for(int iii=0; iii<nnodes; iii++)
+        {
+            auto it = mp_distance_model_part->NodesBegin() + iii;
+            if(!it->IsFixed(DISTANCE))
+            {
+                double& d = it->FastGetSolutionStepValue(DISTANCE);
+                if(d>0)
+                    d = max_dist;
+                else
+                    d = min_dist;
+            }
+        }  
+        
+        //
+        if(mp_distance_model_part->GetCommunicator().TotalProcesses() != 1) //MPI case
+        {
+            #pragma omp parallel for
+            for(int iii=0; iii<nnodes; iii++)
+            {
+                auto it = mp_distance_model_part->NodesBegin() + iii;
+                it->FastGetSolutionStepValue(DISTANCE) = std::abs(it->FastGetSolutionStepValue(DISTANCE));
+            }
+            
+            mp_distance_model_part->GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
+            
+            #pragma omp parallel for
+            for(int iii=0; iii<nnodes; iii++)
+            {
+                auto it = mp_distance_model_part->NodesBegin() + iii;
+                if(it->GetValue(DISTANCE) < 0.0)
+                    it->FastGetSolutionStepValue(DISTANCE) = -it->FastGetSolutionStepValue(DISTANCE);
+            }
+        }
+        
+        
         mp_solving_strategy->Solve();
 
-        //compute the average gradient and scale the distance so that the gradient is approximately 1
-        ScaleDistance();
 
         //step2 - minimize the target residual
         mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
         for(unsigned int it = 0; it<mmax_iterations; it++)
         {
-            mp_solving_strategy->Solve();
+             mp_solving_strategy->Solve();
         }
+        
+        //unfix the distances
+        for(auto it = mp_distance_model_part->NodesBegin(); it!=mp_distance_model_part->NodesEnd(); ++it)
+            it->Free(DISTANCE);
 
         KRATOS_CATCH("")
     }
@@ -271,19 +380,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "VariationalDistanceCalculationProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "VariationalDistanceCalculationProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -384,66 +493,6 @@ protected:
         mdistance_part_is_initialized = true;
 
         KRATOS_CATCH("")
-    }
-
-    void ScaleDistance()
-    {
-//         double min_grad = 0.0;
-//         double max_grad = 0.0;
-        double avg_grad = 0.0;
-        double tot_vol = 0.0;
-        Vector grad_norms(mp_distance_model_part->Elements().size());
-        Vector vols(mp_distance_model_part->Elements().size());
-
-        for (ModelPart::ElementsContainerType::iterator iii = mp_distance_model_part->ElementsBegin();
-                iii != mp_distance_model_part->ElementsEnd(); iii++)
-        {
-            Geometry< Node<3> >& geom = iii->GetGeometry();
-
-            boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim > DN_DX;
-            array_1d<double, TDim+1 > N;
-            double vol;
-            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, vol);
-
-            //get distances at the nodes
-            array_1d<double, TDim+1 > distances;
-            for(unsigned int i=0; i<TDim+1; i++)
-            {
-                distances[i] = geom[i].FastGetSolutionStepValue(DISTANCE);
-            }
-
-            const array_1d<double,TDim> grad = prod(trans(DN_DX),distances);
-            const double grad_norm = norm_2(grad);
-
-            tot_vol += vol;
-            avg_grad += vol*grad_norm;
-
-//             min_grad = std::min(min_grad, grad_norm);
-//             max_grad = std::max(max_grad, grad_norm);
-        }
-
-        // For MPI: assemble results across partitions
-        mp_distance_model_part->GetCommunicator().SumAll(avg_grad);
-        mp_distance_model_part->GetCommunicator().SumAll(tot_vol);
-
-        avg_grad /= tot_vol;
-
-
-        if(avg_grad < 1e-20)
-            KRATOS_THROW_ERROR(std::logic_error,"the average gradient is found to be zero after step 1. Something wrong!", "");
-
-
-        const double ratio = 1.0/avg_grad;
-
-//         KRATOS_WATCH(avg_grad);
-//         KRATOS_WATCH(max_grad);
-//         KRATOS_WATCH(min_grad);
-//         KRATOS_WATCH(ratio);
-
-        for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
-        {
-            iii->FastGetSolutionStepValue(DISTANCE) *= ratio;
-        }
     }
 
 

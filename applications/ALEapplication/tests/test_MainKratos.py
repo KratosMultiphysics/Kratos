@@ -102,7 +102,7 @@ class MainKratos:
             #self.gid_output.ExecuteInitializeSolutionStep()
 
             if(step >= 3):
-                self.solver.SolveMeshMotion()
+                self.solver.GetMeshMotionSolver().Solve()
 
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()

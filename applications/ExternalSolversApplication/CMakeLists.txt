@@ -2,30 +2,12 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosExternalSolversApplication ****")
 
-if(${INCLUDE_PASTIX} MATCHES ON)
-	set(EXCLUDE_ITSOL ON)
-	message("************************** ITSOL NOT COMPILED AS IT IS INCOMPATIBLE WITH PASTIX **************** ")
-endif(${INCLUDE_PASTIX} MATCHES ON)
-
-
-
-
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/external_libraries )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.3 )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
 # ##add subdirectories for compilation of dependent libraries
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.3)
-
-if(${EXCLUDE_ITSOL} MATCHES ON)
-    add_definitions(-DEXCLUDE_ITSOL)
-else(${EXCLUDE_ITSOL} MATCHES ON)
-    #for ITSOL
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/ITSOL_2)
-    include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/ITSOL_2 )
-    include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/ITSOL_2/INC  )
-endif(${EXCLUDE_ITSOL} MATCHES ON)
 
 if(${INCLUDE_PASTIX} MATCHES ON)
     add_definitions(-DINCLUDE_PASTIX)
@@ -73,19 +55,13 @@ set( KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES
 # ## define library Kratos which defines the basic python interface
 add_library(KratosExternalSolversApplication SHARED ${KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES})
 
-if(${EXCLUDE_ITSOL} MATCHES ON)
-	if(${INCLUDE_PASTIX} MATCHES ON)
-		target_link_libraries(KratosExternalSolversApplication KratosCore superlu kratos_pastix rt)
-	else(${INCLUDE_PASTIX} MATCHES ON)
-		target_link_libraries(KratosExternalSolversApplication KratosCore superlu )
-	endif(${INCLUDE_PASTIX} MATCHES ON)
-else(${EXCLUDE_ITSOL} MATCHES ON)
-	if(${INCLUDE_PASTIX} MATCHES ON)
-		target_link_libraries(KratosExternalSolversApplication KratosCore superlu itsol_solvers kratos_pastix rt)
-	else(${INCLUDE_PASTIX} MATCHES ON)
-		target_link_libraries(KratosExternalSolversApplication KratosCore superlu itsol_solvers )
-	endif(${INCLUDE_PASTIX} MATCHES ON)
-endif(${EXCLUDE_ITSOL} MATCHES ON)
+
+if(${INCLUDE_PASTIX} MATCHES ON)
+        target_link_libraries(KratosExternalSolversApplication KratosCore superlu  kratos_pastix rt)
+else(${INCLUDE_PASTIX} MATCHES ON)
+        target_link_libraries(KratosExternalSolversApplication KratosCore superlu  )
+endif(${INCLUDE_PASTIX} MATCHES ON)
+
 
 if(${INCLUDE_FEAST} MATCHES ON)
   set(FEAST_LINK_LIBS feast ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran m)
@@ -108,6 +84,11 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+
+# Add Cotire
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosExternalSolversApplication)
+endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosExternalSolversApplication DESTINATION libs )
 

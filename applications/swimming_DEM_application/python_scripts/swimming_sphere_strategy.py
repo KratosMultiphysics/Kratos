@@ -8,46 +8,67 @@ BaseStrategy = sphere_strategy.ExplicitStrategy
 
 class SwimmingStrategy(BaseStrategy):
 
-    def IntegrationSchemeTranslator(self, name):
-        class_name = BaseStrategy.IntegrationSchemeTranslator(self, name)
+    def TranslationalIntegrationSchemeTranslator(self, name):
+        class_name = BaseStrategy.TranslationalIntegrationSchemeTranslator(self, name)
 
         if name == 'Hybrid_Bashforth':
             class_name = 'HybridBashforthScheme'
-
         if name == 'TerminalVelocityScheme':
             class_name = 'TerminalVelocityScheme'
 
         return class_name
+    
+    def RotationalIntegrationSchemeTranslator(self, name_translational, name_rotational):
+        class_name = BaseStrategy.RotationalIntegrationSchemeTranslator(self, name_translational, name_rotational)
 
-    def GetSchemeInstance(self, class_name): # parent counterpart must not be called due to different 'globals()'
-        return globals().get(class_name)()
+        if name_rotational == 'Direct_Integration':
+            if name_translational == 'Hybrid_Bashforth':
+                class_name = 'HybridBashforthScheme'
+            elif name_translational == 'TerminalVelocityScheme':
+                class_name = 'TerminalVelocityScheme'
+        elif name_rotational == 'Runge_Kutta':
+            class_name = 'RungeKuttaScheme'
+        elif name_rotational == 'Quaternion_Integration':
+            class_name = 'QuaternionIntegrationScheme'
 
-    def Initialize(self):
-        BaseStrategy.Initialize(self)
-        BaseStrategy.SetVariablesAndOptions(self)
-
-        self.CheckMomentumConservation()
-
-        self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
+        return class_name
 
     def CreateCPlusPlusStrategy(self):
         self.SetVariablesAndOptions()
-        print('self.Parameters.IntegrationScheme',self.Parameters.IntegrationScheme)
-        print('self.Parameters.do_search_neighbours',self.Parameters.do_search_neighbours)
+        do_search_neighbours =  self.DEM_parameters["do_search_neighbours"].GetBool()
+        print('self.DEM_parameters.TranslationalIntegrationScheme', self.DEM_parameters["TranslationalIntegrationScheme"].GetString())
+        print('self.DEM_parameters.do_search_neighbours', do_search_neighbours)
 
-        if self.Parameters.IntegrationScheme == 'Verlet_Velocity':
+        if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Verlet_Velocity':
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              self.time_integration_scheme, self.search_strategy, self.Parameters.do_search_neighbours)
+                                                              self.search_strategy, do_search_neighbours)
 
-        elif self.Parameters.IntegrationScheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
+        elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
             self.cplusplus_strategy = AdamsBashforthStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              self.time_integration_scheme, self.search_strategy, self.Parameters.do_search_neighbours)
+                                                              self.search_strategy, do_search_neighbours)
 
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                             self.time_integration_scheme, self.search_strategy, self.Parameters.do_search_neighbours)
+                                                             self.search_strategy, do_search_neighbours)
 
+    def GetTranslationalSchemeInstance(self, class_name):
+         if not class_name == 'NewmarkBetaScheme':
+             return globals().get(class_name)()
+         else:
+             return globals().get(class_name)(0.5,0.25)
+    
+    def GetRotationalSchemeInstance(self, class_name):
+         if not class_name == 'NewmarkBetaScheme':
+             return globals().get(class_name)()
+         else:
+             return globals().get(class_name)(0.5,0.25)
 
+    def ModifyProperties(self, properties):
+        
+        super(SwimmingStrategy,self).ModifyProperties(properties)
+        
+        if not properties.Has(PARTICLE_SPHERICITY):
+            properties[PARTICLE_SPHERICITY] = 1.0

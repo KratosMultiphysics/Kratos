@@ -23,6 +23,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 
 
 namespace Kratos
@@ -45,7 +46,7 @@ namespace Python
 
 	AddCustomStrategiesToPython();
 	AddCustomUtilitiesToPython();
-
+        AddCustomProcessesToPython();
 	//registering variables in python
 
 //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);

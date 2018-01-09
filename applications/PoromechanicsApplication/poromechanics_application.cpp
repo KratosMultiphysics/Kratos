@@ -38,7 +38,8 @@
 namespace Kratos
 {
 
-KratosPoromechanicsApplication::KratosPoromechanicsApplication():
+KratosPoromechanicsApplication::KratosPoromechanicsApplication()
+    : KratosApplication("PoromechanicsApplication"),
 
     mUPwSmallStrainElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType(3)))),
     mUPwSmallStrainElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
@@ -231,6 +232,10 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( NONLOCAL_EQUIVALENT_STRAIN )
     
     KRATOS_REGISTER_VARIABLE( JOINT_WIDTH )
+
+    KRATOS_REGISTER_VARIABLE( NODAL_SMOOTHING )
+    KRATOS_REGISTER_VARIABLE( NODAL_CAUCHY_STRESS_TENSOR )
+    KRATOS_REGISTER_VARIABLE( NODAL_VON_MISES_STRESS )
 }
 
 }// namespace Kratos.

@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics 
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -36,7 +36,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = 1
-        self.domain_size       = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         self.search_frequency  = self.settings["search_frequency"].GetDouble()
         
         self.search_control_is_time = False
@@ -67,6 +67,9 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
                        
     #
     def ExecuteInitialize(self):
+
+        for i in range(0,self.number_of_walls):
+            self.parametric_walls[i].BuildParametricWall()
 
         # check restart
         self.restart = False
@@ -172,3 +175,9 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
             return ( self.main_model_part.ProcessInfo[TIME] > self.next_search )
         else:
             return ( self.step_count >= self.next_search )
+
+
+    #
+    def GetVariables(self):
+        nodal_variables = ['VOLUME_ACCELERATION', 'CONTACT_FORCE', 'CONTACT_NORMAL']
+        return nodal_variables

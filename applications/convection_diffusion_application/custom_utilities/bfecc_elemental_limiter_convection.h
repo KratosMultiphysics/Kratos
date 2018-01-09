@@ -174,8 +174,8 @@ public:
                 }
                 
                 //Computing error 1 and modified solution at time N to be interpolated again
-				iparticle->GetValue(ERROR_1) = 0.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5*phi_old;//computing error1 as e1 = 0.5*(rVar(n) - phi_old)
-                iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) + iparticle->GetValue(ERROR_1);//rVar(n)+e1
+				iparticle->GetValue(BFECC_ERROR_1) = 0.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5*phi_old;//computing error1 as e1 = 0.5*(rVar(n) - phi_old)
+                iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) + iparticle->GetValue(BFECC_ERROR_1);//rVar(n)+e1
 			}
         }
 		//Backward with modified solution
@@ -222,7 +222,7 @@ public:
 			double e1 = 0.00f;
 			
 			for(unsigned int j = 0 ; j < element_geometry.size(); j++){ 
-				e1 += element_geometry[j].GetValue(ERROR_1);
+				e1 += element_geometry[j].GetValue(BFECC_ERROR_1);
 			}
 			e1 /= element_geometry.size(); 
 
@@ -245,7 +245,7 @@ public:
 
 				if(std::abs(e2) > std::abs(e1)){
 					for(unsigned int j = 0 ; j < element_geometry.size(); j++){
-						element_geometry[j].GetValue(ERROR) = minmod(e1,element_geometry[j].GetValue(ERROR_1));
+						element_geometry[j].GetValue(BFECC_ERROR) = minmod(e1,element_geometry[j].GetValue(BFECC_ERROR_1));
 					}
 				}
 			}
@@ -257,7 +257,7 @@ public:
 			ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
 			bool is_found = foundf[i];
             if(is_found) {
-				iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) + iparticle->GetValue(ERROR);
+				iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) + iparticle->GetValue(BFECC_ERROR);
 			}
 		}
 		//Backward with modified solution

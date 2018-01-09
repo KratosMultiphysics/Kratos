@@ -696,7 +696,7 @@ public:
        
 
       //std::cout<<" Nodes Added "<<NodeId-InitialNodeId<<std::endl;
-      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[DOMAIN_SIZE]==2 ){
+      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[SPACE_DIMENSION]==2 ){
       
 	//create modelpart nodes
 	for(unsigned int i=0; i<FacePoints.size(); i++)
@@ -1386,8 +1386,10 @@ private:
       PointType DistanceToTip    = (rSlaveTipPoint - rMasterCenter);
       DistanceToTip[2] = 0; //2D
 
-      PointType ReferenceOrientation = MathUtils<double>::CrossProduct( DistanceToTip, DistanceToCenter );
-      PointType Orientation = MathUtils<double>::CrossProduct( DistanceToPoint, DistanceToCenter );
+      PointType ReferenceOrientation;
+      MathUtils<double>::CrossProduct( ReferenceOrientation, DistanceToTip, DistanceToCenter );
+      PointType Orientation;
+      MathUtils<double>::CrossProduct( Orientation, DistanceToPoint, DistanceToCenter );
 
       double sign = (Orientation[2] * ReferenceOrientation[2]);
 

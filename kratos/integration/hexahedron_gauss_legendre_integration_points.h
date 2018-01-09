@@ -1,9 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author :        VMataix $
-//   Date:                $Date:            March 2016 $
-//   Revision:            $Revision:                  1.6 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Vicente Mataix Ferrandiz
+//                    
 //
 
 

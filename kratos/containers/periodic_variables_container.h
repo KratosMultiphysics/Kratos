@@ -1,9 +1,15 @@
-/*
- * File:   periodic_variables_container.h
- * Author: jcotela
- *
- * Created on September 21, 2011, 12:53 PM
- */
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela Dalmau
+//                    
+//
 
 #ifndef KRATOS_PERIODIC_VARIABLES_CONTAINER_H
 #define	KRATOS_PERIODIC_VARIABLES_CONTAINER_H

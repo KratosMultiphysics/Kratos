@@ -52,8 +52,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Python Interface of the MappingApplication
+/** This class constructs the mappers and exposes them to Python
+* Some checks are performed to see if the Input (ModelParts and JSON-Parameters) are valid
+* Also the additional timing information is implemented here (echo_level = 1)
+* For information abt the available echo_levels and the JSON default-parameters
+* look into the class description of the MapperCommunicator
 */
 class MapperFactory
 {
@@ -70,14 +74,12 @@ public:
 
     /// Default constructor.
     MapperFactory(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
-                  Parameters& rJsonParameters) :
+                  Parameters JsonParameters) :
         mrModelPartOrigin(rModelPartOrigin),
         mrModelPartDestination(rModelPartDestination),
-        mrJsonParameters(rJsonParameters)
+        mJsonParameters(JsonParameters)
     {
-
-        CheckAndValidateJson();
-        ReadAndCheckInterfaceModelParts();
+        ReadInterfaceModelParts();
         ConstructMapper();
     }
 
@@ -258,19 +260,7 @@ private:
     ModelPart* mpInterfaceModelPartOrigin;
     ModelPart* mpInterfaceModelPartDestination;
 
-    Parameters& mrJsonParameters;
-    Parameters mDefaultParameters = Parameters( R"(
-      {
-             "mapper_type"                           : "",
-             "interface_submodel_part_origin"        : "",
-             "interface_submodel_part_destination"   : "",
-             "search_radius"                         : -1.0,
-             "search_iterations"                     : 3,
-             "approximation_tolerance"               : -1.0,
-             "echo_level"                            : 0
-       }  )" );
-
-    bool mComputeSearchRadius;
+    Parameters mJsonParameters;
 
     ///@}
     ///@name Private Operators
@@ -281,125 +271,56 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CheckAndValidateJson()
+    void ReadInterfaceModelParts()
     {
-        // Check if the three basic parameters are present
-        if (!mrJsonParameters.Has("mapper_type"))
+        int echo_level = 0;
+        // read the echo_level temporarily, bcs the mJsonParameters have not yet been validated and defaults assigned
+        if (mJsonParameters.Has("echo_level"))
         {
-            KRATOS_ERROR << "No \"mapper_type\" defined in json" << std::endl;
+            echo_level = std::max(echo_level, mJsonParameters["echo_level"].GetInt());
         }
 
-        mMapperType = mrJsonParameters["mapper_type"].GetString();
+        int comm_rank_origin = mrModelPartOrigin.GetCommunicator().MyPID();
+        int comm_rank_destination = mrModelPartDestination.GetCommunicator().MyPID();
 
-        if (!mrJsonParameters.Has("interface_submodel_part_origin"))
+        if (mJsonParameters.Has("interface_submodel_part_origin"))
         {
-            KRATOS_ERROR << "No \"interface_submodel_part_origin\" "
-                         << "defined in json" << std::endl;
-        }
+            std::string name_interface_submodel_part = mJsonParameters["interface_submodel_part_origin"].GetString();
+            mpInterfaceModelPartOrigin = &mrModelPartOrigin.GetSubModelPart(name_interface_submodel_part);
 
-        if (!mrJsonParameters.Has("interface_submodel_part_destination"))
-        {
-            KRATOS_ERROR << "No \"interface_submodel_part_destination\" "
-                         << "defined in json" << std::endl;
-        }
-
-        // Check if there is a valid input for the search parameters
-        mComputeSearchRadius = true;
-        if (mrJsonParameters.Has("search_radius"))
-        {
-            mComputeSearchRadius = false;
-
-            if (mrJsonParameters["search_radius"].GetDouble() < 0.0f)
+            if (echo_level >= 3 && comm_rank_origin == 0)
             {
-                KRATOS_ERROR << "Invalid Search Radius specified" << std::endl;
+                std::cout << "Mapper: SubModelPart used for Origin-ModelPart" << std::endl;
+            }
+        }
+        else
+        {
+            mpInterfaceModelPartOrigin = &mrModelPartOrigin;
+
+            if (echo_level >= 3 && comm_rank_origin == 0)
+            {
+                std::cout << "Mapper: Main ModelPart used for Origin-ModelPart" << std::endl;
             }
         }
 
-        if (mrJsonParameters.Has("search_iterations"))
+        if (mJsonParameters.Has("interface_submodel_part_destination"))
         {
-            if (mrJsonParameters["search_iterations"].GetInt() < 1)
+            std::string name_interface_submodel_part = mJsonParameters["interface_submodel_part_destination"].GetString();
+            mpInterfaceModelPartDestination = &mrModelPartDestination.GetSubModelPart(name_interface_submodel_part);
+
+            if (echo_level >= 3 && comm_rank_destination == 0)
             {
-                KRATOS_ERROR << "Number of specified Search Iterations too small" << std::endl;
+                std::cout << "Mapper: SubModelPart used for Destination-ModelPart" << std::endl;
             }
         }
-
-        if (mrJsonParameters.Has("approximation_tolerance"))
+        else
         {
-            if (mrJsonParameters["mapper_type"].GetString() == "NearestNeighbor")
+            mpInterfaceModelPartDestination = &mrModelPartDestination;
+
+            if (echo_level >= 3 && comm_rank_destination == 0)
             {
-                KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" "
-                             << "specified for Nearest Neighbor Mapper" << std::endl;
+                std::cout << "Mapper: Main ModelPart used for Destination-ModelPart" << std::endl;
             }
-            if (mrJsonParameters["approximation_tolerance"].GetDouble() < 0.0f)
-            {
-                KRATOS_ERROR << "Invalid Tolerance for Approximations specified" << std::endl;
-            }
-        }
-
-        if (mrJsonParameters.Has("echo_level"))
-        {
-            if (mrJsonParameters["echo_level"].GetInt() < 0)
-            {
-                KRATOS_ERROR << "Echo Level cannot be smaller than 0" << std::endl;
-            }
-        }
-
-        mrJsonParameters.RecursivelyValidateAndAssignDefaults(mDefaultParameters);
-
-        if (mrJsonParameters["approximation_tolerance"].GetDouble() < 0.0f)   // nothing specified, set to max
-        {
-            mrJsonParameters["approximation_tolerance"].SetDouble(std::numeric_limits<double>::max());
-        }
-    }
-
-    void ReadAndCheckInterfaceModelParts()
-    {
-        std::string name_interface_submodel_part = mrJsonParameters["interface_submodel_part_origin"].GetString();
-        mpInterfaceModelPartOrigin = &mrModelPartOrigin.GetSubModelPart(name_interface_submodel_part);
-
-        name_interface_submodel_part = mrJsonParameters["interface_submodel_part_destination"].GetString();
-        mpInterfaceModelPartDestination = &mrModelPartDestination.GetSubModelPart(name_interface_submodel_part);
-
-        const int num_nodes_origin = MapperUtilities::ComputeNumberOfNodes(*mpInterfaceModelPartOrigin);
-        const int num_conditions_origin = MapperUtilities::ComputeNumberOfConditions(*mpInterfaceModelPartOrigin);
-        const int num_elements_origin = MapperUtilities::ComputeNumberOfElements(*mpInterfaceModelPartOrigin);
-
-        const int num_nodes_destination = MapperUtilities::ComputeNumberOfNodes(*mpInterfaceModelPartDestination);
-        const int num_conditions_destination = MapperUtilities::ComputeNumberOfConditions(*mpInterfaceModelPartDestination);
-        const int num_elements_destination = MapperUtilities::ComputeNumberOfElements(*mpInterfaceModelPartDestination);
-
-        // Check if the ModelPart contains entities
-        if (num_nodes_origin + num_conditions_origin + num_elements_origin < 1)
-        {
-            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements found "
-                         << "in the Origin ModelPart" << std::endl;
-        }
-
-        if (num_conditions_origin > 0 && num_elements_origin > 0)
-        {
-            KRATOS_ERROR << "Origin ModelPart contains both Conditions and Elements "
-                         << "which is not permitted" << std::endl;
-        }
-
-        if (num_nodes_destination + num_conditions_destination + num_elements_destination < 1)
-        {
-            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements found "
-                         << "in the Destination ModelPart" << std::endl;
-        }
-
-        if (num_conditions_destination > 0 && num_elements_destination > 0)
-        {
-            KRATOS_ERROR << "Destination ModelPart contains both Conditions and Elements "
-                         << "which is not permitted" << std::endl;
-        }
-
-        // Compute the search radius in case it was not specified, can only be done after the modelparts are read
-        if (mComputeSearchRadius)
-        {
-            double search_radius = MapperUtilities::ComputeSearchRadius(*mpInterfaceModelPartOrigin,
-                                   *mpInterfaceModelPartDestination,
-                                   mrJsonParameters["echo_level"].GetInt());
-            mrJsonParameters["search_radius"].SetDouble(search_radius);
         }
     }
 
@@ -407,41 +328,54 @@ private:
     {
         double start_time = MapperUtilities::GetCurrentTime();
 
+        if (!mJsonParameters.Has("mapper_type"))
+        {
+            KRATOS_ERROR << "No \"mapper_type\" defined in json" << std::endl;
+        }
+
+        mMapperType = mJsonParameters["mapper_type"].GetString();
+
         if (mMapperType == "NearestNeighbor")
         {
+            if (mJsonParameters.Has("approximation_tolerance"))
+            {
+                KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" "
+                             << "specified for Nearest Neighbor Mapper" << std::endl;
+            }
+
             mpMapper = Mapper::Pointer(new NearestNeighborMapper(*mpInterfaceModelPartOrigin,
                                        *mpInterfaceModelPartDestination,
-                                       mrJsonParameters));
+                                       mJsonParameters));
         }
         else if (mMapperType == "NearestElement")
         {
             mpMapper = Mapper::Pointer(new NearestElementMapper(*mpInterfaceModelPartOrigin,
                                        *mpInterfaceModelPartDestination,
-                                       mrJsonParameters));
+                                       mJsonParameters));
 
         } /*else if (mMapperType == "Barycentric") {
               mpMapper = Mapper::Pointer(new BarycentricMapper(*mpInterfaceModelPartOrigin,
                                                                  *mpInterfaceModelPartDestination,
-                                                                 mrJsonParameters));
+                                                                 mJsonParameters));
 
           } *//*else if (mMapperType == "RBF") {
               mpMapper = Mapper::Pointer(new RBFMapper(*mpInterfaceModelPartOrigin,
                                                          *mpInterfaceModelPartDestination,
-                                                         mrJsonParameters));
+                                                         mJsonParameters));
 
           } *//*else if (mMapperType == "Mortar") {
               mpMapper = Mapper::Pointer(new MortarMapper(*mpInterfaceModelPartOrigin,
                                                             *mpInterfaceModelPartDestination,
-                                                            mrJsonParameters));
+                                                            mJsonParameters));
 
           } *//*else if (mMapperType == "IGA") {
               mpMapper = Mapper::Pointer(new IGAMapper(*mpInterfaceModelPartOrigin,
                                                          *mpInterfaceModelPartDestination,
-                                                         mrJsonParameters));
+                                                         mJsonParameters));
 
           } */else
         {
-            KRATOS_ERROR << "Selected Mapper not implemented" << std::endl;
+            KRATOS_ERROR << "Selected Mapper \"" << mMapperType << "\" not implemented" << std::endl;
         }
 
         double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
@@ -449,7 +383,6 @@ private:
         mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
                 "Mapper Construction",
                 elapsed_time);
-
     }
 
     ///@}

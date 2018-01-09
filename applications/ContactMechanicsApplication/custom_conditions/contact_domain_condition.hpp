@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "includes/checks.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/kratos_flags.h"
@@ -80,12 +81,12 @@ public:
     typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
 
 protected:
-
+ 
     /**
      * Parameters to be used in the Condition as they are. Direct interface to Parameters Struct
      */
 
-      typedef struct
+    typedef struct
     {
       //Geometrical surface tangent gaps:
       ScalarBaseType   CurrentGap;     //tangential gap
@@ -114,15 +115,18 @@ protected:
       SurfaceBase    ContravariantBase;
       
       //geometrical variables
-      double EquivalentArea;
+      double ReferenceArea;
+      double CurrentArea;
+
+      double FactorArea;
       
       double EquivalentHeigh;
       
       double ElementSize;
-
                   
     } ContactTangentParameters;
 
+  
     typedef struct
     {
         Flags           Options;               //calculation options
@@ -232,7 +236,7 @@ protected:
             return *pNcontainer;
         };   
 
-    } GeneralVariables;
+    } ConditionVariables;
 
 
     typedef struct
@@ -244,7 +248,7 @@ protected:
         //The stabilization parameter and penalty parameter
         double          StabilizationFactor;
 	double          PenaltyFactor;
-
+      
         //Geometrical gaps:
         SurfaceScalar        PreviousGap;     //effective normal and tangential gap in previous time step configuration
 
@@ -708,7 +712,7 @@ protected:
     /**
      * Initialize Variables
      */
-    virtual void InitializeGeneralVariables (GeneralVariables& rVariables, 
+    virtual void InitializeConditionVariables (ConditionVariables& rVariables, 
 					     const ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -744,7 +748,7 @@ protected:
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+    virtual void CalculateKinematics(ConditionVariables& rVariables, 
 				     ProcessInfo& rCurrentProcessInfo, 
 				     const unsigned int& rPointNumber);
 
@@ -756,7 +760,7 @@ protected:
     /**
      * Calculation of the Contact Multipliers or Penalty Factors
      */
-    virtual void CalculateExplicitFactors(GeneralVariables& rVariables,
+    virtual void CalculateExplicitFactors(ConditionVariables& rVariables,
 					  ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
@@ -765,7 +769,7 @@ protected:
     /**
      * Tangent Matrix construction methods:
      */
-    virtual void CalculateDomainShapeN(GeneralVariables& rVariables)
+    virtual void CalculateDomainShapeN(ConditionVariables& rVariables)
 	{
 		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
@@ -776,14 +780,14 @@ protected:
     /**
      *  Parameters for friction law Relative Tangent Velocity:
      */
-    virtual void CalculateRelativeVelocity(GeneralVariables& rVariables,
+    virtual void CalculateRelativeVelocity(ConditionVariables& rVariables,
 					   PointType & TangentVelocity,
 					   ProcessInfo& rCurrentProcessInfo);
 
     /**
      *  Parameters for friction law Relative Tangent Displacement:
      */
-    virtual void CalculateRelativeDisplacement(GeneralVariables& rVariables,
+    virtual void CalculateRelativeDisplacement(ConditionVariables& rVariables,
 					       PointType & TangentDisplacement,
 					       ProcessInfo& rCurrentProcessInfo);
 
@@ -800,7 +804,7 @@ protected:
     /**
      * Friction Parameters:
      */
-    virtual void CalculateFrictionCoefficient(GeneralVariables& rVariables,
+    virtual void CalculateFrictionCoefficient(ConditionVariables& rVariables,
 					      const PointType & TangentVelocity);
 
 
@@ -828,14 +832,14 @@ protected:
      * Calculate LHS
      */
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-				    GeneralVariables& rVariables, 
+				    ConditionVariables& rVariables, 
 				    double& rIntegrationWeight);
 
     /**
      * Calculate RHS
      */
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-				    GeneralVariables& rVariables, 
+				    ConditionVariables& rVariables, 
 				    double& rIntegrationWeight);
 
 
@@ -843,15 +847,15 @@ protected:
      * Calculation of the Material Stiffness Matrix. Kuug = BT * D * B
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-				     GeneralVariables& rVariables,
+				     ConditionVariables& rVariables,
 				     double& rIntegrationWeight);
 	    
     /**
      * Calculation of the Material Stiffness Matrix by components
      */
-    virtual void CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,
-				       unsigned int& ndi,unsigned int& ndj,
-				       unsigned int& idir,unsigned int& jdir)
+    virtual void CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,
+					    unsigned int& ndi,unsigned int& ndj,
+					    unsigned int& idir,unsigned int& jdir)
 	{
 		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
@@ -861,7 +865,7 @@ protected:
      * Calculation of the Internal Forces Vector. Fi = B * sigma
      */
     virtual void CalculateAndAddContactForces(VectorType& rRightHandSideVector,
-					      GeneralVariables& rVariables,
+					      ConditionVariables& rVariables,
 					      double& rIntegrationWeight);
 
 
@@ -869,7 +873,7 @@ protected:
     /**
      * Normal Force construction by components
      */
-    virtual void CalculateNormalForce       (double &F,GeneralVariables& rVariables,
+    virtual void CalculateNormalForce       (double &F,ConditionVariables& rVariables,
 					     unsigned int& ndi,unsigned int& idir)
 	{
 		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
@@ -878,7 +882,7 @@ protected:
     /**
      * Tangent Stick Force construction by components
      */
-    virtual void CalculateTangentStickForce (double &F,GeneralVariables& rVariables,
+    virtual void CalculateTangentStickForce (double &F,ConditionVariables& rVariables,
 					     unsigned int& ndi,unsigned int& idir)
 	{
 		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
@@ -887,7 +891,7 @@ protected:
     /**
      * Tangent Slip Force construction by components
      */
-    virtual void CalculateTangentSlipForce  (double &F,GeneralVariables& rVariables,
+    virtual void CalculateTangentSlipForce  (double &F,ConditionVariables& rVariables,
 					     unsigned int& ndi,unsigned int& idir)
 	{
 		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )

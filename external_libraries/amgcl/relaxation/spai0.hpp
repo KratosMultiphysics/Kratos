@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,7 @@ struct spai0 {
 
         const size_t n = rows(A);
 
-        boost::shared_ptr< std::vector<value_type> > m = boost::make_shared< std::vector<value_type> >(n);
+        boost::shared_ptr< backend::numa_vector<value_type> > m = boost::make_shared< backend::numa_vector<value_type> >(n, false);
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
@@ -108,7 +108,7 @@ struct spai0 {
     }
 
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply( const Matrix &A, const VectorRHS &rhs, VectorX &x, const params&) const
+    void apply( const Matrix&, const VectorRHS &rhs, VectorX &x, const params&) const
     {
         backend::vmul(math::identity<scalar_type>(), *M, rhs, math::zero<scalar_type>(), x);
     }

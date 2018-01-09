@@ -7,8 +7,8 @@
 //
 
 
-#if !defined(KRATOS_SPALART_ALLMARAS_H_INCLUDED )
-#define  KRATOS_SPALART_ALLMARAS_H_INCLUDED
+#if !defined(KRATOS_SPALART_ALLMARAS_TURBULENCE_H_INCLUDED )
+#define  KRATOS_SPALART_ALLMARAS_TURBULENCE_H_INCLUDED
 
 
 
@@ -176,7 +176,7 @@ public:
 
     /// Destructor.
 
-    virtual ~SpalartAllmarasTurbulenceModel()
+    ~SpalartAllmarasTurbulenceModel() override
     {
     }
 
@@ -191,7 +191,7 @@ public:
     ///@{
 
     /// Solve an iteration of the turbulent viscosity
-    void Execute()
+    void Execute() override
     {
         KRATOS_TRY
 
@@ -311,7 +311,7 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "SpalartAllmarasTurbulenceModel";
@@ -320,14 +320,14 @@ public:
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SpalartAllmarasTurbulenceModel";
     }
 
     /// Print object's data.
 
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -640,6 +640,6 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_SPALART_ALLMARAS_H_INCLUDED  defined
+#endif // KRATOS_SPALART_ALLMARAS_TURBULENCE_H_INCLUDED  defined
 
 

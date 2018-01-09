@@ -104,7 +104,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~Stokes3D() {};
+    ~Stokes3D() override {};
 
 
     ///@}
@@ -116,7 +116,7 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return boost::make_shared< Stokes3D >(NewId, GetGeometry().Create(ThisNodes), pProperties);
@@ -124,13 +124,13 @@ public:
     }
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
-                           PropertiesType::Pointer pProperties) const
+                           PropertiesType::Pointer pProperties) const override
     {
         return boost::make_shared< Stokes3D >(NewId, pGeom, pProperties);
     }
 
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -223,7 +223,7 @@ public:
     
     
     
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
         
@@ -302,7 +302,7 @@ public:
     
     
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -329,7 +329,7 @@ public:
     
     
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -359,7 +359,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -408,9 +408,9 @@ public:
         KRATOS_CATCH("");
     }
     
-    virtual void Calculate(const Variable<double>& rVariable,
+    void Calculate(const Variable<double>& rVariable,
                            double& Output,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
         
@@ -495,14 +495,14 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "Stokes3D #";
     }
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
@@ -638,7 +638,7 @@ protected:
     }
     
     
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY
 
@@ -682,12 +682,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

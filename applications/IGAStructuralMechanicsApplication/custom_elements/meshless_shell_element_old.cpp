@@ -368,7 +368,7 @@ void MeshlessShellElement::CalculateOnIntegrationPoints(
 	//	CalculateStrain(StrainVector, C);
 
 	//	ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-	//	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
+	//	Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
 	//	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 	//	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
@@ -544,7 +544,7 @@ void MeshlessShellElement::FinalizeSolutionStep(
 {
 		//
 		//            ConstitutiveLaw::Parameters Values (GetGeometry(),GetProperties(),rCurrentProcessInfo);
-		//            Values.GetOptions().Set (ConstitutiveLaw::COMPUTE_STRAIN, false);
+		//            Values.GetOptions().Set (ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
 		//            Values.GetOptions().Set (ConstitutiveLaw::COMPUTE_STRESS);
 		//            Values.GetOptions().Set (ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 		//            Matrix dummy = ZeroMatrix ( 0, 0 );
@@ -1278,7 +1278,7 @@ void MeshlessShellElement::CalculateAll(
 
 	ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
+	Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
 	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 

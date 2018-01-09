@@ -1,0 +1,73 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Properties 1
+    TRUSS_PRESTRESS_PK2  0
+    CROSS_AREA 0.01
+    DENSITY  7850
+    YOUNG_MODULUS  210000000000
+    RAYLEIGH_ALPHA 471.88
+    RAYLEIGH_BETA 5.1e-6
+End Properties
+
+Begin Nodes
+   1        0.00000        0.00000        0.00000
+   2        0.50000        0.00000        0.00000
+   3        1.00000        0.00000        0.00000
+End Nodes
+
+
+Begin Elements TrussElement3D2N// GUI group identifier: structure
+         1          1         1 			2
+         2          1         2 			3
+End Elements
+
+Begin Conditions PointLoadCondition3D1N// GUI group identifier: neumann
+1 0 3
+End Conditions
+
+Begin SubModelPart Parts_structure // Group structure // Subtree Parts
+    Begin SubModelPartNodes
+        1
+       2
+       3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+         2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_dirichletXYZ // Group dirichletXYZ // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+        1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_dirichletXZ // Group dirichletXZ // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+      2
+      3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart PointLoad3D_neumann // Group neumann // Subtree PointLoad3D
+    Begin SubModelPartNodes
+       3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+         1
+    End SubModelPartConditions
+End SubModelPart

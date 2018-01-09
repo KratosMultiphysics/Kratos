@@ -14,7 +14,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM_Mohr_Coulomb::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
+    void DEM_KDEM_Mohr_Coulomb::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
         std::cout << "\nAssigning DEM_KDEM_Mohr_Coulomb to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }    
@@ -67,9 +67,9 @@ namespace Kratos {
             
             const double mohr_coulomb_c = 1e6 * 0.5*(element1_props[INTERNAL_COHESION] + element2_props[INTERNAL_COHESION]);
             const double mohr_coulomb_phi = 0.5 * (element1_props[INTERNAL_FRICTION_ANGLE] + element2_props[INTERNAL_FRICTION_ANGLE]);
-            const double mohr_coulomb_phi_in_radians = mohr_coulomb_phi * KRATOS_M_PI / 180.0; 
-            const double sinphi = sin(mohr_coulomb_phi_in_radians);
-            const double cosphi = cos(mohr_coulomb_phi_in_radians);
+            const double mohr_coulomb_phi_in_radians = mohr_coulomb_phi * Globals::Pi / 180.0; 
+            const double sinphi = std::sin(mohr_coulomb_phi_in_radians);
+            const double cosphi = std::cos(mohr_coulomb_phi_in_radians);
             
             const double function_value = (principal_stresses[0] - principal_stresses[2]) + (principal_stresses[0] + principal_stresses[2]) * sinphi - 2.0 * mohr_coulomb_c * cosphi;
             

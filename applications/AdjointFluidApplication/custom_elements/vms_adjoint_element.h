@@ -97,7 +97,7 @@ public:
     Element(NewId, pGeometry, pProperties)
     {}
 
-    virtual ~VMSAdjointElement()
+    ~VMSAdjointElement() override
     {}
 
     ///@}
@@ -109,9 +109,9 @@ public:
      *
      * @return pointer to the newly created element
      */
-    virtual Element::Pointer Create(IndexType NewId,
+    Element::Pointer Create(IndexType NewId,
             NodesArrayType const& ThisNodes,
-            PropertiesType::Pointer pProperties) const
+            PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
 
@@ -123,9 +123,9 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual Element::Pointer Create(IndexType NewId,
+    Element::Pointer Create(IndexType NewId,
             GeometryType::Pointer pGeom,
-            PropertiesType::Pointer pProperties) const
+            PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
 
@@ -140,7 +140,7 @@ public:
      *
      * @return 0 after successful completion.
      */
-    virtual int Check(const ProcessInfo &/*rCurrentProcessInfo*/)
+    int Check(const ProcessInfo &/*rCurrentProcessInfo*/) override
     {
         KRATOS_TRY
 
@@ -219,7 +219,7 @@ public:
     }
 
     /// Returns the adjoint values stored in this element's nodes.
-    virtual void GetFirstDerivativesVector(VectorType& rValues, int Step = 0)
+    void GetValuesVector(VectorType& rValues, int Step = 0) override
     {
         if (rValues.size() != TFluidLocalSize)
             rValues.resize(TFluidLocalSize, false);
@@ -238,7 +238,7 @@ public:
     }
 
     /// Returns the adjoint acceleration values stored in this element's nodes.
-    virtual void GetSecondDerivativesVector(VectorType& rValues, int Step = 0)
+    void GetSecondDerivativesVector(VectorType& rValues, int Step = 0) override
     {
         if (rValues.size() != TFluidLocalSize)
             rValues.resize(TFluidLocalSize, false);
@@ -255,9 +255,9 @@ public:
         }
     }
 
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -267,30 +267,17 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-            ProcessInfo& /*rCurrentProcessInfo*/)
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               ProcessInfo& /*rCurrentProcessInfo*/) override
     {
-        KRATOS_TRY
+        if (rLeftHandSideMatrix.size1() != TFluidLocalSize || rLeftHandSideMatrix.size2() != TFluidLocalSize)
+            rLeftHandSideMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
 
-        KRATOS_THROW_ERROR(std::runtime_error,
-                "this function is not implemented.","")
-
-        KRATOS_CATCH("")
+        rLeftHandSideMatrix.clear();
     }
 
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix,
-            ProcessInfo& /*rCurrentProcessInfo*/)
-    {
-        KRATOS_TRY
-
-        KRATOS_THROW_ERROR(std::runtime_error,
-                "this function is not implemented.","")
-
-        KRATOS_CATCH("")
-    }
-
-    virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-            ProcessInfo& /*rCurrentProcessInfo*/)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+            ProcessInfo& /*rCurrentProcessInfo*/) override
     {
         KRATOS_TRY
 
@@ -301,113 +288,108 @@ public:
     }
 
     /**
-     * @brief Calculates various elemental matrices used for adjoint solutions.
+     * @brief Calculates the adjoint matrix for velocity and pressure.
      *
-     * Different matrices are needed depending on the type of adjoint problem.
-     * (e.g., steady or transient). Schemes are used to construct the adjoint
-     * equations for different adjoint problems from these matrices.
-     *
-     * The discrete VMS Navier-Stokes equations at step n are:
-     *
-     * \f[
-     *  \mathbf{M}^n\dot{\mathbf{w}}^{n-\alpha} = \mathbf{f}(\mathbf{w}^n)
-     * \f]
-     *
-     * Assuming \f$\dot{\mathbf{w}}^{n-\alpha}\f$ is stored in ACCELERATION and
-     * \f$\mathbf{w}^n\f$ is stored in VELOCITY and PRESSURE of time step n,
-     * this function returns elemental contributions to:
-     *
-     * MASS_MATRIX_0:
-     *
-     * \f[
-     *  (\mathbf{M}^n)
-     * \f]
-     *
-     * MASS_MATRIX_1:
-     *
-     * \f[
-     *  (\mathbf{M}^{n+1})
-     * \f]
-     *
-     * ADJOINT_MATRIX_1
-     *
-     * \f[
-     *  \partial_{\mathbf{w}^n}\mathbf{f}(\mathbf{w}^n)^T
-     * \f]
-     *
-     * ADJOINT_MATRIX_2:
+     * This function returns the gradient of the elemental residual w.r.t.
+     * velocity and pressure transposed:
      *
      * \f[
      *    \partial_{\mathbf{w}^n}\mathbf{f}(\mathbf{w}^n)^T
-     *  - \partial_{\mathbf{w}^n}(\mathbf{M}^n \dot{\mathbf{w}}^{n-\alpha})^T
+     *  - \partial_{\mathbf{w}^n}(\mathbf{M}^n \dot{\mathbf{w}}^n)^T
      * \f]
      *
-     * SHAPE_DERIVATIVE_MATRIX_1
+     * where \f$\mathbf{w}^n\f$ is the vector of nodal velocities and pressures
+     * stored at the current step. For steady problems, the ACCELERATION
+     * (\f$\dot{\mathbf{w}}^n\f$) must be set to zero on the nodes. For
+     * the Bossak method, \f$\dot{\mathbf{w}}^{n-\alpha}\f$ must be stored in
+     * ACCELERATION.
+     */
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					      ProcessInfo& rCurrentProcessInfo) override
+    {
+        this->CalculatePrimalGradientOfVMSSteadyTerm(rLeftHandSideMatrix,rCurrentProcessInfo);
+        this->AddPrimalGradientOfVMSMassTerm(rLeftHandSideMatrix,ACCELERATION,-1.0,rCurrentProcessInfo);
+        rLeftHandSideMatrix = trans(rLeftHandSideMatrix); // transpose
+    }
+
+    /**
+     * @brief Calculates the adjoint matrix for acceleration.
+     *
+     * This function returns the gradient of the elemental residual w.r.t.
+     * acceleration:
      *
      * \f[
-     *  \partial_{\mathbf{s}}\mathbf{f}(\mathbf{w}^n)^T
+     *    \partial_{\dot{\mathbf{w}}^n}\mathbf{f}(\mathbf{w}^n)^T
+     *  - \partial_{\dot{\mathbf{w}}^n}(\mathbf{M}^n \dot{\mathbf{w}}^n)^T
      * \f]
-     *
-     * SHAPE_DERIVATIVE_MATRIX_2
+     */
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+				       ProcessInfo& rCurrentProcessInfo) override
+    {
+      this->CalculateVMSMassMatrix(rLeftHandSideMatrix,rCurrentProcessInfo);
+      rLeftHandSideMatrix = trans(rLeftHandSideMatrix); // transpose
+    }
+
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
+            ProcessInfo& /*rCurrentProcessInfo*/) override
+    {
+        KRATOS_TRY
+
+        KRATOS_THROW_ERROR(std::runtime_error,
+                "this function is not implemented.","")
+
+        KRATOS_CATCH("")
+    }
+
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+            ProcessInfo& /*rCurrentProcessInfo*/) override
+    {
+        KRATOS_TRY
+
+        KRATOS_THROW_ERROR(std::runtime_error,
+                "this function is not implemented.","")
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Calculates the sensitivity matrix.
      *
      * \f[
      *    \partial_{\mathbf{s}}\mathbf{f}(\mathbf{w}^n)^T
      *  - \partial_{\mathbf{s}}(\mathbf{M}^n \dot{\mathbf{w}}^{n-\alpha})^T
      * \f]
-     *
-     * where the current adjoint step is the \f$n^{th}\f$ time step and the old
-     * adjoint step is the \f$(n+1)^{th}\f$ time step.
-     *
      */
-    virtual void Calculate(const Variable<Matrix >& rVariable,
-            Matrix& rOutput,
-            const ProcessInfo& rCurrentProcessInfo)
+    void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rSensitivityVariable,
+                                    Matrix& rOutput,
+                                    const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        if (rVariable == MASS_MATRIX_0)
-        {
-            this->CalculateVMSMassMatrix(rOutput,0,rCurrentProcessInfo);
-        }
-        else if (rVariable == MASS_MATRIX_1)
-        {
-            this->CalculateVMSMassMatrix(rOutput,1,rCurrentProcessInfo);
-        }
-        else if (rVariable == ADJOINT_MATRIX_1)
-        {
-            this->CalculatePrimalGradientOfVMSSteadyTerm(rOutput,rCurrentProcessInfo);
-            rOutput = trans(rOutput); // transpose
-        }
-        else if (rVariable == ADJOINT_MATRIX_2)
-        {
-            this->CalculatePrimalGradientOfVMSSteadyTerm(rOutput,rCurrentProcessInfo);
-            this->AddPrimalGradientOfVMSMassTerm(rOutput,ACCELERATION,-1.0,rCurrentProcessInfo);
-            rOutput = trans(rOutput); // transpose
-        }
-        else if (rVariable == SHAPE_DERIVATIVE_MATRIX_1)
-        {
-            this->CalculateShapeGradientOfVMSSteadyTerm(rOutput,rCurrentProcessInfo);
-        }
-        else if (rVariable == SHAPE_DERIVATIVE_MATRIX_2)
+        if (rSensitivityVariable == SHAPE_SENSITIVITY)
         {
             this->CalculateShapeGradientOfVMSSteadyTerm(rOutput,rCurrentProcessInfo);
             this->AddShapeGradientOfVMSMassTerm(rOutput,ACCELERATION,-1.0,rCurrentProcessInfo);
+        }
+        else
+        {
+            KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable << " not supported." << std::endl;
         }
 
         KRATOS_CATCH("")
     }
 
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-            ProcessInfo& /*rCurrentProcessInfo*/);
+    void GetDofList(DofsVectorType& rElementalDofList,
+            ProcessInfo& /*rCurrentProcessInfo*/) override;
 
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-            ProcessInfo& /*rCurrentProcessInfo*/);
+    void EquationIdVector(EquationIdVectorType& rResult,
+            ProcessInfo& /*rCurrentProcessInfo*/) override;
 
     ///@}
     ///@name Input and output
     ///@{
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "VMSAdjointElement" << this->GetGeometry().WorkingSpaceDimension()
@@ -415,7 +397,7 @@ public:
         return buffer.str();
     }
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "VMSAdjointElement"
         << this->GetGeometry().WorkingSpaceDimension() << "D #"
@@ -424,7 +406,7 @@ public:
         << std::endl;
     }
 
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         this->PrintInfo(rOStream);
         rOStream << "Geometry Data: " << std::endl;
@@ -439,13 +421,8 @@ protected:
     ///@{
 
     /// Calculate VMS-stabilized (lumped) mass matrix.
-    /**
-     * The VMS-stabilized mass matrix is computed at the given step.
-     * We assume that the mesh does not move between steps.
-     */
     void CalculateVMSMassMatrix(
             MatrixType& rMassMatrix,
-            IndexType Step,
             const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
@@ -453,9 +430,7 @@ protected:
         if (rMassMatrix.size1() != TFluidLocalSize || rMassMatrix.size2() != TFluidLocalSize)
             rMassMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
 
-        for (IndexType i=0; i < TFluidLocalSize; i++)
-            for (IndexType j=0; j < TFluidLocalSize; j++)
-                rMassMatrix(i,j) = 0.0;
+        rMassMatrix.clear();
 
         // Get shape functions, shape function gradients and element volume (area in
         // 2D). Only one integration point is used so the volume is its weight.
@@ -466,16 +441,16 @@ protected:
 
         // Density
         double Density;
-        this->EvaluateInPoint(Density,DENSITY,N,Step);
+        this->EvaluateInPoint(Density,DENSITY,N);
 
         // Dynamic viscosity
         double Viscosity;
-        this->EvaluateInPoint(Viscosity,VISCOSITY,N,Step);
+        this->EvaluateInPoint(Viscosity,VISCOSITY,N);
         Viscosity *= Density;
 
         // u
         array_1d< double, TDim > Velocity;
-        this->EvaluateInPoint(Velocity,VELOCITY,N,Step);
+        this->EvaluateInPoint(Velocity,VELOCITY,N);
 
         // u * Grad(N)
         array_1d< double, TNumNodes > DensityVelGradN;
@@ -871,9 +846,7 @@ protected:
         if (rAdjointMatrix.size1() != TFluidLocalSize || rAdjointMatrix.size2() != TFluidLocalSize)
             rAdjointMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
 
-        for (IndexType i=0; i < TFluidLocalSize; i++)
-            for (IndexType j=0; j < TFluidLocalSize; j++)
-                rAdjointMatrix(i,j) = 0.0;
+        rAdjointMatrix.clear();
 
         // Get shape functions, shape function gradients and element volume (area in
         // 2D). Only one integration point is used so the volume is its weight.
@@ -1542,7 +1515,7 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_TRY;
 
@@ -1551,7 +1524,7 @@ private:
         KRATOS_CATCH("");
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_TRY;
 

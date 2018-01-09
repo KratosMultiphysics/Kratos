@@ -82,7 +82,7 @@ void  LinearElasticOrthotropic3DLaw::CalculateMaterialResponsePK2 (Parameters& r
 
     //-----------------------------//
 
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
 	//only needed 
 	const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
@@ -156,7 +156,7 @@ void LinearElasticOrthotropic3DLaw::CalculateMaterialResponseKirchhoff (Paramete
 
     //-----------------------------//
 
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
 
         //2.-Push-Forward Left Cauchy-Green tensor b to the new configuration

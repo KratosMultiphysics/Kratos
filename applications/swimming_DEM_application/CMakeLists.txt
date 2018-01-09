@@ -10,6 +10,10 @@ if(NOT (${FLUID_DYNAMICS_APPLICATION} STREQUAL "ON"))
     message(SEND_ERROR "The Fluid Dynamics Application must be compiled before this one. Set FLUID_DYNAMICS_APPLICATION=ON in the configure file.")
 endif(NOT (${FLUID_DYNAMICS_APPLICATION} STREQUAL "ON"))
 
+#if(NOT (${INCOMPRESSIBLE_FLUID_APPLICATION} STREQUAL "ON"))
+#    message(SEND_ERROR "The Incompressible Fluid Application must be compiled before this one. Set INCOMPRESSIBLE_FLUID_APPLICATION=ON in the configure file.")
+#endif(NOT (${INCOMPRESSIBLE_FLUID_APPLICATION} STREQUAL "ON"))
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 #dependecies on other applications
@@ -46,6 +50,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/cellular_flow_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/ethier_flow_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/pouliot_flow_field.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/pouliot_flow_field_2D.cpp    
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/constant_velocity_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/statistics/sampling_tool.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/sets/space_time_set.cpp
@@ -54,6 +59,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/field_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlets/bentonite_force_based_inlet.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/fluid_field_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/shear_flow_1D_with_exponential_viscosity_field.cpp
 )
 
 

@@ -28,7 +28,6 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         space.ReadMatrixMarketMatrix(GetFilePath(matrix_name),pA)
         n = space.Size1(pA.GetReference())
 
-
         pAoriginal = space.CreateEmptyMatrixPointer(comm) #create a copy of A
         space.ReadMatrixMarketMatrix(GetFilePath(matrix_name),pAoriginal)
 
@@ -52,7 +51,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         #construct the solver
         import trilinos_linear_solver_factory
         linear_solver = trilinos_linear_solver_factory.ConstructSolver(settings)
-
+        
         #solve
         linear_solver.Solve(pA.GetReference(),px.GetReference(),pb.GetReference())
 

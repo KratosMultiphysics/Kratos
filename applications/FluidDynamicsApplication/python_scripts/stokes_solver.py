@@ -63,6 +63,8 @@ class StokesSolver:
         
         self.conv_criteria = incompressibleapp.VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
                                            self.rel_pres_tol, self.abs_pres_tol)
+        
+        (self.conv_criteria).SetEchoLevel(self.echo_level)
             
         self.time_scheme = kratoscore.ResidualBasedIncrementalUpdateStaticScheme() 
         
