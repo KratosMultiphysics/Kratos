@@ -6,6 +6,7 @@ import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplicati
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from math import sqrt
+from cmath import phase
 import os
 
 class ControlledExecutionScope:
@@ -194,10 +195,17 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             else:
                 disp_x2_expected = abs(disp_x2_expected_complex)
             
+            #test displacement
             self.assertAlmostEqual(mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0), \
                 disp_x1_expected,delta=1e-5)
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0), \
                 disp_x2_expected,delta=1e-5)
+
+            #test phase angle
+            self.assertAlmostEqual(mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.REACTION_X,0), \
+                phase(disp_x1_expected_complex),delta=1e-5)
+            self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.REACTION_X,0), \
+                phase(disp_x2_expected_complex),delta=1e-5)
             
             exfreq = exfreq + df
 
