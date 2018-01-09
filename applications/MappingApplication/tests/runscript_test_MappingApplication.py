@@ -84,16 +84,16 @@ print("\nTests Sucessful: " + str(tests_success) + ", Runtime: " + str(test_runt
 ## Removing the files that are created during the tests (patritioned mdpas and time files)
 tests_execution_path = os.path.dirname(os.path.realpath(__file__))
 mdpa_files_path = os.path.join(tests_execution_path, "MapperTests_mdpa")
-DeleteAuxTestFiles(mdpa_files_path, 
+DeleteAuxTestFiles(mdpa_files_path,
                    ["MappingApplication_test_geometry_quad.mdpa",
                     "MappingApplication_test_geometry_tri.mdpa"])
 
 mdpa_files_path = os.path.join(tests_execution_path, "NearestNeighborMapperTest_mdpa")
-DeleteAuxTestFiles(mdpa_files_path, 
+DeleteAuxTestFiles(mdpa_files_path,
                    ["origin.mdpa",
                     "destination.mdpa"])
 
 mdpa_files_path = os.path.join(tests_execution_path, "NearestElementMapperTest2D_mdpa")
-DeleteAuxTestFiles(mdpa_files_path, 
+DeleteAuxTestFiles(mdpa_files_path,
                    ["origin.mdpa",
                     "destination.mdpa"])

@@ -230,7 +230,7 @@ private:
 
     static ModelPart& ReadInterfaceModelPart(ModelPart& rModelPart,
                                              Parameters InterfaceParameters,
-                                             const std::string InterfaceSide)
+                                             const std::string& InterfaceSide)
     {
         int echo_level = 0;
         // read the echo_level temporarily, bcs the mJsonParameters have not yet been validated and defaults assigned
