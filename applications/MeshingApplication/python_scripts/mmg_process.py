@@ -184,7 +184,7 @@ class MmgProcess(KratosMultiphysics.Process):
             self.step += 1
             if self.step_frequency > 0:
                 if self.step >= self.step_frequency:
-                    if self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.TIME_STEPS] >= self.initial_step:
+                    if self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
                         self._ExecuteRefinement()
                         self.step = 0  # Reset
 
