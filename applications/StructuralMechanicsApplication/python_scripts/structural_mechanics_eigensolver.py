@@ -33,7 +33,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
 
         # Validate the remaining settings in the base class.
         structural_settings = custom_settings.Clone()
-        structural_settings.RemoveValue("eigensolver_settings")        
+        structural_settings.RemoveValue("eigensolver_settings")
         
         self.structural_eigensolver_settings = KratosMultiphysics.Parameters("""
         {
