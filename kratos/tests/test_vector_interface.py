@@ -5,7 +5,7 @@ from KratosMultiphysics import *
 import math
 
 
-class TestImporting(KratosUnittest.TestCase):
+class TestVectorInterface(KratosUnittest.TestCase):
         
     def test_range(self):
         a = Vector(4)
