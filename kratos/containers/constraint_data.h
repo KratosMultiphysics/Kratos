@@ -58,35 +58,43 @@ class ConstraintEquation
     typedef Dof<double> DofType;
     struct MasterData
     {
-        MasterData(const DofType &iMasterDof, double iWeight=0.0) : masterDof(iMasterDof)
+        KRATOS_CLASS_POINTER_DEFINITION(MasterData);
+        MasterData(DofType &iMasterDof, double iWeight = 0.0) : masterWeight(iWeight), id(iMasterDof.Id()), key(iMasterDof.GetVariable().Key())
         {
-            masterWeight = iWeight;
         }
-        bool operator==(const MasterData &iOtherMasterData)
+        friend bool operator==(const MasterData::Pointer &iMasterDataOne, const DofType &iMasterDof)
         {
-            return (this->masterDof == iOtherMasterData.masterDof);
+            return ( (iMasterDataOne->MasterDofId() == iMasterDof.Id()) && (iMasterDataOne->MasterKey() == iMasterDof.GetVariable().Key()) );
         }
-        unsigned int MasterKey() const {return masterDof.GetVariable().Key();}
-        double MasterWeight() const {return masterWeight;}
-        unsigned int MasterDofId() const {return masterDof.Id();}
-        unsigned int MasterEqId() const {return masterDof.EquationId();}
+        unsigned int MasterKey() { return key; }
+        double MasterWeight() { return masterWeight; }
+        void UpdateWeight(double iWeight){masterWeight += iWeight;}
+        unsigned int MasterDofId() { return id; }
+        void SetEquationId(unsigned int iId) {equationId = iId;}
+        unsigned int MasterEqId() { return equationId; }
+        void SetMasterEqId(unsigned int iId) { equationId = iId; }
+
+      private:
         double masterWeight;
-        const DofType &masterDof;
+        const unsigned int id;
+        const unsigned int key;
+        unsigned int equationId;
     };
+    typedef MasterData::Pointer MasterDataPointerType;
+    std::vector<MasterDataPointerType> mMasterDataVector;
 
-    std::vector<MasterData> mMasterDataVector;
-
-    const DofType &slaveDof;
-    mutable double constant;
-    mutable double constantUpdate;
+    const unsigned int id;
+    const unsigned int key;
+    unsigned int equationId;
+    double constant;
+    double constantUpdate;
 
   public:
     KRATOS_CLASS_POINTER_DEFINITION(ConstraintEquation);
-    typedef std::vector<MasterData>::const_iterator const_iterator;
-    typedef std::vector<MasterData>::iterator iterator;
+    typedef std::vector<MasterDataPointerType>::iterator iterator;
     friend class ConstraintEquationContainer;
 
-    ConstraintEquation(const DofType &iSlaveDof) : slaveDof(iSlaveDof)
+    ConstraintEquation(DofType &iSlaveDof) : id(iSlaveDof.Id()), key(iSlaveDof.GetVariable().Key())
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
@@ -94,35 +102,36 @@ class ConstraintEquation
 
     void SetConstant(double iConstant) { constant = iConstant; }
     void SetConstantUpdate(double iConstantUpdate) { constantUpdate = iConstantUpdate; }
-    double Constant() const { return constant; }
-    double ConstantUpdate() const { return constantUpdate; }
-    unsigned int SlaveDofId() const { return slaveDof.Id(); }
-    unsigned int SlaveDofKey() const { return slaveDof.GetVariable().Key(); }
-    unsigned int SlaveEquationId() const { return slaveDof.EquationId(); }
+    double Constant() { return constant; }
+    double ConstantUpdate() { return constantUpdate; }
+    unsigned int SlaveDofId() { return id; }
+    unsigned int SlaveDofKey() { return key; }
+    unsigned int SlaveEquationId() { return equationId; }
+    void SetSlaveEquationId(unsigned int iId) { equationId = iId; }
 
     // Add a master to this slave given are the masterDofId, masterDofKey, weight
     void AddMasterData(DofType &iMasterDof, double iWeight)
     {
-        MasterData iMasterData(iMasterDof, iWeight); 
-        auto it = std::find(mMasterDataVector.begin(), mMasterDataVector.end(), iMasterData);
+        MasterDataPointerType masterData = MasterDataPointerType(new MasterData(iMasterDof, iWeight));
+        auto it = std::find(mMasterDataVector.begin(), mMasterDataVector.end(), iMasterDof);
         if (it != mMasterDataVector.end()) // This master is already present so we add up the weight
         {
-            it->masterWeight += iWeight;
+            (*it)->UpdateWeight(iWeight);
         }
         else
-        {  // No entry for this master dof ID. So we add the data
-            mMasterDataVector.push_back(iMasterData);
+        { // No entry for this master dof ID. So we add the data
+            mMasterDataVector.push_back(masterData);
         }
     }
 
     // Get number of masters for this slave
-    int NumberOfMasters()
+    unsigned int NumberOfMasters()
     {
         return mMasterDataVector.size();
     }
-    bool operator==(const ConstraintEquation &iOtherConstraintEquation)
+    friend bool operator==(const ConstraintEquation::Pointer &iConstraintDataOne, const DofType &iSlaveDof)
     {
-        return (this->slaveDof == iOtherConstraintEquation.slaveDof);
+        return ((iConstraintDataOne->SlaveDofId() == iSlaveDof.Id()) && (iConstraintDataOne->SlaveDofKey() == iSlaveDof.GetVariable().Key()));
     }
 
     void PrintInfo()
@@ -130,20 +139,20 @@ class ConstraintEquation
         std::cout << "SlaveDofID :: " << SlaveDofId() << std::endl;
         std::cout << "SlaveDofKey :: " << SlaveDofKey() << std::endl;
         std::cout << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
-        std::cout << "Constant :: " << constant << std::endl;
+        std::cout << "Constant :: " << Constant() << std::endl;
         int index = 0;
         std::cout << "##############################" << std::endl;
         for (auto &master : mMasterDataVector)
         {
-            std::cout << index << " Master  ID :: " << master.masterDof << ", weight :: " << master.masterWeight << std::endl;
+            std::cout << index << " Master  ID :: " << (*master).MasterDofId() << ", weight :: " << (*master).MasterWeight() << std::endl;
             index++;
         }
         std::cout << "##############################" << std::endl;
     }
 
     // To make this class object iterate over all the master data vector.
-    const_iterator begin() const { return mMasterDataVector.begin(); }
-    const_iterator end() const { return mMasterDataVector.end(); }
+    iterator begin() { return mMasterDataVector.begin(); }
+    iterator end() { return mMasterDataVector.end(); }
 
 }; // End of ConstraintEquation class
 
@@ -170,11 +179,9 @@ class ConstraintEquationContainer
     typedef unsigned int IndexType;
     typedef Node<3> NodeType;
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
-
     typedef ConstraintEquation::Pointer ConstraintEquationPointerType;
+    typedef std::vector<ConstraintEquationPointerType> ConstraintEquationVectorType;
 
-    typedef std::vector<ConstraintEquation> ConstraintEquationVectorType;
-    typedef ConstraintEquationVectorType::const_iterator const_iterator;
     typedef ConstraintEquationVectorType::iterator iterator;
 
     ///@name Life Cycle
@@ -201,47 +208,48 @@ class ConstraintEquationContainer
     {
         mDataContainer.clear();
     }
-
-    const_iterator begin() const { return mDataContainer.begin(); }
-    const_iterator end() const { return mDataContainer.end(); }
     iterator begin() { return mDataContainer.begin(); }
-    iterator end() { return mDataContainer.end(); }    
+    iterator end() { return mDataContainer.end(); }
 
     /**
 		Get the Data for this slave
 		@return Data vector for this slave
 		*/
-    const ConstraintEquation &GetConstraintEquation(const DofType &iSlaveDof)
+    ConstraintEquation &GetConstraintEquation(DofType &iSlaveDof)
     {
-        auto pos = std::find(mDataContainer.begin(), mDataContainer.end(), ConstraintEquation(iSlaveDof));
-        return *(pos);
+        auto pos = std::find(mDataContainer.begin(), mDataContainer.end(), iSlaveDof);
+        return *(*pos);
     }
 
-    const ConstraintEquation &GetConstraintEquation(const unsigned int iSlaveEqutionId)
+    ConstraintEquation &GetConstraintEquation(unsigned int iSlaveEqutionId)
     {
-        auto pos = std::find_if(mDataContainer.begin(), mDataContainer.end(), [&iSlaveEqutionId](const ConstraintEquation &obj) { return obj.SlaveEquationId() == iSlaveEqutionId; });
-        return *(pos);
+        auto pos = std::find_if(mDataContainer.begin(), mDataContainer.end(), [&iSlaveEqutionId](ConstraintEquationPointerType &obj) { return obj->SlaveEquationId() == iSlaveEqutionId; });
+        return *(*pos);
     }
 
     /**
 		Get the Total number of MasterDOFs for a given slave dof
 		@return Total number of MasterDOFs for a given slave dof
 		 */
-    unsigned int GetNumbeOfMasterDofsForSlave(const DofType &iSlaveDof)
+    int GetNumbeOfMasterDofsForSlave(DofType &iSlaveDof)
     {
         auto pos = std::find(mDataContainer.begin(), mDataContainer.end(), iSlaveDof);
         int numMasters = -1;
         if (pos != mDataContainer.end())
-            numMasters = (pos)->NumberOfMasters();
+        {
+            numMasters = (*pos)->NumberOfMasters();
+        }
         return numMasters;
     }
-    unsigned int GetNumbeOfMasterDofsForSlave(unsigned int iSlaveEqutionId)
+    int GetNumbeOfMasterDofsForSlave(unsigned int iSlaveEqutionId)
     {
         // using find_if with a lambda to find the salve with its equation Id
-        auto pos = std::find_if(mDataContainer.begin(), mDataContainer.end(), [&iSlaveEqutionId](const ConstraintEquation &obj) { return obj.SlaveEquationId() == iSlaveEqutionId; });
+        auto pos = std::find_if(mDataContainer.begin(), mDataContainer.end(), [&iSlaveEqutionId](ConstraintEquationPointerType &obj) { return obj->SlaveEquationId() == iSlaveEqutionId; });
         int numMasters = -1;
         if (pos != mDataContainer.end())
-            numMasters = (pos)->NumberOfMasters();
+        {
+            numMasters = (*pos)->NumberOfMasters();
+        }
         return numMasters;
     }
 
@@ -249,7 +257,7 @@ class ConstraintEquationContainer
 		Get the Data for this slave
 		@return Data vector for this slave
 		*/
-    const ConstraintEquationVectorType &GetData()
+    ConstraintEquationVectorType &GetData()
     {
         return mDataContainer;
     }
@@ -261,14 +269,17 @@ class ConstraintEquationContainer
     // Takes in a slave dof and a master dof
     void AddConstraint(DofType &iSlaveDof, DofType &iMasterDof, double iWeight, double constant = 0.0)
     {
-        auto pos = std::find(mDataContainer.begin(), mDataContainer.end(), iSlaveDof);          
-        if(pos != mDataContainer.end()){ // Equation already exists 
-            pos->AddMasterData(iMasterDof, iWeight);
-        } else { // Equation does not exist
-            ConstraintEquation newEq = ConstraintEquation(iSlaveDof);
-            newEq.AddMasterData(iMasterDof, iWeight);
+        auto pos = std::find(mDataContainer.begin(), mDataContainer.end(), iSlaveDof);
+        if (pos != mDataContainer.end())
+        { // Equation already exists
+            (*pos)->AddMasterData(iMasterDof, iWeight);
+        }
+        else
+        { // Equation does not exist
+            ConstraintEquationPointerType newEq = ConstraintEquationPointerType(new ConstraintEquation(iSlaveDof));
+            newEq->AddMasterData(iMasterDof, iWeight);
             mDataContainer.push_back(newEq);
-        }   
+        }
     }
     ///@
 
