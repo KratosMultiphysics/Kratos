@@ -191,13 +191,15 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
 
     std::vector<ModelPart::IndexType> cond_nodes_1 = {1,2};
     std::vector<ModelPart::IndexType> cond_nodes_2 = {3,4};
+    std::vector<ModelPart::IndexType> cond_nodes_3 = {4};
     main_model_part.CreateNewCondition("Condition2D2N", 1, cond_nodes_1, p_properties_1);
     main_model_part.CreateNewCondition("Condition2D2N", 2, cond_nodes_2, p_properties_1);
+    main_model_part.CreateNewCondition("PointCondition2D1N", 3, cond_nodes_3, p_properties_1);
 
     ModelPart::Pointer p_sub_model_part = main_model_part.CreateSubModelPart("SubModelPart");
     std::vector<ModelPart::IndexType> sub_model_part_nodes = {1,2,4};
     std::vector<ModelPart::IndexType> sub_model_part_elems = {1};
-    std::vector<ModelPart::IndexType> sub_model_part_conds = {1};
+    std::vector<ModelPart::IndexType> sub_model_part_conds = {1,3};
     p_sub_model_part->AddNodes(sub_model_part_nodes);
     p_sub_model_part->AddElements(sub_model_part_elems);
     p_sub_model_part->AddConditions(sub_model_part_conds);
@@ -222,13 +224,13 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfSubModelParts() ,1);
     KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfNodes(), 4);
     KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfElements(), 2);
-    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfConditions(), 2);
+    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfConditions(), 3);
     KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfNodes(), 3);
     KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfElements(), 1);
-    KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfConditions(), 1);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfConditions(), 2);
 
     // Remove the generated files
-    std::string aux_string_mdpa = output_file_name + ".mdpa";
+    std::string aux_string_mdpa = output_file_name + ".mdpa"; 
     std::string aux_string_time = output_file_name + ".time";
     const char *mdpa_to_remove = aux_string_mdpa.c_str();
     const char *time_to_remove = aux_string_time.c_str();
@@ -239,7 +241,6 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     if (remove(time_to_remove) != 0) {
         KRATOS_ERROR << error_msg + ".time";
     }
-
 }
 
 }  // namespace Testing.
