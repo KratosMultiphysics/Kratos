@@ -73,7 +73,7 @@ struct plain_aggregates {
          */
         float eps_strong;
 
-        params() : eps_strong(0.0f) {}
+        params() : eps_strong(0.08f) {}
 
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, eps_strong)

@@ -731,10 +731,10 @@ void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRo
 
     double tolerance = 1.0/64.0;
     if(fabs(DirectionVectorX[0])< tolerance && fabs(DirectionVectorX[1])< tolerance){
-      DirectionVectorY = MathUtils<double>::CrossProduct(GlobalY, DirectionVectorX);
+      MathUtils<double>::CrossProduct(DirectionVectorY, GlobalY, DirectionVectorX);
     }
     else{
-      DirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ, DirectionVectorX);
+      MathUtils<double>::CrossProduct(DirectionVectorY, GlobalZ, DirectionVectorX);
     }
 
     VectorNorm = MathUtils<double>::Norm(DirectionVectorY);
@@ -742,7 +742,8 @@ void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRo
       DirectionVectorY /= VectorNorm;
 
     // local z-axis (e3_local) (in GID is e2_local)
-    Vector DirectionVectorZ = MathUtils<double>::CrossProduct(DirectionVectorX,DirectionVectorY);
+    Vector DirectionVectorZ;
+    MathUtils<double>::CrossProduct(DirectionVectorZ, DirectionVectorX,DirectionVectorY);
 
     VectorNorm = MathUtils<double>::Norm(DirectionVectorZ);
     if( VectorNorm != 0 )
@@ -1480,9 +1481,9 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
     KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
       
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
     KRATOS_CHECK_VARIABLE_KEY(CROSS_SECTION_AREA);
     KRATOS_CHECK_VARIABLE_KEY(LOCAL_INERTIA_TENSOR);
+    //KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
     
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)

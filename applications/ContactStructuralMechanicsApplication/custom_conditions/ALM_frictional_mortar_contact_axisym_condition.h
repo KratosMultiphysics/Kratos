@@ -61,7 +61,7 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition );
 
-    typedef AugmentedLagrangianMethodMortarContactCondition<2, TNumNodes, true>                   MortarBaseType;
+    typedef AugmentedLagrangianMethodMortarContactCondition<2, TNumNodes, true, TNormalVariation> MortarBaseType;
     
     typedef AugmentedLagrangianMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>   BaseType;
     
@@ -93,7 +93,7 @@ public:
     
     typedef Line2D2<Point>                                                                     DecompositionType;
     
-    typedef DerivativeDataFrictional<2, TNumNodes>                                            DerivativeDataType;
+    typedef DerivativeDataFrictional<2, TNumNodes, TNormalVariation>                          DerivativeDataType;
     
     static constexpr unsigned int MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
          

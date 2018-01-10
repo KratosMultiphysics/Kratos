@@ -523,8 +523,8 @@ void BassetForceTools::AppendIntegrands(ModelPart& r_model_part)
         vector<double>& historic_integrands             = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
         const array_1d<double, 3>& fluid_vel_projected  = inode->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
         const array_1d<double, 3>& particle_vel         = inode->FastGetSolutionStepValue(VELOCITY);
-        array_1d<double, 3> slip_vel;
-        noalias(slip_vel)                               = fluid_vel_projected - particle_vel;
+        array_1d<double, 3> slip_vel                    = fluid_vel_projected - particle_vel;
+
         int n = historic_integrands.size();
 
         historic_integrands.resize(n + 3);
@@ -546,8 +546,7 @@ void BassetForceTools::AppendIntegrandsImplicit(ModelPart& r_model_part)
         vector<double>& historic_integrands             = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
         const array_1d<double, 3>& fluid_vel_projected  = inode->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
         const array_1d<double, 3>& particle_vel         = inode->FastGetSolutionStepValue(VELOCITY);
-        array_1d<double, 3> slip_vel;
-        noalias(slip_vel)                               = fluid_vel_projected - particle_vel;
+        array_1d<double, 3> slip_vel                    = fluid_vel_projected - particle_vel;
         int n = historic_integrands.size();
 
         if (mFirstTimeAppending){
@@ -615,8 +614,7 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
             vector<double>& historic_integrands             = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
             const array_1d<double, 3>& fluid_vel_projected  = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
             const array_1d<double, 3>& particle_vel         = node.FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3> slip_vel;
-            noalias(slip_vel)                               = fluid_vel_projected - particle_vel;
+            array_1d<double, 3> slip_vel                    = fluid_vel_projected - particle_vel;
             int n = historic_integrands.size();
 
             if (n < 3 * mNumberOfQuadratureStepsInWindow){ // list of integrands still growing

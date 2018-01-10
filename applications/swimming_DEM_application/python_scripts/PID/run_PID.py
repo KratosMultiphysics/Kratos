@@ -1,0 +1,36 @@
+from KratosMultiphysics import *
+from KratosMultiphysics.DEMApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.SwimmingDEMApplication import *
+import rotating_ale_algorithm
+
+import json
+
+import KratosSwimmingDEM as script
+
+varying_parameters = dict()
+combinations_that_failed = []
+errors = []
+varying_parameters["ALE_option"] = True
+varying_parameters["fluid_already_calculated"] = False
+varying_parameters["angular_velocity_magnitude"] = 50.0
+varying_parameters["frame_rotation_axis_initial_point"] = [0., 0., 0.]
+varying_parameters["frame_rotation_axis_final_point"] = [0., 0., 1.]
+
+parameters = Parameters(json.dumps(varying_parameters))
+
+with script.Solution(rotating_ale_algorithm, parameters) as test:
+    test.Run()
+
+print('\n****************************************')
+
+if len(combinations_that_failed):
+    print('The following combinations produced an error:\n')
+
+    for combination, error in zip(combinations_that_failed, errors):
+        print(combination)
+        print(error)
+else:
+    print('All combinations run without errors')
+print('****************************************\n')

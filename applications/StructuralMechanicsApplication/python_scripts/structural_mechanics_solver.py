@@ -1,10 +1,16 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import os
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
+
+# Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+# Other imports
+import os
 
 
 def CreateSolver(main_model_part, custom_settings):
@@ -81,9 +87,16 @@ class MechanicalSolver(object):
             },
             "bodies_list": [],
             "problem_domain_sub_model_part_list": ["solid"],
-            "processes_sub_model_part_list": [""]
+            "processes_sub_model_part_list": [""],
+            "auxiliary_variables_list" : []
         }
         """)
+
+        # temporary warning, to be removed
+        if custom_settings.Has("bodies_list"):
+            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "bodies_list", '
+            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
+            print(warning)
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
@@ -108,14 +121,16 @@ class MechanicalSolver(object):
             # Add specific variables for the problem (rotation dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOCAL_POINT_MOMENT)
-            # TODO: Can we combine POINT_TORQUE and POINT_MOMENT???
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_TORQUE)
         if self.settings["pressure_dofs"].GetBool(): # TODO: The creation of UP and USigma elements is pending
             # Add specific variables for the problem (pressure dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESSURE_REACTION)
+        # Add variables that the user defined in the ProjectParameters
+        for i in range(self.settings["auxiliary_variables_list"].size()):
+            variable_name = self.settings["auxiliary_variables_list"][i].GetString()
+            variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+            self.main_model_part.AddNodalSolutionStepVariable(variable)
         print("::[MechanicalSolver]:: Variables ADDED")
 
     def GetMinimumBufferSize(self):
@@ -263,13 +278,8 @@ class MechanicalSolver(object):
         if (materials_filename != ""):
             import read_materials_process
             # Create a dictionary of model parts.
-            Model = {self.main_model_part.Name : self.main_model_part}
-            for i in range(self.settings["problem_domain_sub_model_part_list"].size()):
-                part_name = self.settings["problem_domain_sub_model_part_list"][i].GetString()
-                Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-            for i in range(self.settings["processes_sub_model_part_list"].size()):
-                part_name = self.settings["processes_sub_model_part_list"][i].GetString()
-                Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+            Model = KratosMultiphysics.Model()
+            Model.AddModelPart(self.main_model_part)
             # Add constitutive laws and material properties from json file to model parts.
             read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
             materials_imported = True
@@ -345,8 +355,7 @@ class MechanicalSolver(object):
         params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
         params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-        if( self.settings.Has("bodies_list") ):
-            params.AddValue("bodies_list",self.settings["bodies_list"])
+        params.AddValue("bodies_list",self.settings["bodies_list"])
         # Assign mesh entities from domain and process sub model parts to the computing model part.
         import check_and_prepare_model_process_structural
         check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()

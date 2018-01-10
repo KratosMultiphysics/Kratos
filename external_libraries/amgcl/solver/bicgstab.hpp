@@ -34,6 +34,7 @@ THE SOFTWARE.
 #include <boost/tuple/tuple.hpp>
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
+#include <amgcl/solver/precond_side.hpp>
 #include <amgcl/util.hpp>
 
 namespace amgcl {
@@ -67,6 +68,9 @@ class bicgstab {
 
         /// Solver parameters.
         struct params {
+            /// Preconditioning kind (left/right).
+            preconditioner::side::type pside;
+
             /// Maximum number of iterations.
             size_t maxiter;
 
@@ -76,20 +80,22 @@ class bicgstab {
             /// Target absolute residual error.
             scalar_type abstol;
 
-            params(size_t maxiter = 100, scalar_type tol = 1e-8)
-                : maxiter(maxiter), tol(tol),
+            params()
+                : pside(preconditioner::side::right), maxiter(100), tol(1e-8),
                   abstol(std::numeric_limits<scalar_type>::min())
             {}
 
             params(const boost::property_tree::ptree &p)
-                : AMGCL_PARAMS_IMPORT_VALUE(p, maxiter),
+                : AMGCL_PARAMS_IMPORT_VALUE(p, pside),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, maxiter),
                   AMGCL_PARAMS_IMPORT_VALUE(p, tol),
                   AMGCL_PARAMS_IMPORT_VALUE(p, abstol)
             {
-                AMGCL_PARAMS_CHECK(p, (maxiter)(tol)(abstol));
+                AMGCL_PARAMS_CHECK(p, (pside)(maxiter)(tol)(abstol));
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, pside);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, maxiter);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, tol);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, abstol);
@@ -110,8 +116,7 @@ class bicgstab {
               s ( Backend::create_vector(n, backend_prm) ),
               t ( Backend::create_vector(n, backend_prm) ),
               rh( Backend::create_vector(n, backend_prm) ),
-              ph( Backend::create_vector(n, backend_prm) ),
-              sh( Backend::create_vector(n, backend_prm) ),
+              T ( Backend::create_vector(n, backend_prm) ),
               inner_product(inner_product)
         { }
 
@@ -139,10 +144,10 @@ class bicgstab {
 #endif
                 ) const
         {
+            namespace side = preconditioner::side;
+
             static const coef_type one  = math::identity<coef_type>();
             static const coef_type zero = math::zero<coef_type>();
-
-            backend::residual(rhs, A, x, *r);
 
             scalar_type norm_rhs = norm(rhs);
             if (norm_rhs < amgcl::detail::eps<scalar_type>(n)) {
@@ -150,6 +155,15 @@ class bicgstab {
                 return boost::make_tuple(0, norm_rhs);
             }
 
+            if (prm.pside == side::left) {
+                backend::residual(rhs, A, x, *rh);
+                P.apply(*rh, *r);
+            } else {
+                backend::residual(rhs, A, x, *r);
+            }
+            backend::copy(*r, *rh);
+
+            scalar_type res = norm(*r);
             scalar_type eps = std::max(norm_rhs * prm.tol, prm.abstol);
 
             coef_type rho1  = zero;
@@ -157,11 +171,7 @@ class bicgstab {
             coef_type alpha = zero;
             coef_type omega = zero;
 
-            size_t      iter = 0;
-            scalar_type res  = norm(*r);
-
-            backend::copy(*r, *rh);
-
+            size_t iter = 0;
             for(bool first = true; res > eps && iter < prm.maxiter; ++iter) {
 
                 rho2 = rho1;
@@ -176,26 +186,31 @@ class bicgstab {
                     backend::axpbypcz(one, *r, -beta * omega, *v, beta, *p);
                 }
 
-                P.apply(*p, *ph);
-
-                backend::spmv(one, A, *ph, zero, *v);
+                preconditioner::spmv(prm.pside, P, A, *p, *v, *T);
 
                 alpha = rho1 / inner_product(*rh, *v);
 
+                if (prm.pside == side::left) {
+                    backend::axpby(alpha, *p, one, x);
+                } else {
+                    backend::axpby(alpha, *T, one, x);
+                }
+
                 backend::axpbypcz(one, *r, -alpha, *v, zero, *s);
 
-                if ((res = norm(*s)) <= eps) {
-                    backend::axpby(alpha, *ph, one, x);
-                } else {
-                    P.apply(*s, *sh);
-
-                    backend::spmv(one, A, *sh, zero, *t);
+                if ((res = norm(*s)) > eps) {
+                    preconditioner::spmv(prm.pside, P, A, *s, *t, *T);
 
                     omega = inner_product(*t, *s) / inner_product(*t, *t);
 
                     precondition(!math::is_zero(omega), "Zero omega in BiCGStab");
 
-                    backend::axpbypcz(alpha, *ph, omega, *sh, one, x);
+                    if (prm.pside == side::left) {
+                        backend::axpby(omega, *s, one, x);
+                    } else {
+                        backend::axpby(omega, *T, one, x);
+                    }
+
                     backend::axpbypcz(one, *s, -omega, *t, zero, *r);
 
                     res = norm(*r);
@@ -241,8 +256,7 @@ class bicgstab {
         boost::shared_ptr<vector> s;
         boost::shared_ptr<vector> t;
         boost::shared_ptr<vector> rh;
-        boost::shared_ptr<vector> ph;
-        boost::shared_ptr<vector> sh;
+        boost::shared_ptr<vector> T;
 
         InnerProduct inner_product;
 

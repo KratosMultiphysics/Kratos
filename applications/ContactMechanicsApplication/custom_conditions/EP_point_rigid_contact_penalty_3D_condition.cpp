@@ -643,7 +643,7 @@ namespace Kratos
          for ( unsigned int i = 0; i < rElemGeom.size(); i++) {
 
             if ( rElemGeom[i].Is(BOUNDARY) ) {
-               array_1d<double, 3>  CN = rElemGeom[i].FastGetSolutionStepValue(CONTACT_NORMAL);
+               const array_1d<double, 3> &  CN = rElemGeom[i].FastGetSolutionStepValue(CONTACT_NORMAL);
 
                if ( ( fabs(CN[0]) + fabs(CN[1]) + fabs(CN[2])  ) > 0.01) {
                   BoundaryNodes.push_back( i );
@@ -658,7 +658,9 @@ namespace Kratos
          {
             array_1d< double, 3 > Vector1 = rElemGeom[ BoundaryNodes[1] ].Coordinates() - rElemGeom[ BoundaryNodes[0] ].Coordinates();
             array_1d< double, 3 > Vector2 = rElemGeom[ BoundaryNodes[2] ].Coordinates() - rElemGeom[ BoundaryNodes[0] ].Coordinates();
-            array_1d< double, 3 > Cross = MathUtils<double>::CrossProduct( Vector1, Vector2 ) / 2.0;
+            array_1d< double, 3 > Cross;
+            MathUtils<double>::CrossProduct( Cross, Vector1, Vector2 );
+            Cross /= 2.0;
             double ThisArea = MathUtils<double>::Norm3( Cross);
             AreaVector.push_back(ThisArea);
          }

@@ -325,6 +325,51 @@ void UpdatedLagrangianElement::CalculateKinematics(ElementVariables& rVariables,
     KRATOS_CATCH( "" )
 }
 
+//*********************************COMPUTE KINETICS***********************************
+//************************************************************************************
+
+void UpdatedLagrangianElement::CalculateKinetics(ElementVariables& rVariables, const double& rPointNumber)
+{
+    KRATOS_TRY
+
+    //TotalDeltaPosition must not be used in this element as mDeterminantF0 and mDeformationGradientF0 are stored for reduced order 
+    //however then the storage of variables in the full integration order quadrature must be considered
+
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    //Get the parent coodinates derivative [dN/d£]
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+    
+    //Get the shape functions for the order of the integration method [N]
+    const Matrix& Ncontainer = rVariables.GetShapeFunctions();
+
+    rVariables.DeltaPosition = this->CalculateTotalDeltaPosition(rVariables.DeltaPosition);
+
+    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod, rVariables.DeltaPosition );
+
+    //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+    Matrix InvJ;
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], InvJ, rVariables.detJ);
+
+    //Calculating the cartesian derivatives [dN/dx_n] = [dN/d£][d£/dx_0]
+    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
+
+    //Deformation Gradient F [dx_n+1/dx_0] = [dx_n+1/d£] [d£/dx_0]
+    noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
+    
+    //Determinant of the deformation gradient F
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+    
+    //Determinant of the Deformation Gradient F0
+    // (in this element F = F0, then F0 is set to the identity for coherence in the constitutive law)
+    rVariables.detF0 = 1;
+    rVariables.F0    = identity_matrix<double> ( dimension );
+
+    //Set Shape Functions Values for this integration point
+    rVariables.N=row( Ncontainer, rPointNumber);
+
+    KRATOS_CATCH( "" )
+}  
 
 
 //*************************COMPUTE DEFORMATION GRADIENT*******************************

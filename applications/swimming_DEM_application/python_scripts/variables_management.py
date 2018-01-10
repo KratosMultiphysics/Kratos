@@ -23,7 +23,31 @@ def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part): #DEPR
 # * Listing nodal variables to be added to the model parts (memory will be allocated for them).
 #       Note that additional variables may be added as well by the fluid and/or DEM strategies.
 
+def AddFrameOfReferenceRelatedVariables(pp, model_part):
+    frame_of_reference_type = pp.CFD_DEM["frame_of_reference_type"].GetInt()
+    model_part.ProcessInfo.SetValue(FRAME_OF_REFERENCE_TYPE, frame_of_reference_type)
+
+    if frame_of_reference_type == 1: # Rotating frame
+        angular_velocity_of_frame = Vector(3)
+        angular_velocity_of_frame[:] = [pp.CFD_DEM["angular_velocity_of_frame" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
+
+        model_part.ProcessInfo.SetValue(ANGULAR_VELOCITY_MOVING_FRAME, angular_velocity_of_frame)
+
+        if frame_of_reference_type >= 2: # Gemeral frame
+            angular_velocity_of_frame_old = Vector(3)
+            angular_velocity_of_frame_old[:] = [pp.CFD_DEM["angular_velocity_of_frame_old" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
+            acceleration_of_frame_origin = Vector(3)
+            acceleration_of_frame_origin[:] = [pp.CFD_DEM["acceleration_of_frame_origin" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
+            angular_acceleration_of_frame = Vector(3)
+            angular_acceleration_of_frame[:] = [pp.CFD_DEM["angular_acceleration_of_frame" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
+            model_part.ProcessInfo.SetValue(ANGULAR_VELOCITY_MOVING_FRAME_OLD, angular_velocity_of_frame_old)
+            model_part.ProcessInfo.SetValue(ACCELERATION_MOVING_FRAME_ORIGIN, acceleration_of_frame_origin)
+            model_part.ProcessInfo.SetValue(ANGULAR_ACCELERATION_MOVING_FRAME, angular_acceleration_of_frame)
+
 def AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part):
+
+    AddFrameOfReferenceRelatedVariables(pp, fluid_model_part)
+
     fluid_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1)
     gravity = Vector(3)
     if pp.CFD_DEM["body_force_on_fluid_option"].GetBool():
@@ -40,7 +64,13 @@ def AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part):
     if pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 5 or pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 6:
          fluid_model_part.ProcessInfo.SetValue(CURRENT_COMPONENT, 0)
 
+    if pp.CFD_DEM["non_newtonian_option"].GetBool():
+        fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, pp.CFD_DEM["yield_stress"].GetDouble())
+        fluid_model_part.ProcessInfo.SetValue(REGULARIZATION_COEFFICIENT, pp.CFD_DEM["regularization_coefficient"].GetDouble())
+
 def AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part):
+
+    AddFrameOfReferenceRelatedVariables(pp, dem_model_part)
 
     dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, pp.CFD_DEM["coupling_level_type"].GetInt())
     dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, pp.CFD_DEM["buoyancy_force_type"].GetInt())
@@ -114,13 +144,6 @@ def ConstructListsOfVariables(pp):
         if pp.CFD_DEM["include_faxen_terms_option"].GetBool():
             pp.fluid_vars += [VELOCITY_LAPLACIAN_RATE]
 
-    if pp.CFD_DEM["drag_force_type"].GetInt() >= 0:
-        pp.fluid_vars += [POWER_LAW_N]
-        pp.fluid_vars += [POWER_LAW_K]
-        pp.fluid_vars += [GEL_STRENGTH]
-        pp.fluid_vars += [YIELD_STRESS]
-        pp.fluid_vars += [BINGHAM_SMOOTHER]
-
     if pp.CFD_DEM["calculate_diffusivity_option"].GetBool():
         pp.fluid_vars += [CONDUCTIVITY]
 
@@ -131,7 +154,11 @@ def ConstructListsOfVariables(pp):
     pp.dem_vars += [BUOYANCY]
     pp.dem_vars += [VELOCITY_OLD]
 
-    if pp.CFD_DEM["IntegrationScheme"].GetString() in {'Hybrid_Bashforth', 'TerminalVelocityScheme'} or pp.CFD_DEM["basset_force_type"].GetInt() > 0:
+    if pp.CFD_DEM["frame_of_reference_type"].GetInt() and pp.CFD_DEM["basset_force_type"].GetInt() > 0:
+        pp.dem_vars += [DISPLACEMENT_OLD]
+        pp.dem_vars += [VELOCITY_OLD_OLD]
+
+    if pp.CFD_DEM["TranslationalIntegrationScheme"].GetString() in {'Hybrid_Bashforth', 'TerminalVelocityScheme'} or pp.CFD_DEM["basset_force_type"].GetInt() > 0:
         pp.dem_vars += [VELOCITY_OLD]
         pp.dem_vars += [ADDITIONAL_FORCE_OLD]
         pp.dem_vars += [SLIP_VELOCITY]
@@ -252,6 +279,10 @@ def ConstructListsOfResultsToPrint(pp):
     if pp.CFD_DEM["embedded_option"].GetBool():
         pp.rigid_faces_nodal_results += ["POSITIVE_FACE_PRESSURE"]
         pp.rigid_faces_nodal_results += ["NEGATIVE_FACE_PRESSURE"]
+        
+    if pp.CFD_DEM["PostNonDimensionalVolumeWear"].GetBool(): 
+        pp.rigid_faces_nodal_results += ["IMPACT_WEAR"] 
+        pp.rigid_faces_nodal_results += ["NON_DIMENSIONAL_VOLUME_WEAR"]
 
     # changes on the fluid variables to print for the sake of consistency
     ChangeListOfFluidNodalResultsToPrint(pp)

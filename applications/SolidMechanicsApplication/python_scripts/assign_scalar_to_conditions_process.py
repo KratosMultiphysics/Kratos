@@ -16,9 +16,16 @@ def Factory(custom_settings, Model):
 class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
     def __init__(self, Model, custom_settings ):
         BaseProcess.AssignScalarToNodesProcess.__init__(self, Model, custom_settings)        
-         
+        
     def ExecuteInitialize(self):
 
+
+        # set model part
+        self.model_part = self.model[self.settings["model_part_name"].GetString()]
+           
+        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):            
+            self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
+        
         # set processes
         params = KratosMultiphysics.Parameters("{}")           
         params.AddValue("model_part_name", self.settings["model_part_name"])
@@ -42,6 +49,7 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
             
         if( self.IsInsideInterval() and self.interval_string == "initial" ):
             self.AssignValueProcess.Execute()
+            
             
     def ExecuteInitializeSolutionStep(self):
 

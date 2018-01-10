@@ -35,7 +35,8 @@
 namespace Kratos
 {
 
-KratosMappingApplication::KratosMappingApplication() :
+KratosMappingApplication::KratosMappingApplication() : 
+    KratosApplication("MappingApplication"),
     mInterfaceObject(0.0, 0.0, 0.0),
     mInterfaceNode(),
     mInterfaceGeometryObject()

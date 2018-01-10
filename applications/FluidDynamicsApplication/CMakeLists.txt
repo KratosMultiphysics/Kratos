@@ -43,6 +43,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/herschel_bulkey_3d_law.cpp
 
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/boussinesq_force_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_modification_process.cpp
 
 )
 
