@@ -337,7 +337,7 @@ namespace Kratos
 
 	//strain measure C
 	noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rVariables.Strain.InverseMatrix));
-	rVariables.Strain.InverseMatrix = prod(trans(rTotalDeformationMatrix), rVariables.Strain.Matrix); //InverseMatrix used as a wildcard here (InverseMatrix = RightCauchyGreenMatrix )
+	noalias(rVariables.Strain.InverseMatrix) = prod(trans(rTotalDeformationMatrix), rVariables.Strain.Matrix); //InverseMatrix used as a wildcard here (InverseMatrix = RightCauchyGreenMatrix )
       
 
 	ConstitutiveModelUtilities::RightCauchyToGreenLagrangeStrain( rVariables.Strain.InverseMatrix, rVariables.Strain.Matrix);  
@@ -428,29 +428,35 @@ namespace Kratos
       const ModelDataType&  rModelData  = rVariables.GetModelData();
       const MaterialDataType& rMaterial = rModelData.GetMaterialParameters();
 
+      rConstitutiveTensor.clear();
+      
       // Lame constants
       const double& rYoungModulus       = rMaterial.GetYoungModulus();
       const double& rPoissonCoefficient = rMaterial.GetPoissonCoefficient();
 
-      rConstitutiveTensor.clear();
+      double coefficient = (rYoungModulus)/((1.0+rPoissonCoefficient)*(1.0-2.0*rPoissonCoefficient));
+      double component_0 = coefficient*(1.0-rPoissonCoefficient);
+      double component_1 = coefficient*rPoissonCoefficient;
+      double component_2 = coefficient*(0.5-rPoissonCoefficient);
+      
       
       // 3D linear elastic constitutive matrix
-      rConstitutiveTensor ( 0 , 0 ) = (rYoungModulus*(1.0-rPoissonCoefficient)/((1.0+rPoissonCoefficient)*(1.0-2.0*rPoissonCoefficient)));
-      rConstitutiveTensor ( 1 , 1 ) = rConstitutiveTensor ( 0 , 0 );
-      rConstitutiveTensor ( 2 , 2 ) = rConstitutiveTensor ( 0 , 0 );
+      rConstitutiveTensor ( 0 , 0 ) = component_0;
+      rConstitutiveTensor ( 1 , 1 ) = component_0;
+      rConstitutiveTensor ( 2 , 2 ) = component_0;
 
-      rConstitutiveTensor ( 3 , 3 ) = rConstitutiveTensor ( 0 , 0 )*(1.0-2.0*rPoissonCoefficient)/(2.0*(1.0-rPoissonCoefficient));
-      rConstitutiveTensor ( 4 , 4 ) = rConstitutiveTensor ( 3 , 3 );
-      rConstitutiveTensor ( 5 , 5 ) = rConstitutiveTensor ( 3 , 3 );
+      rConstitutiveTensor ( 3 , 3 ) = component_2;
+      rConstitutiveTensor ( 4 , 4 ) = component_2;
+      rConstitutiveTensor ( 5 , 5 ) = component_2;
 
-      rConstitutiveTensor ( 0 , 1 ) = rConstitutiveTensor ( 0 , 0 )*rPoissonCoefficient/(1.0-rPoissonCoefficient);
-      rConstitutiveTensor ( 1 , 0 ) = rConstitutiveTensor ( 0 , 1 );
+      rConstitutiveTensor ( 0 , 1 ) = component_1;
+      rConstitutiveTensor ( 1 , 0 ) = component_1;
 
-      rConstitutiveTensor ( 0 , 2 ) = rConstitutiveTensor ( 0 , 1 );
-      rConstitutiveTensor ( 2 , 0 ) = rConstitutiveTensor ( 0 , 1 );
+      rConstitutiveTensor ( 0 , 2 ) = component_1;
+      rConstitutiveTensor ( 2 , 0 ) = component_1;
 
-      rConstitutiveTensor ( 1 , 2 ) = rConstitutiveTensor ( 0 , 1 );
-      rConstitutiveTensor ( 2 , 1 ) = rConstitutiveTensor ( 0 , 1 );
+      rConstitutiveTensor ( 1 , 2 ) = component_1;
+      rConstitutiveTensor ( 2 , 1 ) = component_1;
 
     
       rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED);

@@ -198,8 +198,9 @@ public:
     /** This is an access method to point's coordinate by indices. For example this
     function return x, y and z coordinate whith 1, 2 and 3 as input
     respectively.
+    @note: This method is deprecated: use X(), Y(), Z() or the base class' operator[] method instead.
     */
-    double Coordinate(IndexType CoordinateIndex) const
+    KRATOS_DEPRECATED double Coordinate(IndexType CoordinateIndex) const
     {
         KRATOS_DEBUG_ERROR_IF((CoordinateIndex > 3)||(CoordinateIndex == 0)) << "Coordinate index = " << CoordinateIndex << " is out of range [1..3]";
         return this->operator[](CoordinateIndex - 1);
@@ -208,8 +209,9 @@ public:
     /** This is an access method to get a reference to point's coordinate by
     indices. For example this function return references to x, y and z coordinate whith 1, 2
     and 3 as input respectively.
+    @note: This method is deprecated: use X(), Y(), Z() or the base class' operator[] method instead.
     */
-    double &Coordinate(IndexType CoordinateIndex)
+    KRATOS_DEPRECATED double &Coordinate(IndexType CoordinateIndex)
     {
         KRATOS_DEBUG_ERROR_IF((CoordinateIndex > 3)||(CoordinateIndex == 0)) << "Coordinate index = " << CoordinateIndex << " is out of range [1..3]";
         return this->operator[](CoordinateIndex - 1);

@@ -462,7 +462,6 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA) #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
             model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO) #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
             if self.DEM_parameters["RollingFrictionOption"].GetBool():
-                model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
                 model_part.AddNodalSolutionStepVariable(ROLLING_RESISTANCE_MOMENT)
 
         # OTHER PROPERTIES
@@ -877,7 +876,8 @@ class DEMFEMProcedures(object):
 
         if not "TestType" in DEM_parameters.keys():
             self.TestType = "None"
-        # self.TestType = self.DEM_parameters["TestType"].GetString()
+        else:
+            self.TestType = self.DEM_parameters["TestType"].GetString()
 
         # Initialization of member variables
         # SIMULATION FLAGS
@@ -962,7 +962,7 @@ class DEMFEMProcedures(object):
 
         self.particle_graph_forces = {}                    
 
-        if not "TestType" in DEM_parameters.keys():
+        if self.TestType == "None":
             open_graph_files(self, RigidFace_model_part)
             open_balls_graph_files(self,spheres_model_part)
 
@@ -1067,7 +1067,8 @@ class DEMFEMProcedures(object):
     
     def PrintGraph(self, time):
 
-        if not "TestType" in self.DEM_parameters.keys():
+        if self.TestType == "None":
+            
             if (self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
 

@@ -110,6 +110,10 @@ namespace Kratos
         void ComputeHydrodynamicTorque(NodeType& node, array_1d<double, 3>& hydro_torque, const ProcessInfo& r_current_process_info);
         void ComputeBrownianMotionForce(NodeType& node, array_1d<double, 3>& brownian_motion_force, const ProcessInfo& r_current_process_info);
         void ComputeParticleReynoldsNumber(double& r_reynolds);
+        void ComputePowerLawParticleReynoldsNumber(double& reynolds,
+                                                   const double consistency_index,
+                                                   const int flow_behavior_index,
+                                                   const bool use_max_shear_rate = false);
         double ComputeNondimensionalRotVelocity(const array_1d<double, 3>& slip_rot_velocity);
         void ComputeParticleRotationReynoldsNumber(double r_norm_of_slip_rot, double& r_reynolds);
         void ComputeParticleRotationReynoldsNumberOverNormOfSlipRot(double& r_reynolds);
@@ -174,6 +178,7 @@ namespace Kratos
         double ComputeIntermediateRegimeDragCoefficient();
         double ComputeHaiderDragCoefficient();
         double ComputeBeetstraDragCoefficient();
+        double ComputeShahDragCoefficient(const bool use_shahi_correction = false);
         void ComputeGanserParameters(const int isometric_shape, const double dn, double& k_1, double& k_2);
         void ApplyDragPorosityModification(double& drag_coeff);
         double ComputeElSamniLiftCoefficient(const double norm_of_shear_rate, const double vorticity_norm, const ProcessInfo& r_current_process_info);

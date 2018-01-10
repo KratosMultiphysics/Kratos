@@ -182,6 +182,27 @@ namespace Kratos
   //************* COMPUTING  METHODS
   //************************************************************************************
   //************************************************************************************
+  void LargeStrain3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
+					     const GeometryType& rElementGeometry,
+					     const Vector& rShapeFunctionsValues )
+  {
+    KRATOS_TRY
+
+    ConstitutiveLaw::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
+
+    //member variables initialization
+    mTotalDeformationDet = 1.0;
+
+    MatrixType Identity = identity_matrix<double>(3);   
+    noalias(mInverseTotalDeformationMatrix) = Identity;
+    
+    mpModel->InitializeMaterial(rMaterialProperties);
+    
+    KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
   
   void LargeStrain3DLaw::InitializeModelData(Parameters& rValues,ModelDataType& rModelValues)
   {
@@ -202,8 +223,8 @@ namespace Kratos
     //b.- Calculate incremental deformation gradient
     const MatrixType& rTotalDeformationMatrix = rValues.GetDeformationGradientF();
 
-    noalias(rVariables.TotalDeformationMatrix) = ConstitutiveModelUtilities::DeformationGradientTo3D(rTotalDeformationMatrix, rVariables.TotalDeformationMatrix);
-    rVariables.DeltaDeformationMatrix = prod(rVariables.TotalDeformationMatrix, mInverseTotalDeformationMatrix); //incremental F
+    rVariables.TotalDeformationMatrix = ConstitutiveModelUtilities::DeformationGradientTo3D(rTotalDeformationMatrix, rVariables.TotalDeformationMatrix);
+    noalias(rVariables.DeltaDeformationMatrix) = prod(rVariables.TotalDeformationMatrix, mInverseTotalDeformationMatrix); //incremental F
 
     if( rValues.GetOptions().Is(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE) )
       rModelValues.State.Set(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES);
@@ -230,7 +251,7 @@ namespace Kratos
             
       //update total deformation gradient
       MatrixType TotalDeformationMatrix;
-      noalias(TotalDeformationMatrix) = ConstitutiveModelUtilities::DeformationGradientTo3D(rDeformationMatrix,TotalDeformationMatrix);
+      TotalDeformationMatrix = ConstitutiveModelUtilities::DeformationGradientTo3D(rDeformationMatrix,TotalDeformationMatrix);
       ConstitutiveModelUtilities::InvertMatrix3( TotalDeformationMatrix, mInverseTotalDeformationMatrix, mTotalDeformationDet);
       mTotalDeformationDet = rDeformationDet; //special treatment of the determinant
 	
@@ -427,7 +448,6 @@ namespace Kratos
       mpModel->CalculateStressTensor(rModelValues, StressMatrix);
     }
 
-    rStressVector.clear();
     rStressVector = ConstitutiveModelUtilities::StressTensorToVector(StressMatrix, rStressVector);
         
     KRATOS_CATCH(" ")
@@ -439,9 +459,7 @@ namespace Kratos
   void LargeStrain3DLaw::CalculateConstitutiveMatrix(ModelDataType& rModelValues, Matrix& rConstitutiveMatrix)
   {
     KRATOS_TRY
-      
-    rConstitutiveMatrix.clear();
-    
+        
     //Calculate ConstitutiveMatrix   
     if(rModelValues.GetOptions().Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)){
 
@@ -467,9 +485,7 @@ namespace Kratos
     KRATOS_TRY
       
     MatrixType StressMatrix;
-
     StressMatrix.clear();
-    rConstitutiveMatrix.clear();
     
     //Calculate Stress and ConstitutiveMatrix   
     if(rModelValues.GetOptions().Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)){
@@ -568,18 +584,6 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
-      KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value" << std::endl;
-
-    const double& nu = rMaterialProperties[POISSON_RATIO];
-    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
-
-    if(POISSON_RATIO.Key() == 0 || check==true)
-      KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value" << std::endl;
-
-
-    if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00)
-      KRATOS_ERROR << "DENSITY has Key zero or invalid value" << std::endl;
 
     mpModel->Check(rMaterialProperties,rCurrentProcessInfo);
     

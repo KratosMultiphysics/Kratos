@@ -112,6 +112,18 @@ namespace Kratos
     /**
      * Initialize member data
      */    
+    void InitializeMaterial(const Properties& rMaterialProperties) override
+    {
+      KRATOS_TRY
+
+      mElasticityModel.InitializeMaterial(rMaterialProperties);
+	
+      KRATOS_CATCH(" ")      
+    }
+    
+    /**
+     * Initialize member data
+     */    
     void InitializeModel(ModelDataType& rValues) override
     {
       KRATOS_TRY
@@ -214,6 +226,21 @@ namespace Kratos
     virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
+    
+      if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
+         KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value" << std::endl;
+
+      const double& nu = rMaterialProperties[POISSON_RATIO];
+      const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
+
+      if(POISSON_RATIO.Key() == 0 || check==true)
+         KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value" << std::endl;
+
+
+      if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00)
+         KRATOS_ERROR << "DENSITY has Key zero or invalid value" << std::endl;
+
+      mElasticityModel.Check(rMaterialProperties, rCurrentProcessInfo);
 	
       return 0;
 
@@ -249,8 +276,8 @@ namespace Kratos
      * Set Values
      */
     virtual void SetValue(const Variable<double>& rVariable,
-                  const double& rValue,
-                  const ProcessInfo& rCurrentProcessInfo) override {}   
+			  const double& rValue,
+			  const ProcessInfo& rCurrentProcessInfo) override {}   
     /**
      * Get Values
      */
@@ -317,7 +344,15 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
+    //set internal variables for output print
     
+    virtual void SetInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables)
+    {
+      KRATOS_TRY
+
+      KRATOS_CATCH(" ")               
+    }  
+        
     ///@}
     ///@name Protected  Access
     ///@{
