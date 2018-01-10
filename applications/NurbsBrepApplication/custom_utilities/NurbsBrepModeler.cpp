@@ -99,9 +99,12 @@ namespace Kratos
   void NurbsBrepModeler::CreateIntegrationDomain(const int& shapefunction_order, ModelPart& model_part)
   {
     int id_itr = 1;
-    ModelPart& model_part_faces = model_part.CreateSubModelPart("FACES");
-    ModelPart& model_part_coupling_edges = model_part.CreateSubModelPart("COUPLING_EDGES");
-    ModelPart& model_part_edges = model_part.CreateSubModelPart("EDGES");
+    //model_part.CreateSubModelPart("FACES");
+    //model_part.CreateSubModelPart("COUPLING_EDGES");
+    //model_part.CreateSubModelPart("EDGES");
+    ModelPart::Pointer model_part_faces = model_part.CreateSubModelPart("FACES");
+    ModelPart::Pointer model_part_coupling_edges = model_part.CreateSubModelPart("COUPLING_EDGES");
+    ModelPart::Pointer model_part_edges = model_part.CreateSubModelPart("EDGES");
 
     for (unsigned int brep_itr = 0; brep_itr < m_brep_model_vector.size(); brep_itr++)
     {
@@ -109,23 +112,24 @@ namespace Kratos
       {
         BrepFace& face = m_brep_model_vector[brep_itr].GetFaceVector()[face_itr];
 
-        ModelPart& model_part_face_id = model_part_faces.CreateSubModelPart("FACE_" + std::to_string(face.Id()));
+        //model_part_faces.CreateSubModelPart("FACE_" + std::to_string(face.Id()));
+        ModelPart::Pointer model_part_face_id = model_part_faces->CreateSubModelPart("FACE_" + std::to_string(face.Id()));
 
         std::vector<Node<3>::Pointer> NodeVectorElement = face.GetQuadraturePointsTrimmed(shapefunction_order);
         for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
         {
           NodeVectorElement[k]->SetId(id_itr);
           id_itr++;
-          model_part_face_id.AddNode(NodeVectorElement[k]);
+          model_part_face_id->AddNode(NodeVectorElement[k]);
         }
-
-        ModelPart& model_part_face_id_embedded = model_part_faces.CreateSubModelPart("FACE_" + std::to_string(face.Id()) + "_EMBEDDED");
+        //model_part_faces.CreateSubModelPart("FACE_" + std::to_string(face.Id()) + "_EMBEDDED");
+        ModelPart::Pointer model_part_face_id_embedded = model_part_faces->CreateSubModelPart("FACE_" + std::to_string(face.Id()) + "_EMBEDDED");
         std::vector<Node<3>::Pointer> NodeVectorEmbeddedElement = face.GetQuadraturePointsEmbedded(shapefunction_order);
         for (unsigned int k = 0; k < NodeVectorEmbeddedElement.size(); k++)
         {
           NodeVectorEmbeddedElement[k]->SetId(id_itr);
           id_itr++;
-          model_part_face_id_embedded.AddNode(NodeVectorEmbeddedElement[k]);
+          model_part_face_id_embedded->AddNode(NodeVectorEmbeddedElement[k]);
         }
       }
 
@@ -135,12 +139,13 @@ namespace Kratos
 
         if (edge.isCouplingEdge())
         {
-          ModelPart& model_part_coupling_edge_id = model_part_coupling_edges.CreateSubModelPart("COUPLING_EDGE_" + std::to_string(edge.Id()));
+          //model_part_coupling_edges.CreateSubModelPart("COUPLING_EDGE_" + std::to_string(edge.Id()));
+          ModelPart::Pointer model_part_coupling_edge_id = model_part_coupling_edges->CreateSubModelPart("COUPLING_EDGE_" + std::to_string(edge.Id()));
           int face_id_slave;
           int trim_index_slave;
           edge.GetEdgeInformation(1, face_id_slave, trim_index_slave);
           BrepFace& face_slave = GetFace(face_id_slave);
-          std::vector<Point<3>> points = face_slave.GetIntersectionPoints(trim_index_slave);
+          std::vector<Point> points = face_slave.GetIntersectionPoints(trim_index_slave);
 
           int face_id_master;
           int trim_index_master;
@@ -163,12 +168,13 @@ namespace Kratos
             //KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_SLAVE))
             NodeVectorElement[k]->SetId(id_itr);
             id_itr++;
-            model_part_coupling_edge_id.AddNode(NodeVectorElement[k]);
+            model_part_coupling_edge_id->AddNode(NodeVectorElement[k]);
           }
         }
         else
         {
-          ModelPart& model_part_edge_id = model_part_edges.CreateSubModelPart("EDGE_" + std::to_string(edge.Id()));
+          //model_part_edges.CreateSubModelPart("EDGE_" + std::to_string(edge.Id()));
+          ModelPart::Pointer model_part_edge_id = model_part_edges->CreateSubModelPart("EDGE_" + std::to_string(edge.Id()));
           int face_id;
           int trim_index;
           edge.GetEdgeInformation(0, face_id, trim_index);
@@ -180,7 +186,7 @@ namespace Kratos
           {
             NodeVectorElement[k]->SetId(id_itr);
             id_itr++;
-            model_part_edge_id.AddNode(NodeVectorElement[k]);
+            model_part_edge_id->AddNode(NodeVectorElement[k]);
           }
         }
       }

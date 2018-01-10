@@ -92,8 +92,11 @@ namespace Kratos
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         unsigned int face_id = brep_json["faces"][i]["brep_id"].GetInt();
 
-        ModelPart& sub_model_part_face = model_part.CreateSubModelPart("FACE_" + std::to_string(face_id));
-        ModelPart& sub_model_part_face_cp = sub_model_part_face.CreateSubModelPart("FACE_" + std::to_string(face_id) + "_CPS");
+        //model_part.CreateSubModelPart("FACE_" + std::to_string(face_id));
+        //ModelPart& sub_model_part_face = model_part.GetSubModelPart("FACE_" + std::to_string(face_id));
+
+        //sub_model_part_face.CreateSubModelPart("FACE_" + std::to_string(face_id) + "_CPS");
+        //ModelPart& sub_model_part_face_cp = sub_model_part_face.GetSubModelPart("FACE_" + std::to_string(face_id) + "_CPS");
 
         std::cout << "> Reading face " << face_id << "..." << std::endl;
 
@@ -144,8 +147,8 @@ namespace Kratos
 
           control_points_ids.push_back(cp_id);
 
-          sub_model_part_face_cp.CreateNewNode(cp_id, x, y, z);
-          sub_model_part_face_cp.GetNode(cp_id).SetValue(CONTROL_POINT_WEIGHT, w);
+          //sub_model_part_face.CreateNewNode(cp_id, x, y, z);
+          //sub_model_part_face.GetNode(cp_id).SetValue(CONTROL_POINT_WEIGHT, w);
         }
         std::cout << "> Reading face " << face_id << " cps" << std::endl;
 
@@ -284,9 +287,9 @@ namespace Kratos
 
 
         std::cout << "> Reading face " << face_id << " finishing" << std::endl;
-
+        std::cout << "WARNING: WRONG MODEL PART PASSED" << std::endl;
         // create face
-        BrepFace face(face_id, trimming_loops, embedded_loops, knot_vector_u, knot_vector_v, p, q, control_points_ids, sub_model_part_face);
+        BrepFace face(face_id, trimming_loops, embedded_loops, knot_vector_u, knot_vector_v, p, q, control_points_ids, model_part);
         faces_vector.push_back(face);
       }
 

@@ -43,7 +43,7 @@ namespace Kratos
     for (unsigned int i = 0; i<number_polygon_points; i++)
     {
       u_i += delta_u;
-      Point<3> curve_point;
+      Point curve_point;
 
       EvaluateCurvePoint(curve_point, u_i);
 
@@ -76,7 +76,7 @@ namespace Kratos
     {
       //std::cout << "i: " << i << std::endl;
       u_i += delta_u;
-      Point<3> curve_point;
+      Point curve_point;
 
       //std::cout << "u_i: " << u_i << std::endl;
       EvaluateCurvePoint(curve_point, u_i);
@@ -90,7 +90,7 @@ namespace Kratos
     return polygon;
   }
 
-  void BrepTrimmingCurve::EvaluateCurvePoint(Point<3>& rCurvePoint, double parameter_u)
+  void BrepTrimmingCurve::EvaluateCurvePoint(Point& rCurvePoint, double parameter_u)
   {
     std::vector<Vector> derivatives;
     GetCurveDerivatives(derivatives, 1, parameter_u);
@@ -163,7 +163,7 @@ namespace Kratos
       std::vector<array_1d<double, 2>> integration_points = knot_span.getIntegrationPointsInParameterDomain();
       for (unsigned int j = 0; j < integration_points.size(); j++)
       {
-        Point<3> integration_point;
+        Point integration_point;
         EvaluateCurvePoint(integration_point, integration_points[j][0]);
 
         array_1d<double, 3> quadrature_point;
@@ -311,7 +311,7 @@ namespace Kratos
     return full_intersections;
   }
 
-  std::vector<double> BrepTrimmingCurve::FindIntersectionsWithPoints(std::vector<Point<2>> intersection_points)
+  std::vector<double> BrepTrimmingCurve::FindIntersectionsWithPoints(std::vector<array_1d<double, 2>> intersection_points)
   {
     std::vector<array_1d<double, 3>> trim_polygon = CreatePolygonWithParameter(200);
     std::vector<double> intersections;
@@ -381,8 +381,8 @@ namespace Kratos
     double relR;
     double J;
     //array_1d<double, 2> bounds;
-    Point<3> point_1, point_2;
-    //Point<3> poi_max;
+    Point point_1, point_2;
+    //Point poi_max;
     Matrix dCdu;
 
     double Tolerance = 1e-9;
@@ -425,7 +425,7 @@ namespace Kratos
       for (i = 0; i <= itmax; i++)
       {
         // establish residuum
-        Point<3> point;
+        Point point;
         this->EvaluateCurvePoint(point, u_n);
         array_1d<double, 2> base_vectors = this->GetBaseVector(u_n);//EvaluateCurveDerivatives(dCdu, 1, u_n);
         dynR = point(baseVec - 1) - baseComp;
@@ -501,7 +501,7 @@ namespace Kratos
     const double& knot)
   {
     double parameter_smaller, parameter_bigger;
-    Point<3> point_1, point_2;
+    Point point_1, point_2;
     this->EvaluateCurvePoint(point_1, parameter_1);
     this->EvaluateCurvePoint(point_2, parameter_2);
 
@@ -521,7 +521,7 @@ namespace Kratos
     for (int i = 0; i <= itmax; ++i)
     {
       double new_parameter = (parameter_smaller + parameter_bigger)/2;
-      Point<3> point_new;
+      Point point_new;
       this->EvaluateCurvePoint(point_new, new_parameter);
       double new_distance = point_new(direction) - knot;
       KRATOS_WATCH(new_parameter)
@@ -553,8 +553,8 @@ namespace Kratos
     double relR;
     double J;
     //array_1d<double, 2> bounds;
-    Point<3> point_1, point_2;
-    //Point<3> poi_max;
+    Point point_1, point_2;
+    //Point poi_max;
     Matrix dCdu;
 
     double Tolerance = 1e-9;
@@ -567,7 +567,7 @@ namespace Kratos
     for (i = 0; i <= itmax; i++)
     {
       // establish residuum
-      Point<3> point;
+      Point point;
       this->EvaluateCurvePoint(point, parameter);
       array_1d<double, 2> base_vectors = this->GetBaseVector(parameter);//EvaluateCurveDerivatives(dCdu, 1, u_n);
       //std::cout << "point(direction): " << point(direction) << ", knot: " << knot << std::endl;
@@ -605,7 +605,7 @@ namespace Kratos
     return false;
   }
 
-  bool BrepTrimmingCurve::ProjectionNewtonRaphson(double& parameter, const Point<2>& closest_point)
+  bool BrepTrimmingCurve::ProjectionNewtonRaphson(double& parameter, const array_1d<double, 2>& closest_point)
   {
     double initial_param = parameter;
     int itmax = 20;
@@ -680,7 +680,7 @@ namespace Kratos
 
   bool BrepTrimmingCurve::ProjectionBisection(
     double& parameter,
-    const Point<2>& closest_point)
+    const array_1d<double, 2>& closest_point)
   {
     double parameter_min = m_knot_vector_u(0);
     double parameter_max = m_knot_vector_u(m_knot_vector_u.size() - 1);
@@ -716,7 +716,7 @@ namespace Kratos
 
   bool BrepTrimmingCurve::ProjectionBisection(
     double& parameter,
-    const Point<2>& closest_point,
+    const array_1d<double, 2>& closest_point,
     double parameter_min,
     double parameter_max)
   {
@@ -774,7 +774,7 @@ namespace Kratos
   }
 
   //to be deleted
-  bool BrepTrimmingCurve::GetClosestPoint(const Point<2>& closest_point, double& parameter)
+  bool BrepTrimmingCurve::GetClosestPoint(const array_1d<double, 2>& closest_point, double& parameter)
   {
     double ModelTolerance = 1e-8;
 
@@ -800,7 +800,7 @@ namespace Kratos
     for (unsigned int i = 0; i <= itmax; i++)
     {
       // establish residuum
-      Point<3> point;
+      Point point;
       this->EvaluateCurvePoint(point, parameter);
       array_1d<double, 2> base_vector = this->GetBaseVector(parameter);//EvaluateCurveDerivatives(dCdu, 1, u_n);
       std::vector<Vector> derivatives;
@@ -866,7 +866,7 @@ namespace Kratos
   //to be deleted
   bool BrepTrimmingCurve::GetClosestPointBisection(
     double& parameter,
-    const Point<2>& closest_point)
+    const array_1d<double, 2>& closest_point)
   {
     double parameter_min = m_knot_vector_u(0);
     double parameter_max = m_knot_vector_u(m_knot_vector_u.size() - 1);
@@ -874,7 +874,7 @@ namespace Kratos
       std::swap(parameter_min, parameter_max);
 
     //double parameter_smaller, parameter_bigger;
-    Point<3> point_1, point_2;
+    Point point_1, point_2;
     this->EvaluateCurvePoint(point_1, parameter_min);
     this->EvaluateCurvePoint(point_2, parameter_max);
 
@@ -895,7 +895,7 @@ namespace Kratos
     for (int i = 0; i <= itmax; ++i)
     {
       double new_parameter = (parameter_min + parameter_max) / 2;
-      Point<3> point_new;
+      Point point_new;
       this->EvaluateCurvePoint(point_new, new_parameter);
       distance[0] = point_new[0] - closest_point[0];
       distance[1] = point_new[1] - closest_point[1];

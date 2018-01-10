@@ -35,7 +35,8 @@
 
 namespace Kratos {
 
-KratosNurbsBrepApplication::KratosNurbsBrepApplication(){}
+  KratosNurbsBrepApplication::KratosNurbsBrepApplication()
+    : KratosApplication("NurbsBrepApplication") {}
 
 void KratosNurbsBrepApplication::Register() {
    // calling base class register to register Kratos components

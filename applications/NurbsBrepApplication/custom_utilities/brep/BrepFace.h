@@ -88,21 +88,21 @@ namespace Kratos
     std::vector<Node<3>::Pointer> GetQuadraturePointsEmbedded(const int& shapefunction_order);
     std::vector<Node<3>::Pointer> GetQuadraturePointsOfTrimmingCurve(const int& shapefunction_order, const int& trim_index);
     std::vector<Node<3>::Pointer> GetQuadraturePointsOfTrimmingCurveWithPoints(
-      const int& shapefunction_order, const int& trim_index, std::vector<Point<3>> intersection_points);
+      const int& shapefunction_order, const int& trim_index, std::vector<Point> intersection_points);
     bool CheckIfPointIsInside(Vector node_parameters);
-    void EvaluateSurfacePoint(Point<3>& rSurfacePoint, const double& u, const double& v);
+    void EvaluateSurfacePoint(Point& rSurfacePoint, const double& u, const double& v);
     void EvaluateShapeFunctionsSlaveNode(const double& u, const double& v, const int& shapefunction_order, Node<3>::Pointer node);
     Node<3>::Pointer EvaluateNode(double u, double v, const int& shapefunction_order);
-    //void GetLocalParameterOfPoint(const Point<3>& point, double& u, double& v);
-    void GetLocalParameterOfPointOnTrimmingCurve(const Point<3>& point, const BrepTrimmingCurve& trimming_curve, double& u, double& v);
-    void GetClosestPoint(const Point<3>& point, double& u, double& v);
-    bool NewtonRaphson(const Point<3>& point, double& u, double& v);
+    //void GetLocalParameterOfPoint(const Point& point, double& u, double& v);
+    void GetLocalParameterOfPointOnTrimmingCurve(const Point& point, const BrepTrimmingCurve& trimming_curve, double& u, double& v);
+    void GetClosestPoint(const Point& point, double& u, double& v);
+    bool NewtonRaphson(const Point& point, double& u, double& v);
     std::vector<Node<3>::Pointer> EnhanceShapeFunctions(std::vector<array_1d<double, 3>>& points, const int& shapefunction_order);
     void EnhanceNode(Node<3>::Pointer& node, const double& u, const double& v, const int& shapefunction_order);
     void EnhanceShapeFunctionsSlave(
       std::vector<Node<3>::Pointer>& nodes, const int& trim_index, const int& shapefunction_order);
     BrepTrimmingCurve GetTrimmingCurve(const int& trim_index);
-    std::vector<Point<3>> GetIntersectionPoints(const int& trim_index);
+    std::vector<Point> GetIntersectionPoints(const int& trim_index);
     //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.
     BrepFace(unsigned int brep_id,

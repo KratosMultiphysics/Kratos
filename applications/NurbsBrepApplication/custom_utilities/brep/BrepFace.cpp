@@ -259,17 +259,17 @@ namespace Kratos
     return NodeVectorElement;
   }
 
-  void BrepFace::GetLocalParameterOfPointOnTrimmingCurve(const Point<3>& point, const BrepTrimmingCurve& trimming_curve, double& u, double& v)
+  void BrepFace::GetLocalParameterOfPointOnTrimmingCurve(const Point& point, const BrepTrimmingCurve& trimming_curve, double& u, double& v)
   {
     bool success = NewtonRaphson(point, u, v);
   }
 
-  std::vector<Node<3>::Pointer> BrepFace::GetQuadraturePointsOfTrimmingCurveWithPoints(const int& shapefunction_order, const int& trim_index, std::vector<Point<3>> intersection_points)
+  std::vector<Node<3>::Pointer> BrepFace::GetQuadraturePointsOfTrimmingCurveWithPoints(const int& shapefunction_order, const int& trim_index, std::vector<Point> intersection_points)
   {
     BrepTrimmingCurve trimming_curve = GetTrimmingCurve(trim_index);
     //trimming_curve.PrintData();
 
-    std::vector<Point<2>> intersection_points_2d;
+    std::vector<array_1d<double, 2>> intersection_points_2d;
     for (unsigned int i = 0; i < intersection_points.size(); i++)
     {
       //GetLocalParameterOfPointOnTrimmingCurve(intersection_points[i], trimming_curve, )
@@ -284,7 +284,7 @@ namespace Kratos
         array_1d<double, 2> initial_guess;
         for (auto point_itr = trimming_curve_loop.begin(); point_itr != trimming_curve_loop.end(); ++point_itr)
         {
-          Point<3> point_global;
+          Point point_global;
           EvaluateSurfacePoint(point_global, (*point_itr)[0], (*point_itr)[1]);
           double new_distance = sqrt((intersection_points[i][0] - point_global[0]) * (intersection_points[i][0] - point_global[0])
             + (intersection_points[i][1] - point_global[1]) * (intersection_points[i][1] - point_global[1])
@@ -304,7 +304,7 @@ namespace Kratos
           distance = 1e10;
           for (auto point_itr = trimming_curve_loop.begin(); point_itr != trimming_curve_loop.end(); ++point_itr)
           {
-            Point<3> point_global;
+            Point point_global;
             EvaluateSurfacePoint(point_global, (*point_itr)[0], (*point_itr)[1]);
             double new_distance = sqrt((intersection_points[i][0] - point_global[0]) * (intersection_points[i][0] - point_global[0])
               + (intersection_points[i][1] - point_global[1]) * (intersection_points[i][1] - point_global[1])
@@ -327,7 +327,7 @@ namespace Kratos
           }
         }
       }
-      Point<2> point(u, v);
+      array_1d<double, 2> point(u, v);
       intersection_points_2d.push_back(point);
     }
 
@@ -375,14 +375,14 @@ namespace Kratos
     return NodeVectorElement;
   }
 
-  std::vector<Point<3>> BrepFace::GetIntersectionPoints(const int& trim_index)
+  std::vector<Point> BrepFace::GetIntersectionPoints(const int& trim_index)
   {
     BrepTrimmingCurve trimming_curve = GetTrimmingCurve(trim_index);
     std::vector<double> intersections = trimming_curve.FindIntersections(m_p, m_q, m_knot_vector_u, m_knot_vector_v);
-    std::vector<Point<3>> points;
+    std::vector<Point> points;
     for (unsigned int i = 0; i < intersections.size(); i++)
     {
-      Point<3> point_parameter, point_global;
+      Point point_parameter, point_global;
       trimming_curve.EvaluateCurvePoint(point_parameter, intersections[i]);
 
       EvaluateSurfacePoint(point_global, point_parameter[0], point_parameter[1]);
@@ -417,7 +417,7 @@ namespace Kratos
     //std::vector<Node<3>::Pointer> NodeVector;
     for (unsigned int i = 0; i < nodes.size(); i++)
     {
-      Point<3> point(nodes[i]->X(), nodes[i]->Y(), nodes[i]->Z());
+      Point point(nodes[i]->X(), nodes[i]->Y(), nodes[i]->Z());
       //double u = 0;
       //double v = 0;
       //GetClosestPoint(point, u, v);
@@ -442,7 +442,7 @@ namespace Kratos
         //for (auto point_itr = trimming_curve_loop.begin(); point_itr != trimming_curve_loop.end(); ++point_itr)
         for (int pt_i = 0; pt_i < trimming_curve_loop.size(); ++pt_i)
         {
-          Point<3> point_global;
+          Point point_global;
           EvaluateSurfacePoint(point_global, trimming_curve_loop[pt_i][0], trimming_curve_loop[pt_i][1]);
 
           //std::ofstream file;
@@ -483,7 +483,7 @@ namespace Kratos
           ////for (auto point_itr = trimming_curve_loop.begin(); point_itr != trimming_curve_loop.end(); ++point_itr)
           //for (int pt_i = 0; pt_i < trimming_curve_loop.size(); ++pt_i)
           //{
-          //  Point<3> point_global;
+          //  Point point_global;
           //  EvaluateSurfacePoint(point_global, trimming_curve_loop[pt_i][0], trimming_curve_loop[pt_i][1]);
           //  double new_distance = sqrt((point[0] - point_global[0]) * (point[0] - point_global[0])
           //    + (point[1] - point_global[1]) * (point[1] - point_global[1])
@@ -511,9 +511,9 @@ namespace Kratos
         }
       }
       //std::cout << "u=" << u << ", v=" << v << std::endl;
-      Point<2> point2d(u, v);
-      Point<3> point3d;
-      //Point<3> point3d;
+      array_1d<double, 2> point2d(u, v);
+      Point point3d;
+      //Point point3d;
       std::vector<Vector> location;
       //double parameter_2 = parameter;
       //std::cout << "parameter before: " << parameter << std::endl;
@@ -569,7 +569,7 @@ namespace Kratos
 
   void BrepFace::EvaluateShapeFunctionsSlaveNode(const double& u, const double& v, const int& shapefunction_order, Node<3>::Pointer node)
   {
-    //Point<3> new_point(0, 0, 0);
+    //Point new_point(0, 0, 0);
 
     int span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, u);
     int span_v = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, v);
@@ -650,7 +650,7 @@ namespace Kratos
 
   Node<3>::Pointer BrepFace::EvaluateNode(double u, double v, const int& shapefunction_order)
   {
-    Point<3> new_point(0, 0, 0);
+    Point new_point(0, 0, 0);
 
     int span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, u);
     int span_v = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, v);
@@ -730,7 +730,7 @@ namespace Kratos
 
   void BrepFace::EnhanceNode(Node<3>::Pointer& node, const double& u, const double& v, const int& shapefunction_order)
   {
-    Point<3> new_point(0, 0, 0);
+    Point new_point(0, 0, 0);
 
     int span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, u);
     int span_v = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, v);
@@ -788,7 +788,7 @@ namespace Kratos
     node->SetValue(CONTROL_POINT_IDS, ControlPointIDs);
   }
 
-  bool BrepFace::NewtonRaphson(const Point<3>& point, double& u, double& v)
+  bool BrepFace::NewtonRaphson(const Point& point, double& u, double& v)
   {
     double norm_delta_u = 100000000;
     //unsigned int k = 0;
@@ -797,7 +797,7 @@ namespace Kratos
     for (int i = 0; i<max_itr; ++i)// (norm_delta_u > 1e-8)
     {
       // newton_raphson_point is evaluated
-      Point<3> newton_raphson_point;
+      Point newton_raphson_point;
       EvaluateSurfacePoint(newton_raphson_point, u, v);
 
       Vector difference = ZeroVector(3); // Distance between current Q_k and P
@@ -829,7 +829,7 @@ namespace Kratos
     return false;
   }
 
-  void BrepFace::GetClosestPoint(const Point<3>& point, double& u, double& v)
+  void BrepFace::GetClosestPoint(const Point& point, double& u, double& v)
   {
     double norm_delta_u = 100000000;
     unsigned int k = 0;
@@ -838,7 +838,7 @@ namespace Kratos
     while (norm_delta_u > 1e-5)
     {
       // newton_raphson_point is evaluated
-      Point<3> newton_raphson_point;
+      Point newton_raphson_point;
       EvaluateSurfacePoint(newton_raphson_point, u, v);
 
       Vector difference = ZeroVector(3); // Distance between current Q_k and P
@@ -871,7 +871,7 @@ namespace Kratos
 
   void BrepFace::GetProjectPoint(Node<3>::Pointer& node_on_geometry, const Node<3>::Pointer& node_location, const int& shapefunction_order)
   {
-    Point<3> point(node_location->X(), node_location->Y(), node_location->Z());
+    Point point(node_location->X(), node_location->Y(), node_location->Z());
 
     Vector local_parameter = node_on_geometry->GetValue(LOCAL_PARAMETERS);
     double u = local_parameter(0);
@@ -926,7 +926,7 @@ namespace Kratos
       v_k -= delta_u(1);
 
       // Q is updated
-      Point<3> point;
+      Point point;
       EvaluateSurfacePoint(point, u_k, v_k);
       Q_k(0) = point[0];
       Q_k(1) = point[1];
@@ -1010,9 +1010,9 @@ namespace Kratos
   * @param[in]  u  local parameter in u-direction
   * @param[in]  v  local parameter in v-direction
   */
-  void BrepFace::EvaluateSurfacePoint(Point<3>& rSurfacePoint, const double& u, const double& v)
+  void BrepFace::EvaluateSurfacePoint(Point& rSurfacePoint, const double& u, const double& v)
   {
-    //Point<3> new_point(0, 0, 0);
+    //Point new_point(0, 0, 0);
     rSurfacePoint[0] = 0;// (new_point[0], new_point[1], new_point[2]);
     rSurfacePoint[1] = 0;
     rSurfacePoint[2] = 0;
