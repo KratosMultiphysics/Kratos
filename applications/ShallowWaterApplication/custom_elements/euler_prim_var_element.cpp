@@ -143,8 +143,8 @@ namespace Kratos
 
         // Get element values (this function inlcudes the units conversion)
         this-> GetElementValues(DN_DX, variables );
-        double abs_mom = norm_2(variables.vector );
-        double height43 = std::pow(variables.scalar, 1.33333 );
+        double abs_vel = norm_2(variables.velocity );
+        double height43 = std::pow(variables.height, 1.33333 );
 
         // Compute stabilization and discontinuity capturing parameters
         double tau_u;
@@ -168,50 +168,10 @@ namespace Kratos
 
         noalias(mass_matrix) = mass_matrix_w + mass_matrix_q;
 
-        //~ // Loop on Gauss points. In this case, number of Gauss points and number of nodes coincides
-        //~ for(unsigned int igauss = 0; igauss < TNumNodes; igauss++)
-        //~ {
-            //~ noalias(N) = row(Ncontainer, igauss);
-            //~ 
-            //~ // Build shape and derivatives functions at Gauss points
-            //~ for(unsigned int nnode = 0; nnode < TNumNodes; nnode++)
-            //~ {
-                //~ // Height gradient
-                //~ DN_DX_height(0, 2+nnode*3) = DN_DX(nnode,0);
-                //~ DN_DX_height(1, 2+nnode*3) = DN_DX(nnode,1);
-                //~ // Velocity divergence
-                //~ DN_DX_vel(0,  nnode*3) = DN_DX(nnode,0);
-                //~ DN_DX_vel(0,1+nnode*3) = DN_DX(nnode,1);
-                //~ // Height shape funtions
-                //~ N_height(0,2+nnode*3) = N[nnode];
-                //~ // Velocity shape functions
-                //~ N_vel(0,  nnode*3) = N[nnode];
-                //~ N_vel(1,1+nnode*3) = N[nnode];
-                //~ // Velocity gradient
-                //~ grad_vel_1(0,  nnode*3) = DN_DX(nnode,0);
-                //~ grad_vel_1(1,1+nnode*3) = DN_DX(nnode,0);
-                //~ grad_vel_2(0,  nnode*3) = DN_DX(nnode,1);
-                //~ grad_vel_2(0,1+nnode*3) = DN_DX(nnode,1);
-            //~ }
-            //~ 
-            //~ noalias(mass_matrix)  += prod(trans(N_vel),N_vel);
-            //~ noalias(mass_matrix)  += prod(trans(N_height),N_height);
-            //~ 
-            //~ noalias(aux_convect)  += prod(trans(N_height),Matrix(prod(velocity,DN_DX_height)));
-            //~ noalias(aux_convect)  += velocity(0,0) * prod(trans(N_vel),grad_vel_1);
-            //~ noalias(aux_convect)  += velocity(0,1) * prod(trans(N_vel),grad_vel_2);
-            //~ 
-            //~ noalias(aux_q_div_u)  += prod(trans(N_height),DN_DX_vel);
-            //~ noalias(aux_w_grad_h) += prod(trans(N_vel),DN_DX_height);
-            //~ 
-            //~ noalias(aux_u_diffus) += prod(trans(DN_DX_vel),DN_DX_vel);
-            //~ noalias(aux_h_diffus) += prod(trans(DN_DX_height),DN_DX_height);
-        //~ }
-
 
         // Build LHS
         // Cross terms
-        noalias(rLeftHandSideMatrix)  = variables.scalar * aux_q_div_u;     // Add <q*h*div(u)> to Mass Eq.
+        noalias(rLeftHandSideMatrix)  = variables.height * aux_q_div_u;     // Add <q*h*div(u)> to Mass Eq.
         noalias(rLeftHandSideMatrix) += variables.gravity * aux_w_grad_h;   // Add <w*g*grad(h)> to Momentum Eq.
 
         // Convective term
@@ -225,7 +185,7 @@ namespace Kratos
         noalias(rLeftHandSideMatrix) +=         tau_u  * aux_u_diffus;  // Add art. diff. to Momentum Eq.
 
         // Friction term
-        noalias(rLeftHandSideMatrix) += variables.gravity * variables.manning2 * abs_mom / height43 * mass_matrix_w;
+        noalias(rLeftHandSideMatrix) += variables.gravity * variables.manning2 * abs_vel / height43 * mass_matrix_w;
 
         // Build RHS
         // Source term (bathymetry contribution)
@@ -281,23 +241,19 @@ namespace Kratos
     void EulerPrimVarElement<TNumNodes>::GetElementValues(const bounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables)
     {
         // Initialize outputs
-        rVariables.scalar = 0;
-        rVariables.vector = ZeroVector(2);
-        rVariables.scalar_grad = ZeroVector(2);
+        rVariables.height = 0;
+        rVariables.velocity = ZeroVector(2);
 
         // integrate over the element
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            rVariables.vector[0] += rVariables.unknown[  + 3*i];
-            rVariables.vector[1] += rVariables.unknown[1 + 3*i];
-            rVariables.scalar += rVariables.unknown[2 + 3*i];
-            rVariables.scalar_grad[0] += rDN_DX(i,0) * rVariables.unknown[2 + 3*i];
-            rVariables.scalar_grad[1] += rDN_DX(i,1) * rVariables.unknown[2 + 3*i];
+            rVariables.velocity[0] += rVariables.unknown[  + 3*i];
+            rVariables.velocity[1] += rVariables.unknown[1 + 3*i];
+            rVariables.height += rVariables.unknown[2 + 3*i];
         }
 
-        rVariables.vector *= rVariables.lumping_factor;
-        rVariables.scalar *= rVariables.lumping_factor * rVariables.height_units;
-        rVariables.scalar_grad *= rVariables.height_units;
+        rVariables.velocity *= rVariables.lumping_factor;
+        rVariables.height *= rVariables.lumping_factor * rVariables.height_units;
     }
 
 //----------------------------------------------------------------------
@@ -371,10 +327,10 @@ namespace Kratos
             noalias(rVectorDiff) += outer_prod(DN_DX_vel,DN_DX_vel);        // div_w * div_u
             noalias(rScalarDiff) += prod(trans(DN_DX_height),DN_DX_height); // grad_q * grad_h
 
-            temp_convect = prod(rVariables.vector, DN_DX_height);
+            temp_convect = prod(rVariables.velocity, DN_DX_height);
             noalias(rConvection) += outer_prod(N_height, temp_convect);     // q * u * grad_h
-            noalias(rConvection) += rVariables.vector[0] * prod(trans(N_vel), Grad_vel_1);     // w * u * grad_u
-            noalias(rConvection) += rVariables.vector[1] * prod(trans(N_vel), Grad_vel_2);     // w * u * grad_u
+            noalias(rConvection) += rVariables.velocity[0] * prod(trans(N_vel), Grad_vel_1);     // w * u * grad_u
+            noalias(rConvection) += rVariables.velocity[1] * prod(trans(N_vel), Grad_vel_2);     // w * u * grad_u
         }
     }
 

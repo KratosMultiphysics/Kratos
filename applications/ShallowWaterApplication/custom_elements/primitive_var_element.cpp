@@ -154,8 +154,8 @@ namespace Kratos
         
         // Get element values (this function inlcudes the units conversion)
         this-> GetElementValues(DN_DX, variables );
-        double abs_vel = norm_2(variables.vector );
-        double height43 = std::pow(variables.scalar, 1.33333 );
+        double abs_vel = norm_2(variables.velocity );
+        double height43 = std::pow(variables.height, 1.33333 );
         
         // Compute stabilization and discontinuity capturing parameters
         double tau_u;
@@ -178,7 +178,7 @@ namespace Kratos
         
         // Build LHS
         // Cross terms
-        noalias(rLeftHandSideMatrix)  = variables.scalar * aux_q_div_u;      // Add <q*h*div(u)> to Mass Eq.
+        noalias(rLeftHandSideMatrix)  = variables.height * aux_q_div_u;      // Add <q*h*div(u)> to Mass Eq.
         noalias(rLeftHandSideMatrix) += variables.gravity * aux_w_grad_h;    // Add <w*g*grad(h)> to Momentum Eq.
         
         // Inertia terms
@@ -317,23 +317,23 @@ namespace Kratos
     void PrimitiveVarElement<TNumNodes>::GetElementValues(const bounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables)
     {
         // Initialize outputs
-        rVariables.scalar = 0;
-        rVariables.vector = ZeroVector(2);
-        rVariables.scalar_grad = ZeroVector(2);
+        rVariables.height = 0;
+        rVariables.velocity = ZeroVector(2);
+        rVariables.height_grad = ZeroVector(2);
 
         // integrate over the element
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            rVariables.vector[0] += rVariables.unknown[  + 3*i];
-            rVariables.vector[1] += rVariables.unknown[1 + 3*i];
-            rVariables.scalar += rVariables.unknown[2 + 3*i];
-            rVariables.scalar_grad[0] += rDN_DX(i,0) * rVariables.unknown[2 + 3*i];
-            rVariables.scalar_grad[1] += rDN_DX(i,1) * rVariables.unknown[2 + 3*i];
+            rVariables.velocity[0] += rVariables.unknown[  + 3*i];
+            rVariables.velocity[1] += rVariables.unknown[1 + 3*i];
+            rVariables.height += rVariables.unknown[2 + 3*i];
+            rVariables.height_grad[0] += rDN_DX(i,0) * rVariables.unknown[2 + 3*i];
+            rVariables.height_grad[1] += rDN_DX(i,1) * rVariables.unknown[2 + 3*i];
         }
 
-        rVariables.vector *= rVariables.lumping_factor;
-        rVariables.scalar *= rVariables.lumping_factor * rVariables.height_units;
-        rVariables.scalar_grad *= rVariables.height_units;
+        rVariables.velocity *= rVariables.lumping_factor;
+        rVariables.height *= rVariables.lumping_factor * rVariables.height_units;
+        rVariables.height_grad *= rVariables.height_units;
     }
 
 //----------------------------------------------------------------------
@@ -351,12 +351,12 @@ namespace Kratos
         rKdc  = 0;
 
         // Get element values
-        double height_grad_norm = norm_2(rVariables.scalar_grad);
+        double height_grad_norm = norm_2(rVariables.height_grad);
 
         // Compute stabilization parameters
         bool stabilization = true;
         double Ctau = rVariables.dyn_tau;  // 0.005 ~ 0.002  // 0.002; //
-        double abs_height = std::abs(rVariables.scalar);
+        double abs_height = std::abs(rVariables.height);
         if (stabilization && abs_height > 1e-6)
         {
             rTauU = Ctau/rElemSize*std::sqrt(rVariables.gravity/abs_height);

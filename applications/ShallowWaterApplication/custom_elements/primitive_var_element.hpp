@@ -184,12 +184,13 @@ protected:
         double manning2;
         double height_units;
 
-        double scalar;
-        array_1d<double,2> vector;
-        array_1d<double,2> scalar_grad;
-        bounded_matrix<double,2,2> vector_grad;
-        double vector_div;
-        
+        double height;
+        array_1d<double,2> velocity;
+        array_1d<double,2> momentum;
+        array_1d<double,2> height_grad;
+        bounded_matrix<double,2,2> velocity_grad;
+        double velocity_div;
+
         array_1d<double, TNumNodes*3> depth;
         array_1d<double, TNumNodes*3> rain;
         array_1d<double, TNumNodes*3> unknown;

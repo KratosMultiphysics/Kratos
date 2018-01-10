@@ -156,8 +156,8 @@ namespace Kratos
 
         // Get element values (this function inlcudes the units conversion)
         this-> GetElementValues(DN_DX, variables );
-        double abs_mom = norm_2(variables.vector );
-        double height73 = std::pow(variables.scalar, 2.33333 );
+        double abs_mom = norm_2(variables.momentum );
+        double height73 = std::pow(variables.height, 2.33333 );
 
         // Compute stabilization and discontinuity capturing parameters
         double tau_m;
@@ -165,14 +165,7 @@ namespace Kratos
         double k_dc;
         this-> ComputeStabilizationParameters(variables, elem_length, tau_m, tau_h, k_dc);
 
-        
-        // Some auxilary definitions
-        //~ bounded_matrix<double,2,TNumNodes*3> N_mom        = ZeroMatrix(2,TNumNodes*3);  // Shape functions matrix (for momentum unknown)
-        //~ bounded_matrix<double,1,TNumNodes*3> N_height     = ZeroMatrix(1,TNumNodes*3);  // Shape functions vector (for height unknown)
-        //~ bounded_matrix<double,1,TNumNodes*3> DN_DX_mom    = ZeroMatrix(1,TNumNodes*3);  // Shape functions divergence vector (for momentum unknown)
-        //~ bounded_matrix<double,2,TNumNodes*3> DN_DX_height = ZeroMatrix(2,TNumNodes*3);  // Shape functions gradient matrix (for height unknown)
-        //~ bounded_matrix<double,2,TNumNodes*3> grad_mom     = ZeroMatrix(2,TNumNodes*3);  // Shaoe functions gradient vector (for momentum unknown)
-        //
+        // Some auxiliar definitions
         bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_q= ZeroMatrix(TNumNodes*3,TNumNodes*3);
         bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_w= ZeroMatrix(TNumNodes*3,TNumNodes*3);
         bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
@@ -189,15 +182,15 @@ namespace Kratos
         // Build LHS 
         // Cross terms 
         //~ noalias(rLeftHandSideMatrix)  = aux_q_div_m;                                         // Add <q*div(hu)> to Mass Eq.
-        noalias(rLeftHandSideMatrix)  = variables.gravity * variables.scalar * aux_w_grad_h; // Add <w,g*h*grad(h)> to Momentum Eq.
+        noalias(rLeftHandSideMatrix)  = variables.gravity * variables.height * aux_w_grad_h; // Add <w,g*h*grad(h)> to Momentum Eq.
 
         // Inertia terms 
         noalias(rLeftHandSideMatrix) += variables.dt_inv * mass_matrix;        // Add <N,N> to both Eq's
 
         // Non linear terms 
-        noalias(rLeftHandSideMatrix) += variables.vector_div * mass_matrix;    // Add <q,div(u)*h> to Mass Eq. and <w,div(u)*hu> to Momentum Eq.
-        //~ noalias(rLeftHandSideMatrix) += variables.vector_div * mass_matrix_w;  // Add <w,div(u)*hu> to Momentum Eq.
-        //~ noalias(rLeftHandSideMatrix) += aux_non_linear;                        // Add  and <w,hu*grad(u)> to Momentum Eq.
+        noalias(rLeftHandSideMatrix) += variables.velocity_div * mass_matrix;    // Add <q,div(u)*h> to Mass Eq. and <w,div(u)*hu> to Momentum Eq.
+        //~ noalias(rLeftHandSideMatrix) += variables.velocity_div * mass_matrix_w;  // Add <w,div(u)*hu> to Momentum Eq.
+        //~ noalias(rLeftHandSideMatrix) += aux_non_linear;                          // Add  and <w,hu*grad(u)> to Momentum Eq.
 
         // Stabilization terms 
         noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;  // Add art. diff. to Mass Eq.
@@ -208,7 +201,7 @@ namespace Kratos
 
         // Build RHS 
         // Source terms (bathymetry contribution) 
-        noalias(rRightHandSideVector)  = -variables.gravity * variables.scalar * prod(aux_w_grad_h, variables.depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
+        noalias(rRightHandSideVector)  = -variables.gravity * variables.height * prod(aux_w_grad_h, variables.depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
 
         // Source terms (rain contribution)
         noalias(rRightHandSideVector) += prod(mass_matrix, variables.rain);
@@ -261,11 +254,11 @@ namespace Kratos
     void ConservedVarElement<TNumNodes>::GetElementValues(const bounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables)
     {
         // Initialize outputs
-        rVariables.scalar = 0;
-        rVariables.vector = ZeroVector(2);
-        rVariables.scalar_grad = ZeroVector(2);
-        rVariables.vector_grad = ZeroMatrix(2,2);
-        rVariables.vector_div = 0;
+        rVariables.height = 0;
+        rVariables.momentum = ZeroVector(2);
+        rVariables.height_grad = ZeroVector(2);
+        rVariables.velocity_grad = ZeroMatrix(2,2);
+        rVariables.velocity_div = 0;
 
         // check if the element is close to dry
         bool near_dry = false;
@@ -279,43 +272,43 @@ namespace Kratos
         // integrate over the element
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            rVariables.vector[0] += rVariables.unknown[  + 3*i];
-            rVariables.vector[1] += rVariables.unknown[1 + 3*i];
-            rVariables.scalar += rVariables.unknown[2 + 3*i];
-            rVariables.scalar_grad[0] += rDN_DX(i,0) * rVariables.unknown[2 + 3*i];
-            rVariables.scalar_grad[1] += rDN_DX(i,1) * rVariables.unknown[2 + 3*i];
+            rVariables.momentum[0] += rVariables.unknown[  + 3*i];
+            rVariables.momentum[1] += rVariables.unknown[1 + 3*i];
+            rVariables.height += rVariables.unknown[2 + 3*i];
+            rVariables.height_grad[0] += rDN_DX(i,0) * rVariables.unknown[2 + 3*i];
+            rVariables.height_grad[1] += rDN_DX(i,1) * rVariables.unknown[2 + 3*i];
             if (near_dry)
             {
-                rVariables.vector_grad(0,0) += rDN_DX(i,0) * rVariables.unknown[  + 3*i];
-                rVariables.vector_grad(0,1) += rDN_DX(i,0) * rVariables.unknown[1 + 3*i];
-                rVariables.vector_grad(1,0) += rDN_DX(i,1) * rVariables.unknown[  + 3*i];
-                rVariables.vector_grad(1,1) += rDN_DX(i,1) * rVariables.unknown[1 + 3*i];
-                rVariables.vector_div += rDN_DX(i,0) * rVariables.unknown[  + 3*i];
-                rVariables.vector_div += rDN_DX(i,1) * rVariables.unknown[1 + 3*i];
+                rVariables.velocity_grad(0,0) += rDN_DX(i,0) * rVariables.unknown[  + 3*i];
+                rVariables.velocity_grad(0,1) += rDN_DX(i,0) * rVariables.unknown[1 + 3*i];
+                rVariables.velocity_grad(1,0) += rDN_DX(i,1) * rVariables.unknown[  + 3*i];
+                rVariables.velocity_grad(1,1) += rDN_DX(i,1) * rVariables.unknown[1 + 3*i];
+                rVariables.velocity_div += rDN_DX(i,0) * rVariables.unknown[  + 3*i];
+                rVariables.velocity_div += rDN_DX(i,1) * rVariables.unknown[1 + 3*i];
             }
             else
             {
-                rVariables.vector_grad(0,0) += rDN_DX(i,0) * rVariables.unknown[  + 3*i] / rVariables.unknown[2 + 3*i];
-                rVariables.vector_grad(0,1) += rDN_DX(i,0) * rVariables.unknown[1 + 3*i] / rVariables.unknown[2 + 3*i];
-                rVariables.vector_grad(1,0) += rDN_DX(i,1) * rVariables.unknown[  + 3*i] / rVariables.unknown[2 + 3*i];
-                rVariables.vector_grad(1,1) += rDN_DX(i,1) * rVariables.unknown[1 + 3*i] / rVariables.unknown[2 + 3*i];
-                rVariables.vector_div += rDN_DX(i,0) * rVariables.unknown[  + 3*i] / rVariables.unknown[2 + 3*i];
-                rVariables.vector_div += rDN_DX(i,1) * rVariables.unknown[1 + 3*i] / rVariables.unknown[2 + 3*i];
+                rVariables.velocity_grad(0,0) += rDN_DX(i,0) * rVariables.unknown[  + 3*i] / rVariables.unknown[2 + 3*i];
+                rVariables.velocity_grad(0,1) += rDN_DX(i,0) * rVariables.unknown[1 + 3*i] / rVariables.unknown[2 + 3*i];
+                rVariables.velocity_grad(1,0) += rDN_DX(i,1) * rVariables.unknown[  + 3*i] / rVariables.unknown[2 + 3*i];
+                rVariables.velocity_grad(1,1) += rDN_DX(i,1) * rVariables.unknown[1 + 3*i] / rVariables.unknown[2 + 3*i];
+                rVariables.velocity_div += rDN_DX(i,0) * rVariables.unknown[  + 3*i] / rVariables.unknown[2 + 3*i];
+                rVariables.velocity_div += rDN_DX(i,1) * rVariables.unknown[1 + 3*i] / rVariables.unknown[2 + 3*i];
             }
         }
 
-        rVariables.vector *= rVariables.lumping_factor;
-        rVariables.scalar *= rVariables.lumping_factor * rVariables.height_units;
-        rVariables.scalar_grad *= rVariables.height_units;
+        rVariables.momentum *= rVariables.lumping_factor;
+        rVariables.height *= rVariables.lumping_factor * rVariables.height_units;
+        rVariables.height_grad *= rVariables.height_units;
         if (near_dry)
         {
-            rVariables.vector_grad /= rVariables.scalar;
-            rVariables.vector_div  /= rVariables.scalar;
+            rVariables.velocity_grad /= rVariables.height;
+            rVariables.velocity_div  /= rVariables.height;
         }
         else
         {
-            rVariables.vector_grad /= rVariables.height_units;
-            rVariables.vector_div  /= rVariables.height_units;
+            rVariables.velocity_grad /= rVariables.height_units;
+            rVariables.velocity_div  /= rVariables.height_units;
         }
     }
 
