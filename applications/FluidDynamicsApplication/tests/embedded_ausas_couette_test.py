@@ -234,7 +234,7 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
             node.Fix(KratosMultiphysics.VELOCITY_X)
             node.Fix(KratosMultiphysics.VELOCITY_Y)
-            node.Fix(KratosMultiphysics.VELOCITY_Z)                  
+            node.Fix(KratosMultiphysics.VELOCITY_Z)
 
     def runTest(self):
         with WorkFolderScope(self.work_folder):

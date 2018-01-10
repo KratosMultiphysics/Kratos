@@ -11,7 +11,7 @@ class WorkFolderScope:
     def __enter__(self):
         os.chdir(self.scope)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
 
 class TimeIntegratedFluidElementTest(UnitTest.TestCase):
@@ -140,7 +140,6 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
 
         rho = 1.0
         mu = 0.01
-        nu = mu/rho
         ux = 1.0
 
         ## Set initial and boundary conditions
@@ -193,11 +192,10 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
             with open(self.reference_file+'.csv','r') as reference_file:
                 reference_file.readline() # skip header
                 line = reference_file.readline()
-                node_iter = self.fluid_model_part.Nodes
 
                 for node in self.fluid_model_part.Nodes:
                     values = [ float(i) for i in line.rstrip('\n ').split(',') ]
-                    node_id = values[0]
+                    #node_id = values[0]
                     reference_vel_x = values[1]
                     reference_vel_y = values[2]
                     reference_press = values[3]

@@ -4,7 +4,8 @@ namespace Kratos
 {
 
 template< size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime >
-FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>::FluidElementData()
+FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>::FluidElementData():
+    Weight(0.0)
 {
 }
 
