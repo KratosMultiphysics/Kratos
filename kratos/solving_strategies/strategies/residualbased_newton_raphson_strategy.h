@@ -397,7 +397,7 @@ class ResidualBasedNewtonRaphsonStrategy
             }
 
             //initialisation of the convergence criteria
-            if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
+            if (mpConvergenceCriteria->IsInitialized() == false)
             {
                 mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
             }
@@ -489,7 +489,7 @@ class ResidualBasedNewtonRaphsonStrategy
         TSystemVectorType &Dx = *mpDx;
         TSystemVectorType &b = *mpb;
 
-        if (mpConvergenceCriteria->mActualizeRHSIsNeeded == true)
+        if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
         {
             GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), b);
         }
