@@ -17,13 +17,12 @@
 
 
 // Project includes
-#include "includes/define.h"
-#include "includes/cfd_variables.h"
 #include "includes/checks.h"
-#include "custom_elements/primitive_var_element.hpp"
-#include "shallow_water_application.h"
+#include "includes/cfd_variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "shallow_water_application_variables.h"
+#include "custom_elements/primitive_var_element.hpp"
 
 namespace Kratos
 {
