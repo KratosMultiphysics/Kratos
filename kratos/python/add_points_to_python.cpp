@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "geometries/point.h"
 #include "python/add_points_to_python.h"
 

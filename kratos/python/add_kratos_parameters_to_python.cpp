@@ -16,7 +16,7 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/kratos_parameters.h"
 #include "add_kratos_parameters_to_python.h"
 

@@ -15,11 +15,9 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "integration/integration_point.h"
 //#include "quadratures/integration_point.h"
 #include "python/add_geometries_to_python.h"

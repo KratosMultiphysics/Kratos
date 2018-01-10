@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/io.h"
 
 #include "includes/model_part_io.h"

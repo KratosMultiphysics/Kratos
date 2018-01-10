@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "testing/testing.h"
 #include "add_testing_to_python.h"
 

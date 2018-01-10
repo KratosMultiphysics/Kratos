@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/process_info.h"
 #include "python/add_process_info_to_python.h"
 #include "containers/data_value_container.h"

@@ -16,12 +16,11 @@
 // System includes
 
 // External includes
-// #include <boost/python.hpp>
 #include <pybind11/stl.h>
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "python/add_model_part_to_python.h"
 #include "includes/process_info.h"

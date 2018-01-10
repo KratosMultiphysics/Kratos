@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "python/add_utilities_to_python.h"
 #include "utilities/variable_utils.h"

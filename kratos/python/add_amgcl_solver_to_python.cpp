@@ -23,7 +23,7 @@
 #define AMGCL_RUNTIME_DISABLE_CHEBYSHEV
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "spaces/ublas_space.h"
 #include "add_amgcl_solver_to_python.h"
 

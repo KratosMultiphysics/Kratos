@@ -17,7 +17,7 @@
 #include <pybind11/stl.h>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "includes/mesh.h"
 #include "includes/properties.h"

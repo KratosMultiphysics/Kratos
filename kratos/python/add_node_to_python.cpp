@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/mesh.h"
 #include "includes/properties.h"
 #include "includes/element.h"
@@ -157,7 +157,8 @@ void  AddNodeToPython(pybind11::module& m)
     IndexingUtility<NodeBinderType,NodeType,Variable<Matrix > >(node_binder);
     node_binder.def("SetValue", [](Node<3>& node, const Variable<array_1d<double, 3> > & rV, const Vector& rValue){node.SetValue(rV, array_1d<double,3>(rValue));} );
     node_binder.def("SetSolutionStepValue", [](Node<3>& node, const Variable<array_1d<double, 3> > & rV, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,3>(rValue);} );
-    
+    node_binder.def("SetSolutionStepValue", [](Node<3>& node, const Variable<array_1d<double, 3> > & rV, typename NodeType::IndexType SolutionStepIndex, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,3>(rValue);} );
+   
     node_binder.def("GetBufferSize", &NodeType::GetBufferSize);
     node_binder.def("AddDof", NodeAddDof<Variable<double> >);
     node_binder.def("AddDof", NodeAddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);

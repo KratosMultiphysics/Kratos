@@ -19,7 +19,7 @@
 
 // Project includes
 #include "add_constitutive_law_to_python.h"
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/constitutive_law.h"
 #include "includes/node.h"
 #include "includes/variables.h"

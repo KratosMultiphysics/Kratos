@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/ublas_interface.h"
 #include "includes/table.h"
 #include "add_table_to_python.h"

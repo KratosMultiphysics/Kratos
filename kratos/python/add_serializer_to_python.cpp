@@ -16,7 +16,7 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/serializer.h"
 #include "python/add_serializer_to_python.h"
 #include "includes/model_part.h"

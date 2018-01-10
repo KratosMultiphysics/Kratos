@@ -20,7 +20,7 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "python/add_search_strategies_to_python.h"
 #include "spatial_containers/spatial_search.h"
 

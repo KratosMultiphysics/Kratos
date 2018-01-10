@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "containers/model.h"
 #include "python/add_model_to_python.h"
 
