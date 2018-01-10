@@ -218,7 +218,8 @@ namespace Kratos
     
     //create and initialize element variables:
     ElementVariables Variables;
-
+    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    
     IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
     
     //reduced quadrature integration:
@@ -235,7 +236,7 @@ namespace Kratos
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
 	//set shape functions values for this integration point
-	Variables.N=row( Ncontainer, PointNumber);
+	noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 	//compute local to global frame
 	this->CalculateFrameMapping( Variables, PointNumber );
@@ -259,7 +260,7 @@ namespace Kratos
     for ( unsigned int PointNumber = 0; PointNumber < full_integration_points.size(); PointNumber++ )
       {
 	//set shape functions values for this integration point
-	Variables.N=row( NFcontainer, PointNumber);
+	noalias(Variables.N) = matrix_row<const Matrix>( NFcontainer, PointNumber);
 
 	//compute local to global frame
 	this->CalculateFrameMapping( Variables, PointNumber );
@@ -465,7 +466,7 @@ namespace Kratos
     rVariables.PointNumber = rPointNumber;
 
     //Set Shape Functions Values for this integration point
-    rVariables.N=row( Ncontainer, rPointNumber);
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
     
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -533,21 +534,21 @@ namespace Kratos
     }
     else{
      
-      if( mIterationCounter == 0 ){
+      // if( mIterationCounter == 0 ){
 
 	rVariables.PreviousCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
       	rVariables.CurrentCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
 	
 	this->CalculateCurrentCurvature(rVariables, STEP_ROTATION);      
       
-      }
-      else{
+      // }
+      // else{
 
-	rVariables.PreviousCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
-	rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
+      // 	rVariables.PreviousCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
+      // 	rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
       
-	this->CalculateCurrentCurvature(rVariables, DELTA_ROTATION);
-      }
+      // 	this->CalculateCurrentCurvature(rVariables, DELTA_ROTATION);
+      // }
      
     }
     
@@ -653,7 +654,8 @@ namespace Kratos
 
     //create and initialize element variables:
     ElementVariables Variables;
-
+    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    
     IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
     //full quadrature integration:
     mThisIntegrationMethod = mFullIntegrationMethod;
@@ -692,7 +694,7 @@ namespace Kratos
 	Variables.PointNumber = PointNumber;
 
 	//set shape functions values for this integration point
-	Variables.N=row( Ncontainer, PointNumber);
+	noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 	//compute local to global frame
 	this->CalculateFrameMapping( Variables, PointNumber );
@@ -1114,13 +1116,8 @@ namespace Kratos
     MatrixType DifferentialOperatorI(MatSize,MatSize);
     noalias(DifferentialOperatorI) = ZeroMatrix(MatSize,MatSize);
 
-    unsigned int RowIndex = 0;
-
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-
-	RowIndex = i * (dimension * 2);
-
 	noalias(Fi) = ZeroVector(6);
 	
  	this->CalculateDifferentialOperator(DifferentialOperatorI, rVariables, i, rVariables.Alpha );
@@ -2559,7 +2556,8 @@ namespace Kratos
 
       //create and initialize element variables:
       ElementVariables Variables;
-
+      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      
       IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
       //full quadrature integration:
       mThisIntegrationMethod = mFullIntegrationMethod;
@@ -2593,7 +2591,7 @@ namespace Kratos
 	  Variables.PointNumber = PointNumber;
 
 	  //set shape functions values for this integration point
-	  Variables.N=row( Ncontainer, PointNumber);
+	  noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 	  //compute local to global frame
 	  this->CalculateFrameMapping( Variables, PointNumber );
@@ -2716,7 +2714,8 @@ namespace Kratos
       
       //create and initialize element variables:
       ElementVariables Variables;
-
+      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      
       IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
       //full quadrature integration:
       mThisIntegrationMethod = mFullIntegrationMethod;
@@ -2753,7 +2752,7 @@ namespace Kratos
 	  Variables.PointNumber = PointNumber;
 
 	  //set shape functions values for this integration point
-	  Variables.N=row( Ncontainer, PointNumber);
+	  noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 	  //compute local to global frame
 	  this->CalculateFrameMapping( Variables, PointNumber );

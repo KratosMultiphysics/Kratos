@@ -64,6 +64,12 @@ def AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part):
     if pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 5 or pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 6:
          fluid_model_part.ProcessInfo.SetValue(CURRENT_COMPONENT, 0)
 
+    if pp.CFD_DEM["non_newtonian_option"].GetBool():
+        fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, pp.CFD_DEM["yield_stress"].GetDouble())
+        fluid_model_part.ProcessInfo.SetValue(REGULARIZATION_COEFFICIENT, pp.CFD_DEM["regularization_coefficient"].GetDouble())
+        fluid_model_part.ProcessInfo.SetValue(POWER_LAW_K, pp.CFD_DEM["power_law_k"].GetDouble())
+        fluid_model_part.ProcessInfo.SetValue(POWER_LAW_N, pp.CFD_DEM["power_law_n"].GetDouble())
+
 def AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part):
 
     AddFrameOfReferenceRelatedVariables(pp, dem_model_part)
@@ -139,13 +145,6 @@ def ConstructListsOfVariables(pp):
 
         if pp.CFD_DEM["include_faxen_terms_option"].GetBool():
             pp.fluid_vars += [VELOCITY_LAPLACIAN_RATE]
-
-    if pp.CFD_DEM["drag_force_type"].GetInt() >= 0:
-        pp.fluid_vars += [POWER_LAW_N]
-        pp.fluid_vars += [POWER_LAW_K]
-        pp.fluid_vars += [GEL_STRENGTH]
-        pp.fluid_vars += [YIELD_STRESS]
-        pp.fluid_vars += [BINGHAM_SMOOTHER]
 
     if pp.CFD_DEM["calculate_diffusivity_option"].GetBool():
         pp.fluid_vars += [CONDUCTIVITY]

@@ -57,6 +57,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of ConditionNumberUtility
+    KRATOS_CLASS_POINTER_DEFINITION( ConditionNumberUtility );
+    
     typedef std::size_t SizeType;
     
     typedef unsigned int IndexType;
@@ -84,16 +87,21 @@ public:
     ///@{
 
     /// Default constructor.
-    ConditionNumberUtility() 
-    {
-        
-    }
+    ConditionNumberUtility()
+        :mpEigenSolverMax(nullptr), 
+         mpEigenSolverMin(nullptr)
+    {}
+    
+    /// Default constructor.
+    ConditionNumberUtility(
+        LinearSolverType::Pointer pEigenSolverMax,
+        LinearSolverType::Pointer pEigenSolverMin
+        ) :mpEigenSolverMax(pEigenSolverMax), 
+           mpEigenSolverMin(pEigenSolverMin)
+    {}
 
     /// Destructor
-    ~ConditionNumberUtility()
-    {
-
-    }
+    virtual ~ConditionNumberUtility(){}
 
     ///@}
     ///@name Operations
@@ -101,10 +109,22 @@ public:
     
     /**
      * This function computes using the inverse power method the minimal eigenvalue
-     * @param InputMatrix: The matrix to compute the eigenvalue
-     * @param pEigenSolverMax: The solver to get the maximal eigen value
-     * @param pEigenSolverMin: The solver to get the minimal eigen value
-     * @return condition_number: The condition number
+     * @param InputMatrix The matrix to compute the eigenvalue
+     * @return condition_number The condition number
+     */
+    
+    double GetConditionNumber(SparseMatrixType& InputMatrix)
+    {
+        KRATOS_ERROR_IF(mpEigenSolverMax == nullptr || mpEigenSolverMin == nullptr) << "ERROR:: PLEASE DEFINE THE EigenSolvers" << std::endl;
+        return GetConditionNumber(InputMatrix, mpEigenSolverMax, mpEigenSolverMin);
+    }
+    
+    /**
+     * This function computes using the inverse power method the minimal eigenvalue
+     * @param InputMatrix The matrix to compute the eigenvalue
+     * @param pEigenSolverMax The solver to get the maximal eigen value
+     * @param pEigenSolverMin The solver to get the minimal eigen value
+     * @return condition_number The condition number
      */
     
     double GetConditionNumber(
@@ -113,8 +133,7 @@ public:
         LinearSolverType::Pointer pEigenSolverMin
         )
     {
-        double condition_number;
-        
+        // The eigen system
         DenseVectorType eigen_values;
         DenseMatrixType eigen_vectors;
         
@@ -127,7 +146,9 @@ public:
         pEigenSolverMin->Solve(InputMatrix, identity_matrix, eigen_values, eigen_vectors);
         const double min_lambda = eigen_values[0];
         
-        condition_number = std::abs(max_lambda)/std::abs(min_lambda); 
+        KRATOS_ERROR_IF(min_lambda < std::numeric_limits<double>::epsilon()) << "ERROR:: NOT POSSIBLE TO COMPUTE CONDITION NUMBER. ZERO EIGENVALUE" << std::endl;
+        
+        const double condition_number = std::abs(max_lambda)/std::abs(min_lambda); 
         
         return condition_number;
     }
@@ -159,6 +180,9 @@ private:
     ///@name Private member Variables
     ///@{
 
+    LinearSolverType::Pointer mpEigenSolverMax;
+    LinearSolverType::Pointer mpEigenSolverMin;
+    
     ///@}
     ///@name Private Operators
     ///@{

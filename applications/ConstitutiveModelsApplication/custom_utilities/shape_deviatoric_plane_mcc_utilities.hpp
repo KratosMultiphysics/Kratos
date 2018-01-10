@@ -50,7 +50,7 @@ namespace Kratos
             if ( rFriction < 1e-6)
                return rEffect;
 
-            double Friction = rFriction * GetPI() / 180.0;
+            double Friction = rFriction * Globals::Pi / 180.0;
             double LodeCut = GetSmoothingLodeAngle( );
             if ( fabs( rLodeAngle) < LodeCut)
             {
@@ -90,14 +90,10 @@ namespace Kratos
          
          static inline double GetSmoothingLodeAngle()
          {
-            return 27.0*GetPI()/180.0;
+            return 27.0*Globals::Pi/180.0;
          }
 
 
-         static inline double GetPI()
-         {
-            return 3.14159265359;
-         }
 
    }; // end Class ShapeAtDeviatoricPlaneMCCUtility
 
