@@ -63,7 +63,6 @@ class MechanicalSolver(object):
             "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
-            "compute_contact_forces": false,
             "block_builder": true,
             "clear_storage": false,
             "move_mesh_flag": true,
