@@ -179,9 +179,9 @@ public:
      */
     typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > ShapeFunctionsThirdDerivativesType;
 
-    typedef boost::array<boost::numeric::ublas::vector<Matrix>, NumberOfIntegrationMethods> MassFactorsContainerType;
+//     typedef boost::array<boost::numeric::ublas::vector<Matrix>, NumberOfIntegrationMethods> MassFactorsContainerType;
 
-    typedef boost::array<boost::numeric::ublas::vector<Matrix>, NumberOfIntegrationMethods> LampedMassFactorsContainerType;
+//     typedef boost::array<boost::numeric::ublas::vector<Matrix>, NumberOfIntegrationMethods> LampedMassFactorsContainerType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -277,16 +277,16 @@ public:
         , mShapeFunctionsValues( ThisShapeFunctionsValues )
         , mShapeFunctionsLocalGradients( ThisShapeFunctionsLocalGradients )
     {
-        for ( unsigned int i = 0 ; i < NumberOfIntegrationMethods ; i++ )
-        {
-            boost::numeric::ublas::vector<Matrix> temp( mIntegrationPoints[i].size() );
-
-            for ( unsigned int j = 0 ; j < mIntegrationPoints[i].size() ; j++ )
-                //temp[j]=outer_prod(mShapeFunctionsValues[i][j], mShapeFunctionsValues[i][j]);
-                temp[j] = outer_prod( row( mShapeFunctionsValues[i], j ), row( mShapeFunctionsValues[i], j ) );
-
-            mMassFactors[i] = temp;
-        }
+//         for ( unsigned int i = 0 ; i < NumberOfIntegrationMethods ; i++ )
+//         {
+//             boost::numeric::ublas::vector<Matrix> temp( mIntegrationPoints[i].size() );
+// 
+//             for ( unsigned int j = 0 ; j < mIntegrationPoints[i].size() ; j++ )
+//                 //temp[j]=outer_prod(mShapeFunctionsValues[i][j], mShapeFunctionsValues[i][j]);
+//                 temp[j] = outer_prod( row( mShapeFunctionsValues[i], j ), row( mShapeFunctionsValues[i], j ) );
+// 
+//             mMassFactors[i] = temp;
+//         }
     }
 
     /** Copy constructor.
@@ -300,7 +300,7 @@ public:
         , mIntegrationPoints( rOther.mIntegrationPoints )
         , mShapeFunctionsValues( rOther.mShapeFunctionsValues )
         , mShapeFunctionsLocalGradients( rOther.mShapeFunctionsLocalGradients )
-        , mMassFactors( rOther.mMassFactors )
+//         , mMassFactors( rOther.mMassFactors )
     {
     }
 
@@ -333,7 +333,7 @@ public:
         mIntegrationPoints = rOther.mIntegrationPoints;
         mShapeFunctionsValues = rOther.mShapeFunctionsValues;
         mShapeFunctionsLocalGradients = rOther.mShapeFunctionsLocalGradients;
-        mMassFactors = rOther.mMassFactors;
+//         mMassFactors = rOther.mMassFactors;
 
         return *this;
     }
@@ -701,25 +701,25 @@ public:
         return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
     }
 
-    boost::numeric::ublas::vector<Matrix> const& MassFactors() const
-    {
-        return mMassFactors[mDefaultMethod];
-    }
+//     boost::numeric::ublas::vector<Matrix> const& MassFactors() const
+//     {
+//         return mMassFactors[mDefaultMethod];
+//     }
+// 
+//     boost::numeric::ublas::vector<Matrix> const& MassFactors( enum IntegrationMethod ThisMethod ) const
+//     {
+//         return mMassFactors[ThisMethod];
+//     }
 
-    boost::numeric::ublas::vector<Matrix> const& MassFactors( enum IntegrationMethod ThisMethod ) const
-    {
-        return mMassFactors[ThisMethod];
-    }
-
-    Matrix const& MassFactors( IndexType IntegrationPointIndex ) const
-    {
-        return mMassFactors[mDefaultMethod][IntegrationPointIndex];
-    }
-
-    Matrix const& MassFactors( IndexType IntegrationPointIndex, enum IntegrationMethod ThisMethod ) const
-    {
-        return mMassFactors[ThisMethod][IntegrationPointIndex];
-    }
+//     Matrix const& MassFactors( IndexType IntegrationPointIndex ) const
+//     {
+//         return mMassFactors[mDefaultMethod][IntegrationPointIndex];
+//     }
+// 
+//     Matrix const& MassFactors( IndexType IntegrationPointIndex, enum IntegrationMethod ThisMethod ) const
+//     {
+//         return mMassFactors[ThisMethod][IntegrationPointIndex];
+//     }
 
     ///@}
     ///@name Input and output
@@ -830,9 +830,9 @@ private:
 
     ShapeFunctionsLocalGradientsContainerType mShapeFunctionsLocalGradients;
 
-    MassFactorsContainerType mMassFactors;
+//     MassFactorsContainerType mMassFactors;
 
-    LampedMassFactorsContainerType mLampedMassFactors;
+//     LampedMassFactorsContainerType mLampedMassFactors;
 
     ///@}
     ///@name Serialization
