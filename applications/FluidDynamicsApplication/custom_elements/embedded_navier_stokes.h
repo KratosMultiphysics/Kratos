@@ -183,12 +183,8 @@ public:
             }
         }
 
-        if (rData.n_pos != 0 && rData.n_neg != 0) {
-            this->Set(TO_SPLIT, true);
-        }
-
         // If the element is split, get the modified shape functions
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             GeometryPointerType p_geom = this->pGetGeometry();
 
@@ -369,18 +365,20 @@ public:
         KRATOS_TRY;
 
         // Base element check
-        int ErrorCode = NavierStokes<TDim, TNumNodes>::Check(rCurrentProcessInfo);
-        if (ErrorCode != 0)
-            return ErrorCode;
+        int error_code = NavierStokes<TDim, TNumNodes>::Check(rCurrentProcessInfo);
+        if (error_code != 0){
+            return error_code;
+        }
 
         // Specific embedded element check
-        if (DISTANCE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DISTANCE Key is 0. Check if the application was correctly registered.", "");
+        if (DISTANCE.Key() == 0){
+            KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
+        }
 
-        for (unsigned int i = 0; i < (this->GetGeometry()).size(); ++i)
-        {
-            if (this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY variable on solution step data for node ", this->GetGeometry()[i].Id());
+        for (unsigned int i = 0; i < (this->GetGeometry()).size(); ++i){
+            if (this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false){
+                KRATOS_ERROR << "missing VELOCITY variable on solution step data for node " << this->GetGeometry()[i].Id();
+            }
         }
 
         return 0;
@@ -410,7 +408,7 @@ public:
             this->FillEmbeddedElementData(data, rCurrentProcessInfo);
 
             // Check if the element is split
-            if (this->Is(TO_SPLIT)) {
+            if (data.n_pos != 0 && data.n_neg != 0){
 
                 // Integrate positive interface side drag
                 const unsigned int n_int_pos_gauss = (data.w_gauss_pos_int).size();

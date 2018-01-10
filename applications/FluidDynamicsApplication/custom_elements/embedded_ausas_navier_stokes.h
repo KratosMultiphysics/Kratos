@@ -299,7 +299,7 @@ public:
             this->FillEmbeddedAusasElementData(data, rCurrentProcessInfo);
 
             // Check if the element is split
-            if (this->Is(TO_SPLIT)) {
+            if (data.n_pos != 0 && data.n_neg != 0){
 
                 // Integrate positive interface side drag
                 const unsigned int n_int_pos_gauss = (data.w_gauss_pos_int).size();
@@ -502,12 +502,8 @@ protected:
             }
         }
 
-        if (rData.n_pos != 0 && rData.n_neg != 0) {
-            this->Set(TO_SPLIT, true);
-        }
-
         // If the element is split, get the modified shape functions
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             GeometryPointerType p_geom = this->pGetGeometry();
 
@@ -605,7 +601,7 @@ protected:
         bounded_matrix<double, MatrixSize, MatrixSize> lhs_local;
 
         // Decide if the element is wether split or not and add the contribution accordingly
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             // Add the positive side volume contribution
             const unsigned int n_pos_gauss = (rData.w_gauss_pos_side).size();
@@ -682,7 +678,7 @@ protected:
         array_1d<double, MatrixSize> rhs_local;
 
         // Decide if the element is wether split or not and add the contribution accordingly
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             // Add the positive side volume contribution
             const unsigned int n_pos_gauss = (rData.w_gauss_pos_side).size();
