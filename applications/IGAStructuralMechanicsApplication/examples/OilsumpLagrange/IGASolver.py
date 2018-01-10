@@ -27,7 +27,6 @@ def StopTimeMeasuring(time_ip, process, report):
 
 # importing the Kratos Library
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.IGAStructuralMechanicsApplication import *
 import KratosMultiphysics.ExternalSolversApplication 
@@ -111,7 +110,7 @@ list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOf
 	#	node.Fix(DISPLACEMENT_Y)
 	#	node.Fix(DISPLACEMENT_Z)
 	#if (node.X > 9.9):
-	#	node.SetSolutionStepValue(KratosMultiphysics.SolidMechanicsApplication.POINT_LOAD_X, 0, 3.3333)
+	#	node.SetSolutionStepValue(KratosMultiphysics.StructuralMechanicsApplication.POINT_LOAD_X, 0, 3.3333)
 #endregion
 
 ##print list of constructed processes

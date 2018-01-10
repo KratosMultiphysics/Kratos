@@ -24,7 +24,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include "geometries/nurbs_3d.h"
+// #include "geometries/nurbs_3d.h"
 #include "geometries/nurbs_2d.h"
 //#include "custom_elements/meshless_base_element.h"
 #include "geometries/nurbs_base_geometry.h"

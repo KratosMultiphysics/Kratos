@@ -1136,7 +1136,7 @@ public:
                                                      Matrix *rResult,
                                                      double t ) const
     {
-        KRATOS_ERROR << "Nurbs_2d::ShapeFunctionsSecondDerivatives" << "Second order derivatives not yet implemented" << std::endl;
+        KRATOS_ERROR << "Nurbs_2d::ShapeFunctionsSecondDerivatives", "Second order derivatives not yet implemented" << std::endl;
         return *rResult;
     }
 
@@ -2646,4 +2646,5 @@ GeometryData NurbsPatchGeometry3D<TPointType>::msGeometryData(
 
 }// namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined
+#endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined 
+

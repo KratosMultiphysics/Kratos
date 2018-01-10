@@ -31,7 +31,6 @@
 #include "includes/constitutive_law.h"
 
 #include "includes/model_part.h"
-#include "solid_mechanics_application.h"
 #include "structural_mechanics_application.h"
 #include "structural_mechanics_application_variables.h"
 
