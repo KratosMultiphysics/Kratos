@@ -150,7 +150,7 @@ namespace Kratos
     rVariables.Jacobian = norm_2(rVariables.Tangent2);
 
     //Set Shape Functions Values for this integration point
-    rVariables.N =row( Ncontainer, rPointNumber);
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Set Shape Functions Derivatives [dN/d£] for this integration point
     rVariables.DN_De = DN_De[rPointNumber];

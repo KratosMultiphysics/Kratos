@@ -67,6 +67,8 @@ def AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part):
     if pp.CFD_DEM["non_newtonian_option"].GetBool():
         fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, pp.CFD_DEM["yield_stress"].GetDouble())
         fluid_model_part.ProcessInfo.SetValue(REGULARIZATION_COEFFICIENT, pp.CFD_DEM["regularization_coefficient"].GetDouble())
+        fluid_model_part.ProcessInfo.SetValue(POWER_LAW_K, pp.CFD_DEM["power_law_k"].GetDouble())
+        fluid_model_part.ProcessInfo.SetValue(POWER_LAW_N, pp.CFD_DEM["power_law_n"].GetDouble())
 
 def AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part):
 
