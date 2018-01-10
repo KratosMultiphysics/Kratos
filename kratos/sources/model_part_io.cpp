@@ -382,18 +382,21 @@ namespace Kratos
             std::string condition_name;
             auto ConditionsComponents = KratosComponents<Condition>::GetComponents();
             
-            unsigned int condition_dimension = rThisConditions.begin()->GetGeometry().WorkingSpaceDimension();
-            unsigned int condition_num_nodes = rThisConditions.begin()->GetGeometry().size();
+            const std::type_info& condition_type = typeid(*(rThisConditions.begin()));
+            const unsigned int condition_num_nodes = rThisConditions.begin()->GetGeometry().size();
+            const unsigned int condition_dimension = rThisConditions.begin()->GetGeometry().WorkingSpaceDimension();
             
             // Fisrt we do the first condition
             for(auto i_comp = ConditionsComponents.begin(); i_comp != ConditionsComponents.end() ; i_comp++)
             {
                 const std::type_info& type_component = typeid(*(i_comp->second));
-                if (std::type_index(typeid(*(rThisConditions.begin()))) == std::type_index(type_component) &&
-                    (condition_dimension == (i_comp->second)->GetGeometry().size()) &&
-                    (condition_num_nodes == (i_comp->second)->GetGeometry().WorkingSpaceDimension())
-                )
-                {
+                const unsigned int component_num_nodes = (*(i_comp->second)).GetGeometry().size();
+                const unsigned int component_dimension = (*(i_comp->second)).GetGeometry().WorkingSpaceDimension();
+
+                if ((std::type_index(condition_type) == std::type_index(type_component)) &&
+                    (condition_dimension == component_dimension) &&
+                    (condition_num_nodes == component_num_nodes)) {
+
                     condition_name = i_comp->first;
                     break;
                 }
@@ -431,16 +434,18 @@ namespace Kratos
                 {
                     (*mpStream) << "End Conditions" << std::endl << std::endl;;
                     
-                    condition_dimension = itCondCurrent->GetGeometry().WorkingSpaceDimension();
-                    condition_num_nodes = itCondCurrent->GetGeometry().size();
+                    const unsigned int current_condition_dimension = itCondCurrent->GetGeometry().WorkingSpaceDimension();
+                    const unsigned int current_condition_num_nodes = itCondCurrent->GetGeometry().size();
                     
                     for(auto i_comp = ConditionsComponents.begin(); i_comp != ConditionsComponents.end() ; i_comp++)
                     {
-                        const std::type_info& type_component = typeid(*(i_comp->second));
+                        const std::type_info &type_component = typeid(*(i_comp->second));
+                        const unsigned int component_num_nodes = (*(i_comp->second)).GetGeometry().size();
+                        const unsigned int component_dimension = (*(i_comp->second)).GetGeometry().WorkingSpaceDimension();
+
                         if (std::type_index(typeid(*itCondCurrent)) == std::type_index(type_component) &&
-                            (condition_dimension == (i_comp->second)->GetGeometry().size()) &&
-                            (condition_num_nodes == (i_comp->second)->GetGeometry().WorkingSpaceDimension())
-                        )
+                            (current_condition_dimension == component_dimension) &&
+                            (current_condition_num_nodes == component_num_nodes))
                         {
                             condition_name = i_comp->first;
                             break;
