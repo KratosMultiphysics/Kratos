@@ -1070,7 +1070,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
     }
 
     else if (mDragForceType == 13){ // Maxey-Riley expression with Faxen correction
-        drag_coeff = ComputeShahDragCoefficient(); // temporary
+        drag_coeff = ComputeShahDragCoefficient(r_current_process_info); // temporary
     }
 
     else {
@@ -1387,11 +1387,11 @@ double SphericSwimmingParticle<TBaseElement>::ComputeBeetstraDragCoefficient()
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-double SphericSwimmingParticle<TBaseElement>::ComputeShahDragCoefficient(const bool use_shahi_correction)
+double SphericSwimmingParticle<TBaseElement>::ComputeShahDragCoefficient(const ProcessInfo& r_current_process_info, const bool use_shahi_correction)
 {
     const double power_law_tol = 0.0001;
-    const double n = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_N);
-    const double K = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_K);
+    const double K    = r_current_process_info[POWER_LAW_K];
+    const double n    = r_current_process_info[POWER_LAW_N];
 
     if (std::abs(n) < power_law_tol || std::abs(K) < power_law_tol){
         std::cout << "WARNING: Shah's method is being used with Power Law data being zero!!" << std::endl << std::flush;

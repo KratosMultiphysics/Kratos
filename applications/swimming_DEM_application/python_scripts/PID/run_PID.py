@@ -17,6 +17,9 @@ varying_parameters["fluid_already_calculated"] = False
 varying_parameters["angular_velocity_magnitude"] = 50.0
 varying_parameters["frame_rotation_axis_initial_point"] = [0., 0., 0.]
 varying_parameters["frame_rotation_axis_final_point"] = [0., 0., 1.]
+varying_parameters["print_VISCOSIITY_option"] = True
+varying_parameters["drag_force_type"] = 13
+
 
 parameters = Parameters(json.dumps(varying_parameters))
 
