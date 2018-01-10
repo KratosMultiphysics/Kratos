@@ -58,8 +58,8 @@ public:
     ///@{
 
     /// Default constructor.
-	MeshlessShellElement(IndexType NewId, GeometryType::Pointer pGeometry);
-	MeshlessShellElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+	  MeshlessShellElement(IndexType NewId, GeometryType::Pointer pGeometry);
+	  MeshlessShellElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
     virtual ~MeshlessShellElement();
@@ -95,10 +95,50 @@ public:
 		VectorType& rRightHandSideVector,
 		ProcessInfo& rCurrentProcessInfo) override;
 
-	void CalculateOnIntegrationPoints(
-		const Variable<Matrix>& rVariable,
-		std::vector<Matrix>& Output,
-		const ProcessInfo& rCurrentProcessInfo) override;
+  /**
+  * Calculate a double Variable on the Element Constitutive Law
+  * @param rVariable: The variable we want to get
+  * @param rOutput: The values obtained int the integration points
+  * @param rCurrentProcessInfo: the current process info instance
+  */
+  void CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    );// override;
+  ///**
+  //* Calculate a double array_1d on the Element Constitutive Law
+  //* @param rVariable: The variable we want to get
+  //* @param rOutput: The values obtained int the integration points
+  //* @param rCurrentProcessInfo: the current process info instance
+  //*/
+  //void CalculateOnIntegrationPoints(
+  //  const Variable<array_1d<double, 3>>& rVariable,
+  //  std::vector<array_1d<double, 3>>& rOutput,
+  //  const ProcessInfo& rCurrentProcessInfo
+  //  ) override;
+  ///**
+  //* Calculate a Vector Variable on the Element Constitutive Law
+  //* @param rVariable: The variable we want to get
+  //* @param rOutput: The values obtained int the integration points
+  //* @param rCurrentProcessInfo: the current process info instance
+  //*/
+  //void CalculateOnIntegrationPoints(
+  //  const Variable<Vector>& rVariable,
+  //  std::vector<Vector>& rOutput,
+  //  const ProcessInfo& rCurrentProcessInfo
+  //  ) override;
+  ///**
+  //* Calculate a Matrix Variable on the Element Constitutive Law
+  //* @param rVariable: The variable we want to get
+  //* @param rOutput: The values obtained int the integration points
+  //* @param rCurrentProcessInfo: the current process info instance
+  //*/
+  //void CalculateOnIntegrationPoints(
+  //  const Variable<Matrix >& rVariable,
+  //  std::vector< Matrix >& rOutput,
+  //  const ProcessInfo& rCurrentProcessInfo
+  //  ) override;
 
 	void FinalizeSolutionStep(
 		ProcessInfo& rCurrentProcessInfo) override;
@@ -145,7 +185,7 @@ private:
 
 	array_1d<double, 3> mV1;
 	array_1d<double, 3> mV2;
-	Matrix              mG_Vector;
+	Matrix              mQ; //Transformation Matrix
 
 	array_1d<double, 3> mGab0;
 	array_1d<double, 3> mCurvature0;
@@ -180,7 +220,8 @@ private:
 		boost::numeric::ublas::bounded_matrix<double, 3, 3>& msQ,
 		Matrix& msG);
 
-	void CalculateMetricDeformed(Matrix DN_De,
+	void CalculateMetricDeformed(const Matrix& DN_De,
+    const Matrix& DDN_DDe,
 		array_1d<double, 3>& gab,
 		array_1d<double, 3>& curvature_coefficient,
 		array_1d<double, 3>& g1,
@@ -197,10 +238,13 @@ private:
 		Matrix& B,
 		boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
 		const Matrix& DN_De,
+    const Matrix& DDN_DDe,
 		const array_1d<double, 3>& g1,
 		const array_1d<double, 3>& g2);
 
-	void CalculateSecondVariationStrainCurvature(Matrix DN_De,
+	void CalculateSecondVariationStrainCurvature(
+    const Matrix& DN_De,
+    const Matrix& DDN_DDe,
 		Matrix& Strain_curvature11,
 		Matrix& Strain_curvature22,
 		Matrix& Strain_curvature12,
@@ -238,7 +282,6 @@ private:
 		rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
 		rSerializer.save("ReferenceGeometry", mpReferenceGeometry);
 		rSerializer.save("DetJ0", mDetJ0);
-		rSerializer.save("TotalDomainInitialSize", mTotalDomainInitialSize);
 		rSerializer.save("density", mdensity);
 		rSerializer.save("Thickness0", mThickness0);
 		rSerializer.save("Thickness", mThickness);
@@ -248,7 +291,7 @@ private:
 		rSerializer.save("Thickness0", mThickness0);
 		rSerializer.save("V1", mV1);
 		rSerializer.save("V2", mV2);
-		rSerializer.save("G_Vector", mG_Vector);
+		rSerializer.save("G_Vector", mQ);
 		rSerializer.save("Gab0", mGab0);
 		rSerializer.save("Curvature0", mCurvature0);
 	}
@@ -259,7 +302,6 @@ private:
 		rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
 		rSerializer.load("ReferenceGeometry", mpReferenceGeometry);
 		rSerializer.load("DetJ0", mDetJ0);
-		rSerializer.load("TotalDomainInitialSize", mTotalDomainInitialSize);
 		rSerializer.load("density", mdensity);
 		rSerializer.load("Thickness0", mThickness0);
 		rSerializer.load("Thickness", mThickness);
@@ -269,7 +311,7 @@ private:
 		rSerializer.load("Thickness0", mThickness0);
 		rSerializer.load("V1", mV1);
 		rSerializer.load("V2", mV2);
-		rSerializer.load("G_Vector", mG_Vector);
+		rSerializer.load("G_Vector", mQ);
 		rSerializer.load("Gab0", mGab0);
 		rSerializer.load("Curvature0", mCurvature0);
 	}

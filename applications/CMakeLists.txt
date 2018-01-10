@@ -55,6 +55,8 @@ message("COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION.... ${COMPRESSIBLE_POTENTIAL_FL
 message("HDF5_APPLICATION........................... ${HDF5_APPLICATION}")
 message("SHALLOW_WATER_APPLICATION.................. ${SHALLOW_WATER_APPLICATION}")
 message("EIGEN_SOLVERS_APPLICATION.................. ${EIGEN_SOLVERS_APPLICATION}")
+message("IGA_STRUCTURAL_MECHANICS_APPLICATION....... ${IGA_STRUCTURAL_MECHANICS_APPLICATION}")
+message("NURBS_BREP_APPLICATION..................... ${NURBS_BREP_APPLICATION}")
 message( " ")
 
 
@@ -218,6 +220,18 @@ endif(${ADJOINT_FLUID_APPLICATION} MATCHES ON)
 if(${NURBS_APPLICATION} MATCHES ON)
   add_subdirectory(nurbs_application)
 endif(${NURBS_APPLICATION} MATCHES ON)
+
+if(${IGA_STRUCTURAL_MECHANICS_APPLICATION} MATCHES ON)
+  add_subdirectory(IGAStructuralMechanicsApplication)
+endif(${IGA_STRUCTURAL_MECHANICS_APPLICATION} MATCHES ON)
+
+if(${NURBS_BREP_APPLICATION} MATCHES ON)
+  add_subdirectory(NurbsBrepApplication)
+endif(${NURBS_BREP_APPLICATION} MATCHES ON)
+
+if(${PFEM2_APPLICATION} MATCHES ON)
+  add_subdirectory(pfem_2_application)
+endif(${PFEM2_APPLICATION} MATCHES ON)
 
 if(${FREEZING_SOIL_APPLICATION} MATCHES ON)
   add_subdirectory(freezing_soil_application)

@@ -125,11 +125,9 @@ namespace Kratos
 		}
 		else if (EDGE_LOAD == 1)
 		{
-			/** Edge Load:
-			* simulates self weight.
-			* needs direction of forces.
-			* 
-			*/
+			// Edge Load:
+			// simulates self weight.
+			// needs direction of forces.
 			direction = this->GetValue(DIRECTION);
 
 			Vector Tangents = this->GetValue(TANGENTS);
@@ -144,15 +142,14 @@ namespace Kratos
 
 		for (unsigned int i = 0; i < number_of_points; i++)
 		{
-			const array_1d<double, 3> pload = GetGeometry()[i].FastGetSolutionStepValue(POINT_LOAD);
-			
+			//const array_1d<double, 3> pload = GetGeometry()[i].FastGetSolutionStepValue(POINT_LOAD);
 			int index = 3 * i;
-			fLoads[index]	  = - load * integration_weight * direction[0] * ShapeFunctionsN[i];
+			fLoads[index]	    = - load * integration_weight * direction[0] * ShapeFunctionsN[i];
 			fLoads[index + 1] = - load * integration_weight * direction[1] * ShapeFunctionsN[i];
 			fLoads[index + 2] = - load * integration_weight * direction[2] * ShapeFunctionsN[i];
 		}
-
 		noalias(rRightHandSideVector) -= fLoads;
+    //KRATOS_WATCH(rRightHandSideVector)
 		KRATOS_CATCH("")
 	}
 

@@ -31,7 +31,6 @@
 #include "includes/constitutive_law.h"
 
 #include "includes/model_part.h"
-#include "solid_mechanics_application.h"
 #include "structural_mechanics_application.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -48,8 +47,10 @@
 
 /*CONDITIONS*/
 #include "custom_conditions/meshless_support_rotation_condition.h"
+#include "custom_conditions/meshless_surface_support_condition.h"
 #include "custom_conditions/meshless_load_condition.h"
 #include "custom_conditions/meshless_lagrange_coupling_condition.h"
+#include "custom_conditions/meshless_lagrange_coupling_condition_2.h"
 #include "custom_conditions/meshless_penalty_coupling_rotation_condition.h"
 
 namespace Kratos {
@@ -61,11 +62,15 @@ namespace Kratos {
 	KRATOS_DEFINE_VARIABLE(double, INTEGRATION_WEIGHT)
 	KRATOS_DEFINE_VARIABLE(Vector, SHAPE_FUNCTION_VALUES)
 	KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_DERIVATIVES)
+  KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES)
 
-	KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_DERIVATIVES_MASTER)
-	KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE)
+  KRATOS_DEFINE_VARIABLE(Vector, SHAPE_FUNCTION_VALUES_SLAVE)
+  KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE)
+	//KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_DERIVATIVES_MASTER)
+	//KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE)
 
 	KRATOS_DEFINE_VARIABLE(Vector, TANGENTS)
+  KRATOS_DEFINE_VARIABLE(Vector, TANGENTS_SLAVE)
 
 	KRATOS_DEFINE_VARIABLE(double, PENALTY_FACTOR)
 
@@ -206,8 +211,10 @@ private:
 
 	// Meshless Conditions
 	const MeshlessSupportRotationCondition mMeshlessSupportRotationCondition;
+  const MeshlessSurfaceSupportCondition mMeshlessSurfaceSupportCondition;
 	const MeshlessLoadCondition mMeshlessLoadCondition;
 	const MeshlessLagrangeCouplingCondition mMeshlessLagrangeCouplingCondition;
+  const MeshlessLagrangeCouplingCondition2 mMeshlessLagrangeCouplingCondition2;
 	const MeshlessPenaltyCouplingRotationCondition mMeshlessPenaltyCouplingRotationCondition;
 	///@}
 

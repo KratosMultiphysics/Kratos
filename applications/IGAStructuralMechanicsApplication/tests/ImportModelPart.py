@@ -1,7 +1,7 @@
 # importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics.IGAStructuralMechanicsApplication import *
-from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
 from beam_sections_python_utility import SetProperties
 import json
 import math

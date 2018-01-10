@@ -63,26 +63,27 @@ class IGAStructuralMechanicsSolver:
 	def AddVariables(self):
 		# Add displacements
 		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-		# Add dynamic variables
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-		# Add reactions for the displacements
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-		# Add nodal force variables
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FORCE)
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCE)
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
-		# Add specific variables for the problem conditions
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SolidMechanicsApplication.POINT_LOAD)
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SolidMechanicsApplication.LINE_LOAD)
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SolidMechanicsApplication.SURFACE_LOAD)
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
+		## Add dynamic variables
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+		## Add reactions for the displacements
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+		## Add nodal force variables
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FORCE)
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCE)
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
+		## Add specific variables for the problem conditions
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.POINT_LOAD)
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.LINE_LOAD)
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.SURFACE_LOAD)
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
 
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IGAStructuralMechanicsApplication.INTEGRATION_WEIGHT)
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES)
-		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES)
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IGAStructuralMechanicsApplication.INTEGRATION_WEIGHT)
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES)
+		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES)
 
 		#t = True
 
@@ -95,13 +96,14 @@ class IGAStructuralMechanicsSolver:
 		#	self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
 
 		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
-		print("Added Variables: TEMPERATUR, INTEGRATION_WEIGHT, SHAPE_FUNCTION_VALUES, SHAPE_FUNCTION_LOCAL_DERIVATIVES")
+		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+		print("Added Variables: DISPLACEMENT and VECTOR_LAGRANGE_MULTIPLIER")
 
 		
 	def ImportModelPart(self, projectparameters):
 		#print ("\n------------------Import Elements--------------------")
-		
 		if(self.settings["model_import_settings"]["input_type"].GetString() == "txt"):
+			
             #here it would be the place to import restart data if required
 			ModelPartIO = ImportModelPart.Factory(self.settings["model_import_settings"]["input_filename"].GetString(), self.settings, projectparameters)
 			ModelPartIO.ReadModelPart(self.model_part)
@@ -114,7 +116,24 @@ class IGAStructuralMechanicsSolver:
 			self.model_part.SetBufferSize( self.GetMinimumBufferSize() )
 
 		print ("Model reading finished.")
+	
+	def ImportModelPartNurbsBrep(self, model_part_nurbs_brep, project_paramaters):
+		#print ("\n------------------Import Elements--------------------")
 		
+		if(self.settings["model_import_settings"]["input_type"].GetString() == "NurbsBrepApplication"):
+            #here it would be the place to import restart data if required
+			ModelPartIO = ImportModelPart.Factory(model_part_nurbs_brep, project_paramaters)
+			ModelPartIO.ReadModelPart(self.model_part)
+
+		else:
+			raise Exception("Other input options are not implemented.")
+
+		current_buffer_size = self.model_part.GetBufferSize()
+		if(self.GetMinimumBufferSize() > current_buffer_size):
+			self.model_part.SetBufferSize( self.GetMinimumBufferSize() )
+
+		print ("Model reading finished.")
+	
 		
 	def AddDofs(self):
 		for node in self.model_part.Nodes:
@@ -126,7 +145,11 @@ class IGAStructuralMechanicsSolver:
 			node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X);
 			node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y);
 			node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z);
-		print("Added DOFs: TEMPERATURE")
+
+			node.AddDof(KratosMultiphysics.ROTATION_X);
+			node.AddDof(KratosMultiphysics.ROTATION_Y);
+			node.AddDof(KratosMultiphysics.ROTATION_Z);
+		print("Added DOFs: DISPLACEMENT and VECTOR_LAGRANGE_MULTIPLIER")
 
 	def Initialize(self):
 		self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()

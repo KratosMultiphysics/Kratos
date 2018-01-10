@@ -42,16 +42,8 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass		
 		
-class Shell_Bending_Test(StructuralMechanichsTestFactory):
-	file_name = "Shell_Test/Shell_Bending_Test"
+class Penalty_Test(StructuralMechanichsTestFactory):
+	file_name = "Shell_Test/Penalty_Test"
 
-class Plate_Bending_Test(StructuralMechanichsTestFactory):
-	file_name = "Shell_Test/Plate_Bending_Test"
-	
-class Shell_Bending_Test_Lagrange(StructuralMechanichsTestFactory):
-	file_name = "Shell_Test/Shell_Bending_Test_Lagrange"
-	
-class PatchesTestCases(StructuralMechanichsTestFactory):
-	file_name = "Shell_Test/3PatchesTestCases"
-	
-	
+class Lagrange_Test(StructuralMechanichsTestFactory):
+	file_name = "Shell_Test/Lagrange_Test"	
