@@ -2,6 +2,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosStructuralMechanicsApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
@@ -88,8 +91,9 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosStructuralMechanicsApplication SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES})
-target_link_libraries(KratosStructuralMechanicsApplication KratosCore) # KratosSolidMechanicsApplication)
+pybind11_add_module(KratosStructuralMechanicsApplication MODULE ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES})
+
+target_link_libraries(KratosStructuralMechanicsApplication PRIVATE KratosCore) 
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
 

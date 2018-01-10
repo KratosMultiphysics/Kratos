@@ -12,16 +12,15 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
+// #include "spaces/ublas_space.h"
+// #include "linear_solvers/linear_solver.h"
 
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
@@ -36,21 +35,19 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomUtilitiesToPython()
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
-
-//     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-//     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-//     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    using namespace pybind11;
     
-    class_<SprismNeighbours>("SprismNeighbours", init<ModelPart&>())
+    class_<SprismNeighbours>(m,"SprismNeighbours")
+    .def(init<ModelPart&>())
     .def("Execute",&SprismNeighbours::Execute)
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
     ;
 
     /// Processes
-    class_<ApplyMultipointConstraintsProcess, boost::noncopyable, bases<Process>>("ApplyMultipointConstraintsProcess", init<ModelPart&>())
+    class_<ApplyMultipointConstraintsProcess,/*typename ApplyMultipointConstraintsProcess::Pointer,*/ Process>(m,"ApplyMultipointConstraintsProcess")
+    .def(init<ModelPart&>())
     .def(init< ModelPart&, Parameters& >())
 	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariableComponents)
     .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariableComponents)
@@ -59,8 +56,8 @@ void  AddCustomUtilitiesToPython()
     .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)      
     .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
 
-    class_<PostprocessEigenvaluesProcess, boost::noncopyable, bases<Process>>(
-        "PostprocessEigenvaluesProcess", init<ModelPart&, Parameters>());
+    class_<PostprocessEigenvaluesProcess, /*typename PostprocessEigenvaluesProcess::Pointer,*/ Process>(m,"PostprocessEigenvaluesProcess")
+    .def(init<ModelPart&, Parameters>());
 
 }
 

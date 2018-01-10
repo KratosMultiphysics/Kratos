@@ -16,13 +16,13 @@
 
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 
 
 namespace Kratos
@@ -31,7 +31,7 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddCustomStrategiesToPython();
+  void  AddCustomStrategiesToPython(pybind11::module& m);
   /* { */
   /*   using namespace boost::python; */
   /* } */
