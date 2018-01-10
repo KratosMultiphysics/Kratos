@@ -1116,11 +1116,8 @@ namespace Kratos
     MatrixType DifferentialOperatorI(MatSize,MatSize);
     noalias(DifferentialOperatorI) = ZeroMatrix(MatSize,MatSize);
 
-    unsigned int RowIndex;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	RowIndex = i * (dimension * 2);
-
 	noalias(Fi) = ZeroVector(6);
 	
  	this->CalculateDifferentialOperator(DifferentialOperatorI, rVariables, i, rVariables.Alpha );
