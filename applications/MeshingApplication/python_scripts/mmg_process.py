@@ -86,17 +86,11 @@ class MmgProcess(KratosMultiphysics.Process):
 
         self.initial_remeshing = self.params["initial_remeshing"].GetBool()
 
-        # Select the remeshing strategy
-        self.strategy = self.params["strategy"].GetString()
-        if (self.strategy == "LevelSet"):
-            self.scalar_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["level_set_strategy_parameters"]["scalar_variable"].GetString() )
-            self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["level_set_strategy_parameters"]["gradient_variable"].GetString() )
-        elif (self.strategy == "Hessian"):
-            self.metric_variable = self.__generate_variable_list_from_input(self.params["hessian_strategy_parameters"]["metric_variable"])
-            mesh_dependent_constant = self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
-            if (mesh_dependent_constant == 0.0):
-                self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.dim/(self.dim + 1))**2.0)
-        
+        self.initial_step = self.params["initial_step"].GetInt()
+        self.step_frequency = self.params["step_frequency"].GetInt()
+
+    def ExecuteInitialize(self):
+
         # Calculate NODAL_H
         self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.Model[self.model_part_name])
         self.find_nodal_h.Execute()
@@ -133,10 +127,16 @@ class MmgProcess(KratosMultiphysics.Process):
             if (self.params["automatic_remesh"].GetBool() == True):
                 self.params["anisotropy_parameters"]["boundary_layer_max_distance"].SetDouble(self.params["minimal_size"].GetDouble() * self.params["anisotropy_parameters"]["boundary_layer_min_size_ratio"].GetDouble())
 
-        self.initial_step = self.params["initial_step"].GetInt()
-        self.step_frequency = self.params["step_frequency"].GetInt()
-
-    def ExecuteInitialize(self):
+        # Select the remeshing strategy
+        self.strategy = self.params["strategy"].GetString()
+        if (self.strategy == "LevelSet"):
+            self.scalar_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["level_set_strategy_parameters"]["scalar_variable"].GetString() )
+            self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["level_set_strategy_parameters"]["gradient_variable"].GetString() )
+        elif (self.strategy == "Hessian"):
+            self.metric_variable = self.__generate_variable_list_from_input(self.params["hessian_strategy_parameters"]["metric_variable"])
+            mesh_dependent_constant = self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
+            if (mesh_dependent_constant == 0.0):
+                self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.dim/(self.dim + 1))**2.0)
 
         # NOTE: Add more model part if interested
         submodelpartslist = self.__generate_submodelparts_list_from_input(self.params["fix_contour_model_parts"])
