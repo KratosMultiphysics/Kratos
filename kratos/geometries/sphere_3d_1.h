@@ -714,7 +714,7 @@ private:
     {
         const IntegrationPointsContainerType& all_integration_points = AllIntegrationPoints();
         const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[ThisMethod];
-        int integration_points_number = IntegrationPoints.size();
+        const int integration_points_number = IntegrationPoints.size();
         Matrix N( integration_points_number, 1 );
 
         //std::cout<<"This method (CalculateShapeFunctionsIntegrationPointsValues) has no meaning for this type of geometry (Sphere)."<<std::endl;        

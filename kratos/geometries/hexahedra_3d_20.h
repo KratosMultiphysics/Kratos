@@ -1067,9 +1067,9 @@ private:
     static Matrix CalculateShapeFunctionsIntegrationPointsValues(
         typename BaseType::IntegrationMethod ThisMethod )
     {
-        IntegrationPointsContainerType all_integration_points =
+        const IntegrationPointsContainerType  all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
+        const IntegrationPointsArrayType integration_points =
             all_integration_points[ThisMethod];
         //number of integration points
         const int integration_points_number = integration_points.size();
@@ -1081,86 +1081,86 @@ private:
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            row( shape_function_values, pnt )( 0 ) =
+            shape_function_values(pnt, 0 ) =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() ) * ( 2.0
                           - integration_points[pnt].X() + integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 1 ) =
+            shape_function_values(pnt, 1 ) =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 2.0
                           - integration_points[pnt].X() - integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 2 ) =
+            shape_function_values(pnt, 2 ) =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0
                           - integration_points[pnt].X() - integration_points[pnt].Y()
                           + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 3 ) =
+            shape_function_values(pnt, 3 ) =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() )
                   * ( 2.0 - integration_points[pnt].X()
                       + integration_points[pnt].Y() + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 4 ) =
+            shape_function_values(pnt, 4 ) =
                 -(( 1.0 - integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() ) * ( 2.0
                           + integration_points[pnt].X() + integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 5 ) =
+            shape_function_values(pnt, 5 ) =
                 -(( 1.0 - integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 2.0
                           + integration_points[pnt].X() - integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 6 ) =
+            shape_function_values(pnt, 6 ) =
                 -(( 1.0 - integration_points[pnt].X() ) * ( 1.0
                         + integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0
                                 + integration_points[pnt].X() - integration_points[pnt].Y()
                                 + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 7 ) =
+            shape_function_values(pnt, 7 ) =
                 -(( 1.0 - integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
                   * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0 + integration_points[pnt].X()
                           + integration_points[pnt].Y() + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 8 ) =
+            shape_function_values(pnt, 8 ) =
                 (( 1.0 + integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 9 ) =
+            shape_function_values(pnt, 9 ) =
                 (( 1.0 + integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 10 ) =
+            shape_function_values(pnt, 10 ) =
                 (( 1.0 + integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 11 ) =
+            shape_function_values(pnt, 11 ) =
                 (( 1.0 + integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 12 ) =
+            shape_function_values(pnt, 12 ) =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 13 ) =
+            shape_function_values(pnt, 13 ) =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 14 ) =
+            shape_function_values(pnt, 14 ) =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 15 ) =
+            shape_function_values(pnt, 15 ) =
                 (( 1.0 - integration_points[pnt].X() * integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0;
-            row( shape_function_values, pnt )( 16 ) =
+            shape_function_values(pnt, 16 ) =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 17 ) =
+            shape_function_values(pnt, 17 ) =
                 (( 1.0 - integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;            
-            row( shape_function_values, pnt )( 18 ) =
+            shape_function_values(pnt, 18 ) =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 19 ) =
+            shape_function_values(pnt, 19 ) =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0
                          - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;            
@@ -1186,9 +1186,9 @@ private:
     CalculateShapeFunctionsIntegrationPointsLocalGradients(
         typename BaseType::IntegrationMethod ThisMethod )
     {
-        IntegrationPointsContainerType all_integration_points =
+        const IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
+        const IntegrationPointsArrayType integration_points =
             all_integration_points[ThisMethod];
         //number of integration points
         const int integration_points_number = integration_points.size();
