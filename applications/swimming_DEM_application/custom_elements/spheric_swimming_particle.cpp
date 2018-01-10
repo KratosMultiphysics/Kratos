@@ -1390,8 +1390,8 @@ template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeShahDragCoefficient(const ProcessInfo& r_current_process_info, const bool use_shahi_correction)
 {
     const double power_law_tol = 0.0001;
-    const double K    = r_current_process_info[POWER_LAW_K];
-    const double n    = r_current_process_info[POWER_LAW_N];
+    const double K = r_current_process_info[POWER_LAW_K];
+    const double n = r_current_process_info[POWER_LAW_N];
 
     if (std::abs(n) < power_law_tol || std::abs(K) < power_law_tol){
         std::cout << "WARNING: Shah's method is being used with Power Law data being zero!!" << std::endl << std::flush;
@@ -1474,8 +1474,8 @@ double SphericSwimmingParticle<TBaseElement>::ComputeElSamniLiftCoefficient(cons
 {
     if (vorticity_norm > 0.000000000001 && mNormOfSlipVel > 0.000000000001){
          const double yield_stress   = 0.0; // we are considering a Bingham type fluid
-         const double power_law_K    = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_K);
-         const double power_law_n    = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_N);
+         const double power_law_K = r_current_process_info[POWER_LAW_K];
+         const double power_law_n = r_current_process_info[POWER_LAW_N];
          const double shear_rate_p   = mNormOfSlipVel / mRadius * (4.5 / power_law_n - 3.5); // graphic model by Unhlherr et al. (fit by Wallis, G.B. and Dobson, J.E., 1973)
          double equivalent_viscosity = yield_stress / shear_rate_p + power_law_K * pow(shear_rate_p, power_law_n - 1);
          const double coeff          = std::max(0.09 * mNormOfSlipVel, 5.82 * std::sqrt(0.5 * mNormOfSlipVel * equivalent_viscosity /  mFluidDensity));

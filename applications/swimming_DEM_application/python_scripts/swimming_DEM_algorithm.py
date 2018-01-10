@@ -193,8 +193,8 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("print_MATERIAL_ACCELERATION_option").SetBool(True)
         self.pp.CFD_DEM.AddEmptyValue("print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_VORTICITY_option").SetBool(True)
-        self.pp.CFD_DEM.AddEmptyValue("print_VISCOSIITY_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_MATERIAL_ACCELERATION_option").SetBool(True)
+        self.pp.CFD_DEM.AddEmptyValue("print_VISCOSITY_option").SetBool(False)        
         self.pp.CFD_DEM.AddEmptyValue("print_VELOCITY_GRADIENT_option").SetBool(True)
         self.pp.CFD_DEM.AddEmptyValue("print_DISPERSE_FRACTION_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_FLUID_FRACTION_GRADIENT_option").SetBool(False)
@@ -499,7 +499,7 @@ class Algorithm(object):
         vars_man.AddNodalVariables(self.disperse_phase_solution.spheres_model_part, self.pp.dem_vars)
         vars_man.AddNodalVariables(self.disperse_phase_solution.rigid_face_model_part, self.pp.rigid_faces_vars)
         vars_man.AddNodalVariables(self.disperse_phase_solution.DEM_inlet_model_part, self.pp.inlet_vars)
-        vars_man.AddExtraProcessInfoVariablesToDispersePhaseModelPart(self.pp, self.disperse_phase_solution.spheres_model_part, self.fluid_model_part)
+        vars_man.AddExtraProcessInfoVariablesToDispersePhaseModelPart(self.pp, self.disperse_phase_solution.spheres_model_part)
 
         self.disperse_phase_solution.Initialize()
 

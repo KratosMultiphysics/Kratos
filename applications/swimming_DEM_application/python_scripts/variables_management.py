@@ -13,7 +13,7 @@ def AddNodalVariables(model_part, variable_list):
 def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part): #DEPRECATED!
 
     AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part)
-    AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part, fluid_model_part)
+    AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part)
 
 # constructing lists of variables to add
 # * Performing modifications to the input parameters for consistency (provisional until interface does it)
@@ -70,7 +70,7 @@ def AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part):
         fluid_model_part.ProcessInfo.SetValue(POWER_LAW_K, pp.CFD_DEM["power_law_k"].GetDouble())
         fluid_model_part.ProcessInfo.SetValue(POWER_LAW_N, pp.CFD_DEM["power_law_n"].GetDouble())
 
-def AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part, fluid_model_part):
+def AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part):
 
     AddFrameOfReferenceRelatedVariables(pp, dem_model_part)
 
@@ -96,16 +96,9 @@ def AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part, flu
         dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
         dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, pp.CFD_DEM["quadrature_order"].GetInt())
 
-    if pp.CFD_DEM["drag_force_type"].GetInt() in {13}:
-        for node in fluid_model_part.Nodes:
-            K = node.GetSolutionStepValue(POWER_LAW_K)
-            n = node.GetSolutionStepValue(POWER_LAW_N)
-            break
-        print('fluid_model_part.ProcessInfo[POWER_LAW_K]', K)
-        print('fluid_model_part.ProcessInfo[POWER_LAW_N]', n)
-        caca
-        dem_model_part.ProcessInfo.SetValue(POWER_LAW_K, K)
-        dem_model_part.ProcessInfo.SetValue(POWER_LAW_N, n)
+    if pp.CFD_DEM["drag_force_type"].GetInt() in {13} or pp.CFD_DEM["lift_force_type"].GetInt() == 1:
+        dem_model_part.ProcessInfo.SetValue(POWER_LAW_K, pp.CFD_DEM["power_law_k"].GetDouble())
+        dem_model_part.ProcessInfo.SetValue(POWER_LAW_N, pp.CFD_DEM["power_law_n"].GetDouble())
 
 
 def ConstructListsOfVariables(pp):
@@ -461,7 +454,7 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
     if pp.CFD_DEM["fluid_model_type"].GetInt() == 1 and pp.CFD_DEM["print_FLUID_FRACTION_GRADIENT_option"].GetBool():
         pp.nodal_results += ["FLUID_FRACTION_GRADIENT"]
 
-    if pp.CFD_DEM["print_VISCOSIITY_option"].GetBool():
+    if pp.CFD_DEM["print_VISCOSITY_option"].GetBool():
         pp.nodal_results += ["VISCOSITY"]
 
     if pp.CFD_DEM["body_force_on_fluid_option"].GetBool() and pp.CFD_DEM["print_BODY_FORCE_option"].GetBool():
