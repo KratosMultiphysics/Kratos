@@ -72,8 +72,9 @@ public:
     
     /**
      * This is the default constructor
-     * @param rThisModelPart: The model part to be computed
-     * @param ThisParameters: The input parameters
+     * @param rThisModelPart The model part to be computed
+     * @param rVariableGradient The gradient variable
+     * @param ThisParameters The input parameters
      */
     
     ComputeLevelSetSolMetricProcess(
@@ -184,7 +185,7 @@ private:
     Variable<array_1d<double,3>> mVariableGradient; // The gradient variable
     double mMinSize;                                // The minimal size of the elements
     bool mEnforceCurrent;                           // With this we choose if we inforce the current nodal size (NODAL_H)
-    double mAnisRatio;                              // The minimal anisotropic ratio (0 < ratio < 1)
+    double mAnisotropicRatio;                       // The minimal anisotropic ratio (0 < ratio < 1)
     double mBoundLayer;                             // The boundary layer limit Distance
     Interpolation mInterpolation;                   // The interpolation type
     
@@ -198,22 +199,22 @@ private:
     
     /**
      * It calculates the tensor of the scalar, necessary to get the solution before remeshing
-     * @param GradientValue: The gradient of the scalar to remesh
-     * @param Ratio: The alpha parameter used to remesh
-     * @param ElementSize: The minimum size of the elements
-     * @param node_id: The id of the node
+     * @param GradientValue The gradient of the scalar to remesh
+     * @param Ratio The alpha parameter used to remesh
+     * @param ElementSize The minimum size of the elements
+     * @return The metric tensor
      */
         
     Vector ComputeLevelSetMetricTensor(
         const array_1d<double, 3>& GradientValue,
-        const double& Ratio,
-        const double& ElementSize
+        const double Ratio,
+        const double ElementSize
         );
 
     
     /**
      * This converts the interpolation string to an enum
-     * @param str: The string that you want to comvert in the equivalent enum
+     * @param str The string that you want to comvert in the equivalent enum
      * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
      */
         
@@ -221,13 +222,16 @@ private:
         
     /**
      * This calculates the anisotropic ratio
-     * @param Distance: Distance parameter
+     * @param Distance Distance parameter
+     * @param AnisotropicRatio The anisotropic ratio
+     * @param BoundLayer The boundary layer limit
+     * @param rInterpolation The type of interpolation
      */
     
     double CalculateAnisotropicRatio(
-        const double& Distance,
-        const double& rAnisRatio,
-        const double& rBoundLayer,
+        const double Distance,
+        const double AnisotropicRatio,
+        const double BoundLayer,
         const Interpolation& rInterpolation
         );
     
