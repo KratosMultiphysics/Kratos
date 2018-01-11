@@ -173,7 +173,7 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
             eigen_values_matrix(i, i) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(i, i), eigen_max), relative_eigen_radius);
     } else { // NOTE: For isotropic we should consider the maximum of the eigenvalues
         double eigen_max = eigen_values_matrix(0, 0);
-        for (unsigned int i = 1; i < TDim - 1; ++i)
+        for (unsigned int i = 1; i < TDim; ++i)
             eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
         for (unsigned int i = 0; i < TDim; ++i)
             eigen_values_matrix(i, i) = eigen_max;
