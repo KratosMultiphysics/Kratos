@@ -126,9 +126,9 @@ class TestGidIO(KratosUnittest.TestCase):
         self.__DeleteIfExisting("deactivated_out_0.post.msh")
         self.__DeleteIfExisting("deactivated_out_0.post.res")
         self.__DeleteIfExisting("python_scripts.post.lst")
-    
-    def __DeleteIfExisting(self,filename):
-        import os
+
+    @staticmethod
+    def __DeleteIfExisting(filename):
         try:
             os.remove(filename)
         except FileNotFoundError:
