@@ -17,7 +17,6 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "includes/cfd_variables.h"
 #include "utilities/openmp_utils.h"
 #include "processes/find_nodal_h_process.h"
 
@@ -257,9 +256,7 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
     #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
         ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
-        if (it_node->FastGetSolutionStepValue(DISTANCE) < 0.0){
-            it_node->SetValue(EMBEDDED_IS_ACTIVE, 0);
-        }
+        it_node->SetValue(EMBEDDED_IS_ACTIVE, 0);
     }
 
     // Deactivate those elements whose negative distance nodes summation is equal to their number of nodes
@@ -281,10 +278,9 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
         // If the element is ACTIVE, all its nodes are active as well
         if (itElement->Is(ACTIVE)){
             for (unsigned int i_node = 0; i_node < rGeometry.size(); ++i_node){
-                rGeometry[i_node].SetLock();
                 int& activation_index = rGeometry[i_node].GetValue(EMBEDDED_IS_ACTIVE);
+                #pragma omp atomic
                 activation_index += 1;
-                rGeometry[i_node].UnSetLock();
             }
         }
     }
@@ -292,11 +288,11 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
     // Synchronize the EMBEDDED_IS_ACTIVE variable flag
     mrModelPart.GetCommunicator().AssembleNonHistoricalData(EMBEDDED_IS_ACTIVE);
 
-    // Set to zero and fix the DOFs in the remaining INACTIVE nodes
+    // Set to zero and fix the DOFs in the remaining inactive nodes
     #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
         ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
-        if (it_node->GetValue(EMBEDDED_IS_ACTIVE)){
+        if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
             // Fix the nodal DOFs
             it_node->Fix(PRESSURE);
             it_node->Fix(VELOCITY_X);
