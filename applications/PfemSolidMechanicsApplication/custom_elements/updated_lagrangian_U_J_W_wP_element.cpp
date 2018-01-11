@@ -1073,9 +1073,20 @@ namespace Kratos
       }
 
 
+      double density_mixture0 = GetProperties()[DENSITY];
+      double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
+      double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
+
+      double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0; 
+      double density_solid = (density_mixture0 - porosity0*WaterDensity) / ( 1.0 - porosity0);
+      double DryDensity = ( 1.0 - porosity) * density_solid;
+
       double StabilizationFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
 
-      rStabFactor = 2.0 / ConstrainedModulus - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
+
+      //rStabFactor = 2.0 / ConstrainedModulus - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
+      rStabFactor = 2.0 / ConstrainedModulus*(1+rPermeability*DryDensity/mTimeStep/porosity) - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2)*(1-porosity)/porosity; 
+
 
       if ( rStabFactor < 0.0){
          std::cout << "stab 1= " <<  2.0 / ConstrainedModulus << " stab 2= " << 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2) << std::endl;

@@ -330,9 +330,9 @@ namespace Kratos
 
       mDynamicElement = false;
       if ( rCurrentProcessInfo.Has( HHT_ALPHA ) ) {
-         std::cout << " HAS ALPHAT " << std::endl;
          if ( rCurrentProcessInfo[HHT_ALPHA] > 0) {
            
+            std::cout << " HAS ALPHAT " << std::endl;
             mAlphaF = 0.0;
             const unsigned int number_of_nodes = GetGeometry().size(); 
             int dofs_per_node = this->GetDofsPerNode();
