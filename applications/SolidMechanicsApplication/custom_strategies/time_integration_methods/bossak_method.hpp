@@ -149,7 +149,18 @@ namespace Kratos
      KRATOS_CATCH( "" )
     }     
 
-
+    // set parameters to process info
+    virtual void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo) override
+    {
+     KRATOS_TRY
+       
+     rCurrentProcessInfo[NEWMARK_BETA]  = this->mNewmark.beta;      
+     rCurrentProcessInfo[NEWMARK_GAMMA] = this->mNewmark.gamma;
+     rCurrentProcessInfo[BOSSAK_ALPHA]  = this->mAlpha;
+       
+     KRATOS_CATCH( "" )
+    }
+    
     double& GetMethodParameter(double& rParameter) override
     {
       rParameter = mAlpha;
@@ -299,6 +310,7 @@ namespace Kratos
   template<class TVariableType, class TValueType>
   inline std::istream & operator >> (std::istream & rIStream, BossakMethod<TVariableType,TValueType>& rThis)
   {
+    return rIStream;
   }
 
   template<class TVariableType, class TValueType>
