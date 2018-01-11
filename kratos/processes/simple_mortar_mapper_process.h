@@ -245,6 +245,11 @@ private:
     void ResetNodalArea();
     
     /**
+     * This method gets the max area of the conditions from the modelpart
+     */
+    double GetReferenceArea();
+    
+    /**
      * This method assemble locally the mortar operators
      * @param ConditionsPointSlave The list of points that form the triangle decomposition
      * @param SlaveGeometry The slave geometry
