@@ -100,7 +100,10 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             print("POINT_LOAD_Y: ", force_y)
             print("POINT_LOAD_Z: ", force_z)
             print("*********************** ")
-           
+
+    def _create_solution_scheme(self):
+        return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        
     def _create_mechanical_solver(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
