@@ -160,10 +160,10 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
     // Considering anisotropic
     if (AnisotropicRatio < 1.0) {
         double eigen_max = eigen_values_matrix(0, 0);
-        double eigen_min = eigen_values_matrix(1, 1);
-        for (unsigned int i = 1; i < TDim - 1; ++i) {
+        double eigen_min = eigen_values_matrix(0, 0);
+        for (unsigned int i = 1; i < TDim; ++i) {
             eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
-            eigen_min = MathUtils<double>::Min(eigen_max, eigen_values_matrix(i, i));
+            eigen_min = MathUtils<double>::Min(eigen_min, eigen_values_matrix(i, i));
         }
         
         const double eigen_radius = std::abs(eigen_max - eigen_min) * (1.0 - AnisotropicRatio);
