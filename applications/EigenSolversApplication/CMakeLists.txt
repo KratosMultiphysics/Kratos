@@ -1,13 +1,13 @@
-# 
+#
 #   KRATOS _______
 #         / ____(_)___ ____  ____
 #        / __/ / / __ `/ _ \/ __ \
 #       / /___/ / /_/ /  __/ / / /
 #      /_____/_/\__, /\___/_/ /_/ SolversApplication
 #              /____/
-# 
+#
 #   Author: Thomas Oberbichler
-# 
+#
 
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
@@ -22,6 +22,9 @@ if( NOT MSVC )
 endif()
 
 add_definitions( -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
+if( ${CMAKE_BUILD_TYPE} MATCHES "FullDebug" )
+	add_definitions( -DEIGEN_INTERNAL_DEBUGGING )
+endif( ${CMAKE_BUILD_TYPE} MATCHES "FullDebug" )
 
 include_directories(
 	${CMAKE_SOURCE_DIR}/kratos
@@ -37,8 +40,8 @@ else()
 endif()
 
 ## generate variables with the sources
-set( KRATOS_EIGENSOLVERS_APPLICATION_SOURCES     
-	${CMAKE_CURRENT_SOURCE_DIR}/eigen_solvers_application.cpp 
+set( KRATOS_EIGENSOLVERS_APPLICATION_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/eigen_solvers_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/eigen_solvers_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_solvers_to_python.cpp
 )
@@ -51,11 +54,11 @@ target_link_libraries( KratosEigenSolversApplication KratosCore )
 if( DEFINED ENV{MKLROOT} )
 	target_link_libraries( KratosEigenSolversApplication mkl_rt )
 endif()
-	
+
 set_target_properties( KratosEigenSolversApplication PROPERTIES PREFIX "" )
 install( TARGETS KratosEigenSolversApplication DESTINATION libs )
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 	set_target_properties( KratosEigenSolversApplication PROPERTIES SUFFIX .pyd )
 endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )

@@ -16,12 +16,15 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+#include "linear_solvers/iterative_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
+#include "custom_solvers/eigen_generalized_eigenvalue_solver.h"
 
 namespace Kratos
 {
@@ -37,6 +40,7 @@ void AddCustomSolversToPython()
 	typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 	typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 	typedef DirectSolver<SparseSpaceType, LocalSpaceType> DirectSolverType;
+	typedef IterativeSolver<SparseSpaceType,  LocalSpaceType> IterativeSolverType;
 
 	using SparseLUSolver = EigenDirectSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
 	class_<SparseLUSolver, bases<DirectSolverType>, boost::noncopyable>
@@ -59,6 +63,12 @@ void AddCustomSolversToPython()
 		("PardisoLUSolver", init<>())
 		.def(init<Parameters>());
 	#endif
+
+	using GeneralizedSelfAdjointEigenSolver = EigenGeneralizedEigenvalueSolver<SparseSpaceType, LocalSpaceType>;
+	class_<GeneralizedSelfAdjointEigenSolver, bases<LinearSolverType>, boost::noncopyable>
+	 	("GeneralizedSelfAdjointEigenSolver", init<Parameters>())
+	 	.def(init<Parameters>());
+
 }
 
 } // namespace Python

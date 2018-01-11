@@ -43,6 +43,7 @@
 #include "linear_solvers/power_iteration_eigenvalue_solver.h"
 #include "linear_solvers/power_iteration_highest_eigenvalue_solver.h"
 #include "linear_solvers/rayleigh_quotient_iteration_eigenvalue_solver.h"
+#include "linear_solvers/subspace_iteration_eigenvalue_solver.h"
 #include "linear_solvers/deflated_gmres_solver.h"
 
 namespace Kratos
@@ -74,6 +75,7 @@ void  AddLinearSolversToPython()
     typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationEigenvalueSolverType;
     typedef PowerIterationHighestEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationHighestEigenvalueSolverType;
     typedef RayleighQuotientIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> RayleighQuotientIterationEigenvalueSolverType;
+    typedef SubspaceIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> SubspaceIterationEigenvalueSolverType;
     typedef DeflatedGMRESSolver<SpaceType,  LocalSpaceType> DeflatedGMRESSolverType;
 
     typedef TSpaceType<std::complex<double>> ComplexSparseSpaceType;
@@ -83,8 +85,9 @@ void  AddLinearSolversToPython()
     typedef SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexSkylineLUSolverType;
 
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
+    void (LinearSolverType::*pointer_to_eigen_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::SparseMatrixType& rB, LinearSolverType::DenseVectorType& rVal, LinearSolverType::DenseMatrixType& rVec) = &LinearSolverType::Solve;
     bool (ComplexLinearSolverType::*pointer_to_complex_solve)(ComplexLinearSolverType::SparseMatrixType& rA, ComplexLinearSolverType::VectorType& rX, ComplexLinearSolverType::VectorType& rB) = &ComplexLinearSolverType::Solve;
-    
+
     using namespace boost::python;
 
     //****************************************************************************************************
@@ -177,6 +180,13 @@ void  AddLinearSolversToPython()
     .def(init<double, unsigned int, unsigned int, LinearSolverType::Pointer, double>())
     .def(init<Parameters, LinearSolverType::Pointer>())
     .def( "GetEigenValue",&RayleighQuotientIterationEigenvalueSolverType::GetEigenValue)
+    ;
+
+    class_<SubspaceIterationEigenvalueSolverType, SubspaceIterationEigenvalueSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >
+    ("SubspaceIterationEigenvalueSolver", init<Parameters, LinearSolverType::Pointer, LinearSolverType::Pointer>())
+    .def(init<Parameters, LinearSolverType::Pointer, LinearSolverType::Pointer>())
+    .def("GetEigenValue", &SubspaceIterationEigenvalueSolverType::GetEigenValue)
+    .def("Solve",pointer_to_eigen_solve)
     ;
 
     typedef Reorderer<SpaceType,  LocalSpaceType > ReordererType;
