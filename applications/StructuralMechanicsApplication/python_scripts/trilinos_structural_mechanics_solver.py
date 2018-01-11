@@ -25,20 +25,13 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
-        self.trilinos_solver_settings = KratosMultiphysics.Parameters("""
-        {
-            "component_wise" : false
-        }
-        """)
-        self.validate_and_transfer_matching_settings(custom_settings, self.trilinos_solver_settings)
-        # Validate the remaining settings in the base class.
         if not custom_settings.Has("linear_solver_settings"): # Override defaults in the base class.
             linear_solver_settings = KratosMultiphysics.Parameters("""{
                 "solver_type" : "Klu",
                 "scaling" : false
             }""")
             custom_settings.AddValue("linear_solver_settings", linear_solver_settings)
-        
+
         # Construct the base solver.
         super(TrilinosMechanicalSolver, self).__init__(main_model_part, custom_settings)
         self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: Construction finished")
@@ -86,7 +79,6 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
         conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
         conv_params.AddValue("echo_level",self.settings["echo_level"])
-        conv_params.AddValue("component_wise",self.trilinos_solver_settings)
         conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
         conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
         conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
