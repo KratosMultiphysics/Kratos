@@ -1029,9 +1029,9 @@ void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double
 
     array_1d<double, 3> inner_point = node_coor_array + normal_to_wall;
 
-    double nodal_area_0 = wall->GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
-    double nodal_area_1 = wall->GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
-    double nodal_area_2 = wall->GetGeometry()[2].FastGetSolutionStepValue(NODAL_AREA);
+    double nodal_area_0 = wall->GetGeometry()[0].FastGetSolutionStepValue(DEM_NODAL_AREA);
+    double nodal_area_1 = wall->GetGeometry()[1].FastGetSolutionStepValue(DEM_NODAL_AREA);
+    double nodal_area_2 = wall->GetGeometry()[2].FastGetSolutionStepValue(DEM_NODAL_AREA);
     
     array_1d<double, 3> point_local_coordinates;
     Vector shape_functions_coefs(3);
