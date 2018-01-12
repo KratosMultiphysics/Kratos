@@ -920,9 +920,7 @@ public:
                     break;
                 }
             }
-        }
-
-        if(LocalSpaceDimension() == 3) {
+        } else if(LocalSpaceDimension() == 3) {
             for ( unsigned int k = 0; k < maxiter; k++ ) {
                 CurrentGlobalCoords = ZeroVector( 3 );
                 GlobalCoordinates( CurrentGlobalCoords, rResult );
