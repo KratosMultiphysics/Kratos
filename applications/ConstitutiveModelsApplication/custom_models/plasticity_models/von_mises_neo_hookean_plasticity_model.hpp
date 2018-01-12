@@ -156,6 +156,19 @@ namespace Kratos
       return rValue;
     }
     
+    /**
+     * Set Values
+     */
+    virtual void SetValue(const Variable<double>& rThisVariable,
+                          const double& rValue,
+                          const ProcessInfo& rCurrentProcessInfo) override
+    {
+      if (rThisVariable==PLASTIC_STRAIN)
+	{
+            this->mInternal.Variables[0] = rValue;
+	}
+    }
+    
     ///@}
     ///@name Inquiry
     ///@{

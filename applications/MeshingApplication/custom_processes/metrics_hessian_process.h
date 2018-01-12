@@ -74,8 +74,8 @@ public:
     
     /**
      * This is the default constructor
-     * @param rThisModelPart: The model part to be computed
-     * @param ThisParameters: The input parameters
+     * @param rThisModelPart The model part to be computed
+     * @param rThisModelPart The input parameters
      */
     
     ComputeHessianSolMetricProcess(
@@ -183,13 +183,13 @@ private:
     ///@{
     
     ModelPart& mThisModelPart;               // The model part to compute
-    TVarType mVariable;            // The variable to calculate the hessian
+    TVarType mVariable;                      // The variable to calculate the hessian
     double mMinSize;                         // The minimal size of the elements
     double mMaxSize;                         // The maximal size of the elements
     bool mEnforceCurrent;                    // With this we choose if we inforce the current nodal size (NODAL_H)
     double mInterpError;                     // The error of interpolation allowed
     double mMeshConstant;                    // The mesh constant to remesh (depends of the element type)
-    double mAnisRatio;                       // The minimal anisotropic ratio (0 < ratio < 1)
+    double mAnisotropicRatio;                // The minimal anisotropic ratio (0 < ratio < 1)
     double mBoundLayer;                      // The boundary layer limit distance
     Interpolation mInterpolation;            // The interpolation type
     
@@ -203,30 +203,28 @@ private:
 
     /**
      * This function is used to compute the Hessian Metric tensor, note that when using the Hessian, more than one Metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
-     * @param Hessian: The hessian tensor condensed already computed
-     * @param AnisotropicRatio: The anisotropic ratio
-     * @param ElementMinSize: The min size of element
-     * @param ElementMaxSize: The maximal size of the elements
+     * @param Hessian The hessian tensor condensed already computed
+     * @param AnisotropicRatio The anisotropic ratio
+     * @param ElementMinSize The min size of element
+     * @param ElementMaxSize The maximal size of the elements
      */
         
     Vector ComputeHessianMetricTensor(
         const Vector& Hessian,
-        const double& AnisotropicRatio,
-        const double& ElementMinSize, // This way we can impose as minimum as the previous size if we desire
-        const double& ElementMaxSize // This way we can impose as maximum as the previous size if we desire
+        const double AnisotropicRatio,
+        const double ElementMinSize, // This way we can impose as minimum as the previous size if we desire
+        const double ElementMaxSize // This way we can impose as maximum as the previous size if we desire
         );
     
     /**
      * This calculates the auxiliar hessian needed for the Metric
-     * @param rThisModelPart: The original model part where we compute the hessian
-     * @param rVariable: The variable to calculate the hessian
      */
     
     void CalculateAuxiliarHessian();
     
     /**
      * This converts the interpolation string to an enum
-     * @param str: The string that you want to comvert in the equivalent enum
+     * @param str The string that you want to comvert in the equivalent enum
      * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
      */
         
@@ -234,14 +232,17 @@ private:
         
     /**
      * This calculates the anisotropic ratio
-     * @param distance: Distance parameter
+     * @param Distance Distance parameter
+     * @param AnisotropicRatio The anisotropic ratio
+     * @param BoundLayer The boundary layer limit
+     * @param rInterpolation The type of interpolation
      */
     
     double CalculateAnisotropicRatio(
-        const double& distance,
-        const double& rAnisRatio,
-        const double& rBoundLayer,
-        const Interpolation& rInterpolation
+        const double Distance,
+        const double AnisotropicRatio,
+        const double BoundLayer,
+        const Interpolation rInterpolation
         );
     
     ///@}

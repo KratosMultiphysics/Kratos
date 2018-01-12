@@ -270,8 +270,9 @@ protected:
         double GammaDot = this->EquivalentStrainRate(rDN_DX);
 
         double YieldStress = rProcessInfo[YIELD_STRESS];
+                        
         double m = rProcessInfo[REGULARIZATION_COEFFICIENT];
-
+        
         if (GammaDot > 1e-12) // Normal behaviour
         {
             double Regularization = 1.0 - std::exp(-m*GammaDot);
