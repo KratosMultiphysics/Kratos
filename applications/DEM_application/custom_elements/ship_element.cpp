@@ -17,17 +17,20 @@ namespace Kratos {
     
     ShipElement3D::ShipElement3D(IndexType NewId, GeometryType::Pointer pGeometry)
     : RigidBodyElement3D(NewId, pGeometry) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
+        mpRotationalIntegrationScheme = NULL;
     }
       
     ShipElement3D::ShipElement3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : RigidBodyElement3D(NewId, pGeometry, pProperties) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
+        mpRotationalIntegrationScheme = NULL;
     }
       
     ShipElement3D::ShipElement3D(IndexType NewId, NodesArrayType const& ThisNodes)
     : RigidBodyElement3D(NewId, ThisNodes) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
+        mpRotationalIntegrationScheme = NULL;
     }
     
     Element::Pointer ShipElement3D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {

@@ -19,19 +19,19 @@ namespace Kratos {
     Cluster3D::Cluster3D() : RigidBodyElement3D() {}
             
     Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry) {
+    : RigidBodyElement3D(NewId, pGeometry) {
         mpTranslationalIntegrationScheme = NULL;
         mpRotationalIntegrationScheme = NULL;
     }
       
     Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties) {
+    : RigidBodyElement3D(NewId, pGeometry, pProperties) {
         mpTranslationalIntegrationScheme = NULL;
         mpRotationalIntegrationScheme = NULL;
     }
       
     Cluster3D::Cluster3D(IndexType NewId, NodesArrayType const& ThisNodes)
-    : Element(NewId, ThisNodes) {
+    : RigidBodyElement3D(NewId, ThisNodes) {
         mpTranslationalIntegrationScheme = NULL;
         mpRotationalIntegrationScheme = NULL;
     }
@@ -158,7 +158,12 @@ namespace Kratos {
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
         noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
     }
-
+    
+    
+    void Cluster3D::SetOrientation(const Quaternion<double> Orientation) {
+        this->GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION) = Orientation;
+    }
+    
     void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy) {        
         
         KRATOS_TRY 
@@ -238,6 +243,74 @@ namespace Kratos {
             p_continuum_spheric_particle->CreateContinuumConstitutiveLaws();
         }         
     }
+    
+    void Cluster3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info)
+    {
+        KRATOS_TRY
+        
+        if (rVariable == PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY) {
+            
+            const array_1d<double, 3>& vel = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+            double square_of_celerity      = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
+            double particle_mass           = this->GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+            
+            Output = 0.5 * (particle_mass * square_of_celerity);
+            
+            return;
+        }
+            
+        if (rVariable == PARTICLE_ROTATIONAL_KINEMATIC_ENERGY) {
+                
+            const array_1d<double, 3> moments_of_inertia = this->GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+            const array_1d<double, 3> local_ang_vel      = this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY);
+            
+            Output = 0.5 * (moments_of_inertia[0] * local_ang_vel[0] * local_ang_vel[0] + moments_of_inertia[1] * local_ang_vel[1] * local_ang_vel[1] + moments_of_inertia[2] * local_ang_vel[2] * local_ang_vel[2]);
+           
+            return;
+        }
+        
+        if (rVariable == PARTICLE_ELASTIC_ENERGY) {
+            
+            double particle_elastic_energy = 0.0;
+            
+            for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
+                particle_elastic_energy += mListOfSphericParticles[i]->GetElasticEnergy();
+            }
+            
+            Output = particle_elastic_energy;
+                      
+            return;
+        }
+
+        if (rVariable == PARTICLE_INELASTIC_FRICTIONAL_ENERGY) {
+            
+            double particle_frictional_energy = 0.0;
+            
+            for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
+                particle_frictional_energy += mListOfSphericParticles[i]->GetInelasticFrictionalEnergy();
+            }
+            
+            Output = particle_frictional_energy;
+                      
+            return;
+        }
+        
+        if (rVariable == PARTICLE_INELASTIC_VISCODAMPING_ENERGY) {
+            
+            double particle_viscodamping_energy = 0.0;
+            
+            for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
+                particle_viscodamping_energy += mListOfSphericParticles[i]->GetInelasticViscodampingEnergy();
+            }
+            
+            Output = particle_viscodamping_energy;
+                      
+            return;
+        }
+
+        KRATOS_CATCH("")
+
+    } //Calculate
 
     void Cluster3D::UpdateLinearDisplacementAndVelocityOfSpheres() {
         

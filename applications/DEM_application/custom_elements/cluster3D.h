@@ -47,6 +47,7 @@ namespace Kratos
         virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override {};
         virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override {};
         virtual void CustomInitialize(ProcessInfo& r_process_info);
+        virtual void SetOrientation(const Quaternion<double> Orientation);
         virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy);
         virtual void UpdateAngularDisplacementAndVelocityOfSpheres();
         virtual void UpdateLinearDisplacementAndVelocityOfSpheres();
@@ -54,14 +55,16 @@ namespace Kratos
         virtual void CollectForcesAndTorquesFromSpheres();
         virtual void ComputeAdditionalForces(const array_1d<double,3>& gravity);
         unsigned int GetNumberOfSpheres() { return mListOfSphericParticles.size(); };
-        std::vector<SphericParticle*> GetSpheres() { return mListOfSphericParticles; }; 
+        std::vector<SphericParticle*>  GetSpheres() { return mListOfSphericParticles; }; 
         virtual void SetContinuumGroupToBreakableClusterSpheres(const int Id);
         virtual void SetInitialConditionsToSpheres(const array_1d<double,3>& velocity);
         virtual void SetInitialNeighbours(const double search_increment);
-        virtual void CreateContinuumConstitutiveLaws();       
+        virtual void CreateContinuumConstitutiveLaws();
+        virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
         virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
         virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
+
         
         virtual double GetMass();
         virtual double SlowGetDensity();

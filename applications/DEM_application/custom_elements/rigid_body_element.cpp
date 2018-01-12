@@ -42,8 +42,8 @@ namespace Kratos {
     // Destructor
     RigidBodyElement3D::~RigidBodyElement3D() {
     
-        mListOfCoordinates.clear();  
-        if (mpIntegrationScheme != NULL) delete mpIntegrationScheme;
+//         mListOfCoordinates.clear();  
+//         if (mpIntegrationScheme != NULL) delete mpIntegrationScheme;
         // Destroy triangles?
     }
       
@@ -76,7 +76,7 @@ namespace Kratos {
         //SetIntegrationScheme(integration_scheme);
     }   
     
-    void RigidBodyElement::SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme){
+    void RigidBodyElement3D::SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme){
 
     }
     
