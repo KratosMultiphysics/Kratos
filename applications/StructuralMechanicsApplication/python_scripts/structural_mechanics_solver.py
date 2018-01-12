@@ -57,7 +57,7 @@ class MechanicalSolver(object):
             "restart_save_settings" : {
                 "save_restart"          : false,
                 "restart_control_type"  : "step",
-                "restart_frequency"     : 1,
+                "restart_frequency"     : 10,
             },
             "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{
@@ -363,6 +363,12 @@ class MechanicalSolver(object):
                 origin_settings.RemoveValue(name)
 
     def is_restarted(self):
+        if (self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
+            return True
+        else:
+            return False
+
+    def is_restart_output_step(self):
         if (self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
             return True
         else:
