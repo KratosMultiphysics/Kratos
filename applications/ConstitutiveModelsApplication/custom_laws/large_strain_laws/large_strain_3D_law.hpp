@@ -68,7 +68,13 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-
+    /**
+     * Material parameters are inizialized
+     */
+    void InitializeMaterial(const Properties& rMaterialProperties,
+			    const GeometryType& rElementGeometry,
+			    const Vector& rShapeFunctionsValues ) override;
+    
     /**
      * Computes the material response:
      * PK2 stresses and algorithmic ConstitutiveMatrix

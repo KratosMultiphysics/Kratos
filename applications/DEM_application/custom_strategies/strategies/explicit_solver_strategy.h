@@ -114,7 +114,6 @@ namespace Kratos {
                 const int delta_option,
                 ParticleCreatorDestructor::Pointer p_creator_destructor,
                 DEM_FEM_Search::Pointer p_dem_fem_search,
-                DEMIntegrationScheme::Pointer pScheme,
                 SpatialSearch::Pointer pSpSearch,
                 const bool do_search_balls = true)
         /*:
@@ -122,7 +121,6 @@ namespace Kratos {
             mDeltaOption = delta_option;
             mpParticleCreatorDestructor = p_creator_destructor;
             mpDemFemSearch = p_dem_fem_search;
-            mpScheme = pScheme;
             mpSpSearch = pSpSearch;
             mDoSearchNeighbourElements = do_search_balls;
             p_creator_destructor->SetDoSearchNeighbourElements(mDoSearchNeighbourElements);
@@ -276,7 +274,6 @@ namespace Kratos {
         int& GetDeltaOption() { return (mDeltaOption);}
         vector<unsigned int>& GetElementPartition() { return (mElementPartition);}
         ParticleCreatorDestructor::Pointer& GetParticleCreatorDestructor() { return (mpParticleCreatorDestructor);}
-        DEMIntegrationScheme::Pointer& GetScheme() { return (mpScheme);}
         SpatialSearch::Pointer& GetSpSearch() { return (mpSpSearch);}
         VectorResultConditionsContainerType& GetRigidFaceResults() { return (mRigidFaceResults);}
         VectorDistanceType& GetRigidFaceResultsDistances() { return (mRigidFaceResultsDistances);}
@@ -298,7 +295,6 @@ namespace Kratos {
         vector<unsigned int> mElementPartition;
         ParticleCreatorDestructor::Pointer mpParticleCreatorDestructor;
         DEM_FEM_Search::Pointer mpDemFemSearch;
-        DEMIntegrationScheme::Pointer mpScheme;
         SpatialSearch::Pointer mpSpSearch;
         bool mDoSearchNeighbourElements;
         VectorResultConditionsContainerType mRigidFaceResults;

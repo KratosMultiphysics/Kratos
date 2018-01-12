@@ -19,17 +19,20 @@ namespace Kratos {
             
     RigidBodyElement3D::RigidBodyElement3D(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
+        mpRotationalIntegrationScheme = NULL;
     }
       
     RigidBodyElement3D::RigidBodyElement3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
+        mpRotationalIntegrationScheme = NULL;
     }
       
     RigidBodyElement3D::RigidBodyElement3D(IndexType NewId, NodesArrayType const& ThisNodes)
     : Element(NewId, ThisNodes) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
+        mpRotationalIntegrationScheme = NULL;
     }
     
     Element::Pointer RigidBodyElement3D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
@@ -73,8 +76,8 @@ namespace Kratos {
         //SetIntegrationScheme(integration_scheme);
     }   
     
-    void RigidBodyElement3D::SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme){
-        mpIntegrationScheme = integration_scheme->CloneRaw();
+    void RigidBodyElement::SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme){
+
     }
     
     void RigidBodyElement3D::CustomInitialize() {

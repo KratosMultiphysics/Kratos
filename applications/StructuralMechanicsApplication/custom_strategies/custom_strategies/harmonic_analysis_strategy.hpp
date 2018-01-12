@@ -1,16 +1,13 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//   Project Name:        $StructuralMechanicsApplication $
-//   Last modified by:    $Author: quirin.aumann@tum.de   $
-//   Date:                $Date:            August 2017   $
-//   Revision:            $Revision:                0.0   $
+//  Main authors:    Quirin Aumann
+//
 
 #if !defined(KRATOS_HARMONIC_ANALYSIS_STRATEGY )
 #define  KRATOS_HARMONIC_ANALYSIS_STRATEGY
@@ -210,14 +207,14 @@ public:
      * - 2 -> print linear solver data
      * - 3 -> print debug information
      */
-    void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::SetEchoLevel(Level);
         this->pGetBuilderAndSolver()->SetEchoLevel(Level);
     }
 
     /// Initialization to be performed once before using the strategy.
-    virtual void Initialize()
+    virtual void Initialize() override
     {
         KRATOS_TRY
 
@@ -333,8 +330,7 @@ public:
         if( mUseMaterialDamping )
         {
             // throw an error, if no submodelparts are present
-            if( r_model_part.NumberOfSubModelParts() < 1 )
-                KRATOS_ERROR << "No submodelparts detected!" << std::endl;
+            KRATOS_ERROR_IF(r_model_part.NumberOfSubModelParts() < 1) << "No submodelparts detected!" << std::endl;
             
             //initialize all required variables
             r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
@@ -387,8 +383,9 @@ public:
                     down += strain_energy;
                     up += damping_coefficient * strain_energy;
                 }
-                if( down < std::numeric_limits<double>::epsilon() )
-                    KRATOS_ERROR << "No valid effective material damping ratio could be computed. Are all elements to be damped available in the submodelparts? Are the modal vectors available? " << std::endl;
+                KRATOS_ERROR_IF(down < std::numeric_limits<double>::epsilon()) << "No valid effective "
+                    << "material damping ratio could be computed. Are all elements to be damped available "
+                    << "in the submodelparts? Are the modal vectors available?" << std::endl;
                 
                 mMaterialDampingRatios(i) = up / down;
             }
@@ -403,7 +400,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    double Solve()
+    double Solve() override
     {
         KRATOS_TRY
 
@@ -439,7 +436,8 @@ public:
 
         for( std::size_t i = 0; i < n_modes; ++i )
         {
-
+            KRATOS_ERROR_IF(eigenvalues[i] < std::numeric_limits<double>::epsilon()) << "No valid eigenvalue "
+                    << "for mode " << i << std::endl;
             modal_damping = mSystemDamping + mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
             
             if( mUseMaterialDamping )
@@ -452,7 +450,8 @@ public:
             DenseVectorType modal_vector(n_dofs);
             TDenseSpace::GetColumn(i, r_modal_matrix, modal_vector);
 
-            ComplexType factor( eigenvalues[i] - pow( excitation_frequency, 2.0 ), 2 * modal_damping * std::sqrt(eigenvalues[i]) * excitation_frequency );
+            ComplexType factor( eigenvalues[i] - std::pow( excitation_frequency, 2.0 ), 2 * modal_damping * std::sqrt(eigenvalues[i]) * excitation_frequency );
+            KRATOS_ERROR_IF( std::abs(factor) < std::numeric_limits<double>::epsilon() ) << "No valid modal weight" << std::endl;
             mode_weight = inner_prod( modal_vector, f ) / factor;
 
             // compute the modal displacement as a superposition of modal_weight * eigenvector
@@ -484,7 +483,7 @@ public:
     }
 
     /// Clear the strategy.
-    virtual void Clear()
+    virtual void Clear() override
     {
         KRATOS_TRY
 
@@ -512,7 +511,7 @@ public:
     }
 
     /// Initialization to be performed before every solve.
-    virtual void InitializeSolutionStep()
+    virtual void InitializeSolutionStep() override
     {
         KRATOS_TRY
 
@@ -550,7 +549,7 @@ public:
     }
 
     /// Check whether initial input is valid.
-    virtual int Check()
+    virtual int Check() override
     {
         KRATOS_TRY
 

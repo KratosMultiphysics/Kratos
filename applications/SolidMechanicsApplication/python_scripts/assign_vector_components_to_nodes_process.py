@@ -40,7 +40,6 @@ class AssignVectorComponentsToNodesProcess(KratosMultiphysics.Process):
             raise Exception("Variable type is incorrect. Must be a three-component vector.")
 
         self.model         = Model
-        self.model_part    = Model[self.settings["model_part_name"].GetString()]
         self.variable_name = self.settings["variable_name"].GetString()
 
         ###check component assignation
@@ -57,7 +56,10 @@ class AssignVectorComponentsToNodesProcess(KratosMultiphysics.Process):
         
         self.BuildComponentsProcesses()
                
-                      
+    def GetVariables(self):
+        nodal_variables = [self.settings["variable_name"].GetString()]
+        return nodal_variables
+    
     def ExecuteInitialize(self):
         for process in self.AssignValueProcesses:
             process.ExecuteInitialize()

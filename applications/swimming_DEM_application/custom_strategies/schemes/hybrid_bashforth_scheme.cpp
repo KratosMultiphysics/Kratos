@@ -1,6 +1,7 @@
 //
 // Author: Guillermo Casas gcasas@cimne.upc.edu
 //
+// Project includes
 #include "includes/dem_variables.h"
 #include "hybrid_bashforth_scheme.h"
 
@@ -8,7 +9,7 @@ namespace Kratos {
 
     void HybridBashforthScheme::UpdateTranslationalVariables(
             int StepFlag,
-            Node < 3 > & i,
+            Node < 3 >& i,
             array_1d<double, 3 >& coor,
             array_1d<double, 3 >& displ,
             array_1d<double, 3 >& delta_displ,
@@ -18,17 +19,15 @@ namespace Kratos {
             const double force_reduction_factor,
             const double mass,
             const double delta_t,
-            const bool Fix_vel[3])
-    {   
+            const bool Fix_vel[3]) {
+
         array_1d<double, 3 >& old_vel = i.FastGetSolutionStepValue(VELOCITY_OLD);
 
         if (StepFlag == 1){
             for (int k = 0; k < 3; k++) {
-                if (Fix_vel[k] == false) {
-                    delta_displ[k] = 0.5 * delta_t * (3 * vel[k] - old_vel[k]);
-                    displ[k] += delta_displ[k];
-                    coor[k] = initial_coor[k] + displ[k];
-                }
+                delta_displ[k] = 0.5 * delta_t * (3 * vel[k] - old_vel[k]);
+                displ[k] += delta_displ[k];
+                coor[k] = initial_coor[k] + displ[k];
             } // dimensions
         }
 
@@ -38,10 +37,6 @@ namespace Kratos {
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
                     vel[k] += delta_t * force_reduction_factor * force[k] / mass;
-                } else {
-                    delta_displ[k] = delta_t * vel[k];
-                    displ[k] += delta_displ[k];
-                    coor[k] = initial_coor[k] + displ[k];
                 }
             } // dimensions
         }

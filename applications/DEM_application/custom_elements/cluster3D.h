@@ -43,12 +43,12 @@ namespace Kratos
       
         using Element::Initialize;
         virtual void Initialize(ProcessInfo& r_process_info);
-        virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme);
+        virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
         virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override {};
         virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override {};
         virtual void CustomInitialize(ProcessInfo& r_process_info);
         virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy);
-        virtual void UpdatePositionOfSpheres();
+        virtual void UpdateAngularDisplacementAndVelocityOfSpheres();
         virtual void UpdateLinearDisplacementAndVelocityOfSpheres();
         virtual void GetClustersForce(const array_1d<double,3>& gravity);
         virtual void CollectForcesAndTorquesFromSpheres();
@@ -60,8 +60,9 @@ namespace Kratos
         virtual void SetInitialNeighbours(const double search_increment);
         virtual void CreateContinuumConstitutiveLaws();       
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-        virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
-           
+        virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
+        virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
+        
         virtual double GetMass();
         virtual double SlowGetDensity();
         virtual int SlowGetParticleMaterial();
@@ -89,7 +90,8 @@ namespace Kratos
        
         std::vector<double>                mListOfRadii;
         std::vector<SphericParticle*>      mListOfSphericParticles; 
-        DEMIntegrationScheme* mpIntegrationScheme;        
+        DEMIntegrationScheme* mpTranslationalIntegrationScheme;
+        DEMIntegrationScheme* mpRotationalIntegrationScheme;       
       
     private:
        

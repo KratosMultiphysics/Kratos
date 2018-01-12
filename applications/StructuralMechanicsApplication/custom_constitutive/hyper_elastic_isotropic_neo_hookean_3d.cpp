@@ -12,10 +12,9 @@
 #include <iostream>
 
 // External includes
-#include<cmath>
+// #include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 
 #include "structural_mechanics_application_variables.h"
@@ -156,12 +155,12 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Para
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
         Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-        CalculateConstitutiveMatrixKirchoff( constitutive_matrix, determinant_f, lame_lambda, lame_mu );
+        CalculateConstitutiveMatrixKirchhoff( constitutive_matrix, determinant_f, lame_lambda, lame_mu );
     }
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
-        CalculateKirchoffStress( B_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
+        CalculateKirchhoffStress( B_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
     }
 }
 
@@ -351,7 +350,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateConstitutiveMatrixPK2(
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicNeoHookean3D::CalculateConstitutiveMatrixKirchoff(
+void HyperElasticIsotropicNeoHookean3D::CalculateConstitutiveMatrixKirchhoff(
     Matrix& ConstitutiveMatrix,
     const double& DeterminantF,
     const double& LameLambda,
@@ -400,7 +399,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculatePK2Stress(
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicNeoHookean3D::CalculateKirchoffStress(
+void HyperElasticIsotropicNeoHookean3D::CalculateKirchhoffStress(
     const Matrix& BTensor,
     Vector& rStressVector,
     const double& DeterminantF,

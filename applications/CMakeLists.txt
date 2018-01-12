@@ -52,6 +52,9 @@ message("CONTACT_STRUCTURAL_MECHANICS_APPLICATION... ${CONTACT_STRUCTURAL_MECHAN
 message("MAPPING_APPLICATION........................ ${MAPPING_APPLICATION}")
 message("INCOMPRESSIBLE_FLUID_APPLICATION .......... ${INCOMPRESSIBLE_FLUID_APPLICATION}")
 message("COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION.... ${COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION}")
+message("HDF5_APPLICATION........................... ${HDF5_APPLICATION}")
+message("SHALLOW_WATER_APPLICATION.................. ${SHALLOW_WATER_APPLICATION}")
+message("EIGEN_SOLVERS_APPLICATION.................. ${EIGEN_SOLVERS_APPLICATION}")
 message( " ")
 
 
@@ -192,10 +195,6 @@ if(${PFEM2_APPLICATION} MATCHES ON)
   add_subdirectory(pfem_2_application)
 endif(${PFEM2_APPLICATION} MATCHES ON)
 
-if(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
-  add_subdirectory(pure_diffusion_application)
-endif(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
-
 if(${MESHLESS_APPLICATION} MATCHES ON)
   add_subdirectory(meshless_application)
 endif(${MESHLESS_APPLICATION} MATCHES ON)
@@ -271,6 +270,18 @@ endif(${INCOMPRESSIBLE_FLUID_APPLICATION} MATCHES ON)
 if(${COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION} MATCHES ON)
   add_subdirectory(CompressiblePotentialFlowApplication)
 endif(${COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION} MATCHES ON)
+
+if(${HDF5_APPLICATION} MATCHES ON)
+  add_subdirectory(HDF5Application)
+endif(${HDF5_APPLICATION} MATCHES ON)
+
+if(${SHALLOW_WATER_APPLICATION} MATCHES ON)
+  add_subdirectory(ShallowWaterApplication)
+endif(${SHALLOW_WATER_APPLICATION} MATCHES ON)
+
+if(${EIGEN_SOLVERS_APPLICATION} MATCHES ON)
+  add_subdirectory(EigenSolversApplication)
+endif(${EIGEN_SOLVERS_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")

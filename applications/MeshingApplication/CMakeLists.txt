@@ -67,6 +67,7 @@ endif(${INCLUDE_MMG} MATCHES ON)
 add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES})
 target_link_libraries(KratosMeshingApplication KratosCore triangle tetMeshOpt)
 
+
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     target_link_libraries(KratosMeshingApplication ${TETGEN_LIBRARIES})
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
@@ -94,6 +95,10 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosMeshingApplication)
+endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosMeshingApplication DESTINATION libs )
 

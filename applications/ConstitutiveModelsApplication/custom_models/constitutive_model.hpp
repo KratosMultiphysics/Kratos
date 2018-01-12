@@ -107,6 +107,12 @@ namespace Kratos
     /**
      * Initialize member data
      */    
+    virtual void InitializeMaterial(const Properties& rMaterialProperties);
+
+    
+    /**
+     * Initialize member data
+     */    
     virtual void InitializeModel(ModelDataType& rValues);
 
     /**
@@ -302,11 +308,13 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
+      rSerializer.save("mOptions",mOptions);
       rSerializer.save("mHistoryVector",mHistoryVector);
     }
 
     virtual void load(Serializer& rSerializer)
     {
+      rSerializer.load("mOptions",mOptions);
       rSerializer.load("mHistoryVector",mHistoryVector);
     }
 

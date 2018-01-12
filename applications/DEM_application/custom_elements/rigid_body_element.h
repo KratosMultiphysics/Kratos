@@ -46,7 +46,7 @@ namespace Kratos {
       
         using Element::Initialize;
         virtual void Initialize(ProcessInfo& r_process_info, ModelPart& rigid_body_element_sub_model_part);
-        virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme);
+        virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
         virtual void InitializeSolutionStep(ProcessInfo& r_process_info){};
         virtual void FinalizeSolutionStep(ProcessInfo& r_process_info){};
         virtual void CustomInitialize();
@@ -61,7 +61,8 @@ namespace Kratos {
         virtual void SetInitialConditionsToNodes(const array_1d<double,3>& velocity);
         
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-        virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
+        virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
+        virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
    
         double GetSqrtOfRealMass();
 
@@ -86,7 +87,8 @@ namespace Kratos {
         
         std::vector<array_1d<double, 3> > mListOfCoordinates;
         std::vector<Node<3>::Pointer > mListOfNodes;
-        DEMIntegrationScheme* mpIntegrationScheme;
+        DEMIntegrationScheme* mpTranslationalIntegrationScheme;
+        DEMIntegrationScheme* mpRotationalIntegrationScheme;
  
     //protected:
 

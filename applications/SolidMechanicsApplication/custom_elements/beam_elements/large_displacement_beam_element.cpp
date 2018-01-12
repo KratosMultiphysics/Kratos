@@ -218,7 +218,8 @@ namespace Kratos
     
     //create and initialize element variables:
     ElementVariables Variables;
-
+    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    
     IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
     
     //reduced quadrature integration:
@@ -235,7 +236,7 @@ namespace Kratos
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
 	//set shape functions values for this integration point
-	Variables.N=row( Ncontainer, PointNumber);
+	noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 	//compute local to global frame
 	this->CalculateFrameMapping( Variables, PointNumber );
@@ -259,7 +260,7 @@ namespace Kratos
     for ( unsigned int PointNumber = 0; PointNumber < full_integration_points.size(); PointNumber++ )
       {
 	//set shape functions values for this integration point
-	Variables.N=row( NFcontainer, PointNumber);
+	noalias(Variables.N) = matrix_row<const Matrix>( NFcontainer, PointNumber);
 
 	//compute local to global frame
 	this->CalculateFrameMapping( Variables, PointNumber );
@@ -465,7 +466,7 @@ namespace Kratos
     rVariables.PointNumber = rPointNumber;
 
     //Set Shape Functions Values for this integration point
-    rVariables.N=row( Ncontainer, rPointNumber);
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
     
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -533,21 +534,21 @@ namespace Kratos
     }
     else{
      
-      if( mIterationCounter == 0 ){
+      // if( mIterationCounter == 0 ){
 
 	rVariables.PreviousCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
       	rVariables.CurrentCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
 	
 	this->CalculateCurrentCurvature(rVariables, STEP_ROTATION);      
       
-      }
-      else{
+      // }
+      // else{
 
-	rVariables.PreviousCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
-	rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
+      // 	rVariables.PreviousCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
+      // 	rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
       
-	this->CalculateCurrentCurvature(rVariables, DELTA_ROTATION);
-      }
+      // 	this->CalculateCurrentCurvature(rVariables, DELTA_ROTATION);
+      // }
      
     }
     
@@ -653,7 +654,8 @@ namespace Kratos
 
     //create and initialize element variables:
     ElementVariables Variables;
-
+    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    
     IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
     //full quadrature integration:
     mThisIntegrationMethod = mFullIntegrationMethod;
@@ -692,7 +694,7 @@ namespace Kratos
 	Variables.PointNumber = PointNumber;
 
 	//set shape functions values for this integration point
-	Variables.N=row( Ncontainer, PointNumber);
+	noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 	//compute local to global frame
 	this->CalculateFrameMapping( Variables, PointNumber );
@@ -1114,13 +1116,8 @@ namespace Kratos
     MatrixType DifferentialOperatorI(MatSize,MatSize);
     noalias(DifferentialOperatorI) = ZeroMatrix(MatSize,MatSize);
 
-    unsigned int RowIndex = 0;
-
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-
-	RowIndex = i * (dimension * 2);
-
 	noalias(Fi) = ZeroVector(6);
 	
  	this->CalculateDifferentialOperator(DifferentialOperatorI, rVariables, i, rVariables.Alpha );
@@ -1418,7 +1415,7 @@ namespace Kratos
 	    //std::cout<<" Kij "<<Kij<<std::endl;
 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 	  }
       }
 
@@ -1481,7 +1478,7 @@ namespace Kratos
 	    Kij *= rIntegrationWeight;
 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 	    
 	  }
       }
@@ -1579,13 +1576,13 @@ namespace Kratos
 	    BeamMathUtilsType::VectorToSkewSymmetricTensor(StressResultants, SkewSymStressResultants);
 	    GabK = (-1) * (rVariables.DN_DX(i, 0) * rVariables.N[j]) * SkewSymStressResultants; 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( Kij, GabK, 0, 3 );
+	    BeamMathUtilsType::AddMatrix( Kij, GabK, 0, 3 );
 		
 	    //term 21
 	    noalias(GabK) = ZeroMatrix(3,3);
 	    GabK = (rVariables.N[i] * rVariables.DN_DX(j, 0) ) * SkewSymStressResultants;
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( Kij, GabK, 3, 0 );
+	    BeamMathUtilsType::AddMatrix( Kij, GabK, 3, 0 );
 	
 
 	    //term 22
@@ -1601,12 +1598,12 @@ namespace Kratos
 	    GabK -= ( rVariables.N[i] * rVariables.N[j]) * inner_prod( StressResultants, rVariables.CurrentAxisPositionDerivatives ) * DiagonalMatrix;
 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( Kij, GabK, 3, 3 );
+	    BeamMathUtilsType::AddMatrix( Kij, GabK, 3, 3 );
 
 	    Kij *= rIntegrationWeight;
 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 	    
 	  }
       }
@@ -1699,10 +1696,10 @@ namespace Kratos
 	    Lij =  rIntegrationWeight * rVariables.N[i] * rVariables.N[j] * SkewSymResultants;
 	    
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( Kij, Lij, 0, 3 );
+	    BeamMathUtilsType::AddMatrix( Kij, Lij, 0, 3 );
 	    	    
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 	    
 	  }
       }
@@ -1951,8 +1948,8 @@ namespace Kratos
 	    
 
 	    //Building the Local Tangent Inertia Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
 	    
 	  }
       }
@@ -2259,7 +2256,7 @@ namespace Kratos
     	LinearMomentumVector  += TotalMass * rVariables.N[i] * prod( DiagonalMatrix, CurrentLinearVelocityVector ) * rIntegrationWeight;	  
       }
     
-    AngularMomentumVector  =  MathUtils<double>::CrossProduct(CurrentPositionVector, LinearMomentumVector);
+    MathUtils<double>::CrossProduct(AngularMomentumVector, CurrentPositionVector, LinearMomentumVector);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -2268,7 +2265,7 @@ namespace Kratos
 
     //for only one integration point
     //LinearMomentumVector   = TotalMass * prod( DiagonalMatrix, CurrentLinearVelocityVector ) * rIntegrationWeight;
-    //AngularMomentumVector  = MathUtils<double>::CrossProduct(CurrentPositionVector, LinearMomentumVector);
+    //MathUtils<double>::CrossProduct(AngularMomentumVector, CurrentPositionVector, LinearMomentumVector);
     //AngularMomentumVector += prod( CurrentInertiaDyadic, CurrentAngularVelocityVector ) * rIntegrationWeight;
 
     // Note: 
@@ -2443,8 +2440,8 @@ namespace Kratos
 
 	
 	//Building the Local Tangent Inertia Matrix
-	MathUtils<double>::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
-	MathUtils<double>::AddMatrix( rMassMatrix, m22, RowIndex+3, RowIndex+3 );
+	BeamMathUtilsType::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
+	BeamMathUtilsType::AddMatrix( rMassMatrix, m22, RowIndex+3, RowIndex+3 );
 	
       }
  
@@ -2559,7 +2556,8 @@ namespace Kratos
 
       //create and initialize element variables:
       ElementVariables Variables;
-
+      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      
       IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
       //full quadrature integration:
       mThisIntegrationMethod = mFullIntegrationMethod;
@@ -2593,7 +2591,7 @@ namespace Kratos
 	  Variables.PointNumber = PointNumber;
 
 	  //set shape functions values for this integration point
-	  Variables.N=row( Ncontainer, PointNumber);
+	  noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 	  //compute local to global frame
 	  this->CalculateFrameMapping( Variables, PointNumber );
@@ -2716,7 +2714,8 @@ namespace Kratos
       
       //create and initialize element variables:
       ElementVariables Variables;
-
+      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      
       IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
       //full quadrature integration:
       mThisIntegrationMethod = mFullIntegrationMethod;
@@ -2753,7 +2752,7 @@ namespace Kratos
 	  Variables.PointNumber = PointNumber;
 
 	  //set shape functions values for this integration point
-	  Variables.N=row( Ncontainer, PointNumber);
+	  noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 	  //compute local to global frame
 	  this->CalculateFrameMapping( Variables, PointNumber );

@@ -54,7 +54,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         if( (type(self.var) != KratosMultiphysics.VectorVariable) and (type(self.var) != KratosMultiphysics.Array1DVariable3) ):
             raise Exception("Variable type is incorrect. Must be a vector or an array_1d vector.")
 
-        self.model_part    = Model[self.settings["model_part_name"].GetString()]
+        self.model         = Model
         self.variable_name = self.settings["variable_name"].GetString()
 
         ## set the interval
@@ -67,8 +67,6 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         elif( self.settings["interval"][1].IsDouble() or  self.settings["interval"][1].IsInt() ):
             self.interval.append(self.settings["interval"][1].GetDouble());
 
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
-            self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         self.interval_string = "custom"
         if( self.interval[0] == 0.0 and self.interval[1] == 0.0 ):
@@ -121,9 +119,17 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
                     self.value_is_spatial_function = False  
 
                 
-                
+    def GetVariables(self):
+        nodal_variables = [self.settings["variable_name"].GetString()]
+        return nodal_variables
+
     def ExecuteInitialize(self):
 
+        # set model part
+        self.model_part = self.model[self.settings["model_part_name"].GetString()]
+        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
+            self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
+        
         # set processes
         params = KratosMultiphysics.Parameters("{}")           
         params.AddValue("model_part_name", self.settings["model_part_name"])

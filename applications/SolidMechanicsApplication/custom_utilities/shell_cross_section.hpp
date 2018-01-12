@@ -19,8 +19,8 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/constitutive_law.h"
-#include "properties_extensions.hpp"
 #include "containers/flags.h"
+#include "custom_utilities/properties_extensions.hpp"
 
 namespace Kratos
 {

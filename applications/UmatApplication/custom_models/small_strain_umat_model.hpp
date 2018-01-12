@@ -440,6 +440,7 @@ namespace Kratos
          virtual void save(Serializer& rSerializer) const override
          {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
+            rSerializer.save("InitializedModel", mInitializedModel );
             rSerializer.save("StressVectorFinalized", mStressVectorFinalized );
             rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized );
             rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized );
@@ -448,6 +449,7 @@ namespace Kratos
          virtual void load(Serializer& rSerializer) override
          {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
+            rSerializer.load("InitializedModel", mInitializedModel );
             rSerializer.load("StressVectorFinalized", mStressVectorFinalized );
             rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized );
             rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized );

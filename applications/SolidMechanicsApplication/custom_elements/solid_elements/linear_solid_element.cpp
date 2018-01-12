@@ -477,7 +477,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 	noalias(DN_DX) = prod( DN_De[PointNumber] , InvJ );
 	
 	//set shape functions for this integration point
-        Vector N=row( Ncontainer, PointNumber);
+        Vector N = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 
  	//b.-compute infinitessimal strain
@@ -1054,7 +1054,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 	  noalias(DN_DX) = prod( DN_De[PointNumber], InvJ );
 	
 	  //set shape functions for this integration point
-	  Vector N=row( Ncontainer, PointNumber);
+	  Vector N = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 
 	  //b.-compute infinitessimal strain
@@ -1192,7 +1192,7 @@ int LinearSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 	// Nodal data
 	Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
-	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
+	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 	
 	// Nodal dofs
 	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);

@@ -32,7 +32,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef Point                                             PointType;
+    typedef Point                                                PointType;
     typedef Node<3>                                               NodeType;
     typedef Geometry<NodeType>                                GeometryType;
     
@@ -489,7 +489,7 @@ private:
  * This data will be used to compute the derivatives.
  * This class includes different information that is used in order to compute the directional derivatives in the mortar contact conditions
  */
-template< unsigned int TDim, unsigned int TNumNodes>
+template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation>
 class DerivativeData
 {
 public:
@@ -497,14 +497,18 @@ public:
     ///@{
     
     // Auxiliar types
+    typedef bounded_matrix<int, 1, 1>                    type_0;
     typedef array_1d<double, TNumNodes>                  type_1;
-    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>      type_2;
-    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> type_3;
-    typedef boost::numeric::ublas::bounded_matrix<double, 3, 3>                 type_4;
+    typedef bounded_matrix<double, TNumNodes, TDim>      type_2;
+    typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
+    typedef typename std::conditional<TNumNodes == 2, type_0, bounded_matrix<double, 3, 3>>::type type_4;
     
     // Auxiliar sizes
+    static const unsigned int size_0 = 1;
     static const unsigned int size_1 =     (TNumNodes * TDim);
     static const unsigned int size_2 = 2 * (TNumNodes * TDim);
+    static const unsigned int size_3 = (TDim == 2) ? size_1 : size_2;
+    static const unsigned int size_4 = (TDim == 2) ? size_0 : size_2;
     
     ///@}
     ///@name Life Cycle
@@ -525,17 +529,17 @@ public:
     type_2 X1, X2, u1, u2;
     
     // Derivatives    
-    array_1d<double, size_1> DeltaDetjSlave;
-    array_1d<type_1, size_1> DeltaPhi;
+    array_1d<double, size_3> DeltaDetjSlave;
+    array_1d<type_1, size_3> DeltaPhi;
     array_1d<type_1, size_2> DeltaN1, DeltaN2;
     array_1d<type_2, size_1> DeltaNormalSlave, DeltaNormalMaster;
-    array_1d<type_4, size_2> DeltaCellVertex;
+    array_1d<type_4, size_4> DeltaCellVertex;
     
     // Ae
     type_3 Ae;
     
     // Derivatives Ae
-    array_1d<type_3, size_1> DeltaAe;
+    array_1d<type_3, size_3> DeltaAe;
     
     ///@}
     ///@name Operators
@@ -548,8 +552,8 @@ public:
     
     /**
      * Initializer method 
-     * @param SlaveGeometry: The geometry of the slave 
-     * @param rCurrentProcessInfo: The process info from the system
+     * @param SlaveGeometry The geometry of the slave 
+     * @param rCurrentProcessInfo The process info from the system
      */
     
     virtual void Initialize(
@@ -558,7 +562,7 @@ public:
         )
     {        
         // The normals of the nodes
-        NormalSlave = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL);
+        NormalSlave = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL, 0);
         
         // Displacements and velocities of the slave       
         u1 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1);
@@ -570,7 +574,14 @@ public:
             PenaltyParameter[i] = SlaveGeometry[i].GetValue(INITIAL_PENALTY);
         }
         ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
-        
+    }
+    
+    /**
+     * This method reset tos zero the derivatives
+     */
+    
+    virtual void ResetDerivatives()
+    {                
         // Derivatives 
         for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
         {
@@ -579,14 +590,15 @@ public:
             DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
             DeltaN2[i] = ZeroVector(TNumNodes);
             DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-            DeltaNormalSlave[i] = ZeroMatrix(TNumNodes, TDim);
         }
     
-        if (TDim == 3)
+        if (TDim == 3) // Derivative of the cell vertex
         {
-            for (unsigned int i = 0; i < 2 * TNumNodes * TDim; ++i)
+            for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
             {
+                DeltaPhi[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
                 DeltaCellVertex[i] = ZeroMatrix(3, 3);
+                DeltaCellVertex[i + TNumNodes * TDim] = ZeroMatrix(3, 3);
             }
         }
     }
@@ -601,7 +613,7 @@ public:
         Ae = ZeroMatrix(TNumNodes, TNumNodes);
         
         // Derivatives Ae
-        for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
+        for (unsigned int i = 0; i < size_3; ++i)
         {
             DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes);
         }
@@ -609,28 +621,19 @@ public:
 
     /**
      * Updating the Master pair
-     * @param  pCond: The pointer of the current master
+     * @param pCond The pointer of the current master
      */
     
     virtual void UpdateMasterPair(const Condition::Pointer& pCond)
     {
         const GeometryType& MasterGeometry =  pCond->GetGeometry();
         
-        NormalMaster = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL);
+        NormalMaster = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL, 0);
         
         // Displacements, coordinates and normals of the master
         u2 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 0)
            - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1);
         X2 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry, false, 1);
-
-        // Derivative of master's normal
-        if (TDim == 2)
-        {
-            for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
-            {
-                DeltaNormalMaster[i] = ZeroMatrix(TNumNodes, TDim);
-            }
-        }
     }
     
     ///@}
@@ -715,19 +718,19 @@ private:
 /** \brief DerivativeDataFrictional
  * This class is a derived class of DerivativeData. Includes additionally the derivatives necessary to compute the directional derivatives for the frictional conditions
  */
-template< unsigned int TDim, unsigned int TNumNodes>
-class DerivativeDataFrictional : public DerivativeData<TDim, TNumNodes>
+template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation>
+class DerivativeDataFrictional : public DerivativeData<TDim, TNumNodes, TNormalVariation>
 {
 public:
     ///@name Type Definitions
     ///@{
     
     // Auxiliar types
-    typedef DerivativeData<TDim, TNumNodes>       BaseClassType;
-    typedef array_1d<double, TNumNodes>                  type_1;
-    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>      type_2;
-    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> type_3;
-    typedef boost::numeric::ublas::bounded_matrix<double, 3, 3>                 type_4;
+    typedef DerivativeData<TDim, TNumNodes, TNormalVariation> BaseClassType;
+    typedef array_1d<double, TNumNodes>                              type_1;
+    typedef bounded_matrix<double, TNumNodes, TDim>                  type_2;
+    typedef bounded_matrix<double, TNumNodes, TNumNodes>             type_3;
+    typedef bounded_matrix<double, 3, 3>                             type_4;
     
     // Auxiliar sizes
     static const unsigned int size_1 =     (TNumNodes * TDim);
@@ -758,8 +761,8 @@ public:
     
     /**
      * Initializer method 
-     * @param SlaveGeometry: The geometry of the slave 
-     * @param rCurrentProcessInfo: The process info from the system
+     * @param SlaveGeometry The geometry of the slave 
+     * @param rCurrentProcessInfo The process info from the system
      */
     
     void Initialize(
@@ -776,7 +779,7 @@ public:
     
     /**
      * Updating the Master pair
-     * @param  pCond: The pointer of the current master
+     * @param pCond The pointer of the current master
      */
     
     void UpdateMasterPair(const Condition::Pointer& pCond) override
@@ -919,16 +922,16 @@ public:
     
     /**
      * It calculates the mortar operators. Popp thesis page 56, equation 3.31 and 3.32
-     * @param rKinematicVariables: Corresponds with the kinematic variables
-     * @param rIntegrationWeight: The corresponding integration weight
+     * @param rKinematicVariables Corresponds with the kinematic variables
+     * @param rIntegrationWeight The corresponding integration weight
      */
     void CalculateMortarOperators(
         KinematicVariables& rKinematicVariables,
-        const double& rIntegrationWeight
+        const double rIntegrationWeight
         )
     {
         /* DEFINITIONS */
-        const double& det_j_slave = rKinematicVariables.DetjSlave; 
+        const double det_j_slave = rKinematicVariables.DetjSlave; 
         const Vector& phi_vector  = rKinematicVariables.PhiLagrangeMultipliers;
         const Vector& n1_vector   = rKinematicVariables.NSlave;
         const Vector& n2_vector   = rKinematicVariables.NMaster;
@@ -937,7 +940,7 @@ public:
         {
             for (unsigned int j_slave = 0; j_slave < TNumNodes; ++j_slave)
             {
-                const double& phi = phi_vector[i_slave];
+                const double phi = phi_vector[i_slave];
                 
                 DOperator(i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * n1_vector[j_slave];
                 MOperator(i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * n2_vector[j_slave];
@@ -953,10 +956,10 @@ public:
     {
         // We calculate the inverse of D operator
         double auxdet;
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>& inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
+        const bounded_matrix<double, TNumNodes, TNumNodes>& inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
         
         // We calculate the P operator
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> POperator = prod(inv_D_operator, MOperator);
+        const bounded_matrix<double, TNumNodes, TNumNodes> POperator = prod(inv_D_operator, MOperator);
         
         return POperator;
     }
@@ -1054,20 +1057,20 @@ private:
  * The derived operators are defined in each DoF of each domain, which means TNumNodes x TDim x 2 derivatives definitions in order to compute all the necessary derivatives
  * Popp thesis page 102 and following 
  */
-template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional>
+template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
 class MortarOperatorWithDerivatives : public MortarOperator<TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
         
-    typedef MortarOperator<TNumNodes>                                BaseClassType;
+    typedef MortarOperator<TNumNodes>                                                  BaseClassType;
     
-    typedef MortarKinematicVariables<TNumNodes>                 KinematicVariables;
+    typedef MortarKinematicVariables<TNumNodes>                                   KinematicVariables;
     
-    typedef DerivativeDataFrictional<TDim, TNumNodes> DerivativeDataFrictionalType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation> DerivativeDataFrictionalType;
     
-    typedef DerivativeData<TDim, TNumNodes>         DerivativeFrictionalessDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNormalVariation>        DerivativeFrictionalessDataType;
     
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
     
@@ -1085,7 +1088,7 @@ public:
     static const unsigned int size_2 = 2 * (TNumNodes * TDim);
     
     // D and M directional derivatives
-    array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>, size_2> DeltaDOperator, DeltaMOperator;
+    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_2> DeltaDOperator, DeltaMOperator;
 
     ///@}
     ///@name Operators
@@ -1116,17 +1119,17 @@ public:
     /**
      * It calculates the mortar operators
      * Popp thesis page 102 equation equation 4.32 and 4.33 / 4.37 and 4.38
-     * @param rKinematicVariables: Corresponds with the kinematic variables
-     * @param rIntegrationWeight: The corresponding integration weight
+     * @param rKinematicVariables Corresponds with the kinematic variables
+     * @param rIntegrationWeight The corresponding integration weight
      */
     void CalculateDeltaMortarOperators(
         KinematicVariables& rKinematicVariables,
         DerivativeDataType& rDerivativeData,
-        const double& rIntegrationWeight
+        const double rIntegrationWeight
         )
     {
         /* DEFINITIONS */
-        const double& det_j_slave = rKinematicVariables.DetjSlave; 
+        const double det_j_slave = rKinematicVariables.DetjSlave; 
         const Vector& vector_phi = rKinematicVariables.PhiLagrangeMultipliers;
         const Vector& vector_n1  = rKinematicVariables.NSlave;
         const Vector& vector_n2  = rKinematicVariables.NMaster;
@@ -1134,39 +1137,51 @@ public:
         // Derivatives
         constexpr unsigned int size_1 =     (TNumNodes * TDim);
         constexpr unsigned int size_2 = 2 * (TNumNodes * TDim);
+        constexpr unsigned int size_3 = (TDim == 2) ? size_1 : size_2;
 
-        const array_1d<double, size_1>& delta_j_slave  = rDerivativeData.DeltaDetjSlave;
-        const array_1d<array_1d<double, TNumNodes >, size_1>& delta_phi = rDerivativeData.DeltaPhi;
+        const array_1d<double, size_3>& delta_det_j_slave = rDerivativeData.DeltaDetjSlave;
+        const array_1d<array_1d<double, TNumNodes >, size_3>& delta_phi = rDerivativeData.DeltaPhi;
         const array_1d<array_1d<double, TNumNodes >, size_2>& delta_n1  = rDerivativeData.DeltaN1;
         const array_1d<array_1d<double, TNumNodes >, size_2>& delta_n2  = rDerivativeData.DeltaN2;
         
-        for (unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave)
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
-            const double& phi = vector_phi[i_slave];
+            const double phi = vector_phi[i_node];
             
-            for (unsigned int j_slave = 0; j_slave < TNumNodes; ++j_slave)
+            for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node)
             {
-                const double& n1 = vector_n1[j_slave];
-                const double& n2 = vector_n2[j_slave];
+                const double n1 = vector_n1[j_node];
+                const double n2 = vector_n2[j_node];
                 
-                BaseClassType::DOperator(i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * n1;
-                BaseClassType::MOperator(i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * n2;
+                BaseClassType::DOperator(i_node, j_node) += det_j_slave * rIntegrationWeight * phi * n1;
+                BaseClassType::MOperator(i_node, j_node) += det_j_slave * rIntegrationWeight * phi * n2;
                 
                 for (unsigned int i = 0; i < TDim * TNumNodes; ++i)
                 {
-                    DeltaDOperator[i](i_slave, j_slave) += delta_j_slave[i] * rIntegrationWeight * phi* n1        
-                                                    + det_j_slave * rIntegrationWeight * delta_phi[i][i_slave] * n1
-                                                    + det_j_slave * rIntegrationWeight * phi* delta_n1[i][j_slave];
+                    DeltaDOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi* n1        
+                                                       + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n1
+                                                       + det_j_slave * rIntegrationWeight * phi* delta_n1[i][j_node];
                                                                                 
-                    DeltaMOperator[i](i_slave, j_slave) += delta_j_slave[i] * rIntegrationWeight * phi* n2        
-                                                    + det_j_slave * rIntegrationWeight * delta_phi[i][i_slave] * n2
-                                                    + det_j_slave * rIntegrationWeight * phi* delta_n2[i][j_slave];
+                    DeltaMOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi* n2        
+                                                       + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n2
+                                                       + det_j_slave * rIntegrationWeight * phi* delta_n2[i][j_node];
                 }
                 for (unsigned int i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; ++i)
                 {
-                    DeltaDOperator[i](i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * delta_n1[i][j_slave];
+                    DeltaDOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n1[i][j_node];
                                                                                 
-                    DeltaMOperator[i](i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * delta_n2[i][j_slave];
+                    DeltaMOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n2[i][j_node];
+                }
+                if (TDim == 3)
+                {
+                    for (unsigned int i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; ++i)
+                    {
+                        DeltaDOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi * n1;
+                        DeltaDOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n1;
+                                                                                    
+                        DeltaMOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi * n2;
+                        DeltaMOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n2;
+                    }
                 }
             }
         }
@@ -1315,17 +1330,17 @@ public:
     
     /**
      * Calculates the Ae components necessary to compute the Phi_LagrangeMultipliers shape functions. For that it integrates De and Me. Popp thesis page 70 eq. 3.65
-     * @param rKinematicVariables: The kinematic variables
-     * @param rIntegrationWeight: The integration weight considered
+     * @param rKinematicVariables The kinematic variables
+     * @param rIntegrationWeight The integration weight considered
      */
     void CalculateAeComponents(
         KinematicVariables& rKinematicVariables,
-        const double& rIntegrationWeight
+        const double rIntegrationWeight
         )
     {
         /* DEFINITIONS */
         const Vector& n1 = rKinematicVariables.NSlave;
-        const double& det_j = rKinematicVariables.DetjSlave; 
+        const double det_j = rKinematicVariables.DetjSlave; 
         
         De += rIntegrationWeight * (ComputeDe(n1, det_j));
         Me += rIntegrationWeight * det_j * outer_prod(n1, n1);
@@ -1340,16 +1355,16 @@ public:
         const double tolerance = std::numeric_limits<double>::epsilon(); 
         
         // We compute the norm
-        const double& norm_me = norm_frobenius(Me);
+        const double norm_me = norm_frobenius(Me);
         
         // Now we normalize the matrix
         const bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = Me/norm_me;
         
         // We compute the normalized inverse 
-        double aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_Me); 
+        double aux_det = MathUtils<double>::DetMat<bounded_matrix<double, TNumNodes, TNumNodes>>(normalized_Me); 
         if (std::abs(aux_det) >= tolerance) 
         { 
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);  
+            const bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);  
              
             return (1.0/norm_me) * prod(De, normalized_inv_Me); 
         } 
@@ -1366,13 +1381,13 @@ public:
     
     /**
      * Calculates the matrix De
-     * @param N1: The shape function 
-     * @param detJ: The jacobian of the geometry 
+     * @param N1 The shape function 
+     * @param detJ The jacobian of the geometry 
      */
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
+    bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
         const Vector& N1, 
-        const double& detJ 
-        )
+        const double detJ 
+        ) const 
     {
         bounded_matrix<double, TNumNodes, TNumNodes> De;
     
@@ -1380,14 +1395,8 @@ public:
         {
             for (unsigned int j = 0; j < TNumNodes; ++j)
             {
-                if (i == j)
-                {
-                    De(i,i) = detJ * N1[i];
-                }
-                else
-                {
-                    De(i,j) = 0.0;
-                }
+                if (i == j) De(i,i) = detJ * N1[i];
+                else De(i,j) = 0.0;
             }
         }
         
@@ -1487,20 +1496,20 @@ private:
  * Popp thesis page 111 and following
  */
 
-template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional>
+template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
 class DualLagrangeMultiplierOperatorsWithDerivatives : public DualLagrangeMultiplierOperators<TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
         
-    typedef DualLagrangeMultiplierOperators<TNumNodes>                        BaseClassType;  
+    typedef DualLagrangeMultiplierOperators<TNumNodes>                                 BaseClassType;  
     
-    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes> KinematicVariablesType;
+    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes>          KinematicVariablesType;
     
-    typedef DerivativeDataFrictional<TDim, TNumNodes>          DerivativeDataFrictionalType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation> DerivativeDataFrictionalType;
     
-    typedef DerivativeData<TDim, TNumNodes>                 DerivativeFrictionalessDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNormalVariation>        DerivativeFrictionalessDataType;
     
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
     
@@ -1516,11 +1525,13 @@ public:
     ~DualLagrangeMultiplierOperatorsWithDerivatives() override{}
     
     // Auxiliar sizes
-    static const unsigned int size_1 = (TNumNodes * TDim);
+    static const unsigned int size_1 =     (TNumNodes * TDim);
+    static const unsigned int size_2 = 2 * (TNumNodes * TDim);
+    static const unsigned int size_3 = (TDim == 2) ? size_1 : size_2;
     
     // Derivatives matrices
-    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_1> DeltaMe;
-    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_1> DeltaDe;
+    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_3> DeltaMe;
+    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_3> DeltaDe;
         
     ///@}
     ///@name Operators
@@ -1539,7 +1550,7 @@ public:
         BaseClassType::Initialize();
         
         // Derivatives matrices
-        for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
+        for (unsigned int i = 0; i < size_3; ++i)
         {
             DeltaMe[i] = ZeroMatrix(TNumNodes, TNumNodes);
             DeltaDe[i] = ZeroMatrix(TNumNodes, TNumNodes);
@@ -1548,26 +1559,31 @@ public:
     
     /**
      * Calculates the Ae components and its derivatives necessary to compute the Phi_LagrangeMultipliers shape functions. Popp thesis page 112 eq. 4.59
-     * @param rKinematicVariables: The kinematic variables
-     * @param rIntegrationWeight: The integration weight considered
+     * @param rKinematicVariables The kinematic variables
+     * @param rIntegrationWeight The integration weight considered
      */
     void CalculateDeltaAeComponents(
         KinematicVariablesType& rKinematicVariables,
         DerivativeDataType& rDerivativeData,
-        const double& rIntegrationWeight
+        const double rIntegrationWeight
         )
     {
         /* DEFINITIONS */
-        const Vector n1 = rKinematicVariables.NSlave;
+        const double det_j_slave = rKinematicVariables.DetjSlave;
+        const Vector& n1 = rKinematicVariables.NSlave;
         
         BaseClassType::CalculateAeComponents(rKinematicVariables, rIntegrationWeight);
         
-        for (unsigned int i = 0; i < TDim * TNumNodes; ++i)
+        for (unsigned int i = 0; i < size_3; ++i)
         {
-            const double& delta_det_j = rDerivativeData.DeltaDetjSlave[i];
+            const double delta_det_j = rDerivativeData.DeltaDetjSlave[i];
+            const Vector& delta_n1 = rDerivativeData.DeltaN1[i];
             
-            DeltaDe[i] += rIntegrationWeight * this->ComputeDe( n1, delta_det_j );
-            DeltaMe[i] += rIntegrationWeight * delta_det_j * outer_prod(n1, n1);
+            DeltaDe[i] += rIntegrationWeight * this->ComputeDe( n1, delta_det_j )
+                       +  rIntegrationWeight * this->ComputeDe( delta_n1, det_j_slave );
+            
+            DeltaMe[i] += rIntegrationWeight * delta_det_j * outer_prod(n1, n1)
+                       +  rIntegrationWeight * det_j_slave * (outer_prod(delta_n1, n1) + outer_prod(n1, delta_n1));
         }
     }
  
@@ -1580,31 +1596,27 @@ public:
         const double tolerance = std::numeric_limits<double>::epsilon();
         
         // We compute the norm
-        const double& norm_Me = norm_frobenius(BaseClassType::Me);
+        const double norm_Me = norm_frobenius(BaseClassType::Me);
         
         // Now we normalize the matrix
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = BaseClassType::Me/norm_Me;
+        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = BaseClassType::Me/norm_Me;
         
         // We compute the normalized inverse
-        aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_Me);
-        if (std::abs(aux_det) < tolerance)
-        {
-            return false;
-        }
+        aux_det = MathUtils<double>::DetMat<bounded_matrix<double, TNumNodes, TNumNodes>>(normalized_Me);
+        if (std::abs(aux_det) < tolerance) return false;
         
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance); 
+        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance); 
         
         // Now we compute the inverse
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> inv_Me = normalized_inv_Me/norm_Me;
+        const bounded_matrix<double, TNumNodes, TNumNodes> inv_Me = normalized_inv_Me/norm_Me;
         
         noalias(rDerivativeData.Ae) = prod(BaseClassType::De, inv_Me);
         
-        static const unsigned int size_1 = (TNumNodes * TDim);
-        array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> , size_1>& delta_Ae = rDerivativeData.DeltaAe;
+        array_1d<bounded_matrix<double, TNumNodes, TNumNodes> , size_3>& delta_Ae = rDerivativeData.DeltaAe;
         
-        for (unsigned int i = 0; i < TDim * TNumNodes; ++i)
-        {
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> aux_matrix = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
+        for (unsigned int i = 0; i < size_3; ++i)
+        {            
+            const bounded_matrix<double, TNumNodes, TNumNodes> aux_matrix = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
             noalias(delta_Ae[i]) = prod(aux_matrix, inv_Me);
         }
         
@@ -1619,7 +1631,7 @@ public:
         BaseClassType::PrintInfo(rOStream);
         
         // Derivatives matrices
-        for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
+        for (unsigned int i = 0; i < size_3; ++i)
         {
             rOStream << "DeltaMe_" << i << ": " << DeltaMe[i] << std::endl;
             rOStream << "DeltaDe_" << i << ": " << DeltaDe[i] << std::endl;
