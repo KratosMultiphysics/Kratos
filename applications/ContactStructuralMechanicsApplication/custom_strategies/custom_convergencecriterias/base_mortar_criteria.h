@@ -54,7 +54,7 @@ namespace Kratos
  */
 template<class TSparseSpace, class TDenseSpace>
 class BaseMortarConvergenceCriteria 
-    : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
+    : public  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
