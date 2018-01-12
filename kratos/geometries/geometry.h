@@ -888,7 +888,12 @@ public:
             const CoordinatesArrayType& rPoint
             )
     {
-        Matrix J = ZeroMatrix( LocalSpaceDimension(), LocalSpaceDimension() );
+        #ifdef KRATOS_DEBUG
+           if(WorkingSpaceDimension() != LocalSpaceDimension())
+                KRATOS_ERROR << "attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
+        #endif
+        
+        Matrix J = ZeroMatrix( WorkingSpaceDimension(), LocalSpaceDimension() );
 
         rResult.clear();
 
@@ -901,29 +906,38 @@ public:
 
         unsigned int maxiter = 1000;
 
-        for ( unsigned int k = 0; k < maxiter; k++ )
-        {
-            CurrentGlobalCoords = ZeroVector( 3 );
-            GlobalCoordinates( CurrentGlobalCoords, rResult );
-            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
-            InverseOfJacobian( J, rResult );
-            noalias( DeltaXi ) = prod( J, CurrentGlobalCoords );
-            noalias( rResult ) += DeltaXi;
+        if(LocalSpaceDimension() == 2) {
+            for ( unsigned int k = 0; k < maxiter; k++ ) {
+                CurrentGlobalCoords = ZeroVector( 3 );
+                GlobalCoordinates( CurrentGlobalCoords, rResult );
+                noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
+                InverseOfJacobian( J, rResult );
+                DeltaXi[0] = J(0,0) * CurrentGlobalCoords(0) + J(0,1) * CurrentGlobalCoords(1);
+                DeltaXi[1] = J(1,0) * CurrentGlobalCoords(0) + J(1,1) * CurrentGlobalCoords(1);
+                noalias( rResult ) += DeltaXi;
 
-//            if ( MathUtils<double>::Norm3( DeltaXi ) > 30 )
-            if ( norm_2( DeltaXi ) > 30 )
-            {
-                break;
-            }
-
-//            if ( MathUtils<double>::Norm3( DeltaXi ) < tol )
-            if ( norm_2( DeltaXi ) < tol )
-            {
-                break;
+                if ( norm_2( DeltaXi ) > 30 || norm_2( DeltaXi ) < tol ) {
+                    break;
+                }
             }
         }
 
-        return( rResult );
+        if(LocalSpaceDimension() == 3) {
+            for ( unsigned int k = 0; k < maxiter; k++ ) {
+                CurrentGlobalCoords = ZeroVector( 3 );
+                GlobalCoordinates( CurrentGlobalCoords, rResult );
+                noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
+                InverseOfJacobian( J, rResult );
+                noalias( DeltaXi ) = prod( J, CurrentGlobalCoords );
+                noalias( rResult ) += DeltaXi;
+
+                if ( norm_2( DeltaXi ) > 30 || norm_2( DeltaXi ) < tol ) {
+                    break;
+                }
+            }
+        }
+
+        return rResult;
     }
 
     /**
@@ -2205,8 +2219,8 @@ public:
 
       rOStream << std::endl;
       rOStream << std::endl;
-      rOStream << "\tLength\t : " << Length() << std::endl;
-      rOStream << "\tArea\t : " << Area() << std::endl;
+      // rOStream << "\tLength\t : " << Length() << std::endl;
+      // rOStream << "\tArea\t : " << Area() << std::endl;
 
       // Charlie: Volume is not defined by every geometry (2D geometries),
       // which can cause this call to generate a KRATOS_ERROR while trying
