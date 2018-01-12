@@ -5,9 +5,9 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Jordi Cotela
 //
 
 
@@ -28,6 +28,16 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 
+// application includes
+#include "custom_elements/dss.h"
+#include "custom_elements/dss_fic.h"
+#include "custom_elements/dss_fic_limited.h"
+#include "custom_elements/dss_gls.h"
+#include "custom_elements/dynss.h"
+#include "custom_elements/dss_notau2.h"
+#include "custom_elements/dynss_notau2.h"
+#include "custom_elements/dss_ps.h"
+#include "custom_conditions/dss_face.h"
 
 namespace Kratos {
 
@@ -175,14 +185,62 @@ private:
 	///@name Static Member Variables
 	///@{
 
-	// static const ApplicationCondition  msApplicationCondition;
-
 	///@}
 	///@name Member Variables
 	///@{
 
-	// const Elem2D   mElem2D;
-	// const Elem3D   mElem3D;
+    /// Developement version of dynamic subscale elements
+    const DSS<2> mDSS2D;
+    const DSS<3> mDSS3D;
+    const DSS<2> mDSS2D4N;
+    const DSS<3> mDSS3D8N;
+
+	// Base FIC implementation
+    const DSS_FIC<2> mDSS2D_FIC;
+    const DSS_FIC<3> mDSS3D_FIC;
+    const DSS_FIC<2> mDSS2D4N_FIC;
+    const DSS_FIC<3> mDSS3D8N_FIC;
+
+	// FIC with dynamic limiter
+    const DSS_FIC_LIMITED<2> mDSS2D_FIC_LIMITED;
+    const DSS_FIC_LIMITED<3> mDSS3D_FIC_LIMITED;
+    const DSS_FIC_LIMITED<2> mDSS2D4N_FIC_LIMITED;
+    const DSS_FIC_LIMITED<3> mDSS3D8N_FIC_LIMITED;
+
+	// Basic GLS
+    const DSS_GLS<2> mDSS2D_GLS;
+    const DSS_GLS<3> mDSS3D_GLS;
+    const DSS_GLS<2> mDSS2D4N_GLS;
+    const DSS_GLS<3> mDSS3D8N_GLS;
+
+	// Dynamic subscales
+    const DynSS<2> mDynSS2D;
+    const DynSS<3> mDynSS3D;
+    const DynSS<2> mDynSS2D4N;
+    const DynSS<3> mDynSS3D8N;
+
+	// Quasistatic subscales without pressure subscale term
+    const DSS_notau2<2> mDSS2D_notau2;
+    const DSS_notau2<3> mDSS3D_notau2;
+    const DSS_notau2<2> mDSS2D4N_notau2;
+    const DSS_notau2<3> mDSS3D8N_notau2;
+
+	// Dynamic subscales without pressure subscale term
+    const DYNSS_NOTAU2<2> mDYNSS2D_NOTAU2;
+    const DYNSS_NOTAU2<3> mDYNSS3D_NOTAU2;
+    const DYNSS_NOTAU2<2> mDYNSS2D4N_NOTAU2;
+    const DYNSS_NOTAU2<3> mDYNSS3D8N_NOTAU2;
+
+	// Proposed pressure subscale model
+    const DSS_PS<2> mDSS2D_PS;
+    const DSS_PS<3> mDSS3D_PS;
+    const DSS_PS<2> mDSS2D4N_PS;
+    const DSS_PS<3> mDSS3D8N_PS;
+
+	// Boundary condition for elements with skew-symmetric convective term
+    const DSSFace<2,2> mDSSFace2D;
+    const DSSFace<3,3> mDSSFace3D;
+    const DSSFace<3,4> mDSSFace3D4N;
 
 	///@}
 	///@name Private Operators

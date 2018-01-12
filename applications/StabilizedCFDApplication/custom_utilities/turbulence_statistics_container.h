@@ -21,7 +21,7 @@
 namespace Kratos
 {
 
-///@addtogroup FluidDynamicsApplication
+///@addtogroup StabilizedCFDApplication
 ///@{
 
 ///@name Kratos Globals
