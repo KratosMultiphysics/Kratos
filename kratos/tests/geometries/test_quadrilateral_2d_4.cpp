@@ -128,5 +128,16 @@ namespace Testing
         KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
     }
 
+    /** Tests the PointLocalCoordinates for Quadrilateral2D4.
+     * Tests the PointLocalCoordinates for Quadrilateral2D4.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+        Point TestPoint(1.0, 1.0, 0.0);
+        Point TestResult(0.0, 0.0, 0.0); 
+        geom->PointLocalCoordinates(TestResult, TestPoint);
+        std::cout << TestResult[0] << " " << TestResult[1] << " " << TestResult[2] << std::endl;
+    }
+
 } // namespace Testing
 } // namespace Kratos

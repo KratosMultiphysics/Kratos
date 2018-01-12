@@ -64,6 +64,21 @@ namespace Testing
         ));
     }
 
+    /** Generates a sample Quadrilateral3D4.
+    * Generates a right quadrilateral with origin in the origin and leg size 1.
+    * @return  Pointer to a Quadrilateral3D4
+    */
+    template<class TPointType>
+    typename Quadrilateral3D4<TPointType>::Pointer GenerateFlatQuadrilateral3D4() 
+    {
+        return typename Quadrilateral3D4<TPointType>::Pointer(new Quadrilateral3D4<TPointType>(
+        GeneratePoint<TPointType>( 0.0, 0.0, 0.0),
+        GeneratePoint<TPointType>( 1.0, 0.0, 0.0),
+        GeneratePoint<TPointType>( 1.1, 1.1, 0.0),
+        GeneratePoint<TPointType>( 0.0, 1.1, 0.0)
+        ));
+    }
+
     /// Tests
 
     /** Checks if the number of edges is correct.
@@ -96,6 +111,17 @@ namespace Testing
         
         KRATOS_CHECK_NEAR(geom->Area(), 1.06947235, TOLERANCE);
 //         KRATOS_CHECK_NEAR(geom->Area(), 1.08935, TOLERANCE); // NOTE: Solution from Mathematica
+    }
+
+    /** Tests the PointLocalCoordinates for Quadrilateral2D4.
+     * Tests the PointLocalCoordinates for Quadrilateral2D4.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateFlatQuadrilateral3D4<Node<3>>();
+        Point TestPoint(1.0, 1.0, 0.0);
+        Point TestResult(0.0, 0.0, 0.0); 
+        geom->PointLocalCoordinates(TestResult, TestPoint);
+        std::cout << TestResult[0] << " " << TestResult[1] << " " << TestResult[2] << std::endl;
     }
 
 //     /** Checks if the volume of the quadrilateral is calculated correctly.
