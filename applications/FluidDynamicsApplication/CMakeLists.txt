@@ -45,6 +45,8 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/boussinesq_force_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_modification_process.cpp
 
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/drag_utilities.cpp
+
 )
 
 ## fluid dynamics testing sources

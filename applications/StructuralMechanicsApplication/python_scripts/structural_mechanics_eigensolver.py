@@ -34,10 +34,14 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         # Validate the remaining settings in the base class.
         structural_settings = custom_settings.Clone()
         structural_settings.RemoveValue("eigensolver_settings")
-
-        if not structural_settings.Has("scheme_type"): # Override defaults in the base class.
-            structural_settings.AddEmptyValue("scheme_type")
-            structural_settings["scheme_type"].SetString("dynamic")
+        
+        self.structural_eigensolver_settings = KratosMultiphysics.Parameters("""
+        {
+            "scheme_type"   : "dynamic"
+        }
+        """)
+        self.validate_and_transfer_matching_settings(structural_settings, self.structural_eigensolver_settings)
+        # Validate the remaining settings in the base class.
         
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, structural_settings)
@@ -51,7 +55,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         The scheme determines the left- and right-hand side matrices in the
         generalized eigenvalue problem. 
         """
-        scheme_type = self.settings["scheme_type"].GetString()
+        scheme_type = self.structural_eigensolver_settings["scheme_type"].GetString()
         if scheme_type == "dynamic":
             solution_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         else: # here e.g. a stability scheme could be added
