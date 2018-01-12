@@ -43,7 +43,13 @@ namespace Kratos {
     RigidBodyElement3D::~RigidBodyElement3D() {
     
 //         mListOfCoordinates.clear();  
-//         if (mpIntegrationScheme != NULL) delete mpIntegrationScheme;
+        if (mpTranslationalIntegrationScheme!=NULL) {
+            delete mpTranslationalIntegrationScheme;
+        }
+        
+        if (mpRotationalIntegrationScheme!=NULL) {
+            delete mpRotationalIntegrationScheme;
+        }
         // Destroy triangles?
     }
       
