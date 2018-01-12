@@ -60,8 +60,8 @@ namespace Testing
       return typename Quadrilateral2D4<TPointType>::Pointer(new Quadrilateral2D4<TPointType>(
         GeneratePoint<TPointType>( 0.0, 0.0, 0.0),
         GeneratePoint<TPointType>( 1.0, 0.0, 0.0),
-        GeneratePoint<TPointType>( 1.1, 1.1, 0.0),
-        GeneratePoint<TPointType>( 0.0, 1.1, 0.0)
+        GeneratePoint<TPointType>( 1.0, 1.0, 0.0),
+        GeneratePoint<TPointType>( 0.0, 1.0, 0.0)
       ));
     }
 
@@ -133,10 +133,22 @@ namespace Testing
      */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
-        Point TestPoint(1.0, 1.0, 0.0);
-        Point TestResult(0.0, 0.0, 0.0); 
-        geom->PointLocalCoordinates(TestResult, TestPoint);
-        std::cout << TestResult[0] << " " << TestResult[1] << " " << TestResult[2] << std::endl;
+
+        Point TestPointA(1.0, 1.0, 0.0);
+        Point TestPointB(0.5, 0.5, 0.0);
+        Point TestResultA(0.0, 0.0, 0.0);
+        Point TestResultB(0.0, 0.0, 0.0);
+
+        geom->PointLocalCoordinates(TestResultA, TestPointA);
+        geom->PointLocalCoordinates(TestResultB, TestPointB);
+
+        KRATOS_CHECK_EQUAL(1.0, TestResultA[0]);
+        KRATOS_CHECK_EQUAL(1.0, TestResultA[1]);
+        KRATOS_CHECK_EQUAL(0.0, TestResultA[2]);
+
+        KRATOS_CHECK_EQUAL(0.0, TestResultB[0]);
+        KRATOS_CHECK_EQUAL(0.0, TestResultB[1]);
+        KRATOS_CHECK_EQUAL(0.0, TestResultB[2]);
     }
 
 } // namespace Testing
