@@ -28,8 +28,7 @@ class Solution(object):
         self.t0w = timer.time()
                 
         # Import input
-        parameter_file = open(file_parameters,'r')
-        self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
+        self.ProjectParameters = self._import_project_parameters(file_parameters)
 
         # Set input file name
         self._set_input_file_name(file_name)
@@ -241,7 +240,13 @@ class Solution(object):
         if( self.process_info.Has(KratosSolid.EIGENVALUE_VECTOR) ):
             current_vals = [ev for ev in self.main_model_part.ProcessInfo[KratosSolid.EIGENVALUE_VECTOR]]
             print(" EIGENVALUES ", current_vals)
-    
+
+    def _import_project_parameters(self, input_file):
+        import input_manager
+        self.input_manager = input_manager.InputManager(input_file)
+        return self.input_manager.GetProjectParameters()
+
+            
     def _set_input_file_name(self, file_name):
         if( file_name is not None ):
             if( self.ProjectParameters.Has("problem_data") == False):
@@ -284,10 +289,11 @@ class Solution(object):
         # Assign material to model_parts (if Materials.json exists)
         import process_factory
 
-        if os.path.isfile("Materials.json"):
-            materials_file = open("Materials.json",'r')
-            MaterialParameters = KratosMultiphysics.Parameters(materials_file.read())
-    
+        if( os.path.isfile("Materials.json") or self.input_manager.HasMaterialFile() ):
+
+            MaterialParameters = self.input_manager.GetMaterialParameters()
+
+            
             if(MaterialParameters.Has("material_models_list")):
 
                 import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterials
