@@ -1014,7 +1014,13 @@ void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double
     
     double impact_wear = WallImpactSeverityOfWear * InverseOfWallBrinellHardness * GetDensity() * mRadius * std::abs(local_rel_vel[2]);
     if (sliding) volume_wear = WallSeverityOfWear * InverseOfWallBrinellHardness * std::abs(LocalElasticContactForce) * sqrt(Sliding_0 * Sliding_0 + Sliding_1 * Sliding_1);
-
+    
+    double element_area = wall->GetGeometry().Area();
+    
+    if (element_area) {
+        impact_wear /= element_area;
+        volume_wear /= element_area;
+    }
     //COMPUTING THE PROJECTED POINT
 
     array_1d<double, 3> normal_to_wall;
@@ -1029,34 +1035,24 @@ void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double
 
     array_1d<double, 3> inner_point = node_coor_array + normal_to_wall;
 
-    double nodal_area_0 = wall->GetGeometry()[0].FastGetSolutionStepValue(DEM_NODAL_AREA);
-    double nodal_area_1 = wall->GetGeometry()[1].FastGetSolutionStepValue(DEM_NODAL_AREA);
-    double nodal_area_2 = wall->GetGeometry()[2].FastGetSolutionStepValue(DEM_NODAL_AREA);
-    
     array_1d<double, 3> point_local_coordinates;
     Vector shape_functions_coefs(3);
     wall->GetGeometry().PointLocalCoordinates(point_local_coordinates, inner_point);
     wall->GetGeometry().ShapeFunctionsValues(shape_functions_coefs, point_local_coordinates);
        
     wall->GetGeometry()[0].SetLock();
-    if (nodal_area_0) {
-        wall->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[0] * volume_wear / nodal_area_0;
-        wall->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[0] * impact_wear / nodal_area_0;
-    }
+    wall->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[0] * volume_wear;
+    wall->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[0] * impact_wear;
     wall->GetGeometry()[0].UnSetLock();
 
     wall->GetGeometry()[1].SetLock();
-    if (nodal_area_1) {
-        wall->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[1] * volume_wear / nodal_area_1;
-        wall->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[1] * impact_wear / nodal_area_1;
-    }
+    wall->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[1] * volume_wear;
+    wall->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[1] * impact_wear;
     wall->GetGeometry()[1].UnSetLock();
 
     wall->GetGeometry()[2].SetLock();
-    if (nodal_area_2) {
-        wall->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[2] * volume_wear / nodal_area_2;
-        wall->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[2] * impact_wear / nodal_area_2;
-    }
+    wall->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[2] * volume_wear;
+    wall->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[2] * impact_wear;
     wall->GetGeometry()[2].UnSetLock();
 
 } //ComputeWear
