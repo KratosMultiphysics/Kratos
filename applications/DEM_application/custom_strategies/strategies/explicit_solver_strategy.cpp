@@ -855,9 +855,8 @@ namespace Kratos {
         }
 
         RBE->Initialize(r_process_info, submp);
-        //submp.AddElement(RBE_Kratos); 
+//         submp.AddElement(RBE_Kratos);
 //         rigid_body_model_part.AddSubModelPart(submp); // JIG: Should be uncommented
-
         KRATOS_CATCH("")
     }
 

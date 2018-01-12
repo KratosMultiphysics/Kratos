@@ -67,20 +67,20 @@ namespace Kratos {
         mInertias[0] = rigid_body_element_sub_model_part[RIGID_BODY_INERTIAS][0];
         mInertias[1] = rigid_body_element_sub_model_part[RIGID_BODY_INERTIAS][1];
         mInertias[2] = rigid_body_element_sub_model_part[RIGID_BODY_INERTIAS][2];
-        mMass = rigid_body_element_sub_model_part[RIGID_BODY_MASS]; 
-        
+        mMass = rigid_body_element_sub_model_part[RIGID_BODY_MASS];
+
         GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION) = Quaternion<double>(1.0, 0.0, 0.0, 0.0);
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = mMass;    
+        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = mMass;
         GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][0];
         GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][1];
         GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][2];
         GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][0];
         GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][1];
         GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][2];
-                        
+
         DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
         DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
-        SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
+//         SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
     }   
     
     void RigidBodyElement3D::SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme){
