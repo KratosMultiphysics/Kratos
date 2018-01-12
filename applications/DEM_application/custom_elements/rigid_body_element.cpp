@@ -42,7 +42,7 @@ namespace Kratos {
     // Destructor
     RigidBodyElement3D::~RigidBodyElement3D() {
     
-//         mListOfCoordinates.clear();  
+        mListOfCoordinates.clear();
         if (mpTranslationalIntegrationScheme!=NULL) {
             delete mpTranslationalIntegrationScheme;
         }
@@ -78,12 +78,14 @@ namespace Kratos {
         GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][1];
         GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][2];
                         
-        //DEMIntegrationScheme::Pointer& integration_scheme = GetProperties()[DEM_INTEGRATION_SCHEME_POINTER];
-        //SetIntegrationScheme(integration_scheme);
+        DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
+        DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
+        SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
     }   
     
     void RigidBodyElement3D::SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme){
-
+        mpTranslationalIntegrationScheme = translational_integration_scheme->CloneRaw();
+        mpRotationalIntegrationScheme = rotational_integration_scheme->CloneRaw();
     }
     
     void RigidBodyElement3D::CustomInitialize() {
