@@ -8,10 +8,10 @@ KratosMultiphysics.CheckForPreviousImport()
 
 #Base class to develop other solvers
 class InputManager(object):
-    """The base class for solid mechanic model build process.
+    """The base class for solid mechanic input parameters and materials.
 
-    This class provides functions for importing and exporting models,
-    adding nodal variables and dofs.
+    This class provides functions for seting parts to input parameters,
+    and material parameters
 
     """
     def __init__(self, input_file):
@@ -51,8 +51,8 @@ class InputManager(object):
 
         if os.path.isfile("Materials.json"):
             materials_file = open("Materials.json",'r')
-            self.material_parameters = KratosMultiphysics.Parameters(materials_file.read())          
-
+            self.material_parameters = KratosMultiphysics.Parameters(materials_file.read())
+            
         if(self.parameters.Has("input_settings")):
             self._set_material_parts()
             
@@ -64,8 +64,7 @@ class InputManager(object):
         
     #### Input manager internal methods ####
 
-            
-    #    
+    #
     def _set_custom_settings(self, custom_settings):
                 
         default_settings = KratosMultiphysics.Parameters("""
@@ -92,8 +91,7 @@ class InputManager(object):
         
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)   
-
+        self.settings.ValidateAndAssignDefaults(default_settings)
 
     #
     def _set_input_parts(self):
@@ -234,5 +232,5 @@ class InputManager(object):
                 
                 self.material_parameters = materials_list
 
-            else:        
+            else:
                 raise Exception("material_ids and material_parts do not have the same size")

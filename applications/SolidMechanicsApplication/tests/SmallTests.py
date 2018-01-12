@@ -28,7 +28,7 @@ class SD_Element2D4N_ShearTest(TF.TestFactory):
     
 class SD_Element2D3N_ShearTest(TF.TestFactory):
     file_name = "element_tests/small_displacement_elements/patch_test_2D3N_shear"
-    file_parameters = "element_tests/shear_2D_parameters.json"
+    file_parameters = "element_tests/shear_2D_parameters_material.json"
     
 class SD_Element2D4N_TensionTest(TF.TestFactory):
     file_name = "element_tests/small_displacement_elements/patch_test_2D4N_tension"
