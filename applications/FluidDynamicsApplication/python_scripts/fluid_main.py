@@ -83,8 +83,6 @@ output_time = output_settings["output_time"].GetDouble()
 
 gid_io.initialize_results(fluid_model_part)
 
-
-
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
 
@@ -105,55 +103,39 @@ while(time <= end_time):
     print("STEP = ", step)
     print("TIME = ", time)
 
-    if(step >= 3):
-        for process in list_of_processes:
-            process.ExecuteInitializeSolutionStep()
+    for process in list_of_processes:
+        process.ExecuteInitializeSolutionStep()
         
-        solver.Solve()
+    solver.Solve()
         
-        for process in list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
+    for process in list_of_processes:
+        process.ExecuteFinalizeSolutionStep()
 
-        #TODO: decide if it shall be done only when output is processed or not
-        for process in list_of_processes:
-            process.ExecuteBeforeOutputStep()
+    for process in list_of_processes:
+        process.ExecuteBeforeOutputStep()
     
-        if(output_time <= out):
-            #TODO: following lines shall not be needed once the gid_io is adapted to using the parameters
-            nodal_results = []
-            for i in range(output_settings["nodal_results"].size()):
-                nodal_results.append(output_settings["nodal_results"][i].GetString())
-            gauss_points_results = []
-            for i in range(output_settings["gauss_points_results"].size()):
-                gauss_points_results.append(output_settings["gauss_points_results"][i].GetString())
-                
-            gid_io.write_results(
-                time,
-                fluid_model_part,
-                nodal_results,
-                gauss_points_results)
-            out = 0
+    if(output_time <= out):
+        #TODO: following lines shall not be needed once the gid_io is adapted to using the parameters
+        nodal_results = []
+        for i in range(output_settings["nodal_results"].size()):
+            nodal_results.append(output_settings["nodal_results"][i].GetString())
+        gauss_points_results = []
+        for i in range(output_settings["gauss_points_results"].size()):
+            gauss_points_results.append(output_settings["gauss_points_results"][i].GetString())
+            
+        gid_io.write_results(
+            time,
+            fluid_model_part,
+            nodal_results,
+            gauss_points_results)
+        out = 0
         
-        
-        for process in list_of_processes:
-            process.ExecuteAfterOutputStep()
+    for process in list_of_processes:
+        process.ExecuteAfterOutputStep()
 
-        out = out + Dt
+    out = out + Dt
 
 gid_io.finalize_results()
 
 for process in list_of_processes:
     process.ExecuteFinalize()
-
-
-
-
-
-
-
-
-
-
-
-
-
