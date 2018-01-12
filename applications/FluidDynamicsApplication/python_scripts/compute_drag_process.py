@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import python_process
 
 def Factory(settings, Model):
@@ -38,6 +39,17 @@ class ComputeDragProcess(python_process.PythonProcess):
         self.print_drag_to_screen = settings["print_drag_to_screen"].GetBool()
         self.write_drag_output_file = settings["write_drag_output_file"].GetBool()
 
+        # Check if the model part conditions are wether slip or no slip
+        for condition in self.model_part.Conditions:
+            if (condition.Is(KratosMultiphysics.SLIP)):
+                self.is_slip = True
+                break
+
+        # If the submodelpart is slip, check that it has conditions
+        if (self.is_slip):
+            if (len(self.model_part.Conditions) == 0):
+                raise Exception("the drag submodelpart " + settings["model_part_name"].GetString() + " has no conditions.")
+
         if (self.model_part.GetCommunicator().MyPID() == 0):
             if (self.write_drag_output_file):
                 # Set drag output file name
@@ -56,16 +68,24 @@ class ComputeDragProcess(python_process.PythonProcess):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         if((current_time >= self.interval[0]) and  (current_time < self.interval[1])):
-
-            # Note that MPI communication is done within VariableUtils().SumHistoricalNodeVectorVariable()
-            reaction_vector = KratosMultiphysics.VariableUtils().SumHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.model_part, 0)
+            # Compute the drag force
+            if (self.is_slip):
+                # Integrate the drag over the model part elements
+                drag_force = KratosFluid.DragUtilities().CalculateSlipDrag(self.model_part)
+            else:
+                # Note that MPI communication is done within VariableUtils().SumHistoricalNodeVectorVariable()
+                reaction_vector = KratosMultiphysics.VariableUtils().SumHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.model_part, 0)
+                drag_force = KratosMultiphysics.Vector(3)
+                drag_force[0] = -reaction_vector[0]
+                drag_force[1] = -reaction_vector[1]
+                drag_force[2] = -reaction_vector[2]
 
             if (self.model_part.GetCommunicator().MyPID() == 0):
                 if (self.print_drag_to_screen):
                     print("DRAG RESULTS:")
-                    print("Current time: " + str(current_time) + " x-drag: " + str(-reaction_vector[0]) + " y-drag: " + str(-reaction_vector[1]) + " z-drag: " + str(-reaction_vector[2]))
+                    print("Current time: " + str(current_time) + " x-drag: " + str(drag_force[0]) + " y-drag: " + str(drag_force[1]) + " z-drag: " + str(drag_force[2]))
 
                 if (self.write_drag_output_file):
                     with open(self.drag_filename, 'a') as file:
-                        file.write(str(current_time)+"   "+str(-reaction_vector[0])+"   "+str(-reaction_vector[1])+"   "+str(-reaction_vector[2])+"\n")
+                        file.write(str(current_time)+"   "+str(drag_force[0])+"   "+str(drag_force[1])+"   "+str(drag_force[2])+"\n")
                         file.close()
