@@ -116,9 +116,9 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         
         mass1.SetValue(KratosMultiphysics.NODAL_MASS,mass)
         mass2.SetValue(KratosMultiphysics.NODAL_MASS,mass/2)
-        spring1.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[stiffness,0,0])
-        spring2.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[stiffness/2,0,0])
-        node1.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,[1,0,0])
+        spring1.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS, KratosMultiphysics.Vector([stiffness,0,0]))
+        spring2.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([stiffness/2,0,0]))
+        node1.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,KratosMultiphysics.Vector([1,0,0]))
         mp.ProcessInfo.SetValue(StructuralMechanicsApplication.RAYLEIGH_ALPHA, 0.0)
         mp.ProcessInfo.SetValue(StructuralMechanicsApplication.RAYLEIGH_BETA, 0.0)
         

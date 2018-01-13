@@ -86,8 +86,8 @@ class NodalDampingTests(KratosUnittest.TestCase):
         stiffness = 10.0
         damping = 1.0
         element.SetValue(KratosMultiphysics.NODAL_MASS,mass)
-        element.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0,stiffness,0])
-        element.SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,[0,damping,0])
+        element.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([0,stiffness,0]))
+        element.SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,KratosMultiphysics.Vector([0,damping,0]))
 
         #time integration parameters
         dt = 0.005

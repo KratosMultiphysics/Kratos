@@ -36,7 +36,7 @@ class TestQuadraticElements(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(KratosMultiphysics.THICKNESS,1.0)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,1.0)
         
-        g = [0,0,0]
+        g = KratosMultiphysics.Vector([0,0,0])
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
         
         if(dim == 2):

@@ -43,7 +43,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I22,0.00001)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I33,0.00001)
 
-        g = [0,0,0]  
+        g = KratosMultiphysics.Vector([0,0,0])  
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
         cl = StructuralMechanicsApplication.LinearElastic3DLaw()
@@ -51,7 +51,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
     def _apply_elemental_data(self,element):
         # Adding LOCAL_AXIS_2
-        element.SetValue(KratosMultiphysics.LOCAL_AXIS_2,(0,1,0))
+        element.SetValue(KratosMultiphysics.LOCAL_AXIS_2,KratosMultiphysics.Vector([0,1,0]))
 
     def _apply_BCs(self,mp,which_dof):
         if (which_dof == 'xyz'):
@@ -495,7 +495,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.30)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I33,0.00001)
 
-        g = [0,0,0]  
+        g = KratosMultiphysics.Vector( [0,0,0]  )
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
         cl = StructuralMechanicsApplication.LinearElastic3DLaw()
@@ -503,7 +503,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
 
     def _apply_elemental_data(self,element):
         # Adding LOCAL_AXIS_2
-        element.SetValue(KratosMultiphysics.LOCAL_AXIS_2,(0,1,0))
+        element.SetValue(KratosMultiphysics.LOCAL_AXIS_2,KratosMultiphysics.Vector([0,1,0]))
 
     def _apply_BCs(self,mp,which_dof):
         if (which_dof == 'xy'):

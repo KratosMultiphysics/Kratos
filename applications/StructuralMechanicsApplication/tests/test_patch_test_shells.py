@@ -68,7 +68,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
     def _apply_neumann_BCs(self,mp):
         for node in mp.Nodes:
-            node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,[6.1,-5.5,8.9])
+            node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,KratosMultiphysics.Vector([6.1,-5.5,8.9]))
             mp.CreateNewCondition("PointLoadCondition3D1N",1,[node.Id],mp.GetProperties()[1])
 
 
@@ -79,7 +79,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,1.0)
         
-        g = [0,0,0]
+        g = KratosMultiphysics.Vector([0,0,0])
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
         
         cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()

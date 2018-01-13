@@ -102,29 +102,10 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         
     def _solve(self,mp):
         
-        #define a minimal newton raphson solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
-        convergence_criterion.SetEchoLevel(0)
-        
-        max_iters = 20
-        compute_reactions = True
-        reform_step_dofs = True
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
-                                                                        scheme, 
-                                                                        linear_solver, 
-                                                                        convergence_criterion, 
-                                                                        builder_and_solver, 
-                                                                        max_iters, 
-                                                                        compute_reactions, 
-                                                                        reform_step_dofs, 
-                                                                        move_mesh_flag)
-        strategy.SetEchoLevel(0)
-        
+        strategy = self._create_strategy(mp)      
+        print("uuu")
         strategy.Check()
+        print("www")
         strategy.Solve()
         
     def _create_strategy(self, mp):
@@ -133,8 +114,10 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
-        convergence_criterion.SetEchoLevel(0)
-        
+        print(convergence_criterion)
+        print("aaaaaaaaa")
+        #convergence_criterion.SetEchoLevel(0)
+        print("bbbb")
         #max_iters = 1
         max_iters = 20
         compute_reactions = True
@@ -149,8 +132,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
                                                                         compute_reactions, 
                                                                         reform_step_dofs, 
                                                                         move_mesh_flag)
+        print("eee")
         strategy.SetEchoLevel(0)
-        
+        print("ffff")
         return strategy
         
     def _solve_with_strategy(self, strategy, lhs, step):        
