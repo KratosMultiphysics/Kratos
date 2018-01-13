@@ -94,11 +94,11 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         elif(integration_method == "Bossak"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
-            #mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(bossak_factor)
-            time_integration_method = KratosSolid.BossakMethod()
-            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
-            time_integration_method.SetParameters(self.process_info)
-            mechanical_scheme = KratosSolid.ResidualBasedDisplacementBossakScheme()
+            mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(bossak_factor)
+            #time_integration_method = KratosSolid.BossakMethod()
+            #time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
+            #time_integration_method.SetParameters(self.process_info)
+            #mechanical_scheme = KratosSolid.ResidualBasedDisplacementBossakScheme()
         elif(integration_method == "Simo"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;

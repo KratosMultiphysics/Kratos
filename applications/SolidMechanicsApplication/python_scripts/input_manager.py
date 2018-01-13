@@ -21,7 +21,7 @@ class InputManager(object):
             self.parameters = KratosMultiphysics.Parameters(parameters_file.read())
         else:
             raise Exception("Input file "+input_file+" does not exist")
-        
+
         if(self.parameters.Has("input_settings")):
             custom_settings = self.parameters["input_settings"]
             self._set_custom_settings(custom_settings)
@@ -130,8 +130,7 @@ class InputManager(object):
                 if( self.settings["model_parts"]["processes_parts_list"].size() > 0 ):
                     self.project_parameters["model_settings"].AddValue("processes_parts_list", self.settings["model_parts"]["processes_parts_list"])
 
-                
-    #    
+    #
     def _set_processes_parts(self):
 
         if( self.project_parameters.Has("constraints_process_list") ):
