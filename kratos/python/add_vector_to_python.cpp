@@ -68,7 +68,7 @@ namespace Python
         binder.def("__getitem__", [](const TVectorType& self, const unsigned int i){return self[i];} );
         
         binder.def("__iter__", [](TVectorType& self){ return make_iterator(self.begin(), self.end(), return_value_policy::reference_internal); } , keep_alive<0,1>() ) ;
-//         binder.def("__repr__", [](const TVectorType& self) -> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; }); 
+        binder.def("__repr__", [](const TVectorType& self) -> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; }); 
         
         return binder;
         }

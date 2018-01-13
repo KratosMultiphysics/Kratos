@@ -49,7 +49,7 @@ template< typename TMatrixType > class_< TMatrixType > CreateMatrixInterface(pyb
                                         const int index_j = index.second; 
                                         self(index_i,index_j) = value;
                                     } );
-        binder.def("__getitem__", [](const TMatrixType& self, std::pair<int,int> index)
+        binder.def("__getitem__", [](const TMatrixType& self, const std::pair<int,int> index)
                                     {
                                         const int index_i = index.first; 
                                         const int index_j = index.second; 
@@ -66,7 +66,7 @@ template< typename TMatrixType > class_< TMatrixType > CreateMatrixInterface(pyb
         binder.def("__imul__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1*=value; return m1;}, is_operator());
         binder.def("__itruediv__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1/=value; return m1;}, is_operator());
 
-//         binder.def("__repr__", [](const TMatrixType& self)-> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; });      
+        binder.def("__repr__", [](const TMatrixType& self)-> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; });      
         return binder;
         }
 

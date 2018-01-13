@@ -434,6 +434,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< Vector > >)
     .def("Has", HasHelperFunction< Element, Variable< Vector > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< Vector > >)
+    .def("SetValue", [](Element& self, const Variable< array_1d<double,3>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,3>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Element, Variable< Vector > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< vector<int> > >)

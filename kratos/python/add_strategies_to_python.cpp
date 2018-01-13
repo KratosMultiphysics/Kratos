@@ -261,43 +261,45 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
             //********************************************************************
-            typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
-            typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ::Pointer ConvergenceCriteriaPointerType;
+            typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
+            typedef typename ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointerType;
             
             // Convergence criteria base class
-            class_< ConvergenceCriteria< SparseSpaceType, LocalSpaceType >,
-                    typename ConvergenceCriteria< SparseSpaceType, LocalSpaceType >::Pointer>(m,"ConvergenceCriteria")
+            class_< ConvergenceCriteriaType,
+                    ConvergenceCriteriaPointerType >(m,"ConvergenceCriteria")
                     .def(init<>())
-                    .def("SetActualizeRHSFlag", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::SetActualizeRHSFlag)
-                    .def("GetActualizeRHSflag", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::GetActualizeRHSflag)
-                    .def("PreCriteria", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::PreCriteria)
-                    .def("PostCriteria", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::PostCriteria)
-                    .def("Initialize", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::Initialize)
-                    .def("InitializeNonLinearIteration", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::InitializeNonLinearIteration)
-                    .def("InitializeSolutionStep", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::InitializeSolutionStep)
-                    .def("FinalizeNonLinearIteration", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::FinalizeNonLinearIteration)
-                    .def("FinalizeSolutionStep", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::FinalizeSolutionStep)
-                    .def("Check", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::Check)
-                    .def("SetEchoLevel", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
+                    .def("SetActualizeRHSFlag", &ConvergenceCriteriaType::SetActualizeRHSFlag)
+                    .def("GetActualizeRHSflag", &ConvergenceCriteriaType::GetActualizeRHSflag)
+                    .def("PreCriteria", &ConvergenceCriteriaType::PreCriteria)
+                    .def("PostCriteria", &ConvergenceCriteriaType::PostCriteria)
+                    .def("Initialize", &ConvergenceCriteriaType::Initialize)
+                    .def("InitializeNonLinearIteration", &ConvergenceCriteriaType::InitializeNonLinearIteration)
+                    .def("InitializeSolutionStep", &ConvergenceCriteriaType::InitializeSolutionStep)
+                    .def("FinalizeNonLinearIteration", &ConvergenceCriteriaType::FinalizeNonLinearIteration)
+                    .def("FinalizeSolutionStep", &ConvergenceCriteriaType::FinalizeSolutionStep)
+                    .def("Check", &ConvergenceCriteriaType::Check)
+                    .def("SetEchoLevel", &ConvergenceCriteriaType::SetEchoLevel)
                     ;
 
             class_< DisplacementCriteria<SparseSpaceType, LocalSpaceType >,
                     typename DisplacementCriteria< SparseSpaceType, LocalSpaceType >::Pointer,
-                    ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >
+                    ConvergenceCriteriaType >
                     (m,"DisplacementCriteria")
                     .def(init< double, double>())
+//                     .def("SetEchoLevel", &DisplacementCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
                     ;
 
             class_<ResidualCriteria<SparseSpaceType, LocalSpaceType >,
                     typename ResidualCriteria< SparseSpaceType, LocalSpaceType >::Pointer,
-                    ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >
+                    ConvergenceCriteriaType >
                     (m,"ResidualCriteria")
                     .def(init< double, double>())
+//                     .def("SetEchoLevel", &ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
                     ;
 
             class_<And_Criteria<SparseSpaceType, LocalSpaceType >,
                     typename And_Criteria< SparseSpaceType, LocalSpaceType >::Pointer,
-                    ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >
+                    ConvergenceCriteriaType >
                     (m,"AndCriteria")
                     .def(init<ConvergenceCriteriaPointerType, ConvergenceCriteriaPointerType > ())
                     .def("SetEchoLevel",&And_Criteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
@@ -305,7 +307,7 @@ namespace Kratos
 
             class_<Or_Criteria<SparseSpaceType, LocalSpaceType >,
                     typename Or_Criteria< SparseSpaceType, LocalSpaceType >::Pointer,
-                    ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >
+                    ConvergenceCriteriaType >
                     (m,"OrCriteria")
                     .def(init<ConvergenceCriteriaPointerType, ConvergenceCriteriaPointerType > ())
                     .def("SetEchoLevel",&Or_Criteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
@@ -321,7 +323,7 @@ namespace Kratos
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
             
             
-            class_< BuilderAndSolverType::DofsArrayType>(m,"DofsArrayType")
+            class_< BuilderAndSolverType::DofsArrayType, BuilderAndSolverType::DofsArrayType::Pointer>(m,"DofsArrayType")
             .def(init<>());
 
             class_< BuilderAndSolverType, typename BuilderAndSolverType::Pointer>(m,"BuilderAndSolver")
@@ -439,8 +441,8 @@ namespace Kratos
 
             class_< ResidualBasedNewtonRaphsonStrategyType, typename ResidualBasedNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
                     (m,"ResidualBasedNewtonRaphsonStrategy")
-                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
-                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
+                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
                     .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
                     .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
                     .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
@@ -454,7 +456,7 @@ namespace Kratos
                     typename AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
                     BaseSolvingStrategyType >
                     (m,"AdaptiveResidualBasedNewtonRaphsonStrategy")
-                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, int, bool, bool, bool, double, double, int
+                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, int, bool, bool, bool, double, double, int
                     >())
                     ;
 
@@ -462,8 +464,8 @@ namespace Kratos
                     typename LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
                     ResidualBasedNewtonRaphsonStrategyType  >
                     (m,"LineSearchStrategy")
-                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
-                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
+                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
                     ;
 
             class_< ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
