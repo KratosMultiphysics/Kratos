@@ -70,7 +70,7 @@ Detail class definition.
 template<class TSparseSpace,
          class TDenseSpace
          >
-class DisplacementCriteria : virtual public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class DisplacementCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
