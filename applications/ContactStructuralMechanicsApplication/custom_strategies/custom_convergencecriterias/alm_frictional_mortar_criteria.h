@@ -49,7 +49,8 @@ namespace Kratos
 /** @brief Custom convergence criteria for the mortar condition 
  */
 template<class TSparseSpace, class TDenseSpace>
-class ALMFrictionalMortarConvergenceCriteria : public virtual  BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >
+class ALMFrictionalMortarConvergenceCriteria 
+    : public  BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions

@@ -48,7 +48,8 @@ namespace Kratos
 /** @brief Custom convergence criteria for the mortar condition 
  */
 template<class TSparseSpace, class TDenseSpace>
-class MeshTyingMortarConvergenceCriteria : public virtual  BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >
+class MeshTyingMortarConvergenceCriteria 
+    : public  BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
