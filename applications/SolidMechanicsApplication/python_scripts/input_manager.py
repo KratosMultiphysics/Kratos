@@ -25,12 +25,12 @@ class InputManager(object):
         if(self.parameters.Has("input_settings")):
             custom_settings = self.parameters["input_settings"]
             self._set_custom_settings(custom_settings)
-            
+
     #
     def GetProjectParameters(self):
 
         self.project_parameters = self.parameters
-        
+
         if(self.parameters.Has("input_settings")):
             self._set_input_parts()
 
@@ -45,27 +45,27 @@ class InputManager(object):
                 return True
 
         return False
-    
+
     #
     def GetMaterialParameters(self):
 
         if os.path.isfile("Materials.json"):
             materials_file = open("Materials.json",'r')
             self.material_parameters = KratosMultiphysics.Parameters(materials_file.read())
-            
+
         if(self.parameters.Has("input_settings")):
             self._set_material_parts()
-            
-        #print(self.material_parameters.PrettyPrintJsonString())            
-        return self.material_parameters
-        
 
-        
+        #print(self.material_parameters.PrettyPrintJsonString())
+        return self.material_parameters
+
+
+
     #### Input manager internal methods ####
 
     #
     def _set_custom_settings(self, custom_settings):
-                
+
         default_settings = KratosMultiphysics.Parameters("""
         {
             "parameters_file_name": "None",
@@ -87,14 +87,14 @@ class InputManager(object):
             }
         }
         """)
-        
+
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     #
     def _set_input_parts(self):
-       
+
         if(self.settings["parameters_file_name"].GetString() != "None"):
 
             parameters_file = self.settings["parameters_file_name"].GetString()
@@ -106,11 +106,11 @@ class InputManager(object):
 
             # model
             self._set_model_parts()
-            
+
             # processes
             self._set_processes_parts()
-   
-            
+
+
     #
     def _set_model_parts(self):
 
@@ -118,12 +118,12 @@ class InputManager(object):
             if( self.settings["model_parts"].Has("bodies_list") ):
                 if( self.settings["model_parts"]["bodies_list"].size() > 0 ):
                     self.project_parameters["model_settings"].AddValue("bodies_list", self.settings["model_parts"]["bodies_list"])
-                
+
         if( self.project_parameters["model_settings"].Has("domains_parts_list") == False ):
             if( self.settings["model_parts"].Has("domain_parts_list") ):
                 if( self.settings["model_parts"]["domain_parts_list"].size() > 0 ):
                     self.project_parameters["model_settings"].AddValue("domain_parts_list", self.settings["model_parts"]["domain_parts_list"])
-                
+
         if( self.project_parameters["model_settings"].Has("processes_parts_list") == False ):
             if( self.settings["model_parts"].Has("processes_parts_list") ):
                 if( self.settings["model_parts"]["processes_parts_list"].size() > 0 ):
@@ -137,7 +137,7 @@ class InputManager(object):
             parts_list     = "constraint_processes_parts"
 
             self._set_processes_type(processes_list,parts_list)
-            
+
         if( self.project_parameters.Has("loads_process_list") ):
             processes_list = "loads_process_list"
             parts_list     = "loads_processes_parts"
@@ -149,16 +149,16 @@ class InputManager(object):
             parts_list     = "output_processes_parts"
 
             self._set_processes_type(processes_list,parts_list)
-            
+
         if( self.project_parameters.Has("check_process_list") ):
             processes_list = "check_process_list"
             parts_list     = "check_processes_parts"
 
             self._set_processes_type(processes_list,parts_list)
-        
+
     #
     def _set_processes_type(self,processes_list,parts_list):
-        
+
         parts = self.settings["processes_parts"][parts_list]
         if(parts.size() > 0):
             if(self.project_parameters[processes_list].size() == parts.size()):
@@ -180,10 +180,10 @@ class InputManager(object):
             else:
                 raise Exception(processes_list+" and "+parts_list+" do not have the same size")
 
-    
+
     #
     def _set_material_parts(self):
-        
+
         if(self.settings["materials_file_name"].GetString() != "None"):
 
             materials_file_name = self.settings["materials_file_name"].GetString()
@@ -193,9 +193,9 @@ class InputManager(object):
             else:
                 raise Exception("Materials file "+materials_file_name+" does not exist")
 
-            
+
             self._set_material_items()
-            
+
     #
     def _set_material_items(self):
 
@@ -203,7 +203,7 @@ class InputManager(object):
         {
         }
         """)
-        
+
         material = self.settings["material"]
         size = material["material_ids"].size()
         if( size > 0):
@@ -215,7 +215,7 @@ class InputManager(object):
                         material_parameters = materials[i]["Parameters"]
                         part_name = material["material_parts"][i].GetString()
                         if( material_parameters["properties_id"].GetInt() == material["material_ids"][i].GetInt() ):
-                                                        
+
                             if( material_parameters.Has("model_part_name") ):
                                 materials[i]["Parameters"]["model_part_name"].SetString(part_name)
                             else:
@@ -223,11 +223,11 @@ class InputManager(object):
 
                             materials_list["material_models_list"].__setitem__(i, materials.__getitem__(i))
 
-                                            
+
                 else:
                     raise Exception("material_models_list size is too small")
 
-                
+
                 self.material_parameters = materials_list
 
             else:
