@@ -56,8 +56,7 @@ class InputManager(object):
         if(self.parameters.Has("input_settings")):
             self._set_material_parts()
             
-        #print(self.material_parameters.PrettyPrintJsonString())
-            
+        #print(self.material_parameters.PrettyPrintJsonString())            
         return self.material_parameters
         
 
@@ -164,7 +163,7 @@ class InputManager(object):
         if(parts.size() > 0):
             if(self.project_parameters[processes_list].size() == parts.size()):
                 for i in range(0,parts.size()):
-                    part_name = self.settings["model_parts"]["processes_parts_list"][parts[i].GetInt()].GetString()
+                    part_name = parts[i].GetString()
                     process   = self.project_parameters[processes_list][i]
                     if( process.Has("Parameters") ):
                         process_parameters = process["Parameters"]
