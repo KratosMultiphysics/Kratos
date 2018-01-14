@@ -32,6 +32,7 @@ class MechanicalSolver(object):
     _create_linear_solver
     _create_builder_and_solver
     _create_mechanical_solver
+    _create_restart_utility
 
     The mechanical_solver, builder_and_solver, etc. should alway be retrieved
     using the getter functions get_mechanical_solver, get_builder_and_solver,
@@ -55,9 +56,8 @@ class MechanicalSolver(object):
                 "input_file_label": 0
             },
             "restart_save_settings" : {
-                "save_restart"          : false,
-                "restart_control_type"  : "step",
-                "restart_frequency"     : 10,
+                "save_restart"            : false,
+                "restart_time_frequency"  : 1.0,
             },
             "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{
@@ -164,21 +164,7 @@ class MechanicalSolver(object):
             self._set_and_fill_buffer()
         elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
             # Import model part from restart file.
-            problem_path = os.getcwd()
-            restart_path = os.path.join(problem_path, input_filename + "_" + self.settings["model_import_settings"]["input_file_label"].GetString())
-            if(os.path.exists(restart_path+".rest") == False):
-                raise Exception("Restart file not found: " + restart_path + ".rest")
-            print("    Loading Restart file: ", restart_path + ".rest")
-            serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
-            # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
-            # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
-            serializer = KratosMultiphysics.Serializer(restart_path, serializer_flag)
-            serializer.Load(self.main_model_part.Name, self.main_model_part)
-            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
-            #I use it to rebuild the contact conditions.
-            load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
-            self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
-            print("    Finished loading model part from restart file.")
+            self.get_restart_utility.LoadRestart()
         else:
             raise Exception("Other model part input options are not yet implemented.")
         print(self.main_model_part)
@@ -218,21 +204,11 @@ class MechanicalSolver(object):
         pass
 
     def SaveRestart(self):
+        # Check could be integrated in the utility
+        # It is here intentionally, this way the utility is only created if it is actually needed!
         if (self.settings["restart_save_settings"]["save_restart"].GetBool() == True):
-            if self.is_restart_output_step():
-                restart_control_type = self.settings["restart_save_settings"]["restart_control_type"].GetString()
-                if restart_control_type == "step":
-                    file_label = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-                elif restart_control_type == "time":
-                    file_label = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-                else:
-                    raise Exception('Invalid restart control type, select "step" or "time"')
-                
-                input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
-
-                serializer = Serializer(input_filename + '_' + str(file_label))
-
-                serializer.Save('ModelPart', self.main_model_part)
+            # the check if this step is a restart-output step is done internally
+            self.get_restart_utility().SaveRestart()
 
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
@@ -288,6 +264,11 @@ class MechanicalSolver(object):
         if not hasattr(self, '_mechanical_solver'):
             self._mechanical_solver = self._create_mechanical_solver()
         return self._mechanical_solver
+
+    def get_restart_utility(self):
+        if not hasattr(self, '_restart_utility'):
+            self._restart_utility = self._create_restart_utility()
+        return self._restart_utility
 
     def import_constitutive_laws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
@@ -363,12 +344,8 @@ class MechanicalSolver(object):
                 origin_settings.RemoveValue(name)
 
     def is_restarted(self):
-        if (self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
-            return True
-        else:
-            return False
-
-    def is_restart_output_step(self):
+        # I cannot check in the ProcessInfo here bcs the info abt the analysis
+        # being restarted might not be set there yet!
         if (self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
             return True
         else:
@@ -542,6 +519,14 @@ class MechanicalSolver(object):
                                                      self.settings["compute_reactions"].GetBool(),
                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                      self.settings["move_mesh_flag"].GetBool())
+
+    def _create_restart_utility(self):
+        """Create the restart utility. Has to be overridden for MPI/trilinos-solvers"""
+        import restart_utility
+        rest_utility = restart_utility.RestartUtility(self.main_model_part,
+                                                      self.settings["model_import_settings"]
+                                                      self.settings["restart_save_settings"])
+        return rest_utility
  
     
     
