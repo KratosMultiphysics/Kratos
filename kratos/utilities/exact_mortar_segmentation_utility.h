@@ -274,7 +274,7 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
                 SlaveGeometry.GlobalCoordinates(
                     global_point, ConditionsPointSlave[i_geom][i_node]);
                 points_array[i_node] =
-                    boost::make_shared<PointType>(global_point);
+                    Kratos::make_shared<PointType>(global_point);
             }
 
             TriangleType decomp_geom(points_array);
