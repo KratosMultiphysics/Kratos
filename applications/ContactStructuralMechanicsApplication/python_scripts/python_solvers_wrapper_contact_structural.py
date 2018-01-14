@@ -38,6 +38,11 @@ def CreateSolver(main_model_part, custom_settings):
     else:
         raise Exception("Parallelism is neither OpenMP nor MPI")
 
+    # Remove settings that are not needed any more
+    custom_settings["solver_settings"].RemoveValue("solver_type")
+    if custom_settings["solver_settings"].Has("time_integration_method"):
+        custom_settings["solver_settings"].RemoveValue("time_integration_method")
+
     solver_module = __import__(solver_module_name)
     solver = solver_module.CreateSolver(main_model_part, custom_settings["solver_settings"])
 
