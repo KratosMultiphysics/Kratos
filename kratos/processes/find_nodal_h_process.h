@@ -15,20 +15,14 @@
 #define  KRATOS_FIND_NODAL_H_PROCESS_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
 #include <limits>
-// External includes
 
+// External includes
 
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-
 
 namespace Kratos
 {
@@ -72,7 +66,7 @@ public:
     ///@{
 
     /// Default constructor.
-    FindNodalHProcess(ModelPart& model_part) : mr_model_part(model_part)
+    FindNodalHProcess(ModelPart& model_part) : mrModelPart(model_part)
     {
     }
 
@@ -100,29 +94,22 @@ public:
     {
         KRATOS_TRY
         
-        // Check if variables are available 
-        if( mr_model_part.NodesBegin()->SolutionStepsDataHas( NODAL_H ) == false )        
-            KRATOS_ERROR << "Variable NODAL_H not in the model part!";
-        
-        const int NNodes = static_cast<int>(mr_model_part.Nodes().size());
+        // Check if variables are available       
+        KRATOS_ERROR_IF_NOT(mrModelPart.NodesBegin()->SolutionStepsDataHas( NODAL_H )) << "Variable NODAL_H not in the model part!";
         
         #pragma omp parallel for 
-        for(int i=0; i<NNodes; i++)
-        {
-            auto itNode = mr_model_part.NodesBegin() + i;
-            itNode->GetSolutionStepValue(NODAL_H, 0) = std::numeric_limits<double>::max();
+        for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i) {
+            auto it_node = mrModelPart.NodesBegin() + i;
+            it_node->GetSolutionStepValue(NODAL_H, 0) = std::numeric_limits<double>::max();
         }
         
-        for(unsigned int i=0; i<mr_model_part.Elements().size(); i++)
-        {
-            auto itElement = mr_model_part.ElementsBegin() + i;
-            auto& geom = itElement->GetGeometry();
+        for(unsigned int i=0; i<mrModelPart.Elements().size(); ++i) {
+            auto it_element = mrModelPart.ElementsBegin() + i;
+            auto& geom = it_element->GetGeometry();
             
-            for(unsigned int k=0; k<geom.size()-1; k++)
-            {
+            for(unsigned int k=0; k<geom.size()-1; ++k) {
                 double& h1 = geom[k].FastGetSolutionStepValue(NODAL_H);
-                for(unsigned int l=k+1; l<geom.size(); l++)
-                {
+                for(unsigned int l=k+1; l<geom.size(); ++l) {
                     double hedge = norm_2(geom[l].Coordinates() - geom[k].Coordinates());
                     double& h2 = geom[l].FastGetSolutionStepValue(NODAL_H);
                     
@@ -133,11 +120,10 @@ public:
             }
         }
         
-        mr_model_part.GetCommunicator().SynchronizeCurrentDataToMin(NODAL_H);
+        mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(NODAL_H);
 
         KRATOS_CATCH("")
     }
-
 
     ///@}
     ///@name Access
@@ -223,9 +209,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mr_model_part;
-    double m_min_h;
-
+    
+    ModelPart& mrModelPart;
+    double mMinH;
 
     ///@}
     ///@name Private Operators
