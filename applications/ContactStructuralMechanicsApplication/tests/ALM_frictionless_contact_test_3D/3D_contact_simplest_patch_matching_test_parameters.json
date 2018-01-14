@@ -85,7 +85,7 @@
             "type_search"                 : "InRadius",
             "integration_order"           : 2,
             "manual_ALM"                  : true,
-            "normal_variation"            : "NODERIVATIVESCOMPUTATION",
+            "normal_variation"            : "NO_DERIVATIVES_COMPUTATION",
             "penalty"                     : 1.0e14,
             "scale_factor"                : 1.0e0,
             "debug_mode"                  : false

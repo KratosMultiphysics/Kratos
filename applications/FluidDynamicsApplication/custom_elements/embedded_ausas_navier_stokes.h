@@ -284,6 +284,80 @@ public:
         KRATOS_CATCH("");
     }
 
+    void Calculate(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 > & rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override {
+
+        rOutput = ZeroVector(3);
+
+        // If the element is split, integrate sigma·n over the interface
+        // Note that in the ausas formulation, both interface sides need to be integrated
+        if (rVariable == DRAG_FORCE) {
+
+            EmbeddedAusasElementDataStruct data;
+            this->FillEmbeddedAusasElementData(data, rCurrentProcessInfo);
+
+            // Check if the element is split
+            if (data.n_pos != 0 && data.n_neg != 0){
+
+                // Integrate positive interface side drag
+                const unsigned int n_int_pos_gauss = (data.w_gauss_pos_int).size();
+                for (unsigned int i_gauss = 0; i_gauss < n_int_pos_gauss; ++i_gauss) {
+                    // Get Gauss pt. data
+                    const double w_gauss = data.w_gauss_pos_int(i_gauss);
+                    const array_1d<double, TNumNodes> aux_N = row(data.N_pos_int, i_gauss);
+                    const array_1d<double, 3> side_normal = data.pos_int_unit_normals[i_gauss];
+
+                    // Obtain Gauss pt. pressure
+                    const double p_gauss = inner_prod(aux_N, data.p);
+
+                    // Call the constitutive law to compute the shear contribution
+                    // Recall to set data.N and data.DN_DX (required by the constitutive law)
+                    noalias(data.N) = aux_N;
+                    noalias(data.DN_DX) = data.DN_DX_pos_int[i_gauss];
+                    this->ComputeConstitutiveResponse(data, rCurrentProcessInfo);
+
+                    // Get the Voigt notation normal projection matrix
+                    bounded_matrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
+                    this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
+                
+                    // Add the shear and pressure drag contributions
+                    rOutput += w_gauss*prod(normal_proj_mat, data.stress);
+                    rOutput -= w_gauss*p_gauss*side_normal;
+                }
+
+                // Integrate negative interface side drag
+                const unsigned int n_int_neg_gauss = (data.w_gauss_neg_int).size();
+                for (unsigned int i_gauss = 0; i_gauss < n_int_neg_gauss; ++i_gauss) {
+                    // Get Gauss pt. data
+                    const double w_gauss = data.w_gauss_neg_int(i_gauss);
+                    const array_1d<double, TNumNodes> aux_N = row(data.N_neg_int, i_gauss);
+                    const array_1d<double, 3> side_normal = data.neg_int_unit_normals[i_gauss];
+
+                    // Obtain Gauss pt. pressure
+                    const double p_gauss = inner_prod(aux_N, data.p);
+
+                    // Call the constitutive law to compute the shear contribution
+                    // Recall to set data.N and data.DN_DX (required by the constitutive law)
+                    noalias(data.N) = aux_N;
+                    noalias(data.DN_DX) = data.DN_DX_neg_int[i_gauss];
+                    this->ComputeConstitutiveResponse(data, rCurrentProcessInfo);
+
+                    // Get the Voigt notation normal projection matrix
+                    bounded_matrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
+                    this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
+                
+                    // Add the shear and pressure drag contributions
+                    rOutput += w_gauss*prod(normal_proj_mat, data.stress);
+                    rOutput -= w_gauss*p_gauss*side_normal;
+                }
+            }
+        } else {
+            KRATOS_ERROR << "Calculate method not implemented for the requested variable.";
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -428,12 +502,8 @@ protected:
             }
         }
 
-        if (rData.n_pos != 0 && rData.n_neg != 0) {
-            this->Set(TO_SPLIT, true);
-        }
-
         // If the element is split, get the modified shape functions
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             GeometryPointerType p_geom = this->pGetGeometry();
 
@@ -531,7 +601,7 @@ protected:
         bounded_matrix<double, MatrixSize, MatrixSize> lhs_local;
 
         // Decide if the element is wether split or not and add the contribution accordingly
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             // Add the positive side volume contribution
             const unsigned int n_pos_gauss = (rData.w_gauss_pos_side).size();
@@ -608,7 +678,7 @@ protected:
         array_1d<double, MatrixSize> rhs_local;
 
         // Decide if the element is wether split or not and add the contribution accordingly
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             // Add the positive side volume contribution
             const unsigned int n_pos_gauss = (rData.w_gauss_pos_side).size();

@@ -149,7 +149,7 @@ void TestThisGeometry(Geometry<Point>& rGeom,
         GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
 
         for (unsigned i_node = 0; i_node < rGeom.size(); ++i_node)
-            for (unsigned i_coord = 0; i_coord < rGeom[i_node].Dimension(); i_coord++)
+            for (unsigned i_coord = 0; i_coord < rGeom.WorkingSpaceDimension(); ++i_coord)
             {
                 double detJ_deriv;
                 geom_sensitivity.CalculateSensitivity(i_node, i_coord, detJ_deriv, DN_DX_deriv);

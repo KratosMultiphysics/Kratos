@@ -3016,7 +3016,7 @@ namespace Kratos
 
 		ReadWord(word); // Reading the name of the sub model part
 
-		ModelPart& r_sub_model_part = rParentModelPart.CreateSubModelPart(word);
+		ModelPart& r_sub_model_part = *rParentModelPart.CreateSubModelPart(word);
 
 		while (true)
 		{

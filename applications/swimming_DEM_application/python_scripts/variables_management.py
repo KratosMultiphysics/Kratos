@@ -64,6 +64,12 @@ def AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part):
     if pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 5 or pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 6:
          fluid_model_part.ProcessInfo.SetValue(CURRENT_COMPONENT, 0)
 
+    if pp.CFD_DEM["non_newtonian_option"].GetBool():
+        fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, pp.CFD_DEM["yield_stress"].GetDouble())
+        fluid_model_part.ProcessInfo.SetValue(REGULARIZATION_COEFFICIENT, pp.CFD_DEM["regularization_coefficient"].GetDouble())
+        fluid_model_part.ProcessInfo.SetValue(POWER_LAW_K, pp.CFD_DEM["power_law_k"].GetDouble())
+        fluid_model_part.ProcessInfo.SetValue(POWER_LAW_N, pp.CFD_DEM["power_law_n"].GetDouble())
+
 def AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part):
 
     AddFrameOfReferenceRelatedVariables(pp, dem_model_part)
@@ -89,6 +95,10 @@ def AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part):
         dem_model_part.ProcessInfo.SetValue(TIME_STEPS_PER_QUADRATURE_STEP, pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt())
         dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
         dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, pp.CFD_DEM["quadrature_order"].GetInt())
+
+    if pp.CFD_DEM["drag_force_type"].GetInt() in {13} or pp.CFD_DEM["lift_force_type"].GetInt() == 1:
+        dem_model_part.ProcessInfo.SetValue(POWER_LAW_K, pp.CFD_DEM["power_law_k"].GetDouble())
+        dem_model_part.ProcessInfo.SetValue(POWER_LAW_N, pp.CFD_DEM["power_law_n"].GetDouble())
 
 
 def ConstructListsOfVariables(pp):
@@ -139,13 +149,6 @@ def ConstructListsOfVariables(pp):
 
         if pp.CFD_DEM["include_faxen_terms_option"].GetBool():
             pp.fluid_vars += [VELOCITY_LAPLACIAN_RATE]
-
-    if pp.CFD_DEM["drag_force_type"].GetInt() >= 0:
-        pp.fluid_vars += [POWER_LAW_N]
-        pp.fluid_vars += [POWER_LAW_K]
-        pp.fluid_vars += [GEL_STRENGTH]
-        pp.fluid_vars += [YIELD_STRESS]
-        pp.fluid_vars += [BINGHAM_SMOOTHER]
 
     if pp.CFD_DEM["calculate_diffusivity_option"].GetBool():
         pp.fluid_vars += [CONDUCTIVITY]
@@ -282,9 +285,9 @@ def ConstructListsOfResultsToPrint(pp):
     if pp.CFD_DEM["embedded_option"].GetBool():
         pp.rigid_faces_nodal_results += ["POSITIVE_FACE_PRESSURE"]
         pp.rigid_faces_nodal_results += ["NEGATIVE_FACE_PRESSURE"]
-        
-    if pp.CFD_DEM["PostNonDimensionalVolumeWear"].GetBool(): 
-        pp.rigid_faces_nodal_results += ["IMPACT_WEAR"] 
+
+    if pp.CFD_DEM["PostNonDimensionalVolumeWear"].GetBool():
+        pp.rigid_faces_nodal_results += ["IMPACT_WEAR"]
         pp.rigid_faces_nodal_results += ["NON_DIMENSIONAL_VOLUME_WEAR"]
 
     # changes on the fluid variables to print for the sake of consistency
@@ -361,7 +364,7 @@ def ConstructListsOfVariablesForCoupling(pp):
     if pp.CFD_DEM["coupling_level_type"].GetInt() >= 1 and pp.CFD_DEM["time_averaging_type"].GetInt() > 0:
         pp.coupling_fluid_vars += [MEAN_HYDRODYNAMIC_REACTION]
 
-    if pp.CFD_DEM["drag_force_type"].GetInt() == 2 or pp.CFD_DEM["lift_force_type"].GetInt() == 1:
+    if pp.CFD_DEM["drag_force_type"].GetInt() in {2} or pp.CFD_DEM["lift_force_type"].GetInt() == 1:
         pp.coupling_fluid_vars += [POWER_LAW_N]
         pp.coupling_fluid_vars += [POWER_LAW_K]
         pp.coupling_fluid_vars += [YIELD_STRESS]
@@ -450,6 +453,9 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
 
     if pp.CFD_DEM["fluid_model_type"].GetInt() == 1 and pp.CFD_DEM["print_FLUID_FRACTION_GRADIENT_option"].GetBool():
         pp.nodal_results += ["FLUID_FRACTION_GRADIENT"]
+
+    if pp.CFD_DEM["print_VISCOSITY_option"].GetBool():
+        pp.nodal_results += ["VISCOSITY"]
 
     if pp.CFD_DEM["body_force_on_fluid_option"].GetBool() and pp.CFD_DEM["print_BODY_FORCE_option"].GetBool():
         pp.nodal_results += ["BODY_FORCE"]

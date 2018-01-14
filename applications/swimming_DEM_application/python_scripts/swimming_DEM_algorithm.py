@@ -5,18 +5,19 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import os
 import sys
 import math
+import time as timer
+import weakref
+
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
+
 from DEM_procedures import KratosPrint as Say
 import CFD_DEM_coupling
 import swimming_DEM_procedures as SDP
 import swimming_DEM_gid_output
 import embedded
 import variables_management as vars_man
-import time as timer
-import os
-import weakref
 
 try:
     import define_output  # MA: some GUI write this file, some others not!
@@ -97,25 +98,25 @@ class Algorithm(object):
     def SetDispersePhaseAlgorithm(self):
         import dem_main_script_ready_for_coupling as DEM_algorithm
         self.disperse_phase_solution = DEM_algorithm.Solution(self.pp)
-        
+
     def ReadDispersePhaseAndCouplingParameters(self):
-        
+
         with open(self.main_path + '/ProjectParametersDEM.json', 'r') as parameters_file:
             self.pp.CFD_DEM = Parameters(parameters_file.read())
-            
+
         import dem_default_input_parameters
         dem_defaults = dem_default_input_parameters.GetDefaultInputParameters()
-    
+
         import swimming_dem_default_input_parameters
         only_swimming_defaults = swimming_dem_default_input_parameters.GetDefaultInputParameters()
-        
+
         for key in only_swimming_defaults.keys():
             dem_defaults.AddValue(key,only_swimming_defaults[key])
-            
-        self.pp.CFD_DEM.ValidateAndAssignDefaults(dem_defaults)        
+
+        self.pp.CFD_DEM.ValidateAndAssignDefaults(dem_defaults)
 
     def SetCouplingParameters(self, varying_parameters):
-        
+
         # First, read the parameters generated from the interface
         self.ReadDispersePhaseAndCouplingParameters()
 
@@ -193,6 +194,7 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_VORTICITY_option").SetBool(True)
         self.pp.CFD_DEM.AddEmptyValue("print_MATERIAL_ACCELERATION_option").SetBool(True)
+        self.pp.CFD_DEM.AddEmptyValue("print_VISCOSITY_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_VELOCITY_GRADIENT_option").SetBool(True)
         self.pp.CFD_DEM.AddEmptyValue("print_DISPERSE_FRACTION_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_FLUID_FRACTION_GRADIENT_option").SetBool(False)
@@ -596,7 +598,7 @@ class Algorithm(object):
                         self.ApplyForwardCoupling()
 
                     else:
-                        self.ApplyForwardCoupling((time_final_DEM_substepping - self.time_dem) / self.Dt)
+                        self.ApplyForwardCoupling(alpha = 1.0 - (time_final_DEM_substepping - self.time_dem) / self.Dt)
 
                         if self.quadrature_counter.Tick():
                             self.AppendValuesForTheHistoryForce()
@@ -668,7 +670,7 @@ class Algorithm(object):
         self.disperse_phase_solution.solver.Solve()
 
     def UpdateALEMeshMovement(self, time):
-        pass       
+        pass
 
     def FluidSolve(self, time = 'None', solve_system = True):
         Say('Solving Fluid... (', self.fluid_model_part.NumberOfElements(0), 'elements )\n')
@@ -749,18 +751,18 @@ class Algorithm(object):
 
     def GetPrintCounterUpdatedDEM(self):
         counter = SDP.Counter(steps_in_cycle = int(self.output_time / self.Dt_DEM + 0.5),
-                                     beginning_step = int(self.Dt / self.Dt_DEM))              
+                                     beginning_step = int(self.Dt / self.Dt_DEM))
 
-        if 'UpdatedDEM' != self.pp.CFD_DEM["coupling_scheme_type"].GetString():   
-            counter.Kill()             
+        if 'UpdatedDEM' != self.pp.CFD_DEM["coupling_scheme_type"].GetString():
+            counter.Kill()
         return counter
 
     def GetPrintCounterUpdatedFluid(self):
         counter = SDP.Counter(steps_in_cycle = int(self.output_time / self.Dt_DEM + 0.5),
                            beginning_step = int(self.Dt / self.Dt_DEM))
 
-        if 'UpdatedFluid' != self.pp.CFD_DEM["coupling_scheme_type"].GetString():   
-            counter.Kill()             
+        if 'UpdatedFluid' != self.pp.CFD_DEM["coupling_scheme_type"].GetString():
+            counter.Kill()
         return counter
 
     def GetDebugInfo(self):

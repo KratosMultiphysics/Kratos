@@ -364,7 +364,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateKinematics(ElementVariable
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
     //Set Shape Functions Values for this integration point
-    rVariables.N=row( Ncontainer, rPointNumber);
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Calculate IntegrationPoint radius
     this->CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N);
@@ -420,14 +420,18 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateRadius(double & rCurrentRa
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             //Displacement from the reference to the current configuration
-            array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-            array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
-	    array_1d<double, 3 > & CurrentPosition      = GetGeometry()[i].Coordinates();
-	    array_1d<double, 3 > ReferencePosition      = CurrentPosition - DeltaDisplacement;
+            // array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            // array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+            // array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
+	    // array_1d<double, 3 > & CurrentPosition      = GetGeometry()[i].Coordinates();
+	    // array_1d<double, 3 > ReferencePosition      = CurrentPosition - DeltaDisplacement;
 
-            rCurrentRadius   += CurrentPosition[0]*rN[i];
-            rReferenceRadius += ReferencePosition[0]*rN[i];
+            // rCurrentRadius   += CurrentPosition[0]*rN[i];
+            // rReferenceRadius += ReferencePosition[0]*rN[i];
+
+	    rCurrentRadius   += rN[i] * GetGeometry()[i].X();
+	    rReferenceRadius += rN[i] * (GetGeometry()[i].X() + GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X,1) - GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X));
+
 	}
 	//std::cout<<" CurrentRadius "<<rCurrentRadius<<std::endl;
     }

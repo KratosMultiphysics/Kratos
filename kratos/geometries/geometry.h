@@ -206,7 +206,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    Geometry() : mpGeometryData( 0 )
+    Geometry() : mpGeometryData(&GeometryDataInstance())
     {
 
     }
@@ -269,10 +269,9 @@ public:
     have gaussian orden two ThisShapeFunctionsValues[GI_GAUSS_2]
     must be an empty ShapeFunctionsGradientsType.
     */
-    Geometry( const PointsArrayType& ThisPoints,
-              GeometryData const* pThisGeometryData = 0 )
-        : BaseType( ThisPoints )
-        , mpGeometryData( pThisGeometryData )
+    Geometry(const PointsArrayType &ThisPoints,
+             GeometryData const *pThisGeometryData = &GeometryDataInstance())
+        : BaseType(ThisPoints), mpGeometryData(pThisGeometryData)
     {
     }
 
@@ -2480,18 +2479,20 @@ private:
     ///@name Private Operations
     ///@{
 
-    static const GeometryData GenerateEmptyGeometryData()
+    static const GeometryData& GeometryDataInstance()
     {
         IntegrationPointsContainerType integration_points = {};
         ShapeFunctionsValuesContainerType shape_functions_values = {};
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {};
-        return GeometryData( 2,
-                             2,
-                             2,
-                             GeometryData::GI_GAUSS_1,
-                             integration_points,
-                             shape_functions_values,
-                             shape_functions_local_gradients );
+        static GeometryData s_geometry_data(3,
+                            3,
+                            3,
+                            GeometryData::GI_GAUSS_1,
+                            integration_points,
+                            shape_functions_values,
+                            shape_functions_local_gradients);
+
+        return s_geometry_data;
     }
 
 
@@ -2549,10 +2550,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 }
 
 ///@}
-
-//        template<class TPointType>
-// /*   const GeometryData Geometry<TPointType>::msEmptyGeometryData = GeometryData(TPointType::Dimension(), TPointType::Dimension(), TPointType::Dimension());  */
-//   const GeometryData Geometry<TPointType>::msEmptyGeometryData = Geometry<TPointType>::GenerateEmptyGeometryData();
 
 
 }  // namespace Kratos.

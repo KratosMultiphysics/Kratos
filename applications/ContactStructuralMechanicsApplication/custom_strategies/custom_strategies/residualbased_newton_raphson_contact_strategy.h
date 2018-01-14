@@ -18,6 +18,7 @@
 #include "boost/smart_ptr.hpp"
 
 /* Project includes */
+#include "contact_structural_mechanics_application_variables.h"
 #include "includes/kratos_parameters.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -281,7 +282,7 @@ public:
                 {      
                     current_time += aux_delta_time;
                     inner_iteration += 1;
-                    this_process_info[TIME_STEPS] += 1;
+                    this_process_info[STEP] += 1;
                     
                     if (inner_iteration == 1)
                     {
@@ -291,10 +292,9 @@ public:
                         }
                         
                         NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-                        const int num_nodes = static_cast<int>(nodes_array.size());
                         
                         #pragma omp parallel for
-                        for(int i = 0; i < num_nodes; i++)  
+                        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)  
                         {
                             auto it_node = nodes_array.begin() + i;
                             
@@ -309,10 +309,9 @@ public:
                     else
                     {
                         NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-                        const int num_nodes = static_cast<int>(nodes_array.size());
                         
                         #pragma omp parallel for
-                        for(int i = 0; i < num_nodes; i++)  
+                        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)  
                         {
                             auto it_node = nodes_array.begin() + i;
                             
@@ -653,10 +652,9 @@ protected:
         }
 
         NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
 
         #pragma omp parallel for
-        for(int i = 0; i < num_nodes; i++)  
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)  
         {
             auto it_node = nodes_array.begin() + i;
 
@@ -675,7 +673,7 @@ protected:
     {
         if (mConvergenceCriteriaEchoLevel != 0)
         {
-            std::cout << "STEP: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] << "\t NON LINEAR ITERATION: " << StrategyBaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << "\t TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] << "\t DELTA TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]  << std::endl;
+            std::cout << "STEP: " << StrategyBaseType::GetModelPart().GetProcessInfo()[STEP] << "\t NON LINEAR ITERATION: " << StrategyBaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << "\t TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] << "\t DELTA TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]  << std::endl;
         }
     }
     

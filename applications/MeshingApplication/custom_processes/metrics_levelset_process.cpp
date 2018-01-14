@@ -12,6 +12,7 @@
 
 // Project includes
 #include "utilities/math_utils.h"
+#include "utilities/variable_utils.h"
 #include "custom_utilities/metrics_math_utils.h"
 #include "custom_processes/metrics_levelset_process.h"
 
@@ -43,15 +44,12 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
     mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
     
     // In case we have isotropic remeshing (default values)
-    if (ThisParameters["anisotropy_remeshing"].GetBool() == false)
-    {
-        mAnisRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+    if (ThisParameters["anisotropy_remeshing"].GetBool() == false) {
+        mAnisotropicRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
         mBoundLayer = DefaultParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
         mInterpolation = ConvertInter(DefaultParameters["anisotropy_parameters"]["interpolation"].GetString());
-    }
-    else
-    {
-        mAnisRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+    } else {
+        mAnisotropicRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
         mBoundLayer = ThisParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
         mInterpolation = ConvertInter(ThisParameters["anisotropy_parameters"]["interpolation"].GetString());
     }
@@ -65,66 +63,51 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 {
     // Iterate in the nodes
     NodesArrayType& nodes_array = mThisModelPart.Nodes();
-    int num_nodes = nodes_array.end() - nodes_array.begin();
+    const int num_nodes = nodes_array.end() - nodes_array.begin();
+    
+    // Some checks
+    VariableUtils().CheckVariableExists(mVariableGradient, nodes_array);
+    VariableUtils().CheckVariableExists(NODAL_H, nodes_array);
     
     #pragma omp parallel for 
-    for(int i = 0; i < num_nodes; i++) 
-    {
+    for(int i = 0; i < num_nodes; ++i)  {
         auto it_node = nodes_array.begin() + i;
         
-        if ( it_node->SolutionStepsDataHas( mVariableGradient ) == false )
-        {
-            KRATOS_ERROR << "Missing gradient variable on node " << it_node->Id() << std::endl;
-        }
-        
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
-        array_1d<double, 3> gradient_value = it_node->FastGetSolutionStepValue(mVariableGradient, 0);
+        array_1d<double, 3>& gradient_value = it_node->FastGetSolutionStepValue(mVariableGradient);
         
-        const double ratio = CalculateAnisotropicRatio(distance, mAnisRatio, mBoundLayer, mInterpolation);
+        const double ratio = CalculateAnisotropicRatio(distance, mAnisotropicRatio, mBoundLayer, mInterpolation);
         
         // For postprocess pourposes
         it_node->SetValue(ANISOTROPIC_RATIO, ratio); 
         
         double element_size = mMinSize;
-        const double& NodalH = it_node->FastGetSolutionStepValue(NODAL_H, 0);
-        if (((element_size > NodalH) && (mEnforceCurrent == true)) || (std::abs(distance) > mBoundLayer))
-        {
-            element_size = NodalH;
-        }
+        const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
+        if (((element_size > nodal_h) && (mEnforceCurrent == true)) || (std::abs(distance) > mBoundLayer))
+            element_size = nodal_h;
         
         const double tolerance = 1.0e-12;
         const double norm_gradient_value = norm_2(gradient_value);
         if (norm_gradient_value > tolerance)
-        {
             gradient_value /= norm_gradient_value;
-        }
         
         // We compute the metric
-    #ifdef KRATOS_DEBUG 
-        if( it_node->Has(MMG_METRIC) == false) 
-        {
-            KRATOS_ERROR <<  " MMG_METRIC not defined for node " << it_node->Id();
-        }
-    #endif     
+#ifdef KRATOS_DEBUG 
+        KRATOS_ERROR_IF_NOT(it_node->Has(MMG_METRIC)) <<  "ERROR:: MMG_METRIC not defined for node " << it_node->Id();
+#endif     
         Vector& metric = it_node->GetValue(MMG_METRIC);
         
-    #ifdef KRATOS_DEBUG 
-        if(metric.size() != TDim * 3 - 3) 
-        {
-            KRATOS_ERROR << "Wrong size of vector MMG_METRIC found for node " << it_node->Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
-        }
-    #endif
+#ifdef KRATOS_DEBUG 
+        KRATOS_ERROR_IF(metric.size() != TDim * 3 - 3) << "Wrong size of vector MMG_METRIC found for node " << it_node->Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
+#endif
         
         const double norm_metric = norm_2(metric);
-        if (norm_metric > 0.0) // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
-        {
+        if (norm_metric > 0.0) { // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
             const Vector& old_metric = it_node->GetValue(MMG_METRIC);
             const Vector& new_metric = ComputeLevelSetMetricTensor(gradient_value, ratio, element_size);
             
             metric = MetricsMathUtils<TDim>::IntersectMetrics(old_metric, new_metric);
-        }
-        else
-        {
+        } else {
             metric = ComputeLevelSetMetricTensor(gradient_value, ratio, element_size);
         }
     }
@@ -136,9 +119,9 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 template<>  
 Vector ComputeLevelSetSolMetricProcess<2>::ComputeLevelSetMetricTensor(
     const array_1d<double, 3>& GradientValue,
-    const double& Ratio,
-    const double& ElementSize
-)
+    const double Ratio,
+    const double ElementSize
+    )
 {
     Vector metric;
     metric.resize(3, false);
@@ -163,9 +146,9 @@ Vector ComputeLevelSetSolMetricProcess<2>::ComputeLevelSetMetricTensor(
 template<>  
 Vector ComputeLevelSetSolMetricProcess<3>::ComputeLevelSetMetricTensor(
     const array_1d<double, 3>& GradientValue,
-    const double& Ratio,
-    const double& ElementSize
-)
+    const double Ratio,
+    const double ElementSize
+    )
 {
     Vector metric;
     metric.resize(6, false);
@@ -197,21 +180,13 @@ template<unsigned int TDim>
 Interpolation ComputeLevelSetSolMetricProcess<TDim>::ConvertInter(const std::string& str)
 {
     if(str == "Constant") 
-    {
         return Constant;
-    }
     else if(str == "Linear") 
-    {
         return Linear;
-    }
     else if(str == "Exponential") 
-    {
         return Exponential;
-    }
     else
-    {
         return Linear;
-    }
 }
     
 /***********************************************************************************/
@@ -219,33 +194,23 @@ Interpolation ComputeLevelSetSolMetricProcess<TDim>::ConvertInter(const std::str
 
 template<unsigned int TDim>  
 double ComputeLevelSetSolMetricProcess<TDim>::CalculateAnisotropicRatio(
-    const double& Distance,
-    const double& rAnisRatio,
-    const double& rBoundLayer,
+    const double Distance,
+    const double AnisotropicRatio,
+    const double BoundLayer,
     const Interpolation& rInterpolation
     )
 {
     const double tolerance = 1.0e-12;
     double ratio = 1.0; // NOTE: Isotropic mesh
-    if (rAnisRatio < 1.0)
-    {                           
-        if (std::abs(Distance) <= rBoundLayer)
-        {
+    if (AnisotropicRatio < 1.0) {                           
+        if (std::abs(Distance) <= BoundLayer) {
             if (rInterpolation == Constant)
-            {
-                ratio = rAnisRatio;
-            }
+                ratio = AnisotropicRatio;
             else if (rInterpolation == Linear)
-            {
-                ratio = rAnisRatio + (std::abs(Distance)/rBoundLayer) * (1.0 - rAnisRatio);
-            }
-            else if (rInterpolation == Exponential)
-            {
-                ratio = - std::log(std::abs(Distance)/rBoundLayer) * rAnisRatio + tolerance;
-                if (ratio > 1.0)
-                {
-                    ratio = 1.0;
-                }
+                ratio = AnisotropicRatio + (std::abs(Distance)/BoundLayer) * (1.0 - AnisotropicRatio);
+            else if (rInterpolation == Exponential) {
+                ratio = - std::log(std::abs(Distance)/BoundLayer) * AnisotropicRatio + tolerance;
+                if (ratio > 1.0) ratio = 1.0;
             }
         }
     }

@@ -144,6 +144,16 @@ public:
         KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
+    virtual void WriteProperties(Properties const& rThisProperties)
+    {
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
+    }
+
+    virtual void WriteProperties(PropertiesContainerType const& rThisProperties)
+    {
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
+    }
+
     virtual void ReadElement(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, Element::Pointer& pThisElements)
     {
         KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
@@ -170,6 +180,11 @@ public:
     }
 
     virtual std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
+    {
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
+    }
+
+    virtual void WriteConditions(ConditionsContainerType const& rThisConditions)
     {
         KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }

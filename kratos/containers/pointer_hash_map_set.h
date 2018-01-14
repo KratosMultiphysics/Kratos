@@ -83,7 +83,7 @@ public:
     typedef TDataType data_type;
     typedef TDataType value_type;
     typedef THashType hasher;
-    typedef TPointerType pointer;
+    typedef TPointerType pointer_type;
     typedef TDataType& reference;
     typedef const TDataType& const_reference;
 	// TODO: I should change this to std::unordered_map when we switch to c++11
@@ -110,7 +110,7 @@ private:
 		bool operator==(const iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
 		bool operator!=(const iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
 		data_type& operator*() const { return *(map_iterator->second); }
-		data_type* operator->() const { return map_iterator->second; }
+		pointer_type operator->() const { return map_iterator->second; }
 		ptr_iterator& base() { return map_iterator; }
 		ptr_iterator const& base() const { return map_iterator; }
 	};
@@ -126,7 +126,7 @@ private:
 		bool operator==(const const_iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
 		bool operator!=(const const_iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
 		data_type const& operator*() const { return *(map_iterator->second); }
-		data_type* operator->() const { return map_iterator->second; }
+		pointer_type operator->() const { return map_iterator->second; }
 		ptr_const_iterator& base() { return map_iterator; }
 		ptr_const_iterator const& base() const { return map_iterator; }
 	};
@@ -183,7 +183,7 @@ public:
 		return *(mData[Key].second);
     }
 
-    pointer& operator()(const key_type& Key)
+    pointer_type& operator()(const key_type& Key)
     {
 		return mData[Key].second;
 	}
@@ -510,7 +510,7 @@ private:
 
 		for (size_type i = 0; i < size; i++)
 		{
- 		        pointer p = nullptr;// new TDataType;
+ 		        pointer_type p = nullptr;// new TDataType;
 			rSerializer.load("E", p);
 			insert(p);
 		}

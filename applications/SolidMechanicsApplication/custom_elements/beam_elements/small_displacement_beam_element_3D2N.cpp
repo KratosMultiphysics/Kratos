@@ -406,7 +406,7 @@ void SmallDisplacementBeamElement3D2N::CalculateElementalSystem( LocalSystemComp
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
 
-	Vector N = row( Ncontainer, PointNumber);
+	Vector N = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 	if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementBeamElement3D2N::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	  {
@@ -1271,7 +1271,7 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
 	
-	Vector N = row( Ncontainer, PointNumber);
+	Vector N = matrix_row<const Matrix>( Ncontainer, PointNumber);
 	
 	//contribution to external forces
 	Vector VolumeForce;
@@ -1481,9 +1481,9 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
     KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
       
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
     KRATOS_CHECK_VARIABLE_KEY(CROSS_SECTION_AREA);
     KRATOS_CHECK_VARIABLE_KEY(LOCAL_INERTIA_TENSOR);
+    //KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
     
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)

@@ -295,7 +295,8 @@ namespace Kratos
 
       //create and initialize element variables:
       ElementVariables Variables;
-
+      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      
       IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
       //full quadrature integration:
       mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
@@ -332,7 +333,7 @@ namespace Kratos
 	  Variables.PointNumber = PointNumber;
 
 	  //set shape functions values for this integration point
-	  Variables.N=row( Ncontainer, PointNumber);
+	  noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 	  //compute local to global frame
 	  this->CalculateFrameMapping( Variables, PointNumber );

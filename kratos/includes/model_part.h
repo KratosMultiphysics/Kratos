@@ -212,7 +212,7 @@ public:
     /// The container of the sub model parts. A hash table is used.
     /**
     */
-    typedef PointerHashMapSet<ModelPart, boost::hash< std::string >, GetModelPartName, ModelPart*>  SubModelPartsContainerType;
+    typedef PointerHashMapSet<ModelPart, boost::hash< std::string >, GetModelPartName, ModelPart::Pointer>  SubModelPartsContainerType;
 
     /// Iterator over the sub model parts of this model part.
     /**	Note that this iterator only iterates over the next level of
@@ -474,6 +474,11 @@ public:
     }
 
     VariablesList& GetNodalSolutionStepVariablesList()
+    {
+        return *mpVariablesList;
+    }
+
+    VariablesList const& GetNodalSolutionStepVariablesList() const
     {
         return *mpVariablesList;
     }
@@ -1032,7 +1037,7 @@ public:
     /** Creates a new sub model part with given name.
     Does nothing if a sub model part with the same name exist.
     */
-    ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
+    ModelPart::Pointer CreateSubModelPart(std::string const& NewSubModelPartName);
 
     /** Add an existing model part as a sub model part.
     	All the meshes will be added to the parents.
@@ -1041,7 +1046,7 @@ public:
     	In the case of conflict the new one would replace the old one
     	resulting inconsitency in parent.
     */
-    void AddSubModelPart(ModelPart& rThisSubModelPart);
+    void AddSubModelPart(ModelPart::Pointer rThisSubModelPart);
 
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
@@ -1054,6 +1059,19 @@ public:
             //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
 
             return *i;
+    }
+
+    /** Returns a shared pointer to the sub_model part with given string name
+    	In debug gives an error if does not exist.
+    */
+    ModelPart::Pointer pGetSubModelPart(std::string const& SubModelPartName)
+    {
+        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+        if(i == mSubModelParts.end())
+            KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
+            //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
+
+            return i.base()->second;
     }
 
     /** Remove a sub modelpart with given name.

@@ -19,62 +19,46 @@
 
 namespace Kratos
 {
-    void ALMFastInit::Execute()
+void ALMFastInit::Execute()
+{
+    KRATOS_TRY;
+    
+    // We differentiate between frictional or frictionless
+    const bool is_frictional = mrThisModelPart.Is(SLIP);
+    
+    // We initialize the penalty parameter
+    const double epsilon = mrThisModelPart.GetProcessInfo()[INITIAL_PENALTY];
+    
+    // We iterate over the nodes
+    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
     {
-        KRATOS_TRY;
+        auto it_node = nodes_array.begin() + i;
         
-        // We initialize the zero vector
-        const array_1d<double, 3> zero_vector(3, 0.0);
+        // Weighted values
+        it_node->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
+        if (is_frictional == true)
+            it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
         
-        // We differentiate between frictional or frictionless
-        const bool is_frictional = mrThisModelPart.Is(SLIP);
+        // Penalty parameter
+        it_node->SetValue(INITIAL_PENALTY, epsilon);
         
-        // We initialize the penalty parameter
-        const double& epsilon = mrThisModelPart.GetProcessInfo()[INITIAL_PENALTY];
-        
-        // We iterate over the node
-        NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
-        
-        #pragma omp parallel for firstprivate(zero_vector)
-        for(int i = 0; i < num_nodes; ++i) 
-        {
-            auto it_node = nodes_array.begin() + i;
-            
-            // Weighted values
-            it_node->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
-            if (is_frictional == true)
-            {
-                it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
-            }
-            
-            // Penalty parameter
-            it_node->SetValue(INITIAL_PENALTY, epsilon);
-            
-            // Nodal area
-            it_node->SetValue(NODAL_AREA, 0.0);
-            
-            // Auxiliar values
-            it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
-            if (is_frictional == true)
-            {
-                it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, 0.0);
-            }
-        }
-        
-        // Now we iterate over the conditions
-        ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
-        const int num_conditions = static_cast<int>(conditions_array.size());
-        
-        #pragma omp parallel for firstprivate(zero_vector)
-        for(int i = 0; i < num_conditions; ++i) 
-        {
-            auto it_cond = conditions_array.begin() + i;
-            
-            // The normal and tangents vectors
-            it_cond->SetValue(NORMAL, zero_vector);
-        }
-
-        KRATOS_CATCH("");
+        // Auxiliar values
+        it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
+        if (is_frictional == true)
+            it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, 0.0);
     }
-}
+    
+    // Now we iterate over the conditions
+    ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
+    
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
+        (conditions_array.begin() + i)->SetValue(NORMAL, ZeroVector(3)); // The normal and tangents vectors
+
+
+    KRATOS_CATCH("");
+} // class ALMFastInit
+} // namespace Kratos
