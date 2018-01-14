@@ -12,7 +12,7 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_implicit_dynamic_solver",
+        "solver_type"                        : "Dynamic",
         "echo_level"                         : 0,
         "time_integration_method"            : "implicit",
         "scheme_type"                        : "newmark",

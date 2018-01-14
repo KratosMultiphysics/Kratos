@@ -40,6 +40,11 @@ class Solution(object):
             if( self.ProjectParameters["problem_data"].Has("echo_level") ):
                 self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
 
+        # Print solving time
+        self.report = False
+        if( self.echo_level > 0 ):
+            self.report = True
+                
         # Defining the number of threads
         num_threads =  self._get_parallel_size()
 
@@ -114,8 +119,7 @@ class Solution(object):
         if( self._is_not_restarted() ):
             self.output.ExecuteBeforeSolutionLoop()
                 
-        # Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
-        self.processes.ExecuteInitializeSolutionStep() #trick to use elimintation builder
+
         self.solver.Initialize()
 
         print(" ")
@@ -143,7 +147,9 @@ class Solution(object):
             sys.stdout.flush()
                   
     def InitializeSolutionStep(self):
-        
+
+        self.clock_time = self._start_time_measuring();
+
         # Current time parameters
         self.delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
 
@@ -163,6 +169,8 @@ class Solution(object):
 
         self.solver.InitializeSolutionStep()
         
+        self._stop_time_measuring(self.clock_time,"Initialize Step", self.report);
+
         
     def SolveSolutionStep(self):
 
@@ -176,11 +184,13 @@ class Solution(object):
 
         self.solver.Solve()
 
-        self._stop_time_measuring(self.clock_time,"Solving", False);
+        self._stop_time_measuring(self.clock_time,"Solve Step", self.report);
 
         
     def FinalizeSolutionStep(self):
         
+        self.clock_time = self._start_time_measuring();
+
         self.output.ExecuteFinalizeSolutionStep()
 
         # Processes to be executed at the end of the solution step
@@ -195,6 +205,8 @@ class Solution(object):
         # Processes to be executed after witting the output
         self.processes.ExecuteAfterOutputStep()
         
+        self._stop_time_measuring(self.clock_time,"Finalize Step", self.report);
+
 
     def Finalize(self):
         

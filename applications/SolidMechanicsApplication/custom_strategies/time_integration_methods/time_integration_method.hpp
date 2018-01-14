@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/process_info.h"
 #include "includes/variables.h"
+#include "includes/node.h"
 #include "custom_utilities/process_info_extensions.hpp"
 
 namespace Kratos
@@ -93,7 +94,7 @@ namespace Kratos
     }
 
     /// Clone
-	TimeIntegrationMethodPointer Clone()
+    TimeIntegrationMethodPointer Clone()
     {
       return TimeIntegrationMethodPointer( new TimeIntegrationMethod(*this) );
     }
@@ -114,8 +115,13 @@ namespace Kratos
     {
     
     }
+
+    virtual void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo)
+    {
     
-    // get parameters
+    }
+    
+    // get parameters   
     virtual double& GetMethodParameter(double& rParameter)
     {
       rParameter = 0.0;
@@ -134,6 +140,23 @@ namespace Kratos
       return rParameter;
     }
 
+    // set nodal variable
+    void SetVariable(const TVariableType& rVariable)
+    {
+      mpVariable = &rVariable;
+    }
+
+    // set nodal variable first derivative
+    void SetFirstDerivative(const TVariableType& rFirstDerivative)
+    {
+      mpFirstDerivative = &rFirstDerivative;
+    }
+
+    // set nodal variable second derivative
+    void SetSecondDerivative(const TVariableType& rSecondDerivative)
+    {
+      mpSecondDerivative = &rSecondDerivative;
+    }
     
     // set time integration nodal variables
     void SetVariables(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative)
@@ -151,29 +174,24 @@ namespace Kratos
       mpInputVariable = &rVariable;
     }
 
-    // predict
+    virtual bool HasStepVariable()
+    {
+      return false;
+    }
     
+    // set step variable (step variable)
+    virtual void SetStepVariable(const TVariableType& rStepVariable)
+    {
+      KRATOS_ERROR << " Calling SetStepVariable from time integration base class " <<std::endl;
+    }
+    
+    // predict
     virtual void Predict(NodeType& rNode)
     {
       KRATOS_ERROR << " Calling predict from time integration base class " <<std::endl;
     }
 
-    virtual void PredictVariable(NodeType& rNode)
-    {
-      KRATOS_ERROR << " Calling predict variable from time integration base class " <<std::endl;
-    }
-
-    virtual void PredictFirstDerivative(NodeType& rNode)
-    {
-      KRATOS_ERROR << " Calling predict first derivative from time integration base class " <<std::endl;
-    }
-
-    virtual void PredictSecondDerivative(NodeType& rNode)
-    {
-      KRATOS_ERROR << " Calling predict second derivative from time integration base class " <<std::endl;
-    }
-
-    
+  
     // update
     
     virtual void Update(NodeType& rNode)
@@ -181,20 +199,6 @@ namespace Kratos
       KRATOS_ERROR << " Calling update from time integration base class " <<std::endl;
     }
 
-    virtual void UpdateVariable(NodeType& rNode)
-    {
-      KRATOS_ERROR << " Calling update variable from time integration base class " <<std::endl;
-    }
-
-    virtual void UpdateFirstDerivative(NodeType& rNode)
-    {
-      KRATOS_ERROR << " Calling update first derivative from time integration base class " <<std::endl;
-    }
-
-    virtual void UpdateSecondDerivative(NodeType& rNode)
-    {
-      KRATOS_ERROR << " Calling update second derivative from time integration base class " <<std::endl;
-    }
     
     ///@}
     ///@name Access
@@ -267,6 +271,53 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
+ 
+    virtual void PredictFromVariable(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict from variable from time integration base class " <<std::endl;
+    }
+    
+    virtual void PredictFromFirstDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict from first derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void PredictFromSecondDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict from second derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void PredictVariable(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict variable from time integration base class " <<std::endl;
+    }
+
+    virtual void PredictFirstDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict first derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void PredictSecondDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict second derivative from time integration base class " <<std::endl;
+    }
+
+    
+    virtual void UpdateVariable(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling update variable from time integration base class " <<std::endl;
+    }
+
+    virtual void UpdateFirstDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling update first derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void UpdateSecondDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling update second derivative from time integration base class " <<std::endl;
+    }
+
 
     ///@}
     ///@name Protected  Access
@@ -335,6 +386,7 @@ namespace Kratos
     
   public:
 
+    DECLARE_HAS_THIS_TYPE_PROCESS_INFO
     DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO
     DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO
     
@@ -354,6 +406,7 @@ namespace Kratos
   template<class TVariableType, class TValueType>
   inline std::istream & operator >> (std::istream & rIStream, TimeIntegrationMethod<TVariableType,TValueType>& rThis)
   {
+    return rIStream;
   }
 
   template<class TVariableType, class TValueType>
