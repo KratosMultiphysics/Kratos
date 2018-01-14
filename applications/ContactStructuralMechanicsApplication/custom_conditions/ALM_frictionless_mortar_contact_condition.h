@@ -69,6 +69,8 @@ public:
     
     typedef Condition                                                                        ConditionBaseType;
     
+    typedef PairedCondition                                                            PairedConditionBaseType;
+    
     typedef typename ConditionBaseType::VectorType                                                  VectorType;
 
     typedef typename ConditionBaseType::MatrixType                                                  MatrixType;
@@ -79,6 +81,8 @@ public:
 
     typedef typename ConditionBaseType::NodesArrayType                                          NodesArrayType;
 
+    typedef typename ConditionBaseType::PropertiesType                                          PropertiesType;
+    
     typedef typename ConditionBaseType::PropertiesType::Pointer                          PropertiesPointerType;
     
     typedef typename ConditionBaseType::EquationIdVectorType                              EquationIdVectorType;
@@ -102,17 +106,35 @@ public:
     ///@{
 
     /// Default constructor
-    AugmentedLagrangianMethodFrictionlessMortarContactCondition(): BaseType() 
+    AugmentedLagrangianMethodFrictionlessMortarContactCondition()
+        : BaseType() 
     {
     }
     
     // Constructor 1
-    AugmentedLagrangianMethodFrictionlessMortarContactCondition(IndexType NewId, GeometryPointerType pGeometry):BaseType(NewId, pGeometry)
+    AugmentedLagrangianMethodFrictionlessMortarContactCondition(
+        IndexType NewId, 
+        GeometryPointerType pGeometry
+        ):BaseType(NewId, pGeometry)
     {
     }
     
     // Constructor 2
-    AugmentedLagrangianMethodFrictionlessMortarContactCondition(IndexType NewId, GeometryPointerType pGeometry, PropertiesPointerType pProperties):BaseType( NewId, pGeometry, pProperties )
+    AugmentedLagrangianMethodFrictionlessMortarContactCondition(
+        IndexType NewId, 
+        GeometryPointerType pGeometry, 
+        PropertiesPointerType pProperties
+        ):BaseType( NewId, pGeometry, pProperties )
+    {
+    }
+    
+    // Constructor 3
+    AugmentedLagrangianMethodFrictionlessMortarContactCondition(
+        IndexType NewId, 
+        GeometryPointerType pGeometry, 
+        PropertiesPointerType pProperties,
+        GeometryType::Pointer pMasterGeometry
+        ):BaseType( NewId, pGeometry, pProperties, pMasterGeometry )
     {
     }
 
@@ -135,9 +157,9 @@ public:
    
     /**
      * Creates a new element pointer from an arry of nodes
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     
@@ -149,9 +171,9 @@ public:
     
     /**
      * Creates a new element pointer from an existing geometry
-     * @param NewId: the ID of the new element
-     * @param pGeom: the  geometry taken to create the condition
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param pGeom the  geometry taken to create the condition
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     
@@ -161,14 +183,30 @@ public:
         PropertiesPointerType pProperties
         ) const override;
         
+    /**
+     * Creates a new element pointer from an existing geometry
+     * @param NewId the ID of the new element
+     * @param pGeom the  geometry taken to create the condition
+     * @param pProperties the properties assigned to the new element
+     * @param pMasterGeom the paired geometry
+     * @return a Pointer to the new element
+     */
+    
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryPointerType pGeom,
+        PropertiesPointerType pProperties,
+        GeometryPointerType pMasterGeom
+        ) const override;
+        
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
-     * @return rResult: The result vector with the ID's of the DOF
-     * @param rCurrentProcessInfo: the current process info instance
+     * @return rResult The result vector with the ID's of the DOF
+     * @param rCurrentProcessInfo the current process info instance
      */
     
     void EquationIdVector( 
@@ -179,7 +217,7 @@ public:
     /**
      * Sets on ConditionalDofList the degrees of freedom of the considered element geometry
      * @return rConditionalDofList
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rCurrentProcessInfo the current process info instance
      */
     
     void GetDofList( 
@@ -265,14 +303,9 @@ protected:
     unsigned int GetActiveInactiveValue(GeometryType& CurrentGeometry) const override
     {
         unsigned int value = 0;
-        
-        for (unsigned int i_node = 0; i_node < CurrentGeometry.size(); i_node++)
-        {
-            if ((CurrentGeometry[i_node].Is(ACTIVE) == true) || (this->Is(VISITED) == true))
-            {
-                value += std::pow(2, i_node);
-            }
-        }
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+            if (CurrentGeometry[i_node].Is(ACTIVE) == true)
+                value += 1 << i_node;
         
         return value;
     }

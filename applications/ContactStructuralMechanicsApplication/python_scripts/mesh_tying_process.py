@@ -32,8 +32,8 @@ class MeshTyingProcess(python_process.PythonProcess):
             "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
             "bucket_size"                 : 4,
-            "use_exact_integration"       : true,
             "type_search"                 : "InRadius",
+            "check_gap"                   : "CheckMapping",
             "integration_order"           : 2
         }
         """)
@@ -50,16 +50,27 @@ class MeshTyingProcess(python_process.PythonProcess):
         self.mesh_tying_model_part = model_part[self.params["mesh_tying_model_part"].GetString()]
         
         if (self.params["assume_master_slave"].GetString() != ""):
+            for node in self.main_model_part.Nodes:
+                node.Set(KratosMultiphysics.SLAVE, False)
+                node.Set(KratosMultiphysics.MASTER, True)
+            del(node)
             for node in model_part[self.params["assume_master_slave"].GetString()].Nodes:
                 node.Set(KratosMultiphysics.SLAVE, True)
+                node.Set(KratosMultiphysics.MASTER, False)
+            del(node)
 
         self.type_variable     = self.params["type_variable"].GetString() 
         self.geometry_element  = self.params["geometry_element"].GetString() 
         
     def ExecuteInitialize(self):
+        # The computing model part
+        computing_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name)
+        
+        # We compute NODAL_H that can be used in the search and some values computation
+        self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(computing_model_part)
+        self.find_nodal_h.Execute()
         
         # Appending the conditions created to the self.main_model_part
-        computing_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name)
         if (computing_model_part.HasSubModelPart("Contact")):
             interface_model_part = computing_model_part.GetSubModelPart("Contact")
         else:
@@ -77,15 +88,11 @@ class MeshTyingProcess(python_process.PythonProcess):
         
         self.Preprocess = ContactStructuralMechanicsApplication.InterfacePreprocessCondition(self.main_model_part)
         
-        condition_name = "MeshTyingMortar"
-        
         #print("MODEL PART BEFORE CREATING INTERFACE")
         #print(self.main_model_part) 
         
         # It should create the conditions automatically
-        interface_parameters = KratosMultiphysics.Parameters("""{"condition_name": "", "final_string": "", "simplify_geometry": false}""")
-        interface_parameters["condition_name"].SetString(condition_name)
-        interface_parameters["final_string"].SetString(self.geometry_element + self.type_variable)
+        interface_parameters = KratosMultiphysics.Parameters("""{"simplify_geometry": false}""")
         if (self.dimension == 2):
             self.Preprocess.GenerateInterfacePart2D(computing_model_part, self.mesh_tying_model_part, interface_parameters) 
         else:
@@ -108,13 +115,26 @@ class MeshTyingProcess(python_process.PythonProcess):
         del(node)
         
         # Creating the search
-        search_parameters = KratosMultiphysics.Parameters("""{}""")
+        condition_name = "MeshTyingMortar"
+        search_parameters = KratosMultiphysics.Parameters("""{"condition_name": "", "final_string": ""}""")
         search_parameters.AddValue("type_search",self.params["type_search"])
+        search_parameters.AddValue("check_gap",self.params["check_gap"])
         search_parameters.AddValue("allocation_size",self.params["max_number_results"])
         search_parameters.AddValue("bucket_size",self.params["bucket_size"])
         search_parameters.AddValue("search_factor",self.params["search_factor"])
-        search_parameters.AddValue("use_exact_integration",self.params["use_exact_integration"])
-        self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch(computing_model_part, search_parameters)
+        search_parameters["condition_name"].SetString(condition_name)
+        search_parameters["final_string"].SetString(self.geometry_element + self.type_variable)
+        for cond in computing_model_part.Conditions:
+            number_nodes = len(cond.GetNodes())
+            break
+        del(cond)
+        if (self.dimension == 2):
+            self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch2D2N(computing_model_part, search_parameters)
+        else:
+            if (number_nodes == 3):
+                self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch3D3N(computing_model_part, search_parameters)
+            else:
+                self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch3D4N(computing_model_part, search_parameters)
         
         ZeroVector = KratosMultiphysics.Vector(3) 
         ZeroVector[0] = 0.0
@@ -127,8 +147,7 @@ class MeshTyingProcess(python_process.PythonProcess):
                 node.SetSolutionStepValue(ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL, 0.0)
             else:
                 node.SetSolutionStepValue(ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL, ZeroVector)
-            node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
-            node.SetValue(KratosMultiphysics.NORMAL, ZeroVector)
+            node.SetSolutionStepValue(KratosMultiphysics.NORMAL, ZeroVector)
         del node
         
         # Setting the conditions 
@@ -141,9 +160,9 @@ class MeshTyingProcess(python_process.PythonProcess):
         
     def ExecuteBeforeSolutionLoop(self):
         if (self.type_variable == "Scalar"):
-            self.contact_search.TotalClearScalarMortarConditions()
+            self.contact_search.ClearScalarMortarConditions()
         else:
-            self.contact_search.TotalClearComponentsMortarConditions()
+            self.contact_search.ClearComponentsMortarConditions()
             
         self.contact_search.UpdateMortarConditions()
         #self.contact_search.CheckMortarConditions()
