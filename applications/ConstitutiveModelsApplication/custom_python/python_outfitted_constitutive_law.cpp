@@ -32,7 +32,7 @@ PythonOutfittedConstitutiveLaw::PythonOutfittedConstitutiveLaw()
 PythonOutfittedConstitutiveLaw::PythonOutfittedConstitutiveLaw(PyObject* pPyConstitutiveLaw)
     : ConstitutiveLaw()
 {
-  mpPyConstitutiveLaw = boost::make_shared<boost::python::object>(boost::python::object( boost::python::handle<>( boost::python::borrowed(pPyConstitutiveLaw) ) ));
+  mpPyConstitutiveLaw = Kratos::make_shared<boost::python::object>(boost::python::object( boost::python::handle<>( boost::python::borrowed(pPyConstitutiveLaw) ) ));
     //boost::python::call_method<void>(mpPyConstitutiveLaw->ptr(), "CallLaw");
 
 }

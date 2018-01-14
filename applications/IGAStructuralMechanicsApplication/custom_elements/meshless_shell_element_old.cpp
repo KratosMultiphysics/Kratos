@@ -95,7 +95,7 @@ Element::Pointer MeshlessShellElement::Create(
 	NodesArrayType const& ThisNodes,  
 	PropertiesType::Pointer pProperties) const
 {
-	return boost::make_shared< MeshlessShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+	return Kratos::make_shared< MeshlessShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 MeshlessShellElement::~MeshlessShellElement()

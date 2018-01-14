@@ -96,9 +96,9 @@ class ModifiedBarcelonaBasicModel : public ConstitutiveLaw
          * Clone function
          * @return a pointer to a new instance of this constitutive law
          */
-        virtual boost::shared_ptr<BaseType> Clone() const
+        virtual Kratos::shared_ptr<BaseType> Clone() const
         {
-            boost::shared_ptr<BaseType> p_clone ( new ModifiedBarcelonaBasicModel() );
+            Kratos::shared_ptr<BaseType> p_clone ( new ModifiedBarcelonaBasicModel() );
             return p_clone;
         }
 

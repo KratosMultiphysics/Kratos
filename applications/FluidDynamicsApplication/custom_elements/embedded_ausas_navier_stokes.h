@@ -159,13 +159,13 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override {
         KRATOS_TRY
-        return boost::make_shared< EmbeddedAusasNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_shared< EmbeddedAusasNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
         KRATOS_TRY
-        return boost::make_shared< EmbeddedAusasNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< EmbeddedAusasNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -440,9 +440,9 @@ protected:
             // Construct the modified shape fucntions utility
             ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = nullptr;
             if (TNumNodes == 4) {
-                p_ausas_modified_sh_func = boost::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_geom, distances);
+                p_ausas_modified_sh_func = Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_geom, distances);
             } else {
-                p_ausas_modified_sh_func = boost::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_geom, distances);
+                p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_geom, distances);
             }
 
             // Call the positive side modified shape functions calculator

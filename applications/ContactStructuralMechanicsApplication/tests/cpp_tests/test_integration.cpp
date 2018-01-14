@@ -565,7 +565,7 @@ namespace Kratos
             {
                 PointType aux_point;
                 aux_point.Coordinates() = triangle_0[i_node].Coordinates();
-                points_array[i_node] = boost::make_shared<PointType>(aux_point);
+                points_array[i_node] = Kratos::make_shared<PointType>(aux_point);
             }
             
             Triangle3D3 <PointType> aux_geometry(  points_array  );

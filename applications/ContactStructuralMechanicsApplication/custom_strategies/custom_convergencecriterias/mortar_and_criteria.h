@@ -102,7 +102,7 @@ public:
 
     typedef typename BaseType::TSystemVectorType        TSystemVectorType;
     
-    typedef boost::shared_ptr<TableStreamUtility> TablePrinterPointerType;
+    typedef Kratos::shared_ptr<TableStreamUtility> TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle

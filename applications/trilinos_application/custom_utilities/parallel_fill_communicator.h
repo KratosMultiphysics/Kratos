@@ -317,7 +317,7 @@ protected:
     {
         int root_id = 0;
         
-        Communicator::Pointer pnew_comm = boost::make_shared< MPICommunicator >(&rModelPart.GetNodalSolutionStepVariablesList());
+        Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&rModelPart.GetNodalSolutionStepVariablesList());
         rModelPart.SetCommunicator(pnew_comm);
 
 

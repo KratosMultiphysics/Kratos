@@ -81,7 +81,7 @@ public:
     /**
      * Counted pointer of Viscoplastic3D
      */
-    typedef boost::shared_ptr<Viscoplastic3D> Pointer;
+    typedef Kratos::shared_ptr<Viscoplastic3D> Pointer;
 
     /**
      * Life Cycle
@@ -91,9 +91,9 @@ public:
      */
     Viscoplastic3D();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual Kratos::shared_ptr<ConstitutiveLaw> Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone( new Viscoplastic3D() );
+        Kratos::shared_ptr<ConstitutiveLaw> p_clone( new Viscoplastic3D() );
         return p_clone;
     }
 

@@ -96,9 +96,9 @@ class FreezingSoilElastoplasticModel : public ConstitutiveLaw
          * Clone function
          * @return a pointer to a new instance of this constitutive law
          */
-        virtual boost::shared_ptr<BaseType> Clone() const
+        virtual Kratos::shared_ptr<BaseType> Clone() const
         {
-            boost::shared_ptr<BaseType> p_clone ( new FreezingSoilElastoplasticModel() );
+            Kratos::shared_ptr<BaseType> p_clone ( new FreezingSoilElastoplasticModel() );
             return p_clone;
         }
 

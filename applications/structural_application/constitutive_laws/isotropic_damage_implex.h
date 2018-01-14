@@ -86,7 +86,7 @@ public:
     /**
      * Counted pointer of Isotropic_Damage_Implex
      */
-    typedef boost::shared_ptr<IsotropicDamageIMPLEX> Pointer;
+    typedef Kratos::shared_ptr<IsotropicDamageIMPLEX> Pointer;
 
     /**
      * Life Cycle
@@ -96,9 +96,9 @@ public:
      */
     IsotropicDamageIMPLEX();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual Kratos::shared_ptr<ConstitutiveLaw> Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone( new IsotropicDamageIMPLEX() );
+        Kratos::shared_ptr<ConstitutiveLaw> p_clone( new IsotropicDamageIMPLEX() );
         return p_clone;
     }
 

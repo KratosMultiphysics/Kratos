@@ -341,7 +341,7 @@ protected:
         Epetra_Map dof_update_map(-1,index_array.size(), &(*(index_array.begin())),0,Dx.Comm() );
 
         //defining the importer class
-        boost::shared_ptr<Epetra_Import> pDofImporter( new Epetra_Import(dof_update_map,Dx.Map()) );
+        Kratos::shared_ptr<Epetra_Import> pDofImporter( new Epetra_Import(dof_update_map,Dx.Map()) );
         mpDofImporter.swap(pDofImporter);
 
         mImporterIsInitialized = true;
@@ -378,7 +378,7 @@ private:
 
     bool mImporterIsInitialized;
 
-    boost::shared_ptr<Epetra_Import> mpDofImporter;
+    Kratos::shared_ptr<Epetra_Import> mpDofImporter;
 
     /*@} */
     /**@name Private Operators*/

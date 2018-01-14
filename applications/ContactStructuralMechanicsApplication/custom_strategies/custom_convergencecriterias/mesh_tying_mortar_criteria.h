@@ -74,7 +74,7 @@ public:
     
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
     
-    typedef boost::shared_ptr<TableStreamUtility>                TablePrinterPointerType;
+    typedef Kratos::shared_ptr<TableStreamUtility>                TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle

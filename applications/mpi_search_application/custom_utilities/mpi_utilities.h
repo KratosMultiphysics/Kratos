@@ -444,7 +444,7 @@ namespace Kratos
           int number_of_meshes =  ModelPart::Kratos_Ownership_Size + colors_number; // (all + local + ghost) + (colors_number for interfaces)
           if(rModelPart.GetMeshes().size() < static_cast<unsigned int>(number_of_meshes)) {
             for(int i = rModelPart.GetMeshes().size() ; i < number_of_meshes ; i++) {
-              rModelPart.GetMeshes().push_back(boost::make_shared<ModelPart::MeshType>());
+              rModelPart.GetMeshes().push_back(Kratos::make_shared<ModelPart::MeshType>());
             }
           }
 

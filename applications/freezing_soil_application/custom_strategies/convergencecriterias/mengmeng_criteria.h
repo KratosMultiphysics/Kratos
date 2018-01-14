@@ -122,7 +122,7 @@ public:
 /**@name Type Definitions */       
 /*@{ */
 
-typedef boost::shared_ptr< MengmengCriteria< TSparseSpace, TDenseSpace > > Pointer;	
+typedef Kratos::shared_ptr< MengmengCriteria< TSparseSpace, TDenseSpace > > Pointer;	
 typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 typedef typename BaseType::TDataType TDataType;
 typedef typename BaseType::DofsArrayType DofsArrayType;

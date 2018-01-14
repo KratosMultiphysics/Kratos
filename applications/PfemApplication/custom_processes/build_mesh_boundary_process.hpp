@@ -292,7 +292,7 @@ namespace Kratos
 				
 				if( condition_found ){
 				
-				  pBoundaryCondition = (*(ic.base())); //accessing boost::shared_ptr  get() to obtain the raw pointer
+				  pBoundaryCondition = (*(ic.base())); //accessing Kratos::shared_ptr  get() to obtain the raw pointer
 				  rPreservedConditions[ic->Id()-1] += 1; //add each time is used
 
 				  if( rConditionGeometry.PointsNumber() == 1 )
@@ -311,7 +311,7 @@ namespace Kratos
 				
 				if( condition_found ){
 				
-				  pBoundaryCondition = (*(ic.base())); //accessing boost::shared_ptr  get() to obtain the raw pointer
+				  pBoundaryCondition = (*(ic.base())); //accessing Kratos::shared_ptr  get() to obtain the raw pointer
 				  rPreservedConditions[ic->Id()-1] += 1; //add each time is used
 
 				  if( rConditionGeometry.PointsNumber() == 1 )

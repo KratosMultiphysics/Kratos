@@ -55,8 +55,8 @@ using namespace boost::python;
 
 void  AddCustomStrategiesToPython()
 {
-    typedef boost::shared_ptr<TableStreamUtility> TablePrinterPointerType;
-    typedef boost::shared_ptr<ProcessFactoryUtility> ProcessesListType;
+    typedef Kratos::shared_ptr<TableStreamUtility> TablePrinterPointerType;
+    typedef Kratos::shared_ptr<ProcessFactoryUtility> ProcessesListType;
     
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;

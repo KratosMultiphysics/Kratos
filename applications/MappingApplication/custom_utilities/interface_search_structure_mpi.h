@@ -283,7 +283,7 @@ private:
         std::vector<double> min_distances(mReceiveBufferSize);
         std::vector<std::vector<double>> shape_function_values(mReceiveBufferSize);
         std::vector<int> pairing_indices(mReceiveBufferSize);
-        // auto local_coordinates = boost::shared_ptr<std::vector<array_1d<double,2>>>(new std::vector<array_1d<double,2>>(max_receive_buffer_size));
+        // auto local_coordinates = Kratos::shared_ptr<std::vector<array_1d<double,2>>>(new std::vector<array_1d<double,2>>(max_receive_buffer_size));
 
         int send_buffer_size;
         int receive_buffer_size;

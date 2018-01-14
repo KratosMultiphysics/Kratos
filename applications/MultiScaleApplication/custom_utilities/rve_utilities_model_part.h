@@ -102,7 +102,7 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 		//NodeType& source_node = *node_iter;
 
 		NodeType::Pointer p_clone_node = node_iter->Clone();
-		//		boost::make_shared<NodeType>();
+		//		Kratos::make_shared<NodeType>();
 		//NodeType& clone_node = *p_clone_node;
 
 		/*clone_node.SetSolutionStepVariablesList(&clone.GetNodalSolutionStepVariablesList());
@@ -124,7 +124,7 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 		{
 			clone_node.pAddDof(*dof_iter);
 			//NodeType::DofType& idof = *dof_iter;
-			//clone_dof_container.insert(clone_dof_container.begin(), boost::make_shared<NodeType::DofType>(idof));
+			//clone_dof_container.insert(clone_dof_container.begin(), Kratos::make_shared<NodeType::DofType>(idof));
 		}*/
 
 //		clone.AddNode(p_clone_node);

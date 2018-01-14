@@ -173,7 +173,7 @@ namespace Kratos
 	Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             Element::PropertiesType::Pointer pProperties) const override
 	{
-            return boost::make_shared< FractionalStep<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+            return Kratos::make_shared< FractionalStep<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 	}
 	
         /**
@@ -186,7 +186,7 @@ namespace Kratos
 		
         Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override
         {
-            return boost::make_shared< FractionalStep<TDim> >(NewId, pGeom, pProperties);
+            return Kratos::make_shared< FractionalStep<TDim> >(NewId, pGeom, pProperties);
         }
         
         /**

@@ -206,7 +206,7 @@ public:
       @param pProperties Pointer to the element's properties
       */
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
-        return boost::make_shared< EmbeddedAusasNavierStokesWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< EmbeddedAusasNavierStokesWallCondition >(NewId, pGeom, pProperties);
     }
 
     /**
@@ -740,10 +740,10 @@ protected:
             // Construct the modified shape functions utility with the parent element pointer
             ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = nullptr;
             if (n_parent_nodes == 4) {
-                p_ausas_modified_sh_func = boost::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_parent_geometry, distances);
+                p_ausas_modified_sh_func = Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_parent_geometry, distances);
             }
             else if (n_parent_nodes == 3) {
-                p_ausas_modified_sh_func = boost::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_parent_geometry, distances);
+                p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_parent_geometry, distances);
             } else {
                 KRATOS_ERROR << "Asking for a non-implemented geometry modified shape functions utility.";
             }

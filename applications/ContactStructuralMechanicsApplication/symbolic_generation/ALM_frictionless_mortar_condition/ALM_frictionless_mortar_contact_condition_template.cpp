@@ -31,7 +31,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<T
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return boost::make_shared< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_shared< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -43,7 +43,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<T
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return boost::make_shared<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties );
+    return Kratos::make_shared<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties );
 }
 
 /************************************* DESTRUCTOR **********************************/

@@ -85,7 +85,7 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< ResidualBasedRelaxationScheme<TSparseSpace,TDenseSpace> > Pointer;
+    //typedef Kratos::shared_ptr< ResidualBasedRelaxationScheme<TSparseSpace,TDenseSpace> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedRelaxationScheme );
 
     typedef Scheme<TSparseSpace, TDenseSpace> BaseType;

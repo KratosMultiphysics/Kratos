@@ -66,7 +66,7 @@ namespace Kratos
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< ExplicitHamiltonScheme<TSparseSpace,TDenseSpace> > Pointer;
+    //typedef Kratos::shared_ptr< ExplicitHamiltonScheme<TSparseSpace,TDenseSpace> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ExplicitHamiltonScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;

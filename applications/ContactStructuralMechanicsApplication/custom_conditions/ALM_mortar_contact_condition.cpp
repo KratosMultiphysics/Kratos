@@ -49,7 +49,7 @@ Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNode
 {
     KRATOS_ERROR << "You are calling to the base class method Create, check your condition declaration" << std::endl;
     
-    return boost::make_shared< AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_shared< AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -63,7 +63,7 @@ Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNode
 {
     KRATOS_ERROR << "You are calling to the base class method Create, check your condition declaration" << std::endl;
     
-    return boost::make_shared< AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> >( NewId, pGeom, pProperties );
+    return Kratos::make_shared< AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> >( NewId, pGeom, pProperties );
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -393,7 +393,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
                     {
                         PointType global_point;
                         slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                        points_array[i_node] = boost::make_shared<PointType>(global_point);
+                        points_array[i_node] = Kratos::make_shared<PointType>(global_point);
                         belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
                     }
                     
@@ -575,7 +575,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                     {
                         PointType global_point;
                         slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                        points_array[i_node] = boost::make_shared<PointType>(global_point);
+                        points_array[i_node] = Kratos::make_shared<PointType>(global_point);
                         belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
                     }
                     

@@ -85,7 +85,7 @@ public:
   typedef typename BaseConfigure::PointType           PointType;
 
   typedef PartitionObject<std::unordered_set<int>>    ObjectType;
-  typedef boost::shared_ptr<ObjectType>               PointerType;
+  typedef Kratos::shared_ptr<ObjectType>               PointerType;
   typedef typename BaseConfigure::PointerType         BasePointerType;
 
   /** Additional types needed by the bins.

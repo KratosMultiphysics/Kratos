@@ -204,10 +204,10 @@ namespace Kratos
                             {
                                 PointType global_point;
                                 slave_geometry_1.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                                points_array[i_node] = boost::make_shared<PointType>(global_point);
+                                points_array[i_node] = Kratos::make_shared<PointType>(global_point);
                                 belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
                                 slave_geometry_0.GlobalCoordinates(global_point, conditions_points_slave0[i_geom][i_node]);
-                                points_array0[i_node] = boost::make_shared<PointType>(global_point);
+                                points_array0[i_node] = Kratos::make_shared<PointType>(global_point);
                             }
                             
                             if (Check == LEVEL_DEBUG || Check == LEVEL_FULL_DEBUG) KRATOS_WATCH(belong_array);

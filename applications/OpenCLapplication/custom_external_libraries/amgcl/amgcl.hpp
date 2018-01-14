@@ -200,7 +200,7 @@ class solver {
 
             index_t sum_dof = 0;
             index_t sum_nnz = 0;
-            for(typename std::list< boost::shared_ptr<level_type> >::const_iterator lvl = hier.begin(); lvl != hier.end(); ++lvl) {
+            for(typename std::list< Kratos::shared_ptr<level_type> >::const_iterator lvl = hier.begin(); lvl != hier.end(); ++lvl) {
                 sum_dof += (*lvl)->size();
                 sum_nnz += (*lvl)->nonzeros();
             }
@@ -214,7 +214,7 @@ class solver {
                << "---------------------------------\n";
 
             index_t depth = 0;
-            for(typename std::list< boost::shared_ptr<level_type> >::const_iterator lvl = hier.begin(); lvl != hier.end(); ++lvl, ++depth)
+            for(typename std::list< Kratos::shared_ptr<level_type> >::const_iterator lvl = hier.begin(); lvl != hier.end(); ++lvl, ++depth)
                 os << std::setw(5)  << depth
                    << std::setw(13) << (*lvl)->size()
                    << std::setw(15) << (*lvl)->nonzeros() << " ("
@@ -240,7 +240,7 @@ class solver {
             if (static_cast<size_t>(A.rows) <= prm.coarse_enough) {
                 TIC("coarsest level");
                 matrix Ai = sparse::inverse(A);
-                hier.push_back( boost::shared_ptr<level_type>(new level_type(A, Ai, prm.level, nlevel) ) );
+                hier.push_back( Kratos::shared_ptr<level_type>(new level_type(A, Ai, prm.level, nlevel) ) );
                 TOC("coarsest level");
             } else {
                 TIC("construct level");
@@ -259,7 +259,7 @@ class solver {
                 TOC("construct level");
 
                 TIC("transfer level data");
-                hier.push_back( boost::shared_ptr<level_type>(new level_type(A, P, R, prm.level, nlevel) ) );
+                hier.push_back( Kratos::shared_ptr<level_type>(new level_type(A, P, R, prm.level, nlevel) ) );
                 TOC("transfer level data");
 
                 build_level(a, prm, nlevel + 1);
@@ -267,7 +267,7 @@ class solver {
         }
 
         params prm;
-        std::list< boost::shared_ptr<level_type> > hier;
+        std::list< Kratos::shared_ptr<level_type> > hier;
 };
 
 } // namespace amgcl

@@ -134,8 +134,8 @@ public:
         if (!(mr_model_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)))
             KRATOS_THROW_ERROR(std::logic_error, "PARTITION_INDEX Variable is not in the model part -- mpi not possible", "");
 
-        boost::shared_ptr<Epetra_FECrsMatrix> p_edge_ids; //helper matrix to assign ids to the edges to be  refined
-        boost::shared_ptr<Epetra_FECrsMatrix> p_partition_ids; //helper matrix to assign a partition to the edges
+        Kratos::shared_ptr<Epetra_FECrsMatrix> p_edge_ids; //helper matrix to assign ids to the edges to be  refined
+        Kratos::shared_ptr<Epetra_FECrsMatrix> p_partition_ids; //helper matrix to assign a partition to the edges
         boost::numeric::ublas::vector<int> List_New_Nodes; ///* the news nodes
         boost::numeric::ublas::vector<int> partition_new_nodes; ///* the news nodes
         boost::numeric::ublas::vector<array_1d<int, 2 > > father_node_ids; ///* edges where are the news nodes
@@ -234,15 +234,15 @@ public:
     void Clear()
     {
         KRATOS_TRY
-        boost::shared_ptr<Epetra_Map> empty_map;
+        Kratos::shared_ptr<Epetra_Map> empty_map;
         empty_map.swap(mp_non_overlapping_map);
 
         mtotal_number_of_existing_nodes = 0;
 
-        boost::shared_ptr<Epetra_FECrsGraph> empty1;
+        Kratos::shared_ptr<Epetra_FECrsGraph> empty1;
         mp_non_overlapping_graph.swap(empty1);
 
-        boost::shared_ptr<Epetra_CrsGraph> empty2;
+        Kratos::shared_ptr<Epetra_CrsGraph> empty2;
         mp_overlapping_graph.swap(empty2);
 
 
@@ -258,7 +258,7 @@ public:
 
     void CSR_Row_Matrix(
         ModelPart& this_model_part,
-        boost::shared_ptr<Epetra_FECrsMatrix>& p_edge_ids)
+        Kratos::shared_ptr<Epetra_FECrsMatrix>& p_edge_ids)
     {
         KRATOS_TRY
 
@@ -271,7 +271,7 @@ public:
             local_ids[k++] = it->Id() - 1;
         }
 
-        boost::shared_ptr<Epetra_Map> pmy_map = boost::shared_ptr<Epetra_Map > (new Epetra_Map(-1, nlocal_nodes, local_ids, 0, mrComm));
+        Kratos::shared_ptr<Epetra_Map> pmy_map = Kratos::shared_ptr<Epetra_Map > (new Epetra_Map(-1, nlocal_nodes, local_ids, 0, mrComm));
         mp_non_overlapping_map.swap(pmy_map);
         delete [] local_ids;
 
@@ -285,13 +285,13 @@ public:
             ids[k++] = it->Id() - 1;
         }
 
-        boost::shared_ptr<Epetra_Map> pmy_ov_map = boost::shared_ptr<Epetra_Map > (new Epetra_Map(-1, nnodes, ids, 0, mrComm));
+        Kratos::shared_ptr<Epetra_Map> pmy_ov_map = Kratos::shared_ptr<Epetra_Map > (new Epetra_Map(-1, nnodes, ids, 0, mrComm));
         mp_overlapping_map.swap(pmy_ov_map);
         delete [] ids;
 
         //generate the graph
         int guess_row_size = 20;
-        boost::shared_ptr<Epetra_FECrsGraph > aux_non_overlapping_graph = boost::shared_ptr<Epetra_FECrsGraph > (new Epetra_FECrsGraph(Copy, *mp_non_overlapping_map, guess_row_size));
+        Kratos::shared_ptr<Epetra_FECrsGraph > aux_non_overlapping_graph = Kratos::shared_ptr<Epetra_FECrsGraph > (new Epetra_FECrsGraph(Copy, *mp_non_overlapping_map, guess_row_size));
         aux_non_overlapping_graph.swap(mp_non_overlapping_graph);
         //            Epetra_FECrsGraph Agraph(Copy, *mp_non_overlapping_map, guess_row_size);
 
@@ -319,7 +319,7 @@ public:
 
 
         //fill the edge_matrix
-        boost::shared_ptr<Epetra_FECrsMatrix> pA = boost::shared_ptr<Epetra_FECrsMatrix > (new Epetra_FECrsMatrix(Copy, *mp_non_overlapping_graph));
+        Kratos::shared_ptr<Epetra_FECrsMatrix> pA = Kratos::shared_ptr<Epetra_FECrsMatrix > (new Epetra_FECrsMatrix(Copy, *mp_non_overlapping_graph));
         pA->PutScalar(-1.0);
 
         pA.swap(p_edge_ids);
@@ -336,14 +336,14 @@ public:
 
     void Search_Edge_To_Be_Refined(
         ModelPart& this_model_part,
-        boost::shared_ptr<Epetra_FECrsMatrix>& p_edge_ids,
-        boost::shared_ptr<Epetra_FECrsMatrix>& p_partition_ids)
+        Kratos::shared_ptr<Epetra_FECrsMatrix>& p_edge_ids,
+        Kratos::shared_ptr<Epetra_FECrsMatrix>& p_partition_ids)
     {
         KRATOS_TRY
         ElementsArrayType& rElements = this_model_part.Elements();
 
-        boost::shared_ptr<Epetra_FECrsMatrix> p_nonoverlapping_partitions
-        = boost::shared_ptr<Epetra_FECrsMatrix > (new Epetra_FECrsMatrix(Copy, *mp_non_overlapping_graph));
+        Kratos::shared_ptr<Epetra_FECrsMatrix> p_nonoverlapping_partitions
+        = Kratos::shared_ptr<Epetra_FECrsMatrix > (new Epetra_FECrsMatrix(Copy, *mp_non_overlapping_graph));
         p_nonoverlapping_partitions->PutScalar(-1.0);
 
         double this_partition_index = double(mrComm.MyPID());
@@ -388,8 +388,8 @@ public:
         int MaxNumEntries = p_edge_ids->MaxNumEntries() + 5;
         Epetra_Import importer(*mp_overlapping_map, *mp_non_overlapping_map);
 
-        boost::shared_ptr<Epetra_FECrsMatrix> pAoverlap = boost::shared_ptr<Epetra_FECrsMatrix > (new Epetra_FECrsMatrix(Copy, *mp_overlapping_map, MaxNumEntries));
-        boost::shared_ptr<Epetra_FECrsMatrix> paux = boost::shared_ptr<Epetra_FECrsMatrix > (new Epetra_FECrsMatrix(Copy, *mp_overlapping_map, MaxNumEntries));
+        Kratos::shared_ptr<Epetra_FECrsMatrix> pAoverlap = Kratos::shared_ptr<Epetra_FECrsMatrix > (new Epetra_FECrsMatrix(Copy, *mp_overlapping_map, MaxNumEntries));
+        Kratos::shared_ptr<Epetra_FECrsMatrix> paux = Kratos::shared_ptr<Epetra_FECrsMatrix > (new Epetra_FECrsMatrix(Copy, *mp_overlapping_map, MaxNumEntries));
 
         ierr = pAoverlap->Import(*p_edge_ids, importer, Insert);
         if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure", "");
@@ -406,7 +406,7 @@ public:
         paux.swap(p_partition_ids);
 
         //sace the overlapping graph
-        boost::shared_ptr<Epetra_CrsGraph > pg = boost::shared_ptr<Epetra_CrsGraph > (new Epetra_CrsGraph(p_edge_ids->Graph()));
+        Kratos::shared_ptr<Epetra_CrsGraph > pg = Kratos::shared_ptr<Epetra_CrsGraph > (new Epetra_CrsGraph(p_edge_ids->Graph()));
         mp_overlapping_graph.swap(pg);
 
         KRATOS_CATCH("")
@@ -418,8 +418,8 @@ public:
     ///in the auxiliary CSR matrix. It also assigns the Id to the new nodes
 
     void Create_List_Of_New_Nodes(ModelPart& this_model_part,
-                                  boost::shared_ptr<Epetra_FECrsMatrix>& p_edge_ids,
-                                  boost::shared_ptr<Epetra_FECrsMatrix>& p_partition_ids,
+                                  Kratos::shared_ptr<Epetra_FECrsMatrix>& p_edge_ids,
+                                  Kratos::shared_ptr<Epetra_FECrsMatrix>& p_partition_ids,
                                   boost::numeric::ublas::vector<int> &List_New_Nodes,
                                   boost::numeric::ublas::vector<int> &partition_new_nodes,
                                   boost::numeric::ublas::vector<array_1d<int, 2 > >& father_node_ids)
@@ -495,7 +495,7 @@ public:
         int end_id = start_id + n_owned_nonzeros;
 
         //now distribute the ids of the new nodes so that they will be the same over all of the processors.
-        boost::shared_ptr<Epetra_FECrsMatrix> plocal_ids = boost::shared_ptr<Epetra_FECrsMatrix > (new Epetra_FECrsMatrix(Copy, *mp_non_overlapping_graph));
+        Kratos::shared_ptr<Epetra_FECrsMatrix> plocal_ids = Kratos::shared_ptr<Epetra_FECrsMatrix > (new Epetra_FECrsMatrix(Copy, *mp_non_overlapping_graph));
         plocal_ids->PutScalar(-1);
 
         int id = start_id;
@@ -529,7 +529,7 @@ public:
         //now import the non local elements
         Epetra_Import importer(*mp_overlapping_map, *mp_non_overlapping_map);
 
-        //            boost::shared_ptr<Epetra_FECrsMatrix> paux = boost::shared_ptr<Epetra_FECrsMatrix > (new Epetra_FECrsMatrix(Copy, *mp_overlapping_graph));
+        //            Kratos::shared_ptr<Epetra_FECrsMatrix> paux = Kratos::shared_ptr<Epetra_FECrsMatrix > (new Epetra_FECrsMatrix(Copy, *mp_overlapping_graph));
 
 
         int ierr = p_edge_ids->Import(*plocal_ids, importer, Insert);
@@ -748,7 +748,7 @@ public:
 
     void Erase_Old_Element_And_Create_New_Triangle_Element(
         ModelPart& this_model_part,
-        const boost::shared_ptr<Epetra_FECrsMatrix> p_edge_ids,
+        const Kratos::shared_ptr<Epetra_FECrsMatrix> p_edge_ids,
         PointerVector< Element >& New_Elements,
         bool interpolate_internal_variables
     )
@@ -872,7 +872,7 @@ public:
     /// ************************************************************************************************
 
     void Calculate_Triangle_Edges(Element::GeometryType& geom,
-                                  const boost::shared_ptr<Epetra_FECrsMatrix> p_edge_ids,
+                                  const Kratos::shared_ptr<Epetra_FECrsMatrix> p_edge_ids,
                                   int* edge_ids,
                                   int aux[6]
                                  )
@@ -1013,12 +1013,12 @@ public:
 protected:
     ModelPart& mr_model_part;
     Epetra_MpiComm& mrComm;
-    boost::shared_ptr<Epetra_Map> mp_overlapping_map;
-    boost::shared_ptr<Epetra_Map> mp_non_overlapping_map;
+    Kratos::shared_ptr<Epetra_Map> mp_overlapping_map;
+    Kratos::shared_ptr<Epetra_Map> mp_non_overlapping_map;
     int mtotal_number_of_existing_nodes;
 
-    boost::shared_ptr<Epetra_FECrsGraph> mp_non_overlapping_graph;
-    boost::shared_ptr<Epetra_CrsGraph> mp_overlapping_graph;
+    Kratos::shared_ptr<Epetra_FECrsGraph> mp_non_overlapping_graph;
+    Kratos::shared_ptr<Epetra_CrsGraph> mp_overlapping_graph;
 
     ///this function transfers the Constitutive Law internal variables from the father to the child.
     ///note that this is done through the vector Variable INTERNAL_VARIABLES which should
@@ -1055,7 +1055,7 @@ protected:
         KRATOS_THROW_ERROR(std::logic_error, "expected index not found", "")
     }
 
-    double GetUpperTriangularMatrixValue(const boost::shared_ptr<Epetra_FECrsMatrix>& p_edge_ids, int index_0, int index_1, int& MaxNumEntries, int& NumEntries, int* Indices, double* values)
+    double GetUpperTriangularMatrixValue(const Kratos::shared_ptr<Epetra_FECrsMatrix>& p_edge_ids, int index_0, int index_1, int& MaxNumEntries, int& NumEntries, int* Indices, double* values)
     {
         double value;
         if (index_0 > index_1)
@@ -1074,7 +1074,7 @@ protected:
 
     void Erase_Old_Element_And_Create_New_Tetra_Element(
         ModelPart& this_model_part,
-        const boost::shared_ptr<Epetra_FECrsMatrix> p_edge_ids,
+        const Kratos::shared_ptr<Epetra_FECrsMatrix> p_edge_ids,
         PointerVector< Element >& New_Elements,
         bool interpolate_internal_variables
     )
@@ -1350,7 +1350,7 @@ protected:
 
     void Erase_Old_Condition_And_Create_New_Triangle_Conditions(
         ModelPart& this_model_part,
-        const boost::shared_ptr<Epetra_FECrsMatrix> p_edge_ids,
+        const Kratos::shared_ptr<Epetra_FECrsMatrix> p_edge_ids,
         PointerVector< Condition >& New_Conditions,
         bool interpolate_internal_variables
     )

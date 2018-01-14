@@ -194,7 +194,7 @@ public:
                 {
                     PointType global_point;
                     SlaveGeometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                    points_array[i_node] = boost::make_shared<PointType>(global_point);
+                    points_array[i_node] = Kratos::make_shared<PointType>(global_point);
                 }
                 
                 typename std::conditional<TDim == 2, LineType, TriangleType >::type decomp_geom( points_array );

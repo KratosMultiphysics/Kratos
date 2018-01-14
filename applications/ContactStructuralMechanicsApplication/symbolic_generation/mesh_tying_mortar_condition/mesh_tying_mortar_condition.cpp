@@ -45,7 +45,7 @@ Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Create(
     NodesArrayType const& rThisNodes,
     PropertiesType::Pointer pProperties ) const
 {
-    return boost::make_shared< MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_shared< MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -57,7 +57,7 @@ Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Create(
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return boost::make_shared< MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor> >( NewId, pGeom, pProperties );
+    return Kratos::make_shared< MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor> >( NewId, pGeom, pProperties );
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -112,7 +112,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
                 {
                     PointType global_point;
                     GetGeometry().GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                    points_array[i_node] = boost::make_shared<PointType>(global_point);
+                    points_array[i_node] = Kratos::make_shared<PointType>(global_point);
                 }
                 
                 DecompositionType decomp_geom( points_array );

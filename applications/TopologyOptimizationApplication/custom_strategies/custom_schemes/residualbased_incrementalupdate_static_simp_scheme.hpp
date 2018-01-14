@@ -67,7 +67,7 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< ResidualBasedIncrementalUpdateStaticSIMPScheme<TSparseSpace,TDenseSpace> > Pointer;
+    //typedef Kratos::shared_ptr< ResidualBasedIncrementalUpdateStaticSIMPScheme<TSparseSpace,TDenseSpace> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedIncrementalUpdateStaticSIMPScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;

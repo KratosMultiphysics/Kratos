@@ -106,7 +106,7 @@ public:
         if (mpParam->GetValue("linear_solver_settings")["solver_type"].GetString() != "complex_skyline_lu_solver")
             KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
             
-        mpLinearSolver = boost::make_shared<SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
+        mpLinearSolver = Kratos::make_shared<SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
     }
 
     /// Constructor for externally provided linear solver.

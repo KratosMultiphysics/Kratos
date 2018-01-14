@@ -112,7 +112,7 @@ namespace Kratos
 	{
 		public:
   		/**@name Type Definitions */       
-      		typedef boost::shared_ptr< GeneralizedAlphaMengmeng<TSparseSpace,TDenseSpace> > Pointer;		
+      		typedef Kratos::shared_ptr< GeneralizedAlphaMengmeng<TSparseSpace,TDenseSpace> > Pointer;		
 
     		typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
 

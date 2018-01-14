@@ -102,7 +102,7 @@ public:
     
     typedef ModelPart::ConditionsContainerType                                ConditionsArrayType;
     
-    typedef boost::shared_ptr<ProcessFactoryUtility>                            ProcessesListType;
+    typedef Kratos::shared_ptr<ProcessFactoryUtility>                            ProcessesListType;
     
     /**
      * Default constructor 
