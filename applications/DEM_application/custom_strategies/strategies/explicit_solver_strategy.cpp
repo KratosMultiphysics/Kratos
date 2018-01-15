@@ -605,7 +605,7 @@ namespace Kratos {
         ElementsArrayType& pLocalClusters = r_clusters_model_part.GetCommunicator().LocalMesh().Elements();        
         ElementsArrayType& pGhostClusters = r_clusters_model_part.GetCommunicator().GhostMesh().Elements();
         ModelPart& r_fem_model_part  = *mpFem_model_part;
-        ElementsArrayType& pFemElements = r_fem_model_part.GetCommunicator().LocalMesh().Elements();        
+        ElementsArrayType& pFemElements = r_fem_model_part.GetCommunicator().LocalMesh().Elements();
         
         #pragma omp parallel
         {

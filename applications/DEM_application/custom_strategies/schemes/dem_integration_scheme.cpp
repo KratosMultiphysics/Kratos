@@ -66,7 +66,7 @@ namespace Kratos {
             DemDebugFunctions::CheckIfNan(force, "NAN in Force in Integration Scheme");
         #endif  
         
-        double mass = i.FastGetSolutionStepValue(NODAL_MASS);                   
+        double mass = i.FastGetSolutionStepValue(NODAL_MASS);
 
         bool Fix_vel[3] = {false, false, false};
 
