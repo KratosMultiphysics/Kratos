@@ -120,6 +120,20 @@ class TestGidIO(KratosUnittest.TestCase):
         gid_io_1 = None
         gid_io_2 = None
 
+    def tearDown(self):
+        self.__DeleteIfExisting("all_active_out_0.post.msh")
+        self.__DeleteIfExisting("all_active_out_0.post.res")
+        self.__DeleteIfExisting("deactivated_out_0.post.msh")
+        self.__DeleteIfExisting("deactivated_out_0.post.res")
+        self.__DeleteIfExisting("python_scripts.post.lst")
+
+    @staticmethod
+    def __DeleteIfExisting(filename):
+        try:
+            os.remove(filename)
+        except FileNotFoundError:
+            return
+
 
 
 if __name__ == '__main__':
