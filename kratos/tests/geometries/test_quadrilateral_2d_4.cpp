@@ -145,7 +145,7 @@ namespace Testing
         // Test transformation in the edge
         KRATOS_CHECK_NEAR(TestResultA[0], 1.0, TOLERANCE);
         KRATOS_CHECK_NEAR(TestResultA[1], 1.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(TestResultA[2], 1.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultA[2], 0.0, TOLERANCE);
 
         // Test transformation in the center
         KRATOS_CHECK_NEAR(TestResultB[0], 0.0, TOLERANCE);
