@@ -81,7 +81,6 @@ class Solution(object):
         self.DEM_inlet_model_part  = ModelPart("DEMInletPart")
         self.mapping_model_part    = ModelPart("MappingPart")
         self.contact_model_part    = ModelPart("ContactPart")
-        self.rigid_body_model_part = ModelPart("RigidBodyPart")
 
         mp_list = []
         mp_list.append(self.spheres_model_part)
@@ -90,7 +89,6 @@ class Solution(object):
         mp_list.append(self.DEM_inlet_model_part)
         mp_list.append(self.mapping_model_part)
         mp_list.append(self.contact_model_part)
-        mp_list.append(self.rigid_body_model_part)
 
         self.all_model_parts = DEM_procedures.SetOfModelParts(mp_list)
 
@@ -234,7 +232,7 @@ class Solution(object):
         self.FillAnalyticSubModelParts()
 
         # Setting up the buffer size
-        self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1, self.rigid_body_model_part, 1)
+        self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
         # Adding dofs
         self.AddAllDofs()
 
@@ -363,24 +361,8 @@ class Solution(object):
         model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
         model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
         
-        rigidbody_mp_filename = self.GetRigidBodyFileName()
-        self.CheckTheExistenceOfTheRigidBodyMdpa(rigidbody_mp_filename)
-        model_part_io_rigidbody = self.model_part_reader(rigidbody_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
-        model_part_io_rigidbody.ReadModelPart(self.rigid_body_model_part)
-        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_body_model_part)
-        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_body_model_part)
-        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.rigid_body_model_part)
- 
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
-
-    def CheckTheExistenceOfTheRigidBodyMdpa(self, rigidbody_mp_filename):
-        
-        if not os.path.isfile(rigidbody_mp_filename + ".mdpa"):
-            #print("\n\nThe rigid body mpda file does not exist, please update your problem type!!!\n")
-            #timer.sleep(5) # Delay of 5 seconds to read the message
-            open(rigidbody_mp_filename + ".mdpa",'w').close()
-
 
     def RunMainTemporalLoop(self):
 
@@ -446,7 +428,7 @@ class Solution(object):
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self.solver.continuum_type)
 
     def SetInitialNodalValues(self):
-        self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.rigid_face_model_part, self.rigid_body_model_part)
+        self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.rigid_face_model_part)
 
     def InitializeTimeStep(self):
         pass
@@ -490,7 +472,7 @@ class Solution(object):
     def CleanUpOperations(self):
 
         objects_to_destroy = [self.demio, self.procedures, self.creator_destructor, self.dem_fem_search, self.solver, self.DEMFEMProcedures, self.post_utils,
-                              self.cluster_model_part, self.rigid_face_model_part, self.rigid_body_model_part, self.spheres_model_part, self.DEM_inlet_model_part, self.mapping_model_part]
+                              self.cluster_model_part, self.rigid_face_model_part, self.spheres_model_part, self.DEM_inlet_model_part, self.mapping_model_part]
 
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             objects_to_destroy.append(self.DEM_inlet)

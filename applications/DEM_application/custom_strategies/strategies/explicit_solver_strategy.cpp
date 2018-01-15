@@ -151,7 +151,7 @@ namespace Kratos {
         RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
 
         GetSearchControl() = r_process_info[SEARCH_CONTROL];
-
+        
         InitializeDEMElements();
         InitializeFEMElements();
         UpdateMaxIdOfCreatorDestructor();
@@ -168,7 +168,7 @@ namespace Kratos {
         SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
         SearchNeighbours();
         ComputeNewNeighboursHistoricalData();
-        
+
         SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
         SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
         ComputeNewRigidFaceNeighboursHistoricalData();
@@ -349,8 +349,8 @@ namespace Kratos {
         
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo(); //Getting the Process Info of the Balls ModelPart!
         const array_1d<double, 3>& gravity = r_process_info[GRAVITY];
-        ModelPart& rigid_body_model_part = GetRigidBodyModelPart();
-        ElementsArrayType& pElements = rigid_body_model_part.GetCommunicator().LocalMesh().Elements();
+        ModelPart& fem_model_part = GetFemModelPart();
+        ElementsArrayType& pElements = fem_model_part.GetCommunicator().LocalMesh().Elements();
         const int number_of_rigid_body_elements = pElements.size();
 
         #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
@@ -604,11 +604,11 @@ namespace Kratos {
         ModelPart& r_clusters_model_part  = *mpCluster_model_part;
         ElementsArrayType& pLocalClusters = r_clusters_model_part.GetCommunicator().LocalMesh().Elements();        
         ElementsArrayType& pGhostClusters = r_clusters_model_part.GetCommunicator().GhostMesh().Elements();
-        ModelPart& r_rigid_body_model_part  = *mpRigidBody_model_part;
-        ElementsArrayType& pRigidBodyElements = r_rigid_body_model_part.GetCommunicator().LocalMesh().Elements();        
+        ModelPart& r_fem_model_part  = *mpFem_model_part;
+        ElementsArrayType& pFemElements = r_fem_model_part.GetCommunicator().LocalMesh().Elements();        
         
         #pragma omp parallel
-        {            
+        {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
                 mListOfSphericParticles[i]->Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
@@ -634,8 +634,8 @@ namespace Kratos {
             }
             
             #pragma omp for
-            for (int k = 0; k < (int) pRigidBodyElements.size(); k++) {
-                ElementsArrayType::iterator it = pRigidBodyElements.ptr_begin() + k;
+            for (int k = 0; k < (int) pFemElements.size(); k++) {
+                ElementsArrayType::iterator it = pFemElements.ptr_begin() + k;
                 RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
                 rigid_body_element.Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
@@ -751,17 +751,17 @@ namespace Kratos {
     void ExplicitSolverStrategy::InitializeFEMElements() {
         
         KRATOS_TRY
-                
+
         ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();
         //OpenMPUtils::CreatePartition(mNumberOfThreads, pTConditions.size(), this->GetElementPartition());
         ModelPart& fem_model_part = GetFemModelPart();
-     
+
         if (fem_model_part.NumberOfSubModelParts()) {
             for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
-                 
+
                 ModelPart& submp = *sub_model_part;
-                
-                if (!submp[FREE_BODY_MOTION]) {                   
+
+                if (!submp[FREE_BODY_MOTION]) {
                     //#pragma omp parallel for
                     //for (int k = 0; k < mNumberOfThreads; k++) {
                         ConditionsArrayType::iterator it_begin = pTConditions.ptr_begin(); // + this->GetElementPartition()[k];
@@ -770,26 +770,23 @@ namespace Kratos {
                         for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) {
                             (it)->Initialize();
                         }
-                    //}                    
-                } else InitializeRigidBodyElements(sub_model_part);    
+                }                    
+                else InitializeRigidBodyElements(sub_model_part);
             }
         }
-        
+
         KRATOS_CATCH("")
     }
     
     void ExplicitSolverStrategy::InitializeRigidBodyElements(ModelPart::SubModelPartsContainerType::iterator& sub_model_part) {
 
-        KRATOS_TRY
-                
         ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();
         OpenMPUtils::CreatePartition(mNumberOfThreads, pTConditions.size(), this->GetElementPartition());
         ModelPart& fem_model_part = GetFemModelPart();
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
-        ModelPart& rigid_body_model_part = GetRigidBodyModelPart();
         ModelPart& submp = *sub_model_part;
         NodesArrayType& pNodes = sub_model_part->Nodes();
-                    
+        
         vector<unsigned int> node_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pNodes.size(), node_partition);
 
@@ -803,32 +800,30 @@ namespace Kratos {
         // Central Node
         Node<3>::Pointer central_node;
         Geometry<Node<3> >::PointsArrayType central_node_list;
-        
+
         array_1d<double, 3> reference_coordinates;
         reference_coordinates[0] = submp[RIGID_BODY_CENTER_OF_MASS][0];
         reference_coordinates[1] = submp[RIGID_BODY_CENTER_OF_MASS][1];
         reference_coordinates[2] = submp[RIGID_BODY_CENTER_OF_MASS][2];
 
         int Node_Id_1 = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(fem_model_part);
-        int Node_Id_2 = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(rigid_body_model_part);
 
-        mpParticleCreatorDestructor->CentroidCreatorForRigidBodyElements(rigid_body_model_part, central_node, std::max(Node_Id_1, Node_Id_2) + 1, reference_coordinates);
-        
+        mpParticleCreatorDestructor->CentroidCreatorForRigidBodyElements(fem_model_part, central_node, Node_Id_1 + 1, reference_coordinates);
+
         central_node_list.push_back(central_node);
 
         int Element_Id_1 = mpParticleCreatorDestructor->FindMaxElementIdInModelPart(fem_model_part);
-        int Element_Id_2 = mpParticleCreatorDestructor->FindMaxElementIdInModelPart(rigid_body_model_part);
 
         Properties::Pointer properties = fem_model_part.GetMesh().pGetProperties(0); ////This is Properties 0 ?????
 
         std::string ElementNameString = "RigidBodyElement3D";
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
-        Element::Pointer RBE_Kratos = r_reference_element.Create(std::max(Element_Id_1, Element_Id_2) + 1, central_node_list, properties);
+        Element::Pointer RBE_Kratos = r_reference_element.Create(Element_Id_1 + 1, central_node_list, properties);
         RigidBodyElement3D* RBE = dynamic_cast<RigidBodyElement3D*>(RBE_Kratos.get());
 
-        rigid_body_model_part.AddElement(RBE_Kratos); //, Element_Id + 1);
+        fem_model_part.AddElement(RBE_Kratos); //, Element_Id + 1);
 
-        std::size_t element_id = std::max(Element_Id_1, Element_Id_2) + 1;
+        std::size_t element_id = Element_Id_1 + 1;
         std::vector<std::size_t> ElementIds;
         ElementIds.push_back(element_id);
         //submp.AddElements(ElementIds); 
@@ -857,7 +852,6 @@ namespace Kratos {
         RBE->Initialize(r_process_info, submp);
 //         submp.AddElement(RBE_Kratos);
 //         rigid_body_model_part.AddSubModelPart(submp); // JIG: Should be uncommented
-        KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::CalculateConditionsRHSAndAdd() {
@@ -1064,9 +1058,8 @@ namespace Kratos {
         const ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         const double time = r_process_info[TIME];
         ModelPart& fem_model_part = GetFemModelPart();
-        //ModelPart& r_rigid_body_model_part = GetRigidBodyModelPart();
-        //ModelPart& r_rigid_body_model_part  = *mpRigidBody_model_part;
-        //ElementsArrayType& pRigidBodyElements = r_rigid_body_model_part.GetCommunicator().LocalMesh().Elements();        
+//         ModelPart& r_fem_model_part  = *mpFem_model_part;
+//         ElementsArrayType& pFemElements = r_fem_model_part.GetCommunicator().LocalMesh().Elements();        
 
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin(); sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
@@ -1121,7 +1114,7 @@ namespace Kratos {
 
             if (time < vel_start || time > vel_stop) continue;
               
-            ElementsArrayType& pElements = mpRigidBody_model_part->Elements();
+            ElementsArrayType& pElements = mpFem_model_part->Elements();
             ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
 
@@ -1195,7 +1188,7 @@ namespace Kratos {
             
             if (!fbm) continue;
               
-            ElementsArrayType& pElements = mpRigidBody_model_part->Elements();
+            ElementsArrayType& pElements = mpFem_model_part->Elements();
             ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
 
@@ -1218,7 +1211,7 @@ namespace Kratos {
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_Z_VALUE];
             }
             
-            rigid_body_element.CustomInitialize();
+//             rigid_body_element.CustomInitialize();
 
             rigid_body_elements_counter++;
         }

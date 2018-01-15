@@ -49,10 +49,10 @@ namespace Kratos {
         virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
         virtual void InitializeSolutionStep(ProcessInfo& r_process_info){};
         virtual void FinalizeSolutionStep(ProcessInfo& r_process_info){};
-        virtual void CustomInitialize();
+        virtual void CustomInitialize(ProcessInfo& r_process_info);
         virtual void SetOrientation(const Quaternion<double> Orientation);
-        virtual void UpdatePositionOfNodes();
         virtual void UpdateLinearDisplacementAndVelocityOfNodes();
+        virtual void UpdateAngularDisplacementAndVelocityOfNodes();
         virtual void GetRigidBodyElementsForce(const array_1d<double,3>& gravity);
         virtual void CollectForcesAndTorquesFromTheNodesOfARigidBodyElement();
         virtual void ComputeAdditionalForces(const array_1d<double,3>& gravity);

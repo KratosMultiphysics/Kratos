@@ -101,7 +101,6 @@ class SetOfModelParts(object):
         self.DEM_inlet_model_part  = self.Get("DEMInletPart")
         self.mapping_model_part    = self.Get("MappingPart")
         self.contact_model_part    = self.Get("ContactPart")
-        self.rigid_body_model_part = self.Get("RigidBodyPart")
 
     def ComputeMaxIds(self):
 
@@ -395,7 +394,6 @@ class Procedures(object):
         cluster_model_part = all_model_parts.Get('ClusterPart')
         DEM_inlet_model_part = all_model_parts.Get('DEMInletPart')
         rigid_face_model_part = all_model_parts.Get('RigidFacePart')
-        rigid_body_model_part = all_model_parts.Get('RigidBodyPart')
         
         self.solver = weakref.proxy(solver) 
         self.translational_scheme = weakref.proxy(translational_scheme) 
@@ -413,9 +411,6 @@ class Procedures(object):
         self.AddCommonVariables(rigid_face_model_part, DEM_parameters)
         self.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
         self.AddMpiVariables(rigid_face_model_part)
-        self.AddCommonVariables(rigid_body_model_part, DEM_parameters)
-        self.AddRigidBodyVariables(rigid_body_model_part, DEM_parameters)
-        self.AddMpiVariables(rigid_body_model_part)
         
     def AddCommonVariables(self, model_part, DEM_parameters):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
@@ -583,7 +578,7 @@ class Procedures(object):
     def AddMpiVariables(self, model_part):
         pass
 
-    def SetInitialNodalValues(self, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, rigid_body_model_part):
+    def SetInitialNodalValues(self, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part):
         pass
         # no fa falta inicialitzar els valors nodals
 
@@ -598,12 +593,11 @@ class Procedures(object):
                 node.SetSolutionStepValue(LINEAR_IMPULSE, 0.0)
                 
     
-    def SetUpBufferSizeInAllModelParts(self, spheres_model_part, spheres_b_size, cluster_model_part, clusters_b_size, DEM_inlet_model_part, inlet_b_size, rigid_face_model_part, rigid_b_size, rigid_body_model_part, rigid_body_b_size):
+    def SetUpBufferSizeInAllModelParts(self, spheres_model_part, spheres_b_size, cluster_model_part, clusters_b_size, DEM_inlet_model_part, inlet_b_size, rigid_face_model_part, rigid_b_size):
         spheres_model_part.SetBufferSize(spheres_b_size)
         cluster_model_part.SetBufferSize(clusters_b_size)
         DEM_inlet_model_part.SetBufferSize(inlet_b_size)
         rigid_face_model_part.SetBufferSize(rigid_b_size)
-        rigid_body_model_part.SetBufferSize(rigid_body_b_size)
 
     def FindMaxNodeIdAccrossModelParts(self, creator_destructor, all_model_parts):
         
@@ -1013,12 +1007,12 @@ class DEMFEMProcedures(object):
         spheres_model_part = all_model_parts.Get("SpheresPart")
         DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = all_model_parts.Get("RigidFacePart")
-        rigid_body_model_part = all_model_parts.Get("RigidBodyPart")
+        cluster_model_part = all_model_parts.Get("ClusterModelPart")
         
         self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(rigid_body_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
     
     def MoveAllMeshesUsingATable(self, model_part, time, dt):
 
@@ -1699,7 +1693,6 @@ class DEMIo(object):
 
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, rigid_face_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, cluster_model_part)
-            #self.post_utility.AddModelPartToModelPart(self.mixed_model_part, rigid_body_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_spheres_and_clusters_model_part, spheres_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_spheres_and_clusters_model_part, cluster_model_part)
             
@@ -1716,14 +1709,12 @@ class DEMIo(object):
 
             if self.contact_mesh_option:
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
-            
-            self.gid_io.WriteMesh(rigid_body_model_part.GetCommunicator().LocalMesh())
 
             self.gid_io.FinalizeMesh()
             self.gid_io.InitializeResults(0.0, self.mixed_model_part.GetCommunicator().LocalMesh())
             #self.gid_io.InitializeResults(0.0, mixed_spheres_and_clusters_model_part.GetCommunicator().LocalMesh())
 
-    def InitializeResults(self, spheres_model_part, rigid_face_model_part, cluster_model_part, rigid_body_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits): #MIQUEL MAPPING
+    def InitializeResults(self, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits): #MIQUEL MAPPING
 
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.mixed_model_part.Elements.clear()
@@ -1738,7 +1729,6 @@ class DEMIo(object):
                 self.post_utility.AddModelPartToModelPart(self.mixed_model_part, contact_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, rigid_face_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, cluster_model_part)
-            #self.post_utility.AddModelPartToModelPart(self.mixed_model_part, rigid_body_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_spheres_and_clusters_model_part, spheres_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_spheres_and_clusters_model_part, cluster_model_part)
             
@@ -1756,7 +1746,6 @@ class DEMIo(object):
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
 
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.WriteMesh(rigid_body_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteClusterMesh(cluster_model_part.GetCommunicator().LocalMesh())
             
             #Compute and print the graphical bounding box if active in time
@@ -1828,13 +1817,11 @@ class DEMIo(object):
         rigid_face_model_part =all_model_parts.Get("RigidFacePart")
         contact_model_part = all_model_parts.Get("ContactPart")
         mapping_model_part = all_model_parts.Get("MappingPart")
-        rigid_body_model_part = all_model_parts.Get("RigidBodyPart")
         
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.InitializeResults(spheres_model_part,
                                    rigid_face_model_part,
                                    cluster_model_part,
-                                   rigid_body_model_part,
                                    contact_model_part,
                                    mapping_model_part,
                                    creator_destructor,
@@ -1848,7 +1835,6 @@ class DEMIo(object):
         self.PrintingSpheresVariables(spheres_model_part, time)
         self.PrintingFEMBoundaryVariables(rigid_face_model_part, time)
         self.PrintingClusterVariables(cluster_model_part, time)
-        self.PrintingRigidBodyVariables(rigid_body_model_part, time)
         self.PrintingContactElementsVariables(contact_model_part, time)
         
         self.mixed_model_part.Elements.clear() #to remove the shared pointers that remain and prevent objects from being removed

@@ -44,45 +44,16 @@ namespace Kratos {
         cluster_element->UpdateAngularDisplacementAndVelocityOfSpheres();
     }
     
-    void DEMIntegrationScheme::MoveRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t,
-                                                    const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
+    void DEMIntegrationScheme::MoveRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
         CalculateTranslationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);
-
-        if (rotation_option) {
-            RotateRigidBodyElementNode(i, delta_t, force_reduction_factor, StepFlag);                
-            rigid_body_element->UpdatePositionOfNodes();
-        }  
-        else {
-            rigid_body_element->UpdateLinearDisplacementAndVelocityOfNodes();
-        }
+        rigid_body_element->UpdateLinearDisplacementAndVelocityOfNodes();
     }
     
-    void DEMIntegrationScheme::RotateRigidBodyElementNode(Node<3>& i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
-    
-        KRATOS_TRY
-
-        array_1d<double, 3 >& moments_of_inertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
-        array_1d<double, 3 >& angular_velocity   = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        array_1d<double, 3 >& torque             = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
-        array_1d<double, 3 >& rotated_angle      = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
-        array_1d<double, 3 >& delta_rotation     = i.FastGetSolutionStepValue(DELTA_ROTATION);
-        Quaternion<double  >& Orientation        = i.FastGetSolutionStepValue(ORIENTATION);
-        
-        #ifdef KRATOS_DEBUG
-        DemDebugFunctions::CheckIfNan(torque, "NAN in Torque in Integration Scheme");
-        #endif
-
-        bool Fix_Ang_vel[3] = {false, false, false};
-
-        Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
-        Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
-        Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
-        
-        CalculateNewRotationalVariablesOfClusters(StepFlag, i, moments_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, Orientation, delta_t, Fix_Ang_vel);
-
-        KRATOS_CATCH("")
+    void DEMIntegrationScheme::RotateRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
+        CalculateRotationalMotionOfRigidBodyElementNode(i, delta_t, force_reduction_factor, StepFlag);                
+        rigid_body_element->UpdateAngularDisplacementAndVelocityOfNodes();
     }
-    
+       
     void DEMIntegrationScheme::CalculateTranslationalMotionOfNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
         array_1d<double, 3 >& vel = i.FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3 >& displ = i.FastGetSolutionStepValue(DISPLACEMENT);
@@ -127,6 +98,28 @@ namespace Kratos {
     }
     
     void DEMIntegrationScheme::CalculateRotationalMotionOfClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
+        
+        array_1d<double, 3 >& moments_of_inertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+        array_1d<double, 3 >& angular_velocity   = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        array_1d<double, 3 >& torque             = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
+        array_1d<double, 3 >& rotated_angle      = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+        array_1d<double, 3 >& delta_rotation     = i.FastGetSolutionStepValue(DELTA_ROTATION);
+        Quaternion<double  >& Orientation        = i.FastGetSolutionStepValue(ORIENTATION);
+        
+        #ifdef KRATOS_DEBUG
+        DemDebugFunctions::CheckIfNan(torque, "NAN in Torque in Integration Scheme");
+        #endif
+
+        bool Fix_Ang_vel[3] = {false, false, false};
+
+        Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
+        Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
+        Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
+        
+        CalculateNewRotationalVariablesOfClusters(StepFlag, i, moments_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, Orientation, delta_t, Fix_Ang_vel);
+    }
+    
+    void DEMIntegrationScheme::CalculateRotationalMotionOfRigidBodyElementNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
         
         array_1d<double, 3 >& moments_of_inertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
         array_1d<double, 3 >& angular_velocity   = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);

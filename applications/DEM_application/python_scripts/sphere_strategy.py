@@ -18,7 +18,6 @@ class ExplicitStrategy(object):
         self.fem_model_part = all_model_parts.Get("RigidFacePart")
         self.cluster_model_part = all_model_parts.Get("ClusterPart")
         self.contact_model_part = all_model_parts.Get("ContactPart")
-        self.rigid_body_model_part = all_model_parts.Get("RigidBodyPart")
 
         self.DEM_parameters = DEM_parameters
 
@@ -233,7 +232,7 @@ class ExplicitStrategy(object):
         for properties in self.cluster_model_part.Properties:
             self.ModifyProperties(properties)
         
-        for properties in self.rigid_body_model_part.Properties:
+        for properties in self.fem_model_part.Properties:
             self.ModifyProperties(properties, 1)
 
         # RESOLUTION METHODS AND PARAMETERS
@@ -244,7 +243,6 @@ class ExplicitStrategy(object):
         self.settings.fem_model_part = self.fem_model_part
         self.settings.inlet_model_part = self.inlet_model_part
         self.settings.cluster_model_part = self.cluster_model_part
-        self.settings.rigid_body_model_part = self.rigid_body_model_part       
 
     def CheckMomentumConservation(self):
 
@@ -500,34 +498,34 @@ class ExplicitStrategy(object):
             DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
             DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
 
-        coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
+            coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
 
-        type_of_law = DiscontinuumConstitutiveLaw.GetTypeOfLaw()
+            type_of_law = DiscontinuumConstitutiveLaw.GetTypeOfLaw()
 
-        write_gamma = False
+            write_gamma = False
 
-        if (type_of_law == 'Linear'):
-            gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
-            write_gamma = True
+            if (type_of_law == 'Linear'):
+                gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
+                write_gamma = True
 
-        elif (type_of_law == 'Hertz' or type_of_law == 'Dependent_friction'):
-            gamma = self.GammaForHertzThornton(coefficient_of_restitution)
-            write_gamma = True
+            elif (type_of_law == 'Hertz' or type_of_law == 'Dependent_friction'):
+                gamma = self.GammaForHertzThornton(coefficient_of_restitution)
+                write_gamma = True
 
-        else:
-            pass
+            else:
+                pass
 
-        if write_gamma == True:
-            properties[DAMPING_GAMMA] = gamma
+            if write_gamma == True:
+                properties[DAMPING_GAMMA] = gamma
 
-        if properties.Has(CLUSTER_FILE_NAME):
-            cluster_file_name = properties[CLUSTER_FILE_NAME]
-            [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
-            pre_utils = PreUtilities(self.spheres_model_part)
-            pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
-            self.Procedures.KRATOSprint(properties)
-            if not properties.Has(BREAKABLE_CLUSTER):
-                properties.SetValue(BREAKABLE_CLUSTER, False)
+            if properties.Has(CLUSTER_FILE_NAME):
+                cluster_file_name = properties[CLUSTER_FILE_NAME]
+                [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
+                pre_utils = PreUtilities(self.spheres_model_part)
+                pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
+                self.Procedures.KRATOSprint(properties)
+                if not properties.Has(BREAKABLE_CLUSTER):
+                    properties.SetValue(BREAKABLE_CLUSTER, False)
         
         if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
@@ -542,6 +540,10 @@ class ExplicitStrategy(object):
             rotational_scheme_name = properties[DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME]
         else:
             rotational_scheme_name = self.DEM_parameters["RotationalIntegrationScheme"].GetString()
+            
+        if param:
+            print(translational_scheme_name)
+            print(rotational_scheme_name)
             
         rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)

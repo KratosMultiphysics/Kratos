@@ -61,7 +61,7 @@ namespace Kratos {
         mListOfSphericParticles.clear();
         mListOfCoordinates.clear();  
         mListOfRadii.clear();  
-        
+
         if (mpTranslationalIntegrationScheme!=NULL) {
             delete mpTranslationalIntegrationScheme;
         }
@@ -93,9 +93,9 @@ namespace Kratos {
         DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
         SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
     }
-    
+
     void Cluster3D::SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme){
-    
+
         mpTranslationalIntegrationScheme = translational_integration_scheme->CloneRaw();
         mpRotationalIntegrationScheme = rotational_integration_scheme->CloneRaw();
     }
@@ -133,19 +133,18 @@ namespace Kratos {
         GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
         GetGeometry()[0].FastGetSolutionStepValue(CLUSTER_VOLUME) = cluster_volume;
         GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = this->SlowGetParticleMaterial();
-        
+
         const double squared_scaling_factor_times_density = scaling_factor * scaling_factor * particle_density;
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = reference_inertias[0] * cluster_volume * squared_scaling_factor_times_density;
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = reference_inertias[1] * cluster_volume * squared_scaling_factor_times_density;
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2] * cluster_volume * squared_scaling_factor_times_density;
-        
+
         array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);  
-        
+
         Quaternion<double>& Orientation = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION);
         Orientation.normalize();
 
-        array_1d<double, 3> angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        
+        array_1d<double, 3> angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);       
         array_1d<double, 3> angular_momentum;
         double LocalTensor[3][3];
         double GlobalTensor[3][3];
@@ -158,7 +157,6 @@ namespace Kratos {
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
         noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
     }
-    
     
     void Cluster3D::SetOrientation(const Quaternion<double> Orientation) {
         this->GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION) = Orientation;
@@ -313,7 +311,7 @@ namespace Kratos {
     } //Calculate
 
     void Cluster3D::UpdateLinearDisplacementAndVelocityOfSpheres() {
-        
+
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
         array_1d<double, 3>& cluster_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3> global_relative_coordinates;
@@ -333,7 +331,6 @@ namespace Kratos {
         }        
     }
     
-    
     void Cluster3D::UpdateAngularDisplacementAndVelocityOfSpheres() {
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
@@ -347,7 +344,7 @@ namespace Kratos {
         array_1d<double, 3> previous_position;
         
         for (unsigned int i = 0; i < mListOfCoordinates.size(); i++) {
-            
+
             GeometryFunctions::QuaternionVectorLocal2Global(Orientation, mListOfCoordinates[i], global_relative_coordinates);
             Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0];
             GeometryFunctions::CrossProduct( cluster_angular_velocity, global_relative_coordinates, linear_vel_due_to_rotation );
@@ -397,7 +394,7 @@ namespace Kratos {
             center_torque[0] += additional_torque[0];
             center_torque[1] += additional_torque[1];
             center_torque[2] += additional_torque[2];
-        }    
+        }
     }
     
     void Cluster3D::GetClustersForce(const array_1d<double,3>& gravity) {
@@ -414,7 +411,7 @@ namespace Kratos {
         const array_1d<double, 3> external_applied_torque = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
         noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += external_applied_force;
         noalias(GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT)) += external_applied_torque;
-    }   
+    }
     
     void Cluster3D::SetContinuumGroupToBreakableClusterSpheres(const int Id) {
         for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
@@ -479,15 +476,14 @@ namespace Kratos {
                     p_continuum_particle_j->mNeighbourElasticContactForces.push_back(zero_vector);
                     p_continuum_particle_j->mNeighbourElasticExtraContactForces.push_back(zero_vector);
                 }
-            }   
-        }               
+            }
+        }
     }
-    
+
     void Cluster3D::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag ) {
         GetTranslationalIntegrationScheme().MoveCluster(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
         if (rotation_option) {
             GetRotationalIntegrationScheme().RotateCluster(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
         }
     }
-    
-}  // namespace Kratos
+} // namespace Kratos

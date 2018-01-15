@@ -75,7 +75,6 @@ namespace Kratos {
         ModelPart::Pointer fem_model_part;
         ModelPart::Pointer cluster_model_part;
         ModelPart::Pointer inlet_model_part;
-        ModelPart::Pointer rigid_body_model_part;
     };
     
     class KRATOS_API(DEM_APPLICATION) ExplicitSolverStrategy {
@@ -147,10 +146,6 @@ namespace Kratos {
             mpInlet_model_part = &(*(settings.inlet_model_part));
             if (mpInlet_model_part == NULL)
                 KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.inlet_model_part in ExplicitSolverStrategy constructor", "")
-
-            mpRigidBody_model_part = &(*(settings.rigid_body_model_part));
-            if (mpRigidBody_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.rigid_body_model_part in ExplicitSolverStrategy constructor", "")
             }
 
         /// Destructor.
