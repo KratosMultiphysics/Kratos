@@ -68,10 +68,17 @@ public:
     ///@{
 
     /// Default constructor.
-    ComputeNodalGradientProcess(ModelPart& rModelPart
-        , TVarType& rOriginVariable
-        , Variable<array_1d<double,3> >& rGradientVariable
-        , Variable<double>& rAreaVariable);
+    ComputeNodalGradientProcess(
+        ModelPart& rModelPart,
+        TVarType& rOriginVariable,
+        Variable<array_1d<double,3> >& rGradientVariable,
+        Variable<double>& rAreaVariable = NODAL_AREA
+        ) :mrModelPart(rModelPart),
+           mrOriginVariable(rOriginVariable),
+           mrGradientVariable(rGradientVariable),
+           mrAreaVariable(rAreaVariable)
+    {
+    }
 
     /// Destructor.
     ~ComputeNodalGradientProcess() override
