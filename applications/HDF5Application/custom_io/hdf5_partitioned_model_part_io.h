@@ -36,7 +36,7 @@ namespace HDF5
 ///@{
 
 /// A class for partitioned IO of a model part in HDF5.
-class PartitionedModelPartIO : public virtual IO, public ModelPartIOBase
+class PartitionedModelPartIO : public ModelPartIOBase
 {
 public:
     ///@name Type Definitions
