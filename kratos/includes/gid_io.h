@@ -1001,7 +1001,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            Vector& tempVector = i_node->GetSolutionStepValue(rVariable);
+            Vector& tempVector = i_node->GetValue(rVariable);
             if (tempVector.size() ==3 )
                 GiD_fWriteVector(mResultFile, i_node->Id(), tempVector(0), tempVector(1), tempVector(2) );
             else if (tempVector.size() == 6 )
@@ -1028,7 +1028,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            Matrix& tempMatrix = i_node->GetSolutionStepValue(rVariable);
+            Matrix& tempMatrix = i_node->GetValue(rVariable);
             //Matrix& tempMatrix = i_node->GetValue(rVariable);
             if (tempMatrix.size1() ==3 && tempMatrix.size2() ==3)
             {
