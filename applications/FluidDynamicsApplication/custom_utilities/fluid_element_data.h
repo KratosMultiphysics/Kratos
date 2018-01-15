@@ -77,7 +77,7 @@ public:
     static void Check(const Element& rElement, const ProcessInfo& rProcessInfo);
 
     virtual void UpdateGeometryValues(double NewWeight,
-        boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
+        const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
         const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX);
 
     ///@}
