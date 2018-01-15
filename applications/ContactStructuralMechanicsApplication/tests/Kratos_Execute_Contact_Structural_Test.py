@@ -101,7 +101,7 @@ class Kratos_Execute_Test:
         # Delta time
         delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
         # Start step
-        self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] = 0
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
         # Start time
         time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
         # End time
@@ -110,7 +110,7 @@ class Kratos_Execute_Test:
         # Solving the problem (time integration)
         while(time <= end_time):
             time = time + delta_time
-            self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] += 1
+            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             self.main_model_part.CloneTimeStep(time)
 
             for process in self.list_of_processes:
