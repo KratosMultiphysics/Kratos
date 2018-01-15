@@ -53,8 +53,11 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     // CONDITIONS
     // CONTACT
     /* Mortar contact */
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )     // Auxiliar coordinates used to map
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )        // Delta coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTEGRATION_ORDER_CONTACT )                   // The integration order considered
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACTIVE_CHECK_FACTOR )                         // The factor employed to search an active/inactive node
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NORMAL_GAP )                                  // The normal gap employed in contact formulation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_SLIP )                               // The integrated slip employed in mortar formulation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_SCALAR_RESIDUAL )                    // The integrated scalar residual  
@@ -64,7 +67,6 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUGMENTED_TANGENT_CONTACT_PRESSURE )          // The resultant augmented pressure in the tangent direction
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TANGENT_FACTOR )                              // The proportion between the tangent and normal penalty
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONSIDER_NORMAL_VARIATION )                   // A value used to check if consider normal variation or not
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONSIDER_PAIR_VARIATION )                     // A value used to check if consider variation or not in the active inactive pairs
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ADAPT_PENALTY )                               // To set if the penalty is recalculated or not
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MAX_GAP_FACTOR )                              // The factor between the nodal H and the max gap considered to recalculate the penalty
 }

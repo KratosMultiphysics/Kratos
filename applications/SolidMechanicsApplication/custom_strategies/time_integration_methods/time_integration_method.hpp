@@ -406,6 +406,7 @@ namespace Kratos
   template<class TVariableType, class TValueType>
   inline std::istream & operator >> (std::istream & rIStream, TimeIntegrationMethod<TVariableType,TValueType>& rThis)
   {
+    return rIStream;
   }
 
   template<class TVariableType, class TValueType>
