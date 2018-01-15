@@ -541,10 +541,6 @@ class ExplicitStrategy(object):
         else:
             rotational_scheme_name = self.DEM_parameters["RotationalIntegrationScheme"].GetString()
             
-        if param:
-            print(translational_scheme_name)
-            print(rotational_scheme_name)
-            
         rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
         

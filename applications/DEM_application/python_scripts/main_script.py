@@ -308,9 +308,6 @@ class Solution(object):
     def GetInletFilename(self):
         return self.DEM_parameters["problem_name"].GetString() + "DEM_Inlet"
 
-    def GetRigidBodyFileName(self):
-        return self.DEM_parameters["problem_name"].GetString() + "DEM_Rigid_Body"
-
     def GetFemFilename(self):
         return self.DEM_parameters["problem_name"].GetString() + "DEM_FEM_boundary"
 

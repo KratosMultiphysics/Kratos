@@ -503,12 +503,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DEM_NODAL_AREA)
         model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
         model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
-        
-    def AddRigidBodyVariables(self, model_part, DEM_parameters):
-        
-        # KINEMATIC
-        model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
-        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
         model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
@@ -554,7 +548,7 @@ class Procedures(object):
         
 
         # FORCES
-        #model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
+        model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
         model_part.AddNodalSolutionStepVariable(RIGID_ELEMENT_FORCE)
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
         model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
@@ -1007,7 +1001,7 @@ class DEMFEMProcedures(object):
         spheres_model_part = all_model_parts.Get("SpheresPart")
         DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = all_model_parts.Get("RigidFacePart")
-        cluster_model_part = all_model_parts.Get("ClusterModelPart")
+        cluster_model_part = all_model_parts.Get("ClusterPart")
         
         self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
