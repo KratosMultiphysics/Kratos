@@ -127,13 +127,15 @@ namespace Testing
         geom->PointLocalCoordinates(TestResultA, TestPointA);
         geom->PointLocalCoordinates(TestResultB, TestPointB);
 
-        KRATOS_CHECK_EQUAL(1.0, TestResultA[0]);
-        KRATOS_CHECK_EQUAL(1.0, TestResultA[1]);
-        KRATOS_CHECK_EQUAL(0.0, TestResultA[2]);
+        // Test transformation in the edge
+        KRATOS_CHECK_NEAR(TestResultA[0], 1.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultA[1], 1.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultA[2], 0.0, TOLERANCE);
 
-        KRATOS_CHECK_EQUAL(0.0, TestResultB[0]);
-        KRATOS_CHECK_EQUAL(0.0, TestResultB[1]);
-        KRATOS_CHECK_EQUAL(0.0, TestResultB[2]);
+        // Test transformation in the center
+        KRATOS_CHECK_NEAR(TestResultB[0], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultB[1], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultB[2], 0.0, TOLERANCE);
     }
 
 //     /** Checks if the volume of the quadrilateral is calculated correctly.
