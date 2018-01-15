@@ -11,6 +11,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 ## SMALL TESTS
 # Exact integration tests
 from test_double_curvature_integration import TestDoubleCurvatureIntegration as TTestDoubleCurvatureIntegration
+from test_dynamic_search import TestDynamicSearch as TTestDynamicSearch
 from test_mortar_mapper import TestMortarMapping as TTestMortarMapping
 
 # Mesh tying tests
@@ -37,10 +38,7 @@ from SmallTests import ALMThreeDPatchNotMatchingTestContact                as TA
 
 ## NIGTHLY TESTS
 # ALM frictionless tests
-from NightlyTests import ALMMeshMovingMatchingTestContact    as TALMMeshMovingMatchingTestContact
-from NightlyTests import ALMMeshMovingNotMatchingTestContact as TALMMeshMovingNotMatchingTestContact
 from NightlyTests import ALMTaylorPatchTestContact           as TALMTaylorPatchTestContact
-from NightlyTests import ALMTaylorPatchDynamicTestContact    as TALMTaylorPatchDynamicTestContact
 from NightlyTests import ALMHertzSimpleTestContact           as TALMHertzSimpleTestContact
 from NightlyTests import ALMHertzSimpleSphereTestContact     as TALMHertzSimpleSphereTestContact
 from NightlyTests import ALMHertzSphereTestContact           as TALMHertzSphereTestContact
@@ -48,6 +46,9 @@ from NightlyTests import ALMHertzCompleteTestContact         as TALMHertzComplet
 
 ## VALIDATION TESTS
 # ALM frictionless tests
+from ValidationTests import ALMTaylorPatchDynamicTestContact as TALMTaylorPatchDynamicTestContact
+from ValidationTests import ALMMeshMovingMatchingTestContact    as TALMMeshMovingMatchingTestContact
+from ValidationTests import ALMMeshMovingNotMatchingTestContact as TALMMeshMovingNotMatchingTestContact
 from ValidationTests import ALMIroningTestContact    as TALMIroningTestContact
 from ValidationTests import ALMIroningDieTestContact as TALMIroningDieTestContact
 from ValidationTests import LargeDisplacementPatchTestHexa as TLargeDisplacementPatchTestHexa
@@ -75,11 +76,12 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestDoubleCurvatureIntegration('test_double_curvature_integration_quad'))
     smallSuite.addTest(TTestDoubleCurvatureIntegration('test_moving_mesh_integration_quad'))
     
+    # Dynamic search
+    smallSuite.addTest(TTestDynamicSearch('test_dynamic_search_triangle'))
+    smallSuite.addTest(TTestDynamicSearch('test_dynamic_search_quad'))
+    
     # Mortar mapping
-    smallSuite.addTest(TTestMortarMapping('test_basic_mortar_mapping_triangle'))
-    smallSuite.addTest(TTestMortarMapping('test_basic_mortar_mapping_quad'))
     smallSuite.addTest(TTestMortarMapping('test_less_basic_mortar_mapping_triangle'))
-    smallSuite.addTest(TTestMortarMapping('test_less_basic_2_mortar_mapping_triangle'))
     smallSuite.addTest(TTestMortarMapping('test_simple_curvature_mortar_mapping_triangle'))
     smallSuite.addTest(TTestMortarMapping('test_mortar_mapping_triangle'))
     smallSuite.addTest(TTestMortarMapping('test_mortar_mapping_quad'))
@@ -109,10 +111,7 @@ def AssambleTestSuites():
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    nightSuite.addTest(TALMMeshMovingMatchingTestContact('test_execution'))
-    nightSuite.addTest(TALMMeshMovingNotMatchingTestContact('test_execution'))
     nightSuite.addTest(TALMTaylorPatchTestContact('test_execution'))
-    nightSuite.addTest(TALMTaylorPatchDynamicTestContact('test_execution'))
     nightSuite.addTest(TALMHertzSimpleSphereTestContact('test_execution'))
     nightSuite.addTest(TALMHertzSphereTestContact('test_execution'))
     nightSuite.addTest(TALMHertzSimpleTestContact('test_execution'))
@@ -121,6 +120,9 @@ def AssambleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
     validationSuite.addTests(nightSuite)
+    validationSuite.addTest(TALMTaylorPatchDynamicTestContact('test_execution'))
+    validationSuite.addTest(TALMMeshMovingMatchingTestContact('test_execution'))
+    validationSuite.addTest(TALMMeshMovingNotMatchingTestContact('test_execution'))
     #validationSuite.addTest(TALMIroningTestContact('test_execution'))
     #validationSuite.addTest(TALMIroningDieTestContact('test_execution'))
     validationSuite.addTest(TLargeDisplacementPatchTestHexa('test_execution'))
@@ -131,8 +133,9 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            ## SMALL
+            ### SMALL
             TTestDoubleCurvatureIntegration,
+            TTestDynamicSearch,
             TTestMortarMapping,
             TSimplePatchTestTwoDMeshTying,
             TSimpleSlopePatchTestTwoDMeshTying,
@@ -152,16 +155,16 @@ def AssambleTestSuites():
             TALMThreeDPatchComplexGeomTestContact,
             TALMTThreeDPatchMatchingTestContact,
             TALMThreeDPatchNotMatchingTestContact,
-            ## NIGTHLY
-            TALMMeshMovingMatchingTestContact,
-            TALMMeshMovingNotMatchingTestContact,
+            ### NIGTHLY
             TALMTaylorPatchTestContact,
-            TALMTaylorPatchDynamicTestContact,
             TALMHertzSimpleTestContact,
             TALMHertzSimpleSphereTestContact,
-            ##TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
+            ####TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
             TALMHertzCompleteTestContact,
-            ## VALIDATION
+            ### VALIDATION
+            TALMTaylorPatchDynamicTestContact,
+            TALMMeshMovingMatchingTestContact, 
+            TALMMeshMovingNotMatchingTestContact,
             ##TALMIroningTestContact,
             ##TALMIroningDieTestContact,
             TLargeDisplacementPatchTestHexa,
