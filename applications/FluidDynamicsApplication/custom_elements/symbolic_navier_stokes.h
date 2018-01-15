@@ -84,13 +84,13 @@ public:
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     /// Type for shape function values container
-    typedef Kratos::Vector ShapeFunctionsType;
+    typedef typename FluidElement<TElementData>::ShapeFunctionsType ShapeFunctionsType;
 
     /// Type for a matrix containing the shape function gradients
-    typedef Kratos::Matrix ShapeFunctionDerivativesType;
+    typedef typename FluidElement<TElementData>::ShapeFunctionDerivativesType ShapeFunctionDerivativesType;
 
     /// Type for an array of shape function gradient matrices
-    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+    typedef typename FluidElement<TElementData>::ShapeFunctionDerivativesArrayType ShapeFunctionDerivativesArrayType;
 
     constexpr static unsigned int Dim = FluidElement<TElementData>::Dim;
     constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;

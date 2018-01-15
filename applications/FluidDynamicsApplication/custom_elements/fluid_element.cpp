@@ -312,8 +312,6 @@ void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int 
     if (rValues.size() != LocalSize)
         rValues.resize(LocalSize,false);
 
-    noalias(rValues) = ZeroVector(LocalSize);
-
     unsigned int Index = 0;
 
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -333,8 +331,6 @@ void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int
 
     if (rValues.size() != LocalSize)
         rValues.resize(LocalSize,false);
-
-    noalias(rValues) = ZeroVector(LocalSize);
 
     unsigned int index = 0;
 
@@ -416,8 +412,8 @@ void FluidElement<TElementData>::PrintInfo(std::ostream& rOStream) const
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class TElementData>
-double FluidElement<TElementData>::Interpolate(typename TElementData::NodalScalarData& rValues,
-                                               const typename TElementData::ShapeFunctionsType& rN)
+double FluidElement<TElementData>::Interpolate(const typename TElementData::NodalScalarData& rValues,
+                                               const typename TElementData::ShapeFunctionsType& rN) const
 {
     double result = 0.0;
 
@@ -430,8 +426,8 @@ double FluidElement<TElementData>::Interpolate(typename TElementData::NodalScala
 
 template <class TElementData>
 array_1d<double, 3> FluidElement<TElementData>::Interpolate(
-    typename TElementData::NodalVectorData& rValues,
-    const typename TElementData::ShapeFunctionsType& rN)
+    const typename TElementData::NodalVectorData& rValues,
+    const typename TElementData::ShapeFunctionsType& rN) const
 {
     array_1d<double, 3> result(3, 0.0);
 
@@ -456,12 +452,16 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
     Vector DetJ;
     r_geometry.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,IntMethod);
 
-    rNContainer.resize(number_of_gauss_points,NumNodes,false);
+    if (rNContainer.size1() != number_of_gauss_points || rNContainer.size2() != NumNodes) {
+        rNContainer.resize(number_of_gauss_points,NumNodes,false);
+    }
     rNContainer = r_geometry.ShapeFunctionsValues(IntMethod);
 
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = r_geometry.IntegrationPoints(IntMethod);
 
-    rGaussWeights.resize(number_of_gauss_points,false);
+    if (rGaussWeights.size() != number_of_gauss_points) {
+        rGaussWeights.resize(number_of_gauss_points,false);
+    }
 
     for (unsigned int g = 0; g < number_of_gauss_points; g++)
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();

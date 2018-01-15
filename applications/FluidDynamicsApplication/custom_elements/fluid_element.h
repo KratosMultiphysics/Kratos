@@ -316,11 +316,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual double Interpolate(typename TElementData::NodalScalarData& rHandler,
-                               const typename TElementData::ShapeFunctionsType& rN);
+    virtual double Interpolate(const typename TElementData::NodalScalarData& rHandler,
+                               const typename TElementData::ShapeFunctionsType& rN) const;
 
-    virtual array_1d<double, 3> Interpolate(typename TElementData::NodalVectorData& rHandler,
-                                            const typename TElementData::ShapeFunctionsType& rN);
+    virtual array_1d<double, 3> Interpolate(const typename TElementData::NodalVectorData& rHandler,
+                                            const typename TElementData::ShapeFunctionsType& rN) const;
 
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
     virtual void CalculateGeometryData(Vector& rGaussWeights,

@@ -448,22 +448,18 @@ void QSVMS<TElementData>::AddVelocitySystem(
     body_force *= density; // Force per unit of volume
     AGradN *= density; // Convective term is always multiplied by density
 
-    // Auxiliary variables for matrix looping
-    unsigned int Row = 0;
-    unsigned int Col = 0;
-
     // Temporary containers
-    double K,L,G,PDivV,qF;
+    double K,G,PDivV,qF;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        Row = i*BlockSize;
+        unsigned int row = i*BlockSize;
 
         // LHS terms
         for (unsigned int j = 0; j < NumNodes; j++)
         {
-            Col = j*BlockSize;
+            unsigned int col = j*BlockSize;
 
             // Some terms are the same for all velocity components, calculate them once for each i,j
             //K = 0.5*(rN[i]*AGradN[j] - AGradN[i]*rN[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
@@ -471,8 +467,8 @@ void QSVMS<TElementData>::AddVelocitySystem(
             K += AGradN[i]*TauOne*(AGradN[j]); // Stabilization: u*grad(v) * TauOne * u*grad(u)
             K *= rData.Weight;
 
-            // q-p stabilization block (reset result)
-            L = 0;
+            // q-p stabilization block (initialize result)
+            double laplacian = 0;
 
             // The following lines implement the viscous term as a Laplacian
             //for (unsigned int d = 0; d < Dim; d++)
@@ -481,38 +477,38 @@ void QSVMS<TElementData>::AddVelocitySystem(
             for (unsigned int d = 0; d < Dim; d++)
             {
                 //K += GaussWeight * Density * Viscosity * rDN_DX(i, d) * rDN_DX(j, d);
-                rLHS(Row+d,Col+d) += K;
+                rLHS(row+d,col+d) += K;
 
                 // v * Grad(p) block
                 G = TauOne * AGradN[i] * rData.DN_DX(j,d); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
                 PDivV = rData.DN_DX(i,d) * rData.N[j]; // Div(v) * p
 
                 // Write v * Grad(p) component
-                rLHS(Row+d,Col+Dim) += rData.Weight * (G - PDivV);
+                rLHS(row+d,col+Dim) += rData.Weight * (G - PDivV);
                 // Use symmetry to write the q * Div(u) component
-                rLHS(Col+Dim,Row+d) += rData.Weight * (G + PDivV);
+                rLHS(col+Dim,row+d) += rData.Weight * (G + PDivV);
 
                 // q-p stabilization block
-                L += rData.DN_DX(i,d) * rData.DN_DX(j,d); // Stabilization: Grad(q) * TauOne * Grad(p)
+                laplacian += rData.DN_DX(i,d) * rData.DN_DX(j,d); // Stabilization: Grad(q) * TauOne * Grad(p)
 
                 for (unsigned int e = 0; e < Dim; e++) // Stabilization: Div(v) * TauTwo * Div(u)
-                    rLHS(Row+d,Col+e) += rData.Weight*TauTwo*rData.DN_DX(i,d)*rData.DN_DX(j,e);
+                    rLHS(row+d,col+e) += rData.Weight*TauTwo*rData.DN_DX(i,d)*rData.DN_DX(j,e);
             }
 
             // Write q-p term
-            rLHS(Row+Dim,Col+Dim) += rData.Weight*TauOne*L;
+            rLHS(row+Dim,col+Dim) += rData.Weight*TauOne*laplacian;
         }
 
         // RHS terms
         qF = 0.0;
         for (unsigned int d = 0; d < Dim; ++d)
         {
-            rRHS[Row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
-            rRHS[Row+d] += rData.Weight * TauOne * AGradN[i] * ( body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
-            rRHS[Row+d] -= rData.Weight * TauTwo * rData.DN_DX(i,d) * mass_projection;
+            rRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
+            rRHS[row+d] += rData.Weight * TauOne * AGradN[i] * ( body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+            rRHS[row+d] -= rData.Weight * TauTwo * rData.DN_DX(i,d) * mass_projection;
             qF += rData.DN_DX(i, d) * (body_force[d] - momentum_projection[d]);
         }
-        rRHS[Row + Dim] += rData.Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
+        rRHS[row + Dim] += rData.Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
     }
 
     // Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
@@ -527,21 +523,18 @@ void QSVMS<TElementData>::AddMassLHS(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {
-    unsigned int Row = 0;
-    unsigned int Col = 0;
-
     double density = this->Interpolate(rData.Density,rData.N);
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        Row = i*BlockSize;
+        unsigned int row = i*BlockSize;
         for (unsigned int j = 0; j < NumNodes; j++)
         {
-            Col = j*BlockSize;
+            unsigned int col = j*BlockSize;
             const double Mij = rData.Weight * density * rData.N[i] * rData.N[j];
             for (unsigned int d = 0; d < Dim; d++)
-                rMassMatrix(Row+d,Col+d) += Mij;
+                rMassMatrix(row+d,col+d) += Mij;
         }
     }
 
@@ -579,29 +572,25 @@ void QSVMS<TElementData>::AddMassStabilization(
     // Multiplying some quantities by density to have correct units
     AGradN *= density; // Convective term is always multiplied by density
 
-    // Auxiliary variables for matrix looping
-    unsigned int Row = 0;
-    unsigned int Col = 0;
-
     // Temporary container
     double K;
-    double W = rData.Weight * TauOne * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
+    double weight = rData.Weight * TauOne * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        Row = i*BlockSize;
+        unsigned int row = i*BlockSize;
 
         for (unsigned int j = 0; j < NumNodes; j++)
         {
-            Col = j*BlockSize;
+            unsigned int col = j*BlockSize;
 
-            K = W * AGradN[i] * rData.N[j];
+            K = weight * AGradN[i] * rData.N[j];
 
             for (unsigned int d = 0; d < Dim; d++)
             {
-                rMassMatrix(Row+d,Col+d) += K;
-                rMassMatrix(Row+Dim,Col+d) += W*rData.DN_DX(i,d)*rData.N[j];
+                rMassMatrix(row+d,col+d) += K;
+                rMassMatrix(row+Dim,col+d) += weight*rData.DN_DX(i,d)*rData.N[j];
             }
         }
     }
