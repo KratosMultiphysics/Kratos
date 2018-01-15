@@ -35,11 +35,11 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             "contact_settings" :
             {
                 "mortar_type"                            : "",
-                "contact_tolerance"                      : 0.0e0,
                 "condn_convergence_criterion"            : false,
                 "fancy_convergence_criterion"            : true,
                 "print_convergence_criterion"            : false,
                 "ensure_contact"                         : false,
+                "gidio_debug"                            : false,
                 "adaptative_strategy"                    : false,
                 "split_factor"                           : 10.0,
                 "max_number_splits"                      : 3,
@@ -59,9 +59,16 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         # Construct the base solver.
         super().__init__(self.main_model_part, self.settings)
         
-        # Setting reactions true by default
-        self.settings["clear_storage"].SetBool(True)
-        self.settings["reform_dofs_at_each_step"].SetBool(True)
+        # Setting default configurations true by default
+        if (self.settings["clear_storage"].GetBool() == False):
+            print("WARNING:: Storage must be cleared each step. Switching to True")
+            self.settings["clear_storage"].SetBool(True)
+        if (self.settings["reform_dofs_at_each_step"].GetBool() == False):
+            print("WARNING:: DoF must be reformed each time step. Switching to True")
+            self.settings["reform_dofs_at_each_step"].SetBool(True)
+        if (self.settings["block_builder"].GetBool() == False):
+            print("WARNING:: EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
+            self.settings["block_builder"].SetBool(True)
 
         # Setting echo level
         self.echo_level =  self.settings["echo_level"].GetInt()
@@ -76,16 +83,15 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         super().AddVariables()
             
         if  self.contact_settings["mortar_type"].GetString() != "":
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)                                           # Add normal
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)  # Add normal
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H) # Add nodal size variable
             if  self.contact_settings["mortar_type"].GetString() == "ALMContactFrictionless":
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)                        # Add normal contact stress
                 self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)              # Add normal contact gap
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)                                      # Add nodal size variable
             elif self.contact_settings["mortar_type"].GetString() == "ALMContactFrictional": 
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)                   # Add normal contact stress 
                 self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)              # Add normal contact gap 
                 self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_SLIP)             # Add normal contact gap 
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)                                      # Add nodal size variable 
             elif  self.contact_settings["mortar_type"].GetString() == "ScalarMeshTying":
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER)                   # Add scalar LM
                 self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL)  # Add scalar LM residual
@@ -135,33 +141,41 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         conv_params.AddValue("contact_residual_relative_tolerance",self.contact_settings["contact_residual_relative_tolerance"])
         conv_params.AddValue("contact_residual_absolute_tolerance",self.contact_settings["contact_residual_absolute_tolerance"])
         conv_params.AddValue("mortar_type",self.contact_settings["mortar_type"])
-        conv_params.AddValue("contact_tolerance",self.contact_settings["contact_tolerance"])
         conv_params.AddValue("condn_convergence_criterion",self.contact_settings["condn_convergence_criterion"])
         conv_params.AddValue("fancy_convergence_criterion",self.contact_settings["fancy_convergence_criterion"])
         conv_params.AddValue("print_convergence_criterion",self.contact_settings["print_convergence_criterion"])
         conv_params.AddValue("ensure_contact",self.contact_settings["ensure_contact"])
+        conv_params.AddValue("gidio_debug",self.contact_settings["gidio_debug"])
         import contact_convergence_criteria_factory
         convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(conv_params)
         return convergence_criterion.mechanical_convergence_criterion
         
-    def _create_mechanical_solver(self):
-        if(self.settings["line_search"].GetBool()):
-            mechanical_solver = self._create_line_search_strategy()
+    def _create_builder_and_solver(self):
+        if  self.contact_settings["mortar_type"].GetString() != "":
+            linear_solver = self.get_linear_solver()
+            if self.settings["block_builder"].GetBool():
+                if self.settings["multi_point_constraints_used"].GetBool():
+                    raise Exception("MPCs not compatible with contact")
+                else:
+                    builder_and_solver = ContactStructuralMechanicsApplication.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
+            else:
+                raise Exception("Contact not compatible with EliminationBuilderAndSolver")
         else:
+            builder_and_solver = super()._create_builder_and_solver()
+            
+        return builder_and_solver
+        
+    def _create_mechanical_solver(self):
+        if  self.contact_settings["mortar_type"].GetString() != "":
             if self.settings["analysis_type"].GetString() == "linear":
                 mechanical_solver = self._create_linear_strategy()
-            elif self.settings["analysis_type"].GetString() == "arc_length":
-                mechanical_solver = self._create_arc_length_strategy()
-            elif self.settings["analysis_type"].GetString() == "formfinding":
-                mechanical_solver = self._create_formfinding_strategy()
             else:
-                if  self.contact_settings["mortar_type"].GetString() != "":
-                    if(self.settings["line_search"].GetBool()):
-                        mechanical_solver = self._create_contact_line_search_strategy()
-                    else:
-                        mechanical_solver = self._create_contact_newton_raphson_strategy()
+                if(self.settings["line_search"].GetBool()):
+                    mechanical_solver = self._create_contact_line_search_strategy()
                 else:
-                    mechanical_solver = super()._create_newton_raphson_strategy()
+                    mechanical_solver = self._create_contact_newton_raphson_strategy()
+        else:
+            mechanical_solver = super()._create_mechanical_solver()
                     
         return mechanical_solver
     

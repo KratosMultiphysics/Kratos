@@ -1005,22 +1005,28 @@ void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double
     array_1d<double, 3>& node_coor_array = this->GetGeometry()[0].Coordinates();
     array_1d<double, 3> local_rel_vel;
     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, relative_velocity, local_rel_vel);
-    double non_dim_volume_wear = 0.0;
+    double volume_wear = 0.0;
     double WallSeverityOfWear           = wall->GetProperties()[SEVERITY_OF_WEAR];
     double WallImpactSeverityOfWear     = wall->GetProperties()[IMPACT_WEAR_SEVERITY];
     double InverseOfWallBrinellHardness = 1.0 / (wall->GetProperties()[BRINELL_HARDNESS]);
     double Sliding_0 = tangential_vel[0] * mTimeStep;
     double Sliding_1 = tangential_vel[1] * mTimeStep;
-    double non_dim_impact_wear = WallImpactSeverityOfWear * InverseOfWallBrinellHardness * GetDensity() * mRadius * std::abs(local_rel_vel[2]);
-
-    if (sliding) non_dim_volume_wear = WallSeverityOfWear * InverseOfWallBrinellHardness * std::abs(LocalElasticContactForce) * sqrt(Sliding_0 * Sliding_0 + Sliding_1 * Sliding_1);
-
+    
+    double impact_wear = WallImpactSeverityOfWear * InverseOfWallBrinellHardness * GetDensity() * mRadius * std::abs(local_rel_vel[2]);
+    if (sliding) volume_wear = WallSeverityOfWear * InverseOfWallBrinellHardness * std::abs(LocalElasticContactForce) * sqrt(Sliding_0 * Sliding_0 + Sliding_1 * Sliding_1);
+    
+    double element_area = wall->GetGeometry().Area();
+    
+    if (element_area) {
+        impact_wear /= element_area;
+        volume_wear /= element_area;
+    }
     //COMPUTING THE PROJECTED POINT
 
     array_1d<double, 3> normal_to_wall;
 
     wall->CalculateNormal(normal_to_wall);
-
+    
     array_1d<double, 3> relative_vector = wall->GetGeometry()[0].Coordinates() - node_coor_array; //We could have chosen [1] or [2], also.
 
     double dot_prod = DEM_INNER_PRODUCT_3(relative_vector, normal_to_wall);
@@ -1029,33 +1035,24 @@ void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double
 
     array_1d<double, 3> inner_point = node_coor_array + normal_to_wall;
 
-    //TODO: generalize for any wall (3 or 4 nodes)
-    array_1d<double, 3> relative_vector_0 = inner_point - wall->GetGeometry()[0].Coordinates();
-    array_1d<double, 3> relative_vector_1 = inner_point - wall->GetGeometry()[1].Coordinates();
-    array_1d<double, 3> relative_vector_2 = inner_point - wall->GetGeometry()[2].Coordinates();
-
-    double distance_0 = DEM_MODULUS_3(relative_vector_0);
-    double distance_1 = DEM_MODULUS_3(relative_vector_1);
-    double distance_2 = DEM_MODULUS_3(relative_vector_2);
-    double inverse_of_total_distance = 1.0 / (distance_0 + distance_1 + distance_2);
-
-    double weight_0 = (distance_1 + distance_2) * inverse_of_total_distance;
-    double weight_1 = (distance_2 + distance_0) * inverse_of_total_distance;
-    double weight_2 = (distance_0 + distance_1) * inverse_of_total_distance;
-
+    array_1d<double, 3> point_local_coordinates;
+    Vector shape_functions_coefs(3);
+    wall->GetGeometry().PointLocalCoordinates(point_local_coordinates, inner_point);
+    wall->GetGeometry().ShapeFunctionsValues(shape_functions_coefs, point_local_coordinates);
+       
     wall->GetGeometry()[0].SetLock();
-    wall->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += weight_0 * non_dim_volume_wear;
-    wall->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) += weight_0 * non_dim_impact_wear;
+    wall->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[0] * volume_wear;
+    wall->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[0] * impact_wear;
     wall->GetGeometry()[0].UnSetLock();
 
     wall->GetGeometry()[1].SetLock();
-    wall->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += weight_1 * non_dim_volume_wear;
-    wall->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) += weight_1 * non_dim_impact_wear;
+    wall->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[1] * volume_wear;
+    wall->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[1] * impact_wear;
     wall->GetGeometry()[1].UnSetLock();
 
     wall->GetGeometry()[2].SetLock();
-    wall->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += weight_2 * non_dim_volume_wear;
-    wall->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) += weight_2 * non_dim_impact_wear;
+    wall->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[2] * volume_wear;
+    wall->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[2] * impact_wear;
     wall->GetGeometry()[2].UnSetLock();
 
 } //ComputeWear
