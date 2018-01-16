@@ -357,9 +357,15 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     // Generic geometry check
     int out = Element::Check(rCurrentProcessInfo);
+    if (out != 0) {
+        return out;
+    }
 
     // Check variables used by TElementData
-    out = TElementData::Check(*this,rCurrentProcessInfo);
+    out = TElementData::Check(*this, rCurrentProcessInfo);
+    KRATOS_ERROR_IF_NOT(out == 0)
+        << "Something is wrong with the elemental data of Element "
+        << this->Info() << std::endl;
 
     // Extra variables used in computing projections
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);

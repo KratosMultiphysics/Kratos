@@ -96,6 +96,9 @@ template< class TElementData >
 int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
+    KRATOS_ERROR_IF_NOT(out == 0)
+        << "Error in base class Check for Element " << this->Info() << std::endl
+        << "Error code is " << out << std::endl;
 
     // Extra variables
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);

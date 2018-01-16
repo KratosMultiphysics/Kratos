@@ -117,7 +117,11 @@ template <class TBaseElement>
 int EmbeddedFluidElement<TBaseElement>::Check(
     const ProcessInfo& rCurrentProcessInfo) {
 
-    EmbeddedElementData::Check(*this,rCurrentProcessInfo);
+    int out = EmbeddedElementData::Check(*this,rCurrentProcessInfo);
+    KRATOS_ERROR_IF_NOT(out == 0)
+        << "Something is wrong with the elemental data of Element "
+        << this->Info() << std::endl;
+
     return TBaseElement::Check(rCurrentProcessInfo);
 }
 

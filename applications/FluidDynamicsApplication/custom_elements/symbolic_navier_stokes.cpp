@@ -80,7 +80,10 @@ template <class TElementData>
 int SymbolicNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) {
     
     KRATOS_TRY;
-    FluidElement<TElementData>::Check(rCurrentProcessInfo);
+    int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
+    KRATOS_ERROR_IF_NOT(out == 0)
+        << "Error in base class Check for Element " << this->Info() << std::endl
+        << "Error code is " << out << std::endl;
 
     // Check constitutive law
     KRATOS_ERROR_IF( mpConstitutiveLaw == nullptr ) << "No consitutive law defined. Please call the element's Initialize() method before attempting the check." << std::endl;
