@@ -11,12 +11,12 @@ class RestartUtility(object):
         self.model_part = model_part
         self.input_filename = load_settings["input_filename"].GetString()
         self.input_file_label = load_settings["input_file_label"].GetString()
-        self.restart_frequency = save_settings["restart_time_frequency"].GetDouble()
+        self.output_frequency = save_settings["restart_time_frequency"].GetDouble()
+        self.next_output = 0.0
 
     def LoadRestart(self):
         # Get file name
-        problem_path = os.getcwd()
-        restart_path = os.path.join(problem_path, self.input_filename + "_" + self.input_file_label)
+        restart_path = self._get_load_file_name()
         # Check path
         if (os.path.exists(restart_path+".rest") == False):
             raise Exception("Restart file not found: " + restart_path + ".rest")        
@@ -28,6 +28,8 @@ class RestartUtility(object):
         # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
         serializer = KratosMultiphysics.Serializer(restart_path, serializer_flag)
         serializer.Load(self.model_part.Name, self.model_part)
+
+        self._execute_after_load()
 
         # Set restart-info in ProcessInfo
         self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
@@ -41,16 +43,29 @@ class RestartUtility(object):
         This function saves the restart file. It should be called at the end of a time-step.
         """
         if self.is_restart_output_step():
-            serializer = Serializer(self.input_filename + '_' + self.input_file_label)
+            time = self.model_part.ProcessInfo[TIME]
+            file_name = self._get_save_file_name(time)
+            serializer = KratosMultiphysics.Serializer(file_name)
             serializer.Save(self.model_part.Name, self.model_part)
 
-            self.out = 0.0 # TODO check if this indexing is working as expected!
-        else:
-            self.out += self.model_part.ProcessInfo[DELTA_TIME]
-
+            # Schedule next output
+            if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
+                while self.next_output <= time:
+                    self.next_output += self.output_frequency
 
     def is_restart_output_step(self):
-        return (self.out >= self.restart_frequency)
+        return (self.model_part.ProcessInfo[TIME] > self.next_output)
+
+    def _get_load_file_name(self):
+        problem_path = os.getcwd()
+        return os.path.join(problem_path, self.input_filename + "_" + self.input_file_label)
+
+    def _get_save_file_name(self, time):
+        return self.input_filename + '_' + str(time)
+
+    def _execute_after_load(self):
+        """This function creates the communicators in MPI/trilinos"""        
+        pass
 
 
 

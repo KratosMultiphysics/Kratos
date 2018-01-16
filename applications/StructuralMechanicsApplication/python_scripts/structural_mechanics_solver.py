@@ -57,7 +57,7 @@ class MechanicalSolver(object):
             },
             "restart_save_settings" : {
                 "save_restart"            : false,
-                "restart_time_frequency"  : 1.0,
+                "restart_time_frequency"  : 1.0
             },
             "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{
