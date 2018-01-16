@@ -74,7 +74,7 @@ public:
 
     virtual void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) = 0;
 
-    static void Check(const Element& rElement, const ProcessInfo& rProcessInfo);
+    static int Check(const Element& rElement, const ProcessInfo& rProcessInfo);
 
     virtual void UpdateGeometryValues(double NewWeight,
         const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,

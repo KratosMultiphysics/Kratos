@@ -15,6 +15,13 @@ FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>::~FluidElementData()
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+int FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::Check(
+    const Element& rElement, const ProcessInfo& rProcessInfo)
+{
+    return 0;
+}
+
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::UpdateGeometryValues(double NewWeight,
     const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX)
