@@ -214,12 +214,12 @@ private:
 
     /**
      * This gets the gradient value
-     * @param ThisGeometry The geometry of the element
+     * @param rThisGeometry The geometry of the element
      * @param i The node index
      * @param k The component index
      */
     double& GetGradient(
-        Element::GeometryType& ThisGeometry,
+        Element::GeometryType& rThisGeometry,
         unsigned int i, 
         unsigned int k
         );

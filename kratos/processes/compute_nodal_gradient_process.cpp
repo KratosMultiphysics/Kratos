@@ -20,6 +20,7 @@
 /* External includes */
 
 /* Project includes */
+#include "utilities/variable_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "processes/compute_nodal_gradient_process.h"
 
@@ -39,15 +40,13 @@ void ComputeNodalGradientProcess<TDim, TVarType, THist>::Execute()
     
     #pragma omp parallel for private(DN_DX,  N,  Volume)
     for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i) {
-        auto it=mrModelPart.ElementsBegin()+i;
-        Element::GeometryType& geom = it->GetGeometry();
+        auto it_elem = mrModelPart.ElementsBegin()+i;
+        Element::GeometryType& geom = it_elem->GetGeometry();
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
         
         array_1d<double, TDim+1> values;
         for(unsigned int i=0; i<TDim+1; ++i)
-        {
             values[i] = geom[i].FastGetSolutionStepValue(mrOriginVariable);
-        }
         
         const array_1d<double,TDim> grad = prod(trans(DN_DX), values);
         
@@ -84,9 +83,9 @@ ComputeNodalGradientProcess<2, Variable<double>, Historical>::ComputeNodalGradie
 {
     KRATOS_TRY
     
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rOriginVariable )) << "Missing variable " << rOriginVariable;
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rGradientVariable )) << "Missing variable " << rGradientVariable;
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rAreaVariable )) << "Missing variable " << rAreaVariable;
+    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
+    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
     
     KRATOS_CATCH("")
 }
@@ -104,9 +103,9 @@ ComputeNodalGradientProcess<2, Variable<double>, NonHistorical>::ComputeNodalGra
 {
     KRATOS_TRY
     
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rOriginVariable )) << "Missing variable " << rOriginVariable;
+    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
     KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable;
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rAreaVariable )) << "Missing variable " << rAreaVariable;
+    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
     
     KRATOS_CATCH("")
 }
@@ -124,9 +123,9 @@ ComputeNodalGradientProcess<3, Variable<double>, Historical>::ComputeNodalGradie
 {
     KRATOS_TRY
     
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rOriginVariable )) << "Missing variable " << rOriginVariable;
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rGradientVariable )) << "Missing variable " << rGradientVariable;
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rAreaVariable )) << "Missing variable " << rAreaVariable;
+    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
+    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
     
     KRATOS_CATCH("")
 }
@@ -144,9 +143,9 @@ ComputeNodalGradientProcess<3, Variable<double>, NonHistorical>::ComputeNodalGra
 {
     KRATOS_TRY
     
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rOriginVariable )) << "Missing variable " << rOriginVariable;
+    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
     KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable;
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rAreaVariable )) << "Missing variable " << rAreaVariable;
+    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
     
     KRATOS_CATCH("")
 }
@@ -164,9 +163,9 @@ ComputeNodalGradientProcess<2, component_type, Historical>::ComputeNodalGradient
 {
     KRATOS_TRY
     
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rOriginVariable )) << "Missing variable " << rOriginVariable;
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rGradientVariable )) << "Missing variable " << rGradientVariable;
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rAreaVariable )) << "Missing variable " << rAreaVariable;
+    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
+    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
     
     KRATOS_CATCH("")
 }
@@ -184,9 +183,9 @@ ComputeNodalGradientProcess<2, component_type, NonHistorical>::ComputeNodalGradi
 {
     KRATOS_TRY
     
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rOriginVariable )) << "Missing variable " << rOriginVariable;
+    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
     KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable;
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rAreaVariable )) << "Missing variable " << rAreaVariable;
+    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
     
     KRATOS_CATCH("")
 }
@@ -204,9 +203,9 @@ ComputeNodalGradientProcess<3, component_type, Historical>::ComputeNodalGradient
 {
     KRATOS_TRY
     
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rOriginVariable )) << "Missing variable " << rOriginVariable;
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rGradientVariable )) << "Missing variable " << rGradientVariable;
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rAreaVariable )) << "Missing variable " << rAreaVariable;
+    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
+    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
     
     KRATOS_CATCH("")
 }
@@ -224,9 +223,9 @@ ComputeNodalGradientProcess<3, component_type, NonHistorical>::ComputeNodalGradi
 {
     KRATOS_TRY
     
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rOriginVariable )) << "Missing variable " << rOriginVariable;
+    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
     KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable;
-    KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has( rAreaVariable )) << "Missing variable " << rAreaVariable;
+    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
     
     KRATOS_CATCH("")
 }
@@ -353,12 +352,12 @@ void ComputeNodalGradientProcess<3, component_type, NonHistorical>::ClearGradien
 
 template <>
 double& ComputeNodalGradientProcess<2, Variable<double>, Historical>::GetGradient(
-    Element::GeometryType& ThisGeometry,
+    Element::GeometryType& rThisGeometry,
     unsigned int i, 
     unsigned int k
     )
 {
-    double& val = ThisGeometry[i].FastGetSolutionStepValue(mrGradientVariable)[k];
+    double& val = rThisGeometry[i].FastGetSolutionStepValue(mrGradientVariable)[k];
     
     return val;
 }
@@ -368,12 +367,12 @@ double& ComputeNodalGradientProcess<2, Variable<double>, Historical>::GetGradien
 
 template <>
 double& ComputeNodalGradientProcess<3, Variable<double>, Historical>::GetGradient(
-    Element::GeometryType& ThisGeometry,
+    Element::GeometryType& rThisGeometry,
     unsigned int i, 
     unsigned int k
     )
 {
-    double& val = ThisGeometry[i].FastGetSolutionStepValue(mrGradientVariable)[k];
+    double& val = rThisGeometry[i].FastGetSolutionStepValue(mrGradientVariable)[k];
     
     return val;
 }
@@ -383,12 +382,12 @@ double& ComputeNodalGradientProcess<3, Variable<double>, Historical>::GetGradien
 
 template <>
 double& ComputeNodalGradientProcess<2, component_type, Historical>::GetGradient(
-    Element::GeometryType& ThisGeometry,
+    Element::GeometryType& rThisGeometry,
     unsigned int i, 
     unsigned int k
     )
 {
-    double& val = ThisGeometry[i].FastGetSolutionStepValue(mrGradientVariable)[k];
+    double& val = rThisGeometry[i].FastGetSolutionStepValue(mrGradientVariable)[k];
     
     return val;
 }
@@ -398,12 +397,12 @@ double& ComputeNodalGradientProcess<2, component_type, Historical>::GetGradient(
 
 template <>
 double& ComputeNodalGradientProcess<3, component_type, Historical>::GetGradient(
-    Element::GeometryType& ThisGeometry,
+    Element::GeometryType& rThisGeometry,
     unsigned int i, 
     unsigned int k
     )
 {
-    double& val = ThisGeometry[i].FastGetSolutionStepValue(mrGradientVariable)[k];
+    double& val = rThisGeometry[i].FastGetSolutionStepValue(mrGradientVariable)[k];
     
     return val;
 }
@@ -413,12 +412,12 @@ double& ComputeNodalGradientProcess<3, component_type, Historical>::GetGradient(
 
 template <>
 double& ComputeNodalGradientProcess<2, Variable<double>, NonHistorical>::GetGradient(
-    Element::GeometryType& ThisGeometry,
+    Element::GeometryType& rThisGeometry,
     unsigned int i, 
     unsigned int k
     )
 {
-    double& val = ThisGeometry[i].GetValue(mrGradientVariable)[k];
+    double& val = rThisGeometry[i].GetValue(mrGradientVariable)[k];
     
     return val;
 }
@@ -428,12 +427,12 @@ double& ComputeNodalGradientProcess<2, Variable<double>, NonHistorical>::GetGrad
 
 template <>
 double& ComputeNodalGradientProcess<3, Variable<double>, NonHistorical>::GetGradient(
-    Element::GeometryType& ThisGeometry,
+    Element::GeometryType& rThisGeometry,
     unsigned int i, 
     unsigned int k
     )
 {
-    double& val = ThisGeometry[i].GetValue(mrGradientVariable)[k];
+    double& val = rThisGeometry[i].GetValue(mrGradientVariable)[k];
     
     return val;
 }
@@ -443,12 +442,12 @@ double& ComputeNodalGradientProcess<3, Variable<double>, NonHistorical>::GetGrad
 
 template <>
 double& ComputeNodalGradientProcess<2, component_type, NonHistorical>::GetGradient(
-    Element::GeometryType& ThisGeometry,
+    Element::GeometryType& rThisGeometry,
     unsigned int i, 
     unsigned int k
     )
 {
-    double& val = ThisGeometry[i].GetValue(mrGradientVariable)[k];
+    double& val = rThisGeometry[i].GetValue(mrGradientVariable)[k];
     
     return val;
 }
@@ -458,12 +457,12 @@ double& ComputeNodalGradientProcess<2, component_type, NonHistorical>::GetGradie
 
 template <>
 double& ComputeNodalGradientProcess<3, component_type, NonHistorical>::GetGradient(
-    Element::GeometryType& ThisGeometry,
+    Element::GeometryType& rThisGeometry,
     unsigned int i, 
     unsigned int k
     )
 {
-    double& val = ThisGeometry[i].GetValue(mrGradientVariable)[k];
+    double& val = rThisGeometry[i].GetValue(mrGradientVariable)[k];
     
     return val;
 }
