@@ -38,7 +38,7 @@ namespace HDF5
 ///@name Kratos Classes
 ///@{
 
-class ModelPartIOBase : public virtual IO
+class ModelPartIOBase : public IO
 {
 public:
     ///@name Type Definitions

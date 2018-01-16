@@ -85,17 +85,29 @@ class MechanicalSolver(object):
                 "scaling": false,
                 "verbosity": 1
             },
-            "bodies_list": [],
             "problem_domain_sub_model_part_list": ["solid"],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : []
         }
         """)
 
-        # temporary warning, to be removed
+        # temporary warnings, to be removed
         if custom_settings.Has("bodies_list"):
+            custom_settings.RemoveValue("bodies_list")
             warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "bodies_list", '
             warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
+            self.print_on_rank_zero(warning)
+        if custom_settings.Has("solver_type"):
+            custom_settings.RemoveValue("solver_type")
+            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "solver_type", '
+            warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
+            warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
+            self.print_on_rank_zero(warning)
+        if custom_settings.Has("time_integration_method"):
+            custom_settings.RemoveValue("time_integration_method")
+            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "time_integration_method", '
+            warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
+            warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
             self.print_on_rank_zero(warning)
 
         # Overwrite the default settings with user-provided parameters.
@@ -364,7 +376,6 @@ class MechanicalSolver(object):
         params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
         params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-        params.AddValue("bodies_list",self.settings["bodies_list"])
         # Assign mesh entities from domain and process sub model parts to the computing model part.
         import check_and_prepare_model_process_structural
         check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()

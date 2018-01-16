@@ -22,7 +22,7 @@
 
 // Application includes
 #include "distance_modification_process.h"
-
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -88,14 +88,12 @@ void DistanceModificationProcess::ExecuteBeforeSolutionLoop() {
 
     KRATOS_TRY;
 
-    unsigned int counter = 1;
     unsigned int bad_cuts = 1;
 
     // Modify the nodal distance values until there is no bad intersections
     while (bad_cuts > 0) {
         bad_cuts = this->ModifyDistance();
         mDistanceThreshold /= mFactorCoeff;
-        counter++;
     }
 
     // If proceeds (depending on the formulation), perform the deactivation
@@ -185,7 +183,7 @@ unsigned int DistanceModificationProcess::ModifyDistance() {
     mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
 
     // Check if there still exist bad cuts
-    unsigned int num_bad_cuts = 0;
+    int num_bad_cuts = 0;
     /* Note: I'm defining a temporary variable because 'num_bad_cuts'
     *  instead of writing directly into input argument 'bad_cuts'
     *  because using a reference variable in a reduction pragma does
@@ -193,19 +191,19 @@ unsigned int DistanceModificationProcess::ModifyDistance() {
     */
     #pragma omp parallel for reduction(+ : num_bad_cuts)
     for (int k = 0; k < static_cast<int>(rElements.size()); ++k) {
-        unsigned int npos = 0;
-        unsigned int nneg = 0;
+        unsigned int n_pos = 0;
+        unsigned int n_neg = 0;
 
         ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
         GeometryType& rGeometry = itElement->GetGeometry();
 
         for (unsigned int iNode=0; iNode<rGeometry.size(); iNode++) {
             const double d = rGeometry[iNode].FastGetSolutionStepValue(DISTANCE);
-            (d > 0.0) ? npos++ : nneg++;
+            (d > 0.0) ? n_pos++ : n_neg++;
         }
 
         // The element is cut
-        if((nneg > 0) && (npos > 0)) {
+        if((n_neg > 0) && (n_pos > 0)) {
             for(unsigned int iNode=0; iNode<rGeometry.size(); iNode++) {
                 const Node<3> &rConstNode = rGeometry[iNode];
                 const double h = rConstNode.GetValue(NODAL_H);
@@ -219,6 +217,9 @@ unsigned int DistanceModificationProcess::ModifyDistance() {
             }
         }
     }
+
+    // Synchronize the number of bad cuts
+    mrModelPart.GetCommunicator().SumAll(num_bad_cuts);
 
     return num_bad_cuts;
 }
@@ -251,46 +252,47 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
     ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
     ModelPart::ElementsContainerType& rElements = mrModelPart.Elements();
 
-    // Initialize the ACTIVE flag to false
+    // Initialize the EMBEDDED_IS_ACTIVE variable flag to 0
     #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node) {
+    for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
         ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
-        it_node->Set(ACTIVE, false);
+        it_node->SetValue(EMBEDDED_IS_ACTIVE, 0);
     }
 
-    // Deactivate those elements whose fixed nodes and negative distance nodes summation is equal (or larger) to their number of nodes
+    // Deactivate those elements whose negative distance nodes summation is equal to their number of nodes
     #pragma omp parallel for
-    for (int k = 0; k < static_cast<int>(rElements.size()); ++k) {
-        unsigned int fixed = 0;
-        unsigned int inside = 0;
+    for (int k = 0; k < static_cast<int>(rElements.size()); ++k){
+        unsigned int n_neg = 0;
         ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
         GeometryType& rGeometry = itElement->GetGeometry();
 
         // Check the distance function sign at the element nodes
-        for (unsigned int i_node=0; i_node<rGeometry.size(); i_node++) {
-            if (rGeometry[i_node].FastGetSolutionStepValue(DISTANCE) < 0.0)
-                inside++;
-            if (rGeometry[i_node].IsFixed(VELOCITY_X) && rGeometry[i_node].IsFixed(VELOCITY_Y) && rGeometry[i_node].IsFixed(VELOCITY_Z))
-                fixed++;
+        for (unsigned int i_node=0; i_node<rGeometry.size(); i_node++){
+            if (rGeometry[i_node].FastGetSolutionStepValue(DISTANCE) < 0.0){
+                n_neg++;
+            }
         }
 
-        (inside+fixed >= rGeometry.size()) ? itElement->Set(ACTIVE, false) : itElement->Set(ACTIVE, true);
+        (n_neg == rGeometry.size()) ? itElement->Set(ACTIVE, false) : itElement->Set(ACTIVE, true);
 
         // If the element is ACTIVE, all its nodes are active as well
-        if (itElement->Is(ACTIVE)) {
-            for (unsigned int i_node = 0; i_node < rGeometry.size(); ++i_node) {
-                rGeometry[i_node].Set(ACTIVE, true);
+        if (itElement->Is(ACTIVE)){
+            for (unsigned int i_node = 0; i_node < rGeometry.size(); ++i_node){
+                int& activation_index = rGeometry[i_node].GetValue(EMBEDDED_IS_ACTIVE);
+                #pragma omp atomic
+                activation_index += 1;
             }
         }
     }
 
-    // Set to zero and fix the DOFs in the remaining INACTIVE nodes
+    // Synchronize the EMBEDDED_IS_ACTIVE variable flag
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(EMBEDDED_IS_ACTIVE);
+
+    // Set to zero and fix the DOFs in the remaining inactive nodes
     #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node) {
-
+    for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
         ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
-
-        if (it_node->IsNot(ACTIVE)) {
+        if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
             // Fix the nodal DOFs
             it_node->Fix(PRESSURE);
             it_node->Fix(VELOCITY_X);
