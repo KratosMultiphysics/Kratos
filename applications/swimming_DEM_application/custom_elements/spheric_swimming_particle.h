@@ -112,8 +112,7 @@ namespace Kratos
         void ComputeParticleReynoldsNumber(double& r_reynolds);
         void ComputePowerLawParticleReynoldsNumber(double& reynolds,
                                                    const double consistency_index,
-                                                   const int flow_behavior_index,
-                                                   const bool use_max_shear_rate = false);
+                                                   const double flow_behavior_index);
         double ComputeNondimensionalRotVelocity(const array_1d<double, 3>& slip_rot_velocity);
         void ComputeParticleRotationReynoldsNumber(double r_norm_of_slip_rot, double& r_reynolds);
         void ComputeParticleRotationReynoldsNumberOverNormOfSlipRot(double& r_reynolds);
