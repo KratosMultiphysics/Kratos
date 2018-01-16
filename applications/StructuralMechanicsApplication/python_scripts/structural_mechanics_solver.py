@@ -176,7 +176,7 @@ class MechanicalSolver(object):
             self._set_and_fill_buffer()
         elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
             # Import model part from restart file.
-            self.get_restart_utility.LoadRestart()
+            self.get_restart_utility().LoadRestart()
         else:
             raise Exception("Other model part input options are not yet implemented.")
         print(self.main_model_part)
@@ -535,7 +535,7 @@ class MechanicalSolver(object):
         """Create the restart utility. Has to be overridden for MPI/trilinos-solvers"""
         import restart_utility
         rest_utility = restart_utility.RestartUtility(self.main_model_part,
-                                                      self.settings["model_import_settings"]
+                                                      self.settings["model_import_settings"],
                                                       self.settings["restart_save_settings"])
         return rest_utility
  

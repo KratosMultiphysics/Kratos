@@ -146,6 +146,6 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         """Create the restart utility."""
         import trilinos_restart_utility as restart_utility
         rest_utility = restart_utility.RestartUtility(self.main_model_part,
-                                                      self.settings["model_import_settings"]
+                                                      self.settings["model_import_settings"],
                                                       self.settings["restart_save_settings"])
         return rest_utility

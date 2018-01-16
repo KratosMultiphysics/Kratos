@@ -10,7 +10,7 @@ class RestartUtility(object):
     def __init__(self, model_part, load_settings, save_settings):
         self.model_part = model_part
         self.input_filename = load_settings["input_filename"].GetString()
-        self.input_file_label = load_settings["input_file_label"].GetString()
+        self.input_file_label = load_settings["input_file_label"].GetDouble()
         self.output_frequency = save_settings["restart_time_frequency"].GetDouble()
         self.next_output = 0.0
 
@@ -32,6 +32,8 @@ class RestartUtility(object):
         self._execute_after_load()
 
         # Set restart-info in ProcessInfo
+        print(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
+        err
         self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
         load_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
         self.model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
@@ -43,7 +45,7 @@ class RestartUtility(object):
         This function saves the restart file. It should be called at the end of a time-step.
         """
         if self.is_restart_output_step():
-            time = self.model_part.ProcessInfo[TIME]
+            time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             file_name = self._get_save_file_name(time)
             serializer = KratosMultiphysics.Serializer(file_name)
             serializer.Save(self.model_part.Name, self.model_part)
@@ -54,11 +56,11 @@ class RestartUtility(object):
                     self.next_output += self.output_frequency
 
     def is_restart_output_step(self):
-        return (self.model_part.ProcessInfo[TIME] > self.next_output)
+        return (self.model_part.ProcessInfo[KratosMultiphysics.TIME] > self.next_output)
 
     def _get_load_file_name(self):
         problem_path = os.getcwd()
-        return os.path.join(problem_path, self.input_filename + "_" + self.input_file_label)
+        return os.path.join(problem_path, self.input_filename + "_" + str(self.input_file_label))
 
     def _get_save_file_name(self, time):
         return self.input_filename + '_' + str(time)
@@ -66,50 +68,3 @@ class RestartUtility(object):
     def _execute_after_load(self):
         """This function creates the communicators in MPI/trilinos"""        
         pass
-
-
-
-
-    
-
-    # def is_restart_output_step(self):
-    ### THIS IS WRONG, JUST COPY-PASTE !!!
-    #     if (self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
-    #         return True
-    #     else:
-    #         return False
-
-    '''
-    def __init__(self, problem_name, model_part, settings):
-        Process.__init__(self)
-        self.problem_name = problem_name
-        self.model_part = model_part
-        self.load_restart = settings["LoadRestart"].GetBool()
-        self.restart_step = settings["RestartStep"].GetString()
-        self.restart_frequency = settings["RestartFrequency"].GetDouble()
-
-    def IsRestart(self):
-        return self.load_restart
-
-    def LoadRestart(self):
-        serializer = Serializer(self.problem_name + '_' + str(KratosMPI.mpi.rank) + '_' + self.restart_step)
-        serializer.Load('ModelPart', self.model_part)
-        import trilinos_import_model_part_utility
-        TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.model_part, Parameters('''{"model_import_settings":[]}'''))
-        TrilinosModelPartImporter.CreateCommunicators() # parallel fill communicator
-
-    def ExecuteInitializeSolutionStep(self):
-        self.out += self.model_part.ProcessInfo[DELTA_TIME]
-
-    def ExecuteBeforeSolutionLoop(self):
-        self.out = 0.0
-
-    def IsOutputStep(self):
-        return (self.out >= self.restart_frequency)
-
-    def WriteRestartFile(self):
-        time = self.model_part.ProcessInfo[TIME]
-        serializer = Serializer(self.problem_name + '_' + str(KratosMPI.mpi.rank) + '_' + str(time))
-        serializer.Save('ModelPart', self.model_part)
-        self.out = 0.0
-    '''
