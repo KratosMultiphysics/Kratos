@@ -382,18 +382,21 @@ namespace Kratos
             std::string condition_name;
             auto ConditionsComponents = KratosComponents<Condition>::GetComponents();
             
-            unsigned int condition_dimension = rThisConditions.begin()->GetGeometry().WorkingSpaceDimension();
-            unsigned int condition_num_nodes = rThisConditions.begin()->GetGeometry().size();
+            const std::type_info& condition_type = typeid(*(rThisConditions.begin()));
+            const unsigned int condition_num_nodes = rThisConditions.begin()->GetGeometry().size();
+            const unsigned int condition_dimension = rThisConditions.begin()->GetGeometry().WorkingSpaceDimension();
             
             // Fisrt we do the first condition
             for(auto i_comp = ConditionsComponents.begin(); i_comp != ConditionsComponents.end() ; i_comp++)
             {
                 const std::type_info& type_component = typeid(*(i_comp->second));
-                if (std::type_index(typeid(*(rThisConditions.begin()))) == std::type_index(type_component) &&
-                    (condition_dimension == (i_comp->second)->GetGeometry().size()) &&
-                    (condition_num_nodes == (i_comp->second)->GetGeometry().WorkingSpaceDimension())
-                )
-                {
+                const unsigned int component_num_nodes = (*(i_comp->second)).GetGeometry().size();
+                const unsigned int component_dimension = (*(i_comp->second)).GetGeometry().WorkingSpaceDimension();
+
+                if ((std::type_index(condition_type) == std::type_index(type_component)) &&
+                    (condition_dimension == component_dimension) &&
+                    (condition_num_nodes == component_num_nodes)) {
+
                     condition_name = i_comp->first;
                     break;
                 }
@@ -431,16 +434,18 @@ namespace Kratos
                 {
                     (*mpStream) << "End Conditions" << std::endl << std::endl;;
                     
-                    condition_dimension = itCondCurrent->GetGeometry().WorkingSpaceDimension();
-                    condition_num_nodes = itCondCurrent->GetGeometry().size();
+                    const unsigned int current_condition_dimension = itCondCurrent->GetGeometry().WorkingSpaceDimension();
+                    const unsigned int current_condition_num_nodes = itCondCurrent->GetGeometry().size();
                     
                     for(auto i_comp = ConditionsComponents.begin(); i_comp != ConditionsComponents.end() ; i_comp++)
                     {
-                        const std::type_info& type_component = typeid(*(i_comp->second));
+                        const std::type_info &type_component = typeid(*(i_comp->second));
+                        const unsigned int component_num_nodes = (*(i_comp->second)).GetGeometry().size();
+                        const unsigned int component_dimension = (*(i_comp->second)).GetGeometry().WorkingSpaceDimension();
+
                         if (std::type_index(typeid(*itCondCurrent)) == std::type_index(type_component) &&
-                            (condition_dimension == (i_comp->second)->GetGeometry().size()) &&
-                            (condition_num_nodes == (i_comp->second)->GetGeometry().WorkingSpaceDimension())
-                        )
+                            (current_condition_dimension == component_dimension) &&
+                            (current_condition_num_nodes == component_num_nodes))
                         {
                             condition_name = i_comp->first;
                             break;
@@ -3056,25 +3061,28 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 	
-	void ModelPartIO::WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string InitialTabulation)
-	{
+	void ModelPartIO::WriteSubModelPartBlock(
+        ModelPart& rMainModelPart, 
+        const std::string InitialTabulation) {
+            
 		KRATOS_TRY;
 
-                const std::vector<std::string> SubModelPartNames = rMainModelPart.GetSubModelPartNames();
+        const std::vector<std::string> sub_model_part_names = rMainModelPart.GetSubModelPartNames();
 
-                for (unsigned int i_sub = 0; i_sub < SubModelPartNames.size(); i_sub++)
-                {
-                    const std::string submodelname = SubModelPartNames[i_sub];
-                    ModelPart& SubModel = rMainModelPart.GetSubModelPart(submodelname);
-                    
-                    (*mpStream) << InitialTabulation << "Begin SubModelPart\t" << submodelname << std::endl;
-                    
-                    (*mpStream) << InitialTabulation << "\tBegin SubModelPartData" << std::endl;
-                    // VARIABLE_NAME value // TODO: Finish me
-                    (*mpStream) << InitialTabulation  << "\tEnd SubModelPartData" << std::endl;
-                    
-                    
-                    (*mpStream) << InitialTabulation  << "\tBegin SubModelPartTables" << std::endl;
+        for (unsigned int i_sub = 0; i_sub < sub_model_part_names.size(); i_sub++) {
+
+            const std::string sub_model_part_name = sub_model_part_names[i_sub];
+            ModelPart& r_sub_model_part = rMainModelPart.GetSubModelPart(sub_model_part_name);
+            
+            (*mpStream) << InitialTabulation << "Begin SubModelPart\t" << sub_model_part_name << std::endl;
+            
+            // Submodelpart data section
+            (*mpStream) << InitialTabulation << "\tBegin SubModelPartData" << std::endl;
+            // VARIABLE_NAME value // TODO: Finish me
+            (*mpStream) << InitialTabulation  << "\tEnd SubModelPartData" << std::endl;
+            
+            // Submodelpart tables section
+            (*mpStream) << InitialTabulation  << "\tBegin SubModelPartTables" << std::endl;
 //                     ModelPart::TablesContainerType& rThisTables = rMainModelPart.Tables();
 //                     auto numTables = rThisTables.end() - rThisTables.begin();
 //                     for(unsigned int i = 0; i < numTables; i++) 
@@ -3082,46 +3090,43 @@ namespace Kratos
 //                         auto itTable = rThisTables.begin() + i;
 //                         (*mpStream) << InitialTabulation << "\t" << itTable->Id() << std::endl; //FIXME: Tables does not have Id() Whyyyyy?
 //                     }
-                    (*mpStream) << InitialTabulation << "\tEnd SubModelPartTables" << std::endl;
-                    
-                    
-                    (*mpStream) << InitialTabulation << "\tBegin SubModelPartNodes" << std::endl;
-                    NodesContainerType& rThisNodes = rMainModelPart.Nodes();
-                    auto numNodes = rThisNodes.end() - rThisNodes.begin();
-                    for(unsigned int i = 0; i < numNodes; i++) 
-                    {
-                        auto itNode = rThisNodes.begin() + i;
-                        (*mpStream) << InitialTabulation << "\t\t" << itNode->Id() << std::endl;
-                    }
-                    (*mpStream) << InitialTabulation << "\tEnd SubModelPartNodes" << std::endl;
-                    
-                    
-                    (*mpStream) << InitialTabulation << "\tBegin SubModelPartElements" << std::endl;
-                    ElementsContainerType& rThisElements = rMainModelPart.Elements();
-                    auto numElements = rThisElements.end() - rThisElements.begin();
-                    for(unsigned int i = 0; i < numElements; i++) 
-                    {
-                        auto itElem = rThisElements.begin() + i;
-                        (*mpStream) << InitialTabulation << "\t\t" << itElem->Id() << std::endl;
-                    }
-                    (*mpStream) << InitialTabulation << "\tEnd SubModelPartElements" << std::endl;
-                    
-                    
-                    (*mpStream) << InitialTabulation << "\tBegin SubModelPartConditions" << std::endl;
-                    ConditionsContainerType& rThisConditions= rMainModelPart.Conditions();
-                    auto numConditions = rThisConditions.end() - rThisConditions.begin();
-                    for(unsigned int i = 0; i < numConditions; i++) 
-                    {
-                        auto itCond = rThisConditions.begin() + i;
-                        (*mpStream) << InitialTabulation << "\t\t" << itCond->Id() << std::endl;
-                    }
-                    (*mpStream) << InitialTabulation << "\tEnd SubModelPartConditions" << std::endl;
-                    
-                    // Write the subsubmodelparts
-                    WriteSubModelPartBlock(SubModel, InitialTabulation+"\t");
-                    
-                    (*mpStream) << InitialTabulation << "End SubModelPart\t" << std::endl << std::endl;
-                }
+            (*mpStream) << InitialTabulation << "\tEnd SubModelPartTables" << std::endl;
+            
+            // Submodelpart nodes section
+            (*mpStream) << InitialTabulation << "\tBegin SubModelPartNodes" << std::endl;
+            NodesContainerType& rThisNodes = r_sub_model_part.Nodes();
+            auto numNodes = rThisNodes.end() - rThisNodes.begin();
+            for(unsigned int i = 0; i < numNodes; i++) {
+                auto itNode = rThisNodes.begin() + i;
+                (*mpStream) << InitialTabulation << "\t\t" << itNode->Id() << std::endl;
+            }
+            (*mpStream) << InitialTabulation << "\tEnd SubModelPartNodes" << std::endl;
+            
+            // Submodelpart elements section
+            (*mpStream) << InitialTabulation << "\tBegin SubModelPartElements" << std::endl;
+            ElementsContainerType& rThisElements = r_sub_model_part.Elements();
+            auto numElements = rThisElements.end() - rThisElements.begin();
+            for(unsigned int i = 0; i < numElements; i++) {
+                auto itElem = rThisElements.begin() + i;
+                (*mpStream) << InitialTabulation << "\t\t" << itElem->Id() << std::endl;
+            }
+            (*mpStream) << InitialTabulation << "\tEnd SubModelPartElements" << std::endl;
+            
+            // Submodelpart conditions section
+            (*mpStream) << InitialTabulation << "\tBegin SubModelPartConditions" << std::endl;
+            ConditionsContainerType& rThisConditions= r_sub_model_part.Conditions();
+            auto numConditions = rThisConditions.end() - rThisConditions.begin();
+            for(unsigned int i = 0; i < numConditions; i++) {
+                auto itCond = rThisConditions.begin() + i;
+                (*mpStream) << InitialTabulation << "\t\t" << itCond->Id() << std::endl;
+            }
+            (*mpStream) << InitialTabulation << "\tEnd SubModelPartConditions" << std::endl;
+            
+            // Write the subsubmodelparts
+            WriteSubModelPartBlock(r_sub_model_part, InitialTabulation+"\t");
+            
+            (*mpStream) << InitialTabulation << "End SubModelPart\t" << std::endl << std::endl;
+        }
 
 		KRATOS_CATCH("");
 	}
