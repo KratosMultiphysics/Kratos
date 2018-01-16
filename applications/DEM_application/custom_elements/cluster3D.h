@@ -43,11 +43,9 @@ namespace Kratos
       
         using Element::Initialize;
         virtual void Initialize(ProcessInfo& r_process_info);
-        virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
         virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override {};
         virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override {};
         virtual void CustomInitialize(ProcessInfo& r_process_info);
-        virtual void SetOrientation(const Quaternion<double> Orientation);
         virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy);
         virtual void UpdateAngularDisplacementAndVelocityOfSpheres();
         virtual void UpdateLinearDisplacementAndVelocityOfSpheres();
@@ -62,8 +60,6 @@ namespace Kratos
         virtual void CreateContinuumConstitutiveLaws();
         virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-        virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
-        virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
 
         
         virtual double GetMass();

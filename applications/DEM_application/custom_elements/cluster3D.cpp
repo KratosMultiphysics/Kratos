@@ -17,25 +17,13 @@
 namespace Kratos {
 
     Cluster3D::Cluster3D() : RigidBodyElement3D() {}
-            
-    Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry)
-    : RigidBodyElement3D(NewId, pGeometry) {
-        mpTranslationalIntegrationScheme = NULL;
-        mpRotationalIntegrationScheme = NULL;
-    }
-      
-    Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : RigidBodyElement3D(NewId, pGeometry, pProperties) {
-        mpTranslationalIntegrationScheme = NULL;
-        mpRotationalIntegrationScheme = NULL;
-    }
-      
-    Cluster3D::Cluster3D(IndexType NewId, NodesArrayType const& ThisNodes)
-    : RigidBodyElement3D(NewId, ThisNodes) {
-        mpTranslationalIntegrationScheme = NULL;
-        mpRotationalIntegrationScheme = NULL;
-    }
-    
+
+    Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry) : RigidBodyElement3D(NewId, pGeometry) {}
+
+    Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : RigidBodyElement3D(NewId, pGeometry, pProperties) {}
+
+    Cluster3D::Cluster3D(IndexType NewId, NodesArrayType const& ThisNodes) : RigidBodyElement3D(NewId, ThisNodes) {}
+
     Element::Pointer Cluster3D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
         return Element::Pointer(new Cluster3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }      
@@ -61,43 +49,12 @@ namespace Kratos {
         mListOfSphericParticles.clear();
         mListOfCoordinates.clear();  
         mListOfRadii.clear();  
-
-        if (mpTranslationalIntegrationScheme!=NULL) {
-            delete mpTranslationalIntegrationScheme;
-        }
-        
-        if (mpRotationalIntegrationScheme!=NULL) {
-            delete mpRotationalIntegrationScheme;
-        }
-
     }
 
     void Cluster3D::Initialize(ProcessInfo& r_process_info) {
         
-        if (GetGeometry()[0].GetDof(VELOCITY_X).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
-        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
-        if (GetGeometry()[0].GetDof(VELOCITY_Y).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
-        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
-        if (GetGeometry()[0].GetDof(VELOCITY_Z).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
-        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
-        if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_X).IsFixed())  GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
-        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
-        if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Y).IsFixed())  GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
-        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-        if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Z).IsFixed())  GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
-        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
-
+        RigidBodyElement3D::Initialize(r_process_info);
         CustomInitialize(r_process_info);
-        
-        DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
-        DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
-        SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
-    }
-
-    void Cluster3D::SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme){
-
-        mpTranslationalIntegrationScheme = translational_integration_scheme->CloneRaw();
-        mpRotationalIntegrationScheme = rotational_integration_scheme->CloneRaw();
     }
     
     void Cluster3D::CustomInitialize(ProcessInfo& r_process_info) {
@@ -156,10 +113,6 @@ namespace Kratos {
         array_1d<double, 3> local_angular_velocity;
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
         noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
-    }
-    
-    void Cluster3D::SetOrientation(const Quaternion<double> Orientation) {
-        this->GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION) = Orientation;
     }
     
     void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy) {        
@@ -481,9 +434,9 @@ namespace Kratos {
     }
 
     void Cluster3D::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag ) {
-        GetTranslationalIntegrationScheme().MoveCluster(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
+        RigidBodyElement3D::GetTranslationalIntegrationScheme().MoveCluster(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
         if (rotation_option) {
-            GetRotationalIntegrationScheme().RotateCluster(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
+            RigidBodyElement3D::GetRotationalIntegrationScheme().RotateCluster(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
         }
     }
 } // namespace Kratos

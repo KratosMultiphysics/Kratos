@@ -42,7 +42,7 @@ namespace Kratos {
     
     // Destructor
     RigidBodyElement3D::~RigidBodyElement3D() {
-    
+
         mListOfCoordinates.clear();
 
         if (mpTranslationalIntegrationScheme!=NULL) {
@@ -55,27 +55,32 @@ namespace Kratos {
         // Destroy triangles?
     }
 
-    void RigidBodyElement3D::Initialize(ProcessInfo& r_process_info, ModelPart& rigid_body_element_sub_model_part) {
+    void RigidBodyElement3D::Initialize(ProcessInfo& r_process_info) {
         
-//         if (GetGeometry()[0].GetDof(VELOCITY_X).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
-//         else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
-//         if (GetGeometry()[0].GetDof(VELOCITY_Y).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
-//         else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
-//         if (GetGeometry()[0].GetDof(VELOCITY_Z).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
-//         else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
-//         if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_X).IsFixed())  GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
-//         else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
-//         if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Y).IsFixed())  GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
-//         else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-//         if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Z).IsFixed())  GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
-//         else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+        if (GetGeometry()[0].GetDof(VELOCITY_X).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
+        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
+        if (GetGeometry()[0].GetDof(VELOCITY_Y).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
+        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
+        if (GetGeometry()[0].GetDof(VELOCITY_Z).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
+        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
+        if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_X).IsFixed())  GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
+        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
+        if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Y).IsFixed())  GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+        if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Z).IsFixed())  GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+        
+        DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
+        DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
+        SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
+    }
 
-        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
-        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
-        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
-        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
-        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+    void RigidBodyElement3D::SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme){
+        mpTranslationalIntegrationScheme = translational_integration_scheme->CloneRaw();
+        mpRotationalIntegrationScheme = rotational_integration_scheme->CloneRaw();
+    }
+    
+    void RigidBodyElement3D::CustomInitialize(ModelPart& rigid_body_element_sub_model_part) {
         
         mInertias = ZeroVector(3);
 
@@ -92,20 +97,6 @@ namespace Kratos {
         GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][0];
         GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][1];
         GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][2];
-        
-        CustomInitialize(r_process_info);
-        
-        DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
-        DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
-        SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
-    }
-
-    void RigidBodyElement3D::SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme){
-        mpTranslationalIntegrationScheme = translational_integration_scheme->CloneRaw();
-        mpRotationalIntegrationScheme = rotational_integration_scheme->CloneRaw();
-    }
-    
-    void RigidBodyElement3D::CustomInitialize(ProcessInfo& r_process_info) {
 
         const array_1d<double,3>& reference_inertias = mInertias;                                
         GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = mMass;
@@ -150,11 +141,11 @@ namespace Kratos {
         int iter = 0; 
 
         for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
-            
+
             GeometryFunctions::QuaternionVectorLocal2Global(Orientation, mListOfCoordinates[iter], global_relative_coordinates); 
             array_1d<double, 3>& node_position = i->Coordinates(); 
             array_1d<double, 3>& delta_displacement = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-            array_1d<double, 3> previous_position; 
+            array_1d<double, 3> previous_position;
             noalias(previous_position) = node_position;
             noalias(node_position)= central_node.Coordinates() + global_relative_coordinates;
             noalias(delta_displacement) = node_position - previous_position;
@@ -190,7 +181,7 @@ namespace Kratos {
         }                        
     }
     
-    void RigidBodyElement3D::CollectForcesAndTorquesFromTheNodesOfARigidBodyElement() {
+    void RigidBodyElement3D::CollectForcesAndTorquesFromTheNodes() {
 
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE RBE
         array_1d<double, 3>& center_forces = central_node.FastGetSolutionStepValue(TOTAL_FORCES);
@@ -224,7 +215,7 @@ namespace Kratos {
     
     void RigidBodyElement3D::GetRigidBodyElementsForce(const array_1d<double,3>& gravity) {
         
-        CollectForcesAndTorquesFromTheNodesOfARigidBodyElement();
+        CollectForcesAndTorquesFromTheNodes();
         ComputeAdditionalForces(gravity);
         AddUpAllForcesAndMoments();
     }

@@ -581,7 +581,7 @@ namespace Kratos {
     void ExplicitSolverStrategy::PerformTimeIntegrationOfMotion(int StepFlag) {
         
         KRATOS_TRY
-        
+
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         double delta_t = r_process_info[DELTA_TIME];
         double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF]; //TODO: change the name of this variable to FORCE_REDUCTION_FACTOR
@@ -593,18 +593,18 @@ namespace Kratos {
                 KRATOS_THROW_ERROR(std::runtime_error, "The force reduction factor is either larger than 1 or negative: FORCE_REDUCTION_FACTOR= ", virtual_mass_coeff)
             }
         }   
-        
+
         bool rotation_option = r_process_info[ROTATION_OPTION];
-        
+
         const int number_of_particles       = (int) mListOfSphericParticles.size();
         const int number_of_ghost_particles = (int) mListOfGhostSphericParticles.size();
-        
+
         ModelPart& r_clusters_model_part  = *mpCluster_model_part;
         ElementsArrayType& pLocalClusters = r_clusters_model_part.GetCommunicator().LocalMesh().Elements();        
         ElementsArrayType& pGhostClusters = r_clusters_model_part.GetCommunicator().GhostMesh().Elements();
         ModelPart& r_fem_model_part  = *mpFem_model_part;
         ElementsArrayType& pFemElements = r_fem_model_part.GetCommunicator().LocalMesh().Elements();
-        
+
         #pragma omp parallel
         {
             #pragma omp for
@@ -616,21 +616,21 @@ namespace Kratos {
             for (int i = 0; i < number_of_ghost_particles; i++) {
                 mListOfGhostSphericParticles[i]->Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
-            
+
             #pragma omp for
             for (int k = 0; k < (int) pLocalClusters.size(); k++) {
                 ElementsArrayType::iterator it = pLocalClusters.ptr_begin() + k;
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
                 cluster_element.Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
-            
+
             #pragma omp for
             for (int k = 0; k < (int) pGhostClusters.size(); k++) {
                  ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
                 cluster_element.Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
-            
+
             #pragma omp for
             for (int k = 0; k < (int) pFemElements.size(); k++) {
                 ElementsArrayType::iterator it = pFemElements.ptr_begin() + k;
@@ -638,7 +638,7 @@ namespace Kratos {
                 rigid_body_element.Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
         }
-        
+
         //GetScheme()->Calculate(GetModelPart(), StepFlag);
         //GetScheme()->Calculate(*mpCluster_model_part, StepFlag);
         KRATOS_CATCH("")
@@ -816,10 +816,10 @@ namespace Kratos {
 
         std::string ElementNameString = "RigidBodyElement3D";
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
-        Element::Pointer RBE_Kratos = r_reference_element.Create(Element_Id_1 + 1, central_node_list, properties);
-        RigidBodyElement3D* RBE = dynamic_cast<RigidBodyElement3D*>(RBE_Kratos.get());
+        Element::Pointer RigidBodyElement3D_Kratos = r_reference_element.Create(Element_Id_1 + 1, central_node_list, properties);
+        RigidBodyElement3D* rigid_body_element = dynamic_cast<RigidBodyElement3D*>(RigidBodyElement3D_Kratos.get());
 
-        fem_model_part.AddElement(RBE_Kratos); //, Element_Id + 1);
+        fem_model_part.AddElement(RigidBodyElement3D_Kratos); //, Element_Id + 1);
 
         std::size_t element_id = Element_Id_1 + 1;
         std::vector<std::size_t> ElementIds;
@@ -833,8 +833,8 @@ namespace Kratos {
 
             for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
 
-                RBE->mListOfNodes.push_back(*(i.base()));
-                RBE->mListOfCoordinates.push_back(i->Coordinates() - reference_coordinates);
+                rigid_body_element->mListOfNodes.push_back(*(i.base()));
+                rigid_body_element->mListOfCoordinates.push_back(i->Coordinates() - reference_coordinates);
             }
         }
 
@@ -844,12 +844,10 @@ namespace Kratos {
             ConditionsArrayType::iterator it = pTConditions.ptr_begin() + k;
 
             RigidFace3D* it_point = dynamic_cast<RigidFace3D*>(&(*it));
-            RBE->mListOfRigidFaces.push_back(it_point);
+            rigid_body_element->mListOfRigidFaces.push_back(it_point);
         }
 
-        RBE->Initialize(r_process_info, submp);
-//         submp.AddElement(RBE_Kratos);
-//         rigid_body_model_part.AddSubModelPart(submp); // JIG: Should be uncommented
+        rigid_body_element->Initialize(r_process_info);
     }
 
     void ExplicitSolverStrategy::CalculateConditionsRHSAndAdd() {
@@ -1096,11 +1094,6 @@ namespace Kratos {
         unsigned int rigid_body_elements_counter = 0;
         
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
-             
-            ModelPart& submp = *sub_model_part;
-            double fbm = submp[FREE_BODY_MOTION];
-            
-            if (!fbm) continue;
 
             double vel_start = 0.0, vel_stop = std::numeric_limits<double>::max();
             if ((*sub_model_part).Has(VELOCITY_START_TIME)) {
@@ -1182,9 +1175,6 @@ namespace Kratos {
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
              
             ModelPart& submp = *sub_model_part;
-            double fbm = submp[FREE_BODY_MOTION];
-            
-            if (!fbm) continue;
               
             ElementsArrayType& pElements = mpFem_model_part->Elements();
             ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
@@ -1209,8 +1199,8 @@ namespace Kratos {
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_Z_VALUE];
             }
             
-//             rigid_body_element.CustomInitialize();
-
+            if (submp[FREE_BODY_MOTION]) rigid_body_element.CustomInitialize(submp);
+            
             rigid_body_elements_counter++;
         }
         

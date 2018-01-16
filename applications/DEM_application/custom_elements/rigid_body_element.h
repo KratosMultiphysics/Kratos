@@ -45,16 +45,16 @@ namespace Kratos {
         virtual ~RigidBodyElement3D();
       
         using Element::Initialize;
-        virtual void Initialize(ProcessInfo& r_process_info, ModelPart& rigid_body_element_sub_model_part);
+        virtual void Initialize(ProcessInfo& r_process_info);
         virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
         virtual void InitializeSolutionStep(ProcessInfo& r_process_info){};
         virtual void FinalizeSolutionStep(ProcessInfo& r_process_info){};
-        virtual void CustomInitialize(ProcessInfo& r_process_info);
+        virtual void CustomInitialize(ModelPart& rigid_body_element_sub_model_part);
         virtual void SetOrientation(const Quaternion<double> Orientation);
         virtual void UpdateLinearDisplacementAndVelocityOfNodes();
         virtual void UpdateAngularDisplacementAndVelocityOfNodes();
         virtual void GetRigidBodyElementsForce(const array_1d<double,3>& gravity);
-        virtual void CollectForcesAndTorquesFromTheNodesOfARigidBodyElement();
+        virtual void CollectForcesAndTorquesFromTheNodes();
         virtual void ComputeAdditionalForces(const array_1d<double,3>& gravity);
         virtual void AddUpAllForcesAndMoments();
         virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
