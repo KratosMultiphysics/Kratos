@@ -151,7 +151,7 @@ namespace Kratos {
         RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
 
         GetSearchControl() = r_process_info[SEARCH_CONTROL];
-        
+
         InitializeDEMElements();
         InitializeFEMElements();
         UpdateMaxIdOfCreatorDestructor();
@@ -328,7 +328,7 @@ namespace Kratos {
 
         ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
         const int number_of_clusters = pElements.size();
-        
+
         #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
         for (int k = 0; k < number_of_clusters; k++) {
 
@@ -344,9 +344,8 @@ namespace Kratos {
     }
     
     void ExplicitSolverStrategy::GetRigidBodyElementsForce() {
-        
         KRATOS_TRY
-        
+        CalculateConditionsRHSAndAdd();
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo(); //Getting the Process Info of the Balls ModelPart!
         const array_1d<double, 3>& gravity = r_process_info[GRAVITY];
         ModelPart& fem_model_part = GetFemModelPart();
@@ -361,9 +360,9 @@ namespace Kratos {
             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES).clear();
             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT).clear();
             rigid_body_element.GetRigidBodyElementsForce(gravity);
-            
+
         } // loop over rigid body elements
-        
+
         KRATOS_CATCH("")
     }
 
@@ -459,7 +458,6 @@ namespace Kratos {
         GetRigidBodyElementsForce();
 
         if (r_model_part.GetProcessInfo()[COMPUTE_FEM_RESULTS_OPTION]) {
-            CalculateConditionsRHSAndAdd();
             CalculateNodalPressuresAndStressesOnWalls();
         }
 

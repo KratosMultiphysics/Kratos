@@ -205,7 +205,7 @@ namespace Kratos {
                 
         for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
                         
-            array_1d<double, 3>& node_forces = i->FastGetSolutionStepValue(ELASTIC_FORCES); //CONTACT_FORCES, ELASTIC_FORCES???
+            array_1d<double, 3>& node_forces = i->FastGetSolutionStepValue(CONTACT_FORCES);
             center_forces[0] += node_forces[0];
             center_forces[1] += node_forces[1];
             center_forces[2] += node_forces[2];
