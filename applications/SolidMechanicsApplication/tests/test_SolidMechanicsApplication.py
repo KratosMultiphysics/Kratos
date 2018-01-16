@@ -1,6 +1,6 @@
 # import Kratos
-import KratosMultiphysics 
-import KratosMultiphysics.SolidMechanicsApplication 
+import KratosMultiphysics
+import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.ConstitutiveModelsApplication
 
 # Import Kratos "wrapper" for unittests
@@ -22,22 +22,22 @@ def AssambleTestSuites():
 
     # SMALL TESTS
     small_suite = SmallTests.SetTestSuite(suites)
-       
+
     # NIGTHLY TESTS
     night_suite = NightTests.SetTestSuite(suites)
 
     # inlude small suite in night suite
     night_suite.addTests(small_suite)
 
-    # VALIDATION TESTS   
+    # VALIDATION TESTS
     validation_suite = ValidationTests.SetTestSuite(suites)
-     
-    # ALL TESTS     
+
+    # ALL TESTS
     all_suite = suites['all']
-    
+
     all_suite.addTests(night_suite)
     all_suite.addTests(validation_suite)
-    
+
     return suites
 
 if __name__ == '__main__':
