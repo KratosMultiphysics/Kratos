@@ -302,7 +302,7 @@ class Algorithm(object):
                                           str(self.pp.CFD_DEM["problem_name"].GetString()),
                                           self.run_code)
         SDP.CopyInputFilesIntoFolder(self.main_path, self.post_path)
-
+        self.MPI_results = MPI_results
         #self.mixed_model_part = self.all_model_parts.Get('MixedPart')
 
         vars_man.ConstructListsOfVariables(self.pp)
