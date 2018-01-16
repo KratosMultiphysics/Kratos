@@ -652,8 +652,14 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddPressureForces(Vecto
 
     //VectorType Fh=rRightHandSideVector;
 
-    double BulkModulus= GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
-
+    double BulkModulus = 1.0;    
+    if( GetProperties().Has(BULK_MODULUS)  ){
+      BulkModulus= GetProperties()[BULK_MODULUS];
+    }
+    else if( GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO) ){
+      BulkModulus = GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
+    }
+      
     //double consistent=1;
 
     double Coefficient = 0;
@@ -718,10 +724,13 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddStabilizedPressure(V
     double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
     AlphaStabilization *= StabilizationFactor;
 
-    const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
-    const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];
-
-    double LameMu =  YoungModulus/(2*(1+PoissonCoefficient));
+    double LameMu = 0.0;    
+    if( GetProperties().Has(C10) ){
+      LameMu = 2.0 * GetProperties()[C10];
+    }
+    else if( GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO) ){
+      LameMu = GetProperties()[YOUNG_MODULUS]/(2.0*(1.0+GetProperties()[POISSON_RATIO]));
+    }
 
     //Experimental
     // if(LameMu < rVariables.ConstitutiveMatrix(2,2))
@@ -963,8 +972,14 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKpp (MatrixType& rK,
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    double BulkModulus= GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
-
+    double BulkModulus = 1.0;    
+    if( GetProperties().Has(BULK_MODULUS)  ){
+      BulkModulus= GetProperties()[BULK_MODULUS];
+    }
+    else if( GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO) ){
+      BulkModulus = GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
+    }
+    
     //MatrixType Kh=rK;
 
     //contributions to stiffness matrix calculated on the reference configuration
@@ -1020,10 +1035,13 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKppStab (MatrixType&
     double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
     AlphaStabilization *= StabilizationFactor;
 
-    const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
-    const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];
-
-    double LameMu =  YoungModulus/(2*(1+PoissonCoefficient));
+    double LameMu = 0.0;    
+    if( GetProperties().Has(C10) ){
+      LameMu = 2.0 * GetProperties()[C10];
+    }
+    else if( GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO) ){
+      LameMu = GetProperties()[YOUNG_MODULUS]/(2.0*(1.0+GetProperties()[POISSON_RATIO]));
+    }
 
     //Experimental
     // if(LameMu < rVariables.ConstitutiveMatrix(2,2))

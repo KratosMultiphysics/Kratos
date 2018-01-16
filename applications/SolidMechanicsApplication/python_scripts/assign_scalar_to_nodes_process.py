@@ -146,9 +146,14 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         if( self.time_integration_type == "Angular" ):
             if( time_integration_method.HasProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo) ):
                 self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo)
+            else:
+                print(variable+": No time integration ")
+            
         elif( self.time_integration_type == "Linear" ):
             if( time_integration_method.HasProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo) ):
-                self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo)                
+                self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo)
+            else:
+                print(variable+": No time integration ")
         else:
             print(variable+": No time integration ")
             
