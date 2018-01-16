@@ -193,8 +193,8 @@ class PartitionedFSIBaseSolver:
 
 
     def SetTimeStep(self, step):
-        self.fluid_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_STEPS, step)
-        self.structure_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_STEPS, step)
+        self.fluid_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
+        self.structure_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
 
 
     def Clear(self):
