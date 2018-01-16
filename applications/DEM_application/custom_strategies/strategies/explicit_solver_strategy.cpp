@@ -1050,6 +1050,7 @@ namespace Kratos {
     void ExplicitSolverStrategy::ApplyPrescribedBoundaryConditions() {
         
         KRATOS_TRY
+
         ModelPart& r_model_part = GetModelPart();
         const ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         const double time = r_process_info[TIME];
@@ -1070,7 +1071,7 @@ namespace Kratos {
             if (time < vel_start || time > vel_stop) continue;
 
             NodesArrayType& pNodes = sub_model_part->Nodes();
-            
+          
             if ((*sub_model_part).Has(IMPOSED_VELOCITY_X_VALUE)) {
                 SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_X, VELOCITY_X, (*sub_model_part)[IMPOSED_VELOCITY_X_VALUE], pNodes);
             }
@@ -1090,11 +1091,14 @@ namespace Kratos {
                 SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Z, ANGULAR_VELOCITY_Z, (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_Z_VALUE], pNodes);
             }
         } // for each mesh
-        
-        unsigned int rigid_body_elements_counter = 0;
-        
-        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
+        unsigned int rigid_body_elements_counter = 0;
+
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
+             
+            ModelPart& submp = *sub_model_part;
+            if (!submp[FREE_BODY_MOTION]) break;
+            
             double vel_start = 0.0, vel_stop = std::numeric_limits<double>::max();
             if ((*sub_model_part).Has(VELOCITY_START_TIME)) {
                 vel_start = (*sub_model_part)[VELOCITY_START_TIME];
@@ -1104,7 +1108,7 @@ namespace Kratos {
             }
 
             if (time < vel_start || time > vel_stop) continue;
-              
+
             ElementsArrayType& pElements = mpFem_model_part->Elements();
             ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
@@ -1175,6 +1179,7 @@ namespace Kratos {
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
              
             ModelPart& submp = *sub_model_part;
+            if (!submp[FREE_BODY_MOTION]) break;
               
             ElementsArrayType& pElements = mpFem_model_part->Elements();
             ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;

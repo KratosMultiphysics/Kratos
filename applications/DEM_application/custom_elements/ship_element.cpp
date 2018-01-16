@@ -16,22 +16,13 @@ namespace Kratos {
     ShipElement3D::ShipElement3D() : RigidBodyElement3D() {}
     
     ShipElement3D::ShipElement3D(IndexType NewId, GeometryType::Pointer pGeometry)
-    : RigidBodyElement3D(NewId, pGeometry) {
-        mpTranslationalIntegrationScheme = NULL;
-        mpRotationalIntegrationScheme = NULL;
-    }
+    : RigidBodyElement3D(NewId, pGeometry) {}
       
     ShipElement3D::ShipElement3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : RigidBodyElement3D(NewId, pGeometry, pProperties) {
-        mpTranslationalIntegrationScheme = NULL;
-        mpRotationalIntegrationScheme = NULL;
-    }
+    : RigidBodyElement3D(NewId, pGeometry, pProperties) {}
       
     ShipElement3D::ShipElement3D(IndexType NewId, NodesArrayType const& ThisNodes)
-    : RigidBodyElement3D(NewId, ThisNodes) {
-        mpTranslationalIntegrationScheme = NULL;
-        mpRotationalIntegrationScheme = NULL;
-    }
+    : RigidBodyElement3D(NewId, ThisNodes) {}
     
     Element::Pointer ShipElement3D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
         return Element::Pointer(new ShipElement3D(NewId, GetGeometry().Create(ThisNodes), pProperties));

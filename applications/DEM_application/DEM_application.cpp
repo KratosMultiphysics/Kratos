@@ -411,10 +411,10 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mAnalyticRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
-      mCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mRigidBodyElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mShipElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+      mCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+      mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mCubeCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mPillCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mEllipsoidCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -780,18 +780,18 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SinteringSphericContinuumParticle3D", mSinteringSphericContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("BondingSphericContinuumParticle3D", mBondingSphericContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)
-    KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
     KRATOS_REGISTER_ELEMENT("RigidBodyElement3D", mRigidBodyElement3D)
-    KRATOS_REGISTER_ELEMENT("ShipElement3D", mShipElement3D)        
+    KRATOS_REGISTER_ELEMENT("ShipElement3D", mShipElement3D)
+    KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
+    KRATOS_REGISTER_ELEMENT("SingleSphereCluster3D", mSingleSphereCluster3D)
     KRATOS_REGISTER_ELEMENT("CubeCluster3D", mCubeCluster3D)
     KRATOS_REGISTER_ELEMENT("PillCluster3D", mPillCluster3D)
     KRATOS_REGISTER_ELEMENT("EllipsoidCluster3D", mEllipsoidCluster3D)
     KRATOS_REGISTER_ELEMENT("CuboidCluster3D", mCuboidCluster3D)
     KRATOS_REGISTER_ELEMENT("CapsuleCluster3D", mCapsuleCluster3D)
-    KRATOS_REGISTER_ELEMENT("SingleSphereCluster3D", mSingleSphereCluster3D)
     KRATOS_REGISTER_ELEMENT("BeadCluster3D", mBeadCluster3D)
+    
     KRATOS_REGISTER_CONDITION("MAPcond", mMapCon3D3N)
-
     KRATOS_REGISTER_CONDITION("SolidFace3D", mSolidFace3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D3N", mSolidFace3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D4N", mSolidFace3D4N)

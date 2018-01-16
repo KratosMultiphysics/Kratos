@@ -443,7 +443,6 @@ namespace Kratos {
 
         #pragma omp critical
         {
-            //pnew_node = r_modelpart.CreateNewNode(aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2]); //ACTUAL node creation and addition to model part
             r_modelpart.Nodes().push_back(pnew_node);
         }                        
         
@@ -458,20 +457,6 @@ namespace Kratos {
         pnew_node->AddDof(ANGULAR_VELOCITY_Y, REACTION_Y);
         pnew_node->AddDof(ANGULAR_VELOCITY_Z, REACTION_Z);
 
-//         pnew_node->pGetDof(VELOCITY_X)->FixDof();
-//         pnew_node->pGetDof(VELOCITY_Y)->FixDof();
-//         pnew_node->pGetDof(VELOCITY_Z)->FixDof();
-//         pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
-//         pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
-//         pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
-// 
-//         pnew_node->Set(DEMFlags::FIXED_VEL_X, true);
-//         pnew_node->Set(DEMFlags::FIXED_VEL_Y, true);
-//         pnew_node->Set(DEMFlags::FIXED_VEL_Z, true);
-//         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X, true);
-//         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y, true);
-//         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z, true);
-        
         KRATOS_CATCH("")
     }
 

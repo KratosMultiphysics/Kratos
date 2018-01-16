@@ -52,7 +52,6 @@ namespace Kratos {
         if (mpRotationalIntegrationScheme!=NULL) {
             delete mpRotationalIntegrationScheme;
         }
-        // Destroy triangles?
     }
 
     void RigidBodyElement3D::Initialize(ProcessInfo& r_process_info) {

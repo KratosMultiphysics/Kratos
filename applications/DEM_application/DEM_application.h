@@ -107,15 +107,15 @@ private:
     const AnalyticRigidFace3D  mAnalyticRigidFace3D3N;
     const RigidFace3D  mRigidFace3D4N;
     const RigidEdge3D  mRigidEdge3D2N;
-    const Cluster3D  mCluster3D;
     const RigidBodyElement3D mRigidBodyElement3D;
     const ShipElement3D mShipElement3D;
+    const Cluster3D  mCluster3D;
+    const SingleSphereCluster3D  mSingleSphereCluster3D;
     const CubeCluster3D  mCubeCluster3D;
     const PillCluster3D  mPillCluster3D;
     const EllipsoidCluster3D  mEllipsoidCluster3D;
     const CuboidCluster3D  mCuboidCluster3D;
     const CapsuleCluster3D  mCapsuleCluster3D;
-    const SingleSphereCluster3D  mSingleSphereCluster3D;
     const BeadCluster3D  mBeadCluster3D;
     const MAPcond    mMapCon3D3N;
 

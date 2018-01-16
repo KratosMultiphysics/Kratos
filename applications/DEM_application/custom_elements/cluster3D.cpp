@@ -18,11 +18,14 @@ namespace Kratos {
 
     Cluster3D::Cluster3D() : RigidBodyElement3D() {}
 
-    Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry) : RigidBodyElement3D(NewId, pGeometry) {}
+    Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry)
+    : RigidBodyElement3D(NewId, pGeometry) {}
 
-    Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : RigidBodyElement3D(NewId, pGeometry, pProperties) {}
+    Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : RigidBodyElement3D(NewId, pGeometry, pProperties) {}
 
-    Cluster3D::Cluster3D(IndexType NewId, NodesArrayType const& ThisNodes) : RigidBodyElement3D(NewId, ThisNodes) {}
+    Cluster3D::Cluster3D(IndexType NewId, NodesArrayType const& ThisNodes)
+    : RigidBodyElement3D(NewId, ThisNodes) {}
 
     Element::Pointer Cluster3D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
         return Element::Pointer(new Cluster3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
