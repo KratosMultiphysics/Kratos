@@ -98,12 +98,6 @@ namespace Kratos
             Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element2D3N", 2, triangle_1, p_elem_prop);
             Element::Pointer p_elem_2 = this_model_part.CreateNewElement("Element2D3N", 3, triangle_2, p_elem_prop);
             Element::Pointer p_elem_3 = this_model_part.CreateNewElement("Element2D3N", 4, triangle_3, p_elem_prop);
-            
-            // Set DISTANCE
-            for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
-                auto it_node = this_model_part.Nodes().begin() + i_node;
-                it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
-            }
                          
             // Compute NodalH
             FindNodalHProcess process = FindNodalHProcess(this_model_part);
