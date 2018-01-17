@@ -2,7 +2,7 @@
 
 # Import TestFactory
 import TestFactory as TF
-    
+
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -14,8 +14,8 @@ class Dynamic_Test_Simo_TL_3D(TF.TestFactory):
     file_name = "dynamic_tests/solid_elements/dynamic_bossak_TL3D"
     file_parameters  = "dynamic_tests/solid_elements/dynamic_simo_TL3D_input.json"
 
-    
-    
+
+
 def SetTestSuite(suites):
     validation_suite = suites['validation']
 
@@ -25,7 +25,5 @@ def SetTestSuite(suites):
             Dynamic_Test_Simo_TL_3D
         ])
     )
-    
+
     return validation_suite
-
-
