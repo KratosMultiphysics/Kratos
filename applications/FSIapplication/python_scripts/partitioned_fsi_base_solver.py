@@ -376,7 +376,7 @@ class PartitionedFSIBaseSolver:
 
     def _ComputeMeshPredictionSingleFaced(self):
 
-            print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]," prediction...")
+            print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]," prediction...")
             # Get the previous step fluid interface nodal fluxes
             keep_sign = False
             distribute_load = True
@@ -404,7 +404,7 @@ class PartitionedFSIBaseSolver:
 
     def _ComputeMeshPredictionDoubleFaced(self):
 
-            print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS],"double faced prediction...")
+            print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP],"double faced prediction...")
             # Get the previous step fluid interface nodal fluxes from both positive and negative faces
             keep_sign = False
             distribute_load = True
@@ -419,7 +419,7 @@ class PartitionedFSIBaseSolver:
 
             # Add the two faces contributions to the POINT_LOAD variable
             # TODO: Add this to the variables utils
-            for node in self._GetStructureInterfaceSubmodelPart().Nodes:
+            for node in self._GetStructureInterfaceSubmodelPart().Nodes:F
                 pos_face_force = node.GetSolutionStepValue(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
                 neg_face_force = node.GetSolutionStepValue(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
                 node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
