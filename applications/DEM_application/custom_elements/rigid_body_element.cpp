@@ -88,7 +88,7 @@ namespace Kratos {
         mInertias[2] = rigid_body_element_sub_model_part[RIGID_BODY_INERTIAS][2];
         mMass = rigid_body_element_sub_model_part[RIGID_BODY_MASS];
 
-        GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION) = Quaternion<double>(1.0, 0.0, 0.0, 0.0);
+        GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION) = Quaternion<double>::Identity();
         GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = mMass;
         GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][0];
         GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][1];

@@ -31,7 +31,7 @@
 "RollingFrictionOption"            : false,
 "DontSearchUntilFailure"           : false,
 "ContactMeshOption"                : false,
-"OutputFileType"                   : "Ascii",
+"OutputFileType"                   : "Binary",
 "Multifile"                        : "multiple_files",
 "TranslationalIntegrationScheme"   : "Symplectic_Euler",
 "RotationalIntegrationScheme"      : "Runge_Kutta",
@@ -42,12 +42,14 @@
 "ControlTime"                      : 60.0,
 "NeighbourSearchFrequency"         : 1,
 "PeriodicDomainOption"             : false,
+
 "ElementType"                      : "SphericPartDEMElement3D",
+
 "GraphExportFreq"                  : 1e-2,
 "VelTrapGraphExportFreq"           : 1e-2,
-"OutputTimeStep"                   : 1e-2,
-"PostDisplacement"                 : false,
-"PostVelocity"                     : false,
+"OutputTimeStep"                   : 1e2,
+"PostDisplacement"                 : true,
+"PostVelocity"                     : true,
 "PostElasticForces"                : false,
 "PostContactForces"                : false,
 "PostRigidElementForces"           : false,
@@ -63,7 +65,7 @@
 "PostRadius"                       : false,
 "PostGroupId"                      : false,
 "PostExportId"                     : false,
-"PostAngularVelocity"              : false,
+"PostAngularVelocity"              : true,
 "PostParticleMoment"               : false,
 "PostEulerAngles"                  : false,
 "PostContactSigma"                 : false,
@@ -75,5 +77,5 @@
 "PostStressStrainOption"           : false,
 "PostRollingResistanceMoment"      : false,
 
-"problem_name"                     :"benchmark31"
+"problem_name"                     : "benchmark31"
 }
