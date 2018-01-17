@@ -432,8 +432,8 @@ public:
                     this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
 
                     // Add the shear and pressure drag contributions
-                    rOutput += w_gauss * prod(normal_proj_mat, data.stress);
-                    rOutput -= w_gauss * p_gauss * side_normal;
+                    rOutput -= w_gauss * prod(normal_proj_mat, data.stress);
+                    rOutput += w_gauss * p_gauss * side_normal;
                 }
             }
         }
