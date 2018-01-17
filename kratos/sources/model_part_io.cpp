@@ -140,7 +140,7 @@ namespace Kratos
     void ModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
     {
         (*mpStream) << "Begin Nodes" << std::endl;
-        for(NodesContainerType::const_iterator i_node = rThisNodes.begin() ; i_node != rThisNodes.end() ; i_node++)
+        for(NodesContainerType::const_iterator i_node = rThisNodes.begin() ; i_node != rThisNodes.end() ; ++i_node)
             (*mpStream) << "\t" << i_node->Id() << "\t" << i_node->X()  << "\t" << i_node->Y() << "\t" << i_node->Z() << std::endl;
         (*mpStream) << "End Nodes" << std::endl << std::endl;
     }
@@ -241,88 +241,64 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
     void ModelPartIO::WriteElements(ElementsContainerType const& rThisElements)
     {        
         // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
-        
-        auto numElements = rThisElements.end() - rThisElements.begin();
                 
-        if (numElements > 0)
-        {
+        if (rThisElements.size() > 0) {
             std::string element_name;
-            auto ElementsComponents = KratosComponents<Element>::GetComponents();
+            auto elements_components = KratosComponents<Element>::GetComponents();
             
-            unsigned int element_dimension = rThisElements.begin()->GetGeometry().WorkingSpaceDimension();
-            unsigned int element_num_nodes = rThisElements.begin()->GetGeometry().size();
+            auto element_type = rThisElements.begin()->GetGeometry().GetGeometryType();
             
             // Fisrt we do the first element
-            for(auto i_comp = ElementsComponents.begin(); i_comp != ElementsComponents.end() ; i_comp++)
-            {
-                const std::type_info& type_component = typeid(*(i_comp->second));
-                if (std::type_index(typeid(*(rThisElements.begin()))) == std::type_index(type_component) &&
-                    (element_num_nodes == (i_comp->second)->GetGeometry().size()) &&
-                    (element_dimension == (i_comp->second)->GetGeometry().WorkingSpaceDimension())
-                )
-                {
-                    element_name = i_comp->first;
+            for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; ++it_comp) {
+                if (std::is_same<decltype(*(rThisElements.begin())), decltype(*(it_comp->second))>::value &&
+                    (element_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
+                    element_name = it_comp->first;
                     break;
                 }
             }
             
             (*mpStream) << "Begin Elements\t" << element_name << std::endl;
             (*mpStream) << "\t" << rThisElements.begin()->Id() << "\t" << (rThisElements.begin()->pGetProperties())->Id() << "\t";
-            for (unsigned int i_node = 0; i_node < rThisElements.begin()->GetGeometry().size(); i_node++)
-            {
+            for (std::size_t i_node = 0; i_node < rThisElements.begin()->GetGeometry().size(); ++i_node)
                 (*mpStream) << rThisElements.begin()->GetGeometry()[i_node].Id() << "\t";
-            }
             (*mpStream) << std::endl;
             
-            // Now we iterate over all the nodes
-            for(unsigned int i = 1; i < numElements; i++)
-            {
-                auto itElemPrevious = rThisElements.begin() + i - 1;
-                auto itElemCurrent = rThisElements.begin() + i;
+            // Now we iterate over all the elements
+            for(std::size_t i = 1; i < rThisElements.size(); ++i) {
+                auto it_elem_previous = rThisElements.begin() + i - 1;
+                auto it_elem_current = rThisElements.begin() + i;
                 
-    //             const unsigned int previous_dimension = itElemPrevious->GetGeometry().WorkingSpaceDimension(); // NOTE: In theory this is not going to change
-                const unsigned int previous_number_nodes = itElemPrevious->GetGeometry().size();
-    //             const unsigned int current_dimension = itElemCurrent->GetGeometry().WorkingSpaceDimension();
-                const unsigned int current_number_nodes = itElemCurrent->GetGeometry().size();
+                const auto previous_element_geometry_type = it_elem_previous->GetGeometry().GetGeometryType();
+                const auto current_element_geometry_type = it_elem_current->GetGeometry().GetGeometryType();
                 
-                if ((std::type_index(typeid(*itElemPrevious)) == std::type_index(typeid(*itElemCurrent))) && (previous_number_nodes == current_number_nodes))
-                {
-                    (*mpStream) << "\t" << itElemCurrent->Id() << "\t" << (itElemCurrent->pGetProperties())->Id() << "\t";
-                    for (unsigned int i_node = 0; i_node < itElemCurrent->GetGeometry().size(); i_node++)
-                    {
-                        (*mpStream) << itElemCurrent->GetGeometry()[i_node].Id() << "\t";
-                    }
+                if (std::is_same<decltype(*it_elem_previous), decltype(*it_elem_current)>::value && (previous_element_geometry_type == current_element_geometry_type)) {
+                    (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
+                    for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); ++i_node)
+                        (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
                     (*mpStream) << std::endl;
-                }
-                else
-                {
+                } else {
                     (*mpStream) << "End Elements" << std::endl << std::endl;;
                     
-                    element_dimension = itElemCurrent->GetGeometry().WorkingSpaceDimension();
-                    element_num_nodes = itElemCurrent->GetGeometry().size();
+                    element_type = it_elem_current->GetGeometry().GetGeometryType();
                         
-                    for(auto i_comp = ElementsComponents.begin(); i_comp != ElementsComponents.end() ; i_comp++)
-                    {
-                        const std::type_info& type_component = typeid(*(i_comp->second));
-                        if (std::type_index(typeid(*itElemCurrent)) == std::type_index(type_component) &&
-                            (element_num_nodes == (i_comp->second)->GetGeometry().size()) &&
-                            (element_dimension == (i_comp->second)->GetGeometry().WorkingSpaceDimension())
-                        )
-                        {
-                            element_name = i_comp->first;
+                    for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; ++it_comp) {
+                        if (std::is_same<decltype(*it_elem_current), decltype(*(it_comp->second))>::value &&
+                            (element_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
+                            element_name = it_comp->first;
                             break;
                         }
                     }
                     
                     (*mpStream) << "Begin Elements\t" << element_name << std::endl;
-                    (*mpStream) << "\t" << itElemCurrent->Id() << "\t" << (itElemCurrent->pGetProperties())->Id() << "\t";
-                    for (unsigned int i_node = 0; i_node < itElemCurrent->GetGeometry().size(); i_node++)
-                    {
-                        (*mpStream) << itElemCurrent->GetGeometry()[i_node].Id() << "\t";
-                    }
+                    (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
+                    for (unsigned int i_node = 0; i_node < it_elem_current->GetGeometry().size(); ++i_node)
+                        (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
                     (*mpStream) << std::endl;
                 }
             }
@@ -330,6 +306,9 @@ namespace Kratos
             (*mpStream) << "End Elements" << std::endl << std::endl;
         }
     }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
 
     void ModelPartIO::ReadConditions(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions)
     {
@@ -387,31 +366,31 @@ namespace Kratos
             const unsigned int condition_dimension = rThisConditions.begin()->GetGeometry().WorkingSpaceDimension();
             
             // Fisrt we do the first condition
-            for(auto i_comp = ConditionsComponents.begin(); i_comp != ConditionsComponents.end() ; i_comp++)
+            for(auto it_comp = ConditionsComponents.begin(); it_comp != ConditionsComponents.end() ; ++it_comp)
             {
-                const std::type_info& type_component = typeid(*(i_comp->second));
-                const unsigned int component_num_nodes = (*(i_comp->second)).GetGeometry().size();
-                const unsigned int component_dimension = (*(i_comp->second)).GetGeometry().WorkingSpaceDimension();
+                const std::type_info& type_component = typeid(*(it_comp->second));
+                const unsigned int component_num_nodes = (*(it_comp->second)).GetGeometry().size();
+                const unsigned int component_dimension = (*(it_comp->second)).GetGeometry().WorkingSpaceDimension();
 
                 if ((std::type_index(condition_type) == std::type_index(type_component)) &&
                     (condition_dimension == component_dimension) &&
                     (condition_num_nodes == component_num_nodes)) {
 
-                    condition_name = i_comp->first;
+                    condition_name = it_comp->first;
                     break;
                 }
             }
             
             (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
             (*mpStream) << "\t" << rThisConditions.begin()->Id() << "\t" << (rThisConditions.begin()->pGetProperties())->Id() << "\t";
-            for (unsigned int i_node = 0; i_node < rThisConditions.begin()->GetGeometry().size(); i_node++)
+            for (unsigned int i_node = 0; i_node < rThisConditions.begin()->GetGeometry().size(); ++i_node)
             {
                 (*mpStream) << rThisConditions.begin()->GetGeometry()[i_node].Id() << "\t";
             }
             (*mpStream) << std::endl;
             
             // Now we iterate over all the nodes
-            for(unsigned int i = 1; i < numConditions; i++)
+            for(unsigned int i = 1; i < numConditions; ++i)
             {
                 auto itCondPrevious = rThisConditions.begin() + i - 1;
                 auto itCondCurrent = rThisConditions.begin() + i;
@@ -424,7 +403,7 @@ namespace Kratos
                 if ((std::type_index(typeid(*itCondPrevious)) == std::type_index(typeid(*itCondCurrent))) && (previous_number_nodes == current_number_nodes))
                 {
                     (*mpStream) << "\t" << itCondCurrent->Id() << "\t" << (itCondCurrent->pGetProperties())->Id() << "\t";
-                    for (unsigned int i_node = 0; i_node < itCondCurrent->GetGeometry().size(); i_node++)
+                    for (unsigned int i_node = 0; i_node < itCondCurrent->GetGeometry().size(); ++i_node)
                     {
                         (*mpStream) << itCondCurrent->GetGeometry()[i_node].Id() << "\t";
                     }
@@ -437,24 +416,24 @@ namespace Kratos
                     const unsigned int current_condition_dimension = itCondCurrent->GetGeometry().WorkingSpaceDimension();
                     const unsigned int current_condition_num_nodes = itCondCurrent->GetGeometry().size();
                     
-                    for(auto i_comp = ConditionsComponents.begin(); i_comp != ConditionsComponents.end() ; i_comp++)
+                    for(auto it_comp = ConditionsComponents.begin(); it_comp != ConditionsComponents.end() ; ++it_comp)
                     {
-                        const std::type_info &type_component = typeid(*(i_comp->second));
-                        const unsigned int component_num_nodes = (*(i_comp->second)).GetGeometry().size();
-                        const unsigned int component_dimension = (*(i_comp->second)).GetGeometry().WorkingSpaceDimension();
+                        const std::type_info &type_component = typeid(*(it_comp->second));
+                        const unsigned int component_num_nodes = (*(it_comp->second)).GetGeometry().size();
+                        const unsigned int component_dimension = (*(it_comp->second)).GetGeometry().WorkingSpaceDimension();
 
                         if (std::type_index(typeid(*itCondCurrent)) == std::type_index(type_component) &&
                             (current_condition_dimension == component_dimension) &&
                             (current_condition_num_nodes == component_num_nodes))
                         {
-                            condition_name = i_comp->first;
+                            condition_name = it_comp->first;
                             break;
                         }
                     }
                     
                     (*mpStream) << "Begin Conditions " << condition_name << std::endl;
                     (*mpStream) << "\t" << itCondCurrent->Id() << "\t" << (itCondCurrent->pGetProperties())->Id() << "\t";
-                    for (unsigned int i_node = 0; i_node < itCondCurrent->GetGeometry().size(); i_node++)
+                    for (unsigned int i_node = 0; i_node < itCondCurrent->GetGeometry().size(); ++i_node)
                     {
                         (*mpStream) << itCondCurrent->GetGeometry()[i_node].Id() << "\t";
                     }
@@ -677,7 +656,7 @@ namespace Kratos
         std::string word;
         OutputFilesContainerType output_files;
 
-        for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
+        for(SizeType i = 0 ; i < NumberOfPartitions ; ++i)
         {
             std::stringstream buffer;
 			buffer << mBaseFilename << "_" << i << ".mdpa";
@@ -725,7 +704,7 @@ namespace Kratos
         std::cout << "  [Total Lines Read : " << mNumberOfLines<<"]";
         std::cout << std::endl;
 
-        for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
+        for(SizeType i = 0 ; i < NumberOfPartitions ; ++i)
             delete output_files[i];
         KRATOS_CATCH("")
     }
@@ -745,7 +724,7 @@ namespace Kratos
       std::string word;
       OutputFilesContainerType output_files;
 
-      for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
+      for(SizeType i = 0 ; i < NumberOfPartitions ; ++i)
       {
           output_files.push_back(static_cast<std::ostream *>(&*Streams[i]));
       }
@@ -787,7 +766,7 @@ namespace Kratos
       std::cout << "  [Total Lines Read : " << mNumberOfLines<<"]";
       std::cout << std::endl;
 
-      // for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
+      // for(SizeType i = 0 ; i < NumberOfPartitions ; ++i)
       //     delete output_files[i];
       KRATOS_CATCH("")
     }
@@ -1072,7 +1051,7 @@ namespace Kratos
         
         auto numTables = rTables.end() - rTables.begin();
         
-        for(unsigned int i = 0; i < numTables; i++) 
+        for(unsigned int i = 0; i < numTables; ++i) 
         {
             auto itTable = rTables.begin() + i;
             
@@ -1103,7 +1082,7 @@ namespace Kratos
         
         auto numTables = rTables.end() - rTables.begin();
         
-        for(unsigned int i = 0; i < numTables; i++) 
+        for(unsigned int i = 0; i < numTables; ++i) 
         {
             auto itTable = rTables.begin() + i;
             
@@ -1269,7 +1248,7 @@ namespace Kratos
                 //note that the reading is only done by one of the threads
                 if(OpenMPUtils::ThisThread() == ithread)
                 {
-                    for(int i=partition[ithread]; i<partition[ithread+1]; i++)
+                    for(int i=partition[ithread]; i<partition[ithread+1]; ++i)
                     {
                         const unsigned int node_id = it->first;
                         const array_1d<double,3>& coords = it->second;
@@ -1475,7 +1454,7 @@ namespace Kratos
             ExtractValue(word, properties_id);
             Properties::Pointer p_temp_properties = *(FindKey(rModelPart.rProperties(), properties_id, "Properties").base());
             temp_element_nodes.clear();
-            for(SizeType i = 0 ; i < number_of_nodes ; i++)
+            for(SizeType i = 0 ; i < number_of_nodes ; ++i)
             {
                 ReadWord(word); // Reading the node id;
                 ExtractValue(word, node_id);
@@ -1536,7 +1515,7 @@ namespace Kratos
             ExtractValue(word, properties_id);
             Properties::Pointer p_temp_properties = *(FindKey(rThisProperties, properties_id, "Properties").base());
             temp_element_nodes.clear();
-            for(SizeType i = 0 ; i < number_of_nodes ; i++)
+            for(SizeType i = 0 ; i < number_of_nodes ; ++i)
             {
                 ReadWord(word); // Reading the node id;
                 ExtractValue(word, node_id);
@@ -1600,7 +1579,7 @@ namespace Kratos
             ExtractValue(word, properties_id);
             Properties::Pointer p_temp_properties = *(FindKey(rThisProperties, properties_id, "Properties").base());
             temp_condition_nodes.clear();
-            for(SizeType i = 0 ; i < number_of_nodes ; i++)
+            for(SizeType i = 0 ; i < number_of_nodes ; ++i)
             {
                 ReadWord(word); // Reading the node id;
                 ExtractValue(word, node_id);
@@ -1731,7 +1710,7 @@ namespace Kratos
         std::string VariableName;
         
         // FIXME: Maybe there is a better way (I get confused with to much KratosComponents)
-        for(unsigned int i = 0; i < numVar; i++) 
+        for(unsigned int i = 0; i < numVar; ++i) 
         {
             auto itVar = rThisVariables.begin() + i;
             
@@ -2280,7 +2259,7 @@ namespace Kratos
             ExtractValue(word,id);
             ReadWord(word); // Reading the properties id;
             temp_element_nodes.clear();
-            for(SizeType i = 0 ; i < number_of_nodes ; i++)
+            for(SizeType i = 0 ; i < number_of_nodes ; ++i)
             {
                 ReadWord(word); // Reading the node id;
                 ExtractValue(word, node_id);
@@ -2343,7 +2322,7 @@ namespace Kratos
             ExtractValue(word,id);
             ReadWord(word); // Reading the properties id;
             temp_condition_nodes.clear();
-            for(SizeType i = 0 ; i < number_of_nodes ; i++)
+            for(SizeType i = 0 ; i < number_of_nodes ; ++i)
             {
                 ReadWord(word); // Reading the node id;
                 ExtractValue(word, node_id);
@@ -2406,14 +2385,14 @@ namespace Kratos
             ExtractValue(word,id);
             ReadWord(word); // Reading the properties id;
             temp_element_nodes.clear();
-            for(SizeType i = 0 ; i < n_nodes_in_elem ; i++)
+            for(SizeType i = 0 ; i < n_nodes_in_elem ; ++i)
             {
                 ReadWord(word); // Reading the node id;
                 ExtractValue(word, node_id);
                 temp_element_nodes.push_back(ReorderedNodeId(node_id));
             }
 
-            for (SizeType i = 0; i < n_nodes_in_elem; i++)
+            for (SizeType i = 0; i < n_nodes_in_elem; ++i)
             {
                 position = temp_element_nodes[i]-1; // Ids start from 1, position in rNodalConnectivities starts from 0
                 if (position >= used_size)
@@ -2473,14 +2452,14 @@ namespace Kratos
             ExtractValue(word,id);
             ReadWord(word); // Reading the properties id;
             temp_condition_nodes.clear();
-            for(SizeType i = 0 ; i < n_nodes_in_cond ; i++)
+            for(SizeType i = 0 ; i < n_nodes_in_cond ; ++i)
             {
                 ReadWord(word); // Reading the node id;
                 ExtractValue(word, node_id);
                 temp_condition_nodes.push_back(ReorderedNodeId(node_id));
             }
 
-            for (SizeType i = 0; i < n_nodes_in_cond; i++)
+            for (SizeType i = 0; i < n_nodes_in_cond; ++i)
             {
                 position = temp_condition_nodes[i]-1; // Ids start from 1, position in rNodalConnectivities starts from 0
                 if (position >= used_size)
@@ -2714,7 +2693,7 @@ namespace Kratos
 
         // adding necessary meshes to the model part.
         MeshType empty_mesh;
-        for(SizeType i = number_of_meshes ; i < mesh_id + 1 ; i++)
+        for(SizeType i = number_of_meshes ; i < mesh_id + 1 ; ++i)
             rModelPart.GetMeshes().push_back(boost::make_shared<MeshType>(empty_mesh.Clone()));
 
         MeshType& mesh = rModelPart.GetMesh(mesh_id);
@@ -3085,7 +3064,7 @@ namespace Kratos
             (*mpStream) << InitialTabulation  << "\tBegin SubModelPartTables" << std::endl;
 //                     ModelPart::TablesContainerType& rThisTables = rMainModelPart.Tables();
 //                     auto numTables = rThisTables.end() - rThisTables.begin();
-//                     for(unsigned int i = 0; i < numTables; i++) 
+//                     for(unsigned int i = 0; i < numTables; ++i) 
 //                     {
 //                         auto itTable = rThisTables.begin() + i;
 //                         (*mpStream) << InitialTabulation << "\t" << itTable->Id() << std::endl; //FIXME: Tables does not have Id() Whyyyyy?
@@ -3096,7 +3075,7 @@ namespace Kratos
             (*mpStream) << InitialTabulation << "\tBegin SubModelPartNodes" << std::endl;
             NodesContainerType& rThisNodes = r_sub_model_part.Nodes();
             auto numNodes = rThisNodes.end() - rThisNodes.begin();
-            for(unsigned int i = 0; i < numNodes; i++) {
+            for(unsigned int i = 0; i < numNodes; ++i) {
                 auto itNode = rThisNodes.begin() + i;
                 (*mpStream) << InitialTabulation << "\t\t" << itNode->Id() << std::endl;
             }
@@ -3105,8 +3084,8 @@ namespace Kratos
             // Submodelpart elements section
             (*mpStream) << InitialTabulation << "\tBegin SubModelPartElements" << std::endl;
             ElementsContainerType& rThisElements = r_sub_model_part.Elements();
-            auto numElements = rThisElements.end() - rThisElements.begin();
-            for(unsigned int i = 0; i < numElements; i++) {
+            auto num_elements = rThisElements.end() - rThisElements.begin();
+            for(unsigned int i = 0; i < num_elements; ++i) {
                 auto itElem = rThisElements.begin() + i;
                 (*mpStream) << InitialTabulation << "\t\t" << itElem->Id() << std::endl;
             }
@@ -3116,7 +3095,7 @@ namespace Kratos
             (*mpStream) << InitialTabulation << "\tBegin SubModelPartConditions" << std::endl;
             ConditionsContainerType& rThisConditions= r_sub_model_part.Conditions();
             auto numConditions = rThisConditions.end() - rThisConditions.begin();
-            for(unsigned int i = 0; i < numConditions; i++) {
+            for(unsigned int i = 0; i < numConditions; ++i) {
                 auto itCond = rThisConditions.begin() + i;
                 (*mpStream) << InitialTabulation << "\t\t" << itCond->Id() << std::endl;
             }
@@ -3326,7 +3305,7 @@ namespace Kratos
             ReadWord(word);
             node_data << word << '\n'; // z
 
-            for(SizeType i = 0 ; i < NodesAllPartitions[ReorderedNodeId(id)-1].size() ; i++)
+            for(SizeType i = 0 ; i < NodesAllPartitions[ReorderedNodeId(id)-1].size() ; ++i)
             {
                 SizeType partition_id = NodesAllPartitions[ReorderedNodeId(id)-1][i];
                 if(partition_id > OutputFiles.size())
@@ -3394,7 +3373,7 @@ namespace Kratos
             ReadWord(word); // Reading the properties id;
             element_data << word << '\t'; // properties id
 
-            for(SizeType i = 0 ; i < number_of_nodes ; i++)
+            for(SizeType i = 0 ; i < number_of_nodes ; ++i)
             {
                 ReadWord(word); // Reading the node id;
 				SizeType node_id;
@@ -3403,7 +3382,7 @@ namespace Kratos
             }
 
 
-            for(SizeType i = 0 ; i < ElementsAllPartitions[ReorderedElementId(id)-1].size() ; i++)
+            for(SizeType i = 0 ; i < ElementsAllPartitions[ReorderedElementId(id)-1].size() ; ++i)
             {
                 SizeType partition_id = ElementsAllPartitions[ReorderedElementId(id)-1][i];
                 if(partition_id > OutputFiles.size())
@@ -3472,7 +3451,7 @@ namespace Kratos
             ReadWord(word); // Reading the properties id;
             condition_data << word << '\t'; // properties id
 
-            for(SizeType i = 0 ; i < number_of_nodes ; i++)
+            for(SizeType i = 0 ; i < number_of_nodes ; ++i)
             {
                 ReadWord(word); // Reading the node id;
 				SizeType node_id;
@@ -3481,7 +3460,7 @@ namespace Kratos
             }
 
 
-			for(SizeType i = 0 ; i < ConditionsAllPartitions[ReorderedConditionId(id)-1].size() ; i++)
+			for(SizeType i = 0 ; i < ConditionsAllPartitions[ReorderedConditionId(id)-1].size() ; ++i)
             {
                 SizeType partition_id = ConditionsAllPartitions[ReorderedConditionId(id)-1][i];
                 if(partition_id > OutputFiles.size())
@@ -3602,7 +3581,7 @@ namespace Kratos
             ReadWord(word);
             node_data << word << '\n'; // value
 
-            for(SizeType i = 0 ; i < NodesAllPartitions[ReorderedNodeId(id)-1].size() ; i++)
+            for(SizeType i = 0 ; i < NodesAllPartitions[ReorderedNodeId(id)-1].size() ; ++i)
             {
                 SizeType partition_id = NodesAllPartitions[ReorderedNodeId(id)-1][i];
                 if(partition_id > OutputFiles.size())
@@ -3672,7 +3651,7 @@ namespace Kratos
             Vector temp_vector;
             ReadVectorialValue(temp_vector);
 
-            for(SizeType i = 0 ; i < EntitiesPartitions[ReorderedNodeId(id)-1].size() ; i++)
+            for(SizeType i = 0 ; i < EntitiesPartitions[ReorderedNodeId(id)-1].size() ; ++i)
             {
                 SizeType partition_id = EntitiesPartitions[ReorderedNodeId(id)-1][i];
                 if(partition_id > OutputFiles.size())
@@ -3797,7 +3776,7 @@ namespace Kratos
             ReadWord(word);
             entity_data << word <<'\n'; // value
 
-            for(SizeType i = 0 ; i < EntitiesPartitions[index-1].size() ; i++)
+            for(SizeType i = 0 ; i < EntitiesPartitions[index-1].size() ; ++i)
             {
                 SizeType partition_id = EntitiesPartitions[index-1][i];
                 if(partition_id > OutputFiles.size())
@@ -4016,7 +3995,7 @@ namespace Kratos
                 KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
             }
 
-            for(SizeType i = 0 ; i < NodesAllPartitions[ReorderedNodeId(id)-1].size() ; i++)
+            for(SizeType i = 0 ; i < NodesAllPartitions[ReorderedNodeId(id)-1].size() ; ++i)
             {
                 SizeType partition_id = NodesAllPartitions[ReorderedNodeId(id)-1][i];
                 if(partition_id > OutputFiles.size())
@@ -4066,7 +4045,7 @@ namespace Kratos
                 KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
             }
 
-            for(SizeType i = 0 ; i < ElementsAllPartitions[ReorderedElementId(id)-1].size() ; i++)
+            for(SizeType i = 0 ; i < ElementsAllPartitions[ReorderedElementId(id)-1].size() ; ++i)
             {
                 SizeType partition_id = ElementsAllPartitions[ReorderedElementId(id)-1][i];
                 if(partition_id > OutputFiles.size())
@@ -4115,7 +4094,7 @@ namespace Kratos
                 KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
             }
 
-            for(SizeType i = 0 ; i < ConditionsAllPartitions[ReorderedConditionId(id)-1].size() ; i++)
+            for(SizeType i = 0 ; i < ConditionsAllPartitions[ReorderedConditionId(id)-1].size() ; ++i)
             {
                 SizeType partition_id = ConditionsAllPartitions[ReorderedConditionId(id)-1][i];
                 if(partition_id > OutputFiles.size())
@@ -4196,7 +4175,7 @@ namespace Kratos
 				KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
 			}
 
-			for (SizeType i = 0; i < NodesAllPartitions[ReorderedNodeId(id) - 1].size(); i++)
+			for (SizeType i = 0; i < NodesAllPartitions[ReorderedNodeId(id) - 1].size(); ++i)
 			{
 				SizeType partition_id = NodesAllPartitions[ReorderedNodeId(id) - 1][i];
 				if (partition_id > OutputFiles.size())
@@ -4246,7 +4225,7 @@ namespace Kratos
 				KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
 			}
 
-			for (SizeType i = 0; i < ElementsAllPartitions[ReorderedElementId(id) - 1].size(); i++)
+			for (SizeType i = 0; i < ElementsAllPartitions[ReorderedElementId(id) - 1].size(); ++i)
 			{
 				SizeType partition_id = ElementsAllPartitions[ReorderedElementId(id) - 1][i];
 				if (partition_id > OutputFiles.size())
@@ -4295,7 +4274,7 @@ namespace Kratos
 				KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
 			}
 
-			for (SizeType i = 0; i < ConditionsAllPartitions[ReorderedConditionId(id) - 1].size(); i++)
+			for (SizeType i = 0; i < ConditionsAllPartitions[ReorderedConditionId(id) - 1].size(); ++i)
 			{
 				SizeType partition_id = ConditionsAllPartitions[ReorderedConditionId(id) - 1][i];
 				if (partition_id > OutputFiles.size())
@@ -4320,9 +4299,9 @@ namespace Kratos
     {
         WriteInAllFiles(OutputFiles, "Begin NodalData PARTITION_INDEX\n");
 
-        for(SizeType i_node = 0 ; i_node != NodesAllPartitions.size() ; i_node++)
+        for(SizeType i_node = 0 ; i_node != NodesAllPartitions.size() ; ++i_node)
         {
-            for(SizeType i = 0 ; i < NodesAllPartitions[i_node].size() ; i++)
+            for(SizeType i = 0 ; i < NodesAllPartitions[i_node].size() ; ++i)
             {
                 SizeType partition_id = NodesAllPartitions[i_node][i];
                 if(partition_id > OutputFiles.size())
@@ -4384,7 +4363,7 @@ namespace Kratos
         // Writing the all local nodes
         WriteInAllFiles(OutputFiles, "    Begin LocalNodes 0\n");
 
-        for(SizeType i = 0 ; i < NodesPartitions.size() ; i++)
+        for(SizeType i = 0 ; i < NodesPartitions.size() ; ++i)
             *(OutputFiles[NodesPartitions[i]]) << "    " << i+1 << std::endl;
 
         WriteInAllFiles(OutputFiles, "    End LocalNodes \n");
@@ -4399,13 +4378,13 @@ namespace Kratos
         {
             vector<int> neighbours_indices = row(DomainsColoredGraph, i_partition);
 
-            for(SizeType i = 0 ; i <  neighbours_indices.size() ; i++)
+            for(SizeType i = 0 ; i <  neighbours_indices.size() ; ++i)
                 if(SizeType(neighbours_indices[i]) < NumberOfPartitions)
                     interface_indices(i_partition,neighbours_indices[i]) = i;
         }
 
 
-        for(SizeType i = 0 ; i < NodesPartitions.size() ; i++)
+        for(SizeType i = 0 ; i < NodesPartitions.size() ; ++i)
         {
             const SizeType node_partition = NodesPartitions[i];
             const SizeType node_id = i + 1;
@@ -4475,7 +4454,7 @@ namespace Kratos
     {
         WriteInAllFiles(OutputFiles, "    Begin LocalNodes 0\n");
 
-        for(SizeType i = 0 ; i < NodesPartitions.size() ; i++)
+        for(SizeType i = 0 ; i < NodesPartitions.size() ; ++i)
             *(OutputFiles[NodesPartitions[i]]) << "    " << i+1 << std::endl;
 
         WriteInAllFiles(OutputFiles, "    End LocalNodes \n");
@@ -4487,7 +4466,7 @@ namespace Kratos
 
     void ModelPartIO::WriteInAllFiles(OutputFilesContainerType& OutputFiles, std::string const& ThisWord)
     {
-        for(SizeType i = 0 ; i < OutputFiles.size() ; i++)
+        for(SizeType i = 0 ; i < OutputFiles.size() ; ++i)
             *(OutputFiles[i]) << ThisWord;
     }
 
@@ -4711,7 +4690,7 @@ namespace Kratos
         int partition_size = number_of_rows / number_of_threads;
         partitions[0] = 0;
         partitions[number_of_threads] = number_of_rows;
-        for(unsigned int i = 1; i<number_of_threads; i++)
+        for(unsigned int i = 1; i<number_of_threads; ++i)
             partitions[i] = partitions[i-1] + partition_size ;
     }
 
