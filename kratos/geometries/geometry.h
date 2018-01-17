@@ -903,23 +903,25 @@ public:
 
         //Newton iteration:
         const double tol = 1.0e-8;
-
         unsigned int maxiter = 1000;
 
         for(unsigned int k = 0; k < maxiter; k++) {
             CurrentGlobalCoords.clear();
+            DeltaXi.clear();
+
             GlobalCoordinates( CurrentGlobalCoords, rResult );
             noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
             InverseOfJacobian( J, rResult );
-            DeltaXi.clear();
             for(unsigned int i = 0; i < WorkingSpaceDimension(); i++) {
-                for(unsigned int j = 0; k < WorkingSpaceDimension(); j++) {
+                for(unsigned int j = 0; j < WorkingSpaceDimension(); j++) {
                     DeltaXi[i] += J(i,j)*CurrentGlobalCoords[j];
                 }
             }
             noalias( rResult ) += DeltaXi;
 
-            if(norm_2( DeltaXi ) > 30 || norm_2( DeltaXi ) < tol) {
+            auto norm2DXi = norm_2(DeltaXi);
+
+            if(norm2DXi > 30 || norm2DXi < tol) {
                 break;
             }
         }
