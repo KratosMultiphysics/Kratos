@@ -11,10 +11,6 @@
 
 namespace Kratos {
 
-//template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > >;
-template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > >;
-template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > >;
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
@@ -494,5 +490,12 @@ ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<3, 4>(
 }
 
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Class template instantiation
+
+//template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > >;
+template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > >;
+template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > >;
 
 }
