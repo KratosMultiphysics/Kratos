@@ -87,10 +87,8 @@ namespace Kratos
  
     protected:
        
-        std::vector<double>                mListOfRadii;
-        std::vector<SphericParticle*>      mListOfSphericParticles; 
-        DEMIntegrationScheme* mpTranslationalIntegrationScheme;
-        DEMIntegrationScheme* mpRotationalIntegrationScheme;       
+        std::vector<double>               mListOfRadii;
+        std::vector<SphericParticle*>     mListOfSphericParticles;
       
     private:
        

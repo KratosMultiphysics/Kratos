@@ -136,7 +136,7 @@ namespace Kratos {
         Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
         
         NodesArrayType::iterator i_begin = mListOfNodes.begin(); 
-        NodesArrayType::iterator i_end = mListOfNodes.end(); 
+        NodesArrayType::iterator i_end = mListOfNodes.end();
         int iter = 0; 
 
         for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {

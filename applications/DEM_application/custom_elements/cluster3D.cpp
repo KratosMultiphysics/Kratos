@@ -286,7 +286,7 @@ namespace Kratos {
             noalias(sphere_node.FastGetSolutionStepValue(VELOCITY)) = cluster_velocity;
         }        
     }
-    
+
     void Cluster3D::UpdateAngularDisplacementAndVelocityOfSpheres() {
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
