@@ -104,35 +104,19 @@ namespace Kratos
         
         // Initialize total drag force
         array_1d<double, 3> drag_force = ZeroVector(3);
-
-        // Initialize auxiliar arrays and partitioning
-        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
-        std::vector<array_1d<double, 3>> thread_drag_force(num_threads);
-
-        OpenMPUtils::PartitionVector elements_partition;
-        OpenMPUtils::DivideInPartitions(rModelPart.NumberOfElements(), num_threads, elements_partition);
+        double& drag_x = drag_force[0];
+        double& drag_y = drag_force[1];
+        double& drag_z = drag_force[2];
 
         // Iterate the model part elements to compute the drag
-        #pragma omp parallel shared(thread_drag_force)
-        {
-            // Compute each thread drag force values
-            int thread_id = OpenMPUtils::ThisThread();
-            ModelPart::ElementIterator elem_begin = rModelPart.ElementsBegin() + elements_partition[thread_id];
-            ModelPart::ElementIterator elem_end = rModelPart.ElementsBegin() + elements_partition[thread_id + 1];
-
-            array_1d<double, 3> aux_drag_force = ZeroVector(3);
-            for (ModelPart::ElementIterator it_elem = elem_begin; it_elem != elem_end; ++it_elem) {
-                array_1d<double, 3> elem_drag;
-                it_elem->Calculate(DRAG_FORCE, elem_drag, rModelPart.GetProcessInfo());
-                aux_drag_force += elem_drag;
-            }
-
-            thread_drag_force[thread_id] = aux_drag_force;
-        }
-
-        // Perform reduction
-        for (unsigned int i_thread = 0; i_thread < num_threads; ++i_thread) {
-            drag_force += thread_drag_force[i_thread];
+        array_1d<double, 3> elem_drag;
+        #pragma omp parallel for reduction(+:drag_x) reduction(+:drag_y) reduction(+:drag_z) private(elem_drag) schedule(dynamic)
+        for(int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i){
+            auto it_elem = rModelPart.ElementsBegin() + i;
+            it_elem->Calculate(DRAG_FORCE, elem_drag, rModelPart.GetProcessInfo());
+            drag_x += elem_drag[0];
+            drag_y += elem_drag[1];
+            drag_z += elem_drag[2];
         }
 
         // Perform MPI synchronization
