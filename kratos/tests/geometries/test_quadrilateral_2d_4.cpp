@@ -60,8 +60,8 @@ namespace Testing
       return typename Quadrilateral2D4<TPointType>::Pointer(new Quadrilateral2D4<TPointType>(
         GeneratePoint<TPointType>( 0.0, 0.0, 0.0),
         GeneratePoint<TPointType>( 1.0, 0.0, 0.0),
-        GeneratePoint<TPointType>( 1.1, 1.1, 0.0),
-        GeneratePoint<TPointType>( 0.0, 1.1, 0.0)
+        GeneratePoint<TPointType>( 1.0, 1.0, 0.0),
+        GeneratePoint<TPointType>( 0.0, 1.0, 0.0)
       ));
     }
 
@@ -126,6 +126,31 @@ namespace Testing
         Point point_1 ( 0.7, 0.4, 0.0 );
         Point point_2 ( 1.0, 1.2, 0.0 );
         KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
+    }
+
+    /** Tests the PointLocalCoordinates for Quadrilateral2D4.
+     * Tests the PointLocalCoordinates for Quadrilateral2D4.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+
+        Point TestPointA(1.0, 1.0, 0.0);
+        Point TestPointB(0.5, 0.5, 0.0);
+        Point TestResultA(0.0, 0.0, 0.0);
+        Point TestResultB(0.0, 0.0, 0.0);
+
+        geom->PointLocalCoordinates(TestResultA, TestPointA);
+        geom->PointLocalCoordinates(TestResultB, TestPointB);
+
+        // Test transformation in the edge
+        KRATOS_CHECK_NEAR(TestResultA[0], 1.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultA[1], 1.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultA[2], 0.0, TOLERANCE);
+
+        // Test transformation in the center
+        KRATOS_CHECK_NEAR(TestResultB[0], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultB[1], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultB[2], 0.0, TOLERANCE);
     }
 
 } // namespace Testing
