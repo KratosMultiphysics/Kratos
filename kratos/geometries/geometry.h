@@ -906,35 +906,24 @@ public:
 
         unsigned int maxiter = 1000;
 
-        if(LocalSpaceDimension() == 2) {
-            for ( unsigned int k = 0; k < maxiter; k++ ) {
-                CurrentGlobalCoords = ZeroVector( 3 );
-                GlobalCoordinates( CurrentGlobalCoords, rResult );
-                noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
-                InverseOfJacobian( J, rResult );
-                DeltaXi[0] = J(0,0) * CurrentGlobalCoords(0) + J(0,1) * CurrentGlobalCoords(1);
-                DeltaXi[1] = J(1,0) * CurrentGlobalCoords(0) + J(1,1) * CurrentGlobalCoords(1);
-                noalias( rResult ) += DeltaXi;
-
-                if ( norm_2( DeltaXi ) > 30 || norm_2( DeltaXi ) < tol ) {
-                    break;
+        for(unsigned int k = 0; k < maxiter; k++) {
+            CurrentGlobalCoords = ZeroVector( 3 );
+            GlobalCoordinates( CurrentGlobalCoords, rResult );
+            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
+            InverseOfJacobian( J, rResult );
+            DeltaXi.clear();
+            for(unsigned int i=0; i<WorkingSpaceDimension(); ++i) {
+                for(unsigned int j=0; k<WorkingSpaceDimension(); ++j) {
+                    DeltaXi[i] += J(i,j)*CurrentGlobalCoords[j];
                 }
             }
-        } else if(LocalSpaceDimension() == 3) {
-            for ( unsigned int k = 0; k < maxiter; k++ ) {
-                CurrentGlobalCoords = ZeroVector( 3 );
-                GlobalCoordinates( CurrentGlobalCoords, rResult );
-                noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
-                InverseOfJacobian( J, rResult );
-                noalias( DeltaXi ) = prod( J, CurrentGlobalCoords );
-                noalias( rResult ) += DeltaXi;
+            noalias( rResult ) += DeltaXi;
 
-                if ( norm_2( DeltaXi ) > 30 || norm_2( DeltaXi ) < tol ) {
-                    break;
-                }
+            if(norm_2( DeltaXi ) > 30 || norm_2( DeltaXi ) < tol) {
+                break;
             }
         }
-
+        
         return rResult;
     }
 
