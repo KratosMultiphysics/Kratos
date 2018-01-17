@@ -205,7 +205,8 @@ public:
                                             int aId,
                                             array_1d<double, 3>& reference_coordinates);    
 
-	SphericParticle* SphereCreatorForClusters( ModelPart& r_modelpart, 
+	SphericParticle* SphereCreatorForClusters( ModelPart& r_modelpart,
+                                                   Node < 3 > ::Pointer& pnew_node,
                                     int r_Elem_Id, 
                                     double radius,
                                     array_1d<double, 3 >& reference_coordinates, 
@@ -216,6 +217,7 @@ public:
                                     PropertiesProxy* p_fast_properties);
     
     SphericParticle* SphereCreatorForBreakableClusters(ModelPart& r_modelpart,
+                                                       Node < 3 > ::Pointer& pnew_node,
                                                                 int r_Elem_Id,
                                                                 double radius,
                                                                 array_1d<double, 3>& reference_coordinates,

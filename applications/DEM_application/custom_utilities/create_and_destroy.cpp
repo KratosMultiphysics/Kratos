@@ -461,6 +461,7 @@ namespace Kratos {
     }
 
     Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForClusters(ModelPart& r_modelpart,
+                                                                                 Node < 3 > ::Pointer& pnew_node,
                                                                                   int r_Elem_Id,
                                                                                   double radius,
                                                                                   array_1d<double, 3>& reference_coordinates,
@@ -470,7 +471,6 @@ namespace Kratos {
                                                                                   const int cluster_id,
                                                                                   PropertiesProxy* p_fast_properties) {
         KRATOS_TRY
-        Node<3>::Pointer pnew_node;
 
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
 
@@ -501,6 +501,7 @@ namespace Kratos {
     }
 
 SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(ModelPart& r_modelpart,
+                                                                              Node < 3 > ::Pointer& pnew_node,
                                                                                   int r_Elem_Id,
                                                                                   double radius,
                                                                                   array_1d<double, 3>& reference_coordinates,
@@ -509,7 +510,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                                                                                   const int cluster_id,
                                                                                   PropertiesProxy* p_fast_properties) {
         KRATOS_TRY
-        Node<3>::Pointer pnew_node;
 
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
 

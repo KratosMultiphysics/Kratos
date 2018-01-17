@@ -49,6 +49,7 @@ namespace Kratos {
             }    
         }
 
+        mListOfNodes.clear();
         mListOfSphericParticles.clear();
         mListOfCoordinates.clear();  
         mListOfRadii.clear();  
@@ -76,6 +77,7 @@ namespace Kratos {
         mListOfRadii.resize(number_of_spheres);
         mListOfCoordinates.resize(number_of_spheres);
         mListOfSphericParticles.resize(number_of_spheres);
+        mListOfNodes.resize(number_of_spheres);
         
         const double scaling_factor = cl / reference_size;
         
@@ -163,8 +165,10 @@ namespace Kratos {
             }
              
             Kratos::SphericParticle* new_sphere;
+            Node < 3 > ::Pointer new_node;
             if (!breakable) {
-                new_sphere = p_creator_destructor->SphereCreatorForClusters(dem_model_part, 
+                new_sphere = p_creator_destructor->SphereCreatorForClusters(dem_model_part,
+                                                                            new_node,
                                                                             max_Id, 
                                                                             radius_of_sphere, 
                                                                             coordinates_of_sphere, 
@@ -175,7 +179,8 @@ namespace Kratos {
                                                                             p_fast_properties);
             }
             else{
-                new_sphere = p_creator_destructor->SphereCreatorForBreakableClusters(dem_model_part, 
+                new_sphere = p_creator_destructor->SphereCreatorForBreakableClusters(dem_model_part,
+                                                                                     new_node,
                                                                                     max_Id, 
                                                                                     radius_of_sphere, 
                                                                                     coordinates_of_sphere, 
@@ -185,7 +190,8 @@ namespace Kratos {
                                                                                     p_fast_properties);
             }
                         
-            mListOfSphericParticles[i] = new_sphere;                 
+            mListOfSphericParticles[i] = new_sphere;
+            mListOfNodes[i] = new_node;
         }
 
         KRATOS_CATCH("")
