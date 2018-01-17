@@ -326,7 +326,7 @@ public:
      *
      * @see Clone
      * @see ClonePoints
-     */http://blog.deadlypenguin.com/blog/2011/05/03/using-meld-with-git-diff/
+     */
     Hexahedra3D27& operator=( const Hexahedra3D27& rOther )
     {
         BaseType::operator=( rOther );
