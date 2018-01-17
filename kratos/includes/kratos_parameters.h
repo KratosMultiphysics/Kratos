@@ -266,7 +266,7 @@ public:
 
         for (unsigned int i=0; i<mpvalue->Size(); ++i)
         {
-            if (!(*mpvalue)[i].IsNumber()) 
+            if (!(*mpvalue)[i].IsNumber())
                 return false;
         }
         return true; // All entries are numbers or Vector is empty
@@ -278,7 +278,7 @@ public:
 
         unsigned int nrows = mpvalue->Size();
         if (nrows == 0) // mpvalue is an empty array/vector => "[]"
-            return false; 
+            return false;
 
         for (unsigned int i=0; i<nrows; ++i)
         {
@@ -289,10 +289,10 @@ public:
             unsigned int ncols = row_i.Size();
             if (ncols != (*mpvalue)[0].Size()) // compare number of columns to first row
                 return false; // number of columns is not consistent
-            
+
             for (unsigned int j=0; j<ncols; ++j) // Check all values in column
             {
-                if (!row_i[j].IsNumber()) 
+                if (!row_i[j].IsNumber())
                     return false;
             }
         }
@@ -323,35 +323,35 @@ public:
         KRATOS_ERROR_IF_NOT(mpvalue->IsString()) << "argument must be a string" << std::endl;
         return mpvalue->GetString();
     }
-    Vector GetVector() const    
+    Vector GetVector() const
     {
         KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "argument must be a Vector (a json list)" << std::endl;
-        
+
         const unsigned int size = mpvalue->Size();
-            
+
         Vector V(size);
-        
+
         for(unsigned int i=0; i<size; ++i)
         {
             KRATOS_ERROR_IF_NOT((*mpvalue)[i].IsNumber()) << "Entry " << i << " is not a number!" << std::endl;
             V(i) = (*mpvalue)[i].GetDouble();
         }
-        
+
         return V;
     }
     Matrix GetMatrix() const
     {
         KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "argument must be a Matrix (a json list of lists)" << std::endl;
-        
+
         const unsigned int nrows = mpvalue->Size();
         KRATOS_ERROR_IF(nrows == 0) << "argument must be a Matrix (a json list of lists)" << std::endl;
 
         unsigned int ncols = 0;
         if((*mpvalue)[0].IsArray())
             ncols = (*mpvalue)[0].Size();
-            
+
         Matrix A(nrows,ncols);
-        
+
         for(unsigned int i=0; i<nrows; ++i)
         {
             auto& row_i = (*mpvalue)[i];
@@ -363,7 +363,7 @@ public:
                 A(i,j) = (row_i)[j].GetDouble();
             }
         }
-        
+
         return A;
     }
 
@@ -396,7 +396,7 @@ public:
         for (unsigned int i=0; i<size; ++i)
         {
             mpvalue->PushBack(vec[i], mpdoc->GetAllocator());
-        }        
+        }
     }
     void SetMatrix(const Matrix& mat)
     {
@@ -411,7 +411,7 @@ public:
             mpvalue->PushBack(0, mpdoc->GetAllocator()); // Pushing back a default element to allocate memory
             (*mpvalue)[i].SetArray(); // change that default element to an array
             (*mpvalue)[i].Reserve(ncols, mpdoc->GetAllocator());
-            
+
             for (unsigned int j=0; j<ncols; ++j)
             {
                 (*mpvalue)[i].PushBack(mat(i,j), mpdoc->GetAllocator());
@@ -454,6 +454,17 @@ public:
         (*mpvalue)[index].CopyFrom(*other_array_item.GetUnderlyingStorage(), mpdoc->GetAllocator());
 #endif
     }
+
+    void PushBack(const Parameters& other_array_item)
+    {
+        KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "size can only be queried if the value is of Array type" << std::endl;
+
+	rapidjson::Value tmp;
+	tmp.CopyFrom(*(other_array_item.GetUnderlyingStorage()), mpdoc->GetAllocator());
+
+	mpvalue->PushBack(tmp, mpdoc->GetAllocator());
+    }
+
     Parameters operator[](unsigned int index)
     {
         return this->GetArrayItem(index);
@@ -502,7 +513,7 @@ public:
             if(itr->value.IsString() && value_defaults->IsString()) type_coincides = true;
             if(itr->value.IsObject() && value_defaults->IsObject()) type_coincides = true;
             if(itr->value.IsNull() && value_defaults->IsNull()) type_coincides = true;
-            
+
             if(type_coincides == false)
             {
                 std::stringstream msg;
@@ -652,25 +663,25 @@ public:
 			}
 		}
 	}
-        
+
     bool IsEquivalentTo(Parameters& reference) {
-        //Checks if the names and values are the same, no importance to the order. 
+        //Checks if the names and values are the same, no importance to the order.
         //Lists have to be ordered, though! Take into account that in Kratos some physical vectors are represented with a list.
-        
+
         for (rapidjson::Value::ConstMemberIterator itr = this->mpvalue->MemberBegin(); itr != this->mpvalue->MemberEnd(); ++itr)
         {
             std::string item_name = itr->name.GetString();
-            
+
             bool found = false;
-            
+
             for (rapidjson::Value::ConstMemberIterator itr_ref = reference.mpvalue->MemberBegin(); itr_ref != reference.mpvalue->MemberEnd(); ++itr_ref)
             {
                 if(item_name == itr_ref->name.GetString()) {
                     found = true;
                     Parameters subobject = (*this)[item_name];
                     Parameters reference_subobject = reference[item_name];
-                    
-                    if(itr->value.IsObject()) {                        
+
+                    if(itr->value.IsObject()) {
                         if ( ! subobject.IsEquivalentTo(reference_subobject) ) return false;
                     }
                     else {
@@ -678,18 +689,18 @@ public:
                     }
                     break;
                 }
-            }       
-            
+            }
+
             if ( ! found) return false;
         }
-        
+
         //reverse check: the reference can contain fields that are missing in the object
         for (rapidjson::Value::ConstMemberIterator itr = reference.mpvalue->MemberBegin(); itr != reference.mpvalue->MemberEnd(); ++itr)
         {
             std::string item_name = itr->name.GetString();
-            
+
             bool found = false;
-            
+
             for (rapidjson::Value::ConstMemberIterator itr_ref = this->mpvalue->MemberBegin(); itr_ref != this->mpvalue->MemberEnd(); ++itr_ref)
             {
                 if(item_name == itr_ref->name.GetString()) {
@@ -697,33 +708,33 @@ public:
                     //no need to check the values here, if they were found in the previous loop, values were checked there
                     break;
                 }
-            }       
-            
+            }
+
             if ( ! found) return false;
         }
-        
+
         return true;
     }
 
-    
+
     bool HasSameKeysAndTypeOfValuesAs(Parameters& reference) {
-        //Checks if the names and the type of values are the same, no importance to the order. 
+        //Checks if the names and the type of values are the same, no importance to the order.
         //Lists have to be ordered, though! Take into account that in Kratos some physical vectors are represented with a list.
-        
+
         for (rapidjson::Value::ConstMemberIterator itr = this->mpvalue->MemberBegin(); itr != this->mpvalue->MemberEnd(); ++itr)
         {
             std::string item_name = itr->name.GetString();
-            
+
             bool found = false;
-            
+
             for (rapidjson::Value::ConstMemberIterator itr_ref = reference.mpvalue->MemberBegin(); itr_ref != reference.mpvalue->MemberEnd(); ++itr_ref)
             {
                 if(item_name == itr_ref->name.GetString()) {
                     found = true;
                     Parameters subobject = (*this)[item_name];
                     Parameters reference_subobject = reference[item_name];
-                    
-                    if(itr->value.IsObject()) {                        
+
+                    if(itr->value.IsObject()) {
                         if ( ! subobject.HasSameKeysAndTypeOfValuesAs(reference_subobject) ) return false;
                     }
                     else {
@@ -736,22 +747,22 @@ public:
                             msg << reference.PrettyPrintJsonString() << std::endl;
                             KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());*/
                             return false;
-                        }                            
+                        }
                     }
                     break;
                 }
-            }       
-            
+            }
+
             if ( ! found) return false;
         }
-        
+
         //reverse check: the reference can contain fields that are missing in the object
         for (rapidjson::Value::ConstMemberIterator itr = reference.mpvalue->MemberBegin(); itr != reference.mpvalue->MemberEnd(); ++itr)
         {
             std::string item_name = itr->name.GetString();
-            
+
             bool found = false;
-            
+
             for (rapidjson::Value::ConstMemberIterator itr_ref = this->mpvalue->MemberBegin(); itr_ref != this->mpvalue->MemberEnd(); ++itr_ref)
             {
                 if(item_name == itr_ref->name.GetString()) {
@@ -759,11 +770,11 @@ public:
                     //no need to check the types here, if they were found in the previous loop, types were checked there
                     break;
                 }
-            }       
-            
+            }
+
             if ( ! found) return false;
         }
-        
+
         return true;
     }
 
