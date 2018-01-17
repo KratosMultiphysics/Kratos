@@ -2098,25 +2098,25 @@ public:
         return rResult;
     }
 
-    boost::numeric::ublas::vector<Matrix> const& MassFactors() const
-    {
-        return mpGeometryData->MassFactors();
-    }
-
-    boost::numeric::ublas::vector<Matrix> const& MassFactors( IntegrationMethod ThisMethod ) const
-    {
-        return  mpGeometryData->MassFactors( ThisMethod );
-    }
-
-    Matrix const& MassFactors( IndexType IntegrationPointIndex ) const
-    {
-        return mpGeometryData->MassFactors( IntegrationPointIndex );
-    }
-
-    Matrix const& MassFactors( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
-    {
-        return mpGeometryData->MassFactors( IntegrationPointIndex, ThisMethod );
-    }
+//     boost::numeric::ublas::vector<Matrix> const& MassFactors() const
+//     {
+//         return mpGeometryData->MassFactors();
+//     }
+// 
+//     boost::numeric::ublas::vector<Matrix> const& MassFactors( IntegrationMethod ThisMethod ) const
+//     {
+//         return  mpGeometryData->MassFactors( ThisMethod );
+//     }
+// 
+//     Matrix const& MassFactors( IndexType IntegrationPointIndex ) const
+//     {
+//         return mpGeometryData->MassFactors( IntegrationPointIndex );
+//     }
+// 
+//     Matrix const& MassFactors( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
+//     {
+//         return mpGeometryData->MassFactors( IntegrationPointIndex, ThisMethod );
+//     }
 
     ///@}
     ///@name Input and output
