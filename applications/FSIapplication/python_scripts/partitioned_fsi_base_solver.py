@@ -419,7 +419,7 @@ class PartitionedFSIBaseSolver:
 
             # Add the two faces contributions to the POINT_LOAD variable
             # TODO: Add this to the variables utils
-            for node in self._GetStructureInterfaceSubmodelPart().Nodes:F
+            for node in self._GetStructureInterfaceSubmodelPart().Nodes:
                 pos_face_force = node.GetSolutionStepValue(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
                 neg_face_force = node.GetSolutionStepValue(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
                 node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
