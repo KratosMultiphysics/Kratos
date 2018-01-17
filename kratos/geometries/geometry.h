@@ -907,13 +907,13 @@ public:
         unsigned int maxiter = 1000;
 
         for(unsigned int k = 0; k < maxiter; k++) {
-            CurrentGlobalCoords = ZeroVector( 3 );
+            CurrentGlobalCoords.clear();
             GlobalCoordinates( CurrentGlobalCoords, rResult );
             noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
             InverseOfJacobian( J, rResult );
             DeltaXi.clear();
-            for(unsigned int i=0; i<WorkingSpaceDimension(); ++i) {
-                for(unsigned int j=0; k<WorkingSpaceDimension(); ++j) {
+            for(unsigned int i = 0; i < WorkingSpaceDimension(); i++) {
+                for(unsigned int j = 0; k < WorkingSpaceDimension(); j++) {
                     DeltaXi[i] += J(i,j)*CurrentGlobalCoords[j];
                 }
             }
