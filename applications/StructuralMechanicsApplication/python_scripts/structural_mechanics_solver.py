@@ -111,6 +111,11 @@ class MechanicalSolver(object):
             warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
             warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
             self.print_on_rank_zero(warning)
+        if custom_settings["model_import_settings"].Has("input_file_label"):
+            custom_settings["model_import_settings"].RemoveValue("input_file_label")
+            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified [model_import_settings][input_file_label], '
+            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
+            self.print_on_rank_zero(warning)
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
