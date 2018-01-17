@@ -40,6 +40,7 @@ class ComputeDragProcess(python_process.PythonProcess):
         self.write_drag_output_file = settings["write_drag_output_file"].GetBool()
 
         # Check if the model part conditions are wether slip or no slip
+        self.is_slip = False
         for condition in self.model_part.Conditions:
             if (condition.Is(KratosMultiphysics.SLIP)):
                 self.is_slip = True
