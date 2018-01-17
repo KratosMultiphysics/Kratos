@@ -7,11 +7,43 @@ import KratosMultiphysics
 import os
 
 class RestartUtility(object):
-    def __init__(self, model_part, load_settings, save_settings):
+    def __init__(self, model_part, settings):
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+            "input_filename"          : "",
+            "load_restart"            : false,
+            "restart_load_file_label" : 0.0,
+            "save_restart"            : false,
+            "restart_save_frequency"  : 1.0,
+            "serializer_trace"        : "trace_all"
+        }
+        """)
+
+        __serializer_flags = {
+            "no_trace":           KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE,     # binary
+            "trace_error":        KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR,  # ascii
+            "trace_all":          KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL     # ascii
+        }
+
+        settings.ValidateAndAssignDefaults(default_settings)
+
         self.model_part = model_part
-        self.input_filename = load_settings["input_filename"].GetString()
-        self.input_file_label = load_settings["input_file_label"].GetDouble()
-        self.output_frequency = save_settings["restart_time_frequency"].GetDouble()
+
+        # load settings
+        self.input_filename = settings["input_filename"].GetString()
+        self.input_file_label = settings["restart_load_file_label"].GetDouble()
+
+        # save settings
+        self.output_frequency = settings["restart_save_frequency"].GetDouble()
+        serializer_trace = settings["serializer_trace"].GetString()
+
+        serializer_trace = settings["serializer_trace"].GetString()
+        if not serializer_trace in __serializer_flags.keys():
+            err_msg =  'The requested load serializer_trace "' + serializer_trace + '" is not available!\n'
+            err_msg += 'Available options are: "no_trace", "trace_error", "trace_all"'
+            raise Exception(err_msg)
+        self.serializer_flag = __serializer_flags[serializer_trace]
+
         self.next_output = 0.0
 
     def LoadRestart(self):
@@ -23,10 +55,7 @@ class RestartUtility(object):
         print("    Loading Restart file: ", restart_path + ".rest")
 
         # Load the ModelPart
-        serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
-        # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
-        # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
-        serializer = KratosMultiphysics.Serializer(restart_path, serializer_flag)
+        serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
         serializer.Load(self.model_part.Name, self.model_part)
 
         self._execute_after_load()
@@ -47,7 +76,9 @@ class RestartUtility(object):
         if self.is_restart_output_step():
             time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             file_name = self._get_save_file_name(time)
-            serializer = KratosMultiphysics.Serializer(file_name)
+
+            # Save the ModelPart
+            serializer = KratosMultiphysics.Serializer(file_name, self.serializer_flag)
             serializer.Save(self.model_part.Name, self.model_part)
 
             # Schedule next output

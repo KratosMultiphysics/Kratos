@@ -16,9 +16,9 @@ import restart_utility
 import os
 
 class TrilinosRestartUtility(RestartUtility):
-    def __init__(self, model_part, load_settings, save_settings):
+    def __init__(self, model_part, settings):
         # Construct the base class
-        super(TrilinosRestartUtility, self).__init__(model_part, load_settings, save_settings)
+        super(TrilinosRestartUtility, self).__init__(model_part, settings)
 
     def _get_load_file_name(self):
         problem_path = os.getcwd()
