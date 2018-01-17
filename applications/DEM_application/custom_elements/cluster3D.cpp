@@ -441,11 +441,4 @@ namespace Kratos {
             }
         }
     }
-
-    void Cluster3D::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag ) {
-        RigidBodyElement3D::GetTranslationalIntegrationScheme().MoveCluster(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
-        if (rotation_option) {
-            RigidBodyElement3D::GetRotationalIntegrationScheme().RotateCluster(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
-        }
-    }
 } // namespace Kratos

@@ -59,8 +59,6 @@ namespace Kratos
         virtual void SetInitialNeighbours(const double search_increment);
         virtual void CreateContinuumConstitutiveLaws();
         virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
-        virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-
         
         virtual double GetMass();
         virtual double SlowGetDensity();

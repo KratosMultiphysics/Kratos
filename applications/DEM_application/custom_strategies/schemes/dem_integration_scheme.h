@@ -46,8 +46,6 @@ namespace Kratos {
         
         virtual void Move(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         virtual void Rotate(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
-        virtual void MoveCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
-        virtual void RotateCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         virtual void MoveRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         virtual void RotateRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         
@@ -67,7 +65,6 @@ namespace Kratos {
         
         virtual void CalculateTranslationalMotionOfNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         virtual void CalculateRotationalMotionOfSphereNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
-        virtual void CalculateRotationalMotionOfClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
         virtual void CalculateRotationalMotionOfRigidBodyElementNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
         
         virtual void CalculateNewRotationalVariablesOfSpheres(
@@ -82,7 +79,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]);
     
-        virtual void CalculateNewRotationalVariablesOfClusters(
+        virtual void CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,

@@ -115,7 +115,7 @@ namespace Kratos {
         }//if StepFlag == 2
     }
     
-    void QuaternionIntegrationScheme::CalculateNewRotationalVariablesOfClusters(
+    void QuaternionIntegrationScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,

@@ -29,19 +29,9 @@ namespace Kratos {
         CalculateTranslationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);
     }
     
-    void DEMIntegrationScheme::Rotate(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
+    void DEMIntegrationScheme::Rotate(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
         if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) return;
-        CalculateRotationalMotionOfSphereNode(i, delta_t, force_reduction_factor, StepFlag);
-    }
-    
-    void DEMIntegrationScheme::MoveCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
-        CalculateTranslationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);   
-        cluster_element->UpdateLinearDisplacementAndVelocityOfSpheres();
-    }
-    
-    void DEMIntegrationScheme::RotateCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
-        CalculateRotationalMotionOfClusterNode(i, delta_t, force_reduction_factor, StepFlag);                
-        cluster_element->UpdateAngularDisplacementAndVelocityOfSpheres();
+        CalculateRotationalMotionOfSphereNode(i, delta_t, moment_reduction_factor, StepFlag);
     }
     
     void DEMIntegrationScheme::MoveRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
@@ -49,8 +39,8 @@ namespace Kratos {
         rigid_body_element->UpdateLinearDisplacementAndVelocityOfNodes();
     }
     
-    void DEMIntegrationScheme::RotateRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
-        CalculateRotationalMotionOfRigidBodyElementNode(i, delta_t, force_reduction_factor, StepFlag);                
+    void DEMIntegrationScheme::RotateRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
+        CalculateRotationalMotionOfRigidBodyElementNode(i, delta_t, moment_reduction_factor, StepFlag);                
         rigid_body_element->UpdateAngularDisplacementAndVelocityOfNodes();
     }
        
@@ -97,28 +87,6 @@ namespace Kratos {
         CalculateNewRotationalVariablesOfSpheres(StepFlag, i, moment_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, delta_t, Fix_Ang_vel);
     }
     
-    void DEMIntegrationScheme::CalculateRotationalMotionOfClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
-        
-        array_1d<double, 3 >& moments_of_inertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
-        array_1d<double, 3 >& angular_velocity   = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        array_1d<double, 3 >& torque             = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
-        array_1d<double, 3 >& rotated_angle      = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
-        array_1d<double, 3 >& delta_rotation     = i.FastGetSolutionStepValue(DELTA_ROTATION);
-        Quaternion<double  >& Orientation        = i.FastGetSolutionStepValue(ORIENTATION);
-        
-        #ifdef KRATOS_DEBUG
-        DemDebugFunctions::CheckIfNan(torque, "NAN in Torque in Integration Scheme");
-        #endif
-
-        bool Fix_Ang_vel[3] = {false, false, false};
-
-        Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
-        Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
-        Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
-        
-        CalculateNewRotationalVariablesOfClusters(StepFlag, i, moments_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, Orientation, delta_t, Fix_Ang_vel);
-    }
-    
     void DEMIntegrationScheme::CalculateRotationalMotionOfRigidBodyElementNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
         
         array_1d<double, 3 >& moments_of_inertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
@@ -138,7 +106,7 @@ namespace Kratos {
         Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
         Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
         
-        CalculateNewRotationalVariablesOfClusters(StepFlag, i, moments_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, Orientation, delta_t, Fix_Ang_vel);
+        CalculateNewRotationalVariablesOfRigidBodyElements(StepFlag, i, moments_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, Orientation, delta_t, Fix_Ang_vel);
     }
 
     void DEMIntegrationScheme::UpdateTranslationalVariables(
@@ -172,7 +140,7 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateNewRotationalVariablesOfSpheres) shouldn't be accessed, use derived class instead", 0);            
     }
     
-    void DEMIntegrationScheme::CalculateNewRotationalVariablesOfClusters(
+    void DEMIntegrationScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,
@@ -184,7 +152,7 @@ namespace Kratos {
                 Quaternion<double  >& Orientation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateNewRotationalVariablesOfClusters) shouldn't be accessed, use derived class instead", 0);            
+        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateNewRotationalVariablesOfRigidBodyElements) shouldn't be accessed, use derived class instead", 0);            
     }
 
     void DEMIntegrationScheme::UpdateRotationalVariables(
