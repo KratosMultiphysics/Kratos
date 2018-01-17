@@ -76,7 +76,7 @@ public:
     typedef Geometry<TPointType> GeometryType;
 
     /// Pointer definition of Geometry
-    KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME( Geometry<TPointType> );
+    KRATOS_CLASS_POINTER_DEFINITION( Geometry<TPointType> );
 
     /** Different criteria to evaluate the quality of a geometry.
      * Different criteria to evaluate the quality of a geometry.

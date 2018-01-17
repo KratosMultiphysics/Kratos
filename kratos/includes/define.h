@@ -52,9 +52,6 @@ template<typename C, typename...Args>
 typedef Kratos::shared_ptr<a > SharedPointer; \
 typedef Kratos::weak_ptr<a > WeakPointer
 
-#define KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME(a) typedef Kratos::shared_ptr<a > Pointer; \
-typedef typename Kratos::shared_ptr<a > SharedPointer; \
-typedef typename Kratos::weak_ptr<a > WeakPointer
 
 //-----------------------------------------------------------------
 //
