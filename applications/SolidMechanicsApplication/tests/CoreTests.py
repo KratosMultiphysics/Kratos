@@ -21,13 +21,12 @@ class CoreTests(KratosUnittest.TestCase):
         custom_parameters.AddEmptyValue("array").SetVector(KratosMultiphysics.Vector(size))
 
         for i in range(0,size):
-            custom_parameters["array"].__setitem__(i,default_parameters["array"].__getitem__(i))
+            item = default_parameters["array"][i]
+            custom_parameters["array"][i] = item
 
-        if( custom_parameters["array"][2].Has("three") ):
-            return True
-        else:
-            return False
-
+        item = custom_parameters["array"][size-1]
+        if( item.Has("three") == False ):
+            raise Exception(" Fail 2 ")
 
 
 def SetTestSuite(suites):

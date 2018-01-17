@@ -124,7 +124,7 @@ class InputManager(object):
                         size = list.size()
                         self.project_parameters.AddEmptyValue("output_process_list").SetVector(KratosMultiphysics.Vector(size))
                         for i in range(0,size):
-                            self.project_parameters["output_process_list"].__setitem__(i, parameters["output_process_list"].__getitem__(i))
+                            self.project_parameters["output_process_list"][i] = parameters["output_process_list"][i]
 
                 if( parameters.Has("check_process_list") ):
                     if( self.project_parameters.Has("check_process_list") ):
@@ -134,7 +134,7 @@ class InputManager(object):
                         size = list.size()
                         self.project_parameters.AddEmptyValue("check_process_list").SetVector(KratosMultiphysics.Vector(size))
                         for i in range(0,size):
-                            self.project_parameters["check_process_list"].__setitem__(i, parameters["check_process_list"].__getitem__(i))
+                            self.project_parameters["check_process_list"][i] = parameters["check_process_list"][i]
 
             else:
                 self._set_defaults(parameters)
@@ -303,8 +303,7 @@ class InputManager(object):
                             else:
                                 materials[i]["Parameters"].AddEmptyValue("model_part_name").SetString(part_name)
 
-                            materials_list["material_models_list"].__setitem__(i, materials.__getitem__(i))
-
+                            materials_list["material_models_list"][i] = materials[i]
 
                 else:
                     raise Exception("material_models_list size is too small")
