@@ -273,7 +273,7 @@ namespace Kratos
 		PropertiesType::Pointer pProperties) const
 	{
 		GeometryType::Pointer newGeom(GetGeometry().Create(ThisNodes));
-		return boost::make_shared< ShellThinElement3D4N >(NewId, newGeom,
+		return Kratos::make_shared< ShellThinElement3D4N >(NewId, newGeom,
 			pProperties, mpCoordinateTransformation->Create(newGeom));
 	}
 

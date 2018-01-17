@@ -19,7 +19,7 @@
 ============================================================================= */
 
 /** @file tools/shared_ptr.hpp
-    @brief Implementation of a shared pointer class (cf. std::shared_ptr, boost::shared_ptr). Will be used until C++11 is widely available.
+    @brief Implementation of a shared pointer class (cf. std::shared_ptr, Kratos::shared_ptr). Will be used until C++11 is widely available.
 
     Contributed by Philippe Tillet.
 */
@@ -78,7 +78,7 @@ namespace viennacl
 
     }
 
-    /** @brief A shared pointer class similar to boost::shared_ptr. Reimplemented in order to avoid a Boost-dependency. Will be replaced by std::shared_ptr as soon as C++11 is widely available. */
+    /** @brief A shared pointer class similar to Kratos::shared_ptr. Reimplemented in order to avoid a Boost-dependency. Will be replaced by std::shared_ptr as soon as C++11 is widely available. */
     template<class T>
     class shared_ptr
     {

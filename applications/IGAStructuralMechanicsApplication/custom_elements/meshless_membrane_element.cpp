@@ -59,7 +59,7 @@ Element::Pointer MeshlessMembraneElement::Create(
 	NodesArrayType const& ThisNodes,  
 	PropertiesType::Pointer pProperties) const
 {
-	return boost::make_shared< MeshlessMembraneElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+	return Kratos::make_shared< MeshlessMembraneElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 MeshlessMembraneElement::~MeshlessMembraneElement()

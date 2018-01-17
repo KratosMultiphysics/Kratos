@@ -90,7 +90,7 @@ namespace Kratos
             // Adding map
             IndexSet this_set;
             this_set.AddId(2);
-            p_cond_0->SetValue(INDEX_SET, boost::make_shared<IndexSet>(this_set));
+            p_cond_0->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set));
             
             // Setting flags
             // SLAVE
@@ -183,7 +183,7 @@ namespace Kratos
             // Adding map
             IndexSet this_set;
             this_set.AddId(2);
-            p_cond_0->SetValue(INDEX_SET, boost::make_shared<IndexSet>(this_set));
+            p_cond_0->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set));
             
             // Setting flags
             // SLAVE
@@ -295,8 +295,8 @@ namespace Kratos
             this_set0.AddId(4);
             this_set1.AddId(3);
             this_set1.AddId(4);
-            p_cond_0->SetValue(INDEX_SET, boost::make_shared<IndexSet>(this_set0));
-            p_cond_1->SetValue(INDEX_SET, boost::make_shared<IndexSet>(this_set1));
+            p_cond_0->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set0));
+            p_cond_1->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set1));
             
             // Setting flags
             // SLAVE

@@ -1682,7 +1682,7 @@ public:
     {
         Timer::Start("Generating Octree");
         //std::cout << "Generating the Octree..." << std::endl;
-        boost::shared_ptr<OctreeType> temp_octree =  boost::shared_ptr<OctreeType>( new OctreeType() );
+        Kratos::shared_ptr<OctreeType> temp_octree =  Kratos::shared_ptr<OctreeType>( new OctreeType() );
         //OctreeType::Pointer temp_octree = OctreeType::Pointer(new OctreeType() );
         mpOctree.swap(temp_octree);
         
@@ -2601,7 +2601,7 @@ private:
 
     DistanceSpatialContainersConfigure::data_type mOctreeNodes;
 
-    boost::shared_ptr<OctreeType> mpOctree;
+    Kratos::shared_ptr<OctreeType> mpOctree;
 
     static const double epsilon;
 

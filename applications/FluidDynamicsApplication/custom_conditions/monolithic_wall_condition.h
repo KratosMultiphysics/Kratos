@@ -188,7 +188,7 @@ public:
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return boost::make_shared< MonolithicWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< MonolithicWallCondition >(NewId, pGeom, pProperties);
     }
     
     /**

@@ -284,7 +284,7 @@ private:
     ///@{
     
     //PyObject* mpPyConstitutiveLaw;
-    boost::shared_ptr<boost::python::object> mpPyConstitutiveLaw;
+    Kratos::shared_ptr<boost::python::object> mpPyConstitutiveLaw;
 
     ///@}
     ///@name Private Operators

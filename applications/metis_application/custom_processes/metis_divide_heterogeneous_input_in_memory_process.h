@@ -145,11 +145,11 @@ public:
         }
 
         // Transfer Streams
-        boost::shared_ptr<std::iostream> * streams = new boost::shared_ptr<std::iostream>[mpi_size];
+        Kratos::shared_ptr<std::iostream> * streams = new Kratos::shared_ptr<std::iostream>[mpi_size];
         std::stringbuf * stringbufs = new std::stringbuf[mpi_size];
 
         for(auto i = 0; i < mpi_size; i++) {
-          streams[i] = boost::shared_ptr<std::iostream>(new std::iostream(&stringbufs[i]));
+          streams[i] = Kratos::shared_ptr<std::iostream>(new std::iostream(&stringbufs[i]));
         }
 
         // Calculate the partitions and write the result into temporal streams

@@ -59,7 +59,7 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< DisplacementConvergenceCriterion< TSparseSpace, TDenseSpace > > Pointer;
+    //typedef Kratos::shared_ptr< DisplacementConvergenceCriterion< TSparseSpace, TDenseSpace > > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementConvergenceCriterion );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;

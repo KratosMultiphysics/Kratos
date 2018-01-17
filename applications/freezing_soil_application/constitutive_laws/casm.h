@@ -82,7 +82,7 @@ public:
     /**
      * Counted pointer of UPCHMCM
      */
-    typedef boost::shared_ptr<CASM> Pointer;
+    typedef Kratos::shared_ptr<CASM> Pointer;
     /**
      * Life Cycle
      */
@@ -97,9 +97,9 @@ public:
      * Clone function
      * will be called on initialization of the constitutive law
      */
-    virtual boost::shared_ptr<BaseType> Clone() const
+    virtual Kratos::shared_ptr<BaseType> Clone() const
     {
-        boost::shared_ptr<BaseType> p_clone ( new CASM() );
+        Kratos::shared_ptr<BaseType> p_clone ( new CASM() );
         return p_clone;
     }
 

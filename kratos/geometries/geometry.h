@@ -389,7 +389,7 @@ public:
             *i = typename PointType::Pointer( new PointType( **i ) );
     }
 
-    // virtual boost::shared_ptr< Geometry< Point > > Clone() const
+    // virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
     // {
     //     Geometry< Point >::PointsArrayType NewPoints;
 
@@ -397,7 +397,7 @@ public:
 
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //         NewPoints.push_back(boost::make_shared< Point >((*this)[i]));
+    //         NewPoints.push_back(Kratos::make_shared< Point >((*this)[i]));
     //     }
 
     //     //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
