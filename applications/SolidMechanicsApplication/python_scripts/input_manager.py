@@ -23,7 +23,7 @@ class InputManager(object):
         else:
             raise Exception("Input file "+input_file+" does not exist")
 
-        print(" PARAMETERS ", parameters.PrettyPrintJsonString())
+        #print(" PARAMETERS ", parameters.PrettyPrintJsonString())
 
         # Set custom input settings
         if(parameters.Has("input_settings")):
@@ -31,7 +31,7 @@ class InputManager(object):
         else:
             self.project_parameters = parameters
 
-        print(" PROJECT_PARAMETERS ", self.project_parameters.PrettyPrintJsonString())
+        #print(" PROJECT_PARAMETERS ", self.project_parameters.PrettyPrintJsonString())
 
     #
     def GetProjectParameters(self):
@@ -39,7 +39,7 @@ class InputManager(object):
         if(self.project_parameters.Has("input_settings")):
             self._set_input_parts()
 
-        print(self.project_parameters.PrettyPrintJsonString())
+        #print(self.project_parameters.PrettyPrintJsonString())
         return self.project_parameters
 
     #
@@ -61,7 +61,7 @@ class InputManager(object):
         if(self.project_parameters.Has("input_settings")):
             self._set_material_parts()
 
-        print(self.material_parameters.PrettyPrintJsonString())
+        #print(self.material_parameters.PrettyPrintJsonString())
         return self.material_parameters
 
 
@@ -122,9 +122,9 @@ class InputManager(object):
                     else:
                         list = parameters["output_process_list"]
                         size = list.size()
-                        self.project_parameters.AddEmptyValue("output_process_list").SetVector(KratosMultiphysics.Vector(size))
+                        self.project_parameters.AddEmptyValue("output_process_list").SetVector(KratosMultiphysics.Vector())
                         for i in range(0,size):
-                            self.project_parameters["output_process_list"][i] = parameters["output_process_list"][i]
+                            self.project_parameters["output_process_list"].PushBack(parameters["output_process_list"][i])
 
                 if( parameters.Has("check_process_list") ):
                     if( self.project_parameters.Has("check_process_list") ):
@@ -132,9 +132,9 @@ class InputManager(object):
                     else:
                         list = parameters["check_process_list"]
                         size = list.size()
-                        self.project_parameters.AddEmptyValue("check_process_list").SetVector(KratosMultiphysics.Vector(size))
+                        self.project_parameters.AddEmptyValue("check_process_list").SetVector(KratosMultiphysics.Vector())
                         for i in range(0,size):
-                            self.project_parameters["check_process_list"][i] = parameters["check_process_list"][i]
+                            self.project_parameters["check_process_list"].PushBack(parameters["check_process_list"][i])
 
             else:
                 self._set_defaults(parameters)
@@ -194,7 +194,7 @@ class InputManager(object):
     #
     def _set_model_parts(self):
 
-        print(" MODEL ",self.project_parameters.PrettyPrintJsonString())
+        #print(" MODEL ",self.project_parameters.PrettyPrintJsonString())
 
         if( self.project_parameters["model_settings"].Has("bodies_list") == False ):
             if( self.settings["model_parts"].Has("bodies_list") ):
@@ -281,16 +281,13 @@ class InputManager(object):
     #
     def _set_material_items(self):
 
-        materials_list = KratosMultiphysics.Parameters("""
-        {
-        }
-        """)
+        materials_list  = KratosMultiphysics.Parameters("""{ }""")
 
         material = self.settings["material"]
         size = material["material_ids"].size()
         if( size > 0):
-            materials_list.AddEmptyValue("material_models_list").SetVector(KratosMultiphysics.Vector(size))
             if( material["material_parts"].size() == size ):
+                materials_list.AddEmptyValue("material_models_list").SetVector(KratosMultiphysics.Vector())
                 materials = self.material_parameters["material_models_list"]
                 if(materials.size() >= size ):
                     for i in range(0,materials.size()):
@@ -303,7 +300,7 @@ class InputManager(object):
                             else:
                                 materials[i]["Parameters"].AddEmptyValue("model_part_name").SetString(part_name)
 
-                            materials_list["material_models_list"][i] = materials[i]
+                            materials_list["material_models_list"].PushBack(materials[i])
 
                 else:
                     raise Exception("material_models_list size is too small")

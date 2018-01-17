@@ -27,33 +27,29 @@ class CoreTests(KratosUnittest.TestCase):
     def test_array_parameter(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self._test_array_parameter()
-    
+
     def _test_array_parameter(self):
 
         default_parameters = KratosMultiphysics.Parameters("""
         {
-           "array": [{"one":1},{"two":2},{"three":3}]
+           "array": [{"one":1, "parameter":{ "one": 1, "array":[1,2], "parameter": { "two": 2 } } },{"two":2},{"three":3}]
         }
         """)
-        custom_parameters = KratosMultiphysics.Parameters("""{  }""")
+        custom_parameters = KratosMultiphysics.Parameters("""{ }""")
+
+        custom_parameters.AddEmptyValue("array").SetVector(KratosMultiphysics.Vector())
+
         size = default_parameters["array"].size()
-        
-        custom_parameters.AddEmptyValue("array").SetVector(KratosMultiphysics.Vector(size))
-        
-        print(" SIZE ", custom_parameters["array"].size() )
-        
         for i in range(0,size):
             item = default_parameters["array"][i]
-            print("i", i, " size ", custom_parameters["array"].size() )
-            print("array", custom_parameters["array"].PrettyPrintJsonString() )
-            custom_parameters["array"][i] = item
-            print("array", custom_parameters["array"].PrettyPrintJsonString() )
+            custom_parameters["array"].PushBack(item)
 
-        print(" PARAMETERS ", custom_parameters.PrettyPrintJsonString())
+        custom_parameters.ValidateAndAssignDefaults(default_parameters)
+        print(" custom_parameters ", custom_parameters.PrettyPrintJsonString())
 
         item = custom_parameters["array"][size-1]
         if( item.Has("three") == False ):
-            raise Exception(" Fail 2 ")
+            raise Exception(" Fail ")
 
 
 def SetTestSuite(suites):
