@@ -79,7 +79,7 @@ namespace Kratos
                     }
 
                     // Add Gauss pt. pressure normal projection contribution
-                    cond_drag -= gauss_points[i_gauss].Weight() * p_gauss * area_normal;
+                    cond_drag += gauss_points[i_gauss].Weight() * p_gauss * area_normal;
                 }
 
                 aux_drag_force += cond_drag;
