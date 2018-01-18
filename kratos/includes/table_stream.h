@@ -51,7 +51,7 @@ class endl{};
 /** \class TableStream
   This is a fancy table to stream data in a fancy way
   */
-class KRATOS_API(KRATOS_CORE) TableStream
+class TableStream
 {
 public:
     

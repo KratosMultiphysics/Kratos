@@ -15,6 +15,10 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fluid_dynamics_python_application.cpp
 
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/symbolic_navier_stokes.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_fluid_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dynamic_vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fractional_step.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fractional_step_discontinuous.cpp
@@ -45,8 +49,8 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/boussinesq_force_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_modification_process.cpp
 
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_element_data.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/drag_utilities.cpp
-
 )
 
 ## fluid dynamics testing sources
