@@ -33,8 +33,28 @@ void VariableUtils::SetVectorVar(
 
     #pragma omp parallel for
     for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator i = rNodes.begin() + k;
-        noalias(i->FastGetSolutionStepValue(rVariable)) = Value;
+        NodesContainerType::iterator it_node = rNodes.begin() + k;
+        noalias(it_node->FastGetSolutionStepValue(rVariable)) = Value;
+    }
+    
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariableUtils::SetVectorVarNonHistorical(
+    const ArrayVarType& rVariable,
+    const array_1d<double, 3 >& Value,
+    NodesContainerType& rNodes
+    )
+{
+    KRATOS_TRY
+
+    #pragma omp parallel for
+    for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
+        NodesContainerType::iterator it_node = rNodes.begin() + k;
+        it_node->SetValue(rVariable, Value);
     }
     
     KRATOS_CATCH("")

@@ -86,6 +86,30 @@ public:
     ///@{
 
     /**
+     * Sets the nodal value of a scalar variable
+     * @param rVariable reference to the scalar variable to be set
+     * @param Value Value to be set
+     * @param rNodes reference to the objective node set
+     */
+    template< class TVarType >
+    void SetScalarVar(
+        TVarType& rVariable,
+        const double Value,
+        NodesContainerType& rNodes
+        )
+    {
+        KRATOS_TRY
+
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
+            NodesContainerType::iterator it_node = rNodes.begin() + k;
+            it_node->FastGetSolutionStepValue(rVariable) = Value;
+        }
+        
+        KRATOS_CATCH("")
+    }
+    
+    /**
      * Sets the nodal value of a vector variable
      * @param rVariable reference to the vector variable to be set
      * @param Value array containing the Value to be set
@@ -103,10 +127,10 @@ public:
      * @param Value Value to be set
      * @param rNodes reference to the objective node set
      */
-    template< class TVarType >
-    void SetScalarVar(
-        TVarType& rVariable,
-        const double& Value,
+    template< class TType >
+    void SetVariable(
+        Variable< TType >& rVariable,
+        const TType& Value,
         NodesContainerType& rNodes
         )
     {
@@ -114,13 +138,73 @@ public:
 
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator i = rNodes.begin() + k;
-            i->FastGetSolutionStepValue(rVariable) = Value;
+            NodesContainerType::iterator it_node = rNodes.begin() + k;
+            it_node->FastGetSolutionStepValue(rVariable) = Value;
         }
         
         KRATOS_CATCH("")
     }
+    
+    /**
+     * Sets the nodal value of a scalar variable non historical
+     * @param rVariable reference to the scalar variable to be set
+     * @param Value Value to be set
+     * @param rNodes reference to the objective node set
+     */
+    template< class TVarType >
+    void SetScalarVarNonHistorical(
+        TVarType& rVariable,
+        const double Value,
+        NodesContainerType& rNodes
+        )
+    {
+        KRATOS_TRY
 
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
+            NodesContainerType::iterator it_node = rNodes.begin() + k;
+            it_node->SetValue(rVariable, Value);
+        }
+        
+        KRATOS_CATCH("")
+    }
+    
+    /**
+     * Sets the nodal value of a vector non historical variable 
+     * @param rVariable reference to the vector variable to be set
+     * @param Value array containing the Value to be set
+     * @param rNodes reference to the objective node set
+     */
+    void SetVectorVarNonHistorical(
+        const ArrayVarType& rVariable,
+        const array_1d<double, 3 >& Value,
+        NodesContainerType& rNodes
+        );
+
+    /**
+     * Sets the nodal value of any type of non historical variable 
+     * @param rVariable reference to the scalar variable to be set
+     * @param Value Value to be set
+     * @param rContainer reference 
+     */
+    template< class TType, class TContainerType >
+    void SetVariableNonHistorical(
+        Variable< TType >& rVariable,
+        const TType& Value,
+        TContainerType& rContainer
+        )
+    {
+        KRATOS_TRY
+
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
+            TContainerType::iterator it_cont = rContainer.begin() + k;
+            it_cont->SetValue(rVariable, Value);
+        }
+        
+        KRATOS_CATCH("")
+    }
+    
     /**
      * Sets a flag according to a given status over a given container
      * @param rFlag flag to be set
@@ -224,7 +308,7 @@ public:
      */
     NodesContainerType SelectNodeList(
         const DoubleVarType& Variable,
-        const double& Value,
+        const double Value,
         NodesContainerType& rOriginNodes
         );
 
