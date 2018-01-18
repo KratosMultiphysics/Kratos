@@ -143,6 +143,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     ///@name Static Member Variables
     ///@{
 
+        KratosApplication::Pointer mpKratosCoreApplication;
+
     ///@}
     ///@name Member Variables
     ///@{

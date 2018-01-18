@@ -16,7 +16,8 @@
 #include "input_output/logger.h"
 
 namespace Kratos {
-Kernel::Kernel() {
+Kernel::Kernel() : mpKratosCoreApplication(boost::make_shared<KratosApplication>(
+                std::string("KratosMultiphysics"))) {
     std::cout << " |  /           |             " << std::endl;
     std::cout << " ' /   __| _` | __|  _ \\   __|" << std::endl;
     std::cout << " . \\  |   (   | |   (   |\\__ \\ " << std::endl;
@@ -24,11 +25,8 @@ Kernel::Kernel() {
     std::cout << "           Multi-Physics " << KRATOS_VERSION << std::endl;
 
     if (!IsImported("KratosMultiphysics")) {
-        KratosApplication::Pointer pKratosApplication =
-            boost::make_shared<KratosApplication>(
-                std::string("KratosMultiphysics"));
-        pKratosApplication->RegisterVariables();
-        this->ImportApplication(pKratosApplication);
+        mpKratosCoreApplication->RegisterVariables();
+        this->ImportApplication(mpKratosCoreApplication);
     }
 }
 
