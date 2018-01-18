@@ -60,11 +60,40 @@ boost::python::list values(Parameters const& self)
     return t;
 }
 
+
+void AppendDouble(Parameters& rParameters, double rValue)
+{
+  rParameters.Append(rValue);
+}
+void AppendInt(Parameters& rParameters, int rValue)
+{
+  rParameters.Append(rValue);
+}
+void AppendBool(Parameters& rParameters, bool rValue)
+{
+  rParameters.Append(rValue);
+}
+void AppendString(Parameters& rParameters, std::string rValue)
+{
+  rParameters.Append(rValue);
+}
+void AppendVector(Parameters& rParameters,const Vector& rValue)
+{
+  rParameters.Append(rValue);
+}
+void AppendMatrix(Parameters& rParameters,const Matrix& rValue)
+{
+  rParameters.Append(rValue);
+}
+void AppendObject(Parameters& rParameters,const Parameters& rValue)
+{
+  rParameters.Append(rValue);
+}
+
+
 void  AddKratosParametersToPython()
 {
     using namespace boost::python;
-
-
 
     class_<Parameters, Parameters::Pointer >("Parameters", init<const std::string>()) //init<rapidjson::Value& >())
     .def(init<Parameters const&>())
@@ -78,7 +107,7 @@ void  AddKratosParametersToPython()
     .def("ValidateAndAssignDefaults",&Parameters::ValidateAndAssignDefaults)
     .def("RecursivelyValidateAndAssignDefaults",&Parameters::RecursivelyValidateAndAssignDefaults)
     .def("IsEquivalentTo",&Parameters::IsEquivalentTo)
-    .def("HasSameKeysAndTypeOfValuesAs",&Parameters::HasSameKeysAndTypeOfValuesAs)    
+    .def("HasSameKeysAndTypeOfValuesAs",&Parameters::HasSameKeysAndTypeOfValuesAs)
     //.def("GetValue", &Parameters::GetValue) //Do not export this method. users shall adopt the operator [] syntax
     .def("IsNull", &Parameters::IsNull)
     .def("IsNumber", &Parameters::IsNumber)
@@ -108,18 +137,23 @@ void  AddKratosParametersToPython()
     .def("__getitem__", &Parameters::GetValue)
     .def("__setitem__", &Parameters::SetArrayItem)
     .def("__getitem__", &Parameters::GetArrayItem)
-    .def("PushBack", &Parameters::PushBack)
     .def("__iter__", boost::python::range(&NonConstBegin, &NonConstEnd) )
     .def("items", &items )
     .def("keys", &keys )
     .def("values", &values )
+    .def("AddEmptyList", &Parameters::AddEmptyArray)
+    .def("Append",AppendDouble)
+    .def("Append",AppendInt)
+    .def("Append",AppendBool)
+    .def("Append",AppendString)
+    .def("Append",AppendVector)
+    .def("Append",AppendMatrix)
+    .def("Append",AppendObject)
     .def(self_ns::str(self))
     ;
-
 
 }
 
 }  // namespace Python.
 
 } // Namespace Kratos
-
