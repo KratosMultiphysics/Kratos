@@ -27,12 +27,27 @@ class CoreTests(KratosUnittest.TestCase):
             item = default_parameters["array"][i]
             custom_parameters["array"].Append(item)
 
-        custom_parameters.ValidateAndAssignDefaults(default_parameters)
+        #append double
+        custom_parameters["array"].Append(1.0)
+        #append int
+        custom_parameters["array"].Append(8)
+        #append bool
+        custom_parameters["array"].Append(True)
+        #append string
+        custom_parameters["array"].Append("hello")
+        #append vector
+        custom_parameters["array"].Append(KratosMultiphysics.Vector(2))
+        #append matrix
+        custom_parameters["array"].Append(KratosMultiphysics.Matrix(2,2))
+        
+        #custom_parameters.ValidateAndAssignDefaults(default_parameters)
         print(" custom_parameters ", custom_parameters.PrettyPrintJsonString())
 
         item = custom_parameters["array"][size-1]
         if( item.Has("three") == False ):
             raise Exception(" Fail ")
+
+        raise Exception(" Fail ")
 
 
 def SetTestSuite(suites):

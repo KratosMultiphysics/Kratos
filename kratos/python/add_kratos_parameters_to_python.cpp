@@ -61,19 +61,19 @@ boost::python::list values(Parameters const& self)
 }
 
 
-void AppendDouble(Parameters& rParameters, double rValue)
+void AppendDouble(Parameters& rParameters,const double rValue)
 {
   rParameters.Append(rValue);
 }
-void AppendInt(Parameters& rParameters, int rValue)
+void AppendInt(Parameters& rParameters,const int rValue)
 {
   rParameters.Append(rValue);
 }
-void AppendBool(Parameters& rParameters, bool rValue)
+void AppendBool(Parameters& rParameters,const bool rValue)
 {
   rParameters.Append(rValue);
 }
-void AppendString(Parameters& rParameters, std::string rValue)
+void AppendString(Parameters& rParameters,const std::string rValue)
 {
   rParameters.Append(rValue);
 }
