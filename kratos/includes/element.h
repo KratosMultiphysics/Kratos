@@ -232,7 +232,7 @@ public:
                            PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
-        return Element::Pointer(new Element(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -248,7 +248,7 @@ public:
                            PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
-        return Element::Pointer(new Element(NewId, pGeom, pProperties));
+        return Kratos::make_shared<Element>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
