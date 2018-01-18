@@ -80,6 +80,14 @@ void QSVMS<TElementData>::Calculate(
     }
 }
 
+template <class TElementData>
+void QSVMS<TElementData>::Calculate(const Variable<Vector>& rVariable,
+    Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+
+template <class TElementData>
+void QSVMS<TElementData>::Calculate(const Variable<Matrix>& rVariable,
+    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
