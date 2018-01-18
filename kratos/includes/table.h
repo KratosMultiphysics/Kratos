@@ -23,7 +23,6 @@
 
 
 // External includes
-#include <boost/array.hpp>
 
 
 // Project includes
@@ -72,7 +71,7 @@ public:
     typedef TArgumentType argument_type; // To be STL conformance.
     typedef TResultType result_type; // To be STL conformance.
 
-    typedef boost::array<TResultType, TResultsColumns>  result_row_type;
+    typedef std::array<TResultType, TResultsColumns>  result_row_type;
 
     typedef std::pair<argument_type, result_row_type> RecordType;
 
@@ -367,6 +366,22 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        rSerializer.save("Data",mData);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        rSerializer.load("Data",mData);
+    }
 
 
     ///@}
@@ -736,6 +751,22 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("Data",mData);
+    }
+
+    void load(Serializer& rSerializer)
+    {
+        rSerializer.load("Data",mData);
+    }
 
 
     ///@}
