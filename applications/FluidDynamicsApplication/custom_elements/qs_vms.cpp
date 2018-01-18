@@ -443,7 +443,7 @@ void QSVMS<TElementData>::AddVelocitySystem(
     AGradN *= density; // Convective term is always multiplied by density
 
     // Temporary containers
-    double K,G,PDivV,qF;
+    double K,G,PDivV;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -494,15 +494,15 @@ void QSVMS<TElementData>::AddVelocitySystem(
         }
 
         // RHS terms
-        qF = 0.0;
+        double forcing = 0.0;
         for (unsigned int d = 0; d < Dim; ++d)
         {
             rRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
             rRHS[row+d] += rData.Weight * TauOne * AGradN[i] * ( body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
             rRHS[row+d] -= rData.Weight * TauTwo * rData.DN_DX(i,d) * mass_projection;
-            qF += rData.DN_DX(i, d) * (body_force[d] - momentum_projection[d]);
+            forcing += rData.DN_DX(i, d) * (body_force[d] - momentum_projection[d]);
         }
-        rRHS[row + Dim] += rData.Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
+        rRHS[row + Dim] += rData.Weight * TauOne * forcing; // Grad(q) * TauOne * (Density * BodyForce)
     }
 
     // Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
@@ -810,14 +810,12 @@ void AddViscousTerm<2>(double DynamicViscosity,
     const unsigned int num_nodes = rDN_DX.size1();
     const unsigned int block_size = 3;
 
-    unsigned int row(0),col(0);
-
     for (unsigned int a = 0; a < num_nodes; ++a)
     {
-        row = a*block_size;
+        unsigned int row = a*block_size;
         for (unsigned int b = 0; b < num_nodes; ++b)
         {
-            col = b*block_size;
+            unsigned int col = b*block_size;
 
             // First row
             rLHS(row,col) += weight * ( four_thirds * rDN_DX(a,0) * rDN_DX(b,0) + rDN_DX(a,1) * rDN_DX(b,1) );
