@@ -383,8 +383,8 @@ public:
     {
         rapidjson::Value tmp(value.c_str(), mpdoc->GetAllocator());
         *mpvalue = tmp;
-//         mpvalue->SetString(rapidjson::StringRef(value.c_str()));
-//        mpvalue->SetString(value.c_str(), value.length());
+	//mpvalue->SetString(rapidjson::StringRef(value.c_str()));
+	//mpvalue->SetString(value.c_str(), value.length());
     }
     void SetVector(const Vector& vec)
     {
@@ -455,14 +455,97 @@ public:
 #endif
     }
 
-    void PushBack(const Parameters& other_array_item)
+    void AddEmptyArray(const std::string entry)
     {
-        KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "size can only be queried if the value is of Array type" << std::endl;
+        if(this->Has(entry) == false)
+        {
+            rapidjson::Value tmp;
+	    tmp.SetArray();
+            rapidjson::Value name(entry.c_str(), mpdoc->GetAllocator()); //rhis will be moved away
+	    this->mpvalue->AddMember(name, tmp, mpdoc->GetAllocator());
+        }
+    }
+  
+    void Append(const double value)
+    {
+      rapidjson::Value tmp_value;
+      tmp_value.SetDouble(value);
+      mpvalue->PushBack(tmp_value, mpdoc->GetAllocator());
+    }
+    void Append(const int value)
+    {
+      KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "it must be an Array parameter to append" << std::endl;
+      rapidjson::Value tmp_value;
+      tmp_value.SetInt(value);
+      mpvalue->PushBack(tmp_value, mpdoc->GetAllocator());
+    }
 
-	rapidjson::Value tmp;
-	tmp.CopyFrom(*(other_array_item.GetUnderlyingStorage()), mpdoc->GetAllocator());
+    void Append(const bool value)
+    {
+      KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "it must be an Array parameter to append" << std::endl;
+      rapidjson::Value tmp_value;
+      tmp_value.SetBool(value);
+      mpvalue->PushBack(tmp_value, mpdoc->GetAllocator());
+    }
 
-	mpvalue->PushBack(tmp, mpdoc->GetAllocator());
+    void Append(const std::string value)
+    {
+      KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "it must be an Array parameter to append" << std::endl;
+      rapidjson::Value tmp_value(value.c_str(), mpdoc->GetAllocator());
+      mpvalue->PushBack(tmp_value, mpdoc->GetAllocator());
+    }
+
+    void Append(const Vector& vec)
+    {
+      KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "it must be an Array parameter to append" << std::endl;
+      rapidjson::Value tmp_value;
+
+      const unsigned int size = vec.size();
+
+      tmp_value.SetArray();
+      tmp_value.Reserve(size, mpdoc->GetAllocator());
+      
+      for (unsigned int i=0; i<size; ++i)
+        {
+	  tmp_value.PushBack(vec[i], mpdoc->GetAllocator());
+        }
+      
+      mpvalue->PushBack(tmp_value, mpdoc->GetAllocator());
+    }
+
+    void Append(const Matrix& mat)
+    {
+      KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "it must be an Array parameter to append" << std::endl;
+      rapidjson::Value tmp_value;
+
+      const unsigned int nrows = mat.size1();
+      const unsigned int ncols = mat.size2();
+      
+      tmp_value.SetArray();
+      tmp_value.Reserve(nrows, mpdoc->GetAllocator());
+      
+      for (unsigned int i=0; i<nrows; ++i)
+        {
+	  tmp_value.PushBack(0, mpdoc->GetAllocator()); // Pushing back a default element to allocate memory
+	  tmp_value[i].SetArray(); // change that default element to an array
+	  tmp_value[i].Reserve(ncols, mpdoc->GetAllocator());
+	  
+	  for (unsigned int j=0; j<ncols; ++j)
+            {
+	      tmp_value[i].PushBack(mat(i,j), mpdoc->GetAllocator());
+            }
+        }
+            
+      mpvalue->PushBack(tmp_value, mpdoc->GetAllocator());
+
+    }
+
+    void Append(const Parameters& object)
+    {
+      KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "it must be an Array parameter to append" << std::endl;
+      rapidjson::Value tmp_value;
+      tmp_value.CopyFrom(*(object.GetUnderlyingStorage()), mpdoc->GetAllocator());
+      mpvalue->PushBack(tmp_value, mpdoc->GetAllocator());
     }
 
     Parameters operator[](unsigned int index)
