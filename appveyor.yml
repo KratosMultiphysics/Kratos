@@ -29,11 +29,6 @@ init:
 # clone directory
 clone_folder: C:\projects\kratos
 
-# branches to build
-branches:
-  only: 
-    - master
-
 # scripts that run after cloning repository
 install:
   - cmd: cp C:\projects\kratos\scrips\build\appveyor\configure_appveyor_VS2017.bat C:\projects\kratos\cmake_build\configure_appveyor_VS2017.bat
