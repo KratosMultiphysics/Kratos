@@ -55,15 +55,16 @@ namespace Kratos {
         virtual void UpdateAngularDisplacementAndVelocityOfNodes();
         virtual void GetRigidBodyElementsForce(const array_1d<double,3>& gravity);
         virtual void CollectForcesAndTorquesFromTheNodes();
-        virtual void ComputeAdditionalForces(const array_1d<double,3>& gravity);
-        virtual void AddUpAllForcesAndMoments();
+        virtual void ComputeExternalForces(const array_1d<double,3>& gravity);
         virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
         virtual void SetInitialConditionsToNodes(const array_1d<double,3>& velocity);
         
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
         virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
         virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
-   
+
+        virtual double GetMass();
+        
         double GetSqrtOfRealMass();
 
         virtual std::string Info() const override
@@ -93,8 +94,7 @@ namespace Kratos {
     //protected:
 
         std::vector<RigidFace3D*> mListOfRigidFaces;
-        array_1d<double,3> mInertias;                                
-        double mMass;
+        array_1d<double,3> mInertias;
       
     private:
        

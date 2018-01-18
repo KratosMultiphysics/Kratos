@@ -124,7 +124,7 @@ namespace Kratos {
 
         KRATOS_TRY
         // Gravity
-        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += mMass * gravity;
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += RigidBodyElement3D::GetMass() * gravity;
 
         ComputeBuoyancyEffects();
         ComputeEngineForce();

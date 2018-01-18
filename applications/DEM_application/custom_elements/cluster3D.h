@@ -47,11 +47,8 @@ namespace Kratos
         virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override {};
         virtual void CustomInitialize(ProcessInfo& r_process_info);
         virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy);
-        virtual void UpdateAngularDisplacementAndVelocityOfSpheres();
-        virtual void UpdateLinearDisplacementAndVelocityOfSpheres();
         virtual void GetClustersForce(const array_1d<double,3>& gravity);
         virtual void CollectForcesAndTorquesFromSpheres();
-        virtual void ComputeAdditionalForces(const array_1d<double,3>& gravity);
         unsigned int GetNumberOfSpheres() { return mListOfSphericParticles.size(); };
         std::vector<SphericParticle*>  GetSpheres() { return mListOfSphericParticles; }; 
         virtual void SetContinuumGroupToBreakableClusterSpheres(const int Id);
@@ -60,7 +57,6 @@ namespace Kratos
         virtual void CreateContinuumConstitutiveLaws();
         virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
         
-        virtual double GetMass();
         virtual double SlowGetDensity();
         virtual int SlowGetParticleMaterial();
 

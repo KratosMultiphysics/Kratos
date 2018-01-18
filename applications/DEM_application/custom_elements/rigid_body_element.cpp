@@ -86,22 +86,23 @@ namespace Kratos {
         mInertias[0] = rigid_body_element_sub_model_part[RIGID_BODY_INERTIAS][0];
         mInertias[1] = rigid_body_element_sub_model_part[RIGID_BODY_INERTIAS][1];
         mInertias[2] = rigid_body_element_sub_model_part[RIGID_BODY_INERTIAS][2];
-        mMass = rigid_body_element_sub_model_part[RIGID_BODY_MASS];
+        
+        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = rigid_body_element_sub_model_part[RIGID_BODY_MASS];
 
         GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION) = Quaternion<double>::Identity();
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = mMass;
-        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][0];
-        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][1];
-        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][2];
-        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][0];
-        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][1];
-        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][2];
-
+        
         const array_1d<double,3>& reference_inertias = mInertias;                                
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = mMass;
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = reference_inertias[0];
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = reference_inertias[1];
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2];
+        
+        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][0];
+        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][1];
+        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][2];
+        
+        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][0];
+        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][1];
+        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][2];
         
         array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);  
 
@@ -179,6 +180,12 @@ namespace Kratos {
             iter++;
         }                        
     }
+        
+    void RigidBodyElement3D::GetRigidBodyElementsForce(const array_1d<double,3>& gravity) {
+        
+        CollectForcesAndTorquesFromTheNodes();
+        ComputeExternalForces(gravity);
+    }
     
     void RigidBodyElement3D::CollectForcesAndTorquesFromTheNodes() {
 
@@ -212,41 +219,25 @@ namespace Kratos {
         }
     }
     
-    void RigidBodyElement3D::GetRigidBodyElementsForce(const array_1d<double,3>& gravity) {
+    void RigidBodyElement3D::ComputeExternalForces(const array_1d<double,3>& gravity) {
         
-        CollectForcesAndTorquesFromTheNodes();
-        ComputeAdditionalForces(gravity);
-        AddUpAllForcesAndMoments();
-    }
-    
-    void RigidBodyElement3D::ComputeAdditionalForces(const array_1d<double,3>& gravity) {
-
-        // Gravity
-        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += mMass * gravity;
-    }
-    
-    void RigidBodyElement3D::AddUpAllForcesAndMoments() {
-    
-        KRATOS_TRY
-        
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += GetMass() * gravity;
         const array_1d<double, 3> external_applied_force  = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
         const array_1d<double, 3> external_applied_torque = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
         noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += external_applied_force;
         noalias(GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT)) += external_applied_torque;
-        
-        KRATOS_CATCH("")
     }
-    
+
     void RigidBodyElement3D::SetInitialConditionsToNodes(const array_1d<double,3>& velocity) {
         for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
             this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY) = velocity;
         } 
     }
     
+    double RigidBodyElement3D::GetMass() { return GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS); }
+    
     void RigidBodyElement3D::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag ) {
-//         SymplecticEulerScheme A;
-//         A.MoveRigidBodyElement(this, GetGeometry()[0], delta_t, rotation_option, force_reduction_factor, StepFlag);
-//         //GetIntegrationScheme().MoveRigidBodyElement(this, GetGeometry()[0], delta_t, rotation_option, force_reduction_factor, StepFlag);
+
         GetTranslationalIntegrationScheme().MoveRigidBodyElement(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
         if (rotation_option) {
             GetRotationalIntegrationScheme().RotateRigidBodyElement(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
