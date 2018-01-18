@@ -824,7 +824,6 @@ namespace Kratos {
         std::size_t element_id = Element_Id_1 + 1;
         std::vector<std::size_t> ElementIds;
         ElementIds.push_back(element_id);
-        //submp.AddElements(ElementIds); 
 
         for (int k = 0; k < mNumberOfThreads; k++) {
 
@@ -1054,9 +1053,6 @@ namespace Kratos {
         ModelPart& r_model_part = GetModelPart();
         const ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         const double time = r_process_info[TIME];
-        ModelPart& fem_model_part = GetFemModelPart();
-//         ModelPart& r_fem_model_part  = *mpFem_model_part;
-//         ElementsArrayType& pFemElements = r_fem_model_part.GetCommunicator().LocalMesh().Elements();        
 
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin(); sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
@@ -1091,6 +1087,8 @@ namespace Kratos {
                 SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Z, ANGULAR_VELOCITY_Z, (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_Z_VALUE], pNodes);
             }
         } // for each mesh
+        
+        ModelPart& fem_model_part = GetFemModelPart();
 
         unsigned int rigid_body_elements_counter = 0;
 
@@ -1148,7 +1146,6 @@ namespace Kratos {
         
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
-        ModelPart& fem_model_part = GetFemModelPart();
         
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin(); sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
@@ -1173,6 +1170,8 @@ namespace Kratos {
                 SetVariableToNodes(ANGULAR_VELOCITY_Z, (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_Z_VALUE], pNodes);
             }
         } // for each mesh
+        
+        ModelPart& fem_model_part = GetFemModelPart();
 
         unsigned int rigid_body_elements_counter = 0;
         
