@@ -120,19 +120,19 @@ class InputManager(object):
                     if( self.project_parameters.Has("output_process_list") ):
                         self.project_parameters["output_process_list"] = parameters["output_process_list"]
                     else:
-                        list = parameters["output_process_list"]
-                        size = list.size()
-                        self.project_parameters.AddEmptyValue("output_process_list").SetVector(KratosMultiphysics.Vector())
+                        process_list = parameters["output_process_list"]
+                        size = process_list.size()
+                        self.project_parameters.AddEmptyList("output_process_list")
                         for i in range(0,size):
-                            self.project_parameters["output_process_list"].PushBack(parameters["output_process_list"][i])
+                            self.project_parameters["output_process_list"].Append(parameters["output_process_list"][i])
 
                 if( parameters.Has("check_process_list") ):
                     if( self.project_parameters.Has("check_process_list") ):
                         self.project_parameters["check_process_list"] = parameters["check_process_list"]
                     else:
-                        list = parameters["check_process_list"]
-                        size = list.size()
-                        self.project_parameters.AddEmptyValue("check_process_list").SetVector(KratosMultiphysics.Vector())
+                        process_list = parameters["check_process_list"]
+                        size = process_list.size()
+                        self.project_parameters.AddEmptyList("check_process_list")
                         for i in range(0,size):
                             self.project_parameters["check_process_list"].PushBack(parameters["check_process_list"][i])
 
@@ -149,6 +149,7 @@ class InputManager(object):
             self.project_parameters = parameters
 
     #
+    @classmethod
     def _set_custom_input_settings(self, custom_settings):
 
         default_settings = KratosMultiphysics.Parameters("""
@@ -287,7 +288,7 @@ class InputManager(object):
         size = material["material_ids"].size()
         if( size > 0):
             if( material["material_parts"].size() == size ):
-                materials_list.AddEmptyValue("material_models_list").SetVector(KratosMultiphysics.Vector())
+                materials_list.AddEmptyList("material_models_list")
                 materials = self.material_parameters["material_models_list"]
                 if(materials.size() >= size ):
                     for i in range(0,materials.size()):
@@ -300,7 +301,7 @@ class InputManager(object):
                             else:
                                 materials[i]["Parameters"].AddEmptyValue("model_part_name").SetString(part_name)
 
-                            materials_list["material_models_list"].PushBack(materials[i])
+                            materials_list["material_models_list"].Append(materials[i])
 
                 else:
                     raise Exception("material_models_list size is too small")

@@ -23,7 +23,7 @@ def AssambleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     # CORE TESTS
-    core_suite = CoreTests.SetTestSuite(suites)
+    CoreTests.SetTestSuite(suites)
     
     # SMALL TESTS
     small_suite = SmallTests.SetTestSuite(suites)
