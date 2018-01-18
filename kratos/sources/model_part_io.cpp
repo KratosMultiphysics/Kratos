@@ -1301,17 +1301,16 @@ namespace Kratos
             if(CheckEndBlock("Properties", variable_name))
                 break;
 
-		if(variable_name == "Begin") // here we have some nested block.
-		{
-            ReadBlockName(variable_name);
-			if(variable_name == "Table") // At this moment the only supported nested block is a table
-                ReadTableBlock(temp_properties);
-		}
-
+            if(variable_name == "Begin") // here we have some nested block.
+            {
+                ReadBlockName(variable_name);
+                if(variable_name == "Table") // At this moment the only supported nested block is a table
+                    ReadTableBlock(temp_properties);
+            }
 	    else if(KratosComponents<Variable<std::string> >::Has(variable_name))
             {
                 std::string value;
-		        std::string  temp;
+                std::string  temp;
 
                 ReadWord(value); // reading value
                 ExtractValue(value,temp);
