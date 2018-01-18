@@ -926,13 +926,14 @@ void SphericSwimmingParticle<TBaseElement>::ComputeParticleReynoldsNumber(double
 template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputePowerLawParticleReynoldsNumber(double& reynolds,
                                                                                   const double consistency_index,
-                                                                                  const double flow_behavior_index)
+                                                                                  const int flow_behavior_index,
+                                                                                  const bool use_max_shear_rate)
 {
     // This function is consistent with Shah 2007 (doi:10.1016/j.ijmultiphaseﬂow.2006.06.006)
-    // int coefficient = use_max_shear_rate ? 3 : 2;
-    const double& K = consistency_index;
-    const double& n = flow_behavior_index;
-    reynolds =  2 * std::pow(mRadius, n) * std::pow(mNormOfSlipVel, 2 - n) * mFluidDensity / K;
+    int coefficient = use_max_shear_rate ? 3 : 2;
+    const int& K = consistency_index;
+    const int& n = flow_behavior_index;
+    reynolds =  2 * mFluidDensity * std::pow(0.5 * coefficient * mRadius, n) * std::pow(mNormOfSlipVel, 2 - n) / K;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -1068,10 +1069,8 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
         drag_coeff = ComputeStokesDragCoefficient(); // temporary
     }
 
-    else if (mDragForceType == 13){ // Re_p < 1000, Shah et al. (2006) (doi:10.1016/j.ijmultiphaseflow.2006.06.006)
-        drag_coeff = ComputeShahDragCoefficient(r_current_process_info);
-        KRATOS_WATCH(drag_coeff)
-        KRATOS_WATCH(ComputeStokesDragCoefficient())
+    else if (mDragForceType == 13){ // Maxey-Riley expression with Faxen correction
+        drag_coeff = ComputeShahDragCoefficient(r_current_process_info); // temporary
     }
 
     else {
@@ -1395,7 +1394,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeShahDragCoefficient(const P
     const double n = r_current_process_info[POWER_LAW_N];
 
     if (std::abs(n) < power_law_tol || std::abs(K) < power_law_tol){
-        std::cout << "WARNING: Shah's method is being used with Power Law data being zero (n = 0 or K = 0)!!" << std::endl << std::flush;
+        std::cout << "WARNING: Shah's method is being used with Power Law data being zero!!" << std::endl << std::flush;
     }
 
     double A =   6.9148 * n * n - 24.838 * n + 22.642;
@@ -1407,12 +1406,10 @@ double SphericSwimmingParticle<TBaseElement>::ComputeShahDragCoefficient(const P
     }
 
     double reynolds;
-    ComputePowerLawParticleReynoldsNumber(reynolds, K, n);
+    ComputePowerLawParticleReynoldsNumber(reynolds, K, n, false);
     const double exponents_coeff = 1.0 / (2 - n);
-    const double area = Globals::Pi * mRadius * mRadius;
-    const double dimensional_coefficient = 0.5 * area * mFluidDensity * mNormOfSlipVel;
 
-    return dimensional_coefficient * std::pow(A, exponents_coeff) * std::pow(reynolds, exponents_coeff * (2 * B - 2));
+    return std::pow(A, exponents_coeff) * std::pow(reynolds, exponents_coeff * (2 * B - 2));
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************

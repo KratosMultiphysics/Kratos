@@ -22,7 +22,7 @@
 #include "includes/gid_io.h"
 
 /* Processes */
-#include "processes/compute_nodal_gradient_process.h"
+#include "processes/find_nodal_h_process.h"
 
 namespace Kratos 
 {
@@ -30,7 +30,7 @@ namespace Kratos
     {
         typedef Node<3>                                                    NodeType;
 
-        void GiDIODebugGradient(ModelPart& ThisModelPart)
+        void GiDIODebugNodalH(ModelPart& ThisModelPart)
         {
             GidIO<> gid_io("TEST_GRADIENT", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
             const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
@@ -40,8 +40,7 @@ namespace Kratos
             gid_io.WriteMesh(ThisModelPart.GetMesh());
             gid_io.FinalizeMesh();
             gid_io.InitializeResults(label, ThisModelPart.GetMesh());
-            gid_io.WriteNodalResults(DISTANCE, ThisModelPart.Nodes(), label, 0);
-            gid_io.WriteNodalResults(DISTANCE_GRADIENT, ThisModelPart.Nodes(), label, 0);
+            gid_io.WriteNodalResults(NODAL_H, ThisModelPart.Nodes(), label, 0);
         }
         
         /** 
@@ -49,14 +48,12 @@ namespace Kratos
         * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestNodalGradient1, KratosNodalGradientFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestNodalH1, KratosNodalHFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
             
-            this_model_part.AddNodalSolutionStepVariable(DISTANCE);
-            this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
+            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             
@@ -101,25 +98,19 @@ namespace Kratos
             Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element2D3N", 2, triangle_1, p_elem_prop);
             Element::Pointer p_elem_2 = this_model_part.CreateNewElement("Element2D3N", 3, triangle_2, p_elem_prop);
             Element::Pointer p_elem_3 = this_model_part.CreateNewElement("Element2D3N", 4, triangle_3, p_elem_prop);
-            
-            // Set DISTANCE
-            for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
-                auto it_node = this_model_part.Nodes().begin() + i_node;
-                it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
-            }
                          
-            typedef ComputeNodalGradientProcess<2, Variable<double>, Historical> GradientType;
-            GradientType process = GradientType(this_model_part, DISTANCE, DISTANCE_GRADIENT);
+            // Compute NodalH
+            FindNodalHProcess process = FindNodalHProcess(this_model_part);
             process.Execute();
             
 //             // DEBUG         
-//             GiDIODebugGradient(this_model_part);
+//             GiDIODebugNodalH(this_model_part);
             
-            const double tolerance = 1.0e-8;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_2->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_5->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_6->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            const double tolerance = 1.0e-4;
+            KRATOS_CHECK_LESS_EQUAL(p_node_1->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(p_node_2->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(p_node_5->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(p_node_6->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
         }
         
         /** 
@@ -127,14 +118,12 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestNodalGradient2, KratosNodalGradientFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestNodalH2, KratosNodalHFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
             
-            this_model_part.AddNodalSolutionStepVariable(DISTANCE);
-            this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
+            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             
@@ -254,30 +243,23 @@ namespace Kratos
             Element::Pointer p_elem_9 = this_model_part.CreateNewElement("Element3D4N", 10, tetrahedra_9, p_elem_prop);
             Element::Pointer p_elem_10 = this_model_part.CreateNewElement("Element3D4N", 11, tetrahedra_10, p_elem_prop);
             Element::Pointer p_elem_11 = this_model_part.CreateNewElement("Element3D4N", 12, tetrahedra_11, p_elem_prop);
-            
-            // Set DISTANCE
-            for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
-                auto it_node = this_model_part.Nodes().begin() + i_node;
-                it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
-            }
                       
-            // Compute gradient
-            typedef ComputeNodalGradientProcess<3, Variable<double>, Historical> GradientType;
-            GradientType process = GradientType(this_model_part, DISTANCE, DISTANCE_GRADIENT);
+            // Compute NodalH
+            FindNodalHProcess process = FindNodalHProcess(this_model_part);
             process.Execute();
             
 //             // DEBUG         
-//             GiDIODebugGradient(this_model_part);
+//             GiDIODebugNodalH(this_model_part);
             
-            const double tolerance = 1.0e-8;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_2->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_3->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_5->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_9->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_10->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_11->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_12->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            const double tolerance = 1.0e-4;
+            KRATOS_CHECK_LESS_EQUAL(p_node_1->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(p_node_2->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(p_node_3->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(p_node_5->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(p_node_9->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(p_node_10->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(p_node_11->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(p_node_12->FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
         }
     } // namespace Testing
 }  // namespace Kratos.

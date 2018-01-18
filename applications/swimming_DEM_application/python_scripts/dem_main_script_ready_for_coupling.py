@@ -14,20 +14,20 @@ class Solution(BaseAlgorithm):
     def __init__(self, pp):
         self.pp = pp
         super(Solution, self).__init__()
-
+        
     def LoadParametersFile(self):
         self.DEM_parameters = self.pp.CFD_DEM
-
+        
     def GetDefaultInputParameters(self):
         import dem_default_input_parameters
         dem_defaults = dem_default_input_parameters.GetDefaultInputParameters()
-
+    
         import swimming_dem_default_input_parameters
         only_swimming_defaults = swimming_dem_default_input_parameters.GetDefaultInputParameters()
-
+        
         for key in only_swimming_defaults.keys():
-            dem_defaults.AddValue(key, only_swimming_defaults[key])
-
+            dem_defaults.AddValue(key,only_swimming_defaults[key])
+            
         return dem_defaults
 
     def SetSolverStrategy(self):
@@ -43,32 +43,27 @@ class Solution(BaseAlgorithm):
 
     def SelectTranslationalScheme(self):
         translational_scheme = BaseAlgorithm.SelectTranslationalScheme(self)
-        translational_scheme_name = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
-
-        if translational_scheme is None:
-            if translational_scheme_name == 'Hybrid_Bashforth':
+        if translational_scheme == None:
+            if (self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString() == 'Hybrid_Bashforth'):
                 return HybridBashforthScheme()
-            elif translational_scheme_name == "TerminalVelocityScheme":
+            elif (self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString() == "TerminalVelocityScheme"):
                 return TerminalVelocityScheme()
             else:
                 return None
         else:
             return translational_scheme
-
+        
     def SelectRotationalScheme(self):
         rotational_scheme = BaseAlgorithm.SelectRotationalScheme(self)
-        translational_scheme_name = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
-        rotational_scheme_name = self.pp.CFD_DEM["RotationalIntegrationScheme"].GetString()
-
-        if rotational_scheme is None:
-            if rotational_scheme_name == 'Direct_Integration':
-                if translational_scheme_name == 'Hybrid_Bashforth':
+        if rotational_scheme == None:
+            if (self.pp.CFD_DEM["RotationalIntegrationScheme"].GetString() == 'Direct_Integration'):
+                if (self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString() == 'Hybrid_Bashforth'):
                     return HybridBashforthScheme()
-                elif translational_scheme_name == 'TerminalVelocityScheme':
+                elif (self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString() == 'TerminalVelocityScheme'):
                     return TerminalVelocityScheme()
-            elif rotational_scheme_name == 'Runge_Kutta':
+            elif (self.pp.CFD_DEM["RotationalIntegrationScheme"].GetString() == 'Runge_Kutta'):
                 return RungeKuttaScheme()
-            elif rotational_scheme_name == 'Quaternion_Integration':
+            elif (self.pp.CFD_DEM["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration'):
                 return QuaternionIntegrationScheme()
             else:
                 return None

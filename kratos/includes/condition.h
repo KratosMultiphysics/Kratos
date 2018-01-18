@@ -237,7 +237,7 @@ public:
     virtual Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
 			   PropertiesType::Pointer pProperties) const
     {
-        return Kratos::make_shared<Condition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Condition::Pointer(new Condition(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
     /**
@@ -251,7 +251,7 @@ public:
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const
     {
-        return Kratos::make_shared<Condition>(NewId, pGeom, pProperties);
+        return Condition::Pointer(new Condition(NewId, pGeom, pProperties));
     }
 
     /**

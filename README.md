@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png">
+<img src="http://www.cimne.com/kratos/img/logo.png">
 
 # Overview
 

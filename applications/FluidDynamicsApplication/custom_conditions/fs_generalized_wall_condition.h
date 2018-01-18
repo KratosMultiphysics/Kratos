@@ -214,29 +214,15 @@ public:
 	 @param ThisNodes An array containing the nodes of the new condition
 	 @param pProperties Pointer to the condition's properties
 	 */
-    Condition::Pointer Create(
-		IndexType NewId,
-		NodesArrayType const& ThisNodes,
-		PropertiesType::Pointer pProperties) const override
+	Condition::Pointer Create(IndexType NewId,
+			NodesArrayType const& ThisNodes,
+			PropertiesType::Pointer pProperties) const override
 	{
-        return Kratos::make_shared<FSGeneralizedWallCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
+		return Condition::Pointer(new FSGeneralizedWallCondition(NewId,
+						GetGeometry().Create(ThisNodes), pProperties));
 	}
 
-	/// Create a new FSGeneralizedWallCondition object.
-	/**
-      @param NewId Index of the new condition
-      @param pGeom A pointer to the condition's geometry
-      @param pProperties Pointer to the element's properties
-      */
-    Condition::Pointer Create(
-		IndexType NewId,
-		GeometryType::Pointer pGeom,
-		PropertiesType::Pointer pProperties) const override
-	{
-		return Kratos::make_shared<FSGeneralizedWallCondition>(NewId, pGeom, pProperties);
-    }
-
-        /// Find the condition's parent element.
+	/// Find the condition's parent element.
 	void Initialize() override
 	{
 		KRATOS_TRY;

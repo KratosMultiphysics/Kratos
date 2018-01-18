@@ -22,7 +22,7 @@
 #include "tests/geometries/test_geometry.h"
 
 namespace Kratos {
-namespace Testing {
+	namespace Testing {
 
     /// Auxiliar check functions (from geometry_tester.h)
     /// - All this functions should probably me moved somewhere else.
@@ -370,5 +370,5 @@ namespace Testing {
       }
     }
 
-} // namespace Testing.
-} // namespace Kratos.
+	}
+}  // namespace Kratos.

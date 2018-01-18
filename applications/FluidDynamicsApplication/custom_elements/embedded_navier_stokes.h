@@ -125,13 +125,13 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, Element::PropertiesType::Pointer pProperties) const override {
         KRATOS_TRY
-        return Kratos::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return boost::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
 
     Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override {
-        return Kratos::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
+        return boost::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
     }
 
 
