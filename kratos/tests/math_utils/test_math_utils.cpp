@@ -395,6 +395,7 @@ namespace Kratos
             inv.resize(i_dim, i_dim, false);
             I.resize(i_dim, i_dim, false);
             
+            mat(0,0) = 0.0;
             mat(0,1) = 0.979749;
             mat(0,2) = 0.494393;
             mat(0,3) = 0.23073;
