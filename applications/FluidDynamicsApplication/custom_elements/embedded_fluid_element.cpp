@@ -11,10 +11,6 @@
 
 namespace Kratos {
 
-//template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > >;
-template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > >;
-template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > >;
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
@@ -50,14 +46,14 @@ EmbeddedFluidElement<TBaseElement>::~EmbeddedFluidElement()
 template< class TBaseElement >
 Element::Pointer EmbeddedFluidElement<TBaseElement>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
 {
-    return Element::Pointer(new EmbeddedFluidElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<EmbeddedFluidElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
 template< class TBaseElement >
 Element::Pointer EmbeddedFluidElement<TBaseElement>::Create(IndexType NewId,Geometry<NodeType>::Pointer pGeom,Properties::Pointer pProperties) const
 {
-    return Element::Pointer(new EmbeddedFluidElement(NewId, pGeom, pProperties));
+    return Kratos::make_shared<EmbeddedFluidElement>(NewId, pGeom, pProperties);
 }
 
 template <class TBaseElement>
@@ -494,5 +490,12 @@ ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<3, 4>(
 }
 
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Class template instantiation
+
+//template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > >;
+template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > >;
+template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > >;
 
 }

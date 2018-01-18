@@ -5,12 +5,6 @@ namespace Kratos
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// Class template instantiation
-
-template class SymbolicNavierStokes< SymbolicNavierStokesData<2,3> >;
-template class SymbolicNavierStokes< SymbolicNavierStokesData<3,4> >;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
 template <class TElementData>
@@ -41,14 +35,14 @@ SymbolicNavierStokes<TElementData>::~SymbolicNavierStokes() {}
 template< class TElementData >
 Element::Pointer SymbolicNavierStokes<TElementData>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
 {
-    return Element::Pointer(new SymbolicNavierStokes(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<SymbolicNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
 template< class TElementData >
 Element::Pointer SymbolicNavierStokes<TElementData>::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
 {
-    return Element::Pointer(new SymbolicNavierStokes(NewId, pGeom, pProperties));
+    return Kratos::make_shared<SymbolicNavierStokes>(NewId, pGeom, pProperties);
 }
 
 template <class TElementData>
@@ -1377,5 +1371,11 @@ void SymbolicNavierStokes<TElementData>::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     rSerializer.load("mpConstitutiveLaw",mpConstitutiveLaw);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Class template instantiation
+
+template class SymbolicNavierStokes< SymbolicNavierStokesData<2,3> >;
+template class SymbolicNavierStokes< SymbolicNavierStokesData<3,4> >;
 
 }
