@@ -510,9 +510,9 @@ protected:
             // Construct the modified shape fucntions utility
             ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = nullptr;
             if (TNumNodes == 4) {
-                p_ausas_modified_sh_func = boost::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_geom, distances);
+                p_ausas_modified_sh_func = Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_geom, distances);
             } else {
-                p_ausas_modified_sh_func = boost::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_geom, distances);
+                p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_geom, distances);
             }
 
             // Call the positive side modified shape functions calculator
