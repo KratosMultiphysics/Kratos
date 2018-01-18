@@ -21,7 +21,6 @@
 #include <string>
 #include <iostream>
 #include <cstddef>
-#include <map> // This is a provisional implmentation and should be changed to hash. Pooyan.
 
 
 // External includes
@@ -31,6 +30,7 @@
 #include "includes/define.h"
 #include "includes/node.h"
 #include "containers/data_value_container.h"
+#include "containers/pointer_vector_map.h"
 //#include "containers/all_variables_data_value_container.h"
 #include "includes/process_info.h"
 #include "includes/table.h"
@@ -83,7 +83,7 @@ public:
 
 	typedef Table<double> TableType;
 
-	typedef std::map<int64_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
+	typedef PointerVectorMap<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
 
 
     ///@}
@@ -239,7 +239,7 @@ public:
     template<class TXVariableType, class TYVariableType>
     TableType const& GetTable(const TXVariableType& XVariable, const TYVariableType& YVariable) const
     {
-                return mTables.at(Key(XVariable.Key(), YVariable.Key()));
+        return mTables[Key(XVariable.Key(), YVariable.Key())];
     }
 
     template<class TXVariableType, class TYVariableType>
@@ -389,12 +389,14 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.save("Data", mData);
+        rSerializer.save("Tables", mTables);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.load("Data", mData);
+        rSerializer.load("Tables", mTables);
     }
 
     ///@}

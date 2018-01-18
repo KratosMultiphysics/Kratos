@@ -1318,6 +1318,7 @@ void ModelPart::save(Serializer& rSerializer) const
     rSerializer.save("Name", mName);
     rSerializer.save("Buffer Size", mBufferSize);
     rSerializer.save("ProcessInfo", mpProcessInfo);
+    rSerializer.save("Tables", mTables);
     //const VariablesList* p_list = &mVariablesList;
     // I'm saving it as pointer so the nodes pointers will point to it as stored pointer. Pooyan.
     rSerializer.save("Variables List", mpVariablesList);
@@ -1332,6 +1333,7 @@ void ModelPart::load(Serializer& rSerializer)
     rSerializer.load("Name", mName);
     rSerializer.load("Buffer Size", mBufferSize);
     rSerializer.load("ProcessInfo", mpProcessInfo);
+    rSerializer.load("Tables", mTables);
     //VariablesList* p_list = &mVariablesList;
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
