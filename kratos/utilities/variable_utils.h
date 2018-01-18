@@ -196,9 +196,11 @@ public:
     {
         KRATOS_TRY
 
+        typedef typename TContainerType::iterator TIteratorType;
+        
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            TContainerType::iterator it_cont = rContainer.begin() + k;
+            TIteratorType it_cont = rContainer.begin() + k;
             it_cont->SetValue(rVariable, Value);
         }
         

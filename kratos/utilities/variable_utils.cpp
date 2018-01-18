@@ -183,7 +183,7 @@ void VariableUtils::SetToZero_ScalarVar(
 
 ModelPart::NodesContainerType VariableUtils::SelectNodeList(
     const DoubleVarType& Variable,
-    const double& Value,
+    const double Value,
     NodesContainerType& rOriginNodes
     )
 {
