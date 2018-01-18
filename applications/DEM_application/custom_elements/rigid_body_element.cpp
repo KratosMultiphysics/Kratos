@@ -16,7 +16,11 @@
 
 namespace Kratos {
 
-    RigidBodyElement3D::RigidBodyElement3D() : Element() {}
+    RigidBodyElement3D::RigidBodyElement3D()
+    : Element() {
+        mpTranslationalIntegrationScheme = NULL;
+        mpRotationalIntegrationScheme = NULL;
+    }
             
     RigidBodyElement3D::RigidBodyElement3D(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry) {
@@ -35,7 +39,7 @@ namespace Kratos {
         mpTranslationalIntegrationScheme = NULL;
         mpRotationalIntegrationScheme = NULL;
     }
-    
+        
     Element::Pointer RigidBodyElement3D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
         return Element::Pointer(new RigidBodyElement3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }      

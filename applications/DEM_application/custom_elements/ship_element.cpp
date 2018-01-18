@@ -40,7 +40,6 @@ namespace Kratos {
 
         for (unsigned int i = 0; i != mListOfRigidFaces.size(); ++i) {
             double mean_pressure = 0.0;
-            double node_Z_coordinate = 0.0;
             double rigid_face_area = 0.0;
             Point rigid_face_centroid;
             array_1d<double, 3> normal_to_rigid_face = ZeroVector(3);
@@ -50,7 +49,7 @@ namespace Kratos {
             unsigned int rigid_face_size = mListOfRigidFaces[i]->GetGeometry().size();
                     
             for (unsigned int j = 0; j < rigid_face_size; j++) {
-                node_Z_coordinate = mListOfRigidFaces[i]->GetGeometry()[j].Coordinates()[2];
+                double node_Z_coordinate = mListOfRigidFaces[i]->GetGeometry()[j].Coordinates()[2];
                 mean_pressure += ((node_Z_coordinate >= water_level) ? 0.0 : -node_Z_coordinate * water_density * gravity);
             }
             
