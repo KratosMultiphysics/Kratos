@@ -14,8 +14,8 @@ class RestartUtility(object):
             "load_restart"            : false,
             "restart_load_file_label" : 0.0,
             "save_restart"            : false,
-            "restart_save_frequency"  : 1.0,
-            "serializer_trace"        : "trace_all"
+            "restart_save_frequency"  : 0.0,
+            "serializer_trace"        : "no_trace"
         }
         """)
 
@@ -61,8 +61,8 @@ class RestartUtility(object):
         self._execute_after_load()
 
         # Set restart-info in ProcessInfo
-        print(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-        err
+        # print(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
+        # err
         self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
         load_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
         self.model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
