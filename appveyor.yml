@@ -1,0 +1,53 @@
+# Specify version format
+version: "{build}"
+
+# Operating system (build VM template)
+os: Visual Studio 2015
+
+# build platform, i.e. Win32 (instead of x86), x64, Any CPU. This setting is optional.
+platform: 
+  - Win32
+  #- x64  Disable build for x64 machine until x64 version of dart-prerequisites is ready
+
+# specify custom environment variables
+environment:
+  MSVC_DEFAULT_OPTIONS: ON
+  BOOST_ROOT: C:\Libraries\boost_1_59_0
+  BOOST_LIBRARYDIR: C:\Libraries\boost_1_59_0\lib32-msvc-14.0
+
+# build configuration, i.e. Debug, Release, etc.
+configuration:
+  - Release
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - cmd: cmake --version
+  - cmd: msbuild /version
+
+# clone directory
+clone_folder: C:\projects\kratos
+
+# branches to build
+branches:
+  only: 
+    - master
+
+# scripts that run after cloning repository
+install:
+  - cmd: cd C:\projects\kratos
+  - cmd: cp scrips\build\appveyor\configure_appveyor_VS2017.bat cmake_build\configure_appveyor_VS2017.bat
+
+# scripts to run before build
+before_build:
+  - cmd: cd C:\projects\kratos\cmake_build
+  - cmd: .\configure_appveyor_VS2017.bat
+
+# build: off
+build:
+  project: C:\projects\kratos\cmake_build\kratosMultiphysics.sln # path to Visual Studio solution or project
+  parallel: true                           # enable MSBuild parallel builds
+  verbosity: normal                         # MSBuild verbosity level (quiet|minimal|normal|detailed)
+
+test: off
+#test_script:
+#  - cmd: ctest --build-config %configuration% --parallel 4 --output-on-failure
