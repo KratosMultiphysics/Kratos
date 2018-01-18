@@ -32,11 +32,9 @@ Kernel::Kernel() {
     }
 }
 
-std::unordered_map<std::string, KratosApplication::Pointer>&
-Kernel::GetApplicationsList() {
-    static std::unordered_map<std::string, KratosApplication::Pointer>
-        application_list;
-    return application_list;
+std::unordered_set<std::string> &Kernel::GetApplicationsList() {
+  static std::unordered_set<std::string> application_list;
+  return application_list;
 }
 
 bool Kernel::IsImported(std::string ApplicationName) const {
@@ -53,7 +51,7 @@ void Kernel::ImportApplication(KratosApplication::Pointer pNewApplication) {
                      << pNewApplication->Name() << std::endl;
 
     pNewApplication->Register();
-    Kernel::GetApplicationsList()[pNewApplication->Name()] = pNewApplication;
+    Kernel::GetApplicationsList().insert(pNewApplication->Name());
 }
 
 std::string Kernel::Info() const { return "kernel"; }
@@ -77,6 +75,6 @@ void Kernel::PrintData(std::ostream& rOStream) const {
     rOStream << "number of loaded applications = " << application_list.size()
              << std::endl;
     for (auto it = application_list.begin(); it != application_list.end(); ++it)
-        rOStream << "  " << it->first << std::endl;
+        rOStream << "  " << *it << std::endl;
 }
 }
