@@ -442,7 +442,6 @@ public:
             }
             
             int singular = 0;
-            using namespace boost::numeric::ublas;
             typedef permutation_matrix<SizeType> pmatrix;
             Matrix A(InputMatrix);
             pmatrix pm(A.size1());
