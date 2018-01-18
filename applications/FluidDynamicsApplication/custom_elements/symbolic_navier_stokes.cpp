@@ -5,12 +5,6 @@ namespace Kratos
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// Class template instantiation
-
-template class SymbolicNavierStokes< SymbolicNavierStokesData<2,3> >;
-template class SymbolicNavierStokes< SymbolicNavierStokesData<3,4> >;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
 template <class TElementData>
@@ -1377,5 +1371,11 @@ void SymbolicNavierStokes<TElementData>::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     rSerializer.load("mpConstitutiveLaw",mpConstitutiveLaw);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Class template instantiation
+
+template class SymbolicNavierStokes< SymbolicNavierStokesData<2,3> >;
+template class SymbolicNavierStokes< SymbolicNavierStokesData<3,4> >;
 
 }

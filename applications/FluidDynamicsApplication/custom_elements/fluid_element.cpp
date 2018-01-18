@@ -22,20 +22,6 @@ namespace Kratos
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// Template class instantiation
-
-template class FluidElement< SymbolicNavierStokesData<2,3> >;
-template class FluidElement< SymbolicNavierStokesData<3,4> >;
-
-template class FluidElement< QSVMSData<2,3> >;
-template class FluidElement< QSVMSData<3,4> >;
-
-template class FluidElement< TimeIntegratedQSVMSData<2,3> >;
-template class FluidElement< TimeIntegratedQSVMSData<3,4> >;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
 template< class TElementData >
@@ -790,5 +776,19 @@ void FluidElement<TElementData>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Template class instantiation
+
+template class FluidElement< SymbolicNavierStokesData<2,3> >;
+template class FluidElement< SymbolicNavierStokesData<3,4> >;
+
+template class FluidElement< QSVMSData<2,3> >;
+template class FluidElement< QSVMSData<3,4> >;
+
+template class FluidElement< TimeIntegratedQSVMSData<2,3> >;
+template class FluidElement< TimeIntegratedQSVMSData<3,4> >;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 }

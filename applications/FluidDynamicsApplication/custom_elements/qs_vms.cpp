@@ -21,15 +21,6 @@ namespace Kratos
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// Class template instantiation
-
-template class QSVMS< QSVMSData<2,3> >;
-template class QSVMS< QSVMSData<3,4> >;
-
-template class QSVMS< TimeIntegratedQSVMSData<2,3> >;
-template class QSVMS< TimeIntegratedQSVMSData<3,4> >;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
 template< class TElementData >
@@ -945,5 +936,15 @@ void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
 }
 
 } // namespace Internals
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Class template instantiation
+
+template class QSVMS< QSVMSData<2,3> >;
+template class QSVMS< QSVMSData<3,4> >;
+
+template class QSVMS< TimeIntegratedQSVMSData<2,3> >;
+template class QSVMS< TimeIntegratedQSVMSData<3,4> >;
+
 
 } // namespace Kratos
