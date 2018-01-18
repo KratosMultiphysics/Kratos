@@ -40,7 +40,7 @@ namespace Kratos
 ///@name  Functions
 ///@{
     
-class KRATOS_API(KRATOS_CORE) TableStreamUtility
+class TableStreamUtility
 {
 public:
     ///@name Type Definitions
