@@ -27,13 +27,33 @@ class PfemDynamicMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         super(PfemDynamicMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
 
+        super(PfemDynamicMechanicalSolver, self).SetVariables()
+        self.nodal_variables = self.nodal_variables + ['CONTACT_FORCE']
+
+        if self._check_input_dof("WATER_DISPLACEMENT"):
+            self.dof_variables = self.dof_variables + ['WATER_DISPLACEMENT','WATER_VELOCITY','WATER_ACCELERATION']
+            self.dof_reactions = self.dof_reactions + ['WATER_DISPLACEMENT_REACTION','WATER_VELOCITY_REACTION','WATER_ACCELERATION_REACTION']
+
+        if self._check_input_dof("WATER_PRESSURE"):
+            self.dof_variables = self.dof_variables + ['WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATION']
+            self.dof_reactions = self.dof_reactions + ['REACTION_WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY_REACTION', 'WATER_PRESSURE_ACCELERATION_REACTION']
+
+        if self._check_input_dof("JACOBIAN"):
+            self.dof_variables = self.dof_variables + ['JACOBIAN']
+            self.dof_reactions = self.dof_reactions + ['REACTION_JACOBIAN']
+
     def _create_solution_scheme(self):
         
         integration_method = self.time_integration_settings["integration_method"].GetString()
 
         #if(integration_method == "Newmark"):           
         damp_factor_m = 0.0
-        mechanical_scheme = KratosPfemSolid.ResidualBasedUWBossakScheme(damp_factor_m, 1.0)
+        alphaM = 0
+        dynamic = 1
+        alphaF = 0
+        beta = 0.25
+        gamma = 0.5
+        mechanical_scheme = KratosPfemSolid.ResidualBasedUWBossakScheme(alphaM, dynamic, alphaF, beta, gamma)
                     
         return mechanical_scheme
  

@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "oedometer_UWwP",
+        "problem_name"    : "oedometer_UWwP_Pastor",
         "model_part_name" : "Main_Domain",
         "dimension"       : 2,
         "time_step"       : 0.5,
@@ -18,7 +18,7 @@
         "scheme_type"                        : "Bossak",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "oedometer_UWwP",
+            "input_filename"   : "oedometer_UWwP_Pastor",
             "input_file_label" : "0"
         },
         "line_search"                        : true,
@@ -28,7 +28,8 @@
         "convergence_criterion"              : "Residual_criterion",
         "dofs"                               : [
                                                 "WATER_DISPLACEMENT",
-						"WATER_PRESSURE"
+						"WATER_PRESSURE",
+						"JACOBIAN"
                                                ],
         "reform_dofs_at_each_step"           : true,
         "displacement_relative_tolerance"    : 1E-6,
@@ -266,6 +267,7 @@
             "nodal_results"       : [
                                       "VELOCITY",
                                       "ACCELERATION",
+				      "JACOBIAN",
                                       "WATER_DISPLACEMENT",
                                       "WATER_VELOCITY",
                                       "WATER_ACCELERATION",

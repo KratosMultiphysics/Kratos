@@ -77,7 +77,12 @@ namespace Kratos
 
     mUpdatedLagrangianUWElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mUpdatedLagrangianUWwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUWwPPastorElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mUpdatedLagrangianUJWwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUJWwPHOElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUJWwPStabElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUJWwPFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUJWwPPastorElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mSmallDisplacementUWwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
 
     mAxisymUpdatedLagrangianUwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -116,6 +121,8 @@ namespace Kratos
     
     //Register Variables (variables created in pfem_solid_mechanics_application_variables.cpp)
 
+    //scheme
+
     //solution
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_DISPLACEMENT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_VELOCITY )
@@ -124,7 +131,6 @@ namespace Kratos
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_VELOCITY_REACTION )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_ACCELERATION_REACTION )
     KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_VELOCITY )
-    KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_ACCELERATIONN )
     KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_VELOCITY_REACTION )
     KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_ACCELERATION_REACTION )
 
@@ -206,7 +212,12 @@ namespace Kratos
 
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUWElement2D3N", mUpdatedLagrangianUWElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUWwPElement2D3N", mUpdatedLagrangianUWwPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUWwPPastorElement2D3N", mUpdatedLagrangianUWwPPastorElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJWwPElement2D3N", mUpdatedLagrangianUJWwPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJWwPHOElement2D3N", mUpdatedLagrangianUJWwPHOElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJWwPStabElement2D3N", mUpdatedLagrangianUJWwPStabElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJWwPFICElement2D3N", mUpdatedLagrangianUJWwPFICElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJWwPPastorElement2D3N", mUpdatedLagrangianUJWwPPastorElement2D3N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementUWwPElement2D3N", mSmallDisplacementUWwPElement2D3N )
 
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUwPElement2D3N", mAxisymUpdatedLagrangianUwPElement2D3N )

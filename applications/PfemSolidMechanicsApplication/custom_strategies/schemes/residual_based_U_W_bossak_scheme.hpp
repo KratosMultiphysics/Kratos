@@ -89,7 +89,37 @@ namespace Kratos
          {
          }
 
+         ResidualBasedUWBossakScheme(double rAlpham, double rDynamic,double rAlphaf)
+            :ResidualBasedBossakScheme<TSparseSpace,TDenseSpace>(rAlpham, rDynamic)
+         {
+            KRATOS_TRY
 
+            this->mAlpha.f = rAlphaf;
+            this->mAlpha.m = rAlpham;
+
+            this->mNewmark.beta= (1.0+this->mAlpha.f-this->mAlpha.m)*(1.0+this->mAlpha.f-this->mAlpha.m)*0.25;
+            this->mNewmark.gamma= 0.5+this->mAlpha.f-this->mAlpha.m;
+
+            this->mNewmark.static_dynamic= rDynamic;
+
+            KRATOS_CATCH("")
+         }
+
+         ResidualBasedUWBossakScheme(double rAlpham, double rDynamic, double rAlphaf,double rBeta,double rGamma)
+            :ResidualBasedBossakScheme<TSparseSpace,TDenseSpace>(rAlpham, rDynamic)
+         {
+            KRATOS_TRY
+
+            this->mAlpha.f = rAlphaf;
+            this->mAlpha.m = rAlpham;
+
+            this->mNewmark.beta  = rBeta;
+            this->mNewmark.gamma = rGamma;
+
+            this->mNewmark.static_dynamic= rDynamic;
+
+            KRATOS_CATCH("")
+         }
          /** Copy Constructor.
           */
          ResidualBasedUWBossakScheme(ResidualBasedUWBossakScheme& rOther)
@@ -185,10 +215,10 @@ namespace Kratos
                if ( i->HasDofFor(WATER_PRESSURE) ) {
                   const double& PreviousWaterPressure    = (i)->FastGetSolutionStepValue(WATER_PRESSURE, 1);
                   const double& PreviousWaterPressureVelocity    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_VELOCITY, 1);
-                  const double& PreviousWaterPressureAcceleration    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATIONN, 1);
+                  const double& PreviousWaterPressureAcceleration    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATION, 1);
                   double& CurrentWaterPressure     = (i)->FastGetSolutionStepValue(WATER_PRESSURE);
                   double& CurrentWaterPressureVelocity     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_VELOCITY);
-                  double& CurrentWaterPressureAcceleration     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATIONN);
+                  double& CurrentWaterPressureAcceleration     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATION);
 
                   double DeltaWaterPressure = CurrentWaterPressure - PreviousWaterPressure;
                   UpdateVelocityScalar     ( CurrentWaterPressureVelocity, DeltaWaterPressure, PreviousWaterPressureVelocity, PreviousWaterPressureAcceleration);
@@ -382,10 +412,10 @@ namespace Kratos
                {
                   const double& PreviousWaterPressure    = (i)->FastGetSolutionStepValue(WATER_PRESSURE, 1);
                   const double& PreviousWaterPressureVelocity    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_VELOCITY, 1);
-                  const double& PreviousWaterPressureAcceleration    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATIONN, 1);
+                  const double& PreviousWaterPressureAcceleration    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATION, 1);
                   double& CurrentWaterPressure     = (i)->FastGetSolutionStepValue(WATER_PRESSURE);
                   double& CurrentWaterPressureVelocity     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_VELOCITY);
-                  double& CurrentWaterPressureAcceleration     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATIONN);
+                  double& CurrentWaterPressureAcceleration     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATION);
 
                   double DeltaWaterPressure = CurrentWaterPressure - PreviousWaterPressure;
 
@@ -411,7 +441,6 @@ namespace Kratos
 
             KRATOS_CATCH("")
          }
-
 
          //***************************************************************************
          //***************************************************************************
