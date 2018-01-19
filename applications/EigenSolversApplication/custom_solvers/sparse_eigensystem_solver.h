@@ -91,7 +91,11 @@ class SparseEigensystemSolver
         using vector_t = Eigen::VectorXd;
         using matrix_t = Eigen::MatrixXd;
         using sparse_t = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
+	    #if defined EIGEN_USE_MKL_ALL
         using ldlt_solver_t = Eigen::PardisoLDLT<sparse_t>;
+        #else
+        using ldlt_solver_t = Eigen::SparseLU<sparse_t>;
+        #endif
         
         // --- get settings
 
