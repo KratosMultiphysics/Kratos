@@ -407,7 +407,7 @@ public:
     {
         pair_const_iterator sorted_part_end(mData.begin() + mSortedPartSize);
 
-        pair_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
+        pair_const_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
         if (i == sorted_part_end || (Key != i->first))
             if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
                 return mData.end();
@@ -602,6 +602,44 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        size_type local_size = mData.size();
+
+        rSerializer.save("size", local_size);
+
+        for(size_type i = 0 ; i < local_size ; i++){
+            rSerializer.save("Key", mData[i].first);
+            rSerializer.save("Data", mData[i].second);
+        }
+
+        rSerializer.save("Sorted Part Size",mSortedPartSize);
+        rSerializer.save("Max Buffer Size",mMaxBufferSize);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        size_type local_size;
+
+        rSerializer.load("size", local_size);
+
+        mData.resize(local_size);
+
+        for(size_type i = 0 ; i < local_size ; i++){
+            rSerializer.load("Key", mData[i].first);
+            rSerializer.load("Data", mData[i].second);
+        }
+
+        rSerializer.load("Sorted Part Size",mSortedPartSize);
+        rSerializer.load("Max Buffer Size",mMaxBufferSize);
+    }
 
 
 

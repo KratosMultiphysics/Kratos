@@ -760,13 +760,31 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-        rSerializer.save("Data",mData);
+        std::size_t  local_size = mData.size();
+
+        rSerializer.save("size", local_size);
+
+        for(auto i_row = mData.begin() ; i_row != mData.end() ; i_row++){
+            rSerializer.save("Argument", i_row->first);
+            for(auto j = i_row->second.begin() ; j != i_row->second.end(); j++)
+                rSerializer.save("Column", j);
+        }
     }
 
     void load(Serializer& rSerializer)
     {
-        rSerializer.load("Data",mData);
-    }
+        std::size_t local_size;
+
+        rSerializer.load("size", local_size);
+
+        mData.resize(local_size);
+
+        for(auto i_row = mData.begin() ; i_row != mData.end() ; i_row++){
+            rSerializer.load("Argument", i_row->first);
+            for(auto j = i_row->second.begin() ; j != i_row->second.end() ; j++)
+                rSerializer.load("Column", j);
+        }
+   }
 
 
     ///@}
