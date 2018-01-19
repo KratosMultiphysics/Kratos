@@ -4,7 +4,7 @@ cmake .. -G "Visual Studio 15 2017 Win64"                                       
 -DBOOST_ROOT="C:\Libraries\boost_1_65_1"                                        ^
 -DBOOST_PYTHON_SUFFIX="3-vc141-mt-gd-1_65_1"                                    ^
 -DPYTHON_INCLUDE_PATH="C:\Python36-x64\include"							        ^
--DPYTHON_LIBRARY="C:\Python36-x64\lib\python3.lib"					            ^
+-DPYTHON_LIBRARY="C:\Python36-x64\lib\python36.lib"					            ^
 -DCMAKE_BUILD_TYPE="Debug"  													^
 -DDEM_APPLICATION=ON                                                            ^
 -DEXTERNAL_SOLVERS_APPLICATION=OFF                                               ^
