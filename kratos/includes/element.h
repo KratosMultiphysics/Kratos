@@ -130,7 +130,7 @@ public:
     Element(IndexType NewId = 0)
         : BaseType(NewId)
         , Flags()
-        , mpProperties(new PropertiesType)
+        , mpProperties(nullptr)
     {
     }
 
@@ -140,7 +140,7 @@ public:
     Element(IndexType NewId, const NodesArrayType& ThisNodes)
         : BaseType(NewId,GeometryType::Pointer(new GeometryType(ThisNodes)))
         , Flags()
-        , mpProperties(new PropertiesType)
+        , mpProperties(nullptr)
     {
     }
 
@@ -150,7 +150,7 @@ public:
     Element(IndexType NewId, GeometryType::Pointer pGeometry)
         : BaseType(NewId,pGeometry)
         , Flags()
-        , mpProperties(new PropertiesType)
+        , mpProperties(nullptr)
     {
     }
 
