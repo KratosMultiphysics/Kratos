@@ -31,7 +31,7 @@ clone_folder: C:\projects\kratos
 
 # scripts that run after cloning repository
 install:
-  - cmd: dumpbin /dependents C:\Libraries\boost_1_65_1\lib64-msvc-14.1\boost_python3-vc140-mt-1_65_1.dll
+  - dumpbin /dependents C:\Libraries\boost_1_65_1\lib64-msvc-14.1\boost_python3-vc140-mt-1_65_1.dll
   - cmd: cp C:\projects\kratos\scripts\build\appveyor\configure_appveyor_VS2017.bat C:\projects\kratos\cmake_build\configure_appveyor_VS2017.bat
 
 # scripts to run before build
