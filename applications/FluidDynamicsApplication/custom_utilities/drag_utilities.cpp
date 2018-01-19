@@ -34,10 +34,11 @@ namespace Kratos
         ModelPart& root_model_part = rModelPart.GetRootModelPart();
 
         // Initialize the reaction variable
-        #pragma omp parallel for
+        const array_1d<double, 3> zero_vect(3,0.0);
+        #pragma omp parallel for firstprivate(zero_vect)
         for (int i = 0; i < static_cast<int>(root_model_part.NumberOfNodes()); ++i){
             auto it_node = root_model_part.NodesBegin() + i;
-            it_node->FastGetSolutionStepValue(REACTION) = ZeroVector(3);
+            noalias(it_node->FastGetSolutionStepValue(REACTION)) = zero_vect;
         }
 
         Vector RHS_Contribution;
