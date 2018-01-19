@@ -15,6 +15,7 @@
 
 // Project includes
 #include "utilities/mortar_utilities.h"
+#include "utilities/variable_utils.h"
 
 /* Custom utilities */
 #include "custom_utilities/contact_utilities.h"
@@ -343,7 +344,19 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
     }
 
     // We map the Coordinates to the slave side from the master
-    if (mCheckGap == MappingCheck) CheckPairing(computing_rcontact_model_part, condition_id);
+    if (mCheckGap == MappingCheck) 
+        CheckPairing(computing_rcontact_model_part, condition_id);
+    
+    // Auxiliar gap
+    VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, rcontact_model_part.Nodes());
+    ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
+    ConditionsArrayType& computing_conditions_array = r_computing_contact_model_part.Conditions();
+    auto process_info = mrMainModelPart.GetProcessInfo();
+    #pragma omp parallel for 
+    for(int i = 0; i < static_cast<int>(computing_conditions_array.size()); ++i) {  
+        auto it_cond = computing_conditions_array.begin() + i;
+        it_cond->AddExplicitContribution(process_info);
+    }
 }
 
 /***********************************************************************************/
@@ -501,14 +514,14 @@ inline void TreeContactSearch<TDim, TNumNodes>::InitializeAcceleration()
             auto it_node = nodes_array.begin() + i;
             const array_1d<double, 3>& nodal_volume_acceleration = it_node->FastGetSolutionStepValue(VOLUME_ACCELERATION);
             if (norm_2(volume_acceleration) > 0.0) {
-                if (!it_node->IsFixed(ACCELERATION_X)) it_node->FastGetSolutionStepValue(ACCELERATION_X) = volume_acceleration[0];
-                if (!it_node->IsFixed(ACCELERATION_Y)) it_node->FastGetSolutionStepValue(ACCELERATION_Y) = volume_acceleration[1];
-                if (!it_node->IsFixed(ACCELERATION_Z)) it_node->FastGetSolutionStepValue(ACCELERATION_Z) = volume_acceleration[2];
+                if (!it_node->IsFixed(ACCELERATION_X)) it_node->FastGetSolutionStepValue(ACCELERATION_X, 1) = volume_acceleration[0];
+                if (!it_node->IsFixed(ACCELERATION_Y)) it_node->FastGetSolutionStepValue(ACCELERATION_Y, 1) = volume_acceleration[1];
+                if (!it_node->IsFixed(ACCELERATION_Z)) it_node->FastGetSolutionStepValue(ACCELERATION_Z, 1) = volume_acceleration[2];
             }
             else if (norm_2(nodal_volume_acceleration) > 0.0) {
-                if (!it_node->IsFixed(ACCELERATION_X)) it_node->FastGetSolutionStepValue(ACCELERATION_X) = nodal_volume_acceleration[0];
-                if (!it_node->IsFixed(ACCELERATION_Y)) it_node->FastGetSolutionStepValue(ACCELERATION_Y) = nodal_volume_acceleration[1];
-                if (!it_node->IsFixed(ACCELERATION_Z)) it_node->FastGetSolutionStepValue(ACCELERATION_Z) = nodal_volume_acceleration[2];
+                if (!it_node->IsFixed(ACCELERATION_X)) it_node->FastGetSolutionStepValue(ACCELERATION_X, 1) = nodal_volume_acceleration[0];
+                if (!it_node->IsFixed(ACCELERATION_Y)) it_node->FastGetSolutionStepValue(ACCELERATION_Y, 1) = nodal_volume_acceleration[1];
+                if (!it_node->IsFixed(ACCELERATION_Z)) it_node->FastGetSolutionStepValue(ACCELERATION_Z, 1) = nodal_volume_acceleration[2];
             }
         }
     }
