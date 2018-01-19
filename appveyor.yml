@@ -31,7 +31,7 @@ clone_folder: C:\projects\kratos
 
 # scripts that run after cloning repository
 install:
-  - cmd: cd C:\Python36-x64\Lib
+  - cmd: cd C:\Python35-x64\Lib
   - cmd: dir 
   - cmd: cp C:\projects\kratos\scripts\build\appveyor\configure_appveyor_VS2017.bat C:\projects\kratos\cmake_build\configure_appveyor_VS2017.bat
 
