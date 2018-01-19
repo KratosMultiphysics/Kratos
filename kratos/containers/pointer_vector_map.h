@@ -569,11 +569,11 @@ private:
         key_type mKey;
     public:
         EqualKeyTo(key_type k) : mKey(k) {}
-        bool operator()(value_type& a, value_type& b) const
+        bool operator()(value_type const& a, value_type const& b) const
         {
             return a.first == b.first;
         }
-        bool operator()(value_type& a) const
+        bool operator()(value_type const& a) const
         {
             return a.first == mKey;
         }
