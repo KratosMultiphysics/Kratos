@@ -28,9 +28,11 @@ class CoreTests(KratosUnittest.TestCase):
             custom_parameters["array"].Append(item)
 
         #append double
-        custom_parameters["array"].Append(1.0)
+        custom_parameters["array"].Append(500.1)
         #append int
-        custom_parameters["array"].Append(8)
+        custom_parameters["array"].Append(80)
+        #append int
+        custom_parameters["array"].Append(0)
         #append bool
         custom_parameters["array"].Append(True)
         #append string
@@ -46,8 +48,6 @@ class CoreTests(KratosUnittest.TestCase):
         item = custom_parameters["array"][size-1]
         if( item.Has("three") == False ):
             raise Exception(" Fail ")
-
-        raise Exception(" Fail ")
 
 
 def SetTestSuite(suites):

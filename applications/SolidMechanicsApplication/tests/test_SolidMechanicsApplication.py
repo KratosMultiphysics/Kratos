@@ -24,7 +24,7 @@ def AssambleTestSuites():
 
     # CORE TESTS
     CoreTests.SetTestSuite(suites)
-    
+
     # SMALL TESTS
     small_suite = SmallTests.SetTestSuite(suites)
 
@@ -40,8 +40,8 @@ def AssambleTestSuites():
     # ALL TESTS
     all_suite = suites['all']
 
-    #all_suite.addTests(night_suite)
-    #all_suite.addTests(validation_suite)
+    all_suite.addTests(night_suite)
+    all_suite.addTests(validation_suite)
 
     return suites
 
