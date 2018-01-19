@@ -49,7 +49,6 @@ namespace Kratos
   //Define Variables
 
   //scheme
-  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_SOLID_MECHANICS_APPLICATION, double, HHT_ALPHA)
 
   //solution
 

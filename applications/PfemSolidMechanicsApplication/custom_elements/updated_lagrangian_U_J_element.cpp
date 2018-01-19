@@ -294,19 +294,6 @@ namespace Kratos
    }
 
    // **************************************************************************
-   //     get the number of dofs per node
-   int UpdatedLagrangianUJElement::GetDofsPerNode()
-   {
-      KRATOS_TRY
-      
-      unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-      dimension += 1;
-      return dimension;
-
-      KRATOS_CATCH("")
-   }
-
-   // **************************************************************************
    // **************************************************************************
    void UpdatedLagrangianUJElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo)
    {
@@ -327,27 +314,6 @@ namespace Kratos
 
 
       }
-
-      mDynamicElement = false;
-      if ( rCurrentProcessInfo.Has( HHT_ALPHA ) ) {
-         if ( rCurrentProcessInfo[HHT_ALPHA] > 0) {
-           
-            std::cout << " HAS ALPHAT " << std::endl;
-            mAlphaF = 0.0;
-            const unsigned int number_of_nodes = GetGeometry().size(); 
-            int dofs_per_node = this->GetDofsPerNode();
-
-            int nSizeOfTheVector = dofs_per_node * number_of_nodes;
-            mPreviousRHSVector = ZeroVector(nSizeOfTheVector);
-
-            // LET US ASSUME THAT THE PREDICT IS ZERO.....
-            this->CalculateRightHandSide(mPreviousRHSVector, rCurrentProcessInfo);
-            mAlphaF = rCurrentProcessInfo[HHT_ALPHA];
-            mDynamicElement = true;
-
-         }
-      }
-
 
       KRATOS_CATCH( "" );
    }
@@ -1159,10 +1125,6 @@ namespace Kratos
       rVariables.detF = DeterminantF;
       rVariables.detF0 /= rVariables.detF;
 
-      if ( mDynamicElement ) {
-         rLeftHandSideMatrix *= (1-mAlphaF);
-      }
-
 
    }
 
@@ -1197,11 +1159,6 @@ namespace Kratos
 
       rVariables.detF = DeterminantF;
       rVariables.detF0 /= rVariables.detF;
-
-      if ( mDynamicElement) {
-         rRightHandSideVector = (1-mAlphaF) * rRightHandSideVector + mAlphaF * mPreviousRHSVector;
-      }
-
       //KRATOS_WATCH( rRightHandSideVector )
    }
 

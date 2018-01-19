@@ -264,22 +264,10 @@ namespace Kratos
           ****/    
          double mElementStabilizationNumber;
 
-         bool mDynamicElement;
-
-         double mAlphaF;
-
-         VectorType mPreviousRHSVector;
-
 
          ///@}
          ///@name Protected Operators
          ///@{
-
-         /**
-           * number of dofs per each node
-           */
-         virtual int GetDofsPerNode();
-
 
          /**
           * Calculates the elemental contributions

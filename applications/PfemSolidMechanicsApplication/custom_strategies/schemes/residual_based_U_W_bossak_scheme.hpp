@@ -446,36 +446,6 @@ namespace Kratos
          //***************************************************************************
 
          /**
-          * initializes time step solution
-          * only for reasons if the time step solution is restarted
-          * @param r_model_part
-          * @param A	LHS matrix
-          * @param Dx incremental update of primary variables
-          * @param b RHS Vector
-          */
-         void InitializeSolutionStep(
-               ModelPart& r_model_part,
-               TSystemMatrixType& A,
-               TSystemVectorType& Dx,
-               TSystemVectorType& b)
-         {
-            KRATOS_TRY
-
-            ResidualBasedBossakScheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep( r_model_part, A, Dx, b);
-
-            if ( this->mNewmark.static_dynamic) {
-               ProcessInfo& rCurrentProcessInfo= r_model_part.GetProcessInfo();
-               rCurrentProcessInfo[HHT_ALPHA] = this->mAlpha.f;
-            }
-
-            KRATOS_CATCH("")
-         }
-
-
-         //***************************************************************************
-         //***************************************************************************
-
-         /**
           * This function is designed to be called once to perform all the checks needed
           * on the input provided. Checks can be "expensive" as the function is designed
           * to catch user's errors.
