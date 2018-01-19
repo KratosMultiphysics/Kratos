@@ -1,6 +1,6 @@
 cmake .. -G "Visual Studio 15 2017 Win64"                                       ^
--DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3   " 								^
--DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3   " 									^
+-DCMAKE_CXX_FLAGS="-msse3" 								                        ^
+-DCMAKE_C_FLAGS="-msse3   " 									                ^
 -DBOOST_ROOT="C:\Libraries\boost_1_65_1"                                        ^
 -DBOOST_PYTHON_SUFFIX="3-vc141-mt-gd-1_65_1"                                    ^
 -DPYTHON_INCLUDE_PATH="C:\Python36-x64\include"							        ^
