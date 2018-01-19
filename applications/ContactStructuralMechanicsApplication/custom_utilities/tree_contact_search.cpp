@@ -679,6 +679,9 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
 //     const double distance_threshold = GetMaxNodalH(); 
 //     const double distance_threshold = active_check_factor * GetMaxNodalH();
     
+    // Updating the distance distance threshold
+    mrMainModelPart.GetProcessInfo()[DISTANCE_THRESHOLD] = distance_threshold;
+    
     // We set the mapper parameters
     Parameters mapping_parameters = Parameters(R"({"inverted_master_slave_pairing": false, "distance_threshold" : 1.0e24})" );
     mapping_parameters["inverted_master_slave_pairing"].SetBool(mThisParameters["inverted_search"].GetBool());

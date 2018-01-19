@@ -246,6 +246,7 @@ class ALMContactProcess(python_process.PythonProcess):
             computing_model_part.Set(KratosMultiphysics.SLIP, False) 
             
         # We recompute the normal at each iteration (false by default)
+        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.DISTANCE_THRESHOLD] = 1.0e24
         self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_NORMAL_VARIATION] = self.normal_variation
         # We set the max gap factor for the gap adaptation
         max_gap_factor = self.params["max_gap_factor"].GetDouble()

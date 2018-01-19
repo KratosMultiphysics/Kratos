@@ -161,8 +161,7 @@ namespace Kratos
             
             // We set the mapper parameters
             Parameters mapping_parameters = Parameters(R"({"inverted_master_slave_pairing": false, "distance_threshold" : 1.0e24})" );
-            const double geom_length = (ThisModelPart.Conditions().begin())->GetGeometry().Length();
-            mapping_parameters["distance_threshold"].SetDouble(geom_length);
+            mapping_parameters["distance_threshold"].SetDouble(ThisModelPart.GetProcessInfo()[DISTANCE_THRESHOLD]);
             typedef SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>, NonHistorical> MapperType;
             MapperType mapper = MapperType(ThisModelPart, AUXILIAR_COORDINATES, mapping_parameters);
             mapper.Execute();
@@ -215,6 +214,7 @@ namespace Kratos
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
+            process_info[DISTANCE_THRESHOLD] = 1.0;
             
             // First we create the nodes
             const std::size_t number_of_divisions = 8;
