@@ -1,9 +1,6 @@
-import os
-
 # Import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
 
 class CoreTests(KratosUnittest.TestCase):
 
@@ -11,6 +8,7 @@ class CoreTests(KratosUnittest.TestCase):
 
         super(KratosUnittest.TestCase, self).__init__(*args, **kwargs)
 
+    @classmethod
     def test_array_parameter(self):
 
         default_parameters = KratosMultiphysics.Parameters("""
@@ -41,7 +39,7 @@ class CoreTests(KratosUnittest.TestCase):
         custom_parameters["array"].Append(KratosMultiphysics.Vector(2))
         #append matrix
         custom_parameters["array"].Append(KratosMultiphysics.Matrix(2,2))
-        
+
         #custom_parameters.ValidateAndAssignDefaults(default_parameters)
         print(" custom_parameters ", custom_parameters.PrettyPrintJsonString())
 
