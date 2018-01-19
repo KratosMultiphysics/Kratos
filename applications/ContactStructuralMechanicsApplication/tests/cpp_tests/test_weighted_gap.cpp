@@ -51,7 +51,7 @@ namespace Kratos
          */
         void CreatePlaneCilynderProblem(
             ModelPart& ThisModelPart,
-            const int NumberOfDivisions,
+            const std::size_t NumberOfDivisions,
             const double Lenght,
             const double Radius,
             const double Angle,
@@ -60,12 +60,14 @@ namespace Kratos
         {
             Properties::Pointer p_cond_prop = ThisModelPart.pGetProperties(0);
             
+            double x, y;
+            
             // Creating the base geometry
             std::size_t id_node = 0;
             const double dx = Lenght/static_cast<double>(NumberOfDivisions);
-            for (auto i = 0; i < NumberOfDivisions + 1; ++i){
-                const double x = dx * i;
-                const double y = Slope * dx * i;
+            for (std::size_t i = 0; i < NumberOfDivisions + 1; ++i){
+                x = dx * i;
+                y = Slope * dx * i;
                 id_node++;
                 NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(id_node, x , y , 0.0);
                 p_node_1->Set(SLAVE, true);
@@ -79,7 +81,8 @@ namespace Kratos
             }
             
             std::size_t id_cond = 0;
-            for (auto i = 0; i < NumberOfDivisions; i++)
+            std::vector<Condition::Pointer> slave_conds;
+            for (std::size_t i = 0; i < NumberOfDivisions; i++)
             {
                 id_cond++;
                 std::vector<NodeType::Pointer> condition_nodes (4);
@@ -89,17 +92,19 @@ namespace Kratos
                 condition_nodes[3] = ThisModelPart.pGetNode((2 * i)+3);
                 Quadrilateral3D4 <NodeType> quad( condition_nodes);
                 
-                Condition::Pointer pcond = ThisModelPart.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", id_cond, quad, p_cond_prop);
+                Condition::Pointer pcond = ThisModelPart.CreateNewCondition("Condition3D4N", id_cond, quad, p_cond_prop);
                 pcond->Set(SLAVE, true);
-                pcond->Set(ISOLATED, false);
                 pcond->Set(MASTER, false);
+                slave_conds.push_back(pcond);
             }
             
             // Creating the base circle
+            x = 0.0;
+            std::size_t count = 0;
             const double dtheta = Angle/static_cast<double>(NumberOfDivisions);
-            for (auto i = 0; i < NumberOfDivisions + 1; ++i){
-                const double x = Radius * std::sin(i * dtheta);
-                const double y = Radius * (1.0 - std::cos(i * dtheta));
+            while (x < Lenght && count * dtheta < Globals::Pi/2.0){
+                x = Radius * std::sin(count * dtheta);
+                y = Radius * (1.0 - std::cos(count * dtheta));
                 id_node++;
                 NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(id_node, x, y , 0.0);
                 p_node_1->Set(SLAVE, false);
@@ -110,12 +115,13 @@ namespace Kratos
                 p_node_2->Set(SLAVE, false);
                 p_node_2->Set(MASTER, true);
                 p_node_2->Set(ACTIVE, false);
+                count++;
             }
             
             // Adding map
             IndexSet this_set;
-            for (auto i = 0; i < NumberOfDivisions; i++)
-            {
+            std::vector<Condition::Pointer> master_conds;
+            for (std::size_t i = 0; i < count - 1; i++) {
                 id_cond++;
                 this_set.AddId(id_cond);
                 std::vector<NodeType::Pointer> condition_nodes (4);
@@ -125,15 +131,29 @@ namespace Kratos
                 condition_nodes[0] = ThisModelPart.pGetNode((2 * (i + NumberOfDivisions + 1)+3));
                 Quadrilateral3D4 <NodeType> quad( condition_nodes);
                 
-                Condition::Pointer pcond = ThisModelPart.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", id_cond, quad, p_cond_prop);
+                Condition::Pointer pcond = ThisModelPart.CreateNewCondition("Condition3D4N", id_cond, quad, p_cond_prop);
                 pcond->Set(SLAVE, false);
                 pcond->Set(MASTER, true);
+                master_conds.push_back(pcond);
             }
             
+            // We compute the normals
+            MortarUtilities::ComputeNodesMeanNormalModelPart(ThisModelPart);
+            
             // We set the database
-            for (auto& i_cond : ThisModelPart.Conditions()) {
-                if (i_cond.Is(SLAVE) == true)
-                    i_cond.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set));
+            ModelPart& computing_rcontact_model_part = ThisModelPart.GetSubModelPart("ComputingContact"); 
+            for (auto& slave_cond : slave_conds) {
+                for (auto& master_cond : master_conds) {
+                    id_cond++;
+                    Condition::Pointer p_auxiliar_condition = computing_rcontact_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", id_cond, slave_cond->GetGeometry(), p_cond_prop);
+                    // We set the geometrical values
+                    p_auxiliar_condition->SetValue(PAIRED_GEOMETRY, master_cond->pGetGeometry());
+                    p_auxiliar_condition->SetValue(NORMAL, slave_cond->GetValue(NORMAL));
+                    p_auxiliar_condition->SetValue(PAIRED_NORMAL, master_cond->GetValue(NORMAL));
+                    // We activate the condition and initialize it
+                    p_auxiliar_condition->Set(ACTIVE, true);
+                    p_auxiliar_condition->Initialize();
+                }
             }
         }
         
@@ -144,7 +164,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestWeightedGap1, ContactStructuralApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
+            ModelPart this_model_part("Contact");
+            this_model_part.CreateSubModelPart("ComputingContact");
             this_model_part.SetBufferSize(2);
             
             this_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
@@ -155,22 +176,19 @@ namespace Kratos
             process_info[NL_ITERATION_NUMBER] = 1;
             
             // First we create the nodes
-            const int number_of_divisions = 4;
+            const std::size_t number_of_divisions = 8;
             const double lenght = 4.0;
             const double radius = 6.0;
             const double angle = Globals::Pi/6;
+            const double slope = 0.0;
             
             // We create our problem
-            CreatePlaneCilynderProblem(this_model_part, number_of_divisions, lenght, radius, angle);
-            
-            // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(this_model_part);
+            CreatePlaneCilynderProblem(this_model_part, number_of_divisions, lenght, radius, angle, slope);
             
             // We compute the explicit contribution
             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, this_model_part.Nodes());
-            for (auto& id_cond : this_model_part.Conditions())
-                if (id_cond.Is(ACTIVE) == true)
-                    id_cond.AddExplicitContribution(process_info);
+            for (auto& id_cond : this_model_part.GetSubModelPart("ComputingContact").Conditions())
+                id_cond.AddExplicitContribution(process_info);
                 
             // DEBUG         
             GiDIOGapDebug(this_model_part);
