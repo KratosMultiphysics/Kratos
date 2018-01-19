@@ -88,7 +88,7 @@ public:
     BaseMortarConvergenceCriteria(const bool IODebug = false)
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mIODebug(IODebug),
-          mGidIO("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly)
+          mGidIO("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditions)
     {
     }
 
