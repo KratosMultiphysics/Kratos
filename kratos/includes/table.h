@@ -419,7 +419,7 @@ public:
     typedef double argument_type; // To be STL conformance.
     typedef double result_type; // To be STL conformance.
 
-    typedef boost::array<result_type, 1>  result_row_type;
+    typedef std::array<result_type, 1>  result_row_type;
 
     typedef std::pair<argument_type, result_row_type> RecordType;
 
