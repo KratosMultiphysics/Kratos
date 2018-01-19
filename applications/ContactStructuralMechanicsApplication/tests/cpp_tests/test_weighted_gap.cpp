@@ -22,6 +22,7 @@
 #include "contact_structural_mechanics_application_variables.h"
 #include "includes/gid_io.h"
 #include "utilities/variable_utils.h"
+#include "processes/simple_mortar_mapper_process.h"
 
 namespace Kratos 
 {
@@ -43,6 +44,9 @@ namespace Kratos
             gid_io.WriteNodalFlags(SLAVE, "SLAVE", ThisModelPart.Nodes(), label);
             gid_io.WriteNodalFlags(ISOLATED, "ISOLATED", ThisModelPart.Nodes(), label);
             gid_io.WriteNodalResults(WEIGHTED_GAP, ThisModelPart.Nodes(), label, 0);
+            gid_io.WriteNodalResultsNonHistorical(NORMAL_GAP, ThisModelPart.Nodes(), label);
+            gid_io.WriteNodalResultsNonHistorical(NODAL_AREA, ThisModelPart.Nodes(), label);
+            gid_io.WriteNodalResultsNonHistorical(AUXILIAR_COORDINATES, ThisModelPart.Nodes(), label);
             gid_io.WriteNodalResults(NORMAL, ThisModelPart.Nodes(), label, 0);
         }
         
@@ -140,6 +144,43 @@ namespace Kratos
             // We compute the normals
             MortarUtilities::ComputeNodesMeanNormalModelPart(ThisModelPart);
             
+            // We compute the normal gap to compare with the weighted gap
+            // We add the index SetScalarVar
+            for(auto& icond : ThisModelPart.Conditions()) {
+                if (icond.Is(SLAVE))
+                    icond.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set));
+            }
+            
+            // We set the auxiliar Coordinates
+            for(auto& inode : ThisModelPart.Nodes()) {
+                if (inode.Is(MASTER))
+                    inode.SetValue(AUXILIAR_COORDINATES, inode.Coordinates());
+                else
+                    inode.SetValue(AUXILIAR_COORDINATES, ZeroVector(3));
+            }
+            
+            // We set the mapper parameters
+            Parameters mapping_parameters = Parameters(R"({"inverted_master_slave_pairing": false, "distance_threshold" : 1.0e24})" );
+            const double geom_length = (ThisModelPart.Conditions().begin())->GetGeometry().Length();
+            mapping_parameters["distance_threshold"].SetDouble(geom_length);
+            typedef SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>, NonHistorical> MapperType;
+            MapperType mapper = MapperType(ThisModelPart, AUXILIAR_COORDINATES, mapping_parameters);
+            mapper.Execute();
+            
+            // We compute now the normal gap and set the nodes under certain threshold as active
+            for(auto& inode : ThisModelPart.Nodes()) {      
+                if (inode.Is(SLAVE) == true) {
+                    // We compute the gap
+                    const array_1d<double, 3>& normal = inode.FastGetSolutionStepValue(NORMAL);
+                    const array_1d<double, 3>& auxiliar_coordinates = inode.GetValue(AUXILIAR_COORDINATES);
+                    const array_1d<double, 3>& components_gap = ( inode.Coordinates() - auxiliar_coordinates);
+                    const double gap = inner_prod(components_gap, - normal);
+                    inode.SetValue(NORMAL_GAP, gap);
+                }
+                else
+                    inode.SetValue(NORMAL_GAP, 0.0);
+            }
+            
             // We set the database
             ModelPart& computing_rcontact_model_part = ThisModelPart.GetSubModelPart("ComputingContact"); 
             for (auto& slave_cond : slave_conds) {
@@ -191,13 +232,18 @@ namespace Kratos
                 id_cond.AddExplicitContribution(process_info);
                 
             // DEBUG         
-            GiDIOGapDebug(this_model_part);
+//             GiDIOGapDebug(this_model_part);
             
-//             const double tolerance = 1.0e-4;
-//             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_1->X(), 2) + std::pow(p_node_1->Y(), 2))), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_2->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_2->X(), 2) + std::pow(p_node_2->Y(), 2))), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_3->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_3->X(), 2) + std::pow(p_node_3->Y(), 2))), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_4->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_4->X(), 2) + std::pow(p_node_4->Y(), 2))), tolerance);
+            const double tolerance = 1.0e-4;
+            for (auto& inode : this_model_part.Nodes()) {
+                if (inode.Is(SLAVE)) {
+                    if (std::abs(inode.FastGetSolutionStepValue(WEIGHTED_GAP)) > 0.0) {
+                        const double normal_gap = inode.GetValue(NORMAL_GAP);
+                        const double weighted_gap_corrected = inode.FastGetSolutionStepValue(WEIGHTED_GAP)/inode.GetValue(NODAL_AREA);
+                        KRATOS_CHECK_LESS_EQUAL(std::abs(weighted_gap_corrected - normal_gap)/std::abs(normal_gap), tolerance);
+                    }
+                }
+            }
         }
         
     } // namespace Testing
