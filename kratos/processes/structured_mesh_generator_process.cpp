@@ -263,7 +263,7 @@ namespace Kratos
             cell_points.push_back(coordinates);
         }
 
-        constexpr triangle_connectivity_in_cell_type connectivity_cases[number_of_cases] = { {{ 1,3,2 }},{{ 1,4,3 }} };
+        constexpr triangle_connectivity_in_cell_type connectivity_cases[number_of_cases] = { {{ 0,2,1 }},{{ 0,3,2 }} };
 
         std::vector<Point::Pointer> my_points(3);
         double min_area = 1.0;
