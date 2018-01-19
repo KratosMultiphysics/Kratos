@@ -15,11 +15,10 @@
 // External includes
 #include <boost/python.hpp>
 
-
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include <boost/python.hpp>
+
 
 namespace Kratos
 {
@@ -60,36 +59,25 @@ boost::python::list values(Parameters const& self)
     return t;
 }
 
-
-void AppendDouble(Parameters& rParameters, double rValue)
+void Append(Parameters& rParameters, PyObject* type)
 {
-  rParameters.Append(rValue);
+  if(PyLong_CheckExact(type))
+    rParameters.Append( boost::python::extract<int>(type) );
+  else if(PyBool_Check(type))
+    rParameters.Append( boost::python::extract<bool>(type) );
+  else if(PyUnicode_Check(type))
+    rParameters.Append( boost::python::extract<std::string>(type) );
+  else if(boost::python::arg_from_python<Vector>(type).convertible())
+    rParameters.Append( boost::python::extract<Vector>(type) );
+  else if(boost::python::arg_from_python<Matrix>(type).convertible())
+    rParameters.Append( boost::python::extract<Matrix>(type) );
+  else if(boost::python::arg_from_python<Parameters>(type).convertible())
+    rParameters.Append( boost::python::extract<Parameters>(type) );
+  else if(boost::python::arg_from_python<double>(type).convertible())
+    rParameters.Append( boost::python::extract<double>(type) );
+  else
+    KRATOS_ERROR <<" python object type not accepted to append in parameters Array "<<std::endl;
 }
-void AppendInt(Parameters& rParameters, int rValue)
-{
-  rParameters.Append(rValue);
-}
-void AppendBool(Parameters& rParameters, bool rValue)
-{
-  rParameters.Append(rValue);
-}
-void AppendString(Parameters& rParameters, std::string rValue)
-{
-  rParameters.Append(rValue);
-}
-void AppendVector(Parameters& rParameters,const Vector& rValue)
-{
-  rParameters.Append(rValue);
-}
-void AppendMatrix(Parameters& rParameters,const Matrix& rValue)
-{
-  rParameters.Append(rValue);
-}
-void AppendObject(Parameters& rParameters,const Parameters& rValue)
-{
-  rParameters.Append(rValue);
-}
-
 
 void  AddKratosParametersToPython()
 {
@@ -142,13 +130,7 @@ void  AddKratosParametersToPython()
     .def("keys", &keys )
     .def("values", &values )
     .def("AddEmptyList", &Parameters::AddEmptyArray)
-    .def("Append",AppendDouble)
-    .def("Append",AppendInt)
-    .def("Append",AppendBool)
-    .def("Append",AppendString)
-    .def("Append",AppendVector)
-    .def("Append",AppendMatrix)
-    .def("Append",AppendObject)
+    .def("Append",Append) //created due to ambiguous overload int/bool...
     .def(self_ns::str(self))
     ;
 

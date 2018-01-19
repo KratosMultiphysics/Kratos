@@ -455,7 +455,7 @@ public:
 #endif
     }
 
-    void AddEmptyArray(const std::string entry)
+    void AddEmptyArray(const std::string& entry)
     {
         if(this->Has(entry) == false)
         {
