@@ -29,7 +29,7 @@ namespace Kratos
     {
         typedef Node<3>                                                    NodeType;
 
-        void GiDIODebug(ModelPart& ThisModelPart)
+        void GiDIODebugMapper(ModelPart& ThisModelPart)
         {
             GidIO<> gid_io("TEST_MAPPER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);
             const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
@@ -124,7 +124,7 @@ namespace Kratos
             process.Execute();
             
             // DEBUG         
-//             GiDIODebug(this_model_part);
+//             GiDIODebugMapper(this_model_part);
             
             const double tolerance = 1.0e-4;
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_1->X(), 2) + std::pow(p_node_1->Y(), 2))), tolerance);
@@ -222,7 +222,7 @@ namespace Kratos
             process.Execute();
             
             // DEBUG         
-//             GiDIODebug(this_model_part);
+//             GiDIODebugMapper(this_model_part);
             
             const double tolerance = 1.0e-4;
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_1->X(), 2) + std::pow(p_node_1->Y(), 2))), tolerance);
@@ -339,7 +339,7 @@ namespace Kratos
             process.Execute();
             
             // DEBUG         
-//             GiDIODebug(this_model_part);
+//             GiDIODebugMapper(this_model_part);
             
             const double tolerance = 1.0e-3;
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_1->Z(), 2) + std::pow(p_node_1->Y(), 2))), tolerance);

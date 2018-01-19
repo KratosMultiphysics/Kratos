@@ -144,6 +144,10 @@ def _ReadMetric(input_file1, input_file2, dimension):
             space = "  "
             end_line = "  \n"
         
+        if (lines1[i][0] == " "):
+            lines1[i] = lines1[i][1:]
+        if (lines2[i][0] == " "):
+            lines1[i][0] = lines2[i][1:]
         tmp1 = _ConvertStringToListFloat(lines1[i], space, end_line)
         tmp2 = _ConvertStringToListFloat(lines2[i], space, end_line)
         
