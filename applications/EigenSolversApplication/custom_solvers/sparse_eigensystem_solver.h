@@ -217,7 +217,6 @@ class SparseEigensystemSolver
                 vector_t tmp(nn);
                 tmp = r.col(j);
                 tt = solver.solve(tmp);
-                std::cout << r(10, j) << std::endl;
 
                 for (int i = j; i != nc; ++i) {                    
                     ar(i, j) = r.col(i).dot(tt);
@@ -239,19 +238,18 @@ class SparseEigensystemSolver
             eig.compute(ar, br);
 
             if(eig.info() != Eigen::Success) {
-                std::cout << "Eigen solution was not successful!" << std::endl;
+                std::cout << "SparseEigensystem: Eigen solution was not successful!" << std::endl;
                 break;
             }
-
-            const vector_t& eigv = eig.eigenvalues();
 
             r *= eig.eigenvectors();
 
             bool is_converged = true;
 
             for (int i = 0; i != nc; i++) {
-                double dif = eigv(i) - prev_eigv(i);
-                double rtolv = std::abs(dif / eigv(i));
+                double eigv = eig.eigenvalues()(i);
+                double dif = eigv - prev_eigv(i);
+                double rtolv = std::abs(dif / eigv);
 
                 if (rtolv > tolerance) {
                     is_converged = false;
@@ -261,20 +259,18 @@ class SparseEigensystemSolver
 
             if (is_converged) {
                 if (echo_level > 0) {
-                    std::cout << "Convergence reached after " << iteration << " iterations within a relative tolerance: " << tolerance << std::endl;
+                    std::cout << "SparseEigensystem: Convergence reached after " << iteration << " iterations within a relative tolerance: " << tolerance << std::endl;
                 }
                 break;
             } else if (iteration >= max_iteration) {
                 if (echo_level > 0) {
-                    std::cout << "Convergence not reached in " << max_iteration << " iterations." << std::endl;
+                    std::cout << "SparseEigensystem: Convergence not reached in " << max_iteration << " iterations." << std::endl;
                 }
                 break;
             }
 
-            prev_eigv = eigv;
+            prev_eigv = eig.eigenvectors();
         } while (true);
-
-        std::cout << "Eigenvalue[0] " << prev_eigv[0] << " iterations." << std::endl;
 
         Eigen::Map<vector_t> (rEigenvalues.data().begin(), rEigenvalues.size()) = eig.eigenvalues().head(nroot);
         Eigen::Map<matrix_t> (rEigenvectors.data().begin(), rEigenvectors.size1(), rEigenvectors.size2()) = solver.solve(r.leftCols(nroot));
