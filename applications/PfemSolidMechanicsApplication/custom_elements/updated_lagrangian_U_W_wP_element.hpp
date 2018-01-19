@@ -274,6 +274,22 @@ protected:
           );
 
 
+    /**
+     * Part of the mass matrix due to the stabilization
+     */
+    virtual void CalculateAndAddMassStabilizationMatrix(MatrixType& rMassMatrix,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          );
+
+    /**
+     * Part of the damping matrix due to the stabilization
+     */
+    virtual void CalculateAndAddDampingStabilizationMatrix(MatrixType& rDampingMatrix,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          );
+
 
     /**
      * Initialize Element General Variables

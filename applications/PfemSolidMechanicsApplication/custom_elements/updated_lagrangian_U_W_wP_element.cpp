@@ -805,13 +805,20 @@ namespace Kratos
                }
             }
          }
-
+         this->CalculateAndAddMassStabilizationMatrix( rMassMatrix, Variables, IntegrationWeight);
       }
 
       KRATOS_CATCH("")
    }
 
+   // ********************************************************************************
+   //      part of the mass matrix that steams from the stabilization factor
+   void UpdatedLagrangianUWwPElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   {
+      KRATOS_TRY
 
+      KRATOS_CATCH("")
+   }
    // *********************************************************************************
    //         Calculate the Damping matrix
    void UpdatedLagrangianUWwPElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
@@ -905,40 +912,50 @@ namespace Kratos
             }
          }
 
-
-
-         // Stabilization of the mass balance equation
-         const double & rStabilizationFactor = GetProperties()[STABILIZATION_FACTOR_WP];
-         if ( ( fabs(rStabilizationFactor) > 1.0e-6) && dimension==2)  {
-
-            double StabFactor = CalculateStabilizationFactor( Variables, StabFactor);
-
-
-            Matrix SmallMatrix = ZeroMatrix(number_of_nodes, number_of_nodes);
-
-            double consistent;
-            for (unsigned int i = 0; i < number_of_nodes; i++) {
-               for (unsigned int j = 0; j < number_of_nodes; j++) {
-                  consistent = -1.0 * StabFactor / 18.0;
-                  if ( i == j)
-                     consistent = 2.0 * StabFactor / 18.0;
-                  SmallMatrix(i,j) += consistent * IntegrationWeight ;
-               }
-            }
-
-            for (unsigned int i = 0; i < number_of_nodes; i++) {
-               for (unsigned int j = 0; j < number_of_nodes; j++) {
-                  rDampingMatrix( (i+1)*dofs_per_node-1, (j+1)*dofs_per_node-1) += SmallMatrix(i,j);
-               }
-            }
-
-
-         }
-
-
-
+         this->CalculateAndAddDampingStabilizationMatrix(rDampingMatrix, Variables, IntegrationWeight);
 
       } // end point
+      KRATOS_CATCH("")
+   }
+
+
+   // ********************************************************************************
+   //      part of the damping matrix that steams from the stabilization factor
+   void UpdatedLagrangianUWwPElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   {
+      KRATOS_TRY
+
+      
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int dofs_per_node = 2*dimension + 1;
+      
+      
+      const double & rStabilizationFactor = GetProperties()[STABILIZATION_FACTOR_WP];
+      if ( ( fabs(rStabilizationFactor) > 1.0e-6) && dimension==2)  {
+
+         double StabFactor = CalculateStabilizationFactor( rVariables, StabFactor);
+
+
+         Matrix SmallMatrix = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+         double consistent;
+         for (unsigned int i = 0; i < number_of_nodes; i++) {
+            for (unsigned int j = 0; j < number_of_nodes; j++) {
+               consistent = -1.0 * StabFactor / 18.0;
+               if ( i == j)
+                  consistent = 2.0 * StabFactor / 18.0;
+               SmallMatrix(i,j) += consistent * rIntegrationWeight ;
+            }
+         }
+
+         for (unsigned int i = 0; i < number_of_nodes; i++) {
+            for (unsigned int j = 0; j < number_of_nodes; j++) {
+               rDampingMatrix( (i+1)*dofs_per_node-1, (j+1)*dofs_per_node-1) += SmallMatrix(i,j);
+            }
+         }
+      }
+
       KRATOS_CATCH("")
    }
    //************************************************************************************
@@ -978,6 +995,7 @@ namespace Kratos
       double StabilizationFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
 
       rStabFactor = 2.0 / ConstrainedModulus - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
+      rStabFactor = 2.0 / ConstrainedModulus; // - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
 
       if ( rStabFactor < 0.0)
          rStabFactor = 0.0; 

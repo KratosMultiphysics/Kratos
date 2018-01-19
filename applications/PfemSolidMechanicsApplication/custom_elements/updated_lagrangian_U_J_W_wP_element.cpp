@@ -1085,14 +1085,15 @@ namespace Kratos
 
 
       //rStabFactor = 2.0 / ConstrainedModulus - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
-      rStabFactor = 2.0 / ConstrainedModulus*(1+rPermeability*DryDensity/mTimeStep/porosity) - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2)*(1-porosity)/porosity; 
+      //rStabFactor = 2.0 / ConstrainedModulus*(1-rPermeability*DryDensity/mTimeStep/porosity) - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2)*(1-porosity)/porosity; 
 
 
-      if ( rStabFactor < 0.0){
-         std::cout << "stab 1= " <<  2.0 / ConstrainedModulus << " stab 2= " << 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2) << std::endl;
-         rStabFactor = 0.0; 
-      }
+
+      rStabFactor = 2.0 / ConstrainedModulus; // - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
       rStabFactor *=  StabilizationFactor;
+
+      if ( rStabFactor < 0)
+	      rStabFactor = 0;
 
       return rStabFactor; 
 
