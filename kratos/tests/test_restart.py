@@ -150,10 +150,10 @@ class TestRestart(KratosUnittest.TestCase):
 
     def test_restart_NOTRACE(self):
         self._execute_restart_test(KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE)
-    
+
     def test_restart_TRACE_ERROR(self):
         self._execute_restart_test(KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR)
-    
+
     def test_restart_TRACE_ALL(self):
         self._execute_restart_test(KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL)
 
