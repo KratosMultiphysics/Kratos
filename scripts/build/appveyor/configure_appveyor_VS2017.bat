@@ -7,7 +7,7 @@ cmake .. -G "Visual Studio 15 2017 Win64"                                       
 -DPYTHON_LIBRARY="C:\Python36-x64\lib\python3.dll"					            ^
 -DCMAKE_BUILD_TYPE="Debug"  													^
 -DDEM_APPLICATION=ON                                                            ^
--DEXTERNAL_SOLVERS_APPLICATION=ON                                               ^
+-DEXTERNAL_SOLVERS_APPLICATION=OFF                                               ^
 -DFLUID_DYNAMICS_APPLICATION=ON                                                 ^
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                           ^
 -DSWIMMING_DEM_APPLICATION=OFF                                                  ^
