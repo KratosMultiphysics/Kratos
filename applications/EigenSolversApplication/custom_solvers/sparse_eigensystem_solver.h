@@ -99,7 +99,7 @@ class SparseEigensystemSolver
         
         // --- get settings
 
-        const int nroot = mParam["number_of_eigenvalues"].GetInt(); // number of eigenvalues requested
+        const int nroot = mParam["number_of_eigenvalues"].GetInt();
         const int max_iteration = BaseType::GetMaxIterationsNumber();
         const double tolerance = BaseType::GetTolerance();
         const int echo_level = mParam["echo_level"].GetInt();
