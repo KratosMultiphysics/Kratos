@@ -220,9 +220,14 @@ class ModelManager(object):
             self.dof_variables = self.dof_variables + ['WATER_DISPLACEMENT','WATER_VELOCITY','WATER_ACCELERATION']
             self.dof_reactions = self.dof_reactions + ['WATER_DISPLACEMENT_REACTION','WATER_VELOCITY_REACTION','WATER_ACCELERATION_REACTION']
 
+            ## to be asked to JMC
+            # LEGACY FOR THE full-bIOT SCHEME (??)
+            self.dof_variables = self.dof_variables + ['VELOCITY','ACCELERATION']
+            self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
+
         # Add water pressure variables
         if self._check_input_dof("WATER_PRESSURE"):
-            self.dof_variables = self.dof_variables + ['WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATIONN']
+            self.dof_variables = self.dof_variables + ['WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATION']
             self.dof_reactions = self.dof_reactions + ['REACTION_WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY_REACTION', 'WATER_PRESSURE_ACCELERATION_REACTION']
 
         # Add jacobian variables
