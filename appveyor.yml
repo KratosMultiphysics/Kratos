@@ -39,11 +39,11 @@ before_build:
   - cmd: cd C:\projects\kratos\cmake_build
   - cmd: .\configure_appveyor_VS2017.bat
 
-# build: off
-build:
-  project: C:\projects\kratos\cmake_build\kratosMultiphysics.sln # path to Visual Studio solution or project
-  parallel: true                           # enable MSBuild parallel builds
-  verbosity: normal                         # MSBuild verbosity level (quiet|minimal|normal|detailed)
+build: off
+# build:
+#   project: C:\projects\kratos\cmake_build\kratosMultiphysics.sln # path to Visual Studio solution or project
+#   parallel: true                           # enable MSBuild parallel builds
+#   verbosity: normal                         # MSBuild verbosity level (quiet|minimal|normal|detailed)
 
 test: off
 #test_script:
