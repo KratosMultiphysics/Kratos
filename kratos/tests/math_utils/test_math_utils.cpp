@@ -314,8 +314,8 @@ namespace Kratos
             constexpr double tolerance = 1e-6;
             
             double det;
-            Matrix inv;
-            Matrix I;
+            Matrix inv(1,1);
+            Matrix I(1,1);
             
             unsigned int i_dim = 1;
             
@@ -327,16 +327,11 @@ namespace Kratos
             
             I = prod(inv, mat);
             
-            for (unsigned int i = 0; i < i_dim; i++)
-            {
-                for (unsigned int j = 0; j < i_dim; j++)
-                {
-                    if (i == j) 
-                    {
+            for (unsigned int i = 0; i < i_dim; i++) {
+                for (unsigned int j = 0; j < i_dim; j++) {
+                    if (i == j) {
                         KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
-                    }
-                    else 
-                    {
+                    } else {
                         KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
@@ -344,6 +339,8 @@ namespace Kratos
             
             i_dim = 2;
             mat.resize(i_dim, i_dim, false);
+            inv.resize(i_dim, i_dim, false);
+            I.resize(i_dim, i_dim, false);
             
             mat(0,0) = 0.833328;
             mat(0,1) = 0.491166;
@@ -354,16 +351,11 @@ namespace Kratos
             
             I = prod(inv, mat);
             
-            for (unsigned int i = 0; i < i_dim; i++)
-            {
-                for (unsigned int j = 0; j < i_dim; j++)
-                {
-                    if (i == j) 
-                    {
+            for (unsigned int i = 0; i < i_dim; i++) {
+                for (unsigned int j = 0; j < i_dim; j++) {
+                    if (i == j) {
                         KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
-                    }
-                    else 
-                    {
+                    } else {
                         KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
@@ -371,6 +363,8 @@ namespace Kratos
             
             i_dim = 3;
             mat.resize(i_dim, i_dim, false);
+            inv.resize(i_dim, i_dim, false);
+            I.resize(i_dim, i_dim, false);
             
             mat(0,0) = 0.371083;
             mat(0,1) = 0.392607;
@@ -386,16 +380,11 @@ namespace Kratos
             
             I = prod(inv, mat);
             
-            for (unsigned int i = 0; i < i_dim; i++)
-            {
-                for (unsigned int j = 0; j < i_dim; j++)
-                {
-                    if (i == j) 
-                    {
+            for (unsigned int i = 0; i < i_dim; i++) {
+                for (unsigned int j = 0; j < i_dim; j++) {
+                    if (i == j) {
                         KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
-                    }
-                    else 
-                    {
+                    } else {
                         KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
@@ -403,7 +392,10 @@ namespace Kratos
             
             i_dim = 4;
             mat.resize(i_dim, i_dim, false);
+            inv.resize(i_dim, i_dim, false);
+            I.resize(i_dim, i_dim, false);
             
+            mat(0,0) = 0.0;
             mat(0,1) = 0.979749;
             mat(0,2) = 0.494393;
             mat(0,3) = 0.23073;
@@ -424,16 +416,11 @@ namespace Kratos
             
             I = prod(inv, mat);
             
-            for (unsigned int i = 0; i < i_dim; i++)
-            {
-                for (unsigned int j = 0; j < i_dim; j++)
-                {
-                    if (i == j) 
-                    {
+            for (unsigned int i = 0; i < i_dim; i++) {
+                for (unsigned int j = 0; j < i_dim; j++) {
+                    if (i == j) {
                         KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
-                    }
-                    else 
-                    {
+                    } else {
                         KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
@@ -441,6 +428,8 @@ namespace Kratos
             
             i_dim = 5;
             mat.resize(i_dim, i_dim, false);
+            inv.resize(i_dim, i_dim, false);
+            I.resize(i_dim, i_dim, false);
             
             mat = ZeroMatrix(5, 5);
             mat(0,0) =   1.0;
@@ -457,16 +446,11 @@ namespace Kratos
             
             I = prod(inv, mat);
             
-            for (unsigned int i = 0; i < i_dim; i++)
-            {
-                for (unsigned int j = 0; j < i_dim; j++)
-                {
-                    if (i == j) 
-                    {
+            for (unsigned int i = 0; i < i_dim; i++) {
+                for (unsigned int j = 0; j < i_dim; j++) {
+                    if (i == j) {
                         KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
-                    }
-                    else 
-                    {
+                    } else {
                         KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
