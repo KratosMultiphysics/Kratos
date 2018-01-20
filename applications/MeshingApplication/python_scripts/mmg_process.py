@@ -57,8 +57,11 @@ class MmgProcess(KratosMultiphysics.Process):
             },
             "initial_remeshing"                : false,
             "fix_contour_model_parts"          : [],
+            "force_min"                        : false,
             "minimal_size"                     : 0.1,
+            "force_max"                        : false,
             "maximal_size"                     : 10.0,
+            "hausdorff_value"                  : 0.0001,
             "anisotropy_remeshing"             : true,
             "anisotropy_parameters":{
                 "hmin_over_hmax_anisotropic_ratio" : 0.01,
@@ -156,12 +159,17 @@ class MmgProcess(KratosMultiphysics.Process):
 
         self._CreateMetricsProcess()
 
-        mmg_parameters = KratosMultiphysics.Parameters("""{}""")
+        mmg_parameters = KratosMultiphysics.Parameters("""{"force_sizes":{}}""")
         mmg_parameters.AddValue("filename",self.settings["filename"])
         mmg_parameters.AddValue("framework",self.settings["framework"])
         mmg_parameters.AddValue("internal_variables_parameters",self.settings["internal_variables_parameters"])
         mmg_parameters.AddValue("save_external_files",self.settings["save_external_files"])
         mmg_parameters.AddValue("max_number_of_searchs",self.settings["max_number_of_searchs"])
+        mmg_parameters["force_sizes"].AddValue("force_min",self.settings["force_min"])
+        mmg_parameters["force_sizes"].AddValue("minimal_size",self.settings["maximal_size"])
+        mmg_parameters["force_sizes"].AddValue("force_max",self.settings["force_max"])
+        mmg_parameters["force_sizes"].AddValue("maximal_size",self.settings["maximal_size"])
+        mmg_parameters.AddValue("hausdorff_value",self.settings["hausdorff_value"])
         mmg_parameters.AddValue("echo_level",self.settings["echo_level"])
         if (self.dim == 2):
             self.mmg_process = MeshingApplication.MmgProcess2D(self.model_part, mmg_parameters)

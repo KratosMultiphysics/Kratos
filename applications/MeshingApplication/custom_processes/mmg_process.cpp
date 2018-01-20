@@ -84,13 +84,21 @@ MmgProcess<TDim>::MmgProcess(
             "interpolation_type"                   : "LST",
             "internal_variable_interpolation_list" :[]
         },
-        "save_external_files"              : false,
-        "save_mdpa_file"                   : false,
-        "max_number_of_searchs"            : 1000,
-        "echo_level"                       : 3,
-        "step_data_size"                   : 0,
-        "remesh_at_non_linear_iteration"   : false,
-        "buffer_size"                      : 0
+        "force_sizes"                          :
+        {
+            "force_min"                           : false,
+            "minimal_size"                        : 0.1,
+            "force_max"                           : false,
+            "maximal_size"                        : 10.0
+        },
+        "hausdorff_value"                      : 0.0001,
+        "save_external_files"                  : false,
+        "save_mdpa_file"                       : false,
+        "max_number_of_searchs"                : 1000,
+        "echo_level"                           : 3,
+        "step_data_size"                       : 0,
+        "remesh_at_non_linear_iteration"       : false,
+        "buffer_size"                          : 0
     })" );
     
     mThisParameters.ValidateAndAssignDefaults(DefaultParameters);
@@ -1641,6 +1649,23 @@ void MmgProcess<3>::OutputSol(
 template<>  
 void MmgProcess<2>::MMGLibCall()
 {
+    // Global hausdorff value (default value = 0.01) applied on the whole boundary
+    if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hausd, mThisParameters["hausdorff_value"].GetDouble()) != 1 ) 
+        KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
+    
+    // Minimal edge size
+    if (mThisParameters["force_sizes"]["force_min"].GetBool() == true) {
+        if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hmin, mThisParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 ) 
+            KRATOS_ERROR << "Unable to set the minimal edge size " << std::endl;
+    }
+    
+    // Minimal edge size
+    if (mThisParameters["force_sizes"]["force_max"].GetBool() == true) {
+        if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hmax, mThisParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
+            KRATOS_ERROR << "Unable to set the maximal edge size " << std::endl;
+        }
+    }
+    
     const int ier = MMG2D_mmg2dlib(mmgMesh, mmgSol);
 
     if ( ier == MMG5_STRONGFAILURE ) 
@@ -1655,6 +1680,23 @@ void MmgProcess<2>::MMGLibCall()
 template<>  
 void MmgProcess<3>::MMGLibCall()
 {
+    // Global hausdorff value (default value = 0.01) applied on the whole boundary
+    if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hausd, mThisParameters["hausdorff_value"].GetDouble()) != 1 ) 
+        KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
+    
+    // Minimal edge size
+    if (mThisParameters["force_sizes"]["force_min"].GetBool() == true) {
+        if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hmin, mThisParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 ) 
+            KRATOS_ERROR << "Unable to set the minimal edge size " << std::endl;
+    }
+    
+    // Minimal edge size
+    if (mThisParameters["force_sizes"]["force_max"].GetBool() == true) {
+        if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hmax, mThisParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
+            KRATOS_ERROR << "Unable to set the maximal edge size " << std::endl;
+        }
+    }
+    
     const int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
 
     if ( ier == MMG5_STRONGFAILURE ) 
