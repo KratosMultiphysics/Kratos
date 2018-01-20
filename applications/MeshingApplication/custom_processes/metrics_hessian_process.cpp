@@ -28,15 +28,16 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
         ):mThisModelPart(rThisModelPart),
           mVariable(rVariable)
 {               
-    Parameters DefaultParameters = Parameters(R"(
+    Parameters default_parameters = Parameters(R"(
     {
         "minimal_size"                        : 0.1,
         "maximal_size"                        : 10.0, 
         "enforce_current"                     : true, 
         "hessian_strategy_parameters": 
-        { 
-            "interpolation_error"                  : 1.0e-6, 
-            "mesh_dependent_constant"              : 0.28125
+        {   
+            "estimate_interpolation_error"         : false,
+            "interpolation_error"                  : 1.0e-6,  
+            "mesh_dependent_constant"              : 0.28125 
         }, 
         "anisotropy_remeshing"                : true, 
         "anisotropy_parameters":
@@ -46,7 +47,7 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
             "interpolation"                        : "Linear"
         }
     })" );
-    ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+    ThisParameters.ValidateAndAssignDefaults(default_parameters);
         
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
@@ -54,12 +55,14 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
     
     // In case we have isotropic remeshing (default values)
     if (ThisParameters["anisotropy_remeshing"].GetBool() == false) {
-        mInterpError = DefaultParameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
-        mMeshConstant = DefaultParameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
-        mAnisotropicRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
-        mBoundLayer = DefaultParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
-        mInterpolation = ConvertInter(DefaultParameters["anisotropy_parameters"]["interpolation"].GetString());
+        mEstimateInterpError = default_parameters["hessian_strategy_parameters"]["estimate_interpolation_error"].GetBool();
+        mInterpError = default_parameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
+        mMeshConstant = default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
+        mAnisotropicRatio = default_parameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+        mBoundLayer = default_parameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
+        mInterpolation = ConvertInter(default_parameters["anisotropy_parameters"]["interpolation"].GetString());
     } else {
+        mEstimateInterpError = ThisParameters["hessian_strategy_parameters"]["estimate_interpolation_error"].GetBool();
         mInterpError = ThisParameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
         mMeshConstant = ThisParameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
         mAnisotropicRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
@@ -137,20 +140,19 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
     const double ElementMaxSize // This way we can impose as maximum as the previous size if we desire
     )
 {        
+    // We first transform the Hessian into a matrix
+    const bounded_matrix<double, TDim, TDim> hessian_matrix = MetricsMathUtils<TDim>::VectorToTensor(Hessian);
+    
     // Calculating Metric parameters
-    const double c_epslilon = mMeshConstant/mInterpError;
+    const double interpolation_error = mEstimateInterpError ? 2.0/9.0 * MathUtils<double>::Max(ElementMaxSize, ElementMaxSize * norm_frobenius(hessian_matrix)) : mInterpError;
+    const double c_epslilon = mMeshConstant/interpolation_error;
     const double min_ratio = 1.0/(ElementMinSize * ElementMinSize);
-//         const double min_ratio = 1.0/(mMinSize * mMinSize);
     const double max_ratio = 1.0/(ElementMaxSize * ElementMaxSize);
-//         const double max_ratio = 1.0/(mMaxSize * mMaxSize);
     
     typedef bounded_matrix<double, TDim, TDim> temp_type;
     
     // Declaring the eigen system
     bounded_matrix<double, TDim, TDim> eigen_vector_matrix, eigen_values_matrix;
-
-    // We first transform into a matrix
-    const bounded_matrix<double, TDim, TDim> hessian_matrix = MetricsMathUtils<TDim>::VectorToTensor(Hessian);
     
     MathUtils<double>::EigenSystem<TDim>(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
     

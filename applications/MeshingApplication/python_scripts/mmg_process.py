@@ -40,8 +40,9 @@ class MmgProcess(KratosMultiphysics.Process):
             },
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : ["DISTANCE"],
-                "interpolation_error"              : 0.04,
-                "mesh_dependent_constant"          : 0.0
+                "estimate_interpolation_error"     : false,
+                "interpolation_error"              : 0.04, 
+                "mesh_dependent_constant"          : 0.28125
             },
             "enforce_current"                  : true,
             "initial_step"                     : 1,
