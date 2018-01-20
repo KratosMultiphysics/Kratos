@@ -68,7 +68,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "no_surf_mesh"                        : false,
                 "no_insert_mesh"                      : false,
                 "no_swap_mesh"                        : false,
-                "detect_angle"                        : false,
+                "deactivate_detect_angle"             : false,
                 "gradation_value"                     : 1.3
             },
             "anisotropy_remeshing"             : true,

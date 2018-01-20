@@ -98,7 +98,7 @@ MmgProcess<TDim>::MmgProcess(
             "no_surf_mesh"                        : false,
             "no_insert_mesh"                      : false,
             "no_swap_mesh"                        : false,
-            "detect_angle"                        : false,
+            "deactivate_detect_angle"             : false,
             "gradation_value"                     : 1.3
         },
         "save_external_files"                  : false,
@@ -1665,25 +1665,28 @@ void MmgProcess<2>::MMGLibCall()
     if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 ) 
         KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
     
-//     // Avoid/allow point relocation 
-//     if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_IPARAM_nomove, static_cast<int>(mThisParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 ) 
-//         KRATOS_ERROR << "Unable to fix the nodes" << std::endl;
-//     
-//     // Avoid/allow surface modifications
-//     if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_IPARAM_nosurf, static_cast<int>(mThisParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 ) 
-//         KRATOS_ERROR << "Unable to set no surfacic modifications" << std::endl;
-//     
-//     // Don't insert nodes on mesh
-//     if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_IPARAM_noinsert, static_cast<int>(mThisParameters["advanced_parameters"]["no_insert_mesh"].GetBool())) != 1 ) 
-//         KRATOS_ERROR << "Unable to set no insertion/suppression point" << std::endl;
-//     
-//     // Don't swap mesh
-//     if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_IPARAM_noswap, static_cast<int>(mThisParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 ) 
-//         KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
-//     
-//     // Set the angle detection
-//     if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_IPARAM_angle, static_cast<int>(mThisParameters["advanced_parameters"]["detect_angle"].GetBool())) != 1 ) 
-//         KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
+    // Avoid/allow point relocation 
+    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_nomove, static_cast<int>(mThisParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 ) 
+        KRATOS_ERROR << "Unable to fix the nodes" << std::endl;
+    
+    // Avoid/allow surface modifications
+    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_nosurf, static_cast<int>(mThisParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 ) 
+        KRATOS_ERROR << "Unable to set no surfacic modifications" << std::endl;
+    
+    // Don't insert nodes on mesh
+    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_noinsert, static_cast<int>(mThisParameters["advanced_parameters"]["no_insert_mesh"].GetBool())) != 1 ) 
+        KRATOS_ERROR << "Unable to set no insertion/suppression point" << std::endl;
+    
+    // Don't swap mesh
+    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_noswap, static_cast<int>(mThisParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 ) 
+        KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
+    
+    // Set the angle detection
+    const bool deactivate_detect_angle = mThisParameters["advanced_parameters"]["deactivate_detect_angle"].GetBool();
+    if ( deactivate_detect_angle == true) {
+        if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 ) 
+            KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
+    }
     
     // Set the gradation
     if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 ) 
@@ -1725,25 +1728,28 @@ void MmgProcess<3>::MMGLibCall()
     if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 ) 
         KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
     
-//     // Avoid/allow point relocation 
-//     if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_IPARAM_nomove, static_cast<int>(mThisParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 ) 
-//         KRATOS_ERROR << "Unable to fix the nodes" << std::endl;
-//     
-//     // Avoid/allow surface modifications
-//     if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_IPARAM_nosurf, static_cast<int>(mThisParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 ) 
-//         KRATOS_ERROR << "Unable to set no surfacic modifications" << std::endl;
-//     
-//     // Don't insert nodes on mesh
-//     if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_IPARAM_noinsert, static_cast<int>(mThisParameters["advanced_parameters"]["no_insert_mesh"].GetBool())) != 1 ) 
-//         KRATOS_ERROR << "Unable to set no insertion/suppression point" << std::endl;
-//     
-//     // Don't swap mesh
-//     if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_IPARAM_noswap, static_cast<int>(mThisParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 ) 
-//         KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
-//     
-//     // Set the angle detection
-//     if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_IPARAM_angle, static_cast<int>(mThisParameters["advanced_parameters"]["detect_angle"].GetBool())) != 1 ) 
-//         KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
+    // Avoid/allow point relocation 
+    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_nomove, static_cast<int>(mThisParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 ) 
+        KRATOS_ERROR << "Unable to fix the nodes" << std::endl;
+    
+    // Avoid/allow surface modifications
+    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_nosurf, static_cast<int>(mThisParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 ) 
+        KRATOS_ERROR << "Unable to set no surfacic modifications" << std::endl;
+    
+    // Don't insert nodes on mesh
+    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_noinsert, static_cast<int>(mThisParameters["advanced_parameters"]["no_insert_mesh"].GetBool())) != 1 ) 
+        KRATOS_ERROR << "Unable to set no insertion/suppression point" << std::endl;
+    
+    // Don't swap mesh
+    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_noswap, static_cast<int>(mThisParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 ) 
+        KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
+    
+    // Set the angle detection
+    const bool deactivate_detect_angle = mThisParameters["advanced_parameters"]["deactivate_detect_angle"].GetBool();
+    if ( deactivate_detect_angle == true) {
+        if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 ) 
+            KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
+    }
     
     // Set the gradation
     if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 ) 
