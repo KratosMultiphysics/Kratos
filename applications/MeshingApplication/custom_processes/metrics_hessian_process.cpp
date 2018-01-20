@@ -144,7 +144,11 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
     const bounded_matrix<double, TDim, TDim> hessian_matrix = MetricsMathUtils<TDim>::VectorToTensor(Hessian);
     
     // Calculating Metric parameters
-    const double interpolation_error = mEstimateInterpError ? 2.0/9.0 * MathUtils<double>::Max(ElementMaxSize, ElementMaxSize * norm_frobenius(hessian_matrix)) : mInterpError;
+    double interpolation_error = mInterpError;
+    if (mEstimateInterpError == true)
+            interpolation_error = 2.0/9.0 * MathUtils<double>::Max(ElementMaxSize, ElementMaxSize * norm_frobenius(hessian_matrix));
+    
+    KRATOS_ERROR_IF(interpolation_error < std::numeric_limits<double>::epsilon()) << "ERROR: YOUR INTERPOLATION ERROR IS NEAR ZERO: " << interpolation_error << std::endl;
     const double c_epslilon = mMeshConstant/interpolation_error;
     const double min_ratio = 1.0/(ElementMinSize * ElementMinSize);
     const double max_ratio = 1.0/(ElementMaxSize * ElementMaxSize);
