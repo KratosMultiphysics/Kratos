@@ -44,8 +44,9 @@ namespace Kratos
         Vector RHS_Contribution;
         Matrix LHS_Contribution;
         ProcessInfo& rCurrentProcessInfo = root_model_part.GetProcessInfo();
+        const unsigned int domain_size = rCurrentProcessInfo[DOMAIN_SIZE];
 
-        #pragma omp parallel for private(RHS_Contribution, LHS_Contribution)
+        #pragma omp parallel for private(RHS_Contribution, LHS_Contribution) firstprivate(domain_size)
         for (int i_elem = 0; i_elem < static_cast<int>(root_model_part.NumberOfElements()); ++i_elem){
             auto it_elem = root_model_part.ElementsBegin() + i_elem;
 
@@ -60,8 +61,9 @@ namespace Kratos
             for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
                 r_geom[i_node].SetLock();
                 array_1d<double,3>& r_reaction = r_geom[i_node].FastGetSolutionStepValue(REACTION);
-                for (int d = 0; d < rCurrentProcessInfo[DOMAIN_SIZE]; ++d)
+                for (unsigned int d = 0; d < domain_size; ++d)
                     r_reaction[d] -= RHS_Contribution[block_size*i_node + d];
+
                 r_geom[i_node].UnSetLock();
             }
         }
