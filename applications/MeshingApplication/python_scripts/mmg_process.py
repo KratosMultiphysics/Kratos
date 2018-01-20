@@ -61,7 +61,16 @@ class MmgProcess(KratosMultiphysics.Process):
             "minimal_size"                     : 0.1,
             "force_max"                        : false,
             "maximal_size"                     : 10.0,
-            "hausdorff_value"                  : 0.0001,
+            "advanced_parameters"                  :
+            {
+                "hausdorff_value"                     : 0.0001,
+                "no_move_mesh"                        : false,
+                "no_surf_mesh"                        : false,
+                "no_insert_mesh"                      : false,
+                "no_swap_mesh"                        : false,
+                "detect_angle"                        : false,
+                "gradation_value"                     : 1.3
+            },
             "anisotropy_remeshing"             : true,
             "anisotropy_parameters":{
                 "hmin_over_hmax_anisotropic_ratio" : 0.01,
@@ -169,7 +178,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters["force_sizes"].AddValue("minimal_size",self.settings["maximal_size"])
         mmg_parameters["force_sizes"].AddValue("force_max",self.settings["force_max"])
         mmg_parameters["force_sizes"].AddValue("maximal_size",self.settings["maximal_size"])
-        mmg_parameters.AddValue("hausdorff_value",self.settings["hausdorff_value"])
+        mmg_parameters.AddValue("advanced_parameters",self.settings["advanced_parameters"])
         mmg_parameters.AddValue("echo_level",self.settings["echo_level"])
         if (self.dim == 2):
             self.mmg_process = MeshingApplication.MmgProcess2D(self.model_part, mmg_parameters)

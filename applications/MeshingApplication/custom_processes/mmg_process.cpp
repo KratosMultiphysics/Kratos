@@ -91,7 +91,16 @@ MmgProcess<TDim>::MmgProcess(
             "force_max"                           : false,
             "maximal_size"                        : 10.0
         },
-        "hausdorff_value"                      : 0.0001,
+        "advanced_parameters"                  :
+        {
+            "hausdorff_value"                     : 0.0001,
+            "no_move_mesh"                        : false,
+            "no_surf_mesh"                        : false,
+            "no_insert_mesh"                      : false,
+            "no_swap_mesh"                        : false,
+            "detect_angle"                        : false,
+            "gradation_value"                     : 1.3
+        },
         "save_external_files"                  : false,
         "save_mdpa_file"                       : false,
         "max_number_of_searchs"                : 1000,
@@ -1649,9 +1658,36 @@ void MmgProcess<3>::OutputSol(
 template<>  
 void MmgProcess<2>::MMGLibCall()
 {
+    KRATOS_TRY;
+    
+    /* Advanced configurations */
     // Global hausdorff value (default value = 0.01) applied on the whole boundary
-    if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hausd, mThisParameters["hausdorff_value"].GetDouble()) != 1 ) 
+    if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 ) 
         KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
+    
+//     // Avoid/allow point relocation 
+//     if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_IPARAM_nomove, static_cast<int>(mThisParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 ) 
+//         KRATOS_ERROR << "Unable to fix the nodes" << std::endl;
+//     
+//     // Avoid/allow surface modifications
+//     if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_IPARAM_nosurf, static_cast<int>(mThisParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 ) 
+//         KRATOS_ERROR << "Unable to set no surfacic modifications" << std::endl;
+//     
+//     // Don't insert nodes on mesh
+//     if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_IPARAM_noinsert, static_cast<int>(mThisParameters["advanced_parameters"]["no_insert_mesh"].GetBool())) != 1 ) 
+//         KRATOS_ERROR << "Unable to set no insertion/suppression point" << std::endl;
+//     
+//     // Don't swap mesh
+//     if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_IPARAM_noswap, static_cast<int>(mThisParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 ) 
+//         KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
+//     
+//     // Set the angle detection
+//     if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_IPARAM_angle, static_cast<int>(mThisParameters["advanced_parameters"]["detect_angle"].GetBool())) != 1 ) 
+//         KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
+    
+    // Set the gradation
+    if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 ) 
+        KRATOS_ERROR << "Unable to set gradation" << std::endl;
     
     // Minimal edge size
     if (mThisParameters["force_sizes"]["force_min"].GetBool() == true) {
@@ -1672,6 +1708,8 @@ void MmgProcess<2>::MMGLibCall()
         KRATOS_ERROR << "WARNING: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
     else if ( ier == MMG5_LOWFAILURE )
         KRATOS_ERROR << "WARNING: BAD ENDING OF MMG2DLIB. ier: " << ier << std::endl;
+    
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1680,9 +1718,36 @@ void MmgProcess<2>::MMGLibCall()
 template<>  
 void MmgProcess<3>::MMGLibCall()
 {
+    KRATOS_TRY;
+    
+    /* Advanced configurations */
     // Global hausdorff value (default value = 0.01) applied on the whole boundary
-    if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hausd, mThisParameters["hausdorff_value"].GetDouble()) != 1 ) 
+    if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 ) 
         KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
+    
+//     // Avoid/allow point relocation 
+//     if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_IPARAM_nomove, static_cast<int>(mThisParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 ) 
+//         KRATOS_ERROR << "Unable to fix the nodes" << std::endl;
+//     
+//     // Avoid/allow surface modifications
+//     if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_IPARAM_nosurf, static_cast<int>(mThisParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 ) 
+//         KRATOS_ERROR << "Unable to set no surfacic modifications" << std::endl;
+//     
+//     // Don't insert nodes on mesh
+//     if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_IPARAM_noinsert, static_cast<int>(mThisParameters["advanced_parameters"]["no_insert_mesh"].GetBool())) != 1 ) 
+//         KRATOS_ERROR << "Unable to set no insertion/suppression point" << std::endl;
+//     
+//     // Don't swap mesh
+//     if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_IPARAM_noswap, static_cast<int>(mThisParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 ) 
+//         KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
+//     
+//     // Set the angle detection
+//     if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_IPARAM_angle, static_cast<int>(mThisParameters["advanced_parameters"]["detect_angle"].GetBool())) != 1 ) 
+//         KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
+    
+    // Set the gradation
+    if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 ) 
+        KRATOS_ERROR << "Unable to set gradation" << std::endl;
     
     // Minimal edge size
     if (mThisParameters["force_sizes"]["force_min"].GetBool() == true) {
@@ -1703,6 +1768,8 @@ void MmgProcess<3>::MMGLibCall()
         KRATOS_ERROR << "WARNING: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
     else if ( ier == MMG5_LOWFAILURE )
         KRATOS_ERROR << "WARNING: BAD ENDING OF MMG3DLIB. ier: " << ier << std::endl;
+    
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
