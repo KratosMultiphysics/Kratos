@@ -187,6 +187,7 @@ private:
     double mMinSize;                         // The minimal size of the elements
     double mMaxSize;                         // The maximal size of the elements
     bool mEnforceCurrent;                    // With this we choose if we inforce the current nodal size (NODAL_H)
+    bool mEstimateInterpError;               // If the error of interpolation will be estimated
     double mInterpError;                     // The error of interpolation allowed
     double mMeshConstant;                    // The mesh constant to remesh (depends of the element type)
     double mAnisotropicRatio;                // The minimal anisotropic ratio (0 < ratio < 1)
