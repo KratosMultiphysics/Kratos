@@ -71,32 +71,16 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
     #
     def SetFixAndFreeProcesses(self,params):
 
-        params["variable_name"].SetString(self.variable_name+"_X")
-        fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
-        self.FixDofsProcesses.append(fix_dof_process)
-        free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
-        self.FreeDofsProcesses.append(free_dof_process)
-        
-        params["variable_name"].SetString(self.variable_name+"_Y")
-        fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
-        self.FixDofsProcesses.append(fix_dof_process)
-        free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
-        self.FreeDofsProcesses.append(free_dof_process)
-        
-        params["variable_name"].SetString(self.variable_name+"_Z")
-        fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
-        self.FixDofsProcesses.append(fix_dof_process)
-        free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
-        self.FreeDofsProcesses.append(free_dof_process)
-
         self.fix_derivated_variable = False
         if( self.fix_derivated_variable == False ):
             for dynamic_variable in self.LinearDynamicVariables:
                 if dynamic_variable == self.variable_name:
                     self.derivated_variable_name = "DISPLACEMENT"
                     self.fix_derivated_variable = True
+                    self.SetLinearTimeIntegration()
                     break
-                    
+
+                        
         if( self.fix_derivated_variable ):
             
             params["variable_name"].SetString(self.derivated_variable_name+"_X")
@@ -118,16 +102,62 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
             self.FreeDofsProcesses.append(free_dof_process)
             
             params["variable_name"].SetString(self.settings["variable_name"].GetString())
+            if( self.fix_time_integration == False ):
+
+                params["variable_name"].SetString(self.variable_name+"_X")
+                fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+                self.FixDofsProcesses.append(fix_dof_process)
+                free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+                self.FreeDofsProcesses.append(free_dof_process)
+        
+                params["variable_name"].SetString(self.variable_name+"_Y")
+                fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+                self.FixDofsProcesses.append(fix_dof_process)
+                free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+                self.FreeDofsProcesses.append(free_dof_process)
+        
+                params["variable_name"].SetString(self.variable_name+"_Z")
+                fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+                self.FixDofsProcesses.append(fix_dof_process)
+                free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+                self.FreeDofsProcesses.append(free_dof_process)
+
+                params["variable_name"].SetString(self.variable_name)
+                
+        else:
+            if( "DISPLACEMENT" == self.variable_name ):
+                self.SetLinearTimeIntegration()
+            
+            params["variable_name"].SetString(self.variable_name+"_X")
+            fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+            self.FixDofsProcesses.append(fix_dof_process)
+            free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+            self.FreeDofsProcesses.append(free_dof_process)
+        
+            params["variable_name"].SetString(self.variable_name+"_Y")
+            fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+            self.FixDofsProcesses.append(fix_dof_process)
+            free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+            self.FreeDofsProcesses.append(free_dof_process)
+        
+            params["variable_name"].SetString(self.variable_name+"_Z")
+            fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+            self.FixDofsProcesses.append(fix_dof_process)
+            free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+            self.FreeDofsProcesses.append(free_dof_process)
+
+            params["variable_name"].SetString(self.variable_name)
+            
     #
     def CreateAssignmentProcess(self, params):
 
         if( self.fix_derivated_variable == False ):
-            self.variable_name = "ROTATION"
+            self.variable_name = "DISPLACEMENT"
         else:
             for dynamic_variable in self.LinearDynamicVariables:
                 counter = 0
                 if dynamic_variable == self.variable_name:
-                    self.variable_name = self.AngularDynamicVariables[counter]
+                    self.variable_name = self.LinearDynamicVariables[counter]
                     break
                 counter = counter + 1
                                         
