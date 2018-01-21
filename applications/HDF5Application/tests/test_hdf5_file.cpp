@@ -239,6 +239,35 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_CreateGroup, KratosHDF5TestSuite)
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
 
+KRATOS_TEST_CASE_IN_SUITE(HDF5File_GetLinkNames, KratosHDF5TestSuite)
+{
+    KRATOS_TRY;
+    Parameters test_params(R"(
+        {
+            "file_name" : "test.h5",
+            "file_access_mode": "exclusive",
+            "file_driver": "core"
+        })");
+
+    HDF5::FileSerial test_file(test_params);
+    std::vector<std::string> names;
+    test_file.AddPath("/foo");
+    test_file.GetLinkNames("/foo", names);
+    KRATOS_CHECK(names.size() == 0);
+    test_file.AddPath("/foo/group");
+    HDF5::File::Vector<double> data(3, 0.0);
+    test_file.WriteDataSet("/foo/data", data);
+    KRATOS_CHECK(test_file.IsGroup("/foo/group"));
+    KRATOS_CHECK(test_file.IsDataSet("/foo/data"));
+    test_file.GetLinkNames("/foo", names);
+    KRATOS_CHECK(names.size() == 2);
+    KRATOS_CHECK(names[0] == "data");
+    KRATOS_CHECK(names[1] == "group");
+    KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
+    H5close(); // Clean HDF5 for next unit test.
+    KRATOS_CATCH_WITH_BLOCK("", H5close(););
+}
+
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_AddPath, KratosHDF5TestSuite)
 {
     KRATOS_TRY;

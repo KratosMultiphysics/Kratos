@@ -6,7 +6,7 @@
 // Project includes
 
 // Application includes
-#include "custom_utilities/hdf5_sorted_coordinates_process.h"
+#include "custom_utilities/hdf5_xdmf_connectivities_writer_process.h"
 
 namespace Kratos
 {
@@ -17,8 +17,9 @@ void AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
 
-    class_<HDF5::SortedCoordinatesProcess, HDF5::SortedCoordinatesProcess::Pointer, bases<Process>, boost::noncopyable>(
-        "HDF5SortedCoordinatesProcess", init<std::string, std::string>());
+    class_<HDF5::XdmfConnectivitiesWriterProcess, bases<Process>, boost::noncopyable>(
+        "HDF5XdmfConnectivitiesWriterProcess", init<std::string, std::string>())
+        ;
 }
 } // namespace Python.
 } // Namespace Kratos

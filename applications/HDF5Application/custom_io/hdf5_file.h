@@ -110,6 +110,8 @@ public:
 
     void CreateGroup(std::string Path);
 
+    void GetLinkNames(std::string GroupPath, std::vector<std::string>& rNames) const;
+
     void AddPath(std::string Path);
 
     template<class TScalar>

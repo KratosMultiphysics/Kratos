@@ -73,8 +73,7 @@ class KratosTopology(XdmfElement):
         connectivities_path = file_path + "/Connectivities"
         connectivities = h5py_file.get(connectivities_path)
         self.root.set("NumberOfElements", str(connectivities.shape[0]))
-        # Subtract 1 from connectivities for zero-based indexing.
-        data = XdmfHdfFunctionDataItem(h5py_file, connectivities_path, "$0 - 1")
+        data = XdmfHdfUniformDataItem(h5py_file, connectivities_path)
         self.root.append(data.root)
 
     def _get_topology_type(self, topology_group):
@@ -109,7 +108,7 @@ class KratosGeometry(XdmfElement):
         XdmfElement.__init__(self, 'Geometry')
         self.root.set("GeometryType", "XYZ")
         #data = KratosCoordinateDataItem(h5py_file, file_path)
-        data = XdmfHdfUniformDataItem(h5py_file, file_path + "/SortedCoordinates")
+        data = XdmfHdfUniformDataItem(h5py_file, file_path + "/Coordinates")
         self.root.append(data.root)
 
 
@@ -162,7 +161,7 @@ class XdmfHdfUniformDataItem(XdmfElement):
 #         points_group = h5py_file.get(file_path)
 #         if (not "ParametricCoordinates" in points_group.keys()) or (not "Coordinates" in points_group.keys()):
 #             raise Exception('Invalid file_path="%s".' % file_path)
-#         self.root.set("ItemType", "Coordinate")
+#         self.root.set("ItemType", "Coordinates")
 #         pcs = h5py_file.get(file_path + "/ParametricCoordinates")
 #         pc_dims = GetDimsString(pcs.shape)
 #         self.root.set("Dimensions", pc_dims)
@@ -219,13 +218,13 @@ class KratosCollectionGrid(XdmfElement):
         self.root.set("CollectionType", "Spatial")
         nodes_path = prefix + "/Nodes/Local"
         geom = KratosGeometry(h5py_file, nodes_path)
-        elems_path = prefix + "/Elements"
+        elems_path = prefix + "/Xdmf/Elements"
         elems_group = h5py_file.get(elems_path)
         for elem_name in elems_group.keys():
             topology = KratosTopology(h5py_file, elems_path + "/" + elem_name)
             uniform_grid = KratosUniformGrid(elem_name, topology, geom)
             self.root.append(uniform_grid.root)
-        #conds_path = prefix + "/Conditions"
+        #conds_path = prefix + "/Xdmf/Conditions"
         #conds_group = h5py_file.get(conds_path)
         #for cond_name in conds_group.keys():
         #    topology = KratosTopology(h5py_file, conds_path + "/" + cond_name)

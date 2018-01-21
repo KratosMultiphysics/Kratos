@@ -13,7 +13,9 @@ class XdmfFixedMeshPostProcess(object):
         self.model_part_name = model_part_name
 
     def Execute(self):
-        KratosHDF5.HDF5SortedCoordinatesProcess(self.model_part_name + ".h5", "/ModelData/Nodes/Local").Execute()
+        with h5py.File(self.model_part_name + ".h5", "r") as h5py_file:
+            if not "Xdmf" in h5py_file.get('/ModelData').keys():
+                KratosHDF5.HDF5XdmfConnectivitiesWriterProcess(self.model_part_name + ".h5", "/ModelData").Execute()
         # Create the reference mesh's xml hierarchy.
         with h5py.File(self.model_part_name + ".h5", "r") as h5py_file:
             fixed_mesh = xdmf_utils.KratosCollectionGrid(h5py_file, "/ModelData")

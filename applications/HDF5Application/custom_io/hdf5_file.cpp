@@ -168,6 +168,37 @@ void File::CreateGroup(std::string Path)
     KRATOS_CATCH("");
 }
 
+void File::GetLinkNames(std::string GroupPath, std::vector<std::string>& rNames) const
+{
+    KRATOS_TRY;
+    constexpr unsigned max_ssize = 100;
+    char buffer[max_ssize];
+    // Get number of links.
+    hid_t group_id = H5Gopen(m_file_id, GroupPath.c_str(), H5P_DEFAULT);
+    KRATOS_ERROR_IF(group_id < 0) << "H5Gopen failed." << std::endl;
+    
+    H5G_info_t group_info;
+    KRATOS_ERROR_IF(H5Gget_info(group_id, &group_info) < 0)
+        << "H5Gget_info failed." << std::endl;
+    hsize_t num_links = group_info.nlinks;
+    rNames.resize(num_links);
+
+    for (hsize_t i=0; i < num_links; ++i)
+    {
+        // Get size of name.
+        ssize_t ssize;
+        ssize = H5Lget_name_by_idx(m_file_id, GroupPath.c_str(), H5_INDEX_NAME,
+                                    H5_ITER_INC, i, buffer, max_ssize, H5P_DEFAULT);
+        KRATOS_ERROR_IF(ssize < 0) << "H5Lget_name_by_idx failed." << std::endl;
+        KRATOS_ERROR_IF(ssize > max_ssize) << "Link name size exceeds "
+                                           << max_ssize << std::endl;
+        rNames[i].resize(ssize);
+        std::copy_n(buffer, ssize, rNames[i].begin());
+    }
+    KRATOS_ERROR_IF(H5Gclose(group_id) < 0) << "H5Gclose failed." << std::endl;
+    KRATOS_CATCH("");
+}
+
 void File::AddPath(std::string Path)
 {
     KRATOS_ERROR_IF(Internals::IsPath(Path) == false) << "Invalid path: " << Path << std::endl;
