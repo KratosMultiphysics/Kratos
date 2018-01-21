@@ -15,6 +15,7 @@ Kratos is free under BSD [license](https://github.com/KratosMultiphysics/Kratos/
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
 [license]: https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt
 [kratos-master-status]: https://travis-ci.org/KratosMultiphysics/Kratos.svg?branch=master
+[travis-branches]: https://travis-ci.org/KratosMultiphysics/Kratos/branches
 
 # Main Features
 
