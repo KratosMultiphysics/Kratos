@@ -57,19 +57,19 @@ public:
     /// Counted pointer of PairedCondition
     KRATOS_CLASS_POINTER_DEFINITION( PairedCondition );
     
-    typedef Condition                                                                    BaseType;
+    typedef Condition                                                           BaseType;
     
-    typedef typename BaseType::VectorType                                              VectorType;
+    typedef BaseType::VectorType                                              VectorType;
 
-    typedef typename BaseType::MatrixType                                              MatrixType;
+    typedef BaseType::MatrixType                                              MatrixType;
 
-    typedef typename BaseType::IndexType                                                IndexType;
+    typedef BaseType::IndexType                                                IndexType;
 
-    typedef typename BaseType::GeometryType::Pointer                          GeometryPointerType;
+    typedef BaseType::GeometryType::Pointer                          GeometryPointerType;
 
-    typedef typename BaseType::NodesArrayType                                      NodesArrayType;
+    typedef BaseType::NodesArrayType                                      NodesArrayType;
 
-    typedef typename BaseType::PropertiesType::Pointer                      PropertiesPointerType;
+    typedef BaseType::PropertiesType::Pointer                      PropertiesPointerType;
     
     ///@}
     ///@name Life Cycle
