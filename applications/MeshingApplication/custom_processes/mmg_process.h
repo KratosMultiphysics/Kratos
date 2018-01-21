@@ -69,7 +69,7 @@ namespace Kratos
     typedef Element                                                 ElementType;
     typedef Condition                                             ConditionType;
     
-    // Index defintion
+    // Index definition
     typedef std::size_t                                               IndexType;
     typedef std::size_t                                                SizeType;
     
@@ -90,21 +90,21 @@ namespace Kratos
     /**
      * This enums are used to simplify the computation of the std::vector containing the conditions and elements
      */
-    #if !defined(MMG_GEOMETRY)
-    #define MMG_GEOMETRY
-        enum CondGeometries2D {Line = 0};
-        
-        enum ElemGeometries2D {Triangle2D = 0};
-        
-        enum CondGeometries3D {Triangle3D = 0, Quadrilateral3D = 1};
-        
-        enum ElemGeometries3D {Tetrahedra = 0, Prism = 1};
-    #endif
+#if !defined(MMG_GEOMETRY)
+#define MMG_GEOMETRY
+    enum CondGeometries2D {Line = 0};
     
-    #if !defined(FRAMEWORK_EULER_LAGRANGE)
-    #define FRAMEWORK_EULER_LAGRANGE
-        enum FrameworkEulerLagrange {Eulerian = 0, Lagrangian = 1};
-    #endif
+    enum ElemGeometries2D {Triangle2D = 0};
+    
+    enum CondGeometries3D {Triangle3D = 0, Quadrilateral3D = 1};
+    
+    enum ElemGeometries3D {Tetrahedra = 0, Prism = 1};
+#endif
+    
+#if !defined(FRAMEWORK_EULER_LAGRANGE)
+#define FRAMEWORK_EULER_LAGRANGE
+    enum FrameworkEulerLagrange {Eulerian = 0, Lagrangian = 1, ALE = 2};
+#endif
     
 ///@}
 ///@name  Functions
@@ -249,29 +249,20 @@ private:
     ///@name Member Variables
     ///@{
     
-    // The model part to compute
-    ModelPart& mrThisModelPart;                      
+    ModelPart& mrThisModelPart;                                   // The model part to compute           
+    Parameters mThisParameters;                                   // The parameters (can be used for general pourposes)
+    Node<3>::DofsContainerType  mDofs;                            // Storage for the dof of the node
     
-    // The parameters (can be used for general pourposes)
-    Parameters mThisParameters;
+    char* mFilename;                                              // I/O file name
+    std::string mStdStringFilename;                               // I/O file name (string)
+    unsigned int mEchoLevel;                                      // The echo level
+
+    FrameworkEulerLagrange mFramework;                            // The framework
     
-    // Storage for the dof of the node
-    Node<3>::DofsContainerType  mDofs;
+    std::unordered_map<int,std::vector<std::string>> mColors;     // Where the sub model parts IDs are stored
     
-    // I/O information
-    char* mFilename;
-    std::string mStdStringFilename;
-    unsigned int mEchoLevel;
-    
-    // The framework
-    FrameworkEulerLagrange mFramework;
-    
-    // Where the sub model parts IDs are stored
-    std::unordered_map<int,std::vector<std::string>> mColors;
-    
-    // Reference element and condition
-    std::unordered_map<int,Element::Pointer>   mpRefElement; 
-    std::unordered_map<int,Condition::Pointer> mpRefCondition;
+    std::unordered_map<int,Element::Pointer>   mpRefElement;      // Reference condition
+    std::unordered_map<int,Condition::Pointer> mpRefCondition;    // Reference element
 
     ///@}
     ///@name Private Operators
@@ -322,6 +313,11 @@ private:
      */
     
     std::vector<unsigned int> CheckConditions0();
+    
+    /**
+     * It checks if the conditions are repeated and remove the repeated ones
+     */
+        
     std::vector<unsigned int> CheckConditions1();
     
     /**
@@ -329,6 +325,11 @@ private:
      */
     
     std::vector<unsigned int> CheckElements0();
+    
+    /**
+     * It checks if the elemenst are removed and remove the repeated ones
+     */
+        
     std::vector<unsigned int> CheckElements1();
     
     /**
@@ -384,7 +385,7 @@ private:
     
     /**
      * It creates the new element
-     * @param CondId The id of the element
+     * @param ElemId The id of the element
      * @param PropId The submodelpart id
      * @param IsRequired MMG value (I don't know that it does)
      * @return pElement The pointer to the new condition created
@@ -399,7 +400,7 @@ private:
     
     /**
      * It creates the new element
-     * @param CondId The id of the element
+     * @param ElemId The id of the element
      * @param PropId The submodelpart id
      * @param IsRequired MMG value (I don't know that it does)
      * @return pElement The pointer to the new condition created
