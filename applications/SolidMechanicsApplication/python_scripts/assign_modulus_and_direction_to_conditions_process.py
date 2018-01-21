@@ -24,7 +24,7 @@ def Factory(custom_settings, Model):
 class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
     def __init__(self, Model, custom_settings ):
         KratosMultiphysics.Process.__init__(self)
-        
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -38,17 +38,17 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
              "local_axes" : {}
         }
         """)
-        
+
         #trick to allow "value" to be a string or a double value
         if(custom_settings.Has("modulus")):
             if(custom_settings["modulus"].IsString()):
                 default_settings["modulus"].SetString("0.0")
-                
-                
+
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-                
+
         ##check if variable type is a vector
         self.var = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
         if( (type(self.var) != KratosMultiphysics.VectorVariable) and (type(self.var) != KratosMultiphysics.Array1DVariable3) ):
@@ -75,13 +75,13 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
 
         ##check normalized direction
         direction   = []
-        scalar_prod = 0 
+        scalar_prod = 0
         for i in range(0, self.settings["direction"].size() ):
             direction.append( self.settings["direction"][i].GetDouble() )
             scalar_prod = scalar_prod + direction[i]*direction[i]
-            
+
         norm = sqrt(scalar_prod)
-        
+
         self.value = []
         if( norm != 0.0 ):
             for j in direction:
@@ -89,21 +89,21 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         else:
             for j in direction:
                 self.value.append(0.0)
-        
+
         ## set the value
         self.value_is_numeric = False
 
         if self.settings["modulus"].IsNumber():
 
             self.value_is_numeric = True
-            
+
             modulus = self.settings["modulus"].GetDouble()
 
             for i in range(0, len(self.value)):
                 self.value[i] *= modulus
-                      
-        else:       
-                
+
+        else:
+
             self.function_expression = self.settings["modulus"].GetString()
 
             if (sys.version_info > (3, 0)):
@@ -112,13 +112,13 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
                 self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval'))
 
             self.value_is_spatial_function = True
-            
-            if(self.function_expression.find("x") == -1 and 
+
+            if(self.function_expression.find("x") == -1 and
                self.function_expression.find("y") == -1 and
                self.function_expression.find("z") == -1): #depends on time only
-                    self.value_is_spatial_function = False  
+                    self.value_is_spatial_function = False
 
-                
+
     def GetVariables(self):
         nodal_variables = [self.settings["variable_name"].GetString()]
         return nodal_variables
@@ -129,14 +129,44 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
         if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
             self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
-        
+
         # set processes
-        params = KratosMultiphysics.Parameters("{}")           
+        params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name", self.settings["model_part_name"])
 
         params.AddEmptyValue("value")
         params.__setitem__("value", self.settings["direction"])
-        
+
+        self.CreateAssignmentProcess(params)
+
+        if( self.IsInsideInterval() and self.interval_string == "initial" ):
+            self.AssignValueProcess.Execute()
+
+
+    def ExecuteInitializeSolutionStep(self):
+
+        if self.IsInsideInterval():
+            self.AssignValueProcess.Execute()
+
+    def ExecuteFinalizeSolutionStep(self):
+
+        if not self.interval_ended:
+            current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+            delta_time   = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+
+            #arithmetic floating point tolerance
+            tolerance = delta_time * 0.001
+
+            if( (current_time + delta_time) > (self.interval[1] + tolerance) ):
+                self.interval_ended = True
+                if not self.finalized :
+                    self.AssignValueProcess.ExecuteFinalize()
+                    self.finalized = Truecurrent_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+
+    #
+    def CreateAssignmentProcess(self, params):
+
         if( self.value_is_numeric ):
 
             params.AddValue("variable_name", self.settings["variable_name"])
@@ -145,7 +175,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
             for i in self.value:
                 params["value"][counter].SetDouble(i)
                 counter+=1
-                
+
             self.AssignValueProcess = KratosSolid.AssignVectorToConditionsProcess(self.model_part, params)
 
         else:
@@ -158,43 +188,18 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
                 params["variable_name"].SetString(variable_name)
             else:
                 params.AddValue("variable_name", self.settings["variable_name"])
-                  
+
             counter = 0
             for i in self.value:
                 params["value"][counter].SetDouble(i)
                 counter+=1
-                
+
             self.AssignValueProcess = KratosSolid.AssignVectorFieldToConditionsProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
-                
 
-        if( self.IsInsideInterval() and self.interval_string == "initial" ):
-            self.AssignValueProcess.Execute()            
 
-            
-    def ExecuteInitializeSolutionStep(self):
-
-        if self.IsInsideInterval():
-            self.AssignValueProcess.Execute()
-
-    def ExecuteFinalizeSolutionStep(self):
-
-        if not self.interval_ended:
-            current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-            delta_time   = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        
-            #arithmetic floating point tolerance
-            tolerance = delta_time * 0.001
- 
-            if( (current_time + delta_time) > (self.interval[1] + tolerance) ):
-                self.interval_ended = True
-                if not self.finalized :
-                    self.AssignValueProcess.ExecuteFinalize()
-                    self.finalized = Truecurrent_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
- 
-    
     #
     def IsInsideInterval(self):
-        
+
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         delta_time   = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
@@ -206,10 +211,3 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
             return True
         else:
             return False
-
-            
-            
-
-        
-        
-        
