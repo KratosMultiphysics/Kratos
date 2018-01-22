@@ -113,7 +113,7 @@ def AssambleTestSuites():
     nightSuite.addTests(smallSuite)
     nightSuite.addTest(TALMTaylorPatchTestContact('test_execution'))
     nightSuite.addTest(TALMHertzSimpleSphereTestContact('test_execution'))
-    nightSuite.addTest(TALMHertzSphereTestContact('test_execution'))
+    #nightSuite.addTest(TALMHertzSphereTestContact('test_execution'))
     nightSuite.addTest(TALMHertzSimpleTestContact('test_execution'))
     nightSuite.addTest(TALMHertzCompleteTestContact('test_execution'))
     

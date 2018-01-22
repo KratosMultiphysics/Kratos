@@ -739,7 +739,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             DEM_SET_COMPONENTS_TO_ZERO_3(RelVel)
             DEM_SET_COMPONENTS_TO_ZERO_3x3(LocalCoordSystem)
             DEM_SET_COMPONENTS_TO_ZERO_3x3(OldLocalCoordSystem)
-                
+            
             #ifdef KRATOS_DEBUG
                 DemDebugFunctions::CheckIfNan(GlobalContactForce, "NAN in Force in Ball to Ball contact"); 
                 DemDebugFunctions::CheckIfNan(mContactMoment, "NAN in Torque in Ball to Ball contact"); 
@@ -874,8 +874,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             double LocalRelVel[3] = {0.0};
             
             if (indentation > 0.0) {
+                
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
-
                 mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(r_process_info,OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation,
                                                                      previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, wall, sliding);
             }
@@ -996,7 +996,7 @@ void SphericParticle::ComputeConditionRelativeData(int rigid_neighbour_index,   
         noalias(wall_delta_disp_at_contact_point) += wall_delta_displacement* Weight[inode];
 
     }
-}//ComputeConditionRelativeData
+} //ComputeConditionRelativeData
 
 void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& relative_velocity, double tangential_vel[3],
                                   double mTimeStep, bool sliding, double inverse_of_volume,
@@ -1021,6 +1021,7 @@ void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double
         impact_wear /= element_area;
         volume_wear /= element_area;
     }
+
     //COMPUTING THE PROJECTED POINT
 
     array_1d<double, 3> normal_to_wall;
@@ -1039,22 +1040,25 @@ void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double
     Vector shape_functions_coefs(3);
     wall->GetGeometry().PointLocalCoordinates(point_local_coordinates, inner_point);
     wall->GetGeometry().ShapeFunctionsValues(shape_functions_coefs, point_local_coordinates);
-       
-    wall->GetGeometry()[0].SetLock();
-    wall->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[0] * volume_wear;
-    wall->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[0] * impact_wear;
-    wall->GetGeometry()[0].UnSetLock();
+    
+    if ((shape_functions_coefs[0] >= 0.0) && (shape_functions_coefs[1] >= 0.0) && (shape_functions_coefs[2] >= 0.0)) { // Which means the ball is inside this element
+                                                                                                                       // This avoids negative shape functions that would give
+                                                                                                                       // negative wear values
+        wall->GetGeometry()[0].SetLock();
+        wall->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[0] * volume_wear;
+        wall->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[0] * impact_wear;
+        wall->GetGeometry()[0].UnSetLock();
 
-    wall->GetGeometry()[1].SetLock();
-    wall->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[1] * volume_wear;
-    wall->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[1] * impact_wear;
-    wall->GetGeometry()[1].UnSetLock();
+        wall->GetGeometry()[1].SetLock();
+        wall->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[1] * volume_wear;
+        wall->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[1] * impact_wear;
+        wall->GetGeometry()[1].UnSetLock();
 
-    wall->GetGeometry()[2].SetLock();
-    wall->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[2] * volume_wear;
-    wall->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[2] * impact_wear;
-    wall->GetGeometry()[2].UnSetLock();
-
+        wall->GetGeometry()[2].SetLock();
+        wall->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += shape_functions_coefs[2] * volume_wear;
+        wall->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) += shape_functions_coefs[2] * impact_wear;
+        wall->GetGeometry()[2].UnSetLock();
+    }
 } //ComputeWear
 
 void SphericParticle::CreateDiscontinuumConstitutiveLaws(const ProcessInfo& r_process_info)

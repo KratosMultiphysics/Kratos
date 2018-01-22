@@ -76,7 +76,7 @@ public:
     typedef Geometry<TPointType> GeometryType;
 
     /// Pointer definition of Geometry
-    KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME( Geometry<TPointType> );
+    KRATOS_CLASS_POINTER_DEFINITION( Geometry );
 
     /** Different criteria to evaluate the quality of a geometry.
      * Different criteria to evaluate the quality of a geometry.
@@ -887,7 +887,12 @@ public:
             const CoordinatesArrayType& rPoint
             )
     {
-        Matrix J = ZeroMatrix( LocalSpaceDimension(), LocalSpaceDimension() );
+        #ifdef KRATOS_DEBUG
+           if(WorkingSpaceDimension() != LocalSpaceDimension())
+                KRATOS_ERROR << "attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
+        #endif
+        
+        Matrix J = ZeroMatrix( WorkingSpaceDimension(), LocalSpaceDimension() );
 
         rResult.clear();
 
@@ -897,32 +902,30 @@ public:
 
         //Newton iteration:
         const double tol = 1.0e-8;
-
         unsigned int maxiter = 1000;
 
-        for ( unsigned int k = 0; k < maxiter; k++ )
-        {
-            CurrentGlobalCoords = ZeroVector( 3 );
+        for(unsigned int k = 0; k < maxiter; k++) {
+            CurrentGlobalCoords.clear();
+            DeltaXi.clear();
+
             GlobalCoordinates( CurrentGlobalCoords, rResult );
             noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
             InverseOfJacobian( J, rResult );
-            noalias( DeltaXi ) = prod( J, CurrentGlobalCoords );
+            for(unsigned int i = 0; i < WorkingSpaceDimension(); i++) {
+                for(unsigned int j = 0; j < WorkingSpaceDimension(); j++) {
+                    DeltaXi[i] += J(i,j)*CurrentGlobalCoords[j];
+                }
+            }
             noalias( rResult ) += DeltaXi;
 
-//            if ( MathUtils<double>::Norm3( DeltaXi ) > 30 )
-            if ( norm_2( DeltaXi ) > 30 )
-            {
-                break;
-            }
+            auto norm2DXi = norm_2(DeltaXi);
 
-//            if ( MathUtils<double>::Norm3( DeltaXi ) < tol )
-            if ( norm_2( DeltaXi ) < tol )
-            {
+            if(norm2DXi > 30 || norm2DXi < tol) {
                 break;
             }
         }
-
-        return( rResult );
+        
+        return rResult;
     }
 
     /**
@@ -2098,26 +2101,6 @@ public:
         return rResult;
     }
 
-    boost::numeric::ublas::vector<Matrix> const& MassFactors() const
-    {
-        return mpGeometryData->MassFactors();
-    }
-
-    boost::numeric::ublas::vector<Matrix> const& MassFactors( IntegrationMethod ThisMethod ) const
-    {
-        return  mpGeometryData->MassFactors( ThisMethod );
-    }
-
-    Matrix const& MassFactors( IndexType IntegrationPointIndex ) const
-    {
-        return mpGeometryData->MassFactors( IntegrationPointIndex );
-    }
-
-    Matrix const& MassFactors( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
-    {
-        return mpGeometryData->MassFactors( IntegrationPointIndex, ThisMethod );
-    }
-
     ///@}
     ///@name Input and output
     ///@{
@@ -2204,8 +2187,8 @@ public:
 
       rOStream << std::endl;
       rOStream << std::endl;
-      rOStream << "\tLength\t : " << Length() << std::endl;
-      rOStream << "\tArea\t : " << Area() << std::endl;
+      // rOStream << "\tLength\t : " << Length() << std::endl;
+      // rOStream << "\tArea\t : " << Area() << std::endl;
 
       // Charlie: Volume is not defined by every geometry (2D geometries),
       // which can cause this call to generate a KRATOS_ERROR while trying

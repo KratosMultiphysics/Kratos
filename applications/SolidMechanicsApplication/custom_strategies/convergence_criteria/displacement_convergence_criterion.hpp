@@ -53,7 +53,7 @@ namespace Kratos
 template<class TSparseSpace,
          class TDenseSpace
          >
-class DisplacementConvergenceCriterion : virtual public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class DisplacementConvergenceCriterion : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     /**@name Type Definitions */
