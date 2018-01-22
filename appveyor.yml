@@ -19,7 +19,7 @@ environment:
 
 # build configuration, i.e. Debug, Release, etc.
 configuration:
-  - Debug
+  - Release
 
 # scripts that are called at very beginning, before repo cloning
 init:
@@ -44,7 +44,7 @@ before_build:
 build:
   project: C:\projects\kratos\cmake_build\kratosMultiphysics.sln # path to Visual Studio solution or project
   parallel: true                           # enable MSBuild parallel builds
-  verbosity: normal                         # MSBuild verbosity level (quiet|minimal|normal|detailed)
+  verbosity: minimal                         # MSBuild verbosity level (quiet|minimal|normal|detailed)
 
 test: off
 #test_script:
