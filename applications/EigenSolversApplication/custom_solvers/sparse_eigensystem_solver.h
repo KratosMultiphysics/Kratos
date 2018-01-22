@@ -164,6 +164,8 @@ class SparseEigensystemSolver
             r(i, 0) = b.coeff(i, i);
         }
 
+        vector_t tmp(nn);
+
         // woaing vector
         vector_t w(nn);
         for (int i = 0; i != nn; ++i) {
@@ -218,7 +220,6 @@ class SparseEigensystemSolver
             }
 
             for (int j = 0; j != nc; ++j) {
-                vector_t tmp(nn);
                 tmp = r.col(j);
                 tt = solver.solve(tmp);
 
@@ -273,11 +274,27 @@ class SparseEigensystemSolver
                 break;
             }
 
-            prev_eigv = eig.eigenvectors();
+            prev_eigv = eig.eigenvalues();
         } while (true);
 
-        Eigen::Map<vector_t> (rEigenvalues.data().begin(), rEigenvalues.size()) = eig.eigenvalues().head(nroot);
-        Eigen::Map<matrix_t> (rEigenvectors.data().begin(), rEigenvectors.size1(), rEigenvectors.size2()) = solver.solve(r.leftCols(nroot));
+
+        if (rEigenvalues.size() != nroot) {
+            rEigenvalues.resize(nroot);
+        }
+        if (rEigenvectors.size1() != nroot || rEigenvectors.size2() != nn) {
+            rEigenvectors.resize(nroot, nn);
+        }
+
+        Eigen::Map<vector_t> eigvals (rEigenvalues.data().begin(), rEigenvalues.size());
+        Eigen::Map<matrix_t> eigvecs (rEigenvectors.data().begin(), rEigenvectors.size1(), rEigenvectors.size2());
+
+        eigvals = eig.eigenvalues().head(nroot);
+
+        for (int i = 0; i != nroot; ++i) {
+            tmp = r.col(i);
+            eigvecs.col(i) = solver.solve(tmp);
+        }
+
 
 
         // --- timer
