@@ -30,13 +30,28 @@
 
 
 
-#define KRATOS_CLASS_POINTER_DEFINITION(a) typedef boost::shared_ptr<a > Pointer; \
-typedef boost::shared_ptr<a > SharedPointer; \
-typedef boost::weak_ptr<a > WeakPointer
+namespace Kratos
+{
+template<class T>
+    using shared_ptr = boost::shared_ptr<T>; //std::shared_ptr<T>;
 
-#define KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME(a) typedef boost::shared_ptr<a > Pointer; \
-typedef typename boost::shared_ptr<a > SharedPointer; \
-typedef typename boost::weak_ptr<a > WeakPointer
+template<class T>
+    using weak_ptr = boost::weak_ptr<T>; //std::weak_ptr<T>;
+    
+template<typename C, typename...Args>
+    shared_ptr<C> make_shared(Args &&...args) {
+        return boost::make_shared<C>(std::forward<Args>(args)...);
+//         return std::make_shared<C>(std::forward<Args>(args)...);
+    }
+
+}
+    
+
+
+#define KRATOS_CLASS_POINTER_DEFINITION(a) typedef Kratos::shared_ptr<a > Pointer; \
+typedef Kratos::shared_ptr<a > SharedPointer; \
+typedef Kratos::weak_ptr<a > WeakPointer
+
 
 //-----------------------------------------------------------------
 //

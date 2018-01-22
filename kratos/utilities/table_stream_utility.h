@@ -46,6 +46,9 @@ public:
     ///@name Type Definitions
     ///@{
     
+    /// Counted pointer of TableStreamUtility
+    KRATOS_CLASS_POINTER_DEFINITION( TableStreamUtility );
+    
     ///@}
     ///@name Life Cycle
     ///@{

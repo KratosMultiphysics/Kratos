@@ -81,8 +81,12 @@ void KratosContactStructuralMechanicsApplication::Register()
     // VARIABLES
     /* Mortar method general variables */
     KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
-    KRATOS_REGISTER_VARIABLE( ELEMENT_POINTER )                                 // A pointer to the element belonging to this condition
     KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                             // The factor employed to serach an active/inactive node
+    KRATOS_REGISTER_VARIABLE( PAIRED_GEOMETRY )                                 // The paired geometry with the current condition
+    KRATOS_REGISTER_VARIABLE( PAIRED_NORMAL )                                   // The normal of the paired geometry
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )         // Auxiliar coordinates used to map
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )            // Delta coordinates used to map
+    
     
     /* Weighted values */
     KRATOS_REGISTER_VARIABLE( WEIGHTED_GAP )                                    // The integrated gap employed in mortar formulation
@@ -90,13 +94,13 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( WEIGHTED_FRICTION )                               // The integrated friction coefficient
     KRATOS_REGISTER_VARIABLE( WEIGHTED_SCALAR_RESIDUAL )                        // The integrated scalar residual  
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )     // The integrated vector residual    
+    KRATOS_REGISTER_VARIABLE( NORMAL_GAP )                                      // The normal gap employed in contact formulation
     
     /* For ALM mortar condition */
     KRATOS_REGISTER_VARIABLE( AUGMENTED_NORMAL_CONTACT_PRESSURE )               // The resultant augmented pressure in the normal direction
     KRATOS_REGISTER_VARIABLE( AUGMENTED_TANGENT_CONTACT_PRESSURE )              // The resultant augmented pressure in the tangent direction
     KRATOS_REGISTER_VARIABLE( TANGENT_FACTOR )                                  // The proportion between the tangent and normal penalty
     KRATOS_REGISTER_VARIABLE( CONSIDER_NORMAL_VARIATION )                       // A value used to check if consider normal variation or not
-    KRATOS_REGISTER_VARIABLE( CONSIDER_PAIR_VARIATION )                         // A value used to check if consider variation or not in the active inactive pairs
     KRATOS_REGISTER_VARIABLE( ADAPT_PENALTY )                                   // To set if the penalty is recalculated or not
     KRATOS_REGISTER_VARIABLE( MAX_GAP_FACTOR )                                  // The factor between the nodal H and the max gap considered to recalculate the penalty
     

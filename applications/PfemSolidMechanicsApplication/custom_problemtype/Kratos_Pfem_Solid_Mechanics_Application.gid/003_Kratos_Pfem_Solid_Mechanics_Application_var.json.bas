@@ -5,6 +5,7 @@
         "echo_level"      : *GenData(Echo_Level)
     },
     "model_settings"           : {
+        "model_name": "Main_Domain",
         "dimension"       : *GenData(DIMENSION,INT),
 	"bodies_list":[
 *set cond group_DeformableBodies *groups
