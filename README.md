@@ -4,9 +4,8 @@
 
 _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
 
-Kratos provide a core which defines the common framework and several application which work like plug-ins and extend it in different fields. (link to list of core applications)
+**Kratos** is **free** under BSD [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD licensed but each derived application can have its own propietary license. More in [application licensing model](link to application licensising model webpage)
 
-Kratos is free under BSD [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares. Many of its main applications are also free and BSD licensed but each derived application can have its own propietary license. (link to application licensising model webpage)
 
 
 [release-image]: https://img.shields.io/badge/release-5.2-green.svg?style=flat
@@ -18,6 +17,24 @@ Kratos is free under BSD [license](https://github.com/KratosMultiphysics/Kratos/
 [travis-branches]: https://travis-ci.org/KratosMultiphysics/Kratos/branches
 
 # Main Features
+**Kratos** is multiplatform and available for Windows,Linux (several distros) and can be compiled in OSX.
+
+**Kratos** is OpenMP and MPI parallel and scalable up to thousands of cores.
+
+**Kratos** provide a core which defines the common framework and several application which work like plug-ins and extend it in different fields.
+
+Its main applications are:
+- [Structural Mechanics]() Providing solution for solid, shell and beam structures with linear and nonlinear, static and dynamic behavior.
+- [Fluid Dynamics]() Provides 2D and 3D Incompressible fluids.
+- [Fluid Structure Interaction]() for solution of different FSI problems
+
+Some main modules are:
+- [External Solvers]()
+- [Trilinos]()
+- [Metis]()
+- [Meshing]()
+
+
 
 
 # Examples of use
@@ -62,7 +79,12 @@ Applied Aerodynamics Department
 Looking forward to seeing your logo here! 
 
 # Special Thanks To
-- Boost
-- GidPost
-- ZLib
-- ...
+In Kratos Core:
+- [Boost](http://www.boost.org/) for boost.python and ublas
+- [GidPost](https://www.gidhome.com/gid-plus/tools/476/gidpost/) providing output to [GiD](https://www.gidhome.com/)
+- [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
+- ZLib 
+
+In applications
+- [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in trilinos application
+- [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in metis application
