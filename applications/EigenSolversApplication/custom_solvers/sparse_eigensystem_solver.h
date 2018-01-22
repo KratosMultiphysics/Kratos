@@ -273,7 +273,7 @@ class SparseEigensystemSolver
                 break;
             }
 
-            prev_eigv = eig.eigenvectors();
+            prev_eigv = eig.eigenvalues();
         } while (true);
 
         Eigen::Map<vector_t> (rEigenvalues.data().begin(), rEigenvalues.size()) = eig.eigenvalues().head(nroot);
