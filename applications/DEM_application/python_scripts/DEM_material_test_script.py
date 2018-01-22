@@ -57,8 +57,7 @@ class MaterialTest(object):
       
       self.length_correction_factor = 1.0
 
-      self.graph_frequency        = int(self.parameters["GraphExportFreq"].GetInt()/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
-    
+      self.graph_frequency        = int(self.parameters["GraphExportFreq"].GetDouble()/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
       self.strain = 0.0; self.strain_bts = 0.0; self.volumetric_strain = 0.0; self.radial_strain = 0.0; self.first_time_entry = 1; self.first_time_entry_2 = 1
       self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0;
 
