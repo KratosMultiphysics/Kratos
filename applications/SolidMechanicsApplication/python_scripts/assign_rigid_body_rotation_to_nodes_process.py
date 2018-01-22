@@ -13,10 +13,10 @@ import assign_scalar_to_nodes_process as BaseProcess
 def Factory(custom_settings, Model):
     if(type(custom_settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyRigidBodyRotationProcess(Model, custom_settings["Parameters"])
+    return AssignRigidBodyRotationToNodesProcess(Model, custom_settings["Parameters"])
 
 ## All the processes python processes should be derived from "python_process"
-class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
+class AssignRigidBodyRotationToNodesProcess(BaseProcess.AssignScalarToNodesProcess):
     def __init__(self, Model, custom_settings ):
         KratosMultiphysics.Process.__init__(self)
 
@@ -44,7 +44,7 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.custom_settings = custom_settings
-
+        
         ##check if variable type is a vector
         self.var = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
         if( type(self.var) != KratosMultiphysics.Array1DVariable3 ):
@@ -169,6 +169,6 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
         params.AddValue("center", self.custom_settings["center"])
         if( self.value_is_numeric ):
             params.AddEmptyValue("modulus").SetDouble(self.value)
-            self.AssignValueProcess = KratosSolid.ApplyRigidBodyRotationToNodesProcess(self.model_part, params)
+            self.AssignValueProcess = KratosSolid.AssignRotationAboutAnAxisToNodesProcess(self.model_part, params)
         else:
-            self.AssignValueProcess = KratosSolid.ApplyRigidBodyRotationFieldToNodesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
+            self.AssignValueProcess = KratosSolid.AssignRotationFieldAboutAnAxisToNodesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)

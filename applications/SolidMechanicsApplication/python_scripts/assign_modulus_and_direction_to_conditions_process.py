@@ -33,7 +33,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
              "variable_name": "VARIABLE_NAME",
              "modulus" : 0.0,
              "direction": [0.0, 0.0, 0.0],
-             "constrainted": false,
+             "constrained": false,
              "interval": [0.0, "End"],
              "local_axes" : {}
         }
@@ -161,7 +161,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
                 self.interval_ended = True
                 if not self.finalized :
                     self.AssignValueProcess.ExecuteFinalize()
-                    self.finalized = Truecurrent_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+                    self.finalized = True
 
 
     #
