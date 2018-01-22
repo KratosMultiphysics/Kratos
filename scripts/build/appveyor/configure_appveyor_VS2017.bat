@@ -1,5 +1,4 @@
 cmake .. -G "Visual Studio 15 2017 Win64"                                       ^
--DCMAKE_GENERATOR_TOOLSET=x64                                                   ^
 -DCMAKE_CXX_FLAGS="-msse3" 								                        ^
 -DCMAKE_C_FLAGS="-msse3   " 									                ^
 -DBOOST_ROOT="C:\Libraries\boost_1_65_1"                                        ^
