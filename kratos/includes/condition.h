@@ -132,7 +132,7 @@ public:
     Condition(IndexType NewId = 0)
         : BaseType(NewId)
         , Flags()
-        , mpProperties(new PropertiesType)
+        , mpProperties(nullptr)
     {
     }
 
@@ -142,7 +142,7 @@ public:
     Condition(IndexType NewId, const NodesArrayType& ThisNodes)
         : BaseType(NewId,GeometryType::Pointer(new GeometryType(ThisNodes)))
         , Flags()
-        , mpProperties(new PropertiesType)
+        , mpProperties(nullptr)
     {
     }
 
@@ -152,7 +152,7 @@ public:
     Condition(IndexType NewId, GeometryType::Pointer pGeometry)
         : BaseType(NewId,pGeometry)
         , Flags()
-        , mpProperties(new PropertiesType)
+        , mpProperties(nullptr)
     {
     }
 
@@ -935,21 +935,33 @@ public:
 
     PropertiesType::Pointer pGetProperties()
     {
+        KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
+            << "Tryining to get the properties of " << Info()
+            << ", which are uninitialized." << std::endl;
         return mpProperties;
     }
 
     const PropertiesType::Pointer pGetProperties() const
     {
+        KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
+            << "Tryining to get the properties of " << Info()
+            << ", which are uninitialized." << std::endl;
         return mpProperties;
     }
 
     PropertiesType& GetProperties()
     {
+        KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
+            << "Tryining to get the properties of " << Info()
+            << ", which are uninitialized." << std::endl;
         return *mpProperties;
     }
 
     PropertiesType const& GetProperties() const
     {
+        KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
+            << "Tryining to get the properties of " << Info()
+            << ", which are uninitialized." << std::endl;
         return *mpProperties;
     }
 
