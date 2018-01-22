@@ -31,7 +31,7 @@ clone_folder: C:\projects\kratos
 
 # scripts that run after cloning repository
 install:
-  - cmd: C:\"Program Files (x86)"\"Microsoft Visual Studio 14.1"\VC\vcvarsall.bat x64
+  - cmd: C:\"Program Files (x86)"\"Microsoft Visual Studio 14.0"\VC\vcvarsall.bat x64
   - cmd: cp C:\projects\kratos\scripts\build\appveyor\configure_appveyor_VS2017.bat C:\projects\kratos\cmake_build\configure_appveyor_VS2017.bat
 
 # scripts to run before build
