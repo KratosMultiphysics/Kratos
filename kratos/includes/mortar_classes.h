@@ -1366,7 +1366,7 @@ public:
         const bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = Me/norm_me;
         
         // We compute the normalized inverse 
-        double aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_Me); 
+        double aux_det = MathUtils<double>::DetMat<bounded_matrix<double, TNumNodes, TNumNodes>>(normalized_Me); 
         if (std::abs(aux_det) >= tolerance) 
         { 
             const bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);  
@@ -1607,7 +1607,7 @@ public:
         const bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = BaseClassType::Me/norm_Me;
         
         // We compute the normalized inverse
-        aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_Me);
+        aux_det = MathUtils<double>::DetMat<bounded_matrix<double, TNumNodes, TNumNodes>>(normalized_Me);
         if (std::abs(aux_det) < tolerance) return false;
         
         const bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance); 

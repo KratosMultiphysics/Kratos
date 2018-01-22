@@ -252,6 +252,10 @@ def ConstructListsOfResultsToPrint(pp):
     if pp.CFD_DEM["embedded_option"].GetBool():
         pp.rigid_faces_nodal_results += ["POSITIVE_FACE_PRESSURE"]
         pp.rigid_faces_nodal_results += ["NEGATIVE_FACE_PRESSURE"]
+        
+    if pp.CFD_DEM["PostNonDimensionalVolumeWear"].GetBool(): 
+        pp.rigid_faces_nodal_results += ["IMPACT_WEAR"] 
+        pp.rigid_faces_nodal_results += ["NON_DIMENSIONAL_VOLUME_WEAR"]
 
     # changes on the fluid variables to print for the sake of consistency
     ChangeListOfFluidNodalResultsToPrint(pp)

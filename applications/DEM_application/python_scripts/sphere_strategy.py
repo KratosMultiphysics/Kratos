@@ -8,7 +8,8 @@ import cluster_file_reader
 
 class ExplicitStrategy:
 
-    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
+    #def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
+    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
 
         # Initialization of member variables
 
@@ -41,7 +42,7 @@ class ExplicitStrategy:
         self.bounding_box_option     = DEM_parameters["BoundingBoxOption"].GetBool()
         self.fix_velocities_flag     = 0
         self.Procedures              = procedures
-        self.time_integration_scheme = scheme
+        #self.time_integration_scheme = scheme
         #self.time_integration_scheme.SetRotationOption(self.rotation_option)
 
         self.clean_init_indentation_option = DEM_parameters["CleanIndentationsOption"].GetBool()
@@ -151,6 +152,7 @@ class ExplicitStrategy:
 
 
         self.SetContinuumType()
+        self.do_search_neighbours = True # Hard-coded until needed as an option
 
     def SetContinuumType(self):
         self.continuum_type = False
@@ -209,8 +211,7 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
 
         # SEARCH-RELATED
-        self.search_increment_for_walls = self.search_increment # for the moment, until all bugs have been removed
-        self.do_search_neighbours = True # Hard-coded until needed as an option
+        self.search_increment_for_walls = self.search_increment # for the moment, until all bugs have been removed        
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
         self.spheres_model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
@@ -222,13 +223,14 @@ class ExplicitStrategy:
 
         # TIME RELATED PARAMETERS
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
-
-        os.chdir("..")
+               
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
 
         for properties in self.inlet_model_part.Properties:
             self.ModifyProperties(properties)
+
+        os.chdir('..')
 
         for properties in self.cluster_model_part.Properties:
             self.ModifyProperties(properties)
@@ -270,15 +272,17 @@ class ExplicitStrategy:
 
         self.SetVariablesAndOptions()
 
-        if (self.DEM_parameters["IntegrationScheme"].GetString() == 'Verlet_Velocity'):
+        if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
+                                                              #self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
+                                                              self.search_strategy, self.do_search_neighbours)
                                                               #TODO: remove time_integration_scheme. no longer necessary and maybe safety_factor
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                             self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
+                                                             #self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
+                                                             self.search_strategy, self.do_search_neighbours)
                                                              #TODO: remove time_integration_scheme. no longer necessary
 
     def BeforeInitialize(self):
@@ -404,7 +408,7 @@ class ExplicitStrategy:
 
         return math.sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * math.exp(alpha)) - 1.0)
 
-    def IntegrationSchemeTranslator(self, name):
+    def TranslationalIntegrationSchemeTranslator(self, name):
         class_name = None
 
         if name == 'Forward_Euler':
@@ -415,32 +419,81 @@ class ExplicitStrategy:
             class_name = 'TaylorScheme'
         elif name == 'Newmark_Beta_Method':
             class_name = 'NewmarkBetaScheme'
-        elif name == 'Verlet_Velocity':
-            class_name = 'VerletVelocityScheme'
+        elif name == 'Velocity_Verlet':
+            class_name = 'VelocityVerletScheme'
+
+        return class_name
+    
+    def RotationalIntegrationSchemeTranslator(self, name_translational, name_rotational):
+        class_name = None
+
+        if name_rotational == 'Direct_Integration':
+            if name_translational == 'Forward_Euler':
+                class_name = 'ForwardEulerScheme'
+            elif name_translational == 'Symplectic_Euler':
+                class_name = 'SymplecticEulerScheme'
+            elif name_translational == 'Taylor_Scheme':
+                class_name = 'TaylorScheme'
+            elif name_translational == 'Newmark_Beta_Method':
+                class_name = 'NewmarkBetaScheme'
+            elif name_translational == 'Velocity_Verlet':
+                class_name = 'VelocityVerletScheme'
+        elif name_rotational == 'Runge_Kutta':
+            class_name = 'RungeKuttaScheme'
+        elif name_rotational == 'Quaternion_Integration':
+            class_name = 'QuaternionIntegrationScheme'
 
         return class_name
 
-    def GetSchemeInstance(self, class_name):
-        return globals().get(class_name)()
+    def GetTranslationalSchemeInstance(self, class_name):
+         if not class_name == 'NewmarkBetaScheme':
+             return globals().get(class_name)()
+         else:
+             return globals().get(class_name)(0.5,0.25)
+    
+    def GetRotationalSchemeInstance(self, class_name):
+         if not class_name == 'NewmarkBetaScheme':
+             return globals().get(class_name)()
+         else:
+             return globals().get(class_name)(0.5,0.25)
 
-    def GetScheme(self, name):
-        class_name = self.IntegrationSchemeTranslator(name)
-        scheme = None
+    def GetTranslationalScheme(self, name):
+        class_name = self.TranslationalIntegrationSchemeTranslator(name)
+        translational_scheme = None
         error_status = 0
         summary = ''
 
         if not class_name == None:
             try:
-                scheme = self.GetSchemeInstance(class_name)
-                return scheme, error_status, summary
+                translational_scheme = self.GetTranslationalSchemeInstance(class_name)
+                return translational_scheme, error_status, summary
             except:
                 error_status = 1
-                summary = 'The class corresponding to the scheme name (' + name + ') has not been added to python. Please, select a different name or add the required class.'
+                summary = 'The class corresponding to the translational integration scheme named ' + name + ' has not been added to python. Please, select a different name or add the required class.'
         else:
             error_status = 2
-            summary = 'The scheme name (' + name + ') does not designate any available scheme. Please, select a different one'
+            summary = 'The translational integration scheme name ' + name + ' does not designate any available scheme. Please, select a different one'
 
-        return scheme, error_status, summary
+        return translational_scheme, error_status, summary
+    
+    def GetRotationalScheme(self, name_translational, name_rotational):
+        class_name = self.RotationalIntegrationSchemeTranslator(name_translational, name_rotational)
+        rotational_scheme = None
+        error_status = 0
+        summary = ''
+
+        if not class_name == None:
+            try:
+                rotational_scheme = self.GetRotationalSchemeInstance(class_name)
+                return rotational_scheme, error_status, summary
+            except:
+                error_status = 1
+                summary = 'The class corresponding to the rotational integration scheme name ' + name + ' has not been added to python. Please, select a different name or add the required class.'
+        else:
+            error_status = 2
+            summary = 'The rotational integration scheme name ' + name + ' does not designate any available scheme. Please, select a different one'
+
+        return rotational_scheme, error_status, summary
 
     def ModifyProperties(self, properties):
         DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
@@ -474,11 +527,20 @@ class ExplicitStrategy:
             pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
             self.Procedures.KRATOSprint(properties)
 
-        if properties.Has(DEM_INTEGRATION_SCHEME_NAME):
-            scheme_name = properties[DEM_INTEGRATION_SCHEME_NAME]
+        if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
+            translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
         else:
-            scheme_name = self.DEM_parameters["IntegrationScheme"].GetString()
+            translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
 
-        scheme, error_status, summary_mssg = self.GetScheme(scheme_name)
-        scheme.SetIntegrationSchemeInProperties(properties, True)
+        translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
+        
+        translational_scheme.SetTranslationalIntegrationSchemeInProperties(properties, True)
+            
+        if properties.Has(DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME):
+            rotational_scheme_name = properties[DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME]
+        else:
+            rotational_scheme_name = self.DEM_parameters["RotationalIntegrationScheme"].GetString()
+            
+        rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
+        rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
 
