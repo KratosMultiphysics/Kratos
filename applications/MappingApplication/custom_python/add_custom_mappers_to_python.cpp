@@ -38,26 +38,26 @@ namespace Python
 {
 
 // Wrapper functions for taking a default argument for the flags // TODO inline? Jordi
-inline void UpdateInterface(Mapper& dummy)
+inline void UpdateInterfaceWithoutArgs(Mapper& dummy)
 {
     Kratos::Flags dummy_flags = Kratos::Flags();
     double dummy_search_radius = -1.0f;
     dummy.UpdateInterface(dummy_flags, dummy_search_radius);
 }
 
-inline void UpdateInterface(Mapper& dummy, Kratos::Flags options)
+inline void UpdateInterfaceWithOptions(Mapper& dummy, Kratos::Flags options)
 {
     double dummy_search_radius = -1.0f;
     dummy.UpdateInterface(options, dummy_search_radius);
 }
 
-inline void UpdateInterface(Mapper& dummy, double search_radius)
+inline void UpdateInterfaceWithSearchRadius(Mapper& dummy, double search_radius)
 {
     Kratos::Flags dummy_flags = Kratos::Flags();
     dummy.UpdateInterface(dummy_flags, search_radius);
 }
 
-inline void Map(Mapper& dummy,
+inline void MapWithoutOptionsScalar(Mapper& dummy,
          const Variable<double>& origin_variable,
          const Variable<double>& destination_variable)
 {
@@ -65,7 +65,7 @@ inline void Map(Mapper& dummy,
     dummy.Map(origin_variable, destination_variable, dummy_flags);
 }
 
-inline void Map(Mapper& dummy,
+inline void MapWithoutOptionsVector(Mapper& dummy,
          const Variable< array_1d<double, 3> >& origin_variable,
          const Variable< array_1d<double, 3> >& destination_variable)
 {
@@ -73,7 +73,7 @@ inline void Map(Mapper& dummy,
     dummy.Map(origin_variable, destination_variable, dummy_flags);
 }
 
-inline void InverseMap(Mapper& dummy,
+inline void InverseMapWithoutOptionsScalar(Mapper& dummy,
                 const Variable<double>& origin_variable,
                 const Variable<double>& destination_variable)
 {
@@ -81,7 +81,7 @@ inline void InverseMap(Mapper& dummy,
     dummy.InverseMap(origin_variable, destination_variable, dummy_flags);
 }
 
-inline void InverseMap(Mapper& dummy,
+inline void InverseMapWithoutOptionsVector(Mapper& dummy,
                 const Variable< array_1d<double, 3> >& origin_variable,
                 const Variable< array_1d<double, 3> >& destination_variable)
 {
@@ -92,39 +92,6 @@ inline void InverseMap(Mapper& dummy,
 void  AddCustomMappersToPython()
 {
     using namespace boost::python;
-
-    void (*pUpdateInterface)(Mapper &)
-        = &UpdateInterface;
-
-    void (*pUpdateInterfaceOptions)(Mapper &, Kratos::Flags)
-        = &UpdateInterface;
-
-    void (*pUpdateInterfaceSearchRadius)(Mapper &, double)
-        = &UpdateInterface;
-
-    void (*pMapScalar)(Mapper &,
-                       const Variable<double> &,
-                       const Variable<double> &)
-        = &Map;
-
-    void (*pMapVector)(Mapper &,
-                       const Variable< array_1d<double, 3> > &,
-                       const Variable< array_1d<double, 3> > &)
-        = &Map;
-
-    void (*pInverseMapScalar)(Mapper &,
-                              const Variable<double> &,
-                              const Variable<double> &)
-        = &InverseMap;
-
-    void (*pInverseMapVector)(Mapper &,
-                              const Variable< array_1d<double, 3> > &,
-                              const Variable< array_1d<double, 3> > &)
-        = &InverseMap;
-
-
-    void (Mapper::*pUpdateInterfaceFull)(Kratos::Flags, double)
-        = &Mapper::UpdateInterface;
 
     void (Mapper::*pMapScalarOptions)(const Variable<double> &,
             const Variable<double> &,
@@ -149,15 +116,15 @@ void  AddCustomMappersToPython()
     // Exposing the base class of the Mappers to Python, but without constructor
     class_< Mapper, Mapper::Pointer, boost::noncopyable > mapper 
         = class_< Mapper, Mapper::Pointer, boost::noncopyable >("Mapper", no_init)
-            .def("UpdateInterface",  pUpdateInterface)
-            .def("UpdateInterface",  pUpdateInterfaceOptions)
-            .def("UpdateInterface",  pUpdateInterfaceSearchRadius)
-            .def("Map",              pMapScalar)
-            .def("Map",              pMapVector)
-            .def("InverseMap",       pInverseMapScalar)
-            .def("InverseMap",       pInverseMapVector)
+            .def("UpdateInterface",  UpdateInterfaceWithoutArgs)
+            .def("UpdateInterface",  UpdateInterfaceWithOptions)
+            .def("UpdateInterface",  UpdateInterfaceWithSearchRadius)
+            .def("Map",              MapWithoutOptionsScalar)
+            .def("Map",              MapWithoutOptionsVector)
+            .def("InverseMap",       InverseMapWithoutOptionsScalar)
+            .def("InverseMap",       InverseMapWithoutOptionsVector)
 
-            .def("UpdateInterface",  pUpdateInterfaceFull)
+            .def("UpdateInterface",  &Mapper::UpdateInterface)
             .def("Map",              pMapScalarOptions)
             .def("Map",              pMapVectorOptions)
             .def("InverseMap",       pInverseMapScalarOptions)
@@ -165,10 +132,10 @@ void  AddCustomMappersToPython()
             ;
     
     // Adding the flags that can be used while mapping
-    mapper.attr("SWAP_SIGN") = MapperFlags::SWAP_SIGN;
-    mapper.attr("ADD_VALUES") = MapperFlags::ADD_VALUES;
-    mapper.attr("CONSERVATIVE") = MapperFlags::CONSERVATIVE;
-    mapper.attr("REMESHED") = MapperFlags::REMESHED;
+    mapper.attr("SWAP_SIGN")        = MapperFlags::SWAP_SIGN;
+    mapper.attr("ADD_VALUES")       = MapperFlags::ADD_VALUES;
+    mapper.attr("CONSERVATIVE")     = MapperFlags::CONSERVATIVE;
+    mapper.attr("REMESHED")         = MapperFlags::REMESHED;
 
     // Jordi is it possible to expose the mappers without a constructor and use them only through the factory?
     // This would circumvent problems with the wrong space being selected
