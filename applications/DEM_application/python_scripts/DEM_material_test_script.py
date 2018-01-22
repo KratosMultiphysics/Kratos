@@ -65,14 +65,14 @@ class MaterialTest(object):
       
       # for the graph plotting    
       self.loading_velocity = 0.0
-      self.height =  self.parameters["SpecimenLength"].GetDouble()        
+      self.height = self.parameters["SpecimenLength"].GetDouble()        
       self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
       self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
       self.test_type = self.parameters["TestType"].GetString()
       self.problem_name = self.parameters["problem_name"].GetString()
-      self.LoadingVelocityTop =  self.parameters["LoadingVelocityTop"].GetDouble()        
+      self.LoadingVelocityTop = self.parameters["LoadingVelocityTop"].GetDouble()        
       self.LoadingVelocityBot = self.parameters["LoadingVelocityBot"].GetDouble()
-      self.MeasuringSurface =  self.parameters["MeasuringSurface"].GetDouble()        
+      self.MeasuringSurface = self.parameters["MeasuringSurface"].GetDouble()        
       self.LoadingVelocityBot = self.parameters["LoadingVelocityBot"].GetDouble()
       self.MeshType = self.parameters["MeshType"].GetString()
       self.MeshPath = self.parameters["MeshPath"].GetString()
@@ -119,7 +119,7 @@ class MaterialTest(object):
   def PrepareTests(self):
     
       ##Fixing horizontally top and bot
-      if(self.test_type != "BTS"):
+      if self.test_type != "BTS":
         
         for node in self.TOP:
           
@@ -135,12 +135,12 @@ class MaterialTest(object):
           node.Fix(VELOCITY_X);
           node.Fix(VELOCITY_Z);
 
-      if(self.test_type == "BTS"):
+      if self.test_type == "BTS":
 
         self.bts_export = open(self.problem_name + ".grf", 'w');
         ##self.BtsSkinDetermination()
 
-      elif (self.test_type == "Shear"):
+      elif self.test_type == "Shear":
           self.BreakBondUtility(self.spheres_model_part)
           self.graph_export = open(self.problem_name +"_graph.grf", 'w')
           self.graph_export_1 = open(self.problem_name +"_graph_top.grf", 'w')
@@ -152,7 +152,7 @@ class MaterialTest(object):
         self.graph_export_1 = open(self.problem_name +"_graph_top.grf", 'w')
         self.graph_export_2 = open(self.problem_name +"_graph_bot.grf", 'w')
         
-        if (self.test_type =="Hydrostatic"):  
+        if self.test_type == "Hydrostatic":  
           self.graph_export_volumetric = open(self.problem_name+"_graph_VOL.grf",'w')
 
         self.Procedures.KRATOSprint ('Initial Height of the Model: ' + str(self.height)+'\n')

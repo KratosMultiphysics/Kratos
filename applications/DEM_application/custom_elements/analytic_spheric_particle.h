@@ -62,8 +62,8 @@ int GetNumberOfCollisions();
 int GetNumberOfCollisionsWithFaces();
 int GetNumberOfCollisionsWithEdges();
 
-int MaxCollidingSpheres = 4;
-int MaxCollidingFaceSpheres = 4;
+static const int mMaxCollidingSpheres = 4;
+static const int mMaxCollidingFaceSpheres = 4;
 
 array_1d<int, 4> &GetCollidingIds();
 array_1d<double, 4> &GetCollidingNormalRelativeVelocity();
