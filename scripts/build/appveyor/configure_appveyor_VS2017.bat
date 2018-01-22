@@ -3,10 +3,10 @@ cmake .. -G "Visual Studio 15 2017 Win64"                                       
 -DCMAKE_C_FLAGS="-msse3   " 									                ^
 -DBOOST_ROOT="C:\Libraries\boost_1_65_1"                                        ^
 -DPYTHON_INCLUDE_PATH="C:\Python27-x64\include"							        ^
--DPYTHON_LIBRARY="C:\Python27-x64\libs\python27.lib"					            ^
--DCMAKE_BUILD_TYPE="Debug"  													^
+-DPYTHON_LIBRARY="C:\Python27-x64\libs\python27.lib"					        ^
+-DCMAKE_BUILD_TYPE="Release"  													^
 -DDEM_APPLICATION=ON                                                            ^
--DEXTERNAL_SOLVERS_APPLICATION=OFF                                               ^
+-DEXTERNAL_SOLVERS_APPLICATION=OFF                                              ^
 -DFLUID_DYNAMICS_APPLICATION=ON                                                 ^
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                           ^
 -DSWIMMING_DEM_APPLICATION=OFF                                                  ^
