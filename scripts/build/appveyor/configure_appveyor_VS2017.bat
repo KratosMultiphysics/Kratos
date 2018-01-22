@@ -2,9 +2,8 @@ cmake .. -G "Visual Studio 15 2017 Win64"                                       
 -DCMAKE_CXX_FLAGS="-msse3" 								                        ^
 -DCMAKE_C_FLAGS="-msse3   " 									                ^
 -DBOOST_ROOT="C:\Libraries\boost_1_65_1"                                        ^
--DBOOST_PYTHON_SUFFIX="3-vc141-mt-gd-1_65_1"                                    ^
--DPYTHON_INCLUDE_PATH="C:\Python36-x64\include"							        ^
--DPYTHON_LIBRARY="C:\Python36-x64\libs\python36.lib"					            ^
+-DPYTHON_INCLUDE_PATH="C:\Python27-x64\include"							        ^
+-DPYTHON_LIBRARY="C:\Python27-x64\libs\python27.lib"					            ^
 -DCMAKE_BUILD_TYPE="Debug"  													^
 -DDEM_APPLICATION=ON                                                            ^
 -DEXTERNAL_SOLVERS_APPLICATION=OFF                                               ^
