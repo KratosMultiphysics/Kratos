@@ -6,8 +6,6 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 
 **Kratos** is **free** under BSD [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD licensed but each derived application can have its own propietary license. More in [application licensing model](link to application licensising model webpage)
 
-
-
 [release-image]: https://img.shields.io/badge/release-5.2-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
@@ -35,10 +33,8 @@ Some main modules are:
 - [Metis]()
 - [Meshing]()
 
-
-
-
 # Examples of use
+Kratos has been used for simulation of many different problems in a wid variaty of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
 
 # Contributors
 Organizations contributing to Kratos: 
