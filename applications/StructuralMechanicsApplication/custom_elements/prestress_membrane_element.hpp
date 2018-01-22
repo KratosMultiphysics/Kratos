@@ -109,7 +109,7 @@ namespace Kratos
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
       std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void UpdatePrestress(unsigned int PointNumber);
+    
 
 
   protected:
@@ -305,8 +305,9 @@ namespace Kratos
         bounded_matrix<double,3,3>& rTargetRight,
         bounded_matrix<double,3,3>& rTensor);*/
 
-    void TransformPrestress(
-      unsigned int PointNumber);
+    void TransformPrestress(unsigned int PointNumber);
+
+    void UpdatePrestress(unsigned int PointNumber);
 
     int  Check(const ProcessInfo& rCurrentProcessInfo) override;
 

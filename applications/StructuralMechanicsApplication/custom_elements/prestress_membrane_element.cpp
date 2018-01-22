@@ -134,6 +134,8 @@ void PrestressMembraneElement::Initialize()
     // Initialize Variables
     mdensity = GetProperties()[DENSITY];
     mThickness = 0.00;
+
+    // determine if the prestress state is isotropic or anisotropic
     if(GetProperties().Has(MEMBRANE_PRESTRESS)){
         if(GetProperties()[MEMBRANE_PRESTRESS](0,0)== GetProperties()[MEMBRANE_PRESTRESS](0,1) && GetProperties()[MEMBRANE_PRESTRESS](0,2) == 0)
             mAnisotropicPrestress = false;
@@ -141,7 +143,7 @@ void PrestressMembraneElement::Initialize()
         else
             mAnisotropicPrestress = true;
     }
-    // initialize prestress matrix and prestress directions
+    // initialize prestress matrix and prestress directions (with dummy zero values)
     unsigned int strain_size = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
     Matrix prestress_matrix(strain_size,integration_points.size(),0), prestress_direction1(3,integration_points.size(),0), prestress_direction2(3,integration_points.size(),0);
     this->SetValue(MEMBRANE_PRESTRESS,prestress_matrix);
@@ -1136,6 +1138,7 @@ void PrestressMembraneElement::CalculateMembraneElasticityTensor(
 void PrestressMembraneElement::TransformPrestress(
     unsigned int PointNumber){
     
+    // definition prestress axes
     array_1d<double,3> GlobalPrestressAxis1;
     array_1d<double,3> GlobalPrestressAxis2;
     for(unsigned int i=0; i<3;i++){
@@ -1143,7 +1146,7 @@ void PrestressMembraneElement::TransformPrestress(
         GlobalPrestressAxis2[i] = GetValue(PRESTRESS_AXIS_2_GLOBAL)(i,PointNumber);
     }
 
-    // normalize global axes
+    // normalization global prestress axes
     GlobalPrestressAxis1 /= norm_2(GlobalPrestressAxis1);
     GlobalPrestressAxis2 /= norm_2(GlobalPrestressAxis2);
 
@@ -1152,30 +1155,28 @@ void PrestressMembraneElement::TransformPrestress(
     CrossProduct(GlobalPrestressAxis3, GlobalPrestressAxis1, GlobalPrestressAxis2);
     GlobalPrestressAxis3 /= norm_2(GlobalPrestressAxis3);
 
-    // Compute G1, G2, G3
-    array_1d<double,3> G1 = mG1[PointNumber]/norm_2(mG1[PointNumber]);
-    array_1d<double,3> G2 = mG2[PointNumber]/norm_2(mG2[PointNumber]);
-    array_1d<double,3> G3;
-    CrossProduct(G3,G1,G2);
-    G3 /= norm_2(G3);
+    // Compute local cartesian basis E1, E2, E3
+    array_1d<double,3> E1 = mG1[PointNumber]/norm_2(mG1[PointNumber]);
+    array_1d<double,3> E2, E3;
+    CrossProduct(E3,E1,mG2[PointNumber]);
+    E3 /= norm_2(E3);
+    CrossProduct(E2,E3,E1);
+    E2 /= norm_2(E2);
     
 
     // Compute T1, T2, T3
     array_1d<double, 3> normal_projection_plane;
     CrossProduct(normal_projection_plane, GlobalPrestressAxis1, GlobalPrestressAxis3);
     array_1d<double, 3> T1, T2, T3;
-    CrossProduct(T1, normal_projection_plane, G3);
+    CrossProduct(T1, normal_projection_plane, E3);
     T1 /= norm_2(T1);
-    CrossProduct(T2,G3,T1);
+    CrossProduct(T2,E3,T1);
     T2 /= norm_2(T2);
-    T3 = G3;
+    T3 = E3;
     
-    // Compute local Cartesian Basis
-    array_1d<double, 3> E2;
-    CrossProduct(E2,G3,G1);
-    E2 /= norm_2(E2);
 
-    // Transform to matrix
+
+    // Transform prestresses in the local cartesian cosy in reference configuration
     bounded_matrix<double,3,3> Origin = ZeroMatrix(3,3);
     bounded_matrix<double,3,3> Target = ZeroMatrix(3,3);
     bounded_matrix<double,3,3> Tensor = ZeroMatrix(3,3);
@@ -1184,41 +1185,28 @@ void PrestressMembraneElement::TransformPrestress(
         Origin(i,0) = T1(i);
         Origin(i,1) = T2(i);
         Origin(i,2) = T3(i);
-        Target(i,0) = G1(i);
+        Target(i,0) = E1(i);
         Target(i,1) = E2(i);
-        Target(i,2) = G3(i);        
+        Target(i,2) = E3(i);        
     }
-    if(this->Id() == 1){
-                std::cout<<"origin: "<<Origin<<std::endl;
-                std::cout<<"target: "<<Target<<std::endl;
-            }
+
     Tensor.clear();
     Tensor(0,0) = this->GetValue(MEMBRANE_PRESTRESS)(0,PointNumber);
     Tensor(1,1) = this->GetValue(MEMBRANE_PRESTRESS)(1,PointNumber);
     Tensor(1,0) = this->GetValue(MEMBRANE_PRESTRESS)(2,PointNumber);
     Tensor(0,1) = this->GetValue(MEMBRANE_PRESTRESS)(2,PointNumber);
-    Tensor(0,2) = 0;
-    Tensor(2,0) = 0;
-    Tensor(1,2) = 0;
-    Tensor(2,1) = 0;
-    Tensor(2,2) = 0;    
-    
+
     // Transformation Stress Tensor
-    if(this->Id() == 1){
-                std::cout<<"prestress before: "<<this->GetValue(MEMBRANE_PRESTRESS)<<std::endl;
-            }
     StructuralMechanicsMathUtilities::TensorTransformation<3>(Origin,Origin,Target,Target,Tensor);
 
+    // store prestress values in the elemental data
     Matrix& m = GetValue(MEMBRANE_PRESTRESS);
     m(0,PointNumber) = Tensor(0,0);
     m(1,PointNumber) = Tensor(1,1);
     m(2,PointNumber) = Tensor(1,0);
-    if(this->Id() == 1){
-                std::cout<<"prestress transform after: "<<Tensor<<std::endl;
-            }
 }
 
-
+// in each solution step: update reference configuration, update prestress (in the anisotropic case)
 void PrestressMembraneElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo){
     // reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
@@ -1261,8 +1249,8 @@ void PrestressMembraneElement::InitializeSolutionStep(ProcessInfo& rCurrentProce
     // Calculating geometry tensors in reference configuration on Integration points
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
     {
-        // update prestress
-        //std::cout<<"element id "<<this->Id()<<", "<<mAnisotropicPrestress<<std::endl;
+        // update prestress (in case of anisotropic prestress)
+        // if step=1: no update necessary
         if(mAnisotropicPrestress == true && rCurrentProcessInfo[TIME] != 1){
             UpdatePrestress(PointNumber);
         }
@@ -1341,7 +1329,7 @@ void PrestressMembraneElement::InitializeSolutionStep(ProcessInfo& rCurrentProce
         // Calculating the total area
         mTotalDomainInitialSize += mDetJ0[PointNumber] * IntegrationWeight;
 
-        // if step =1: in case of anisotropic remeshing: Store initial reference configuration for later use in the prestress modification
+        // if step =1: in case of anisotropic remeshing: Store initial reference configuration for later use in the prestress update
         if(rCurrentProcessInfo[TIME] ==1 && mAnisotropicPrestress == true){
             
             mG1Initial[PointNumber] = mG1[PointNumber];
@@ -1353,7 +1341,11 @@ void PrestressMembraneElement::InitializeSolutionStep(ProcessInfo& rCurrentProce
             
         }
 
-        if(mAnisotropicPrestress == false || rCurrentProcessInfo[TIME] == 1){
+        // project prestress in the plane spanned by G1 and G2 and transform it in the cartesian CoSy in reference configuration
+        // -- in case of isotropic prestress: no transformation necessary (isotropic state is the same in every (cartesian) CoSy)
+        // -- in case of anisotropic prestress: projection is only executed in the first step, in the following steps the prestress is updated 
+        //    based on the current state
+        if(mAnisotropicPrestress && rCurrentProcessInfo[TIME] == 1){
             // Initialize Prestress
             for (unsigned int i_strain=0; i_strain<strain_size; i_strain++){
                 prestress_variable(i_strain,PointNumber) = GetProperties()[MEMBRANE_PRESTRESS](0,i_strain);
@@ -1376,15 +1368,12 @@ void PrestressMembraneElement::InitializeSolutionStep(ProcessInfo& rCurrentProce
             TransformPrestress(PointNumber);
         }
 
-        
-        //transform the prestresses in the local cartesian coordinate system (originating from reference configuration)
-        //if(mAnisotropicPrestress == false)
-        //    TransformPrestress(PointNumber);
-        //else{
-        //    if(rCurrentProcessInfo[TIME] == 1)
-        //        TransformPrestress(PointNumber);
-        //}
-
+        // in case of isotropic prestress: set prestress (no transformation necessary)
+        if(mAnisotropicPrestress == false){
+            for (unsigned int i_strain=0; i_strain<strain_size; i_strain++){
+                prestress_variable(i_strain,PointNumber) = GetProperties()[MEMBRANE_PRESTRESS](0,i_strain);
+            }
+        }
     }
 
     // Initialize Material
@@ -1406,143 +1395,8 @@ void PrestressMembraneElement::InitializeNonLinearIteration(){
 }
 void PrestressMembraneElement::UpdatePrestress(unsigned int PointNumber){
    
-
-    ///*******************
-    // * computation of beta_i
-    //******************************/
-    //// Compute actual cosy
-    //array_1d<double, 3> g1;
-    //array_1d<double, 3> g2;
-    //array_1d<double, 3> g3;
-    //array_1d<double, 3> gab;
-    //
-    //const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = GetGeometry().ShapeFunctionsLocalGradients();
-    //Matrix DN_De = DN_DeContainer[PointNumber];
-    //CalculateMetricDeformed(PointNumber, DN_De, gab, g1, g2);
-
-    //double alpha_max = 1.1;
-    //double a_t1, a_t2, beta_1, beta_2;
-
-    //a_t1 = norm_2(g1)/norm_2(mG1_initial[PointNumber]);
-    //a_t2 = norm_2(g2)/norm_2(mG2_initial[PointNumber]);
-
-    ////determine if prestress adaption is necessary
-    //std::cout<<"element id: "<<this->Id()<<std::endl;
-    //std::cout<<"a_1: "<<a_t1<<"a_t2: "<<a_t2<<std::endl;
-    //if(a_t1 >alpha_max || a_t1 < (1.0/alpha_max) || a_t2 >alpha_max || a_t2 < (1.0/alpha_max)){
-
-    //    beta_1 = alpha_max/a_t1;
-    //    beta_2 = alpha_max/a_t2;
-
-    //    /*******************
-    //     * computation det F
-    //    ******************************/
-
-    //    //computation of inverse metric
-    //    array_1d<double, 3> inv_gab;
-    //    double det_gab = gab(0)*gab(1)-gab(2)*gab(2);
-    //    inv_gab(0)= 1/det_gab *gab(1);
-    //    inv_gab(1)= 1/det_gab *gab(0);
-    //    inv_gab(2)= -1/det_gab *gab(2);
-
-    //    //computation if the contravariant base vectors
-    //    array_1d<double, 3> contrav_g1;
-    //    array_1d<double, 3> contrav_g2;
-    //    contrav_g1 = inv_gab(0)*g1 + inv_gab(2)*g2;
-    //    contrav_g2 = inv_gab(2)*g1 + inv_gab(1)*g2;
-
-    //    // computation deformation gradient
-    //    bounded_matrix<double,2,2> deformation_gradient = ZeroMatrix(2,2);
-    //    for(unsigned int i=0; i<3; i++){
-    //        for(unsigned int j=0; j<3; j++){
-    //            deformation_gradient(i,j) = mG1[PointNumber](i) * contrav_g1(j) + mG2[PointNumber](i) * contrav_g2(j);
-    //        }
-    //    }
-
-    //    // computation det F
-    //    double det_F = deformation_gradient(0,0)*deformation_gradient(1,1) - deformation_gradient(0,1)*deformation_gradient(1,0);
-
-    //    /*******************
-    //      * Transformation prestress from local cartesian reference cosy to reference cosy
-    //    ******************************/
-    //    bounded_matrix<double,3,3> Origin = ZeroMatrix(3,3);
-    //    bounded_matrix<double,3,3> Target = ZeroMatrix(3,3);
-    //    bounded_matrix<double,3,3> Tensor = ZeroMatrix(3,3);
-
-    //    // Compute local cartesian reference cosy
-    //    array_1d<double,3> E1_tot = mG1[PointNumber]/norm_2(mG1[PointNumber]);
-    //    array_1d<double,3> E2 = mG2[PointNumber]/norm_2(mG2[PointNumber]);
-    //    array_1d<double,3> E3;
-    //    CrossProduct(E3,E1_tot,E2);
-    //    E3 /= norm_2(E3);
-    //    CrossProduct(E2,E3,E1_tot);
-    //    E2 /= norm_2(E2);
-
-
-    //    
-    //    // computation G3
-    //    array_1d<double, 3> G3;
-    //    CrossProduct(G3,mG1[PointNumber],mG2[PointNumber]);
-
-
-    //    for (int i=0;i<3;i++){
-    //        Origin(i,0) = E1_tot(i);
-    //        Origin(i,1) = E2(i);
-    //        Origin(i,2) = G3(i);
-    //        Target(i,0) = mG1[PointNumber](i);
-    //        Target(i,1) = mG2[PointNumber](i);
-    //        Target(i,2) = G3(i);
-
-    //    }
-    //    Tensor.clear();
-    //    Tensor(0,0) = this->GetValue(MEMBRANE_PRESTRESS)(0,PointNumber);
-    //    Tensor(1,1) = this->GetValue(MEMBRANE_PRESTRESS)(1,PointNumber);
-    //    Tensor(1,0) = this->GetValue(MEMBRANE_PRESTRESS)(2,PointNumber);
-    //    Tensor(0,1) = this->GetValue(MEMBRANE_PRESTRESS)(2,PointNumber);
-    //    Tensor(0,2) = 0;
-    //    Tensor(2,0) = 0;
-    //    Tensor(1,2) = 0;
-    //    Tensor(2,1) = 0;
-    //    Tensor(2,2) = 0; 
-
-    //    StructuralMechanicsMathUtilities::TensorTransformation<3>(Origin,Origin,Target,Target,Tensor);
-    //    Matrix& prestress_tensor = GetValue(MEMBRANE_PRESTRESS);
-    //    prestress_tensor(0,PointNumber) = Tensor(0,0);
-    //    prestress_tensor(1,PointNumber) = Tensor(1,1);
-    //    prestress_tensor(2,PointNumber) = Tensor(1,0);
-
-    //    /*******************
-    //     * update prestress
-    //    ******************************/
-    //    prestress_tensor(0, PointNumber) = beta_2/beta_1/det_F*prestress_tensor(0, PointNumber);
-    //    prestress_tensor(1, PointNumber) = beta_1/beta_2/det_F*prestress_tensor(1, PointNumber);
-    //    prestress_tensor(2, PointNumber) = 1/det_F*prestress_tensor(2, PointNumber);
-
-    //    /*******************
-    //     * transformation prestress from reference frame to local cartesian frame
-    //    ******************************/
-    //    Tensor.clear();
-    //    Tensor(0,0) = this->GetValue(MEMBRANE_PRESTRESS)(0,PointNumber);
-    //    Tensor(1,1) = this->GetValue(MEMBRANE_PRESTRESS)(1,PointNumber);
-    //    Tensor(1,0) = this->GetValue(MEMBRANE_PRESTRESS)(2,PointNumber);
-    //    Tensor(0,1) = this->GetValue(MEMBRANE_PRESTRESS)(2,PointNumber);
-    //    Tensor(0,2) = 0;
-    //    Tensor(2,0) = 0;
-    //    Tensor(1,2) = 0;
-    //    Tensor(2,1) = 0;
-    //    Tensor(2,2) = 0;
-
-    //    StructuralMechanicsMathUtilities::TensorTransformation<3>(Target,Target,Origin,Origin,Tensor);
-
-    //    prestress_tensor(0,PointNumber) = Tensor(0,0);
-    //    prestress_tensor(1,PointNumber) = Tensor(1,1);
-    //    prestress_tensor(2,PointNumber) = Tensor(1,0);
-    //    std::cout<<"prestress updated"<<std::endl;
-    //}
-    //std::cout<<"prestress after:"<<GetValue(MEMBRANE_PRESTRESS)<<std::endl;
-
     //-------------------------------------------
-    //--0--Computation different CoSys needed for the prestress transformation
+    //--1--Computation different CoSys needed for the prestress transformation
     //-------------------------------------------
 
     // Compute actual cosy and metric
@@ -1558,21 +1412,6 @@ void PrestressMembraneElement::UpdatePrestress(unsigned int PointNumber){
     // compute the out-of-plane direction and normalize it
     CrossProduct(g3,g1,g2);
     g3 /= norm_2(g3);
-
-
-    ////computation of inverse metric in actual config
-    //array_1d<double, 3> inv_gab;
-    //double det_gab = gab(0)*gab(1)-gab(2)*gab(2);
-    //inv_gab(0)= 1.0/det_gab *gab(1);
-    //inv_gab(1)= 1.0/det_gab *gab(0);
-    //inv_gab(2)= -1.0/det_gab *gab(2);
-
-    ////computation of the contravariant base vectors in actual config
-    //array_1d<double, 3> contrav_g1;
-    //array_1d<double, 3> contrav_g2;
-    //contrav_g1 = inv_gab(0)*g1 + inv_gab(2)*g2;
-    //contrav_g2 = inv_gab(2)*g1 + inv_gab(1)*g2;
-    //// out-out-plane direction: contrav_g3 = g3
 
     // computation of the out-of-plane direction in the reference configuration
     array_1d<double, 3> G3;
@@ -1613,40 +1452,6 @@ void PrestressMembraneElement::UpdatePrestress(unsigned int PointNumber){
     array_1d<double, 3> base_ref_contra_tot_1, base_ref_contra_tot_2;
     base_ref_contra_tot_1 = inv_metric_tot(0)*mG1Initial[PointNumber] + inv_metric_tot(2)*mG2Initial[PointNumber];
     base_ref_contra_tot_2 = inv_metric_tot(2)*mG1Initial[PointNumber] + inv_metric_tot(1)*mG2Initial[PointNumber];
-
-
-    // Compute contravariant basis in (updated) Reference configuration
-    // -->Compute the metric in reference configuration
-    array_1d<double, 3> metric_reference;
-    metric_reference(0)=inner_prod(mG1[PointNumber],mG1[PointNumber]);
-    metric_reference(1)=inner_prod(mG2[PointNumber],mG2[PointNumber]);
-    metric_reference(2)=inner_prod(mG2[PointNumber],mG1[PointNumber]);
-
-    // -->Invert metric in (total) reference configuration
-    double det_metric = metric_reference(0)*metric_reference(1)-metric_reference(2)*metric_reference(2);
-    array_1d<double, 3> inv_metric;
-    inv_metric(0) = 1.0/det_metric * metric_reference(1);
-    inv_metric(1) = 1.0/det_metric * metric_reference(0);
-    inv_metric(2) = -1.0/det_metric * metric_reference(2);
-    
-    // -->Compute contravariant basis (in total reference configuration)
-    array_1d<double, 3> base_ref_contra_1, base_ref_contra_2;
-    base_ref_contra_1 = inv_metric(0)*mG1[PointNumber] + inv_metric(2)*mG2[PointNumber];
-    base_ref_contra_2 = inv_metric(2)*mG1[PointNumber] + inv_metric(1)*mG2[PointNumber];
-
-
-    //-------------------------------------------
-    //--1--Compute the actual deformation gradient
-    //-------------------------------------------
-
-    // computation deformation gradient
-    bounded_matrix<double,3,3> deformation_gradient;// = ZeroMatrix(3,3);
-    for(unsigned int i=0; i<3; i++){
-        for(unsigned int j=0; j<3; j++){
-            deformation_gradient(i,j) = base_ref_contra_1(j)*g1(i) + base_ref_contra_2(j)*g2(i) + G3(j)*g3(i);
-        }
-    }
-        
     
     //-------------------------------------------
     //--2--Compute the total deformation gradient
@@ -1654,7 +1459,7 @@ void PrestressMembraneElement::UpdatePrestress(unsigned int PointNumber){
 
     
     // computation total deformation gradient
-    bounded_matrix<double,3,3> deformation_gradient_total;// = ZeroMatrix(3,3);
+    bounded_matrix<double,3,3> deformation_gradient_total;
     for(unsigned int i=0; i<3; i++){
         for(unsigned int j=0; j<3; j++){
             deformation_gradient_total(i,j) = base_ref_contra_tot_1(j)*g1(i) + base_ref_contra_tot_2(j)*g2(i) + mG3Initial[PointNumber](j)*g3(i);
@@ -1689,12 +1494,7 @@ void PrestressMembraneElement::UpdatePrestress(unsigned int PointNumber){
     Tensor(0,0) = gab(0);
     Tensor(1,1) = gab(1);
     Tensor(1,0) = gab(2);
-    Tensor(0,1) = gab(2);
-    Tensor(0,2) = 0;
-    Tensor(2,0) = 0;
-    Tensor(1,2) = 0;
-    Tensor(2,1) = 0;
-    Tensor(2,2) = 1;    
+    Tensor(0,1) = gab(2);   
     
     // Transformation C Tensor
     StructuralMechanicsMathUtilities::TensorTransformation<3>(Origin,Origin,Target,Target,Tensor);
@@ -1740,7 +1540,7 @@ void PrestressMembraneElement::UpdatePrestress(unsigned int PointNumber){
     else{
         //Compute the first principal direction
         //Eigenvector lies in the plan spanned up by G1 and G2
-        //-> (C-lambda^2*I)N =(C-lambda^2*I)(alpha1*G1+alpha2*G2)=B1*alpha1+B2*alpha2
+        //-> (C-lambda^2*I)N =(C-lambda^2*I)(alpha1*G1+alpha2*G2)=B1*alpha1+B2*alpha2 =0
 
         Tensor(0,0) -= lambda_1*lambda_1;
         Tensor(1,1) -= lambda_1*lambda_1;
@@ -1793,8 +1593,7 @@ void PrestressMembraneElement::UpdatePrestress(unsigned int PointNumber){
         for(unsigned int i=0;i<3;i++)
             N_act(i,j) /= length;
         }
-    if(this->Id()==1)
-        std::cout<<"Eigenvectors: "<<N_act<<std::endl;
+
     //-------------------------------------------
     //Compute the modified prestress
     //-------------------------------------------
@@ -1813,11 +1612,6 @@ void PrestressMembraneElement::UpdatePrestress(unsigned int PointNumber){
     Tensor(1,1) = GetValue(MEMBRANE_PRESTRESS)(1,PointNumber);
     Tensor(1,0) = GetValue(MEMBRANE_PRESTRESS)(2,PointNumber);
     Tensor(0,1) = GetValue(MEMBRANE_PRESTRESS)(2,PointNumber);
-    Tensor(0,2) = 0;
-    Tensor(2,0) = 0;
-    Tensor(1,2) = 0;
-    Tensor(2,1) = 0;
-    Tensor(2,2) = 1;
 
     StructuralMechanicsMathUtilities::TensorTransformation<3>(Origin,Origin,Target,Target,Tensor);
     
