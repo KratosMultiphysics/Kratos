@@ -134,7 +134,8 @@ public:
         }
         else
         {
-            KRATOS_ERROR << "Selected Mapper \"" << mapper_type << "\" not implemented" << std::endl;
+            KRATOS_ERROR << "Selected Mapper \"" << mapper_type << "\" is not implemented, " 
+                         << "available options are: \"nearest_neighbor\", \"nearest_element\"" << std::endl;
         }
 
         return mapper;
