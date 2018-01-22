@@ -292,7 +292,7 @@ class SparseEigensystemSolver
 
         for (int i = 0; i != nroot; ++i) {
             tmp = r.col(i);
-            eigvecs.col(i) = solver.solve(tmp); 
+            eigvecs.row(i) = solver.solve(tmp).normalized();
         }
 
 
