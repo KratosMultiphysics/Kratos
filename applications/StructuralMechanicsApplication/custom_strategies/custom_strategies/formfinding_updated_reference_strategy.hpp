@@ -616,6 +616,7 @@ namespace Kratos
             KRATOS_TRY;
 
             KRATOS_CATCH("");
+
         }
         
         void UpdateReferenceConfiguration(){

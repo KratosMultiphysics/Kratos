@@ -143,8 +143,9 @@ namespace Kratos
     unsigned int mStep;
 
     bool mAnisotropicPrestress;             // determines if isotropic or anisotropic prestress is applied
-    std::vector< array_1d<double, 3> > mG1_initial; // Base vector 1 in initial reference configuration
-    std::vector< array_1d<double, 3> > mG2_initial; // Base vector 2 in initial reference configuration
+    std::vector< array_1d<double, 3> > mG1Initial; // Base vector 1 in initial reference configuration
+    std::vector< array_1d<double, 3> > mG2Initial; // Base vector 2 in initial reference configuration
+    std::vector< array_1d<double, 3> > mG3Initial; // Base vector 2 in initial reference configuration
     array_1d<double, 3> mPreStress;         // Pre-Stress which cannot be read through mpda file. this is a temporary solution
 
 
