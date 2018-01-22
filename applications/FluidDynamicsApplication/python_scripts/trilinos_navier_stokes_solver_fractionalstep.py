@@ -80,31 +80,31 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.compute_reactions = self.settings["compute_reactions"].GetBool()
-
         ## Construct the linear solvers
         import trilinos_linear_solver_factory
-        self.settings["pressure_linear_solver_settings"].PrettyPrintJsonString()
         self.pressure_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
         self.velocity_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 
-        ## Set the element replace settings
-        if main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            default_element = "FractionalStep2D3N"
-            default_condition =  "WallCondition2D2N"
-        elif main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
-            default_element = "FractionalStep3D4N"
-            default_condition =  "WallCondition3D3N"
-        else:
-            Msg = 'Trilinos_NavierStokesSolver_FractionalStep Error:\n'
-            Msg+= 'Unsupported number of dimensions: {0}\n'.format(main_model_part.ProcessInfo[DOMAIN_SIZE])
-            raise Exception(Msg)
+        self.compute_reactions = self.settings["compute_reactions"].GetBool()
 
+        ## Set the element replace settings
         self.settings.AddEmptyValue("element_replace_settings")
-        self.settings["element_replace_settings"].AddEmptyValue("element_name")
-        self.settings["element_replace_settings"]["element_name"].SetString(default_element)
-        self.settings["element_replace_settings"].AddEmptyValue("condition_name")
-        self.settings["element_replace_settings"]["condition_name"].SetString(default_condition)
+        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
+            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                {
+                "element_name":"FractionalStep3D4N",
+                "condition_name": "WallCondition3D3N"
+                }
+                """)
+        elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                {
+                "element_name":"FractionalStep2D3N",
+                "condition_name": "WallCondition2D2N"
+                }
+                """)
+        else:
+            raise Exception("Domain size is not 2 or 3.")
 
         print("Construction of Trilinos_NavierStokesSolver_FractionalStep finished")
 
