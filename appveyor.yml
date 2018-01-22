@@ -7,9 +7,6 @@ clone_depth: 1
 # Image
 image: Visual Studio 2017
 
-# Toolset
-toolset: "v141"
-
 # build platform, i.e. Win32 (instead of x86), x64, Any CPU. This setting is optional.
 platform: 
   - x64
