@@ -45,7 +45,7 @@ before_build:
 build: off
 # build:
 #   project: C:\projects\kratos\cmake_build\kratosMultiphysics.sln # path to Visual Studio solution or project
-#   parallel: true                           # enable MSBuild parallel builds
+#   parallel: false                           # enable MSBuild parallel builds
 #   verbosity: minimal                         # MSBuild verbosity level (quiet|minimal|normal|detailed)
 
 test: off
