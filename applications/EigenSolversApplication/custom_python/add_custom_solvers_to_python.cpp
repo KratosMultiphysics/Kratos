@@ -66,6 +66,7 @@ void AddCustomSolversToPython()
 	class_<SparseEigensystemSolverType, SparseEigensystemSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable>
     	("SparseEigensystemSolver", init<Parameters>())
     	.def("Solve", &SparseEigensystemSolverType::Solve)
+    	.def("GetEigenValue", &SparseEigensystemSolverType::GetEigenValue)
 	;
 ;
 }
