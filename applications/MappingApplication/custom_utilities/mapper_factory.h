@@ -101,8 +101,14 @@ public:
 
         const std::string mapper_type = JsonParameters["mapper_type"].GetString();
 
-        if (mapper_type == "NearestNeighbor")
+        if (mapper_type == "NearestNeighbor" || mapper_type == "nearest_neighbor" )
         {
+            if (mapper_type == "NearestNeighbor")
+            {
+                std::cout << "MAPPER WARNING, you are using the old syntax, please use \"nearest_neighbor\""
+                          << "as mapper_type" << std::endl;
+            }
+            
             if (JsonParameters.Has("approximation_tolerance"))
             {
                 KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" "
@@ -113,8 +119,14 @@ public:
                                       r_interface_model_part_destination,
                                       JsonParameters));
         }
-        else if (mapper_type == "NearestElement")
+        else if (mapper_type == "NearestElement" || mapper_type == "nearest_element")
         {
+            if (mapper_type == "NearestElement")
+            {
+                std::cout << "MAPPER WARNING, you are using the old syntax, please use \"nearest_element\""
+                          << "as mapper_type" << std::endl;
+            }
+
             mapper = Mapper::Pointer( new NearestElementMapper(r_interface_model_part_origin,
                                       r_interface_model_part_destination,
                                       JsonParameters));
