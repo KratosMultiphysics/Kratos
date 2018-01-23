@@ -57,7 +57,7 @@ class SparseEigensystemSolver
     {
         Parameters default_params(R"(
         {
-            "solver_type": "SparseEigensystemSolver",
+            "solver_type": "eigen_sparse_eigensystem",
             "number_of_eigenvalues": 1,
             "max_iteration": 1000,
             "tolerance": 1e-6,
