@@ -19,6 +19,7 @@
 #include "geometries/geometry.h"
 #include "geometries/geometry_data.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 #include "drag_utilities.h"
@@ -27,112 +28,75 @@ namespace Kratos
 {
     /* Public functions *******************************************************/
 
-    array_1d<double, 3> DragUtilities::CalculateSlipDrag(ModelPart& rModelPart) {
+    array_1d<double, 3> DragUtilities::CalculateBodyFittedDrag(ModelPart& rModelPart) {
 
-        // Initialize total drag force
-        array_1d<double, 3> drag_force = ZeroVector(3);
+        // Get the root model part
+        ModelPart& root_model_part = rModelPart.GetRootModelPart();
 
-        // Initialize auxiliar arrays and partitioning
-        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
-        std::vector<array_1d<double, 3>> thread_drag_force(num_threads);
+        // Initialize the reaction variable
+        const array_1d<double, 3> zero_vect(3,0.0);
+        #pragma omp parallel for firstprivate(zero_vect)
+        for (int i = 0; i < static_cast<int>(root_model_part.NumberOfNodes()); ++i){
+            auto it_node = root_model_part.NodesBegin() + i;
+            noalias(it_node->FastGetSolutionStepValue(REACTION)) = zero_vect;
+        }
 
-        OpenMPUtils::PartitionVector conditions_partition;
-        OpenMPUtils::DivideInPartitions(rModelPart.NumberOfConditions(), num_threads, conditions_partition);
+        Vector RHS_Contribution;
+        Matrix LHS_Contribution;
+        ProcessInfo& rCurrentProcessInfo = root_model_part.GetProcessInfo();
+        const unsigned int domain_size = rCurrentProcessInfo[DOMAIN_SIZE];
 
-        // Iterate the model part elements to compute the drag
-        #pragma omp parallel shared(thread_drag_force)
-        {
-            // Compute each thread drag force values
-            int thread_id = OpenMPUtils::ThisThread();
-            ModelPart::ConditionIterator cond_begin = rModelPart.ConditionsBegin() + conditions_partition[thread_id];
-            ModelPart::ConditionIterator cond_end = rModelPart.ConditionsBegin() + conditions_partition[thread_id + 1];
+        #pragma omp parallel for private(RHS_Contribution, LHS_Contribution) firstprivate(domain_size)
+        for (int i_elem = 0; i_elem < static_cast<int>(root_model_part.NumberOfElements()); ++i_elem){
+            auto it_elem = root_model_part.ElementsBegin() + i_elem;
 
-            array_1d<double, 3> aux_drag_force = ZeroVector(3);
+            // Build local system
+            it_elem->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
 
-            for (ModelPart::ConditionIterator it_cond = cond_begin; it_cond != cond_end; ++it_cond) {
-                // Get condition geometry
-                DragUtilities::GeometryType& r_geometry = it_cond->GetGeometry();
-                const unsigned int n_nodes = r_geometry.PointsNumber();
+            // Get geometry
+            Element::GeometryType& r_geom = it_elem->GetGeometry();
+            const unsigned int n_nodes = r_geom.PointsNumber();
+            const unsigned int block_size = RHS_Contribution.size()/n_nodes;
 
-                // Get Gauss pt. data
-                const Matrix N_container = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-                const unsigned int n_gauss = r_geometry.IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
-                const IntegrationPointsArrayType gauss_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
+                r_geom[i_node].SetLock();
+                array_1d<double,3>& r_reaction = r_geom[i_node].FastGetSolutionStepValue(REACTION);
+                for (unsigned int d = 0; d < domain_size; ++d)
+                    r_reaction[d] -= RHS_Contribution[block_size*i_node + d];
 
-                // Get condition nodal pressure values
-                Vector p_values(n_nodes);
-                for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                    p_values(i_node) = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE);
-                }
-
-                // Pressure drag component integration
-                array_1d<double, 3> cond_drag = ZeroVector(3);
-
-                for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-                    // Gauss pt. area normal
-                    array_1d<double, 3> area_normal = r_geometry.AreaNormal(gauss_points[i_gauss].Coordinates());
-
-                    // Gauss pt. pressure interpolation
-                    double p_gauss = 0.0;
-                    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                        p_gauss += N_container(i_gauss, i_node) * p_values(i_node);
-                    }
-
-                    // Add Gauss pt. pressure normal projection contribution
-                    cond_drag -= gauss_points[i_gauss].Weight() * p_gauss * area_normal;
-                }
-
-                aux_drag_force += cond_drag;
+                r_geom[i_node].UnSetLock();
             }
-
-            thread_drag_force[thread_id] = aux_drag_force;
         }
 
-        // Perform reduction
-        for (unsigned int i_thread = 0; i_thread < num_threads; ++i_thread)
-        {
-            drag_force += thread_drag_force[i_thread];
-        }
+        // Assemble reaction data
+        root_model_part.GetCommunicator().AssembleCurrentData(REACTION);
 
-        // Perform MPI synchronization
-        rModelPart.GetCommunicator().SumAll(drag_force);
+        // Sum the reactions in the model part of interest
+        VariableUtils variable_utils;
+        array_1d<double, 3> drag_force = variable_utils.SumHistoricalNodeVectorVariable(REACTION, rModelPart, 0);
+        drag_force *= -1.0;
 
         return drag_force;
+
     }
 
     array_1d<double, 3> DragUtilities::CalculateEmbeddedDrag(ModelPart& rModelPart) {
         
         // Initialize total drag force
         array_1d<double, 3> drag_force = ZeroVector(3);
-
-        // Initialize auxiliar arrays and partitioning
-        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
-        std::vector<array_1d<double, 3>> thread_drag_force(num_threads);
-
-        OpenMPUtils::PartitionVector elements_partition;
-        OpenMPUtils::DivideInPartitions(rModelPart.NumberOfElements(), num_threads, elements_partition);
+        double& drag_x = drag_force[0];
+        double& drag_y = drag_force[1];
+        double& drag_z = drag_force[2];
 
         // Iterate the model part elements to compute the drag
-        #pragma omp parallel shared(thread_drag_force)
-        {
-            // Compute each thread drag force values
-            int thread_id = OpenMPUtils::ThisThread();
-            ModelPart::ElementIterator elem_begin = rModelPart.ElementsBegin() + elements_partition[thread_id];
-            ModelPart::ElementIterator elem_end = rModelPart.ElementsBegin() + elements_partition[thread_id + 1];
-
-            array_1d<double, 3> aux_drag_force = ZeroVector(3);
-            for (ModelPart::ElementIterator it_elem = elem_begin; it_elem != elem_end; ++it_elem) {
-                array_1d<double, 3> elem_drag;
-                it_elem->Calculate(DRAG_FORCE, elem_drag, rModelPart.GetProcessInfo());
-                aux_drag_force += elem_drag;
-            }
-
-            thread_drag_force[thread_id] = aux_drag_force;
-        }
-
-        // Perform reduction
-        for (unsigned int i_thread = 0; i_thread < num_threads; ++i_thread) {
-            drag_force += thread_drag_force[i_thread];
+        array_1d<double, 3> elem_drag;
+        #pragma omp parallel for reduction(+:drag_x) reduction(+:drag_y) reduction(+:drag_z) private(elem_drag) schedule(dynamic)
+        for(int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i){
+            auto it_elem = rModelPart.ElementsBegin() + i;
+            it_elem->Calculate(DRAG_FORCE, elem_drag, rModelPart.GetProcessInfo());
+            drag_x += elem_drag[0];
+            drag_y += elem_drag[1];
+            drag_z += elem_drag[2];
         }
 
         // Perform MPI synchronization
