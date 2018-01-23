@@ -1,12 +1,12 @@
 ## Fluid Dynamics Application
 
-The Fluid Dynamics Applications contains the core developments in Computational Fluid Dynamics (CFD) within Kratos Multiphysics.
+The Fluid Dynamics Application contains the core developments in Computational Fluid Dynamics (CFD) within Kratos Multiphysics.
 
 ### Features:
 
 - Stabilized FEM solvers for incompressible flow problems.
 
-- Support for MPI parallelization (with Trilinos Application)
+- Support for MPI parallelization (with Trilinos Application).
 
 - Embedded formulation for flows around non-watertight or poorly defined geometries (STL) or for problems with fixed mesh and deforming domains.
 
