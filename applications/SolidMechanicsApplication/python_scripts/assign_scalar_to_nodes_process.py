@@ -18,7 +18,7 @@ class compiled_time_spatial_function:
 
 
 def Factory(custom_settings, Model):
-    if(type(custom_settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignScalarToNodesProcess(Model, custom_settings["Parameters"])
 
@@ -210,7 +210,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     def CheckVariableType(self,name):
 
         self.var = KratosMultiphysics.KratosGlobals.GetVariable(name)
-        if(type(self.var) != KratosMultiphysics.Array1DComponentVariable and type(self.var) != KratosMultiphysics.DoubleVariable and type(self.var) != KratosMultiphysics.VectorVariable):
+        if( (not isinstance(self.var,KratosMultiphysics.Array1DComponentVariable)) and (not isinstance(self.var,KratosMultiphysics.DoubleVariable)) and (not isinstance(self.var,KratosMultiphysics.VectorVariable)) ):
             raise Exception("Variable type is incorrect. Must be a scalar or a component")
 
 

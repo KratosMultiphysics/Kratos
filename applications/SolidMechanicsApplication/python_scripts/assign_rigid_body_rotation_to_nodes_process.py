@@ -11,7 +11,7 @@ import sys
 import assign_scalar_to_nodes_process as BaseProcess
 
 def Factory(custom_settings, Model):
-    if(type(custom_settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignRigidBodyRotationToNodesProcess(Model, custom_settings["Parameters"])
 
@@ -44,10 +44,10 @@ class AssignRigidBodyRotationToNodesProcess(BaseProcess.AssignScalarToNodesProce
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.custom_settings = custom_settings
-        
+
         ##check if variable type is a vector
         self.var = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
-        if( type(self.var) != KratosMultiphysics.Array1DVariable3 ):
+        if( not isinstance(self.var,KratosMultiphysics.Array1DVariable3) ):
             raise Exception("Variable type is incorrect. Must be a three-component vector.")
 
 
@@ -65,7 +65,7 @@ class AssignRigidBodyRotationToNodesProcess(BaseProcess.AssignScalarToNodesProce
     def CheckVariableType(self,name):
 
         self.var = KratosMultiphysics.KratosGlobals.GetVariable(name)
-        if(type(self.var) != KratosMultiphysics.Array1DVariable3):
+        if( not isinstance(self.var,KratosMultiphysics.Array1DVariable3) ):
             raise Exception("Variable type is incorrect. Must be an array_1d vector")
 
     #

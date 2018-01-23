@@ -7,7 +7,7 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import assign_modulus_and_direction_to_conditions_process as BaseProcess
 
 def Factory(custom_settings, Model):
-    if(type(custom_settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignModulusAndDirectionToConditionsProcess(Model, custom_settings["Parameters"])
 
@@ -41,7 +41,7 @@ class AssignModulusAndDirectionToConditionsProcess(BaseProcess.AssignModulusAndD
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.custom_settings = custom_settings
-        
+
         ###assign scalar process
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name", self.settings["model_part_name"])

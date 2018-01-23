@@ -288,7 +288,7 @@ private:
 
 	    std::vector<array_1d<double,3> > Couples(nconditions);
 	    std::vector<array_1d<double,3> > Forces(nconditions);
-	    
+
 	    Matrix rotation_matrix;
 	    array_1d<double,3> radius;
 	    array_1d<double,3> distance;
@@ -301,9 +301,7 @@ private:
 
 		Geometry< Node<3> >& rGeometry = it->GetGeometry();
 
-		double norm;
-		double norm_radius;
-                //Get geometry size
+		//Get geometry size
 		unsigned int size  = rGeometry.size();
 		array_1d<double,3> couple;
 		couple.clear();
@@ -315,22 +313,22 @@ private:
 		    noalias(distance) = rGeometry[j].GetInitialPosition() - mcenter;
 
 		    noalias(radius)  = distance-inner_prod(distance,mdirection) * mdirection,
-		    
+
 		    //compute the skewsymmmetric tensor for the torque axis
 		    BeamMathUtils<double>::VectorToSkewSymmetricTensor(mdirection, rotation_matrix);
 
-		    norm_radius = norm_2(radius);
+		    double norm_radius = norm_2(radius);
 		    if(norm_radius!=0)
 			radius/=norm_radius;
-		    
+
 		    noalias(force) = prod(rotation_matrix, radius);
 
 		    noalias(couple) += force*norm_radius;
-		    
-		    norm = norm_2(force);
+
+		    double norm = norm_2(force);
 		    if(norm!=0)
 			force/=norm;
-		    
+
 		    //compute the skewsymmmetric tensor for the radius
 		    BeamMathUtils<double>::VectorToSkewSymmetricTensor(radius, rotation_matrix);
 
@@ -343,12 +341,12 @@ private:
 		    domain_size = rGeometry.Area();
 		if(dimension==2)
 		    domain_size = rGeometry.Length();
-		
+
 		Couples[i] = moment * domain_size * (1.0/double(size));
 		Forces[i]  = couple * (1.0/double(size));
-		
+
             }
-	
+
 	    double total_size = 1.0;
 	    array_1d<double,3> torque;
 	    for(int i = 0; i<nconditions; i++)
@@ -362,12 +360,12 @@ private:
 		if(dimension==2)
 		    domain_size = rGeometry.Length();
 
-		total_size += domain_size;		
+		total_size += domain_size;
 		torque += Couples[i];
 	    }
 
 	    torque /=total_size;
-	    
+
 	    //solve distributed couple
 	    double value = 0;
 	    for(int i = 0; i<3; i++)
@@ -379,7 +377,7 @@ private:
 	    }
 
 	    array_1d<double,3> load;
-            #pragma omp parallel for private(torque)	    
+            #pragma omp parallel for private(torque)
 	    for(int i = 0; i<nconditions; i++)
 	    {
 		ModelPart::ConditionsContainerType::iterator it = it_begin + i;

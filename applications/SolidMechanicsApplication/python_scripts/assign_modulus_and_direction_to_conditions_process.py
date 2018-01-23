@@ -16,7 +16,7 @@ class compiled_time_spatial_function:
         return eval(self.compiled_function)
 
 def Factory(custom_settings, Model):
-    if(type(custom_settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignModulusAndDirectionToConditionsProcess(Model, custom_settings["Parameters"])
 
@@ -51,7 +51,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
 
         ##check if variable type is a vector
         self.var = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
-        if( (type(self.var) != KratosMultiphysics.VectorVariable) and (type(self.var) != KratosMultiphysics.Array1DVariable3) ):
+        if( (not isinstance(self.var,KratosMultiphysics.VectorVariable)) and (not isinstance(self.var,KratosMultiphysics.Array1DVariable3)) ):
             raise Exception("Variable type is incorrect. Must be a vector or an array_1d vector.")
 
         self.model         = Model
@@ -181,7 +181,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         else:
 
             #function values are assigned to a vector variable :: transformation is needed
-            if(type(self.var) == KratosMultiphysics.Array1DVariable3):
+            if( isinstance(self.var,KratosMultiphysics.Array1DVariable3) ):
                 variable_name = self.settings["variable_name"].GetString() + "_VECTOR"
                 print(" variable name modified:", variable_name)
                 params.AddEmptyValue("variable_name")
