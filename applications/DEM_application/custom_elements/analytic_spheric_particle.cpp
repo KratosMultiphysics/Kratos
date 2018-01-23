@@ -100,7 +100,7 @@ void AnalyticSphericParticle::ClearImpactMemberVariables()
     mNumberOfCollidingSpheresWithFaces = 0;
     mNumberOfCollidingSpheresWithEdges = 0;
 
-    for (unsigned int i = 0; i < 4; ++i){
+    for (unsigned int i = 0; i < mMaxCollidingSpheres; ++i){
         mCollidingIds[i] = 0;
         mCollidingRadii[i] = 0.0;
         mCollidingNormalVelocities[i] = 0.0;
@@ -173,7 +173,7 @@ void AnalyticSphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(S
 
     const auto id = data_buffer.mpOtherParticle->Id();
     
-    if (IsNewNeighbour(id)){
+    if (IsNewNeighbour(id) && mNumberOfCollidingSpheres < mMaxCollidingSpheres){
         RecordNewImpact(data_buffer);
     }
 
@@ -213,7 +213,7 @@ void AnalyticSphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle
         }    
         int p_wall_id;
         p_wall_id = p_wall->Id();    
-        if (IsNewFaceNeighbour(p_wall_id)){
+        if (IsNewFaceNeighbour(p_wall_id) && mNumberOfCollidingSpheresWithFaces < mMaxCollidingFaceSpheres){
            
             RecordNewFaceImpact(data_buffer);
         }
