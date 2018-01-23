@@ -110,7 +110,7 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
         return msh_file_matches and res_file_matches
 
 
-    def writeActiveOnly(self):
+    def test_write_active_only(self):
 
         self.post_mode = GiDPostMode.GiD_PostAscii
         self.output_file_name = "test_gid_io_gp_active_only"
@@ -125,7 +125,7 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
 
             self.assertTrue(self.outputMatchesReferenceSolution())
 
-    def writeDynamicDeactivation(self):
+    def test_write_dynamic_deactivation(self):
 
         self.post_mode = GiDPostMode.GiD_PostAscii
         self.output_file_name = "test_gid_io_gp_dynamic_deactivation"
