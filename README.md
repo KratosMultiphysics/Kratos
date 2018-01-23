@@ -23,8 +23,8 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 
 Its main applications are:
 - [DEM]() for cohesive and non cohesive shperic and non spheric particles simultion
-- [Fluid Dynamics]() Provides 2D and 3D incompressible fluids formulation
-- [Fluid Structure Interaction]() for solution of different FSI problems
+- [Fluid Dynamics](applications/FluidDynamicsApplication/README.md) Provides 2D and 3D incompressible fluids formulation
+- [Fluid Structure Interaction](applications/FSIapplication/README.md) for solution of different FSI problems
 - [Structural Mechanics]() Providing solution for solid, shell and beam structures with linear and nonlinear, static and dynamic behavior
 
 Some main modules are:
