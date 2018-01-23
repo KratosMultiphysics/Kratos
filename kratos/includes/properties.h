@@ -239,7 +239,7 @@ public:
     template<class TXVariableType, class TYVariableType>
     TableType const& GetTable(const TXVariableType& XVariable, const TYVariableType& YVariable) const
     {
-        return mTables[Key(XVariable.Key(), YVariable.Key())];
+        return mTables.at(Key(XVariable.Key(), YVariable.Key()));
     }
 
     template<class TXVariableType, class TYVariableType>

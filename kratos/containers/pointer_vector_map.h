@@ -421,6 +421,46 @@ public:
     }
 
 
+    TDataType& at(const key_type& Key)
+    {
+        pair_iterator sorted_part_end;
+
+        if(mData.size() - mSortedPartSize >= mMaxBufferSize)
+        {
+            Sort();
+            sorted_part_end = mData.end();
+        }
+        else
+            sorted_part_end	= mData.begin() + mSortedPartSize;
+
+        pair_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
+        if (i == sorted_part_end){
+            if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
+            {
+                KRATOS_ERROR << Key << " not found in this map" << std::endl;
+            }
+        }
+
+        return *(i->second);
+    }
+
+    TDataType& at(const key_type& Key) const
+    {
+        pair_iterator sorted_part_end;
+        sorted_part_end	= mData.begin() + mSortedPartSize;
+
+        pair_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
+        if (i == sorted_part_end){
+            if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
+            {
+                KRATOS_ERROR << Key << " not found in this map" << std::endl;
+            }
+        }
+
+        return *(i->second);
+    }
+
+
     void Sort()
     {
         std::sort(mData.begin(), mData.end(), CompareKey());
