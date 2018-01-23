@@ -27,9 +27,6 @@
 
 #include "mapping_application.h"
 
-// #include "custom_mappers/nearest_neighbor_mapper.h"
-// #include "custom_mappers/nearest_element_mapper.h"
-
 
 namespace Kratos
 {
