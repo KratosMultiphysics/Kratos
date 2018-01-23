@@ -143,7 +143,7 @@ void  AddCustomUtilitiesToPython()
 
     // Calculate embedded drag utilities
     class_< DragUtilities, boost::noncopyable> ("DragUtilities", init<>())
-        .def("CalculateSlipDrag", &DragUtilities::CalculateSlipDrag)
+        .def("CalculateBodyFittedDrag", &DragUtilities::CalculateBodyFittedDrag)
         .def("CalculateEmbeddedDrag", &DragUtilities::CalculateEmbeddedDrag)
         ;
 
