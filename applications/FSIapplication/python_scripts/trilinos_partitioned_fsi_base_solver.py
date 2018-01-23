@@ -234,7 +234,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
     # TODO: GET IT FROM THE SERIAL BASE SOLVER ONCE THE MAPPER IN MAPPING APPLICATION IS USED IN SERIAL PROBLEMS AS WELL
     def _ComputeMeshPredictionSingleFaced(self):
 
-            if (KratosMPI.mpi.rank == 0) : print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]," prediction...")
+            if (KratosMPI.mpi.rank == 0) : print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]," prediction...")
             # Get the previous step fluid interface nodal fluxes
             self.interface_mapper.Map(KratosMultiphysics.REACTION,
                                       KratosStructural.POINT_LOAD,

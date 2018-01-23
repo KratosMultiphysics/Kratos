@@ -497,18 +497,26 @@ public:
     ///@{
     
     // Auxiliar types
-    typedef bounded_matrix<int, 1, 1>                    type_0;
-    typedef array_1d<double, TNumNodes>                  type_1;
-    typedef bounded_matrix<double, TNumNodes, TDim>      type_2;
-    typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
-    typedef typename std::conditional<TNumNodes == 2, type_0, bounded_matrix<double, 3, 3>>::type type_4;
+    typedef bounded_matrix<int, 1, 1> DummyBoundedMatrixType;
+    
+    typedef array_1d<double, TNumNodes> GeometryArrayType;
+    
+    typedef bounded_matrix<double, TNumNodes, TDim> GeometryDoFMatrixType;
+    
+    typedef bounded_matrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
+    
+    typedef typename std::conditional<TNumNodes == 2, DummyBoundedMatrixType, bounded_matrix<double, 3, 3>>::type VertexDerivativesMatrixType;
     
     // Auxiliar sizes
-    static const unsigned int size_0 = 1;
-    static const unsigned int size_1 =     (TNumNodes * TDim);
-    static const unsigned int size_2 = 2 * (TNumNodes * TDim);
-    static const unsigned int size_3 = (TDim == 2) ? size_1 : size_2;
-    static const unsigned int size_4 = (TDim == 2) ? size_0 : size_2;
+    static const unsigned int DummySize = 1;
+    
+    static const unsigned int DoFSizeGeometry = (TNumNodes * TDim);
+    
+    static const unsigned int DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
+    
+    static const unsigned int DoFSizeDerivativesDependence = (TDim == 2) ? DoFSizeGeometry : DoFSizePairedGeometry;
+    
+    static const unsigned int DoFSizeDerivativesVertex = (TDim == 2) ? DummySize : DoFSizePairedGeometry;
     
     ///@}
     ///@name Life Cycle
@@ -523,23 +531,28 @@ public:
     double ScaleFactor;
     
     // The normals of the nodes
-    type_2 NormalMaster, NormalSlave;
+    GeometryDoFMatrixType NormalMaster, NormalSlave;
     
     // Displacements and original coordinates
-    type_2 X1, X2, u1, u2;
+    GeometryDoFMatrixType X1, X2, u1, u2;
     
     // Derivatives    
-    array_1d<double, size_3> DeltaDetjSlave;
-    array_1d<type_1, size_3> DeltaPhi;
-    array_1d<type_1, size_2> DeltaN1, DeltaN2;
-    array_1d<type_2, size_1> DeltaNormalSlave, DeltaNormalMaster;
-    array_1d<type_4, size_4> DeltaCellVertex;
+    array_1d<double, DoFSizeDerivativesDependence> DeltaDetjSlave;
+    array_1d<GeometryArrayType, DoFSizeDerivativesDependence> DeltaPhi;
+    array_1d<GeometryArrayType, DoFSizePairedGeometry> DeltaN1, DeltaN2;
+    array_1d<GeometryDoFMatrixType, DoFSizeGeometry> DeltaNormalSlave, DeltaNormalMaster;
+    array_1d<VertexDerivativesMatrixType, DoFSizeDerivativesVertex> DeltaCellVertex;
     
-    // Ae
-    type_3 Ae;
+    /**
+     * Ae matrix. 
+     * This matrix corresponds with a coefficient matrix that relates the standard shape functions with the dual shape function 
+     * It is used to stabilize and for an assembling reduction
+     * The name is taken from Popp's work
+     */
+    GeometryMatrixType Ae;
     
     // Derivatives Ae
-    array_1d<type_3, size_3> DeltaAe;
+    array_1d<GeometryMatrixType, DoFSizeDerivativesDependence> DeltaAe;
     
     ///@}
     ///@name Operators
@@ -570,33 +583,31 @@ public:
         
         // We get the ALM variables
         for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
             PenaltyParameter[i] = SlaveGeometry[i].GetValue(INITIAL_PENALTY);
-        }
         ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
-    }
-    
-    /**
-     * This method reset tos zero the derivatives
-     */
-    
-    virtual void ResetDerivatives()
-    {                
-        // Derivatives 
-        for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
-        {
+        
+        // We initialize the derivatives
+        for (unsigned int i = 0; i < TNumNodes * TDim; ++i) {
+            DeltaDetjSlave[i] = 0.0;
+            if (TDim == 3) DeltaDetjSlave[i + TNumNodes * TDim] = 0.0;
             DeltaPhi[i] = ZeroVector(TNumNodes);
+            if (TDim == 3) DeltaPhi[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
             DeltaN1[i] = ZeroVector(TNumNodes);
             DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
             DeltaN2[i] = ZeroVector(TNumNodes);
             DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
         }
+    }
     
-        if (TDim == 3) // Derivative of the cell vertex
-        {
-            for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
-            {
-                DeltaPhi[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
+    /**
+     * This method reset to zero the cell vertex derivatives
+     */
+    
+    virtual void ResetDerivatives()
+    {                
+        // Derivatives 
+        if (TDim == 3) { // Derivative of the cell vertex
+            for (unsigned int i = 0; i < TNumNodes * TDim; ++i) {
                 DeltaCellVertex[i] = ZeroMatrix(3, 3);
                 DeltaCellVertex[i + TNumNodes * TDim] = ZeroMatrix(3, 3);
             }
@@ -613,21 +624,17 @@ public:
         Ae = ZeroMatrix(TNumNodes, TNumNodes);
         
         // Derivatives Ae
-        for (unsigned int i = 0; i < size_3; ++i)
-        {
+        for (unsigned int i = 0; i < DoFSizeDerivativesDependence; ++i)
             DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes);
-        }
     }
 
     /**
      * Updating the Master pair
-     * @param pCond The pointer of the current master
+     * @param MasterGeometry The master geometry
      */
     
-    virtual void UpdateMasterPair(const Condition::Pointer& pCond)
-    {
-        const GeometryType& MasterGeometry =  pCond->GetGeometry();
-        
+    virtual void UpdateMasterPair(const GeometryType& MasterGeometry)
+    {        
         NormalMaster = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL, 0);
         
         // Displacements, coordinates and normals of the master
@@ -727,14 +734,13 @@ public:
     
     // Auxiliar types
     typedef DerivativeData<TDim, TNumNodes, TNormalVariation> BaseClassType;
-    typedef array_1d<double, TNumNodes>                              type_1;
-    typedef bounded_matrix<double, TNumNodes, TDim>                  type_2;
-    typedef bounded_matrix<double, TNumNodes, TNumNodes>             type_3;
-    typedef bounded_matrix<double, 3, 3>                             type_4;
+    
+    typedef bounded_matrix<double, TNumNodes, TDim> GeometryDoFMatrixType;
     
     // Auxiliar sizes
-    static const unsigned int size_1 =     (TNumNodes * TDim);
-    static const unsigned int size_2 = 2 * (TNumNodes * TDim);
+    static const unsigned int DoFSizeGeometry = (TNumNodes * TDim);
+    
+    static const unsigned int DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
     
     ///@}
     ///@name Life Cycle
@@ -748,7 +754,7 @@ public:
     double TangentFactor;
     
     // Displacements and velocities
-    type_2 u1old, u2old;
+    GeometryDoFMatrixType u1old, u2old;
     
     ///@}
     ///@name Operators
@@ -779,14 +785,12 @@ public:
     
     /**
      * Updating the Master pair
-     * @param pCond The pointer of the current master
+     * @param MasterGeometry The geometry of the master
      */
     
-    void UpdateMasterPair(const Condition::Pointer& pCond) override
+    void UpdateMasterPair(const GeometryType& MasterGeometry) override
     {
-        BaseClassType::UpdateMasterPair(pCond);
-        
-        const GeometryType& MasterGeometry = pCond->GetGeometry();
+        BaseClassType::UpdateMasterPair(MasterGeometry);
         
         u2old = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
     }
@@ -887,6 +891,9 @@ public:
         
     typedef MortarKinematicVariables<TNumNodes> KinematicVariables;
     
+    // Auxiliar types
+    typedef bounded_matrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
+    
     /// Counted pointer of MortarOperator
     KRATOS_CLASS_POINTER_DEFINITION( MortarOperator );
          
@@ -899,7 +906,7 @@ public:
     virtual ~MortarOperator(){}
     
     // Mortar condition matrices - DOperator and MOperator
-    bounded_matrix<double, TNumNodes, TNumNodes> DOperator, MOperator;
+    GeometryMatrixType DOperator, MOperator;
 
     ///@}
     ///@name Operators
@@ -936,10 +943,8 @@ public:
         const Vector& n1_vector   = rKinematicVariables.NSlave;
         const Vector& n2_vector   = rKinematicVariables.NMaster;
         
-        for (unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave)
-        {
-            for (unsigned int j_slave = 0; j_slave < TNumNodes; ++j_slave)
-            {
+        for (unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave) {
+            for (unsigned int j_slave = 0; j_slave < TNumNodes; ++j_slave) {
                 const double phi = phi_vector[i_slave];
                 
                 DOperator(i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * n1_vector[j_slave];
@@ -952,14 +957,14 @@ public:
      * It calculates the POperator (Inverse(D x M))
      * Popp thesis page 83 equation 3.88
      */
-    bounded_matrix<double, TNumNodes, TNumNodes> ComputePOperator()
+    GeometryMatrixType ComputePOperator()
     {
         // We calculate the inverse of D operator
         double auxdet;
-        const bounded_matrix<double, TNumNodes, TNumNodes>& inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
+        const GeometryMatrixType& inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
         
         // We calculate the P operator
-        const bounded_matrix<double, TNumNodes, TNumNodes> POperator = prod(inv_D_operator, MOperator);
+        const GeometryMatrixType POperator = prod(inv_D_operator, MOperator);
         
         return POperator;
     }
@@ -1074,9 +1079,19 @@ public:
     
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
     
+    // Auxiliar types
+    typedef bounded_matrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
+        
+    // Auxiliar sizes
+    static const unsigned int DoFSizeGeometry = (TNumNodes * TDim);
+    
+    static const unsigned int DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
+    
+    static const unsigned int DoFSizeDerivativesDependence = (TDim == 2) ? DoFSizeGeometry : DoFSizePairedGeometry;
+    
     /// Counted pointer of MortarOperatorWithDerivatives
     KRATOS_CLASS_POINTER_DEFINITION( MortarOperatorWithDerivatives );
-         
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -1085,10 +1100,8 @@ public:
     
     ~MortarOperatorWithDerivatives() override{}
     
-    static const unsigned int size_2 = 2 * (TNumNodes * TDim);
-    
     // D and M directional derivatives
-    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_2> DeltaDOperator, DeltaMOperator;
+    array_1d<GeometryMatrixType, DoFSizePairedGeometry> DeltaDOperator, DeltaMOperator;
 
     ///@}
     ///@name Operators
@@ -1135,29 +1148,22 @@ public:
         const Vector& vector_n2  = rKinematicVariables.NMaster;
         
         // Derivatives
-        constexpr unsigned int size_1 =     (TNumNodes * TDim);
-        constexpr unsigned int size_2 = 2 * (TNumNodes * TDim);
-        constexpr unsigned int size_3 = (TDim == 2) ? size_1 : size_2;
-
-        const array_1d<double, size_3>& delta_det_j_slave = rDerivativeData.DeltaDetjSlave;
-        const array_1d<array_1d<double, TNumNodes >, size_3>& delta_phi = rDerivativeData.DeltaPhi;
-        const array_1d<array_1d<double, TNumNodes >, size_2>& delta_n1  = rDerivativeData.DeltaN1;
-        const array_1d<array_1d<double, TNumNodes >, size_2>& delta_n2  = rDerivativeData.DeltaN2;
+        const array_1d<double, DoFSizeDerivativesDependence>& delta_det_j_slave = rDerivativeData.DeltaDetjSlave;
+        const array_1d<array_1d<double, TNumNodes >, DoFSizeDerivativesDependence>& delta_phi = rDerivativeData.DeltaPhi;
+        const array_1d<array_1d<double, TNumNodes >, DoFSizePairedGeometry>& delta_n1  = rDerivativeData.DeltaN1;
+        const array_1d<array_1d<double, TNumNodes >, DoFSizePairedGeometry>& delta_n2  = rDerivativeData.DeltaN2;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
-        {
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             const double phi = vector_phi[i_node];
             
-            for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node)
-            {
+            for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node) {
                 const double n1 = vector_n1[j_node];
                 const double n2 = vector_n2[j_node];
                 
                 BaseClassType::DOperator(i_node, j_node) += det_j_slave * rIntegrationWeight * phi * n1;
                 BaseClassType::MOperator(i_node, j_node) += det_j_slave * rIntegrationWeight * phi * n2;
                 
-                for (unsigned int i = 0; i < TDim * TNumNodes; ++i)
-                {
+                for (unsigned int i = 0; i < TDim * TNumNodes; ++i) {
                     DeltaDOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi* n1        
                                                        + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n1
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n1[i][j_node];
@@ -1166,16 +1172,13 @@ public:
                                                        + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n2
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n2[i][j_node];
                 }
-                for (unsigned int i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; ++i)
-                {
+                for (unsigned int i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; ++i) {
                     DeltaDOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n1[i][j_node];
                                                                                 
                     DeltaMOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n2[i][j_node];
                 }
-                if (TDim == 3)
-                {
-                    for (unsigned int i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; ++i)
-                    {
+                if (TDim == 3) {
+                    for (unsigned int i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; ++i) {
                         DeltaDOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi * n1;
                         DeltaDOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n1;
                                                                                     
@@ -1296,6 +1299,9 @@ public:
         
     typedef MortarKinematicVariables<TNumNodes> KinematicVariables;
     
+    // Auxiliar types
+    typedef bounded_matrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
+    
     /// Counted pointer of DualLagrangeMultiplierOperators
     KRATOS_CLASS_POINTER_DEFINITION( DualLagrangeMultiplierOperators );
          
@@ -1307,7 +1313,7 @@ public:
     
     virtual ~DualLagrangeMultiplierOperators(){}
     
-    bounded_matrix<double, TNumNodes, TNumNodes> Me, De;
+    GeometryMatrixType Me, De;
         
     ///@}
     ///@name Operators
@@ -1350,7 +1356,7 @@ public:
      * Calculates the matrix Ae. To avoid problems in the inversion the matrix is normalized
      * Popp thesis page 70. Equation 3.65
      */
-    bounded_matrix<double, TNumNodes, TNumNodes> CalculateAe()
+    bool CalculateAe(GeometryMatrixType& Ae)
     {        
         const double tolerance = std::numeric_limits<double>::epsilon(); 
         
@@ -1358,25 +1364,25 @@ public:
         const double norm_me = norm_frobenius(Me);
         
         // Now we normalize the matrix
-        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = Me/norm_me;
+        const GeometryMatrixType normalized_Me = Me/norm_me;
         
         // We compute the normalized inverse 
-        double aux_det = MathUtils<double>::DetMat<bounded_matrix<double, TNumNodes, TNumNodes>>(normalized_Me); 
-        if (std::abs(aux_det) >= tolerance) 
-        { 
-            const bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);  
+        double aux_det = MathUtils<double>::DetMat<GeometryMatrixType>(normalized_Me); 
+        if (std::abs(aux_det) >= tolerance) { 
+            const GeometryMatrixType& normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);  
              
-            return (1.0/norm_me) * prod(De, normalized_inv_Me); 
+            noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me); 
+            return true;
         } 
     #ifdef KRATOS_DEBUG
-        else
-        {
+        else {
             std::cout << "WARNING:: Me matrix can not bee inverted. Determinant: " << aux_det << std::endl;
             KRATOS_WATCH(normalized_Me);
         }
     #endif
         
-        return IdentityMatrix(TNumNodes);  
+        noalias(Ae) = IdentityMatrix(TNumNodes);  
+        return false;
     }   
     
     /**
@@ -1384,17 +1390,15 @@ public:
      * @param N1 The shape function 
      * @param detJ The jacobian of the geometry 
      */
-    bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
+    GeometryMatrixType ComputeDe(        
         const Vector& N1, 
         const double detJ 
         ) const 
     {
-        bounded_matrix<double, TNumNodes, TNumNodes> De;
+        GeometryMatrixType De;
     
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
-            for (unsigned int j = 0; j < TNumNodes; ++j)
-            {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            for (unsigned int j = 0; j < TNumNodes; ++j) {
                 if (i == j) De(i,i) = detJ * N1[i];
                 else De(i,j) = 0.0;
             }
@@ -1406,8 +1410,7 @@ public:
     /**
      * Print information about this object
      */ 
-    void PrintInfo(std::ostream& rOStream) const
-    {
+    void PrintInfo(std::ostream& rOStream) const {
         rOStream << "Me: " << Me << std::endl;
         rOStream << "De: " << De << std::endl;
     }
@@ -1513,6 +1516,16 @@ public:
     
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
     
+    // Auxiliar types
+    typedef bounded_matrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
+    
+    // Auxiliar sizes
+    static const unsigned int DoFSizeGeometry = (TNumNodes * TDim);
+    
+    static const unsigned int DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
+    
+    static const unsigned int DoFSizeDerivativesDependence = (TDim == 2) ? DoFSizeGeometry : DoFSizePairedGeometry;
+    
     /// Counted pointer of DualLagrangeMultiplierOperatorsWithDerivatives
     KRATOS_CLASS_POINTER_DEFINITION( DualLagrangeMultiplierOperatorsWithDerivatives );
          
@@ -1524,14 +1537,9 @@ public:
     
     ~DualLagrangeMultiplierOperatorsWithDerivatives() override{}
     
-    // Auxiliar sizes
-    static const unsigned int size_1 =     (TNumNodes * TDim);
-    static const unsigned int size_2 = 2 * (TNumNodes * TDim);
-    static const unsigned int size_3 = (TDim == 2) ? size_1 : size_2;
-    
     // Derivatives matrices
-    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_3> DeltaMe;
-    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_3> DeltaDe;
+    array_1d<GeometryMatrixType, DoFSizeDerivativesDependence> DeltaMe;
+    array_1d<GeometryMatrixType, DoFSizeDerivativesDependence> DeltaDe;
         
     ///@}
     ///@name Operators
@@ -1550,8 +1558,7 @@ public:
         BaseClassType::Initialize();
         
         // Derivatives matrices
-        for (unsigned int i = 0; i < size_3; ++i)
-        {
+        for (unsigned int i = 0; i < DoFSizeDerivativesDependence; ++i) {
             DeltaMe[i] = ZeroMatrix(TNumNodes, TNumNodes);
             DeltaDe[i] = ZeroMatrix(TNumNodes, TNumNodes);
         }
@@ -1574,8 +1581,7 @@ public:
         
         BaseClassType::CalculateAeComponents(rKinematicVariables, rIntegrationWeight);
         
-        for (unsigned int i = 0; i < size_3; ++i)
-        {
+        for (unsigned int i = 0; i < DoFSizeDerivativesDependence; ++i) {
             const double delta_det_j = rDerivativeData.DeltaDetjSlave[i];
             const Vector& delta_n1 = rDerivativeData.DeltaN1[i];
             
@@ -1599,24 +1605,23 @@ public:
         const double norm_Me = norm_frobenius(BaseClassType::Me);
         
         // Now we normalize the matrix
-        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = BaseClassType::Me/norm_Me;
+        const GeometryMatrixType normalized_Me = BaseClassType::Me/norm_Me;
         
         // We compute the normalized inverse
-        aux_det = MathUtils<double>::DetMat<bounded_matrix<double, TNumNodes, TNumNodes>>(normalized_Me);
+        aux_det = MathUtils<double>::DetMat<GeometryMatrixType>(normalized_Me);
         if (std::abs(aux_det) < tolerance) return false;
         
-        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance); 
+        const GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance); 
         
         // Now we compute the inverse
-        const bounded_matrix<double, TNumNodes, TNumNodes> inv_Me = normalized_inv_Me/norm_Me;
+        const GeometryMatrixType inv_Me = normalized_inv_Me/norm_Me;
         
         noalias(rDerivativeData.Ae) = prod(BaseClassType::De, inv_Me);
         
-        array_1d<bounded_matrix<double, TNumNodes, TNumNodes> , size_3>& delta_Ae = rDerivativeData.DeltaAe;
+        array_1d<GeometryMatrixType , DoFSizeDerivativesDependence>& delta_Ae = rDerivativeData.DeltaAe;
         
-        for (unsigned int i = 0; i < size_3; ++i)
-        {            
-            const bounded_matrix<double, TNumNodes, TNumNodes> aux_matrix = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
+        for (unsigned int i = 0; i < DoFSizeDerivativesDependence; ++i) {            
+            const GeometryMatrixType aux_matrix = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
             noalias(delta_Ae[i]) = prod(aux_matrix, inv_Me);
         }
         
@@ -1631,8 +1636,7 @@ public:
         BaseClassType::PrintInfo(rOStream);
         
         // Derivatives matrices
-        for (unsigned int i = 0; i < size_3; ++i)
-        {
+        for (unsigned int i = 0; i < DoFSizeDerivativesDependence; ++i) {
             rOStream << "DeltaMe_" << i << ": " << DeltaMe[i] << std::endl;
             rOStream << "DeltaDe_" << i << ": " << DeltaDe[i] << std::endl;
         }

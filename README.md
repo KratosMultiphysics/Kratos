@@ -1,4 +1,4 @@
-<img src="http://www.cimne.com/kratos/img/logo.png">
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png">
 
 # Overview
 
@@ -11,7 +11,7 @@ _Kratos_ is a framework for building multi-disciplinary finite element programs.
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
-[license]: https://github.com/KratosMultiphysics/Kratos/blob/master/LICENSE.txt
+[license]: https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt
 
 Build Status <img src="https://blog.travis-ci.com/images/travis-mascot-200px.png" height="30"/>
 ------------

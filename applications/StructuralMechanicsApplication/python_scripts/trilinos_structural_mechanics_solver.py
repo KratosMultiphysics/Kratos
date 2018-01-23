@@ -5,11 +5,10 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication","MetisApplication","TrilinosApplication")
+KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication","TrilinosApplication")
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Import base class file
@@ -65,6 +64,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         return self._epetra_communicator
 
     def print_on_rank_zero(self, *args):
+        KratosMPI.mpi.world.barrier()
         if KratosMPI.mpi.rank == 0:
             print(" ".join(map(str,args)))
 
@@ -79,7 +79,6 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
         conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
         conv_params.AddValue("echo_level",self.settings["echo_level"])
-        conv_params.AddValue("component_wise",self.settings["component_wise"])
         conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
         conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
         conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
