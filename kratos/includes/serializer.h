@@ -19,6 +19,7 @@
 #include <cstring>
 #include <iostream>
 #include <map>
+#include <unordered_map>
 #include <set>
 #include <sstream>
 #include <fstream>
@@ -335,6 +336,20 @@ public:
 //    read(rObject);
     }
 
+
+    template<class TKeyType, class TDataType>
+    void load(std::string const & rTag, std::map<TKeyType, TDataType> const& rObject)
+    {
+        load_map(rTag, rObject);
+    }
+
+    template<class TKeyType, class TDataType>
+    void load(std::string const & rTag, std::unordered_map<TKeyType, TDataType> const& rObject)
+    {
+        load_map(rTag, rObject);
+    }
+
+
     template<class TDataType, std::size_t TDimension>
     void load(std::string const & rTag, array_1d<TDataType, TDimension>& rObject)
     {
@@ -343,6 +358,14 @@ public:
         for(SizeType i = 0 ; i < TDimension ; i++)
             load("E", rObject[i]);
 //    read(rObject);
+    }
+
+    template<class TFirstType, class TSecondType>
+    void load(std::string const & rTag, std::pair<TFirstType, TSecondType> rObject)
+    {
+        load_trace_point(rTag);
+        load("First", rObject.first);
+        load("Second", rObject.second);
     }
 
     KRATOS_SERIALIZATION_DIRECT_LOAD(bool)
@@ -399,6 +422,20 @@ public:
 
 //    write(rObject);
     }
+
+
+    template<class TKeyType, class TDataType>
+    void save(std::string const & rTag, std::map<TKeyType, TDataType> const& rObject)
+    {
+        save_map(rTag, rObject);
+    }
+
+    template<class TKeyType, class TDataType>
+    void save(std::string const & rTag, std::unordered_map<TKeyType, TDataType> const& rObject)
+    {
+        save_map(rTag, rObject);
+    }
+
 
     template<class TDataType>
     void save(std::string const & rTag, TDataType const& rObject)
@@ -506,6 +543,16 @@ public:
         save_trace_point(rTag);
         write(std::string(pValue));
     }
+
+
+    template<class TFirstType, class TSecondType>
+    void save(std::string const & rTag, std::pair<TFirstType, TSecondType> rObject)
+    {
+        save_trace_point(rTag);
+        save("First", rObject.first);
+        save("Second", rObject.second);
+    }
+
 
     KRATOS_SERIALIZATION_DIRECT_SAVE(bool)
     KRATOS_SERIALIZATION_DIRECT_SAVE(int)
@@ -777,6 +824,36 @@ private:
     }
 
     VariableData* GetVariableData(std::string const & VariableName);
+
+    template<class TMapType>
+    void load_map(std::string const & rTag, TMapType const& rObject)
+    {
+        load_trace_point(rTag);
+        SizeType size = rObject.size();
+
+        load("size", size);
+
+        for(SizeType i = 0 ; i < size ; i++){
+            typename TMapType::value_type temp;
+            load("E", temp);
+            rObject.insert(temp);
+        }
+    }
+
+
+    template<class TMapType>
+    void save_map(std::string const & rTag, TMapType const& rObject)
+    {
+        save_trace_point(rTag);
+        SizeType size = rObject.size();
+
+        save("size", size);
+
+        for(auto& i : rObject)
+            save("E", i);
+    }
+
+
 
 //        void read(bool& rData)
 //        {
