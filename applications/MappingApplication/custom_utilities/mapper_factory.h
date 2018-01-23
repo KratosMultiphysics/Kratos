@@ -17,6 +17,7 @@
 #define  KRATOS_MAPPER_FACTORY_H_INCLUDED
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
@@ -24,8 +25,10 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 
-#include "custom_mappers/nearest_neighbor_mapper.h"
-#include "custom_mappers/nearest_element_mapper.h"
+#include "mapping_application.h"
+
+// #include "custom_mappers/nearest_neighbor_mapper.h"
+// #include "custom_mappers/nearest_element_mapper.h"
 
 
 namespace Kratos
@@ -84,6 +87,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    
 
     static Mapper::Pointer CreateMapper(ModelPart& rModelPartOrigin, 
                                         ModelPart& rModelPartDestination,
@@ -92,7 +96,32 @@ public:
         ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, JsonParameters, "origin");
         ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, JsonParameters, "destination");
 
-        Mapper::Pointer mapper;
+        const std::string mapper_name = JsonParameters["mapper_type"].GetString();
+
+        const auto& mapper_list = KratosMappingApplication::GetRegisteredMappersList();
+
+        if (mapper_list.find(mapper_name) != 
+            mapper_list.end())
+        {
+            return mapper_list.at(mapper_name)->Clone(r_interface_model_part_origin,
+                                                      r_interface_model_part_destination,
+                                                      JsonParameters);
+        }
+        else
+        {
+            std::stringstream err_msg;
+            err_msg << "The requested Mapper \"" << mapper_name <<"\" is not registered! The following mappers are registered:" << std::endl;
+            for (auto const& registered_mapper : mapper_list)
+            {
+                err_msg << registered_mapper.first << ", ";
+            }
+            KRATOS_ERROR << err_msg.str() << std::endl;
+            
+        }
+
+
+
+        /*Mapper::Pointer mapper;
 
         if (!JsonParameters.Has("mapper_type"))
         {
@@ -138,7 +167,7 @@ public:
                          << "available options are: \"nearest_neighbor\", \"nearest_element\"" << std::endl;
         }
 
-        return mapper;
+        return mapper;*/
     }
 
 
@@ -226,6 +255,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
 
     ///@}
     ///@name Private Operators

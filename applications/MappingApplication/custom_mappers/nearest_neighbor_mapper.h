@@ -70,6 +70,9 @@ public:
     ///@name Life Cycle
     ///@{
 
+    NearestNeighborMapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination) : Mapper(
+                         rModelPartOrigin, rModelPartDestination) {}
+
     NearestNeighborMapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
                           Parameters JsonParameters) : Mapper(
                                   rModelPartOrigin, rModelPartDestination, JsonParameters)
@@ -185,9 +188,9 @@ public:
         // It is constructed with the order of the model_parts changed!
         if (!mpInverseMapper)
         {
-            mpInverseMapper = Mapper::Pointer( new NearestNeighborMapper(mModelPartDestination,
-                                               mModelPartOrigin,
-                                               mJsonParameters) );
+            mpInverseMapper = this->Clone(mModelPartDestination,
+                                          mModelPartOrigin,
+                                          mJsonParameters);
         }
         mpInverseMapper->Map(rDestinationVariable, rOriginVariable, MappingOptions);
     }
@@ -201,11 +204,20 @@ public:
         // It is constructed with the order of the model_parts changed!
         if (!mpInverseMapper)
         {
-            mpInverseMapper = Mapper::Pointer( new NearestNeighborMapper(mModelPartDestination,
-                                               mModelPartOrigin,
-                                               mJsonParameters) );
+            mpInverseMapper = this->Clone(mModelPartDestination,
+                                          mModelPartOrigin,
+                                          mJsonParameters);
         }
         mpInverseMapper->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+    }
+
+    Mapper::Pointer Clone(ModelPart& rModelPartOrigin,
+                          ModelPart& rModelPartDestination,
+                          Parameters JsonParameters) override
+    {
+        return Kratos::make_shared<NearestNeighborMapper>(rModelPartOrigin,
+                                                          rModelPartDestination,
+                                                          JsonParameters);
     }
 
     ///@}

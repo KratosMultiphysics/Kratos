@@ -31,6 +31,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
+#include "custom_mappers/mapper.h"
 #include "custom_utilities/interface_object.h"
 #include "custom_utilities/interface_node.h"
 #include "custom_utilities/interface_geometry_object.h"
@@ -139,6 +140,21 @@ public:
     }
 
 
+
+    static std::unordered_map<std::string, Mapper::Pointer>& GetRegisteredMappersList()
+    {
+        static std::unordered_map<std::string, Mapper::Pointer> registered_mappers;
+
+        return registered_mappers;
+    }
+
+    static void RegisterMapper(const std::string MapperName,
+                               Mapper::Pointer pMapperPrototype)
+    {
+        GetRegisteredMappersList().insert(make_pair(MapperName, pMapperPrototype));
+    }
+
+
     ///@}
     ///@name Friends
     ///@{
@@ -197,6 +213,8 @@ private:
     const InterfaceNode             mInterfaceNode;
     const InterfaceGeometryObject   mInterfaceGeometryObject;
 
+    // const Mapper::Pointer mpNearestNeighborMapper;
+    // const Mapper::Pointer mpNearestElementMapper;
     ///@}
     ///@name Private Operators
     ///@{
