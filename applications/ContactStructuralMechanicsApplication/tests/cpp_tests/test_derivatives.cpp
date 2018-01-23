@@ -125,7 +125,7 @@ namespace Kratos
                     noalias(node_to_move->Coordinates()) = node_to_move->GetInitialPosition().Coordinates() + node_to_move->FastGetSolutionStepValue(DISPLACEMENT);
                 }
                 
-                if (consider_normal_variation != NODERIVATIVESCOMPUTATION)
+                if (consider_normal_variation != NO_DERIVATIVES_COMPUTATION)
                 {
                     PointType aux_point;
                     aux_point.Coordinates() = ZeroVector(3);
@@ -160,7 +160,7 @@ namespace Kratos
                 rDerivativeData.Initialize(slave_geometry_1, ThisModelPart.GetProcessInfo());
                 
                 // We compute the normal derivatives
-                if (consider_normal_variation == NODALELEMENTALDERIVATIVES)
+                if (consider_normal_variation == NODAL_ELEMENTAL_DERIVATIVES)
                 {
                     // Compute the normal derivatives of the slave
                     DerivativesUtilitiesType::CalculateDeltaNormal(rDerivativeData.DeltaNormalSlave, slave_geometry_1);
@@ -187,13 +187,13 @@ namespace Kratos
                     rVariables.Initialize();
                     
                     // Update slave element info
-                    rDerivativeData.UpdateMasterPair(MasterCondition1);
-                    rDerivativeData0.UpdateMasterPair(MasterCondition0);
+                    rDerivativeData.UpdateMasterPair(MasterCondition1->GetGeometry());
+                    rDerivativeData0.UpdateMasterPair(MasterCondition0->GetGeometry());
                     
                     if (conditions_points_slave.size() == conditions_points_slave0.size()) // Just in case we have the "same configuration"
                     {
-                        DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry_1, normal_slave_1, MasterCondition1, rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method);
-                        DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry_0, normal_slave_0, MasterCondition0, rDerivativeData0, rVariables0, consider_normal_variation, conditions_points_slave0, this_integration_method);
+                        DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry_1, normal_slave_1, MasterCondition1->GetGeometry(), rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method);
+                        DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry_0, normal_slave_0, MasterCondition0->GetGeometry(), rDerivativeData0, rVariables0, consider_normal_variation, conditions_points_slave0, this_integration_method);
                         
                         for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom)
                         {
@@ -204,10 +204,10 @@ namespace Kratos
                             {
                                 PointType global_point;
                                 slave_geometry_1.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                                points_array[i_node] = boost::make_shared<PointType>(global_point);
+                                points_array[i_node] = PointType::Pointer( new PointType(global_point) );
                                 belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
                                 slave_geometry_0.GlobalCoordinates(global_point, conditions_points_slave0[i_geom][i_node]);
-                                points_array0[i_node] = boost::make_shared<PointType>(global_point);
+                                points_array0[i_node] = PointType::Pointer( new PointType(global_point) );
                             }
                             
                             if (Check == LEVEL_DEBUG || Check == LEVEL_FULL_DEBUG) KRATOS_WATCH(belong_array);
@@ -515,7 +515,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODERIVATIVESCOMPUTATION);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -611,7 +611,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODERIVATIVESCOMPUTATION);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -707,7 +707,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODERIVATIVESCOMPUTATION);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -811,7 +811,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODERIVATIVESCOMPUTATION);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -907,7 +907,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODERIVATIVESCOMPUTATION);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -1003,7 +1003,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODERIVATIVESCOMPUTATION);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -1099,7 +1099,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(ELEMENTALDERIVATIVES);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(ELEMENTAL_DERIVATIVES);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -1195,7 +1195,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODERIVATIVESCOMPUTATION);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -1299,7 +1299,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODERIVATIVESCOMPUTATION);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -1403,7 +1403,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODERIVATIVESCOMPUTATION);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -1506,7 +1506,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODERIVATIVESCOMPUTATION);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -1602,7 +1602,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODERIVATIVESCOMPUTATION);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -1698,7 +1698,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODERIVATIVESCOMPUTATION);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -1801,7 +1801,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODALELEMENTALDERIVATIVES);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -1897,7 +1897,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODALELEMENTALDERIVATIVES);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -1993,7 +1993,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODALELEMENTALDERIVATIVES);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -2091,7 +2091,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODALELEMENTALDERIVATIVES);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -2191,7 +2191,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODALELEMENTALDERIVATIVES);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             
@@ -2287,7 +2287,7 @@ namespace Kratos
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
-            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODALELEMENTALDERIVATIVES);
+            model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
             
             Properties::Pointer p_cond_prop = model_part.pGetProperties(0);
             

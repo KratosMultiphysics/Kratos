@@ -126,8 +126,11 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
      * @param IntegrationOrder The integration order to consider
      */
     
-    ExactMortarIntegrationUtility(const unsigned int IntegrationOrder = 0)
-    :mIntegrationOrder(IntegrationOrder)
+    ExactMortarIntegrationUtility(
+        const unsigned int IntegrationOrder = 0,
+        const double DistanceThreshold = std::numeric_limits<double>::max()
+        ) :mIntegrationOrder(IntegrationOrder),
+           mDistanceThreshold(DistanceThreshold)
     {
         GetIntegrationMethod();
     }
@@ -216,7 +219,10 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
      * @return The total area integrated
      */
     
-    double TestGetExactAreaIntegration(Condition::Pointer& SlaveCond); 
+    double TestGetExactAreaIntegration(    
+        ModelPart& rMainModelPart,
+        Condition::Pointer& SlaveCond
+        );
     
     /**
     * This method is used for debugging purposes
@@ -384,7 +390,7 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
         {
             PointIntersection.Coordinates()[0] = coord_point_orig1[0] + t * s_orig1_orig2_x; 
             PointIntersection.Coordinates()[1] = coord_point_orig1[1] + t * s_orig1_orig2_y; 
-            
+
             return true;
         }
         else
@@ -565,6 +571,7 @@ class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility {
     ///@{
 
     const unsigned int mIntegrationOrder;    // The integration order to consider
+    const double mDistanceThreshold;         // The distance where we directly  consider out of integration limits
     IntegrationMethod mAuxIntegrationMethod; // The auxiliar list of Gauss Points taken from the geometry
     
     ///@}

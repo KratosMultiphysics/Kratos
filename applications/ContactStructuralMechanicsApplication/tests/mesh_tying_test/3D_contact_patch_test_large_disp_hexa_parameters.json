@@ -73,6 +73,7 @@
         "process_name"          : "MeshTyingProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
+            "assume_master_slave"         : "Parts_Parts_Auto2",
             "mesh_tying_model_part"       : "Contact_Part",
             "assume_master_slave"         : "Parts_Parts_Auto1",
             "geometry_element"            : "Hexahedron",

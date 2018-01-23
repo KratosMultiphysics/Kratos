@@ -155,6 +155,7 @@
         "process_name"          : "MeshTyingProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
+            "assume_master_slave"         : "Parts_Part_foundation",
             "mesh_tying_model_part"       : "Tying_Part",
             "type_variable"               : "Components",
             "geometry_element"            : "Hexahedron",

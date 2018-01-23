@@ -40,7 +40,7 @@
 #include "custom_utilities/inlet.h"
 
 #include "custom_elements/cluster3D.h"
-
+#include "custom_elements/rigid_body_element.h"
 ////Cfeng
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/discrete_particle_configure.h"
@@ -126,27 +126,26 @@ namespace Kratos {
             mMaxTimeStep = max_delta_time;
             mNStepSearch = n_step_search;
             mSafetyFactor = safety_factor;
-            mpDem_model_part = &(*(settings.r_model_part));
             
+            mpDem_model_part = &(*(settings.r_model_part));
             if (mpDem_model_part == NULL)
                 KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.r_model_part in ExplicitSolverStrategy constructor", "")
 
-                mpContact_model_part = &(*(settings.contact_model_part));
+            mpContact_model_part = &(*(settings.contact_model_part));
             if (mpContact_model_part == NULL)
                 KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.contact_model_part in ExplicitSolverStrategy constructor", "")
 
-                mpFem_model_part = &(*(settings.fem_model_part));
+            mpFem_model_part = &(*(settings.fem_model_part));
             if (mpFem_model_part == NULL)
                 KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.fem_model_part in ExplicitSolverStrategy constructor", "")
 
-                mpCluster_model_part = &(*(settings.cluster_model_part));
+            mpCluster_model_part = &(*(settings.cluster_model_part));
             if (mpCluster_model_part == NULL)
                 KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.cluster_model_part in ExplicitSolverStrategy constructor", "")
 
-                mpInlet_model_part = &(*(settings.inlet_model_part));
+            mpInlet_model_part = &(*(settings.inlet_model_part));
             if (mpInlet_model_part == NULL)
                 KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.inlet_model_part in ExplicitSolverStrategy constructor", "")
-
             }
 
         /// Destructor.
@@ -208,6 +207,7 @@ namespace Kratos {
         double CalculateMaxInletTimeStep();
         virtual void InitializeClusters();
         virtual void GetClustersForce();
+        virtual void GetRigidBodyElementsForce();
         virtual double Solve();
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi = true);
         void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi = true) ;
@@ -222,6 +222,10 @@ namespace Kratos {
         void InitializeElements();
         void InitializeDEMElements();
         void InitializeFEMElements();
+        //void InitializeRigidBodyElements();
+        void InitializeRigidBodyElements(ModelPart::SubModelPartsContainerType::iterator& sub_model_part);
+        void ComputeNodalArea();
+        void ComputeNormalPressureVectorField();
         virtual void CalculateConditionsRHSAndAdd();
         void ClearFEMForces();
         void CalculateNodalPressuresAndStressesOnWalls();        
@@ -252,6 +256,7 @@ namespace Kratos {
         ModelPart& GetContactModelPart() { return (*mpContact_model_part);}
         ModelPart& GetClusterModelPart() { return (*mpCluster_model_part);}
         ModelPart& GetInletModelPart() { return (*mpInlet_model_part);}
+        ModelPart& GetRigidBodyModelPart() { return (*mpRigidBody_model_part);}
         
         VectorResultElementsContainerType& GetResults() { return (mResults);}
         VectorDistanceType& GetResultsDistances() { return (mResultsDistances);}
@@ -295,6 +300,7 @@ namespace Kratos {
         ModelPart *mpInlet_model_part;
         ModelPart *mpContact_model_part;
         ModelPart *mpCluster_model_part;
+        ModelPart *mpRigidBody_model_part;
         std::vector<SphericParticle*> mListOfSphericParticles;
         std::vector<SphericParticle*> mListOfGhostSphericParticles;
 
