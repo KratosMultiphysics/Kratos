@@ -73,11 +73,8 @@ void KratosMappingApplication::Register()
     ModelPart dummy_model_part;
     dummy_model_part = ModelPart();
 
-    Mapper::Pointer p_nearest_neighbor_mapper = Mapper::Pointer( new NearestNeighborMapper(dummy_model_part, dummy_model_part) );
-    Mapper::Pointer p_nearest_element_mapper = Mapper::Pointer( new NearestElementMapper(dummy_model_part, dummy_model_part) );
-
-    KratosMappingApplication::RegisterMapper("nearest_neighbor", p_nearest_neighbor_mapper);
-    KratosMappingApplication::RegisterMapper("nearest_element", p_nearest_element_mapper);
+    KratosMappingApplication::RegisterMapper("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper>(dummy_model_part, dummy_model_part));
+    KratosMappingApplication::RegisterMapper("nearest_element",  Kratos::make_shared<NearestElementMapper>(dummy_model_part, dummy_model_part));
 
     // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
     KRATOS_REGISTER_VARIABLE( NEIGHBOR_RANK )
