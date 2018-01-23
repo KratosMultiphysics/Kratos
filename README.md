@@ -50,16 +50,18 @@ Organizations contributing to Kratos:
 # Known Users
 Some users of the technologies developed in Kratos are:
 
+<span>
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/AIRBUS_logo.png" width="128">
-<p>Airbus Defence and Space<br>Stress Methods & Optimisation Department</p>
-</br>
-
+<p>Airbus Defence and Space</br>Stress Methods & Optimisation Department</p>
+</span>
+<span>
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/siemens_logo.png" width="128">
-<p>Siemens AG<br>Corporate Technology</p>
-</br>
-
+<p>Siemens AG</br>Corporate Technology</p>
+</span>
+<span>
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/onera_logo.png" width="128">
 <p>ONERA, The French Aerospace Lab<br>Applied Aerodynamics Department</p>
+</span>
 
 Looking forward to seeing your logo here! 
 
