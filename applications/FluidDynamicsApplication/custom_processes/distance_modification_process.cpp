@@ -77,10 +77,6 @@ void DistanceModificationProcess::ExecuteInitialize() {
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_H, r_node);
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
 
-    // Obtain NODAL_H values
-    FindNodalHProcess NodalHCalculator(mrModelPart);
-    NodalHCalculator.Execute();
-
     KRATOS_CATCH("");
 }
 
@@ -88,13 +84,21 @@ void DistanceModificationProcess::ExecuteBeforeSolutionLoop() {
 
     KRATOS_TRY;
 
+    // Initialize the number of bad cuts to a non-zero value
     unsigned int bad_cuts = 1;
+
+    // Compute NODAL_H values
+    FindNodalHProcess NodalHCalculator(mrModelPart);
+    NodalHCalculator.Execute();
 
     // Modify the nodal distance values until there is no bad intersections
     while (bad_cuts > 0) {
         bad_cuts = this->ModifyDistance();
         mDistanceThreshold /= mFactorCoeff;
     }
+
+    // Set the ELEMENTAL_DISTANCE values considering the modified distance values
+    this->SetElementalDistances();
 
     // If proceeds (depending on the formulation), perform the deactivation
     // Deactivates the full negative elements and sets values in the full negative elements
@@ -115,7 +119,8 @@ void DistanceModificationProcess::ExecuteInitializeSolutionStep() {
 void DistanceModificationProcess::ExecuteFinalizeSolutionStep() {
 
     if(mRecoverOriginalDistance == true) {
-        RecoverOriginalDistance();
+        this->RecoverOriginalDistance();
+        this->SetElementalDistances();
     }
 }
 
@@ -222,6 +227,22 @@ unsigned int DistanceModificationProcess::ModifyDistance() {
     mrModelPart.GetCommunicator().SumAll(num_bad_cuts);
 
     return num_bad_cuts;
+}
+
+void DistanceModificationProcess::SetElementalDistances(){
+
+    unsigned int n_nodes = ((mrModelPart.ElementsBegin())->GetGeometry()).PointsNumber();
+    Vector elem_distances = ZeroVector(n_nodes);
+
+    #pragma omp parallel for firstprivate(n_nodes, elem_distances)
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
+        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+        const auto& r_geom = it_elem->GetGeometry();
+        for (unsigned int i_node = 0; i_node < n_nodes; ++ i_node){
+            elem_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
+        }
+        it_elem->SetValue(ELEMENTAL_DISTANCES, elem_distances);
+    }
 }
 
 void DistanceModificationProcess::RecoverOriginalDistance() {

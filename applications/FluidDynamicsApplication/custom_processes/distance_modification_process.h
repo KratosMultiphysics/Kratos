@@ -166,6 +166,8 @@ private:
 
     unsigned int ModifyDistance();
 
+    void SetElementalDistances();
+
     void RecoverOriginalDistance();
 
     void DeactivateFullNegativeElements();
