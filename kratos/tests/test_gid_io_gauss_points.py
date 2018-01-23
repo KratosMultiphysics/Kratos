@@ -4,13 +4,35 @@ from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 import KratosMultiphysics.KratosUnittest as UnitTest
 
+import filecmp
+import os
+
+class WorkFolderScope:
+    '''Auxiliary class to define a work folder for the tests.'''
+    def __init__(self, work_folder):
+        self.currentPath = os.getcwd()
+        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
+
+    def __enter__(self):
+        os.chdir(self.scope)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.currentPath)
+
 class TestGiDIOGaussPoints(UnitTest.TestCase):
+    '''Tests related to GiD I/O Gauss point results printing.'''
 
     def setUp(self):
         self.modelPart = self.setModelPart()
+        self.workFolder = "gid_io"
 
     def tearDown(self):
-        pass
+        with WorkFolderScope(self.workFolder):
+            for suffix in ['_0.post.res', '_0.post.msh']:
+                try:
+                    os.remove(self.output_file_name+suffix)
+                except FileNotFoundError:
+                    pass
 
     def setModelPart(self):
         modelPart = ModelPart("Test ModelPart")
@@ -38,40 +60,92 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
 
         properties = modelPart.GetProperties()[0]
 
-        elements = list()
-        elements.append( modelPart.CreateNewElement("VMS3D",1,[1,2,4,5],properties) )
-        elements.append( modelPart.CreateNewElement("VMS3D",2,[2,3,4,5],properties) )
+        modelPart.CreateNewElement("VMS3D",1,[1,2,4,5],properties)
+        modelPart.CreateNewElement("VMS3D",2,[2,3,4,5],properties)
+
+        modelPart.CreateNewCondition("MonolithicWallCondition3D",1,[1,5,4],properties)
+        modelPart.CreateNewCondition("MonolithicWallCondition3D",2,[1,2,5],properties)
+        modelPart.CreateNewCondition("MonolithicWallCondition3D",3,[2,3,5],properties)
+        modelPart.CreateNewCondition("MonolithicWallCondition3D",4,[3,4,5],properties)
         
         modelPart.SetBufferSize(2)
 
         return modelPart
 
-    def disableSome(self):
+    def deactivateSome(self):
         for elem in self.modelPart.Elements:
             if elem.Id % 2 == 0:
                 elem.Set(ACTIVE,False)
 
-    def writeTestFile(self):
+        for cond in self.modelPart.Conditions:
+            if cond.Id % 2 == 0:
+                cond.Set(ACTIVE,False)
 
-        gid_io = GidIO(
-            "test_git_io_gauss_points",
-            GiDPostMode.GiD_PostBinary,
+    def initializeOutputFile(self):
+        self.gid_io = GidIO(
+            self.output_file_name,
+            self.post_mode,
             MultiFileFlag.SingleFile,
             WriteDeformedMeshFlag.WriteUndeformed,
             WriteConditionsFlag.WriteConditions)
 
-        gid_io.InitializeMesh(0)
-        gid_io.WriteMesh(self.modelPart.GetMesh())
-        gid_io.FinalizeMesh()
+        self.gid_io.InitializeMesh(0)
+        self.gid_io.WriteMesh(self.modelPart.GetMesh())
+        self.gid_io.FinalizeMesh()
 
-        gid_io.InitializeResults(0.0, self.modelPart.GetMesh())
-        gid_io.WriteNodalResults(VELOCITY, self.modelPart.Nodes, 0.0, 0)
-        gid_io.PrintOnGaussPoints(VORTICITY, self.modelPart, 0.0)
-        gid_io.FinalizeResults()
+        self.gid_io.InitializeResults(0.0, self.modelPart.GetMesh())
+
+    def writeResults(self,label):
+        self.gid_io.WriteNodalResults(VELOCITY, self.modelPart.Nodes, label, 0)
+        self.gid_io.PrintOnGaussPoints(VORTICITY, self.modelPart, label)
+        self.gid_io.PrintOnGaussPoints(NORMAL, self.modelPart, label)
+
+
+    def finalizeOutputFile(self):
+        self.gid_io.FinalizeResults()
+
+    def outputMatchesReferenceSolution(self):
+        msh_file_matches = filecmp.cmp(self.reference_file_name+'_0.post.msh',self.output_file_name+'_0.post.msh')
+        res_file_matches = filecmp.cmp(self.reference_file_name+'_0.post.res',self.output_file_name+'_0.post.res')
+        return msh_file_matches and res_file_matches
+
+
+    def writeActiveOnly(self):
+
+        self.post_mode = GiDPostMode.GiD_PostAscii
+        self.output_file_name = "test_gid_io_gp_active_only"
+        self.reference_file_name = "ref_gid_io_gp_active_only"
+
+        self.deactivateSome()
+
+        with WorkFolderScope(self.workFolder):
+            self.initializeOutputFile()
+            self.writeResults(0.0)
+            self.finalizeOutputFile()
+
+            self.assertTrue(self.outputMatchesReferenceSolution())
+
+    def writeDynamicDeactivation(self):
+
+        self.post_mode = GiDPostMode.GiD_PostAscii
+        self.output_file_name = "test_gid_io_gp_dynamic_deactivation"
+        self.reference_file_name = "ref_gid_io_gp_dynamic_deactivation"
+
+        with WorkFolderScope(self.workFolder):
+            self.initializeOutputFile()
+            self.writeResults(0.0)
+
+            self.deactivateSome()
+
+            self.writeResults(1.0)
+            self.finalizeOutputFile()
+
+            self.assertTrue(self.outputMatchesReferenceSolution())
+
 
 if __name__ == '__main__':
     test = TestGiDIOGaussPoints()
     test.setUp()
-    test.disableSome()
-    test.writeTestFile()
+    #test.writeActiveOnly()
+    test.writeDynamicDeactivation()
     test.tearDown()
