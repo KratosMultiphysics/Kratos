@@ -38,40 +38,28 @@ Kratos has been used for simulation of many different problems in a wid variaty 
 
 # Contributors
 Organizations contributing to Kratos: 
-<table>
-<tr>
-  <td><img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/CIMNE_logo.png" width="128"></td>
-  <td><img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/TUM_Logo.png" width="128"></td>
-</tr>
-<tr>
-  <td>International Center for Numerical Methods in Engineering</td>
-  <td>Chair of Structural Analysis<br>
-Technical University of Munich
-</td>
-</tr>
-</table>
 
-  
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/CIMNE_logo.png" width="128">
+</br></br><p>International Center for Numerical Methods in Engineering</p>
+
+</br></br>
+
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/TUM_Logo.png" width="128">
+</br><p>Chair of Structural Analysis</br>Technical University of Munich </p>
+
 # Known Users
 Some users of the technologies developed in Kratos are:
 
-<table>
-<tr>
-  <td><img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/AIRBUS_logo.png" width="128"></td>
-  <td><img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/siemens_logo.png" width="128"></td>
-  <td><img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/onera_logo.png" width="128"></td>
-</tr>
-<tr>
-  <td>Airbus Defence and Space<br>Stress Methods & Optimisation Department</td>
-  <td>Siemens AG<br>
-Corporate Technology
-</td>
-  <td>ONERA, The French Aerospace Lab<br>
-Applied Aerodynamics Department 
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/AIRBUS_logo.png" width="128">
+<p>Airbus Defence and Space<br>Stress Methods & Optimisation Department</p>
+</br>
 
-</td>
-</tr>
-</table>
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/siemens_logo.png" width="128">
+<p>Siemens AG<br>Corporate Technology</p>
+</br>
+
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/onera_logo.png" width="128">
+<p>ONERA, The French Aerospace Lab<br>Applied Aerodynamics Department</p>
 
 Looking forward to seeing your logo here! 
 
