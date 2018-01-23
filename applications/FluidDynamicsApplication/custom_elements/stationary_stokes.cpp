@@ -7,7 +7,13 @@ namespace Kratos {
 template< unsigned int TDim >
 Element::Pointer StationaryStokes<TDim>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new StationaryStokes<TDim>(NewId, this->GetGeometry().Create(ThisNodes), pProperties) );
+    return Kratos::make_shared< StationaryStokes<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+}
+
+template< unsigned int TDim >
+Element::Pointer StationaryStokes<TDim>::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
+{
+    return Kratos::make_shared<StationaryStokes>(NewId, pGeom, pProperties);
 }
 
 template< unsigned int TDim >

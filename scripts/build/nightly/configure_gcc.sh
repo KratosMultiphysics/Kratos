@@ -7,7 +7,7 @@ cmake .. \
 -DCMAKE_INSTALL_RPATH="${HOME}/Kratos/libs"                                                     \
 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE                                                        \
 -DCMAKE_CXX_COMPILER=g++                                                                        \
--DCMAKE_BUILD_TYPE=Custom                                                                      \
+-DCMAKE_BUILD_TYPE=Custom                                                                       \
 -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -fopenmp"                                              \
 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -fopenmp"                               \
 -DBOOST_ROOT="${BOOST_DIR}"                                                                     \
@@ -25,13 +25,14 @@ cmake .. \
 -DMESHING_APPLICATION=ON                                                                        \
 -DMULTISCALE_APPLICATION=OFF                                                                    \
 -DPARTICLE_MECHANICS_APPLICATION=ON                                                             \
--DPFEM_APPLICATION=OFF                                                                           \
--DCONTACT_MECHANICS_APPLICATION=OFF                                                              \
--DPFEM_FLUID_DYNAMICS_APPLICATION=OFF                                                            \
--DPFEM_SOLID_MECHANICS_APPLICATION=OFF                                                           \
+-DPFEM_APPLICATION=OFF                                                                          \
+-DCONTACT_MECHANICS_APPLICATION=OFF                                                             \
+-DPFEM_FLUID_DYNAMICS_APPLICATION=OFF                                                           \
+-DPFEM_SOLID_MECHANICS_APPLICATION=OFF                                                          \
 -DPOROMECHANICS_APPLICATION=ON                                                                  \
 -DSHAPE_OPTIMIZATION_APPLICATION=ON                                                             \
 -DSOLID_MECHANICS_APPLICATION=ON                                                                \
+-DCONSTITUTIVE_MODELS_APPLICATION=ON                                                            \
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                                           \
 -DSWIMMING_DEM_APPLICATION=ON                                                                   \
 -DTHERMO_MECHANICAL_APPLICATION=ON                                                              \

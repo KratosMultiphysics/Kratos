@@ -42,19 +42,19 @@ class EigenSolver(BaseSolver.MechanicalSolver):
             }
         }
         """)
+
+        # Validate and transfer settings
         self._validate_and_transfer_matching_settings(custom_settings, eigensolver_settings)
         self.eigensolver_settings = eigensolver_settings["eigensolver_settings"]
-        # Validate the remaining settings in the base class.
-        if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
-            custom_settings.AddEmptyValue("scheme_type")
-            custom_settings["scheme_type"].SetString("Dynamic")
 
+        # Correction for the eigen solver parameters input
         self.compute_modal_contribution = self.eigensolver_settings["compute_modal_contribution"].GetBool()
         self.eigensolver_settings.RemoveValue("compute_modal_contribution")
         
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, custom_settings)
-        print("::[Eigen_Solver]:: Construction finished")
+        
+        print("::[Eigen_Scheme]:: "+self.time_integration_settings["integration_method"].GetString()+" Scheme Ready")
 
     #### Private functions ####
 
@@ -64,10 +64,10 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         The scheme determines the left- and right-hand side matrices in the
         generalized eigenvalue problem. 
         """
-        if self.settings["solution_type"].GetString() == "Dynamic":
+        if self.time_integration_settings["solution_type"].GetString() == "Dynamic":
             solution_scheme = KratosSolid.EigensolverDynamicScheme()
         else:
-            raise Exception("Unsupported solution_type: " + self.settings["solution_type"])
+            raise Exception("Unsupported solution_type: " + self.time_integration_settings["solution_type"])
         return solution_scheme
 
     def _create_linear_solver(self):
@@ -91,11 +91,10 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         return linear_solver
 
     def _create_mechanical_solver(self):
-        computing_model_part = self.GetComputingModelPart()
         eigen_scheme = self._get_solution_scheme() # The scheme defines the matrices of the eigenvalue problem.
         builder_and_solver = self._get_builder_and_solver() # The eigensolver is created here.
 
-        return KratosSolid.EigensolverStrategy(computing_model_part,
+        return KratosSolid.EigensolverStrategy(self.model_part,
                                                eigen_scheme,
                                                builder_and_solver,
                                                self.compute_modal_contribution)

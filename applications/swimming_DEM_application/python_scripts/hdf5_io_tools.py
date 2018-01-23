@@ -42,7 +42,6 @@ def Index():
         yield index
         index += 1
 
-
 class FluidHDF5Loader:
 
     def __init__(self, fluid_model_part, particles_model_part, pp, main_path):
@@ -71,20 +70,24 @@ class FluidHDF5Loader:
         if pp.CFD_DEM["fluid_already_calculated"].GetBool():
 
             with h5py.File(self.file_path, 'r') as f:
-                self.times_str = list([str(key) for key in f.keys() if key not in {'nodes'}])
+                self.times_str = list([str(key) for key in f.keys() if 'time' in f['/' + key].attrs])
                 nodes_ids = np.array([node_id for node_id in f['nodes'][:, 0]])
                 self.permutations = np.array(range(len(nodes_ids)))
                 # obtaining the vector of permutations by ordering [0, 1, ..., n_nodes] as nodes_ids, by increasing order of id.
                 self.permutations = np.array([x for (y, x) in sorted(zip(nodes_ids, self.permutations))])
-                self.times     = np.array([float(f[key].attrs['time']) for key in self.times_str])
+                self.times = np.array([float(f[key].attrs['time']) for key in self.times_str])
+
+                if len(self.times) < 2:
+                    raise ValueError("\nThere are only " + str(len(self.times)) + ' time steps stored in the hdf5 file. At least two are needed.\n')
+
                 self.times_str = np.array([x for (y, x) in sorted(zip(self.times, self.times_str))])
                 self.times = sorted(self.times)
                 self.dt = self.times[-1] - self.times[-2]
 
-            self.old_data_array = np.zeros(self.extended_shape)
-            self.future_data_array = np.zeros(self.extended_shape)
-            self.old_time_index = 0
-            self.future_time_index = 1
+            self.data_array_past = np.zeros(self.extended_shape)
+            self.data_array_future = np.zeros(self.extended_shape)
+            self.time_index_past = - 1 # it starts at an absurd value
+            self.time_index_future = - 1
             viscosity = 1e-6
             density = 1000. # BIG TODO: READ THIS FROM NODES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             for node in self.fluid_model_part.Nodes:
@@ -115,21 +118,21 @@ class FluidHDF5Loader:
 
         self.current_data_array = np.zeros(self.extended_shape)
 
-    def GetOldTimeIndicesAndWeights(self, current_time, times_array, fluid_dt):
-        old_index = bi.bisect(times_array, current_time)
-        future_index = old_index + 1
-        old_time =  times_array[old_index]
+    def GetTimeIndicesAndWeights(self, current_time, times_array, fluid_dt):
+        index_future = bi.bisect(times_array, current_time)
+        index_past = max(0, index_future - 1)
+        time_past = times_array[index_past]
 
-        if future_index >= len(times_array):
-            alpha_old = 1
-            future_index = old_index
-            alpha_future = 0
+        if index_future == len(times_array): # we are beyond the last time
+            alpha_past = 0
+            alpha_future = 1
+            index_future = index_past
             self.there_are_more_steps_to_load = False
         else:
-            alpha_old = max(0, (current_time - old_time) / fluid_dt)
-            alpha_future = 1.0 - alpha_old
+            alpha_future = max(0, (current_time - time_past) / fluid_dt)
+            alpha_past = 1.0 - alpha_future
 
-        return old_index, alpha_old, future_index, alpha_future
+        return index_past, alpha_past, index_future, alpha_future
 
     def CanLoadMoreSteps(self):
         return self.there_are_more_steps_to_load
@@ -148,25 +151,25 @@ class FluidHDF5Loader:
             f.create_group(name = name)
             f[name].attrs['time'] = time
 
-        indices = Index()
+        index = Index()
         if not self.last_time == time:
-            self.FillUpSingleDataset(name + '/vx', VELOCITY_X, next(indices))
-            self.FillUpSingleDataset(name + '/vy', VELOCITY_Y, next(indices))
-            self.FillUpSingleDataset(name + '/vz', VELOCITY_Z, next(indices))
+            self.FillUpSingleDataset(name + '/vx', VELOCITY_X, next(index))
+            self.FillUpSingleDataset(name + '/vy', VELOCITY_Y, next(index))
+            self.FillUpSingleDataset(name + '/vz', VELOCITY_Z, next(index))
 
             if self.store_pressure:
-                self.FillUpSingleDataset(name + '/p', PRESSURE, next(indices))
+                self.FillUpSingleDataset(name + '/p', PRESSURE, next(index))
 
         if self.store_gradient:
-            self.FillUpSingleDataset(name + '/dvxx', VELOCITY_X_GRADIENT_X, next(indices))
-            self.FillUpSingleDataset(name + '/dvxy', VELOCITY_X_GRADIENT_Y, next(indices))
-            self.FillUpSingleDataset(name + '/dvxz', VELOCITY_X_GRADIENT_Z, next(indices))
-            self.FillUpSingleDataset(name + '/dvyx', VELOCITY_Y_GRADIENT_X, next(indices))
-            self.FillUpSingleDataset(name + '/dvyy', VELOCITY_Y_GRADIENT_Y, next(indices))
-            self.FillUpSingleDataset(name + '/dvyz', VELOCITY_Y_GRADIENT_Z, next(indices))
-            self.FillUpSingleDataset(name + '/dvzx', VELOCITY_Z_GRADIENT_X, next(indices))
-            self.FillUpSingleDataset(name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(indices))
-            self.FillUpSingleDataset(name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(indices))
+            self.FillUpSingleDataset(name + '/dvxx', VELOCITY_X_GRADIENT_X, next(index))
+            self.FillUpSingleDataset(name + '/dvxy', VELOCITY_X_GRADIENT_Y, next(index))
+            self.FillUpSingleDataset(name + '/dvxz', VELOCITY_X_GRADIENT_Z, next(index))
+            self.FillUpSingleDataset(name + '/dvyx', VELOCITY_Y_GRADIENT_X, next(index))
+            self.FillUpSingleDataset(name + '/dvyy', VELOCITY_Y_GRADIENT_Y, next(index))
+            self.FillUpSingleDataset(name + '/dvyz', VELOCITY_Y_GRADIENT_Z, next(index))
+            self.FillUpSingleDataset(name + '/dvzx', VELOCITY_Z_GRADIENT_X, next(index))
+            self.FillUpSingleDataset(name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(index))
+            self.FillUpSingleDataset(name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(index))
 
         self.last_time = time
 
@@ -182,46 +185,60 @@ class FluidHDF5Loader:
 
         return read_values[self.permutations]
 
-    def UpdateFluidVariable(self, name, variable, variable_index_in_temp_array, must_load_future_values_from_database, alpha_old, alpha_future):
+    def UpdateFluidVariable(self,
+                            name,
+                            variable,
+                            variable_index,
+                            must_load_future_values_from_database,
+                            alpha_past,
+                            alpha_future):
         if must_load_future_values_from_database:
             with h5py.File(self.file_path, 'r') as f:
-                self.future_data_array[:, variable_index_in_temp_array] = self.ConvertComponent(f, name)
+                self.data_array_future[:, variable_index] = self.ConvertComponent(f, name)
 
-        self.current_data_array[:, variable_index_in_temp_array] = alpha_old * self.old_data_array[:, variable_index_in_temp_array] + alpha_future * self.future_data_array[:, variable_index_in_temp_array]
+        self.current_data_array[:, variable_index] = (
+            alpha_past * self.data_array_past[:, variable_index]
+          + alpha_future * self.data_array_future[:, variable_index])
 
-        for i_node, node in enumerate(self.fluid_model_part.Nodes):
-            node.SetSolutionStepValue(variable, self.current_data_array[i_node, variable_index_in_temp_array])
+        for i, node in enumerate(self.fluid_model_part.Nodes):
+            node.SetSolutionStepValue(variable, self.current_data_array[i, variable_index])
 
-    def LoadFluid(self, DEM_time):
+    def LoadFluid(self, fluid_time):
         Say('\nLoading fluid from hdf5 file...')
-        # getting time indices and weights (identifyint the two fluid time steps surrounding the current DEM step and assigning correspnding weights)
-        old_time_index, alpha_old, future_time_index, alpha_future = self.GetOldTimeIndicesAndWeights(DEM_time, self.times, self.dt)
-        old_step_dataset_name    = self.times_str[old_time_index]
-        future_step_dataset_name = self.times_str[future_time_index]
-        must_load_from_database = not self.old_time_index == old_time_index # old and future time steps must be updated
+        # getting time indices and weights (identifying the two fluid time steps surrounding the current DEM step and assigning correspnding weights)
+        time_index_past, alpha_past, time_index_future, alpha_future = self.GetTimeIndicesAndWeights(fluid_time, self.times, self.dt)
+        future_step_dataset_name = self.times_str[time_index_future]
+        must_load_from_database = self.time_index_past != time_index_past or self.time_index_future != time_index_future# old and future time steps must be updated
 
-        if must_load_from_database:
-            # new old becomes old future
-            self.old_data_array, self.future_data_array = self.future_data_array, self.old_data_array
+        if must_load_from_database: # the current time is not between the two already loaded time steps
+            # the old future becomes the new past
+            self.data_array_past, self.data_array_future = self.data_array_future, self.data_array_past
 
-        indices = Index()
-        self.UpdateFluidVariable(future_step_dataset_name + '/vx', VELOCITY_X, next(indices), must_load_from_database, alpha_old, alpha_future)
-        self.UpdateFluidVariable(future_step_dataset_name + '/vy', VELOCITY_Y, next(indices), must_load_from_database, alpha_old, alpha_future)
-        self.UpdateFluidVariable(future_step_dataset_name + '/vz', VELOCITY_Z, next(indices), must_load_from_database, alpha_old, alpha_future)
+        index = Index()
+        self.UpdateFluidVariable(future_step_dataset_name + '/vx', VELOCITY_X, next(index), must_load_from_database, alpha_past, alpha_future)
+        self.UpdateFluidVariable(future_step_dataset_name + '/vy', VELOCITY_Y, next(index), must_load_from_database, alpha_past, alpha_future)
+        self.UpdateFluidVariable(future_step_dataset_name + '/vz', VELOCITY_Z, next(index), must_load_from_database, alpha_past, alpha_future)
 
         if self.store_pressure:
-            self.UpdateFluidVariable(future_step_dataset_name + '/p', PRESSURE, next(indices), must_load_from_database, alpha_old, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/p', PRESSURE, next(index), must_load_from_database, alpha_past, alpha_future)
 
         if self.load_derivatives:
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvxx', VELOCITY_X_GRADIENT_X, next(indices), must_load_from_database, alpha_old, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvxy', VELOCITY_X_GRADIENT_Y, next(indices), must_load_from_database, alpha_old, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvxz', VELOCITY_X_GRADIENT_Z, next(indices), must_load_from_database, alpha_old, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvyx', VELOCITY_Y_GRADIENT_X, next(indices), must_load_from_database, alpha_old, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvyy', VELOCITY_Y_GRADIENT_Y, next(indices), must_load_from_database, alpha_old, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvyz', VELOCITY_Y_GRADIENT_Z, next(indices), must_load_from_database, alpha_old, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvzx', VELOCITY_Z_GRADIENT_X, next(indices), must_load_from_database, alpha_old, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(indices), must_load_from_database, alpha_old, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(indices), must_load_from_database, alpha_old, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvxx', VELOCITY_X_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvxy', VELOCITY_X_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvxz', VELOCITY_X_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvyx', VELOCITY_Y_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvyy', VELOCITY_Y_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvyz', VELOCITY_Y_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvzx', VELOCITY_Z_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
+
+        if self.time_index_past == - 1: # it is the first upload
+            self.data_array_past[:] = self.data_array_future[:]
+
+        self.time_index_past = time_index_past
+        self.time_index_future = time_index_future
+
         Say('Finished loading fluid from hdf5 file.\n')
 
 class ParticleHistoryLoader:

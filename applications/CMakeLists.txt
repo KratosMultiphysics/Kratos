@@ -54,12 +54,15 @@ TOPOLOGY_OPTIMIZATION_APPLICATION;\
 MY_LAPLACIAN_APPLICATION;\
 MAPPING_APPLICATION;\
 EIGEN_SOLVERS_APPLICATION;\
+STABILIZED_CFD_APPLICATION;\
+HDF5_APPLICATION;\
 ")
 
 message( " ")
 message( " ")
 message( "***** LIST OF KRATOS APPLICATIONS THAT ARE GOING TO BE COMPILED: *****")
 message( " ")
+
 FOREACH(APP ${LIST_OF_APPS})
 IF(${${APP}} MATCHES ON)
 message("                ${APP} - ${${APP}}")
@@ -295,6 +298,10 @@ if(${COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION} MATCHES ON)
   add_subdirectory(CompressiblePotentialFlowApplication)
 endif(${COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION} MATCHES ON)
 
+if(${HDF5_APPLICATION} MATCHES ON)
+  add_subdirectory(HDF5Application)
+endif(${HDF5_APPLICATION} MATCHES ON)
+
 if(${SHALLOW_WATER_APPLICATION} MATCHES ON)
   add_subdirectory(ShallowWaterApplication)
 endif(${SHALLOW_WATER_APPLICATION} MATCHES ON)
@@ -302,6 +309,10 @@ endif(${SHALLOW_WATER_APPLICATION} MATCHES ON)
 if(${EIGEN_SOLVERS_APPLICATION} MATCHES ON)
   add_subdirectory(EigenSolversApplication)
 endif(${EIGEN_SOLVERS_APPLICATION} MATCHES ON)
+
+if(${STABILIZED_CFD_APPLICATION} MATCHES ON)
+  add_subdirectory(StabilizedCFDApplication)
+endif(${STABILIZED_CFD_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")

@@ -1,10 +1,5 @@
-//
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: G.Casas, gcasas@cimne.upc.edu $
-//   Date:                $Date: 2013-11-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
-//
-//
+//   Author: G.Casas, gcasas@cimne.upc.edu $
+
 // System includes
 #include <string>
 #include <iostream>
@@ -929,6 +924,19 @@ void SphericSwimmingParticle<TBaseElement>::ComputeParticleReynoldsNumber(double
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::ComputePowerLawParticleReynoldsNumber(double& reynolds,
+                                                                                  const double consistency_index,
+                                                                                  const double flow_behavior_index)
+{
+    // This function is consistent with Shah 2007 (doi:10.1016/j.ijmultiphaseﬂow.2006.06.006)
+    // int coefficient = use_max_shear_rate ? 3 : 2;
+    const double& K = consistency_index;
+    const double& n = flow_behavior_index;
+    reynolds =  2 * std::pow(mRadius, n) * std::pow(mNormOfSlipVel, 2 - n) * mFluidDensity / K;
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeNondimensionalRotVelocity(const array_1d<double, 3>& slip_rot_velocity)
 {
     return 2.0 * mRadius * mNormOfSlipVel / std::sqrt(SWIMMING_INNER_PRODUCT_3(slip_rot_velocity, slip_rot_velocity));
@@ -1058,6 +1066,12 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
 
     else if (mDragForceType == 11){ // Maxey-Riley expression with Faxen correction
         drag_coeff = ComputeStokesDragCoefficient(); // temporary
+    }
+
+    else if (mDragForceType == 13){ // Re_p < 1000, Shah et al. (2006) (doi:10.1016/j.ijmultiphaseflow.2006.06.006)
+        drag_coeff = ComputeShahDragCoefficient(r_current_process_info);
+        KRATOS_WATCH(drag_coeff)
+        KRATOS_WATCH(ComputeStokesDragCoefficient())
     }
 
     else {
@@ -1374,8 +1388,38 @@ double SphericSwimmingParticle<TBaseElement>::ComputeBeetstraDragCoefficient()
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
- void SphericSwimmingParticle<TBaseElement>::ComputeGanserParameters(const int isometric_shape, const double dn, double& k_1, double& k_2)
- {
+double SphericSwimmingParticle<TBaseElement>::ComputeShahDragCoefficient(const ProcessInfo& r_current_process_info, const bool use_shahi_correction)
+{
+    const double power_law_tol = 0.0001;
+    const double K = r_current_process_info[POWER_LAW_K];
+    const double n = r_current_process_info[POWER_LAW_N];
+
+    if (std::abs(n) < power_law_tol || std::abs(K) < power_law_tol){
+        std::cout << "WARNING: Shah's method is being used with Power Law data being zero (n = 0 or K = 0)!!" << std::endl << std::flush;
+    }
+
+    double A =   6.9148 * n * n - 24.838 * n + 22.642;
+    double B = - 0.5067 * n * n + 1.3234 * n - 0.1744;
+
+    if (use_shahi_correction){ // from 2016 Shahi (doi: 10.1016/j.minpro.2016.06.002)
+        A = 1.5269 * A - 3.9375;
+        B =  0.892 * B + 0.0326;
+    }
+
+    double reynolds;
+    ComputePowerLawParticleReynoldsNumber(reynolds, K, n);
+    const double exponents_coeff = 1.0 / (2 - n);
+    const double area = Globals::Pi * mRadius * mRadius;
+    const double dimensional_coefficient = 0.5 * area * mFluidDensity * mNormOfSlipVel;
+
+    return dimensional_coefficient * std::pow(A, exponents_coeff) * std::pow(reynolds, exponents_coeff * (2 * B - 2));
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::ComputeGanserParameters(const int isometric_shape, const double dn, double& k_1, double& k_2)
+{
      if (isometric_shape){
          k_1 = 3 / (1 + 2 / std::sqrt(mSphericity));
      }
@@ -1385,7 +1429,7 @@ template < class TBaseElement >
      }
 
      k_2 = pow(10.0, 1.8148 * pow(- log10(mSphericity), 0.5743));
- }
+}
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
@@ -1433,8 +1477,8 @@ double SphericSwimmingParticle<TBaseElement>::ComputeElSamniLiftCoefficient(cons
 {
     if (vorticity_norm > 0.000000000001 && mNormOfSlipVel > 0.000000000001){
          const double yield_stress   = 0.0; // we are considering a Bingham type fluid
-         const double power_law_K    = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_K);
-         const double power_law_n    = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_N);
+         const double power_law_K = r_current_process_info[POWER_LAW_K];
+         const double power_law_n = r_current_process_info[POWER_LAW_N];
          const double shear_rate_p   = mNormOfSlipVel / mRadius * (4.5 / power_law_n - 3.5); // graphic model by Unhlherr et al. (fit by Wallis, G.B. and Dobson, J.E., 1973)
          double equivalent_viscosity = yield_stress / shear_rate_p + power_law_K * pow(shear_rate_p, power_law_n - 1);
          const double coeff          = std::max(0.09 * mNormOfSlipVel, 5.82 * std::sqrt(0.5 * mNormOfSlipVel * equivalent_viscosity /  mFluidDensity));

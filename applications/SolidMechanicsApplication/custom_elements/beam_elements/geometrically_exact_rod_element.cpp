@@ -246,7 +246,7 @@ namespace Kratos
     rVariables.PointNumber = rPointNumber;
 
     //Set Shape Functions Values for this integration point
-    rVariables.N=row( Ncontainer, rPointNumber);
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
     
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -534,19 +534,19 @@ namespace Kratos
 
     noalias(rMappingTensor) = ZeroMatrix(12,6);
 
-    MathUtils<double>::AddMatrix( rMappingTensor, DiagonalMatrix, 0, 0 );
+    BeamMathUtilsType::AddMatrix( rMappingTensor, DiagonalMatrix, 0, 0 );
     
     BeamMathUtilsType::VectorToSkewSymmetricTensor(DirectorVectorsAlpha[0], SkewSymDirector);
     SkewSymDirector *= (-1);
-    MathUtils<double>::AddMatrix( rMappingTensor, SkewSymDirector, 3, 3 );
+    BeamMathUtilsType::AddMatrix( rMappingTensor, SkewSymDirector, 3, 3 );
     
     BeamMathUtilsType::VectorToSkewSymmetricTensor(DirectorVectorsAlpha[1], SkewSymDirector);
     SkewSymDirector *= (-1);
-    MathUtils<double>::AddMatrix( rMappingTensor, SkewSymDirector, 6, 3 );
+    BeamMathUtilsType::AddMatrix( rMappingTensor, SkewSymDirector, 6, 3 );
     
     BeamMathUtilsType::VectorToSkewSymmetricTensor(DirectorVectorsAlpha[2], SkewSymDirector);
     SkewSymDirector *= (-1);
-    MathUtils<double>::AddMatrix( rMappingTensor, SkewSymDirector, 9, 3 );
+    BeamMathUtilsType::AddMatrix( rMappingTensor, SkewSymDirector, 9, 3 );
 
     //std::cout<<" Mapping Tensor "<<rMappingTensor<<std::endl;
  
@@ -564,7 +564,8 @@ namespace Kratos
 
     //create and initialize element variables:
     ElementVariables Variables;
-
+    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    
     DirectorsVariables Directors;
     Variables.SetDirectors(Directors);
 
@@ -634,7 +635,8 @@ namespace Kratos
 
     //create and initialize element variables:
     ElementVariables Variables;
-
+    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    
     DirectorsVariables Directors;
     Variables.SetDirectors(Directors);
 
@@ -686,7 +688,7 @@ namespace Kratos
 	Variables.PointNumber = PointNumber;
 
 	//set shape functions values for this integration point
-	Variables.N=row( Ncontainer, PointNumber);
+	noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 
 	Directors.CurrentNode.resize(number_of_nodes);
@@ -1631,7 +1633,7 @@ namespace Kratos
 	    Kmij *= rVariables.Alpha; //0.5;
 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kmij, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kmij, RowIndex, ColIndex );
 	  }
       }
 
@@ -1698,7 +1700,7 @@ namespace Kratos
 		this->CalculateAlphaDirectorSkewSymTensor( SkewSymDirectorKNodeJ, rVariables, j, k, 1 );
 		GabK = (-1) * (rVariables.DN_DX(i, 0) *  rVariables.N[j] * StressResultants[k] ) * SkewSymDirectorKNodeJ; 
 		//Building the Local Stiffness Matrix
-		MathUtils<double>::AddMatrix( Kij, GabK, 0, 3 );
+		BeamMathUtilsType::AddMatrix( Kij, GabK, 0, 3 );
 	
 		//term 21
 		noalias(GabK) = ZeroMatrix(3,3);
@@ -1706,20 +1708,20 @@ namespace Kratos
 		this->CalculateAlphaDirectorSkewSymTensor( SkewSymDirectorKNodeI, rVariables, i, k, rVariables.Alpha );
 		GabK = (rVariables.N[i] * rVariables.DN_DX(j, 0) * StressResultants[k] ) * SkewSymDirectorKNodeI; 
 		//Building the Local Stiffness Matrix
-		MathUtils<double>::AddMatrix( Kij, GabK, 3, 0 );
+		BeamMathUtilsType::AddMatrix( Kij, GabK, 3, 0 );
 	
 		//term 22
 		noalias(GabK) = ZeroMatrix(3,3);
 		this->CalculateDiscreteOperatorN(GabK,rVariables,i,j,k);
 
 		//Building the Local Stiffness Matrix
-		MathUtils<double>::AddMatrix( Kij, GabK, 3, 3 );
+		BeamMathUtilsType::AddMatrix( Kij, GabK, 3, 3 );
 	      }
 	    
 	    Kij *= rIntegrationWeight * rVariables.Alpha; //0.5;
 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 	    
 	  }
 
@@ -1755,13 +1757,13 @@ namespace Kratos
 		GabK = (-1) * prod(GabK, SkewSymDirectorKNodeJ);
 
 		//Building the Local Stiffness Matrix
-		MathUtils<double>::AddMatrix( Kij, GabK, 3, 3 );
+		BeamMathUtilsType::AddMatrix( Kij, GabK, 3, 3 );
 	      }
 	    
 	    Kij *= rIntegrationWeight * rVariables.Alpha; //0.5;
 
 	    //Building the Local Stiffness Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 	    
 	  }
       }
@@ -1893,8 +1895,8 @@ namespace Kratos
 	    m22 *= 2.0 / (DeltaTime * DeltaTime);
 
 	    //Building the Local Tangent Inertia Matrix
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
-	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
+	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
 	    
 	  }
       }

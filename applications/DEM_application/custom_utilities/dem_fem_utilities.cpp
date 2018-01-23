@@ -49,7 +49,9 @@ namespace Kratos
     void DEMFEMUtilities::MoveAllMeshes(ModelPart& r_model_part, double time, double dt) {
 
         if (r_model_part.NumberOfSubModelParts()) {
-            for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin(); sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {                
+            for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin();
+                                                                 sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
+                
                 ModelPart& submp = *sub_model_part;
                 
                 const bool rigid_body_motion = submp[RIGID_BODY_MOTION];
@@ -84,11 +86,54 @@ namespace Kratos
                                                      angular_period, mod_angular_velocity, angular_velocity, new_axes1, new_axes2, new_axes3);
 
                 GeometryFunctions::UpdateKinematicVariablesOfAGridOfNodes(mod_angular_velocity, linear_velocity, initial_center, new_axes1,
-                                                                      new_axes2, new_axes3, angular_velocity_changed, linear_velocity_changed, center_position,
-                                                                      fixed_mesh, dt, rNodes);                                               
-            } //for (unsigned int mesh_number = 1; mesh_number < r_model_part.NumberOfMeshes(); mesh_number++)
-        } //if ( r_model_part.NumberOfMeshes() > 1 )
+                                                                          new_axes2, new_axes3, angular_velocity_changed, linear_velocity_changed, center_position,
+                                                                          fixed_mesh, dt, rNodes);                                               
+            } //for ModelPart::SubModelPartsContainerType::iterator
+        } //if r_model_part.NumberOfMeshes() > 1
     }
+    
+    void DEMFEMUtilities::MoveAllMeshesUsingATable(ModelPart& r_model_part, double time, double dt) {
+
+        if (r_model_part.NumberOfSubModelParts()) {
+            
+            for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin();
+                                                                 sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
+                ModelPart& submp = *sub_model_part;
+                NodesArrayType& rNodes = submp.Nodes();
+                const int table_number = submp[TABLE_NUMBER];
+                if (!table_number) continue;
+                const int velocity_component = submp[TABLE_VELOCITY_COMPONENT];
+                
+                #pragma omp parallel for
+                for (int k = 0; k < (int)rNodes.size(); k++) {
+
+                    array_1d<double, 3> old_coordinates = ZeroVector(3);
+                    ModelPart::NodeIterator node = rNodes.begin() + k;
+                    
+                    old_coordinates[0] = node->Coordinates()[0];
+                    old_coordinates[1] = node->Coordinates()[1];
+                    old_coordinates[2] = node->Coordinates()[2];
+
+                    array_1d<double, 3> velocity = ZeroVector(3);
+                    velocity[0] = 0.0;
+                    velocity[1] = 0.0;
+                    velocity[2] = 0.0;
+                    velocity[velocity_component] = r_model_part.GetTable(table_number).GetValue(time);
+                    noalias(node->FastGetSolutionStepValue(VELOCITY)) = velocity;
+
+                    node->Coordinates()[0] = old_coordinates[0] + velocity[0] * dt;
+                    node->Coordinates()[1] = old_coordinates[1] + velocity[1] * dt;
+                    node->Coordinates()[2] = old_coordinates[2] + velocity[2] * dt;
+                    
+                    array_1d<double, 3> displacement = ZeroVector(3);
+                    displacement[0] = node->Coordinates()[0] - node->GetInitialPosition().Coordinates()[0];
+                    displacement[1] = node->Coordinates()[1] - node->GetInitialPosition().Coordinates()[1];
+                    displacement[2] = node->Coordinates()[2] - node->GetInitialPosition().Coordinates()[2];
+                    noalias(node->FastGetSolutionStepValue(DISPLACEMENT)) = displacement;                  
+                } // for loop   
+            } // for ModelPart::SubModelPartsContainerType::iterator
+        } // if r_model_part.NumberOfMeshes()
+    } // function
     
     void DEMFEMUtilities::CreateRigidFacesFromAllElements(ModelPart& r_model_part, PropertiesType::Pointer pProps) {
             
