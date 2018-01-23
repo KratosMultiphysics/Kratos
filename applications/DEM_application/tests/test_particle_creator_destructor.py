@@ -24,10 +24,12 @@ class TestParticleCreatorDestructor(KratosUnittest.TestCase):
         
         self.creator_destructor = ParticleCreatorDestructor()
         
-    def ModifyProperties(self, properties):
-        DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
-        DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, False)
+    def ModifyProperties(self, properties, param = 0):
+        
+        if not param:
+            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
+            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
+            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, False)
 
         scheme = SymplecticEulerScheme()        
         scheme.SetTranslationalIntegrationSchemeInProperties(properties, False)
