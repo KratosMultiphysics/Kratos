@@ -1,6 +1,6 @@
 ## Contact Structural Mechanics Application 
  
-TheContact Structural Mechanics Application contains the contact mechanics implementations that can be used by the Structural Mechanics Application within Kratos Multiphysics. 
+The Contact Structural Mechanics Application contains the contact mechanics implementations that can be used by the Structural Mechanics Application within Kratos Multiphysics. 
  
 
 <p align="center">
