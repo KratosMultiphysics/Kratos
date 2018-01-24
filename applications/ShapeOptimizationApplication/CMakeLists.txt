@@ -1,14 +1,15 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosShapeOptimizationApplication ****")
+if ( ${EMPIRE_NURBS_VERTEX_MORPHING} MATCHES ON )
+  message("**** configuring KratosShapeOptimizationApplication with EMPIRE NURBS VERTEX MORPHING ****")
+else ( ${EMPIRE_NURBS_VERTEX_MORPHING} MATCHES ON )
+  message("**** configuring KratosShapeOptimizationApplication ****")
+endif ( ${EMPIRE_NURBS_VERTEX_MORPHING} MATCHES ON )
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 #dependecies on other applications
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
-
-#empire header files
-include_directories( $ENV{EMPIRE_MAPPER_LIB_INC_ON_MACHINE} )
 
 ## generate variables with the sources
 set( KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES     
@@ -19,8 +20,13 @@ set( KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_analytic_sensitivity_element.cpp
 )
 
-find_package(OCE)
-include_directories( ${OCE_INCLUDE_DIRS} )
+if ( ${EMPIRE_NURBS_VERTEX_MORPHING} MATCHES ON )
+  add_definitions(-DEMPIRE_NURBS_VERTEX_MORPHING)
+  #empire header files
+  include_directories( $ENV{EMPIRE_MAPPER_LIB_INC_ON_MACHINE} )
+  find_package(OCE)
+  include_directories( ${OCE_INCLUDE_DIRS} )
+endif(${EMPIRE_NURBS_VERTEX_MORPHING} MATCHES ON)
 
 find_package(HDF5 REQUIRED COMPONENTS CXX)
 include_directories( ${HDF5_INCLUDE_DIRS} )
