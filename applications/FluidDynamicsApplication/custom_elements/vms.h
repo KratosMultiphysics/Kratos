@@ -433,6 +433,24 @@ public:
         }
 
         noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
+	//HERE WE WILL ADD DO NOTHING BOUNDARY CONDITION, THAT IS: Int_Gamma w* (p-mu*sym_grad)*n dGamma
+	//note that L (length of the boundary edge is taken into account "implicitylt" - because the normals are scaled with the edge length)
+	//THE PLACE TO BE ADDED AT WILL BE DISTINGUISHED BY THE FLAG_VARIABLE=1
+	//WE FIRST ADD pressure term
+	/*
+	//FLAG_VARIABLE is not defined in this application
+	int size=rRightHandSideVector.size();
+	KRATOS_WATCH(size)
+	for (unsigned int i=0; this->GetGeometry().size();i++)
+		{
+		if (this->GetGeometry()[i].FastGetSolutionStepValue(FLAG_VARIABLE)==1)
+			{
+			unsigned int pos=i*2;
+			rRightHandSideVector[pos]+=0.5*this->GetGeometry()[i].FastGetSolutionStepValue(NORMAL_X);
+			rRightHandSideVector[pos+1]+=0.5*this->GetGeometry()[i].FastGetSolutionStepValue(NORMAL_Y);
+			}
+		}
+	*/
     }
 
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override

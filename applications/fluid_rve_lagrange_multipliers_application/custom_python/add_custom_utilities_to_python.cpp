@@ -85,6 +85,8 @@ namespace Python
         class_<AddPeriodicConditionsNormalOnly2D > ("AddPeriodicConditionsNormalOnly2D", init<ModelPart& >())
                 .def("AddThem", &AddPeriodicConditionsNormalOnly2D::AddThem)
                 .def("AddThemWithTangentInversePeriodicity", &AddPeriodicConditionsNormalOnly2D::AddThemWithTangentInversePeriodicity)
+		.def("AddThemWithTangentInversePeriodicityOnlyAtVericalWallsAboveGivenY", &AddPeriodicConditionsNormalOnly2D::AddThemWithTangentInversePeriodicityOnlyAtVericalWallsAboveGivenY)
+		.def("AddThemWithTangentInversePeriodicityAllWallsBelowGivenY", &AddPeriodicConditionsNormalOnly2D::AddThemWithTangentInversePeriodicityAllWallsBelowGivenY)
                 .def("AddThemWithNormalInversePeriodicity", &AddPeriodicConditionsNormalOnly2D::AddThemWithNormalInversePeriodicity)
                 ;          
         class_<ShearTermsComputationUtility2D > ("ShearTermsComputationUtility2D", init<ModelPart& >())
