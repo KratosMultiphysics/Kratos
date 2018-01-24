@@ -18,7 +18,7 @@ class compiled_time_spatial_function:
 
 
 def Factory(custom_settings, Model):
-    if(type(custom_settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignScalarToNodesProcess(Model, custom_settings["Parameters"])
 
@@ -145,13 +145,13 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         time_integration_method = KratosSolid.TimeIntegrationMethod()
         if( self.time_integration_type == "Angular" ):
             if( time_integration_method.HasProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo) ):
-                self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo)
+                self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo).Clone()
             else:
                 print(variable+": No time integration ")
 
         elif( self.time_integration_type == "Linear" ):
             if( time_integration_method.HasProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo) ):
-                self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo)
+                self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo).Clone()
             else:
                 print(variable+": No time integration ")
         else:
@@ -180,7 +180,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                 self.AssignValueProcess.Execute()
 
                 if( self.fix_time_integration ):
-                    self.SetTimeIntegration()
                     for node in self.model_part.Nodes:
                         self.TimeIntegrationMethod.Predict(node)
 
@@ -196,7 +195,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             self.AssignValueProcess.Execute()
 
             if( self.fix_time_integration ):
-                self.SetTimeIntegration()
                 for node in self.model_part.Nodes:
                     self.TimeIntegrationMethod.Predict(node)
 
@@ -212,7 +210,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     def CheckVariableType(self,name):
 
         self.var = KratosMultiphysics.KratosGlobals.GetVariable(name)
-        if(type(self.var) != KratosMultiphysics.Array1DComponentVariable and type(self.var) != KratosMultiphysics.DoubleVariable and type(self.var) != KratosMultiphysics.VectorVariable):
+        if( (not isinstance(self.var,KratosMultiphysics.Array1DComponentVariable)) and (not isinstance(self.var,KratosMultiphysics.DoubleVariable)) and (not isinstance(self.var,KratosMultiphysics.VectorVariable)) ):
             raise Exception("Variable type is incorrect. Must be a scalar or a component")
 
 
@@ -243,7 +241,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             params["variable_name"].SetString(self.settings["variable_name"].GetString())
 
             if( self.fix_time_integration == False ):
-                params["variable_name"].SetString(self.settings["variable_name"].GetString())
                 fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
                 self.FixDofsProcesses.append(fix_dof_process)
                 free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
@@ -259,13 +256,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             self.FixDofsProcesses.append(fix_dof_process)
             free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
             self.FreeDofsProcesses.append(free_dof_process)
-
-    #
-    def SetTimeIntegration(self):
-        if( self.time_integration_type == "Linear" ):
-            self.SetLinearTimeIntegration()
-        elif( self.time_integration_type == "Angular" ):
-            self.SetAngularTimeIntegration()
 
     #
     def SetLinearTimeIntegration(self):
