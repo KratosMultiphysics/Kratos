@@ -598,6 +598,14 @@ void QSVMS<TElementData>::AddMassStabilization(
     }
 }
 
+template <class TElementData>
+void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
+    const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
+
+    
+    
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class TElementData>
