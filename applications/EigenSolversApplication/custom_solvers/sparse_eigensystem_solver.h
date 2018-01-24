@@ -278,10 +278,10 @@ class SparseEigensystemSolver
         } while (true);
 
 
-        if (rEigenvalues.size() != nroot) {
+        if (static_cast<int>(rEigenvalues.size()) != nroot) {
             rEigenvalues.resize(nroot);
         }
-        if (rEigenvectors.size1() != nroot || rEigenvectors.size2() != nn) {
+        if (static_cast<int>(rEigenvectors.size1()) != nroot || static_cast<int>(rEigenvectors.size2()) != nn) {
             rEigenvectors.resize(nroot, nn);
         }
 
@@ -303,6 +303,7 @@ class SparseEigensystemSolver
             double end_time = OpenMPUtils::GetCurrentTime();
             double duration = end_time - start_time;
             std::cout << "SparseEigensystemSolver: Completed in " << duration << " seconds" << std::endl;
+            KRATOS_WATCH(rEigenvalues);
         }
     }
 
