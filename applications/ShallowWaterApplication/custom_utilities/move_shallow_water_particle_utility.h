@@ -146,7 +146,7 @@ public:
                 {
                     array_1d<double,3> position_difference;
                     position_difference = inode->Coordinates() - position_node;
-                    const double current_distance = norm_2(position_difference);
+                    const double current_distance = norm_2( position_difference );
                     distance += current_distance / number_of_neighbours;
                 }
                 //and we save the largest edge.
@@ -347,7 +347,8 @@ public:
                     vector_mean_velocity += geom[i].FastGetSolutionStepValue(VELOCITY);
                 vector_mean_velocity *= nodal_weight;
                 
-                const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
+                //~ const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
+                const double mean_velocity = norm_2( vector_mean_velocity );
                 ielem->GetValue(MEAN_VEL_OVER_ELEM_SIZE) = mean_velocity / ( ielem->GetValue(MEAN_SIZE) ); 
             }
         }
@@ -1848,8 +1849,8 @@ private:
     /**
      */
     void ComputeGaussPointPositions_4( Geometry< Node < 3 > >& geom,
-                                       boost::numeric::ublas::bounded_matrix<double, 7, 3 > & pos,
-                                       boost::numeric::ublas::bounded_matrix<double, 7, 3 > & N )
+                                       bounded_matrix<double, 7, 3 > & pos,
+                                       bounded_matrix<double, 7, 3 > & N )
     {
         double one_third = 1.0 / 3.0;
         double one_sixt = 0.15; //1.0 / 6.0;
@@ -1896,8 +1897,8 @@ private:
      * @see PostReseed
      */
     void ComputeGaussPointPositionsForPostReseed( Geometry< Node < 3 > >& geom,
-                                                  boost::numeric::ublas::bounded_matrix<double, 7, 3 > & pos,
-                                                  boost::numeric::ublas::bounded_matrix<double, 7, 3 > & N ) //2d
+                                                  bounded_matrix<double, 7, 3 > & pos,
+                                                  bounded_matrix<double, 7, 3 > & N ) //2d
     {
         double one_third = 1.0 / 3.0;
         double one_eight = 0.12; //1.0 / 6.0;
@@ -1974,8 +1975,8 @@ private:
      * @see PostReseed
      */
     void ComputeGaussPointPositionsForPostReseed( Geometry< Node < 3 > >& geom,
-                                                  boost::numeric::ublas::bounded_matrix<double, 9, 3 > & pos,
-                                                  boost::numeric::ublas::bounded_matrix<double, 9, 4 > & N ) //3D
+                                                  bounded_matrix<double, 9, 3 > & pos,
+                                                  bounded_matrix<double, 9, 4 > & N ) //3D
     {
         double one_quarter = 0.25;
         double small_fraction = 0.1; //1.0 / 6.0;
@@ -2046,8 +2047,8 @@ private:
      * @see PreReseed
      */
     void ComputeGaussPointPositionsForPreReseed( Geometry< Node < 3 > >& geom,
-                                                 boost::numeric::ublas::bounded_matrix<double, 3, 3 > & pos,
-                                                 boost::numeric::ublas::bounded_matrix<double, 3, 3 > & N ) //2D
+                                                 bounded_matrix<double, 3, 3 > & pos,
+                                                 bounded_matrix<double, 3, 3 > & N ) //2D
     {
         N(0, 0) = 0.5;
         N(0, 1) = 0.25;
@@ -2084,8 +2085,8 @@ private:
      * @see PreReseed
      */
     void ComputeGaussPointPositionsForPreReseed( Geometry< Node < 3 > >& geom,
-                                                 boost::numeric::ublas::bounded_matrix<double, 4, 3 > & pos,
-                                                 boost::numeric::ublas::bounded_matrix<double, 4, 4 > & N ) //3D
+                                                 bounded_matrix<double, 4, 3 > & pos,
+                                                 bounded_matrix<double, 4, 4 > & N ) //3D
     {
         //creating 4 particles, each will be closer to a node and equidistant to the other nodes
 
@@ -2127,8 +2128,8 @@ private:
     /** 
      */
     void ComputeGaussPointPositions_45( Geometry< Node < 3 > >& geom,
-                                        boost::numeric::ublas::bounded_matrix<double, 45, 3 > & pos,
-                                        boost::numeric::ublas::bounded_matrix<double, 45, 3 > & N )
+                                        bounded_matrix<double, 45, 3 > & pos,
+                                        bounded_matrix<double, 45, 3 > & N )
     {
         unsigned int counter=0;
         for (unsigned int i=0; i!=9;i++)
@@ -2152,8 +2153,8 @@ private:
     /** 
      */
     void ComputeGaussPointPositions_initial( Geometry< Node < 3 > >& geom,
-                                             boost::numeric::ublas::bounded_matrix<double, 15, 3 > & pos,
-                                             boost::numeric::ublas::bounded_matrix<double, 15, 3 > & N ) //2D
+                                             bounded_matrix<double, 15, 3 > & pos,
+                                             bounded_matrix<double, 15, 3 > & N ) //2D
     {
         unsigned int counter=0;
         for (unsigned int i=0; i!=5;i++)
@@ -2177,8 +2178,8 @@ private:
     /** 
      */
     void ComputeGaussPointPositions_initial( Geometry< Node < 3 > >& geom,
-                                             boost::numeric::ublas::bounded_matrix<double, 20, 3 > & pos,
-                                             boost::numeric::ublas::bounded_matrix<double, 20, 4 > & N ) //3D
+                                             bounded_matrix<double, 20, 3 > & pos,
+                                             bounded_matrix<double, 20, 4 > & N ) //3D
     {
         double fraction_increment;
         unsigned int counter=0;
