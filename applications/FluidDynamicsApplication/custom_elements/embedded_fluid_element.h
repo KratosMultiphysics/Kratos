@@ -25,7 +25,6 @@
 
 #include "custom_utilities/embedded_data.h"
 
-
 namespace Kratos
 {
 
