@@ -12,7 +12,7 @@ except ImportError:
 import filecmp
 import os
 
-class WorkFolderScope:
+class WorkFolderScope(object):
     '''Auxiliary class to define a work folder for the tests.'''
     def __init__(self, work_folder):
         self.currentPath = os.getcwd()
@@ -29,7 +29,7 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
     '''Tests related to GiD I/O Gauss point results printing.'''
 
     def setUp(self):
-        self.modelPart = self.setModelPart()
+        self.setModelPart()
         self.workFolder = "gid_io"
 
     def tearDown(self):
@@ -73,10 +73,10 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
         modelPart.CreateNewCondition("MonolithicWallCondition3D",2,[1,2,5],properties)
         modelPart.CreateNewCondition("MonolithicWallCondition3D",3,[2,3,5],properties)
         modelPart.CreateNewCondition("MonolithicWallCondition3D",4,[3,4,5],properties)
-        
+
         modelPart.SetBufferSize(2)
 
-        return modelPart
+        self.modelPart = modelPart
 
     def deactivateSome(self):
         for elem in self.modelPart.Elements:
