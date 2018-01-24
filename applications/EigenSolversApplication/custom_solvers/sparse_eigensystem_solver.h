@@ -57,7 +57,7 @@ class SparseEigensystemSolver
     {
         Parameters default_params(R"(
         {
-            "solver_type": "SparseEigensystemSolver",
+            "solver_type": "eigen_sparse_eigensystem",
             "number_of_eigenvalues": 1,
             "max_iteration": 1000,
             "tolerance": 1e-6,
@@ -148,8 +148,6 @@ class SparseEigensystemSolver
 
         int nn = a.rows();
         int nc = std::min(2 * nroot, nroot + 8);
-
-        bool eigen_solver_successful = true;
 
         // projections
         matrix_t ar(nc, nc);
@@ -292,10 +290,8 @@ class SparseEigensystemSolver
 
         for (int i = 0; i != nroot; ++i) {
             tmp = r.col(i);
-            eigvecs.col(i) = solver.solve(tmp);
+            eigvecs.row(i) = solver.solve(tmp).normalized();
         }
-
-
 
         // --- timer
 
@@ -337,13 +333,6 @@ class SparseEigensystemSolver
         DenseMatrixType eigen_vectors;
 
         Solve(rK, rM, eigen_values, eigen_vectors);
-
-        // for (int i=0; i<eigen_values.size(); i++)
-        // {
-        //     std::cout << "vec"<<i<< std::endl;
-        //     for (int j=0; j<25; j++)
-        //         std::cout << eigen_vectors(i,j) << std::endl;
-        // }
 
         return eigen_values[0];
     }
