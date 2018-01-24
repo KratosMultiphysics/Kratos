@@ -89,8 +89,8 @@ public:
                                         ModelPart& rModelPartDestination,
                                         Parameters JsonParameters);
 
-    static void RegisterMapper(const std::string MapperName,
-                               Mapper::Pointer pMapperPrototype);
+    static void Register(const std::string MapperName,
+                         Mapper::Pointer pMapperPrototype);
 
 
     ///@}
