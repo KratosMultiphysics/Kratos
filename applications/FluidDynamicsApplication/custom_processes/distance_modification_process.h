@@ -153,6 +153,7 @@ private:
     bool                                               mCheckAtEachStep;
     bool                                           mNegElemDeactivation;
     bool                                       mRecoverOriginalDistance;
+    bool                                      mAvoidAlmostEmptyElements;
     std::vector<std::vector<unsigned int>>        mModifiedDistancesIDs;
     std::vector<std::vector<double>>           mModifiedDistancesValues;
 
