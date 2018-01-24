@@ -36,6 +36,12 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_H);
     model_part.AddNodalSolutionStepVariable(NORMAL);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
+    #for 3D  problems where only a part (quarter/half) of the domain is considered
+    model_part.AddNodalSolutionStepVariable(SYMMETRY_CUT);
+    model_part.AddNodalSolutionStepVariable(CENTER_LINE);
+    model_part.AddNodalSolutionStepVariable(FIXED_WALL);
+    #auxiliary variable
+    model_part.AddNodalSolutionStepVariable(DENSITY_WATER);
 
 def AddDofs(model_part, compute_reactions):
     if (compute_reactions==0):
@@ -70,6 +76,7 @@ def AddDofs(model_part, compute_reactions):
 class ULF_FSISolver:
 
     def __init__(self, fluid_model_part, structure_model_part, combined_model_part, compute_reactions, box_corner1,box_corner2, domain_size, add_nodes, blow_pressure):
+	#if domain_size=2, then we use AXISYMMETRIC formulation. If domain_size=3, then we use 3D
         self.domain_size=domain_size;
         self.compute_reactions=compute_reactions
         self.echo_level = 0
@@ -98,9 +105,11 @@ class ULF_FSISolver:
 
         #definition of the convergence criteria
         self.conv_criteria = DisplacementCriteria(1e-4,1e-6)
-
-        #self.pressure_calculate_process = PressureCalculateProcess(fluid_model_part,domain_size);
-        self.pressure_calculate_process_axisym = PressureCalculateProcessAxisym(fluid_model_part,domain_size);
+	if (self.domain_size==2):
+	  self.pressure_calculate_process_axisym = PressureCalculateProcessAxisym(fluid_model_part,domain_size);
+	if (self.domain_size==3):
+	  self.pressure_calculate_process = PressureCalculateProcess(fluid_model_part,domain_size);
+        
         self.ulf_apply_bc_process = UlfApplyBCProcess(fluid_model_part);
         self.ulf_time_step_dec_process = UlfTimeStepDecProcess(fluid_model_part);
         self.mark_fluid_process = MarkFluidProcess(fluid_model_part);
@@ -285,7 +294,10 @@ class ULF_FSISolver:
         (self.UlfUtils).CalculateNodalArea(self.fluid_model_part,self.domain_size);
               
         #(self.pressure_calculate_process).Execute();
-        self.pressure_calculate_process_axisym.Execute();
+        if (self.domain_size==2):
+	  self.pressure_calculate_process_axisym.Execute();
+	if (self.domain_size==3):
+	  self.pressure_calculate_process.Execute();
         #self.lagrangian_inlet_process.Execute()
         #print "remeshing"
         #print "Solution toook time =========================================================",time.time()-step_initialization_start
@@ -372,7 +384,11 @@ class ULF_FSISolver:
             node.SetSolutionStepValue(NORMAL_X,0,0.0)
             node.SetSolutionStepValue(NORMAL_Y,0,0.0)
             node.SetSolutionStepValue(NORMAL_Z,0,0.0)
-        AssignPointNeumannConditions().AssignPointNeumannConditionsDisp(self.combined_model_part) 
+            
+        if (self.domain_size == 2):
+	    AssignPointNeumannConditions().AssignPointNeumannConditionsDispAxisym(self.combined_model_part)	
+	if (self.domain_size == 3):
+	    AssignPointNeumannConditions().AssignPointNeumannConditionsDisp(self.combined_model_part) 
 ######################################################################################################        
         #FOR MEMBRANE
         #print "00000"

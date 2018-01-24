@@ -4,6 +4,28 @@ message("**** configuring KratosULFApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
+if(${INCLUDE_TETGEN} MATCHES ON)
+  add_definitions( -DINCLUDE_TETGEN )
+  add_definitions( -DTETLIBRARY )
+  #add_definitions( -DTETGEN150 )
+  add_definitions( -w )
+  #perform platform specific defintions
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    add_definitions( -DCPU86 )
+    add_definitions( -DNO_TIMER )
+  else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    add_definitions( -DLINUX )
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  include_directories( ${TETGEN_INCLUDE_DIR} )
+  set( TETGEN_SOURCES ${TETGEN_INCLUDE_DIR}/tetgen.cxx )
+  set( UNOPTIMIZED_PREDICATES ${TETGEN_INCLUDE_DIR}/predicates.cxx )
+  SET_SOURCE_FILES_PROPERTIES(${UNOPTIMIZED_PREDICATES} PROPERTIES COMPILE_FLAGS -O0)
+  SET_SOURCE_FILES_PROPERTIES(${TETGEN_SOURCES} PROPERTIES COMPILE_FLAGS -O2)
+  add_library( tetlib STATIC ${TETGEN_SOURCES} ${UNOPTIMIZED_PREDICATES} )
+  #install (FILES ${TETGEN_INSTALL_DIR}/tetgen.h DESTINATION libs)
+endif(${INCLUDE_TETGEN} MATCHES ON)
+
+
 ## generate variables with the sources
 set( KRATOS_ULF_APPLICATION_SOURCES     
 	${CMAKE_CURRENT_SOURCE_DIR}/ULF_application.cpp 
@@ -12,6 +34,7 @@ set( KRATOS_ULF_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp 
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp 
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_fluid.cpp
@@ -35,6 +58,7 @@ set( KRATOS_ULF_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosULFApplication SHARED ${KRATOS_ULF_APPLICATION_SOURCES})
 target_link_libraries(KratosULFApplication KratosCore )
+target_link_libraries(KratosULFApplication tetlib )
 set_target_properties(KratosULFApplication PROPERTIES PREFIX "")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

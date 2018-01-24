@@ -143,14 +143,14 @@ namespace Kratos
 
 			//FOR AXISYMETRIC
 			double approx_edge_size=GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
-			KRATOS_WATCH(approx_edge_size)
+			//KRATOS_WATCH(approx_edge_size)
 
 			double r=GetGeometry()[0].X();
 			//ext_pr*=6.28*r;
 			//FOR NODES LOCATED AT THE CENTER OF SYMMETRY - WE HAVE TO APPLY A CORRECTION; OTHERWISE WILL BE MULTIPLIED BY ZERO
-			if (r<0.5*approx_edge_size)
+			if (r<0.25*approx_edge_size)
 			   //r=0.00025;
-			   r=0.5*approx_edge_size;
+			   r=0.25*approx_edge_size;
 			ext_pr*=r;
 			
 			

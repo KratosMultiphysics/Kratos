@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_processes_to_python.h"
+#include "custom_python/add_meshers_to_python.h"
 
 
 namespace Kratos
@@ -82,7 +83,7 @@ BOOST_PYTHON_MODULE(KratosULFApplication)
            bases<KratosApplication>, boost::noncopyable >("KratosULFApplication")
            ;
     AddCustomUtilitiesToPython();
-    //AddCustomIOToPython();
+    AddMeshersToPython();
     AddCustomStrategiesToPython();
     AddProcessesToPython();
 
@@ -98,6 +99,10 @@ BOOST_PYTHON_MODULE(KratosULFApplication)
 
     //KRATOS_REGISTER_IN_PYTHON_VARIABLE(PRESSURE_FORCE)    
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(VAUX)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SYMMETRY_CUT)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(ERASE_FLAG)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(CENTER_LINE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(FIXED_WALL)
 
 }
 

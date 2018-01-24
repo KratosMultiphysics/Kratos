@@ -71,6 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ULF_application.h"
 #include "custom_conditions/Point_Neumann3D.h"
 #include "custom_conditions/Point_Neumann2D.h"
+#include "custom_conditions/Point_Neumann_Axisym.h"
 //#include "custom_conditions/Point_Neumann_Monolithic2D.h"
 //#include "includes/variables.h"
 
@@ -124,10 +125,7 @@ namespace Kratos
 				  }
 
 			}
-
 			//ThisModelPart.Conditions().Sort();
-
-
 			KRATOS_CATCH("")
 		}
 
@@ -145,11 +143,13 @@ namespace Kratos
 				it!=ThisModelPart.NodesEnd(); it++)
 			 {
 			 	
-			       	temp.reserve(1);
-			       	temp.push_back(*(it.base()));	
+			       	
 
 				if( it->FastGetSolutionStepValue(FLAG_VARIABLE) == 1.0)
 				   {	
+					temp.reserve(1);
+			       		temp.push_back(*(it.base()));	
+
 	      			       	Condition::Pointer p_cond = (KratosComponents<Condition>::Get("PointNeumannAxisym")).Create(id, temp, properties);	
 					(ThisModelPart.Conditions()).push_back(p_cond);
 					

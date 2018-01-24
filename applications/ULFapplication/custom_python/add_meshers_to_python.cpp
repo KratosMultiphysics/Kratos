@@ -60,10 +60,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "custom_python/add_meshers_to_python.h"
 
-#include "external_includes/tetgen_pfem_refine.h"
-#include "external_includes/tetgen_mesh_suite_optimized.h"
-#include "external_includes/trigen_mesh_suite.h"
-#include "external_includes/trigen_refine.h"
+#include "external_includes/tetgen_glass.h"
+//#include "external_includes/tetgen_mesh_suite_optimized.h"
+//#include "external_includes/trigen_mesh_suite.h"
+//#include "external_includes/trigen_refine.h"
 
 
 namespace Kratos
@@ -72,126 +72,32 @@ namespace Kratos
 namespace Python
 {
 
-/*	void TetRegenerate(TetGenModeler& Mesher,ModelPart& model_part, double alpha_shape)
-	{
-		Mesher.ReGenerateMesh(model_part,
-			KratosComponents<Element>::Get("Fluid3D"),
-			KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
-	}
+///////////////////////////////////////////////////////////////////////////////////////////
+//											//
+//				ADAPTIVE 3D MESHER					//
+//											//
+//////////////////////////////////////////////////////////////////////////////////////////
 
-	void TetRegenerateLagrangian(TetGenModeler& Mesher,ModelPart& model_part, double alpha_shape)
-	{
-		Mesher.ReGenerateMesh(model_part,
-			KratosComponents<Element>::Get("TotalLagrangianFLuid"),
-			KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
-	}
-*/
-void TetRegeneratePfemUlf3D(TetGenPfemModeler& Mesher,ModelPart& model_part, double alpha_shape)
+//tetgen pfem refine
+void TetRegenerateMesh(TetGenGlassModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part, NodeEraseProcess& node_erase,bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor)
 {
     Mesher.ReGenerateMesh(model_part,
-                          KratosComponents<Element>::Get("UpdatedLagrangianFluid3D"),
-                          KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
-}
-void TetRegeneratePfemUlf3DInc(TetGenPfemModeler& Mesher,ModelPart& model_part, double alpha_shape)
-{
-    Mesher.ReGenerateMesh(model_part,
-                          KratosComponents<Element>::Get("UpdatedLagrangianFluid3Dinc"),
-                          KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
-}
-void TetRegeneratePfem3DInc(TetGenPfemModeler& Mesher,ModelPart& model_part, double alpha_shape)
-{
-    Mesher.ReGenerateMesh(model_part,
-                          KratosComponents<Element>::Get("Fluid3D"),
-                          KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
+                          KratosComponents<Element>::Get(ElementName),
+                          KratosComponents<Condition>::Get(ConditionName),node_erase,rem_nodes, add_nodes,  alpha_shape, h_factor	);
 }
 
-void TriRefinePFEM(TriGenCDTrefine & Mesher,ModelPart& model_part,bool refine)
-{
-    Mesher.RefineCDT(model_part,
-                     refine,
-                     KratosComponents<Element>::Get("Fluid2D"));
-}
 
-void TriRegenerate(TriGenModeler& Mesher,ModelPart& model_part,double alpha_shape)
-{
-    Mesher.ReGenerateMesh(model_part,
-                          KratosComponents<Element>::Get("Fluid2D"),
-                          KratosComponents<Condition>::Get("Condition2D"),alpha_shape	);
-}
-
-void TriRegenerateCoupled(TriGenModeler& Mesher,ModelPart& model_part,double alpha_shape)
-{
-    Mesher.ReGenerateMesh(model_part,
-                          KratosComponents<Element>::Get("Fluid2DCoupled"),
-                          KratosComponents<Condition>::Get("Condition2D"),alpha_shape	);
-}
-
-void TriRegenerateUpdatedLagrangian(TriGenModeler& Mesher,ModelPart& model_part,double alpha_shape)
-{
-    Mesher.ReGenerateMesh(model_part,
-                          KratosComponents<Element>::Get("UpdatedLagrangianFluid2D"),
-                          KratosComponents<Condition>::Get("Condition2D"),alpha_shape	);
-}
-void TriRegenerateUpdatedLagrangianTest(TriGenModeler& Mesher,ModelPart& model_part,double alpha_shape)
-{
-    Mesher.ReGenerateMesh(model_part,
-                          KratosComponents<Element>::Get("UpdatedLagrangianFluid2Dinc"),
-                          KratosComponents<Condition>::Get("Condition2D"),alpha_shape	);
-}
-void TetRegenerateUpdatedLagrangian(TetGenModeler& Mesher,ModelPart& model_part,double alpha_shape)
-{
-    Mesher.ReGenerateMesh(model_part,
-                          KratosComponents<Element>::Get("UpdatedLagrangianFluid3D"),
-                          KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
-}
-
-void TetRegenerateUpdatedLagrangianInc(TetGenModeler& Mesher,ModelPart& model_part,double alpha_shape)
-{
-    //KRATOS_WATCH("AAAAAAAAAKKKKKKKKKKKKKKKKKKKK")
-    Mesher.ReGenerateMesh(model_part,
-                          KratosComponents<Element>::Get("UpdatedLagrangianFluid3Dinc"),
-                          KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
-}
-/*
-void TriRegenerateulf_pressure(TriGenModeler& Mesher,ModelPart& model_part,double alpha_shape)
-{
-	Mesher.ReGenerateMesh(model_part,
-		KratosComponents<Element>::Get("ulf_pressure2D"),
-		KratosComponents<Condition>::Get("Condition2D"),alpha_shape	);
-}
-*/
 void  AddMeshersToPython()
 {
 
     using namespace boost::python;
-
-    class_<TetGenModeler >("TetGenModeler",
-                           init< >())
-    // .def("ReGenerateMesh",TetRegenerate)
-    // .def("ReGenerateMesh_Lagrangian",TetRegenerateLagrangian)
-    .def("ReGenerateUpdatedLagrangian3D",TetRegenerateUpdatedLagrangian)
-    .def("ReGenerateUpdatedLagrangian3Dinc",TetRegenerateUpdatedLagrangianInc)
-    ;
-
-    class_<TetGenPfemModeler >("TetGenPfemModeler",
+    //class that allows 3D adaptive remeshing (inserting and erasing nodes)
+    class_<TetGenGlassModeler >("TetGenGlassModeler",
                                init< >())
-    .def("ReGenerateMeshPfemUlf3D",TetRegeneratePfemUlf3D)
-    .def("ReGenerateMeshPfemUlf3Dinc",TetRegeneratePfemUlf3DInc)
-    .def("ReGenerateMeshPfem3Dinc",TetRegeneratePfem3DInc)
-    ;
+    .def("ReGenerateMesh",TetRegenerateMesh)
+    .def("ReGenerateMesh",&TetGenGlassModeler::ReGenerateMesh)    ;
 
-    class_<TriGenModeler >("TriGenModeler",
-                           init< >())
-    .def("ReGenerateMesh",TriRegenerate)
-    .def("ReGenerateMeshCoupled",TriRegenerateCoupled)
-    .def("ReGenerateUpdatedLagrangian",TriRegenerateUpdatedLagrangian)
-    .def("RegenerateUpdatedLagrangian2Dinc",TriRegenerateUpdatedLagrangianTest)
-    // .def("ReGenerateulf_pressure",TriRegenerateulf_pressure)
-    ;
-    class_<TriGenCDTrefine >("TriRefine",
-                             init< >())
-    .def("RefineMesh",RefineCDT)
-    ;
+  
 
 }
 
