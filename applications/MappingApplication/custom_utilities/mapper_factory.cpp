@@ -55,7 +55,7 @@ namespace Kratos
         }
     }
 
-    void MapperFactory::Register(const std::string MapperName,
+    void MapperFactory::Register(const std::string& MapperName,
                                  Mapper::Pointer pMapperPrototype)
     {
         GetRegisteredMappersList().insert(make_pair(MapperName, pMapperPrototype));
