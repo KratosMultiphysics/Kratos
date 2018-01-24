@@ -66,9 +66,10 @@ class SwimmingStrategy(BaseStrategy):
          else:
              return globals().get(class_name)(0.5,0.25)
 
-    def ModifyProperties(self, properties):
+    def ModifyProperties(self, properties, param = 0):
         
-        super(SwimmingStrategy,self).ModifyProperties(properties)
+        super(SwimmingStrategy,self).ModifyProperties(properties, param)
         
-        if not properties.Has(PARTICLE_SPHERICITY):
-            properties[PARTICLE_SPHERICITY] = 1.0
+        if not param:
+            if not properties.Has(PARTICLE_SPHERICITY):
+                properties[PARTICLE_SPHERICITY] = 1.0
