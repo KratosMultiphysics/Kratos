@@ -147,7 +147,8 @@ class OptimizationSetup:
             file_out.close()            
             
             _temp = os.getcwd()
-            os.chdir(self.path)
+            os.chdir("%s/%s" % (_temp, self.path))
+            sys.path.append(os.getcwd())
 
             libc = ctypes.CDLL(None)
             c_stdout = ctypes.c_void_p.in_dll(libc, 'stdout')
@@ -160,6 +161,7 @@ class OptimizationSetup:
             std_file_out.write(std_io_out.getvalue()[2:-2])
             std_file_out.close()
             
+            sys.path.remove(os.getcwd())
             os.chdir(_temp)
 
     def WriteModelPart( self ):

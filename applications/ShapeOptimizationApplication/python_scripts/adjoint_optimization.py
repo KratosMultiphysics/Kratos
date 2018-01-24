@@ -353,7 +353,7 @@ class kratosAdjointFluidAnalyzer( (__import__("analyzer_base")).analyzerBaseClas
         for node in design_surface_model_part.Nodes:
             designSurfaceNodeList.append(node.Id)
 
-        gradientOnDesignSurface = OptimizationUtilities(self.main__optimization_model_part, self.analyzer_settings).get_adjoint_design_surface_sensitivities (\
+        gradientOnDesignSurface = OptimizationUtilities(self.main__optimization_model_part, self.analyzer_settings).GetAdjointDesignSurfaceSensitivities (\
                                     adjoint_sensitivity_files,
                                     designSurfaceNodeList                               
                                     )
