@@ -26,6 +26,40 @@
 
 namespace Kratos
 {
+    Mapper::Pointer MapperFactory::CreateMapper(ModelPart& rModelPartOrigin, 
+                                                ModelPart& rModelPartDestination,
+                                                Parameters JsonParameters)
+    {
+        ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, JsonParameters, "origin");
+        ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, JsonParameters, "destination");
+
+        const std::string mapper_name = JsonParameters["mapper_type"].GetString();
+
+        const auto& mapper_list = MapperFactory::GetRegisteredMappersList();
+
+        if (mapper_list.find(mapper_name) != mapper_list.end())
+        {
+            return mapper_list.at(mapper_name)->Clone(r_interface_model_part_origin,
+                                                      r_interface_model_part_destination,
+                                                      JsonParameters);
+        }
+        else
+        {
+            std::stringstream err_msg;
+            err_msg << "The requested Mapper \"" << mapper_name <<"\" is not registered! The following mappers are registered:" << std::endl;
+            for (auto const& registered_mapper : mapper_list)
+            {
+                err_msg << registered_mapper.first << ", ";
+            }
+            KRATOS_ERROR << err_msg.str() << std::endl;  
+        }
+    }
+
+    void MapperFactory::RegisterMapper(const std::string MapperName,
+                                       Mapper::Pointer pMapperPrototype)
+    {
+        GetRegisteredMappersList().insert(make_pair(MapperName, pMapperPrototype));
+    }
 
     ModelPart& MapperFactory::ReadInterfaceModelPart(ModelPart& rModelPart,
                                                      Parameters InterfaceParameters,
@@ -65,46 +99,11 @@ namespace Kratos
         }
     }
 
-    Mapper::Pointer MapperFactory::CreateMapper(ModelPart& rModelPartOrigin, 
-                                                ModelPart& rModelPartDestination,
-                                                Parameters JsonParameters)
-    {
-        ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, JsonParameters, "origin");
-        ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, JsonParameters, "destination");
-
-        const std::string mapper_name = JsonParameters["mapper_type"].GetString();
-
-        const auto& mapper_list = MapperFactory::GetRegisteredMappersList();
-
-        if (mapper_list.find(mapper_name) != mapper_list.end())
-        {
-            return mapper_list.at(mapper_name)->Clone(r_interface_model_part_origin,
-                                                      r_interface_model_part_destination,
-                                                      JsonParameters);
-        }
-        else
-        {
-            std::stringstream err_msg;
-            err_msg << "The requested Mapper \"" << mapper_name <<"\" is not registered! The following mappers are registered:" << std::endl;
-            for (auto const& registered_mapper : mapper_list)
-            {
-                err_msg << registered_mapper.first << ", ";
-            }
-            KRATOS_ERROR << err_msg.str() << std::endl;  
-        }
-    }
-
     std::unordered_map<std::string, Mapper::Pointer>& MapperFactory::GetRegisteredMappersList()
     {
         static std::unordered_map<std::string, Mapper::Pointer> registered_mappers;
 
         return registered_mappers;
-    }
-
-    void MapperFactory::RegisterMapper(const std::string MapperName,
-                                       Mapper::Pointer pMapperPrototype)
-    {
-        GetRegisteredMappersList().insert(make_pair(MapperName, pMapperPrototype));
     }
   
 }  // namespace Kratos.
