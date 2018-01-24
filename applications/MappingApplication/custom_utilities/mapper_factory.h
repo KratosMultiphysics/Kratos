@@ -86,86 +86,9 @@ public:
     ///@{
     
 
-    static Mapper::Pointer CreateMapper(ModelPart& rModelPartOrigin, 
+    static Mapper::Pointer CreateMapper(ModelPart& rModelPartOrigin,
                                         ModelPart& rModelPartDestination,
-                                        Parameters JsonParameters)
-    {
-        ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, JsonParameters, "origin");
-        ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, JsonParameters, "destination");
-
-        const std::string mapper_name = JsonParameters["mapper_type"].GetString();
-
-        const auto& mapper_list = KratosMappingApplication::GetRegisteredMappersList();
-
-        if (mapper_list.find(mapper_name) != 
-            mapper_list.end())
-        {
-            return mapper_list.at(mapper_name)->Clone(r_interface_model_part_origin,
-                                                      r_interface_model_part_destination,
-                                                      JsonParameters);
-        }
-        else
-        {
-            std::stringstream err_msg;
-            err_msg << "The requested Mapper \"" << mapper_name <<"\" is not registered! The following mappers are registered:" << std::endl;
-            for (auto const& registered_mapper : mapper_list)
-            {
-                err_msg << registered_mapper.first << ", ";
-            }
-            KRATOS_ERROR << err_msg.str() << std::endl;
-            
-        }
-
-
-
-        /*Mapper::Pointer mapper;
-
-        if (!JsonParameters.Has("mapper_type"))
-        {
-            KRATOS_ERROR << "No \"mapper_type\" defined in json" << std::endl;
-        }
-
-        const std::string mapper_type = JsonParameters["mapper_type"].GetString();
-
-        if (mapper_type == "NearestNeighbor" || mapper_type == "nearest_neighbor" )
-        {
-            if (mapper_type == "NearestNeighbor")
-            {
-                std::cout << "MAPPER WARNING, you are using the old syntax, please use \"nearest_neighbor\""
-                          << "as mapper_type" << std::endl;
-            }
-            
-            if (JsonParameters.Has("approximation_tolerance"))
-            {
-                KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" "
-                             << "specified for Nearest Neighbor Mapper" << std::endl;
-            }
-
-            mapper = Mapper::Pointer( new NearestNeighborMapper(r_interface_model_part_origin,
-                                      r_interface_model_part_destination,
-                                      JsonParameters));
-        }
-        else if (mapper_type == "NearestElement" || mapper_type == "nearest_element")
-        {
-            if (mapper_type == "NearestElement")
-            {
-                std::cout << "MAPPER WARNING, you are using the old syntax, please use \"nearest_element\""
-                          << "as mapper_type" << std::endl;
-            }
-
-            mapper = Mapper::Pointer( new NearestElementMapper(r_interface_model_part_origin,
-                                      r_interface_model_part_destination,
-                                      JsonParameters));
-
-        }
-        else
-        {
-            KRATOS_ERROR << "Selected Mapper \"" << mapper_type << "\" is not implemented, " 
-                         << "available options are: \"nearest_neighbor\", \"nearest_element\"" << std::endl;
-        }
-
-        return mapper;*/
-    }
+                                        Parameters JsonParameters);
 
 
     ///@}
@@ -264,48 +187,11 @@ private:
     ///@{
 
     /// Default constructor.
-    MapperFactory()
-    {
-    }
+    MapperFactory() {}
 
     static ModelPart& ReadInterfaceModelPart(ModelPart& rModelPart,
                                              Parameters InterfaceParameters,
-                                             const std::string& InterfaceSide)
-    {
-        int echo_level = 0;
-        // read the echo_level temporarily, bcs the mJsonParameters have not yet been validated and defaults assigned
-        if (InterfaceParameters.Has("echo_level"))
-        {
-            echo_level = std::max(echo_level, InterfaceParameters["echo_level"].GetInt());
-        }
-
-        int comm_rank = rModelPart.GetCommunicator().MyPID();
-
-        std::string key_sub_model_part = "interface_submodel_part_";
-        key_sub_model_part.append(InterfaceSide);
-
-
-        if (InterfaceParameters.Has(key_sub_model_part))
-        {
-            const std::string name_interface_submodel_part = InterfaceParameters[key_sub_model_part].GetString();
-            
-            if (echo_level >= 3 && comm_rank == 0)
-            {
-                std::cout << "Mapper: SubModelPart used for " << InterfaceSide << "-ModelPart" << std::endl;
-            }
-
-            return rModelPart.GetSubModelPart(name_interface_submodel_part);
-        }
-        else
-        {
-            if (echo_level >= 3 && comm_rank == 0)
-            {
-                std::cout << "Mapper: Main ModelPart used for " << InterfaceSide << "-ModelPart" << std::endl;
-            }
-
-            return rModelPart;
-        }
-    }
+                                             const std::string& InterfaceSide);
 
     ///@}
     ///@name Private  Access
