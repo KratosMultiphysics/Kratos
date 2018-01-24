@@ -104,8 +104,6 @@ F-DEMPack allows you to simulate a wide spectrum of problems involving the inter
 * **Guillermo Casas** - *Fluid coupling* - [gcasas@cimne.upc.edu](mailto:gcasas@cimne.upc.edu)
 * **Joaquín Irazabal** - *Particle clusters & DEM-Solid interaction* - [jirazabal@cimne.upc.edu](mailto:jirazabal@cimne.upc.edu)
 
-See also the list of [Kratos Team members](http://kratos-wiki.cimne.upc.edu/index.php/Who_are_we).
-
 ## License
 
 The DEM application is OPEN SOURCE. The main code and program structure is available and aimed to grow with the need of any user willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
