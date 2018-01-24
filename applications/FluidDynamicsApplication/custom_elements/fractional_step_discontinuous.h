@@ -184,12 +184,13 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             Element::PropertiesType::Pointer pProperties) const override
     {
-	return boost::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+	return Kratos::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
-        Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override
-        {
-	  return boost::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, pGeom, pProperties);
-        }
+
+    Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override
+    {
+	  return Kratos::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, pGeom, pProperties);
+    }
 
     ///@}
     ///@name Access

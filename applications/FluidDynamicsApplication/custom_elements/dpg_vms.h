@@ -165,8 +165,23 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Element::Pointer(new DPGVMS(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties));
+        return Kratos::make_shared<DPGVMS>(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
     }
+
+    /// Create a new element of this type.
+	/**
+	 @param NewId Index of the new element
+     @param pGeom A pointer to the geometry of the new element
+	 @param pProperties Pointer to the element's properties
+	 */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared< DPGVMS >(NewId,pGeom,pProperties);
+    }
+
     /// Call at teh begining of each step, ita decides if element is cutted or no!
     /**    
       */  

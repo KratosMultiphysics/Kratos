@@ -125,13 +125,13 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, Element::PropertiesType::Pointer pProperties) const override {
         KRATOS_TRY
-        return boost::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
 
     Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override {
-        return boost::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
     }
 
 
@@ -432,8 +432,11 @@ public:
                     this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
 
                     // Add the shear and pressure drag contributions
-                    rOutput += w_gauss * prod(normal_proj_mat, data.stress);
-                    rOutput -= w_gauss * p_gauss * side_normal;
+                    const array_1d<double, TDim> shear_proj = w_gauss * prod(normal_proj_mat, data.stress);
+                    for (unsigned int i = 0; i < TDim ; ++i){
+                        rOutput(i) -= shear_proj(i);
+                    }
+                    rOutput += w_gauss * p_gauss * side_normal;
                 }
             }
         }

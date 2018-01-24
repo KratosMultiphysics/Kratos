@@ -1,12 +1,7 @@
-//
-// Author: Salva Latorre, latorre@cimne.upc.edu
-//
+// Created by: Salva Latorre, latorre@cimne.upc.edu
 
 // System includes
-#include <string>
-#include <iostream>
-#include <iomanip> // to improve std::cout precision
-#include <cmath> // for the sine in the wave equation
+//#include <cmath> // for the sine in case we activate the wave equation
 
 // Project includes
 #include "ice_continuum_particle.h"

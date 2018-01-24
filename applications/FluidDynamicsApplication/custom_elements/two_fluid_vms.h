@@ -167,13 +167,13 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return boost::make_shared< TwoFluidVMS >(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
+        return Kratos::make_shared< TwoFluidVMS >(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
     }
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return boost::make_shared< TwoFluidVMS >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< TwoFluidVMS >(NewId, pGeom, pProperties);
     }
     
     /// Provides local contributions from body forces to the RHS
