@@ -114,7 +114,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             }
             """)
 
-    def test_eigen_sparse_eigenvalue_solver(self):
+    def test_eigen_sparse_eigensystem_solver(self):
         try:
             import KratosMultiphysics.EigenSolversApplication
         except:
