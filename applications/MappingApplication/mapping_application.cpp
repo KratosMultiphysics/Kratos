@@ -28,6 +28,8 @@
 #include "geometries/prism_3d_6.h"
 #include "geometries/hexahedra_3d_8.h"
 
+#include "custom_utilities/mapper_factory.h"
+
 #include "custom_mappers/nearest_neighbor_mapper.h"
 #include "custom_mappers/nearest_element_mapper.h"
 
@@ -73,8 +75,8 @@ void KratosMappingApplication::Register()
     ModelPart dummy_model_part;
     dummy_model_part = ModelPart();
 
-    KratosMappingApplication::RegisterMapper("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper>(dummy_model_part, dummy_model_part));
-    KratosMappingApplication::RegisterMapper("nearest_element",  Kratos::make_shared<NearestElementMapper>(dummy_model_part, dummy_model_part));
+    MapperFactory::RegisterMapper("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper>(dummy_model_part, dummy_model_part));
+    MapperFactory::RegisterMapper("nearest_element",  Kratos::make_shared<NearestElementMapper>(dummy_model_part, dummy_model_part));
 
     // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
     KRATOS_REGISTER_VARIABLE( NEIGHBOR_RANK )

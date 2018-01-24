@@ -25,7 +25,7 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 
-#include "mapping_application.h"
+#include "custom_mappers/mapper.h"
 
 
 namespace Kratos
@@ -55,7 +55,6 @@ namespace Kratos
 /// Python Interface of the MappingApplication
 /** This class constructs the mappers and exposes them to Python
 * Some checks are performed to see if the Input (ModelParts and JSON-Parameters) are valid
-* Also the additional timing information is implemented here (echo_level = 1)
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
@@ -89,6 +88,9 @@ public:
     static Mapper::Pointer CreateMapper(ModelPart& rModelPartOrigin,
                                         ModelPart& rModelPartDestination,
                                         Parameters JsonParameters);
+
+    static void RegisterMapper(const std::string MapperName,
+                               Mapper::Pointer pMapperPrototype);
 
 
     ///@}
@@ -192,6 +194,8 @@ private:
     static ModelPart& ReadInterfaceModelPart(ModelPart& rModelPart,
                                              Parameters InterfaceParameters,
                                              const std::string& InterfaceSide);
+
+    static std::unordered_map<std::string, Mapper::Pointer>& GetRegisteredMappersList();
 
     ///@}
     ///@name Private  Access

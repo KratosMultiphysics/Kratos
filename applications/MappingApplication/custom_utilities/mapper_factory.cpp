@@ -74,7 +74,7 @@ namespace Kratos
 
         const std::string mapper_name = JsonParameters["mapper_type"].GetString();
 
-        const auto& mapper_list = KratosMappingApplication::GetRegisteredMappersList();
+        const auto& mapper_list = MapperFactory::GetRegisteredMappersList();
 
         if (mapper_list.find(mapper_name) != mapper_list.end())
         {
@@ -94,6 +94,18 @@ namespace Kratos
         }
     }
 
+    std::unordered_map<std::string, Mapper::Pointer>& MapperFactory::GetRegisteredMappersList()
+    {
+        static std::unordered_map<std::string, Mapper::Pointer> registered_mappers;
+
+        return registered_mappers;
+    }
+
+    void MapperFactory::RegisterMapper(const std::string MapperName,
+                                       Mapper::Pointer pMapperPrototype)
+    {
+        GetRegisteredMappersList().insert(make_pair(MapperName, pMapperPrototype));
+    }
   
 }  // namespace Kratos.
 
