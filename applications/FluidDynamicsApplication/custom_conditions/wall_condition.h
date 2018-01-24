@@ -210,13 +210,13 @@ namespace Kratos
           */
         Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
         {
-            return Condition::Pointer(new WallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+            return Kratos::make_shared<WallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         }
 
 
         Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
         {
-	  		return Condition::Pointer(new WallCondition(NewId, pGeom, pProperties));
+	  		return Kratos::make_shared<WallCondition>(NewId, pGeom, pProperties);
         }
 
         /**

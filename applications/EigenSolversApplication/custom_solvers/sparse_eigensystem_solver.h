@@ -15,7 +15,7 @@
 
 // External includes
 #include <Eigen/Core>
-#include <Eigen/Eigenvalues> 
+#include <Eigen/Eigenvalues>
 #if defined EIGEN_USE_MKL_ALL
 #include <Eigen/PardisoSupport>
 #endif
@@ -96,7 +96,7 @@ class SparseEigensystemSolver
         #else
         using ldlt_solver_t = Eigen::SparseLU<sparse_t>;
         #endif
-        
+
         // --- get settings
 
         const int nroot = mParam["number_of_eigenvalues"].GetInt();
@@ -106,7 +106,7 @@ class SparseEigensystemSolver
 
 
         // --- wrap ublas matrices
-        
+
         std::vector<int> index1_vector_a(rK.index1_data().size());
         std::vector<int> index2_vector_a(rK.index2_data().size());
 
@@ -117,7 +117,7 @@ class SparseEigensystemSolver
         for (size_t i = 0; i < rK.index2_data().size(); i++) {
             index2_vector_a[i] = (int)rK.index2_data()[i];
         }
-        
+
         Eigen::Map<sparse_t> a(rK.size1(), rK.size2(), rK.nnz(), index1_vector_a.data(), index2_vector_a.data(), rK.value_data().begin());
 
 
@@ -131,11 +131,11 @@ class SparseEigensystemSolver
         for (size_t i = 0; i < rM.index2_data().size(); i++) {
             index2_vector_b[i] = (int)rM.index2_data()[i];
         }
-        
+
         Eigen::Map<sparse_t> b(rM.size1(), rM.size2(), rM.nnz(), index1_vector_b.data(), index2_vector_b.data(), rM.value_data().begin());
 
 
-        // --- timer      
+        // --- timer
 
         double start_time = OpenMPUtils::GetCurrentTime();
 
@@ -148,8 +148,6 @@ class SparseEigensystemSolver
 
         int nn = a.rows();
         int nc = std::min(2 * nroot, nroot + 8);
-        
-        bool eigen_solver_successful = true;
 
         // projections
         matrix_t ar(nc, nc);
@@ -204,7 +202,7 @@ class SparseEigensystemSolver
 
             r(ij, j) = 1.0;
         }
-       
+
         ldlt_solver_t solver;
         solver.compute(a);
 
@@ -212,7 +210,7 @@ class SparseEigensystemSolver
 
         Eigen::GeneralizedSelfAdjointEigenSolver<matrix_t> eig;
 
-        do {   
+        do {
             iteration++;
 
             if (echo_level > 1) {
@@ -223,7 +221,7 @@ class SparseEigensystemSolver
                 tmp = r.col(j);
                 tt = solver.solve(tmp);
 
-                for (int i = j; i != nc; ++i) {                    
+                for (int i = j; i != nc; ++i) {
                     ar(i, j) = r.col(i).dot(tt);
                 }
 
@@ -277,17 +275,17 @@ class SparseEigensystemSolver
             prev_eigv = eig.eigenvalues();
         } while (true);
 
-        
-        if (rEigenvalues.size() != nroot) {
+
+        if (static_cast<int>(rEigenvalues.size()) != nroot) {
             rEigenvalues.resize(nroot);
         }
-        if (rEigenvectors.size1() != nroot || rEigenvectors.size2() != nn) {
+        if (static_cast<int>(rEigenvectors.size1()) != nroot || static_cast<int>(rEigenvectors.size2()) != nn) {
             rEigenvectors.resize(nroot, nn);
         }
-     
+
         Eigen::Map<vector_t> eigvals (rEigenvalues.data().begin(), rEigenvalues.size());
         Eigen::Map<matrix_t> eigvecs (rEigenvectors.data().begin(), rEigenvectors.size1(), rEigenvectors.size2());
-        
+
         eigvals = eig.eigenvalues().head(nroot);
 
         for (int i = 0; i != nroot; ++i) {
@@ -295,13 +293,13 @@ class SparseEigensystemSolver
             eigvecs.row(i) = solver.solve(tmp).normalized();
         }
 
-
-        // --- timer     
+        // --- timer
 
         if (echo_level > 0) {
             double end_time = OpenMPUtils::GetCurrentTime();
             double duration = end_time - start_time;
             std::cout << "SparseEigensystemSolver: Completed in " << duration << " seconds" << std::endl;
+            KRATOS_WATCH(rEigenvalues);
         }
     }
 
@@ -319,6 +317,26 @@ class SparseEigensystemSolver
     void PrintData(std::ostream &rOStream) const override
     {
     }
+
+    /**
+     * This method returns directly the first eigen value obtained
+     * @param rK: The stiffness matrix
+     * @param rM: The mass matrix
+     * @return The first eigenvalue
+     */
+    double GetEigenValue(
+        SparseMatrixType& rK,
+        SparseMatrixType& rM
+        )
+    {
+        VectorType eigen_values;
+        DenseMatrixType eigen_vectors;
+
+        Solve(rK, rM, eigen_values, eigen_vectors);
+
+        return eigen_values[0];
+    }
+
 }; // class SparseEigensystemSolver
 
 

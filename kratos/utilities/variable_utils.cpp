@@ -14,12 +14,12 @@
 //
 
 /* System includes */
-#include "utilities/openmp_utils.h"
-#include "utilities/variable_utils.h"
 
 /* External includes */
 
 /* Project includes */
+#include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {

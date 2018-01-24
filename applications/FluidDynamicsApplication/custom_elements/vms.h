@@ -214,14 +214,14 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-	return boost::make_shared< VMS<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_shared< VMS<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
     
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return boost::make_shared< VMS<TDim, TNumNodes> >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< VMS<TDim, TNumNodes> >(NewId, pGeom, pProperties);
     }
 
     /// Provides local contributions from body forces and OSS projection terms
