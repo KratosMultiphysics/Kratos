@@ -1,8 +1,13 @@
 from __future__ import print_function, absolute_import, division
 
 from KratosMultiphysics import *
-from KratosMultiphysics.FluidDynamicsApplication import *
 import KratosMultiphysics.KratosUnittest as UnitTest
+
+try:
+    from KratosMultiphysics.FluidDynamicsApplication import *
+    have_fluid_dynamics = True
+except ImportError:
+    have_fluid_dynamics = False
 
 import filecmp
 import os
@@ -19,6 +24,7 @@ class WorkFolderScope:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
 
+@UnitTest.skipUnless(have_fluid_dynamics,"Missing required application: FluidDynamicsApplication")
 class TestGiDIOGaussPoints(UnitTest.TestCase):
     '''Tests related to GiD I/O Gauss point results printing.'''
 
