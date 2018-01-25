@@ -286,7 +286,7 @@ class SparseEigensystemSolver
      */
     void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << "SparseEigensystemSolver";
+        rOStream << "EigensystemSolver";
     }
 
     /**
