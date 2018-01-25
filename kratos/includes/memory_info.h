@@ -11,8 +11,8 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_MEMORY_MANAGER_H_INCLUDED)
-#define KRATOS_MEMORY_MANAGER_H_INCLUDED
+#if !defined(KRATOS_MEMORY_INFO_H_INCLUDED)
+#define KRATOS_MEMORY_INFO_H_INCLUDED
 
 // System includes
 #include <iostream>
@@ -20,7 +20,7 @@
 #include <string>
 
 // Project includes
-//#include "includes/define.h"
+#include "includes/define.h"
 
 // to be included after define.h which defines the KRATOS_COMPILED_IN Macros
 #if defined(KRATOS_COMPILED_IN_LINUX)
@@ -50,7 +50,7 @@ public:
   ///@{
 
   /// Pointer definition of MemoryInfo
-  //   KRATOS_CLASS_POINTER_DEFINITION(MemoryInfo);
+    KRATOS_CLASS_POINTER_DEFINITION(MemoryInfo);
 
   ///@}
   ///@name Life Cycle
@@ -274,4 +274,4 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_MEMORY_MANAGER_H_INCLUDED  defined
+#endif // KRATOS_MEMORY_INFO_H_INCLUDED  defined
