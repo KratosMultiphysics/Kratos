@@ -279,7 +279,7 @@ public:
     }
 
     template<class TDataType>
-    void load(std::string const & rTag, boost::weak_ptr<TDataType>& pValue)
+    void load(std::string const & rTag, Kratos::weak_ptr<TDataType>& pValue)
     {
         // This is for testing. I have to change it. Pooyan.
         //KRATOS_THROW_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
@@ -476,7 +476,7 @@ public:
     }
 
     template<class TDataType>
-    void save(std::string const & rTag, boost::weak_ptr<TDataType> pValue)
+    void save(std::string const & rTag, Kratos::weak_ptr<TDataType> pValue)
     {
         // This is for testing. I have to implement it. Pooyan.
         //KRATOS_THROW_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
