@@ -61,7 +61,7 @@ Geometrically exact theory for 3D beams. Large displacements and large rotations
 
 ### Material Laws
 
-The Material laws are implemented in [this folder](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ConstitutiveModelsApplication).
+The Material laws are implemented in [this application](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ConstitutiveModelsApplication).
 
 ### Time integration schemes
 
@@ -74,13 +74,13 @@ The standard schemes for displacement and rotation degrees of freedom. The follo
 
 ### Contact mechanics
 
-The mechanics of contact is implemented in [this folder](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ContactMechanicsApplication).
+The mechanics of contact is implemented in [this application](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ContactMechanicsApplication).
 
 ## Available Interfaces
 
 ### GiD Interface
 
-It is located in GiD interface repository in [GiD interface repository](https://github.com/KratosMultiphysic/GiDInterface/tree/master/).
+It is located in GiD interface repository in [GiD interface repository](https://github.com/KratosMultiphysics/GiDInterface/tree/master/).
 
 Requires [GiD](https://www.gidhome.com/) - Pre and Post Processing software.
 
