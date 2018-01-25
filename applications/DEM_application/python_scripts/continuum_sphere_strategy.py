@@ -34,7 +34,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
             if DEM_parameters["DontSearchUntilFailure"].GetBool():
                 print ("Search is not active until a bond is broken.")
                 self.search_control = 0
-                if (len(fem_model_part.Nodes) > 0 or DEM_parameters["TestType"].GetString() == "BTS"):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
+                if (len(self.fem_model_part.Nodes) > 0 or DEM_parameters["TestType"].GetString() == "BTS"):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
                     print ("WARNING: Search should be activated since there might contact with FEM.")
 
         if not "TestType" in DEM_parameters.keys():
